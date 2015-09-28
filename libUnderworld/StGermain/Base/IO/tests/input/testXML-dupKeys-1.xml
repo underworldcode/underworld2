@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<StGermainData xmlns="http://www.vpac.org/StGermain/XML_IO_Handler/Jun2003">
+<struct name="structOne">
+<param name="paramOne">1</param>
+<param name="paramTwo">2</param>
+</struct>
+<struct name="structOne">
+<param name="2nd-paramOne">3</param>
+<param name="2nd-paramTwo">4</param>
+</struct>
+</StGermainData>

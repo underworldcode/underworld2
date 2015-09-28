@@ -1,0 +1,26 @@
+*******************    Test 6   ************************
+Test function TensorArray_MultiplyByTensorArray 
+
+Solutions tested against: http://www.uni-bonn.de/~manfear/matrixcalc.php2-D
+tensorArray - 
+      1           2     
+      3           4     
+tensorArray2 - 
+      5           6     
+      7           8     
+tensorResult - 
+     19          22     
+     43          50     
+3-D
+tensorArray - 
+      1           2           3     
+      4           5           6     
+      7           8           9     
+tensorArray2 - 
+     10          11          12     
+     13          14          15     
+     16          17          18     
+tensorResult - 
+     84          90          96     
+    201         216         231     
+    318         342         366     

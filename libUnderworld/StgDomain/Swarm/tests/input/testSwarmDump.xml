@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<StGermainData xmlns="http://www.vpac.org/StGermain/XML_IO_Handler/Jun2003">
+	<list name="import" mergeType="merge">
+      <param>StgDomain</param>
+   </list>
+	<include>testParticleCoordsSwarmDump.xml</include>
+	<struct name="components" mergeType="merge">
+		<struct name="context">
+			<param name="Type">DomainContext</param>
+		</struct>
+		<struct name="particleLayout">
+			<param name="Type">SpaceFillerParticleLayout</param>
+			<param name="totalInitialParticles">10000</param>
+		</struct>
+	</struct>
+	<param name="maxTimeSteps">1</param> 
+	<param name="minX">0.0</param> 
+	<param name="minY">0.0</param> 
+	<param name="minZ">0.0</param>
+	<param name="maxX">1.0</param> 
+	<param name="maxY">1.0</param>
+	<param name="maxZ">1.0</param>
+</StGermainData>

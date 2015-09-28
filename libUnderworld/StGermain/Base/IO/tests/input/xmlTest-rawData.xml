@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<StGermainData xmlns="http://www.vpac.org/StGermain/XML_IO_Handler/Jun2003">
+<list name="bcs">
+<asciidata>
+1 3 6
+2 9 14
+</asciidata>
+</list>
+<list name="boundary_conditions2">
+<asciidata>
+<columnDefinition name="side" type="string"/>
+<columnDefinition name="xval" type="int"/>
+<columnDefinition name="yval" type="int"/>
+<columnDefinition name="zval" type="int"/>
+<columnDefinition name="active" type="bool"/>
+top 4 5 8 True
+bottom 3 5 9 False
+left 9 3 4 1
+</asciidata>
+</list>
+</StGermainData>

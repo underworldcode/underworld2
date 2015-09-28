@@ -1,0 +1,20 @@
+solJ:solJ.o
+	gcc -Wall -o solJ solJ.c -lm
+pdf:doc
+	dvipdf -f solJ > solJ.pdf
+ps:doc
+	dvips -f solJ > solJ.ps
+doc:
+	latex solJ
+	latex solJ
+clean:
+	rm -f *.o
+	rm -f *~
+	rm -f *.aux *.dvi *.log
+vclean:
+	rm -f solJ solJ.o solJ.ps solJ.pdf
+	rm -f *~
+	rm -f *.aux *.dvi *.log
+solJ.o: solJ.c
+
+

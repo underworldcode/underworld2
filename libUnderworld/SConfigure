@@ -1,0 +1,317 @@
+import platform, os, sys
+from config import Package, packages, cc
+
+#
+# Add options to be passed on to build.
+#
+
+# (This is a bit of a hack but, disable osmesa so not used unless explicitly enabled on macs, better to use agl)
+osmesa_default = eval(os.getenv('WITH_OSMESA','1'))
+if platform.system() == 'Darwin':
+    osmesa_default = 0
+
+options = [
+    ('--prefix', 'prefix', 'Installation prefix.', None),
+    ('--build-dir', 'build_dir', 'Sandbox location.', 'build'),
+    ('--with-debugging', 'with_debugging', 'Build with debugging (default 1)', eval(os.getenv('WITH_DEBUGGING','1')), 'int'),
+    ('--with-profiling', 'with_profiling', 'Build with profiling', eval(os.getenv('WITH_PROFILING','0')), 'int'),
+    ('--optimisation-flag', 'optimisation_flag', 'Choose flag for optimisation', 'default', None),
+    ('--with-warnings', 'with_warnings', 'Print all warnings at compile time (default 1)', eval(os.getenv('WITH_WARNINGS','1')), 'int'),
+    ('--lib-type', 'lib_type', 'Library type: shared or static (default shared)', 'shared'),
+    ('--cc', 'CC', 'C compiler', None),
+    ('--cxx', 'CXX', 'C++ compiler', None),
+    ('--cflags', 'CFLAGS', 'Flags for the C compiler', None),
+    ('--cxxflags', 'CXXFLAGS', 'Flags for the C compiler', '-std=c++11'),
+    ('--with-credo', 'with_credo', 'Enable the CREDO sys test system (default 1)', eval(os.getenv('WITH_CREDO','1')), 'int'),
+    ('--with-glucifer', 'with_glucifer', 'Enable gLucifer (default 1)', eval(os.getenv('WITH_GLUCIFER','1')), 'int'),
+    ('--with-viewer', 'with_viewer', 'Enable gLucifer viewer (default 1)', eval(os.getenv('WITH_VIEWER','1')), 'int'),
+    ('--with-geothermal', 'with_geothermal', 'Enable Geothermal repository compile', os.path.isdir("Geothermal"), 'int'),
+    ('--with-solvers', 'with_solvers', 'Enable Solvers repository compile', os.path.isdir("Solvers"), 'int'),
+    ('--with-importers', 'with_importers', 'Enable importer toolbox compile', os.path.isdir("ImportersToolbox"), 'int'),
+    ('--with-spherical', 'with_spherical', 'Enable Spherical repository compile', os.path.isdir("Spherical"), 'int'),
+    ('--with-viscoelastic', 'with_viscoelastic', 'Enable Viscoelastic repository compile', os.path.isdir("Viscoelastic"), 'int'),
+    ('--with-osmesa', 'with_osmesa', 'Enable OSMesa output', osmesa_default, 'int'),
+    ('--with-sdl', 'with_sdl', 'Enable SDL output (default 1)', eval(os.getenv('WITH_SDL','1')), 'int'),
+    ('--with-x11', 'with_x11', 'Enable X11 output (default 1)', eval(os.getenv('WITH_X11','1')), 'int'),
+    ('--with-agl', 'with_agl', 'Enable AGL output (default 1)', eval(os.getenv('WITH_AGL','1')), 'int'),
+    ('--with-glut', 'with_glut', 'Enable glut window (default 1)', eval(os.getenv('WITH_GLUT','1')), 'int'),
+    ('--with-png', 'with_png', 'Enable PNG output (default 1)', eval(os.getenv('WITH_PNG','1')), 'int'),
+    ('--with-avcodec', 'with_avcodec', 'Enable avcodec movie output (default 1)', eval(os.getenv('WITH_AVCODEC','1')), 'int'),
+    ('--with-gl2ps', 'with_gl2ps', 'Enable gl2ps vector output (default 1)', eval(os.getenv('WITH_GL2PS','1')), 'int'),
+    ('--eptiming', 'eptiming', 'Enable Entry point timings: \'1\' will enable profiling for proc 0 only \'2\' will enable profiling per proc (previous setup)', 0, 'int'),
+    ('--with-cautious-mode', 'with_cautious_mode', 'Enable extra checking on heavily used functions', 0, 'int'),
+]
+
+#
+# Setup the environment.
+#
+
+env = Environment(ENV=os.environ)
+env.Tool('config', toolpath=['config'], options=options)
+
+#
+# Definition of our error function
+#
+
+def UWExit( self ):
+   print '\n'
+   print '***************************************'
+   print 'If you require help, send the files:'
+   print '\tconfig.log'
+   print '\tconfig.cfg (if it exists)'
+   print 'to: development@underworldproject.org'
+   print '************************************'
+   env.Exit(1)
+
+env.AddMethod( UWExit )
+
+#
+# Declare which packages we're going to use.
+#
+
+env.UsePackage(packages.libm)
+env.UsePackage(packages.libXML2)
+env.UsePackage(packages.HDF5)
+env.UsePackage(packages.OSMesa)
+env.UsePackage(packages.OpenGL)
+env.UsePackage(packages.SDL)
+env.UsePackage(packages.X11)
+env.UsePackage(packages.Glut)
+env.UsePackage(packages.AGL)
+env.UsePackage(packages.libPNG)
+env.UsePackage(packages.libavcodec)
+env.UsePackage(packages.gl2ps)
+env.UsePackage(packages.Python)
+env.UsePackage(packages.Numpy)
+env.UsePackage(packages.MPI)
+env.UsePackage(packages.PETSc)
+
+# this flag is required to prevent possible issues with AssertMacro.h defining 'check' 
+if platform.system() == 'Darwin':
+    env.MergeFlags('-D__ASSERT_MACROS_DEFINE_VERSIONS_WITHOUT_UNDERSCORES=0')
+
+
+#
+# Perform configuration.
+#
+
+if not (GetOption('help') or GetOption('clean')):
+
+    if env.get('CC', None) is not None:
+        cc.apply_cc(env, env['CC'])
+
+    # Switch off auto compilers if we were given one.
+    if '--cc' in ARGUMENTS:
+        env['packages'][packages.MPI].try_compilers = False
+
+    if env.get('prefix', None) is None:
+        env['prefix'] = env.GetLaunchDir()
+
+    # time profiling of entry points:
+    # 2 - for profiling per proc
+    # 1 - for profiling proc 0 only
+    if env.get('eptiming', None) == 1:
+        env.MergeFlags('-DENABLE_STGERMAIN_LOG=1')
+    elif env.get('eptiming', None) == 2:
+        env.MergeFlags('-DENABLE_STGERMAIN_LOG=2')
+
+
+    # confirm with_geothermal configure
+    if env.get('with_geothermal', None):
+        if os.path.isdir("Geothermal"):
+            print("Checking for Geothermal... yes");
+        else:
+            print("Geothermal not found");
+            env.Exit()
+
+
+    # confirm with_importers configure
+    if env.get('with_importers', None):
+        if os.path.isdir("ImportersToolbox"):
+            print("Checking for Importers toolbox... yes");
+        else:
+            print("Importers toolbox not found");
+            env.Exit()
+
+    # confirm with_solvers configure
+    if env.get('with_solvers', None):
+        if os.path.isdir("Solvers"):
+            print("Checking for Solvers... yes");
+        else:
+            print("Solvers not found");
+            env.Exit()
+
+
+    # confirm with_spherical configure
+    if env.get('with_spherical', None):
+        if os.path.isdir("Spherical"):
+            print("Checking for Spherical... yes");
+        else:
+            print("Spherical not found");
+            env.Exit()
+
+    # confirm with_viscoelastic configure
+    if env.get('with_viscoelastic', None):
+        if os.path.isdir("Viscoelastic"):
+            print("Checking for Viscoelastic... yes");
+        else:
+            print("Viscoelastic not found");
+            env.Exit()
+
+    if env.get('with_cautious_mode', None):
+        env.MergeFlags('-DCAUTIOUS')
+
+    env['save_vars'] += ['shared_libs', 'static_libs']
+    if env.get('lib_type', None) == 'shared':
+        env['shared_libs'] = 1
+        env['static_libs'] = 0
+    elif env.get('lib_type', None) == 'static':
+        env['shared_libs'] = 0
+        env['static_libs'] = 1
+        #env.MergeFlags('-static')
+        #env.AppendUnique(LINKFLAGS=['-static'])
+        Package.static = True
+    else:
+        print 
+        print '****  ERROR ****'
+        print 'Invalid option \'--lib-type\''
+        env.UWExit()
+
+    # enable all warnings.
+    if env.get('with_warnings', None):    
+        env.MergeFlags('-Wall')
+    if env.get('CC', None) == 'icc':
+        env.MergeFlags('-wd869 -wd1419')
+
+    # Copies base environment
+    base_env = env.Clone()
+
+    env.ConfigurePackage(packages.libm, required=False)
+    env.ConfigurePackage(packages.libXML2)
+    env.ConfigurePackage(packages.MPI)
+    env.ConfigurePackage(packages.HDF5, required=True)
+    env.ConfigurePackage(packages.Python, required=True)
+    env.ConfigurePackage(packages.PETSc)
+    env.ConfigurePackage(packages.Numpy, required=True)
+
+    #Set debug and optimise settings last to override any from PETSc
+    if env.get('optimisation_flag', None) == 'default':
+       if env.get('with_debugging', None):
+           env.MergeFlags('-g -DDEBUG -O0')
+       else:
+           env.MergeFlags('-O2 -DNDEBUG')
+    else:
+       if env.get('with_debugging', None):
+           env.MergeFlags('-g -DDEBUG '+env.get('optimisation_flag', None))
+       else:
+           env.MergeFlags('-DNDEBUG '+env.get('optimisation_flag', None))
+
+    if env.get('with_profiling'):
+      env.MergeFlags('-DUSE_PROFILE -DENABLE_STGERMAIN_LOG')
+
+    # Save environment
+    uw_env = env
+
+    # If we're building gLucifer viewer then we need some more packages.
+    offscreen_env = 0
+    viewer_env = 0
+    if env.get('with_glucifer', None):
+
+        # Configure auxilliary gLucifer packages.
+        vis_env = base_env.Clone()
+        env = vis_env
+        if env.get('with_png'):
+            env.ConfigurePackage(packages.libPNG, required=False)
+        if env.get('with_avcodec'):
+            env.ConfigurePackage(packages.libavcodec, required=False)
+        if env.get('with_gl2ps'):
+            env.ConfigurePackage(packages.gl2ps, required=False)
+
+        # Have base gLucifer environment, clone it
+        offscreen_env = base_env.Clone()
+        viewer_env = base_env.Clone()
+
+        #gLucifer output env
+        env = offscreen_env
+        # Try for OSMesa first
+        osmesa = 0
+        if env.get('with_osmesa'):
+           osmesa = env.ConfigurePackage(packages.OSMesa, required=False).result
+
+        # If OSMesa found, use it for gLucifer in Underworld
+        # If not, try AGL (mac) or use config of other windowing systems detected for interactive
+        agl = 0
+        if not osmesa:
+           # Try for AGL window if on Darwin...
+           if platform.system() == 'Darwin' and env.get('with_agl'):
+               agl = env.ConfigurePackage(packages.AGL, required=False).result
+           else:
+               offscreen_env = 0
+
+        #Interactive mode viewer window (also for offscreen if no config found yet)
+        if not (agl or osmesa) or env.get('with_viewer', None):
+            env = viewer_env
+            win = 0
+
+            # Try for Glut window first on OS X
+            glut = 0
+            if platform.system() == 'Darwin' and env.get('with_glut'):
+                glut = win = env.ConfigurePackage(packages.Glut, required=False).result
+
+            #Try configuring X11
+            x11 = 0
+            if (not win or platform.system() != 'Darwin') and env.get('with_x11'):
+                x11 = win = env.ConfigurePackage(packages.X11, required=False).result
+
+            # Try for SDL window 
+            sdl = 0
+            if (not win or platform.system() != 'Darwin') and env.get('with_sdl'):
+                sdl = win = env.ConfigurePackage(packages.SDL, required=False).result
+
+            # Try for Glut window on Linux
+            if platform.system() != 'Darwin' and env.get('with_glut'):
+                glut = win = env.ConfigurePackage(packages.Glut, required=False).result
+
+            #Configure OpenGL
+            if x11 or platform.system() != 'Darwin':
+                env.ConfigurePackage(packages.OpenGL, required=False).result
+
+            # An interactive windowing system is required for viewer
+            viewer_env = env
+            if not (x11 or glut or sdl or agl or osmesa):
+                print
+                print '****  WARNING ****'
+                print 'Need a windowing system for gLucifer Viewer, either'
+                print 'X11, SDL, Glut, AGL or OSMesa. None of these could be found.'
+                print 'The viewer will not be compiled.'
+
+                uw_env['with_viewer'] = 0
+                viewer_env = 0
+
+    # Export the environments
+    uw_env.SaveConfig()
+    
+    if env.get('with_glucifer'):
+        vis_env.SaveConfig('output.cfg')
+
+    Execute(Delete(File('viewer.cfg')))
+    Execute(Delete(File('offscreen.cfg')))
+
+    if env.get('with_viewer'):
+        if viewer_env:
+            viewer_env.SaveConfig('viewer.cfg')
+        if offscreen_env:
+            offscreen_env.SaveConfig('offscreen.cfg')
+
+#
+# Print success message.
+#
+
+print
+print '***************************************'
+print '* Successfully configured.            *'
+print '* Now run \'./scons.py\' to build.      *'
+print '***************************************'
+print
+
+

@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<StGermainData xmlns="http://www.vpac.org/StGermain/XML_IO_Handler/Jun2003">
+  <param name="test_cstring" paramType="string">hello</param>
+  <param name="test_double" paramType="double">45.567</param>
+  <param name="test_uint" paramType="uint">5</param>
+  <param name="test_int" paramType="int">-5</param>
+  <param name="test_unsignedlong" paramType="ulong">52342423</param>
+  <param name="test_bool" paramType="uint">1</param>
+  <param name="test_placeholder" paramType="string">test_double</param>
+  <list name="test_list">
+    <param paramType="double">0</param>
+    <param paramType="double">10</param>
+    <param paramType="double">20</param>
+    <param paramType="double">30</param>
+    <param paramType="double">40</param>
+  </list>
+  <struct name="test_struct">
+    <param name="height" paramType="double">37</param>
+    <param name="anisotropic" paramType="bool">true</param>
+    <param name="person" paramType="string">Patrick</param>
+    <struct name="geom">
+      <param name="startx" paramType="uint">45</param>
+      <param name="starty" paramType="uint">60</param>
+      <param name="startz" paramType="uint">70</param>
+    </struct>
+  </struct>
+</StGermainData>

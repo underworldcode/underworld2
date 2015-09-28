@@ -1,0 +1,100 @@
+<?xml version="1.0"?>
+<!DOCTYPE StGermainData SYSTEM "stgermain.dtd">
+
+<StGermainData xmlns="http://www.vpac.org/StGermain/XML_IO_Handler/Jun2003">
+
+	<list name="import">
+		<param>StgDomain</param>
+		<param>gLucifer</param>
+	</list>
+
+	<param name="outputPath">./output</param>
+
+	<struct name="components">
+		<struct name="context">
+			<param name="Type">DomainContext</param>
+		</struct>
+
+      <!-- camera -->
+		<struct name="camera" mergeType="replace">
+			<param name="Type">lucCamera</param>
+		</struct>
+
+      <!-- Some drawing objects -->
+		<struct name="title">
+			<param name="Type">lucTitle</param>
+			<param name="string">Title</param>
+		</struct>
+		<struct name="axis" mergeType="replace">
+			<param name="Type">lucAxis</param>
+		</struct>
+
+      <!-- Put in some viewports -->
+		<struct name="viewport1">
+			<param name="Type">lucViewport</param>
+			<param name="Camera">camera</param>
+			<list name="DrawingObject">
+				<param>title</param>
+				<param>axis</param>
+			</list>
+		</struct>
+		<struct name="viewport2">
+			<param name="Type">lucViewport</param>
+			<param name="Camera">camera</param>
+			<list name="DrawingObject">
+				<param>title</param>
+				<param>axis</param>
+			</list>
+		</struct>
+		<struct name="viewport3">
+			<param name="Type">lucViewport</param>
+			<param name="Camera">camera</param>
+			<list name="DrawingObject">
+				<param>title</param>
+				<param>axis</param>
+			</list>
+		</struct>
+
+      <!-- Rendering engine and image output -->
+		<struct name="renderingEngine">
+			<param name="Type">lucRenderingEngineGL</param>
+		</struct>
+		<struct name="imageOutput">
+			<param name="Type">lucDefaultImageOutput</param>
+			<param name="transparent">0</param>
+		</struct>
+
+		<struct name="testWindow1">
+			<param name="Type">lucDefaultWindow</param>
+			<param name="RenderingEngine">renderingEngine</param>
+			<list name="OutputFormat">
+				<param>imageOutput</param>
+			</list>
+			<param name="interactive">0</param>
+			<param name="isTimedOut">false</param>
+			<param name="backgroundColour">white</param>
+			<param name="Viewport">    viewport1         
+			      viewport2  </param>
+		</struct>
+
+		<struct name="testWindow2">
+			<param name="Type">lucDefaultWindow</param>
+			<param name="RenderingEngine">renderingEngine</param>
+			<list name="OutputFormat">
+				<param>imageOutput</param>
+			</list>
+			<param name="interactive">0</param>
+			<param name="isTimedOut">false</param>
+			<param name="backgroundColour">white</param>
+         <param name="height">600</param>
+         <param name="width">600</param>
+         <list name="Viewport">
+       	  <param>viewport1</param>
+       	  <param>
+       	         viewport2     viewport3</param>
+         </list>
+		</struct>
+
+	</struct>	
+
+</StGermainData>

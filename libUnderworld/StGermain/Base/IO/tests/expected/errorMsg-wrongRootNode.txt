@@ -1,0 +1,9 @@
+resource ./StGermain/Base/IO/input/WrongRootNode.xml of wrong type, root node =<Wrong>, should be <StGermainData>.
+Not parsing.
+
+
+-----------------------------STGERMAIN-ERROR-----------------------------
+Error: File ./StGermain/Base/IO/input/WrongRootNode.xml is empty or either its namespace or root node is invalid.
+-------------------------------------------------------------------------
+
+

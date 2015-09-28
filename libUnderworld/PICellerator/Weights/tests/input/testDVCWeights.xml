@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<!DOCTYPE StGermainData SYSTEM "stgermain.dtd">
+
+<StGermainData xmlns="http://www.vpac.org/StGermain/XML_IO_Handler/Jun2003">
+	
+	<list name="import" mergeType="merge">
+		<param>PICellerator</param>
+	</list>
+
+	<include>testElementIntegral.xml</include>
+	
+	<struct name="components" mergeType="merge">
+		<struct name="context">
+			<param name="Type">DomainContext</param>
+		</struct>
+
+		<struct name="weights">
+			<param name="Type">DVCWeights</param>
+		</struct>		
+	</struct>
+
+   <!-- for the purpose of testing, reduce output as much as possible. If the test fails,
+    comment out the line below to help diagnose source of error -->
+   <param name="journal.info">f</param>
+
+</StGermainData>

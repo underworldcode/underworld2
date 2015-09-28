@@ -1,0 +1,361 @@
+import os
+Import('env')
+
+# 
+# Need to make a copy because SCons uses the environment
+# at it's final state, so StGermain ends up depending on
+# StgDomain, etc. 
+#
+
+env = env.Clone()
+env['CURR_PROJECT'] = "Solvers"
+
+#
+# Inside each project we will be accessing headers without the
+# project name as a prefix, so we need to let SCons know how to
+# find those headers.
+#
+
+env.Append(CPPPATH=env['build_dir'] + '/include/Solvers')
+
+#
+# Need to include the Solvers library for binaries/plugins.
+#
+
+libs = ['Solvers'] + env.get('LIBS', [])
+
+#
+# Keep a list of all the objects we build so we can make a library
+# afterwards.
+#
+
+objs = []
+suites = []
+tst_exp = []
+tst_input = []
+
+
+#
+# Process each directory uniformly.
+#
+
+dirs = Split('Assembly SLE KSPSolvers libSolvers')                        
+for d in dirs:
+
+    # Need the module name, which is just the directory.
+    mod_name = env['ESCAPE']('"' + ''.join(d.split('/')) + '"')
+    cpp_defs = [('CURR_MODULE_NAME', mod_name)] + env.get('CPPDEFINES', [])
+
+    # Setup where to look for files.
+    src_dir = d + '/src'
+    inc_dir = 'include/Solvers/' + d
+    tst_dir = d + '/tests'
+    tst_exp_dir = tst_dir + '/expected'
+    tst_input_dir = tst_dir + '/input'
+    tst_install_dir = 'tests/Solvers/' + d
+
+    # Install the headers and '.def' files.
+    hdrs = env.Install(inc_dir, Glob(src_dir + '/*.h'))
+    defs = env.Install(inc_dir, Glob(src_dir + '/*.def'))
+
+    # Build our source files.
+    srcs = Glob(src_dir + '/*.c')
+    srcs = [s for s in srcs if s.path.find('-meta.c') == -1]
+    for src in srcs:
+        stg_cpp_defs = cpp_defs + [('SOURCE_FILE', '"\\"' + src.name + '\\""')]
+        objs += env.SharedObject(src, CPPDEFINES=stg_cpp_defs)
+
+    # Build any meta files.
+    objs += env.stgSharedMeta(Glob(src_dir + '/*.meta'), CPPDEFINES=cpp_defs)
+
+    # If we found any '.def' files make sure to register them as
+    # explicit dependencies.
+    if defs:
+        env.Depends(hdrs + objs, defs)
+
+    # Build any test suites we might find.
+    suites += env.Object(Glob(tst_dir + '/*Suite.c'))
+
+    # Install any test expected and input files
+    tst_exp += env.Install(tst_install_dir + '/expected', Glob(tst_exp_dir + '/*'))
+    tst_input += env.Install(tst_install_dir + '/input', Glob(tst_input_dir + '/*'))
+#
+# Process each directories of chosen dirs.
+#
+#
+# Will return list of directory names that reside in given 'dir'
+# 'dir' is a relative directory to this repository (e.g. relative to Solvers)
+# If one of these dirs is = "archive" then it is left out
+def getsubdirs(dir):
+    subdirs=[]
+    #cwd=os.getcwd() # gets cwd for build dir, not source dir here
+    cwd=Dir('#').abspath + '/Solvers'
+    fullpath=cwd+'/'+dir # absolute path
+    tmp=os.listdir(fullpath)
+    for x in tmp:
+        if os.path.isdir(fullpath+'/'+x):
+            if 'archive'!=x.lower(): # convert to lowercase. So Archive, ARChive etc get ignored
+                subdirs.append(x)
+    return subdirs
+     
+import glob
+
+dirstr='KSPSolvers'
+topdirs = dirstr.split()
+for dir in topdirs:
+    subdirs=getsubdirs(dir+'/src') # it appears we cannot use scons' Glob to get a list of directories?
+    for d in subdirs:
+        # Need the module name, which is just the directory.
+        subdir = d
+        d = dirstr + '/' + subdir # setting d here to e.g. KSPSolvers/BSSCR
+        mod_name = env['ESCAPE']('"' + ''.join(d.split('/')) + '"')
+        cpp_defs = [('CURR_MODULE_NAME', mod_name)] + env.get('CPPDEFINES', []) 
+
+        # Setup where to look for files.
+        src_dir = dirstr + '/src/' + subdir   # e.g. KSPSolvers/src/BSSCR
+
+        inc_dir = 'include/Solvers/' + d # e.g. KSPSolvers/BSSCR
+        tst_dir = d + '/tests'
+        tst_exp_dir = tst_dir + '/expected'
+        tst_input_dir = tst_dir + '/input'
+        tst_install_dir = 'tests/Solvers/' + d
+        
+        # Glob returns a list of Nodes that represent the absolute locations of files
+        # Install the headers and '.def' files.
+        hdrs = env.Install(inc_dir, Glob(src_dir + '/*.h'))
+        defs = env.Install(inc_dir, Glob(src_dir + '/*.def'))
+        
+        # Build our source files.
+        srcs = Glob(src_dir + '/*.c')
+        srcs = [s for s in srcs if s.path.find('-meta.c') == -1]
+        objs += env.SharedObject(srcs, CPPDEFINES=cpp_defs)
+        
+        # Build any meta files.
+        objs += env.stgSharedMeta(Glob(src_dir + '/*.meta'), CPPDEFINES=cpp_defs)
+        
+        # If we found any '.def' files make sure to register them as
+        # explicit dependencies.
+        if defs:
+            env.Depends(hdrs + objs, defs)
+
+        # Build any test suites we might find.
+        suites += env.Object(Glob(tst_dir + '/*Suite.c'))
+        
+        # Install any test expected and input files
+        tst_exp += env.Install(tst_install_dir + '/expected', Glob(tst_exp_dir + '/*'))
+        tst_input += env.Install(tst_install_dir + '/input', Glob(tst_input_dir + '/*'))
+
+# Need to install headers from libSolvers.
+env.Install('include/Solvers', Glob('libSolvers/src/*.h'))
+
+#
+# Build Toolbox.
+#
+
+dirs = ['libSolvers/Toolbox']
+pl_objs = []
+pl_regs = []
+for d in dirs:
+
+    name = 'Solvers_' + d.split('/')[-1] + 'module'
+    mod_name = env['ESCAPE']('"' + ''.join(d.split('/')) + '"')
+    cpp_defs = [('CURR_MODULE_NAME', mod_name)] + env.get('CPPDEFINES', [])
+
+    env.Install('include/Solvers/' + d.split('/')[-1], Glob(d + '/*.h'))
+
+    srcs = Glob(d + '/*.c')
+    srcs = [s for s in srcs if s.path.find('-meta.c') == -1]
+    cur_objs = env.SharedObject(srcs, CPPDEFINES=cpp_defs)
+    cur_objs += env.stgSharedMeta(Glob(d + '/*.meta'), CPPDEFINES=cpp_defs)
+
+    # If we have shared libraries, build the dynamic plugin.
+    if env['shared_libs']:
+        lib_pre = env['LIBPREFIXES']
+        if not isinstance(lib_pre, list):
+            lib_pre = [lib_pre]
+        env.SharedLibrary('lib/' + name, cur_objs,
+                          SHLIBPREFIX='',
+                          LIBPREFIXES=lib_pre + [''],
+                          LIBS=libs)
+
+    # If we are building static libs we need to construct a C file
+    # mapping the plugin's name to its register function.
+    if env['static_libs']:
+        pl_regs += [name]
+
+    # Keep track of all the plugin objects.
+    pl_objs += cur_objs
+
+
+#lst=getsubdirs('plugins')
+#print lst
+
+#Import('DOXYGEN_DIRS')
+#DOXYGEN_DIRS['Solvers'] = pluginDirs
+#Export('DOXYGEN_DIRS')
+
+#pl_objs = []
+#pl_regs = []
+#
+# Build shared library.
+#
+
+if env['shared_libs']:
+    env.SharedLibrary('lib/Solvers', objs)
+    env.SharedLibrary(env['prefix'] + '/lib/Solvers', objs)
+
+#
+# Write the static registry code.
+#
+
+if env['static_libs']:
+
+    reg_c = '#include <StGermain/StGermain.h>\n\n'
+    reg_c += 'extern int stg_num_modules;\n'
+    reg_c += 'extern char **stg_module_names;\n'
+    reg_c += 'extern int *stg_num_module_syms;\n'
+    reg_c += 'extern char ***stg_module_syms;\n\n'
+    reg_c += 'extern void ***stg_module_funcs;\n\n'
+    for n in pl_regs:
+        n = n[:-6]
+        reg_c += 'extern void (%s_MetaAsDictionary)();\n'%n
+        reg_c += 'extern void (%s_GetName)();\n'%n
+        reg_c += 'extern void (%s_Register)();\n'%n
+        if n.find('Toolbox') != -1:
+            reg_c += 'extern void (%s_Initialise)();\n'%n
+            reg_c += 'extern void (%s_Finalise)();\n'%n
+    reg_c += '\n'
+
+    reg_c += 'void experimental_register_static_modules() {\n'
+    reg_c += '   int new_num = stg_num_modules + %d;\n\n'%len(pl_regs)
+    
+    reg_c += '   stg_module_names = (char**)realloc(stg_module_names, new_num*sizeof(char*));\n'
+    for i in range(len(pl_regs)):
+        n = pl_regs[i][:-6]
+        reg_c += '   stg_module_names[stg_num_modules + %d] = (char*)"%s";\n'%(i, n)
+        
+    reg_c += '\n   stg_num_module_syms = (int*)realloc(stg_num_module_syms, new_num*sizeof(int));\n'
+    for i in range(len(pl_regs)):
+        n = pl_regs[i][:-6]
+        if n.find('Toolbox') != -1:
+            num_syms = 5
+        else:
+            num_syms = 1
+        reg_c += '   stg_num_module_syms[stg_num_modules + %d] = %d;\n'%(i, num_syms)
+
+    reg_c += '\n   stg_module_syms = (char***)realloc(stg_module_syms, new_num*sizeof(char**));\n'
+    for i in range(len(pl_regs)):
+        n = pl_regs[i][:-6]
+        if n.find('Toolbox') != -1:
+            num_syms = 5
+        else:
+            num_syms = 1
+        reg_c += '   stg_module_syms[stg_num_modules + %d] = (char**)malloc(%d*sizeof(char*));\n'%(i, num_syms)
+        reg_c += '   stg_module_syms[stg_num_modules + %d][0] = (char*)"%s_Register";\n'%(i, n)
+        if n.find('Toolbox') != -1:
+            reg_c += '   stg_module_syms[stg_num_modules + %d][1] = (char*)"%s_MetaAsDictionary";\n'%(i, n)
+            reg_c += '   stg_module_syms[stg_num_modules + %d][2] = (char*)"%s_GetName";\n'%(i, n)
+            reg_c += '   stg_module_syms[stg_num_modules + %d][3] = (char*)"%s_Initialise";\n'%(i, n)
+            reg_c += '   stg_module_syms[stg_num_modules + %d][4] = (char*)"%s_Finalise";\n'%(i, n)
+
+    reg_c += '\n   stg_module_funcs = (void***)realloc(stg_module_funcs, new_num*sizeof(void**));\n'
+    for i in range(len(pl_regs)):
+        n = pl_regs[i][:-6]
+        if n.find('Toolbox') != -1:
+            num_syms = 5
+        else:
+            num_syms = 1
+        reg_c += '   stg_module_funcs[stg_num_modules + %d] = (void**)malloc(%d*sizeof(void*));\n'%(i, num_syms)
+        reg_c += '   stg_module_funcs[stg_num_modules + %d][0] = (void*)%s_Register;\n'%(i, n)
+        if n.find('Toolbox') != -1:
+            reg_c += '   stg_module_funcs[stg_num_modules + %d][1] = (void*)%s_MetaAsDictionary;\n'%(i, n)
+            reg_c += '   stg_module_funcs[stg_num_modules + %d][2] = (void*)%s_GetName;\n'%(i, n)
+            reg_c += '   stg_module_funcs[stg_num_modules + %d][3] = (void*)%s_Initialise;\n'%(i, n)
+            reg_c += '   stg_module_funcs[stg_num_modules + %d][4] = (void*)%s_Finalise;\n'%(i, n)
+
+    reg_c += '\n   stg_num_modules += %d;\n'%len(pl_regs)
+    reg_c += '}\n'
+
+    reg_filename = os.path.join(env['build_dir'], 'Solvers', 'experimental_static_modules.c')
+    if not os.path.exists(os.path.dirname(reg_filename)):
+        os.makedirs(os.path.dirname(reg_filename))
+    reg_file = open(reg_filename, 'w')
+    reg_file.write(reg_c)
+    reg_file.close()
+    reg_obj = env.Object(reg_filename)
+
+    # Add our register function to the StGermain module file.
+    f = open(File(env['build_dir'] + '/StGermain/stg_static_modules.c').abspath, 'r')
+    txt = f.readlines()
+    f.close()
+    txt.insert(-2, '   experimental_register_static_modules();\n')
+    txt.insert(0, 'void experimental_register_static_modules();\n')
+    f = open(File(env['build_dir'] + '/StGermain/stg_static_modules.c').abspath, 'w')
+    f.writelines(txt)
+    f.close()
+
+    # Static library.
+    l = env.StaticLibrary(env['build_dir'] + '/lib/Solvers', objs + pl_objs + reg_obj)
+    env.Install(env['prefix'] + '/lib', l)
+
+#
+# Test runner program.
+#
+
+env.PCUTest('tests/testSolvers', suites,
+    PCU_LIBHEADERS="#include <StGermain/StGermain.h>\n" \
+        "#include <StgDomain/StgDomain.h>\n" \
+        "#include <StgFEM/StgFEM.h>\n" \
+        "#include <PICellerator/PICellerator.h>\n" \
+        "#include <Underworld/Underworld.h>\n" \
+        "#include <Solvers/Solvers.h>",
+    PCU_SETUP="\n"
+        "#ifdef NOSHARED\n" \
+        "   stgdomain_register_static_modules();\n" \
+        "   stgfem_register_static_modules();\n" \
+        "   picellerator_register_static_modules();\n" \
+        "   underworld_register_static_modules();\n" \
+        "   experimental_register_static_modules();\n" \
+        "   StGermain_Init(&argc, &argv);\n" \
+        "   StgDomain_Init(&argc, &argv);\n" \
+        "   StgFEM_Init(&argc, &argv);\n" \
+        "   PICellerator_Init(&argc, &argv);\n" \
+        "   Underworld_Init(&argc, &argv);\n" \
+        "   Solvers_Init(&argc, &argv);\n" \
+        "#else\n" \
+        "   StGermain_Init(&argc, &argv);\n" \
+        "   ModulesManager_LoadModule(stgToolboxesManager, \"Solvers\" );\n" \
+        "#endif\n\n" \
+        "   stJournal->firewallProducesAssert = True;\n" \
+        "   stJournal->firewallProtected = True;\n", 
+    PCU_TEARDOWN="\n"
+        "#ifdef NOSHARED\n" \
+        "   Solvers_Finalise();\n" \
+        "   Underworld_Finalise();\n" \
+        "   PICellerator_Finalise();\n" \
+        "   StgFEM_Finalise();\n" \
+        "   StgDomain_Finalise();\n" \
+        "   StGermain_Finalise();\n" \
+        "#else\n" \
+        "   ModulesManager_UnloadModule(stgToolboxesManager, \"Solvers\" );\n" \
+        "   StGermain_Finalise();\n" \
+        "#endif\n",
+    LIBS=libs,
+    PCU_EXP=tst_exp,
+    PCU_INPUT=tst_input,
+    PROJECT="Solvers")
+
+#
+# Install XML input files.
+#
+
+env.Install('lib/StGermain/Solvers', Glob('InputFiles/Solvers_Components/*.xml'))
+env.Install('lib/StGermain/Solvers', Glob('InputFiles/*.xml'))
+env.Install('lib/StGermain/Solvers/Viewports', Glob('InputFiles/Viewports/*.xml'))
+
+env.Alias("install", env.Install(env['prefix'] + '/share/Solvers/', env.GetLaunchDir() + '/Solvers/InputFiles' ) ) 
+
+#
+# Setup the system tests.
+#
+#env.AddConvergenceTestSuite('SysTest/ConvergenceTests/testSolver.py')

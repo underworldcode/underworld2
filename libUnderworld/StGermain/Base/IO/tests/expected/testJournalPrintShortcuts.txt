@@ -1,0 +1,8 @@
+string = helloWorldHowDoYouDo
+doubleValue = 3.142e+23
+floatValue = 2.1734
+intValue = 3
+uintValue = 3980
+charValue = V
+doubleArray = { 10.23, 393.1, -89, 1231 }
+uintArray = { 10, 2021, 231, 2, 3, 4, 55 }

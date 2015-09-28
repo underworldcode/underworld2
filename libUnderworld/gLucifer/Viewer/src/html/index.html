@@ -1,0 +1,521 @@
+<html>
+
+<head>
+<title>LavaVu Interface</title>
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+
+<link rel="stylesheet" type="text/css" href="styles.css">
+<script type="text/javascript" src="gl-matrix-min.js"></script>
+<script type="text/javascript" src="OK-min.js"></script>
+<script type="text/javascript" src="draw.js"></script>
+<script type="text/javascript" src="server.js"></script>
+
+<script id="particle-vs" type="x-shader/x-vertex">
+precision highp float;
+
+attribute vec3 aVertexPosition;
+attribute vec4 aVertexColour;
+attribute float aVertexSize;
+attribute float aPointType;
+
+uniform mat4 uMVMatrix;
+uniform mat4 uPMatrix;
+
+uniform float uPointScale;
+uniform float uAlpha;
+uniform vec4 uColour;
+
+varying vec4 vColour;
+varying vec3 vPosEye;
+varying float vPointType;
+
+void main(void)
+{
+  vec4 mvPosition = uMVMatrix * vec4(aVertexPosition, 1.0);
+  vPosEye = vec3(mvPosition);
+  gl_Position = uPMatrix * mvPosition;
+  if (uColour.a > 0.0)
+    vColour = uColour;
+  else
+    vColour = vec4(aVertexColour.rgb, aVertexColour.a*uAlpha);
+  // calculate window-space point size
+  float eyeDist = length(mvPosition);
+  float size = max(1.0, aVertexSize);
+  gl_PointSize = uPointScale * size / eyeDist;
+  vPointType = aPointType;
+}
+
+</script>
+
+<script id="particle-fs" type="x-shader/x-fragment">
+precision highp float;
+uniform int uPointType;
+varying vec4 vColour;
+varying vec3 vPosEye;
+varying float vPointType;
+void main(void)
+{
+  // calculate normal from point coordinates
+  vec3 N;
+  N.xy = gl_PointCoord * vec2(2.0, -2.0) + vec2(-1.0, 1.0);
+  float mag = dot(N.xy, N.xy);
+  if (vColour.a < 0.05 || mag > 1.0) discard;   // kill pixels outside circle radius and transparent pixels
+
+  int pointType = uPointType;
+  if (vPointType >= 0.0) pointType = int(ceil(vPointType));
+
+  if (pointType < 2)
+  {
+    if (pointType == -1)
+      gl_FragColor = vColour; //vec4(vColour.rgb, 1.0);      //Simple
+    else if (pointType == 1)
+    //  gl_FragColor = vec4(vColour.rgb, vColour.a * 1.0-sqrt(mag));  // 
+      gl_FragColor = vec4(vColour.rgb, vColour.a * exp((-mag*mag)/1.28));  //Gaussian
+    else
+      gl_FragColor = vec4(vColour.rgb, vColour.a * 1.0-mag);      //Linear
+    return; //No lighting effects, finish here`
+  }
+
+  // calculate lighting
+  vec3 specolour = vec3(1.0, 1.0, 1.0);   //Colour of specular light
+  vec3 diffcolour = vec3(1.0, 1.0, 1.0);  //Colour of diffuse light
+  vec3 ambcolour = vec3(0.1, 0.1, 0.1);   //Colour of ambient light
+  N.z = sqrt(1.0-mag);
+  vec3 lightDir = normalize(vec3(1.0,1.0,1.0) - vPosEye);
+  float diffuse = max(0.0, dot(lightDir, N));
+
+  // compute the specular term if diffuse is larger than zero 
+  float specular = 0.0;
+  if (pointType == 3 && diffuse > 0.0)
+  {
+    float shininess = 32.0;
+    vec3 lightPos = lightDir*2.0;        //Fixed light position
+    // normalize the half-vector, and then compute the 
+    // cosine (dot product) with the normal
+    vec3 halfVector = normalize(lightPos - vec3(gl_PointCoord, 0));
+    float NdotHV = max(dot(N, halfVector), 0.0);
+    specular = pow(NdotHV, shininess);
+  }
+
+  vec3 lightWeighting = ambcolour + diffcolour * diffuse;
+  gl_FragColor = vec4(vColour.rgb * lightWeighting + specolour * specular, vColour.a);
+}
+
+</script>
+
+<script id="triangle-fs" type="x-shader/x-fragment">
+precision highp float;
+varying vec4 vColour;
+varying vec3 vNormal;
+varying vec3 vPosEye;
+varying vec2 vTexCoord;
+varying float vObjectID;
+varying vec3 vert;
+
+uniform int uCullFace[64];
+//uniform sampler2D Texture;
+
+void main(void)
+{
+  //Wireframe from tex coord
+  if (vTexCoord.x > 0.03 && vTexCoord.x < 0.97 &&
+      vTexCoord.y > 0.03 && vTexCoord.y < 0.97) discard;
+  float alpha = vColour.a;
+
+  //Get properties by object ID
+  int cullface = 0;
+  for (int i=0; i<=64; i++)
+    if (abs(vObjectID - float(i)) <= 0.001) cullface = uCullFace[i];
+  //Back-face culling
+  if (cullface > 0 && dot(vPosEye, vNormal) > 0.0) discard;
+
+  //Head light
+  const vec3 lightPos = vec3(0.5, 5.0, 7.0);
+  const float ambient = 0.4;
+  float diffuse = 0.8; //1.0 - ambient;
+
+  vec3 diffColour = vec3(1.0, 1.0, 1.0);  //Colour of diffuse light
+  vec3 ambColour = vec3(ambient, ambient, ambient);   //Colour of ambient light
+
+  vec3 lightDir = normalize(lightPos - vPosEye);
+
+  diffuse *= abs(dot(vNormal, lightDir));
+
+  vec3 lightWeighting = ambColour + diffColour * diffuse;
+  gl_FragColor = vec4(vColour.rgb * lightWeighting, alpha);
+}
+</script>
+
+<script id="triangle-vs" type="x-shader/x-vertex">
+precision highp float;
+
+attribute vec3 aVertexPosition;
+attribute vec3 aVertexNormal;
+attribute vec4 aVertexColour;
+attribute vec2 aVertexTexCoord;
+attribute float aVertexObjectID;
+
+uniform mat4 uMVMatrix;
+uniform mat4 uPMatrix;
+uniform mat4 uNMatrix;
+
+uniform vec4 uColour;
+
+uniform float uAlpha;
+
+varying vec4 vColour;
+varying vec3 vNormal;
+varying vec3 vPosEye;
+varying vec2 vTexCoord;
+varying vec3 vert;
+
+varying float vObjectID;
+
+void main(void)
+{
+  vec4 mvPosition = uMVMatrix * vec4(aVertexPosition, 1.0);
+    mvPosition -= 0.00001*aVertexObjectID;
+  vPosEye = vec3(mvPosition);
+  gl_Position = uPMatrix * mvPosition;
+  vNormal = normalize(mat3(uNMatrix) * aVertexNormal);
+  if (uColour.a > 0.0)
+    vColour = uColour;
+  else
+    vColour = vec4(aVertexColour.rgb, aVertexColour.a*uAlpha);
+
+  vTexCoord = aVertexTexCoord;
+  vObjectID = aVertexObjectID;
+  vert = aVertexPosition;
+}
+
+</script>
+
+<script id="line-fs" type="x-shader/x-fragment">
+precision highp float;
+varying vec4 vColour;
+
+void main(void)
+{
+  gl_FragColor = vColour;
+}
+</script>
+
+<script id="line-vs" type="x-shader/x-vertex">
+precision highp float;
+
+attribute vec3 aVertexPosition;
+attribute vec4 aVertexColour;
+
+uniform mat4 uMVMatrix;
+uniform mat4 uPMatrix;
+
+uniform vec4 uColour;
+uniform float uAlpha;
+
+varying vec4 vColour;
+
+void main(void)
+{
+  vec4 mvPosition = uMVMatrix * vec4(aVertexPosition, 1.0);
+  gl_Position = uPMatrix * mvPosition;
+  if (uColour.a > 0.0)
+    vColour = uColour;
+  else
+    vColour = vec4(aVertexColour.rgb, aVertexColour.a*uAlpha);
+}
+
+</script>
+
+</head>
+
+<body onload="initPage();" oncontextmenu="return false;">
+
+  <div id="progress" class="popup" style="display: none; width: 310px; height: 32px;">
+    <span id="progressmessage"></span><span id="progressstatus"></span>
+    <div id="progressbar" style="width: 300px; height: 10px; background: #58f;"></div>
+  </div>
+
+  <canvas id="canvas" class="canvas"></canvas>
+  <img id="frame" class="server" style="display: none; position: absolute; top: 0px; left: 0px; z-index: -1;"></img>
+  <!--img id="frame" style="display: none" class="canvas"></img-->
+
+  <div id="hidden" style="display: none">
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAPCAYAAAA2yOUNAAAAj0lEQVQokWNIjHT8/+zZs//Pnj37/+TJk/9XLp/+f+bEwf9HDm79v2Prqv9aKrz/GUYVEaeoMDMQryJXayWIoi0bFmFV1NWS+z/E1/Q/AwMDA0NVcez/LRsWoSia2luOUAADVcWx/xfO6/1/5fLp/1N7y//HhlmhKoCBgoyA/w3Vyf8jgyyxK4CBUF8zDAUAAJRXY0G1eRgAAAAASUVORK5CYII=" id="slider">
+    <canvas id="gradient" width="2048" height="1"></canvas>
+  </div>
+
+<div class="toolbox" id="params">
+  <h3>Global Settings</h3>
+  <div class="toolclose" onclick="toggle('properties-controls');">&#x25BE;</div>
+  <hr>
+  <div id="properties-controls" style="display: block;">
+    <!-- Clip controls -->
+    <table>
+    <tr>
+      <td>X min</td>
+      <td>
+         <input id="xmin" type="range" min="0" max="1" value="0" step="0.01" onchange="viewer.setProperties();">
+         <output for="xmin" id="xmin-out">0</output>
+      </td>
+    </tr>
+    <tr>
+      <td>X max</td>
+      <td>
+         <input id="xmax" type="range" min="0" max="1" value="1" step="0.01" onchange="viewer.setProperties();">
+         <output for="xmax" id="xmax-out">0</output>
+      </td>
+    </tr>
+    <tr>
+      <td>Y min</td>
+      <td>
+         <input id="ymin" type="range" min="0" max="1" value="0" step="0.01" onchange="viewer.setProperties();">
+         <output for="ymin" id="ymin-out">0</output>
+      </td>
+    </tr>
+    <tr>
+      <td>Y max</td>
+      <td>
+         <input id="ymax" type="range" min="0" max="1" value="1" step="0.01" onchange="viewer.setProperties();">
+         <output for="ymax" id="ymax-out">0</output>
+      </td>
+    </tr>
+    <tr>
+      <td>Z min</td>
+      <td>
+         <input id="zmin" type="range" min="0" max="1" value="0" step="0.01" onchange="viewer.setProperties();">
+         <output for="zmin" id="zmin-out">0</output>
+      </td>
+    </tr>
+    <tr>
+      <td>Z max</td>
+      <td>
+         <input id="zmax" type="range" min="0" max="1" value="1" step="0.01" onchange="viewer.setProperties();">
+         <output for="zmax" id="zmax-out">0</output>
+      </td>
+    </tr>
+    <tr><td>Brightness</td>
+       <td>
+          <input id="brightness" type="range" min="-1" max="1" value="0" step="0.01" onchange="viewer.setProperties();">
+          <output for="brightness" id="brightness-out">0</output>
+       </td>
+    </tr>
+    <tr><td>Contrast</td>
+       <td>
+          <input id="contrast" type="range" min="0" max="2" value="1" step="0.01" onchange="viewer.setProperties();">
+          <output for="contrast" id="contrast-out">1</output>
+       </td>
+    </tr>
+    <tr><td>Saturation</td>
+       <td>
+          <input id="saturation" type="range" min="0" max="2" value="1" step="0.01" onchange="viewer.setProperties();">
+          <output for="saturation" id="saturation-out">1</output>
+       </td>
+    </tr>
+    <tr><td>Point Scaling</td>
+       <td>
+          <input id="pointScale" type="range" min="1" max="100" value="10" step="1" onchange="viewer.setProperties();"/>
+          <output for="pointScale" id="pointScale-out">5</output>
+       </td>
+    </tr>
+    <tr><td>Opacity</td>
+       <td>
+          <input id="globalAlpha" type="range" min="0" max="1" value="1" step="0.01" onchange="viewer.setProperties();"/>
+          <output for="globalAlpha" id="globalAlpha-out">1</output>
+       </td>
+    </tr>
+    <tr><td>Point Type</td><td>
+    <select id="globalPointType" onchange="viewer.setProperties();">
+    <option value="0" selected>Transparent - Gaussian</option>
+    <option value="1">Transparent - Linear</option>
+    <option value="2">Solid sphere</option>
+    <option value="3">Sphere with highlight</option>
+    <option value="4">Flat</option>
+    </select>
+    </td></tr>
+    <tr><td>Background</td><td>
+    <select id="bgColour" onchange="viewer.setProperties();">
+    <option value="" selected></option>
+    <option value="0">black</option>
+    <option value="1">white</option>
+    <option value="0.65">light grey</option>
+    <option value="0.25">dark grey</option>
+    </select>
+    </td></tr>
+
+    <tr><td>Zoom</td><td>
+    <input id="zoomin" type="button" value=" + " onclick="viewer.zoom(0.05)"/>
+    <input id="zoomout" type="button" value=" - " onclick="viewer.zoom(-0.05)"/>
+    </td></tr>
+
+    <tr><td></td><td>
+    <input id="resetview" type="button" value="Reset camera" onclick="viewer.reset()"/>
+    </td></tr>
+
+
+    <tr>
+      <td>Left-click</td>
+      <td>
+        <input type="radio" name="mode" id="rmode" value="rotate" checked="checked"/> Rotate
+        <input type="radio" name="mode" id="tmode" value="translate" /> Translate
+      </td>
+    </tr>
+    <tr><td>Bounding box</td><td><input name="border" id="border" type="checkbox" checked="" onchange="viewer.setProperties();"></td></tr>
+    <tr><td>Axes</td><td><input name="axes" id="axes" type="checkbox" checked="" onchange="viewer.setProperties();"></td></tr>
+
+        <!--tr><td>Auto-subsample</td><td><input name="subsample" id="subsample" type="checkbox" checked="checked" onchange="viewer.draw();"></td></tr-->
+        <tr class="client"><td>Immediate sort</td><td><input name="immsort" id="immsort" type="checkbox" onchange="viewer.draw();"></td></tr>
+        <tr class="client"><td>Interactive render</td><td><input name="interactive" id="interactive" type="checkbox" onchange="viewer.draw();"></td></tr>
+
+        <tr class="server">
+          <td>Timestep</td>
+          <td>
+            <input id="timestep" type="range" min="0" max="100" value="50" onchange="viewer.setTimeStep();">
+            <br>
+            <input type="button" value="<-" onclick="requestData('/command=timestep up');">
+            <input type="button" value="->" onclick="requestData('/command=timestep down');">
+          </td>
+        </tr>
+        <tr class="server"><td>Commands</td><td><input type="text" id="cmdInput" onkeypress="keyPressCommand(event, this);"></td></tr>
+    </table>
+      
+    <hr>
+    <input type="button" class="server" value="Resize" onclick="resizeToWindow();">
+    <input type="button" value="Import" onclick="$('fileupload').click();">
+    <input name="file" id="fileupload" type="file" onchange="fileSelected(this.files)" style="display: none;">
+    <input name="export" id="export" type="button" value="Export" onclick="viewer.exportFile();">
+    <hr>
+    <input type="button" value="Objects" onclick="objectlist.toggle();">
+    <!--input type="button" value="Console" onClick="OK.debug_on = true; messages.toggle();"-->
+    <input id="sort" type="button" value="Sort" onClick="document.body.style.cursor = 'wait'; this.style.display = 'none'; viewer.draw(); document.body.style.cursor = 'default';" style="display: none; float: right;">
+  </div>
+
+</div>
+
+<div class="toolbox" id="objectlist" style="max-height: 500px;">
+  <div class="toolclose" onclick="window.objectlist.hide();">&times;</div>
+  <h3>Objects</h3>
+  <hr>
+  <div id="objects" class="scroll">
+  </div>
+  <hr>
+  <span class="client">Update selected (visible) objects</span>
+  <input id="apply" class="right client" type="button" value="Apply" onClick="viewer.apply();" disabled>
+</div>
+
+<div class="toolbox" id="messages"><div>
+  <div class="toolclose" onclick="window.messages.hide();">&times;</div>
+  <h3>Log</h3>
+  <input type="button" class="right" value="Clear" onClick="OK.clear()">
+  <div id="console" class="scroll">
+  </div>
+</div></div>
+
+<div class="toolbox" id="properties"><div>
+  <div class="toolclose" onclick="window.properties.hide();">&times;</div>
+  <h3><span id="obj_name"></span> properties</h3>
+  <hr>
+  <div id="props">
+    <input id="opacity" type="range" min="0" max="1" value="1" step="0.01" oninput="$(this.id+'-out').value = this.value;">Opacity
+    <output for="opacity" id="opacity-out">1</output>
+    <br>
+    <!--input id="brightness" type="range" min="-100" max="100" value="0">Brightness<br>
+    <input id="contrast" type="range" min="0" max="200" value="100">Contrast<br>
+    <input id="saturation" type="range" min="0" max="200" value="100">Saturation<br-->
+    <!-- Particle controls -->
+    <div class="point-obj">
+       <input id="pointSize" type="range" min="1" max="100" value="10" step="1" oninput="$(this.id+'-out').value = this.value/10.0;">
+       Point Size
+       <output for="pointSize" id="pointSize-out">1</output>
+    </div>
+    <div class="point-obj">Point Type<br>
+      <select id="pointType">
+      <option value="-1" selected>Default</option>
+      <option value="0">Transparent - Gaussian</option>
+      <option value="1">Transparent - Linear</option>
+      <option value="2">Solid sphere</option>
+      <option value="3">Sphere with highlight</option>
+      <option value="4">Flat</option>
+      </select>
+    </div>
+    <!-- Surface controls -->
+    <div class="surface-obj">
+      <input id="wireframe" type="checkbox"><label for="wireframe">Wireframe</label>
+      <input id="cullface" type="checkbox"><label for="cullface">Cull faces</label>
+    </div>
+    <!-- Volume controls -->
+    <div class="volume-obj">
+       <input id="density" type="range" min="0" max="100" value="10" step="1" oninput="$(this.id+'-out').value = this.value;">Density
+       <output for="" id="density-out">10</output>
+    </div>
+    <div class="volume-obj">
+       <input id="power" type="range" min="0.01" max="5" value="1" step="0.01" oninput="$(this.id+'-out').value = this.value;">Power
+       <output for="power" id="power-out">1</output>
+    </div>
+    <div class="volume-obj">
+       <input id="samples" type="range" min="32" max="2048" value="256" step="1" oninput="$(this.id+'-out').value = this.value;">Samples
+       <output for="samples" id="samples-out">1</output>
+    </div>
+    <div class="volume-obj">
+       <input id="isovalue" type="range" min="0" max="1" value="0" step="0.01" oninput="$(this.id+'-out').value = this.value;">Isovalue
+       <output for="isovalue" id="isovalue-out">0</output>
+    </div>
+    <div class="volume-obj">
+       <input id="isosmooth" type="range" min="0.1" max="3" value="0.1" step="0.1" oninput="$(this.id+'-out').value = this.value;">Isosmooth
+       <output for="isosmooth" id="isosmooth-out">0.1</output>
+    </div>
+    <div class="volume-obj">
+       <input id="isoalpha" type="range" min="0" max="1" value="1" step="0.01" oninput="$(this.id+'-out').value = this.value;">Isoalpha
+       <output for="isoalpha" id="isoalpha-out">1</output>
+    </div>
+    <div class="volume-obj">
+       <input id="isowalls" type="checkbox">
+       <label for="isowalls">Draw Walls</label>
+    </div>
+    <div class="volume-obj">
+       <input id="isofilter" type="checkbox">
+       <label for="isofilter">Filter</label>
+    </div>
+    <!-- Clip controls >
+    <hr>
+    <div>
+      <span>
+      <input id="xmin" type="range" min="0" max="1" value="0" step="1">X min
+      <input id="xmax" type="range" min="0" max="1" value="1" step="1">X max
+      </span>
+    </div>
+    <div>
+      <span>
+      <input id="ymin" type="range" min="0" max="1" value="0" step="1">Y min
+      <input id="ymax" type="range" min="0" max="1" value="1" step="1">Y max
+      </span>
+    </div>
+    <div>
+      <span>
+      <input id="zmin" type="range" min="0" max="1" value="0" step="1">Z min
+      <input id="zmax" type="range" min="0" max="1" value="1" step="1">Z max
+      </span>
+    </div-->
+  </div>
+  <hr>
+  Colour<br>
+  <div id="colour-edit">
+    <div id="colour" class="colourbg checkerboard">
+      <div id="colour_set" class="colour" onmousedown="viewer.gradient.edit(this);"></div>
+      </div>
+  </div>
+  <br>
+  Colourmap
+  <br>
+  <select id="colourmap-presets" onchange="viewer.setColourMap(this.value);">
+    <option value="-1">None</option>
+  </select>
+  <input type="button" value=" + " onClick="viewer.addColourMap();">
+  <br>
+  <canvas id="palette" width="512" height="24" class="palette checkerboard"></canvas>
+  <div id="log"><input id="logscale" type="checkbox"><label for="logscale">LogScale</label></div>
+  <hr>
+  <input type="button" class="right" value="Apply" onClick="viewer.setObjectProperties(); viewer">
+</div></div>
+</body>
+
+</html>

@@ -1,0 +1,12 @@
+--- scons-1.2.0/engine/SCons/Environment.py	2008-12-21 17:59:59.000000000 +1100
++++ backup/scons-local-1.2.0/SCons/Environment.py	2009-10-01 11:14:17.000000000 +1000
+@@ -776,6 +776,9 @@
+                     dict['LINKFLAGS'].append(arg)
+                 elif arg in ['-include', '-isysroot', '-arch']:
+                     append_next_arg_to = arg
++                elif arg == '-tp':
++                    dict['CCFLAGS'].append(arg)
++                    append_next_arg_to = 'CCFLAGS'
+                 else:
+                     dict['CCFLAGS'].append(arg)
+     

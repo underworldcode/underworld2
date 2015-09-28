@@ -1,0 +1,11 @@
+****************************************
+Testing GetSymmetricPart
+dim = 2
+symmTensor - 
+      3        13.5     
+   13.5         5.8     
+dim = 3
+symmTensor - 
+      3        13.5         0.5     
+   13.5         5.8          17     
+    0.5          17          -7     

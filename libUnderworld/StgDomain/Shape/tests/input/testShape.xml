@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!DOCTYPE StGermainData SYSTEM "stgermain.dtd">
+<StGermainData xmlns="http://www.vpac.org/StGermain/XML_IO_Handler/Jun2003">
+<!--Purpose: Defines the testing conditions for a simulation-->	
+	<list name="import">
+  		<param> StgDomain </param>
+  	</list>
+
+	<struct name="components" mergeType="merge">
+		<struct name="context">
+			<param name="Type">DomainContext</param>
+		</struct>
+	</struct>
+
+	<param name="journal-level.info.Stg_ComponentFactory"> 0 </param>
+	<param name="outputPath"> ./output </param>
+	<param name="dim"> 2 </param>
+	<param name="testCoordCount"> 10000 </param>
+	
+</StGermainData>

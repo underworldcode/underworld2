@@ -1,0 +1,46 @@
+<!-- Rayleigh-Taylor lucifer viewports -->
+<!-- DTD to validate against -->
+<StGermainData xmlns="http://www.vpac.org/StGermain/XML_IO_Handler/Jun2003">
+
+   <struct name="components" mergeType="merge">
+
+      <!-- Drawing Objects -->
+      <struct name="square" mergeType="replace">
+         <param name="Type">lucCrossSection</param>
+         <param name="FieldVariable">StrainRateInvariantField</param>
+         <param name="wireframe">1</param>
+         <param name="crossSection">z=0</param>
+      </struct>
+
+		<struct name="cameraLeftHand">
+			<param name="Type">lucCamera</param>
+			<param name="CentreFieldVariable">VelocityField</param>
+			<param name="CoordinateSystem">LeftHanded</param>
+		</struct>
+
+      <!-- Viewport -->
+      <struct name="lucViewportTestVP">
+         <param name="Type">lucViewport</param>
+         <param name="Camera">cameraLeftHand</param>
+         <param name="axis">true</param>
+         <param name="axisLength">0.5</param>
+         <param name="border">6</param>
+         <param name="borderColour">orange</param>
+         <param name="title">Test Viewport Title</param>
+         <param name="timestep">True</param>
+         <list name="DrawingObject">
+            <param>square</param>
+         </list>
+      </struct>
+
+		<struct name="windowViewport">
+			<param name="Type">lucDefaultWindow</param>
+			<param name="Database">database</param>
+			<param name="antialias">false</param>
+   		<list name="Viewport">
+	   		<param>lucViewportTestVP</param>
+   		</list>
+		</struct>
+   </struct>
+
+</StGermainData>

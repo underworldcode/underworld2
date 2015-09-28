@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<!DOCTYPE StGermainData SYSTEM "stgermain.dtd">
+
+<StGermainData xmlns="http://www.vpac.org/StGermain/XML_IO_Handler/Jun2003">
+ 
+	<!-- Tests single params -->
+	<param name="base-param1">1</param>
+	<param name="base-param2">2</param>
+	<param name="base-param3">3</param>
+
+	<!-- Test structs -->
+	<struct name="base-struct">
+		<param name="base-struct-param1">a</param>
+		<param name="base-struct-param2">b</param>
+		<param name="base-struct-param3">c</param>
+	</struct>
+	
+	<!-- Test list -->
+	<list name="base-list">
+		<param>1</param>
+		<struct>
+			<param name="base-list-struct-param1">1</param>
+			<param name="base-list-struct-param2">2</param>
+			<param name="base-list-struct-param3">3</param>
+		</struct>
+	</list>
+
+	<!-- Test include -->
+ 
+	<include>./include1.xml</include>
+	<include>./include2.xml</include>
+	<include>./include3.xml</include>
+
+</StGermainData>

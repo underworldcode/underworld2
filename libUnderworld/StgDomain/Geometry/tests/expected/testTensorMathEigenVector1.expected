@@ -1,0 +1,11 @@
+****************    Test Eigenvector 1   *********************
+2D Case from Kresig, p. 371f
+
+Matrix to solve for eigenvectors is:
+symmTensor - 
+     -5           2     
+      2          -2     
+eigenvectorList[0].eigenvalue = -6
+eigenvectorList[1].eigenvalue = -1
+eigenvectorList[0].vector = { 0.89443, -0.44721 }
+eigenvectorList[1].vector = { 0.44721, 0.89443 }

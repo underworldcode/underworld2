@@ -1,0 +1,4 @@
+****************************************
+Testing StGermain_VectorTensorVector
+dim = 2 - a_i u_ij b_j = -154.2000
+dim = 3 - a_i u_ij b_j = -43.0000

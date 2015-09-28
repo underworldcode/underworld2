@@ -1,0 +1,34 @@
+===============================================================================
+IARRAY - INCIDENCE ARRAY
+===============================================================================
+
+-------------------------------------------------------------------------------
+Purpose
+
+When extracting incidence from a mesh, we can't garauntee that the mesh
+topology already has the incidence stored in memory. On some occaisions we will
+only store some incidence relations and, when requested by the user, we will
+generate the required incidence on the fly. The most general approach is to
+always copy the incidence into a provided array. This isn't a big problem, but
+we need to ensure we don't repeatedly allocate then free arrays while looping
+over elements and requesting incidence. "IArray" solves this issue by only
+resizing itself if more incidence is requested than there is space in the
+array.
+
+-------------------------------------------------------------------------------
+Usage
+
+Create an "IArray" instance with:
+
+   inst = IArray_New();
+
+To ensure an instance has sufficient size for some purpose, use:
+
+   IArray_SoftResize( inst, requiredSize );
+
+Access the size and contents of an instance using:
+
+   size = IArray_GetSize( inst );
+   ptr = IArray_GetPtr( inst );
+
+Then use the pointer and size as a typical array.

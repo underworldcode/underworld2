@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<!DOCTYPE StGermainData SYSTEM "stgermain.dtd">
+
+<StGermainData xmlns="http://www.vpac.org/StGermain/XML_IO_Handler/Jun2003">
+	
+	<list name="import" mergeType="merge">
+		<param>PICellerator</param>
+	</list>
+
+	<include>testElementIntegral.xml</include>
+	
+	<struct name="components" mergeType="merge">
+		<struct name="discreteVoronoi">
+			<param name="Type">AdaptiveVoronoi</param>
+			<param name="maxIterations">adaptiveSteps</param>
+		</struct>		
+		<struct name="discreteVoronoiWeights">
+			<param name="Type">DiscreteVoronoiWeights</param>
+			<param name="DiscreteVoronoi">discreteVoronoi</param>
+		</struct>		
+		<struct name="weights">
+			<param name="Type">IterativeWeights</param>
+			<param name="maxIterations">100</param>
+			<param name="tolerance">0.001</param>
+			<param name="InitialWeights">discreteVoronoiWeights</param>
+		</struct>		
+	</struct>
+
+</StGermainData>

@@ -1,0 +1,153 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+<title>$title</title>
+
+<style type="text/css">
+body        {font-family: "Helvetica Neue",Helvetica,Arial,sans-serif; margin: 10px;}
+hr          {margin: 5px;}
+
+#header     {margin: 5px; padding: 4px; border-top: 1px solid #aaa; border-bottom: 1px solid #aaa;}
+#header h1  {margin: 0;}
+
+.section    {border: 1px solid #aaa; border-radius: 5px; background: #fafafa; padding: 4px; margin: 4px;}
+
+#info       {width: 100%; border: 1px solid #aaa; border-radius: 5px; background: #fafafa; padding: 4px; margin: 4px;}
+#launcher   {width: 100%; border: 1px solid #666; border-radius: 5px; height: 120px;}
+
+tr,td       {padding: 0; margin; 0; height: 8px;}
+td.label    {word-wrap: break-word; max-width: 100px;}
+td.data     {word-wrap: break-word; max-width: 200px;}
+
+#xml        {margin: 5px; border: 1px solid #aaa; border-radius: 5px; background: #fafafa; padding: 4px;}
+#items      {display: none;}
+
+.odd        {}
+.even       {background: #fefefb;}
+
+.toggle     {margin: 5px;}
+.fixed      {width: 150px; display: inline-block}
+.windows    {float: right;}
+.hidden     {display: none;}
+.endfloat   {clear: both;}
+.right      {float: right;}
+.thumb      {margin: 4px; width: 200px; float: right;}
+
+</style>
+
+<script type="text/javascript" src="html/xmlparse.js"></script>
+
+<script type="text/javascript">
+function init(url) {
+  if (window.location.href.indexOf("file://") != 0) {
+    //Allow server side content
+    iframe = document.getElementById('launcher');
+    iframe.src = "html/index.php?db=$db&gldir=$uwpath";
+  }
+}
+
+function popupXML(state) {
+  document.getElementById("xmlbtn").style.display = (state ? 'none' : 'block');
+  parseXMLstring(document.getElementById('inputxml').textContent, 'input.xml')
+  document.getElementById("items").style.display = (state ? 'block' : 'none');
+}
+
+function toggle(el)
+{
+  var e = document.getElementById('step_' + el.id);
+  if (e.style.display != 'block')
+  {
+    e.style.display = 'block';
+    el.innerHTML = el.innerHTML.replace("+", "−");
+  }
+  else
+  {
+    e.style.display = 'none';
+    el.innerHTML = el.innerHTML.replace("−", "+");
+  }
+  return false;
+}
+
+function toggleAll(state) {
+  var elements = document.getElementsByClassName('toggle')
+  for (var i=0; i<elements.length; i++) {
+    var e = document.getElementById('step_' + elements[i].id);
+    e.style.display = state ? 'block' : 'none';
+    if (state)
+      elements[i].innerHTML = elements[i].innerHTML.replace("+", "−");
+    else
+      elements[i].innerHTML = elements[i].innerHTML.replace("−", "+");
+  }
+}
+
+//set display style of all elements of classname
+function setAll(display, classname) {
+  var elements = document.getElementsByClassName(classname)
+  for (var i=0; i<elements.length; i++)
+    elements[i].style.display = display;
+}
+
+function urlOpen(url) {
+  window.open(url);
+  return false;
+}
+
+</script>
+
+</head>
+
+<body onload="init();">
+
+<div id="header">
+<h1>$title</h1>
+Underworld: Geodynamics simulation framework (c) Monash University <a href="http://underworldproject.org/">http://underworldproject.org/</a><br>
+</div>
+
+<table id="info">
+  <tr>
+    <td class="label">Job id:</td>
+    <td class="data">$id</td>
+    <td rowspan="5"><iframe id="launcher"></iframe></td>
+  </tr>
+  <tr>
+    <td class="label">Generated:</td>
+    <td class="data">$date</td>
+  </tr>
+  <tr>
+    <td class="label">Underworld Path:</td>
+    <td class="data">$uwpath</td>
+  </tr>
+  <tr>
+    <td class="label">Output dir:</td>
+    <td class="data">$outdir</td>
+  </tr>
+  <tr>
+    <td class="label">Database file:</td>
+    <td class="data">$db</td>
+  </tr>
+</table>
+
+<div id="steps" class="section">
+<input type="button" onclick="toggleAll(true);" value="Expand all">
+<input type="button" onclick="toggleAll(false);" value="Contract all">
+
+$steps
+</div>
+
+<div id="files" class="section">
+$files
+</div>
+
+<div id="xml">
+<input type="button" id="xmlbtn" onclick="popupXML(true);" value="Input XML">
+<div id="items">
+<input type="button" onclick="popupXML(false);" value="Close">
+</div>
+</div>
+
+<script id="inputxml" type="application/xml">$xml</script>
+
+</body>
+
+</html>

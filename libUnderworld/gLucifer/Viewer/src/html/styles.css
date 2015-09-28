@@ -1,0 +1,109 @@
+body {
+  font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+  font-size: 9pt;
+  background: #ffe;
+}
+html, body, table { 
+  padding: 0; margin: 0;
+  border: none; 
+  font-size: 9pt;
+}
+
+input, select { 
+  margin: 0;
+  font-size: 9pt;
+}
+
+.message {font-family: monospace; font-size: 9pt;}
+
+p {margin: 0px 2px; }
+
+div.gap {height: 5px; }
+
+/* Floating divs */
+.left       {float: left}
+.right      {float: right}
+.clear      {clear: both;}
+
+#console {width: 800px;}
+
+.toolbox {
+  visibility: hidden; z-index: 20;
+  background: rgba(255,255,255,0.5); color: #000; 
+  cursor: move; 
+  padding: 7px 10px 11px 10px; 
+  position: absolute; 
+  border-radius: 5px; border: 1px solid #444; 
+  user-select: none;
+  min-width: 320px;
+  /*max-height: 400px;*/
+}
+.scroll {
+  overflow-y: auto;
+  max-height: 330px;
+}
+.toolbox div,table,td,tr {
+  cursor: move; 
+}
+
+.toolbox * {cursor: auto;}
+.toolbox form {cursor: move;}
+.toolbox form * {cursor: auto;}
+
+.toolclose {float: right; cursor: pointer; color: #333; margin: 0px; font-weight: bold;
+  border: none; padding: 0px 4px; font-size: 14pt; line-height: 16px;}
+.toolbox h3 {
+  font-size: 10pt;
+  font-weight: bold;
+  margin: 2px 0px; padding: 0;
+  display: inline;
+}
+
+input[type="text"] {width: 200px; }
+
+.object-control {position: relative; height: 24px; clear: both;}
+#objects label {margin: 0px; padding: 0px;}
+#objects input[type="range"] { width: 64px; float: right;}
+#objects input[type="button"] {float: right;}
+
+input[type="range"] {width: 148px; }
+
+.canvas {
+  width: 100%; height: 100%;
+}
+
+canvas {
+  z-index: 0; margin: 0px; padding:0px;
+  border: none; 
+}
+
+.palette {
+  margin: 3px;
+  border:1px solid #000;
+  border-radius: 4px;
+}
+
+.checkerboard {background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAIElEQVQ4jWP4TwAcOHAAL2YYNWBYGEBIASEwasCwMAAALvidroqDalkAAAAASUVORK5CYII=");}
+
+/* Background colour */
+#backgroundBG { float: left; margin: 0px 2px 0px 0px; width: 24px; height: 24px;}
+#backgroundCUR { float: left; width: 24px; height: 24px;}
+/* Colour select */
+.colourbg {display: inline-block; margin:5px 0px; width: 100px; height: 20px; border: solid 1px; border-radius: 4px;}
+.colour {display: inline-block; width: 100%; height: 100%; border-radius: 4px; margin: 0px; padding: 0px; border: none;}
+
+/* Popup div */
+.popup {
+  position:fixed;
+  width:200px; height:100px;
+  top: 50%; left:50%;
+  margin:-50px 0 0 -100px; /* [-(height/2)px 0 0 -(width/2)px] */
+  display:none; z-index: 30; border: none; 
+  padding: 5px; overflow: hidden;
+  background: #ffe;
+  border-radius: 5px 5px 5px 5px;
+  box-shadow: 3px 3px 2px #333;
+}
+.popclose {float: right; cursor: pointer; color: #333; margin: 0px 3px; font-weight: bold}
+
+

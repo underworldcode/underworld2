@@ -1,0 +1,24 @@
+*******************    Test 15   ************************
+Test function TensorArray_DoubleContraction 
+
+Hand verified
+2-D
+tensorArray - 
+      1           2     
+      3           4     
+tensorArray2 - 
+      5           6     
+      7           8     
+Double Contraction = 
+result = 70
+3-D
+tensorArray - 
+      1           2           3     
+      4           5           6     
+      7           8           9     
+tensorArray2 - 
+     11          12          13     
+     14          15          16     
+     17          18          19     
+Double Contraction = 
+result = 735

@@ -1,0 +1,16 @@
+****************************************
+Testing ZeroTensor
+tensor2 - 
+      0           0     
+      0           0     
+tensor2 - 
+      0           0           0     
+      0           0           0     
+      0           0           0     
+symmTensor - 
+      0           0     
+      0           0     
+symmTensor - 
+      0           0           0     
+      0           0           0     
+      0           0           0     

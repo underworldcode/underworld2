@@ -1,0 +1,16 @@
+*******************    Test 12   ************************
+Test function TensorArray_CalcDeterminant 
+
+Solutions tested against: http://www.bluebit.gr/matrix-calculator/2-D
+tensorArray - 
+      1           2     
+      3           4     
+Determinant = 
+result = -2
+3-D
+tensorArray - 
+      1           2           3     
+     30          22           4     
+      5           7           9     
+Determinant = 
+result = -30

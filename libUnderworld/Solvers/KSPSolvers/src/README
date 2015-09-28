@@ -1,0 +1,24 @@
+This component provides a direct interface between the Underworld solve system and the KSP solvers
+of Petsc as well as KSP style solvers in this directory.
+
+Two interfaces are:
+
+StokesBlockKSPInterface:
+connects KSP's to Underworld to solve the Stokes system
+using PetscExt block matrices.
+
+StokesBlockSNESInterface:
+provides a proper interface between Petsc's non-linear solver (SNES)
+and the Underworld solve system. This interface also creates a PetscExt block matrix
+for the Stokes system.
+
+These two interfaces can be used as examples for new interfaces (that don't necessarily use
+PetscExt block matrices)
+
+To add a new KSP style solver, look in the 'Test' directory for an example of the
+minimum required to create one.
+
+For a more involved example look in the BSSCR directory.
+
+The only file that requires editing in order to add a new KSP to the system is to include
+a header file in ksp-register.c and include a KSPRegister<YOUR_KSP_NAME> in that file

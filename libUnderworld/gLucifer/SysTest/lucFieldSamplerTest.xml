@@ -1,0 +1,65 @@
+<!-- Rayleigh-Taylor lucifer viewports -->
+<!-- DTD to validate against -->
+<StGermainData xmlns="http://www.vpac.org/StGermain/XML_IO_Handler/Jun2003">
+
+   <struct name="components" mergeType="merge">
+      <struct name="strainRateInvVolume">
+         <param name="Type">lucMeshSampler</param>
+         <param name="FieldVariable">StrainRateInvariantField</param>
+         <param name="ColourMap">strainRateInvColourMap</param>
+      </struct> 
+
+      <struct name="velocityMagVolume">
+         <param name="Type">lucFieldSampler</param>
+         <param name="FieldVariable">VelocityMagnitudeField</param>
+         <param name="ColourMap">velocityMagnitudeColourMap</param>
+         <param name="resolution">12</param>
+      </struct> 
+
+      <struct name="materialFieldVolume">
+         <param name="Type">lucFieldSampler</param>
+         <param name="FieldVariable">lightLayerField</param>
+         <param name="ColourMap">densityColourMap</param>
+         <param name="resolution">10</param>
+      </struct> 
+
+      <!-- Viewports -->
+      <struct name="lucFieldSamplerStrainRateVP">
+         <param name="Type">lucViewport</param>
+         <param name="Camera">camera</param>
+         <param name="margin">5</param>
+         <list name="DrawingObject">
+            <param>strainRateInvVolume</param>
+         </list>
+      </struct>
+      <struct name="lucFieldSamplerVelocityMagVP">
+         <param name="Type">lucViewport</param>
+         <param name="Camera">camera</param>
+         <param name="margin">5</param>
+         <list name="DrawingObject">
+            <param>velocityMagVolume</param>
+         </list>
+      </struct>
+      <struct name="lucFieldSamplerMaterialVP">
+         <param name="Type">lucViewport</param>
+         <param name="Camera">camera</param>
+         <param name="margin">5</param>
+         <list name="DrawingObject">
+            <param>materialFieldVolume</param>
+         </list>
+      </struct>
+
+      <struct name="windowFieldSampler">
+	  		<param name="Type">lucDefaultWindow</param>
+		  	<param name="Database">database</param>
+			  <param name="antialias">false</param>
+        <param name="width">600</param>
+        <param name="height">200</param>
+        <list name="Viewport">
+          <param>lucFieldSamplerStrainRateVP lucFieldSamplerVelocityMagVP lucFieldSamplerMaterialVP</param>
+        </list>
+      </struct>
+
+   </struct>
+
+</StGermainData>
