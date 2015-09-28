@@ -181,7 +181,7 @@ void _Energy_SLE_Solver_SolverSetup( void* sleSolver, void* standardSLE ) {
 	
 	Journal_DPrintf( self->debug, "Initialising the L.A. solver for the \"%s\" matrix.\n", stiffMat->name );
 	Stg_KSPSetOperators( self->ksp, stiffMat->matrix, stiffMat->matrix, DIFFERENT_NONZERO_PATTERN );
-   KSPSetFromOptions( self->ksp );
+    KSPSetFromOptions( self->ksp );
 	Stream_UnIndentBranch( StgFEM_SLE_ProvidedSystems_Energy_Debug );
 	
 	if( self->maxIterations > 0 ) {
@@ -255,23 +255,31 @@ Vec _Energy_SLE_GetResidual( void* sleSolver, Index fv_I ) {
 PetscTruth Energy_SLE_HasNullSpace( Mat A ) {
     PetscInt N;
     PetscScalar sum;
-    PetscReal nrm;
+    PetscReal nrm, Anorm;
     PetscTruth isNull;
     Vec r, l;
 
-    MatGetVecs(A, &r, &l); /* l = A r */
+    MatGetVecs(A, &r, &l); /*  l=A*r */
 
+    /* Calculate norm(A*r,1)/n/norm(A,1).
+
+       1-norm of vector gives sum of elements so divide by n to get
+       average size.
+       Then divide by 1-norm of matrix to scale result.
+     */
     VecGetSize(r, &N);
     sum = 1.0/(PetscScalar)N;
     VecSet(r, sum);
+    MatMult(A, r, l); /* l=A*r */
 
-    MatMult(A, r, l); /* {l} = [A] {r} */
+    /* 1-norm should be quick enough for sparse matrix */
+    MatNorm(A,NORM_1,&Anorm);
+    VecNorm(l, NORM_1, &nrm);/* norm(A*r,1)/n */
 
-    VecNorm(l, NORM_2, &nrm);
-    if(nrm < 1.e-7)
-	isNull = PETSC_TRUE;
+    if(nrm/Anorm < 1.e-7)
+      isNull = PETSC_TRUE;
     else
-	isNull = PETSC_FALSE;
+      isNull = PETSC_FALSE;
 
     Stg_VecDestroy(&l);
     Stg_VecDestroy(&r);

@@ -30,11 +30,6 @@
 		
 	struct dQ12DElType { __dQ12DElType };
 
-
-	#define DQ12DELTYPE_PASSARGS \
-    	ELEMENTTYPE_PASSARGS
-	
-	
 	/* Create a new dQ12DElType and initialise */
 	void* _dQ12DElType_DefaultNew( Name name );
 
