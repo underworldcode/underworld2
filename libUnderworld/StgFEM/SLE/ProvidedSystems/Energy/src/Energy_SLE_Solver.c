@@ -265,7 +265,8 @@ PetscTruth Energy_SLE_HasNullSpace( Mat A ) {
 
        1-norm of vector gives sum of elements so divide by n to get
        average size.
-       Then divide by 1-norm of matrix to scale result.
+       Then divide by 1-norm of matrix to scale result
+       to avoid false positive null space detection.
      */
     VecGetSize(r, &N);
     sum = 1.0/(PetscScalar)N;
