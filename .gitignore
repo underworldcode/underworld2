@@ -1,0 +1,25 @@
+# use glob syntax.
+syntax: glob
+
+*~
+.ipynb_checkpoints
+.scon*
+config.*
+build
+testLogs
+*.pyc
+*.cfg 
+.DS_Store
+*.dblite         #  
+*.orig
+*.bak
+:memory
+*/output/*
+Untitled*.ipynb
+*/ignore/*
+
+# switch to regexp syntax.
+syntax: regexp
+(^|/)\.svn($|/)
+(^|/)\.hg($|/)
+(^|/)\.hgtags($|/)
