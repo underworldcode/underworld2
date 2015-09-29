@@ -128,8 +128,12 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         As these arrays are simply proxys to the underlying memory structures, 
         no data copying is required.
         
+        Note that this property returns a read-only numpy array. If you wish to 
+        modify mesh vertex locations, extract a writeable version of the numpy 
+        array via the 'dataWriteable' property.
+        
         >>> import underworld as uw
-        >>> someMesh = uw.mesh.FeMesh_Cartesian()
+        >>> someMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1', elementRes=(2,2), minCoord=(-1.,-1.), maxCoord=(1.,1.) )
         >>> someMesh.data.shape
         (289, 2)
         
@@ -138,7 +142,21 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         >>> someMesh.data[100]
         array([ 0.9375,  0.3125])
         
-        Likewise you can modify these locations (take care not to tangle the mesh!)
+        """
+        arr = self._cself.getAsNumpyArray()
+        arr.flags.writeable = False
+        return arr
+
+    @property
+    def dataWriteable(self):
+        """ 
+        data (np.array):  Returns a writeable version of the array returned via
+        the 'data' property.
+        
+        >>> import underworld as uw
+        >>> someMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1', elementRes=(2,2), minCoord=(-1.,-1.), maxCoord=(1.,1.) )
+        
+        You can modify these locations directly (take care not to tangle the mesh!)
         
         >>> someMesh.data[100] = [0.8,0.3]
         >>> someMesh.data[100]
@@ -147,7 +165,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         """
         return self._cself.getAsNumpyArray()
 
-    @property 
+    @property
     def nodesLocal(self):
         """
         Returns the number of local nodes on the mesh
