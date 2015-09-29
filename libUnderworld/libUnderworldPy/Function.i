@@ -13,7 +13,6 @@
 %import "StgDomain.i"
 %import "StgFEM.i"
 %import "PICellerator.i"
-%import "Underworld.i"
 
 %{
 /* Includes the header in the wrapper code */

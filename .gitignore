@@ -17,6 +17,19 @@ testLogs
 */output/*
 Untitled*.ipynb
 */ignore/*
+libUnderworld/libUnderworldPy/*wrap.cxx
+libUnderworld/libUnderworldPy/Function.py
+libUnderworld/libUnderworldPy/PICellerator.py
+libUnderworld/libUnderworldPy/Solvers.py
+libUnderworld/libUnderworldPy/StGermain.py
+libUnderworld/libUnderworldPy/StGermain_Tools.py
+libUnderworld/libUnderworldPy/StgDomain.py
+libUnderworld/libUnderworldPy/StgFEM.py
+libUnderworld/libUnderworldPy/Underworld.py
+libUnderworld/libUnderworldPy/c_arrays.py
+libUnderworld/libUnderworldPy/c_pointers.py
+libUnderworld/libUnderworldPy/gLucifer.py
+libUnderworld/libUnderworldPy/petsc.py
 
 # switch to regexp syntax.
 syntax: regexp

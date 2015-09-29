@@ -19,7 +19,6 @@ extern "C" {
 #include <StGermain/StGermain.h>
 }
 
-
 %}
 
 
@@ -54,6 +53,7 @@ import_array();
 %include "Utils/types.h"
 %include "Base/Foundation/Class.h"
 %include "Base/Foundation/Object.h"
+%include "Base/Foundation/NamedObject_Register.h"
 %include "Base/Automation/Stg_Component.h"
 %include "Base/Automation/LiveComponentRegister.h"       
 %include "Base/Automation/Stg_ComponentFactory.h"       

@@ -8,6 +8,14 @@
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 #include <sstream>
 #include "IOIterators.hpp"
+#include <mpi.h>
+#include <petsc.h>
+extern "C" {
+#include <StGermain/StGermain.h>
+#include <StgDomain/StgDomain.h>
+#include <StgFEM/StgFEM.h>
+#include <PICellerator/PICellerator.h>
+}
 
 Fn::MeshIndexSet::MeshIndexSet( IndexSet* indexSet, void* mesh )
     : IOIterator(), _indexSet(indexSet), _mesh(mesh), _indexArray(NULL), _position(0)
