@@ -12,7 +12,7 @@ identified under (2) below.
 
 ### History
 
-Underworld has been in development since 2003. It has always been released under open-source licence with the copyright held by the organisations contributing to its development. The underworld team has changed considerably during that time. For detailed information on the individuals and organisations contributing to the code, it is necessary to consult the repository history data and commit logs. Historical information beyond that found within the current repository is available upon request.
+Underworld has been in development since 2003. It has always been released under open-source license with the copyright held by the organisations contributing to its development. The underworld team has changed considerably during that time. For detailed information on the individuals and organisations contributing to the code, it is necessary to consult the repository history data and commit logs. Historical information beyond that found within the current repository is available upon request.
 
 ### Copyright holders
 
