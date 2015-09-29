@@ -16,7 +16,7 @@ mesh.
 
 
 >>> import underworld as uw
->>> linearMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(2,2), minCoord=(0.,0.), maxCoord=(1.,1.) )
+>>> linearMesh = uw.mesh.FeMesh_Cartesian()
 >>> uw.mesh._specialSets_Cartesian.MinI_VertexSet( linearMesh )
 FeMesh_IndexSet([0, 3, 6])
 

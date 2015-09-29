@@ -28,7 +28,7 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
 
         where, k is the conductivity, T is the temperature (solution), h is the heating r.h.s
         
-        >>> linearMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.) )
+        >>> linearMesh = uw.mesh.FeMesh_Cartesian()
         >>> tField = uw.fevariable.FeVariable( linearMesh, 1 )
         >>> topNodes = linearMesh.specialSets["MaxJ_VertexSet"]
         >>> bottomNodes = linearMesh.specialSets["MinJ_VertexSet"]

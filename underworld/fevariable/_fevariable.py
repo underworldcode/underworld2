@@ -18,7 +18,7 @@ class FeVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgermain
     For example, to create a scalar feVariable:
 
     >>> # first create mesh
-    >>> linearMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
+    >>> linearMesh = uw.mesh.FeMesh_Cartesian()
     >>> scalarFeVar = uw.fevariable.FeVariable( feMesh=linearMesh, nodeDofCount=1, dataType="double" )
 
     or a vector fevariable can be created
@@ -105,7 +105,7 @@ class FeVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgermain
         As these arrays are simply proxys to the underlying memory structures,
         no data copying is required.
 
-        >>> linearMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
+        >>> linearMesh = uw.mesh.FeMesh_Cartesian()
         >>> scalarFeVar = uw.fevariable.FeVariable( feMesh=linearMesh, nodeDofCount=1, dataType="double" )
         >>> scalarFeVar.data.shape
         (289, 1)
