@@ -25,7 +25,9 @@ import weakref
 import libUnderworld
 import _specialSets_Cartesian
 import underworld.function as function
-
+import warnings
+import contextlib
+import time
 
 class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
     """
@@ -74,6 +76,8 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
                                   You must provide a generator, or the mesh itself \
                                   must be of the MeshGenerator class.")
         self.generator = generator
+        
+        self._dataWriteable = False
 
         # build parent
         super(FeMesh,self).__init__(**kwargs)
@@ -119,51 +123,74 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         """ 
         data (np.array):  Numpy proxy array proxy to underlying object 
         vertex data. Note that the returned array is a proxy for all the *local*
-        vertices, and it is provided as 1d list.  It is possible to change the 
-        shape of this numpy array to reflect the cartesian topology (where
-        appropriate), though again only the local portion of the decomposed 
-        domain will be available, and the shape will not necessarily be 
-        identical on all processors.
+        vertices, and it is provided as 1d list.
         
         As these arrays are simply proxys to the underlying memory structures, 
         no data copying is required.
         
-        Note that this property returns a read-only numpy array. If you wish to 
-        modify mesh vertex locations, extract a writeable version of the numpy 
-        array via the 'dataWriteable' property.
+        Note that this property returns a read-only numpy array as default. If 
+        you wish to modify mesh vertex locations, you are required to use the 
+        deform_mesh context manager.
         
+        If you are modifying the mesh, remember to modify any submesh associated with
+        it accordingly.
+
         >>> import underworld as uw
         >>> someMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1', elementRes=(2,2), minCoord=(-1.,-1.), maxCoord=(1.,1.) )
         >>> someMesh.data.shape
-        (289, 2)
+        (9, 2)
         
         You can retrieve individual vertex locations
         
-        >>> someMesh.data[100]
-        array([ 0.9375,  0.3125])
+        >>> someMesh.data[1]
+        array([ 0., -1.])
         
+        You can modify these locations directly, but take care not to tangle the mesh!
+        Mesh modifications must occur within the deform_mesh context manager.
+
+        >>> with someMesh.deform_mesh():
+        ...    someMesh.data[1] = [0.1,-1.1]
+        >>> someMesh.data[1]
+        array([ 0.1, -1.1])
+
         """
         arr = self._cself.getAsNumpyArray()
-        arr.flags.writeable = False
+        arr.flags.writeable = self._dataWriteable
         return arr
 
-    @property
-    def dataWriteable(self):
-        """ 
-        data (np.array):  Returns a writeable version of the array returned via
-        the 'data' property.
+    @contextlib.contextmanager
+    def deform_mesh(self):
+        """
+        Any mesh deformation should occur within this context manager. Note that
+        certainly algorithms may be switched to their irregular mesh equivalents
+        (if not already set this way).
         
+        Any submesh will also be deformable within the context manager.
+
         >>> import underworld as uw
-        >>> someMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1', elementRes=(2,2), minCoord=(-1.,-1.), maxCoord=(1.,1.) )
-        
-        You can modify these locations directly (take care not to tangle the mesh!)
-        
-        >>> someMesh.data[100] = [0.8,0.3]
-        >>> someMesh.data[100]
-        array([ 0.8,  0.3])
+        >>> someMesh = uw.mesh.FeMesh_Cartesian()
+        >>> with someMesh.deform_mesh():
+        ...     someMesh.data[0] = [0.1,0.1]
+        >>> someMesh.data[0]
+        array([ 0.1,  0.1])
+
 
         """
-        return self._cself.getAsNumpyArray()
+        if hasattr(self,'_secondaryMesh') and self._secondaryMesh != None:
+            warnings.warn("Note that if you change mesh vertex locations, you should modify subMesh vertex locations accordingly.")
+        # set the general mesh algorithm now
+        uw.libUnderworld.StgDomain.Mesh_SetAlgorithms( self._cself, None )
+        self._dataWriteable = True
+        if self.subMesh:
+            self.subMesh._dataWriteable = True
+        try:
+            yield
+        finally:
+            self._dataWriteable = False
+            uw.libUnderworld.StgDomain.Mesh_DeformationUpdate( self._cself )
+            if self.subMesh:
+                self.subMesh._dataWriteable = False
+                uw.libUnderworld.StgDomain.Mesh_DeformationUpdate( self.subMesh._cself )
 
     @property
     def nodesLocal(self):
