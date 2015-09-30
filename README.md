@@ -30,6 +30,8 @@ Compilation
     $ cd libUnderworld
     $ ./configure.py
     $ ./scons.py
+    $ cd libUnderworldPy ; ./swigall.py ; cd ../
+    $ ./scons.py
 ```
 
 Check available configuration options using `./configure.py --help`.  
