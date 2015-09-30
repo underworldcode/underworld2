@@ -145,7 +145,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         no data copying is required.
         
         >>> # create mesh
-        >>> mesh = uw.mesh.FeMesh_Cartesian()
+        >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
         >>> # create empty swarm
         >>> swarm = uw.swarm.Swarm(mesh)
         >>> # add a variable

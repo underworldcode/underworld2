@@ -128,7 +128,7 @@ class SwarmAbstract(_stgermain.StgCompoundComponent):
             The newly created swarm variable.
             
         >>> # first we need a mesh
-        >>> mesh = uw.mesh.FeMesh_Cartesian()
+        >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
         >>> # create swarm
         >>> swarm = uw.swarm.Swarm(mesh)
         >>> # add a variable
@@ -158,7 +158,7 @@ class SwarmAbstract(_stgermain.StgCompoundComponent):
             The layout which determines where particles are created and added.
 
         >>> # first we need a mesh
-        >>> mesh = uw.mesh.FeMesh_Cartesian()
+        >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
         >>> # create swarm
         >>> swarm = uw.swarm.Swarm(mesh)
         >>> # add populate
@@ -198,7 +198,7 @@ class SwarmAbstract(_stgermain.StgCompoundComponent):
         particle resides within, and also in terms of the parallel processor
         decomposition (particles belonging on other processors will be sent across).
         
-        >>> mesh = uw.mesh.FeMesh_Cartesian()
+        >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
         >>> swarm = uw.swarm.Swarm(mesh)
         >>> swarm.populate_using_layout(uw.swarm.layouts.PerCellGaussLayout(swarm,2))
         >>> swarm.particleCoordinates.data[0]

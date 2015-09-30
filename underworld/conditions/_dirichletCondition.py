@@ -29,7 +29,7 @@ class DirichletCondition(_SystemCondition):
     Note that it is necessary for the user to set the required value on the variable, possibly
     via the numpy interface.
     
-    >>> linearMesh = uw.mesh.FeMesh_Cartesian()
+    >>> linearMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.) )
     >>> velocityField = uw.fevariable.FeVariable( linearMesh, 2 )
     >>> velocityField.data[:] = [0.,0.]  # set velocity zero everywhere, which will of course include the boundaries.
     >>> IWalls = linearMesh.specialSets["MinI_VertexSet"] + linearMesh.specialSets["MaxI_VertexSet"]  # get some wall index sets

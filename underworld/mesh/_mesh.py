@@ -204,7 +204,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         """
         Returns the number of global nodes on the mesh
 
-        >>> someMesh = uw.mesh.FeMesh_Cartesian()
+        >>> someMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1', elementRes=(2,2), minCoord=(-1.,-1.), maxCoord=(1.,1.) )
         >>> someMesh.nodesGlobal
         9
         """
@@ -217,7 +217,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         This dictionary stores a set of special data sets relating to mesh objects. 
         
         >>> import underworld as uw
-        >>> someMesh = uw.mesh.FeMesh_Cartesian()
+        >>> someMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1', elementRes=(2,2), minCoord=(0.,0.), maxCoord=(1.,1.) )
         >>> someMesh.specialSets.keys()
         ['MaxI_VertexSet', 'MinI_VertexSet', 'AllWalls', 'MinJ_VertexSet', 'MaxJ_VertexSet', 'Empty']
         >>> someMesh.specialSets["MinJ_VertexSet"]
@@ -480,7 +480,7 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
     For example, to create a linear mesh:
         
     >>> import underworld as uw
-    >>> someMesh = uw.mesh.FeMesh_Cartesian()
+    >>> someMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
     >>> someMesh.dim
     2
     >>> someMesh.elementRes
@@ -488,7 +488,7 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
     
     Alternatively, you can create a linear/constant dual mesh
     
-    >>> someDualMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0' )
+    >>> someDualMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
     >>> someDualMesh.elementType
     'Q1'
     >>> subMesh = someDualMesh.subMesh
@@ -675,7 +675,7 @@ class FeMesh_IndexSet(uw.container.ObjectifiedIndexSet, function.FunctionInput):
         ------
         feMeshIndices: FeMesh_IndexSet
 
-        >>> amesh = uw.mesh.FeMesh_Cartesian()
+        >>> amesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.) )
         >>> iset = uw.libUnderworld.StgDomain.RegularMeshUtils_CreateGlobalMaxISet( amesh._femesh )
         >>> uw.mesh.FeMesh_IndexSet( amesh, topologicalIndex=0, size=amesh.nodesGlobal, fromObject=iset )
         FeMesh_IndexSet([ 4,  9, 14, 19, 24])
