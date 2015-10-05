@@ -202,7 +202,7 @@
 	void CartesianGenerator_CompleteVertexNeighbours( CartesianGenerator* self, IGraph* topo, Grid*** grids );
 	void CartesianGenerator_MapToDomain( CartesianGenerator* self, Sync* sync, 
 					     unsigned nIncEls, unsigned* incEls );
-	void CartesianGenerator_GenGeom( CartesianGenerator* self, Mesh* mesh, void* data );
+	void CartesianGenerator_GenGeom( void* _self, void* _mesh, void* data );
 	void CartesianGenerator_CalcGeom( void* _self, Mesh* mesh, Sync* sync, Grid* grid, unsigned* inds, double* steps );
 	void CartesianGenerator_Destruct( CartesianGenerator* self );
 	void CartesianGenerator_DestructTopology( CartesianGenerator* self );

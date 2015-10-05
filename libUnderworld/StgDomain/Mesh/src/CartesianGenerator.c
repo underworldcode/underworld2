@@ -2178,7 +2178,9 @@ void CartesianGenerator_MapToDomain( CartesianGenerator* self, Sync* sync,
 }
 
 #define MAX_LINE_LENGTH 1024
-void CartesianGenerator_GenGeom( CartesianGenerator* self, Mesh* mesh, void* data ) {
+void CartesianGenerator_GenGeom( void* _self, void* _mesh, void* data ) {
+	CartesianGenerator* self = (CartesianGenerator*)_self;
+    Mesh*               mesh = (Mesh*)_mesh;
     Stream*			   stream = Journal_Register( Info_Type, (Name)self->type );
     Sync*			      sync;
     AbstractContext* 	context = (AbstractContext*)data;

@@ -8,16 +8,10 @@
 ##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
 #
 #
-#This is a comment..
-#
 
 """
 This module contains FeMesh classes, and associated implementation.
 """
-#
-#
-#This is a comment..
-#
 
 import underworld as uw
 import underworld._stgermain as _stgermain
@@ -25,9 +19,9 @@ import weakref
 import libUnderworld
 import _specialSets_Cartesian
 import underworld.function as function
-import warnings
 import contextlib
 import time
+import abc
 
 class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
     """
@@ -165,7 +159,8 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         certainly algorithms may be switched to their irregular mesh equivalents
         (if not already set this way).
         
-        Any submesh will also be deformable within the context manager.
+        Any submesh will also be appropriately updated on return from the context
+        manager.
 
         >>> import underworld as uw
         >>> someMesh = uw.mesh.FeMesh_Cartesian()
@@ -176,21 +171,25 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
 
 
         """
-        if hasattr(self,'_secondaryMesh') and self._secondaryMesh != None:
-            warnings.warn("Note that if you change mesh vertex locations, you should modify subMesh vertex locations accordingly.")
         # set the general mesh algorithm now
         uw.libUnderworld.StgDomain.Mesh_SetAlgorithms( self._cself, None )
         self._dataWriteable = True
-        if self.subMesh:
-            self.subMesh._dataWriteable = True
         try:
             yield
+        except Exception as e:
+            raise uw._prepend_message_to_exception(e, "An exception was raised during mesh deformation. "
+                                                     +"Your mesh may only be partially deformed. "
+                                                     +"You can reset your mesh using the 'reset' method. "
+                                                     +"Note that any submesh should not be modified directly, "
+                                                     +"but will instead be updated automatically on return from "
+                                                     +"the 'deform_mesh' context manager. \nEncountered exception message:\n")
         finally:
             self._dataWriteable = False
+            # call deformupdate, which updates various mesh metrics
             uw.libUnderworld.StgDomain.Mesh_DeformationUpdate( self._cself )
-            if self.subMesh:
-                self.subMesh._dataWriteable = False
-                uw.libUnderworld.StgDomain.Mesh_DeformationUpdate( self.subMesh._cself )
+            if hasattr(self,"subMesh") and self.subMesh:
+                # remesh the submesh based on the new primary
+                self.subMesh.reset()
 
     @property
     def nodesLocal(self):
@@ -209,6 +208,22 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         9
         """
         return libUnderworld.StgDomain.Mesh_GetGlobalSize(self._cself, 0)
+
+    def reset(self):
+        """
+        Reset the mesh.  
+        
+        Templated mesh (such as the DQ0 mesh) will be reset according
+        to the current state of their geometryMesh.
+        
+        Other mesh (such as the Q1 & Q2) will be reset to their 
+        post-construction state.
+
+        """
+        self.generator._reset(self)
+        # if we have a submesh, reset it as well
+        if hasattr(self,"subMesh") and self.subMesh:
+            self.subMesh.reset()
 
 
     @property
@@ -273,6 +288,13 @@ class MeshGenerator(_stgermain.StgCompoundComponent):
         """ dim (int): FeMesh dimensionality. """
         return self._dim
 
+    @abc.abstractmethod
+    def _reset(self,mesh):
+        """
+        Abstract class which handles mesh resetting.
+
+        """
+        pass
 
 class CartesianMeshGenerator(MeshGenerator):
     """
@@ -392,6 +414,47 @@ class CartesianMeshGenerator(MeshGenerator):
         if self._dim == 3:
             componentDictionary[self._gen.name]["periodic_z"] = self._periodic[2]
 
+    def _reset(self,mesh):
+        """
+        Reset method for mesh generated using the cartesian generator. This method
+        will reset the mesh to regular cartesian geometry.
+        
+        >>> import underworld as uw
+        >>> import numpy as np
+        >>> mesh = uw.mesh.FeMesh_Cartesian(elementType='Q1')
+
+        Grab copy of original state:
+        >>> vertexCopy = mesh.data.copy()
+
+        Deform mesh:
+        >>> with mesh.deform_mesh():
+        ...     mesh.data[:] += 0.1*np.sin(mesh.data[:])
+
+        Confirm mesh is different:
+        >>> np.allclose(mesh.data,vertexCopy)
+        False
+
+        Now reset mesh and test again:
+        >>> mesh.reset()
+        >>> np.allclose(mesh.data,vertexCopy)
+        True
+        
+        Lets do the same for the Q2 mesh:
+        >>> mesh = uw.mesh.FeMesh_Cartesian(elementType='Q2')
+        >>> vertexCopy = mesh.data.copy()
+        >>> with mesh.deform_mesh():
+        ...     mesh.data[:] += 0.1*np.sin(mesh.data[:])
+        >>> np.allclose(mesh.data,vertexCopy)
+        False
+        >>> mesh.reset()
+        >>> np.allclose(mesh.data,vertexCopy)
+        True
+
+        """
+        uw.libUnderworld.StgDomain.CartesianGenerator_GenGeom( self._gen, mesh._cself, None)
+        uw.libUnderworld.StgDomain.Mesh_DeformationUpdate( mesh._cself )
+
+
 class QuadraticCartesianGenerator(CartesianMeshGenerator):
     """
     This class provides the algorithms to generate a 'Q2' (ie quadratic) mesh.
@@ -446,12 +509,33 @@ class LinearInnerGenerator(TemplatedMeshGenerator):
     """
     _objectsDict = { "_gen": "Inner2DGenerator" }
 
-    def __init__(self, geometryMesh, **kwargs):
-        if not isinstance(geometryMesh,(FeMesh)):
-            raise TypeError("'geometryMesh' object passed in must be of type 'FeMesh'")
-        #if geometryMesh.generator.dim == 3:
-        #    raise ValueError("The 'LinearInnerGenerator' only currently supports 2D mesh.")
-        super(LinearInnerGenerator,self).__init__(geometryMesh,**kwargs)
+    def _reset(self,mesh):
+        """
+        Reset method for mesh generated using the dPc1 generator. This method
+        will reset the mesh according to its geometryMesh's current state.
+        
+        >>> import underworld as uw
+        >>> import numpy as np
+        >>> mesh = uw.mesh.FeMesh_Cartesian(elementType='Q2/dPc1')
+
+        Grab copy of original state:
+        >>> vertexCopy = mesh.subMesh.data.copy()
+
+        Deform mesh.  Remember, we always modify the parent mesh:
+        >>> with mesh.deform_mesh():
+        ...     mesh.data[:] += 0.1*np.sin(mesh.data[:])
+
+        Confirm subMesh has been deformed:
+        >>> np.allclose(mesh.subMesh.data,vertexCopy)
+        False
+
+        Now reset mesh and test again:
+        >>> mesh.reset()
+        >>> np.allclose(mesh.subMesh.data,vertexCopy)
+        True
+        """
+
+        uw.libUnderworld.StgFEM.Inner2DGenerator_BuildGeometry( self._gen, mesh._cself)
 
 class dQ1Generator(TemplatedMeshGenerator):
     """
@@ -459,16 +543,65 @@ class dQ1Generator(TemplatedMeshGenerator):
     """
     _objectsDict = { "_gen": "dQ1Generator" }
 
-    def __init__(self, geometryMesh, **kwargs):
-        if not isinstance(geometryMesh,(FeMesh)):
-            raise TypeError("'geometryMesh' object passed in must be of type 'FeMesh'")
-        super(dQ1Generator,self).__init__(geometryMesh,**kwargs)
+    def _reset(self,mesh):
+        """
+        Reset method for mesh generated using the dQ1 generator. This method
+        will reset the mesh according to its geometryMesh's current state.
+        
+        >>> import underworld as uw
+        >>> import numpy as np
+        >>> mesh = uw.mesh.FeMesh_Cartesian(elementType='Q2/dQ1')
+
+        Grab copy of original state:
+        >>> vertexCopy = mesh.subMesh.data.copy()
+
+        Deform mesh.  Remember, we always modify the parent mesh:
+        >>> with mesh.deform_mesh():
+        ...     mesh.data[:] += 0.1*np.sin(mesh.data[:])
+
+        Confirm subMesh has been deformed:
+        >>> np.allclose(mesh.subMesh.data,vertexCopy)
+        False
+
+        Now reset mesh and test again:
+        >>> mesh.reset()
+        >>> np.allclose(mesh.subMesh.data,vertexCopy)
+        True
+        """
+        uw.libUnderworld.StgFEM.dQ1Generator_BuildGeometry( self._gen, mesh._cself)
 
 class ConstantGenerator(TemplatedMeshGenerator):
     """
     This class provides the algorithms to generate a 'dQ0' mesh.
     """
     _objectsDict = { "_gen": "C0Generator" }
+
+    def _reset(self,mesh):
+        """
+        Reset method for mesh generated using the dQ1 generator. This method
+        will reset the mesh according to its geometryMesh's current state.
+        
+        >>> import underworld as uw
+        >>> import numpy as np
+        >>> mesh = uw.mesh.FeMesh_Cartesian(elementType='Q1/dQ0')
+
+        Grab copy of original state:
+        >>> vertexCopy = mesh.subMesh.data.copy()
+
+        Deform mesh.  Remember, we always modify the parent mesh:
+        >>> with mesh.deform_mesh():
+        ...     mesh.data[:] += 0.1*np.sin(mesh.data[:])
+
+        Confirm subMesh has been deformed:
+        >>> np.allclose(mesh.subMesh.data,vertexCopy)
+        False
+
+        Now reset mesh and test again:
+        >>> mesh.reset()
+        >>> np.allclose(mesh.subMesh.data,vertexCopy)
+        True
+        """
+        uw.libUnderworld.StgFEM.C0Generator_BuildGeometry( self._gen, mesh._cself)
 
 
 class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):

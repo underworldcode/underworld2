@@ -616,6 +616,10 @@ void Mesh_DeformationUpdate( void* mesh ) {
 
 void Mesh_GenerateVertices( void* mesh, unsigned nVerts, unsigned nDims ){
 	Mesh* self = (Mesh*)mesh;
+
+    if (self->vertices)
+        return;
+
     self->vertices = Memory_Alloc_Array( double, nDims*nVerts, "Mesh::verts" );
 
     char* name;
