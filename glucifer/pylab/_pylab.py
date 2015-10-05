@@ -271,9 +271,9 @@ class Figure(_stgermain.StgCompoundComponent):
         if uw.rank() == 0:
             # go ahead and draw
             scriptpath = self._db.dump_script
-            lvpath = scriptpath.replace("dump.sh", "LavaVu")
+            lvpath = scriptpath.replace("dump.sh", "LavaVuOS")
             if not os.path.isfile(lvpath):
-                lvpath = scriptpath.replace("dump.sh", "LavaVuOS")
+                lvpath = scriptpath.replace("dump.sh", "LavaVu")
                 if not os.path.isfile(lvpath):
                     raise RuntimeError("LavaVu rendering engine does not appear to exist. Perhaps it was not compiled.\nPlease check your configuration, or contact developers.")
             timestep = "-" + str(self._db.timeStep)
