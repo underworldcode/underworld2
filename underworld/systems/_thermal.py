@@ -67,14 +67,14 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
         try:
             _conductivityFn = uw.function.Function._CheckIsFnOrConvertOrThrow(conductivityFn)
         except Exception as e:
-            raise uw._prepend_message_to_exception(e, "Provided 'conductivityFn' must be of or convertible to 'Function' class.")
+            raise uw._prepend_message_to_exception(e, "Exception encountered. Note that provided 'conductivityFn' must be of or convertible to 'Function' class.\nEncountered exception message:\n")
 
         if not heatingFn:
             heatingFn = 0.
         try:
             _heatingFn = uw.function.Function._CheckIsFnOrConvertOrThrow(heatingFn)
         except Exception as e:
-            raise uw._prepend_message_to_exception(e, "Provided 'headingFn' must be of or convertible to 'Function' class." )
+            raise uw._prepend_message_to_exception(e, "Exception encountered. Note that provided 'heatingFn' must be of or convertible to 'Function' class.\nEncountered exception message:\n")
 
         if swarm and not isinstance(swarm, uw.swarm.Swarm):
             raise TypeError( "Provided 'swarm' must be of 'Swarm' class." )
