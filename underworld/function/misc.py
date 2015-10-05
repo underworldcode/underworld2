@@ -33,11 +33,9 @@ class constant(_Function):
     def value(self,value):
         newioguy = self._GetIOForPyInput(value)
         if not isinstance(newioguy,type(self._ioguy)):
-            raise TypeError("'value' object passed in must be of identical type to\n"
-                            "that used in construction of this function.")
+            raise TypeError("'value' object passed in must be of identical type to that used in construction of this function.")
         if newioguy.size() != self._ioguy.size():
-            raise TypeError("'value' object passed in must be of identical size to\n"
-                            "that used in construction of this function.")
+            raise TypeError("'value' object passed in must be of identical size to that used in construction of this function.")
         self._ioguy = newioguy
         self._fncself.set_value(self._ioguy)
 
@@ -57,8 +55,7 @@ class constant(_Function):
             try:
                 iterator = iter(value)
             except TypeError:
-                raise ValueError("'value' object provided to Constant Function constructor\n"
-                                 "does not appear to be valid.")
+                raise ValueError("'value' object provided to Constant Function constructor does not appear to be valid.")
             else:
                 # iterable
                 tupleGuy = tuple(iterator)
@@ -71,8 +68,7 @@ class constant(_Function):
                 elif isinstance(firstFella,bool):
                     ioguy = _cfn.IO_bool(lenTupleGuy,3)
                 else:
-                    raise ValueError("'value' object provided to Constant Function constructor\n"
-                                     "does not appear to be valid.")
+                    raise ValueError("'value' object provided to Constant Function constructor does not appear to be valid.")
                 # right, now load in ze data
                 ii = 0
                 for val in tupleGuy:
