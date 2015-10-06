@@ -103,6 +103,10 @@ void _CoincidentMapper_Map( void* mapper ) {
 
 		cell_dI = materialPoint->owningCell;
 
+        Journal_Firewall( cell_dI<materialSwarm->cellDomainCount, NULL,
+            "Error - in %s(): particle %u appears to be outside the domain.",
+            __func__, particle_lI );
+
 		Swarm_AddParticleToCell( integrationSwarm, cell_dI, particle_lI );
 
 		/* Convert global to local coordinates */

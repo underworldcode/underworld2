@@ -990,40 +990,18 @@ void Swarm_UpdateParticleOwner( void* swarm, Particle_Index particle_I ) {
 	Particle_InCellIndex	cParticle_I;
 	Coord*			coordPtr       = &particle->coord;
 
-	Journal_DPrintfL( self->debug, 3, "In %s: for particle %d, old cell %d\n", __func__,
-		particle_I, particle->owningCell );
-	Stream_Indent( self->debug );	
-	
-	Journal_DPrintfL( self->debug, 3, "updated coord (%f,%f,%f) is: ", (*coordPtr)[0], (*coordPtr)[1], (*coordPtr)[2] );
-
 	newOwningCell = CellLayout_CellOf( self->cellLayout, particle );
 
-	if ( newOwningCell == particle->owningCell ) {
-		Journal_DPrintfL( self->debug, 3, "still in same cell.\n" );
-	}
-	else {
+	if ( newOwningCell != particle->owningCell ) { /* if not still in same cell */
 		Cell_LocalIndex		oldOwningCell = particle->owningCell;
-
-		Journal_DPrintfL( self->debug, 3, "in new cell %d.\n", newOwningCell );
 		cParticle_I = Swarm_GetParticleIndexWithinCell( self, particle->owningCell, particle_I );
 		Swarm_RemoveParticleFromCell( self, oldOwningCell, cParticle_I );
 	
 		/* if new cell is in my domain, add entry to new cell's table */
 		if ( newOwningCell == self->cellDomainCount ) {
-			Journal_DPrintfL( self->debug, 3, "New cell == domain count -> Particle has moved outside domain.\n" );
+			/* "New cell == domain count -> Particle has moved outside domain */
 			particle->owningCell = self->cellDomainCount;
 		}	
-		#ifdef CAUTIOUS
-		else if ( newOwningCell >= self->cellDomainCount ) {	
-			Stream*    errorStream = Journal_Register( Error_Type, (Name)self->type  );
-
-			Journal_Firewall( 0, errorStream,
-				"Error - in %s(): particle %u's new domain cell calculated as "
-				"%u, but this is greater than the count of domain cells %u. "
-				"Something has gone wrong.\n",
-				__func__, particle_I, newOwningCell, self->cellDomainCount );
-		}		
-		#endif
 		else {
 			Swarm_AddParticleToCell( self, newOwningCell, particle_I );
 		}
