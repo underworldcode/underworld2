@@ -100,15 +100,20 @@ def _prepend_message_to_exception(e, message):
     return type(e), type(e)(message + '\n' + e.message), _sys.exc_info()[2]
 
 
+class _del_uw_class:
+    """
+    This simple class simply facilitates calling StgFinalise on uw exit
+    Previous implementations used the 'atexit' module, but this called finalise
+    *before* python garbage collection which as problematic as objects were being
+    deleted after StgFinalise was called.
+    """
+    def __init__(self,delfunc, deldata):
+        self.delfunc = delfunc
+        self.deldata = deldata
+    def __del__(self):
+        self.delfunc(self.deldata)
 
-
-
-
-
-
-
-
-
+_delclassinstance = _del_uw_class(libUnderworld.StGermain_Tools.StgFinalise, _data)
 
 
 

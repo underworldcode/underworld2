@@ -264,7 +264,6 @@ void _FeVariable_Delete( void* variable ) {
    
    /* Stg_Class_Delete parent*/
    _Stg_Component_Delete( self );
-   Stream_UnIndentBranch( StgFEM_Debug );
 }
 
 /* --- Virtual Function Implementations --- */
@@ -498,8 +497,6 @@ void _FeVariable_Destroy( void* variable, void* data ) {
    FeVariable* self = (FeVariable*)variable;
 
    Memory_Free( self->GNx );
-
-   Stream_IndentBranch( StgFEM_Debug );
 
    if( self->eqNum && ( NULL == self->templateFeVariable ) ) {
       Stg_Component_Destroy( self->eqNum, NULL, False );

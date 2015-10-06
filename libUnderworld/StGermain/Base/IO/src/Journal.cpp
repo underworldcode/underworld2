@@ -465,7 +465,7 @@ int Journal_Printf( void* _stream, const char* fmt, ... ) {
    
    va_list ap;
 
-   if( !stJournal->enable || !Stream_IsEnable( stream ) ) {
+   if( !stJournal || !stJournal->enable || !Stream_IsEnable( stream ) ) {
       return 0;
    }
 
