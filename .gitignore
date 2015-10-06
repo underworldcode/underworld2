@@ -37,3 +37,5 @@ syntax: regexp
 (^|/)\.svn($|/)
 (^|/)\.hg($|/)
 (^|/)\.hgtags($|/)
+
+*.cfg

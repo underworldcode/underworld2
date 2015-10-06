@@ -1,4 +1,10 @@
-## Underworld install on MacOS 10.10.x from new
+## Underworld install on MacOS 10.11.x
+
+If this is a machine that is being upgraded from 10.10.x or below, then it seems easiest to nuke the homebrew installation and start afresh.
+
+  `brew update`
+  `brew remove --force $(brew list)`
+  `brew doctor`
 
 Everything other than installation of Xcode requires access to the terminal.
 
@@ -6,13 +12,17 @@ Everything other than installation of Xcode requires access to the terminal.
 
 (From app store)
 
-Run it once to accept licence or
-
-`sudo xcodebuild -license`
+Run it once to accept the licence, then quit
 
 2) Install homebrew
 
+Note, that `/usr/local` does not exist on a new machine and it can be tricky to create it. The details are [here on the homebrew github page](https://github.com/Homebrew/homebrew/blob/master/share/doc/homebrew/El_Capitan_and_Homebrew.md) and we recommend checking them carefully since things are likely to change. You may need to revisit these instructions after each system-software update.
+
 `ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"`
+
+Now, to check if there is anything on the system than needs fixing before moving on to install packages, run:
+
+`brew doctor`
 
 3) Install dependencies via homebrew
 
@@ -44,6 +54,8 @@ you may need to run
 Set the environment variables for PETSC. `brew info PETSC` will tell you the value required for `$PETSC_DIR`. Use this value since the version in /usr/local/opt is incomplete.
 
 `export PETSC_DIR=/usr/local/Cellar/petsc/3.6.1_3/real` (for example)
+
+The following may be necessary:
 
 `export HDF5_DIR=/usr/local/opt/hdf5`
 `export LIBXML2_DIR=/usr/local/opt/libxml2`
