@@ -173,6 +173,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         """
         # set the general mesh algorithm now
         uw.libUnderworld.StgDomain.Mesh_SetAlgorithms( self._cself, None )
+        self._cself.isRegular = False
         self._dataWriteable = True
         try:
             yield
@@ -452,6 +453,10 @@ class CartesianMeshGenerator(MeshGenerator):
 
         """
         uw.libUnderworld.StgDomain.CartesianGenerator_GenGeom( self._gen, mesh._cself, None)
+        mesh._cself.isRegular = True
+        # set algos back to regular
+        uw.libUnderworld.StgDomain.Mesh_SetAlgorithms( mesh._cself,
+                                                       uw.libUnderworld.StgDomain.Mesh_RegularAlgorithms_New("",None) )
         uw.libUnderworld.StgDomain.Mesh_DeformationUpdate( mesh._cself )
 
 

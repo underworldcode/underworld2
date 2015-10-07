@@ -611,6 +611,7 @@ void Mesh_DeformationUpdate( void* mesh ) {
 		Mesh_Algorithms_GetGlobalCoordRange( self->algorithms, self->minGlobalCrd, self->maxGlobalCrd );
 
 		Mesh_Algorithms_Update( self->algorithms );
+        Mesh_ElementType_Update( self->elTypes[0] );
 	}
 }
 
