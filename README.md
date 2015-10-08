@@ -1,12 +1,12 @@
 Underworld 2 / python underworld
 ================================
 
-_Underworld 2_ is a python-friendly version of the Underworld code which provides a  programmable and flexible front end to all the functionality of the code running in a parallel HPC environment. This gives signficant advantages to the user, with access to the power of python libraries for setup of complex problems, analysis at runtime, problem steering, and coupling of multiple problems. The python toolkit was funded by the NeCTAR [eResearch tools][eresearch_tools] program.
+_Underworld 2_ is a python-friendly version of the Underworld code which provides a  programmable and flexible front end to all the functionality of the code running in a parallel HPC environment. This gives signficant advantages to the user, with access to the power of python libraries for setup of complex problems, analysis at runtime, problem steering, and coupling of multiple problems. The python toolkit was funded by the NeCTAR [eresearch_tools](http://www.nectar.org.au/eresearch-tools) program.
 
 Information 
 -----------
 
-[underworld_website](http://www.underworldproject.org)
+[underworld_website](http://www.underworldcode.org)
 
 [testing underworld](https://130.56.248.95:8080/job/underworld2/buildTimeTrend)  
 
@@ -19,6 +19,7 @@ Dependencies
   * hdf5 (optional, but recommended)
   * numpy
   * libpng
+  * swig
   * build tools (gcc etc)
 
 Note: Headers will be required for above libraries (-dev packages).  Required libraries regularly included in system distributions are not listed. 
@@ -26,6 +27,10 @@ Note: Headers will be required for above libraries (-dev packages).  Required li
 
 Compilation
 -----------
+
+We periodically post build recipes for particular platforms on the [underworld blog](http://www.underworldcode.org/pages/Blog) but the build strategy looks like this
+
+
 ```bash
     $ cd libUnderworld
     $ ./configure.py
