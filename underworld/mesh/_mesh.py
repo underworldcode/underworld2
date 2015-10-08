@@ -638,27 +638,6 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
     """
     _meshGenerator = [ "C2Generator", "CartesianGenerator" ]
     _objectsDict = { "_gen": None }  # this is set programmatically in __new__
-
-    @classmethod
-    def _strtolist(clsorself, elementType):
-        types = clsorself._supportedElementTypes
-        mlist = []
-        elementType=elementType.upper()
-        for mesh in types:
-            mesh=mesh.upper()
-            if mesh in elementType and len(mesh)==len(elementType):
-                elementType=elementType.replace(mesh, '')
-                mlist.append(mesh)
-            elif mesh in elementType[0:2]:
-                elementType=elementType.replace(mesh, '')
-                mlist.append(mesh)
-            elif 'D'+mesh in elementType:
-                elementType=elementType.replace('D'+mesh, '')
-                mlist.append('D'+mesh)
-            elif mesh in elementType:
-                elementType=elementType.replace(mesh, '')
-                mlist.append(mesh)
-        return mlist
     
     def __new__(cls, elementType="Q1/dQ0", elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.), **kwargs):
         # This class requires a custom __new__ so that we can decide which
@@ -669,7 +648,8 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
 
         if isinstance(elementType, str):
             # convert to tuple to make things easier
-            elementType = cls._strtolist(elementType)
+            import re
+            elementType = re.split(",|-|/",elementType)
 
         if len(elementType) > 2:
             raise ValueError("A maximum of two mesh types are currently supported.")
@@ -735,7 +715,8 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
 
         if isinstance(elementType, str):
             # convert to tuple to make things easier
-            elementType = self._strtolist(elementType)
+            import re
+            elementType = re.split(",|-|/",elementType)
 
         # ok, lets go ahead and build primary mesh (ie, self)
         super(FeMesh_Cartesian,self).__init__(elementType=elementType[0], elementRes=elementRes, minCoord=minCoord, maxCoord=maxCoord, periodic=periodic, **kwargs)
