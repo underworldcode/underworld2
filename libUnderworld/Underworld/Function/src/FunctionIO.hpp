@@ -16,7 +16,12 @@
 #include <typeindex>
 #include <string>
 
-#define debug_dynamic_cast std::dynamic_pointer_cast
+
+#ifdef DEBUG
+    #define debug_dynamic_cast std::dynamic_pointer_cast
+#else
+    #define debug_dynamic_cast std::static_pointer_cast
+#endif
 
 #if !defined(SWIG_DO_NOT_WRAP)
 std::string functionio_get_type_name(std::type_index tindex);
