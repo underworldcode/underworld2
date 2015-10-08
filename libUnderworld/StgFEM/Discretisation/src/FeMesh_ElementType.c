@@ -47,6 +47,8 @@ void FeMesh_ElementType_Update( void* hexType ) {
 
    if( self->mesh->isRegular == False ) {
       self->elementHasPointFunc = FeMesh_ElementType_ElementHasPoint_ForIrregular;
+   } else {
+      self->elementHasPointFunc = FeMesh_ElementType_ElementHasPoint;
    }
 }
 FeMesh_ElementType* _FeMesh_ElementType_New( FEMESH_ELEMENTTYPE_DEFARGS ) {
@@ -193,7 +195,6 @@ Bool FeMesh_ElementType_ElementHasPoint_ForIrregular(
 
    elType = FeMesh_GetElementType( mesh, elInd );
    nDims = Mesh_GetDimSize( mesh );
-   assert( nDims <= 3 );
 
    // first test if point belongs in element elInd
    if ( FeMesh_ElementType_ElementHasPoint( hexType, elInd, point, dim, ind ) == False ) return False;
@@ -217,13 +218,11 @@ Bool FeMesh_ElementType_ElementHasPoint_ForIrregular(
       }
    }
 
-   // calc a length scale for error measure, simple implementation - using the 1st and 4th node in element.
-   lengthScale = fabs( (Mesh_GetVertex(mesh, nodes[0])[0]) - (Mesh_GetVertex(mesh, nodes[3])[0]) ) ;
-   assert( lengthScale > DBL_MIN );
+   Mesh_GetMinimumSeparation( mesh, &lengthScale, NULL);
 
    for( dim_i = 0; dim_i<nDims; dim_i++ ) {
       if( fabs(coord[dim_i] - point[dim_i]) > epsilon*lengthScale ) {
-	 Stg_Class_Delete( inc );
+        Stg_Class_Delete( inc );
 	 return False;
       }	
    }

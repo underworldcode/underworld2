@@ -252,13 +252,6 @@ void Mesh_SetAlgorithms( void* mesh, void* algorithms ) {
 
 	assert( self && Stg_CheckType( self, Mesh ) );
 
-   /* TODO: This is a hack, because the FreeObject below will try and
-      remove the mesh. This is normally ok but as the code is not
-      in a Destroy or Delete phase it's problematic. Problems like
-      this should be fixed with reference counters */
-	if( self->algorithms ) 
-   	self->algorithms->mesh = NULL;
-
 	FreeObject( self->algorithms );
 	if( algorithms ) {
 		assert( Stg_CheckType( algorithms, Mesh_Algorithms ) );
@@ -618,11 +611,16 @@ void Mesh_DeformationUpdate( void* mesh ) {
 		Mesh_Algorithms_GetGlobalCoordRange( self->algorithms, self->minGlobalCrd, self->maxGlobalCrd );
 
 		Mesh_Algorithms_Update( self->algorithms );
+        Mesh_ElementType_Update( self->elTypes[0] );
 	}
 }
 
 void Mesh_GenerateVertices( void* mesh, unsigned nVerts, unsigned nDims ){
 	Mesh* self = (Mesh*)mesh;
+
+    if (self->vertices)
+        return;
+
     self->vertices = Memory_Alloc_Array( double, nDims*nVerts, "Mesh::verts" );
 
     char* name;

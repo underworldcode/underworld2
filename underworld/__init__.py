@@ -97,7 +97,7 @@ def _prepend_message_to_exception(e, message):
     Currently it is not python 3 friendly.  Check here
     http://stackoverflow.com/questions/6062576/adding-information-to-a-python-exception
     """
-    return type(e), type(e)(message + '\n' + e.message), _sys.exc_info()[2]
+    raise type(e), type(e)(message + '\n' + e.message), _sys.exc_info()[2]
 
 
 class _del_uw_class:

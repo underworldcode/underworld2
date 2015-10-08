@@ -66,7 +66,7 @@ class PerCellGaussLayout(_ParticleLayout):
         
         >>> import underworld as uw
         >>> # choose mesh to coincide with global element
-        >>> mesh = uw.mesh.FeMesh_Cartesian()
+        >>> mesh = uw.mesh.FeMesh_Cartesian('Q1/dQ0', (1,1), (-1.,-1.), (1.,1.))
         >>> swarm = uw.swarm.Swarm(mesh)
         >>> layout = uw.swarm.layouts.PerCellGaussLayout(swarm,gaussPointCount=2)
         >>> swarm.populate_using_layout(layout)
@@ -131,7 +131,7 @@ class GlobalSpaceFillerLayout(_ParticleLayout):
             The average number of particles per element that this layout will generate.
         
         >>> import underworld as uw
-        >>> mesh = uw.mesh.FeMesh_Cartesian()
+        >>> mesh = uw.mesh.FeMesh_Cartesian('Q1/dQ0', (1,1), (0.,0.), (1.,1.))
         >>> swarm = uw.swarm.Swarm(mesh)
         >>> layout = uw.swarm.layouts.GlobalSpaceFillerLayout(swarm,particlesPerCell=4)
         >>> uw.libUnderworld.StgDomain._ZeroSobolGeneratorGeneratorCount()  # this step isn't necessary, but we include it to ensure deterministic results for this doctest
@@ -238,7 +238,7 @@ class PerCellSpaceFillerLayout(_PerCellMeshParticleLayout):
             The number of particles per element that this layout will generate.
         
         >>> import underworld as uw
-        >>> mesh = uw.mesh.FeMesh_Cartesian()
+        >>> mesh = uw.mesh.FeMesh_Cartesian('Q1/dQ0', (1,1), (0.,0.), (1.,1.))
         >>> swarm = uw.swarm.Swarm(mesh)
         >>> layout = uw.swarm.layouts.PerCellSpaceFillerLayout(swarm,particlesPerCell=4)
         >>> uw.libUnderworld.StgDomain._ZeroSobolGeneratorGeneratorCount()  # this isn't usually necessary, but we include it to ensure deterministic results for this doctest
@@ -278,7 +278,7 @@ class PerCellRandomLayout(_PerCellMeshParticleLayout):
         
 
         >>> import underworld as uw
-        >>> mesh = uw.mesh.FeMesh_Cartesian()
+        >>> mesh = uw.mesh.FeMesh_Cartesian('Q1/dQ0', (1,1), (0.,0.), (1.,1.))
         >>> swarm = uw.swarm.Swarm(mesh)
         >>> layout = uw.swarm.layouts.PerCellRandomLayout(swarm,particlesPerCell=4)
         >>> uw.libUnderworld.StgDomain._ZeroSobolGeneratorGeneratorCount()  # this isn't usually necessary, but we include it to ensure deterministic results for this doctest

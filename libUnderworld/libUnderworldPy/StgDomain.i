@@ -41,6 +41,8 @@ extern "C" {
 %include "Mesh/MeshGenerator.h"
 %include "Mesh/CartesianGenerator.h"
 %include "Mesh/MeshVariable.h"
+%include "Mesh/Mesh_Algorithms.h"
+%include "Mesh/Mesh_RegularAlgorithms.h"
 %include "Mesh/types.h"
 %include "Swarm/ParticleLayout.h"
 %include "Swarm/GlobalParticleLayout.h"

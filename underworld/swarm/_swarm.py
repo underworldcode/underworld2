@@ -26,7 +26,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
     For example, to create the swarm with some variables:
     
     >>> # first we need a mesh
-    >>> mesh = uw.mesh.FeMesh_Cartesian()
+    >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
     >>> # create empty swarm
     >>> swarm = uw.swarm.Swarm(mesh)
     >>> # add a variable
@@ -119,7 +119,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
             are denoted with an index of -1. 
             
 
-        >>> mesh = uw.mesh.FeMesh_Cartesian()
+        >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.) )
         >>> swarm = uw.swarm.Swarm(mesh)
         >>> import numpy as np
         >>> arr = np.zeros((5,2))
