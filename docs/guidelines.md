@@ -10,11 +10,12 @@ Class overview?
 Directory Structure
 ===================
 
-* libUnderworld            - contains backend stack of tools (Underworld, StgFEM, etc)
- * libUnderworldPy         - contains swig generated wrappers for backend as well as auxiliary implementations (such as StGermain_Tools)
-* underworld               - python only directory structure containing python frontend routines and supporting scripts
+* libUnderworld            - Backend stack of tools (Underworld, StgFEM, etc)
+ * libUnderworldPy         - Swig generated wrappers for backend as well as auxiliary implementations (such as StGermain_Tools)
+* underworld               - Underworld python modules
+* glucifer                 - gLucifer python modules
 * docs                     - contains various documentation including this file
-* InputFiles               - contains various examples input files
+* UserGuide                - contains various examples input files
 
 
 
@@ -23,8 +24,9 @@ Coding Style
 
 Documentation
 -------------
-Largely follow the numpy/scipy documentation conventions. 
+Largely follow the numpy/scipy docstring conventions:
 https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt#docstring-standard
+
 
 Whitespace
 ----------
@@ -43,36 +45,44 @@ https://pypi.python.org/pypi/autopep8/
 This command seems to give good results (not overly aggressive):
 autopep8 -v -i -r  --ignore E201,E202,E501,E221,E251 .
 
+
 Naming Conventions
 -----------------
 module_name, package_name, ClassName, function_name, method_name, ExceptionName, propertyName
 GLOBAL_CONSTANT_NAME, globalVarName, instanceVarName, functionParameterName, localVarName
 
-An exception to the above naming convention are classes within the Function module.  These
+An exception to the above naming convention are classes within the Function module. These
 classes are generally (from the user interface perspective) utilised as functions, and 
-therefore they use the 'function_name' style naming.  This is also for consistency with
+therefore they use the 'function_name' style naming. This is also for consistency with
 other python modules (such as 'math' and 'numpy'). 
-
-
-* Comments?
-* Error handling?
- * Reporting?
- * Checking / exceptions?
 
 
 License 
 =======
+See LICENSE.md file in project top directory
 
 
+Version Control
+===============
 
-Development
-===========
-* Versions?
-* Development Workflow?
-* Bug fixes & reporting?
-* New Features / Redesigned interface or API?
-* Release candidates?
-* Distribution?
+We follow the Gitflow Workflow:
+https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow/
+
+Features branches should be created for anything besides quick fixes. Once ready for 
+publishing to the development branch, a pull request should be created and another 
+team member nominated to review the changes. Pull request should only be merged 
+once the following criterion are met:
+1. Any new functionality is sufficiently tested (via doctest or other means).
+2. Any new functionality is sufficiently documented.
+3. All tests pass. 
+
+
+Bug reporting
+=============
+
+Use the github issue tracker! Changes relating to issue tracker issues should register
+which issue they relate to in the commit log. 
+
 
 Testing
 =======
@@ -104,3 +114,10 @@ Useful Link
 http://matplotlib.org/devel/gitwash/git_development.html
 https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt
 http://docs.scipy.org/doc/numpy/dev/index.html
+
+
+TODO for this document:
+======================
+* Releases
+* New Features /  API changes  / deprections
+* Distribution?
