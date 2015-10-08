@@ -166,6 +166,12 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         return retarr
 
     def _get_iterator(self):
+        """
+        This is the concrete method required by the FunctionInput class. 
+        
+        It effects using the particle coordinate swarm variable as an input 
+        when the swarm is used as the input to a function.
+        """
         return libUnderworld.Function.SwarmInput(self._particleCoordinates._cself)
 
     def save(self, filename):
