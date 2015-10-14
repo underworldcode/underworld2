@@ -1,29 +1,70 @@
-
-
-Design
-======
-User Interface?
-Naming convections - for classes, instances, input parameters?
-Class overview?
-
-
 Directory Structure
 ===================
 
-* libUnderworld            - Backend stack of tools (Underworld, StgFEM, etc)
- * libUnderworldPy         - Swig generated wrappers for backend as well as auxiliary implementations (such as StGermain_Tools)
-* underworld               - Underworld python modules
-* glucifer                 - gLucifer python modules
-* docs                     - contains various documentation including this file
-* UserGuide                - contains various examples input files
+* libUnderworld            - Backend stack of tools (Underworld, StgFEM, etc).
+** libUnderworldPy         - Swig generated wrappers for backend as well as auxiliary implementations (such as StGermain_Tools).
+* underworld               - Underworld python modules.
+* glucifer                 - gLucifer python modules.
+* docs                     - Various documentation including this file.
+** development             - Documents relevant to developers.
+*** broken                 - Input files & tests which are broken.
+** tests                   - Python type scripts which are mainly for regression testing underworld.
+** tutorials               - Python type tutorial scripts for users. 
+** user_guide              - IPython notebook based user guide
+* utils                    - Utility files.
 
+Documents
+=========
+
+Tests (docs/tests)
+-----
+These are more developer domain scripts, but advanced users might also find them useful.
+For example, more thorough analytic tests might be housed here.
+
+All files here are read-only and should pass tests at all times.
+
+Tutorials (docs/tutorials)
+---------
+Tutorials generally demonstrate complete underworld model construction and usage.
+
+Naming convention for tutorial files:
+
+a_b_textual_name.ipynb (.py)
+
+where
+
+a: Loose indication of difficulty level (1=novice, 3=advanced)
+b: Unique & persistent integer identifier for tutorial
+
+Example: 2_04_Analytic Solutions.ipynb
+
+All files here are read-only and should pass tests at all times.
+
+User Guide (docs/user_guide)
+----------
+The user guide takes a more focussed look at various aspects of underworld
+model construction. Ipython notebooks are utilised to allow users to directly
+interact with and modify content (temporarily). Where possible, visualisation 
+should be constructed using glucifer. 
+
+Suggested chapter outline:
+
+01_Getting_Started.ipynb
+02_Meshing.ipynb
+03_Particle_Swarms.ipynb
+04_Functions.ipynb
+05_Systems.ipynb
+06_Visualisation.ipynb
+07_Parallelism.ipynb
+
+All files here are read-only and should pass tests at all times.
 
 
 Coding Style
 ============
 
-Documentation
--------------
+API Documentation
+-----------------
 Largely follow the numpy/scipy docstring conventions:
 https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt#docstring-standard
 
@@ -86,6 +127,9 @@ which issue they relate to in the commit log.
 
 Testing
 =======
+
+The 'testNotebook.py' script (in the utils directory) can be used to execute ipython 
+notebooks and check that they run to completion without issue. 
 
 Jenkins continuous testing system - see http://jenkins-ci.org/
 (followed setup instructions from https://wiki.jenkins-ci.org/display/JENKINS/Installing+Jenkins+on+Ubuntu )
