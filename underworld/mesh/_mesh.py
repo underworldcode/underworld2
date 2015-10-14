@@ -362,7 +362,7 @@ class CartesianMeshGenerator(MeshGenerator):
         for item in periodic:
             if not isinstance(item,(bool)):
                 raise TypeError("'periodic' list must only contain booleans.")
-        if len(periodic) != len(periodic):
+        if len(periodic) != len(elementRes):
             raise ValueError("'periodic' tuple length ({}) must be the same as that of 'elementRes' ({}).".format(len(periodic),len(elementRes)))
         self._periodic = periodic
         
@@ -681,7 +681,7 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
         # for consistency, 
     
     
-    def __init__(self, elementType="Q1/dQ0", elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.), periodic=None, **kwargs):
+    def __init__(self, elementType="Q1/dQ0", elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.), periodic=(False, False), **kwargs):
         """
         Class initialiser.
         
@@ -708,10 +708,6 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
         feMesh: FeMesh_Cartesian
         
         """
-        if periodic == None:
-            periodic=[False,False]
-            if len(elementRes)==3:
-                periodic=[False,False,False]
 
         if isinstance(elementType, str):
             # convert to tuple to make things easier
