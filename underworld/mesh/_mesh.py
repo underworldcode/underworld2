@@ -303,7 +303,7 @@ class CartesianMeshGenerator(MeshGenerator):
     Generators of this class provide algorithms to build meshes which are 
     logically and geometrically Cartesian.
     """
-    def __init__(self, elementRes, minCoord, maxCoord, periodic, **kwargs):
+    def __init__(self, elementRes, minCoord, maxCoord, periodic=None, **kwargs):
         """
         Class initialiser.
         
@@ -315,11 +315,11 @@ class CartesianMeshGenerator(MeshGenerator):
         minCoord:  list, tuple
             List or tuple of floats specifying minimum mesh location. See CartesianMeshGenerator.minCoord
             docstring for further information.
-        maxCoord list, tuple
+        maxCoord: list, tuple
             List or tuple of floats specifying maximum mesh location. See CartesianMeshGenerator.minCoord
             docstring for further information.
-        periodic list, tuple
-            List or bools, specifying in which direction, (X,Y,Z) the mesh is periodic.
+        periodic: list, tuple
+            List or tuple of bools, specifying mesh periodicity in each direction.
             
         Returns
         ------
@@ -357,13 +357,14 @@ class CartesianMeshGenerator(MeshGenerator):
 
         self._dim = len(elementRes)
 
-        if not isinstance(periodic,(list,tuple)):
-            raise TypeError("'periodic' object passed in must be of type 'list' or 'tuple' in CartesianMeshGenerator")
-        for item in periodic:
-            if not isinstance(item,(bool)):
-                raise TypeError("'periodic' list must only contain booleans.")
-        if len(periodic) != len(elementRes):
-            raise ValueError("'periodic' tuple length ({}) must be the same as that of 'elementRes' ({}).".format(len(periodic),len(elementRes)))
+        if periodic:
+            if not isinstance(periodic,(list,tuple)):
+                raise TypeError("'periodic' object passed in must be of type 'list' or 'tuple' in CartesianMeshGenerator")
+            for item in periodic:
+                if not isinstance(item,(bool)):
+                    raise TypeError("'periodic' list must only contain booleans.")
+            if len(periodic) != len(elementRes):
+                raise ValueError("'periodic' tuple length ({}) must be the same as that of 'elementRes' ({}).".format(len(periodic),len(elementRes)))
         self._periodic = periodic
         
         for ii in range(0,self.dim):
@@ -391,6 +392,7 @@ class CartesianMeshGenerator(MeshGenerator):
     @property
     def periodic(self):
         """ 
+        periodic (list,tuple): List of bools specifying mesh periodicity in each direction.
         """
         return self._periodic
     @property
@@ -410,10 +412,11 @@ class CartesianMeshGenerator(MeshGenerator):
         componentDictionary[self._gen.name][  "minCoord"] = self._minCoord
         componentDictionary[self._gen.name][  "maxCoord"] = self._maxCoord
         componentDictionary[self._gen.name][       "dim"] = self._dim
-        componentDictionary[self._gen.name]["periodic_x"] = self._periodic[0]
-        componentDictionary[self._gen.name]["periodic_y"] = self._periodic[1]
-        if self._dim == 3:
-            componentDictionary[self._gen.name]["periodic_z"] = self._periodic[2]
+        if self.periodic:
+            componentDictionary[self._gen.name]["periodic_x"] = self._periodic[0]
+            componentDictionary[self._gen.name]["periodic_y"] = self._periodic[1]
+            if self._dim == 3:
+                componentDictionary[self._gen.name]["periodic_z"] = self._periodic[2]
 
     def _reset(self,mesh):
         """
@@ -639,7 +642,7 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
     _meshGenerator = [ "C2Generator", "CartesianGenerator" ]
     _objectsDict = { "_gen": None }  # this is set programmatically in __new__
     
-    def __new__(cls, elementType="Q1/dQ0", elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.), **kwargs):
+    def __new__(cls, elementType="Q1/dQ0", elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.), periodic=None, **kwargs):
         # This class requires a custom __new__ so that we can decide which
         # type of generator is required dynamically
 
@@ -678,30 +681,21 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
 
         return super(FeMesh_Cartesian,cls).__new__(cls, objectsDictOverrule=overruleDict, **kwargs)
     
-        # for consistency, 
     
-    
-    def __init__(self, elementType="Q1/dQ0", elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.), periodic=(False, False), **kwargs):
+    def __init__(self, elementType="Q1/dQ0", elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.), periodic=None, **kwargs):
         """
         Class initialiser.
         
-        Parameter
-        ---------
+        Parameters
+        ----------
             elementType: str
                 Mesh element type. Note that this class allows the user to 
                 (optionally) provide a pair of elementTypes for which a dual 
                 mesh will be created.
                 The submesh is accessible through the 'subMesh' property. The
                 primary mesh itself is the object returned by this constructor.
-            elementRes: list,tuple
-                List or tuple of ints specifying mesh resolution. See FeMesh_Cartesian.elementRes
-                docstring for further information.
-            minCoord:  list, tuple
-                List or tuple of floats specifying minimum mesh location. See FeMesh_Cartesian.minCoord
-                docstring for further information.
-            maxCoord list, tuple
-                List or tuple of floats specifying maximum mesh location. See FeMesh_Cartesian.minCoord
-                docstring for further information.
+                
+            Refer to parent classes for further information on parameters.
             
         Returns
         ------
