@@ -49,7 +49,7 @@ void* ConstantElementType_DefaultNew( Name name ) {
 	ElementType_EvaluateShapeFunctionLocalDerivsAtFunction*  _evaluateShapeFunctionLocalDerivsAt = _ConstantElementType_SF_allLocalDerivs_allNodes;
 	ElementType_ConvertGlobalCoordToElLocalFunction*                _convertGlobalCoordToElLocal = _ConstantElementType_ConvertGlobalCoordToElLocal;
 	ElementType_JacobianDeterminantSurfaceFunction*                  _jacobianDeterminantSurface = _ElementType_JacobianDeterminantSurface;
-	ElementType_SurfaceNormalFunction*                                            _surfaceNormal = _ConstantElementType_SurfaceNormal;
+	ElementType_SurfaceNormalFunction*                                            _surfaceNormal = NULL;
 
 	return _ConstantElementType_New(  CONSTANTELEMENTTYPE_PASSARGS  );
 }
@@ -144,10 +144,7 @@ to do this!
 void _ConstantElementType_SF_allLocalDerivs_allNodes( void* elementType, const double localCoord[],
 		double** const evaluatedDerivatives )
 {		
-	Stream* error = Journal_Register( ErrorStream_Type, (Name)ConstantElementType_Type  );
-	/* all derivatives are zero*/
-	Journal_Printf( error, "Error: Trying take derivative of a constant shape function \n" );
-	assert( 0 );
+    Journal_Firewall( 0, NULL, "Taking derivative of constant shape function not currently supported." );
 }
 
 
@@ -161,17 +158,4 @@ void _ConstantElementType_ConvertGlobalCoordToElLocal(
 	/* See header file function introduction for explanation... */
 	elLocalCoord[0] = elLocalCoord[1] = elLocalCoord[2] = 0;
 }
-
-int _ConstantElementType_SurfaceNormal( void* elementType, unsigned element_I, unsigned dim, double* xi, double* normal ) {
-	Stream*	errStream	= Journal_Register( ErrorStream_Type, (Name)ElementType_Type  );
-
-	Journal_Printf( errStream, "surface normal not defined for this element type.\n" );
-	assert( 0 );
-
-	normal = NULL;
-
-	return -1;
-}
-
-
 

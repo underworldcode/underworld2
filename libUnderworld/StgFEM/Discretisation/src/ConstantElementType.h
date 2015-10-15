@@ -96,12 +96,5 @@
 		unsigned	norm );
 #endif 
 
-	int _ConstantElementType_SurfaceNormal(
-		void*		elementType,
-		unsigned	element_I,
-		unsigned	dim,
-		double*		xi,
-		double*		normal );
-
 #endif /* __StgFEM_Discretisation_ConstantElementType_h__ */
 

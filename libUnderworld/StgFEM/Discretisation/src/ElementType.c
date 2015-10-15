@@ -51,15 +51,18 @@ void _ElementType_Init( ElementType* self, Index nodeCount ) {
 	self->nodeCount = nodeCount;
 	self->debug = Stream_RegisterChild( StgFEM_Discretisation_Debug, ElementType_Type );
 	self->inc = IArray_New();
+    /* Using 3 here instead of dim so that you can pass in dim = 2 and use axes 0 and 2 for your jacobian */
+	self->_jacobian = Memory_Alloc_2DArray( double, 3, 3, (Name)"Temporary Jacobian"  );
+
 }
 
 
 void _ElementType_Destroy( void* elementType, void* data ){
 	ElementType* self = (ElementType*)elementType;
 
+    Memory_Free(self->_jacobian); self->_jacobian = NULL;
+    
 	Stg_Class_Delete( self->inc );
-
-	Stg_Component_Destroy( self, data, False );
 }
 
 void _ElementType_Delete( void* elementType ) {
@@ -174,6 +177,8 @@ int _ElementType_SurfaceNormal( void* elementType, unsigned element_I, unsigned 
 int ElementType_SurfaceNormal( void* elementType, unsigned element_I, unsigned dim, double* xi, double* normal ) {
 	ElementType* 	self = (ElementType*)elementType;
 
+    Journal_Firewall( self->_surfaceNormal, NULL, "Surface normal function not yet implemented for this element type." );
+
 	return self->_surfaceNormal( self, element_I, dim, xi, normal );
 }
 
@@ -214,7 +219,8 @@ void _ElementType_ConvertGlobalCoordToElLocal(
 	double              shapeFunc;
 	double*       	    nodeCoord;
 	double**            GNi = self->GNi;
-	unsigned	    nInc, *inc;
+	unsigned	    nInc;
+    int             *inc;
 	Dimension_Index     dim             = Mesh_GetDimSize( mesh );
 
 	/* This function uses a Newton-Raphson iterative method to find the local coordinate from the global coordinate 
@@ -341,7 +347,8 @@ void ElementType_ShapeFunctionsGlobalDerivs(
 	int dx, dxi;
 	double tmp, D = 0.0;
 	double cof[3][3];	/* cofactors */
-	unsigned nInc, *inc;
+	unsigned nInc;
+    int      *inc;
 	Index nodesPerEl;
 
 	rows=Mesh_GetDimSize( mesh );
@@ -480,7 +487,8 @@ void ElementType_Jacobian_AxisIndependent(
 	double**     GNi;
 	Node_Index   nodesPerEl  = self->nodeCount;
 	Node_Index   node_I;
-	unsigned	nInc, *inc;
+	unsigned	 nInc;
+    int          *inc;
 
 	Mesh_GetIncidence( mesh, Mesh_GetDimSize( mesh ), elId, MT_VERTEX, self->inc );
 	nInc = IArray_GetSize( self->inc );
@@ -573,26 +581,16 @@ double ElementType_JacobianDeterminant_AxisIndependent(
 		Coord_Index         B_axis, 
 		Coord_Index         C_axis ) 
 {
-	double** jacobian;
-	double detJac;
-
-	/* Using 3 here instead of dim so that you can pass in dim = 2 and use axes 0 and 2 for your jacobian */
-	jacobian = Memory_Alloc_2DArray( double, 3, 3, (Name)"Temporary Jacobian"  );
-
-	ElementType_Jacobian_AxisIndependent( elementType, _mesh, elId, xi, dim, jacobian, NULL, A_axis, B_axis, C_axis );
-	detJac = StGermain_MatrixDeterminant_AxisIndependent( jacobian, dim, A_axis, B_axis, C_axis );
-
-	/* Cleaning up */
-	Memory_Free( jacobian );
-
-	return detJac;
+	ElementType*	self = (ElementType*)elementType;
+	ElementType_Jacobian_AxisIndependent( elementType, _mesh, elId, xi, dim, self->_jacobian, NULL, A_axis, B_axis, C_axis );
+	return StGermain_MatrixDeterminant_AxisIndependent( self->_jacobian, dim, A_axis, B_axis, C_axis );
 }
 
 void ElementType_GetFaceNodes( void* elementType, Mesh* mesh, unsigned element_I, unsigned face_I, 
 				unsigned nNodes, unsigned* nodes ) {
 	ElementType* 	self        = (ElementType*) elementType;
 	Index		node_i;
-	unsigned*	inc;
+	int*	inc;
 
 	assert( mesh && Stg_CheckType( mesh, FeMesh ) );
 

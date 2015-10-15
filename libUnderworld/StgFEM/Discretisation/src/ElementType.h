@@ -61,7 +61,8 @@
 		unsigned**							faceNodes; \
 		/* below are temporary storage data structures */ \
 		double     **GNi; \
-		double     *evaluatedShapeFunc;
+		double     *evaluatedShapeFunc; \
+        double     **_jacobian;
 
 	struct ElementType { __ElementType };
 
