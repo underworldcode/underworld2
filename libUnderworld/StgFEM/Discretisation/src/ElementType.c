@@ -119,22 +119,13 @@ void ElementType_EvaluateShapeFunctionLocalDerivsAt( void* elementType, const do
 double _ElementType_JacobianDeterminantSurface( void* elementType, void* mesh, unsigned element_I, const double localCoord[], 
 						unsigned face_I, unsigned norm ) 
 {
-	ElementType*	self;
-	Stream*			error = Journal_Register( ErrorStream_Type, (Name)ElementType_Type );
-
-	self = (ElementType* ) elementType;
-
-	Journal_Printf( error, "Error: the jacobian for this element type cannot be evaluated on the element surface" );
-	Journal_Printf( error, "(perhaps because the nodes are defined internally for the element).\n" );
-	assert( 0 );
-
-	return -1;
+    Journal_Firewall( 0, NULL, "Surface Jacobian evaluation not supported for this element type." );
+	return -1.;
 }
 
 double ElementType_JacobianDeterminantSurface( void* elementType, void* mesh, unsigned element_I, 
 						const double localCoord[], unsigned face_I, unsigned norm ) {
 	ElementType* self = (ElementType*)elementType;
-
 	return self->_jacobianDeterminantSurface( self, mesh, element_I, localCoord, face_I, norm );
 }
 
