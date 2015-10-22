@@ -471,11 +471,12 @@ void _Stokes_SLE_UzawaSolver_Solve( void* solver, void* stokesSLE ) {
 		if ( sle->fForceVec->assembleForceVector->hooks->count > 0 ) {
 			Journal_Printf( errorStream, "You used the following force vector assembly terms:\n" );
 			EntryPoint_PrintConcise( sle->fForceVec->assembleForceVector, errorStream );
-/* 			 TODO : need to print the elementForceVector assembly, not the global guy!! */
 		}	
 		Journal_Printf( errorStream,
 			"Please check values for building the force vector.\n" );
-		Journal_Firewall( 0, errorStream, "Exiting.\n" ); 	
+		Journal_Firewall( 0, errorStream, "The momentum force vector \"%s\" is zero. "
+			"The force vector should be non-zero because of your chosen boundary "
+			"conditions and/or buoyancy/body forces.\n" ); 	
 	}
 	
 					
