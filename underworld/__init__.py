@@ -59,7 +59,9 @@ def rank():
     Parameters
     ----------
         None
+
     Returns:
+    ----------
         rank (unsigned) : Rank of current processor.
     """
     return _data.rank
@@ -72,10 +74,32 @@ def nProcs():
     Parameters
     ----------
         None
+
     Returns:
+    ----------
         nProcs (unsigned) : Number of processors.
     """
     return _data.nProcs
+
+
+def help(object):
+    """
+    This help function simply prints the object's docstring, without also
+    printing the entire object hierarchy's docstrings (as per the python
+    build in help() function).
+
+    Parameters
+    ----------
+        object:  Any python object.
+
+    Returns:
+    ----------
+        None
+    """
+    print("Object docstring:\n")
+    print(object.__doc__)
+    print("Object initialiser docstring:\n")
+    print(object.__init__.__doc__)
 
 # lets handle exceptions differently in parallel to ensure we call 
 if nProcs() > 1:

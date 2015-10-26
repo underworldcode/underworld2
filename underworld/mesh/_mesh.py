@@ -25,8 +25,8 @@ import abc
 
 class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
     """
-    The FeMesh class provides the geometry and topology of a Finite 
-    Element discretised domain. The FeMesh is implicitly parallel. Some aspects 
+    The FeMesh class provides the geometry and topology of a finite
+    element discretised domain. The FeMesh is implicitly parallel. Some aspects
     may be local or global, but this is generally handled automatically.
 
     A number of element types are supported.
@@ -614,7 +614,7 @@ class ConstantGenerator(TemplatedMeshGenerator):
 
 class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
     """
-    This class generates a Finite Element Mesh which is topologically cartesian 
+    This class generates a finite element mesh which is topologically cartesian
     and geometrically regular. It is possible to directly build a dual mesh by 
     passing a pair of element types to the constructor.
     

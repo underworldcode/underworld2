@@ -50,6 +50,8 @@ class Stokes(_stgermain.StgCompoundComponent):
 
         if not isinstance(conditions, (uw.conditions._SystemCondition, list, tuple) ):
             raise TypeError( "Provided 'conditions' must be a list '_SystemCondition' objects." )
+        if len(conditions) > 1:
+            raise ValueError( "Multiple conditions are not currently supported." )
         for cond in conditions:
             if not isinstance( cond, uw.conditions._SystemCondition ):
                 raise TypeError( "Provided 'conditions' must be a list '_SystemCondition' objects." )
