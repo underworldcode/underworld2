@@ -202,32 +202,3 @@ def AllWalls( mesh ):
         wallSet += MinK_VertexSet( mesh )
 
     return wallSet
-
-@_meshCheck
-def Empty( mesh ):
-    """
-    Returns the empty set.
-    
-    Parameter
-    ---------
-    mesh : FeMesh
-        Mesh from which the IndexSet set is required.
-    
-    Returns
-    -------
-    set : IndexSet
-        The empty set.
-
-    """
-    return _uw.mesh.FeMesh_IndexSet( object           = mesh,
-                                     topologicalIndex = 0,
-                                     size             = _libUnderworld.StgDomain.Mesh_GetDomainSize( mesh._femesh, _libUnderworld.StgDomain.MT_VERTEX ))
-
-
-
-
-
-
-
-
-

@@ -317,7 +317,7 @@ double Mesh_HexType_GetMinimumSeparationGeneral( void* hexType, unsigned elInd, 
 			tmp = StGermain_VectorMagnitude( sVec, dim );
 
 			// check if it is the distance of the element
-			assert( tmp > DBL_MIN );
+            Journal_Firewall( tmp > DBL_MIN, NULL, "An error occurred when checking mesh metrics. Possibly two nodes are in an identical location." );
 			if( tmp < curSep )
 				curSep = tmp;
 		}

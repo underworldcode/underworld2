@@ -132,9 +132,6 @@ double ElementType_JacobianDeterminantSurface( void* elementType, void* mesh, un
 #define EPS 1.0E-6
 
 int _ElementType_SurfaceNormal( void* elementType, unsigned element_I, unsigned dim, double* xi, double* normal ) {
-	ElementType* self;
-
-	self = (ElementType*)elementType;
 
 	memset( normal, 0, sizeof(double) * dim );
 
@@ -577,7 +574,51 @@ double ElementType_JacobianDeterminant_AxisIndependent(
 	return StGermain_MatrixDeterminant_AxisIndependent( self->_jacobian, dim, A_axis, B_axis, C_axis );
 }
 
-void ElementType_GetFaceNodes( void* elementType, Mesh* mesh, unsigned element_I, unsigned face_I, 
+double ElementType_SurfaceJacobianMagnitude_AxisIndependent(
+		void*               elementType, 
+		void*               _mesh, 
+		Element_DomainIndex	elId, 
+		double*             xi, 
+		Dimension_Index     dim, 
+		Coord_Index         A_axis, 
+		Coord_Index         B_axis, 
+		Coord_Index         C_axis,
+        double*             localNormal )
+{
+	ElementType*	self = (ElementType*)elementType;
+    double* vectorsInSurface[3];
+    unsigned ii;
+    unsigned jj;
+    double magnitude;
+
+	ElementType_Jacobian_AxisIndependent( elementType, _mesh, elId, xi, dim, self->_jacobian, NULL, A_axis, B_axis, C_axis );
+    
+    /* Get the vectors in the required surface. Note that the localNormal provided is */
+    /* expected to be a vector in the local coordinates normal to one of the element  */
+    /* faces.                                                                         */
+    jj=0;
+    for( ii=0; ii<dim; ii++){
+        if (fabs(localNormal[ii]) < 0.00001) {
+            vectorsInSurface[jj] = self->_jacobian[ii];
+            jj++;
+        }
+    }
+    
+    /* jj should be dim-1 */
+    Journal_Firewall( jj==dim-1, NULL, "An error occurred in calculation of surface Jacobian. Please contact developers." );
+    
+    magnitude = 0.; /* just to squelch warnings */
+    if (dim == 2)
+        magnitude = StGermain_VectorMagnitude(vectorsInSurface[0], 2);
+    else if ( dim == 3)
+        magnitude = StGermain_VectorCrossProductMagnitude( vectorsInSurface[0], vectorsInSurface[1], 3 );
+    else
+        Journal_Firewall( 0, NULL, "An error occurred in calculation of surface Jacobian. Please contact developers." );
+    
+	return magnitude;
+}
+
+void ElementType_GetFaceNodes( void* elementType, Mesh* mesh, unsigned element_I, unsigned face_I,
 				unsigned nNodes, unsigned* nodes ) {
 	ElementType* 	self        = (ElementType*) elementType;
 	Index		node_i;

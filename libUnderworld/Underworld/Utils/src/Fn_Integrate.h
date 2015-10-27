@@ -57,7 +57,8 @@ extern "C" {
       double                  gIntegral; \
       void*                   cppdata;   \
       FeMesh*                 mesh;      \
-      unsigned                dim;   
+      unsigned                dim;       \
+      Bool                    isSurfaceIntegral;
 
    struct Fn_Integrate { __Fn_Integrate };
 

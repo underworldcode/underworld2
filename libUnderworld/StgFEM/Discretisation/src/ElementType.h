@@ -208,6 +208,19 @@
 		Coord_Index         B_axis, 
 		Coord_Index         C_axis );
 
+	#define ElementType_SurfaceJacobianMagnitude( elementType, mesh, elId, xi, dim, localNormal ) \
+		ElementType_SurfaceJacobianMagnitude_AxisIndependent( elementType, mesh, elId, xi, dim, I_AXIS, J_AXIS, K_AXIS, localNormal )
+    double ElementType_SurfaceJacobianMagnitude_AxisIndependent(
+		void*               elementType, 
+		void*               _mesh, 
+		Element_DomainIndex	elId, 
+		double*             xi, 
+		Dimension_Index     dim, 
+		Coord_Index         A_axis, 
+		Coord_Index         B_axis, 
+		Coord_Index         C_axis,
+        double*             localNormal );
+
 	void ElementType_GetFaceNodes( void* elementType, Mesh* mesh, 
 					unsigned element_I, unsigned face_I, unsigned nNodes, unsigned* nodes );
 

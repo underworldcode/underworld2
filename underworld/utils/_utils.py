@@ -57,23 +57,27 @@ class Integral(_stgermain.StgCompoundComponent):
             if integrationType not in ["volume", "surface"]:
                 raise ValueError( "'integrationType' string provided must be either 'volume' or 'surface'.")
             if integrationType == "volume":
-                # set the dimensionality to be the same as the mesh for 'volume' integration
-                self._cself.dim = feMesh.dim
+                self._cself.isSurfaceIntegral = False
                 integrationSwarm = uw.swarm.GaussIntegrationSwarm(feMesh)
             else:
-                raise RuntimeError("Surface integrals are currently disabled.")
-                # set the dimensionality to be one less than the mesh for 'surface' integration
-                self._cself.dim = feMesh.dim-1
+                self._cself.isSurfaceIntegral = True
                 if not surfaceIndexSet:
                     raise RuntimeError("For surface integration, you must provide a 'surfaceIndexSet'.")
                 if not isinstance(surfaceIndexSet, uw.mesh.FeMesh_IndexSet ):
                     raise TypeError("'surfaceIndexSet' must be of type 'FeMesh_IndexSet'.")
                 if surfaceIndexSet.object != feMesh:
                     raise ValueError("'surfaceIndexSet' mesh does not appear to correspond to mesh provided to Integral object.")
-                if surfaceIndexSet.object != feMesh:
-                    raise ValueError("'surfaceIndexSet' mesh does not appear to correspond to mesh provided to Integral object.")
                 if surfaceIndexSet.topologicalIndex != 0:
                     raise ValueError("'surfaceIndexSet' must correspond to vertex objects.")
+                # check that nodes are boundary nodes
+                try:
+                    allBoundaryNodes = feMesh.specialSets['AllWalls_VertexSet']
+                except:
+                    raise ValueError("Mesh does not appear to provide a 'AllWalls_VertexSet' special set. This is required for surface integration.")
+                for guy in surfaceIndexSet:
+                    inSet = int(guy) in allBoundaryNodes
+                    if not inSet:
+                        raise ValueError("Your surfaceIndexSet appears to contain node(s) which do not belong to the mesh boundary. Surface integration across internal nodes is not currently supported.")
                 # create feVariable
                 deltaFeVariable = uw.fevariable.FeVariable(feMesh, 1)
                 # init to zero
@@ -95,6 +99,7 @@ class Integral(_stgermain.StgCompoundComponent):
 
         self._integrationSwarm = integrationSwarm
         self._cself.integrationSwarm = integrationSwarm._cself
+        self._cself.dim = feMesh.dim
 
         # lets setup fn tings
         libUnderworld.Underworld._Fn_Integrate_SetFn( self._cself, self._fn._fncself)
