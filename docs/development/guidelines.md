@@ -47,15 +47,18 @@ model construction. Ipython notebooks are utilised to allow users to directly
 interact with and modify content (temporarily). Where possible, visualisation 
 should be constructed using glucifer. 
 
-Suggested chapter outline:
+Chapter outline:
 
-01_Getting_Started.ipynb
-02_Meshing.ipynb
-03_Particle_Swarms.ipynb
-04_Functions.ipynb
-05_Systems.ipynb
-06_Visualisation.ipynb
-07_Parallelism.ipynb
+01_GettingStarted.ipynb
+02_HowToMesh.ipynb
+03_FEVariables.ipynb
+04_Particle_Swarms.ipynb
+05_Functions.ipynb
+06_Systems.ipynb
+07_Utilities.ipynb
+08_Visualisation.ipynb
+09_Checkpointing.ipynb
+10_Parallelism.ipynb
 
 All files here are read-only and should pass tests at all times.
 
