@@ -42,7 +42,6 @@ void* _TrilinearElementType_DefaultNew( Name name ) {
 	ElementType_EvaluateShapeFunctionsAtFunction*                      _evaluateShapeFunctionsAt = _TrilinearElementType_SF_allNodes;
 	ElementType_EvaluateShapeFunctionLocalDerivsAtFunction*  _evaluateShapeFunctionLocalDerivsAt = _TrilinearElementType_SF_allLocalDerivs_allNodes;
 	ElementType_ConvertGlobalCoordToElLocalFunction*                _convertGlobalCoordToElLocal = _ElementType_ConvertGlobalCoordToElLocal;
-	ElementType_JacobianDeterminantSurfaceFunction*                  _jacobianDeterminantSurface = _TrilinearElementType_JacobianDeterminantSurface;
 	ElementType_SurfaceNormalFunction*                                            _surfaceNormal = _ElementType_SurfaceNormal;
 
 	return _TrilinearElementType_New(  TRILINEARELEMENTTYPE_PASSARGS  );
@@ -310,46 +309,4 @@ void _TrilinearElementType_ConvertGlobalCoordToElLocal(
 	}
 }
 #endif
-
-double _TrilinearElementType_JacobianDeterminantSurface( void* elementType, void* _mesh, unsigned element_I, const double localCoord[],
-	       						 unsigned face_I, unsigned norm ) 
-{
-	TrilinearElementType*	self		= (TrilinearElementType*) elementType;
-	Mesh*			mesh		= (Mesh*)_mesh;
-	unsigned		surfaceDim[2];
-	double			x[4], y[4];
-	double			s, t;
-	double			dxds, dxdt, dyds, dydt;
-	double			detJac;
-	unsigned		nodes[4];
-
-	surfaceDim[0] = ( norm + 1 ) % 3;
-	surfaceDim[1] = ( norm + 2 ) % 3;
-
-	s = localCoord[surfaceDim[0]];
-	t = localCoord[surfaceDim[1]];
-
-	ElementType_GetFaceNodes( self, mesh, element_I, face_I, 4, nodes );
-
-	x[0] = Mesh_GetVertex( mesh, nodes[0] )[surfaceDim[0]];
-	x[1] = Mesh_GetVertex( mesh, nodes[1] )[surfaceDim[0]];
-	x[2] = Mesh_GetVertex( mesh, nodes[2] )[surfaceDim[0]];
-	x[3] = Mesh_GetVertex( mesh, nodes[3] )[surfaceDim[0]];
-
-	y[0] = Mesh_GetVertex( mesh, nodes[0] )[surfaceDim[1]];
-	y[1] = Mesh_GetVertex( mesh, nodes[1] )[surfaceDim[1]];
-	y[2] = Mesh_GetVertex( mesh, nodes[2] )[surfaceDim[1]];
-	y[3] = Mesh_GetVertex( mesh, nodes[3] )[surfaceDim[1]];
-
-	dxds = 0.25 * ( - ( 1.0 - t )*x[0] + ( 1.0 - t )*x[1] - ( 1.0 + t )*x[2] + ( 1.0 + t )*x[3] );
-	dyds = 0.25 * ( - ( 1.0 - t )*y[0] + ( 1.0 - t )*y[1] - ( 1.0 + t )*y[2] + ( 1.0 + t )*y[3] );
-	dxdt = 0.25 * ( - ( 1.0 - s )*x[0] - ( 1.0 + s )*x[1] + ( 1.0 - s )*x[2] + ( 1.0 + s )*x[3] );
-	dydt = 0.25 * ( - ( 1.0 - s )*y[0] - ( 1.0 + s )*y[1] + ( 1.0 - s )*y[2] + ( 1.0 + s )*y[3] );
-	
-	detJac = dxds * dydt - dxdt * dyds;
-
-	return fabs( detJac );
-}
-
-
 

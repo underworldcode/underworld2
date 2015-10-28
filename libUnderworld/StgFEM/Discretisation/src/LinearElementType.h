@@ -89,13 +89,5 @@
 		double*		elLocalCoord );
 	#endif 
 
-	double _LinearElementType_JacobianDeterminantSurface(
-		void*		elementType,
-		void*		mesh,
-		unsigned	element_I,
-		const double	localCoord[],
-		unsigned	face_I,
-		unsigned	norm );
-
 #endif /* __StgFEM_Discretisation_LinearElementType_h__ */
 

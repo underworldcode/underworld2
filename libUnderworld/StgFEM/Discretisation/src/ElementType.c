@@ -36,7 +36,6 @@ ElementType* _ElementType_New(  ELEMENTTYPE_DEFARGS  ) {
 	self->_evaluateShapeFunctionsAt = _evaluateShapeFunctionsAt;
 	self->_evaluateShapeFunctionLocalDerivsAt = _evaluateShapeFunctionLocalDerivsAt;
 	self->_convertGlobalCoordToElLocal = _convertGlobalCoordToElLocal;
-	self->_jacobianDeterminantSurface = _jacobianDeterminantSurface;
 	self->_surfaceNormal = _surfaceNormal;
 	
 	/* ElementType info */
@@ -114,19 +113,6 @@ void ElementType_EvaluateShapeFunctionLocalDerivsAt( void* elementType, const do
 	ElementType* self = (ElementType*)elementType;
 	
 	self->_evaluateShapeFunctionLocalDerivsAt( self, localCoord, evaluatedDerivatives );
-}
-
-double _ElementType_JacobianDeterminantSurface( void* elementType, void* mesh, unsigned element_I, const double localCoord[], 
-						unsigned face_I, unsigned norm ) 
-{
-	Journal_Firewall( 0, NULL, "Surface Jacobian evaluation not supported for this element type." );
-	return -1.;
-}
-
-double ElementType_JacobianDeterminantSurface( void* elementType, void* mesh, unsigned element_I, 
-						const double localCoord[], unsigned face_I, unsigned norm ) {
-	ElementType* self = (ElementType*)elementType;
-	return self->_jacobianDeterminantSurface( self, mesh, element_I, localCoord, face_I, norm );
 }
 
 #define EPS 1.0E-6
@@ -577,7 +563,7 @@ double ElementType_JacobianDeterminant_AxisIndependent(
 	return StGermain_MatrixDeterminant_AxisIndependent( self->_jacobian, dim, A_axis, B_axis, C_axis );
 }
 
-double ElementType_SurfaceJacobianMagnitude_AxisIndependent(
+double ElementType_SurfaceJacobianDeterminant_AxisIndependent(
 		void*               elementType, 
 		void*               _mesh, 
 		Element_DomainIndex	elId, 

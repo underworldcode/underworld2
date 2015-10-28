@@ -29,13 +29,6 @@
 
 	typedef void	(ElementType_BuildFunction)					( void* elementType, void *arg );
 
-	typedef double	(ElementType_JacobianDeterminantSurfaceFunction)		( void* elementType,
-		void* 		mesh, 
-		unsigned	element_I,
-		const double	localCoord[],
-		unsigned	face_I,
-		unsigned 	norm );
-
 	typedef int 	(ElementType_SurfaceNormalFunction)			( void* elementType, unsigned element_I,
 		unsigned	dim,
 		double*		xi,
@@ -50,7 +43,6 @@
 		ElementType_EvaluateShapeFunctionsAtFunction*			_evaluateShapeFunctionsAt; \
 		ElementType_EvaluateShapeFunctionLocalDerivsAtFunction*		_evaluateShapeFunctionLocalDerivsAt; \
 		ElementType_ConvertGlobalCoordToElLocalFunction*		_convertGlobalCoordToElLocal; \
-		ElementType_JacobianDeterminantSurfaceFunction*			_jacobianDeterminantSurface; \
 		ElementType_SurfaceNormalFunction*				_surfaceNormal; \
 		\
 		/* ElementType info */ \
@@ -84,7 +76,6 @@
                 ElementType_EvaluateShapeFunctionsAtFunction*                      _evaluateShapeFunctionsAt, \
                 ElementType_EvaluateShapeFunctionLocalDerivsAtFunction*  _evaluateShapeFunctionLocalDerivsAt, \
                 ElementType_ConvertGlobalCoordToElLocalFunction*                _convertGlobalCoordToElLocal, \
-                ElementType_JacobianDeterminantSurfaceFunction*                  _jacobianDeterminantSurface, \
                 ElementType_SurfaceNormalFunction*                                            _surfaceNormal
 
 	#define ELEMENTTYPE_PASSARGS \
@@ -92,7 +83,6 @@
 	        _evaluateShapeFunctionsAt,           \
 	        _evaluateShapeFunctionLocalDerivsAt, \
 	        _convertGlobalCoordToElLocal,        \
-	        _jacobianDeterminantSurface,         \
 	        _surfaceNormal                     
 
 	ElementType* _ElementType_New(  ELEMENTTYPE_DEFARGS  );
@@ -150,22 +140,6 @@
 		double*			detJac, 
 		double**		GNx );
 
-	double _ElementType_JacobianDeterminantSurface(
-		void*			elementType,
-		void*			mesh,
-		unsigned		element_I,
-		const double		localCoord[],
-		unsigned		face_I,
-		unsigned		norm );
-
-	double ElementType_JacobianDeterminantSurface(
-		void*			elementType,
-		void*			mesh,
-		unsigned		element_I,
-		const double		localCoord[],
-		unsigned		face_I,
-		unsigned		norm );
-
 	int _ElementType_SurfaceNormal(
 		void*			elementType,
 		unsigned		lElement_I,
@@ -208,9 +182,9 @@
 		Coord_Index         B_axis, 
 		Coord_Index         C_axis );
 
-	#define ElementType_SurfaceJacobianMagnitude( elementType, mesh, elId, xi, dim, localNormal ) \
-		ElementType_SurfaceJacobianMagnitude_AxisIndependent( elementType, mesh, elId, xi, dim, I_AXIS, J_AXIS, K_AXIS, localNormal )
-	double ElementType_SurfaceJacobianMagnitude_AxisIndependent(
+	#define ElementType_SurfaceJacobianDeterminant( elementType, mesh, elId, xi, dim, localNormal ) \
+		ElementType_SurfaceJacobianDeterminant_AxisIndependent( elementType, mesh, elId, xi, dim, I_AXIS, J_AXIS, K_AXIS, localNormal )
+	double ElementType_SurfaceJacobianDeterminant_AxisIndependent(
 		void*               elementType,
 		void*               _mesh, 
 		Element_DomainIndex	elId, 

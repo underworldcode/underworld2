@@ -52,7 +52,6 @@ void* _LinearElementType_DefaultNew( Name name ) {
 	ElementType_EvaluateShapeFunctionsAtFunction*                      _evaluateShapeFunctionsAt = _LinearElementType_SF_allNodes;
 	ElementType_EvaluateShapeFunctionLocalDerivsAtFunction*  _evaluateShapeFunctionLocalDerivsAt = _LinearElementType_SF_allLocalDerivs_allNodes;
 	ElementType_ConvertGlobalCoordToElLocalFunction*                _convertGlobalCoordToElLocal = _ElementType_ConvertGlobalCoordToElLocal;
-	ElementType_JacobianDeterminantSurfaceFunction*                  _jacobianDeterminantSurface = _LinearElementType_JacobianDeterminantSurface;
 	ElementType_SurfaceNormalFunction*                                            _surfaceNormal = _ElementType_SurfaceNormal;
 
 	return _LinearElementType_New(  BILINEARELEMENTTYPE_PASSARGS  );
@@ -237,34 +236,4 @@ void _LinearElementType_ConvertGlobalCoordToElLocal(
 	}
 }
 #endif
-
-double _LinearElementType_JacobianDeterminantSurface( 
-		void* elementType, 
-		void* _mesh, 
-		unsigned element_I,
-		const double localCoord[],
-		unsigned face_I, 
-		unsigned norm ) 
-{
-	LinearElementType*	self		= (LinearElementType*) elementType;
-	Mesh*			mesh		= (Mesh*)_mesh;
-	unsigned		surfaceDim	= ( norm + 1 ) % 2;
-	double			x[2];
-	double			detJac;
-	Index			nodes[2];
-
-        /* TODO */
-        abort();
-
-	ElementType_GetFaceNodes( self, mesh, element_I, face_I, 2, nodes );
-
-	x[0] = Mesh_GetVertex( mesh, nodes[0] )[surfaceDim];
-	x[1] = Mesh_GetVertex( mesh, nodes[1] )[surfaceDim];
-
-	detJac = 0.5 * ( x[1] - x[0] );
-
-	return fabs( detJac );
-}
-
-
 

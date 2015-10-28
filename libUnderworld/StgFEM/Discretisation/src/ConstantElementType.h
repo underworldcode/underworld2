@@ -87,14 +87,6 @@
 		const double*	globalCoord,
 		double*		elLocalCoord );
 
-#if 0
-	double _ConstantElementType_JacobianDeterminantSurface(
-		void*		elementType,
-		void*		mesh,
-		const double	localCoord[],
-		unsigned*	nodes,
-		unsigned	norm );
-#endif 
 
 #endif /* __StgFEM_Discretisation_ConstantElementType_h__ */
 

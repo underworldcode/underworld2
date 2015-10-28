@@ -36,7 +36,7 @@ FeMesh* BuildMeshLinear( unsigned nDims, unsigned* sizes, double* minCrd, double
 
    feMesh = FeMesh_New( "" );
    Mesh_SetGenerator( feMesh, gen );
-   FeMesh_SetElementFamily( feMesh, "linear" );
+   FeMesh_SetElementFamily( feMesh, "Q1" );
    Stg_Component_Build( feMesh, NULL, False );
    Stg_Component_Initialise( feMesh, NULL, False );
 
@@ -56,7 +56,7 @@ FeMesh* BuildMeshQuadratic( unsigned nDims, unsigned* sizes, double* minCrd, dou
 
    feMesh = FeMesh_New( "" );
    Mesh_SetGenerator( feMesh, gen );
-   FeMesh_SetElementFamily( feMesh, "quadratic" );
+   FeMesh_SetElementFamily( feMesh, "Q2" );
    Stg_Component_Build( feMesh, NULL, False );
    Stg_Component_Initialise( feMesh, NULL, False );
 
@@ -277,8 +277,6 @@ void ElementTypeSuite_TestSurfaceJacobian_Linear2D( ElementTypeSuiteData* data )
    double       xi[4][2][2]; /* [face][point][dim] */
    unsigned     face_i, ip_i;
    double       norm[3];
-   unsigned     faceIndex;
-   unsigned     faceAxis[4] = { 1, 1, 0, 0 };
    double       weight = 1.0;
    double       detJac;
    double       faceLen;
@@ -301,9 +299,8 @@ void ElementTypeSuite_TestSurfaceJacobian_Linear2D( ElementTypeSuiteData* data )
    for( face_i = 0; face_i < 4; face_i++ ) {
       faceLen = 0.0;
       for( ip_i = 0; ip_i < 2; ip_i++ ) {
-         faceIndex = ElementType_SurfaceNormal( elType, 0, 2, xi[face_i][ip_i], norm );
-         detJac = ElementType_JacobianDeterminantSurface( elType, feMesh, 0, xi[face_i][ip_i], faceIndex, faceAxis[face_i] );
-
+         ElementType_SurfaceNormal( elType, 0, 2, xi[face_i][ip_i], norm );
+         detJac = ElementType_SurfaceJacobianDeterminant( elType, feMesh, 0, xi[face_i][ip_i], 2, norm );
          faceLen += detJac * weight;
       }
       pcu_check_true( fabs( faceLen - 1.0 ) < EPSILON );
@@ -320,8 +317,6 @@ void ElementTypeSuite_TestSurfaceJacobian_Linear3D( ElementTypeSuiteData* data )
    double       xi[6][4][3]; /* [face][point][dim] */
    unsigned     face_i, ip_i;
    double       norm[3];
-   unsigned     faceIndex;
-   unsigned     faceAxis[6] = { 1, 1, 0, 0, 2, 2 };
    double       weight = 1.0;
    double       detJac;
    double       faceArea;
@@ -362,9 +357,8 @@ void ElementTypeSuite_TestSurfaceJacobian_Linear3D( ElementTypeSuiteData* data )
    for( face_i = 0; face_i < 6; face_i++ ) {
       faceArea = 0.0;
       for( ip_i = 0; ip_i < 4; ip_i++ ) {
-         faceIndex = ElementType_SurfaceNormal( elType, 0, 3, xi[face_i][ip_i], norm );
-         detJac = ElementType_JacobianDeterminantSurface( elType, feMesh, 0, xi[face_i][ip_i], faceIndex, faceAxis[face_i] );
-
+         ElementType_SurfaceNormal( elType, 0, 3, xi[face_i][ip_i], norm );
+         detJac = ElementType_SurfaceJacobianDeterminant( elType, feMesh, 0, xi[face_i][ip_i], 3, norm );
          faceArea += detJac * weight;
       }
       pcu_check_true( fabs( faceArea - 1.0 ) < EPSILON );
@@ -381,8 +375,6 @@ void ElementTypeSuite_TestSurfaceJacobian_Quadratic2D( ElementTypeSuiteData* dat
    double       xi[4][3][2]; /* [face][point][dim] */
    unsigned     face_i, ip_i;
    double       norm[3];
-   unsigned     faceIndex;
-   unsigned     faceAxis[4] = { 1, 1, 0, 0 };
    double       weight[3] = { 0.5555555555555555, 0.8888888888888889, 0.5555555555555555 };
    double       detJac;
    double       faceLen;
@@ -409,9 +401,8 @@ void ElementTypeSuite_TestSurfaceJacobian_Quadratic2D( ElementTypeSuiteData* dat
    for( face_i = 0; face_i < 4; face_i++ ) {
       faceLen = 0.0;
       for( ip_i = 0; ip_i < 3; ip_i++ ) {
-         faceIndex = ElementType_SurfaceNormal( elType, 0, 2, xi[face_i][ip_i], norm );
-         detJac = ElementType_JacobianDeterminantSurface( elType, feMesh, 0, xi[face_i][ip_i], faceIndex, faceAxis[face_i] );
-
+         ElementType_SurfaceNormal( elType, 0, 2, xi[face_i][ip_i], norm );
+         detJac = ElementType_SurfaceJacobianDeterminant( elType, feMesh, 0, xi[face_i][ip_i], 2, norm );
          faceLen += detJac * weight[ip_i];
       }
       pcu_check_true( fabs( faceLen - 1.0 ) < EPSILON );
@@ -428,8 +419,6 @@ void ElementTypeSuite_TestSurfaceJacobian_Quadratic3D( ElementTypeSuiteData* dat
    double       xi[6][9][3]; /* [face][point][dim] */
    unsigned     face_i, ip_i;
    double       norm[3];
-   unsigned     faceIndex;
-   unsigned     faceAxis[6] = { 1, 1, 0, 0, 2, 2 };
    double       weight[9] = { 0.30864197530864201, 0.49382716049382713, 0.30864197530864201, 
                    0.49382716049382713, 0.79012345679012341, 0.49382716049382713, 
                    0.30864197530864201, 0.49382716049382713, 0.30864197530864201 };
@@ -502,8 +491,8 @@ void ElementTypeSuite_TestSurfaceJacobian_Quadratic3D( ElementTypeSuiteData* dat
    for( face_i = 0; face_i < 6; face_i++ ) {
       faceArea = 0.0;
       for( ip_i = 0; ip_i < 9; ip_i++ ) {
-         faceIndex = ElementType_SurfaceNormal( elType, 0, 3, xi[face_i][ip_i], norm );
-         detJac = ElementType_JacobianDeterminantSurface( elType, feMesh, 0, xi[face_i][ip_i], faceIndex, faceAxis[face_i] );
+         ElementType_SurfaceNormal( elType, 0, 3, xi[face_i][ip_i], norm );
+         detJac = ElementType_SurfaceJacobianDeterminant( elType, feMesh, 0, xi[face_i][ip_i], 3, norm );
          faceArea += detJac * weight[ip_i];
       }
       pcu_check_true( fabs( faceArea - 1.0 ) < EPSILON );
