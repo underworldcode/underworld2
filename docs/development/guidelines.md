@@ -50,9 +50,9 @@ should be constructed using glucifer.
 Chapter outline:
 
 01_GettingStarted.ipynb
-02_HowToMesh.ipynb
+02_Meshing.ipynb
 03_FEVariables.ipynb
-04_Particle_Swarms.ipynb
+04_Swarms.ipynb
 05_Functions.ipynb
 06_Systems.ipynb
 07_Utilities.ipynb
