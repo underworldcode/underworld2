@@ -51,7 +51,7 @@ void _ElementType_Init( ElementType* self, Index nodeCount ) {
 	self->nodeCount = nodeCount;
 	self->debug = Stream_RegisterChild( StgFEM_Discretisation_Debug, ElementType_Type );
 	self->inc = IArray_New();
-    /* Using 3 here instead of dim so that you can pass in dim = 2 and use axes 0 and 2 for your jacobian */
+	/* Using 3 here instead of dim so that you can pass in dim = 2 and use axes 0 and 2 for your jacobian */
 	self->_jacobian = Memory_Alloc_2DArray( double, 3, 3, (Name)"Temporary Jacobian"  );
 
 }
@@ -60,8 +60,8 @@ void _ElementType_Init( ElementType* self, Index nodeCount ) {
 void _ElementType_Destroy( void* elementType, void* data ){
 	ElementType* self = (ElementType*)elementType;
 
-    Memory_Free(self->_jacobian); self->_jacobian = NULL;
-    
+	Memory_Free(self->_jacobian); self->_jacobian = NULL;
+	
 	Stg_Class_Delete( self->inc );
 }
 
@@ -119,7 +119,7 @@ void ElementType_EvaluateShapeFunctionLocalDerivsAt( void* elementType, const do
 double _ElementType_JacobianDeterminantSurface( void* elementType, void* mesh, unsigned element_I, const double localCoord[], 
 						unsigned face_I, unsigned norm ) 
 {
-    Journal_Firewall( 0, NULL, "Surface Jacobian evaluation not supported for this element type." );
+	Journal_Firewall( 0, NULL, "Surface Jacobian evaluation not supported for this element type." );
 	return -1.;
 }
 
@@ -159,13 +159,16 @@ int _ElementType_SurfaceNormal( void* elementType, unsigned element_I, unsigned 
 		normal[K_AXIS] = +1.0;
 		return 5;
 	}
+	
+	Journal_Firewall( 0, NULL, "Error calculating surface normal. Provided local coordinate probably not in surface." );
+
 	return 0;
 }
 
 int ElementType_SurfaceNormal( void* elementType, unsigned element_I, unsigned dim, double* xi, double* normal ) {
 	ElementType* 	self = (ElementType*)elementType;
 
-    Journal_Firewall( self->_surfaceNormal, NULL, "Surface normal function not yet implemented for this element type." );
+	Journal_Firewall( self->_surfaceNormal, NULL, "Surface normal function not yet implemented for this element type." );
 
 	return self->_surfaceNormal( self, element_I, dim, xi, normal );
 }
@@ -208,7 +211,7 @@ void _ElementType_ConvertGlobalCoordToElLocal(
 	double*       	    nodeCoord;
 	double**            GNi = self->GNi;
 	unsigned	    nInc;
-    int             *inc;
+	int             *inc;
 	Dimension_Index     dim             = Mesh_GetDimSize( mesh );
 
 	/* This function uses a Newton-Raphson iterative method to find the local coordinate from the global coordinate 
@@ -336,7 +339,7 @@ void ElementType_ShapeFunctionsGlobalDerivs(
 	double tmp, D = 0.0;
 	double cof[3][3];	/* cofactors */
 	unsigned nInc;
-    int      *inc;
+	int      *inc;
 	Index nodesPerEl;
 
 	rows=Mesh_GetDimSize( mesh );
@@ -476,7 +479,7 @@ void ElementType_Jacobian_AxisIndependent(
 	Node_Index   nodesPerEl  = self->nodeCount;
 	Node_Index   node_I;
 	unsigned	 nInc;
-    int          *inc;
+	int          *inc;
 
 	Mesh_GetIncidence( mesh, Mesh_GetDimSize( mesh ), elId, MT_VERTEX, self->inc );
 	nInc = IArray_GetSize( self->inc );
@@ -583,38 +586,38 @@ double ElementType_SurfaceJacobianMagnitude_AxisIndependent(
 		Coord_Index         A_axis, 
 		Coord_Index         B_axis, 
 		Coord_Index         C_axis,
-        double*             localNormal )
+		double*             localNormal )
 {
 	ElementType*	self = (ElementType*)elementType;
-    double* vectorsInSurface[3];
-    unsigned ii;
-    unsigned jj;
-    double magnitude;
+	double* vectorsInSurface[3];
+	unsigned ii;
+	unsigned jj;
+	double magnitude;
 
 	ElementType_Jacobian_AxisIndependent( elementType, _mesh, elId, xi, dim, self->_jacobian, NULL, A_axis, B_axis, C_axis );
-    
-    /* Get the vectors in the required surface. Note that the localNormal provided is */
-    /* expected to be a vector in the local coordinates normal to one of the element  */
-    /* faces.                                                                         */
-    jj=0;
-    for( ii=0; ii<dim; ii++){
-        if (fabs(localNormal[ii]) < 0.00001) {
-            vectorsInSurface[jj] = self->_jacobian[ii];
-            jj++;
-        }
-    }
-    
-    /* jj should be dim-1 */
-    Journal_Firewall( jj==dim-1, NULL, "An error occurred in calculation of surface Jacobian. Please contact developers." );
-    
-    magnitude = 0.; /* just to squelch warnings */
-    if (dim == 2)
-        magnitude = StGermain_VectorMagnitude(vectorsInSurface[0], 2);
-    else if ( dim == 3)
-        magnitude = StGermain_VectorCrossProductMagnitude( vectorsInSurface[0], vectorsInSurface[1], 3 );
-    else
-        Journal_Firewall( 0, NULL, "An error occurred in calculation of surface Jacobian. Please contact developers." );
-    
+
+	/* Get the vectors in the required surface. Note that the localNormal provided is */
+	/* expected to be a vector in the local coordinates normal to one of the element  */
+	/* faces.                                                                         */
+	jj=0;
+	for( ii=0; ii<dim; ii++){
+		if (fabs(localNormal[ii]) < 0.00001) {
+			vectorsInSurface[jj] = self->_jacobian[ii];
+			jj++;
+		}
+	}
+	
+	/* jj should be dim-1 */
+	Journal_Firewall( jj==dim-1, NULL, "An error occurred in calculation of surface Jacobian. Please contact developers." );
+
+	magnitude = 0.; /* just to squelch warnings */
+	if (dim == 2)
+		magnitude = StGermain_VectorMagnitude(vectorsInSurface[0], 2);
+	else if ( dim == 3)
+		magnitude = StGermain_VectorCrossProductMagnitude( vectorsInSurface[0], vectorsInSurface[1], 3 );
+	else
+		Journal_Firewall( 0, NULL, "An error occurred in calculation of surface Jacobian. Please contact developers." );
+
 	return magnitude;
 }
 
