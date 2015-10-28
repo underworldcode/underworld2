@@ -82,24 +82,7 @@ env.Install('include/StgFEM', Glob('libStgFEM/src/*.h'))
 
 Import('DOXYGEN_DIRS')
 
-pluginDirs = ['libStgFEM/Toolbox',
-     'plugins/Output/CPUTime',
-     'plugins/Output/CPUTimeAndNumberOfIterationsForInnerAndOuterSolve',
-     'plugins/Output/FrequentOutput',
-     'plugins/Output/FeVariableList',
-     'plugins/Output/SwarmVariableList',
-     'plugins/Output/PeakMemory',
-     'plugins/StandardConditionFunctions',
-     'plugins/Multigrid',
-     'plugins/GMG',
-     'SysTest/AnalyticPlugins/CosineHillRotate',
-     'SysTest/AnalyticPlugins/HomogeneousNaturalBCs',
-     'SysTest/AnalyticPlugins/AdvDiffSteadyState1D',
-     'SysTest/AnalyticPlugins/LidDrivenIsoviscousAnalytic',
-     'SysTest/AnalyticPlugins/LinearVelocityAnalytic',
-     'SysTest/AnalyticPlugins/LinearTemperatureField',
-     'Apps/StokesMomentumUzawa/tests/SimpleShearAnalytic',
-     'Apps/StokesMomentumUzawa/tests/LidDrivenStokesAnalytic']
+pluginDirs = ['libStgFEM/Toolbox',]
 
 DOXYGEN_DIRS['StgFEM'] = pluginDirs
 Export('DOXYGEN_DIRS')
