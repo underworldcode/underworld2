@@ -76,6 +76,11 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         # build parent
         super(FeMesh,self).__init__(**kwargs)
 
+    def _setup(self):
+        # add the empty set
+        self.specialSets["Empty"]  = lambda selfobject: uw.mesh.FeMesh_IndexSet( object           = selfobject,
+                                                                                 topologicalIndex = 0,
+                                                                                 size             = libUnderworld.StgDomain.Mesh_GetDomainSize( selfobject._femesh, libUnderworld.StgDomain.MT_VERTEX ))
     @property
     def elementType(self):
         """ 
@@ -235,7 +240,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         >>> import underworld as uw
         >>> someMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1', elementRes=(2,2), minCoord=(0.,0.), maxCoord=(1.,1.) )
         >>> someMesh.specialSets.keys()
-        ['MaxI_VertexSet', 'MinI_VertexSet', 'AllWalls', 'MinJ_VertexSet', 'MaxJ_VertexSet', 'Empty']
+        ['MaxI_VertexSet', 'MinI_VertexSet', 'AllWalls', 'AllWalls_VertexSet', 'MinJ_VertexSet', 'MaxJ_VertexSet', 'Empty']
         >>> someMesh.specialSets["MinJ_VertexSet"]
         FeMesh_IndexSet([0, 1, 2])
         
@@ -707,29 +712,11 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
             # convert to tuple to make things easier
             import re
             elementType = re.split(",|-|/",elementType)
-
+        
+        self._elementTypes = elementType
         # ok, lets go ahead and build primary mesh (ie, self)
         super(FeMesh_Cartesian,self).__init__(elementType=elementType[0], elementRes=elementRes, minCoord=minCoord, maxCoord=maxCoord, periodic=periodic, **kwargs)
-        
-        # now for secondary.. we need to force complete setup now so that we are available to pass in below.. one step forward, one step back..
-        self._setup()
-        # build the sub-mesh now
-        self._secondaryMesh = None
-        if len(elementType) == 2:
-            if  elementType[1].upper() == self._supportedElementTypes[1]:
-                genSecondary = LinearCartesianGenerator(elementRes=elementRes, minCoord=minCoord, maxCoord=maxCoord, periodic=periodic, **kwargs)
-            elif elementType[1].upper() == self._supportedElementTypes[2]:
-                genSecondary = dQ1Generator( geometryMesh=self )
-            elif elementType[1].upper() == self._supportedElementTypes[3]:
-                genSecondary = LinearInnerGenerator( geometryMesh=self )
-            elif elementType[1].upper() == self._supportedElementTypes[4]:
-                genSecondary = ConstantGenerator( geometryMesh=self )
-            else:
-                st = ' '.join('{}'.format(t) for t in self._supportedElementTypes[1:])
-                raise ValueError("The secondary mesh must be of type '{}': '{}' was passed in. Tested against '{}'".format(st,elementType[1].upper(), self._supportedElementTypes[1]) )
 
-            self._secondaryMesh = FeMesh( elementType=elementType[1].upper(), generator=genSecondary )
-        
         # lets add the special sets
         self.specialSets["MaxI_VertexSet"] = _specialSets_Cartesian.MaxI_VertexSet
         self.specialSets["MinI_VertexSet"] = _specialSets_Cartesian.MinI_VertexSet
@@ -738,22 +725,29 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
         if(self.dim==3):
             self.specialSets["MaxK_VertexSet"] = _specialSets_Cartesian.MaxK_VertexSet
             self.specialSets["MinK_VertexSet"] = _specialSets_Cartesian.MinK_VertexSet
+        self.specialSets["AllWalls_VertexSet"] = _specialSets_Cartesian.AllWalls
+        def exceptionfunc(thing):
+            raise RuntimeError("This set has been renamed to AllWalls_VertexSet.")
+        self.specialSets["AllWalls"          ] = exceptionfunc
 
-        # remove periodic walls - as they are now just internal walls
-        # if periodic[0]:
-        #     self.specialSets.pop('MaxI_VertexSet')
-        #     self.specialSets.pop('MinI_VertexSet')
-        # if periodic[1]:
-        #     self.specialSets.pop('MaxJ_VertexSet')
-        #     self.specialSets.pop('MinJ_VertexSet')
-        # if self.dim == 3 and periodic[2]: # python 'and' evaluates left first so this is safe
-        #     self.specialSets.pop('MaxK_VertexSet')
-        #     self.specialSets.pop('MinK_VertexSet')
+    def _setup(self):
+        # build the sub-mesh now
+        self._secondaryMesh = None
+        if len(self._elementTypes) == 2:
+            if  self._elementTypes[1].upper() == self._supportedElementTypes[1]:
+                genSecondary = LinearCartesianGenerator(elementRes=elementRes, minCoord=minCoord, maxCoord=maxCoord, periodic=periodic, **kwargs)
+            elif self._elementTypes[1].upper() == self._supportedElementTypes[2]:
+                genSecondary = dQ1Generator( geometryMesh=self )
+            elif self._elementTypes[1].upper() == self._supportedElementTypes[3]:
+                genSecondary = LinearInnerGenerator( geometryMesh=self )
+            elif self._elementTypes[1].upper() == self._supportedElementTypes[4]:
+                genSecondary = ConstantGenerator( geometryMesh=self )
+            else:
+                st = ' '.join('{}'.format(t) for t in self._supportedElementTypes[1:])
+                raise ValueError("The secondary mesh must be of type '{}': '{}' was passed in. Tested against '{}'".format(st,self._elementTypes[1].upper(), self._supportedElementTypes[1]) )
 
-        self.specialSets["AllWalls"] = _specialSets_Cartesian.AllWalls 
-        self.specialSets["Empty"]    = _specialSets_Cartesian.Empty
-
-
+            self._secondaryMesh = FeMesh( elementType=self._elementTypes[1].upper(), generator=genSecondary )
+    
     @property
     def subMesh(self):
         """

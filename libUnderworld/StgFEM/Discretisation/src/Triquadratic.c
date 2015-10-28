@@ -45,7 +45,6 @@ Triquadratic* Triquadratic_New( Name name ) {
 	ElementType_EvaluateShapeFunctionsAtFunction*                      _evaluateShapeFunctionsAt = Triquadratic_EvalBasis;
 	ElementType_EvaluateShapeFunctionLocalDerivsAtFunction*  _evaluateShapeFunctionLocalDerivsAt = Triquadratic_EvalLocalDerivs;
 	ElementType_ConvertGlobalCoordToElLocalFunction*                _convertGlobalCoordToElLocal = _ElementType_ConvertGlobalCoordToElLocal;
-	ElementType_JacobianDeterminantSurfaceFunction*                  _jacobianDeterminantSurface = Triquadratic_JacobianDeterminantSurface;
 	ElementType_SurfaceNormalFunction*                                            _surfaceNormal = _ElementType_SurfaceNormal;
 
 	return _Triquadratic_New(  TRIQUADRATIC_PASSARGS  );
@@ -375,50 +374,3 @@ void Triquadratic_EvalLocalDerivs( void* elementType, const double* localCoord, 
 	derivs[1][26] = b5 * m4 * a2 * c2;
 	derivs[2][26] = c5 * m3 * a2 * b2;
 }
-
-double Triquadratic_JacobianDeterminantSurface( void* elementType, void* _mesh, unsigned element_I, const double localCoord[],
-	       					unsigned face_I, unsigned norm ) 
-{
-	Triquadratic*		self		= (Triquadratic*) elementType;
-	Mesh*			mesh		= (Mesh*)_mesh;
-	unsigned		surfaceDim[2];
-	double			x[9], y[9];
-	double			s, t;
-	double			dxds, dxdt, dyds, dydt;
-	double			detJac;
-	Index			node_i;
-	double			s0, s1, s2, t0, t1, t2;
-	double			ds0, ds1, ds2, dt0, dt1, dt2;
-	unsigned		nodes[9];
-
-	surfaceDim[0] = ( norm + 1 ) % 3;
-	surfaceDim[1] = ( norm + 2 ) % 3;
-
-	s = localCoord[surfaceDim[0]];
-	t = localCoord[surfaceDim[1]];
-
-	s0 = 0.5 * s * ( s - 1.0 ); s1 = 1.0 - s * s; s2 = 0.5 * s * ( s + 1.0 );
-	t0 = 0.5 * t * ( t - 1.0 ); t1 = 1.0 - t * t; t2 = 0.5 * t * ( t + 1.0 );
-
-	ds0 = s - 0.5; ds1 = -2.0 * s; ds2 = s + 0.5;
-	dt0 = t - 0.5; dt1 = -2.0 * t; dt2 = t + 0.5;
-
-	ElementType_GetFaceNodes( self, mesh, element_I, face_I, 9, nodes );
-
-	for( node_i = 0; node_i < 9; node_i++ ) {
-		x[node_i] = Mesh_GetVertex( mesh, nodes[node_i] )[surfaceDim[0]];
-		y[node_i] = Mesh_GetVertex( mesh, nodes[node_i] )[surfaceDim[1]];
-	}
-
-	dxds = ds0*t0*x[0] + ds1*t0*x[1] + ds2*t0*x[2] + ds0*t1*x[3] + ds1*t1*x[4] + ds2*t1*x[5] + ds0*t2*x[6] + ds1*t2*x[7] + ds2*t2*x[8];
-	dxdt = s0*dt0*x[0] + s1*dt0*x[1] + s2*dt0*x[2] + s0*dt1*x[3] + s1*dt1*x[4] + s2*dt1*x[5] + s0*dt2*x[6] + s1*dt2*x[8] + s2*dt2*x[8];
-	dyds = ds0*t0*y[0] + ds1*t0*y[1] + ds2*t0*y[2] + ds0*t1*y[3] + ds1*t1*y[4] + ds2*t1*y[5] + ds0*t2*y[6] + ds1*t2*y[7] + ds2*t2*y[8];
-	dydt = s0*dt0*y[0] + s1*dt0*y[1] + s2*dt0*y[2] + s0*dt1*y[3] + s1*dt1*y[4] + s2*dt1*y[5] + s0*dt2*y[6] + s1*dt2*y[8] + s2*dt2*y[8];
-
-	detJac = dxds * dydt - dxdt * dyds;
-
-	return fabs( detJac );
-}
-
-
-

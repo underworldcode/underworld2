@@ -91,7 +91,5 @@
 		double*		elLocalCoord );
 	*/
 
-	int _TrilinearInnerElType_SurfaceNormal( void* elementType, unsigned element_I, unsigned dim, double* xi, double* normal );
-
 #endif /* __StgFEM_Discretisation_TrilinearInnerElType_h__ */
 

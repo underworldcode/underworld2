@@ -78,7 +78,5 @@
 	void _BilinearInnerElType_SF_allLocalDerivs_allNodes( void* elementType, const double localCoord[],
 		double** const evaluatedDerivatives );
 
-	int _BilinearInnerElType_SurfaceNormal( void* elementType, unsigned element_I, unsigned dim, double* xi, double* normal );
-
 #endif /* __StgFEM_Discretisation_BilinearInnerElType_h__ */
 

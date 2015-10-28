@@ -76,7 +76,5 @@
 	void _dQ12DElType_SF_allLocalDerivs_allNodes( void* elementType, const double localCoord[],
 		double** const evaluatedDerivatives );
 
-	int _dQ12DElType_SurfaceNormal( void* elementType, unsigned element_I, unsigned dim, double* xi, double* normal );
-
 #endif /* __StgFEM_Discretisation_dQ12DElType_h__ */
 

@@ -56,7 +56,6 @@ void ElementTypeRegisterSuite_Test( ElementTypeRegisterSuiteData* data ) {
    ElementType_EvaluateShapeFunctionsAtFunction*                     _evaluateShapeFunctionsAt = _ConstantElementType_SF_allNodes;
    ElementType_EvaluateShapeFunctionLocalDerivsAtFunction* _evaluateShapeFunctionLocalDerivsAt = _ConstantElementType_SF_allLocalDerivs_allNodes;
    ElementType_ConvertGlobalCoordToElLocalFunction*               _convertGlobalCoordToElLocal = _ConstantElementType_ConvertGlobalCoordToElLocal;
-   ElementType_JacobianDeterminantSurfaceFunction*                 _jacobianDeterminantSurface = _ElementType_JacobianDeterminantSurface;
    ElementType_SurfaceNormalFunction*                                           _surfaceNormal = _ElementType_SurfaceNormal;
 
    ElementType* elType;

@@ -42,8 +42,7 @@ void* _TrilinearInnerElType_DefaultNew( Name name ) {
 	ElementType_EvaluateShapeFunctionsAtFunction*                      _evaluateShapeFunctionsAt = _TrilinearInnerElType_SF_allNodes;
 	ElementType_EvaluateShapeFunctionLocalDerivsAtFunction*  _evaluateShapeFunctionLocalDerivsAt = _TrilinearInnerElType_SF_allLocalDerivs_allNodes;
 	ElementType_ConvertGlobalCoordToElLocalFunction*                _convertGlobalCoordToElLocal = _ElementType_ConvertGlobalCoordToElLocal;
-	ElementType_JacobianDeterminantSurfaceFunction*                  _jacobianDeterminantSurface = _ElementType_JacobianDeterminantSurface;
-	ElementType_SurfaceNormalFunction*                                            _surfaceNormal = _TrilinearInnerElType_SurfaceNormal;
+	ElementType_SurfaceNormalFunction*                                            _surfaceNormal = NULL;
 
 	return _TrilinearInnerElType_New(  TRILINEARINNERELTYPE_PASSARGS  );
 }
@@ -273,18 +272,4 @@ void _TrilinearInnerElType_ConvertGlobalCoordToElLocal(
 		elLocalCoord[2] += bc[bc_i] * lCrds[self->tetInds[inside][bc_i]][2];
 	}
 }*/
-
-int _TrilinearInnerElType_SurfaceNormal( void* elementType, unsigned element_I, unsigned dim, double* xi, double* normal ) {
-	Stream* errStream = Journal_Register( ErrorStream_Type, (Name)ElementType_Type  );
-
-	Journal_Printf( errStream, "Surface normal function not yet implemented for this element type.\n" );
-	assert( 0 );
-
-	normal = NULL;
-
-	return -1;
-}
-
-
-
 

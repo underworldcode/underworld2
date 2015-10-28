@@ -52,8 +52,7 @@ void* BilinearInnerElType_DefaultNew( Name name ) {
 	ElementType_EvaluateShapeFunctionsAtFunction*                      _evaluateShapeFunctionsAt = _BilinearInnerElType_SF_allNodes;
 	ElementType_EvaluateShapeFunctionLocalDerivsAtFunction*  _evaluateShapeFunctionLocalDerivsAt = _BilinearInnerElType_SF_allLocalDerivs_allNodes;
 	ElementType_ConvertGlobalCoordToElLocalFunction*                _convertGlobalCoordToElLocal = _ElementType_ConvertGlobalCoordToElLocal;
-	ElementType_JacobianDeterminantSurfaceFunction*                  _jacobianDeterminantSurface = _ElementType_JacobianDeterminantSurface;
-	ElementType_SurfaceNormalFunction*                                            _surfaceNormal = _BilinearInnerElType_SurfaceNormal;
+	ElementType_SurfaceNormalFunction*                                            _surfaceNormal = NULL;
 
 	return _BilinearInnerElType_New(  BILINEARINNERELTYPE_PASSARGS  );
 }
@@ -195,17 +194,4 @@ void _BilinearInnerElType_SF_allLocalDerivs_allNodes( void* elementType, const d
 	evaluatedDerivatives[1][1] = - 0.5;
 	evaluatedDerivatives[1][2] = 1.0;
 }
-
-int _BilinearInnerElType_SurfaceNormal( void* elementType, unsigned element_I, unsigned dim, double* xi, double* norm ) {
-	Stream*	errStream = Journal_Register( ErrorStream_Type, (Name)ElementType_Type  );
-
-	Journal_Printf( errStream, "surface normal function not yet implemented for this element type.\n" );
-	assert( 0 );
-
-	norm = NULL;
-
-	return -1;
-}
-
-
 

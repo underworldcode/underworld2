@@ -44,8 +44,7 @@ void* _dQ12DElType_DefaultNew( Name name ) {
 	ElementType_EvaluateShapeFunctionsAtFunction*                      _evaluateShapeFunctionsAt = _dQ12DElType_SF_allNodes;
 	ElementType_EvaluateShapeFunctionLocalDerivsAtFunction*  _evaluateShapeFunctionLocalDerivsAt = _dQ12DElType_SF_allLocalDerivs_allNodes;
 	ElementType_ConvertGlobalCoordToElLocalFunction*                _convertGlobalCoordToElLocal = _ElementType_ConvertGlobalCoordToElLocal;
-	ElementType_JacobianDeterminantSurfaceFunction*                  _jacobianDeterminantSurface = _ElementType_JacobianDeterminantSurface;
-	ElementType_SurfaceNormalFunction*                                            _surfaceNormal = _dQ12DElType_SurfaceNormal;
+	ElementType_SurfaceNormalFunction*                                            _surfaceNormal = NULL;
 
 	return _dQ12DElType_New(  DQ12DELTYPE_PASSARGS  );
 }
@@ -169,18 +168,3 @@ void _dQ12DElType_SF_allLocalDerivs_allNodes( void* elementType, const double lo
   evaluatedDerivatives[J][2] =  xi_p;	
   evaluatedDerivatives[J][3] =  xi_m;	
 }
-
-int _dQ12DElType_SurfaceNormal( void* elementType, unsigned element_I, unsigned dim, double* xi, double* normal ) {
-	Stream* errStream = Journal_Register( ErrorStream_Type, (Name)ElementType_Type  );
-
-	Journal_Printf( errStream, "Surface normal function not yet implemented for this element type.\n" );
-	assert( 0 );
-
-	normal = NULL;
-
-	return -1;
-}
-
-
-
-

@@ -1195,6 +1195,8 @@ void StiffnessMatrix_CalcNonZeros( void* stiffnessMatrix ) {
     Journal_Printf( stream, "Done.\n" );
     Stream_UnIndent( stream );
     Stream_UnIndent( stream );
+    
+    Stg_Class_Delete( candColEqs );
 }
 
 

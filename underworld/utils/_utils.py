@@ -16,31 +16,51 @@ import libUnderworld.libUnderworldPy.Function as _cfn
 
 class Integral(_stgermain.StgCompoundComponent):
     """
-    This class constructs an integral of the provided function over a mesh.
+    This class constructs a surface or volume integral of the provided function over a 
+    given mesh.
+    
+    Calculate volume of mesh:
+    
+    >>> import underworld as uw
+    >>> mesh = uw.mesh.FeMesh_Cartesian(minCoord=(0.,0.), maxCoord=(1.,1.))
+    >>> volumeIntegral = uw.utils.Integral(fn=1.,mesh=mesh)
+    >>> volumeIntegral.evaluate()
+    [1.0]
+    
+    Calculate surface area of mesh:
+    
+    >>> surfaceIntegral = uw.utils.Integral(fn=1.,mesh=mesh, integrationType='surface', surfaceIndexSet=mesh.specialSets["AllWalls_VertexSet"])
+    >>> surfaceIntegral.evaluate()
+    [4.0]
+    
     """
     _objectsDict = { "_integral": "Fn_Integrate" }
     _selfObjectName = "_integral"
 
-    def __init__(self, fn, feMesh, integrationType="volume", integrationSwarm=None, surfaceIndexSet=None,**kwargs):
+    def __init__(self, fn, mesh, integrationType="volume", surfaceIndexSet=None, integrationSwarm=None, feMesh=None, **kwargs):
         """
         Parameters
         ----------
-        feMesh : uw.mesh.FeMesh
-            The FeMesh the swarm is supported by. See Swarm.feMesh property docstring
-            for further information.
+        mesh : uw.mesh.FeMesh
+            The FeMesh the swarm is supported by.
         integrationSwarm : uw.swarm.IntegrationSwarm (optional)
             User provided integration swarm.
         integrationType : str
             Type of integration to perform.  Options are "volume" or "surface".
         surfaceIndexSet : uw.mesh.FeMesh_IndexSet
-            Must be provided where integrationType is "surface"
+            Must be provided where integrationType is "surface".
             This IndexSet determines which surface is to be integrated over.
+            Note that surface integration over interior nodes is not supported.
         
         """
-        if not isinstance(feMesh, mesh.FeMesh):
+        
+        if feMesh:  # DEPRECATE
+            raise ValueError("This parameter has been renamed to 'mesh'.")
+        
+        if not isinstance(mesh, uw.mesh.FeMesh):
             raise TypeError("'feMesh' object passed in must be of type 'FeMesh'")
-        self._feMesh = feMesh
-        self._cself.mesh = feMesh._cself
+        self._mesh = mesh
+        self._cself.mesh = self._mesh._cself
         
         self._maskFn = None
         
@@ -57,25 +77,29 @@ class Integral(_stgermain.StgCompoundComponent):
             if integrationType not in ["volume", "surface"]:
                 raise ValueError( "'integrationType' string provided must be either 'volume' or 'surface'.")
             if integrationType == "volume":
-                # set the dimensionality to be the same as the mesh for 'volume' integration
-                self._cself.dim = feMesh.dim
-                integrationSwarm = uw.swarm.GaussIntegrationSwarm(feMesh)
+                self._cself.isSurfaceIntegral = False
+                integrationSwarm = uw.swarm.GaussIntegrationSwarm(mesh)
             else:
-                raise RuntimeError("Surface integrals are currently disabled.")
-                # set the dimensionality to be one less than the mesh for 'surface' integration
-                self._cself.dim = feMesh.dim-1
+                self._cself.isSurfaceIntegral = True
                 if not surfaceIndexSet:
                     raise RuntimeError("For surface integration, you must provide a 'surfaceIndexSet'.")
                 if not isinstance(surfaceIndexSet, uw.mesh.FeMesh_IndexSet ):
                     raise TypeError("'surfaceIndexSet' must be of type 'FeMesh_IndexSet'.")
-                if surfaceIndexSet.object != feMesh:
-                    raise ValueError("'surfaceIndexSet' mesh does not appear to correspond to mesh provided to Integral object.")
-                if surfaceIndexSet.object != feMesh:
+                if surfaceIndexSet.object != mesh:
                     raise ValueError("'surfaceIndexSet' mesh does not appear to correspond to mesh provided to Integral object.")
                 if surfaceIndexSet.topologicalIndex != 0:
                     raise ValueError("'surfaceIndexSet' must correspond to vertex objects.")
+                # check that nodes are boundary nodes
+                try:
+                    allBoundaryNodes = mesh.specialSets['AllWalls_VertexSet']
+                except:
+                    raise ValueError("Mesh does not appear to provide a 'AllWalls_VertexSet' special set. This is required for surface integration.")
+                for guy in surfaceIndexSet:
+                    inSet = int(guy) in allBoundaryNodes
+                    if not inSet:
+                        raise ValueError("Your surfaceIndexSet appears to contain node(s) which do not belong to the mesh boundary. Surface integration across internal nodes is not currently supported.")
                 # create feVariable
-                deltaFeVariable = uw.fevariable.FeVariable(feMesh, 1)
+                deltaFeVariable = uw.fevariable.FeVariable(mesh, 1)
                 # init to zero
                 deltaFeVariable.data[:] = 0.
                 # set to 1 on provided vertices
@@ -88,13 +112,14 @@ class Integral(_stgermain.StgCompoundComponent):
                                                   [  ( deltaFeVariable > 0.999, 1. ),
                                                      (                    True, 0. )   ] )
                 self._fn = self._fn * self._maskFn
-                integrationSwarm = uw.swarm.GaussBorderIntegrationSwarm(feMesh)
+                integrationSwarm = uw.swarm.GaussBorderIntegrationSwarm(mesh)
         else:
             if not isinstance(integrationSwarm, uw.swarm.IntegrationSwarm):
                 raise TypeError("'integrationSwarm' object passed in must be of type 'IntegrationSwarm'")
 
         self._integrationSwarm = integrationSwarm
         self._cself.integrationSwarm = integrationSwarm._cself
+        self._cself.dim = mesh.dim
 
         # lets setup fn tings
         libUnderworld.Underworld._Fn_Integrate_SetFn( self._cself, self._fn._fncself)
@@ -104,9 +129,15 @@ class Integral(_stgermain.StgCompoundComponent):
     def _add_to_stg_dict(self,componentDictionary):
         pass
 
-    def integrate(self):
+    def evaluate(self):
         """
-        Perform integration
+        Perform integration.
+        
+        Returns
+        -------
+        result : list of floats
+            Integration result. For vector integrals, a vector is returned.
+        
         """
         val = libUnderworld.Underworld.Fn_Integrate_Integrate( self._cself )
         result = []
@@ -114,6 +145,9 @@ class Integral(_stgermain.StgCompoundComponent):
             result.append(val.value(ii))
         return result
 
+    def integrate(self): # DEPRECATE
+        raise RuntimeError("This method has been renamed to 'evaluate'.")
+    
     @property
     def maskFn(self):
         """

@@ -45,7 +45,6 @@ Biquadratic* Biquadratic_New( Name name ) {
 	ElementType_EvaluateShapeFunctionsAtFunction*                      _evaluateShapeFunctionsAt = Biquadratic_EvalBasis;
 	ElementType_EvaluateShapeFunctionLocalDerivsAtFunction*  _evaluateShapeFunctionLocalDerivsAt = Biquadratic_EvalLocalDerivs;
 	ElementType_ConvertGlobalCoordToElLocalFunction*                _convertGlobalCoordToElLocal = _ElementType_ConvertGlobalCoordToElLocal;
-	ElementType_JacobianDeterminantSurfaceFunction*                  _jacobianDeterminantSurface = Biquadratic_JacobianDeterminantSurface;
 	ElementType_SurfaceNormalFunction*                                            _surfaceNormal = _ElementType_SurfaceNormal;
 
 	return _Biquadratic_New(  BIQUADRATIC_PASSARGS  );
@@ -192,35 +191,6 @@ void Biquadratic_EvalLocalDerivs( void* elementType, const double* localCoord, d
 	/* Center node. */
 	derivs[0][4] = -2.0 * xi * b4;
 	derivs[1][4] = -2.0 * eta * a4;
-}
-
-double Biquadratic_JacobianDeterminantSurface(
-	void*				elementType,
-	void*				_mesh,
-	unsigned			element_I,
-	const double*	localCoord, 
-	unsigned			face_I,
-	unsigned			norm )
-{
-	Biquadratic*	self = (Biquadratic*) elementType;
-	Mesh*				mesh = (Mesh*)_mesh;
-	unsigned			surfaceDim	= ( norm + 1 ) % 2;
-	double			x[3];
-	double			detJac;
-	unsigned			nodes[3];
-
-	self = (Biquadratic*) elementType;
-
-	ElementType_GetFaceNodes( elementType, mesh, element_I, face_I, 3, nodes );
-
-	x[0] = Mesh_GetVertex( mesh, nodes[0] )[surfaceDim];
-	x[1] = Mesh_GetVertex( mesh, nodes[1] )[surfaceDim];
-	x[2] = Mesh_GetVertex( mesh, nodes[2] )[surfaceDim];
-
-	detJac = ( localCoord[surfaceDim] - 0.5 ) * x[0] - 2.0 * localCoord[surfaceDim] * x[1] + 
-		 ( localCoord[surfaceDim] + 0.5 ) * x[2];
-
-	return fabs( detJac );
 }
 
 /*----------------------------------------------------------------------------------------------------------------------------------

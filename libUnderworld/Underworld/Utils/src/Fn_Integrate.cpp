@@ -42,6 +42,7 @@ Fn_Integrate* _Fn_Integrate_New(  FN_INTEGRATE_DEFARGS  )
     cppdata->sumLocal = NULL;
     cppdata->sumGlobal = NULL;
     self->dim = 0;
+    self->isSurfaceIntegral = False;
 
     /* Virtual info */
 
@@ -118,7 +119,7 @@ IO_double* Fn_Integrate_Integrate( void* fn_integrate ) {
     Particle_InCellIndex       cellParticleCount;
     ElementType*               elementType;
     Cell_Index                 cell_I;
-    double                     detJac;
+    double                     jacDet;
     double                     factor;
     double                     N[27];
     int                        nElements;
@@ -151,13 +152,17 @@ IO_double* Fn_Integrate_Integrate( void* fn_integrate ) {
             xi       = particle->xi;
 
             /* Calculate Determinant of Jacobian and Shape Functions */
-            detJac = ElementType_JacobianDeterminant( elementType, mesh, lElement_I, xi, self->dim );
-            ElementType_EvaluateShapeFunctionsAt( elementType, xi, N );
-
+            if (!self->isSurfaceIntegral) {
+                jacDet = ElementType_JacobianDeterminant( elementType, mesh, lElement_I, xi, self->dim );
+            } else {
+                double localNormal[3];
+                ElementType_SurfaceNormal( elementType, lElement_I, self->dim, xi, localNormal );
+                jacDet = ElementType_SurfaceJacobianDeterminant( elementType, mesh, lElement_I, xi, self->dim, localNormal );
+            }
             /* evaluate function */
             std::shared_ptr<const FunctionIO> funcout = debug_dynamic_cast<const FunctionIO>(cppdata->func(cppdata->input));
 
-            factor = detJac * particle->weight;
+            factor = jacDet * particle->weight;
             for( unsigned ii = 0 ; ii < funcout->size() ; ii++ )
             {
                 cppdata->sumLocal->at(ii) += funcout->at<double>(ii)*factor;
