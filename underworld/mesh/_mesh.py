@@ -215,6 +215,17 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         """
         return libUnderworld.StgDomain.Mesh_GetGlobalSize(self._cself, 0)
 
+    @property 
+    def elementsGlobal(self):
+        """
+        Returns the number of global elements on the mesh
+
+        >>> someMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1', elementRes=(2,2), minCoord=(-1.,-1.), maxCoord=(1.,1.) )
+        >>> someMesh.elementsGlobal
+        4
+        """
+        return libUnderworld.StgDomain.Mesh_GetGlobalSize(self._cself, self.dim)
+
     def reset(self):
         """
         Reset the mesh.  
@@ -278,6 +289,23 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
                                      size             = libUnderworld.StgDomain.Mesh_GetDomainSize( self._femesh, libUnderworld.StgDomain.MT_VERTEX ) )
         iset.addAll()
         return iset._get_iterator()
+
+    def save( self, filename ):
+        """
+        Saves the mesh in hdf5 format to 'filename'. Note, this is a
+        global method, ie. all processes must call it.
+        """
+        if not isinstance(filename, str):
+            raise TypeError("'filename', must be of type 'str'")
+        
+        # test if the filename is writable - is this safe in parallel?
+        try:
+            handle=open(filename, "w")
+        except IOError:
+            sys.exit("Could not open file {}".format(filename))
+        handle.close()
+            
+        uw.libUnderworld.StgFEM._FeMesh_DumpMeshHDF5( self._cself, filename )
 
 
 

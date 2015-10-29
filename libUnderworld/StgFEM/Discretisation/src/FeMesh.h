@@ -108,6 +108,7 @@
 	*/
 
 	void FeMesh_Destruct( FeMesh* self );
+    void _FeMesh_DumpMeshHDF5( FeMesh* meshl, const char* filename );
 
 #endif /* __StgFEM_Discretisaton_FeMesh_h__ */
 
