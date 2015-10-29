@@ -1,0 +1,3 @@
+[submodule "libUnderworld/gLucifer/Viewer"]
+	path = libUnderworld/gLucifer/Viewer
+	url = https://github.com/OKaluza/LavaVu.git
