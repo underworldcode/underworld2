@@ -263,11 +263,11 @@ def _fieldschema((field_name, field), filename, elementMesh ):
     return out
 
 import os, sys
-def xdmf_write( objects, mesh, outputPath='./output', time=None):
+def xdmf_write( objects, mesh, outputDir='./output', time=None):
     """
     Writes out Underworld objects to disk in XDMF format. eg. hdf5 format for heavy data,
     (eg: fields & swarms) xml format for metadata that describes heavy data. The resultant data
-    XDMF data file is '<outputPath>/XDMF.temporalFiles.xdmf'. 
+    XDMF data file is '<outputDir>/XDMF.temporalFiles.xdmf'. 
     
     Parameters
     ----------
@@ -283,7 +283,7 @@ def xdmf_write( objects, mesh, outputPath='./output', time=None):
         An optional parameter to record the model time when the XDMF file is written.
         If not provided the XDMF time will be the nth occasion this function has been called.
     
-    outputPath : string
+    outputDir : string
         The path to record all hdf5 and xml files. By default this path is './output'.
         xdmf_write() only writes to this directory, possible overwriting existing files.
 
@@ -321,13 +321,15 @@ def xdmf_write( objects, mesh, outputPath='./output', time=None):
     # if the 'time' arg is empty use the _internalCount number to specify the time for XDMF
     if time==None:
         time = self._internalCount
+    elif not isinstance(time, float or int):
+        raise TypeError("'time' argument must be of type float")
     
-    # test 'outputPath' is writable and valid
-    if not os.path.exists(outputPath):
+    # test 'outputDir' is writable and valid
+    if not os.path.exists(outputDir):
         try:
-            os.makedirs(outputPath)
+            os.makedirs(outputDir)
         except:
-            print("Can not make directory {}".format(outputPath))
+            print("Can not make directory {}".format(outputDir))
             raise
     
     ### End Error Check ###
@@ -341,17 +343,17 @@ def xdmf_write( objects, mesh, outputPath='./output', time=None):
               "<Xdmf xmlns:xi=\"http://www.w3.org/2001/XInclude\" Version=\"2.0\">\n" +
               "<Domain>\n")
     
-    # Save the mesh under file <outputPath/mesh.uniId.h5>    
-    meshFN = outputPath + "/mesh." + uniId +".h5"    
+    # Save the mesh under file <outputDir/mesh.uniId.h5>    
+    meshFN = outputDir + "/mesh." + uniId +".h5"    
     mesh.save(meshFN)
     
     # append to xmf 
     meshFN = "mesh." + uniId +".h5" # rewrite name
     string += _spacetimeschema(mesh, time, meshFN)
     
-    ## Save the fields under the file <outputPath/name.uniId.h5>
+    ## Save the fields under the file <outputDir/name.uniId.h5>
     for (k,feVar) in objects.items():
-        fieldFN = outputPath+"/{}.".format(k)+uniId+".h5"
+        fieldFN = outputDir+"/{}.".format(k)+uniId+".h5"
         
         # not sure multi meshes work so far - further testing required
         #if( feVar.feMesh != mesh ):
@@ -374,7 +376,7 @@ def xdmf_write( objects, mesh, outputPath='./output', time=None):
         return
 
     # open the would be xmf file
-    xmfFN = outputPath+"/XDMF."+uniId+".xmf"
+    xmfFN = outputDir+"/XDMF."+uniId+".xmf"
 
     # open or overwrite xmfFN
     try:
@@ -388,7 +390,7 @@ def xdmf_write( objects, mesh, outputPath='./output', time=None):
     xmfFH.close()
     
     xmfname = os.path.basename(xmfFN)
-    xdmfFN = outputPath+"/XDMF.Files.xdmf"
+    xdmfFN = outputDir+"/XDMF.Files.xdmf"
 
     if not hasattr(self, "_createdXDMF"):
         xdmfFH = open(xdmfFN, "w")
@@ -403,7 +405,7 @@ def xdmf_write( objects, mesh, outputPath='./output', time=None):
         xdmfFH.close()
 
         refxdmfFN = os.path.basename(xdmfFN)
-        xdmfTemporalFiles = outputPath+"/XDMF.temporalFiles.xdmf"
+        xdmfTemporalFiles = outputDir+"/XDMF.temporalFiles.xdmf"
         xdmfFH = open( xdmfTemporalFiles, "w" )
         xdmfFH.write("<?xml version=\"1.0\" ?>\n" +
                      "<Xdmf xmlns:xi=\"http://www.w3.org/2001/XInclude\" Version=\"2.0\">\n" +
