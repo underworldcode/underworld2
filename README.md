@@ -16,6 +16,13 @@ Dependencies
 
 Note: Headers will be required for above libraries (-dev packages).  Required libraries regularly included in system distributions are not listed. 
 
+Getting the code
+----------------
+* Install [Git](https://git-scm.com/)
+* In a terminal, run:
+```
+git clone https://github.com/underworldcode/underworld2.git --recursive
+```
 
 Compilation
 -----------
