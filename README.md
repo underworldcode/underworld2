@@ -21,7 +21,7 @@ Getting the code
 * Install [Git](https://git-scm.com/)
 * In a terminal, run:
 ```
-git clone https://github.com/underworldcode/underworld2.git --recursive
+git clone https://github.com/underworldcode/underworld2.git
 ```
 
 Compilation
