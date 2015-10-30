@@ -41,6 +41,8 @@ class Figure(_stgermain.StgCompoundComponent):
                     "_cam":"lucCamera"}
     _selfObjectName = "_db"
     _viewerProc = None
+    _stdout = ""
+    _cmdline = ""
 
     def __init__(self, num=None, figsize=(640,480), facecolour="white", edgecolour="black", title=None, axis=False, **kwargs):
         """ The initialiser takes as arguments 'num', 'figsize', 'facecolour', 'edgecolour', 'title' and 'axis'.   See help(Figure) for full details on these options.
@@ -177,12 +179,15 @@ class Figure(_stgermain.StgCompoundComponent):
                     return Image(filename=self._find_generated_file())
         except ImportError:
             pass
+        except RuntimeError:
+            pass
         except:
             raise
 
     def _find_generated_file(self):
         # lets determine what we are outputting (jpg,png)
         foundFile = None
+        fname = None
         for extension in ("jpg", "jpeg", "png"):
             fname = os.path.join(tmpdir,self._win.name+".00000."+extension)
             if os.path.isfile(fname):
@@ -190,6 +195,11 @@ class Figure(_stgermain.StgCompoundComponent):
                 break
         
         if not foundFile:
+            #raise RuntimeError("The required rendered image does not appear to have been created. Please contact developers. (" + fname + ")")
+            print "The required rendered image does not appear to have been created. Please contact developers. "
+            print "(" + fname + ")"
+            print "COMMAND: %s" % self._cmdline
+            print "STDOUT: %s" % self._stdout
             raise RuntimeError("The required rendered image does not appear to have been created. Please contact developers.")
         
         return os.path.abspath(foundFile)
@@ -284,7 +294,8 @@ class Figure(_stgermain.StgCompoundComponent):
             #Start the viewer process
             proc = subprocess.Popen(args, stdout=PIPE, stdin=PIPE, stderr=STDOUT)
             #Run the script
-            stdout = proc.communicate(input=script)[0]
+            self._stdout = proc.communicate(input=script)[0]
+            self._cmdline = ' '.join(args)
 
     def script(self, cmd=None):
         #Append to or get contents of the saved script
