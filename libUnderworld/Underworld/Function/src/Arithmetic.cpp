@@ -33,8 +33,8 @@ Fn::Add::func Fn::Add::getFunction( IOsptr sample_input ){
         throw std::invalid_argument("Added functions must return identical sized objects.");
 
     // allocate memory for our output
-    std::shared_ptr<IO_double> _output = std::shared_ptr<IO_double>(doubleio[0]->clone());
-    
+    auto _output = std::make_shared<IO_double>(doubleio[0]->size(), doubleio[0]->iotype());
+
     // create and return the lambda
     return [_func, _output](IOsptr input)->IOsptr {
         std::shared_ptr<const IO_double> io1 = debug_dynamic_cast<const IO_double>( _func[0](input) ) ;
@@ -69,8 +69,8 @@ Fn::Multiply::func  Fn::Multiply::getFunction( IOsptr sample_input ){
         throw std::invalid_argument("Function products can only be constructed between functions of identical\n"
                                     "size (pointwise) or where one function is scalar.");
     // allocate memory for our output
-    std::shared_ptr<IO_double> _output = std::shared_ptr<IO_double>(doubleio[_maxGuy]->clone());
-    
+    auto _output = std::make_shared<IO_double>(doubleio[_maxGuy]->size(), doubleio[_maxGuy]->iotype());
+
     // create and return the lambda
     if ( _identicalSize ) {
         return [_output,_func](IOsptr input)->IOsptr {
@@ -123,7 +123,7 @@ Fn::Divide::func  Fn::Divide::getFunction( IOsptr sample_input ){
         throw std::invalid_argument("Function division can only be constructed between functions of identical\n"
                                     "size (pointwise) or where denominator function returns scalars.");
     // allocate memory for our output
-    std::shared_ptr<IO_double> _output = std::shared_ptr<IO_double>(doubleio[_maxGuy]->clone());
+    auto _output = std::make_shared<IO_double>(doubleio[_maxGuy]->size(), doubleio[_maxGuy]->iotype());
     
     // create and return the lambda
     if (_identicalSize)  // first lambda function is for pointwise
@@ -177,7 +177,7 @@ Fn::Dot::func Fn::Dot::getFunction( IOsptr sample_input ){
         std::invalid_argument("Function dot products can only be constructed between functions of identical\n"
                               "size.");
     // setup our output
-    std::shared_ptr<IO_double> _output = std::shared_ptr<IO_double>(new IO_double(1, FunctionIO::Scalar ));
+    auto _output = std::shared_ptr<IO_double>(new IO_double(1, FunctionIO::Scalar ));
 
     // create and return the lambda
     return [_output,_func](IOsptr input)->IOsptr {

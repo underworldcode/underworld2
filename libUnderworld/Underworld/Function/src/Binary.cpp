@@ -39,8 +39,8 @@ Fn::MathBinary::func  Fn::MathBinary::getFunction( IOsptr sample_input ){
                                     "size (pointwise operation) or where the one function is scalar.");
 
     // allocate memory for our output
-    auto _output = std::shared_ptr<IO_double>(doubleio[_maxGuy]->clone());
-    
+    auto _output = std::make_shared<IO_double>(doubleio[_maxGuy]->size(), doubleio[_maxGuy]->iotype());
+
     // setup arrays to walk results as required
     unsigned bigsize = doubleio[_maxGuy]->size();
     auto pos0 = std::make_shared< std::vector<unsigned> >(bigsize);
