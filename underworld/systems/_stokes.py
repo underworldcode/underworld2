@@ -30,9 +30,13 @@ class Stokes(_stgermain.StgCompoundComponent):
 
         if not isinstance( velocityField, uw.fevariable.FeVariable):
             raise TypeError( "Provided 'velocityField' must be of 'FeVariable' class." )
+        if velocityField.nodeDofCount != velocityField.feMesh.dim:
+            raise ValueError( "Provided 'velocityField' must be a vector field of same dimensionality as its mesh." )
         self._velocityField = velocityField
         if not isinstance( pressureField, uw.fevariable.FeVariable):
             raise TypeError( "Provided 'pressureField' must be of 'FeVariable' class." )
+        if pressureField.nodeDofCount != 1:
+            raise ValueError( "Provided 'pressureField' must be a scalar field (ie pressureField.nodeDofCount==1)." )
         self._pressureField = pressureField
 
         _viscosityFn = uw.function.Function._CheckIsFnOrConvertOrThrow(viscosityFn)
@@ -58,8 +62,10 @@ class Stokes(_stgermain.StgCompoundComponent):
             # set the bcs on here.. will rearrange this in future. 
             if cond.variable == self._velocityField:
                 libUnderworld.StgFEM.FeVariable_SetBC( self._velocityField._cself, cond._cself )
-            if cond.variable == self._pressureField:
+            elif cond.variable == self._pressureField:
                 libUnderworld.StgFEM.FeVariable_SetBC( self._pressureField._cself, cond._cself )
+            else:
+                raise ValueError("Condition object does not appear to apply to the provided velocityField or pressureField.")
 
         if not isinstance(rtolerance, float):
             raise TypeError( "Provided 'rtolerance' must be of 'rtolerance' class." )

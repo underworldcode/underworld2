@@ -73,9 +73,9 @@ class DirichletCondition(_SystemCondition):
         self._indexSets = indexSets
 
         if variable.nodeDofCount != len(self._indexSets):
-            raise ValueError("Provided variable has a nodeDofCount of {}, however you have only \n".format(variable.nodeDofCount)+
-                             "provided {} index set(s). You must provide an index set for each degree\n".format(len(self.indexSets))+
-                             "of freedom of your variable.")
+            raise ValueError("Provided variable has a nodeDofCount of {}, however you have ".format(variable.nodeDofCount)+
+                             "provided {} index set(s). You must provide an index set for each degree ".format(len(self.indexSets))+
+                             "of freedom of your variable, but no more.")
 
         # ok, lets setup the c array
         libUnderworld.StGermain._PythonVC_SetupIndexSetArray(self._cself,len(self._indexSets))
