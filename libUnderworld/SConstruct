@@ -183,6 +183,7 @@ if env['with_viewer']:
     SConscript('gLucifer/Viewer/SConscript',
                variant_dir=env['build_dir'] + '/gLucifer/Viewer',
                duplicate=0)
+    env.Prepend(LIBS=['LavaVu'])
 
 if env['with_geothermal']:
     SConscript('Geothermal/SConscript',
@@ -228,7 +229,7 @@ filename = env['build_dir'] + '/lib/pkgconfig/stgermain.pc'
 env.Dist("underworld-%s"%env.GetOption("dist_version"),
          ["configure.py", "SConstruct", "config", "script", "StGermain",
           "StgDomain", "StgFEM", "PICellerator", "Underworld",
-          "Experimental", "gLucifer"])
+          "Experimental", "gLucifer", "LavaVu"])
 
 
 #Run the functions to create the Alias commands for the documentation of stgUnderworld. 
