@@ -14,6 +14,9 @@ RUN git clone https://github.com/underworldcode/underworld2 && \
     cd ..                        && \
     ./scons.py
 
+# add label to docker image
+LABEL commit=`git --git-dir=/root/underworld2/.git rev-parse --short HEAD`
+
 # setup environment
 ENV PYTHONPATH $PYTHONPATH:/root/underworld2
 
