@@ -12,15 +12,22 @@ RUN git clone https://github.com/underworldcode/underworld2 && \
     cd libUnderworldPy           && \
     ./swigall.py                 && \
     cd ..                        && \
-    ./scons.py
+    ./scons.py                   && \
+    rm .sconsign.dblite          && \
+    rm .sconf_temp               && \
+    cd build                     && \
+    rm -fr libUnderworldPy       && \
+    rm -fr StGermain             && \
+    rm -fr gLucifer              && \
+    rm -fr Underworld            && \
+    rm -fr StgFEM                && \
+    rm -fr StgDomain             && \
+    rm -fr PICellerator          && \
+    rm -fr Solvers               && \
 
 
 # setup environment
 ENV PYTHONPATH $PYTHONPATH:/root/underworld2
-ENV GIT_COMMIT `git --git-dir=/root/underworld2/.git rev-parse --short HEAD`
-
-# add label to docker image
-LABEL commit=$GIT_COMMIT
 
 # Add a notebook profile.
 RUN mkdir -p -m 700 /root/.jupyter/ && \
