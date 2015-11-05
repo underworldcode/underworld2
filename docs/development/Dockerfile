@@ -14,7 +14,7 @@ RUN git clone https://github.com/underworldcode/underworld2 && \
     cd ..                        && \
     ./scons.py                   && \
     rm .sconsign.dblite          && \
-    rm .sconf_temp               && \
+    rm -fr .sconf_temp           && \
     cd build                     && \
     rm -fr libUnderworldPy       && \
     rm -fr StGermain             && \
@@ -23,7 +23,7 @@ RUN git clone https://github.com/underworldcode/underworld2 && \
     rm -fr StgFEM                && \
     rm -fr StgDomain             && \
     rm -fr PICellerator          && \
-    rm -fr Solvers               && \
+    rm -fr Solvers
 
 
 # setup environment
