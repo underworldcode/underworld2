@@ -184,16 +184,39 @@ class FeVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgermain
             raise TypeError("Expected filename to be provided as a string")
         libUnderworld.StgFEM.FeVariable_SaveToFile( self._cself, filename )
 
-    def load(self, filename):
+    def loadinterpolate(self, filename, meshfilename):
+        """
+        Loads an entire fevariable onto each processor. This doesn't assume
+        the fevariable we are loading has the exact discretisation of the self
+        fevariable
+        """
+        if not isinstance(filename, str):
+            raise TypeError("Expected filename to be provided as a string")
+        if not isinstance(meshfilename, str):
+            raise TypeError("Expected meshfilename to be provided as a string")
+        uw.libUnderworld.StgFEM.FeVariable_InterpolateFromFile(self._cself, filename, meshfilename)
+
+    def load(self, filename, meshfilename ):
         """
         Load the fevariable from the provided filename. Note that this is a
         global method, ie. all processes must call it.
 
-        Provided file must be in hdf5 format, and use the correct schema.
+        If meshfilename is NOT given, the load assumes self and the filename
+        fevariable have identical discretisation. An error is thrown if this
+        is not the true.
+        If meshfilename is given, a temporary fevariable of the filename is build
+        on each processor and interpolate to self's node values 
+
+        Provided files must be in hdf5 format, and use the correct schema.
         """
         if not isinstance(filename, str):
             raise TypeError("Expected filename to be provided as a string")
-        libUnderworld.StgFEM.FeVariable_ReadFromFile( self._cself, filename )
+        if meshfilename: 
+            if not isinstance(meshfilename, str): 
+                raise TypeError("Expected meshfilename to be provided as a string")
+            uw.libUnderworld.StgFEM.FeVariable_InterpolateFromFile(self._cself, filename, meshfilename)
+        else:
+            libUnderworld.StgFEM.FeVariable_ReadFromFile( self._cself, filename )
 
     def copy(self, deepcopy=False):
         """
