@@ -229,7 +229,7 @@ filename = env['build_dir'] + '/lib/pkgconfig/stgermain.pc'
 env.Dist("underworld-%s"%env.GetOption("dist_version"),
          ["configure.py", "SConstruct", "config", "script", "StGermain",
           "StgDomain", "StgFEM", "PICellerator", "Underworld",
-          "Experimental", "gLucifer", "LavaVu"])
+          "Experimental", "gLucifer"])
 
 
 #Run the functions to create the Alias commands for the documentation of stgUnderworld. 

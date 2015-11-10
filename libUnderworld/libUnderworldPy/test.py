@@ -1,4 +1,7 @@
 import _LavaVu
 
-print _LavaVu
-_LavaVu.initViewer()
+_LavaVu.queueCommand("test")
+_LavaVu.queueCommand("image")
+_LavaVu.queueCommand("quit")
+_LavaVu.initViewer(["LavaVu", "-q90"])
+

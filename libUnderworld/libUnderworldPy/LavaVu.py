@@ -84,8 +84,12 @@ def _swig_setattr_nondynamic_method(set):
 
 
 
-def initViewer():
-  return _LavaVu.initViewer()
+def initViewer(*args):
+  return _LavaVu.initViewer(*args)
 initViewer = _LavaVu.initViewer
+
+def queueCommand(*args):
+  return _LavaVu.queueCommand(*args)
+queueCommand = _LavaVu.queueCommand
 
 
