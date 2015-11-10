@@ -5,7 +5,7 @@ Underworld 2 / python underworld
 
 
 Dependencies
-------------
+-------------
   * PETSc 
   * MPI
   * hdf5 (optional, but recommended)
