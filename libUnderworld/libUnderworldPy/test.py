@@ -1,3 +1,4 @@
 import _LavaVu
 
-print hello
+print _LavaVu
+_LavaVu.initViewer()

@@ -10,6 +10,7 @@ import urllib2
 import time
 from base64 import b64encode
 import libUnderworld
+import _LavaVu as lavavu
 
 # lets create somewhere to dump data for this session
 import os
@@ -320,6 +321,8 @@ class Figure(_stgermain.StgCompoundComponent):
         self._generate_DB()
         if uw.rank() == 0:
             #Open viewer with local web server for interactive/iterative use
+            #lavavu.initViewer()
+            #return
             if self._viewerProc:
                 return
             scriptpath = self._db.dump_script

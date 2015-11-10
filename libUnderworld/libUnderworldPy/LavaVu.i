@@ -11,12 +11,10 @@
 %module LavaVu
 
 %{
-extern "C" {
-int initViewer(int argc, char *argv[]);
-}
+void initViewer();
 %}
 
 
-int initViewer(int argc, char *argv[]);
+void initViewer();
 
 
