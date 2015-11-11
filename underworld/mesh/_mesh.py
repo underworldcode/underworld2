@@ -153,7 +153,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         array([ 0.1, -1.1])
 
         """
-        arr = self._cself.getAsNumpyArray()
+        arr = uw.libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.verticesVariable)
         arr.flags.writeable = self._dataWriteable
         return arr
 
