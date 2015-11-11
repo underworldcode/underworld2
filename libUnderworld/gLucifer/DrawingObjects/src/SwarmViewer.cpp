@@ -9,24 +9,59 @@
 
 
 #include <mpi.h>
-#include <StGermain/StGermain.h>
-#include <StgDomain/StgDomain.h>
+#include <petsc.h>
+#include "SwarmViewer.h"
 
-#include <gLucifer/Base/Base.h>
-
-
+#include <Underworld/Function/FunctionIO.hpp>
+#include <Underworld/Function/Function.hpp>
+extern "C" {
 #include "types.h"
 #include <gLucifer/Base/DrawingObject.h>
-#include "SwarmViewer.h"
-#include "SwarmViewer.h"
+}
 
 /* Textual name of this class - This is a global pointer which is used for times when you need to refer to class and not a particular instance of a class */
 const Type lucSwarmViewer_Type = "lucSwarmViewer";
 
+
+void _lucSwarmViewer_SetFn( void* _self, Fn::Function* fn ){
+    lucSwarmViewer*  self = (lucSwarmViewer*)_self;
+    
+    lucSwarmViewer_cppdata* cppdata = (lucSwarmViewer_cppdata*) self->cppdata;
+    // record fn, and also throw in a min/max guy
+    cppdata->fn = std::make_shared<Fn::MinMax>(fn);
+    
+    // setup fn
+    std::shared_ptr<IO_double> globalCoord = std::make_shared<IO_double>( self->swarm->dim, FunctionIO::Vector );
+    // grab first node for sample node
+    memcpy( globalCoord->data(), Mesh_GetVertex( self->mesh, 0 ), self->dim*sizeof(double) );
+    cppdata->func = cppdata->fn->getFunction(globalCoord);
+    
+    std::shared_ptr<const FunctionIO> io = std::dynamic_pointer_cast<const FunctionIO>(cppdata->func(globalCoord));
+    if( !io )
+        throw std::invalid_argument("Provided function does not appear to return a valid result.");
+    self->fieldComponentCount = io->size();
+
+    if( ( Stg_Class_IsInstance( self, lucScalarFieldSwarmViewer_Type )       ||
+          Stg_Class_IsInstance( self, lucScalarFieldOnMeshSwarmViewer_Type ) ||
+          Stg_Class_IsInstance( self, lucIsosurfaceSwarmViewer_Type )          )
+        && self->fieldComponentCount != 1 )
+    {
+        throw std::invalid_argument("Provided function must return a scalar result.");
+    }
+
+    if( ( Stg_Class_IsInstance( self, lucVectorArrowSwarmViewer_Type )       ||
+          Stg_Class_IsInstance( self, lucVectorArrowMeshSwarmViewer_Type )      )
+             && self->fieldComponentCount != self->dim )
+    {
+        throw std::invalid_argument("Provided function must return a vector result.");
+    }
+    
+    
+}
+
 /* Private Constructor: This will accept all the virtual functions for this class as arguments. */
 lucSwarmViewer* _lucSwarmViewer_New(  LUCSWARMVIEWER_DEFARGS  )
 {
-
    lucSwarmViewer*               self;
 
    /* Call private constructor of parent - this will set virtual functions of parent and continue up the hierarchy tree. At the beginning of the tree it will allocate memory of the size of object and initialise all the memory to zero. */
@@ -79,7 +114,7 @@ void _lucSwarmViewer_Init(
    self->geomType = lucPointType;   /* Draws points by default */
 
    /* Append to property string */
-   lucDrawingObject_AppendProps(self, "pointsmooth=%d\npointsize=%g\n", pointSmoothing, pointSize);
+   lucDrawingObject_AppendProps((lucDrawingObject*)self, "pointsmooth=%d\npointsize=%g\n", pointSmoothing, pointSize);
 }
 
 void _lucSwarmViewer_Delete( void* drawingObject )
@@ -102,7 +137,7 @@ void* _lucSwarmViewer_Copy( void* drawingObject, void* dest, Bool deep, Name nam
    lucSwarmViewer*  self = (lucSwarmViewer*)drawingObject;
    lucSwarmViewer* newDrawingObject;
 
-   newDrawingObject = _lucDrawingObject_Copy( self, dest, deep, nameExt, ptrMap );
+   newDrawingObject = (lucSwarmViewer*) _lucDrawingObject_Copy( self, dest, deep, nameExt, ptrMap );
 
    /* TODO */
    abort();
@@ -351,7 +386,7 @@ void _lucSwarmViewer_Draw( void* drawingObject, lucDatabase* database, void* _co
       }
 
       /* Export particle position */
-      float coordf[3] = {coord[0], coord[1], swarm->dim == 3 ? coord[2] : 0.0f};
+      float coordf[3] = {(float)coord[0],(float) coord[1], swarm->dim == 3 ? (float)coord[2] : 0.0f};
       lucDatabase_AddVertices(database, 1, self->geomType, coordf);
 
       /* Sets the colour for the particle */

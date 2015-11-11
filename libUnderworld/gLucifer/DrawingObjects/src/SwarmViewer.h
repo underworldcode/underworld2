@@ -6,10 +6,35 @@
 ** located at the project root, or contact the authors.                             **
 **                                                                                  **
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
-
-
 #ifndef __lucSwarmViewer_h__
 #define __lucSwarmViewer_h__
+
+#ifdef __cplusplus
+
+extern "C++" {
+
+#include <Underworld/Function/Function.hpp>
+
+struct lucSwarmViewer_cppdata
+{
+    Fn::Function::func func;
+    std::shared_ptr<Fn::MinMax> fn;
+};
+
+void _lucSwarmViewer_SetFn( void* _self, Fn::Function* fn );
+
+}
+
+extern "C" {
+#endif
+
+#include <StGermain/StGermain.h>
+#include <StgDomain/StgDomain.h>
+#include <StgFEM/StgFEM.h>
+
+#include <gLucifer/Base/Base.h>
+
+#include "types.h"
 
 typedef void (lucSwarmViewer_PlotParticleFunction) ( void* object, lucDatabase* database, Particle_Index lParticle_I );
 typedef void (lucSwarmViewer_SetParticleColourFunction) ( void* object, lucDatabase* database, Particle_Index lParticle_I );
@@ -103,5 +128,10 @@ void lucSwarmViewer_SetColourComponent(void* object, lucDatabase* database, Swar
 void _lucSwarmViewer_SetParticleColour( void* drawingObject, lucDatabase* database, Particle_Index lParticle_I ) ;
 
 void _lucSwarmViewer_PlotParticle( void* drawingObject, lucDatabase* database, Particle_Index lParticle_I );
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif
 
