@@ -33,12 +33,15 @@ ENV PYTHONPATH $PYTHONPATH:/root/underworld2
 RUN mkdir -p -m 700 /root/.jupyter/ && \
     echo "c.NotebookApp.ip = '*'" >> /root/.jupyter/jupyter_notebook_config.py
 
-# setup spaces for notebooks
-VOLUME /notebooks
-WORKDIR /notebooks
+# setup space for working in
+VOLUME /workspace
+WORKDIR /workspace
+
+# copy underworld tutorials over
+RUN rsync -av /root/underworld2/docs/tutorials .
 
 # expose notebook port
-EXPOSE 8888
+EXPOSE 2357
 
 # Install Tini.. this is required because CMD (below) doesn't play nice with notebooks for some reason: https://github.com/ipython/ipython/issues/7062, https://github.com/jupyter/notebook/issues/334
 RUN curl -L https://github.com/krallin/tini/releases/download/v0.6.0/tini > tini && \
