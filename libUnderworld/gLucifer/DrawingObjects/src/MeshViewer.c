@@ -203,10 +203,12 @@ void _lucMeshViewer_Draw( void* drawingObject, lucDatabase* database, void* _con
    /* Render vertices */
    if (self->displayNodes || self->nodeNumbers )
    {
-      unsigned	nVerts;
-      unsigned	v_i;
+      unsigned	nVerts, gnVerts;
+      unsigned	v_i, gv_i = 0;
+      unsigned *indices = NULL;
 
       nVerts = Mesh_GetLocalSize( self->mesh, MT_VERTEX );
+      gnVerts = Mesh_GetGlobalSize( self->mesh, MT_VERTEX );
       for ( v_i = 0; v_i < nVerts; v_i ++ )
       {
          double* vert = Mesh_GetVertex( self->mesh, v_i );
@@ -217,7 +219,8 @@ void _lucMeshViewer_Draw( void* drawingObject, lucDatabase* database, void* _con
          if (self->nodeNumbers)
          {
             char label[32];
-            sprintf( label, " nl%u", v_i );
+            gv_i = Mesh_DomainToGlobal(self->mesh, MT_VERTEX, v_i);
+            sprintf( label, " %u", gv_i );
             lucDatabase_AddLabel(database, lucPointType, label);
          }
 
