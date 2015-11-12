@@ -250,7 +250,7 @@ void lucMeshViewer_RenderEdges( lucMeshViewer* self, lucDatabase* database )
    unsigned	nEdges;
    int	nIncVerts, *incVerts;
    IArray*		inc;
-   unsigned	e_i;
+   unsigned	e_i, v_i;
    int dim = Mesh_GetDimSize( self->mesh );
 
    Journal_Firewall( Mesh_GetDomainSize( self->mesh, MT_EDGE ) && Mesh_HasIncidence( self->mesh, MT_EDGE, MT_VERTEX ),
@@ -263,18 +263,19 @@ void lucMeshViewer_RenderEdges( lucMeshViewer* self, lucDatabase* database )
       Mesh_GetIncidence( self->mesh, MT_EDGE, e_i, MT_VERTEX, inc );
       nIncVerts = IArray_GetSize( inc );
       incVerts = IArray_GetPtr( inc );
-      Journal_Firewall( nIncVerts == 2, NULL, "Error when trying to render mesh. Provided mesh may not be supported." );
-
-      double *vertex1, *vertex2;
-      vertex1 = Mesh_GetVertex( self->mesh, incVerts[0] );
-      vertex2 = Mesh_GetVertex( self->mesh, incVerts[1] );
-      if (!EdgeSkip(self, vertex1, vertex2))
+      for (v_i=1; v_i < nIncVerts; v_i++)
       {
-         float pos1[3] = {vertex1[0], vertex1[1], dim == 3 ? vertex1[2] : 0};
-         float pos2[3] = {vertex2[0], vertex2[1], dim == 3 ? vertex2[2] : 0};
-         /* Add the line vertices */
-         lucDatabase_AddVertices(database, 1, lucLineType, pos1);
-         lucDatabase_AddVertices(database, 1, lucLineType, pos2);
+         double *vertex1, *vertex2;
+         vertex1 = Mesh_GetVertex( self->mesh, incVerts[v_i-1] );
+         vertex2 = Mesh_GetVertex( self->mesh, incVerts[v_i] );
+         if (!EdgeSkip(self, vertex1, vertex2))
+         {
+            float pos1[3] = {vertex1[0], vertex1[1], dim == 3 ? vertex1[2] : 0};
+            float pos2[3] = {vertex2[0], vertex2[1], dim == 3 ? vertex2[2] : 0};
+            /* Add the line vertices */
+            lucDatabase_AddVertices(database, 1, lucLineType, pos1);
+            lucDatabase_AddVertices(database, 1, lucLineType, pos2);
+         }
       }
    }
 
