@@ -36,11 +36,9 @@ extern const Type lucMeshViewer_Type;
       Bool                            elementNumbers;   \
       Bool                            displayNodes;     \
       Bool                            displayEdges;     \
-      Bool                            skipXedges;       \
-      Bool                            skipYedges;       \
-      Bool                            skipZedges;       \
       float                           pointSize;        \
       Bool                            pointSmooth;      \
+      unsigned                        segments;
  
 struct lucMeshViewer
 {
@@ -77,7 +75,6 @@ void _lucMeshViewer_Setup( void* drawingObject, lucDatabase* database, void* _co
 void _lucMeshViewer_Draw( void* drawingObject, lucDatabase* database, void* _context ) ;
 
 void lucMeshViewer_RenderEdges( lucMeshViewer* self, lucDatabase* database);
-Bool EdgeSkip(lucMeshViewer* self, double* v1, double* v2);
 void lucMeshViewer_PrintAllElementsNumber( void* drawingObject, lucDatabase* database);
 
 #endif
