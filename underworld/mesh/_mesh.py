@@ -22,6 +22,7 @@ import underworld.function as function
 import contextlib
 import time
 import abc
+import h5py
 
 class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
     """
@@ -117,6 +118,40 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
             self._generator = generator
         libUnderworld.StgDomain.Mesh_SetGenerator(self._cself, generator._gen)
 
+    @property
+    def data_enMap(self):
+        """
+        (np.array): Numpy array to the global node ids
+        """
+        uw.libUnderworld.StgDomain.Mesh_GenerateENMapVar(self._cself)
+        arr = uw.libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.enMapVar)
+        if( len(arr) % self.elementsLocal != 0 ):
+            RuntimeError("Unsupported element to node mapping for save routine"+
+                    "\nThere doesn't appear to be elements with a consistent number of nodes")
+
+        # we ASSUME a constant number of nodes for each element
+        # and we reshape the arr accordingly
+        nodesPerElement = len(arr)/self.elementsLocal
+        return arr.reshape(self.elementsLocal, nodesPerElement)
+
+    @property
+    def data_elgId(self):
+        """
+        (np.array): Numpy array to the global node ids
+        """
+        uw.libUnderworld.StgDomain.Mesh_GenerateElGlobalIdVar(self._cself)
+        arr = uw.libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.eGlobalIdsVar)
+        return arr
+
+    @property
+    def data_nodegId(self):
+        """
+        (np.array): Numpy array to the global node ids
+        """
+        uw.libUnderworld.StgDomain.Mesh_GenerateNodeGlobalIdVar(self._cself)
+        arr = uw.libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.vGlobalIdsVar)
+        return arr
+        
     @property
     def data(self):
         """ 
@@ -216,6 +251,17 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         return libUnderworld.StgDomain.Mesh_GetGlobalSize(self._cself, 0)
 
     @property 
+    def elementsLocal(self):
+        """
+        Returns the number of local elements on the mesh
+
+        >>> someMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1', elementRes=(2,2), minCoord=(-1.,-1.), maxCoord=(1.,1.) )
+        >>> someMesh.elementsLocal
+        4
+        """
+        return libUnderworld.StgDomain.Mesh_GetLocalSize(self._cself, self.dim)
+
+    @property 
     def elementsGlobal(self):
         """
         Returns the number of global elements on the mesh
@@ -289,6 +335,57 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
                                      size             = libUnderworld.StgDomain.Mesh_GetDomainSize( self._femesh, libUnderworld.StgDomain.MT_VERTEX ) )
         iset.addAll()
         return iset._get_iterator()
+
+    def h5save( self, filename ):
+        """
+        Saves the mesh in hdf5 format to 'filename'. Note, this is a
+        global method, ie. all processes must call it.
+        """
+        if not isinstance(filename, str):
+            raise TypeError("'filename', must be of type 'str'")
+
+
+        import h5py
+        from mpi4py import MPI
+
+        h5f = h5py.File(name=filename, mode="w", driver='mpio', comm=MPI.COMM_WORLD)
+
+        # save attributes and simple data - MUST be parallel as driver is mpio
+        h5f.attrs['dimensions'] = self.dim
+        h5f.attrs['mesh resolution'] = self.elementRes
+
+        max_dset = h5f.create_dataset("max", shape=(self.dim,), dtype='float64')
+        max_dset[:] = self.maxCoord[:]
+
+        min_dset = h5f.create_dataset("min", shape=(self.dim,), dtype='float64')
+        min_dset[:] = self.minCoord[:]
+
+        # write the vertices
+        globalShape = ( self.nodesGlobal, self.data.shape[1] )
+        dset = h5f.create_dataset("vertices", 
+                                  shape=globalShape,
+                                  dtype='float64')
+
+        local = len(self.data_nodegId)
+        # write to the dset using the global node ids
+        dset[self.data_nodegId[0:local],:] = self.data[0:local]
+        #dset[self.data_nodegId[:,:]] = self.data[:] # broken in h5py
+
+        # write the element node connectivity
+        self.data_enMap
+        globalShape = ( self.elementsGlobal, self.data_enMap.shape[1] )
+        dset = h5f.create_dataset("en map", 
+                                  shape=globalShape,
+                                  dtype='int64')
+
+        if len(self.data_elgId) != len(self.data_enMap):
+            RuntimeError("Error in mesh.data_enMap - required for h5save")
+
+        local = len(self.data_elgId)
+        # write to the dset using the global node ids
+        dset[self.data_elgId[0:local],:] = self.data_enMap[0:local]
+
+        h5f.close()
 
     def save( self, filename ):
         """
