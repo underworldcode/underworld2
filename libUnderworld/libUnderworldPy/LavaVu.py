@@ -88,8 +88,4 @@ def initViewer(*args):
   return _LavaVu.initViewer(*args)
 initViewer = _LavaVu.initViewer
 
-def queueCommand(*args):
-  return _LavaVu.queueCommand(*args)
-queueCommand = _LavaVu.queueCommand
-
 

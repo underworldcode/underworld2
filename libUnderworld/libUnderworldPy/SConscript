@@ -25,7 +25,6 @@ wrapperDict = {}
 
 wrapperDict['StGermain_Tools'] = ['StGermain_Tools.c', 'StGermain_Tools_wrap.cxx']
 wrapperDict['gLucifer'] = ['gLucifer_wrap.cxx']
-wrapperDict['LavaVu'] = ['LavaVu_wrap.cxx']
 # wrapperDict['ImportersToolbox'] = ['ImportersToolbox_wrap.cxx']
 wrapperDict['petsc'] = ['petsc_wrap.cxx']
 wrapperDict['c_arrays'] = ['c_arrays_wrap.cxx']
@@ -56,6 +55,17 @@ for key,value in wrapperDict.iteritems():
     #
     if env['shared_libs']:
         env.SharedLibrary('lib/'+key+'_swig', objs)
+
+#Build LavaVu interface without other libs
+env = env.Clone()
+env["LIBS"] = ['LavaVu']
+objs = []
+srcs = Glob('./LavaVu_wrap.cxx')
+objs += env.SharedObject(srcs, CPPDEFINES=env.get('CPPDEFINES', []))
+# Build shared library.
+if env['shared_libs']:
+    env.SharedLibrary('lib/LavaVu_swig', objs)
+
 
 # if on osx, create symlink for python modules
 import os

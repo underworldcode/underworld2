@@ -183,7 +183,6 @@ if env['with_viewer']:
     SConscript('gLucifer/Viewer/SConscript',
                variant_dir=env['build_dir'] + '/gLucifer/Viewer',
                duplicate=0)
-    env.Prepend(LIBS=['LavaVu'])
 
 if env['with_geothermal']:
     SConscript('Geothermal/SConscript',

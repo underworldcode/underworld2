@@ -11,9 +11,17 @@
 %module LavaVu
 
 %{
-int initViewer(int argc, char **argv);
-void queueCommand(const char* cmd);
+void initViewer(int argc, char **argv);
 %}
+
+%include "exception.i"
+%exception {
+    try {
+        $action
+    } catch (const std::runtime_error& e) {
+        SWIG_exception(SWIG_RuntimeError, e.what());
+    }
+}
 
 %typemap(in) (int argc, char **argv) {
   /* Check if is a list */
@@ -42,7 +50,5 @@ void queueCommand(const char* cmd);
   free((char *) $2);
 }
 
-int initViewer(int argc, char **argv);
-void queueCommand(const char* cmd);
-
+void initViewer(int argc, char **argv);
 

@@ -3,14 +3,13 @@ import errno
 import weakref
 import underworld._stgermain as _stgermain
 import _drawing
-from subprocess import Popen, PIPE, STDOUT
 import os
-import subprocess
 import urllib2
 import time
 from base64 import b64encode
 import libUnderworld
 import _LavaVu as lavavu
+from multiprocessing import Process
 
 # lets create somewhere to dump data for this session
 import os
@@ -42,8 +41,6 @@ class Figure(_stgermain.StgCompoundComponent):
                     "_cam":"lucCamera"}
     _selfObjectName = "_db"
     _viewerProc = None
-    _stdout = ""
-    _cmdline = ""
 
     def __init__(self, num=None, figsize=(640,480), facecolour="white", edgecolour="black", title=None, axis=False, **kwargs):
         """ The initialiser takes as arguments 'num', 'figsize', 'facecolour', 'edgecolour', 'title' and 'axis'.   See help(Figure) for full details on these options.
@@ -180,7 +177,9 @@ class Figure(_stgermain.StgCompoundComponent):
                     return Image(filename=self._find_generated_file())
         except ImportError:
             pass
-        except RuntimeError:
+        except RuntimeError, e:
+            print "Error creating image: "
+            print e
             pass
         except:
             raise
@@ -196,12 +195,7 @@ class Figure(_stgermain.StgCompoundComponent):
                 break
         
         if not foundFile:
-            #raise RuntimeError("The required rendered image does not appear to have been created. Please contact developers. (" + fname + ")")
-            print "The required rendered image does not appear to have been created. Please contact developers. "
-            print "(" + fname + ")"
-            print "COMMAND: %s" % self._cmdline
-            print "STDOUT: %s" % self._stdout
-            raise RuntimeError("The required rendered image does not appear to have been created. Please contact developers.")
+            raise RuntimeError("The required rendered image does not appear to have been created. Please contact developers. (" + fname + ")")
         
         return os.path.abspath(foundFile)
 
@@ -282,21 +276,17 @@ class Figure(_stgermain.StgCompoundComponent):
         if uw.rank() == 0:
             # go ahead and draw
             scriptpath = self._db.dump_script
+            # Keep this for now as is useful to know if the executable was built
+            # and to pass it as first command line arg to get shader/html path
             lvpath = scriptpath.replace("dump.sh", "LavaVuOS")
             if not os.path.isfile(lvpath):
                 lvpath = scriptpath.replace("dump.sh", "LavaVu")
                 if not os.path.isfile(lvpath):
                     raise RuntimeError("LavaVu rendering engine does not appear to exist. Perhaps it was not compiled.\nPlease check your configuration, or contact developers.")
-            timestep = "-" + str(self._db.timeStep)
-            dbfile = self._db.path
-            args = [lvpath, timestep, "-I", dbfile]
-            #Script commands to run...
-            script = '\n'.join(self._script + ['image', 'quit'])
-            #Start the viewer process
-            proc = subprocess.Popen(args, stdout=PIPE, stdin=PIPE, stderr=STDOUT)
-            #Run the script
-            self._stdout = proc.communicate(input=script)[0]
-            self._cmdline = ' '.join(args)
+            #Args + Script commands to run...
+            args = [lvpath, "-" + str(self._db.timeStep), "-I", self._db.path, ':'] + self._script + ['image', 'quit']
+            #Render with viewer
+            lavavu.initViewer(args)
 
     def script(self, cmd=None):
         #Append to or get contents of the saved script
@@ -320,28 +310,21 @@ class Figure(_stgermain.StgCompoundComponent):
     def open_viewer(self, args=[], ):
         self._generate_DB()
         if uw.rank() == 0:
-            #Open viewer with local web server for interactive/iterative use
-            #lavavu.initViewer()
-            #return
             if self._viewerProc:
                 return
             scriptpath = self._db.dump_script
             lvpath = scriptpath.replace("dump.sh", "LavaVu")
-            if not os.path.isfile(lvpath):
-                lvpath = scriptpath.replace("dump.sh", "LavaVuOS")
-                if not os.path.isfile(lvpath):
-                    raise RuntimeError("LavaVu rendering engine does not appear to exist. Perhaps it was not compiled.\nPlease check your configuration, or contact developers.")
-            timestep = "-" + str(self._db.timeStep)
-            dbfile = self._db.path
-            self._viewerProc = subprocess.Popen([lvpath, timestep, "-L", "-p8080", "-q90", "-Q", "-v", dbfile] + args, stdout=PIPE, stdin=PIPE, stderr=STDOUT)
-            #Wait a second so server has time to start
-            time.sleep(1)
+            #Open viewer with local web server for interactive/iterative use
+            self._viewerProc = Process(target=lavavu.initViewer, args=([lvpath, "-" + str(self._db.timeStep), "-L", "-p8080", "-q90", "-Q", self._db.path], ))
+            self._viewerProc.start()
             url = "http://localhost:8080/"
             print "Viewer opened: " + url
 
     def close_viewer(self):
         if self._viewerProc:
-           self._viewerProc.kill()
+           self.send_command("quit")
+           self._viewerProc.join()
+           #self._viewerProc.terminate()
            self._viewerProc = None
 
     def run_script(self):
@@ -355,9 +338,14 @@ class Figure(_stgermain.StgCompoundComponent):
         #Run command on an open viewer instance
         self.open_viewer()
         url = "http://localhost:8080/command=" + urllib2.quote(cmd)
-        #print url
-        response = urllib2.urlopen(url).read()
-        #print response
+        try:
+            #print url
+            response = urllib2.urlopen(url).read()
+            #print response
+        except:
+            #Wait a second so server has time to start then try again
+            time.sleep(1)
+            response = urllib2.urlopen(url).read()
 
     def clear(self):
         """    Clears all the figure's drawing objects 
