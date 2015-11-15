@@ -382,8 +382,11 @@ int Sync_GlobalToDomain( const void* self, int global ) {
    assert( global < Decomp_GetNumGlobals( ((Sync*)self)->decomp ) );
    if( !Decomp_TryGlobalToLocal( ((Sync*)self)->decomp, global, &domain ) ) {
       if( !IMap_Has( ((Sync*)self)->gr, global ) )
-	 abort();
-      return IMap_Map( ((Sync*)self)->gr, global ) + 
+         Journal_Firewall( (0), NULL,
+            "\n\nError in %s for %s '%s'\n"
+            "Error in meshing routine. This is possibly due to an overly decomposed mesh.", 
+            __func__, ((Sync*)self)->type );
+      return IMap_Map( ((Sync*)self)->gr, global ) +
 	 Decomp_GetNumLocals( ((Sync*)self)->decomp );
    }
    else

@@ -33,9 +33,13 @@ ENV PYTHONPATH $PYTHONPATH:/root/underworld2
 RUN mkdir -p -m 700 /root/.jupyter/ && \
     echo "c.NotebookApp.ip = '*'" >> /root/.jupyter/jupyter_notebook_config.py
 
-# setup spaces for notebooks
-VOLUME /notebooks
-WORKDIR /notebooks
+# copy underworld tutorials over
+RUN mkdir /workspace && \
+    rsync -av /root/underworld2/docs/tutorials /workspace
+
+# setup space for working in
+VOLUME /workspace
+WORKDIR /workspace
 
 # expose notebook port
 EXPOSE 8888
@@ -45,7 +49,12 @@ RUN curl -L https://github.com/krallin/tini/releases/download/v0.6.0/tini > tini
     echo "d5ed732199c36a1189320e6c4859f0169e950692f451c03e7854243b95f4234b *tini" | sha256sum -c - && \
     mv tini /usr/local/bin/tini && \
     chmod +x /usr/local/bin/tini
-ENTRYPOINT ["tini", "--"]
+
+RUN printf "xvfb-run -s '-screen 0 1600x1200x16' \$@" >> /usr/local/bin/xvfbrun.sh && \
+    chmod +x /usr/local/bin/xvfbrun.sh
+
+# note we also use xvfb which is required for viz
+ENTRYPOINT ["/usr/local/bin/tini", "--", "xvfbrun.sh"]
 
 # launch notebook
 CMD ["jupyter", "notebook"]

@@ -718,6 +718,7 @@ void lucDatabase_OutputGeometry(lucDatabase* self, int object_id)
          {
             for (data_type=lucMinDataType; data_type<lucMaxDataType; data_type++)
                lucDatabase_GatherGeometry(self, type, data_type);
+            lucDatabase_GatherLabels(self, type);
          }
          if (self->rank > 0) continue;
          gtotal += MPI_Wtime() - time;
@@ -754,42 +755,57 @@ void lucDatabase_OutputGeometry(lucDatabase* self, int object_id)
    lucDatabase_ClearGeometry(self);
 }
 
-void lucDatabase_GatherGeometry(lucDatabase* self, lucGeometryType type, lucGeometryDataType data_type)
+/*** 
+ * Utility function to prepare for gathering variable length data from all procs to root
+ *  count:   local count
+ *  counts:  per proc counts return array
+ *  offsets: per proc offsets return array
+ *  returns total elements to be received on root
+ ***/
+int lucDatabase_GatherCounts(lucDatabase* self, int count, int* counts, int* offsets)
 {
-   unsigned int procs = self->nproc;
-   lucGeometryData* block = self->data[type][data_type];
-
    /* Get the count on each proc */
-   int p;
-   int *counts = NULL;
-   if (self->rank == 0)
-      counts = Memory_Alloc_Array(int, procs, "displacements");
-   /* 1 value from each proc */
-   (void)MPI_Gather(&block->count, 1, MPI_INT, counts, 1, MPI_INT, 0, self->communicator);
+   int p, total = 0;
+   (void)MPI_Gather(&count, 1, MPI_INT, counts, 1, MPI_INT, 0, self->communicator);
 
-   /* Now we have count per proc, gather all values */
-   //double time = MPI_Wtime();
-   int *displ = NULL;
-   float *data = NULL;
-   int total = 0;
+   /* Now we have count per proc, calculate offsets and total */
    if (self->rank == 0)
    {
-      displ = Memory_Alloc_Array(int, procs, "displacements");
-
-      for (p=0; p<procs; p++)/* Get displacements */
-         displ[p] = p==0 ? 0 : displ[p-1] + counts[p-1];
-
-      total = displ[procs-1] + counts[procs-1];
-      /* All values already on root? skip gather */
-      if (total == block->count) total = 0;
-      if (total) data = Memory_Alloc_Array(float, total, "FloatData");
+      for (p=0; p<self->nproc; p++) /* Get offset */
+      {
+         offsets[p] = p==0 ? 0 : offsets[p-1] + counts[p-1];
+      }
+      total = offsets[self->nproc-1] + counts[self->nproc-1];
+      /* All values already on root? no gather required */
+      //if (total == count) total = 0;
    }
 
-   /* Any data to gather? */
+   /* Return total elements to be received */
    MPI_Bcast(&total, 1, MPI_INT, 0, self->communicator);
+   return total;
+}
+
+void lucDatabase_GatherGeometry(lucDatabase* self, lucGeometryType type, lucGeometryDataType data_type)
+{
+   lucGeometryData* block = self->data[type][data_type];
+   /* Get the count on each proc */
+   int *counts = NULL, *offsets = NULL;
+   int p, total = 0;
+   float *data = NULL;
+   if (self->rank == 0)
+   {
+      counts = Memory_Alloc_Array(int, self->nproc, "counts");
+      offsets = Memory_Alloc_Array(int, self->nproc, "offsets");
+   }
+
+   total = lucDatabase_GatherCounts(self, block->count, counts, offsets);
+
    if (total > 0)
    {
-      (void)MPI_Gatherv(block->data, block->count, MPI_FLOAT, data, counts, displ, MPI_FLOAT, 0, self->communicator);
+      if (self->rank == 0)
+         data = Memory_Alloc_Array(float, total, "FloatData");
+
+      (void)MPI_Gatherv(block->data, block->count, MPI_FLOAT, data, counts, offsets, MPI_FLOAT, 0, self->communicator);
 
       /* Reduce to get minimum & maximum from all procs */
       float min, max;
@@ -808,22 +824,61 @@ void lucDatabase_GatherGeometry(lucDatabase* self, lucGeometryType type, lucGeom
       {
          //Journal_Printf(lucInfo, "Gathered %d values, took %f sec\n", total, MPI_Wtime() - time);
          /* Add new data on master */
-         for (p=1; p<procs; p++)/* Get displacements */
+         for (p=1; p<self->nproc; p++)
          {
             if (counts[p] == 0) continue;
 
-            //printf("[%d - %d] Reading %d values at displacement %d from proc %d MIN %f MAX %f WIDTH %d\n", type, data_type, counts[p], displ[p], p, min, max, width);
+            //printf("[%d - %d] Reading %d values at displacement %d from proc %d MIN %f MAX %f WIDTH %d\n", type, data_type, counts[p], offsets[p], p, min, max, width);
             if (data_type == lucVertexData)
                block->width = width;   //Summed width
-            lucGeometryData_Read(block, counts[p] / block->size, &data[displ[p]]);
+            lucGeometryData_Read(block, counts[p] / block->size, &data[offsets[p]]);
          }
          //printf("count %d, \n", block->count);
          lucGeometryData_Setup(block, min, max, block->dimCoeff, block->units);
       }
    }
+
    if (data) Memory_Free(data);
    Memory_Free(counts);
-   Memory_Free(displ);
+   Memory_Free(offsets);
+}
+
+void lucDatabase_GatherLabels(lucDatabase* self, lucGeometryType type)
+{
+   /* Get the count on each proc */
+   int p;
+   int *counts = NULL, *offsets = NULL;
+   int total = 0;
+   char *data = NULL;
+   if (self->rank == 0)
+   {
+      counts = Memory_Alloc_Array(int, self->nproc, "counts");
+      offsets = Memory_Alloc_Array(int, self->nproc, "offsets");
+   }
+   int length = self->labels[type] ? strlen(self->labels[type])+1 : 0;
+   total = lucDatabase_GatherCounts(self, length, counts, offsets);
+
+   /* Gather labels */
+   if (total > 0)
+   {
+      if (self->rank == 0)
+         data = Memory_Alloc_Array(char, total, "LabelData");
+
+      (void)MPI_Gatherv(self->labels[type], length, MPI_CHAR, data, counts, offsets, MPI_CHAR, 0, self->communicator);
+      if (self->rank == 0)
+      {
+         /* Add new data on master */
+         for (p=1; p<self->nproc; p++)/* Get displacements */
+         {
+            if (counts[p] == 0) continue;
+            lucDatabase_AddLabel(self, type, &data[offsets[p]]);
+         }
+      }
+   }
+
+   if (data) Memory_Free(data);
+   Memory_Free(counts);
+   Memory_Free(offsets);
 }
 
 /* Direct write functions to enter data into geom data store */
@@ -967,13 +1022,13 @@ void lucDatabase_AddLabel(lucDatabase* self, lucGeometryType type, char* label)
 {
    if (!self->labels[type] || strlen(self->labels[type]) + strlen(label) + 2 > self->label_lengths[type])
    {
+      /* No label memory allocated yet or more required */
       self->labels[type] = Memory_Realloc_Array(self->labels[type], char, self->label_lengths[type] + 1024);
       self->label_lengths[type] += 1024;
       if (self->label_lengths[type] == 1024) self->labels[type][0] = 0;
    }
-
+   if (self->labels[type][0] != 0) strcat(self->labels[type], "\n");
    strcat(self->labels[type], label);
-   strcat(self->labels[type], "\n");
 }
 
 lucGeometryData* lucGeometryData_New(lucGeometryDataType data_type)

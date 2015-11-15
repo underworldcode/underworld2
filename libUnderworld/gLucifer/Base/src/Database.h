@@ -132,7 +132,9 @@ void lucDatabase_OutputColourMap(lucDatabase* self, lucColourMap* colourMap, luc
 
 void lucDatabase_ClearGeometry(lucDatabase* self);
 void lucDatabase_OutputGeometry(lucDatabase* self, int object_id);
+int lucDatabase_GatherCounts(lucDatabase* self, int count, int* counts, int* offsets);
 void lucDatabase_GatherGeometry(lucDatabase* self, lucGeometryType type, lucGeometryDataType data_type);
+void lucDatabase_GatherLabels(lucDatabase* self, lucGeometryType type);
 
 struct lucIsosurface;
 void lucDatabase_AddIsosurface(lucDatabase* self, struct lucIsosurface* iso, Bool walls);
@@ -169,7 +171,6 @@ int lucDatabase_WriteGeometry(lucDatabase* self, int index, lucGeometryType type
 void lucDatabase_BackupDb(sqlite3 *fromDb, sqlite3* toDb);
 
 void lucDatabase_DeleteWindows(lucDatabase* self);
-
 
 #endif
 

@@ -335,7 +335,7 @@ class Mesh(Drawing):
     """
     _objectsDict = { "_dr": "lucMeshViewer" }
 
-    def __init__(self, mesh, nodeNumbers=False, *args, **kwargs):
+    def __init__(self, mesh, nodeNumbers=False, segmentsPerEdge=1, *args, **kwargs):
 
         if not isinstance(mesh,uwmesh.FeMesh):
             raise TypeError("'mesh' object passed in must be of type 'FeMesh'")
@@ -344,6 +344,10 @@ class Mesh(Drawing):
         if not isinstance(nodeNumbers,bool):
             raise TypeError("'nodeNumbers' flag must be of type 'bool'")
         self._nodeNumbers = nodeNumbers
+
+        if not isinstance(segmentsPerEdge,int) or segmentsPerEdge < 1:
+            raise TypeError("'segmentsPerEdge' must be a positive 'int'")
+        self._segmentsPerEdge = segmentsPerEdge
         
         # build parent
         super(Mesh,self).__init__(**kwargs)
@@ -355,5 +359,6 @@ class Mesh(Drawing):
         
         super(Mesh,self)._add_to_stg_dict(componentDictionary)
 
-        componentDictionary[self._dr.name]["Mesh"] = self._mesh._cself.name
+        componentDictionary[self._dr.name][       "Mesh"] = self._mesh._cself.name
         componentDictionary[self._dr.name]["nodeNumbers"] = self._nodeNumbers
+        componentDictionary[self._dr.name][   "segments"] = self._segmentsPerEdge

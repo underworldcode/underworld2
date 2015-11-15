@@ -40,29 +40,6 @@ lucMeshViewer* _lucMeshViewer_New(  LUCMESHVIEWER_DEFARGS  )
    return self;
 }
 
-void _lucMeshViewer_Init(
-   lucMeshViewer*         self,
-   Mesh*                  mesh,
-   char*                  skipEdges,
-   float                  pointSize,
-   Bool                   pointSmooth )
-{
-   self->mesh = mesh;
-
-   /* Specify axis-aligned mesh edges that should not be plotted with character string representing axis */
-   if (strchr(skipEdges, 'x') || strchr(skipEdges, 'X')) self->skipXedges = True;
-   else self->skipXedges = False;
-   if (strchr(skipEdges, 'y') || strchr(skipEdges, 'Y')) self->skipYedges = True;
-   else self->skipYedges = False;
-   if (strchr(skipEdges, 'z') || strchr(skipEdges, 'Z')) self->skipZedges = True;
-   else self->skipZedges = False;
-
-   self->pointSmooth = pointSmooth;
-   self->pointSize = pointSize;
-   /* Append to property string */
-   lucDrawingObject_AppendProps(self, "pointsmooth=%d\npointsize=%g\n", pointSmooth, pointSize); 
-}
-
 void _lucMeshViewer_Delete( void* drawingObject )
 {
    lucMeshViewer*  self = (lucMeshViewer*)drawingObject;
@@ -120,14 +97,14 @@ void* _lucMeshViewer_DefaultNew( Name name )
 void _lucMeshViewer_AssignFromXML( void* drawingObject, Stg_ComponentFactory* cf, void* data )
 {
    lucMeshViewer*         self = (lucMeshViewer*)drawingObject;
-   Mesh*                  mesh;
 
    /* Construct Parent */
    _lucDrawingObject_AssignFromXML( self, cf, data );
 
-   mesh = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"Mesh", Mesh, True, data  );
+   self->mesh = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"Mesh", Mesh, True, data  );
 
    self->nodeNumbers = Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"nodeNumbers", False );
+   self->segments  = Stg_ComponentFactory_GetUnsignedInt( cf, self->name, (Dictionary_Entry_Key)"segments", 1 );
    self->elementNumbers = Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"elementNumbers", False );
    self->displayNodes = Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"displayNodes", False );
    self->displayEdges = Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"displayEdges", True );
@@ -135,13 +112,10 @@ void _lucMeshViewer_AssignFromXML( void* drawingObject, Stg_ComponentFactory* cf
    self->colourVariable = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"ColourField", FieldVariable, False, data  );
    self->sizeVariable = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"SizeField", FieldVariable, False, data  );
 
-   _lucMeshViewer_Init(
-      self,
-      mesh,
-      Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"skipEdges", ""),
-      (float) Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"pointSize", self->displayNodes ? 5.0 : 1.0 ),
-      (Bool ) Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"pointSmoothing", True )
-   );
+   self->pointSmooth = Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"pointSmoothing", True );
+   self->pointSize = Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"pointSize", self->displayNodes ? 5.0 : 1.0 );
+   /* Append to property string */
+   lucDrawingObject_AppendProps(self, "pointsmooth=%d\npointsize=%g\n", self->pointSmooth, self->pointSize);
 
    /* Drawing settings for this component */
    self->lit = False;
@@ -204,7 +178,7 @@ void _lucMeshViewer_Draw( void* drawingObject, lucDatabase* database, void* _con
    if (self->displayNodes || self->nodeNumbers )
    {
       unsigned	nVerts;
-      unsigned	v_i;
+      unsigned	v_i, gv_i = 0;
 
       nVerts = Mesh_GetLocalSize( self->mesh, MT_VERTEX );
       for ( v_i = 0; v_i < nVerts; v_i ++ )
@@ -217,7 +191,8 @@ void _lucMeshViewer_Draw( void* drawingObject, lucDatabase* database, void* _con
          if (self->nodeNumbers)
          {
             char label[32];
-            sprintf( label, " nl%u", v_i );
+            gv_i = Mesh_DomainToGlobal(self->mesh, MT_VERTEX, v_i);
+            sprintf( label, " %u", gv_i );
             lucDatabase_AddLabel(database, lucPointType, label);
          }
 
@@ -252,9 +227,19 @@ void lucMeshViewer_RenderEdges( lucMeshViewer* self, lucDatabase* database )
    IArray*		inc;
    unsigned	e_i;
    int dim = Mesh_GetDimSize( self->mesh );
+   ElementType* elType;
+   int ii;
+   int jj;
+   int kk;
 
    Journal_Firewall( Mesh_GetDomainSize( self->mesh, MT_EDGE ) && Mesh_HasIncidence( self->mesh, MT_EDGE, MT_VERTEX ),
                      NULL, "Error when trying to render mesh. Provided mesh may not be supported." );
+
+   /* assume homogeneous mesh types.. currently this is hardcoded anyhow. */
+   /* elementId=-1 to bomb out incase this changes! */
+   elType = FeMesh_GetElementType( self->mesh, -1 );
+   double* evaluatedShapeFuncs = Memory_Alloc_Array( double, elType->nodeCount, (Name)"MeshViewer_ShapeFuncs" );
+   double segSize = 2./self->segments;  /* evaluating in local element space, so an edge is length 2 */
 
    nEdges = Mesh_GetLocalSize( self->mesh, MT_EDGE );
    inc = IArray_New();
@@ -263,40 +248,47 @@ void lucMeshViewer_RenderEdges( lucMeshViewer* self, lucDatabase* database )
       Mesh_GetIncidence( self->mesh, MT_EDGE, e_i, MT_VERTEX, inc );
       nIncVerts = IArray_GetSize( inc );
       incVerts = IArray_GetPtr( inc );
-      Journal_Firewall( nIncVerts == 2, NULL, "Error when trying to render mesh. Provided mesh may not be supported." );
 
-      double *vertex1, *vertex2;
-      vertex1 = Mesh_GetVertex( self->mesh, incVerts[0] );
-      vertex2 = Mesh_GetVertex( self->mesh, incVerts[1] );
-      if (!EdgeSkip(self, vertex1, vertex2))
-      {
-         float pos1[3] = {vertex1[0], vertex1[1], dim == 3 ? vertex1[2] : 0};
-         float pos2[3] = {vertex2[0], vertex2[1], dim == 3 ? vertex2[2] : 0};
-         /* Add the line vertices */
-         lucDatabase_AddVertices(database, 1, lucLineType, pos1);
-         lucDatabase_AddVertices(database, 1, lucLineType, pos2);
+      double *vertex;
+      float pos[3];
+      /* add first vertex */
+      vertex = Mesh_GetVertex( self->mesh, incVerts[0] );
+      pos[0] = vertex[0];
+      pos[1] = vertex[1];
+      pos[2] = dim == 3 ? vertex[2] : 0.;
+      lucDatabase_AddVertices(database, 1, lucLineType, pos);  /* add start point for a line segment */
+      
+      double position = -1.;
+      for (ii=0; ii<self->segments-1; ii++) {
+         position+=segSize;
+         double xi[3] = {position,-1.,-1.};
+         ElementType_EvaluateShapeFunctionsAt( elType, xi, evaluatedShapeFuncs );
+         pos[0] = 0.; pos[1] = 0.; pos[2] = 0.;
+         /* Use shape functions to determine location along element edge.    */
+         /* Note that we make the assumption that because of our judicious   */
+         /* choice of element edge (spelt out via our 'xi' positions ), the  */
+         /* first nInvVert shape functions are the only non-zero ones.       */
+         for (jj=0; jj<nIncVerts; jj++) {
+            vertex = Mesh_GetVertex( self->mesh, incVerts[jj] );
+            for (kk=0; kk<dim; kk++) {
+               pos[kk] += (float)vertex[kk]*evaluatedShapeFuncs[jj];
+            }
+         }
+         lucDatabase_AddVertices(database, 1, lucLineType, pos);  /* add end point for a line segment */
+         lucDatabase_AddVertices(database, 1, lucLineType, pos);  /* add start point for a line segment */
       }
+      
+      /* add last vertex */
+      vertex = Mesh_GetVertex( self->mesh, incVerts[nIncVerts-1] );
+      pos[0] = vertex[0];
+      pos[1] = vertex[1];
+      pos[2] = dim == 3 ? vertex[2] : 0.;
+      lucDatabase_AddVertices(database, 1, lucLineType, pos); /* add end point for a line segment */
    }
+   
+   Memory_Free(evaluatedShapeFuncs);
 
    Stg_Class_Delete( inc );
-}
-
-
-Bool EdgeSkip(lucMeshViewer* self, double* v1, double* v2)
-{
-   /* Skip where Y+Z unchanging (x-axis aligned horizontal edges) */
-   if (self->skipXedges && v1[J_AXIS] == v2[J_AXIS] && v1[K_AXIS] == v2[K_AXIS])
-      return True;
-
-   /* Skip where X+Z unchanging (y-axis aligned vertical edges) */
-   if (self->skipYedges && v1[I_AXIS] == v2[I_AXIS] && v1[K_AXIS] == v2[K_AXIS])
-      return True;
-
-   /* Skip where X+Y unchanging (z-axis aligned horizontal edges) */
-   if (self->skipZedges && v1[I_AXIS] == v2[I_AXIS] && v1[J_AXIS] == v2[J_AXIS])
-      return True;
-
-   return False;
 }
 
 void lucMeshViewer_PrintAllElementsNumber( void* drawingObject, lucDatabase* database )

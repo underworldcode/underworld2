@@ -397,12 +397,12 @@ class Figure(_stgermain.StgCompoundComponent):
         self.drawingObjects.append(guy)
         return guy
 
-    def Mesh(self, mesh, nodeNumbers=False, **kwargs):
+    def Mesh(self, mesh, nodeNumbers=False, segmentsPerEdge=1, **kwargs):
         """    Add a mesh drawing object to the current figure.
                See 'help(Mesh)' for information on the Mesh class and it's options.
                
                Returns the generated Mesh object.
         """
-        guy = _drawing.Mesh(mesh=mesh, nodeNumbers=nodeNumbers, **kwargs)
+        guy = _drawing.Mesh(mesh=mesh, nodeNumbers=nodeNumbers, segmentsPerEdge=segmentsPerEdge, **kwargs)
         self.drawingObjects.append(guy)
         return guy
