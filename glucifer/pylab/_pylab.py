@@ -300,7 +300,10 @@ class Figure(_stgermain.StgCompoundComponent):
     def script(self, cmd=None):
         #Append to or get contents of the saved script
         if cmd:
-            self._script += [cmd]
+            if isinstance(cmd, list):
+                self._script += cmd
+            else:
+                self._script += [cmd]
         else:
             self._script = []
         #Returns contents as newline separated string
@@ -333,8 +336,8 @@ class Figure(_stgermain.StgCompoundComponent):
             self._viewerProc = subprocess.Popen([lvpath, timestep, "-L", "-p8080", "-q90", "-Q", "-v", dbfile] + args, stdout=PIPE, stdin=PIPE, stderr=STDOUT)
             #Wait a second so server has time to start
             time.sleep(1)
-            url = "http://localhost:8080/"
-            print "Viewer opened: " + url
+            from IPython.display import HTML
+            return HTML('''<a href='#' onclick='window.open("http://" + location.hostname + ":8080");'>Open Viewer Interface</a>''')
 
     def close_viewer(self):
         if self._viewerProc:
