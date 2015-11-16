@@ -20,3 +20,5 @@ from libm import libm
 from Python import Python
 from Solvers import Solvers
 from Numpy import Numpy
+from H5py import H5py
+from Mpi4py import Mpi4py
