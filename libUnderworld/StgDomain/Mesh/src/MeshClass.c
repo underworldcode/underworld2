@@ -700,7 +700,7 @@ Variable* Mesh_GenerateENMapVar( void* mesh ) {
     char* name;
     int n_i, e_i, nNbr, localElements, localtotal;
     unsigned buffy_tvs;     // buffer for global node indices
-    unsigned dim, *nbr;
+    unsigned dim, *nbr, temp;
     int *numberNodesPerEl = NULL;
     IArray* inc = NULL;
     Stream* error = Journal_Register( Error_Type, (Name)self->type );
@@ -719,6 +719,10 @@ Variable* Mesh_GenerateENMapVar( void* mesh ) {
         Mesh_GetIncidence( self, dim, (unsigned)e_i, MT_VERTEX, inc );
         nNbr = IArray_GetSize( inc );
         nbr = IArray_GetPtr( inc );
+
+        temp = nbr[2];
+        nbr[2] = nbr[3];
+        nbr[3] = temp;
 
         numberNodesPerEl[e_i] = nNbr;
         localtotal += nNbr;
