@@ -103,7 +103,12 @@ void _lucVectorArrows_Draw( void* drawingObject, lucDatabase* database, void* _c
    lucVectorArrows*       self    = (lucVectorArrows*)drawingObject;
    Dimension_Index        dim     = self->dim;
 
-   if ( dim == 2 )
+   if (self->isSet) 
+   {
+      /* Just draw at given position if provided */
+      _lucVectorArrowCrossSection_DrawCrossSection(self, database);
+   }
+   else if ( dim == 2 )
    {
       _lucVectorArrowCrossSection_DrawCrossSection( lucCrossSection_Set(self, 0.0, K_AXIS, False), database);
    }

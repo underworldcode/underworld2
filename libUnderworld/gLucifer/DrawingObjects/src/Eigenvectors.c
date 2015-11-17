@@ -103,7 +103,10 @@ void _lucEigenvectors_Draw( void* drawingObject, lucDatabase* database, void* _c
    lucEigenvectors*       self            = (lucEigenvectors*)drawingObject;
    int idx;
 
-   if (self->dim)
+   if (self->isSet) 
+      /* Just draw at given position if provided */
+      _lucEigenvectorsCrossSection_DrawCrossSection(self, database);
+   else if (self->dim)
       _lucEigenvectorsCrossSection_DrawCrossSection( lucCrossSection_Set(self, 0.0, K_AXIS, False), database);
    else
       for ( idx=0; idx <= self->resolution[K_AXIS]; idx++)

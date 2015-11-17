@@ -138,7 +138,12 @@ void _lucMeshSampler_Draw( void* drawingObject, lucDatabase* database, void* _co
    lucMeshSampler* self = (lucMeshSampler*)drawingObject;
    Dimension_Index dim  = self->dim;
 
-   if (dim == 2)
+   if (self->isSet) 
+   {
+      /* Just draw at given position if provided */
+      lucMeshSampler_DrawSlice(self, database);
+   }
+   else if (dim == 2)
    {
       lucMeshSampler_DrawSlice(lucCrossSection_Slice(self, 0.0, False), database);
    }
