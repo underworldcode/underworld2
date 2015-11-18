@@ -42,8 +42,8 @@ class Figure(_stgermain.StgCompoundComponent):
     _selfObjectName = "_db"
     _viewerProc = None
 
-    def __init__(self, num=None, figsize=(640,480), facecolour="white", edgecolour="black", title=None, axis=False, **kwargs):
-        """ The initialiser takes as arguments 'num', 'figsize', 'facecolour', 'edgecolour', 'title' and 'axis'.   See help(Figure) for full details on these options.
+    def __init__(self, num=None, figsize=(640,480), boundingBox=None, facecolour="white", edgecolour="black", title=None, axis=False, **kwargs):
+        """ The initialiser takes as arguments 'num', 'figsize', 'boundingMesh', 'facecolour', 'edgecolour', 'title' and 'axis'.   See help(Figure) for full details on these options.
         """
         if num and not isinstance(num,(str,int)):
             raise TypeError("'num' object passed in must be of python type 'str' or 'int'")
@@ -54,6 +54,14 @@ class Figure(_stgermain.StgCompoundComponent):
         if not isinstance(figsize,tuple):
             raise TypeError("'figsize' object passed in must be of python type 'tuple'")
         self._figsize = figsize
+
+        if boundingBox and not isinstance(boundingBox,tuple):
+            raise TypeError("'boundingBox' object passed in must be of type 'tuple'")
+        if boundingBox and not isinstance(boundingBox[0],tuple):
+            raise TypeError("'boundingBox[0]' object passed in must be of type 'tuple'")
+        if boundingBox and not isinstance(boundingBox[1],tuple):
+            raise TypeError("'boundingBox[1]' object passed in must be of type 'tuple'")
+        self._boundingBox = boundingBox
 
         if not isinstance(facecolour,str):
             raise TypeError("'facecolour' object passed in must be of python type 'str'")
@@ -90,15 +98,24 @@ class Figure(_stgermain.StgCompoundComponent):
                             "filename"          :"gluciferDB"+self._id,
                             "blocking"          :True,
                             "splitTransactions" :True,
-                            "dbPath"            :tmpdir
+                            "dbPath"            :tmpdir,
         } )
+
+        if self._boundingBox:
+            componentDictionary[self._db.name]["minX"] = self._boundingBox[0][0]
+            componentDictionary[self._db.name]["minY"] = self._boundingBox[0][1]
+            componentDictionary[self._db.name]["minZ"] = self._boundingBox[0][2]
+            componentDictionary[self._db.name]["maxX"] = self._boundingBox[1][0]
+            componentDictionary[self._db.name]["maxY"] = self._boundingBox[1][1]
+            componentDictionary[self._db.name]["maxZ"] = self._boundingBox[1][2]
+
         componentDictionary[self._win.name].update( {
                             "Database"          :self._db.name,
                             "Viewport"          :[self._vp.name],
                             "width"             :self.figsize[0],
                             "height"            :self.figsize[1],
                             "backgroundColour"  :self.facecolour,
-                            "useModelBounds"    :False
+                            "useModelBounds"    :self._boundingBox != None
         } )
         componentDictionary[self._vp.name].update( {
                             "Camera"            :self._cam.name,
@@ -284,7 +301,7 @@ class Figure(_stgermain.StgCompoundComponent):
                 if not os.path.isfile(lvpath):
                     raise RuntimeError("LavaVu rendering engine does not appear to exist. Perhaps it was not compiled.\nPlease check your configuration, or contact developers.")
             #Args + Script commands to run...
-            args = [lvpath, "-" + str(self._db.timeStep), "-I", self._db.path, ':'] + self._script + ['image', 'quit']
+            args = [lvpath, "-" + str(self._db.timeStep), "-I", "-p0", self._db.path, ':'] + self._script + ['image', 'quit']
             #Render with viewer
             lavavu.initViewer(args)
 
@@ -357,13 +374,15 @@ class Figure(_stgermain.StgCompoundComponent):
         """
         del self.drawingObjects[:]
 
-    def Surface(self, fn, mesh, drawSides="xyzXYZ", **kwargs):
+    def Surface(self, fn, mesh, useMesh=False, drawSides="xyzXYZ", **kwargs):
         """    Add a surface drawing object to the current figure.
                See 'help(Surface)' for information on the Surface class and it's options.
                
                Returns the generated Surface object.
         """
-        guy = _drawing.Surface(fn, mesh, drawSides=drawSides, **kwargs)
+        if not mesh:
+            mesh = self.boundingMesh
+        guy = _drawing.Surface(fn=fn, mesh=mesh, useMesh=useMesh, drawSides=drawSides, **kwargs)
         self.drawingObjects.append(guy)
         return guy
 
@@ -383,10 +402,25 @@ class Figure(_stgermain.StgCompoundComponent):
         """    Add a vector arrow drawing object to the current figure.
                See 'help(VectorArrows)' for information on the VectorArrows class and it's options.
                
-               Returns the generated Points object.
+               Returns the generated VectorArrows object.
         """
-        guy = _drawing.VectorArrows( fn, mesh, resolutionX=resolutionX, resolutionY=resolutionY, resolutionZ=resolutionZ,
+        if not mesh:
+            mesh = self.boundingMesh
+        guy = _drawing.VectorArrows( fn=fn, mesh=mesh, resolutionX=resolutionX, resolutionY=resolutionY, resolutionZ=resolutionZ,
                                                   arrowHeadSize=arrowHeadSize, lengthScale=lengthScale, glyphs=glyphs, colourBar=False, **kwargs)
+        self.drawingObjects.append(guy)
+        return guy
+
+    def Volume(self, fn, mesh, useMesh=False, resolutionX=16, resolutionY=16, resolutionZ=16, **kwargs):
+        """    Add a volume drawing object to the current figure.
+               See 'help(Volume)' for information on the Volume class and it's options.
+               
+               Returns the generated Volume object.
+        """
+        if not mesh:
+            mesh = self.boundingMesh
+        guy = _drawing.Volume( fn=fn, mesh=mesh, useMesh=useMesh, resolutionX=resolutionX, resolutionY=resolutionY, resolutionZ=resolutionZ,
+                                                  colourBar=False, **kwargs)
         self.drawingObjects.append(guy)
         return guy
 
@@ -396,6 +430,8 @@ class Figure(_stgermain.StgCompoundComponent):
                
                Returns the generated Mesh object.
         """
+        if not mesh:
+            mesh = self.boundingMesh
         guy = _drawing.Mesh(mesh=mesh, nodeNumbers=nodeNumbers, segmentsPerEdge=segmentsPerEdge, **kwargs)
         self.drawingObjects.append(guy)
         return guy

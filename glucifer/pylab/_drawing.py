@@ -1,3 +1,16 @@
+#TODO: Drawing Objects to implement
+# MeshSurface
+# IsoSurface, IsoSurfaceCrossSection
+# FieldSampler/MeshSampler (volumes)
+# Contour, ContourCrossSection
+# HistoricalSwarmTrajectory
+# VectorArrowMeshCrossSection?
+#
+# Maybe later...
+# TextureMap
+# SwarmShapes, SwarmRGB, SwarmVectors
+# EigenVectors, EigenVectorCrossSection
+# FeVariableSurface
 import underworld
 import underworld._stgermain as _stgermain
 import underworld.fevariable as fevariable
@@ -12,7 +25,7 @@ class Drawing(_stgermain.StgCompoundComponent):
                      "_cm": "lucColourMap",
                      "_cb": "lucColourBar" }
     
-    def __init__(self, colours="Purple Blue Green Yellow Orange Red".split(), opacity=-1, logScale=False, colourBar=True, **kwargs):
+    def __init__(self, colours="Purple Blue Turquoise Bisque Orange Red Brown".split(), opacity=-1, logScale=False, colourBar=True, **kwargs):
     
         if not isinstance(colours,(str,list)):
             raise TypeError("'colours' object passed in must be of python type 'str' or 'list'")
@@ -112,18 +125,61 @@ class Drawing(_stgermain.StgCompoundComponent):
         """
         return self._logScale
 
-class Surface(Drawing):
-    """  This drawing object class draws a surface using the provided scalar field.
+class CrossSection(Drawing):
+    """  This drawing object class defines a cross-section plane, derived classes plot data over this cross section
     """
-    _objectsDict = { "_dr": "lucScalarField" }
+    _objectsDict = { "_dr": "lucCrossSection" }
 
-    def __init__(self, fn, mesh, drawSides="xyzXYZ", *args, **kwargs):
+    def __init__(self, fn, mesh, crossSection="", **kwargs):
         self._fn = underworld.function.Function._CheckIsFnOrConvertOrThrow(fn)
         
         if not isinstance(mesh,uwmesh.FeMesh):
             raise TypeError("'mesh' object passed in must be of type 'FeMesh'")
         self._mesh = mesh
+
+        if not isinstance(crossSection,str):
+            raise ValueError("'crossSection' argument must be of python type 'str'")
+        self._crossSection = crossSection
+
+        # build parent
+        super(CrossSection,self).__init__(**kwargs)
+
+    def _setup(self):
+        gLucifer._lucCrossSection_SetFn( self._cself, self._fn._fncself )
+
+    def _add_to_stg_dict(self,componentDictionary):
+        # lets build up component dictionary
         
+        # call parents method
+        super(CrossSection,self)._add_to_stg_dict(componentDictionary)
+
+        componentDictionary[self._dr.name].update( {
+                   "Mesh": self._mesh._cself.name,
+                   "crossSection": self._crossSection
+            } )
+
+    @property
+    def crossSection(self):
+        """    crossSection (str): Cross Section definition, eg;: z=0.
+        """
+        return self._crossSection
+
+class Surface(CrossSection):
+    """  This drawing object class draws a surface using the provided scalar field.
+    """
+    _objectsDict = { "_dr": None }
+
+    def __new__(cls, drawSides="xyzXYZ", useMesh=False, *args, **kwargs):
+
+        #Use the mesh sampler if requested
+        if useMesh:
+            cls._objectsDict = { "_dr": "lucScalarFieldOnMesh" }
+        else:
+            cls._objectsDict = { "_dr": "lucScalarField" }
+        return super(Surface, cls).__new__(cls, *args, **kwargs)
+
+    def __init__(self, drawSides="xyzXYZ", useMesh=False, *args, **kwargs):
+
         if not isinstance(drawSides,str):
             raise ValueError("'drawSides' argument must be of python type 'str'")
         self._drawSides = drawSides
@@ -139,19 +195,12 @@ class Surface(Drawing):
         super(Surface,self)._add_to_stg_dict(componentDictionary)
 
         componentDictionary[self._dr.name]["drawSides"] = self.drawSides
-        componentDictionary[self._dr.name][     "Mesh"] = self._mesh._cself.name
-
-    def _setup(self):
-        gLucifer._lucCrossSection_SetFn( self._cself, self._fn._fncself )
 
     @property
     def drawSides(self):
         """    drawSides (str): sides (x,y,z,X,Y,Z) for which the surface should be drawn.  default is all sides ("xyzXYZ").
         """
         return self._drawSides
-
-
-
 
 class Points(Drawing):
     """  This drawing object class draws a swarm of points.
@@ -234,19 +283,12 @@ class Points(Drawing):
         """
         return self._pointSize
 
-
-class VectorArrows(Drawing):
-    """  This drawing object class draws vector arrows corresponding to the provided vector field.
+class GridSampler3D(CrossSection):
+    """  This drawing object class samples a regular grid in 3D.
     """
-    _objectsDict = { "_dr": "lucVectorArrows" }
+    _objectsDict = { "_dr": None } #Abstract class, Set by child
 
-    def __init__(self, fn, mesh, resolutionX=16, resolutionY=16, resolutionZ=16, arrowHeadSize=0.3, lengthScale=0.3, glyphs=3, **kwargs):
-        self._fn = underworld.function.Function._CheckIsFnOrConvertOrThrow(fn)
-        
-        if not isinstance(mesh,uwmesh.FeMesh):
-            raise TypeError("'mesh' object passed in must be of type 'FeMesh'")
-        self._mesh = mesh
-
+    def __init__(self, resolutionX=16, resolutionY=16, resolutionZ=16, **kwargs):
         if resolutionX:
             if not isinstance(resolutionX,(int)):
                 raise TypeError("'resolutionX' object passed in must be of python type 'int'")
@@ -256,6 +298,50 @@ class VectorArrows(Drawing):
         if resolutionZ:
             if not isinstance(resolutionZ,(int)):
                 raise TypeError("'resolutionZ' object passed in must be of python type 'int'")
+
+        self._resolutionX = resolutionX
+        self._resolutionY = resolutionY
+        self._resolutionZ = resolutionZ
+
+        # build parent
+        super(GridSampler3D,self).__init__(**kwargs)
+
+    def _add_to_stg_dict(self,componentDictionary):
+        # lets build up component dictionary
+        
+        # call parents method
+        print self._dr
+        print self._dr.name
+        super(GridSampler3D,self)._add_to_stg_dict(componentDictionary)
+
+        componentDictionary[self._dr.name].update( {
+            "resolutionX": self.resolutionX,
+            "resolutionY": self.resolutionY,
+            "resolutionZ": self.resolutionZ
+            } )
+
+    @property
+    def resolutionX(self):
+        """    resolutionX (int): Number of samples in the X direction. Default is 16.
+        """
+        return self._resolutionX
+    @property
+    def resolutionY(self):
+        """    resolutionY (int): Number of samples in the Y direction. Default is 16.
+        """
+        return self._resolutionY
+    @property
+    def resolutionZ(self):
+        """    resolutionZ (int): Number of samples in the Z direction. Default is 16.
+        """
+        return self._resolutionZ
+
+class VectorArrows(GridSampler3D):
+    """  This drawing object class draws vector arrows corresponding to the provided vector field.
+    """
+    _objectsDict = { "_dr": "lucVectorArrows" }
+
+    def __init__(self, arrowHeadSize=0.3, lengthScale=0.3, glyphs=3, **kwargs):
         if arrowHeadSize:
             if not isinstance(arrowHeadSize,(float,int)):
                 raise TypeError("'arrowHeadSize' object passed in must be of python type 'int' or 'float'")
@@ -268,19 +354,12 @@ class VectorArrows(Drawing):
             if not isinstance(glyphs,(int)):
                 raise TypeError("'glyphs' object passed in must be of python type 'int'")
 
-        self._resolutionX = resolutionX
-        self._resolutionY = resolutionY
-        self._resolutionZ = resolutionZ
         self._arrowHeadSize = arrowHeadSize
         self._lengthScale = lengthScale
         self._glyphs = glyphs
 
         # build parent
         super(VectorArrows,self).__init__(**kwargs)
-
-    def _setup(self):
-        gLucifer._lucCrossSection_SetFn( self._cself, self._fn._fncself )
-
 
     def _add_to_stg_dict(self,componentDictionary):
         # lets build up component dictionary
@@ -289,31 +368,11 @@ class VectorArrows(Drawing):
         super(VectorArrows,self)._add_to_stg_dict(componentDictionary)
 
         componentDictionary[self._dr.name].update( {
-                   "Mesh": self._mesh._cself.name,
-            "resolutionX": self.resolutionX,
-            "resolutionY": self.resolutionY,
-            "resolutionZ": self.resolutionZ,
           "arrowHeadSize": self.arrowHeadSize,
             "lengthScale": self.lengthScale,
                  "glyphs": self.glyphs
             } )
 
-
-    @property
-    def resolutionX(self):
-        """    resolutionX (int): Number of vector arrows to render in the X direction. Default is 16.
-        """
-        return self._resolutionX
-    @property
-    def resolutionY(self):
-        """    resolutionY (int): Number of vector arrows to render in the Y direction. Default is 16.
-        """
-        return self._resolutionY
-    @property
-    def resolutionZ(self):
-        """    resolutionZ (int): Number of vector arrows to render in the Z direction. Default is 16.
-        """
-        return self._resolutionZ
     @property
     def arrowHeadSize(self):
         """    arrowHeadSize (float): The size of the head of the arrow compared with the arrow length. Must be between [0, 1].   Default is 0.3.
@@ -329,6 +388,24 @@ class VectorArrows(Drawing):
         """    glyphs (int): Type of glyph to render for vector arrow.
         """
         return self._glyphs
+
+class Volume(GridSampler3D):
+    """  This drawing object class draws a volume using the provided scalar field.
+    """
+    _objectsDict = { "_dr": "lucFieldSampler" }
+
+    def __init__(self, **kwargs):
+        # build parent
+        super(Volume,self).__init__(**kwargs)
+
+    def _add_to_stg_dict(self,componentDictionary):
+        # lets build up component dictionary
+        
+        # call parents method
+        super(Volume,self)._add_to_stg_dict(componentDictionary)
+
+        componentDictionary[self._dr.name].update( {
+            } )
 
 class Mesh(Drawing):
     """  This drawing object class draws a mesh.
@@ -351,6 +428,9 @@ class Mesh(Drawing):
         
         # build parent
         super(Mesh,self).__init__(**kwargs)
+
+        #No colour bar
+        self._colourBar = False
 
     def _add_to_stg_dict(self,componentDictionary):
         # lets build up component dictionary
