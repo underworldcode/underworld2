@@ -124,10 +124,14 @@ void _lucScalarFieldOnMesh_Draw( void* drawingObject, lucDatabase* database, voi
    lucScalarFieldOnMesh*  self          = (lucScalarFieldOnMesh*)drawingObject;
    Mesh*                  mesh          = (Mesh*) self->mesh;
    Grid*                  vertGrid;
-
    vertGrid = *(Grid**)ExtensionManager_Get( mesh->info, mesh, self->vertexGridHandle );
 
-   if (self->dim == 2)
+   if (self->isSet) 
+   {
+      /* Just draw at given position if provided */
+      lucScalarFieldOnMeshCrossSection_DrawCrossSection(self, database, True);
+   }
+   else if (self->dim == 2)
    {
       lucScalarFieldOnMeshCrossSection_DrawCrossSection( lucCrossSection_Set(self, 0.0, K_AXIS, False), database, False);
    }

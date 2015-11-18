@@ -58,6 +58,7 @@ extern const Type lucCrossSection_Type;
       Axis                 axis;                \
       Axis                 axis1;               \
       Axis                 axis2;               \
+      Bool                 isSet;               \
       Bool                 interpolate;         \
       Bool                 axisAligned;         \
       Bool                 gatherData;          \

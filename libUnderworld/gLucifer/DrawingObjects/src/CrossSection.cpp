@@ -157,6 +157,9 @@ void _lucCrossSection_AssignFromXML( void* drawingObject, Stg_ComponentFactory* 
    XYZ  coord2;
    XYZ  coord3;
 
+   /* Default to set from input args, flag turned of if none found */
+   self->isSet = True;
+
    /* Construct Parent */
    _lucDrawingObject_AssignFromXML( self, cf, data );
 
@@ -192,7 +195,7 @@ void _lucCrossSection_AssignFromXML( void* drawingObject, Stg_ComponentFactory* 
          /* Interpolate between max and min value using provided value */
          interpolate = True;
          /* Read the cross section string specification */
-         crossSectionStr = Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"crossSection", "z=0" );
+         crossSectionStr = Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"crossSection", "" );
 
          /* axis=value    : draw at min + value * range, ie: x=0.25 will be a quarter along the x range
           * axis=min      : draw at minimum of range on axis
@@ -225,6 +228,8 @@ void _lucCrossSection_AssignFromXML( void* drawingObject, Stg_ComponentFactory* 
                value = 1.0;
                //fprintf(stderr, "MAX CROSS SECTION AT %lf on Axis %c\n", self->value, axisChar);
          }
+         else
+           self->isSet = False;
       }
    }
 

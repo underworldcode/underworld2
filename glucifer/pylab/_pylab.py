@@ -291,7 +291,10 @@ class Figure(_stgermain.StgCompoundComponent):
     def script(self, cmd=None):
         #Append to or get contents of the saved script
         if cmd:
-            self._script += [cmd]
+            if isinstance(cmd, list):
+                self._script += cmd
+            else:
+                self._script += [cmd]
         else:
             self._script = []
         #Returns contents as newline separated string
@@ -314,11 +317,13 @@ class Figure(_stgermain.StgCompoundComponent):
                 return
             scriptpath = self._db.dump_script
             lvpath = scriptpath.replace("dump.sh", "LavaVu")
+
             #Open viewer with local web server for interactive/iterative use
             self._viewerProc = Process(target=lavavu.initViewer, args=([lvpath, "-" + str(self._db.timeStep), "-L", "-p8080", "-q90", "-Q", self._db.path], ))
             self._viewerProc.start()
-            url = "http://localhost:8080/"
-            print "Viewer opened: " + url
+
+            from IPython.display import HTML
+            return HTML('''<a href='#' onclick='window.open("http://" + location.hostname + ":8080");'>Open Viewer Interface</a>''')
 
     def close_viewer(self):
         if self._viewerProc:

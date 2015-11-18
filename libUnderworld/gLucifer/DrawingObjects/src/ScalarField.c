@@ -112,7 +112,12 @@ void _lucScalarField_Draw( void* drawingObject, lucDatabase* database, void* dat
 {
    lucScalarField*   self          = (lucScalarField*)drawingObject;
 
-   if (self->dim == 2)
+   if (self->isSet) 
+   {
+      /* Just draw at given position if provided */
+      lucScalarFieldCrossSection_DrawCrossSection(self, database, True);
+   }
+   else if (self->dim == 2)
    {
       lucScalarFieldCrossSection_DrawCrossSection( lucCrossSection_Set(self, 0.0, K_AXIS, False), database, False);
    }

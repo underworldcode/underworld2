@@ -88,9 +88,10 @@ void _lucContour_Draw( void* drawingObject, lucDatabase* database, void* _contex
    lucContour*            self            = (lucContour*)drawingObject;
    Dimension_Index        dim             = Mesh_GetDimSize( self->mesh );
 
-   if ( dim == 2 )
+   if (self->isSet || dim == 2 ) 
    {
-      _lucContourCrossSection_Draw(drawingObject, database, _context);
+      /* Just draw at given position if provided */
+      _lucContourCrossSection_Draw(self, database, _context);
    }
    else
    {
