@@ -169,7 +169,6 @@ def _spacetimeschema( elementMesh, time, filename ):
     Writes out the initial portion of an xmf file.
     The mesh is output as a <Grid> with the <Time> also recorded
     """
-
     dim=elementMesh.dim
     nGlobalNodes = elementMesh.nodesGlobal
     nGlobalEls = elementMesh.elementsGlobal
@@ -182,12 +181,27 @@ def _spacetimeschema( elementMesh, time, filename ):
         if elementMesh.dim == 2:
             topologyType = "Quadrilateral"
             nodesPerElement = 4
+            out += "\t<Topology Type=\"{0}\" NumberOfElements=\"{1}\">\n".format( topologyType,  nGlobalEls)
+            out += "\t\t<DataItem ItemType=\"Function\" Dimensions=\"{0} {1}\" Function=\"JOIN($0, $1, $3, $2)\">\n".format(nGlobalEls, nodesPerElement)
         else:
             nodesPerElement = 8
             topologyType = "Hexahedron"
+            out += "\t<Topology Type=\"{0}\" NumberOfElements=\"{1}\">\n".format( topologyType,  nGlobalEls)
+            out += "\t\t<DataItem ItemType=\"Function\" Dimensions=\"{0} {1}\" Function=\"JOIN($0, $1, $3, $2, $4, $5, $7, $6)\">\n".format(nGlobalEls, nodesPerElement)
+
+        """
+        for n_i in xrange(nodesPerElement):
+            out += "\t\t<DataItem ItemType=\"HyperSlab\" Dimensions=\"{0} 1\" Name=\"C{1}\">\n".format( nGlobalEls, n_i )
+            out += "\t\t\t\t<DataItem Dimensions=\"3 2\" Format=\"XML\"> 0 {0} 1 1 {1} 1 </DataItem>\n".format( n_i, nGlobalEls )
+            out += "\t\t\t\t<DataItem Format=\"HDF\" NumberType=\"Int\" Dimensions=\"{0} 1\">{1}:/en_map</DataItem>\n".format( nGlobalEls, filename )
+            out += "\t\t</DataItem>\n"
+
+        out += "\t\t</DataItem>\n"
+
 
         out += "\t<Topology Type=\"{0}\" NumberOfElements=\"{1}\">\n".format( topologyType,  nGlobalEls)
         out += "\t\t<DataItem Format=\"HDF\" DataType=\"Int\" Dimensions=\"{0} {1}\">{2}:/connectivity</DataItem>\n".format(nGlobalEls, nodesPerElement, filename)
+        """
 
     elif elementMesh.elementType=='Q2':
         # for quadratic meshes
@@ -203,20 +217,19 @@ def _spacetimeschema( elementMesh, time, filename ):
             out += ( "\t\t<DataItem ItemType=\"Function\"  Dimensions=\"{0} {1}\" Function=\"JOIN( $0,  $9,  $2, $12, $22, $10,  $4, $11,  $3, "+
                        "$13, $26, $14, $24, $21, $25, $16, $27, $15, $5, $17,  $6, $20, $23, $18,  $8, $19,  $7)\">\n".format( nGlobalEls, nodesPerElement ) )
 
-        for n_i in xrange(nodesPerElement):
-            out += "\t\t<DataItem ItemType=\"HyperSlab\" Dimensions=\"{0} 1\" Name=\"C{1}\">\n".format( nGlobalEls, n_i )
-            out += "\t\t\t\t<DataItem Dimensions=\"3 2\" Format=\"XML\"> 0 {0} 1 1 {1} 1 </DataItem>\n".format( n_i, nGlobalEls )
-            out += "\t\t\t\t<DataItem Format=\"HDF\" NumberType=\"Int\" Dimensions=\"{0} 1\">{1}:/connectivity</DataItem>\n".format( nGlobalEls, filename )
-            out += "\t\t</DataItem>\n"
-
-        out += "\t\t</DataItem>\n"
-
     else:
         raise RuntimeError("XDMF code doesn't support mesh with 'elementType' {0}".format(elementMesh.elementType))
-        
+
+
+    for n_i in xrange(nodesPerElement):
+        out += "\t\t<DataItem ItemType=\"HyperSlab\" Dimensions=\"{0} 1\" Name=\"C{1}\">\n".format( nGlobalEls, n_i )
+        out += "\t\t\t\t<DataItem Dimensions=\"3 2\" Format=\"XML\"> 0 {0} 1 1 {1} 1 </DataItem>\n".format( n_i, nGlobalEls )
+        out += "\t\t\t\t<DataItem Format=\"HDF\" NumberType=\"Int\" Dimensions=\"{0} 1\">{1}:/en_map</DataItem>\n".format( nGlobalEls, filename )
+        out += "\t\t</DataItem>\n"
+
+    out += "\t\t</DataItem>\n"
 
     variableType = "NumberType=\"Float\" Precision=\"8\""
-
     out += "\t</Topology>\n"
     out += "\t<Geometry Type=\"XYZ\">\n"
     if dim == 2:
@@ -528,7 +541,8 @@ class LogBook(object):
             fieldFN = outputDir+"/{}.".format(k)+uniId+".h5"
             reffieldFN = os.path.basename(fieldFN)
 
-            feVar.save(fieldFN)
+            feVar.save(fieldFN, refmeshFN)
+            #feVar.save(fieldFN)
             string += _fieldschema( (k,feVar), reffieldFN, mesh )
         
         # write the footer to the xmf    

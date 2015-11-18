@@ -336,7 +336,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         iset.addAll()
         return iset._get_iterator()
 
-    def h5save( self, filename ):
+    def save( self, filename ):
         """
         Saves the mesh in hdf5 format to 'filename'. Note, this is a
         global method, ie. all processes must call it.
@@ -374,7 +374,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         # write the element node connectivity
         self.data_enMap
         globalShape = ( self.elementsGlobal, self.data_enMap.shape[1] )
-        dset = h5f.create_dataset("en map", 
+        dset = h5f.create_dataset("en_map", 
                                   shape=globalShape,
                                   dtype='int64')
 
@@ -387,7 +387,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
 
         h5f.close()
 
-    def save( self, filename ):
+    def _oldsave( self, filename ):
         """
         Saves the mesh in hdf5 format to 'filename'. Note, this is a
         global method, ie. all processes must call it.

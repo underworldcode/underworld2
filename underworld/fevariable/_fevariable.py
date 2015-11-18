@@ -10,6 +10,8 @@ import underworld._stgermain as _stgermain
 import underworld as uw
 import libUnderworld.libUnderworldPy.Function as _cfn
 import libUnderworld
+import h5py
+import numpy as np
 
 class FeVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgermain.Save,_stgermain.Load):
     """
@@ -173,7 +175,50 @@ class FeVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgermain
 
         return _gradient(self)
 
-    def save(self, filename):
+    def save( self, filename, meshfilename=None ):
+        """
+        Global method to save the fevariable to disk
+
+        Parameters
+        ----------
+        filename : string
+            the name of the output hdf5 file
+        meshfilename : string (optional)
+            the name of a mesh hdf5 file which will be associated with this 
+            fevariable hdf5
+
+
+        Saves the fevariable to the 'filename' in hdf5 format. If a 'meshfilename' is
+        provided an 'ExternalLink' (hdf5 file association) is setup to that mesh so 
+        the field values can access the mesh geometry & topology. Note that this is a
+        global method, ie. all processes must call it.
+
+        """
+        if not isinstance(filename, str):
+            raise TypeError("Expected 'filename' to be provided as a string")
+        if not isinstance(meshfilename, str) and meshfilename:
+            raise TypeError("Expected 'meshfilename' to be provided as a string")
+
+        from mpi4py import MPI
+        mesh = self.feMesh
+        h5f = h5py.File(name=filename, mode="w", driver='mpio', comm=MPI.COMM_WORLD)
+        
+        # ugly global shape def
+        globalShape = ( mesh.nodesGlobal, self.data.shape[1] )
+        dset = h5f.create_dataset("data", 
+                                  shape=globalShape,
+                                  dtype='f')
+
+        local = len(mesh.data_nodegId)
+        # write to the dset using the global node ids
+        dset[mesh.data_nodegId[0:local],:] = self.data[0:local]
+
+        if meshfilename:
+            h5f["mesh"] = h5py.ExternalLink(meshfilename, "./")
+
+        h5f.close()
+
+    def _oldsave(self, filename):
         """
         Save the fevariable to the provided filename. Note that this is a
         global method, ie. all processes must call it.
@@ -184,7 +229,7 @@ class FeVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgermain
             raise TypeError("Expected filename to be provided as a string")
         libUnderworld.StgFEM.FeVariable_SaveToFile( self._cself, filename )
 
-    def loadinterpolate(self, filename, meshfilename):
+    def h5load(self, filename, meshfilename):
         """
         Loads an entire fevariable onto each processor. This doesn't assume
         the fevariable we are loading has the exact discretisation of the self
@@ -194,9 +239,35 @@ class FeVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgermain
             raise TypeError("Expected filename to be provided as a string")
         if not isinstance(meshfilename, str):
             raise TypeError("Expected meshfilename to be provided as a string")
-        uw.libUnderworld.StgFEM.FeVariable_InterpolateFromFile(self._cself, filename, meshfilename)
 
-    def load(self, filename, meshfilename ):
+        # build domain->global map - VERY SLOW 
+        gid = np.zeros( len(self.data), dtype=np.int)
+        for ii, val in enumerate(self.data):
+            uw.libUnderworld.StgDomain.Mesh_GlobalToDomain(self.feMesh._cself, 0, gid[ii])
+
+        h5f = h5py.File(name=filename, mode="r")
+        
+        meshh5 = h5f['mesh']
+        res = meshh5.attrs['mesh resolution']
+        if not all(rField.feMesh.elementRes==res):
+            RuntimeError("")
+
+
+        # define the global shape
+        globalShape = ( self.feMesh.nodesGlobal, self.data.shape[1] )
+        dset = h5f.create_dataset("values", 
+                                  shape=globalShape,
+                                  dtype='f')
+        # write to the dset
+        for ii, vals in enumerate(self.data):
+            dset[ii] = vals
+
+        if meshfilename:
+            h5f["mesh"] = h5py.SoftLink(meshfilename)
+
+        h5f.close()
+
+    def load(self, filename, meshfilename=None ):
         """
         Load the fevariable from the provided filename. Note that this is a
         global method, ie. all processes must call it.
@@ -211,12 +282,55 @@ class FeVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgermain
         """
         if not isinstance(filename, str):
             raise TypeError("Expected filename to be provided as a string")
-        if meshfilename: 
+
+        # get field and mesh information 
+        inputF = h5py.File( filename, "r" );
+        if inputF.get('data') == None:
+            raise RuntimeError("Can't find the 'data' in hdf5 file '{0}'".format(filename) )
+
+        dof = inputF['data'].shape[1]
+        if dof != self.data.shape[1]:
+            raise RuntimeError("Can't load hdf5 '{0}', incompatible data shape".format(filename))
+
+        if inputF.get('mesh') == None:
+            raise RuntimeError("The hdf5 field to be loaded must have an associated "+
+                    "'mesh' hdf5 file, was it created correctly?")
+        res = tuple(inputF['mesh'].attrs.get('mesh resolution'))
+        if res == None:
+            raise RuntimeError("Can't read the 'mesh resolution' for the field hdf5 file,"+
+                   " was it created correctly?")
+
+        """
+        # DON'T WORRY ABOUT THIS SPECIAL CASE FOR NOW
+        if (res == self.feMesh.elementRes):
+            dset = inputF['data']
+            if dset.shape == self.data.shape:
+                raise RuntimeError("The data in file '{0}' is not the same shape as the given field\n".format(filename) +
+                        "data shape {0} | field.data shape {1}".format{dset.shape, self.data.shape})
+        """
+
+        # build the NON-PARALLEL field and mesh
+        inputMesh = uw.mesh.FeMesh_Cartesian( elementType = ("Q1/dQ0"), 
+                                      elementRes  = tuple(res), 
+                                      minCoord    = (0., 0.), 
+                                      maxCoord    = (1., 1.), 
+                                      partitioned=False)
+        inputField = uw.fevariable.FeVariable( feMesh=inputMesh, nodeDofCount=dof )
+        
+        # load hdf5 field onto 'inputField'
+        libUnderworld.StgFEM.FeVariable_ReadFromFile( inputField._cself, filename )
+
+        # interpolate 'inputField' onto the self nodes
+        self.data[:] = inputField.evaluate(self.feMesh)
+
+        """
+        if meshfilename != None: 
             if not isinstance(meshfilename, str): 
                 raise TypeError("Expected meshfilename to be provided as a string")
             uw.libUnderworld.StgFEM.FeVariable_InterpolateFromFile(self._cself, filename, meshfilename)
         else:
             libUnderworld.StgFEM.FeVariable_ReadFromFile( self._cself, filename )
+        """
 
     def copy(self, deepcopy=False):
         """
