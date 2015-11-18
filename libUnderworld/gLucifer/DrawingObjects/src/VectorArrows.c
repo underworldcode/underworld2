@@ -88,7 +88,7 @@ void _lucVectorArrows_AssignFromXML( void* drawingObject, Stg_ComponentFactory* 
    IJK resolution;
 
    /* Construct Parent */
-   self->defaultResolution = 8;
+   self->defaultResolution = Stg_ComponentFactory_GetUnsignedInt( cf, self->name, (Dictionary_Entry_Key)"resolution", 8);
    _lucVectorArrowCrossSection_AssignFromXML( self, cf, data );
 
    resolution[ I_AXIS ] = Stg_ComponentFactory_GetUnsignedInt( cf, self->name, (Dictionary_Entry_Key)"resolutionX", self->defaultResolution  );

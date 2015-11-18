@@ -129,7 +129,7 @@ void _lucScalarFieldOnMesh_Draw( void* drawingObject, lucDatabase* database, voi
    if (self->isSet) 
    {
       /* Just draw at given position if provided */
-      lucScalarFieldOnMeshCrossSection_DrawCrossSection(self, database, False);
+      lucScalarFieldOnMeshCrossSection_DrawCrossSection(self, database, True);
    }
    else if (self->dim == 2)
    {

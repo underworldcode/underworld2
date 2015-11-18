@@ -225,6 +225,7 @@ def _fieldschema((field_name, field), filename, elementMesh ):
     dof_count = field.data.shape[1]
     variableType = "NumberType=\"Float\" Precision=\"8\""
     nodesGlobal = field.feMesh.nodesGlobal
+    offset = 0 #OK: Temporary to get 3D running
 
     # get the location of the field nodes on the mesh
     if( nodesGlobal == elementMesh.nodesGlobal ):

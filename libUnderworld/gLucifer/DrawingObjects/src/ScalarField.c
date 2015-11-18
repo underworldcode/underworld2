@@ -115,7 +115,7 @@ void _lucScalarField_Draw( void* drawingObject, lucDatabase* database, void* dat
    if (self->isSet) 
    {
       /* Just draw at given position if provided */
-      lucScalarFieldCrossSection_DrawCrossSection(self, database, False);
+      lucScalarFieldCrossSection_DrawCrossSection(self, database, True);
    }
    else if (self->dim == 2)
    {
