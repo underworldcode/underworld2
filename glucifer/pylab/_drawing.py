@@ -1,7 +1,6 @@
 #TODO: Drawing Objects to implement
-# MeshSurface
 # IsoSurface, IsoSurfaceCrossSection
-# FieldSampler/MeshSampler (volumes)
+# MeshSurface/MeshSampler (surface/volumes using MeshCrossSection sampler)
 # Contour, ContourCrossSection
 # HistoricalSwarmTrajectory
 # VectorArrowMeshCrossSection?
@@ -25,7 +24,7 @@ class Drawing(_stgermain.StgCompoundComponent):
                      "_cm": "lucColourMap",
                      "_cb": "lucColourBar" }
     
-    def __init__(self, colours="Purple Blue Turquoise Bisque Orange Red Brown".split(), opacity=-1, logScale=False, colourBar=True, **kwargs):
+    def __init__(self, colours="Purple Blue Turquoise Bisque Orange Red Brown".split(), properties=None, opacity=-1, logScale=False, colourBar=True, **kwargs):
     
         if not isinstance(colours,(str,list)):
             raise TypeError("'colours' object passed in must be of python type 'str' or 'list'")
@@ -33,6 +32,12 @@ class Drawing(_stgermain.StgCompoundComponent):
             self._colours = colours.split()
         else:
             self._colours = colours
+
+        if not properties:
+            properties = {}
+        if not isinstance(properties,dict):
+            raise TypeError("'properties' object passed in must be of python type 'dict'")
+        self._properties = properties
 
         if kwargs.has_key('valueRange'):
             valueRange = kwargs.get('valueRange')
@@ -84,12 +89,26 @@ class Drawing(_stgermain.StgCompoundComponent):
             "dynamicRange"  :self._dynamicRange
         } )
         # add an empty(ish) drawing object.  children should fill it out.
+        #Convert properties to string
+        propstr = ''
+        for key in self._properties:
+            propstr += key + '=' + str(self._properties[key]) + '\n'
+
         componentDictionary[self._dr.name].update( {
+            "properties"    :propstr,
             "ColourMap"     :self._cm.name,
             "opacity"       :self.opacity
         } )
+
+        #Set default properties for now, TODO: allow setting ColourBar props, needs to be in own class for this
+        cbprops = ["colourbar=1", "height=10", "lengthfactor=0.8", 
+                   "margin=16", "border=1", 
+                   "precision=2", "scientific=false", 
+                   "ticks=0", "printticks=true", "printunits=false", "scalevalue=1.0"] #tick0-tick10=val
+
         componentDictionary[self._cb.name].update( {
-            "ColourMap"     :self._cm.name
+            "ColourMap"     :self._cm.name,
+            "properties"    :'\n'.join(cbprops),
         } )
 
 
@@ -187,6 +206,11 @@ class Surface(CrossSection):
         # build parent
         super(Surface,self).__init__(**kwargs)
 
+        # Enable cullface prop by default
+        self._properties["cullface"] = True;
+        # TODO: disable lighting if 2D (how to get dims?)
+        #self._properties["lit"] = False;
+
     def _add_to_stg_dict(self,componentDictionary):
         # lets build up component dictionary
         # append random string to provided name to ensure unique component names
@@ -207,7 +231,7 @@ class Points(Drawing):
     """
     _objectsDict = { "_dr": "lucSwarmViewer" }
 
-    def __init__(self, swarm, colourVariable=None, sizeVariable=None, opacityVariable=None, pointSize=1.0, **kwargs):
+    def __init__(self, swarm, colourVariable=None, sizeVariable=None, opacityVariable=None, pointSize=1.0, pointType=None, **kwargs):
         if not isinstance(swarm,swarmMod.Swarm):
             raise TypeError("'swarm' object passed in must be of type 'Swarm'")
         self._swarm = swarm
@@ -232,11 +256,18 @@ class Points(Drawing):
         self._opacityVariable = opacityVariable
 
         if not isinstance(pointSize,(float,int)):
-            raise TypeError("'pointSize' object passed in must be of python type 'float'")
-        self._pointSize = pointSize
+            raise TypeError("'pointSize' object passed in must be of python type 'float' or 'int'")
+
+        if not isinstance(pointType,(int)):
+            raise TypeError("'pointType' object passed in must be of python type 'int'")
 
         # build parent
         super(Points,self).__init__(**kwargs)
+
+        #Set properties dict
+        self._properties["pointsize"] = pointSize
+        if pointType != None:
+            self._properties["pointtype"] = pointType
 
     def _add_to_stg_dict(self,componentDictionary):
         # lets build up component dictionary
@@ -244,7 +275,6 @@ class Points(Drawing):
         super(Points,self)._add_to_stg_dict(componentDictionary)
 
         componentDictionary[ self._cself.name ][ "Swarm" ] = self.swarm._cself.name
-        componentDictionary[ self._cself.name ][ "pointSize" ] = self.pointSize
         
     def _setup(self):
         if self.colourVariable:
@@ -254,8 +284,6 @@ class Points(Drawing):
         if self.opacityVariable:
             self._cself.opacityVariable = self.opacityVariable._cself
     
-
-
     @property
     def swarm(self):
         """    swarm (str): name of live underworld swarm for which points will be rendered.
@@ -281,7 +309,14 @@ class Points(Drawing):
     def pointSize(self):
         """    pointSize (float): size of points
         """
-        return self._pointSize
+        return self._properties["pointsize"]
+        self._properties["pointType"]
+
+    @property
+    def pointType(self):
+        """    pointType (int): points type [0-4]
+        """
+        return self._properties["pointType"]
 
 class GridSampler3D(CrossSection):
     """  This drawing object class samples a regular grid in 3D.
@@ -310,8 +345,6 @@ class GridSampler3D(CrossSection):
         # lets build up component dictionary
         
         # call parents method
-        print self._dr
-        print self._dr.name
         super(GridSampler3D,self)._add_to_stg_dict(componentDictionary)
 
         componentDictionary[self._dr.name].update( {
@@ -354,12 +387,13 @@ class VectorArrows(GridSampler3D):
             if not isinstance(glyphs,(int)):
                 raise TypeError("'glyphs' object passed in must be of python type 'int'")
 
-        self._arrowHeadSize = arrowHeadSize
-        self._lengthScale = lengthScale
-        self._glyphs = glyphs
-
         # build parent
         super(VectorArrows,self).__init__(**kwargs)
+
+        #Set properties dict
+        self._properties["arrowhead"] = arrowHeadSize
+        self._properties["scaling"] = lengthScale
+        self._properties["glyphs"] = glyphs
 
     def _add_to_stg_dict(self,componentDictionary):
         # lets build up component dictionary
@@ -367,27 +401,23 @@ class VectorArrows(GridSampler3D):
         # call parents method
         super(VectorArrows,self)._add_to_stg_dict(componentDictionary)
 
-        componentDictionary[self._dr.name].update( {
-          "arrowHeadSize": self.arrowHeadSize,
-            "lengthScale": self.lengthScale,
-                 "glyphs": self.glyphs
-            } )
+        componentDictionary[self._dr.name].update( {} )
 
     @property
     def arrowHeadSize(self):
         """    arrowHeadSize (float): The size of the head of the arrow compared with the arrow length. Must be between [0, 1].   Default is 0.3.
         """
-        return self._arrowHeadSize
+        return self._properties["arrowhead"]
     @property
     def lengthScale(self):
         """    lengthScale (float): A factor to scale the size of the arrows by.  Default is 0.3.
         """
-        return self._lengthScale
+        return self._properties["scaling"]
     @property
     def glyphs(self):
-        """    glyphs (int): Type of glyph to render for vector arrow.
+        """    glyphs (int): Type of glyph to render for vector arrow. (0: Line, 1 or more: 3d arrow, higher number => better quality)
         """
-        return self._glyphs
+        return self._properties["glyphs"]
 
 class Volume(GridSampler3D):
     """  This drawing object class draws a volume using the provided scalar field.
@@ -432,6 +462,13 @@ class Mesh(Drawing):
         #No colour bar
         self._colourBar = False
 
+        #Set properties dict
+        self._properties["lit"] = False;
+        self._properties["linewidth"] = 0.1;
+        self._properties["pointsize"] = 5 if self._nodeNumbers else 1
+        self._properties["pointtype"] = 2 if self._nodeNumbers else 4
+
+
     def _add_to_stg_dict(self,componentDictionary):
         # lets build up component dictionary
         # append random string to provided name to ensure unique component names
@@ -442,3 +479,4 @@ class Mesh(Drawing):
         componentDictionary[self._dr.name][       "Mesh"] = self._mesh._cself.name
         componentDictionary[self._dr.name]["nodeNumbers"] = self._nodeNumbers
         componentDictionary[self._dr.name][   "segments"] = self._segmentsPerEdge
+

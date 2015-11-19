@@ -386,14 +386,14 @@ class Figure(_stgermain.StgCompoundComponent):
         self.drawingObjects.append(guy)
         return guy
 
-    def Points(self, swarm, colourVariable=None, sizeVariable=None, opacityVariable=None, pointSize=1.0, **kwargs):
+    def Points(self, swarm, colourVariable=None, sizeVariable=None, opacityVariable=None, pointSize=1.0, pointType=1, **kwargs):
         """    Add a points drawing object to the current figure.
                See 'help(Points)' for information on the Points class and it's options.
                
                Returns the generated Points object.
         """
         guy = _drawing.Points( swarm=swarm, colourVariable=colourVariable, sizeVariable=sizeVariable,
-                                            opacityVariable=opacityVariable, pointSize=pointSize, **kwargs)
+                                            opacityVariable=opacityVariable, pointSize=pointSize, pointType=pointType, **kwargs)
         self.drawingObjects.append(guy)
         return guy
 
