@@ -111,14 +111,6 @@ void _lucMeshViewer_AssignFromXML( void* drawingObject, Stg_ComponentFactory* cf
 
    self->colourVariable = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"ColourField", FieldVariable, False, data  );
    self->sizeVariable = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"SizeField", FieldVariable, False, data  );
-
-   self->pointSmooth = Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"pointSmoothing", True );
-   self->pointSize = Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"pointSize", self->displayNodes ? 5.0 : 1.0 );
-   /* Append to property string */
-   lucDrawingObject_AppendProps(self, "pointsmooth=%d\npointsize=%g\n", self->pointSmooth, self->pointSize);
-
-   /* Drawing settings for this component */
-   self->lit = False;
 }
 
 void _lucMeshViewer_Build( void* drawingObject, void* data )

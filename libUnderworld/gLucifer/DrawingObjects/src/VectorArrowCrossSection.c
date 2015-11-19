@@ -37,23 +37,14 @@ lucVectorArrowCrossSection* _lucVectorArrowCrossSection_New(  LUCVECTORARROWCROS
 
 void _lucVectorArrowCrossSection_Init(
    lucVectorArrowCrossSection*      self,
-   double                           arrowHeadSize,
    double                           maximum,
-   Bool                             dynamicRange,
-   double                           lengthScale,
-   int                              glyphs)
+   Bool                             dynamicRange)
 {
-   self->arrowHead = arrowHeadSize;
    self->maximum = maximum;
    self->dynamicRange = dynamicRange;
-   self->scaling = lengthScale;
-   self->glyphs = glyphs;
 
    /* Get the sampler to move away from boundaries */
    self->offsetEdges = True;
-
-   /* Append to property string */
-   lucDrawingObject_AppendProps(self, "glyphs=%d\nscaling=%g\narrowhead=%g\n", glyphs, lengthScale, arrowHeadSize); 
 }
 
 void _lucVectorArrowCrossSection_Delete( void* drawingObject )
@@ -104,11 +95,8 @@ void _lucVectorArrowCrossSection_AssignFromXML( void* drawingObject, Stg_Compone
 
    _lucVectorArrowCrossSection_Init(
       self,
-      Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"arrowHeadSize", 0.3  ),
       Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"maximum", 1.0  ),
-      Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"dynamicRange", True  ),
-      Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"lengthScale", 0.3  ),
-      Stg_ComponentFactory_GetUnsignedInt( cf, self->name, (Dictionary_Entry_Key)"glyphs", 3));
+      Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"dynamicRange", True  ));
 }
 
 void _lucVectorArrowCrossSection_Build( void* drawingObject, void* data )

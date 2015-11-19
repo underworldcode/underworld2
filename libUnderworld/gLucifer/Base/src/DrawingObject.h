@@ -36,13 +36,10 @@ typedef void (lucDrawingObject_CleanUpFunction)  ( void* object );
       Bool                                               depthSort;           \
       Coord                                              position;            \
       /* Drawing settings */ \
-      Bool                                               lit;                 \
       Bool                                               disabled;            \
       lucColourMap*                                      colourMap;           \
       lucColour                                          colour;              \
       float                                              opacity;             \
-      Bool                                               wireframe;           \
-      int                                                lineWidth;           \
       int                                                id;                  \
       char*                                              properties;          \
       MPI_Comm                                           comm;                \

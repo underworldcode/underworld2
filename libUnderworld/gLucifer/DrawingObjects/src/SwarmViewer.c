@@ -53,9 +53,7 @@ void _lucSwarmViewer_Init(
    int                                                          subSample,
    Bool                                                         positionRange,
    Coord                                                        minPosition,
-   Coord                                                        maxPosition,
-   float                      pointSize,
-   Bool                       pointSmoothing )
+   Coord                                                        maxPosition)
 {
    self->swarm               = swarm;
    self->colourVariableName  = colourVariableName;
@@ -66,8 +64,6 @@ void _lucSwarmViewer_Init(
    self->sameParticleColour  = particleColour;
    self->subSample           = subSample;
    self->positionRange       = positionRange;
-   self->scaling              = pointSize;
-   self->pointSmoothing       = pointSmoothing;
 
    /* Create a default colour component mapping, full range black->white */
    self->opacityColourMap = opacityColourMap ? opacityColourMap : LUC_DEFAULT_ALPHAMAP;
@@ -77,9 +73,6 @@ void _lucSwarmViewer_Init(
    memcpy( &self->maxPosition, maxPosition , sizeof( Coord ) );
 
    self->geomType = lucPointType;   /* Draws points by default */
-
-   /* Append to property string */
-   lucDrawingObject_AppendProps(self, "pointsmooth=%d\npointsize=%g\n", pointSmoothing, pointSize);
 }
 
 void _lucSwarmViewer_Delete( void* drawingObject )
@@ -194,9 +187,7 @@ void _lucSwarmViewer_AssignFromXML( void* drawingObject, Stg_ComponentFactory* c
       subSample,
       positionRange,
       minPosition,
-      maxPosition,
-      (float) Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"pointSize", 1.0  ),
-      (Bool ) Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"pointSmoothing", True ));
+      maxPosition);
 }
 
 void _lucSwarmViewer_Build( void* drawingObject, void* data )
@@ -486,7 +477,7 @@ void _lucSwarmViewer_SetParticleColour( void* drawingObject, lucDatabase* databa
 void _lucSwarmViewer_PlotParticle( void* drawingObject, lucDatabase* database, Particle_Index lParticle_I )
 {
    lucSwarmViewer*          self          = (lucSwarmViewer*)drawingObject;
-   float size = self->pointSize;
+   float size = 1.0; //= self->pointSize;
    if (self->sizeVariable)
    {
       size = lucSwarmViewer_GetScalar(self->sizeVariable, lParticle_I, size);

@@ -11,8 +11,6 @@
 #ifndef __lucDrawingObjects_types_h__
 #define __lucDrawingObjects_types_h__
 
-typedef struct lucCapture                        lucCapture;
-typedef struct lucFieldVariableBorder            lucFieldVariableBorder;
 typedef struct lucFieldSampler                   lucFieldSampler;
 typedef struct lucMeshSampler                    lucMeshSampler;
 typedef struct lucCrossSection                   lucCrossSection;
@@ -37,10 +35,6 @@ typedef struct lucSwarmShapes                    lucSwarmShapes;
 typedef struct lucHistoricalSwarmTrajectory      lucHistoricalSwarmTrajectory;
 typedef struct lucSwarmRGBColourViewer           lucSwarmRGBColourViewer;
 typedef struct lucMeshViewer                     lucMeshViewer;
-typedef struct lucPlot                           lucPlot;
-typedef struct lucTitle                          lucTitle;
-typedef struct lucAxis                           lucAxis;
-typedef struct lucTimeStep                       lucTimeStep;
 typedef struct lucScalarFieldOnMeshCrossSection  lucScalarFieldOnMeshCrossSection;
 typedef struct lucScalarFieldOnMesh              lucScalarFieldOnMesh;
 typedef struct lucVectorArrowMeshCrossSection    lucVectorArrowMeshCrossSection;

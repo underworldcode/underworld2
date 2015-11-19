@@ -21,6 +21,7 @@ extern "C" {
 #include "IsosurfaceCrossSection.h"
 #include "VectorArrowCrossSection.h"
 #include "VectorArrowMeshCrossSection.h"
+#include "FieldSampler.h"
 }
 /* Textual name of this class - This is a global pointer which is used for times when you need to refer to class and not a particular instance of a class */
 const Type lucCrossSection_Type = "lucCrossSection";
@@ -47,6 +48,7 @@ void _lucCrossSection_SetFn( void* _self, Fn::Function* fn ){
 
     if( ( Stg_Class_IsInstance( self, lucScalarFieldCrossSection_Type )       ||
           Stg_Class_IsInstance( self, lucScalarFieldOnMeshCrossSection_Type ) ||
+          Stg_Class_IsInstance( self, lucFieldSampler_Type ) ||
           Stg_Class_IsInstance( self, lucIsosurfaceCrossSection_Type )          )
         && self->fieldComponentCount != 1 )
     {
@@ -102,8 +104,6 @@ void _lucCrossSection_Init(
    self->offsetEdges = False; /* Pushes min/max edges by half of sample size to avoid sampling boundaries */
    self->values = NULL;
    self->vertices = NULL;
-   /* Set cull face to off - default */
-   self->cullface = False;
 }
 
 void _lucCrossSection_Delete( void* drawingObject )
@@ -254,9 +254,6 @@ void _lucCrossSection_AssignFromXML( void* drawingObject, Stg_ComponentFactory* 
 void _lucCrossSection_Build( void* drawingObject, void* data )
 {
    lucCrossSection* self    = (lucCrossSection*)drawingObject;
-
-   /* Append cullface setting to property string */
-   lucDrawingObject_AppendProps((lucDrawingObject*)self, "cullface=%d\n", self->cullface);
 
    Stg_Component_Build( self->mesh, data, False );
 }

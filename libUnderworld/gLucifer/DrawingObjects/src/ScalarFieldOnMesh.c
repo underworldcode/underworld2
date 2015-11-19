@@ -51,12 +51,6 @@ void _lucScalarFieldOnMesh_Init(lucScalarFieldOnMesh* self, char* drawSides)
    if (!strchr(drawSides, 'Y')) self->drawSides[J_AXIS][1] = False;
    if (!strchr(drawSides, 'z')) self->drawSides[K_AXIS][0] = False;
    if (!strchr(drawSides, 'Z')) self->drawSides[K_AXIS][1] = False;
-
-   /* Set cull face to on */
-   if (self->dim == 2)
-      self->cullface = False;
-   else
-      self->cullface = True;
 }
 
 
@@ -114,9 +108,6 @@ void _lucScalarFieldOnMesh_Build( void* drawingObject, void* data )
 
    /* Build parent */
    _lucScalarFieldOnMeshCrossSection_Build(self, data);
-
-   /* Drawing object default overrides */
-   if (self->dim == 2) self->lit = False;
 }
 
 void _lucScalarFieldOnMesh_Draw( void* drawingObject, lucDatabase* database, void* _context )

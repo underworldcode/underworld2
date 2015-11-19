@@ -13,9 +13,7 @@
 
 #include "types.h"
 #include <gLucifer/Base/DrawingObject.h>
-#include "Capture.h"
 #include "ColourBar.h"
-#include "FieldVariableBorder.h"
 #include "FieldSampler.h"
 #include "MeshSampler.h"
 #include "Isosurface.h"
@@ -40,10 +38,6 @@
 #include "HistoricalSwarmTrajectory.h"
 #include "SwarmRGBColourViewer.h"
 #include "MeshViewer.h"
-#include "Plot.h"
-#include "Title.h"
-#include "Axis.h"
-#include "TimeStep.h"
 #include "ScalarFieldOnMeshCrossSection.h"
 #include "ScalarFieldOnMesh.h"
 

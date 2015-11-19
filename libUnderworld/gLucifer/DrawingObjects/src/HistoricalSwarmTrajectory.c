@@ -133,7 +133,8 @@ void _lucHistoricalSwarmTrajectory_AssignFromXML( void* drawingObject, Stg_Compo
       historyTime );
 
    /* Disable lighting when flat option specified */
-   self->lit = self->flat;
+   //TODO: Set via python properties
+   //self->lit = self->flat;
 }
 
 void _lucHistoricalSwarmTrajectory_Build( void* drawingObject, void* data ) {}

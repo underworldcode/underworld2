@@ -38,32 +38,10 @@ lucColourBar* _lucColourBar_New(  LUCCOLOURBAR_DEFARGS  )
    return self;
 }
 
-void _lucColourBar_Init(
-   lucColourBar*                                                self,
-   double                                                       lengthFactor,
-   Pixel_Index                                                  height,
-   Pixel_Index                                                  margin,
-   int                                                          borderWidth,
-   int                                                          precision,
-   Bool                                                         scientific,
-   int                                                          ticks,
-   Bool                                                         printTickValue,
-   Bool                                                         printUnits,
-   double                                                       scaleValue,
-   double                                                       tickValues[] )
+void _lucColourBar_Init(lucColourBar* self)
 {
+#if 0
    int i;
-   self->lengthFactor = lengthFactor;
-   self->height = height;
-   self->margin = margin;
-   self->borderWidth = borderWidth;
-   self->precision = precision;
-   self->scientific = scientific;
-   self->ticks = ticks;
-   self->printTickValue = printTickValue;
-   self->printUnits = printUnits;
-   self->scaleValue = scaleValue;
-
    /* Append to property string */
    lucDrawingObject_AppendProps(self, "colourbar=1\nheight=%d\nlengthfactor=%g\nmargin=%d\nborder=%d\nprecision=%d\nscientific=%d\nticks=%d\nprintticks=%d\nprintunits=%d\nscalevalue=%g\n", height, lengthFactor, margin, borderWidth, precision, scientific, ticks, printTickValue, printUnits, scaleValue);
 
@@ -73,6 +51,7 @@ void _lucColourBar_Init(
       if (tickValues[i] != DBL_MIN)
          lucDrawingObject_AppendProps(self, "tick%d=%g\n", i, tickValues[i]);
    }
+#endif
 }
 
 void _lucColourBar_Delete( void* drawingObject )
@@ -130,9 +109,6 @@ void* _lucColourBar_DefaultNew( Name name )
 void _lucColourBar_AssignFromXML( void* drawingObject, Stg_ComponentFactory* cf, void* data )
 {
    lucColourBar*   self = (lucColourBar*)drawingObject;
-   unsigned int    i, defaultTicks, ticks;
-   double          tickValues[11];
-   char            tickLabel[10];
 
    /* Construct Parent */
    _lucDrawingObject_AssignFromXML( self, cf, data );
@@ -141,7 +117,12 @@ void _lucColourBar_AssignFromXML( void* drawingObject, Stg_ComponentFactory* cf,
       "In func %s, unable to draw colourBar %s because no colourMap provided.\n",
       __func__, self->name);
 
+#if 0
+   unsigned int    i, defaultTicks, ticks;
+   double          tickValues[11];
+   char            tickLabel[10];
    /* Default to 0 tick marks for linear, 1 for fixed centre, 2 for logarithmic scale */
+   TODO: Move this to python interface
    defaultTicks = 0;
    if (self->colourMap->centreOnFixedValue) defaultTicks = 1;
    if (self->colourMap->logScale) defaultTicks = 2;
@@ -171,6 +152,9 @@ void _lucColourBar_AssignFromXML( void* drawingObject, Stg_ComponentFactory* cf,
       Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"scaleValue", 1.0  ),
       tickValues
    );
+#endif
+
+   _lucColourBar_Init(self);
 
 }
 

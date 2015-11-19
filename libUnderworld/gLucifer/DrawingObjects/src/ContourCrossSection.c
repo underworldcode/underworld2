@@ -103,7 +103,8 @@ void _lucContourCrossSection_AssignFromXML( void* drawingObject, Stg_ComponentFa
       Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"interval", 0.33 )  ) ;
 
    /* Drawing settings for this component */
-   self->lit = False;
+   //TODO: Set via python properties
+   //self->lit = False;
 }
 
 void _lucContourCrossSection_Build( void* drawingObject, void* data ) 

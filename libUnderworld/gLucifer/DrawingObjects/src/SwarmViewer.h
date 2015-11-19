@@ -49,8 +49,6 @@ extern const Type lucSwarmViewer_Type;
       Coord                                              maxPosition;            \
       lucGeometryType                                    geomType;               \
       float                                              scaling;                \
-      float                                  pointSize; \
-      Bool                                   pointSmoothing;
 
 struct lucSwarmViewer
 {

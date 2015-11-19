@@ -53,13 +53,11 @@ lucDrawingObject* _lucDrawingObject_New(  LUCDRAWINGOBJECT_DEFARGS  )
 void _lucDrawingObject_Init( 
    lucDrawingObject*    self,
    AbstractContext*     context,
-   Bool                 lit,
+   char*                properties,
    Bool                 disabled,
-   int                  lineWidth,
    Name                 colourName,
    lucColourMap*        colourMap,
-   float                opacity,
-   Bool                 wireframe)
+   float                opacity)
 {
    self->isConstructed = True;
    self->context = context;
@@ -72,18 +70,16 @@ void _lucDrawingObject_Init(
 
    self->needsToCleanUp = False;
    self->needsToDraw = True;
-   self->lit = lit;                /* Lighting enabled, defaults to on */
    self->disabled = disabled || (context && !self->context->vis);      /* Drawing disabled, defaults to false */
-   self->lineWidth = lineWidth;
    lucColour_FromString( &self->colour, colourName );
    self->colourMap = colourMap;
    self->opacity = opacity;        /* Transparency override, -1 to disable */
-   self->wireframe = wireframe;
 
    /* Write property string */
    self->properties = Memory_Alloc_Array(char, 2048, "properties");
    memset(self->properties, 0, 2048);
-   lucDrawingObject_AppendProps(self, "wireframe=%d\nlinewidth=%d\nlit=%d\n", wireframe, lineWidth, lit);
+   strncat(self->properties, properties, 2047);
+   //lucDrawingObject_AppendProps(self, "wireframe=%d\nlinewidth=%d\nlit=%d\n", wireframe, lineWidth, lit);
 
    self->id = 0;
 }
@@ -144,13 +140,11 @@ void _lucDrawingObject_AssignFromXML( void* drawingObject, Stg_ComponentFactory*
    }
    
    _lucDrawingObject_Init( self, context,
-      Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"lit", True  ),
+      Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"properties", "lit=1\nwireframe=0\nlinewidth=1\n"  ),
       Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"disable", False  ),
-      Stg_ComponentFactory_GetUnsignedInt( cf, self->name, (Dictionary_Entry_Key)"lineWidth", 1),
       Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"colour", "black"  ),
       Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"ColourMap", lucColourMap, False, data),
-      (float)Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"opacity", -1.0),
-      Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"wireframe", False  ));
+      (float)Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"opacity", -1.0));
 }
 
 void _lucDrawingObject_Build( void* camera, void* data ) { }
@@ -242,8 +236,8 @@ void lucDrawingObject_AppendProps(lucDrawingObject* self, const char *fmt, ...)
    va_start(ap, fmt);
    vsnprintf(newprops, 1024, fmt, ap);
    va_end(ap);
-
-   strncat(self->properties, newprops, 2048);
+   fprintf(stderr, "NOTE! Drawing object properties not set, please move to python interface! (%s)\n", newprops);
+   //strncat(self->properties, newprops, 2048);
 }
 
 

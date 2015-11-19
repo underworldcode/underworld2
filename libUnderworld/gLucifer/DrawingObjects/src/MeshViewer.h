@@ -36,8 +36,6 @@ extern const Type lucMeshViewer_Type;
       Bool                            elementNumbers;   \
       Bool                            displayNodes;     \
       Bool                            displayEdges;     \
-      float                           pointSize;        \
-      Bool                            pointSmooth;      \
       unsigned                        segments;
  
 struct lucMeshViewer

@@ -19,8 +19,8 @@
 #include <gLucifer/Base/DrawingObject.h>
 #include "Isosurface.h"
 
-void lucIsosurface_SampleLocal( void* drawingObject, void* _context );
-void lucIsosurface_SampleGlobal( void* drawingObject, void* _context );
+void lucIsosurface_SampleLocal( void* drawingObject);
+void lucIsosurface_SampleGlobal( void* drawingObject);
 void VertexInterp(lucIsosurface* self, Vertex* point, Vertex* vertex1, Vertex* vertex2 );
 void CreateTriangle(lucIsosurface* self, Vertex* point1, Vertex* point2, Vertex* point3, Bool wall);
 
@@ -153,7 +153,6 @@ void _lucIsosurface_Build( void* drawingObject, void* data )
 
 void _lucIsosurface_Initialise( void* drawingObject, void* data ) {
    lucIsosurface*             self = (lucIsosurface*)drawingObject;
-   DomainContext*             context = (DomainContext*) self->context;
 
    if (self->resolution[ I_AXIS ] >= self->elementRes[I_AXIS]) self->resolution[ I_AXIS ] /= self->elementRes[I_AXIS];
    if (self->resolution[ J_AXIS ] >= self->elementRes[J_AXIS]) self->resolution[ J_AXIS ] /= self->elementRes[J_AXIS];
@@ -196,16 +195,15 @@ void _lucIsosurface_Setup( void* drawingObject, lucDatabase* database, void* _co
    if (min == max) return;
    
    if (self->sampleGlobal)
-      lucIsosurface_SampleGlobal(drawingObject, _context );
+      lucIsosurface_SampleGlobal(drawingObject);
    else
-      lucIsosurface_SampleLocal(drawingObject, _context );
+      lucIsosurface_SampleLocal(drawingObject);
 }
 
 /* New method: sample & surface each element in local coords, faster, handles deformed meshes */
-void lucIsosurface_SampleLocal( void* drawingObject, void* _context )
+void lucIsosurface_SampleLocal( void* drawingObject)
 {
    lucIsosurface*             self               = (lucIsosurface*)drawingObject;
-   DomainContext*             context = (DomainContext*) _context;
    FeVariable*                feVariable         = (FeVariable*) self->isosurfaceField;
    FeMesh*    		            mesh               = feVariable->feMesh;
    Element_LocalIndex         lElement_I;
@@ -250,10 +248,9 @@ void lucIsosurface_SampleLocal( void* drawingObject, void* _context )
 }
 
 /* Old method: sampling in global coords, slower, assumes regular grid */
-void lucIsosurface_SampleGlobal( void* drawingObject, void* _context )
+void lucIsosurface_SampleGlobal( void* drawingObject)
 {
    lucIsosurface*             self = (lucIsosurface*)drawingObject;
-   DomainContext*             context = (DomainContext*) _context;
    FieldVariable*             isosurfaceField = self->isosurfaceField;
    int                        i, j, k;
    double                     dx, dy, dz;
@@ -826,7 +823,6 @@ void CreateTriangle(lucIsosurface* self, Vertex* point1, Vertex* point2, Vertex*
 
 void lucIsosurface_DrawWalls( lucIsosurface* self, Vertex ***vertex )
 {
-   DomainContext* context = (DomainContext*) self->context;
    int i, j, k;
    Vertex ** points;
    Vertex * midVertices;

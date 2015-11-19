@@ -59,7 +59,7 @@ extern "C" {
 %include "DrawingObjects/ScalarField.h"
 %include "DrawingObjects/ScalarFieldOnMeshCrossSection.h"
 %include "DrawingObjects/ScalarFieldOnMesh.h"
-%include "DrawingObjects/Title.h"
+%include "DrawingObjects/FieldSampler.h"
 %include "DrawingObjects/types.h"
 %include "libgLucifer/Finalise.h"
 %include "libgLucifer/gLucifer.h"

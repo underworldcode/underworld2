@@ -93,7 +93,8 @@ void _lucMeshSampler_AssignFromXML( void* drawingObject, Stg_ComponentFactory* c
    _lucMeshSampler_Init(self);
 
    /* No lighting */
-   self->lit = False;
+   //TODO: Set via python properties
+   //self->lit = False;
 }
 
 void _lucMeshSampler_Build( void* drawingObject, void* data ) 

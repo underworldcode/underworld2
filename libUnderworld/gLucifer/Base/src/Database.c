@@ -574,36 +574,6 @@ void lucDatabase_OutputDrawingObject(lucDatabase* self, lucViewport* viewport, l
    /* Save the object */
    if (!object->id) /* Not already written */
    {
-      /* Check for types that aren't exportable, for back compatibility set new viewport props */
-      if (viewport)
-      {
-         char* type = object->type;
-         if (strcmp(type, "lucAxis") == 0)
-         {
-            lucAxis* axis = (lucAxis*)object;
-            viewport->axis = True;
-            viewport->axisLength = axis->length;
-            return;
-         }
-         if (strcmp(type, "lucFieldVariableBorder") == 0)
-         {
-            viewport->border = (int)object->lineWidth;
-            viewport->borderColour = object->colour;
-            return;
-         }
-         if (strcmp(type, "lucTimeStep") == 0)
-         {
-            viewport->timestep = True;
-            return;
-         }
-         if (strcmp(type, "lucTitle") == 0)
-         {
-            lucTitle* title = (lucTitle*)object;
-            viewport->title = title->titleString;
-            return;
-         }
-      }
-
       snprintf(SQL, 1024, "insert into object (name, colourmap_id, colour, opacity, properties) values ('%s', 0, %d, %g, '%s')", object->name, lucColour_ToInt(&object->colour), object->opacity, object->properties); 
       /*printf("%s\n", SQL);*/
       if (!lucDatabase_IssueSQL(self->db, SQL)) return;

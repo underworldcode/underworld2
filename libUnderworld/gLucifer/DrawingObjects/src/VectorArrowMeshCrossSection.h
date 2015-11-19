@@ -23,8 +23,6 @@ extern const Type lucVectorArrowMeshCrossSection_Type;
 		/* Other info */\
 		double		maximum;								\
 		Bool		  dynamicRange;					  \
-    float		  scaling;								\
-		float		  arrowHead;							\
  
 struct lucVectorArrowMeshCrossSection
 {

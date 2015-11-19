@@ -63,7 +63,6 @@ extern const Type lucCrossSection_Type;
       Bool                 axisAligned;         \
       Bool                 gatherData;          \
       Bool                 offsetEdges;         \
-      Bool                 cullface;            \
       float***             vertices;            \
       float***             values;              \
       Coord                min;                 \

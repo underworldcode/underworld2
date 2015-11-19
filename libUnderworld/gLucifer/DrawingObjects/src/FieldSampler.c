@@ -107,7 +107,8 @@ void _lucFieldSampler_AssignFromXML( void* drawingObject, Stg_ComponentFactory* 
    _lucFieldSampler_Init(self, resolution);
 
    /* No lighting */
-   self->lit = False;
+   //TODO: Set via python properties
+   //self->lit = False;
 }
 
 void _lucFieldSampler_Build( void* drawingObject, void* data ) 
