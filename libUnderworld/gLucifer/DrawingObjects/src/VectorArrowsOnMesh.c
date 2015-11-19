@@ -96,7 +96,12 @@ void _lucVectorArrowsOnMesh_Draw( void* drawingObject, lucDatabase* database, vo
    lucVectorArrowsOnMesh*       self    = (lucVectorArrowsOnMesh*)drawingObject;
    Dimension_Index dim  = self->dim;
 
-   if ( dim == 2 )
+   if (self->isSet) 
+   {
+      /* Just draw at given position if provided */
+      _lucVectorArrowMeshCrossSection_DrawCrossSection(self, database);
+   }
+   else if ( dim == 2 )
    {
       _lucVectorArrowMeshCrossSection_DrawCrossSection( lucCrossSection_Set(self, 0, K_AXIS, False), database);
    }

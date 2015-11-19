@@ -193,13 +193,6 @@ lucDatabase* lucDatabase_New(
    char*             vfs)
 {
    lucDatabase* self = (lucDatabase*)_lucDatabase_DefaultNew("database");
-   /* Default min/max bounding box for db not created in xml */
-   int i;
-   for (i=0; i<3; i++)
-   {
-      self->minValue[i] = 0.0;
-      self->maxValue[i] = FLT_EPSILON;
-   }
    _lucDatabase_Init(self, context, NULL, 0, deleteAfter, writeimage, splitTransactions, transparent, compressed, singleFile, filename, vfs, "", "", False, False);
    return self;
 }
@@ -244,17 +237,17 @@ void _lucDatabase_AssignFromXML( void* database, Stg_ComponentFactory* cf, void*
 
    Dimension_Index dim = Stg_ComponentFactory_GetRootDictDouble( cf, (Dictionary_Entry_Key)"dim", 3.0  );
 
-   self->minValue[ I_AXIS ] = Stg_ComponentFactory_GetRootDictDouble( cf, (Dictionary_Entry_Key)"minX", 0.0  );
-   self->minValue[ J_AXIS ] = Stg_ComponentFactory_GetRootDictDouble( cf, (Dictionary_Entry_Key)"minY", 0.0  );
-   self->minValue[ K_AXIS ] = Stg_ComponentFactory_GetRootDictDouble( cf, (Dictionary_Entry_Key)"minZ", 0.0  );
+   self->minValue[ I_AXIS ] = Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"minX", 0.0  );
+   self->minValue[ J_AXIS ] = Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"minY", 0.0  );
+   self->minValue[ K_AXIS ] = Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"minZ", 0.0  );
 
-   self->maxValue[ I_AXIS ] = Stg_ComponentFactory_GetRootDictDouble( cf, (Dictionary_Entry_Key)"maxX", FLT_EPSILON  );
-   self->maxValue[ J_AXIS ] = Stg_ComponentFactory_GetRootDictDouble( cf, (Dictionary_Entry_Key)"maxY", FLT_EPSILON  );
-   self->maxValue[ K_AXIS ] = Stg_ComponentFactory_GetRootDictDouble( cf, (Dictionary_Entry_Key)"maxZ", FLT_EPSILON  );
+   self->maxValue[ I_AXIS ] = Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"maxX", FLT_EPSILON  );
+   self->maxValue[ J_AXIS ] = Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"maxY", FLT_EPSILON  );
+   self->maxValue[ K_AXIS ] = Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"maxZ", FLT_EPSILON  );
 
    if (dim == 2)
    {
-      self->minValue[K_AXIS] += 0.5 * (self->maxValue[K_AXIS] = self->minValue[K_AXIS]);
+      self->minValue[K_AXIS] += 0.5 * (self->maxValue[K_AXIS] - self->minValue[K_AXIS]);
       self->maxValue[K_AXIS] = self->minValue[K_AXIS];
    }
 
@@ -474,8 +467,6 @@ void lucDatabase_OutputWindow(lucDatabase* self, void* _window)
    lucWindow* window = (lucWindow*)_window;
    Index   viewport_I, vertical_I, horizontal_I;
    Index   verticalCount, horizontalCount;
-   float defaultMin[3] = {0,0,0};
-   float defaultMax[3] = {FLT_EPSILON,FLT_EPSILON,FLT_EPSILON};
    int id;
 
    /* Open and create database */
@@ -483,22 +474,22 @@ void lucDatabase_OutputWindow(lucDatabase* self, void* _window)
 
    if (lucDatabase_BeginTransaction(self))
    {
+      /* Save the window */
       float *min, *max;
       if (window->useModelBounds)
       {
-         min = self->minValue;
-         max = self->maxValue;
+         snprintf(SQL, 1024, "insert into window (name, width, height, colour, minX, minY, minZ, maxX, maxY, maxZ) values ('%s', %d, %d, %d, %g, %g, %g, %g, %g, %g)", 
+                  window->name, window->width, window->height, lucColour_ToInt(&window->backgroundColour), 
+                  self->minValue[0], self->minValue[1], self->minValue[2], self->maxValue[0], self->maxValue[1], self->maxValue[2]);
       }
       else 
       {
          /* Don't write model bounds with this window
           * (used if visualising something other than model domain, eg: plot) */
-         min = defaultMin;
-         max = defaultMax;
+         snprintf(SQL, 1024, "insert into window (name, width, height, colour) values ('%s', %d, %d, %d)",
+                  window->name, window->width, window->height, lucColour_ToInt(&window->backgroundColour));
       }
 
-      /* Save the window */
-      snprintf(SQL, 1024, "insert into window (name, width, height, colour, minX, minY, minZ, maxX, maxY, maxZ) values ('%s', %d, %d, %d, %g, %g, %g, %g, %g, %g)", window->name, window->width, window->height, lucColour_ToInt(&window->backgroundColour), min[0], min[1], min[2], max[0], max[1], max[2]);
       /*printf("%s\n", SQL);*/
       if (!lucDatabase_IssueSQL(self->db, SQL)) return;
       id = sqlite3_last_insert_rowid(self->db);
