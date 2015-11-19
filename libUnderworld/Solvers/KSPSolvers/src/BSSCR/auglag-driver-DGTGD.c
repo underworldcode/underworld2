@@ -115,12 +115,18 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
         bsscr_dirwriteMat( K, matname,str, "Writing K matrix in al Solver");
         sprintf(str,"%s/",name); sprintf(matname,"G%s",suffix);
         bsscr_dirwriteMat( G, matname,str, "Writing G matrix in al Solver");
+        sprintf(str,"%s/",name); sprintf(matname,"D%s",suffix);
+        bsscr_dirwriteMat( D, matname,str, "Writing D matrix in al Solver");
         sprintf(str,"%s/",name); sprintf(matname,"f%s",suffix);
         bsscr_dirwriteVec( f, matname,str, "Writing f vector in al Solver");
         sprintf(str,"%s/",name); sprintf(matname,"h%s",suffix);
         bsscr_dirwriteVec( h, matname,str, "Writing h vector in al Solver");
         sprintf(str,"%s/",name); sprintf(matname,"Shat%s",suffix);
         bsscr_dirwriteMat( approxS, matname,str, "Writing Shat matrix in al Solver");
+        if(C){
+          sprintf(str,"%s/",name); sprintf(matname,"C%s",suffix);
+          bsscr_dirwriteMat( C, matname,str, "Writing C matrix in al Solver");
+        }
     }
 
     mg_active=PETSC_TRUE;

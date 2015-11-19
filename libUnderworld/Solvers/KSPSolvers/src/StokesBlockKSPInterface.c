@@ -116,7 +116,7 @@ void _StokesBlockKSPInterface_Init(
 	/* add the vecs and matrices to the Base SLE class's dynamic lists, so they can be 
 	initialised and built properly */
 	
-	
+	/*
 	if (k2StiffMat ) 
 	    SystemLinearEquations_AddStiffnessMatrix( st_sle, k2StiffMat );
 		
@@ -134,6 +134,7 @@ void _StokesBlockKSPInterface_Init(
 
 	if (vmForceVec ) 		
 	    SystemLinearEquations_AddForceVector( st_sle, vmForceVec );
+    */
 }
 
 void _StokesBlockKSPInterface_Build( void* solver, void* sle ) {/* it is the sle here being passed in*/
@@ -248,6 +249,10 @@ void SBKSP_SetPenalty( void* solver, double penalty ) {
 //    StokesBlockKSPInterface* self = (StokesBlockKSPInterface*) solver;
 //    self->mg_active=flag;  
 //}
+void SBKSP_SetPenaltyTerms(void* solver, void* stokesSLE){
+  
+  
+}
 /***********************************************************************************************************/
 /***********************************************************************************************************/
 /***********************************************************************************************************/
@@ -315,6 +320,8 @@ PetscErrorCode _BlockSolve( void* solver, void* _stokesSLE ) {
   PC  stokes_pc;
   PetscTruth sym,flg;
   PetscErrorCode ierr;
+  
+  PetscInt   M,N, m,n;
 
   SBKSP_GetStokesOperators( stokesSLE, &K,&G,&D,&C, &approxS, &f,&h, &u,&p );
 
@@ -330,6 +337,28 @@ PetscErrorCode _BlockSolve( void* solver, void* _stokesSLE ) {
     Solver->DIsSym = sym;
   }
 
+  if( !C ) {/* need a 'zero' matrix to keep fieldsplit happy in petsc? */
+    MatType mtype;
+    Vec V;
+    //MatGetSize( G, &M, &N );
+    VecGetSize(p, &N);
+    VecGetLocalSize( p, &n );
+    MatCreate( PetscObjectComm((PetscObject) K), &C );
+	MatSetSizes( C, PETSC_DECIDE ,PETSC_DECIDE, N, N );
+    #if (((PETSC_VERSION_MAJOR==3) && (PETSC_VERSION_MINOR>=3)) || (PETSC_VERSION_MAJOR>3) )
+      MatSetUp(C);
+    #endif
+    MatGetType( G, &mtype );
+	MatSetType( C, mtype );
+    MatGetVecs( G, &V, PETSC_NULL );
+    VecSet(V, 0.0);
+    //VecSet(h, 1.0);
+    ierr = VecAssemblyBegin( V );CHKERRQ(ierr);
+    ierr = VecAssemblyEnd  ( V );CHKERRQ(ierr);
+    ierr = MatDiagonalSet(C,V,INSERT_VALUES);CHKERRQ(ierr);
+    ierr = MatAssemblyBegin( C, MAT_FINAL_ASSEMBLY );CHKERRQ(ierr);
+    ierr = MatAssemblyEnd  ( C, MAT_FINAL_ASSEMBLY );CHKERRQ(ierr);
+  }
   a[0][0]=K;  a[0][1]=G;
   a[1][0]=Gt; a[1][1]=C;
   ierr = MatCreateNest(PetscObjectComm((PetscObject) K), 2, NULL, 2, NULL, (Mat *)a, &stokes_A);CHKERRQ(ierr);
@@ -350,21 +379,21 @@ PetscErrorCode _BlockSolve( void* solver, void* _stokesSLE ) {
   ierr = VecAssemblyBegin( stokes_b );CHKERRQ(ierr);
   ierr = VecAssemblyEnd( stokes_b);CHKERRQ(ierr);
     
-  if( approxS ) {
-    a[0][0]=K;    a[0][1]=G;
-    a[1][0]=NULL; a[1][1]=approxS;
-    ierr = MatCreateNest(PetscObjectComm((PetscObject) K), 2, NULL, 2, NULL, (Mat *)a, &stokes_P);CHKERRQ(ierr);
-    ierr = MatAssemblyBegin( stokes_P, MAT_FINAL_ASSEMBLY );CHKERRQ(ierr);
-    ierr = MatAssemblyEnd( stokes_P, MAT_FINAL_ASSEMBLY );CHKERRQ(ierr);
-  }
-  else {
+  /* if( approxS ) { */
+  /*   a[0][0]=K;    a[0][1]=G; */
+  /*   a[1][0]=NULL; a[1][1]=approxS; */
+  /*   ierr = MatCreateNest(PetscObjectComm((PetscObject) K), 2, NULL, 2, NULL, (Mat *)a, &stokes_P);CHKERRQ(ierr); */
+  /*   ierr = MatAssemblyBegin( stokes_P, MAT_FINAL_ASSEMBLY );CHKERRQ(ierr); */
+  /*   ierr = MatAssemblyEnd( stokes_P, MAT_FINAL_ASSEMBLY );CHKERRQ(ierr); */
+  /* } */
+  /* else { */
     stokes_P = stokes_A;
-  }
+  /* } */
     
   /* probably should make a Destroy function for these two */
   /* Update options from file and/or string here so we can change things on the fly */
-  PetscOptionsInsertFile(PETSC_COMM_WORLD, Solver->optionsFile, PETSC_FALSE);
-  PetscOptionsInsertString(Solver->optionsString);
+  //PetscOptionsInsertFile(PETSC_COMM_WORLD, Solver->optionsFile, PETSC_FALSE);
+  //PetscOptionsInsertString(Solver->optionsString);
 
   ierr = KSPCreate( PETSC_COMM_WORLD, &stokes_ksp );CHKERRQ(ierr);
   Stg_KSPSetOperators( stokes_ksp, stokes_A, stokes_P, SAME_NONZERO_PATTERN );
@@ -397,7 +426,8 @@ PetscErrorCode _BlockSolve( void* solver, void* _stokesSLE ) {
   ierr = KSPSolve( stokes_ksp, stokes_b, stokes_x );CHKERRQ(ierr);
     
   Stg_KSPDestroy(&stokes_ksp );
-  if( ((StokesBlockKSPInterface*)stokesSLE->solver)->preconditioner ){ Stg_MatDestroy(&stokes_P ); }
+  //if( ((StokesBlockKSPInterface*)stokesSLE->solver)->preconditioner )
+  if(stokes_P != stokes_A) { Stg_MatDestroy(&stokes_P ); }
 
   Stg_MatDestroy(&stokes_A );
 
@@ -405,6 +435,7 @@ PetscErrorCode _BlockSolve( void* solver, void* _stokesSLE ) {
   Stg_VecDestroy(&stokes_b);
 
   if(!D){ Stg_MatDestroy(&Gt); }
+  if(C){ Stg_MatDestroy(&C); }
 
   PetscFunctionReturn(0);
 }

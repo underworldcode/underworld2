@@ -28,19 +28,19 @@ stokesSystem = uw.systems.Stokes(velocityField,pressureField,solA.viscosityFn,so
 #petsc.OptionsInsertString("-Uzawa_velSolver_pc_factor_mat_solver_package mumps -Uzawa_velSolver_ksp_type preonly -Uzawa_velSolver_pc_type lu -Uzawa_velSolver_ksp_converged_reason -Uzawa_velSolver_ksp_view")
 
 #Running Uzawa solve (current default)
-stokesSystem.solve()
+#stokesSystem.solve()
 # In[3]:
 
 #Run the BSSCR Solver
 # can optionally set penalty this way
-solver=uw.systems.Solver(stokesSystem, penalty=1.0)
+solver=uw.systems.Solver(stokesSystem, penalty=0.0)
 solver.options.A11.ksp_rtol=1e-4
 solver.options.scr.ksp_rtol=1e-3
 solver.options.main.Q22_pc_type='uwscale'
 
 #solver.options.mg.active=False
-solver.options.A11.set_direct()
-solver.options.A11.list()
+#solver.options.A11.set_direct()
+#solver.options.A11.list()
 
 #solve
 solver.solve()
