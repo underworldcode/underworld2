@@ -260,7 +260,7 @@ void _lucDatabase_AssignFromXML( void* database, Stg_ComponentFactory* cf, void*
       Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"transparent", False),
       Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"compressed", True),
       Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"singleFile", True),
-      Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"filename", "gLucifer"),
+      Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"filename", NULL),
       Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"vfs", NULL),
       Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"timeUnits", ""),
       Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"dbPath", "."),
@@ -1066,18 +1066,20 @@ void lucDatabase_OpenDatabase(lucDatabase* self)
    {
       /* Copy db from checkpointReadPath?? /
       if (restart && strlen(self->context->checkpointReadPath) > 0)*/
+      int flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
 
-      if (self->filename)
+      if (self->filename && strlen(self->filename))
+      {
          sprintf(self->path, "%s/%s.gldb", self->dbPath, self->filename);
+      }
       else
-         sprintf(self->path, ":memory"); 
+      {
+         strcpy(self->path, "file:glucifer_database?mode=memory&cache=shared");
+         flags = flags | SQLITE_OPEN_URI;
+         printf("Defaulting to memory database: %s\n", self->path);
+      }
 
-
-      if (!self->context || !(self->context->loadFromCheckPoint))
-         /* Remove existing file */
-         remove(self->path);
-
-      if(sqlite3_open_v2(self->path, &self->db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, self->vfs))
+      if (sqlite3_open_v2(self->path, &self->db, flags, self->vfs))
       {
          printf("Can't open database: (%s) %s\n", self->path, sqlite3_errmsg(self->db));
          self->db = NULL;
@@ -1288,3 +1290,34 @@ void lucDatabase_BackupDb(sqlite3 *fromDb, sqlite3* toDb)
    }
 }
 
+void lucDatabase_BackupDbFile(lucDatabase* self, char* filename)
+{
+   sqlite3* toDb;
+   int flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
+   if (sqlite3_open_v2(filename, &toDb, flags, self->vfs))
+   {
+      printf("Can't open database: (%s) %s\n", filename, sqlite3_errmsg(toDb));
+      return;
+   }
+
+   /* Remove existing data */
+   lucDatabase_IssueSQL(toDb, "drop table IF EXISTS geometry");
+   lucDatabase_IssueSQL(toDb, "drop table IF EXISTS timestep");
+   lucDatabase_IssueSQL(toDb, "drop table IF EXISTS object_colourmap");
+   lucDatabase_IssueSQL(toDb, "drop table IF EXISTS colourmap");
+   lucDatabase_IssueSQL(toDb, "drop table IF EXISTS colourvalue");
+   lucDatabase_IssueSQL(toDb, "drop table IF EXISTS object");
+   lucDatabase_IssueSQL(toDb, "drop table IF EXISTS window");
+   lucDatabase_IssueSQL(toDb, "drop table IF EXISTS viewport");
+   lucDatabase_IssueSQL(toDb, "drop table IF EXISTS window_viewport");
+   lucDatabase_IssueSQL(toDb, "drop table IF EXISTS viewport_object");
+
+   sqlite3_backup *pBackup;  /* Backup object used to copy data */
+   pBackup = sqlite3_backup_init(toDb, "main", self->db, "main");
+   if (pBackup)
+   {
+      (void)sqlite3_backup_step(pBackup, -1);
+      (void)sqlite3_backup_finish(pBackup);
+   }
+   sqlite3_close(toDb);
+}

@@ -140,7 +140,7 @@ void _lucDrawingObject_AssignFromXML( void* drawingObject, Stg_ComponentFactory*
    }
    
    _lucDrawingObject_Init( self, context,
-      Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"properties", "lit=1\nwireframe=0\nlinewidth=1\n"  ),
+      Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"properties", ""  ),
       Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"disable", False  ),
       Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"colour", "black"  ),
       Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"ColourMap", lucColourMap, False, data),

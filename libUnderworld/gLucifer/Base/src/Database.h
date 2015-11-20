@@ -125,6 +125,7 @@ void _lucDatabase_Destroy( void* database, void* data );
 void lucDatabase_Dump(void* database);
 void lucDatabase_Wait(lucDatabase* self);
 
+void lucDatabase_DeleteWindows(lucDatabase* self);
 void lucDatabase_OutputWindow(lucDatabase* self, void* window);
 void lucDatabase_OutputViewport(lucDatabase* self, lucViewport* viewport, int window_id, float x, float y);
 void lucDatabase_OutputDrawingObject(lucDatabase* self, lucViewport* viewport, lucDrawingObject* object);
@@ -169,8 +170,7 @@ void lucDatabase_DeleteGeometry(lucDatabase* self, int start_timestep, int end_t
 int lucDatabase_WriteGeometry(lucDatabase* self, int index, lucGeometryType type, lucGeometryDataType data_type, int object_id, lucGeometryData* block);
 
 void lucDatabase_BackupDb(sqlite3 *fromDb, sqlite3* toDb);
-
-void lucDatabase_DeleteWindows(lucDatabase* self);
+void lucDatabase_BackupDbFile(lucDatabase* self, char* filename);
 
 #endif
 
