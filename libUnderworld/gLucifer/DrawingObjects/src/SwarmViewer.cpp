@@ -10,59 +10,86 @@
 
 #include <mpi.h>
 #include <petsc.h>
-#include "SwarmViewer.h"
 
 #include <Underworld/Function/FunctionIO.hpp>
+#include <Underworld/Function/ParticleCoordinate.hpp>
 #include <Underworld/Function/Function.hpp>
 extern "C" {
+#include <StGermain/StGermain.h>
+#include <StgDomain/StgDomain.h>
+#include <StgFEM/StgFEM.h>
+#include <PICellerator/PICellerator.h>
+#include <gLucifer/Base/Base.h>
 #include "types.h"
 #include <gLucifer/Base/DrawingObject.h>
 }
+
+#include "SwarmViewer.h"
 
 /* Textual name of this class - This is a global pointer which is used for times when you need to refer to class and not a particular instance of a class */
 const Type lucSwarmViewer_Type = "lucSwarmViewer";
 
 
-void _lucSwarmViewer_SetFn( void* _self, Fn::Function* fn ){
+void _lucSwarmViewer_SetFn( void* _self, Fn::Function* fn_colour, Fn::Function* fn_mask, Fn::Function* fn_size, Fn::Function* fn_opacity ){
     lucSwarmViewer*  self = (lucSwarmViewer*)_self;
     
     lucSwarmViewer_cppdata* cppdata = (lucSwarmViewer_cppdata*) self->cppdata;
-    // record fn, and also throw in a min/max guy
-    cppdata->fn = std::make_shared<Fn::MinMax>(fn);
-    
-    // setup fn
-    std::shared_ptr<IO_double> globalCoord = std::make_shared<IO_double>( self->swarm->dim, FunctionIO::Vector );
-    // grab first node for sample node
-    memcpy( globalCoord->data(), Mesh_GetVertex( self->mesh, 0 ), self->dim*sizeof(double) );
-    cppdata->func = cppdata->fn->getFunction(globalCoord);
-    
-    std::shared_ptr<const FunctionIO> io = std::dynamic_pointer_cast<const FunctionIO>(cppdata->func(globalCoord));
-    if( !io )
-        throw std::invalid_argument("Provided function does not appear to return a valid result.");
-    self->fieldComponentCount = io->size();
+    // setup fn input.  first make particle coordinate
+    std::shared_ptr<ParticleCoordinate> particleCoord = std::make_shared<ParticleCoordinate>( self->swarm->particleCoordVariable );
+    // grab first particle for sample data
+    particleCoord->index() = 0;
 
-    if( ( Stg_Class_IsInstance( self, lucScalarFieldSwarmViewer_Type )       ||
-          Stg_Class_IsInstance( self, lucScalarFieldOnMeshSwarmViewer_Type ) ||
-          Stg_Class_IsInstance( self, lucIsosurfaceSwarmViewer_Type )          )
-        && self->fieldComponentCount != 1 )
+    // record fns, and also throw in a min/max guy where required
+    if (fn_colour)
     {
-        throw std::invalid_argument("Provided function must return a scalar result.");
+        cppdata->fn_colour   = std::make_shared<Fn::MinMax>(fn_colour);
+        cppdata->func_colour = cppdata->fn_colour->getFunction(particleCoord);
+        std::shared_ptr<const FunctionIO> io = std::dynamic_pointer_cast<const FunctionIO>(cppdata->func_colour(particleCoord));
+        if( !io )
+            throw std::invalid_argument("Provided function does not appear to return a valid result.");
+        if( io->size() != 1 )
+            throw std::invalid_argument("Provided function must return a scalar result.");
     }
 
-    if( ( Stg_Class_IsInstance( self, lucVectorArrowSwarmViewer_Type )       ||
-          Stg_Class_IsInstance( self, lucVectorArrowMeshSwarmViewer_Type )      )
-             && self->fieldComponentCount != self->dim )
+    if (fn_mask)
     {
-        throw std::invalid_argument("Provided function must return a vector result.");
+        cppdata->fn_mask   = fn_mask;
+        cppdata->func_mask = cppdata->fn_mask->getFunction(particleCoord);
+        std::shared_ptr<const FunctionIO> io = std::dynamic_pointer_cast<const FunctionIO>(cppdata->func_mask(particleCoord));
+        if( !io )
+            throw std::invalid_argument("Provided function does not appear to return a valid result.");
+        if( io->size() != 1 )
+            throw std::invalid_argument("Provided function must return a scalar result.");
     }
-    
+
+    if (fn_size)
+    {
+        cppdata->fn_size   = std::make_shared<Fn::MinMax>(fn_size);
+        cppdata->func_size = cppdata->fn_size->getFunction(particleCoord);
+        std::shared_ptr<const FunctionIO> io = std::dynamic_pointer_cast<const FunctionIO>(cppdata->func_size(particleCoord));
+        if( !io )
+            throw std::invalid_argument("Provided function does not appear to return a valid result.");
+        if( io->size() != 1 )
+            throw std::invalid_argument("Provided function must return a scalar result.");
+    }
+
+    if (fn_opacity)
+    {
+        cppdata->fn_opacity   = std::make_shared<Fn::MinMax>(fn_opacity);
+        cppdata->func_opacity = cppdata->fn_opacity->getFunction(particleCoord);
+        std::shared_ptr<const FunctionIO> io = std::dynamic_pointer_cast<const FunctionIO>(cppdata->func_opacity(particleCoord));
+        if( !io )
+            throw std::invalid_argument("Provided function does not appear to return a valid result.");
+        if( io->size() != 1 )
+            throw std::invalid_argument("Provided function must return a scalar result.");
+    }
     
 }
 
 /* Private Constructor: This will accept all the virtual functions for this class as arguments. */
 lucSwarmViewer* _lucSwarmViewer_New(  LUCSWARMVIEWER_DEFARGS  )
 {
-   lucSwarmViewer*               self;
+   lucSwarmViewer* self;
 
    /* Call private constructor of parent - this will set virtual functions of parent and continue up the hierarchy tree. At the beginning of the tree it will allocate memory of the size of object and initialise all the memory to zero. */
    assert( _sizeOfSelf >= sizeof(lucSwarmViewer) );
@@ -70,56 +97,36 @@ lucSwarmViewer* _lucSwarmViewer_New(  LUCSWARMVIEWER_DEFARGS  )
 
    self->_plotParticle = _plotParticle;
    self->_setParticleColour = _setParticleColour;
+   
+   self->cppdata = (void*) new lucSwarmViewer_cppdata;
 
    return self;
 }
 
 void _lucSwarmViewer_Init(
-   lucSwarmViewer*                                          self,
-   Swarm*                                                       swarm,
-   Name                                                         colourVariableName,
-   Name                                                         sizeVariableName,
-   Name                                                         opacityVariableName,
-   Name                                                         maskVariableName,
-   lucDrawingObjectMask*                                        mask,
-   lucColourMap*                                                opacityColourMap,
-   Bool                                                         drawParticleNumber,
-   Bool                                                         particleColour,
-   int                                                          subSample,
-   Bool                                                         positionRange,
-   Coord                                                        minPosition,
-   Coord                                                        maxPosition,
-   float                      pointSize,
-   Bool                       pointSmoothing )
+   lucSwarmViewer*            self,
+   GeneralSwarm*              swarm,
+   lucColourMap*              opacityColourMap,
+   float                      pointSize )
 {
    self->swarm               = swarm;
-   self->colourVariableName  = colourVariableName;
-   self->sizeVariableName    = sizeVariableName;
-   self->opacityVariableName = opacityVariableName;
-   self->maskVariableName    = maskVariableName;
-   self->drawParticleNumber  = drawParticleNumber;
-   self->sameParticleColour  = particleColour;
-   self->subSample           = subSample;
-   self->positionRange       = positionRange;
-   self->scaling              = pointSize;
-   self->pointSmoothing       = pointSmoothing;
+   self->scaling             = pointSize;
 
    /* Create a default colour component mapping, full range black->white */
    self->opacityColourMap = opacityColourMap ? opacityColourMap : LUC_DEFAULT_ALPHAMAP;
 
-   memcpy( &self->mask, mask, sizeof( lucDrawingObjectMask ) );
-   memcpy( &self->minPosition, minPosition , sizeof( Coord ) );
-   memcpy( &self->maxPosition, maxPosition , sizeof( Coord ) );
-
    self->geomType = lucPointType;   /* Draws points by default */
 
    /* Append to property string */
-   lucDrawingObject_AppendProps((lucDrawingObject*)self, "pointsmooth=%d\npointsize=%g\n", pointSmoothing, pointSize);
+   lucDrawingObject_AppendProps((lucDrawingObject*)self, "pointsize=%g\n", pointSize);
 }
 
 void _lucSwarmViewer_Delete( void* drawingObject )
 {
    lucSwarmViewer*  self = (lucSwarmViewer*)drawingObject;
+
+   if (self->cppdata)
+       delete (lucSwarmViewer_cppdata*)self->cppdata;
 
    _lucDrawingObject_Delete( self );
 
@@ -174,64 +181,18 @@ void* _lucSwarmViewer_DefaultNew( Name name )
 void _lucSwarmViewer_AssignFromXML( void* drawingObject, Stg_ComponentFactory* cf, void* data )
 {
    lucSwarmViewer*     self = (lucSwarmViewer*)drawingObject;
-   Swarm*                  swarm;
-   Name                    colourVariableName;
-   Name                    sizeVariableName;
-   Name                    opacityVariableName;
-   Name                    maskVariableName;
-   Bool                    drawParticleNumber;
-   Bool                    sameParticleColour;
-   int                     subSample;
-   Bool                    positionRange;
-   Coord                   minPosition;
-   Coord                   maxPosition;
-   lucDrawingObjectMask    mask;
+   GeneralSwarm*           swarm;
 
    /* Construct Parent */
    _lucDrawingObject_AssignFromXML( self, cf, data );
 
-   swarm = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"Swarm", Swarm, True, data  ) ;
-
-   colourVariableName  = Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"ColourVariable", ""  );
-   sizeVariableName  = Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"SizeVariable", ""  );
-   opacityVariableName = Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"OpacityVariable", ""  );
-   maskVariableName = Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"MaskVariable", ""  );
-
-   drawParticleNumber = Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"drawParticleNumber", False  );
-   sameParticleColour = Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"sameParticleColour", False  );
-
-   subSample = Stg_ComponentFactory_GetInt( cf, self->name, (Dictionary_Entry_Key)"subSample", 0  );
-   positionRange = Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"positionRange", False  );
-
-   /* Memory allocation */
-   minPosition[I_AXIS]  = Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"minPositionX", -HUGE_VAL  );
-   minPosition[J_AXIS]  = Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"minPositionY", -HUGE_VAL  );
-   minPosition[K_AXIS]  = Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"minPositionZ", -HUGE_VAL  );
-
-   maxPosition[I_AXIS]  = Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"maxPositionX", HUGE_VAL  );
-   maxPosition[J_AXIS]  = Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"maxPositionY", HUGE_VAL  );
-   maxPosition[K_AXIS]  = Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"maxPositionZ", HUGE_VAL  );
-
-
-   lucDrawingObjectMask_Construct( &mask, self->name, cf, data );
+   swarm = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"Swarm", GeneralSwarm, True, data  ) ;
 
    _lucSwarmViewer_Init(
       self,
       swarm,
-      colourVariableName,
-      sizeVariableName,
-      opacityVariableName,
-      maskVariableName,
-      &mask,
       Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"OpacityColourMap", lucColourMap, False, data),
-      drawParticleNumber,
-      sameParticleColour,
-      subSample,
-      positionRange,
-      minPosition,
-      maxPosition,
-      (float) Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"pointSize", 1.0  ),
-      (Bool ) Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"pointSmoothing", True ));
+      (float) Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"pointSize", 1.0  ) );
 }
 
 void _lucSwarmViewer_Build( void* drawingObject, void* data )
@@ -242,37 +203,6 @@ void _lucSwarmViewer_Build( void* drawingObject, void* data )
 
 }
 
-SwarmVariable* lucSwarmViewer_InitialiseVariable(void* object, Name variableName, Bool scalarRequired, void* data )
-{
-   lucSwarmViewer* self = (lucSwarmViewer*)object;
-   SwarmVariable_Register*	swarmVariable_Register = self->swarm->swarmVariable_Register;
-   SwarmVariable* variable = NULL;
-
-   if ( 0 != strcmp( variableName, "" ) )
-   {
-      variable = SwarmVariable_Register_GetByName( swarmVariable_Register, variableName );
-      Journal_Firewall( variable != NULL, lucError,
-                        "Error - for gLucifer drawing object \"%s\" - in %s(): Colour Variable name given was \"%s\", "
-                        "but no corresponding SwarmVariable found in the register for swarm \"%s\".\n",
-                        self->name, __func__, variableName, self->swarm->name );
-
-      Stg_Component_Build( variable, data, False );
-      Stg_Component_Initialise( variable, data, False );
-
-      /* Check if scalar, when required */
-      if ( variable && scalarRequired )
-      {
-         Journal_Firewall( variable->dofCount <= 1, lucError,
-                        "Error - in %s(): provided SwarmVariable \"%s\" has %u components - but %s Component "
-                        "can only visualise FieldVariables with 1 component. Did you mean to visualise the "
-                        "magnitude of the given field?\n", __func__, variable->name,
-                        variable->dofCount, self->type );
-      }
-   }
-   return variable;
-}
-
-
 void _lucSwarmViewer_Initialise( void* drawingObject, void* data )
 {
    lucSwarmViewer* self = (lucSwarmViewer*)drawingObject;
@@ -280,192 +210,60 @@ void _lucSwarmViewer_Initialise( void* drawingObject, void* data )
    /* Initialise Parent */
    _lucDrawingObject_Initialise( self, data );
 
-//   self->colourVariable = lucSwarmViewer_InitialiseVariable(self, self->colourVariableName, True, data);
-//   self->sizeVariable = lucSwarmViewer_InitialiseVariable(self, self->sizeVariableName, True, data);
-//   self->opacityVariable = lucSwarmViewer_InitialiseVariable(self, self->opacityVariableName, True, data);
-//   self->maskVariable = lucSwarmViewer_InitialiseVariable(self, self->maskVariableName, False, data);
 }
 
 
 void _lucSwarmViewer_Execute( void* drawingObject, void* data ) {}
 void _lucSwarmViewer_Destroy( void* drawingObject, void* data ) {}
+void _lucSwarmViewer_Setup( void* drawingObject, lucDatabase* database, void* _context ) {}
 
-void _lucSwarmViewer_Setup( void* drawingObject, lucDatabase* database, void* _context )
-{
-   lucSwarmViewer*          self                = (lucSwarmViewer*)drawingObject;
-   lucColourMap*                colourMap           = self->colourMap;
-   SwarmVariable*               colourVariable      = self->colourVariable;
-
-   lucSwarmViewer_UpdateVariables( self );
-
-   /* Scale Colour Maps */
-   if ( colourVariable && colourMap )
-      lucColourMap_CalibrateFromSwarmVariable( colourMap, colourVariable );
-   if ( self->opacityVariable && self->opacityColourMap )
-      lucColourMap_CalibrateFromSwarmVariable( self->opacityColourMap, self->opacityVariable );
-}
-
-float lucSwarmViewer_GetScalar(SwarmVariable* variable, Particle_Index lParticle_I, float defaultVal)
-{
-   double value;
-   if (variable)
-   {
-      Index count = variable->dofCount;
-      if (count == 1)
-         SwarmVariable_ValueAt( variable, lParticle_I, &value );
-      else
-      {
-         double* var = Memory_Alloc_Array(double, count, (Name)"swarm var");
-         SwarmVariable_ValueAt( variable, lParticle_I, var );
-         value = StGermain_VectorMagnitude(var, count);
-      }
-      return value;
-   }
-   return defaultVal;
-}
-
-#define SEED_VAL 12345
 void _lucSwarmViewer_Draw( void* drawingObject, lucDatabase* database, void* _context )
 {
    lucSwarmViewer*      self                = (lucSwarmViewer*)drawingObject;
-   Swarm*                   swarm               = self->swarm;
-   SwarmVariable*           maskVariable        = self->maskVariable;
+   GeneralSwarm*        swarm               = self->swarm;
    Particle_Index           particleLocalCount  = swarm->particleLocalCount;
    Particle_Index           lParticle_I;
-   double                   maskResult;
-   int                      subSample           = self->subSample;
-   Bool                     positionRange       = self->positionRange;
-   GlobalParticle*          particle;
-   double*                  coord;
-   double*                  minPosition;
-   double*                  maxPosition;
+   
+   lucSwarmViewer_cppdata* cppdata = (lucSwarmViewer_cppdata*) self->cppdata;
 
-   minPosition = self->minPosition;
-   maxPosition = self->maxPosition;
+   /* reset the min/max values */
+   if (cppdata->fn_colour)
+      cppdata->fn_colour->reset();
+   if (cppdata->fn_size)
+      cppdata->fn_size->reset();
+   if (cppdata->fn_opacity)
+      cppdata->fn_opacity->reset();
 
-   if (subSample == 0)
-   {
-      int particles;
-      MPI_Allreduce(&swarm->particleLocalCount, &particles, 1, MPI_UNSIGNED, MPI_SUM, MPI_COMM_WORLD);
-      subSample = 1;
-      if (particles > 2000000) 
-      {
-         subSample = particles / 2000000;
-         Journal_Printf(lucInfo, "*** Auto sub-sampling %d particle swarm %s by %d to %d particles\n", particles, self->name, subSample, particles / subSample);
-      }
-   }
+   // setup fn_io.
+   std::shared_ptr<ParticleCoordinate> particleCoord = std::make_shared<ParticleCoordinate>( self->swarm->particleCoordVariable );
 
-   /* Make sure subSampling is deterministic by seeding random generator with a constant value */
-   srand(SEED_VAL); 
    for ( lParticle_I = 0 ; lParticle_I < particleLocalCount ; lParticle_I++)
    {
-      /* If subSampling, use a pseudo random distribution to select which particles to draw */
-      /* If we just draw every n'th particle, we end up with a whole bunch in one region / proc */
-      if (subSample && rand() % subSample > 0) continue;
-
+      particleCoord->index() = lParticle_I;
+      /* note we need to cast object to const version to ensure it selects const data() method */
+      const double* coord = std::const_pointer_cast< const ParticleCoordinate>(particleCoord)->data();
       /* Test to see if this particle should be drawn */
-      if ( maskVariable )
-      {
-         SwarmVariable_ValueAt( maskVariable, lParticle_I, &maskResult );
-         if ( lucDrawingObjectMask_Test( &self->mask, maskResult ) == False )
-            continue;
-      }
-
-      /* Check if needed that the particle falls into the right position range */
-      particle            = (GlobalParticle*)Swarm_ParticleAt( self->swarm, lParticle_I );
-      coord               = particle->coord;
-      if (positionRange)
-      {
-
-         if ( coord[0] <= minPosition[I_AXIS] || coord[1] <= minPosition[J_AXIS] ||
-               coord[0] >= maxPosition[I_AXIS] || coord[1] >= maxPosition[J_AXIS] )
-            continue;
-
-         if (swarm->dim == 3 && (coord[2] <= minPosition[K_AXIS] || coord[2] >= maxPosition[K_AXIS]))
-            continue;
-      }
+      if ( cppdata->fn_mask && !cppdata->func_mask(particleCoord)->at<bool>())
+         continue;
 
       /* Export particle position */
       float coordf[3] = {(float)coord[0],(float) coord[1], swarm->dim == 3 ? (float)coord[2] : 0.0f};
       lucDatabase_AddVertices(database, 1, self->geomType, coordf);
 
-      /* Sets the colour for the particle */
-      self->_setParticleColour( self, database, lParticle_I );
-
-      /* Plot the particle using the function given by the concrete class */
-      self->_plotParticle( self, database, lParticle_I );
+      if (cppdata->fn_colour) {
+         /* evaluate function */
+         float valuef = cppdata->func_colour(particleCoord)->at<float>();
+         lucDatabase_AddValues(database, 1, self->geomType, lucColourValueData, self->colourMap, &valuef);
+      }
 
    }
+   
+   /* Scale Colour Maps */
+   if ( self->colourMap && self->colourMap->dynamicRange && cppdata->fn_colour )
+      lucColourMap_SetMinMax( self->colourMap, cppdata->fn_colour->getMinGlobal(), cppdata->fn_colour->getMaxGlobal() );
 
-   /* Go through the list of the particles again and write the text of the numbers next to each other */
-   if ( self->drawParticleNumber )
-      lucSwarmViewBase_DrawParticleNumbers( self, _context );
 }
 
-void lucSwarmViewBase_DrawParticleNumbers( void* drawingObject, void* _context )
-{
-   abort();
-}
-
-void _lucSwarmViewer_PlotParticleNumber( void* drawingObject, Particle_Index lParticle_I, lucColour colour )
-{
-/*
-   lucSwarmViewer*      self                = (lucSwarmViewer*)drawingObject;
-   GlobalParticle*          particle            = (GlobalParticle*)Swarm_ParticleAt( self->swarm, lParticle_I );
-   double*                  coord               = particle->coord;
-   Name particle_number;
-   Stg_asprintf(&particle_number, "%d", lParticle_I );
-
-   if (self->swarm->dim == 2)
-      glRasterPos2f( (float)coord[0] + 0.025, (float)coord[1] );
-   else
-      glRasterPos3f( (float)coord[0] + 0.025, (float)coord[1], (float)coord[2] );
-
-   lucPrintString( particle_number );
-   Memory_Free(particle_number);
-*/
-}
-
-void lucSwarmViewer_FindParticleLocalIndex(void *drawingObject, Coord coord, Particle_Index *lParticle_I)
-{
-   lucSwarmViewer*      self  = (lucSwarmViewer*) drawingObject;
-   Swarm*               swarm = self->swarm;
-   Dimension_Index      dim = self->swarm->dim;
-   Particle_InCellIndex cParticle_I;
-   Cell_LocalIndex      lCell_I;
-   GlobalParticle       testParticle;
-   double               minDistance;
-
-   /* Find cell this coordinate is in */
-   memcpy( testParticle.coord, coord, sizeof(Coord) );
-   /* First specify the particle doesn't have an owning cell yet, so as
-      not to confuse the search algorithm */
-   testParticle.owningCell = swarm->cellDomainCount;
-   lCell_I = CellLayout_CellOf( swarm->cellLayout, &testParticle );
-
-   /* Test if this cell is on this processor - if not then bail */
-   if (lCell_I >= swarm->cellLocalCount)
-   {
-      *lParticle_I = (Particle_Index) -1;
-      return;
-   }
-
-   /* Find Closest Particle in this Cell */
-   cParticle_I = Swarm_FindClosestParticleInCell( swarm, lCell_I, dim, coord, &minDistance );
-
-   /* Convert to Local Particle Index */
-   *lParticle_I = swarm->cellParticleTbl[ lCell_I ][ cParticle_I ];
-}
-
-void lucSwarmViewer_UpdateVariables( void* drawingObject )
-{
-   lucSwarmViewer*          self                = (lucSwarmViewer*)drawingObject;
-
-   if ( self->opacityVariable && self->opacityVariable->variable )
-      Variable_Update( self->opacityVariable->variable );
-   if ( self->maskVariable && self->maskVariable->variable )
-      Variable_Update( self->maskVariable->variable );
-}
 
 void lucSwarmViewer_SetColourComponent(void* object, lucDatabase* database, SwarmVariable* var, Particle_Index lParticle_I, lucGeometryDataType type, lucColourMap* colourMap)
 {
@@ -496,36 +294,39 @@ void lucSwarmViewer_SetColourComponent(void* object, lucDatabase* database, Swar
 /* Default Swarm Viewer Implementation */
 void _lucSwarmViewer_SetParticleColour( void* drawingObject, lucDatabase* database, Particle_Index lParticle_I )
 {
-   lucSwarmViewer*      self                = (lucSwarmViewer*) drawingObject;
-   SwarmVariable*           colourVariable      = self->colourVariable;
-   SwarmVariable*           opacityVariable     = self->opacityVariable;
-   lucColourMap*            colourMap           = self->colourMap;
-   double                   colourValue;
-
-   /* Get colour value if there is a colourVariable and a colourMap */
-   if ( colourVariable && colourMap )
-   {
-      SwarmVariable_ValueAt( colourVariable, lParticle_I, &colourValue );
-      lucColourMap_GetColourFromValue( colourMap, colourValue, &self->colour, self->opacity );
-      /* Export particle colour value */
-      float valuef = colourValue;
-      if (database) lucDatabase_AddValues(database, 1, self->geomType, lucColourValueData, colourMap, &valuef);
-   }
-
-   /* Get Opacity Value */
-   lucSwarmViewer_SetColourComponent(self, database, opacityVariable, lParticle_I, lucOpacityValueData, self->opacityColourMap);
-
-   lucColour_SetColour( &self->colour, self->opacity );
+//   lucSwarmViewer*      self                = (lucSwarmViewer*) drawingObject;
+//   SwarmVariable*           colourVariable      = self->colourVariable;
+//   SwarmVariable*           opacityVariable     = self->opacityVariable;
+//   lucColourMap*            colourMap           = self->colourMap;
+//   double                   colourValue;
+//
+//   /* Get colour value if there is a colourVariable and a colourMap */
+//   if ( colourVariable && colourMap )
+//   {
+//      SwarmVariable_ValueAt( colourVariable, lParticle_I, &colourValue );
+//      lucColourMap_GetColourFromValue( colourMap, colourValue, &self->colour, self->opacity );
+//      /* Export particle colour value */
+//      float valuef = colourValue;
+//      if (database) lucDatabase_AddValues(database, 1, self->geomType, lucColourValueData, colourMap, &valuef);
+//   }
+//
+//   /* Get Opacity Value */
+//   lucSwarmViewer_SetColourComponent(self, database, opacityVariable, lParticle_I, lucOpacityValueData, self->opacityColourMap);
+//
+//   lucColour_SetColour( &self->colour, self->opacity );
 }
 
 void _lucSwarmViewer_PlotParticle( void* drawingObject, lucDatabase* database, Particle_Index lParticle_I )
 {
-   lucSwarmViewer*          self          = (lucSwarmViewer*)drawingObject;
-   float size = self->pointSize;
-   if (self->sizeVariable)
-   {
-      size = lucSwarmViewer_GetScalar(self->sizeVariable, lParticle_I, size);
-      lucDatabase_AddValues(database, 1, self->geomType, lucSizeData, NULL, &size);
-   }
+//   lucSwarmViewer*          self          = (lucSwarmViewer*)drawingObject;
+//   float size = self->pointSize;
+//   if (self->sizeVariable)
+//   {
+//      size = lucSwarmViewer_GetScalar(self->sizeVariable, lParticle_I, size);
+//      lucDatabase_AddValues(database, 1, self->geomType, lucSizeData, NULL, &size);
+//   }
 }
 
+float lucSwarmViewer_GetScalar( SwarmVariable* variable, Particle_Index lParticle_I, float defaultVal ){ abort(); }
+SwarmVariable* lucSwarmViewer_InitialiseVariable(void* object, Name variableName, Bool scalarRequired, void* data ){ abort(); }
+void lucSwarmViewer_UpdateVariables( void *drawingObject ){ abort(); } ;

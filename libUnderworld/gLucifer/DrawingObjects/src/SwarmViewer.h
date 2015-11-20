@@ -17,11 +17,17 @@ extern "C++" {
 
 struct lucSwarmViewer_cppdata
 {
-    Fn::Function::func func;
-    std::shared_ptr<Fn::MinMax> fn;
+    std::shared_ptr<Fn::MinMax>   fn_colour  = NULL;
+    Fn::Function::func          func_colour;
+    Fn::Function*                 fn_mask    = NULL;
+    Fn::Function::func          func_mask;
+    std::shared_ptr<Fn::MinMax>   fn_size    = NULL;
+    Fn::Function::func          func_size;
+    std::shared_ptr<Fn::MinMax>   fn_opacity = NULL;
+    Fn::Function::func          func_opacity;
 };
 
-void _lucSwarmViewer_SetFn( void* _self, Fn::Function* fn );
+void _lucSwarmViewer_SetFn( void* _self, Fn::Function* fn_colour, Fn::Function* fn_mask, Fn::Function* fn_size, Fn::Function* fn_opacity );
 
 }
 
@@ -31,6 +37,7 @@ extern "C" {
 #include <StGermain/StGermain.h>
 #include <StgDomain/StgDomain.h>
 #include <StgFEM/StgFEM.h>
+#include <PICellerator/PICellerator.h>
 
 #include <gLucifer/Base/Base.h>
 
@@ -49,33 +56,14 @@ extern const Type lucSwarmViewer_Type;
       /* Virtual functions go here */ \
       lucSwarmViewer_PlotParticleFunction*           _plotParticle;          \
       lucSwarmViewer_SetParticleColourFunction*      _setParticleColour;     \
-      /* Colour stuff */\
-      Name                                               colourVariableName;     \
-      SwarmVariable*                                     colourVariable;         \
-      /* Size */\
-      Name                                               sizeVariableName;       \
-      SwarmVariable*                                     sizeVariable;           \
       /* Other info */\
-      Swarm*                                             swarm;                  \
+      GeneralSwarm*                                      swarm;                  \
       /* Opacity Stuff */ \
       lucColourMap*                                      opacityColourMap;       \
-      Name                                               opacityVariableName;    \
-      SwarmVariable*                                     opacityVariable;        \
-      /* Mask Info */ \
-      Name                                               maskVariableName;       \
-      SwarmVariable*                                     maskVariable;           \
-      lucDrawingObjectMask                               mask;                   \
-      /* Other Stuff */ \
-      Bool                                               drawParticleNumber;     \
-      Bool                                               sameParticleColour;     \
-      int                                                subSample;              \
-      Bool                                               positionRange;          \
-      Coord                                              minPosition;            \
-      Coord                                              maxPosition;            \
       lucGeometryType                                    geomType;               \
       float                                              scaling;                \
-      float                                  pointSize; \
-      Bool                                   pointSmoothing;
+      float                                              pointSize;              \
+      void*                                              cppdata;                \
 
 struct lucSwarmViewer
 {
@@ -112,22 +100,21 @@ void _lucSwarmViewer_Initialise( void* drawingObject, void* data ) ;
 void _lucSwarmViewer_Execute( void* drawingObject, void* data );
 void _lucSwarmViewer_Destroy( void* drawingObject, void* data ) ;
 
-SwarmVariable* lucSwarmViewer_InitialiseVariable(void* object, Name variableName, Bool scalarRequired, void* data );
-float lucSwarmViewer_GetScalar(SwarmVariable* variable, Particle_Index lParticle_I, float defaultVal);
-
 void _lucSwarmViewer_Setup( void* drawingObject, lucDatabase* database, void* _context ) ;
 void _lucSwarmViewer_Draw( void* drawingObject, lucDatabase* database, void* _context ) ;
-
-void lucSwarmViewBase_DrawParticleNumbers( void* drawingObject, void* _context ) ;
-
-void lucSwarmViewer_UpdateVariables( void* drawingObject ) ;
-
-void lucSwarmViewer_FindParticleLocalIndex(void *drawingObject, Coord coord, Particle_Index  *lParticle_I);
 
 void lucSwarmViewer_SetColourComponent(void* object, lucDatabase* database, SwarmVariable* var, Particle_Index lParticle_I, lucGeometryDataType type, lucColourMap* colourMap);
 void _lucSwarmViewer_SetParticleColour( void* drawingObject, lucDatabase* database, Particle_Index lParticle_I ) ;
 
 void _lucSwarmViewer_PlotParticle( void* drawingObject, lucDatabase* database, Particle_Index lParticle_I );
+
+
+/* keep these dummy functions for now */
+float lucSwarmViewer_GetScalar(SwarmVariable* variable, Particle_Index lParticle_I, float defaultVal);
+SwarmVariable* lucSwarmViewer_InitialiseVariable(void* object, Name variableName, Bool scalarRequired, void* data );
+void lucSwarmViewer_UpdateVariables( void* drawingObject );
+
+
 
 #ifdef __cplusplus
 }
