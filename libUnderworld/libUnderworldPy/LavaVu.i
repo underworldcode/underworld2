@@ -9,9 +9,10 @@
 /* -*- C -*-  (not really, but good for syntax highlighting) */
 
 %module LavaVu
+%include <std_string.i>
 
 %{
-void initViewer(int argc, char **argv);
+std::string initViewer(int argc, char **argv);
 %}
 
 %include "exception.i"
@@ -50,5 +51,5 @@ void initViewer(int argc, char **argv);
   free((char *) $2);
 }
 
-void initViewer(int argc, char **argv);
+std::string initViewer(int argc, char **argv);
 

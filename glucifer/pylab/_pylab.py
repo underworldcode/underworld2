@@ -42,9 +42,12 @@ class Figure(_stgermain.StgCompoundComponent):
     _selfObjectName = "_db"
     _viewerProc = None
 
-    def __init__(self, num=None, figsize=(640,480), boundingBox=None, facecolour="white", edgecolour="black", title=None, axis=False, **kwargs):
+    def __init__(self, database=None, num=None, figsize=(640,480), boundingBox=None, facecolour="white", edgecolour="black", title=None, axis=False, **kwargs):
         """ The initialiser takes as arguments 'num', 'figsize', 'boundingMesh', 'facecolour', 'edgecolour', 'title' and 'axis'.   See help(Figure) for full details on these options.
         """
+        if database and not isinstance(database,str):
+            raise TypeError("'database' object passed in must be of python type 'str'")
+        self._database = database
         if num and not isinstance(num,(str,int)):
             raise TypeError("'num' object passed in must be of python type 'str' or 'int'")
         if num and isinstance(num,str) and (" " in num):
@@ -82,7 +85,7 @@ class Figure(_stgermain.StgCompoundComponent):
         self._drawingObjects = []
         
         self._script = []
-        
+
         super(Figure,self).__init__(**kwargs)
 
     def __del__(self):
@@ -95,7 +98,7 @@ class Figure(_stgermain.StgCompoundComponent):
         super(Figure,self)._add_to_stg_dict(componentDictionary)
 
         componentDictionary[self._db.name].update( {
-                            "filename"          :"gluciferDB"+self._id,
+                            "filename"          :self._database, #"gluciferDB"+self._id,
                             "blocking"          :True,
                             "splitTransactions" :True,
                             "dbPath"            :tmpdir,
@@ -128,6 +131,11 @@ class Figure(_stgermain.StgCompoundComponent):
                             "useBoundingBox"    : True
         } )
 
+    @property
+    def num(self):
+        """    database (str): filename for storing generated figure content, default: none (in-memory only)
+        """
+        return self._database
 
     @property
     def num(self):
@@ -187,11 +195,10 @@ class Figure(_stgermain.StgCompoundComponent):
             from IPython.display import Image,HTML
             self._generate_DB()
             if uw.rank() == 0:
-                self._generate_image()
                 if type.lower() == "webgl":
-                    return HTML('<iframe src='+self._find_generated_HTML()+' width=1000 height=500></iframe>')
+                    return self._generate_HTML()
                 else:
-                    return Image(filename=self._find_generated_file())
+                    return self._generate_image()
         except ImportError:
             pass
         except RuntimeError, e:
@@ -206,7 +213,8 @@ class Figure(_stgermain.StgCompoundComponent):
         foundFile = None
         fname = None
         for extension in ("jpg", "jpeg", "png"):
-            fname = os.path.join(tmpdir,self._win.name+".00000."+extension)
+            #fname = os.path.join(tmpdir,self._win.name+".00000."+extension)
+            fname = self._win.name+".00000."+extension
             if os.path.isfile(fname):
                 foundFile = fname
                 break
@@ -215,12 +223,6 @@ class Figure(_stgermain.StgCompoundComponent):
             raise RuntimeError("The required rendered image does not appear to have been created. Please contact developers. (" + fname + ")")
         
         return os.path.abspath(foundFile)
-
-    def _find_generated_HTML(self):
-        # lets determine what we are outputting (jpg,png)
-        fname = os.path.join(tmpdir,'html','index.html')
-        url = 'http://localhost:8000/html/index.html?../' +self._win.name+".00000.jsonp"
-        return url
 
     def _find_generated_DB(self):
         fname = os.path.join(tmpdir,"gluciferDB"+self._id+".gldb")
@@ -237,9 +239,8 @@ class Figure(_stgermain.StgCompoundComponent):
         """
         self._generate_DB()
         if uw.rank() == 0:
-            self._generate_image()
+            self._generate_image(asfile=True)
             generatedFilename=self._find_generated_file()
-            
             absfilename = os.path.abspath(filename)
             
             # lets set the final extension to that of the glucifer generated file
@@ -250,8 +251,7 @@ class Figure(_stgermain.StgCompoundComponent):
             else:
                 frontpart = absfilename
             finaloutFile = frontpart+splitgenfilename[1]
-            from shutil import copyfile
-            copyfile(generatedFilename,finaloutFile)
+            os.rename(generatedFilename,finaloutFile)
 
     def save_database(self,filename):
         """  Saves the generated database to the provided filename.
@@ -261,13 +261,7 @@ class Figure(_stgermain.StgCompoundComponent):
         """
         self._generate_DB()
         if uw.rank() == 0:
-            self._generate_image()
-            generatedDB=self._find_generated_DB()
-            absfilename = os.path.abspath(filename)
-
-            from shutil import copyfile
-            copyfile(generatedDB,absfilename)
-
+            libUnderworld.gLucifer.lucDatabase_BackupDbFile(self._db, filename)
 
     def _generate_DB(self):
         # remove any existing
@@ -289,21 +283,34 @@ class Figure(_stgermain.StgCompoundComponent):
         libUnderworld.gLucifer._lucDatabase_Execute(self._db,None)
         libUnderworld.gLucifer._lucWindow_Execute(self._win,None)
 
-    def _generate_image(self):
+        # Detect if viewer was built by finding executable...
+        # (even though no longer needed as using libLavaVu 
+        #  will keep this for now as is useful to know if the executable was built
+        #  and to pass it as first command line arg in case needed to get shader/html path)
+        self._lvpath = self._db.dump_script.replace("dump.sh", "LavaVu")
+        if not os.path.isfile(self._lvpath):
+            raise RuntimeError("LavaVu rendering engine does not appear to exist. Perhaps it was not compiled.\nPlease check your configuration, or contact developers.")
+        
+    def _generate_image(self, asfile=False):
         if uw.rank() == 0:
-            # go ahead and draw
-            scriptpath = self._db.dump_script
-            # Keep this for now as is useful to know if the executable was built
-            # and to pass it as first command line arg to get shader/html path
-            lvpath = scriptpath.replace("dump.sh", "LavaVuOS")
-            if not os.path.isfile(lvpath):
-                lvpath = scriptpath.replace("dump.sh", "LavaVu")
-                if not os.path.isfile(lvpath):
-                    raise RuntimeError("LavaVu rendering engine does not appear to exist. Perhaps it was not compiled.\nPlease check your configuration, or contact developers.")
-            #Args + Script commands to run...
-            args = [lvpath, "-" + str(self._db.timeStep), "-I", "-p0", self._db.path, ':'] + self._script + ['image', 'quit']
             #Render with viewer
-            lavavu.initViewer(args)
+            if asfile:
+                starting_directory = os.getcwd()
+                lavavu.initViewer([self._lvpath, "-" + str(self._db.timeStep), "-I", "-p0", self._db.path, ":"] + self._script)
+            else:
+                imagestr = lavavu.initViewer([self._lvpath, "-" + str(self._db.timeStep), "-u", "-h", "-p0", self._db.path, ":"] + self._script)
+                from IPython.display import Image,HTML
+                return HTML("<img src='%s'>" % imagestr)
+
+    def _generate_HTML(self):
+        #TODO: fix webgl support
+        # - call viewer with -U to export JSON
+        # - pass to WebGL viewer URL
+        #fname = os.path.join(tmpdir,'html','index.html')
+        #url = 'http://localhost:8000/html/index.html?../' +self._win.name+".00000.jsonp"
+        #return url
+        #return HTML('<iframe src='+self._find_generated_HTML()+' width=1000 height=500></iframe>')
+        return ""
 
     def script(self, cmd=None):
         #Append to or get contents of the saved script
@@ -332,11 +339,8 @@ class Figure(_stgermain.StgCompoundComponent):
         if uw.rank() == 0:
             if self._viewerProc:
                 return
-            scriptpath = self._db.dump_script
-            lvpath = scriptpath.replace("dump.sh", "LavaVu")
-
             #Open viewer with local web server for interactive/iterative use
-            self._viewerProc = Process(target=lavavu.initViewer, args=([lvpath, "-" + str(self._db.timeStep), "-L", "-p8080", "-q90", "-Q", self._db.path], ))
+            self._viewerProc = Process(target=lavavu.initViewer, args=([self._lvpath, "-" + str(self._db.timeStep), "-L", "-p8080", "-q90", "-Q", self._db.path], ))
             self._viewerProc.start()
 
             from IPython.display import HTML
