@@ -574,7 +574,7 @@ void lucDatabase_OutputDrawingObject(lucDatabase* self, lucViewport* viewport, l
    /* Save the object */
    if (!object->id) /* Not already written */
    {
-      snprintf(SQL, 1024, "insert into object (name, colourmap_id, colour, opacity, properties) values ('%s', 0, %d, %g, '%s')", object->name, lucColour_ToInt(&object->colour), object->opacity, object->properties); 
+      snprintf(SQL, 1024, "insert into object (name, colourmap_id, colour, opacity, properties) values ('%s_%s', 0, %d, %g, '%s')", object->type, object->name, lucColour_ToInt(&object->colour), object->opacity, object->properties); 
       /*printf("%s\n", SQL);*/
       if (!lucDatabase_IssueSQL(self->db, SQL)) return;
 
