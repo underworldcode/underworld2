@@ -287,8 +287,9 @@ class Figure(_stgermain.StgCompoundComponent):
         # (even though no longer needed as using libLavaVu 
         #  will keep this for now as is useful to know if the executable was built
         #  and to pass it as first command line arg in case needed to get shader/html path)
-        self._lvpath = self._db.dump_script.replace("dump.sh", "LavaVu")
-        if not os.path.isfile(self._lvpath):
+        self._lvpath = self._db.dump_script.replace("dump.sh", "")
+        self._lvbin = self._lvpath + "LavaVu"
+        if not os.path.isfile(self._lvbin):
             raise RuntimeError("LavaVu rendering engine does not appear to exist. Perhaps it was not compiled.\nPlease check your configuration, or contact developers.")
         
     def _generate_image(self, asfile=False):
@@ -296,20 +297,24 @@ class Figure(_stgermain.StgCompoundComponent):
             #Render with viewer
             if asfile:
                 starting_directory = os.getcwd()
-                lavavu.initViewer([self._lvpath, "-" + str(self._db.timeStep), "-I", "-p0", self._db.path, ":"] + self._script)
+                lavavu.initViewer([self._lvbin, "-" + str(self._db.timeStep), "-I", "-p0", self._db.path, ":"] + self._script)
             else:
-                imagestr = lavavu.initViewer([self._lvpath, "-" + str(self._db.timeStep), "-u", "-h", "-p0", self._db.path, ":"] + self._script)
+                imagestr = lavavu.initViewer([self._lvbin, "-" + str(self._db.timeStep), "-u", "-h", "-p0", self._db.path, ":"] + self._script)
                 from IPython.display import Image,HTML
                 return HTML("<img src='%s'>" % imagestr)
 
     def _generate_HTML(self):
-        #TODO: fix webgl support
-        # - call viewer with -U to export JSON
-        # - pass to WebGL viewer URL
-        #fname = os.path.join(tmpdir,'html','index.html')
-        #url = 'http://localhost:8000/html/index.html?../' +self._win.name+".00000.jsonp"
-        #return url
-        #return HTML('<iframe src='+self._find_generated_HTML()+' width=1000 height=500></iframe>')
+        if uw.rank() == 0:
+            #Export encoded json string
+            jsonstr = lavavu.initViewer([self._lvbin, "-" + str(self._db.timeStep), "-U", "-h", "-p0", self._db.path, ":"] + self._script)
+            if not os.path.isdir("html"):
+                #Create link to web content directory
+                os.symlink(self._lvpath + 'html', 'html')
+            text_file = open("html/input.json", "w")
+            text_file.write(jsonstr);
+            text_file.close()
+            from IPython.display import IFrame
+            return IFrame("html/index.html#input.json", width=1000, height=800)
         return ""
 
     def script(self, cmd=None):
@@ -340,7 +345,7 @@ class Figure(_stgermain.StgCompoundComponent):
             if self._viewerProc:
                 return
             #Open viewer with local web server for interactive/iterative use
-            self._viewerProc = Process(target=lavavu.initViewer, args=([self._lvpath, "-" + str(self._db.timeStep), "-L", "-p8080", "-q90", "-Q", self._db.path], ))
+            self._viewerProc = Process(target=lavavu.initViewer, args=([self._lvbin, "-" + str(self._db.timeStep), "-L", "-p8080", "-q90", "-Q", self._db.path], ))
             self._viewerProc.start()
 
             from IPython.display import HTML
