@@ -394,13 +394,13 @@ class Figure(_stgermain.StgCompoundComponent):
         del self.drawingObjects[:]
         del self.colourMaps[:]
 
-    def ColourMap(self, colours, logScale=False, discrete=False, **kwargs):
+    def ColourMap(self, **kwargs):
         """    Add a Colour Map to the current figure.
                See 'help(ColourMap)' for information on the ColourMap class and it's options.
                
                Returns the generated ColourMap object.
         """
-        guy = _drawing.ColourMap(colours=colours, logScale=logScale, discrete=discrete, **kwargs)
+        guy = _drawing.ColourMap(**kwargs)
         self.colourMaps.append(guy)
         return guy
 
