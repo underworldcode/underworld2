@@ -18,13 +18,11 @@ import underworld.mesh as uwmesh
 from underworld.function import Function as _Function
 from libUnderworld import *
 
-class Drawing(_stgermain.StgCompoundComponent):
-    _selfObjectName = "_dr"
-    _objectsDict = { "_dr": None, # child should set _dr
-                     "_cm": "lucColourMap",
-                     "_cb": "lucColourBar" }
+class ColourMap(_stgermain.StgCompoundComponent):
+    _selfObjectName = "_cm"
+    _objectsDict = { "_cm": "lucColourMap" }
     
-    def __init__(self, colours="Purple Blue Turquoise Bisque Orange Red Brown".split(), properties=None, opacity=-1, logScale=False, colourBar=True, **kwargs):
+    def __init__(self, colours="MidnightBlue LightSeaGreen Orange Burlywood Bisque".split(), logScale=False, discrete=False, **kwargs):
     
         if not isinstance(colours,(str,list)):
             raise TypeError("'colours' object passed in must be of python type 'str' or 'list'")
@@ -32,12 +30,6 @@ class Drawing(_stgermain.StgCompoundComponent):
             self._colours = colours.split()
         else:
             self._colours = colours
-
-        if not properties:
-            properties = {}
-        if not isinstance(properties,dict):
-            raise TypeError("'properties' object passed in must be of python type 'dict'")
-        self._properties = properties
 
         if kwargs.has_key('valueRange'):
             valueRange = kwargs.get('valueRange')
@@ -59,19 +51,88 @@ class Drawing(_stgermain.StgCompoundComponent):
            self._dynamicRange=True
            self._valueRange = [0.0,1.0] # dummy value - not important
 
+        if not isinstance(logScale, bool):
+            raise TypeError("'logScale' parameter must be of 'bool' type.")
+        self._logScale = logScale
+
+        if not isinstance(discrete, bool):
+            raise TypeError("'discrete' parameter must be of 'bool' type.")
+        self._discrete = discrete
+
+        # build parent
+        super(ColourMap,self).__init__()
+
+    def _add_to_stg_dict(self,componentDictionary):
+
+        # call parents method
+        super(ColourMap,self)._add_to_stg_dict(componentDictionary)
+
+        componentDictionary[self._cm.name].update( {
+            "colours"       :" ".join(self.colours),
+            "logScale"      :self._logScale,
+            "discrete"      :self._discrete,
+            "maximum"       :self._valueRange[1],
+            "minimum"       :self._valueRange[0],
+            "dynamicRange"  :self._dynamicRange
+        } )
+
+    @property
+    def valueRange(self):
+        """     valueRange (list) : list of 2 numbers that define the min and max of the colour map values 
+        """
+        return self._valueRange
+
+    @property
+    def dynamicRange(self):
+        """     dynamicRange (bool) : if True the max and min values of the field will automatically define the colour map value 
+                                      range and the valueRange list is ignored. If False the valueRange is used to define the 
+                                      colour map value range
+        """
+        return self._dynamicRange
+
+    @property
+    def colours(self):
+        """    colours (list): list of colours to use.  Should be provided as a list or a string.
+        """
+        return self._colours
+
+    @property
+    def logScale(self):
+        """    logScale (bool): Use a logarithm scale for the colourmap.
+        """
+        return self._logScale
+
+class Drawing(_stgermain.StgCompoundComponent):
+    _selfObjectName = "_dr"
+    _objectsDict = { "_dr": None} # child should set _dr
+
+    _defaultColourMap = ColourMap()
+    
+    def __init__(self, colours=None, colourMap=None, properties={}, opacity=-1, colourBar=True, **kwargs):
+    
+        if colourMap:
+            self._colourMap = colourMap
+        elif colours:
+            self._colourMap = ColourMap(colours)
+        else:
+            self._colourMap = self._defaultColourMap
+
+        if not isinstance(properties,dict):
+            raise TypeError("'properties' object passed in must be of python type 'dict'")
+        self._properties = properties
+
         if not isinstance(opacity,(int,float)):
             raise TypeError("'opacity' object passed in must be of python type 'int' or 'float'")
         if float(opacity) > 1. or float(opacity) < -1.:
             raise ValueError("'opacity' object must takes values from 0. to 1., while a value of -1 explicitly disables opacity.")
         self._opacity = opacity
         
-        if not isinstance(logScale, bool):
-            raise TypeError("'logScale' parameter must be of 'bool' type.")
-        self._logScale = logScale
-
         if not isinstance(colourBar, bool):
             raise TypeError("'colourBar' parameter must be of 'bool' type.")
-        self._colourBar = colourBar
+        self._colourBar = None
+        if colourBar:
+            #Create the associated colour bar
+            self._colourBar = ColourBar(colourMap=self._colourMap)
      
         # build parent
         super(Drawing,self).__init__()
@@ -81,13 +142,6 @@ class Drawing(_stgermain.StgCompoundComponent):
         # call parents method
         super(Drawing,self)._add_to_stg_dict(componentDictionary)
 
-        componentDictionary[self._cm.name].update( {
-            "colours"       :" ".join(self.colours),
-            "logScale"      :self._logScale,
-            "maximum"       :self._valueRange[1],
-            "minimum"       :self._valueRange[0],
-            "dynamicRange"  :self._dynamicRange
-        } )
         # add an empty(ish) drawing object.  children should fill it out.
         #Convert properties to string
         propstr = ''
@@ -96,41 +150,18 @@ class Drawing(_stgermain.StgCompoundComponent):
 
         componentDictionary[self._dr.name].update( {
             "properties"    :propstr,
-            "ColourMap"     :self._cm.name,
+            "ColourMap"     :self._colourMap._cm.name,
             "opacity"       :self.opacity
         } )
 
-        #Set default properties for now, TODO: allow setting ColourBar props, needs to be in own class for this
-        cbprops = ["colourbar=1", "height=10", "lengthfactor=0.8", 
-                   "margin=16", "border=1", 
-                   "precision=2", "scientific=false", 
-                   "ticks=0", "printticks=true", "printunits=false", "scalevalue=1.0"] #tick0-tick10=val
-
-        componentDictionary[self._cb.name].update( {
-            "ColourMap"     :self._cm.name,
-            "properties"    :'\n'.join(cbprops),
-        } )
-
-
-    @property
-    def valueRange(self):
-        """     valueRange (list) : list of 2 numbers that define the min and max of the colour bar values 
-        """
-        return self._valueRange
-
-    @property
-    def dynamicRange(self):
-        """     dynamicRange (bool) : if True the max and min values of the field will automatically define the colour bar value 
-                                      range and the valueRange list is ignored. If False the valueRange is used to define the 
-                                      colour bar value range
-        """
-        return self._dynamicRange
-
-    @property
-    def colours(self):
-        """    colours (list): list of colours to use to draw object.  Should be provided as a list or a string.
-        """
-        return self._colours
+    def _updateProperties(self, newProps, overwrite=False):
+        #Update the properties values, set overwrite to True to replace duplicates
+        #with new values, default behaviour is to keep existing when merging
+        if overwrite:
+            self._properties.update(newProps)
+        else:
+            newProps.update({k:v for k,v in self._properties.iteritems() if v})
+            self._properties = newProps
 
     @property
     def opacity(self):
@@ -138,11 +169,26 @@ class Drawing(_stgermain.StgCompoundComponent):
         """
         return self._opacity
 
-    @property
-    def logScale(self):
-        """    logScale (bool): Use a logarithm scale for the colourmap.
-        """
-        return self._logScale
+class ColourBar(Drawing):
+    _selfObjectName = "_dr"
+    _objectsDict = { "_dr": "lucColourBar" }
+
+    def __init__(self, **kwargs):
+        # build parent
+        super(ColourBar,self).__init__(colourBar=False, **kwargs)
+
+        #Replace any missing properties with defaults, TODO: allow setting ColourBar props via args
+        self._updateProperties({"colourbar" : 1, "height" : 10, "lengthfactor" : 0.8, 
+                "margin" : 16, "border" : 1, "precision" : 2, "scientific" : False, 
+                "ticks" : 2 if self._colourMap.logScale else 0, "printticks" : True, "printunits" : False, "scalevalue" : 1.0}) #tick0-tick10 : val
+    
+    def _add_to_stg_dict(self,componentDictionary):
+
+        # call parents method
+        super(ColourBar,self)._add_to_stg_dict(componentDictionary)
+
+        componentDictionary[self._dr.name].update( {
+        } )
 
 class CrossSection(Drawing):
     """  This drawing object class defines a cross-section plane, derived classes plot data over this cross section
@@ -206,8 +252,8 @@ class Surface(CrossSection):
         # build parent
         super(Surface,self).__init__(**kwargs)
 
-        # Enable cullface prop by default
-        self._properties["cullface"] = True;
+        #Replace any missing properties with defaults
+        self._updateProperties({"cullface" : True});
         # TODO: disable lighting if 2D (how to get dims?)
         #self._properties["lit"] = False;
 
@@ -264,10 +310,8 @@ class Points(Drawing):
         # build parent
         super(Points,self).__init__(**kwargs)
 
-        #Set properties dict
-        self._properties["pointsize"] = pointSize
-        if pointType != None:
-            self._properties["pointtype"] = pointType
+        #Replace any missing properties with defaults
+        self._updateProperties({"pointsize" : pointSize, "pointtype" : pointType});
 
     def _add_to_stg_dict(self,componentDictionary):
         # lets build up component dictionary
@@ -390,10 +434,8 @@ class VectorArrows(GridSampler3D):
         # build parent
         super(VectorArrows,self).__init__(**kwargs)
 
-        #Set properties dict
-        self._properties["arrowhead"] = arrowHeadSize
-        self._properties["scaling"] = lengthScale
-        self._properties["glyphs"] = glyphs
+        #Replace any missing properties with defaults
+        self._updateProperties({"arrowhead" : arrowHeadSize, "scaling" : lengthScale, "glyphs" : glyphs});
 
     def _add_to_stg_dict(self,componentDictionary):
         # lets build up component dictionary
@@ -462,12 +504,10 @@ class Mesh(Drawing):
         #No colour bar
         self._colourBar = False
 
-        #Set properties dict
-        self._properties["lit"] = False;
-        self._properties["linewidth"] = 0.1;
-        self._properties["pointsize"] = 5 if self._nodeNumbers else 1
-        self._properties["pointtype"] = 2 if self._nodeNumbers else 4
-
+        #Replace any missing properties with defaults
+        self._updateProperties({"lit" : False, "linewidth" : 0.1, 
+                                "pointsize" : 5 if self._nodeNumbers else 1, 
+                                "pointtype" : 2 if self._nodeNumbers else 4});
 
     def _add_to_stg_dict(self,componentDictionary):
         # lets build up component dictionary

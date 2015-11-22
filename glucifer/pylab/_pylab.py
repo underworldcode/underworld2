@@ -43,7 +43,7 @@ class Figure(_stgermain.StgCompoundComponent):
     _viewerProc = None
 
     def __init__(self, database=None, num=None, figsize=(640,480), boundingBox=None, facecolour="white", edgecolour="black", title=None, axis=False, **kwargs):
-        """ The initialiser takes as arguments 'num', 'figsize', 'boundingMesh', 'facecolour', 'edgecolour', 'title' and 'axis'.   See help(Figure) for full details on these options.
+        """ The initialiser takes as arguments 'num', 'figsize', 'boundingBox', 'facecolour', 'edgecolour', 'title' and 'axis'.   See help(Figure) for full details on these options.
         """
         if database and not isinstance(database,str):
             raise TypeError("'database' object passed in must be of python type 'str'")
@@ -83,7 +83,7 @@ class Figure(_stgermain.StgCompoundComponent):
         self._axis = axis
 
         self._drawingObjects = []
-        
+        self._colourMaps = [_drawing.Drawing._defaultColourMap]
         self._script = []
 
         super(Figure,self).__init__(**kwargs)
@@ -179,6 +179,12 @@ class Figure(_stgermain.StgCompoundComponent):
         """
         return self._drawingObjects
 
+    @property
+    def colourMaps(self):
+        """    colourMaps : list of colour maps available within the figure.
+        """
+        return self._colourMaps
+
     def show(self, type="image"):
         """    Shows the generated image inline within an ipython notebook
         
@@ -273,9 +279,13 @@ class Figure(_stgermain.StgCompoundComponent):
         for object in self.drawingObjects:
             object._cself.id = 0
             libUnderworld.StGermain.Stg_ObjectList_Append(self._vp.drawingObject_Register.objects,object._cself)
-            if object._colourBar == True:
-                object._cb.id = 0
-                libUnderworld.StGermain.Stg_ObjectList_Append(self._vp.drawingObject_Register.objects,object._cb)
+            #For default colour bars created with drawing objects rather than added on their own, add manually
+            if object._colourBar:
+                object._colourBar._dr.id = 0
+                libUnderworld.StGermain.Stg_ObjectList_Append(self._vp.drawingObject_Register.objects,object._colourBar._dr)
+        #Set ids to 0 as when > 0 flagged as already written to db and skipped
+        for object in self.colourMaps:
+            object._cself.id = 0
                 
         # go ahead and fill db
         libUnderworld.gLucifer.lucDatabase_DeleteWindows(self._db)
@@ -286,7 +296,7 @@ class Figure(_stgermain.StgCompoundComponent):
         # Detect if viewer was built by finding executable...
         # (even though no longer needed as using libLavaVu 
         #  will keep this for now as is useful to know if the executable was built
-        #  and to pass it as first command line arg in case needed to get shader/html path)
+        #  and to pass it as first command line arg or if needed to get html path)
         self._lvpath = self._db.dump_script.replace("dump.sh", "")
         self._lvbin = self._lvpath + "LavaVu"
         if not os.path.isfile(self._lvbin):
@@ -379,9 +389,30 @@ class Figure(_stgermain.StgCompoundComponent):
             response = urllib2.urlopen(url).read()
 
     def clear(self):
-        """    Clears all the figure's drawing objects 
+        """    Clears all the figure's drawing objects and colour maps
         """
         del self.drawingObjects[:]
+        del self.colourMaps[:]
+
+    def ColourMap(self, colours, logScale=False, discrete=False, **kwargs):
+        """    Add a Colour Map to the current figure.
+               See 'help(ColourMap)' for information on the ColourMap class and it's options.
+               
+               Returns the generated ColourMap object.
+        """
+        guy = _drawing.ColourMap(colours=colours, logScale=logScale, discrete=discrete, **kwargs)
+        self.colourMaps.append(guy)
+        return guy
+
+    def ColourBar(self, colourMap, **kwargs):
+        """    Add a Colour Bar to the current figure.
+               See 'help(ColourBar)' for information on the ColourMap class and it's options.
+               
+               Returns the generated ColourBar object.
+        """
+        guy = _drawing.ColourBar(colourMap=colourMap, **kwargs)
+        self.drawingObjects.append(guy)
+        return guy
 
     def Surface(self, fn, mesh, useMesh=False, drawSides="xyzXYZ", **kwargs):
         """    Add a surface drawing object to the current figure.
@@ -389,8 +420,6 @@ class Figure(_stgermain.StgCompoundComponent):
                
                Returns the generated Surface object.
         """
-        if not mesh:
-            mesh = self.boundingMesh
         guy = _drawing.Surface(fn=fn, mesh=mesh, useMesh=useMesh, drawSides=drawSides, **kwargs)
         self.drawingObjects.append(guy)
         return guy
@@ -413,8 +442,6 @@ class Figure(_stgermain.StgCompoundComponent):
                
                Returns the generated VectorArrows object.
         """
-        if not mesh:
-            mesh = self.boundingMesh
         guy = _drawing.VectorArrows( fn=fn, mesh=mesh, resolutionX=resolutionX, resolutionY=resolutionY, resolutionZ=resolutionZ,
                                                   arrowHeadSize=arrowHeadSize, lengthScale=lengthScale, glyphs=glyphs, colourBar=False, **kwargs)
         self.drawingObjects.append(guy)
@@ -426,8 +453,6 @@ class Figure(_stgermain.StgCompoundComponent):
                
                Returns the generated Volume object.
         """
-        if not mesh:
-            mesh = self.boundingMesh
         guy = _drawing.Volume( fn=fn, mesh=mesh, useMesh=useMesh, resolutionX=resolutionX, resolutionY=resolutionY, resolutionZ=resolutionZ,
                                                   colourBar=False, **kwargs)
         self.drawingObjects.append(guy)
@@ -439,8 +464,6 @@ class Figure(_stgermain.StgCompoundComponent):
                
                Returns the generated Mesh object.
         """
-        if not mesh:
-            mesh = self.boundingMesh
         guy = _drawing.Mesh(mesh=mesh, nodeNumbers=nodeNumbers, segmentsPerEdge=segmentsPerEdge, **kwargs)
         self.drawingObjects.append(guy)
         return guy
