@@ -1,10 +1,11 @@
-import underworld
+import underworld as _underworld
 import underworld._stgermain as _stgermain
-import underworld.fevariable as fevariable
-import underworld.swarm as swarmMod
-import underworld.mesh as uwmesh
+import underworld.swarm as _swarmMod
+import underworld.mesh as _uwmesh
 from underworld.function import Function as _Function
-from libUnderworld import *
+import libUnderworld as _libUnderworld
+#import underworld.fevariable as fevariable
+
 
 class Drawing(_stgermain.StgCompoundComponent):
     _selfObjectName = "_dr"
@@ -12,8 +13,10 @@ class Drawing(_stgermain.StgCompoundComponent):
                      "_cm": "lucColourMap",
                      "_cb": "lucColourBar" }
     
-    def __init__(self, colours="Purple Blue Green Yellow Orange Red".split(), opacity=-1, logScale=False, colourBar=True, **kwargs):
+    def __init__(self, colours=None, opacity=None, logScale=False, colourBar=True, valueRange=None, **kwargs ):
     
+        if colours == None:
+            colours = ["black", "white"]
         if not isinstance(colours,(str,list)):
             raise TypeError("'colours' object passed in must be of python type 'str' or 'list'")
         if isinstance(colours,(str)):
@@ -21,8 +24,7 @@ class Drawing(_stgermain.StgCompoundComponent):
         else:
             self._colours = colours
 
-        if kwargs.has_key('valueRange'):
-            valueRange = kwargs.get('valueRange')
+        if valueRange != None:
             # is valueRange correctly defined, ie list of length 2 made of numbers
             if not isinstance( valueRange, (list,tuple)):
                 raise TypeError("'valueRange' objected passed in must be of type 'list' or 'tuple'")
@@ -35,17 +37,19 @@ class Drawing(_stgermain.StgCompoundComponent):
                 raise ValueError("The first number of the valueRange list must be smaller than the second number")
 
             # valueRange arg is good - turn off dynamicRange and use input 
-            self._dynamicRange=False
-            self._valueRange = valueRange
+            self._dynamicRange = False
+            self._valueRange   = valueRange
         else:
-           self._dynamicRange=True
-           self._valueRange = [0.0,1.0] # dummy value - not important
+           self._dynamicRange = True
+           self._valueRange   = [0.0,1.0] # dummy value - not important
 
-        if not isinstance(opacity,(int,float)):
-            raise TypeError("'opacity' object passed in must be of python type 'int' or 'float'")
-        if float(opacity) > 1. or float(opacity) < -1.:
-            raise ValueError("'opacity' object must takes values from 0. to 1., while a value of -1 explicitly disables opacity.")
-        self._opacity = opacity
+        self._opacity = -1
+        if opacity != None:
+            if not isinstance(opacity,(int,float)):
+                raise TypeError("'opacity' object passed in must be of python type 'int' or 'float'")
+            if float(opacity) > 1. or float(opacity) < 0.:
+                raise ValueError("'opacity' must takes values within [0,1].")
+            self._opacity = opacity
         
         if not isinstance(logScale, bool):
             raise TypeError("'logScale' parameter must be of 'bool' type.")
@@ -59,7 +63,6 @@ class Drawing(_stgermain.StgCompoundComponent):
         super(Drawing,self).__init__()
 
     def _add_to_stg_dict(self,componentDictionary):
-        
         # call parents method
         super(Drawing,self)._add_to_stg_dict(componentDictionary)
 
@@ -117,10 +120,15 @@ class Surface(Drawing):
     """
     _objectsDict = { "_dr": "lucScalarField" }
 
-    def __init__(self, fn, mesh, drawSides="xyzXYZ", *args, **kwargs):
-        self._fn = underworld.function.Function._CheckIsFnOrConvertOrThrow(fn)
+    def __init__(self, mesh, fn, drawSides="xyzXYZ",
+                       colours=None, opacity=None, logScale=False, colourBar=True, valueRange=None, *args, **kwargs):
+        # DEPRECATE
+        if isinstance(mesh, _underworld.function.Function):
+            raise TypeError("Note that the first two arguments for this constructor have been switched. "
+                            "Please specify the mesh (mesh), and then the function (fn), or use keyword arguments.")
+        self._fn = _underworld.function.Function._CheckIsFnOrConvertOrThrow(fn)
         
-        if not isinstance(mesh,uwmesh.FeMesh):
+        if not isinstance(mesh,_uwmesh.FeMesh):
             raise TypeError("'mesh' object passed in must be of type 'FeMesh'")
         self._mesh = mesh
         
@@ -129,7 +137,7 @@ class Surface(Drawing):
         self._drawSides = drawSides
         
         # build parent
-        super(Surface,self).__init__(**kwargs)
+        super(Surface,self).__init__(colours, opacity, logScale, colourBar, valueRange, *args, **kwargs)
 
     def _add_to_stg_dict(self,componentDictionary):
         # lets build up component dictionary
@@ -142,7 +150,7 @@ class Surface(Drawing):
         componentDictionary[self._dr.name][     "Mesh"] = self._mesh._cself.name
 
     def _setup(self):
-        gLucifer._lucCrossSection_SetFn( self._cself, self._fn._fncself )
+        _libUnderworld.gLucifer._lucCrossSection_SetFn( self._cself, self._fn._fncself )
 
     @property
     def drawSides(self):
@@ -158,36 +166,32 @@ class Points(Drawing):
     """
     _objectsDict = { "_dr": "lucSwarmViewer" }
 
-    def __init__(self, swarm, colourVariable=None, sizeVariable=None, opacityVariable=None, pointSize=1.0, **kwargs):
-        if not isinstance(swarm,swarmMod.Swarm):
+    def __init__(self, swarm, fn_colour=None, fn_mask=None, fn_size=None, pointSize=1.0,
+                       colours=None, opacity=None, logScale=False, colourBar=True, valueRange=None, colourVariable=None, *args, **kwargs):
+
+        #DEPRECATE
+        if colourVariable != None:
+            raise RuntimeError("'colourVariable' parameter is deprecated. Use the fn_colour parameter instead.")
+        if not isinstance(swarm,_swarmMod.Swarm):
             raise TypeError("'swarm' object passed in must be of type 'Swarm'")
         self._swarm = swarm
 
-        if colourVariable:
-            if not isinstance(colourVariable,swarmMod.SwarmVariable):
-                raise TypeError("'colourVariable' object passed in must be of type 'SwarmVariable'")
-            if colourVariable.swarm != swarm:
-                raise ValueError("colourVariable must correspond to provided swarm.")
-        self._colourVariable = colourVariable
-        if sizeVariable:
-            if not isinstance(sizeVariable,swarmMod.SwarmVariable):
-                raise TypeError("'sizeVariable' object passed in must be of type 'SwarmVariable'")
-            if sizeVariable.swarm != swarm:
-                raise ValueError("sizeVariable must correspond to provided swarm.")
-        self._sizeVariable = sizeVariable
-        if opacityVariable:
-            if not isinstance(opacityVariable,swarmMod.SwarmVariable):
-                raise TypeError("'opacityVariable' object passed in must be of type 'SwarmVariable'")
-            if opacityVariable.swarm != swarm:
-                raise ValueError("opacityVariable must correspond to provided swarm.")
-        self._opacityVariable = opacityVariable
+        self._fn_colour = None
+        if fn_colour != None:
+           self._fn_colour = _underworld.function.Function._CheckIsFnOrConvertOrThrow(fn_colour)
+        self._fn_mask = None
+        if fn_mask != None:
+           self._fn_mask = _underworld.function.Function._CheckIsFnOrConvertOrThrow(fn_mask)
+        self._fn_size = None
+        if fn_size != None:
+           self._fn_size = _underworld.function.Function._CheckIsFnOrConvertOrThrow(fn_size)
 
         if not isinstance(pointSize,(float,int)):
             raise TypeError("'pointSize' object passed in must be of python type 'float'")
         self._pointSize = pointSize
 
         # build parent
-        super(Points,self).__init__(**kwargs)
+        super(Points,self).__init__(colours, opacity, logScale, colourBar, valueRange, *args, **kwargs)
 
     def _add_to_stg_dict(self,componentDictionary):
         # lets build up component dictionary
@@ -198,13 +202,17 @@ class Points(Drawing):
         componentDictionary[ self._cself.name ][ "pointSize" ] = self.pointSize
         
     def _setup(self):
-        if self.colourVariable:
-            self._cself.colourVariable = self.colourVariable._cself
-        if self.sizeVariable:
-            self._cself.sizeVariable = self.sizeVariable._cself
-        if self.opacityVariable:
-            self._cself.opacityVariable = self.opacityVariable._cself
-    
+        fnc_ptr = None
+        if self._fn_colour:
+            fnc_ptr = self._fn_colour._fncself
+        fnm_ptr = None
+        if self._fn_mask:
+            fnm_ptr = self._fn_mask._fncself
+        fns_ptr = None
+        if self._fn_size:
+            fns_ptr = self._fn_size._fncself
+
+        _libUnderworld.gLucifer._lucSwarmViewer_SetFn( self._cself, fnc_ptr, fnm_ptr, fns_ptr, None )
 
 
     @property
@@ -213,21 +221,10 @@ class Points(Drawing):
         """
         return self._swarm
     @property
-    def colourVariable(self):
-        """    colourVariable (str): name of live underworld swarm variable which will determine the point colours.
+    def fn_colour(self):
+        """    fn_colour (uw.Function): Function evaluated to determine particle colour.
         """
         return self._colourVariable
-    @property
-    def sizeVariable(self):
-        """    sizeVariable (str): name of live underworld swarm variable which will determine the point size.
-        """
-        return self._sizeVariable
-    @property
-    def opacityVariable(self):
-        """    opacityVariable (str): name of live underworld swarm variable which will determine the point opacity.
-        """
-        return self._opacityVariable
-
     @property
     def pointSize(self):
         """    pointSize (float): size of points
@@ -240,10 +237,15 @@ class VectorArrows(Drawing):
     """
     _objectsDict = { "_dr": "lucVectorArrows" }
 
-    def __init__(self, fn, mesh, resolutionX=16, resolutionY=16, resolutionZ=16, arrowHeadSize=0.3, lengthScale=0.3, glyphs=3, **kwargs):
-        self._fn = underworld.function.Function._CheckIsFnOrConvertOrThrow(fn)
+    def __init__(self, mesh, fn, resolutionX=16, resolutionY=16, resolutionZ=16, arrowHeadSize=0.3, lengthScale=0.3, glyphs=3,
+                       colours=None, opacity=None, logScale=False, colourBar=True, valueRange=None, *args, **kwargs):
+        # DEPRECATE
+        if isinstance(mesh, _underworld.function.Function):
+            raise TypeError("Note that the first two arguments for this constructor have been switched. "
+                            "Please specify the mesh (mesh), and then the function (fn), or use keyword arguments.")
+        self._fn = _underworld.function.Function._CheckIsFnOrConvertOrThrow(fn)
         
-        if not isinstance(mesh,uwmesh.FeMesh):
+        if not isinstance(mesh,_uwmesh.FeMesh):
             raise TypeError("'mesh' object passed in must be of type 'FeMesh'")
         self._mesh = mesh
 
@@ -276,10 +278,10 @@ class VectorArrows(Drawing):
         self._glyphs = glyphs
 
         # build parent
-        super(VectorArrows,self).__init__(**kwargs)
+        super(VectorArrows,self).__init__(colours, opacity, logScale, colourBar, valueRange, *args, **kwargs)
 
     def _setup(self):
-        gLucifer._lucCrossSection_SetFn( self._cself, self._fn._fncself )
+        _libUnderworld.gLucifer._lucCrossSection_SetFn( self._cself, self._fn._fncself )
 
 
     def _add_to_stg_dict(self,componentDictionary):
@@ -335,9 +337,10 @@ class Mesh(Drawing):
     """
     _objectsDict = { "_dr": "lucMeshViewer" }
 
-    def __init__(self, mesh, nodeNumbers=False, segmentsPerEdge=1, *args, **kwargs):
+    def __init__(self, mesh, nodeNumbers=False,
+                       colours=None, opacity=None, logScale=False, colourBar=False, valueRange=None, *args, **kwargs):
 
-        if not isinstance(mesh,uwmesh.FeMesh):
+        if not isinstance(mesh,_uwmesh.FeMesh):
             raise TypeError("'mesh' object passed in must be of type 'FeMesh'")
         self._mesh = mesh
 
@@ -350,7 +353,7 @@ class Mesh(Drawing):
         self._segmentsPerEdge = segmentsPerEdge
         
         # build parent
-        super(Mesh,self).__init__(**kwargs)
+        super(Mesh,self).__init__(colours, opacity, logScale, colourBar, valueRange, *args, **kwargs)
 
     def _add_to_stg_dict(self,componentDictionary):
         # lets build up component dictionary

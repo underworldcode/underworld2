@@ -10,6 +10,7 @@
 #include <mpi.h>
 #include <StGermain/StGermain.h>
 #include <StgDomain/StgDomain.h>
+#include <StgFEM/StgFEM.h>
 
 #include "Base.h"
 
@@ -22,6 +23,7 @@
 #define MASTER 0
 #endif
 
+lucDatabase* defaultDatabase = NULL;
 const Type lucWindow_Type = "lucWindow";
 
 lucWindow* _lucWindow_New(  LUCWINDOW_DEFARGS  )
