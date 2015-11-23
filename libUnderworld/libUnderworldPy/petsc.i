@@ -15,10 +15,15 @@
 /* #include <petscext.h> */
 #include <petscsys.h>
 #include <petscviewer.h>
+#include <petscvec.h>
 %}
 
 
 %inline %{
+
+void SetVec(Vec vec, double alpha){
+  VecSet( vec, alpha );
+}
 
 void OptionsInsertString(char * string){
     PetscOptionsInsertString(string);
