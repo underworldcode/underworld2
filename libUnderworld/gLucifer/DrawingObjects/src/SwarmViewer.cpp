@@ -255,7 +255,11 @@ void _lucSwarmViewer_Draw( void* drawingObject, lucDatabase* database, void* _co
          float valuef = cppdata->func_colour(particleCoord)->at<float>();
          lucDatabase_AddValues(database, 1, self->geomType, lucColourValueData, self->colourMap, &valuef);
       }
-
+      if (cppdata->fn_size) {
+         /* evaluate function */
+         float valuef = cppdata->func_size(particleCoord)->at<float>();
+         lucDatabase_AddValues(database, 1, self->geomType, lucSizeData, NULL, &valuef);
+      }
    }
    
    /* Scale Colour Maps */

@@ -2,7 +2,6 @@ import underworld as uw
 import errno
 import weakref
 import underworld._stgermain as _stgermain
-import _drawing
 from subprocess import Popen, PIPE, STDOUT
 import os
 import subprocess
@@ -10,6 +9,7 @@ import urllib2
 import time
 from base64 import b64encode
 import libUnderworld
+from . import objects
 
 # lets create somewhere to dump data for this session
 import os
@@ -150,12 +150,6 @@ class Figure(_stgermain.StgCompoundComponent):
         """
         return self._axis
 
-    @property
-    def drawingObjects(self):
-        """    drawingObjects : list of objects to be drawn within the figure.
-        """
-        return self._drawingObjects
-
     def show(self, type="image"):
         """    Shows the generated image inline within an ipython notebook
         
@@ -262,9 +256,9 @@ class Figure(_stgermain.StgCompoundComponent):
         for ii in range(self._vp.drawingObject_Register.objects.count,0,-1):
             libUnderworld.StGermain._Stg_ObjectList_RemoveByIndex(self._vp.drawingObject_Register.objects,ii-1, libUnderworld.StGermain.KEEP)
         # first add drawing objects to viewport
-        if len(self.drawingObjects) == 0:
+        if len(self._drawingObjects) == 0:
             raise RuntimeError("There appears to be no drawing objects to render.")
-        for object in self.drawingObjects:
+        for object in self._drawingObjects:
             object._cself.id = 0
             libUnderworld.StGermain.Stg_ObjectList_Append(self._vp.drawingObject_Register.objects,object._cself)
             if object._colourBar == True:
@@ -359,46 +353,50 @@ class Figure(_stgermain.StgCompoundComponent):
     def clear(self):
         """    Clears all the figure's drawing objects 
         """
-        del self.drawingObjects[:]
+        del self._drawingObjects[:]
+
+    def __add__(self,drawing_object):
+        """
+        """
+        if not isinstance(drawing_object, objects.Drawing):
+            raise TypeError("Object your are trying to add to figure does not appear to be of type 'Drawing'.")
+
+        self._drawingObjects.append( drawing_object )
+        return self
 
     def Surface(self, fn, mesh, drawSides="xyzXYZ", **kwargs):
-        """    Add a surface drawing object to the current figure.
-               See 'help(Surface)' for information on the Surface class and it's options.
-               
-               Returns the generated Surface object.
+        """ DEPRECATE
         """
-        guy = _drawing.Surface(fn, mesh, drawSides=drawSides, **kwargs)
-        self.drawingObjects.append(guy)
-        return guy
+        raise RuntimeError("The interface to add a Surface drawing object to your figure has changed. "
+                           "This drawing object is now available in the 'glucifer.objects' module. To "
+                           "add the drawing object to your figure, use the '+' overload. For example:\n"
+                           ">>> fig = glucifer.Figure()\n"
+                           ">>> fig + glucifer.objects.Surface(mesh,fn)")
 
     def Points(self, swarm, fn_colour=None, fn_mask=None, pointSize=1.0, **kwargs):
-        """    Add a points drawing object to the current figure.
-               See 'help(Points)' for information on the Points class and it's options.
-               
-               Returns the generated Points object.
+        """ DEPRECATE
         """
-        guy = _drawing.Points( swarm=swarm, fn_colour=fn_colour, fn_mask=fn_mask, pointSize=pointSize, **kwargs)
-        self.drawingObjects.append(guy)
-        return guy
+        raise RuntimeError("The interface to add a Points drawing object to your figure has changed. "
+                           "This drawing object is now available in the 'glucifer.objects' module. To "
+                           "add the drawing object to your figure, use the '+' overload. For example:\n"
+                           ">>> fig = glucifer.Figure()\n"
+                           ">>> fig + glucifer.objects.Points(swarm)")
 
     def VectorArrows(self, fn, mesh, resolutionX=16, resolutionY=16, resolutionZ=16,
                                   arrowHeadSize=0.3, lengthScale=0.3, glyphs=3, **kwargs):
-        """    Add a vector arrow drawing object to the current figure.
-               See 'help(VectorArrows)' for information on the VectorArrows class and it's options.
-               
-               Returns the generated Points object.
+        """ DEPRECATE
         """
-        guy = _drawing.VectorArrows( fn, mesh, resolutionX=resolutionX, resolutionY=resolutionY, resolutionZ=resolutionZ,
-                                                  arrowHeadSize=arrowHeadSize, lengthScale=lengthScale, glyphs=glyphs, colourBar=False, **kwargs)
-        self.drawingObjects.append(guy)
-        return guy
+        raise RuntimeError("The interface to add a VectorArrows drawing object to your figure has changed. "
+                           "This drawing object is now available in the 'glucifer.objects' module. To "
+                           "add the drawing object to your figure, use the '+' overload. For example:\n"
+                           ">>> fig = glucifer.Figure()\n"
+                           ">>> fig + glucifer.objects.VectorArrows(mesh,fn)")
 
     def Mesh(self, mesh, nodeNumbers=False, **kwargs):
-        """    Add a mesh drawing object to the current figure.
-               See 'help(Mesh)' for information on the Mesh class and it's options.
-               
-               Returns the generated Mesh object.
+        """ DEPRECATE
         """
-        guy = _drawing.Mesh(mesh=mesh, nodeNumbers=nodeNumbers, **kwargs)
-        self.drawingObjects.append(guy)
-        return guy
+        raise RuntimeError("The interface to add a Mesh drawing object to your figure has changed. "
+                           "This drawing object is now available in the 'glucifer.objects' module. To "
+                           "add the drawing object to your figure, use the '+' overload. For example:\n"
+                           ">>> fig = glucifer.Figure()\n"
+                           ">>> fig + glucifer.objects.Mesh(mesh)")
