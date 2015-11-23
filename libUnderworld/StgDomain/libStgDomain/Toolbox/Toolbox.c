@@ -35,10 +35,6 @@ void StgDomain_Toolbox_Initialise( ToolboxesManager* toolboxesManager, int* argc
 
 void StgDomain_Toolbox_Finalise( ToolboxesManager* toolboxesManager ) {
    StgDomain_Finalise();
-   
-   Journal_RPrintf(
-      Journal_Register( Info_Type, (Name)StgDomain_Toolbox_Type ),
-         "Finalised: StgDomain (Domain Library).\n" );
 }
 
 Index StgDomain_Toolbox_Register( ToolboxesManager* toolboxesManager ) {

@@ -41,8 +41,6 @@ void Solvers_Toolbox_Initialise( PluginsManager* pluginsManager, int* argc, char
 
 void Solvers_Toolbox_Finalise( PluginsManager* pluginsManager ) {
 	Solvers_Finalise();
-	
-	Journal_RPrintf( Journal_Register( Info_Type, (Name)Solvers_Toolbox_Type  ), "Finalised: Solvers Toolbox.\n" );
 }
 
 Index Solvers_Toolbox_Register( PluginsManager* pluginsManager ) {

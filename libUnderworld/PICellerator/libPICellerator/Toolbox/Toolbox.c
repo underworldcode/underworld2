@@ -37,10 +37,6 @@ void PICellerator_Toolbox_Initialise( ToolboxesManager* toolboxesManager, int* a
 
 void PICellerator_Toolbox_Finalise( ToolboxesManager* toolboxesManager ) {
    PICellerator_Finalise();
-   
-   Journal_RPrintf(
-      Journal_Register( Info_Type, (Name)PICellerator_Toolbox_Type ),
-         "Finalised: PICellerator (Particle-In-Cell Framework).\n" );
 }
 
 Index PICellerator_Toolbox_Register( ToolboxesManager* toolboxesManager ) {
