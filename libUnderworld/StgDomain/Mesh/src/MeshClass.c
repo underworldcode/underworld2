@@ -708,7 +708,7 @@ Variable* Mesh_GenerateENMapVar( void* mesh ) {
     // if variable already exists return it
     if( self->enMapVar ) return self->enMapVar;
 
-    /* go over local elementNode map to check if we support it */
+    /* go over local elementNode map to get size of data */
     inc = IArray_New( );
     localtotal=0;
     dim = Mesh_GetDimSize( self );
@@ -719,10 +719,6 @@ Variable* Mesh_GenerateENMapVar( void* mesh ) {
         Mesh_GetIncidence( self, dim, (unsigned)e_i, MT_VERTEX, inc );
         nNbr = IArray_GetSize( inc );
         nbr = IArray_GetPtr( inc );
-
-        temp = nbr[2];
-        nbr[2] = nbr[3];
-        nbr[3] = temp;
 
         numberNodesPerEl[e_i] = nNbr;
         localtotal += nNbr;
