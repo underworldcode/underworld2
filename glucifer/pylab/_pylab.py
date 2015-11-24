@@ -9,6 +9,7 @@ import time
 from base64 import b64encode
 import libUnderworld
 import _LavaVu as lavavu
+import _gLucifer
 from multiprocessing import Process
 
 # lets create somewhere to dump data for this session
@@ -467,3 +468,27 @@ class Figure(_stgermain.StgCompoundComponent):
         guy = _drawing.Mesh(mesh=mesh, nodeNumbers=nodeNumbers, segmentsPerEdge=segmentsPerEdge, **kwargs)
         self.drawingObjects.append(guy)
         return guy
+
+    #Direct drawing methods
+    def label(self, pos=(0.,0.,0.), text="", fontsize=12):
+        """  Writes a label string
+            
+             Args:
+               pos    (tuple):  X,Y,Z position to place the label
+               text     (str):  label text
+               fontsize (int):  label font size (TODO: implement this)
+        """
+        if uw.rank() > 0:
+            return
+
+        nitems = len(pos)
+        farr = _gLucifer.new_farray(nitems)
+        i = 0
+        for item in pos:
+            _gLucifer.farray_setitem(farr,i,item)  # Set values
+            i = i + 1
+        libUnderworld.gLucifer.lucDatabase_AddVertices(self._db, 1, libUnderworld.gLucifer.lucPointType, farr)
+        _gLucifer.delete_farray(farr)
+        libUnderworld.gLucifer.lucDatabase_AddLabel(self._db, libUnderworld.gLucifer.lucPointType, text);
+
+
