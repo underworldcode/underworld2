@@ -12,8 +12,10 @@ import underworld.mesh as mesh
 import numpy as np
 import libUnderworld
 import _swarmabstract as sab
+import _swarm
 import underworld.function as function
 import libUnderworld.libUnderworldPy.Function as _cfn
+import h5py
 
 class SwarmVariable(_stgermain.StgClass, function.Function):
 
@@ -179,3 +181,79 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         # add to swarms weakref dict
         self.swarm._livingArrays[self] = arrayguy
         return arrayguy
+
+    def load( self, filename, gIds ):
+        if not isinstance(filename, str):
+            raise TypeError("Expected 'filename' to be provided as a string")
+        
+        gIds = self.swarm._local2globalMap
+        if gIds == None:
+            raise RuntimeError("'Swarm' associate with this 'SwarmVariable' doesn't have a valid '_local2globalMap'")
+
+        # open hdf5 file
+        h5f = h5py.File(name=filename, mode="r")
+        dset = h5f.get('data')
+        if dset == None:
+            raise RuntimeError("Can't find 'data' in file '{0}'.\n".format(filename))
+        particleGobalCount = self.swarm.particleGlobalCount
+        if dset.shape[0] != particleGobalCount:
+            raise RuntimeError("Cannot load {0}'s data on current swarm. Incompatible numbers of particles in file '{1}'.".format(filename, filename)+
+                    " Particle count: file {0}, this swarm {1}\n".format(dset.shape[0], particleGobalCount))
+        size = len(gIds)
+        if self.swarm.particleLocalCount != size:
+            raise RuntimeError("Invalid mapping from file '{0}' to swarm.\n".format(filename) +
+                    "Ensure the swarm corresponds exactly to the file '{0}' by loading the swarm immediately".format(filename) +
+                    "before this 'SwarmVariable' load\n")
+        if dset.shape[1] != self.data.shape[1]:
+            raise RuntimeError("Cannot load file data on current swarm. Data in file '{0}', " \
+                               "has a different shape to the variable trying to read it".format(filename))
+
+        self.data[0:size] = dset[gIds[0:size],:] 
+        print self.data
+
+
+    def save( self, filename, swarmfilepath=None ):
+        if not isinstance(filename, str):
+            raise TypeError("Expected 'filename' to be provided as a string")
+
+        from mpi4py import MPI
+
+        # setup mpi basic vars
+        comm = MPI.COMM_WORLD
+        rank = comm.Get_rank()
+        nProcs = comm.Get_size()
+
+        # allgather the number of particles each proc has
+        swarm = self.swarm
+        procCount = comm.allgather(swarm.particleLocalCount)
+        particleGlobalCount = swarm.particleGlobalCount
+
+        # calculate the hdf5 file offset
+        offset=0
+        for i in xrange(rank):
+            offset += procCount[i]
+
+        # open parallel hdf5 file
+        h5f = h5py.File(name=filename, mode="w", driver='mpio', comm=MPI.COMM_WORLD)
+        globalShape = (particleGlobalCount, self.data.shape[1])
+        dset = h5f.create_dataset("data", 
+                                   shape=globalShape,
+                                   dtype='f')
+        dset[offset:offset+swarm.particleLocalCount] = self.data[:]
+
+        # link to the swarm file if it's provided
+        if swarmfilepath:
+            import os
+            if not isinstance(swarmfilepath, str):
+                raise TypeError("Expected 'swarmfilepath' to be provided as a string")
+            
+            if not os.path.exists(swarmfilepath):
+                raise TypeError("Expected 'swarmfilename' to be provided as a string")
+            # path trickery to create external
+            (dirname, swarmfile) = os.path.split(swarmfilepath)
+            if dirname == "":
+                dirname = '.'
+            h5f["swarm"] = h5py.ExternalLink(swarmfile, dirname)
+
+        h5f.close()
+
