@@ -138,7 +138,6 @@ void lucDatabase_GatherGeometry(lucDatabase* self, lucGeometryType type, lucGeom
 void lucDatabase_GatherLabels(lucDatabase* self, lucGeometryType type);
 
 struct lucIsosurface;
-void lucDatabase_AddIsosurface(lucDatabase* self, struct lucIsosurface* iso, Bool walls);
 void lucDatabase_AddGridVertices(lucDatabase* self, int n, int width, float* data);
 void lucDatabase_AddGridVertex(lucDatabase* self, int width, int height, float* data);
 void lucDatabase_AddVertices(lucDatabase* self, int n, lucGeometryType type, float* data);

@@ -356,9 +356,6 @@ void _lucDatabase_Execute( void* database, void* data )
             lucDatabase_DeleteGeometry(self, -1, deleteEnd);
       }
 
-      /* Get scaling coefficient and units for timestep */
-      double dimCoeff = 1.0; /* coefficient for dimensionalising field */
-
       if (self->context)
       {
          /* When restarted, delete any existing geometry at current timestep */
@@ -371,7 +368,7 @@ void _lucDatabase_Execute( void* database, void* data )
 
       /* Enter timestep in database */
       /* Write and update timestep */
-      snprintf(SQL, 1024, "insert into timestep (id, time, dim_factor, units) values (%d, %g, %g, '%s')", self->timeStep, currentTime, dimCoeff, self->timeUnits);
+      snprintf(SQL, 1024, "insert into timestep (id, time, properties) values (%d, %g, '%s')", self->timeStep, currentTime, "");
       /*printf("%s\n", SQL);*/
       if (!lucDatabase_IssueSQL(self->db, SQL)) return;
       /* Also write to attached db */
@@ -581,6 +578,7 @@ void lucDatabase_OutputDrawingObject(lucDatabase* self, lucViewport* viewport, l
       /* Save object id */
       object->id = sqlite3_last_insert_rowid(self->db);
       Journal_Printf(lucInfo, "      Drawing object: %s %s id %d\n", object->name, object->type, object->id);
+      printf("      Drawing object: %s %s id %d props %s\n", object->name, object->type, object->id, object->properties);
 
       /* Save colour maps */
       if (object->colourMap)
@@ -843,28 +841,6 @@ void lucDatabase_GatherLabels(lucDatabase* self, lucGeometryType type)
 }
 
 /* Direct write functions to enter data into geom data store */
-void lucDatabase_AddIsosurface(lucDatabase* self, lucIsosurface* iso, Bool walls)
-{
-   /* Export surface triangles */
-   Index triangle_I;
-   int i;
-   for ( triangle_I = 0 ; triangle_I < iso->triangleCount ; triangle_I++)
-   {
-      if (iso->triangleList[triangle_I].wall != walls) continue;
-      for (i=0; i<3; i++)
-      {
-         /* Dump vertex pos, [value] */
-         float coordf[3] = {iso->triangleList[triangle_I].pos[i][0],
-                            iso->triangleList[triangle_I].pos[i][1],
-                            iso->triangleList[triangle_I].pos[i][2]};
-         float value = iso->triangleList[triangle_I].value[i];
-         lucDatabase_AddVertices(self, 1, lucTriangleType, coordf);
-         if (iso->colourField && iso->colourMap)
-            lucDatabase_AddValues(self, 1, lucTriangleType, lucColourValueData, iso->colourMap, &value);
-      }
-   }
-}
-
 void lucDatabase_AddGridVertices(lucDatabase* self, int n, int width, float* data)
 {
    int height = n / width;
@@ -930,7 +906,6 @@ void lucDatabase_AddValues(lucDatabase* self, int n, lucGeometryType type, lucGe
    /* Set colour map parameters */
    lucGeometryData_Setup(self->data[type][data_type], colourMap->minimum, colourMap->maximum, 1., "");
 }
-
 
 void lucDatabase_AddVolumeSlice(lucDatabase* self, int width, int height, float* corners, lucColourMap* colourMap, float* data)
 {

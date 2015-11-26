@@ -310,6 +310,29 @@ void lucIsosurface_SampleGlobal( void* drawingObject)
    Memory_Free( vertex );
 }
 
+void _lucIsosurface_Write( void* drawingObject, lucDatabase* database, Bool walls )
+{
+   /* Export surface triangles */
+   lucIsosurface* self = (lucIsosurface*)drawingObject;
+   Index triangle_I;
+   int i;
+   for ( triangle_I = 0 ; triangle_I < self->triangleCount ; triangle_I++)
+   {
+      if (self->triangleList[triangle_I].wall != walls) continue;
+      for (i=0; i<3; i++)
+      {
+         /* Dump vertex pos, [value] */
+         float coordf[3] = {self->triangleList[triangle_I].pos[i][0],
+                            self->triangleList[triangle_I].pos[i][1],
+                            self->triangleList[triangle_I].pos[i][2]};
+         float value = self->triangleList[triangle_I].value[i];
+         lucDatabase_AddVertices(database, 1, lucTriangleType, coordf);
+         if (self->colourField && self->colourMap)
+            lucDatabase_AddValues(database, 1, lucTriangleType, lucColourValueData, self->colourMap, &value);
+      }
+   }
+}
+
 void _lucIsosurface_Draw( void* drawingObject, lucDatabase* database, void* _context )
 {
    lucIsosurface*           self          = (lucIsosurface*)drawingObject;
@@ -326,13 +349,13 @@ void _lucIsosurface_Draw( void* drawingObject, lucDatabase* database, void* _con
 
    /* Export triangles, separating walls and surface into two geometry objects */
    /* Export surface triangles */
-   lucDatabase_AddIsosurface(database, self, False);
+   _lucIsosurface_Write(self, database, False);
 
    /* Start new geometry section */
    lucDatabase_OutputGeometry(database, self->id);
 
    /* Export wall triangles */
-   lucDatabase_AddIsosurface(database, self, True);
+   _lucIsosurface_Write(self, database, True);
 }
 
 /*
