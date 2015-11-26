@@ -25,7 +25,6 @@ Bool lucDrawingObjects_Init()
 
    Journal_Printf( Journal_Register( Debug_Type, (Name)"Context"  ), "In: %s\n", __func__ ); 
 
-   Stg_ComponentRegister_Add( componentRegister, lucColourBar_Type, (Name)"0", _lucColourBar_DefaultNew  );
    Stg_ComponentRegister_Add( componentRegister, lucFieldSampler_Type, (Name)"0", _lucFieldSampler_DefaultNew  );
    Stg_ComponentRegister_Add( componentRegister, lucMeshSampler_Type, (Name)"0", _lucMeshSampler_DefaultNew  );
    Stg_ComponentRegister_Add( componentRegister, lucIsosurface_Type, (Name)"0", _lucIsosurface_DefaultNew  );
@@ -71,7 +70,6 @@ Bool lucDrawingObjects_Init()
    RegisterParent( lucVectorArrows_Type,                    lucVectorArrowCrossSection_Type );
    RegisterParent( lucVectorArrowsOnMesh_Type,              lucVectorArrowMeshCrossSection_Type );
    RegisterParent( lucEigenvectors_Type,                    lucEigenvectorsCrossSection_Type );
-   RegisterParent( lucColourBar_Type,                       lucDrawingObject_Type );
    RegisterParent( lucFieldSampler_Type,                    lucCrossSection_Type );
    RegisterParent( lucMeshSampler_Type,                     lucMeshCrossSection_Type );
    RegisterParent( lucIsosurface_Type,                      lucDrawingObject_Type );

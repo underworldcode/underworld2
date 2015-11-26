@@ -69,7 +69,8 @@ void _lucTextureMap_Init(
    self->texture = 0;
 
    /* Append to property string */
-   lucDrawingObject_AppendProps(self, "texturefile=%s\ncullface=0\n", imageName); 
+   //OK: DEPRECATED, SET VIA PYTHON
+   //lucDrawingObject_AppendProps(self, "texturefile=%s\ncullface=0\n", imageName); 
 }
 
 void _lucTextureMap_Delete( void* drawingObject )

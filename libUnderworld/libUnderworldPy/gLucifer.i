@@ -51,7 +51,6 @@ extern "C" {
 %include "Base/ViewerTypes.h"
 %include "DrawingObjects/CrossSection.h"
 %include "DrawingObjects/SwarmViewer.h"
-%include "DrawingObjects/ColourBar.h"
 %include "DrawingObjects/VectorArrowCrossSection.h"
 %include "DrawingObjects/MeshCrossSection.h"
 %include "DrawingObjects/VectorArrowMeshCrossSection.h"

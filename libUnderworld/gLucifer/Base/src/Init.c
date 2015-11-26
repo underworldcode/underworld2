@@ -32,6 +32,7 @@ Bool lucBase_Init()
    lucError = Journal_Register( Error_Type, (Name)"lucError" );
 
    Stg_ComponentRegister_Add( componentRegister, lucCamera_Type, (Name)"0", _lucCamera_DefaultNew  );
+   Stg_ComponentRegister_Add( componentRegister, lucDrawingObject_Type, (Name)"0", _lucDrawingObject_DefaultNew  );
    Stg_ComponentRegister_Add( componentRegister, lucColourMap_Type, (Name)"0", _lucColourMap_DefaultNew  );
    Stg_ComponentRegister_Add( componentRegister, lucDatabase_Type, (Name)"0", _lucDatabase_DefaultNew  );
    Stg_ComponentRegister_Add( componentRegister, lucViewport_Type, (Name)"0", _lucViewport_DefaultNew  );

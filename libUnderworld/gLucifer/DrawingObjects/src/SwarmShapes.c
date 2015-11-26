@@ -60,7 +60,8 @@ void _lucSwarmShapes_Init(
    self->geomType = lucShapeType;   /* Draw 3d shapes */
 
    /* Append shape type to property string */
-   lucDrawingObject_AppendProps(self, "shape=%d\nlength=%g\nwidth=%g\nheight=%g\n", (square ? 1 : 0), length, width, height);
+   //OK: DEPRECATED, SET VIA PYTHON
+   //lucDrawingObject_AppendProps(self, "shape=%d\nlength=%g\nwidth=%g\nheight=%g\n", (square ? 1 : 0), length, width, height);
 }
 
 void _lucSwarmShapes_Delete( void* drawingObject )

@@ -50,7 +50,8 @@ void _lucHistoricalSwarmTrajectory_Init(
    self->time	            = historyTime;
 
    /* Append to property string */
-   lucDrawingObject_AppendProps(self, "scaling=%g\nflat=%d\narrowhead=%g\nsteps=%d\ntime=%g\n", lineScaling, flat, arrowHead, historySteps, historyTime); 
+   //OK: DEPRECATED, SET VIA PYTHON
+   //lucDrawingObject_AppendProps(self, "scaling=%g\nflat=%d\narrowhead=%g\nsteps=%d\ntime=%g\n", lineScaling, flat, arrowHead, historySteps, historyTime); 
 
    /* Create the particle extension */
    /* in this case we must assign a global id to each particle in the swarm; so we add an extension to the particles */

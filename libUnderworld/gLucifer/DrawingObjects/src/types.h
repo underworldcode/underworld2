@@ -19,7 +19,6 @@ typedef struct lucContourCrossSection            lucContourCrossSection;
 typedef struct lucIsosurfaceCrossSection         lucIsosurfaceCrossSection;
 typedef struct lucScalarFieldCrossSection        lucScalarFieldCrossSection;
 typedef struct lucScalarField                    lucScalarField;
-typedef struct lucColourBar                      lucColourBar;
 typedef struct lucIsosurface                     lucIsosurface;
 typedef struct lucVectorArrows                   lucVectorArrows;
 typedef struct lucVectorArrowsOnMesh             lucVectorArrowsOnMesh;

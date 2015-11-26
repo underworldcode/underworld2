@@ -55,7 +55,8 @@ void _lucSwarmVectors_Init(
    self->geomType = lucVectorType;   /* Draw vectors */
 
    /* Append scaling factors to property string */
-   lucDrawingObject_AppendProps(self, "length=%g\nthickness=%g\narrowhead=%g\n", length, thickness, arrowHeadSize);
+   //OK: DEPRECATED, SET VIA PYTHON
+   //lucDrawingObject_AppendProps(self, "length=%g\nthickness=%g\narrowhead=%g\n", length, thickness, arrowHeadSize);
 }
 
 void _lucSwarmVectors_Delete( void* drawingObject )

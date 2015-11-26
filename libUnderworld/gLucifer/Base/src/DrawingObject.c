@@ -76,10 +76,9 @@ void _lucDrawingObject_Init(
    self->opacity = opacity;        /* Transparency override, -1 to disable */
 
    /* Write property string */
-   self->properties = Memory_Alloc_Array(char, 2048, "properties");
-   memset(self->properties, 0, 2048);
-   strncat(self->properties, properties, 2047);
-   //lucDrawingObject_AppendProps(self, "wireframe=%d\nlinewidth=%d\nlit=%d\n", wireframe, lineWidth, lit);
+   self->properties = Memory_Alloc_Array(char, 4096, "properties");
+   memset(self->properties, 0, 4086);
+   strncpy(self->properties, properties, 4096);
 
    self->id = 0;
 }
@@ -118,6 +117,30 @@ void* _lucDrawingObject_Copy( void* drawingObject, void* dest, Bool deep, Name n
    newDrawingObject = _Stg_Component_Copy( self, dest, deep, nameExt, ptrMap );
 
    return (void*) newDrawingObject;
+}
+
+void* _lucDrawingObject_DefaultNew( Name name )
+{
+   /* Variables set in this function */
+   SizeT                                              _sizeOfSelf = sizeof(lucDrawingObject);
+   Type                                                      type = lucDrawingObject_Type;
+   Stg_Class_DeleteFunction*                              _delete = _lucDrawingObject_Delete;
+   Stg_Class_PrintFunction*                                _print = _lucDrawingObject_Print;
+   Stg_Class_CopyFunction*                                  _copy = _lucDrawingObject_Copy;
+   Stg_Component_DefaultConstructorFunction*  _defaultConstructor = _lucDrawingObject_DefaultNew;
+   Stg_Component_ConstructFunction*                    _construct = _lucDrawingObject_AssignFromXML;
+   Stg_Component_BuildFunction*                            _build = _lucDrawingObject_Build;
+   Stg_Component_InitialiseFunction*                  _initialise = _lucDrawingObject_Initialise;
+   Stg_Component_ExecuteFunction*                        _execute = _lucDrawingObject_Execute;
+   Stg_Component_DestroyFunction*                        _destroy = _lucDrawingObject_Destroy;
+   lucDrawingObject_SetupFunction*                       _setup = lucDrawingObject_Setup;
+   lucDrawingObject_DrawFunction*                         _draw = NULL;
+   lucDrawingObject_CleanUpFunction*                   _cleanUp = lucDrawingObject_CleanUp;
+
+   /* Variables that are set to ZERO are variables that will be set either by the current _New function or another parent _New function further up the hierachy */
+   AllocationType  nameAllocationType = NON_GLOBAL /* default value NON_GLOBAL */;
+
+   return (void*) _lucDrawingObject_New(  LUCDRAWINGOBJECT_PASSARGS  );
 }
 
 void _lucDrawingObject_AssignFromXML( void* drawingObject, Stg_ComponentFactory* cf, void* data )
@@ -162,7 +185,7 @@ void lucDrawingObject_Draw( void* drawingObject, lucDatabase* database, void* co
 
    if (self->disabled) return;
 
-   if (self->needsToDraw)
+   if (self->needsToDraw && self->_draw)
    {
       /* Use the object's saved draw function  */
       self->_draw(drawingObject, database, context); 
@@ -228,16 +251,11 @@ void lucDrawingObject_SyncShadowValues( void* drawingObject, void* field )
       FeVariable_SyncShadowValues( field );
 }
 
-void lucDrawingObject_AppendProps(lucDrawingObject* self, const char *fmt, ...)
+void lucDrawingObject_SetProperties(void* drawingObject, char *props)
 {
-   char newprops[1024];
-   va_list ap;
-   if (fmt == NULL) return;
-   va_start(ap, fmt);
-   vsnprintf(newprops, 1024, fmt, ap);
-   va_end(ap);
-   fprintf(stderr, "NOTE! Drawing object properties not set, please move to python interface! (%s)\n", newprops);
-   //strncat(self->properties, newprops, 2048);
+   lucDrawingObject* self = (lucDrawingObject*)drawingObject ;
+   strncpy(self->properties, props, 4096);
+   printf("PROPERTIES:::::::::::::::::::::%s\n", self->properties);
 }
 
 

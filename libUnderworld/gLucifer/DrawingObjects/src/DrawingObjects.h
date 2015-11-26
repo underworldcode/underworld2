@@ -13,7 +13,6 @@
 
 #include "types.h"
 #include <gLucifer/Base/DrawingObject.h>
-#include "ColourBar.h"
 #include "FieldSampler.h"
 #include "MeshSampler.h"
 #include "Isosurface.h"
