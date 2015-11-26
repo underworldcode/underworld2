@@ -22,7 +22,8 @@ class ColourMap(_stgermain.StgCompoundComponent):
     _selfObjectName = "_cm"
     _objectsDict = { "_cm": "lucColourMap" }
     
-    def __init__(self, colours="MidnightBlue LightSeaGreen Orange Burlywood Bisque".split(), logScale=False, discrete=False, **kwargs):
+    #Default is a cool-warm map with low variance in luminosity/lightness
+    def __init__(self, colours="#288FD0 #50B6B8 #989878 #C68838 #FF7520".split(), logScale=False, discrete=False, **kwargs):
     
         if not isinstance(colours,(str,list)):
             raise TypeError("'colours' object passed in must be of python type 'str' or 'list'")
@@ -104,12 +105,12 @@ class ColourMap(_stgermain.StgCompoundComponent):
 
 class Drawing(_stgermain.StgCompoundComponent):
     _selfObjectName = "_dr"
-    _objectsDict = { "_dr": None} # child should set _dr
+    #This is the base class for all drawing objects but can also be instantiated as is for direct/custom drawing 
+    _objectsDict = { "_dr": "lucDrawingObject" } # child should replace _dr with own derived type
 
     _defaultColourMap = ColourMap()
     
-    def __init__(self, colours=None, colourMap=None, properties={}, opacity=-1, colourBar=True, **kwargs):
-    
+    def __init__(self, colours=None, colourMap=None, properties=None, opacity=-1, colourBar=False, **kwargs):
         if colourMap:
             self._colourMap = colourMap
         elif colours:
@@ -117,9 +118,12 @@ class Drawing(_stgermain.StgCompoundComponent):
         else:
             self._colourMap = self._defaultColourMap
 
-        if not isinstance(properties,dict):
+        if properties and not isinstance(properties,dict):
             raise TypeError("'properties' object passed in must be of python type 'dict'")
-        self._properties = properties
+        if not properties:
+            self._properties = {}
+        else:
+            self._properties = properties
 
         if not isinstance(opacity,(int,float)):
             raise TypeError("'opacity' object passed in must be of python type 'int' or 'float'")
@@ -143,16 +147,18 @@ class Drawing(_stgermain.StgCompoundComponent):
         super(Drawing,self)._add_to_stg_dict(componentDictionary)
 
         # add an empty(ish) drawing object.  children should fill it out.
+        componentDictionary[self._dr.name].update( {
+            "properties"    :self._getProperties(),
+            "ColourMap"     :self._colourMap._cm.name,
+            "opacity"       :self.opacity
+        } )
+
+    def _getProperties(self):
         #Convert properties to string
         propstr = ''
         for key in self._properties:
             propstr += key + '=' + str(self._properties[key]) + '\n'
-
-        componentDictionary[self._dr.name].update( {
-            "properties"    :propstr,
-            "ColourMap"     :self._colourMap._cm.name,
-            "opacity"       :self.opacity
-        } )
+        return propstr
 
     def _updateProperties(self, newProps, overwrite=False):
         #Update the properties values, set overwrite to True to replace duplicates
@@ -171,15 +177,15 @@ class Drawing(_stgermain.StgCompoundComponent):
 
 class ColourBar(Drawing):
     _selfObjectName = "_dr"
-    _objectsDict = { "_dr": "lucColourBar" }
+    _objectsDict = { "_dr": "lucDrawingObject" }
 
     def __init__(self, **kwargs):
         # build parent
-        super(ColourBar,self).__init__(colourBar=False, **kwargs)
+        super(ColourBar,self).__init__(**kwargs)
 
         #Replace any missing properties with defaults, TODO: allow setting ColourBar props via args
         self._updateProperties({"colourbar" : 1, "height" : 10, "lengthfactor" : 0.8, 
-                "margin" : 16, "border" : 1, "precision" : 2, "scientific" : False, 
+                "margin" : 16, "border" : 1, "precision" : 2, "scientific" : False, "font" : "small", 
                 "ticks" : 2 if self._colourMap.logScale else 0, "printticks" : True, "printunits" : False, "scalevalue" : 1.0}) #tick0-tick10 : val
     
     def _add_to_stg_dict(self,componentDictionary):
@@ -418,15 +424,15 @@ class VectorArrows(GridSampler3D):
     """
     _objectsDict = { "_dr": "lucVectorArrows" }
 
-    def __init__(self, arrowHeadSize=0.3, lengthScale=0.3, glyphs=3, **kwargs):
-        if arrowHeadSize:
-            if not isinstance(arrowHeadSize,(float,int)):
-                raise TypeError("'arrowHeadSize' object passed in must be of python type 'int' or 'float'")
-            if arrowHeadSize < 0 or arrowHeadSize > 1:
-                raise ValueError("'arrowHeadSize' can only take values between zero and one. Value provided is " + str(arrowHeadSize)+".")
-        if lengthScale:
-            if not isinstance(lengthScale,(float,int)):
-                raise TypeError("'lengthScale' object passed in must be of python type 'int' or 'float'")
+    def __init__(self, arrowHead=0.3, scaling=0.3, glyphs=3, **kwargs):
+        if arrowHead:
+            if not isinstance(arrowHead,(float,int)):
+                raise TypeError("'arrowHead' object passed in must be of python type 'int' or 'float'")
+            if arrowHead < 0 or arrowHead > 1:
+                raise ValueError("'arrowHead' can only take values between zero and one. Value provided is " + str(arrowHead)+".")
+        if scaling:
+            if not isinstance(scaling,(float,int)):
+                raise TypeError("'scaling' object passed in must be of python type 'int' or 'float'")
         if glyphs:
             if not isinstance(glyphs,(int)):
                 raise TypeError("'glyphs' object passed in must be of python type 'int'")
@@ -435,7 +441,7 @@ class VectorArrows(GridSampler3D):
         super(VectorArrows,self).__init__(**kwargs)
 
         #Replace any missing properties with defaults
-        self._updateProperties({"arrowhead" : arrowHeadSize, "scaling" : lengthScale, "glyphs" : glyphs});
+        self._updateProperties({"arrowHead" : arrowHead, "scaling" : scaling, "glyphs" : glyphs});
 
     def _add_to_stg_dict(self,componentDictionary):
         # lets build up component dictionary
@@ -446,13 +452,13 @@ class VectorArrows(GridSampler3D):
         componentDictionary[self._dr.name].update( {} )
 
     @property
-    def arrowHeadSize(self):
-        """    arrowHeadSize (float): The size of the head of the arrow compared with the arrow length. Must be between [0, 1].   Default is 0.3.
+    def arrowHead(self):
+        """    arrowHead (float): The size of the head of the arrow compared with the arrow length. Must be between [0, 1].   Default is 0.3.
         """
         return self._properties["arrowhead"]
     @property
-    def lengthScale(self):
-        """    lengthScale (float): A factor to scale the size of the arrows by.  Default is 0.3.
+    def scaling(self):
+        """    scaling (float): A factor to scale the size of the arrows by.  Default is 0.3.
         """
         return self._properties["scaling"]
     @property
@@ -500,9 +506,6 @@ class Mesh(Drawing):
         
         # build parent
         super(Mesh,self).__init__(**kwargs)
-
-        #No colour bar
-        self._colourBar = False
 
         #Replace any missing properties with defaults
         self._updateProperties({"lit" : False, "linewidth" : 0.1, 

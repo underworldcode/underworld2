@@ -83,7 +83,8 @@ class Figure(_stgermain.StgCompoundComponent):
             raise TypeError("'axis' object passed in must be of python type 'bool'")
         self._axis = axis
 
-        self._drawingObjects = []
+        self._defaultDrawingObject = _drawing.Drawing() #Default object for custom drawing
+        self._drawingObjects = [self._defaultDrawingObject]
         self._colourMaps = [_drawing.Drawing._defaultColourMap]
         self._script = []
 
@@ -133,7 +134,7 @@ class Figure(_stgermain.StgCompoundComponent):
         } )
 
     @property
-    def num(self):
+    def filename(self):
         """    database (str): filename for storing generated figure content, default: none (in-memory only)
         """
         return self._database
@@ -266,7 +267,6 @@ class Figure(_stgermain.StgCompoundComponent):
              Args:
                filename (str):  Filename to save file to.  May include an absolute or relative path.
         """
-        self._generate_DB()
         if uw.rank() == 0:
             libUnderworld.gLucifer.lucDatabase_BackupDbFile(self._db, filename)
 
@@ -415,47 +415,46 @@ class Figure(_stgermain.StgCompoundComponent):
         self.drawingObjects.append(guy)
         return guy
 
-    def Surface(self, fn, mesh, useMesh=False, drawSides="xyzXYZ", **kwargs):
+    def Surface(self, fn, mesh, useMesh=False, drawSides="xyzXYZ", colourBar=True, **kwargs):
         """    Add a surface drawing object to the current figure.
                See 'help(Surface)' for information on the Surface class and it's options.
                
                Returns the generated Surface object.
         """
-        guy = _drawing.Surface(fn=fn, mesh=mesh, useMesh=useMesh, drawSides=drawSides, **kwargs)
+        guy = _drawing.Surface(fn=fn, mesh=mesh, useMesh=useMesh, drawSides=drawSides, colourBar=colourBar, **kwargs)
         self.drawingObjects.append(guy)
         return guy
 
-    def Points(self, swarm, colourVariable=None, sizeVariable=None, opacityVariable=None, pointSize=1.0, pointType=1, **kwargs):
+    def Points(self, swarm, colourBar=True, colourVariable=None, sizeVariable=None, opacityVariable=None, pointSize=1.0, pointType=1, **kwargs):
         """    Add a points drawing object to the current figure.
                See 'help(Points)' for information on the Points class and it's options.
                
                Returns the generated Points object.
         """
-        guy = _drawing.Points( swarm=swarm, colourVariable=colourVariable, sizeVariable=sizeVariable,
+        guy = _drawing.Points( swarm=swarm, colourBar=colourBar, colourVariable=colourVariable, sizeVariable=sizeVariable,
                                             opacityVariable=opacityVariable, pointSize=pointSize, pointType=pointType, **kwargs)
         self.drawingObjects.append(guy)
         return guy
 
     def VectorArrows(self, fn, mesh, resolutionX=16, resolutionY=16, resolutionZ=16,
-                                  arrowHeadSize=0.3, lengthScale=0.3, glyphs=3, **kwargs):
+                                  arrowHead=0.3, scaling=0.3, glyphs=3, **kwargs):
         """    Add a vector arrow drawing object to the current figure.
                See 'help(VectorArrows)' for information on the VectorArrows class and it's options.
                
                Returns the generated VectorArrows object.
         """
         guy = _drawing.VectorArrows( fn=fn, mesh=mesh, resolutionX=resolutionX, resolutionY=resolutionY, resolutionZ=resolutionZ,
-                                                  arrowHeadSize=arrowHeadSize, lengthScale=lengthScale, glyphs=glyphs, colourBar=False, **kwargs)
+                                                  arrowHead=arrowHead, scaling=scaling, glyphs=glyphs, **kwargs)
         self.drawingObjects.append(guy)
         return guy
 
-    def Volume(self, fn, mesh, useMesh=False, resolutionX=16, resolutionY=16, resolutionZ=16, **kwargs):
+    def Volume(self, fn, mesh, useMesh=False, colourBar=True, resolutionX=16, resolutionY=16, resolutionZ=16, **kwargs):
         """    Add a volume drawing object to the current figure.
                See 'help(Volume)' for information on the Volume class and it's options.
                
                Returns the generated Volume object.
         """
-        guy = _drawing.Volume( fn=fn, mesh=mesh, useMesh=useMesh, resolutionX=resolutionX, resolutionY=resolutionY, resolutionZ=resolutionZ,
-                                                  colourBar=False, **kwargs)
+        guy = _drawing.Volume( fn=fn, mesh=mesh, useMesh=useMesh, colourBar=colourBar, resolutionX=resolutionX, resolutionY=resolutionY, resolutionZ=resolutionZ, **kwargs)
         self.drawingObjects.append(guy)
         return guy
 
@@ -470,25 +469,53 @@ class Figure(_stgermain.StgCompoundComponent):
         return guy
 
     #Direct drawing methods
-    def label(self, pos=(0.,0.,0.), text="", fontsize=12):
+    def label(self, text, pos=(0.,0.,0.), font="sans", scaling=1):
         """  Writes a label string
             
              Args:
-               pos    (tuple):  X,Y,Z position to place the label
-               text     (str):  label text
-               fontsize (int):  label font size (TODO: implement this)
+               pos     (tuple):  X,Y,Z position to place the label
+               text      (str):  label text
+               font      (str):  label font (small/fixed/sans/serif/vector)
+               scaling (float):  label font scaling (for "vector" font only)
         """
-        if uw.rank() > 0:
-            return
+        self._vertex(geomType=libUnderworld.gLucifer.lucPointType, 
+                     pos=pos, label=text, props={"font" : font, "fontscale" : scaling})
 
+    def _vertex(self, drawingObject=None, geomType=None, pos=(0.,0.,0.), vec=None, value=None, label=None, props=None):
+        #General purpose plotting using db output
+        if not drawingObject:
+            drawingObject = self._defaultDrawingObject
+
+        #Replace props, overwriting keys if existing, then update
+        if props:
+            drawingObject._updateProperties(props, overwrite=True)
+            libUnderworld.gLucifer.lucDrawingObject_SetProperties(drawingObject._dr, drawingObject._getProperties());
+
+        #Wwrite vertex position
         nitems = len(pos)
         farr = _gLucifer.new_farray(nitems)
         i = 0
         for item in pos:
             _gLucifer.farray_setitem(farr,i,item)  # Set values
             i = i + 1
-        libUnderworld.gLucifer.lucDatabase_AddVertices(self._db, 1, libUnderworld.gLucifer.lucPointType, farr)
-        _gLucifer.delete_farray(farr)
-        libUnderworld.gLucifer.lucDatabase_AddLabel(self._db, libUnderworld.gLucifer.lucPointType, text);
+        libUnderworld.gLucifer.lucDatabase_AddVertices(self._db, 1, geomType, farr)
 
+        #Write vector if any
+        if vec:
+            i = 0
+            for item in vec:
+                _gLucifer.farray_setitem(farr,i,item)  # Set values
+                i = i + 1
+            libUnderworld.gLucifer.lucDatabase_AddVectors(self._db, 1, geomType, 0, 0, farr)
+
+        #Write value if any
+        if value != None:
+            _gLucifer.farray_setitem(farr,0,value)  # Set values
+            libUnderworld.gLucifer.lucDatabase_AddValue(self._db, 1, geomType, farr)
+
+        _gLucifer.delete_farray(farr)
+
+        #Write label if any
+        if label != None:
+            libUnderworld.gLucifer.lucDatabase_AddLabel(self._db, geomType, label);
 

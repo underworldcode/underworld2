@@ -255,7 +255,6 @@ void lucDrawingObject_SetProperties(void* drawingObject, char *props)
 {
    lucDrawingObject* self = (lucDrawingObject*)drawingObject ;
    strncpy(self->properties, props, 4096);
-   printf("PROPERTIES:::::::::::::::::::::%s\n", self->properties);
 }
 
 
