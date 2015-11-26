@@ -61,6 +61,7 @@ extern const Type lucSwarmViewer_Type;
       /* Opacity Stuff */ \
       lucColourMap*                                      opacityColourMap;       \
       lucGeometryType                                    geomType;               \
+      void*                                              cppdata;                \
 
 struct lucSwarmViewer
 {
