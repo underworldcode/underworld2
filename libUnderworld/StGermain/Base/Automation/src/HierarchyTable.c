@@ -111,7 +111,7 @@ Bool Stg_Class_CompareType( const void* classPtr, Type possibleParentType ) {
 	/* Check if the pointer is null */
 	Journal_Firewall(
 		self != NULL,
-		Journal_Register( Error_Type, HierarchyTable_Type ),
+		NULL,
 		"Error doing type checking against possibleParentType %s - pointer is NULL.\n",
 		possibleParentType );
 
@@ -123,7 +123,7 @@ Stg_Class* Stg_Class_CheckType( const void* classPtr, Type possibleParentType ) 
 	/* Check if the pointer is null */
 	Journal_Firewall(
 		self != NULL,
-		Journal_Register( Error_Type, HierarchyTable_Type ),
+		NULL,
 		"Error doing type checking against possibleParentType %s - pointer is NULL.\n",
 		possibleParentType );
 	
