@@ -425,14 +425,13 @@ class Figure(_stgermain.StgCompoundComponent):
         self.drawingObjects.append(guy)
         return guy
 
-    def Points(self, swarm, colourBar=True, colourVariable=None, sizeVariable=None, opacityVariable=None, pointSize=1.0, pointType=1, **kwargs):
+    def Points(self, swarm, colourBar=True, fn_colour=None, fn_mask=None, pointSize=1.0, pointType=1, **kwargs):
         """    Add a points drawing object to the current figure.
                See 'help(Points)' for information on the Points class and it's options.
                
                Returns the generated Points object.
         """
-        guy = _drawing.Points( swarm=swarm, colourBar=colourBar, colourVariable=colourVariable, sizeVariable=sizeVariable,
-                                            opacityVariable=opacityVariable, pointSize=pointSize, pointType=pointType, **kwargs)
+        guy = _drawing.Points( swarm=swarm, colourBar=colourBar, fn_colour=fn_colour, fn_mask=fn_mask, pointSize=pointSize, pointType=pointType, **kwargs)
         self.drawingObjects.append(guy)
         return guy
 
@@ -518,4 +517,3 @@ class Figure(_stgermain.StgCompoundComponent):
         #Write label if any
         if label != None:
             libUnderworld.gLucifer.lucDatabase_AddLabel(self._db, geomType, label);
-

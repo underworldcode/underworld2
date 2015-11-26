@@ -271,6 +271,10 @@ class Surface(CrossSection):
         super(Surface,self)._add_to_stg_dict(componentDictionary)
 
         componentDictionary[self._dr.name]["drawSides"] = self.drawSides
+        componentDictionary[self._dr.name][     "Mesh"] = self._mesh._cself.name
+
+    def _setup(self):
+        gLucifer._lucCrossSection_SetFn( self._cself, self._fn._fncself )
 
     @property
     def drawSides(self):
@@ -283,29 +287,17 @@ class Points(Drawing):
     """
     _objectsDict = { "_dr": "lucSwarmViewer" }
 
-    def __init__(self, swarm, colourVariable=None, sizeVariable=None, opacityVariable=None, pointSize=1.0, pointType=None, **kwargs):
+    def __init__(self, swarm, fn_colour=None, fn_mask=None, pointSize=1.0, pointType=None, **kwargs):
         if not isinstance(swarm,swarmMod.Swarm):
             raise TypeError("'swarm' object passed in must be of type 'Swarm'")
         self._swarm = swarm
 
-        if colourVariable:
-            if not isinstance(colourVariable,swarmMod.SwarmVariable):
-                raise TypeError("'colourVariable' object passed in must be of type 'SwarmVariable'")
-            if colourVariable.swarm != swarm:
-                raise ValueError("colourVariable must correspond to provided swarm.")
-        self._colourVariable = colourVariable
-        if sizeVariable:
-            if not isinstance(sizeVariable,swarmMod.SwarmVariable):
-                raise TypeError("'sizeVariable' object passed in must be of type 'SwarmVariable'")
-            if sizeVariable.swarm != swarm:
-                raise ValueError("sizeVariable must correspond to provided swarm.")
-        self._sizeVariable = sizeVariable
-        if opacityVariable:
-            if not isinstance(opacityVariable,swarmMod.SwarmVariable):
-                raise TypeError("'opacityVariable' object passed in must be of type 'SwarmVariable'")
-            if opacityVariable.swarm != swarm:
-                raise ValueError("opacityVariable must correspond to provided swarm.")
-        self._opacityVariable = opacityVariable
+        self._fn_colour = None
+        if fn_colour != None:
+           self._fn_colour = underworld.function.Function._CheckIsFnOrConvertOrThrow(fn_colour)
+        self._fn_mask = None
+        if fn_mask != None:
+           self._fn_mask = underworld.function.Function._CheckIsFnOrConvertOrThrow(fn_mask)
 
         if not isinstance(pointSize,(float,int)):
             raise TypeError("'pointSize' object passed in must be of python type 'float' or 'int'")
@@ -327,40 +319,32 @@ class Points(Drawing):
         componentDictionary[ self._cself.name ][ "Swarm" ] = self.swarm._cself.name
         
     def _setup(self):
-        if self.colourVariable:
-            self._cself.colourVariable = self.colourVariable._cself
-        if self.sizeVariable:
-            self._cself.sizeVariable = self.sizeVariable._cself
-        if self.opacityVariable:
-            self._cself.opacityVariable = self.opacityVariable._cself
-    
+        fnc_ptr = None
+        if self._fn_colour:
+            fnc_ptr = self._fn_colour._fncself
+
+        fnm_ptr = None
+        if self._fn_mask:
+            fnm_ptr = self._fn_mask._fncself
+
+        gLucifer._lucSwarmViewer_SetFn( self._cself, fnc_ptr, fnm_ptr, None, None )
+
+
     @property
     def swarm(self):
         """    swarm (str): name of live underworld swarm for which points will be rendered.
         """
         return self._swarm
     @property
-    def colourVariable(self):
-        """    colourVariable (str): name of live underworld swarm variable which will determine the point colours.
+    def fn_colour(self):
+        """    fn_colour (uw.Function): Function evaluated to determine particle colour.
         """
         return self._colourVariable
-    @property
-    def sizeVariable(self):
-        """    sizeVariable (str): name of live underworld swarm variable which will determine the point size.
-        """
-        return self._sizeVariable
-    @property
-    def opacityVariable(self):
-        """    opacityVariable (str): name of live underworld swarm variable which will determine the point opacity.
-        """
-        return self._opacityVariable
-
     @property
     def pointSize(self):
         """    pointSize (float): size of points
         """
         return self._properties["pointsize"]
-        self._properties["pointType"]
 
     @property
     def pointType(self):
@@ -522,4 +506,3 @@ class Mesh(Drawing):
         componentDictionary[self._dr.name][       "Mesh"] = self._mesh._cself.name
         componentDictionary[self._dr.name]["nodeNumbers"] = self._nodeNumbers
         componentDictionary[self._dr.name][   "segments"] = self._segmentsPerEdge
-

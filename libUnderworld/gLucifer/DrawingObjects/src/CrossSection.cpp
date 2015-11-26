@@ -23,6 +23,7 @@ extern "C" {
 #include "VectorArrowMeshCrossSection.h"
 #include "FieldSampler.h"
 }
+
 /* Textual name of this class - This is a global pointer which is used for times when you need to refer to class and not a particular instance of a class */
 const Type lucCrossSection_Type = "lucCrossSection";
 
@@ -109,6 +110,9 @@ void _lucCrossSection_Init(
 void _lucCrossSection_Delete( void* drawingObject )
 {
    lucCrossSection*  self = (lucCrossSection*)drawingObject;
+
+   if (self->cppdata)
+       delete (lucCrossSection_cppdata*)self->cppdata;
 
    _lucDrawingObject_Delete( self );
 }

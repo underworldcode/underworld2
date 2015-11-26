@@ -589,8 +589,6 @@ void lucDatabase_OutputDrawingObject(lucDatabase* self, lucViewport* viewport, l
           object->type == lucSwarmShapes_Type || object->type == lucSwarmRGBColourViewer_Type)
       {
          lucSwarmViewer* svobj = (lucSwarmViewer*)object;
-         if (svobj->opacityVariable)
-            lucDatabase_OutputColourMap(self, svobj->opacityColourMap, object, lucOpacityValueData);
          /* Only RGB viewer supports these for now */
          if (object->type == lucSwarmRGBColourViewer_Type)
          {
