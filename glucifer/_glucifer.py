@@ -44,15 +44,9 @@ class Figure(_stgermain.StgCompoundComponent):
     _stdout = ""
     _cmdline = ""
 
-    def __init__(self, num=None, figsize=(640,480), facecolour="white", edgecolour="black", title=None, axis=False, **kwargs):
-        """ The initialiser takes as arguments 'num', 'figsize', 'facecolour', 'edgecolour', 'title' and 'axis'.   See help(Figure) for full details on these options.
+    def __init__(self, figsize=(640,480), facecolour="white", edgecolour="black", title=None, axis=False, **kwargs):
+        """ The initialiser takes as arguments 'figsize', 'facecolour', 'edgecolour', 'title' and 'axis'.   See help(Figure) for full details on these options.
         """
-        if num and not isinstance(num,(str,int)):
-            raise TypeError("'num' object passed in must be of python type 'str' or 'int'")
-        if num and isinstance(num,str) and (" " in num):
-            raise ValueError("'num' object passed in must not contain any spaces.")
-        self._num = num
-
         if not isinstance(figsize,tuple):
             raise TypeError("'figsize' object passed in must be of python type 'tuple'")
         self._figsize = figsize
@@ -113,12 +107,6 @@ class Figure(_stgermain.StgCompoundComponent):
                             "useBoundingBox"    : True
         } )
 
-
-    @property
-    def num(self):
-        """    num (str,int): integer or string figure identifier. Must not contain spaces. optional, default: none
-        """
-        return self._num
 
     @property
     def figsize(self):
@@ -367,7 +355,7 @@ class Figure(_stgermain.StgCompoundComponent):
         self._drawingObjects.append( drawing_object )
         return self
 
-    def Surface(self, fn, mesh, drawSides="xyzXYZ", **kwargs):
+    def Surface(self, *args, **kwargs):
         """ DEPRECATE
         """
         raise RuntimeError("The interface to add a Surface drawing object to your figure has changed. "
@@ -376,7 +364,7 @@ class Figure(_stgermain.StgCompoundComponent):
                            ">>> fig = glucifer.Figure()\n"
                            ">>> fig + glucifer.objects.Surface(mesh,fn)")
 
-    def Points(self, swarm, fn_colour=None, fn_mask=None, pointSize=1.0, **kwargs):
+    def Points(self, *args, **kwargs):
         """ DEPRECATE
         """
         raise RuntimeError("The interface to add a Points drawing object to your figure has changed. "
@@ -385,8 +373,7 @@ class Figure(_stgermain.StgCompoundComponent):
                            ">>> fig = glucifer.Figure()\n"
                            ">>> fig + glucifer.objects.Points(swarm)")
 
-    def VectorArrows(self, fn, mesh, resolutionX=16, resolutionY=16, resolutionZ=16,
-                                  arrowHeadSize=0.3, lengthScale=0.3, glyphs=3, **kwargs):
+    def VectorArrows(self, *args, **kwargs):
         """ DEPRECATE
         """
         raise RuntimeError("The interface to add a VectorArrows drawing object to your figure has changed. "
@@ -395,7 +382,7 @@ class Figure(_stgermain.StgCompoundComponent):
                            ">>> fig = glucifer.Figure()\n"
                            ">>> fig + glucifer.objects.VectorArrows(mesh,fn)")
 
-    def Mesh(self, mesh, nodeNumbers=False, **kwargs):
+    def Mesh(self, *args, **kwargs):
         """ DEPRECATE
         """
         raise RuntimeError("The interface to add a Mesh drawing object to your figure has changed. "

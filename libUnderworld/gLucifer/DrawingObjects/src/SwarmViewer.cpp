@@ -253,7 +253,7 @@ void _lucSwarmViewer_Draw( void* drawingObject, lucDatabase* database, void* _co
       if (cppdata->fn_colour) {
          /* evaluate function */
          float valuef = cppdata->func_colour(particleCoord)->at<float>();
-         lucDatabase_AddValues(database, 1, self->geomType, lucColourValueData, self->colourMap, &valuef);
+         lucDatabase_AddValues(database, 1, self->geomType, lucColourValueData, NULL, &valuef);
       }
       if (cppdata->fn_size) {
          /* evaluate function */
@@ -263,8 +263,11 @@ void _lucSwarmViewer_Draw( void* drawingObject, lucDatabase* database, void* _co
    }
    
    /* Scale Colour Maps */
-   if ( self->colourMap && self->colourMap->dynamicRange && cppdata->fn_colour )
+   if ( self->colourMap && self->colourMap->dynamicRange && cppdata->fn_colour ){
       lucColourMap_SetMinMax( self->colourMap, cppdata->fn_colour->getMinGlobal(), cppdata->fn_colour->getMaxGlobal() );
+      /* do a size zero add just so we can reset the colourmap */
+      lucDatabase_AddValues(database, 0, self->geomType, lucColourValueData, self->colourMap, NULL);
+  }
 
 }
 

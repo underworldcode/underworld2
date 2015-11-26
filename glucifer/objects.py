@@ -16,7 +16,7 @@ class Drawing(_stgermain.StgCompoundComponent):
     def __init__(self, colours=None, opacity=None, logScale=False, colourBar=True, valueRange=None, **kwargs ):
     
         if colours == None:
-            colours = ["black", "white"]
+            colours = ["blue", "white"]
         if not isinstance(colours,(str,list)):
             raise TypeError("'colours' object passed in must be of python type 'str' or 'list'")
         if isinstance(colours,(str)):
@@ -337,7 +337,7 @@ class Mesh(Drawing):
     """
     _objectsDict = { "_dr": "lucMeshViewer" }
 
-    def __init__(self, mesh, nodeNumbers=False,
+    def __init__(self, mesh, nodeNumbers=False, segmentsPerEdge=1,
                        colours=None, opacity=None, logScale=False, colourBar=False, valueRange=None, *args, **kwargs):
 
         if not isinstance(mesh,_uwmesh.FeMesh):
