@@ -4,6 +4,9 @@ MAINTAINER mansourjohn@gmail.com
 # set working directory to /root
 WORKDIR /root
 
+# setup environment
+ENV PYTHONPATH $PYTHONPATH:/root/underworld2
+
 # get underworld and compile
 RUN git clone https://github.com/underworldcode/underworld2 && \
     cd underworld2/libUnderworld && \
@@ -23,13 +26,8 @@ RUN git clone https://github.com/underworldcode/underworld2 && \
     rm -fr StgFEM                && \
     rm -fr StgDomain             && \
     rm -fr PICellerator          && \
-    rm -fr Solvers
-
-# setup environment
-ENV PYTHONPATH $PYTHONPATH:/root/underworld2
-
-# lets run through all the tutorials and make sure they work 
-RUN cd underworld2/utils              && \
+    rm -fr Solvers               && \
+    cd ../../utils               && \
     ./testNotebook.py TestDocTests.ipynb ../docs/tutorials/*
 
 # Add a notebook profile.
