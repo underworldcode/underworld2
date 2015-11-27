@@ -25,9 +25,12 @@ RUN git clone https://github.com/underworldcode/underworld2 && \
     rm -fr PICellerator          && \
     rm -fr Solvers
 
-
 # setup environment
 ENV PYTHONPATH $PYTHONPATH:/root/underworld2
+
+# lets run through all the tutorials and make sure they work 
+RUN cd underworld2/utils              && \
+    ./testNotebook.py TestDocTests.ipynb ../docs/tutorials/*
 
 # Add a notebook profile.
 RUN mkdir -p -m 700 /root/.jupyter/ && \
