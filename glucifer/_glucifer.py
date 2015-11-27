@@ -2,15 +2,15 @@ import underworld as uw
 import errno
 import weakref
 import underworld._stgermain as _stgermain
-import _drawing
+from subprocess import Popen, PIPE, STDOUT
 import os
 import urllib2
 import time
 from base64 import b64encode
 import libUnderworld
 import _LavaVu as lavavu
-import _gLucifer
 from multiprocessing import Process
+from . import objects
 
 # lets create somewhere to dump data for this session
 import os
@@ -30,9 +30,9 @@ class Figure(_stgermain.StgCompoundComponent):
          Generally the user will use the figure() routine to generate or recall Figure instances.
          
          A minimal workflow might be as follows:
-            fig = plt.figure()                  # generate a Figure instance
-            fig.Surface(field="PressureField")  # add Surface drawing object
-            fig.show()                          # show the image (in ipython notebook)
+            fig = glucifer.figure()                              # generate a Figure instance
+            fig + glucifer.objects.Surface(mesh, velocityField)  # add Surface drawing object
+            fig.show()                                           # show the image (in ipython notebook)
             
          Currently, the Surface, Points & VectorArrows are the supported drawing objects.  See help() on these objects for their respective options.
     """
@@ -83,9 +83,9 @@ class Figure(_stgermain.StgCompoundComponent):
             raise TypeError("'axis' object passed in must be of python type 'bool'")
         self._axis = axis
 
-        self._defaultDrawingObject = _drawing.Drawing() #Default object for custom drawing
+        self._defaultDrawingObject = objects.Drawing() #Default object for custom drawing
         self._drawingObjects = [self._defaultDrawingObject]
-        self._colourMaps = [_drawing.Drawing._defaultColourMap]
+        self._colourMaps = [self._defaultDrawingObject._colourMap]
         self._script = []
 
         super(Figure,self).__init__(**kwargs)
@@ -138,12 +138,6 @@ class Figure(_stgermain.StgCompoundComponent):
         """    database (str): filename for storing generated figure content, default: none (in-memory only)
         """
         return self._database
-
-    @property
-    def num(self):
-        """    num (str,int): integer or string figure identifier. Must not contain spaces. optional, default: none
-        """
-        return self._num
 
     @property
     def figsize(self):
@@ -275,9 +269,9 @@ class Figure(_stgermain.StgCompoundComponent):
         for ii in range(self._vp.drawingObject_Register.objects.count,0,-1):
             libUnderworld.StGermain._Stg_ObjectList_RemoveByIndex(self._vp.drawingObject_Register.objects,ii-1, libUnderworld.StGermain.KEEP)
         # first add drawing objects to viewport
-        if len(self.drawingObjects) == 0:
+        if len(self._drawingObjects) == 0:
             raise RuntimeError("There appears to be no drawing objects to render.")
-        for object in self.drawingObjects:
+        for object in self._drawingObjects:
             object._cself.id = 0
             libUnderworld.StGermain.Stg_ObjectList_Append(self._vp.drawingObject_Register.objects,object._cself)
             #For default colour bars created with drawing objects rather than added on their own, add manually
@@ -392,80 +386,15 @@ class Figure(_stgermain.StgCompoundComponent):
     def clear(self):
         """    Clears all the figure's drawing objects and colour maps
         """
-        del self.drawingObjects[:]
-        del self.colourMaps[:]
 
-    def ColourMap(self, **kwargs):
-        """    Add a Colour Map to the current figure.
-               See 'help(ColourMap)' for information on the ColourMap class and it's options.
-               
-               Returns the generated ColourMap object.
+    def __add__(self,drawing_object):
         """
-        guy = _drawing.ColourMap(**kwargs)
-        self.colourMaps.append(guy)
-        return guy
+        """
+        if not isinstance(drawing_object, objects.Drawing):
+            raise TypeError("Object your are trying to add to figure does not appear to be of type 'Drawing'.")
 
-    def ColourBar(self, colourMap, **kwargs):
-        """    Add a Colour Bar to the current figure.
-               See 'help(ColourBar)' for information on the ColourMap class and it's options.
-               
-               Returns the generated ColourBar object.
-        """
-        guy = _drawing.ColourBar(colourMap=colourMap, **kwargs)
-        self.drawingObjects.append(guy)
-        return guy
-
-    def Surface(self, fn, mesh, useMesh=False, drawSides="xyzXYZ", colourBar=True, **kwargs):
-        """    Add a surface drawing object to the current figure.
-               See 'help(Surface)' for information on the Surface class and it's options.
-               
-               Returns the generated Surface object.
-        """
-        guy = _drawing.Surface(fn=fn, mesh=mesh, useMesh=useMesh, drawSides=drawSides, colourBar=colourBar, **kwargs)
-        self.drawingObjects.append(guy)
-        return guy
-
-    def Points(self, swarm, colourBar=True, fn_colour=None, fn_mask=None, pointSize=1.0, pointType=1, **kwargs):
-        """    Add a points drawing object to the current figure.
-               See 'help(Points)' for information on the Points class and it's options.
-               
-               Returns the generated Points object.
-        """
-        guy = _drawing.Points( swarm=swarm, colourBar=colourBar, fn_colour=fn_colour, fn_mask=fn_mask, pointSize=pointSize, pointType=pointType, **kwargs)
-        self.drawingObjects.append(guy)
-        return guy
-
-    def VectorArrows(self, fn, mesh, resolutionX=16, resolutionY=16, resolutionZ=16,
-                                  arrowHead=0.3, scaling=0.3, glyphs=3, **kwargs):
-        """    Add a vector arrow drawing object to the current figure.
-               See 'help(VectorArrows)' for information on the VectorArrows class and it's options.
-               
-               Returns the generated VectorArrows object.
-        """
-        guy = _drawing.VectorArrows( fn=fn, mesh=mesh, resolutionX=resolutionX, resolutionY=resolutionY, resolutionZ=resolutionZ,
-                                                  arrowHead=arrowHead, scaling=scaling, glyphs=glyphs, **kwargs)
-        self.drawingObjects.append(guy)
-        return guy
-
-    def Volume(self, fn, mesh, useMesh=False, colourBar=True, resolutionX=16, resolutionY=16, resolutionZ=16, **kwargs):
-        """    Add a volume drawing object to the current figure.
-               See 'help(Volume)' for information on the Volume class and it's options.
-               
-               Returns the generated Volume object.
-        """
-        guy = _drawing.Volume( fn=fn, mesh=mesh, useMesh=useMesh, colourBar=colourBar, resolutionX=resolutionX, resolutionY=resolutionY, resolutionZ=resolutionZ, **kwargs)
-        self.drawingObjects.append(guy)
-        return guy
-
-    def Mesh(self, mesh, nodeNumbers=False, segmentsPerEdge=1, **kwargs):
-        """    Add a mesh drawing object to the current figure.
-               See 'help(Mesh)' for information on the Mesh class and it's options.
-               
-               Returns the generated Mesh object.
-        """
-        guy = _drawing.Mesh(mesh=mesh, nodeNumbers=nodeNumbers, segmentsPerEdge=segmentsPerEdge, **kwargs)
-        self.drawingObjects.append(guy)
-        return guy
+        self._drawingObjects.append( drawing_object )
+        return self
 
     #Direct drawing methods
     def label(self, text, pos=(0.,0.,0.), font="sans", scaling=1):
@@ -517,3 +446,4 @@ class Figure(_stgermain.StgCompoundComponent):
         #Write label if any
         if label != None:
             libUnderworld.gLucifer.lucDatabase_AddLabel(self._db, geomType, label);
+

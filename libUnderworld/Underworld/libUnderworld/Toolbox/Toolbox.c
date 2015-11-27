@@ -37,10 +37,6 @@ void Underworld_Toolbox_Initialise( ToolboxesManager* toolboxesManager, int* arg
 
 void Underworld_Toolbox_Finalise( ToolboxesManager* toolboxesManager ) {
    Underworld_Finalise();
-   
-   Journal_RPrintf(
-      Journal_Register( Info_Type, (Name)Underworld_Toolbox_Type ),
-         "Finalised: Underworld (Geodynamics Framework).\n" );
 }
 
 Index Underworld_Toolbox_Register( ToolboxesManager* toolboxesManager ) {

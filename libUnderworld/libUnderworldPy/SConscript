@@ -66,6 +66,10 @@ objs += env.SharedObject(srcs, CPPDEFINES=env.get('CPPDEFINES', []))
 if env['shared_libs']:
     env.SharedLibrary('lib/LavaVu_swig', objs)
 
+# add the lavavu guy here
+
+wrapperDict['LavaVu'] = ['LavaVu_wrap.cxx']
+
 
 # if on osx, create symlink for python modules
 import os

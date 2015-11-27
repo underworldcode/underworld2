@@ -472,11 +472,10 @@ void _Stokes_SLE_UzawaSolver_Solve( void* solver, void* stokesSLE ) {
 			Journal_Printf( errorStream, "You used the following force vector assembly terms:\n" );
 			EntryPoint_PrintConcise( sle->fForceVec->assembleForceVector, errorStream );
 		}	
-		Journal_Printf( errorStream,
-			"Please check values for building the force vector.\n" );
-		Journal_Firewall( 0, errorStream, "The momentum force vector \"%s\" is zero. "
+		Journal_Printf( errorStream, "Please check values for building the force vector.\n" );
+		Journal_Firewall( 0, errorStream, "The momentum force vector is zero. "
 			"The force vector should be non-zero because of your chosen boundary "
-			"conditions and/or buoyancy/body forces.\n" ); 	
+			"conditions and/or buoyancy/body forces." );
 	}
 	
 					
@@ -798,7 +797,7 @@ void _Stokes_SLE_UzawaSolver_Solve( void* solver, void* stokesSLE ) {
 	
 		Journal_Firewall( 
 				isGoodNumber( zdotr_current ) && isGoodNumber( sdotGTrans_v ) && isGoodNumber( alpha ), 
-				errorStream, 
+				errorStream,
 				"Error in func '%s' for %s '%s' - zdotr_current, sdotGTrans_v or alpha has an illegal value: '%g','%g' or '%g'\n",
 				__func__, self->type, self->name, zdotr_current, sdotGTrans_v, alpha );
 		

@@ -16,18 +16,18 @@ swigheaders +=  ' -I'+os.path.join( dir, 'include', 'petsc')
 swigheaders +=  ' -I'+os.path.join( '..', 'ctools')
 
 swigfiles = [ 
-              "c_arrays.i",
-              "c_pointers.i",
-              "petsc.i",
-              "StGermain.i",
-              "StGermain_Tools.i",
-              "StgDomain.i",
-              "StgFEM.i",
-              "PICellerator.i",
-              "Function.i",
-              "Underworld.i",
-              "Solvers.i",
-              "gLucifer.i",
+#              "c_arrays.i",
+#              "c_pointers.i",
+#              "petsc.i",
+#              "StGermain.i",
+#              "StGermain_Tools.i",
+#              "StgDomain.i",
+#              "StgFEM.i",
+#              "PICellerator.i",
+#              "Function.i",
+#              "Underworld.i",
+#              "Solvers.i",
+#              "gLucifer.i",
               "LavaVu.i",
              ]
 #

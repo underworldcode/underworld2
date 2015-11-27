@@ -36,10 +36,6 @@ void gLucifer_Toolbox_Initialise( ToolboxesManager* toolboxesManager, int* argc,
 
 void gLucifer_Toolbox_Finalise( ToolboxesManager* toolboxesManager ) {
    gLucifer_Finalise();
-   
-   Journal_RPrintf(
-      Journal_Register( Info_Type, (Name)gLucifer_Toolbox_Type  ),
-         "Finalised: gLucifer (Visualisation Framework).\n" );
 }
 
 Index gLucifer_Toolbox_Register( ToolboxesManager* toolboxesManager ) {

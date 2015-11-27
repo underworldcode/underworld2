@@ -613,8 +613,6 @@ void ElementType_GetFaceNodes( void* elementType, Mesh* mesh, unsigned element_I
 	Index		node_i;
 	int*	inc;
 
-	assert( mesh && Stg_CheckType( mesh, FeMesh ) );
-
 	FeMesh_GetElementNodes( mesh, element_I, self->inc );
 	inc = IArray_GetPtr( self->inc );
 
