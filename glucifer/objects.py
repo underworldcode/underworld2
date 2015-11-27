@@ -4,19 +4,14 @@ import underworld.swarm as _swarmMod
 import underworld.mesh as _uwmesh
 from underworld.function import Function as _Function
 import libUnderworld as _libUnderworld
-#import underworld.fevariable as fevariable
 
-
-class Drawing(_stgermain.StgCompoundComponent):
-    _selfObjectName = "_dr"
-    _objectsDict = { "_dr": None, # child should set _dr
-                     "_cm": "lucColourMap",
-                     "_cb": "lucColourBar" }
+class ColourMap(_stgermain.StgCompoundComponent):
+    _selfObjectName = "_cm"
+    _objectsDict = { "_cm": "lucColourMap" }
     
-    def __init__(self, colours=None, opacity=None, logScale=False, colourBar=True, valueRange=None, **kwargs ):
+    #Default is a cool-warm map with low variance in luminosity/lightness
+    def __init__(self, colours="#288FD0 #50B6B8 #989878 #C68838 #FF7520".split(), valueRange=None, logScale=False, discrete=False, **kwargs):
     
-        if colours == None:
-            colours = ["blue", "white"]
         if not isinstance(colours,(str,list)):
             raise TypeError("'colours' object passed in must be of python type 'str' or 'list'")
         if isinstance(colours,(str)):
@@ -42,6 +37,76 @@ class Drawing(_stgermain.StgCompoundComponent):
         else:
            self._dynamicRange = True
            self._valueRange   = [0.0,1.0] # dummy value - not important
+
+        if not isinstance(logScale, bool):
+            raise TypeError("'logScale' parameter must be of 'bool' type.")
+        self._logScale = logScale
+
+        if not isinstance(discrete, bool):
+            raise TypeError("'discrete' parameter must be of 'bool' type.")
+        self._discrete = discrete
+
+        # build parent
+        super(ColourMap,self).__init__()
+
+    def _add_to_stg_dict(self,componentDictionary):
+
+        # call parents method
+        super(ColourMap,self)._add_to_stg_dict(componentDictionary)
+
+        componentDictionary[self._cm.name].update( {
+            "colours"       :" ".join(self.colours),
+            "logScale"      :self._logScale,
+            "discrete"      :self._discrete,
+            "maximum"       :self._valueRange[1],
+            "minimum"       :self._valueRange[0],
+            "dynamicRange"  :self._dynamicRange
+        } )
+
+    @property
+    def valueRange(self):
+        """     valueRange (list) : list of 2 numbers that define the min and max of the colour map values 
+        """
+        return self._valueRange
+
+    @property
+    def dynamicRange(self):
+        """     dynamicRange (bool) : if True the max and min values of the field will automatically define the colour map value 
+                                      range and the valueRange list is ignored. If False the valueRange is used to define the 
+                                      colour map value range
+        """
+        return self._dynamicRange
+
+    @property
+    def colours(self):
+        """    colours (list): list of colours to use.  Should be provided as a list or a string.
+        """
+        return self._colours
+
+    @property
+    def logScale(self):
+        """    logScale (bool): Use a logarithm scale for the colourmap.
+        """
+        return self._logScale
+
+
+class Drawing(_stgermain.StgCompoundComponent):
+    _selfObjectName = "_dr"
+    _objectsDict = { "_dr": None, # child should set _dr
+                     "_cm": "lucColourMap",
+                     "_cb": "lucColourBar" }
+    
+    def __init__(self, colours=None, opacity=None, logScale=False, colourBar=True, valueRange=None, **kwargs ):
+    
+        if colours == None:
+            colours = ["blue", "white"]
+        if not isinstance(colours,(str,list)):
+            raise TypeError("'colours' object passed in must be of python type 'str' or 'list'")
+        if isinstance(colours,(str)):
+            self._colours = colours.split()
+        else:
+            self._colours = colours
+
 
         self._opacity = -1
         if opacity != None:
