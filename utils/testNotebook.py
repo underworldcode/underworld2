@@ -110,5 +110,11 @@ if __name__ == '__main__':
     logFile.close()
 
     # Report to stdout
-    print "\n\nTotal: Number of fails " + str(nfails)  
+    print "\n\nTotal: Number of fails " + str(nfails)
     print list_fails
+
+    # Return appropriate error code
+    if nfails == 0:
+        sys.exit(0)
+    else:
+        sys.exit(1)

@@ -7,7 +7,7 @@ WORKDIR /root
 # setup environment
 ENV PYTHONPATH $PYTHONPATH:/root/underworld2
 
-# get underworld and compile
+# get underworld, compile, delete some unnecessary files, run tests.
 RUN git clone https://github.com/underworldcode/underworld2 && \
     cd underworld2/libUnderworld && \
     ./configure.py               && \
@@ -28,11 +28,7 @@ RUN git clone https://github.com/underworldcode/underworld2 && \
     rm -fr PICellerator          && \
     rm -fr Solvers               && \
     cd ../../utils               && \
-    ./testNotebook.py TestDocTests.ipynb ../docs/tutorials/*
-
-# Add a notebook profile.
-RUN mkdir -p -m 700 /root/.jupyter/ && \
-    echo "c.NotebookApp.ip = '*'" >> /root/.jupyter/jupyter_notebook_config.py
+    /usr/local/bin/tini -- xvfbrun.sh ./testNotebook.py TestDocTests.ipynb ../docs/tutorials/*
 
 # copy underworld tutorials over
 RUN mkdir /workspace && \
@@ -41,21 +37,6 @@ RUN mkdir /workspace && \
 # setup space for working in
 VOLUME /workspace
 WORKDIR /workspace
-
-# expose notebook port
-EXPOSE 8888
-
-# Install Tini.. this is required because CMD (below) doesn't play nice with notebooks for some reason: https://github.com/ipython/ipython/issues/7062, https://github.com/jupyter/notebook/issues/334
-RUN curl -L https://github.com/krallin/tini/releases/download/v0.6.0/tini > tini && \
-    echo "d5ed732199c36a1189320e6c4859f0169e950692f451c03e7854243b95f4234b *tini" | sha256sum -c - && \
-    mv tini /usr/local/bin/tini && \
-    chmod +x /usr/local/bin/tini
-
-RUN printf "xvfb-run -s '-screen 0 1600x1200x16' \$@" >> /usr/local/bin/xvfbrun.sh && \
-    chmod +x /usr/local/bin/xvfbrun.sh
-
-# note we also use xvfb which is required for viz
-ENTRYPOINT ["/usr/local/bin/tini", "--", "xvfbrun.sh"]
 
 # launch notebook
 CMD ["jupyter", "notebook"]
