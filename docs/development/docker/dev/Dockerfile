@@ -34,6 +34,9 @@ RUN git clone https://github.com/underworldcode/underworld2 && \
 RUN mkdir /workspace && \
     rsync -av /root/underworld2/docs/tutorials /workspace
 
+# expose notebook port
+EXPOSE 8888
+
 # setup space for working in
 VOLUME /workspace
 WORKDIR /workspace
