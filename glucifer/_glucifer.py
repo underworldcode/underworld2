@@ -42,8 +42,9 @@ class Figure(_stgermain.StgCompoundComponent):
     _selfObjectName = "_db"
     _viewerProc = None
 
-    def __init__(self, database=None, num=None, figsize=(640,480), boundingBox=None, facecolour="white", edgecolour="black", title=None, axis=False, **kwargs):
-        """ The initialiser takes as arguments 'num', 'figsize', 'boundingBox', 'facecolour', 'edgecolour', 'title' and 'axis'.   See help(Figure) for full details on these options.
+    def __init__(self, database=None, num=None, figsize=(640,480), boundingBox=None, facecolour="white",
+                 edgecolour="black", title="", axis=False, properties=None, **kwargs):
+        """ The initialiser takes as arguments 'num', 'figsize', 'boundingBox', 'facecolour', 'edgecolour', 'title', 'axis' and 'properties'.   See help(Figure) for full details on these options.
         """
         if database and not isinstance(database,str):
             raise TypeError("'database' object passed in must be of python type 'str'")
@@ -72,15 +73,21 @@ class Figure(_stgermain.StgCompoundComponent):
 
         if not isinstance(edgecolour,str):
             raise TypeError("'edgecolour' object passed in must be of python type 'str'")
-        self._edgecolour = edgecolour
 
-        if title and not isinstance(title,str):
+        if not isinstance(title,str):
             raise TypeError("'title' object passed in must be of python type 'str'")
-        self._title = title
 
         if not isinstance(axis,bool):
             raise TypeError("'axis' object passed in must be of python type 'bool'")
-        self._axis = axis
+
+        #Setup default properties
+        self._properties = {"title" : title, "axis" : axis, "axislength" : 0.2, "antialias" : True,
+            "margin" : 32, "border" : (1 if edgecolour else 0), "borderColour" : edgecolour, "rulers" : False, "timestep" : False, "zoomstep" : 0} 
+        
+        if properties and not isinstance(properties,dict):
+            raise TypeError("'properties' object passed in must be of python type 'dict'")
+        if properties:
+            self._properties.update(properties)
 
         self.draw = objects.Drawing()
         self._drawingObjects = [self.draw]
@@ -124,14 +131,21 @@ class Figure(_stgermain.StgCompoundComponent):
         } )
         componentDictionary[self._vp.name].update( {
                             "Camera"            :self._cam.name,
-                            "borderColour"      :self.edgecolour,
-                            "border"            :1,
-                            "title"             :self.title,
-                            "axis"              :self.axis
+                            "properties"        :self._getProperties()
         } )
         componentDictionary[self._cam.name].update ( {
                             "useBoundingBox"    : True
         } )
+
+    def _getProperties(self):
+        #Convert properties to string
+        return '\n'.join(['%s=%s' % (k,v) for k,v in self._properties.iteritems()]);
+
+    def _setProperties(self, newProps):
+        #Update the properties values (merge)
+        #values of any existing keys are replaced and viewport is updated
+        self._properties.update(newProps)
+        _libUnderworld.gLucifer.lucViewport_SetProperties(self._vp, self._getProperties());
 
     @property
     def filename(self):
@@ -155,19 +169,19 @@ class Figure(_stgermain.StgCompoundComponent):
     def edgecolour(self):
         """    edgecolour : colour of figure border, default: white
         """
-        return self._edgecolour
+        return self._properties["bordercolour"]
 
     @property
     def title(self):
         """    title : a title for the image, default: None
         """
-        return self._title
+        return self._properties["title"]
 
     @property
     def axis(self):
         """    axis : Axis enabled if true.  Default False.
         """
-        return self._axis
+        return self._properties["axis"]
 
     @property
     def drawingObjects(self):
@@ -180,6 +194,17 @@ class Figure(_stgermain.StgCompoundComponent):
         """    colourMaps : list of colour maps available within the figure.
         """
         return self._colourMaps
+
+    @property
+    def properties(self):
+        """    properties (dict): visual properties of viewport, passed to LavaVu to control rendering output of figure.
+        """
+        return self._properties
+
+    @properties.setter
+    def properties(self, value):
+        #Sets new properties, overwriting any duplicate keys but keeping existing values otherwise
+        self._setProperties(value)
 
     def show(self, type="image"):
         """    Shows the generated image inline within an ipython notebook
@@ -255,12 +280,15 @@ class Figure(_stgermain.StgCompoundComponent):
             finaloutFile = frontpart+splitgenfilename[1]
             os.rename(generatedFilename,finaloutFile)
 
-    def save_database(self,filename):
+    def save_database(self,filename,regen=False):
         """  Saves the generated database to the provided filename.
             
              Args:
                filename (str):  Filename to save file to.  May include an absolute or relative path.
+               regen   (bool):  Regenerate the database, only required if show() has not been called previously.
         """
+        if regen:
+            self._generate_DB()
         if uw.rank() == 0:
             libUnderworld.gLucifer.lucDatabase_BackupDbFile(self._db, filename)
 

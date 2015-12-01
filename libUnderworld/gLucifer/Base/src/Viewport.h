@@ -27,14 +27,6 @@ extern const Type lucViewport_Type;
       double                        scaleX;                    \
       double                        scaleY;                    \
       double                        scaleZ;                    \
-      char*                         title;                     \
-      Bool                          axis;                      \
-      double                        axisLength;                \
-      int                           border;                    \
-      Bool                          antialias;                 \
-      Bool                          rulers;                    \
-      Bool                          timestep;                  \
-      lucColour                     borderColour;              \
       char*                         properties;                \
 
 struct lucViewport
@@ -67,9 +59,10 @@ void _lucViewport_Execute( void* viewport, void* data );
 void _lucViewport_Destroy( void* viewport, void* data );
 
 /* +++ Public Functions +++ */
-void lucViewport_Update( void* viewport);
 void lucViewport_Setup( void* viewport, lucDatabase* database) ;
 void lucViewport_Draw( void* viewport, lucDatabase* database) ;
 void lucViewport_CleanUp( void* viewport ) ;
+
+void lucViewport_SetProperties(void* viewport, char *props);
 #endif
 

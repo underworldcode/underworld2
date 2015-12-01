@@ -121,12 +121,12 @@ class Drawing(_stgermain.StgCompoundComponent):
         else:
             self._colourMap = ColourMap(valueRange=valueRange, logScale=logScale)
 
+        if not hasattr(self, 'properties'):
+            self._properties = {}
         if properties and not isinstance(properties,dict):
             raise TypeError("'properties' object passed in must be of python type 'dict'")
-        if not properties:
-            self._properties = {}
-        else:
-            self._properties = properties
+        if properties:
+            self._properties.update(properties)
 
         if not isinstance(opacity,(int,float)):
             raise TypeError("'opacity' object passed in must be of python type 'int' or 'float'")
@@ -160,16 +160,7 @@ class Drawing(_stgermain.StgCompoundComponent):
 
     def _getProperties(self):
         #Convert properties to string
-        propstr = ''
-        for key in self._properties:
-            propstr += key + '=' + str(self._properties[key]) + '\n'
-        return propstr
-
-    def _updateProperties(self, newProps):
-        #Update the properties values (merge)
-        #values of any existing keys are not overwritten
-        newProps.update({k:v for k,v in self._properties.iteritems() if v})
-        self._properties = newProps
+        return '\n'.join(['%s=%s' % (k,v) for k,v in self._properties.iteritems()]);
 
     def _setProperties(self, newProps):
         #Update the properties values (merge)
@@ -242,14 +233,18 @@ class ColourBar(Drawing):
     _objectsDict = { "_dr": "lucDrawingObject" }
 
     def __init__(self, colourMap, *args, **kwargs):
+        #Default properties
+        self._properties = {"colourbar" : 1, "height" : 10, "lengthfactor" : 0.8, 
+                "margin" : 16, "border" : 1, "precision" : 2, "scientific" : False, "font" : "small", 
+                "ticks" : 0, "printticks" : True, "printunits" : False, "scalevalue" : 1.0} #tick0-tick10 : val
+    
         # build parent
         super(ColourBar,self).__init__(colourMap=colourMap, *args, **kwargs)
 
-        #Replace any missing properties with defaults, TODO: allow setting ColourBar props via args
-        self._updateProperties({"colourbar" : 1, "height" : 10, "lengthfactor" : 0.8, 
-                "margin" : 16, "border" : 1, "precision" : 2, "scientific" : False, "font" : "small", 
-                "ticks" : 2 if self._colourMap.logScale else 0, "printticks" : True, "printunits" : False, "scalevalue" : 1.0}) #tick0-tick10 : val
-    
+        #Always show at least 2 tick marks on a log scale
+        if self._colourMap.logScale and self._properties["ticks"] < 2:
+            self._properties["ticks"] = 2
+
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method
         super(ColourBar,self)._add_to_stg_dict(componentDictionary)
@@ -323,15 +318,18 @@ class Surface(CrossSection):
         if not isinstance(drawOnMesh, bool):
             raise TypeError("'drawOnMesh parameter must be of type 'bool'.")
         self._drawOnMesh = drawOnMesh
+
+
+        #Default properties
+        self._properties = {"cullface" : True};
+        # TODO: disable lighting if 2D (how to get dims?)
+        #self._properties["lit"] = False;
         
         # build parent
         super(Surface,self).__init__( mesh=mesh, fn=fn,
                         colours=colours, colourMap=colourMap, properties=properties, opacity=opacity, colourBar=colourBar,
                         valueRange=valueRange, logScale=logScale, discrete=discrete, *args, **kwargs)
-        #Replace any missing properties with defaults
-        self._updateProperties({"cullface" : True});
-        # TODO: disable lighting if 2D (how to get dims?)
-        #self._properties["lit"] = False;
+
 
     def _add_to_stg_dict(self,componentDictionary):
         # lets build up component dictionary
@@ -398,13 +396,13 @@ class Points(Drawing):
         if not isinstance(pointType,(int)):
             raise TypeError("'pointType' object passed in must be of python type 'int'")
 
+        #Default properties
+        self._properties = {"pointsize" : pointSize, "pointtype" : pointType};
+
         # build parent
         super(Points,self).__init__(
                         colours=colours, colourMap=colourMap, properties=properties, opacity=opacity, colourBar=colourBar,
                         valueRange=valueRange, logScale=logScale, discrete=discrete, *args, **kwargs)
-
-        #Replace any missing properties with defaults
-        self._updateProperties({"pointsize" : pointSize, "pointtype" : pointType});
 
     def _add_to_stg_dict(self,componentDictionary):
         # lets build up component dictionary
@@ -530,12 +528,12 @@ class VectorArrows(_GridSampler3D):
             if not isinstance(glyphs,(int)):
                 raise TypeError("'glyphs' object passed in must be of python type 'int'")
 
+        #Default properties
+        self._properties = {"arrowHead" : arrowHead, "scaling" : scaling, "glyphs" : glyphs};
+
         # build parent
         super(VectorArrows,self).__init__( mesh=mesh, fn=fn, resolutionI=resolutionI, resolutionJ=resolutionJ, resolutionK=resolutionK,
                         colours=None, colourMap=None, properties=properties, opacity=opacity, colourBar=False, *args, **kwargs)
-
-        #Replace any missing properties with defaults
-        self._updateProperties({"arrowHead" : arrowHead, "scaling" : scaling, "glyphs" : glyphs});
 
     def _add_to_stg_dict(self,componentDictionary):
         # lets build up component dictionary
@@ -599,14 +597,14 @@ class Mesh(Drawing):
         if not isinstance(segmentsPerEdge,int) or segmentsPerEdge < 1:
             raise TypeError("'segmentsPerEdge' must be a positive 'int'")
         self._segmentsPerEdge = segmentsPerEdge
+
+        #Default properties
+        self._properties = {"lit" : False, "linewidth" : 0.1, 
+                           "pointsize" : 5 if self._nodeNumbers else 1, 
+                           "pointtype" : 2 if self._nodeNumbers else 4};
         
         # build parent
         super(Mesh,self).__init__( colours=None, colourMap=None, properties=properties, opacity=opacity, colourBar=False, *args, **kwargs )
-
-        #Replace any missing properties with defaults
-        self._updateProperties({"lit" : False, "linewidth" : 0.1, 
-                                "pointsize" : 5 if self._nodeNumbers else 1, 
-                                "pointtype" : 2 if self._nodeNumbers else 4});
 
     def _add_to_stg_dict(self,componentDictionary):
         # lets build up component dictionary

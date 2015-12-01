@@ -499,7 +499,6 @@ void lucDatabase_OutputWindow(lucDatabase* self, void* _window)
          for ( horizontal_I = 0 ; horizontal_I < horizontalCount ; horizontal_I++ )
          {
             lucViewport* viewport = window->viewportList[ viewport_I ];
-            if (!window->antialias) viewport->antialias = False;  /* Override anti-alias setting when disabled for window */
             lucDatabase_OutputViewport(self, viewport, id, horizontal_I / (float)horizontalCount, vertical_I / (float)verticalCount);
             viewport_I++;
          }
@@ -528,14 +527,11 @@ void lucDatabase_OutputViewport(lucDatabase* self, lucViewport* viewport, int wi
    }
 
    /* Save the viewport - if added to multiple windows will create a new entry for each */
-   /* Update properties string for viewport */
-   lucViewport_Update(viewport);
-
    if (cam->centreFieldVariable || cam->useBoundingBox)
       sprintf(focus, "null, null, null");
    else
       sprintf(focus, "%g, %g, %g", cam->focalPoint[0], cam->focalPoint[1], cam->focalPoint[2]);
-   snprintf(SQL, 1024, "insert into viewport (title, x, y, near, far, aperture, orientation, focalPointX, focalPointY, focalPointZ, translateX, translateY, translateZ, rotateX, rotateY, rotateZ, scaleX, scaleY, scaleZ, properties) values ('%s', %g, %g, %g, %g, %g, %d, %s, %g, %g, %g, %g, %g, %g, %g, %g, %g, '%s')", viewport->title, x, y, viewport->nearClipPlane, viewport->farClipPlane, cam->aperture, cam->coordSystem, focus, translate[0], translate[1], translate[2], cam->rotate[0], cam->rotate[1], cam->rotate[2], viewport->scaleX, viewport->scaleY, viewport->scaleZ, viewport->properties);
+   snprintf(SQL, 1024, "insert into viewport (x, y, near, far, aperture, orientation, focalPointX, focalPointY, focalPointZ, translateX, translateY, translateZ, rotateX, rotateY, rotateZ, scaleX, scaleY, scaleZ, properties) values (%g, %g, %g, %g, %g, %d, %s, %g, %g, %g, %g, %g, %g, %g, %g, %g, '%s')", x, y, viewport->nearClipPlane, viewport->farClipPlane, cam->aperture, cam->coordSystem, focus, translate[0], translate[1], translate[2], cam->rotate[0], cam->rotate[1], cam->rotate[2], viewport->scaleX, viewport->scaleY, viewport->scaleZ, viewport->properties);
    /*printf("%s\n", SQL);*/
    if (!lucDatabase_IssueSQL(self->db, SQL)) return;
    /* Return viewport id */
