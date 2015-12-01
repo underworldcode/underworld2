@@ -13,6 +13,9 @@ import underworld.fevariable as fevariable
 import underworld.function
 import libUnderworld
 import libUnderworld.libUnderworldPy.Function as _cfn
+from timeit import default_timer as timer
+from mpi4py import MPI
+import sys
 
 class Integral(_stgermain.StgCompoundComponent):
     """
@@ -587,4 +590,73 @@ class LogBook(object):
         xdmfFH.write(string)
         xdmfFH.close()
 
+class ProgressBar(object):
+    """
+    Class that provides a commandline Progress bar that plays well with piping to file.
+    This class is unaware of parallelism and should be appropriately called.
+
+    >>> rank = MPI.COMM_WORLD.Get_rank()
+    >>> end = 10.0
+    >>> bar = ProgressBar( start=0.0, end=end, title="Ordem e Progresso")
+    >>> bar.update(end)   # doctest: +ELLIPSIS
+    Ordem e Progresso: 0%----25%----50%----75%----100% | time ... |
+    """
+    def __init__( self, start=0.0, end=1.0, title=None ):
+        if not isinstance( start, float ):
+            raise TypeError( "In ProgressBar, 'start', must be a scalar" )
+        if not isinstance( end, float ):
+            raise TypeError( "In ProgressBar, 'end', must be a scalar" )
+
+        self._start=float(start)
+        self._end=float(end)
+        self._markers = [0, 25, 50, 75]
+        self._history=0
+        self._startTime=0
+        if title != None:
+            if not isinstance( title, str ):
+                raise TypeError( "In ProgressBar, 'title', must be a scalar" )
+            self._title = title
+            self._printTitle=True
+
+    def update(self, progress):
+        if isinstance( progress, int ):
+            progress = float(progress)
+        if not isinstance( progress, float ):
+            raise TypeError( "In ProgressBar, 'progress', must be a scalar" )
+        
+        start = self._start
+        end = self._end
+        markers = self._markers
+        length = end-start
+        relprog = int(100.0*(progress-start)/length)
+        h = self._history
+
+        if progress < start:
+            raise RuntimeError( "Error in ProgressBar: 'progress' < 'start' " )
+
+        if relprog > 100:
+            sys.stdout.write("Warning: "+ str(self._title)+ "'s ProgressBar is done\n")
+            return 
+
+        if self._printTitle:
+            sys.stdout.write(str(self._title)+': ')
+            self._printTitle=False
+            self._startTime=timer()
+
+ #       import pdb; pdb.set_trace()
+        while h < relprog:
+            if h%5 == 0:
+                if h % 25 == 0:
+                    sys.stdout.write("{0}%".format(h))
+                else:
+                    sys.stdout.write("-")
+            h += 1
+
+        if h == 100:
+            totalTime = timer() - self._startTime
+            sys.stdout.write("100% | time {0:.4g} |\n".format(totalTime))
+
+        self._history = relprog
+
+        sys.stdout.flush()
 
