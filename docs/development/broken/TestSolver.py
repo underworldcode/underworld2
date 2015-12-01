@@ -1,7 +1,6 @@
 import underworld as uw
 import math
 from underworld import function as fn
-import glucifer.pylab as plt
 
 linearMesh = uw.mesh.FeMesh_Cartesian("Q2/dQ1", (32,32), (0.,0.), (1.,1.))
 

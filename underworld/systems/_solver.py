@@ -48,8 +48,6 @@ class Options(object):
         self.ksp_type="fgmres"
         self.ksp_rtol=1e-5
         self._mg_active=True
-        # self.ksp_converged_reason=True
-        # self.ksp_monitor="stdout"
 
     def clear(self):
         """
@@ -57,13 +55,57 @@ class Options(object):
         """
         self.__dict__.clear()
 
-    def set_direct(self):
+    def set_lu(self):
         """
-        Set up options for direct LU solve.
+        Set up options for LU serial solve.
         """
+        self.__dict__.clear()
         self.ksp_type="preonly"
         self.pc_type="lu"
-        self._mg_active=False # check this now
+        self._mg_active=False
+
+    def set_mumps(self,pc_type="lu"):
+        """
+        Set up options for MUMPS parallel solve.
+        pc_type = "lu" or "cholesky"
+        
+        Use ./configure --download-mumps --download-scalapack --download-parmetis --download-metis --download-ptscotch
+        to have PETSc installed with MUMPS
+        """
+        self.__dict__.clear()
+        self.ksp_type="preonly"
+        self.pc_type=pc_type
+        self._mg_active=False
+        self.pc_factor_mat_solver_package="mumps"
+        # An issue with MUMPS is that it requires preallocation of arrays, and as
+        # such occasionally it will report errors when the arrays are not big
+        # enough. Add in this line to increase the array size, and if errors are still
+        # reported increase the number.
+        # -mat_mumps_icntl_14 100
+        # cannot set this here....must be without A11 prefix
+
+    def set_superludist(self):
+        """
+        Set up options for SuperLU parallel solve.
+        Use ./configure --download-superlu_dist --download-parmetis --download-metis --download-ptscotch
+        to have PETSc installed with SuperLU_DIST
+        """
+        self.__dict__.clear()
+        self.ksp_type="preonly"
+        self.pc_type="lu"
+        self._mg_active=False
+        self.pc_factor_mat_solver_package="superlu_dist"
+
+    def set_superlu(self):
+        """
+        Set up options for SuperLU serial solve.
+        Use ./configure --download-superlu to have PETSc installed with SuperLU
+        """
+        self.__dict__.clear()
+        self.ksp_type="preonly"
+        self.pc_type="lu"
+        self._mg_active=False
+        self.pc_factor_mat_solver_package="superlu"
 
 class OptionsMG(Options):
     """
@@ -87,18 +129,39 @@ class OptionsMG(Options):
         Reset values to initial defaults.
         """
         self.__dict__.clear()
-        self.levels=3
+        self.levels=0
         self.active=True
         # add to A11 ksp when MG active
-        self.pc_mg_type="multiplicative"
-        self.pc_mg_cycle_type="v"
-        self.pc_mg_multiplicative_cycles=1
-        self.mg_levels_ksp_type="minres"
-        self.mg_levels_ksp_max_its=3
-        self.mg_levels_ksp_convergence_test="skip"
-        self.mg_levels_pc_type="sor"
-        self.pc_mg_smoothup= 5
-        self.pc_mg_smoothdown= 5
+        #self.pc_mg_type="multiplicative"
+        #self.pc_mg_type="additive"
+        #self.pc_mg_type="additive"
+        #self.pc_mg_cycle_type="v"
+        #self.pc_mg_multiplicative_cycles=1
+        #self.mg_levels_ksp_type="minres"
+        #self.mg_levels_ksp_max_its=3
+        #self.mg_levels_ksp_convergence_test="skip"
+        #self.mg_levels_pc_type="sor"
+        #self.pc_mg_smoothup= 5
+        #self.pc_mg_smoothdown= 5
+    def set_levels(self, field=''):
+        """
+        Automatically set Multigrid levels based off mesh resolution.
+        """
+        if not isinstance( field, uw.fevariable.FeVariable):
+            raise TypeError( "Provided field must be of 'FeVariable' class." )
+        else:
+            levels=0
+            lvls=[] 
+            res_tuple=field.feMesh.elementRes
+            for res in res_tuple:
+                levels=0
+                while res%2 == 0:
+                    res=res/2
+                    levels += 1
+                lvls.append(levels)
+            self.levels=min(lvls)
+            if self.levels < 2:
+                raise TypeError("\nMultigrid levels must be >= 2.\nNeed more multiples of 2 in mesh resolution." )
 
 class OptionsMGA(Options):
     """
@@ -244,6 +307,8 @@ class Solver(_stgermain.StgCompoundComponent):
 
         velocityField=stokesSLE._velocityField
         pressureField=stokesSLE._pressureField
+        
+        self.options.mg.set_levels(field=velocityField)
 
         if not isinstance( velocityField, uw.fevariable.FeVariable):
             raise TypeError( "Provided 'velocityField' must be of 'FeVariable' class." )
@@ -321,7 +386,7 @@ class Solver(_stgermain.StgCompoundComponent):
         libUnderworld.StgFEM.SystemLinearEquations_UpdateSolutionOntoNodes(self._stokesSLE._cself, None)
 
     ########################################################################
-    ### setup vectors and matrices for augmented lagrangian solve
+    ### create vectors and matrices for augmented lagrangian solve
     ########################################################################
     def _create_penalty_objects(self):
         # using this function se we don't need to add anything extra to the stokeSLE struct
@@ -447,3 +512,34 @@ class Solver(_stgermain.StgCompoundComponent):
         # attach MG object to Solver struct
         self.mgObj=mgObj # must attach object here: else immediately goes out of scope and is destroyed
         self._cself.mg = mgObj._cself
+
+    def configure(self,solve_type="mg"):
+        """
+        Configure velocity/inner solver (A11 PETSc prefix).
+
+        solve_type can be one of:
+
+        mg          : Geometric multigrid (default).
+        mumps       : MUMPS parallel direct solver.
+        superludist : SuperLU parallel direct solver.
+        superlu     : SuperLU direct solver (serial only).
+        lu          : LU direct solver (serial only).
+        """
+        if solve_type=="mg":
+            velocityField=self._stokesSLE._velocityField
+            #self.options.A11.clear()
+            #self.options.A11._mg_active=True
+            self.options.A11.reset()
+            self.options.mg.reset()
+            self.options.mg.set_levels(field=velocityField)
+            #self.options.mg.list()
+            #self.options.A11.list()
+        if solve_type=="mumps":
+            self.options.A11.set_mumps()
+        if solve_type=="lu":
+            self.options.A11.set_lu()
+        if solve_type=="superlu":
+            self.options.A11.set_superlu()
+        if solve_type=="superludist":
+            self.options.A11.set_superludist()
+
