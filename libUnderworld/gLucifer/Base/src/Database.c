@@ -362,9 +362,6 @@ void _lucDatabase_Execute( void* database, void* data )
          if (self->context->loadFromCheckPoint)
             lucDatabase_DeleteGeometry(self, self->timeStep, self->timeStep);
       }
-      else
-         /* Running from python, delete any existing geometry at timestep 0 */
-         lucDatabase_DeleteGeometry(self, 0, 0);
 
       /* Enter timestep in database */
       /* Write and update timestep */

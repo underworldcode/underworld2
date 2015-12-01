@@ -2,7 +2,6 @@ import underworld as uw
 import errno
 import weakref
 import underworld._stgermain as _stgermain
-from subprocess import Popen, PIPE, STDOUT
 import os
 import urllib2
 import time
@@ -83,9 +82,10 @@ class Figure(_stgermain.StgCompoundComponent):
             raise TypeError("'axis' object passed in must be of python type 'bool'")
         self._axis = axis
 
-        self._defaultDrawingObject = objects.Drawing() #Default object for custom drawing
-        self._drawingObjects = [self._defaultDrawingObject]
-        self._colourMaps = [self._defaultDrawingObject._colourMap]
+        self.draw = objects.Drawing()
+        self._drawingObjects = [self.draw]
+        self._colourMaps = []
+        #self._colourMaps = [self.draw._colourMap]
         self._script = []
 
         super(Figure,self).__init__(**kwargs)
@@ -266,18 +266,28 @@ class Figure(_stgermain.StgCompoundComponent):
 
     def _generate_DB(self):
         # remove any existing
+        libUnderworld.gLucifer.lucDatabase_DeleteGeometry(self._db, 0, 0); #Delete existing at timestep 0 (is this necessary?)
         for ii in range(self._vp.drawingObject_Register.objects.count,0,-1):
             libUnderworld.StGermain._Stg_ObjectList_RemoveByIndex(self._vp.drawingObject_Register.objects,ii-1, libUnderworld.StGermain.KEEP)
+
         # first add drawing objects to viewport
         if len(self._drawingObjects) == 0:
             raise RuntimeError("There appears to be no drawing objects to render.")
+
+        #Add drawing objects to register and output any custom data on them
         for object in self._drawingObjects:
+            #Only add default object if used
+            if object == self.draw and len(self.draw.vertices) == 0:
+                continue
+
+            #Add the object to the drawing object register for the (default) viewport
             object._cself.id = 0
             libUnderworld.StGermain.Stg_ObjectList_Append(self._vp.drawingObject_Register.objects,object._cself)
             #For default colour bars created with drawing objects rather than added on their own, add manually
             if object._colourBar:
                 object._colourBar._dr.id = 0
                 libUnderworld.StGermain.Stg_ObjectList_Append(self._vp.drawingObject_Register.objects,object._colourBar._dr)
+
         #Set ids to 0 as when > 0 flagged as already written to db and skipped
         for object in self.colourMaps:
             object._cself.id = 0
@@ -288,6 +298,10 @@ class Figure(_stgermain.StgCompoundComponent):
         libUnderworld.gLucifer._lucDatabase_Execute(self._db,None)
         libUnderworld.gLucifer._lucWindow_Execute(self._win,None)
 
+        #Output any custom geometry on objects
+        for object in self._drawingObjects:
+            self._plotObject(object)
+
         # Detect if viewer was built by finding executable...
         # (even though no longer needed as using libLavaVu 
         #  will keep this for now as is useful to know if the executable was built
@@ -297,6 +311,40 @@ class Figure(_stgermain.StgCompoundComponent):
         if not os.path.isfile(self._lvbin):
             raise RuntimeError("LavaVu rendering engine does not appear to exist. Perhaps it was not compiled.\nPlease check your configuration, or contact developers.")
         
+    def _plotObject(self, drawingObject):
+        #General purpose plotting using db output
+        #Plot all custom data drawn on provided object
+        farr = libUnderworld.gLucifer.new_farray(3)
+        for pos in drawingObject.vertices:
+            #Write vertex position
+            i = 0
+            for item in pos:
+                libUnderworld.gLucifer.farray_setitem(farr,i,item)  # Set values
+                i += 1
+            libUnderworld.gLucifer.lucDatabase_AddVertices(self._db, 1, drawingObject.geomType, farr)
+
+        #Write vectors
+        for vec in drawingObject.vectors:
+            i = 0
+            for item in vec:
+                libUnderworld.gLucifer.farray_setitem(farr,i,item)  # Set values
+                i += 1
+            libUnderworld.gLucifer.lucDatabase_AddVectors(self._db, 1, drawingObject.geomType, 0, 0, farr)
+
+        #Write values
+        for value in drawingObject.scalars:
+            libUnderworld.gLucifer.farray_setitem(farr,0,value)  # Set values
+            libUnderworld.gLucifer.lucDatabase_AddValue(self._db, 1, drawingObject.geomType, farr)
+
+        libUnderworld.gLucifer.delete_farray(farr)
+
+        #Write labels
+        for label in drawingObject.labels:
+            libUnderworld.gLucifer.lucDatabase_AddLabel(self._db, drawingObject.geomType, label);
+
+        #Write the custom geometry to the database
+        libUnderworld.gLucifer.lucDatabase_OutputGeometry(self._db, drawingObject._dr.id)
+
     def _generate_image(self, asfile=False):
         if uw.rank() == 0:
             #Render with viewer
@@ -347,7 +395,7 @@ class Figure(_stgermain.StgCompoundComponent):
     def open_viewer(self, args=[], ):
         self._generate_DB()
         if uw.rank() == 0:
-            if self._viewerProc:
+            if self._viewerProc and self._viewerProc.is_alive():
                 return
             #Open viewer with local web server for interactive/iterative use
             self._viewerProc = Process(target=lavavu.initViewer, args=([self._lvbin, "-" + str(self._db.timeStep), "-L", "-p8080", "-q90", "-Q", self._db.path], ))
@@ -357,11 +405,11 @@ class Figure(_stgermain.StgCompoundComponent):
             return HTML('''<a href='#' onclick='window.open("http://" + location.hostname + ":8080");'>Open Viewer Interface</a>''')
 
     def close_viewer(self):
-        if self._viewerProc:
+        if self._viewerProc and self._viewerProc.is_alive():
            self.send_command("quit")
            self._viewerProc.join()
            #self._viewerProc.terminate()
-           self._viewerProc = None
+        self._viewerProc = None
 
     def run_script(self):
         #Run the saved script on an open viewer instance
@@ -386,6 +434,8 @@ class Figure(_stgermain.StgCompoundComponent):
     def clear(self):
         """    Clears all the figure's drawing objects and colour maps
         """
+        del self._drawingObjects[:]
+        del self._colourMaps[:]
 
     def __add__(self,drawing_object):
         """
@@ -396,54 +446,4 @@ class Figure(_stgermain.StgCompoundComponent):
         self._drawingObjects.append( drawing_object )
         return self
 
-    #Direct drawing methods
-    def label(self, text, pos=(0.,0.,0.), font="sans", scaling=1):
-        """  Writes a label string
-            
-             Args:
-               pos     (tuple):  X,Y,Z position to place the label
-               text      (str):  label text
-               font      (str):  label font (small/fixed/sans/serif/vector)
-               scaling (float):  label font scaling (for "vector" font only)
-        """
-        self._vertex(geomType=libUnderworld.gLucifer.lucPointType, 
-                     pos=pos, label=text, props={"font" : font, "fontscale" : scaling})
-
-    def _vertex(self, drawingObject=None, geomType=None, pos=(0.,0.,0.), vec=None, value=None, label=None, props=None):
-        #General purpose plotting using db output
-        if not drawingObject:
-            drawingObject = self._defaultDrawingObject
-
-        #Replace props, overwriting keys if existing, then update
-        if props:
-            drawingObject._updateProperties(props, overwrite=True)
-            libUnderworld.gLucifer.lucDrawingObject_SetProperties(drawingObject._dr, drawingObject._getProperties());
-
-        #Wwrite vertex position
-        nitems = len(pos)
-        farr = _gLucifer.new_farray(nitems)
-        i = 0
-        for item in pos:
-            _gLucifer.farray_setitem(farr,i,item)  # Set values
-            i = i + 1
-        libUnderworld.gLucifer.lucDatabase_AddVertices(self._db, 1, geomType, farr)
-
-        #Write vector if any
-        if vec:
-            i = 0
-            for item in vec:
-                _gLucifer.farray_setitem(farr,i,item)  # Set values
-                i = i + 1
-            libUnderworld.gLucifer.lucDatabase_AddVectors(self._db, 1, geomType, 0, 0, farr)
-
-        #Write value if any
-        if value != None:
-            _gLucifer.farray_setitem(farr,0,value)  # Set values
-            libUnderworld.gLucifer.lucDatabase_AddValue(self._db, 1, geomType, farr)
-
-        _gLucifer.delete_farray(farr)
-
-        #Write label if any
-        if label != None:
-            libUnderworld.gLucifer.lucDatabase_AddLabel(self._db, geomType, label);
 

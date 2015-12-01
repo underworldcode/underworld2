@@ -140,7 +140,9 @@ class Drawing(_stgermain.StgCompoundComponent):
         if colourBar:
             #Create the associated colour bar
             self._colourBar = ColourBar(colourMap=self._colourMap)
-     
+
+        self.resetDrawing()
+
         # build parent
         super(Drawing,self).__init__(*args, **kwargs)
 
@@ -163,20 +165,77 @@ class Drawing(_stgermain.StgCompoundComponent):
             propstr += key + '=' + str(self._properties[key]) + '\n'
         return propstr
 
-    def _updateProperties(self, newProps, overwrite=False):
-        #Update the properties values, set overwrite to True to replace duplicates
-        #with new values, default behaviour is to keep existing when merging
-        if overwrite:
-            self._properties.update(newProps)
-        else:
-            newProps.update({k:v for k,v in self._properties.iteritems() if v})
-            self._properties = newProps
+    def _updateProperties(self, newProps):
+        #Update the properties values (merge)
+        #values of any existing keys are not overwritten
+        newProps.update({k:v for k,v in self._properties.iteritems() if v})
+        self._properties = newProps
+
+    def _setProperties(self, newProps):
+        #Update the properties values (merge)
+        #values of any existing keys are replaced and drawing object is updated
+        self._properties.update(newProps)
+        _libUnderworld.gLucifer.lucDrawingObject_SetProperties(self._dr, self._getProperties());
+
+    def resetDrawing(self):
+        #Clear direct drawing data
+        self.vertices = []
+        self.vectors = []
+        self.scalars = []
+        self.labels = []
+        self.geomType = None
+
+    #Direct drawing methods
+    def label(self, text, pos=(0.,0.,0.), font="sans", scaling=1):
+        """  Writes a label string
+            
+             Args:
+               pos     (tuple):  X,Y,Z position to place the label
+               text      (str):  label text
+               font      (str):  label font (small/fixed/sans/serif/vector)
+               scaling (float):  label font scaling (for "vector" font only)
+        """
+        self.geomType = _libUnderworld.gLucifer.lucPointType
+        self.vertices.append(pos)
+        self.labels.append(text)
+        self._setProperties({"font" : font, "fontscale" : scaling})
+
+    def point(self, pos=(0.,0.,0.)):
+        """  Draws a point
+            
+             Args:
+               pos (tuple):  X,Y,Z position to place the point
+        """
+        self.geomType = _libUnderworld.gLucifer.lucPointType
+        self.vertices.append(pos)
+
+    def line(self, start=(0.,0.,0.), end=(0.,0.,0.)):
+        """  Draws a line
+            
+             Args:
+               start (tuple):  X,Y,Z position to start line
+               end   (tuple):  X,Y,Z position to end line
+        """
+        self.geomType = _libUnderworld.gLucifer.lucLineType
+        self.vertices.append(start)
+        self.vertices.append(end)
 
     @property
     def opacity(self):
         """    opacity (float): Opacity of drawing object.  Takes values from 0. to 1., while a value of -1 explicitly disables opacity.
         """
         return self._opacity
+
+    @property
+    def properties(self):
+        """    properties (dict): visual properties of drawing object, passed to LavaVu to control rendering output of object.
+        """
+        return self._properties
+
+    @properties.setter
+    def properties(self, value):
+        #Sets new properties, overwriting any duplicate keys but keeping existing values otherwise
+        self._setProperties(value)
 
 class ColourBar(Drawing):
     _selfObjectName = "_dr"
