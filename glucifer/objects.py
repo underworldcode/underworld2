@@ -456,9 +456,7 @@ class VectorArrows(_GridSampler3D):
     _objectsDict = { "_dr": "lucVectorArrows" }
 
     def __init__(self, mesh, fn, arrowHead=0.3, scaling=0.3, glyphs=3,
-                       resolutionI=None, resolutionJ=None, resolutionK=None,
-                       colours=None, colourMap=None, properties=None, opacity=-1, colourBar=True,
-                       valueRange=None, logScale=False, discrete=False,
+                       resolutionI=None, resolutionJ=None, resolutionK=None, properties=None, opacity=-1,
                        *args, **kwargs):
 
         if arrowHead:
@@ -475,8 +473,7 @@ class VectorArrows(_GridSampler3D):
 
         # build parent
         super(VectorArrows,self).__init__( mesh=mesh, fn=fn, resolutionI=resolutionI, resolutionJ=resolutionJ, resolutionK=resolutionK,
-                        colours=colours, colourMap=colourMap, properties=properties, opacity=opacity, colourBar=colourBar,
-                        valueRange=valueRange, logScale=logScale, discrete=discrete, *args, **kwargs)
+                        colours=None, colourMap=None, properties=properties, opacity=opacity, colourBar=False, *args, **kwargs)
 
         #Replace any missing properties with defaults
         self._updateProperties({"arrowHead" : arrowHead, "scaling" : scaling, "glyphs" : glyphs});
@@ -530,10 +527,7 @@ class Mesh(Drawing):
     """
     _objectsDict = { "_dr": "lucMeshViewer" }
 
-    def __init__(self, mesh, nodeNumbers=False, segmentsPerEdge=1,
-                       colours=None, colourMap=None, properties=None, opacity=-1, colourBar=False,
-                       valueRange=None, logScale=False, discrete=False,
-                       *args, **kwargs):
+    def __init__( self, mesh, nodeNumbers=False, segmentsPerEdge=1, properties=None, opacity=-1, *args, **kwargs ):
 
         if not isinstance(mesh,_uwmesh.FeMesh):
             raise TypeError("'mesh' object passed in must be of type 'FeMesh'")
@@ -548,9 +542,7 @@ class Mesh(Drawing):
         self._segmentsPerEdge = segmentsPerEdge
         
         # build parent
-        super(Mesh,self).__init__(
-                        colours=colours, colourMap=colourMap, properties=properties, opacity=opacity, colourBar=colourBar,
-                        valueRange=valueRange, logScale=logScale, discrete=discrete, *args, **kwargs)
+        super(Mesh,self).__init__( colours=None, colourMap=None, properties=properties, opacity=opacity, colourBar=False, *args, **kwargs )
 
         #Replace any missing properties with defaults
         self._updateProperties({"lit" : False, "linewidth" : 0.1, 
