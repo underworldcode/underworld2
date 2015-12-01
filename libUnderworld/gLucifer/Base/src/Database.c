@@ -27,7 +27,8 @@
 
 #include <gLucifer/DrawingObjects/DrawingObjects.h>
 
-char SQL[1024];
+#define MAX_QUERY_LEN 4096
+char SQL[MAX_QUERY_LEN];
 
 const Type lucDatabase_Type = "lucDatabase";
 
@@ -365,7 +366,7 @@ void _lucDatabase_Execute( void* database, void* data )
 
       /* Enter timestep in database */
       /* Write and update timestep */
-      snprintf(SQL, 1024, "insert into timestep (id, time, properties) values (%d, %g, '%s')", self->timeStep, currentTime, "");
+      snprintf(SQL, MAX_QUERY_LEN, "insert into timestep (id, time, properties) values (%d, %g, '%s')", self->timeStep, currentTime, "");
       /*printf("%s\n", SQL);*/
       if (!lucDatabase_IssueSQL(self->db, SQL)) return;
       /* Also write to attached db */
@@ -472,7 +473,7 @@ void lucDatabase_OutputWindow(lucDatabase* self, void* _window)
       float *min, *max;
       if (window->useModelBounds)
       {
-         snprintf(SQL, 1024, "insert into window (name, width, height, colour, minX, minY, minZ, maxX, maxY, maxZ) values ('%s', %d, %d, %d, %g, %g, %g, %g, %g, %g)", 
+         snprintf(SQL, MAX_QUERY_LEN, "insert into window (name, width, height, colour, minX, minY, minZ, maxX, maxY, maxZ) values ('%s', %d, %d, %d, %g, %g, %g, %g, %g, %g)", 
                   window->name, window->width, window->height, lucColour_ToInt(&window->backgroundColour), 
                   self->minValue[0], self->minValue[1], self->minValue[2], self->maxValue[0], self->maxValue[1], self->maxValue[2]);
       }
@@ -480,7 +481,7 @@ void lucDatabase_OutputWindow(lucDatabase* self, void* _window)
       {
          /* Don't write model bounds with this window
           * (used if visualising something other than model domain, eg: plot) */
-         snprintf(SQL, 1024, "insert into window (name, width, height, colour) values ('%s', %d, %d, %d)",
+         snprintf(SQL, MAX_QUERY_LEN, "insert into window (name, width, height, colour) values ('%s', %d, %d, %d)",
                   window->name, window->width, window->height, lucColour_ToInt(&window->backgroundColour));
       }
 
@@ -531,7 +532,7 @@ void lucDatabase_OutputViewport(lucDatabase* self, lucViewport* viewport, int wi
       sprintf(focus, "null, null, null");
    else
       sprintf(focus, "%g, %g, %g", cam->focalPoint[0], cam->focalPoint[1], cam->focalPoint[2]);
-   snprintf(SQL, 1024, "insert into viewport (x, y, near, far, aperture, orientation, focalPointX, focalPointY, focalPointZ, translateX, translateY, translateZ, rotateX, rotateY, rotateZ, scaleX, scaleY, scaleZ, properties) values (%g, %g, %g, %g, %g, %d, %s, %g, %g, %g, %g, %g, %g, %g, %g, %g, '%s')", x, y, viewport->nearClipPlane, viewport->farClipPlane, cam->aperture, cam->coordSystem, focus, translate[0], translate[1], translate[2], cam->rotate[0], cam->rotate[1], cam->rotate[2], viewport->scaleX, viewport->scaleY, viewport->scaleZ, viewport->properties);
+   snprintf(SQL, MAX_QUERY_LEN, "insert into viewport (x, y, near, far, aperture, orientation, focalPointX, focalPointY, focalPointZ, translateX, translateY, translateZ, rotateX, rotateY, rotateZ, scaleX, scaleY, scaleZ, properties) values (%g, %g, %g, %g, %g, %d, %s, %g, %g, %g, %g, %g, %g, %g, %g, %g, '%s')", x, y, viewport->nearClipPlane, viewport->farClipPlane, cam->aperture, cam->coordSystem, focus, translate[0], translate[1], translate[2], cam->rotate[0], cam->rotate[1], cam->rotate[2], viewport->scaleX, viewport->scaleY, viewport->scaleZ, viewport->properties);
    /*printf("%s\n", SQL);*/
    if (!lucDatabase_IssueSQL(self->db, SQL)) return;
    /* Return viewport id */
@@ -547,14 +548,14 @@ void lucDatabase_OutputViewport(lucDatabase* self, lucViewport* viewport, int wi
       if (object->id)
       {
          /* Link object & viewport */
-         snprintf(SQL, 1024, "insert into viewport_object (viewport_id, object_id) values (%d, %d)", id, object->id); 
+         snprintf(SQL, MAX_QUERY_LEN, "insert into viewport_object (viewport_id, object_id) values (%d, %d)", id, object->id); 
          /*printf("%s\n", SQL);*/
          if (!lucDatabase_IssueSQL(self->db, SQL)) return;
       }
    }
 
    /* Link window & viewport */
-   snprintf(SQL, 1024, "insert into window_viewport (window_id, viewport_id) values (%d, %d)", window_id, id); 
+   snprintf(SQL, MAX_QUERY_LEN, "insert into window_viewport (window_id, viewport_id) values (%d, %d)", window_id, id); 
    /*printf("%s\n", SQL);*/
    if (!lucDatabase_IssueSQL(self->db, SQL)) return;
 }
@@ -564,7 +565,7 @@ void lucDatabase_OutputDrawingObject(lucDatabase* self, lucViewport* viewport, l
    /* Save the object */
    if (!object->id) /* Not already written */
    {
-      snprintf(SQL, 1024, "insert into object (name, colourmap_id, colour, opacity, properties) values ('%s_%s', 0, %d, %g, '%s')", object->type, object->name, lucColour_ToInt(&object->colour), object->opacity, object->properties); 
+      snprintf(SQL, MAX_QUERY_LEN, "insert into object (name, colourmap_id, colour, opacity, properties) values ('%s_%s', 0, %d, %g, '%s')", object->type, object->name, lucColour_ToInt(&object->colour), object->opacity, object->properties); 
       /*printf("%s\n", SQL);*/
       if (!lucDatabase_IssueSQL(self->db, SQL)) return;
 
@@ -604,7 +605,7 @@ void lucDatabase_OutputColourMap(lucDatabase* self, lucColourMap* colourMap, luc
    {
       Index colour_I;
 
-      snprintf(SQL, 1024, "insert into colourmap (name, minimum, maximum, logscale, discrete, centreValue) values ('%s', %g, %g, %d, %d, %g)", colourMap->name, colourMap->minimum, colourMap->maximum, colourMap->logScale, colourMap->discrete, colourMap->centreValue );
+      snprintf(SQL, MAX_QUERY_LEN, "insert into colourmap (name, minimum, maximum, logscale, discrete, centreValue, properties) values ('%s', %g, %g, %d, %d, %g, '%s')", colourMap->name, colourMap->minimum, colourMap->maximum, colourMap->logScale, colourMap->discrete, colourMap->centreValue, colourMap->properties );
       /*printf("%s\n", SQL);*/
       if (!lucDatabase_IssueSQL(self->db, SQL)) return;
 
@@ -620,7 +621,7 @@ void lucDatabase_OutputColourMap(lucDatabase* self, lucColourMap* colourMap, luc
          char value[32] = "null";
          if (cm->value)
             sprintf(value, "%g", *cm->value);
-         snprintf(SQL, 1024, "insert into colourvalue (colourmap_id, colour, value) values (%d, %d, %s)", 
+         snprintf(SQL, MAX_QUERY_LEN, "insert into colourvalue (colourmap_id, colour, value) values (%d, %d, %s)", 
                  colourMap->id, lucColour_ToInt(cm->colour), value);
          /*printf("%s\n", SQL);*/
          if (!lucDatabase_IssueSQL(self->db, SQL)) return;
@@ -630,7 +631,7 @@ void lucDatabase_OutputColourMap(lucDatabase* self, lucColourMap* colourMap, luc
    /* Add reference for object */
    Journal_Printf(lucInfo, "         Linking colourMap: %s to object %s\n", colourMap->name, object->name);
    /* Link object & colour map */
-   snprintf(SQL, 1024, "insert into object_colourmap (object_id, colourmap_id, data_type) values (%d, %d, %d)", object->id, colourMap->id, type); 
+   snprintf(SQL, MAX_QUERY_LEN, "insert into object_colourmap (object_id, colourmap_id, data_type) values (%d, %d, %d)", object->id, colourMap->id, type); 
    /*printf("%s\n", SQL);*/
    if (!lucDatabase_IssueSQL(self->db, SQL)) return;
 }
@@ -950,9 +951,9 @@ void lucDatabase_AddLabel(lucDatabase* self, lucGeometryType type, char* label)
    if (!self->labels[type] || strlen(self->labels[type]) + strlen(label) + 2 > self->label_lengths[type])
    {
       /* No label memory allocated yet or more required */
-      self->labels[type] = Memory_Realloc_Array(self->labels[type], char, self->label_lengths[type] + 1024);
-      self->label_lengths[type] += 1024;
-      if (self->label_lengths[type] == 1024) self->labels[type][0] = 0;
+      self->labels[type] = Memory_Realloc_Array(self->labels[type], char, self->label_lengths[type] + MAX_QUERY_LEN);
+      self->label_lengths[type] += MAX_QUERY_LEN;
+      if (self->label_lengths[type] == MAX_QUERY_LEN) self->labels[type][0] = 0;
    }
    if (self->labels[type][0] != 0) strcat(self->labels[type], "\n");
    strcat(self->labels[type], label);
@@ -1158,11 +1159,11 @@ void lucDatabase_DeleteGeometry(lucDatabase* self, int start_timestep, int end_t
 {
    /* Remove data over timestep range */
    if (start_timestep < 0)
-      snprintf(SQL, 1024,  "delete from geometry where timestep <= %d; delete from timestep where id <= %d;", end_timestep, end_timestep);
+      snprintf(SQL, MAX_QUERY_LEN,  "delete from geometry where timestep <= %d; delete from timestep where id <= %d;", end_timestep, end_timestep);
    else if (end_timestep < 0)
-      snprintf(SQL, 1024,  "delete from geometry where timestep >= %d; delete from timestep where id >= %d;", start_timestep, start_timestep);
+      snprintf(SQL, MAX_QUERY_LEN,  "delete from geometry where timestep >= %d; delete from timestep where id >= %d;", start_timestep, start_timestep);
    else
-      snprintf(SQL, 1024,  "delete from geometry where timestep between %d and %d; delete from timestep where id between %d and %d;", start_timestep, end_timestep, start_timestep, end_timestep);
+      snprintf(SQL, MAX_QUERY_LEN,  "delete from geometry where timestep between %d and %d; delete from timestep where id between %d and %d;", start_timestep, end_timestep, start_timestep, end_timestep);
 
    lucDatabase_IssueSQL(self->db, SQL);
 }
@@ -1200,7 +1201,7 @@ int lucDatabase_WriteGeometry(lucDatabase* self, int index, lucGeometryType type
    if (block->min[1] > block->max[1]) block->min[1] = block->max[1] = 0;
    if (block->min[2] > block->max[2]) block->min[2] = block->max[2] = 0;
 
-   snprintf(SQL, 1024, "insert into geometry (object_id, timestep, rank, idx, type, data_type, size, count, width, minimum, maximum, dim_factor, units, minX, minY, minZ, maxX, maxY, maxZ, labels, data) values (%d, %d, %d, %d, %d, %d, %d, %d, %d, %g, %g, %g, '%s', %g, %g, %g, %g, %g, %g, ?, ?)", object_id, self->timeStep, 0, index, type, data_type, block->size, block->count, block->width, block->minimum, block->maximum, block->dimCoeff, block->units ? block->units : "", block->min[0], block->min[1], block->min[2], block->max[0], block->max[1], block->max[2]);
+   snprintf(SQL, MAX_QUERY_LEN, "insert into geometry (object_id, timestep, rank, idx, type, data_type, size, count, width, minimum, maximum, dim_factor, units, minX, minY, minZ, maxX, maxY, maxZ, labels, data) values (%d, %d, %d, %d, %d, %d, %d, %d, %d, %g, %g, %g, '%s', %g, %g, %g, %g, %g, %g, ?, ?)", object_id, self->timeStep, 0, index, type, data_type, block->size, block->count, block->width, block->minimum, block->maximum, block->dimCoeff, block->units ? block->units : "", block->min[0], block->min[1], block->min[2], block->max[0], block->max[1], block->max[2]);
 
    /* Prepare statement... */
    if (sqlite3_prepare_v2(db, SQL, -1, &statement, NULL) != SQLITE_OK)

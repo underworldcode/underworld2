@@ -48,6 +48,7 @@ struct lucColourMapping
       FieldVariable*                         fieldVariable;       \
       int                                    id;                  \
       void*                                  object;              \
+      char*                                  properties;          \
 
 struct lucColourMap
 {
