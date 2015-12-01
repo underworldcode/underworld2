@@ -15,6 +15,7 @@ import _swarmabstract as sab
 import _swarm
 import underworld.function as function
 import libUnderworld.libUnderworldPy.Function as _cfn
+from mpi4py import MPI
 import h5py
 
 class SwarmVariable(_stgermain.StgClass, function.Function):
@@ -182,16 +183,20 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         self.swarm._livingArrays[self] = arrayguy
         return arrayguy
 
-    def load( self, filename, gIds ):
+    def load( self, filename ):
         if not isinstance(filename, str):
             raise TypeError("Expected 'filename' to be provided as a string")
         
         gIds = self.swarm._local2globalMap
-        if gIds == None:
+        if not isinstance(gIds, np.ndarray):
             raise RuntimeError("'Swarm' associate with this 'SwarmVariable' doesn't have a valid '_local2globalMap'")
 
+        comm = MPI.COMM_WORLD
+        rank = comm.Get_rank()
+
         # open hdf5 file
-        h5f = h5py.File(name=filename, mode="r")
+        h5f = h5py.File(name=filename, mode="r", driver='mpio', comm=MPI.COMM_WORLD)
+
         dset = h5f.get('data')
         if dset == None:
             raise RuntimeError("Can't find 'data' in file '{0}'.\n".format(filename))
@@ -200,23 +205,40 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
             raise RuntimeError("Cannot load {0}'s data on current swarm. Incompatible numbers of particles in file '{1}'.".format(filename, filename)+
                     " Particle count: file {0}, this swarm {1}\n".format(dset.shape[0], particleGobalCount))
         size = len(gIds)
-        if self.swarm.particleLocalCount != size:
+        if self.data.shape[0] != size:
             raise RuntimeError("Invalid mapping from file '{0}' to swarm.\n".format(filename) +
-                    "Ensure the swarm corresponds exactly to the file '{0}' by loading the swarm immediately".format(filename) +
+                 "Ensure the swarm corresponds exactly to the file '{0}' by loading the swarm immediately".format(filename) +
                     "before this 'SwarmVariable' load\n")
         if dset.shape[1] != self.data.shape[1]:
             raise RuntimeError("Cannot load file data on current swarm. Data in file '{0}', " \
-                               "has a different shape to the variable trying to read it".format(filename))
+                               "has {1} components -the particlesCoords has {2} components".format(filename, dset.shape[1], self.particleCoordinates.data.shape[1]))
 
-        self.data[0:size] = dset[gIds[0:size],:] 
-        print self.data
+        chunk = int(1e3)
+        (multiples, remainder) = divmod( size, chunk )
+
+        if rank == 0:
+            bar = uw.utils.ProgressBar( start=0, end=size-1, title="loading "+filename)
+
+        for ii in xrange(multiples+1):
+            chunkStart = ii*chunk
+            if ii == multiples:
+                chunkEnd = chunkStart + remainder
+                if remainder == 0:
+                    break
+            else:
+                chunkEnd = chunkStart + chunk
+            self.data[chunkStart:chunkEnd] = dset[gIds[chunkStart:chunkEnd],:] 
+
+            if rank == 0:
+                bar.update(chunkEnd)
+
+        h5f.close();
 
 
     def save( self, filename, swarmfilepath=None ):
         if not isinstance(filename, str):
             raise TypeError("Expected 'filename' to be provided as a string")
 
-        from mpi4py import MPI
 
         # setup mpi basic vars
         comm = MPI.COMM_WORLD

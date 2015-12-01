@@ -203,13 +203,19 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
             raise TypeError("Expected 'filename' to be provided as a string")
 
         # open hdf5 file
-        h5f = h5py.File(name=filename, mode="r")
+        h5f = h5py.File(name=filename, mode="r", driver='mpio', comm=MPI.COMM_WORLD)
+
         dset = h5f.get('data')
         if dset == None:
             raise RuntimeError("Can't find 'data' in file '{0}'.\n".format(filename))
         if dset.shape[1] != self.particleCoordinates.data.shape[1]:
             raise RuntimeError("Cannot load file data on current swarm. Data in file '{0}', " \
-                               "has a different shape to the variable trying to read it".format(filename))
+                               "has {1} components -the particlesCoords has {2} components".format(filename, dset.shape[1], self.particleCoordinates.data.shape[1]))
+        comm = MPI.COMM_WORLD
+        rank = comm.Get_rank()
+
+        if rank == 0:
+            bar = uw.utils.ProgressBar( start=0, end=dset.shape[0]-1, title="loading "+filename)
 
         valid = np.zeros(0, dtype='i') # array for read in
         chunk=int(1e4) # read in this many points at a time
@@ -220,6 +226,8 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
             chunkStart = ii*chunk
             if ii == multiples:
                 chunkEnd = chunkStart + remainder
+                if remainder == 0: # in the case remainder is 0 
+                    break
             else:
                 chunkEnd = chunkStart + chunk
             
@@ -240,7 +248,12 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
             # append to valid            
             valid = np.append(valid, tmp)
 
+            if rank == 0:
+                bar.update(chunkEnd)
+
+        h5f.close()
         self._local2globalMap = valid
+
         return valid
 
     def _invalidatelocal2globalmap(self):
