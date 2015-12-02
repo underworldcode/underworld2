@@ -218,6 +218,14 @@ class Drawing(_stgermain.StgCompoundComponent):
         return self._opacity
 
     @property
+    def colourBar(self):
+        """    colourBar (dict): return colour bar of drawing object, create if doesn't yet exist.
+        """
+        if not self._colourBar:
+            self._colourBar = ColourBar(colourMap=self._colourMap)
+        return self._colourBar
+
+    @property
     def properties(self):
         """    properties (dict): visual properties of drawing object, passed to LavaVu to control rendering output of object.
         """

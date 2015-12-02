@@ -91,8 +91,7 @@ class Figure(_stgermain.StgCompoundComponent):
 
         self.draw = objects.Drawing()
         self._drawingObjects = [self.draw]
-        self._colourMaps = []
-        #self._colourMaps = [self.draw._colourMap]
+        self._colourMaps = [self.draw._colourMap]
         self._script = []
 
         super(Figure,self).__init__(**kwargs)
@@ -472,6 +471,9 @@ class Figure(_stgermain.StgCompoundComponent):
             raise TypeError("Object your are trying to add to figure does not appear to be of type 'Drawing'.")
 
         self._drawingObjects.append( drawing_object )
+        #Track colour maps
+        if drawing_object._colourMap:
+            self.colourMaps.append(drawing_object._colourMap)
         return self
 
 
