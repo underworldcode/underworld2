@@ -592,7 +592,7 @@ class Mesh(Drawing):
     """
     _objectsDict = { "_dr": "lucMeshViewer" }
 
-    def __init__( self, mesh, nodeNumbers=False, segmentsPerEdge=1, properties=None, opacity=-1, *args, **kwargs ):
+    def __init__( self, mesh, nodeNumbers=False, segmentsPerEdge=1, properties={"linesmooth" : False}, opacity=-1, *args, **kwargs ):
 
         if not isinstance(mesh,_uwmesh.FeMesh):
             raise TypeError("'mesh' object passed in must be of type 'FeMesh'")
