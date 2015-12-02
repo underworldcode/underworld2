@@ -419,13 +419,13 @@ class Figure(_stgermain.StgCompoundComponent):
         image_data = "data:image/png;base64,%s" % b64encode(response)
         return HTML("<img src='%s'>" % image_data)
 
-    def open_viewer(self, args=[], ):
+    def open_viewer(self, args=[]):
         self._generate_DB()
         if uw.rank() == 0:
             if self._viewerProc and self._viewerProc.is_alive():
                 return
             #Open viewer with local web server for interactive/iterative use
-            self._viewerProc = Process(target=lavavu.initViewer, args=([self._lvbin, "-" + str(self._db.timeStep), "-L", "-p8080", "-q90", "-Q", self._db.path], ))
+            self._viewerProc = Process(target=lavavu.initViewer, args=([self._lvbin, "-" + str(self._db.timeStep), "-L", "-p8080", "-q90", "-Q", self._db.path] + args, ))
             self._viewerProc.start()
 
             from IPython.display import HTML
