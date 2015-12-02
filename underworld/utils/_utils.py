@@ -602,9 +602,9 @@ class ProgressBar(object):
     Ordem e Progresso: 0%----25%----50%----75%----100% | time ... |
     """
     def __init__( self, start=0.0, end=1.0, title=None ):
-        if not isinstance( start, float ):
+        if not isinstance( start, (float,int) ):
             raise TypeError( "In ProgressBar, 'start', must be a scalar" )
-        if not isinstance( end, float ):
+        if not isinstance( end, (float, int) ):
             raise TypeError( "In ProgressBar, 'end', must be a scalar" )
 
         self._start=float(start)
