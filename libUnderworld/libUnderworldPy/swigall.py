@@ -28,6 +28,7 @@ swigfiles = [
               "Underworld.i",
               "Solvers.i",
               "gLucifer.i",
+              "LavaVu.i",
              ]
 #
 for swigfile in swigfiles:

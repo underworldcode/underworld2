@@ -37,26 +37,30 @@ class Integral(_stgermain.StgCompoundComponent):
     _objectsDict = { "_integral": "Fn_Integrate" }
     _selfObjectName = "_integral"
 
-    def __init__(self, fn, mesh, integrationType="volume", surfaceIndexSet=None, integrationSwarm=None, feMesh=None, **kwargs):
+    def __init__(self, fn, mesh=None, integrationType="volume", surfaceIndexSet=None, integrationSwarm=None, feMesh=None, **kwargs):
         """
         Parameters
         ----------
+        fn : uw.function.Function
+            Function to be integrated.
         mesh : uw.mesh.FeMesh
-            The FeMesh the swarm is supported by.
-        integrationSwarm : uw.swarm.IntegrationSwarm (optional)
-            User provided integration swarm.
+            The mesh over which integration is performed.
         integrationType : str
             Type of integration to perform.  Options are "volume" or "surface".
         surfaceIndexSet : uw.mesh.FeMesh_IndexSet
             Must be provided where integrationType is "surface".
             This IndexSet determines which surface is to be integrated over.
-            Note that surface integration over interior nodes is not supported.
+            Note that surface integration over interior nodes is not currently supported.
+        integrationSwarm : uw.swarm.IntegrationSwarm (optional)
+            User provided integration swarm.
         
         """
         
         if feMesh:  # DEPRECATE
             raise ValueError("This parameter has been renamed to 'mesh'.")
-        
+
+        if not mesh:
+            raise ValueError("A mesh object must be provided")
         if not isinstance(mesh, uw.mesh.FeMesh):
             raise TypeError("'feMesh' object passed in must be of type 'FeMesh'")
         self._mesh = mesh
@@ -105,7 +109,7 @@ class Integral(_stgermain.StgCompoundComponent):
                 # set to 1 on provided vertices
                 deltaFeVariable.data[surfaceIndexSet.data] = 1.
                 # replace fn with delta*fn
-                # note that we need to use the condition so that we only capture border swarm particles
+                # note that we need to use this condition so that we only capture border swarm particles
                 # on the surface itself. for those directly adjacent, the deltaFeVariable will evaluate
                 # to non-zero (but less than 1.), so we need to remove those from the integration as well.
                 self._maskFn = underworld.function.branching.conditional(
@@ -254,6 +258,7 @@ def _fieldschema((field_name, field), filename, elementMesh ):
     nodesGlobal = field.feMesh.nodesGlobal
     
     variableType = "NumberType=\"Float\" Precision=\"8\""
+    offset = 0 #OK: Temporary to get 3D running
 
     # get the location of the field nodes on the mesh
     if( nodesGlobal == elementMesh.nodesGlobal ):

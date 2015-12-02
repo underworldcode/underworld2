@@ -18,7 +18,7 @@ typedef int (lucWindow_EventsWaitingFunction) ( void* object );
 typedef Bool (lucWindow_EventProcessorFunction) ( void* object );
 typedef void (lucWindow_ResizeFunction) ( void* object );
 
-lucDatabase* defaultDatabase;
+extern lucDatabase* defaultDatabase;
 
 extern const Type lucWindow_Type;
 

@@ -108,7 +108,7 @@ class SolCx(_SolBase):
 
 class SolKx(_SolBase):
 
-    def __init__(self, sigma=1., nx=1, nz=1., B=1., *args, **kwargs):
+    def __init__(self, sigma=1., nx=1., nz=1, B=1.1512925465, *args, **kwargs):
         if not isinstance(sigma, float):
             raise TypeError("'sigma' must be a float." )
         if not isinstance(nx, float):

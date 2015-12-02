@@ -52,9 +52,6 @@ void _lucScalarField_Init(lucScalarField* self, char* drawSides)
    if (!strchr(drawSides, 'Y')) self->drawSides[J_AXIS][1] = False;
    if (!strchr(drawSides, 'z')) self->drawSides[K_AXIS][0] = False;
    if (!strchr(drawSides, 'Z')) self->drawSides[K_AXIS][1] = False;
-
-   /* Set cull face to on */
-   self->cullface = True;
 }
 
 void _lucScalarField_Delete( void* drawingObject )
@@ -103,16 +100,18 @@ void _lucScalarField_AssignFromXML( void* drawingObject, Stg_ComponentFactory* c
    _lucScalarFieldCrossSection_AssignFromXML( self, cf, data );
 
    _lucScalarField_Init(self, Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"drawSides", "xyzXYZ"));
-
-   /* Drawing object default overrides */
-   if (self->dim == 2) self->lit = False;
 }
 
 void _lucScalarField_Draw( void* drawingObject, lucDatabase* database, void* data )
 {
    lucScalarField*   self          = (lucScalarField*)drawingObject;
 
-   if (self->dim == 2)
+   if (self->isSet) 
+   {
+      /* Just draw at given position if provided */
+      lucScalarFieldCrossSection_DrawCrossSection(self, database, True);
+   }
+   else if (self->dim == 2)
    {
       lucScalarFieldCrossSection_DrawCrossSection( lucCrossSection_Set(self, 0.0, K_AXIS, False), database, False);
    }

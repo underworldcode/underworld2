@@ -50,7 +50,8 @@ void _lucHistoricalSwarmTrajectory_Init(
    self->time	            = historyTime;
 
    /* Append to property string */
-   lucDrawingObject_AppendProps(self, "scaling=%g\nflat=%d\narrowhead=%g\nsteps=%d\ntime=%g\n", lineScaling, flat, arrowHead, historySteps, historyTime); 
+   //OK: DEPRECATED, SET VIA PYTHON
+   //lucDrawingObject_AppendProps(self, "scaling=%g\nflat=%d\narrowhead=%g\nsteps=%d\ntime=%g\n", lineScaling, flat, arrowHead, historySteps, historyTime); 
 
    /* Create the particle extension */
    /* in this case we must assign a global id to each particle in the swarm; so we add an extension to the particles */
@@ -133,7 +134,8 @@ void _lucHistoricalSwarmTrajectory_AssignFromXML( void* drawingObject, Stg_Compo
       historyTime );
 
    /* Disable lighting when flat option specified */
-   self->lit = self->flat;
+   //TODO: Set via python properties
+   //self->lit = self->flat;
 }
 
 void _lucHistoricalSwarmTrajectory_Build( void* drawingObject, void* data ) {}

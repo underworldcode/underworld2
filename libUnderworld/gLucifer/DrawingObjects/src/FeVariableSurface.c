@@ -43,7 +43,8 @@ void _lucFeVariableSurface_Init(
    self->scaling = scaleHeight;
 
    /* Append to property string */
-   lucDrawingObject_AppendProps(self, "scaling=%g\n", scaleHeight); 
+   //OK: DEPRECATED, SET VIA PYTHON
+   //lucDrawingObject_AppendProps(self, "scaling=%g\n", scaleHeight); 
 }
 
 void _lucFeVariableSurface_Delete( void* drawingObject )

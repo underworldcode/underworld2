@@ -48,7 +48,7 @@ void _lucSwarmShapes_Init(
    double                                             height,
    Bool                                               square)
 {
-   self->colourVariableName  = colourVariableName;
+//   self->colourVariableName  = colourVariableName;
    self->planeVectorVariableName = planeVectorVariableName;
    self->lengthVariableName      = lengthVariableName;
    self->widthVariableName       = widthVariableName;
@@ -60,7 +60,8 @@ void _lucSwarmShapes_Init(
    self->geomType = lucShapeType;   /* Draw 3d shapes */
 
    /* Append shape type to property string */
-   lucDrawingObject_AppendProps(self, "shape=%d\nlength=%g\nwidth=%g\nheight=%g\n", (square ? 1 : 0), length, width, height);
+   //OK: DEPRECATED, SET VIA PYTHON
+   //lucDrawingObject_AppendProps(self, "shape=%d\nlength=%g\nwidth=%g\nheight=%g\n", (square ? 1 : 0), length, width, height);
 }
 
 void _lucSwarmShapes_Delete( void* drawingObject )
@@ -148,7 +149,7 @@ void _lucSwarmShapes_Initialise( void* drawingObject, void* data )
 
    _lucSwarmViewer_Initialise( self, data );
 
-   self->colourVariable = lucSwarmViewer_InitialiseVariable(self, self->colourVariableName, True, data);
+//   self->colourVariable = lucSwarmViewer_InitialiseVariable(self, self->colourVariableName, True, data);
    self->planeVectorVariable = lucSwarmViewer_InitialiseVariable(self, self->planeVectorVariableName, False, data);
    self->lengthVariable = lucSwarmViewer_InitialiseVariable(self, self->lengthVariableName, False, data);
    self->widthVariable = lucSwarmViewer_InitialiseVariable(self, self->widthVariableName, False, data);

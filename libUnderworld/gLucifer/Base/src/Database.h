@@ -125,6 +125,7 @@ void _lucDatabase_Destroy( void* database, void* data );
 void lucDatabase_Dump(void* database);
 void lucDatabase_Wait(lucDatabase* self);
 
+void lucDatabase_DeleteWindows(lucDatabase* self);
 void lucDatabase_OutputWindow(lucDatabase* self, void* window);
 void lucDatabase_OutputViewport(lucDatabase* self, lucViewport* viewport, int window_id, float x, float y);
 void lucDatabase_OutputDrawingObject(lucDatabase* self, lucViewport* viewport, lucDrawingObject* object);
@@ -132,10 +133,11 @@ void lucDatabase_OutputColourMap(lucDatabase* self, lucColourMap* colourMap, luc
 
 void lucDatabase_ClearGeometry(lucDatabase* self);
 void lucDatabase_OutputGeometry(lucDatabase* self, int object_id);
+int lucDatabase_GatherCounts(lucDatabase* self, int count, int* counts, int* offsets);
 void lucDatabase_GatherGeometry(lucDatabase* self, lucGeometryType type, lucGeometryDataType data_type);
+void lucDatabase_GatherLabels(lucDatabase* self, lucGeometryType type);
 
 struct lucIsosurface;
-void lucDatabase_AddIsosurface(lucDatabase* self, struct lucIsosurface* iso, Bool walls);
 void lucDatabase_AddGridVertices(lucDatabase* self, int n, int width, float* data);
 void lucDatabase_AddGridVertex(lucDatabase* self, int width, int height, float* data);
 void lucDatabase_AddVertices(lucDatabase* self, int n, lucGeometryType type, float* data);
@@ -167,9 +169,7 @@ void lucDatabase_DeleteGeometry(lucDatabase* self, int start_timestep, int end_t
 int lucDatabase_WriteGeometry(lucDatabase* self, int index, lucGeometryType type, lucGeometryDataType data_type, int object_id, lucGeometryData* block);
 
 void lucDatabase_BackupDb(sqlite3 *fromDb, sqlite3* toDb);
-
-void lucDatabase_DeleteWindows(lucDatabase* self);
-
+void lucDatabase_BackupDbFile(lucDatabase* self, char* filename);
 
 #endif
 

@@ -47,8 +47,7 @@ class Options(object):
         self.__dict__.clear()
         self.ksp_type="fgmres"
         self.ksp_rtol=1e-5
-        # self.ksp_converged_reason=True
-        # self.ksp_monitor="stdout"
+        self._mg_active=True
 
     def clear(self):
         """
@@ -56,13 +55,57 @@ class Options(object):
         """
         self.__dict__.clear()
 
-    def set_direct(self):
+    def set_lu(self):
         """
-        Set up options for direct LU solve.
+        Set up options for LU serial solve.
         """
+        self.__dict__.clear()
         self.ksp_type="preonly"
         self.pc_type="lu"
-        self.mg_active=False
+        self._mg_active=False
+
+    def set_mumps(self,pc_type="lu"):
+        """
+        Set up options for MUMPS parallel solve.
+        pc_type = "lu" or "cholesky"
+        
+        Use ./configure --download-mumps --download-scalapack --download-parmetis --download-metis --download-ptscotch
+        to have PETSc installed with MUMPS
+        """
+        self.__dict__.clear()
+        self.ksp_type="preonly"
+        self.pc_type=pc_type
+        self._mg_active=False
+        self.pc_factor_mat_solver_package="mumps"
+        # An issue with MUMPS is that it requires preallocation of arrays, and as
+        # such occasionally it will report errors when the arrays are not big
+        # enough. Add in this line to increase the array size, and if errors are still
+        # reported increase the number.
+        # -mat_mumps_icntl_14 100
+        # cannot set this here....must be without A11 prefix
+
+    def set_superludist(self):
+        """
+        Set up options for SuperLU parallel solve.
+        Use ./configure --download-superlu_dist --download-parmetis --download-metis --download-ptscotch
+        to have PETSc installed with SuperLU_DIST
+        """
+        self.__dict__.clear()
+        self.ksp_type="preonly"
+        self.pc_type="lu"
+        self._mg_active=False
+        self.pc_factor_mat_solver_package="superlu_dist"
+
+    def set_superlu(self):
+        """
+        Set up options for SuperLU serial solve.
+        Use ./configure --download-superlu to have PETSc installed with SuperLU
+        """
+        self.__dict__.clear()
+        self.ksp_type="preonly"
+        self.pc_type="lu"
+        self._mg_active=False
+        self.pc_factor_mat_solver_package="superlu"
 
 class OptionsMG(Options):
     """
@@ -86,18 +129,39 @@ class OptionsMG(Options):
         Reset values to initial defaults.
         """
         self.__dict__.clear()
-        self.levels=3
+        self.levels=0
         self.active=True
         # add to A11 ksp when MG active
-        self.pc_mg_type="multiplicative"
-        self.pc_mg_cycle_type="v"
-        self.pc_mg_multiplicative_cycles=1
-        self.mg_levels_ksp_type="minres"
-        self.mg_levels_ksp_max_its=3
-        self.mg_levels_ksp_convergence_test="skip"
-        self.mg_levels_pc_type="sor"
-        self.pc_mg_smoothup= 5
-        self.pc_mg_smoothdown= 5
+        #self.pc_mg_type="multiplicative"
+        #self.pc_mg_type="additive"
+        #self.pc_mg_type="additive"
+        #self.pc_mg_cycle_type="v"
+        #self.pc_mg_multiplicative_cycles=1
+        #self.mg_levels_ksp_type="minres"
+        #self.mg_levels_ksp_max_its=3
+        #self.mg_levels_ksp_convergence_test="skip"
+        #self.mg_levels_pc_type="sor"
+        #self.pc_mg_smoothup= 5
+        #self.pc_mg_smoothdown= 5
+    def set_levels(self, field=''):
+        """
+        Automatically set Multigrid levels based off mesh resolution.
+        """
+        if not isinstance( field, uw.fevariable.FeVariable):
+            raise TypeError( "Provided field must be of 'FeVariable' class." )
+        else:
+            levels=0
+            lvls=[] 
+            res_tuple=field.feMesh.elementRes
+            for res in res_tuple:
+                levels=0
+                while res%2 == 0:
+                    res=res/2
+                    levels += 1
+                lvls.append(levels)
+            self.levels=min(lvls)
+            if self.levels < 2:
+                raise TypeError("\nMultigrid levels must be >= 2.\nNeed more multiples of 2 in mesh resolution." )
 
 class OptionsMGA(Options):
     """
@@ -170,13 +234,13 @@ class OptionsMain(Options):
         self.force_correction = True
         self.ksp_type = "bsscr"
         self.pc_type = "none"
-        self.ksp_k2_type = "GMG"
+        self.ksp_k2_type = "NULL"
         self.rescale_equations = False
         self.k_scale_only = True
         self.remove_constant_pressure_null_space = False
         self.change_backsolve = False
         self.change_A11rhspresolve = False
-        self.penalty = 0
+        self.penalty = 0.0
         self.restore_K = True
 
 class OptionsGroup(object):
@@ -201,26 +265,50 @@ class OptionsGroup(object):
         self.backsolveA11=Options()
 
 
+class MGSolver(_stgermain.StgCompoundComponent):
+    """
+    """
+    _objectsDict = {  "_mgSolver" : "PETScMGSolver",
+                      "_mgGenerator" : "SROpGenerator"      }
+    _selfObjectName = "_mgSolver"
+
+    def __init__(self, field, levels=2, **kwargs):
+        if not isinstance(levels, int) or levels < 1:
+            raise TypeError( "'levels' must be positive integer.")
+        if not isinstance( field, uw.fevariable.FeVariable):
+            raise TypeError( "Provided 'field' must be of 'FeVariable' class." )
+
+        self._levels=levels
+        self._field=field
+        super(MGSolver, self).__init__(**kwargs)
+        
+    def _add_to_stg_dict(self,componentDictionary):
+        # call parents method
+        super(MGSolver,self)._add_to_stg_dict(componentDictionary)
+        #import pdb;
+        #pdb.set_trace()
+        componentDictionary[ self._cself.name ][     "levels"] = self._levels
+        componentDictionary[ self._cself.name ]["opGenerator"] = self._mgGenerator.name
+        componentDictionary[ self._mgGenerator.name ]["fineVariable"] = self._field._cself.name     
+
 class Solver(_stgermain.StgCompoundComponent):
     """
     """
-    _objectsDict = {  "_solver" : "StokesBlockKSPInterface",
-                      "_mgSolver" : "PETScMGSolver",
-                      "_mgGenerator" : "SROpGenerator"      }
-    _selfObjectName = "_solver"
-    
+    _objectsDict = {  "_solver" : "StokesBlockKSPInterface"  }
+    _selfObjectName = "_solver"    
     _optionsStr=''
 
-    def __init__(self, stokesSLE, penalty='', **kwargs):
-        
+    def __init__(self, stokesSLE, **kwargs):
+        #import pdb;
+        #pdb.set_trace()
+
         self.options=OptionsGroup()
-
         self._stokesSLE=stokesSLE
-
-        self.penalty=penalty  # init override
 
         velocityField=stokesSLE._velocityField
         pressureField=stokesSLE._pressureField
+        
+        self.options.mg.set_levels(field=velocityField)
 
         if not isinstance( velocityField, uw.fevariable.FeVariable):
             raise TypeError( "Provided 'velocityField' must be of 'FeVariable' class." )
@@ -228,7 +316,84 @@ class Solver(_stgermain.StgCompoundComponent):
         if not isinstance( pressureField, uw.fevariable.FeVariable):
             raise TypeError( "Provided 'pressureField' must be of 'FeVariable' class." )
         self._pressureField = pressureField
-        
+
+        super(Solver, self).__init__(**kwargs)
+
+    def _add_to_stg_dict(self,componentDictionary):
+        # call parents method
+        super(Solver,self)._add_to_stg_dict(componentDictionary)
+
+        componentDictionary[ self._cself.name ][       "Preconditioner"] = self._stokesSLE._preconditioner._cself.name
+        componentDictionary[ self._cself.name ][            "stokesEqn"] = self._stokesSLE._cself.name
+        componentDictionary[ self._cself.name ]["2ndStressTensorMatrix"] = None # used when we assemble K2 directly
+        componentDictionary[ self._cself.name ][       "2ndForceVector"] = None # used when we assemble K2 directly
+        componentDictionary[ self._cself.name ][        "penaltyNumber"] = None #self.options.main.penalty
+        componentDictionary[ self._cself.name ][           "MassMatrix"] = None #self._mmatrix._cself.name
+        componentDictionary[ self._cself.name ][      "JunkForceVector"] = None #self._junkfvector._cself.name
+        componentDictionary[ self._cself.name ][   "VelocityMassMatrix"] = None #self._vmmatrix._cself.name
+        componentDictionary[ self._cself.name ][     "VMassForceVector"] = None #self._vmfvector._cself.name
+
+
+    ########################################################################
+    ### the solve function
+    ########################################################################
+    def solve(self, nonLinearIterate=None, **kwargs):
+        """ solve the Stokes system
+        """
+        Solvers.SBKSP_SetSolver(self._cself, self._stokesSLE._cself)
+        if isinstance(self.options.main.penalty,float) and self.options.main.penalty > 0.0:
+            Solvers.SBKSP_SetPenalty(self._cself, self.options.main.penalty)
+            if self.options.main.ksp_k2_type == "NULL":
+                self.options.main.ksp_k2_type = "GMG"
+
+        # Set up options string from dictionaries.
+        # We set up here so that we can set/change terms on the dictionaries before we run solve
+        self._setup_options(**kwargs)
+        petsc.OptionsClear() # reset the petsc options
+        petsc.OptionsInsertString(self._optionsStr)
+        # set up MG
+        if self.options.mg.active == True:
+            self._setup_mg()
+        # check for non-linearity
+        nonLinear=self._check_linearity(nonLinearIterate)
+        if nonLinear and nonLinearIterate:
+            libUnderworld.StgFEM.SystemLinearEquations_SetToNonLinear(self._stokesSLE._cself, True )
+        else:
+            libUnderworld.StgFEM.SystemLinearEquations_SetToNonLinear(self._stokesSLE._cself, False )
+        #import pdb;
+        #pdb.set_trace()
+        if self._stokesSLE._PICSwarm:
+            self._stokesSLE._PICSwarm.repopulate()
+
+        # set up objects on SLE
+        libUnderworld.StgFEM.SystemLinearEquations_BC_Setup(self._stokesSLE._cself, None)
+        libUnderworld.StgFEM.SystemLinearEquations_LM_Setup(self._stokesSLE._cself, None)
+        libUnderworld.StgFEM.SystemLinearEquations_ZeroAllVectors(self._stokesSLE._cself, None)
+        libUnderworld.StgFEM.SystemLinearEquations_MatrixSetup(self._stokesSLE._cself, None)
+        libUnderworld.StgFEM.SystemLinearEquations_VectorSetup(self._stokesSLE._cself, None)
+
+        # setup penalty specific objects
+        if isinstance(self.options.main.penalty, float) and self.options.main.penalty > 0.0:
+            self._create_penalty_objects()
+            self._setup_penalty_objects()
+
+        # solve
+        if nonLinear and nonLinearIterate:
+            libUnderworld.StgFEM.SystemLinearEquations_NonLinearExecute(self._stokesSLE._cself, None)
+        else:
+            libUnderworld.StgFEM.SystemLinearEquations_ExecuteSolver(self._stokesSLE._cself, None)
+
+        libUnderworld.StgFEM.SystemLinearEquations_UpdateSolutionOntoNodes(self._stokesSLE._cself, None)
+
+    ########################################################################
+    ### create vectors and matrices for augmented lagrangian solve
+    ########################################################################
+    def _create_penalty_objects(self):
+        # using this function se we don't need to add anything extra to the stokeSLE struct
+
+        velocityField=self._velocityField
+        pressureField=self._pressureField
+        stokesSLE = self._stokesSLE
         # create junk force vectors -- we provide no assembly terms for these so they are 0 vectors.
         self._vmfvector   = sle.AssembledVector(velocityField)
         self._junkfvector = sle.AssembledVector(pressureField)
@@ -236,51 +401,43 @@ class Solver(_stgermain.StgCompoundComponent):
         # and matrices
         self._vmmatrix = sle.AssembledMatrix( velocityField, velocityField, rhs=self._vmfvector )
         self._mmatrix  = sle.AssembledMatrix( pressureField, pressureField, rhs=self._junkfvector )
-        
-        # maybe should be built here...
-        #self._preconditioner = sle.AssembledMatrix( pressureField, pressureField, rhs=self._hvector, allowZeroContrib=True )
-        
+ 
         # create assembly terms
         self._velocMassMatTerm = sle.VelocityMassMatrixTerm( integrationSwarm=stokesSLE._gaussSwarm, assembledObject=self._vmmatrix)
         self._pressMassMatTerm = sle.PressureMassMatrixTerm( integrationSwarm=stokesSLE._gaussSwarm, assembledObject=self._mmatrix,
                                                              mesh = velocityField._feMesh)
         
-        super(Solver, self).__init__(**kwargs)
+        # attach terms to live solver struct
+        self._cself.vmForceVec = self._vmfvector._cself
+        self._cself.vmStiffMat = self._vmmatrix._cself
+        self._cself.jForceVec  = self._junkfvector._cself
+        self._cself.mStiffMat  = self._mmatrix._cself
+    ########################################################################
+    ### assemble vectors and matrices for augmented lagrangian solve
+    ########################################################################
+    def _setup_penalty_objects(self):
+        # using this function se we don't need to add anything extra to the stokeSLE struct
 
-
-    def _add_to_stg_dict(self,componentDictionary):
-        # call parents method
-        super(Solver,self)._add_to_stg_dict(componentDictionary)
-        #import pdb;
-        #pdb.set_trace()
-
-        componentDictionary[ self._cself.name ][       "Preconditioner"] = self._stokesSLE._preconditioner._cself.name
-        componentDictionary[ self._cself.name ][            "stokesEqn"] = self._stokesSLE._cself.name
-        componentDictionary[ self._cself.name ][             "mgSolver"] = self._mgSolver.name
-        componentDictionary[ self._cself.name ]["2ndStressTensorMatrix"] = None # used when we assemble K2 directly
-        componentDictionary[ self._cself.name ][       "2ndForceVector"] = None # used when we assemble K2 directly
-        componentDictionary[ self._cself.name ][        "penaltyNumber"] = self.options.main.penalty
-        componentDictionary[ self._cself.name ][           "MassMatrix"] = self._mmatrix._cself.name
-        componentDictionary[ self._cself.name ][      "JunkForceVector"] = self._junkfvector._cself.name
-        componentDictionary[ self._cself.name ][   "VelocityMassMatrix"] = self._vmmatrix._cself.name
-        componentDictionary[ self._cself.name ][     "VMassForceVector"] = self._vmfvector._cself.name
-
-        componentDictionary[ self._mgSolver.name ][     "levels"] = self.options.mg.levels
-        componentDictionary[ self._mgSolver.name ]["opGenerator"] = self._mgGenerator.name
-
-        componentDictionary[ self._mgGenerator.name ]["fineVariable"] = self._velocityField._cself.name
-
-    def solve(self, nonLinearIterate=None, penalty='', **kwargs):
-        """ solve the sle
-        """
-
+        # zero the vectors
+        petsc.SetVec(self._vmfvector._cself.vector, 0.0)  # this complains about memory leaks
+        petsc.SetVec(self._junkfvector._cself.vector, 0.0)
+        # vector set up
+        libUnderworld.StgFEM.ForceVector_Assemble(self._vmfvector._cself)
+        libUnderworld.StgFEM.ForceVector_Assemble(self._junkfvector._cself)
+        # matrix set up
+        libUnderworld.StgFEM.StiffnessMatrix_Assemble( self._vmmatrix._cself, self._stokesSLE._cself.removeBCs, self._stokesSLE._cself, None );
+        libUnderworld.StgFEM.StiffnessMatrix_Assemble( self._mmatrix._cself,  self._stokesSLE._cself.removeBCs, self._stokesSLE._cself, None );
+    ########################################################################
+    ### setup options for solve
+    ########################################################################
+    def _setup_options(self, **kwargs):
         self._optionsStr=''
-        # Set up options string from dictionaries.
-        # We set up here so that we can set/change terms on the dictionaries before we run solve
 
-        if penalty != '':
-            self.options.main.penalty=penalty
-
+        # the A11._mg_active overrides the mg.active so we can set direct solve using A11 prefix
+        # if A11._mg_active is true we can still deactivate mg using its own flag
+        if self.options.A11._mg_active == False:
+            self.options.mg.active = self.options.A11._mg_active
+        
         for key, value in self.options.main.__dict__.iteritems():
             if key != 'penalty':
                 if value == 'bfbt':
@@ -300,7 +457,7 @@ class Solver(_stgermain.StgCompoundComponent):
         if self.options.main.change_A11rhspresolve:
             for key, value in self.options.rhsA11.__dict__.iteritems():
                 self._optionsStr = self._optionsStr+" "+"-rhsA11_"+key+" "+str(value)
-            
+
         if self.options.mg.active:
             for key, value in self.options.mg.__dict__.iteritems():
                 if key != 'active' and key != 'levels':
@@ -316,16 +473,14 @@ class Solver(_stgermain.StgCompoundComponent):
             
         for key, value in kwargs.iteritems():      # kwargs is a regular dictionary
             self._optionsStr = self._optionsStr+" "+"-"+key+" "+str(value)
-
         
-        petsc.OptionsClear() # reset the petsc options
-        petsc.OptionsInsertString(self._optionsStr)
-        Solvers.SBKSP_SetSolver(self._cself, self._stokesSLE._cself)
-        if self.options.main.penalty:
-            Solvers.SBKSP_SetPenalty(self._cself, self.options.main.penalty)
+    ########################################################################
+    ### check functional dependence of objects in solve
+    ########################################################################
+    def _check_linearity(self, nonLinearIterate):
 
-        # check for non-linearity
         nonLinear = False
+
         message = "Nonlinearity detected."
         if self._velocityField in self._stokesSLE.viscosityFn._underlyingDataItems:
             nonLinear = True
@@ -343,29 +498,48 @@ class Solver(_stgermain.StgCompoundComponent):
         message += "\nPlease set the 'nonLinearIterate' solve parameter to 'True' or 'False' to continue."
         if nonLinear and (nonLinearIterate==None):
             raise RuntimeError(message)
+     
+
+        return nonLinear
         
-        if nonLinear and nonLinearIterate:
-            libUnderworld.StgFEM.SystemLinearEquations_SetToNonLinear(self._stokesSLE._cself, True )
-        else:
-            libUnderworld.StgFEM.SystemLinearEquations_SetToNonLinear(self._stokesSLE._cself, False )
+    ########################################################################
+    ### set up MG
+    ########################################################################
+    def _setup_mg(self):
+        field =self._velocityField
+        levels=self.options.mg.levels
+        mgObj=MGSolver(field,levels)
+        # attach MG object to Solver struct
+        self.mgObj=mgObj # must attach object here: else immediately goes out of scope and is destroyed
+        self._cself.mg = mgObj._cself
 
+    def configure(self,solve_type="mg"):
+        """
+        Configure velocity/inner solver (A11 PETSc prefix).
 
-        if self._stokesSLE._PICSwarm:
-            self._stokesSLE._PICSwarm.repopulate()
-        libUnderworld.StgFEM.SystemLinearEquations_BC_Setup(self._stokesSLE._cself, None)
-        libUnderworld.StgFEM.SystemLinearEquations_LM_Setup(self._stokesSLE._cself, None)
-        libUnderworld.StgFEM.SystemLinearEquations_ZeroAllVectors(self._stokesSLE._cself, None)
-        libUnderworld.StgFEM.SystemLinearEquations_MatrixSetup(self._stokesSLE._cself, None)
-        libUnderworld.StgFEM.SystemLinearEquations_VectorSetup(self._stokesSLE._cself, None)
-        if nonLinear and nonLinearIterate:
-            libUnderworld.StgFEM.SystemLinearEquations_NonLinearExecute(self._stokesSLE._cself, None)
-        else:
-            libUnderworld.StgFEM.SystemLinearEquations_ExecuteSolver(self._stokesSLE._cself, None)
+        solve_type can be one of:
 
-        ## execute solver
-        ### _SLE_Solver_Execute
-        #### SLE_Solver_SolverSetup
-        #### SLE_Solver_Solve
-
-        libUnderworld.StgFEM.SystemLinearEquations_UpdateSolutionOntoNodes(self._stokesSLE._cself, None)
+        mg          : Geometric multigrid (default).
+        mumps       : MUMPS parallel direct solver.
+        superludist : SuperLU parallel direct solver.
+        superlu     : SuperLU direct solver (serial only).
+        lu          : LU direct solver (serial only).
+        """
+        if solve_type=="mg":
+            velocityField=self._stokesSLE._velocityField
+            #self.options.A11.clear()
+            #self.options.A11._mg_active=True
+            self.options.A11.reset()
+            self.options.mg.reset()
+            self.options.mg.set_levels(field=velocityField)
+            #self.options.mg.list()
+            #self.options.A11.list()
+        if solve_type=="mumps":
+            self.options.A11.set_mumps()
+        if solve_type=="lu":
+            self.options.A11.set_lu()
+        if solve_type=="superlu":
+            self.options.A11.set_superlu()
+        if solve_type=="superludist":
+            self.options.A11.set_superludist()
 

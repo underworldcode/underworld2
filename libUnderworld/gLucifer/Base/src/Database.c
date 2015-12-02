@@ -27,7 +27,8 @@
 
 #include <gLucifer/DrawingObjects/DrawingObjects.h>
 
-char SQL[1024];
+#define MAX_QUERY_LEN 4096
+char SQL[MAX_QUERY_LEN];
 
 const Type lucDatabase_Type = "lucDatabase";
 
@@ -193,13 +194,6 @@ lucDatabase* lucDatabase_New(
    char*             vfs)
 {
    lucDatabase* self = (lucDatabase*)_lucDatabase_DefaultNew("database");
-   /* Default min/max bounding box for db not created in xml */
-   int i;
-   for (i=0; i<3; i++)
-   {
-      self->minValue[i] = 0.0;
-      self->maxValue[i] = FLT_EPSILON;
-   }
    _lucDatabase_Init(self, context, NULL, 0, deleteAfter, writeimage, splitTransactions, transparent, compressed, singleFile, filename, vfs, "", "", False, False);
    return self;
 }
@@ -244,17 +238,17 @@ void _lucDatabase_AssignFromXML( void* database, Stg_ComponentFactory* cf, void*
 
    Dimension_Index dim = Stg_ComponentFactory_GetRootDictDouble( cf, (Dictionary_Entry_Key)"dim", 3.0  );
 
-   self->minValue[ I_AXIS ] = Stg_ComponentFactory_GetRootDictDouble( cf, (Dictionary_Entry_Key)"minX", 0.0  );
-   self->minValue[ J_AXIS ] = Stg_ComponentFactory_GetRootDictDouble( cf, (Dictionary_Entry_Key)"minY", 0.0  );
-   self->minValue[ K_AXIS ] = Stg_ComponentFactory_GetRootDictDouble( cf, (Dictionary_Entry_Key)"minZ", 0.0  );
+   self->minValue[ I_AXIS ] = Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"minX", 0.0  );
+   self->minValue[ J_AXIS ] = Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"minY", 0.0  );
+   self->minValue[ K_AXIS ] = Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"minZ", 0.0  );
 
-   self->maxValue[ I_AXIS ] = Stg_ComponentFactory_GetRootDictDouble( cf, (Dictionary_Entry_Key)"maxX", FLT_EPSILON  );
-   self->maxValue[ J_AXIS ] = Stg_ComponentFactory_GetRootDictDouble( cf, (Dictionary_Entry_Key)"maxY", FLT_EPSILON  );
-   self->maxValue[ K_AXIS ] = Stg_ComponentFactory_GetRootDictDouble( cf, (Dictionary_Entry_Key)"maxZ", FLT_EPSILON  );
+   self->maxValue[ I_AXIS ] = Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"maxX", FLT_EPSILON  );
+   self->maxValue[ J_AXIS ] = Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"maxY", FLT_EPSILON  );
+   self->maxValue[ K_AXIS ] = Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"maxZ", FLT_EPSILON  );
 
    if (dim == 2)
    {
-      self->minValue[K_AXIS] += 0.5 * (self->maxValue[K_AXIS] = self->minValue[K_AXIS]);
+      self->minValue[K_AXIS] += 0.5 * (self->maxValue[K_AXIS] - self->minValue[K_AXIS]);
       self->maxValue[K_AXIS] = self->minValue[K_AXIS];
    }
 
@@ -267,7 +261,7 @@ void _lucDatabase_AssignFromXML( void* database, Stg_ComponentFactory* cf, void*
       Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"transparent", False),
       Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"compressed", True),
       Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"singleFile", True),
-      Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"filename", "gLucifer"),
+      Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"filename", NULL),
       Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"vfs", NULL),
       Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"timeUnits", ""),
       Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"dbPath", "."),
@@ -363,22 +357,16 @@ void _lucDatabase_Execute( void* database, void* data )
             lucDatabase_DeleteGeometry(self, -1, deleteEnd);
       }
 
-      /* Get scaling coefficient and units for timestep */
-      double dimCoeff = 1.0; /* coefficient for dimensionalising field */
-
       if (self->context)
       {
          /* When restarted, delete any existing geometry at current timestep */
          if (self->context->loadFromCheckPoint)
             lucDatabase_DeleteGeometry(self, self->timeStep, self->timeStep);
       }
-      else
-         /* Running from python, delete any existing geometry at timestep 0 */
-         lucDatabase_DeleteGeometry(self, 0, 0);
 
       /* Enter timestep in database */
       /* Write and update timestep */
-      snprintf(SQL, 1024, "insert into timestep (id, time, dim_factor, units) values (%d, %g, %g, '%s')", self->timeStep, currentTime, dimCoeff, self->timeUnits);
+      snprintf(SQL, MAX_QUERY_LEN, "insert into timestep (id, time, properties) values (%d, %g, '%s')", self->timeStep, currentTime, "");
       /*printf("%s\n", SQL);*/
       if (!lucDatabase_IssueSQL(self->db, SQL)) return;
       /* Also write to attached db */
@@ -474,8 +462,6 @@ void lucDatabase_OutputWindow(lucDatabase* self, void* _window)
    lucWindow* window = (lucWindow*)_window;
    Index   viewport_I, vertical_I, horizontal_I;
    Index   verticalCount, horizontalCount;
-   float defaultMin[3] = {0,0,0};
-   float defaultMax[3] = {FLT_EPSILON,FLT_EPSILON,FLT_EPSILON};
    int id;
 
    /* Open and create database */
@@ -483,22 +469,22 @@ void lucDatabase_OutputWindow(lucDatabase* self, void* _window)
 
    if (lucDatabase_BeginTransaction(self))
    {
+      /* Save the window */
       float *min, *max;
       if (window->useModelBounds)
       {
-         min = self->minValue;
-         max = self->maxValue;
+         snprintf(SQL, MAX_QUERY_LEN, "insert into window (name, width, height, colour, minX, minY, minZ, maxX, maxY, maxZ) values ('%s', %d, %d, %d, %g, %g, %g, %g, %g, %g)", 
+                  window->name, window->width, window->height, lucColour_ToInt(&window->backgroundColour), 
+                  self->minValue[0], self->minValue[1], self->minValue[2], self->maxValue[0], self->maxValue[1], self->maxValue[2]);
       }
       else 
       {
          /* Don't write model bounds with this window
           * (used if visualising something other than model domain, eg: plot) */
-         min = defaultMin;
-         max = defaultMax;
+         snprintf(SQL, MAX_QUERY_LEN, "insert into window (name, width, height, colour) values ('%s', %d, %d, %d)",
+                  window->name, window->width, window->height, lucColour_ToInt(&window->backgroundColour));
       }
 
-      /* Save the window */
-      snprintf(SQL, 1024, "insert into window (name, width, height, colour, minX, minY, minZ, maxX, maxY, maxZ) values ('%s', %d, %d, %d, %g, %g, %g, %g, %g, %g)", window->name, window->width, window->height, lucColour_ToInt(&window->backgroundColour), min[0], min[1], min[2], max[0], max[1], max[2]);
       /*printf("%s\n", SQL);*/
       if (!lucDatabase_IssueSQL(self->db, SQL)) return;
       id = sqlite3_last_insert_rowid(self->db);
@@ -514,7 +500,6 @@ void lucDatabase_OutputWindow(lucDatabase* self, void* _window)
          for ( horizontal_I = 0 ; horizontal_I < horizontalCount ; horizontal_I++ )
          {
             lucViewport* viewport = window->viewportList[ viewport_I ];
-            if (!window->antialias) viewport->antialias = False;  /* Override anti-alias setting when disabled for window */
             lucDatabase_OutputViewport(self, viewport, id, horizontal_I / (float)horizontalCount, vertical_I / (float)verticalCount);
             viewport_I++;
          }
@@ -543,14 +528,11 @@ void lucDatabase_OutputViewport(lucDatabase* self, lucViewport* viewport, int wi
    }
 
    /* Save the viewport - if added to multiple windows will create a new entry for each */
-   /* Update properties string for viewport */
-   lucViewport_Update(viewport);
-
    if (cam->centreFieldVariable || cam->useBoundingBox)
       sprintf(focus, "null, null, null");
    else
       sprintf(focus, "%g, %g, %g", cam->focalPoint[0], cam->focalPoint[1], cam->focalPoint[2]);
-   snprintf(SQL, 1024, "insert into viewport (title, x, y, near, far, aperture, orientation, focalPointX, focalPointY, focalPointZ, translateX, translateY, translateZ, rotateX, rotateY, rotateZ, scaleX, scaleY, scaleZ, properties) values ('%s', %g, %g, %g, %g, %g, %d, %s, %g, %g, %g, %g, %g, %g, %g, %g, %g, '%s')", viewport->title, x, y, viewport->nearClipPlane, viewport->farClipPlane, cam->aperture, cam->coordSystem, focus, translate[0], translate[1], translate[2], cam->rotate[0], cam->rotate[1], cam->rotate[2], viewport->scaleX, viewport->scaleY, viewport->scaleZ, viewport->properties);
+   snprintf(SQL, MAX_QUERY_LEN, "insert into viewport (x, y, near, far, aperture, orientation, focalPointX, focalPointY, focalPointZ, translateX, translateY, translateZ, rotateX, rotateY, rotateZ, scaleX, scaleY, scaleZ, properties) values (%g, %g, %g, %g, %g, %d, %s, %g, %g, %g, %g, %g, %g, %g, %g, %g, '%s')", x, y, viewport->nearClipPlane, viewport->farClipPlane, cam->aperture, cam->coordSystem, focus, translate[0], translate[1], translate[2], cam->rotate[0], cam->rotate[1], cam->rotate[2], viewport->scaleX, viewport->scaleY, viewport->scaleZ, viewport->properties);
    /*printf("%s\n", SQL);*/
    if (!lucDatabase_IssueSQL(self->db, SQL)) return;
    /* Return viewport id */
@@ -566,14 +548,14 @@ void lucDatabase_OutputViewport(lucDatabase* self, lucViewport* viewport, int wi
       if (object->id)
       {
          /* Link object & viewport */
-         snprintf(SQL, 1024, "insert into viewport_object (viewport_id, object_id) values (%d, %d)", id, object->id); 
+         snprintf(SQL, MAX_QUERY_LEN, "insert into viewport_object (viewport_id, object_id) values (%d, %d)", id, object->id); 
          /*printf("%s\n", SQL);*/
          if (!lucDatabase_IssueSQL(self->db, SQL)) return;
       }
    }
 
    /* Link window & viewport */
-   snprintf(SQL, 1024, "insert into window_viewport (window_id, viewport_id) values (%d, %d)", window_id, id); 
+   snprintf(SQL, MAX_QUERY_LEN, "insert into window_viewport (window_id, viewport_id) values (%d, %d)", window_id, id); 
    /*printf("%s\n", SQL);*/
    if (!lucDatabase_IssueSQL(self->db, SQL)) return;
 }
@@ -583,43 +565,14 @@ void lucDatabase_OutputDrawingObject(lucDatabase* self, lucViewport* viewport, l
    /* Save the object */
    if (!object->id) /* Not already written */
    {
-      /* Check for types that aren't exportable, for back compatibility set new viewport props */
-      if (viewport)
-      {
-         char* type = object->type;
-         if (strcmp(type, "lucAxis") == 0)
-         {
-            lucAxis* axis = (lucAxis*)object;
-            viewport->axis = True;
-            viewport->axisLength = axis->length;
-            return;
-         }
-         if (strcmp(type, "lucFieldVariableBorder") == 0)
-         {
-            viewport->border = (int)object->lineWidth;
-            viewport->borderColour = object->colour;
-            return;
-         }
-         if (strcmp(type, "lucTimeStep") == 0)
-         {
-            viewport->timestep = True;
-            return;
-         }
-         if (strcmp(type, "lucTitle") == 0)
-         {
-            lucTitle* title = (lucTitle*)object;
-            viewport->title = title->titleString;
-            return;
-         }
-      }
-
-      snprintf(SQL, 1024, "insert into object (name, colourmap_id, colour, opacity, properties) values ('%s', 0, %d, %g, '%s')", object->name, lucColour_ToInt(&object->colour), object->opacity, object->properties); 
+      snprintf(SQL, MAX_QUERY_LEN, "insert into object (name, colourmap_id, colour, opacity, properties) values ('%s_%s', 0, %d, %g, '%s')", object->type, object->name, lucColour_ToInt(&object->colour), object->opacity, object->properties); 
       /*printf("%s\n", SQL);*/
       if (!lucDatabase_IssueSQL(self->db, SQL)) return;
 
       /* Save object id */
       object->id = sqlite3_last_insert_rowid(self->db);
       Journal_Printf(lucInfo, "      Drawing object: %s %s id %d\n", object->name, object->type, object->id);
+      printf("      Drawing object: %s %s id %d props %s\n", object->name, object->type, object->id, object->properties);
 
       /* Save colour maps */
       if (object->colourMap)
@@ -630,8 +583,6 @@ void lucDatabase_OutputDrawingObject(lucDatabase* self, lucViewport* viewport, l
           object->type == lucSwarmShapes_Type || object->type == lucSwarmRGBColourViewer_Type)
       {
          lucSwarmViewer* svobj = (lucSwarmViewer*)object;
-         if (svobj->opacityVariable)
-            lucDatabase_OutputColourMap(self, svobj->opacityColourMap, object, lucOpacityValueData);
          /* Only RGB viewer supports these for now */
          if (object->type == lucSwarmRGBColourViewer_Type)
          {
@@ -654,7 +605,7 @@ void lucDatabase_OutputColourMap(lucDatabase* self, lucColourMap* colourMap, luc
    {
       Index colour_I;
 
-      snprintf(SQL, 1024, "insert into colourmap (name, minimum, maximum, logscale, discrete, centreValue) values ('%s', %g, %g, %d, %d, %g)", colourMap->name, colourMap->minimum, colourMap->maximum, colourMap->logScale, colourMap->discrete, colourMap->centreValue );
+      snprintf(SQL, MAX_QUERY_LEN, "insert into colourmap (name, minimum, maximum, logscale, discrete, centreValue, properties) values ('%s', %g, %g, %d, %d, %g, '%s')", colourMap->name, colourMap->minimum, colourMap->maximum, colourMap->logScale, colourMap->discrete, colourMap->centreValue, colourMap->properties );
       /*printf("%s\n", SQL);*/
       if (!lucDatabase_IssueSQL(self->db, SQL)) return;
 
@@ -670,7 +621,7 @@ void lucDatabase_OutputColourMap(lucDatabase* self, lucColourMap* colourMap, luc
          char value[32] = "null";
          if (cm->value)
             sprintf(value, "%g", *cm->value);
-         snprintf(SQL, 1024, "insert into colourvalue (colourmap_id, colour, value) values (%d, %d, %s)", 
+         snprintf(SQL, MAX_QUERY_LEN, "insert into colourvalue (colourmap_id, colour, value) values (%d, %d, %s)", 
                  colourMap->id, lucColour_ToInt(cm->colour), value);
          /*printf("%s\n", SQL);*/
          if (!lucDatabase_IssueSQL(self->db, SQL)) return;
@@ -680,7 +631,7 @@ void lucDatabase_OutputColourMap(lucDatabase* self, lucColourMap* colourMap, luc
    /* Add reference for object */
    Journal_Printf(lucInfo, "         Linking colourMap: %s to object %s\n", colourMap->name, object->name);
    /* Link object & colour map */
-   snprintf(SQL, 1024, "insert into object_colourmap (object_id, colourmap_id, data_type) values (%d, %d, %d)", object->id, colourMap->id, type); 
+   snprintf(SQL, MAX_QUERY_LEN, "insert into object_colourmap (object_id, colourmap_id, data_type) values (%d, %d, %d)", object->id, colourMap->id, type); 
    /*printf("%s\n", SQL);*/
    if (!lucDatabase_IssueSQL(self->db, SQL)) return;
 }
@@ -718,6 +669,7 @@ void lucDatabase_OutputGeometry(lucDatabase* self, int object_id)
          {
             for (data_type=lucMinDataType; data_type<lucMaxDataType; data_type++)
                lucDatabase_GatherGeometry(self, type, data_type);
+            lucDatabase_GatherLabels(self, type);
          }
          if (self->rank > 0) continue;
          gtotal += MPI_Wtime() - time;
@@ -754,42 +706,57 @@ void lucDatabase_OutputGeometry(lucDatabase* self, int object_id)
    lucDatabase_ClearGeometry(self);
 }
 
-void lucDatabase_GatherGeometry(lucDatabase* self, lucGeometryType type, lucGeometryDataType data_type)
+/*** 
+ * Utility function to prepare for gathering variable length data from all procs to root
+ *  count:   local count
+ *  counts:  per proc counts return array
+ *  offsets: per proc offsets return array
+ *  returns total elements to be received on root
+ ***/
+int lucDatabase_GatherCounts(lucDatabase* self, int count, int* counts, int* offsets)
 {
-   unsigned int procs = self->nproc;
-   lucGeometryData* block = self->data[type][data_type];
-
    /* Get the count on each proc */
-   int p;
-   int *counts = NULL;
-   if (self->rank == 0)
-      counts = Memory_Alloc_Array(int, procs, "displacements");
-   /* 1 value from each proc */
-   (void)MPI_Gather(&block->count, 1, MPI_INT, counts, 1, MPI_INT, 0, self->communicator);
+   int p, total = 0;
+   (void)MPI_Gather(&count, 1, MPI_INT, counts, 1, MPI_INT, 0, self->communicator);
 
-   /* Now we have count per proc, gather all values */
-   //double time = MPI_Wtime();
-   int *displ = NULL;
-   float *data = NULL;
-   int total = 0;
+   /* Now we have count per proc, calculate offsets and total */
    if (self->rank == 0)
    {
-      displ = Memory_Alloc_Array(int, procs, "displacements");
-
-      for (p=0; p<procs; p++)/* Get displacements */
-         displ[p] = p==0 ? 0 : displ[p-1] + counts[p-1];
-
-      total = displ[procs-1] + counts[procs-1];
-      /* All values already on root? skip gather */
-      if (total == block->count) total = 0;
-      if (total) data = Memory_Alloc_Array(float, total, "FloatData");
+      for (p=0; p<self->nproc; p++) /* Get offset */
+      {
+         offsets[p] = p==0 ? 0 : offsets[p-1] + counts[p-1];
+      }
+      total = offsets[self->nproc-1] + counts[self->nproc-1];
+      /* All values already on root? no gather required */
+      //if (total == count) total = 0;
    }
 
-   /* Any data to gather? */
+   /* Return total elements to be received */
    MPI_Bcast(&total, 1, MPI_INT, 0, self->communicator);
+   return total;
+}
+
+void lucDatabase_GatherGeometry(lucDatabase* self, lucGeometryType type, lucGeometryDataType data_type)
+{
+   lucGeometryData* block = self->data[type][data_type];
+   /* Get the count on each proc */
+   int *counts = NULL, *offsets = NULL;
+   int p, total = 0;
+   float *data = NULL;
+   if (self->rank == 0)
+   {
+      counts = Memory_Alloc_Array(int, self->nproc, "counts");
+      offsets = Memory_Alloc_Array(int, self->nproc, "offsets");
+   }
+
+   total = lucDatabase_GatherCounts(self, block->count, counts, offsets);
+
    if (total > 0)
    {
-      (void)MPI_Gatherv(block->data, block->count, MPI_FLOAT, data, counts, displ, MPI_FLOAT, 0, self->communicator);
+      if (self->rank == 0)
+         data = Memory_Alloc_Array(float, total, "FloatData");
+
+      (void)MPI_Gatherv(block->data, block->count, MPI_FLOAT, data, counts, offsets, MPI_FLOAT, 0, self->communicator);
 
       /* Reduce to get minimum & maximum from all procs */
       float min, max;
@@ -808,47 +775,64 @@ void lucDatabase_GatherGeometry(lucDatabase* self, lucGeometryType type, lucGeom
       {
          //Journal_Printf(lucInfo, "Gathered %d values, took %f sec\n", total, MPI_Wtime() - time);
          /* Add new data on master */
-         for (p=1; p<procs; p++)/* Get displacements */
+         for (p=1; p<self->nproc; p++)
          {
             if (counts[p] == 0) continue;
 
-            //printf("[%d - %d] Reading %d values at displacement %d from proc %d MIN %f MAX %f WIDTH %d\n", type, data_type, counts[p], displ[p], p, min, max, width);
+            //printf("[%d - %d] Reading %d values at displacement %d from proc %d MIN %f MAX %f WIDTH %d\n", type, data_type, counts[p], offsets[p], p, min, max, width);
             if (data_type == lucVertexData)
                block->width = width;   //Summed width
-            lucGeometryData_Read(block, counts[p] / block->size, &data[displ[p]]);
+            lucGeometryData_Read(block, counts[p] / block->size, &data[offsets[p]]);
          }
          //printf("count %d, \n", block->count);
          lucGeometryData_Setup(block, min, max, block->dimCoeff, block->units);
       }
    }
+
    if (data) Memory_Free(data);
    Memory_Free(counts);
-   Memory_Free(displ);
+   Memory_Free(offsets);
+}
+
+void lucDatabase_GatherLabels(lucDatabase* self, lucGeometryType type)
+{
+   /* Get the count on each proc */
+   int p;
+   int *counts = NULL, *offsets = NULL;
+   int total = 0;
+   char *data = NULL;
+   if (self->rank == 0)
+   {
+      counts = Memory_Alloc_Array(int, self->nproc, "counts");
+      offsets = Memory_Alloc_Array(int, self->nproc, "offsets");
+   }
+   int length = self->labels[type] ? strlen(self->labels[type])+1 : 0;
+   total = lucDatabase_GatherCounts(self, length, counts, offsets);
+
+   /* Gather labels */
+   if (total > 0)
+   {
+      if (self->rank == 0)
+         data = Memory_Alloc_Array(char, total, "LabelData");
+
+      (void)MPI_Gatherv(self->labels[type], length, MPI_CHAR, data, counts, offsets, MPI_CHAR, 0, self->communicator);
+      if (self->rank == 0)
+      {
+         /* Add new data on master */
+         for (p=1; p<self->nproc; p++)/* Get displacements */
+         {
+            if (counts[p] == 0) continue;
+            lucDatabase_AddLabel(self, type, &data[offsets[p]]);
+         }
+      }
+   }
+
+   if (data) Memory_Free(data);
+   Memory_Free(counts);
+   Memory_Free(offsets);
 }
 
 /* Direct write functions to enter data into geom data store */
-void lucDatabase_AddIsosurface(lucDatabase* self, lucIsosurface* iso, Bool walls)
-{
-   /* Export surface triangles */
-   Index triangle_I;
-   int i;
-   for ( triangle_I = 0 ; triangle_I < iso->triangleCount ; triangle_I++)
-   {
-      if (iso->triangleList[triangle_I].wall != walls) continue;
-      for (i=0; i<3; i++)
-      {
-         /* Dump vertex pos, [value] */
-         float coordf[3] = {iso->triangleList[triangle_I].pos[i][0],
-                            iso->triangleList[triangle_I].pos[i][1],
-                            iso->triangleList[triangle_I].pos[i][2]};
-         float value = iso->triangleList[triangle_I].value[i];
-         lucDatabase_AddVertices(self, 1, lucTriangleType, coordf);
-         if (iso->colourField && iso->colourMap)
-            lucDatabase_AddValues(self, 1, lucTriangleType, lucColourValueData, iso->colourMap, &value);
-      }
-   }
-}
-
 void lucDatabase_AddGridVertices(lucDatabase* self, int n, int width, float* data)
 {
    int height = n / width;
@@ -915,7 +899,6 @@ void lucDatabase_AddValues(lucDatabase* self, int n, lucGeometryType type, lucGe
    lucGeometryData_Setup(self->data[type][data_type], colourMap->minimum, colourMap->maximum, 1., "");
 }
 
-
 void lucDatabase_AddVolumeSlice(lucDatabase* self, int width, int height, float* corners, lucColourMap* colourMap, float* data)
 {
    /* Output corner vertices */
@@ -967,13 +950,13 @@ void lucDatabase_AddLabel(lucDatabase* self, lucGeometryType type, char* label)
 {
    if (!self->labels[type] || strlen(self->labels[type]) + strlen(label) + 2 > self->label_lengths[type])
    {
-      self->labels[type] = Memory_Realloc_Array(self->labels[type], char, self->label_lengths[type] + 1024);
-      self->label_lengths[type] += 1024;
-      if (self->label_lengths[type] == 1024) self->labels[type][0] = 0;
+      /* No label memory allocated yet or more required */
+      self->labels[type] = Memory_Realloc_Array(self->labels[type], char, self->label_lengths[type] + MAX_QUERY_LEN);
+      self->label_lengths[type] += MAX_QUERY_LEN;
+      if (self->label_lengths[type] == MAX_QUERY_LEN) self->labels[type][0] = 0;
    }
-
+   if (self->labels[type][0] != 0) strcat(self->labels[type], "\n");
    strcat(self->labels[type], label);
-   strcat(self->labels[type], "\n");
 }
 
 lucGeometryData* lucGeometryData_New(lucGeometryDataType data_type)
@@ -1050,18 +1033,20 @@ void lucDatabase_OpenDatabase(lucDatabase* self)
    {
       /* Copy db from checkpointReadPath?? /
       if (restart && strlen(self->context->checkpointReadPath) > 0)*/
+      int flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
 
-      if (self->filename)
+      if (self->filename && strlen(self->filename))
+      {
          sprintf(self->path, "%s/%s.gldb", self->dbPath, self->filename);
+      }
       else
-         sprintf(self->path, ":memory"); 
+      {
+         strcpy(self->path, "file:glucifer_database?mode=memory&cache=shared");
+         flags = flags | SQLITE_OPEN_URI;
+         printf("Defaulting to memory database: %s\n", self->path);
+      }
 
-
-      if (!self->context || !(self->context->loadFromCheckPoint))
-         /* Remove existing file */
-         remove(self->path);
-
-      if(sqlite3_open_v2(self->path, &self->db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, self->vfs))
+      if (sqlite3_open_v2(self->path, &self->db, flags, self->vfs))
       {
          printf("Can't open database: (%s) %s\n", self->path, sqlite3_errmsg(self->db));
          self->db = NULL;
@@ -1174,11 +1159,11 @@ void lucDatabase_DeleteGeometry(lucDatabase* self, int start_timestep, int end_t
 {
    /* Remove data over timestep range */
    if (start_timestep < 0)
-      snprintf(SQL, 1024,  "delete from geometry where timestep <= %d; delete from timestep where id <= %d;", end_timestep, end_timestep);
+      snprintf(SQL, MAX_QUERY_LEN,  "delete from geometry where timestep <= %d; delete from timestep where id <= %d;", end_timestep, end_timestep);
    else if (end_timestep < 0)
-      snprintf(SQL, 1024,  "delete from geometry where timestep >= %d; delete from timestep where id >= %d;", start_timestep, start_timestep);
+      snprintf(SQL, MAX_QUERY_LEN,  "delete from geometry where timestep >= %d; delete from timestep where id >= %d;", start_timestep, start_timestep);
    else
-      snprintf(SQL, 1024,  "delete from geometry where timestep between %d and %d; delete from timestep where id between %d and %d;", start_timestep, end_timestep, start_timestep, end_timestep);
+      snprintf(SQL, MAX_QUERY_LEN,  "delete from geometry where timestep between %d and %d; delete from timestep where id between %d and %d;", start_timestep, end_timestep, start_timestep, end_timestep);
 
    lucDatabase_IssueSQL(self->db, SQL);
 }
@@ -1216,7 +1201,7 @@ int lucDatabase_WriteGeometry(lucDatabase* self, int index, lucGeometryType type
    if (block->min[1] > block->max[1]) block->min[1] = block->max[1] = 0;
    if (block->min[2] > block->max[2]) block->min[2] = block->max[2] = 0;
 
-   snprintf(SQL, 1024, "insert into geometry (object_id, timestep, rank, idx, type, data_type, size, count, width, minimum, maximum, dim_factor, units, minX, minY, minZ, maxX, maxY, maxZ, labels, data) values (%d, %d, %d, %d, %d, %d, %d, %d, %d, %g, %g, %g, '%s', %g, %g, %g, %g, %g, %g, ?, ?)", object_id, self->timeStep, 0, index, type, data_type, block->size, block->count, block->width, block->minimum, block->maximum, block->dimCoeff, block->units ? block->units : "", block->min[0], block->min[1], block->min[2], block->max[0], block->max[1], block->max[2]);
+   snprintf(SQL, MAX_QUERY_LEN, "insert into geometry (object_id, timestep, rank, idx, type, data_type, size, count, width, minimum, maximum, dim_factor, units, minX, minY, minZ, maxX, maxY, maxZ, labels, data) values (%d, %d, %d, %d, %d, %d, %d, %d, %d, %g, %g, %g, '%s', %g, %g, %g, %g, %g, %g, ?, ?)", object_id, self->timeStep, 0, index, type, data_type, block->size, block->count, block->width, block->minimum, block->maximum, block->dimCoeff, block->units ? block->units : "", block->min[0], block->min[1], block->min[2], block->max[0], block->max[1], block->max[2]);
 
    /* Prepare statement... */
    if (sqlite3_prepare_v2(db, SQL, -1, &statement, NULL) != SQLITE_OK)
@@ -1272,3 +1257,34 @@ void lucDatabase_BackupDb(sqlite3 *fromDb, sqlite3* toDb)
    }
 }
 
+void lucDatabase_BackupDbFile(lucDatabase* self, char* filename)
+{
+   sqlite3* toDb;
+   int flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
+   if (sqlite3_open_v2(filename, &toDb, flags, self->vfs))
+   {
+      printf("Can't open database: (%s) %s\n", filename, sqlite3_errmsg(toDb));
+      return;
+   }
+
+   /* Remove existing data */
+   lucDatabase_IssueSQL(toDb, "drop table IF EXISTS geometry");
+   lucDatabase_IssueSQL(toDb, "drop table IF EXISTS timestep");
+   lucDatabase_IssueSQL(toDb, "drop table IF EXISTS object_colourmap");
+   lucDatabase_IssueSQL(toDb, "drop table IF EXISTS colourmap");
+   lucDatabase_IssueSQL(toDb, "drop table IF EXISTS colourvalue");
+   lucDatabase_IssueSQL(toDb, "drop table IF EXISTS object");
+   lucDatabase_IssueSQL(toDb, "drop table IF EXISTS window");
+   lucDatabase_IssueSQL(toDb, "drop table IF EXISTS viewport");
+   lucDatabase_IssueSQL(toDb, "drop table IF EXISTS window_viewport");
+   lucDatabase_IssueSQL(toDb, "drop table IF EXISTS viewport_object");
+
+   sqlite3_backup *pBackup;  /* Backup object used to copy data */
+   pBackup = sqlite3_backup_init(toDb, "main", self->db, "main");
+   if (pBackup)
+   {
+      (void)sqlite3_backup_step(pBackup, -1);
+      (void)sqlite3_backup_finish(pBackup);
+   }
+   sqlite3_close(toDb);
+}

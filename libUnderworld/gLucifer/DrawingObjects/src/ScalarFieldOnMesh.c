@@ -51,12 +51,6 @@ void _lucScalarFieldOnMesh_Init(lucScalarFieldOnMesh* self, char* drawSides)
    if (!strchr(drawSides, 'Y')) self->drawSides[J_AXIS][1] = False;
    if (!strchr(drawSides, 'z')) self->drawSides[K_AXIS][0] = False;
    if (!strchr(drawSides, 'Z')) self->drawSides[K_AXIS][1] = False;
-
-   /* Set cull face to on */
-   if (self->dim == 2)
-      self->cullface = False;
-   else
-      self->cullface = True;
 }
 
 
@@ -114,9 +108,6 @@ void _lucScalarFieldOnMesh_Build( void* drawingObject, void* data )
 
    /* Build parent */
    _lucScalarFieldOnMeshCrossSection_Build(self, data);
-
-   /* Drawing object default overrides */
-   if (self->dim == 2) self->lit = False;
 }
 
 void _lucScalarFieldOnMesh_Draw( void* drawingObject, lucDatabase* database, void* _context )
@@ -124,10 +115,14 @@ void _lucScalarFieldOnMesh_Draw( void* drawingObject, lucDatabase* database, voi
    lucScalarFieldOnMesh*  self          = (lucScalarFieldOnMesh*)drawingObject;
    Mesh*                  mesh          = (Mesh*) self->mesh;
    Grid*                  vertGrid;
-
    vertGrid = *(Grid**)ExtensionManager_Get( mesh->info, mesh, self->vertexGridHandle );
 
-   if (self->dim == 2)
+   if (self->isSet) 
+   {
+      /* Just draw at given position if provided */
+      lucScalarFieldOnMeshCrossSection_DrawCrossSection(self, database, True);
+   }
+   else if (self->dim == 2)
    {
       lucScalarFieldOnMeshCrossSection_DrawCrossSection( lucCrossSection_Set(self, 0.0, K_AXIS, False), database, False);
    }

@@ -16,6 +16,11 @@
 %import "StgFEM.i"
 %import "PICellerator.i"
 
+%include "carrays.i"
+%include "cdata.i"
+/* Create some functions for working with "float *" */
+%array_functions(float, farray)
+
 %{
 /* Includes the header in the wrapper code */
 #include <mpi.h>
@@ -43,9 +48,9 @@ extern "C" {
 %include "Base/Finalise.h"
 %include "Base/Init.h"
 %include "Base/X11Colours.h"
+%include "Base/ViewerTypes.h"
 %include "DrawingObjects/CrossSection.h"
 %include "DrawingObjects/SwarmViewer.h"
-%include "DrawingObjects/ColourBar.h"
 %include "DrawingObjects/VectorArrowCrossSection.h"
 %include "DrawingObjects/MeshCrossSection.h"
 %include "DrawingObjects/VectorArrowMeshCrossSection.h"
@@ -59,7 +64,7 @@ extern "C" {
 %include "DrawingObjects/ScalarField.h"
 %include "DrawingObjects/ScalarFieldOnMeshCrossSection.h"
 %include "DrawingObjects/ScalarFieldOnMesh.h"
-%include "DrawingObjects/Title.h"
+%include "DrawingObjects/FieldSampler.h"
 %include "DrawingObjects/types.h"
 %include "libgLucifer/Finalise.h"
 %include "libgLucifer/gLucifer.h"

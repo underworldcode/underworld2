@@ -188,7 +188,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         array([ 0.1, -1.1])
 
         """
-        arr = self._cself.getAsNumpyArray()
+        arr = uw.libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.verticesVariable)
         arr.flags.writeable = self._dataWriteable
         return arr
 
@@ -407,6 +407,28 @@ class MeshGenerator(_stgermain.StgCompoundComponent):
     _objectsDict = { "_gen": None }
     _selfObjectName = "_gen"
 
+    def __init__(self, partitioned=True, **kwargs):
+        """
+        Class initialiser.
+        
+        Parameter
+        ---------
+        partitioned: bool
+            If false, the mesh is not partitioned across entire processor pool. Instead
+            mesh is entirely owned by processor which generated it.
+            
+        Returns
+        ------
+        feMesh: MeshGenerator
+                
+        
+        """
+        if not isinstance(partitioned,bool):
+            raise TypeError("'partitioned' parameter must be of type 'bool'.")
+        self._partitioned = partitioned
+        # build parent
+        super(MeshGenerator,self).__init__(**kwargs)
+
     @property
     def dim(self):
         """ dim (int): FeMesh dimensionality. """
@@ -419,6 +441,12 @@ class MeshGenerator(_stgermain.StgCompoundComponent):
 
         """
         pass
+
+    def _add_to_stg_dict(self,componentDictionary):
+        # call parents method
+        super(MeshGenerator,self)._add_to_stg_dict(componentDictionary)
+        
+        componentDictionary[self._gen.name]["partitioned"] = self._partitioned
 
 class CartesianMeshGenerator(MeshGenerator):
     """
@@ -765,7 +793,7 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
     _meshGenerator = [ "C2Generator", "CartesianGenerator" ]
     _objectsDict = { "_gen": None }  # this is set programmatically in __new__
     
-    def __new__(cls, elementType="Q1/dQ0", elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.), periodic=None, **kwargs):
+    def __new__(cls, elementType="Q1/dQ0", elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.), periodic=None, partitioned=True, **kwargs):
         # This class requires a custom __new__ so that we can decide which
         # type of generator is required dynamically
 
@@ -805,7 +833,7 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
         return super(FeMesh_Cartesian,cls).__new__(cls, objectsDictOverrule=overruleDict, **kwargs)
     
     
-    def __init__(self, elementType="Q1/dQ0", elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.), periodic=None, **kwargs):
+    def __init__(self, elementType="Q1/dQ0", elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.), periodic=None, partitioned=True, **kwargs):
         """
         Class initialiser.
         
@@ -833,7 +861,7 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
         
         self._elementTypes = elementType
         # ok, lets go ahead and build primary mesh (ie, self)
-        super(FeMesh_Cartesian,self).__init__(elementType=elementType[0], elementRes=elementRes, minCoord=minCoord, maxCoord=maxCoord, periodic=periodic, **kwargs)
+        super(FeMesh_Cartesian,self).__init__(elementType=elementType[0], elementRes=elementRes, minCoord=minCoord, maxCoord=maxCoord, periodic=periodic, partitioned=partitioned, **kwargs)
 
         # lets add the special sets
         self.specialSets["MaxI_VertexSet"] = _specialSets_Cartesian.MaxI_VertexSet

@@ -103,7 +103,8 @@ void _lucContourCrossSection_AssignFromXML( void* drawingObject, Stg_ComponentFa
       Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"interval", 0.33 )  ) ;
 
    /* Drawing settings for this component */
-   self->lit = False;
+   //TODO: Set via python properties
+   //self->lit = False;
 }
 
 void _lucContourCrossSection_Build( void* drawingObject, void* data ) 
@@ -344,22 +345,24 @@ void lucContourCrossSection_PlotPoint(lucContourCrossSection* self, lucDatabase*
    { 
       if (self->printedIndex < self->coordIndex && (0 == bIndex || 0 == aIndex || bIndex == (self->resolutionB-1) || aIndex == (self->resolutionA-1)))
       {
-//         char label[32];
-//         double dimCoeff = 1.0; /* coefficient for dimensionalising field */
+         char label[32];
+         double dimCoeff = 1.0; /* coefficient for dimensionalising field */
+         //TODO: Fix scaling/units
 //         /* very hacky to get the scaling component */
 //         Scaling* theScaling = NULL;
 //         if (self->fieldVariable->context) theScaling = self->fieldVariable->context->scaling;
 //         if (self->fieldVariable->o_units && theScaling)
 //            dimCoeff = Scaling_ParseDimCoeff( theScaling, self->fieldVariable->o_units );
 //
-//         /* Add the vertex for the label as a point */
-//         lucDatabase_AddVertices(database, 1, lucPointType, pos);
-//         /* Add to the label data */
-//         sprintf(label, " %g%s", isovalue * dimCoeff,
-//                  self->printUnits && self->fieldVariable->o_units ? self->fieldVariable->o_units : "");
-//         lucDatabase_AddLabel(database, lucPointType, label);
-//
-//         self->printedIndex = self->coordIndex;
+         /* Add the vertex for the label as a point */
+         lucDatabase_AddVertices(database, 1, lucPointType, pos);
+         /* Add to the label data */
+         sprintf(label, " %g", isovalue * dimCoeff);
+         //sprintf(label, " %g%s", isovalue * dimCoeff,
+         //         self->printUnits && self->fieldVariable->o_units ? self->fieldVariable->o_units : "");
+         lucDatabase_AddLabel(database, lucPointType, label);
+
+         self->printedIndex = self->coordIndex;
       }
    }
 }

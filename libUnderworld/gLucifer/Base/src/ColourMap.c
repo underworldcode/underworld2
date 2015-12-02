@@ -130,6 +130,12 @@ void _lucColourMap_Init(
    /* Find number of colours */
    self->colourList = NULL;
    self->colourCount = 0;
+
+   /* Write property string */
+   self->properties = Memory_Alloc_Array(char, 4096, "properties");
+   memset(self->properties, 0, 4086);
+   snprintf(self->properties, 4096, "colours=%s", _colourMapString);
+
    char* colourString = StG_Strdup(_colourMapString);
    char* colourMap_ptr = colourString;
    //charPtr = strtok_r( colourMap_ptr , breakChars, &savePtr);

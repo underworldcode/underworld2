@@ -116,7 +116,6 @@ void _Module_Init( Module* self, Module_MangleNameFunction MangleName, Stg_Objec
       self->dllPtr = dlopen( fullPathName, RTLD_LAZY | RTLD_GLOBAL );
 
       if( self->dllPtr ) {
-         Journal_RPrintf( stream, "%s \"%s\" found using %s\n", self->type, self->name, fullPathName );
          found = True;
          break;
       } else {

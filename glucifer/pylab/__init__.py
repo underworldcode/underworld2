@@ -1,3 +1,4 @@
-import _pylab
-from _pylab import Figure
-from _drawing import Drawing, Surface, Points, VectorArrows, Mesh
+# DEPRECATE
+raise RuntimeError("The 'glucifer.pylab' module is deprecated. All functionality "
+                   "previously found within the 'glucifer.pylab' module is now available "
+                   "directly via the 'glucifer' module.")

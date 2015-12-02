@@ -45,15 +45,7 @@ void _lucViewport_Init(
    lucCamera*                    camera,
    lucDrawingObject**            drawingObjectList,
    DrawingObject_Index           drawingObjectCount,
-   char*                         title,
-   Bool                          axis,
-   double                        axisLength,
-   Bool                          antialias,
-   Bool                          rulers,
-   Bool                          timestep,
-   int                           border,
-   Name                          borderColourName,
-   Pixel_Index                   margin,
+   char*                         properties,
    double                        nearClipPlane,
    double                        farClipPlane,
    double                        scaleX,
@@ -63,21 +55,16 @@ void _lucViewport_Init(
    DrawingObject_Index object_I;
 
    self->camera                   = camera;
-   self->title                    = StG_Strdup( title );
-   self->axis                     = axis;
-   self->axisLength               = axisLength;
-   self->antialias                = antialias;
-   self->rulers                   = rulers;
-   self->timestep                 = timestep;
-   self->border                   = border;
-   self->margin                   = margin;
    self->nearClipPlane            = nearClipPlane;
    self->farClipPlane             = farClipPlane;
    self->scaleX                   = scaleX;
    self->scaleY                   = scaleY;
    self->scaleZ                   = scaleZ;
 
-   lucColour_FromString( &self->borderColour, borderColourName );
+   /* Write property string */
+   self->properties = Memory_Alloc_Array(char, 4096, "properties");
+   memset(self->properties, 0, 4086);
+   strncpy(self->properties, properties, 4096);
 
    self->drawingObject_Register = lucDrawingObject_Register_New();
 
@@ -112,9 +99,6 @@ void _lucViewport_Print( void* viewport, Stream* stream )
    Journal_PrintValue( stream, self->margin );
    Journal_PrintValue( stream, self->nearClipPlane );
    Journal_PrintValue( stream, self->farClipPlane );
-
-   Journal_PrintString( stream, self->title );
-   Journal_PrintBool( stream, self->timestep );
 
    Stream_UnIndent( stream );
 }
@@ -156,15 +140,7 @@ void _lucViewport_AssignFromXML( void* viewport, Stg_ComponentFactory* cf, void*
       camera,
       drawingObjectList,
       drawingObjectCount,
-      Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"title", ""),
-      Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"axis", False  ),
-      Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"axisLength", 0.2 ),
-      Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"antialias", True  ),
-      Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"rulers", False  ),
-      Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"timestep", False  ),
-      Stg_ComponentFactory_GetInt( cf, self->name, (Dictionary_Entry_Key)"border", 0),
-      Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"borderColour", "#888888"  ),
-      Stg_ComponentFactory_GetInt( cf, self->name, (Dictionary_Entry_Key)"margin", 32),
+      Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"properties", ""  ),
       Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"nearClipPlane", 0 ),
       Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"farClipPlane", 0 ),
       Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"scaleX", 1.0  ),
@@ -193,21 +169,16 @@ void lucViewport_CleanUp( void* viewport )
    lucDrawingObject_Register_CleanUpAll( self->drawingObject_Register );
 }
 
-void lucViewport_Update( void* viewport )
-{
-   lucViewport*       self = (lucViewport*) viewport ;
-
-   /* Write property string */
-   if (!self->properties)
-   {
-      self->properties = Memory_Alloc_Array(char, 2048, "properties");
-      sprintf(self->properties, "title=%s\naxis=%d\naxislength=%g\nantialias=%d\nrulers=%d\ntimestep=%d\nborder=%d\nbordercolour=%d\nzoomstep=%d\nmargin=%d\n", self->title, self->axis, self->axisLength, self->antialias, self->rulers, self->timestep, self->border, lucColour_ToInt(&self->borderColour), self->camera->autoZoomTimestep, self->margin);
-   }
-}
-
 void lucViewport_Setup( void* viewport, lucDatabase* database )
 {
    lucViewport*       self = (lucViewport*) viewport ;
    lucDrawingObject_Register_SetupAll( self->drawingObject_Register, database );
 }
+
+void lucViewport_SetProperties(void* viewport, char *props)
+{
+   lucViewport* self = (lucViewport*)viewport ;
+   strncpy(self->properties, props, 4096);
+}
+
 

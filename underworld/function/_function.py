@@ -229,6 +229,32 @@ class Function(object):
     def __rdiv__(self,other):
         return divide( other, self )
 
+    def __pow__(self,other):
+        """
+        Operator overloading for '**' operation:
+
+        Fn3 = Fn1 ** Fn2
+
+        Creates a new function Fn3 which returns Fn1 to the power of Fn2.
+
+        Returns
+        -------
+        fn.math.pow: Power function
+
+        Examples
+        --------
+        >>> import misc
+        >>> import numpy as np
+        >>> two  = misc.constant(2.)
+        >>> four = misc.constant(4.)
+        >>> np.isclose( (two**four).evaluate(0.), [[ 16.]]  )  # note we can evaluate anywhere because it's a constant
+        array([[ True]], dtype=bool)
+
+        """
+        import math
+        import _math as fnmath
+        return fnmath.pow( self, other )
+
     def __lt__(self,other):
         """
         Operator overloading for '<' operation:

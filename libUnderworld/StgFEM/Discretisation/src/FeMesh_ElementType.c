@@ -110,8 +110,6 @@ Bool FeMesh_ElementType_ElementHasPoint(
    IArray              *inc=NULL;
    ElementType         *elType=NULL;
 
-   assert( self && Stg_CheckType( self, FeMesh_ElementType ) );
-
    mesh = (FeMesh*)self->mesh;
 
    elType = FeMesh_GetElementType( mesh, elInd );
@@ -188,8 +186,6 @@ Bool FeMesh_ElementType_ElementHasPoint_ForIrregular(
    int n_i, dim_i;
    int *nodes, nNodes;
    double shapeFuncs[27], coord[3], *nodeCoord, lengthScale;
-
-   assert( self && Stg_CheckType( self, FeMesh_ElementType ) );
 
    mesh = (FeMesh*)self->mesh;
 

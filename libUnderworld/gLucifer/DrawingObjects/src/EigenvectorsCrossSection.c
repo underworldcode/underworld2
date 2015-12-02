@@ -80,7 +80,8 @@ void _lucEigenvectorsCrossSection_Init(
    self->offsetEdges = True;
 
    /* Append to property string */
-   lucDrawingObject_AppendProps(self, "glyphs=%d\nscaling=%g\narrowhead=%g\n", glyphs, lengthScale, arrowHeadSize); 
+   //OK: DEPRECATED, SET VIA PYTHON
+   //lucDrawingObject_AppendProps(self, "glyphs=%d\nscaling=%g\narrowhead=%g\n", glyphs, lengthScale, arrowHeadSize); 
 }
 
 void _lucEigenvectorsCrossSection_Delete( void* drawingObject )

@@ -91,6 +91,7 @@ void _lucIsosurface_Destroy( void* drawingObject, void* data ) ;
 
 /* Drawing Object Implementations */
 void _lucIsosurface_Setup( void* drawingObject, lucDatabase* database, void* _context ) ;
+void _lucIsosurface_Write( void* drawingObject, lucDatabase* database, Bool walls );
 void _lucIsosurface_Draw( void* drawingObject, lucDatabase* database, void* _context ) ;
 
 void lucIsosurface_MarchingCubes( lucIsosurface* self, Vertex*** vertex ) ;

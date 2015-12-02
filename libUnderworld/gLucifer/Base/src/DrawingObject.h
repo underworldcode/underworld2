@@ -36,13 +36,10 @@ typedef void (lucDrawingObject_CleanUpFunction)  ( void* object );
       Bool                                               depthSort;           \
       Coord                                              position;            \
       /* Drawing settings */ \
-      Bool                                               lit;                 \
       Bool                                               disabled;            \
       lucColourMap*                                      colourMap;           \
       lucColour                                          colour;              \
       float                                              opacity;             \
-      Bool                                               wireframe;           \
-      int                                                lineWidth;           \
       int                                                id;                  \
       char*                                              properties;          \
       MPI_Comm                                           comm;                \
@@ -78,6 +75,7 @@ void _lucDrawingObject_Delete( void* drawingObject ) ;
 void _lucDrawingObject_Print( void* drawingObject, Stream* stream ) ;
 void* _lucDrawingObject_Copy( void* drawingObject, void* dest, Bool deep, Name nameExt, PtrMap* ptrMap ) ;
 
+void* _lucDrawingObject_DefaultNew( Name name );
 void _lucDrawingObject_AssignFromXML( void* drawingObject, Stg_ComponentFactory* cf, void* data ) ;
 void _lucDrawingObject_Build( void* camera, void* data );
 void _lucDrawingObject_Initialise( void* camera, void* data );
@@ -103,6 +101,6 @@ Bool lucDrawingObjectMask_Test( lucDrawingObjectMask* self, double value ) ;
 /* HACK - a function to check whether a field is an FeVariable or not before it does an FeVariable_SyncShadowValues */
 void lucDrawingObject_SyncShadowValues( void* drawingObject, void* field );
 
-void lucDrawingObject_AppendProps(lucDrawingObject* self, const char *fmt, ...);
+void lucDrawingObject_SetProperties(void* drawingObject, char *props);
 #endif
 

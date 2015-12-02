@@ -56,6 +56,21 @@ for key,value in wrapperDict.iteritems():
     if env['shared_libs']:
         env.SharedLibrary('lib/'+key+'_swig', objs)
 
+#Build LavaVu interface without other libs
+env = env.Clone()
+env["LIBS"] = ['LavaVu']
+objs = []
+srcs = Glob('./LavaVu_wrap.cxx')
+objs += env.SharedObject(srcs, CPPDEFINES=env.get('CPPDEFINES', []))
+# Build shared library.
+if env['shared_libs']:
+    env.SharedLibrary('lib/LavaVu_swig', objs)
+
+# add the lavavu guy here
+
+wrapperDict['LavaVu'] = ['LavaVu_wrap.cxx']
+
+
 # if on osx, create symlink for python modules
 import os
 if env['SHLIBSUFFIX'] == '.dylib':

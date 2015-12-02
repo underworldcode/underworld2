@@ -122,6 +122,7 @@ void lucMeshCrossSection_Sample( void* drawingObject, Bool reverse)
 {
    lucMeshCrossSection* self          = (lucMeshCrossSection*)drawingObject;
    FeVariable*          fieldVariable = (FeVariable*) NULL;  // JM need to fix this guy
+      assert(fieldVariable);
    Mesh*                mesh          = (Mesh*) fieldVariable->feMesh;
    Grid*                vertGrid;
    Node_LocalIndex      crossSection_I;

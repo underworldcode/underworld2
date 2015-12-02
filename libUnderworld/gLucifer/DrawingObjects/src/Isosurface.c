@@ -19,8 +19,8 @@
 #include <gLucifer/Base/DrawingObject.h>
 #include "Isosurface.h"
 
-void lucIsosurface_SampleLocal( void* drawingObject, void* _context );
-void lucIsosurface_SampleGlobal( void* drawingObject, void* _context );
+void lucIsosurface_SampleLocal( void* drawingObject);
+void lucIsosurface_SampleGlobal( void* drawingObject);
 void VertexInterp(lucIsosurface* self, Vertex* point, Vertex* vertex1, Vertex* vertex2 );
 void CreateTriangle(lucIsosurface* self, Vertex* point1, Vertex* point2, Vertex* point3, Bool wall);
 
@@ -153,7 +153,6 @@ void _lucIsosurface_Build( void* drawingObject, void* data )
 
 void _lucIsosurface_Initialise( void* drawingObject, void* data ) {
    lucIsosurface*             self = (lucIsosurface*)drawingObject;
-   DomainContext*             context = (DomainContext*) self->context;
 
    if (self->resolution[ I_AXIS ] >= self->elementRes[I_AXIS]) self->resolution[ I_AXIS ] /= self->elementRes[I_AXIS];
    if (self->resolution[ J_AXIS ] >= self->elementRes[J_AXIS]) self->resolution[ J_AXIS ] /= self->elementRes[J_AXIS];
@@ -196,16 +195,15 @@ void _lucIsosurface_Setup( void* drawingObject, lucDatabase* database, void* _co
    if (min == max) return;
    
    if (self->sampleGlobal)
-      lucIsosurface_SampleGlobal(drawingObject, _context );
+      lucIsosurface_SampleGlobal(drawingObject);
    else
-      lucIsosurface_SampleLocal(drawingObject, _context );
+      lucIsosurface_SampleLocal(drawingObject);
 }
 
 /* New method: sample & surface each element in local coords, faster, handles deformed meshes */
-void lucIsosurface_SampleLocal( void* drawingObject, void* _context )
+void lucIsosurface_SampleLocal( void* drawingObject)
 {
    lucIsosurface*             self               = (lucIsosurface*)drawingObject;
-   DomainContext*             context = (DomainContext*) _context;
    FeVariable*                feVariable         = (FeVariable*) self->isosurfaceField;
    FeMesh*    		            mesh               = feVariable->feMesh;
    Element_LocalIndex         lElement_I;
@@ -250,10 +248,9 @@ void lucIsosurface_SampleLocal( void* drawingObject, void* _context )
 }
 
 /* Old method: sampling in global coords, slower, assumes regular grid */
-void lucIsosurface_SampleGlobal( void* drawingObject, void* _context )
+void lucIsosurface_SampleGlobal( void* drawingObject)
 {
    lucIsosurface*             self = (lucIsosurface*)drawingObject;
-   DomainContext*             context = (DomainContext*) _context;
    FieldVariable*             isosurfaceField = self->isosurfaceField;
    int                        i, j, k;
    double                     dx, dy, dz;
@@ -313,6 +310,29 @@ void lucIsosurface_SampleGlobal( void* drawingObject, void* _context )
    Memory_Free( vertex );
 }
 
+void _lucIsosurface_Write( void* drawingObject, lucDatabase* database, Bool walls )
+{
+   /* Export surface triangles */
+   lucIsosurface* self = (lucIsosurface*)drawingObject;
+   Index triangle_I;
+   int i;
+   for ( triangle_I = 0 ; triangle_I < self->triangleCount ; triangle_I++)
+   {
+      if (self->triangleList[triangle_I].wall != walls) continue;
+      for (i=0; i<3; i++)
+      {
+         /* Dump vertex pos, [value] */
+         float coordf[3] = {self->triangleList[triangle_I].pos[i][0],
+                            self->triangleList[triangle_I].pos[i][1],
+                            self->triangleList[triangle_I].pos[i][2]};
+         float value = self->triangleList[triangle_I].value[i];
+         lucDatabase_AddVertices(database, 1, lucTriangleType, coordf);
+         if (self->colourField && self->colourMap)
+            lucDatabase_AddValues(database, 1, lucTriangleType, lucColourValueData, self->colourMap, &value);
+      }
+   }
+}
+
 void _lucIsosurface_Draw( void* drawingObject, lucDatabase* database, void* _context )
 {
    lucIsosurface*           self          = (lucIsosurface*)drawingObject;
@@ -329,13 +349,13 @@ void _lucIsosurface_Draw( void* drawingObject, lucDatabase* database, void* _con
 
    /* Export triangles, separating walls and surface into two geometry objects */
    /* Export surface triangles */
-   lucDatabase_AddIsosurface(database, self, False);
+   _lucIsosurface_Write(self, database, False);
 
    /* Start new geometry section */
    lucDatabase_OutputGeometry(database, self->id);
 
    /* Export wall triangles */
-   lucDatabase_AddIsosurface(database, self, True);
+   _lucIsosurface_Write(self, database, True);
 }
 
 /*
@@ -826,7 +846,6 @@ void CreateTriangle(lucIsosurface* self, Vertex* point1, Vertex* point2, Vertex*
 
 void lucIsosurface_DrawWalls( lucIsosurface* self, Vertex ***vertex )
 {
-   DomainContext* context = (DomainContext*) self->context;
    int i, j, k;
    Vertex ** points;
    Vertex * midVertices;

@@ -24,7 +24,9 @@ class HDF5(Package):
                 #Get include dir
                 lib_env.PrependUnique(CPPPATH=libdir + '/include')
                 yield lib_env
-        except OSError:
+            else:
+               raise RuntimeError("Error trying to use 'h5cc'")
+        except:
             # if error in 'h5cc --print-file'
             for env in Package.gen_envs(self, loc):
               self.headers = ['hdf5.h']

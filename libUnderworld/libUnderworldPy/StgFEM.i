@@ -75,19 +75,3 @@ import_array();
 %include "Utils/SemiLagrangianIntegrator.h"
 %include "Utils/MeshParticleLayout.h"
 %include "Utils/types.h"
-
-
-%extend FeMesh
-{
-
-  void getAsNumpyArray( double** ARGOUTVIEW_ARRAY2, int* DIM1, int* DIM2 ){
-
-	Sync* sync = (Sync*)IGraph_GetDomain( (IGraph*)$self->topo, 0 );
-	*DIM1 = Sync_GetNumDomains( sync );
-	*DIM2 = $self->topo->nDims;
-
-    *ARGOUTVIEW_ARRAY2 = ( $self->vertices ) ;
-
-  }
-
-}

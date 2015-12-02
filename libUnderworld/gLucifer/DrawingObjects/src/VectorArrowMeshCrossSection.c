@@ -37,21 +37,14 @@ lucVectorArrowMeshCrossSection* _lucVectorArrowMeshCrossSection_New(  LUCVECTORA
 
 void _lucVectorArrowMeshCrossSection_Init(
    lucVectorArrowMeshCrossSection*                                  self,
-   double                                                       arrowHeadSize,
    double                                                       maximum,
-   Bool                                                         dynamicRange,
-   double                                                       lengthScale)
+   Bool                                                         dynamicRange)
 {
-   self->arrowHead = arrowHeadSize;
    self->maximum = maximum;
    self->dynamicRange = dynamicRange;
-   self->scaling = lengthScale;
 
    /* Get the sampler to move away from boundaries */
    self->offsetEdges = True;
-
-   /* Append to property string */
-   lucDrawingObject_AppendProps(self, "scaling=%g\narrowhead=%g\n", lengthScale, arrowHeadSize); 
 }
 
 void _lucVectorArrowMeshCrossSection_Delete( void* drawingObject )
@@ -101,10 +94,8 @@ void _lucVectorArrowMeshCrossSection_AssignFromXML( void* drawingObject, Stg_Com
 
    _lucVectorArrowMeshCrossSection_Init(
       self,
-      Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"arrowHeadSize", 0.3  ),
       Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"maximum", 1.0  ),
-      Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"dynamicRange", True  ),
-      Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"lengthScale", 0.3  ) );
+      Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"dynamicRange", True  ));
 }
 
 void _lucVectorArrowMeshCrossSection_Build( void* drawingObject, void* data )
