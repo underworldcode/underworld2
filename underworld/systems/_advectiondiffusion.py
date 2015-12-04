@@ -19,22 +19,31 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
     Notes
     -----
     .. math::
-        \frac{DT}{Dt} = \kappa \nabla^{2} T + f
+        \frac{DT}{Dt} = \kappa \nabla^{2} \phi + f
 
-        where T is the Temperature, t is time, \kappa is the thermal diffusivity and f is a general heating term 
+        where \phi is the Concentration (e.g. temperature), t is time, \kappa is the diffusivity and f is a general source term 
     """
     _objectsDict = {  "_system" : "AdvectionDiffusionSLE",
                       "_solver" : "AdvDiffMulticorrector" }
     _selfObjectName = "_system"
 
-    def __init__(self, temperatureField, velocityField, diffusivity, courantFactor=.25, conditions=[], temperatureFieldDeriv=None, **kwargs):
+    def __init__(self, phiField, phiDotField, velocityField, diffusivity, courantFactor=.25, conditions=[], **kwargs):
         """
         Constructor for the Advection Diffusion Equation system
 
         Parameters
         ----------
-        temperatureField : FeVariable
-            The temperature solution field
+        phiField : FeVariable
+            The concentration field, typically the temperature field
+
+        phiDotField : FeVariable
+            A FeVariable that defines the initial time derivative of the phiField.
+            Typically 0 at the beginning of a model, e.g. phiDotField.data[:]=0
+            When using a phiField loaded from disk one should also load the phiDotField to ensure 
+            the solving method has the time derivative information for a smooth restart. 
+            No dirichlet conditions are required for this field as the phiField degrees of freedom
+            map exactly to this field's dirichlet conditions, the value of which ought to be 0 
+            for constant values of phi.
 
         velocityField : FeVariable
             The velocity field
@@ -47,33 +56,31 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
         conditions[] : SystemCondition, list, tuple
             Dirichlet boundary conditions to use for solving the advection diffusion system
 
-        temperatureFieldDeriv : FeVariable (optional)
-            A FeVariable that defines the initial time derivative of the temperature field.
-            Used to restart the model from a checkpoint. 
-            If this FeVariable is not provided at instansiation the system will create it and 
-            use it as rquired
-
         Returns
         -------
         AdvectionDiffusion :
             Constructed system for managing the Advection Diffusion Equation
             
         """
-        self._velocityField = velocityField
         self._diffusivity   = diffusivity
         self._courantFactor = courantFactor
         
-        if not isinstance( temperatureField, uw.fevariable.FeVariable):
-            raise TypeError( "Provided 'temperatureField' must be of 'FeVariable' class." )
-        self._temperatureField = temperatureField
+        if not isinstance( phiField, uw.fevariable.FeVariable):
+            raise TypeError( "Provided 'phiField' must be of 'FeVariable' class." )
+        if phiField.data.shape[1] != 1:
+            raise TypeError( "Provided 'phiField' must be a scalar" )
+        self._phiField = phiField
 
-        if not isinstance( temperatureFieldDeriv, (uw.fevariable.FeVariable, type(None))):
-            raise TypeError( "Provided 'temperatureFieldDeriv' must be 'None' or of 'FeVariable' class." )
-        self._temperatureFieldDeriv = temperatureFieldDeriv
-        if temperatureFieldDeriv == None:
-            self._temperatureFieldDeriv = uw.fevariable.FeVariable( temperatureField.feMesh, 1)
-            self._temperatureFieldDeriv.data[:] = 0.
+        if not isinstance( phiDotField, (uw.fevariable.FeVariable, type(None))):
+            raise TypeError( "Provided 'phiDotField' must be 'None' or of 'FeVariable' class." )
+        if self._phiField.data.shape != phiDotField.data.shape:
+            raise TypeError( "Provided 'phiDotField' is not the same shape as the provided 'phiField'" )
+        self._phiDotField = phiDotField
 
+        # check compatibility of phiField and velocityField
+        if velocityField.data.shape[1] != self._phiField.feMesh.dim:
+            raise TypeError( "Provided 'velocityField' must be the same dimensionality as the phiField's mesh" )
+        self._velocityField = velocityField
 
         if not isinstance(conditions, (uw.conditions._SystemCondition, list, tuple) ):
             raise ValueError( "Provided 'conditions' must be a list '_SystemCondition' objects." )
@@ -83,21 +90,21 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
             if not isinstance( cond, uw.conditions._SystemCondition ):
                 raise ValueError( "Provided 'conditions' must be a list '_SystemCondition' objects." )
             # set the bcs on here.. will rearrange this in future. 
-            if cond.variable == self._temperatureField:
-                libUnderworld.StgFEM.FeVariable_SetBC( self._temperatureField._cself, cond._cself )
-                libUnderworld.StgFEM.FeVariable_SetBC( self._temperatureFieldDeriv._cself, cond._cself )
+            if cond.variable == self._phiField:
+                libUnderworld.StgFEM.FeVariable_SetBC( self._phiField._cself, cond._cself )
+                libUnderworld.StgFEM.FeVariable_SetBC( self._phiDotField._cself, cond._cself )
 
         # ok, we've set some bcs, lets recreate eqnumbering
-        libUnderworld.StgFEM._FeVariable_CreateNewEqnNumber( self._temperatureField._cself )
-        libUnderworld.StgFEM._FeVariable_CreateNewEqnNumber( self._temperatureFieldDeriv._cself )
+        libUnderworld.StgFEM._FeVariable_CreateNewEqnNumber( self._phiField._cself )
+        libUnderworld.StgFEM._FeVariable_CreateNewEqnNumber( self._phiDotField._cself )
         self._conditions = conditions
 
         # create force vectors
-        self._residualVector = sle.AssembledVector(temperatureField)
-        self._massVector     = sle.AssembledVector(temperatureField)
+        self._residualVector = sle.AssembledVector(phiField)
+        self._massVector     = sle.AssembledVector(phiField)
 
         # create swarm
-        self._gaussSwarm = uw.swarm.GaussIntegrationSwarm(self._temperatureField.feMesh)
+        self._gaussSwarm = uw.swarm.GaussIntegrationSwarm(self._phiField.feMesh)
 
         super(AdvectionDiffusion, self).__init__(**kwargs)
 
@@ -107,11 +114,11 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
         super(AdvectionDiffusion,self)._add_to_stg_dict(componentDictionary)
 
         componentDictionary[ self._cself.name ][   "SLE_Solver"] = self._solver.name
-        componentDictionary[ self._cself.name ][     "PhiField"] = self._temperatureField._cself.name
+        componentDictionary[ self._cself.name ][     "PhiField"] = self._phiField._cself.name
         componentDictionary[ self._cself.name ][     "Residual"] = self._residualVector._cself.name
         componentDictionary[ self._cself.name ][   "MassMatrix"] = self._massVector._cself.name
-        componentDictionary[ self._cself.name ][  "PhiDotField"] = self._temperatureFieldDeriv._cself.name
-        componentDictionary[ self._cself.name ][          "dim"] = self._temperatureField.feMesh.dim
+        componentDictionary[ self._cself.name ][  "PhiDotField"] = self._phiDotField._cself.name
+        componentDictionary[ self._cself.name ][          "dim"] = self._phiField.feMesh.dim
         componentDictionary[ self._cself.name ]["courantFactor"] = self._courantFactor
 
     def _setup(self):
