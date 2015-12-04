@@ -26,9 +26,7 @@ RUN git clone https://github.com/underworldcode/underworld2 && \
     rm -fr StgFEM                && \
     rm -fr StgDomain             && \
     rm -fr PICellerator          && \
-    rm -fr Solvers               && \
-    cd ../../utils               && \
-#    /usr/local/bin/tini -- xvfbrun.sh ./testNotebook.py TestDocTests.ipynb ../docs/tutorials/*
+    rm -fr Solvers
 
 # copy underworld tutorials over
 RUN mkdir /workspace && \
