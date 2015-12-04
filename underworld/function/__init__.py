@@ -17,7 +17,7 @@ discrete data (such as fevariables) may be utilised.
 
 """
 
-from _function import Function, FunctionInput, input, at
+from _function import Function, FunctionInput, input, coord, at
 from _function import ScalarType, VectorType, SymmetricTensorType, TensorType, ArrayType
 import _math as math   # renamed this guy because it conflicts with other modules
 import analytic

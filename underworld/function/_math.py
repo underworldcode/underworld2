@@ -704,6 +704,9 @@ class pow(_Function):
 
     """
     def __init__(self, fn1, fn2, **kwargs):
+        # lets convert integer powers to floats
+        if isinstance(fn2, int):
+            fn2 = float(fn2)
         fn1fn = _Function._CheckIsFnOrConvertOrThrow( fn1 )
         if not isinstance( fn1fn, _Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")

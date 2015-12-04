@@ -42,13 +42,13 @@ class Function(object):
     within Underworld.
 
     Functions aim to achieve a number of goals:
-        * Provide a natural inteface to construct equations within python.
-        * Allow discrete objects to be handled as easily as continuous objects.
-        * Allow discrete objects to be used in combination to continuous objects.
-        * Handle the evaluation of discrete objects in the most efficient manner.
-        * All actual evaluations occurs at the C level for efficiency.
-        * Provide an interface to function evaluation at the python level,
-          utilising numpy arrays to return results to the python interface.
+    * Provide a natural interface for mathematical behaviour description within python.
+    * Provide a high level interface to Underworld discrete objects.
+    * Allow discrete objects to be used in combination to continuous objects.
+    * Handle the evaluation of discrete objects in the most efficient manner.
+    * Perform all heavy calculations at the C-level for efficiency.
+    * Provide an interface for users to evaluate functions directly within python,
+      utilising numpy arrays for input/output.
 
     """
     __metaclass__ = ABCMeta
@@ -776,9 +776,13 @@ class at(Function):
 
 class input(Function):
     """
-    This class generates as function which simply passes through its input.
+    This class generates a function which simply passes through its input.
     It is often useful when construct functions where the input itself needs
-    to be manipulated directly, such as to extract a particular component
+    to be manipulated directly, such as to extract a particular component.
+    
+    This function class is most often used when you wish to extract a particular
+    coodinate component for manipulation. For this reason, we also provide a 
+    proxy to this class called 'coord'.
 
     Returns
     -------
@@ -813,3 +817,6 @@ class input(Function):
 
         # build parent
         super(input,self).__init__(argument_fns=None, *args, **kwargs)
+
+
+coord = input
