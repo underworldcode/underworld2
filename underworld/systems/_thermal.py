@@ -14,7 +14,7 @@ import libUnderworld
 class SteadyStateHeat(_stgermain.StgCompoundComponent):
     """
     The system class that manages the Steady State Heat Equation. 
-    This class holds the numerical objects that define the equation and the solver to be used to solve the equation.
+    This class holds the numerical objects that define the equation.
 
 
     Notes
@@ -37,8 +37,8 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
         >>> tField.data[bottomNodes.data] = 1.0
         >>> tSystem = uw.systems.SteadyStateHeat(temperatureField=tField, conductivityFn=1.0, conditions=[tbcs])
     """
-    _objectsDict = {  "_system" : "Energy_SLE",
-                      "_solver" : "Energy_SLE_Solver" }
+    _objectsDict = {  "_system" : "Energy_SLE" }
+                    #  "_solver" : "Energy_SLE_Solver" }
     _selfObjectName = "_system"
 
     def __init__(self, temperatureField, conductivityFn, heatingFn=None, swarm=None, conditions=[], rtolerance=1.0e-5, **kwargs):
@@ -133,12 +133,12 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
         componentDictionary[ self._cself.name ][       "SolutionVector"] = self._temperatureSol._cself.name
         componentDictionary[ self._cself.name ][          "ForceVector"] = self._fvector._cself.name
         componentDictionary[ self._cself.name ][    "killNonConvergent"] = False
-        componentDictionary[ self._cself.name ][           "SLE_Solver"] = self._solver.name
+        componentDictionary[ self._cself.name ][           "SLE_Solver"] = None #self._solver.name
 
-        componentDictionary[ self._solver.name ][           "tolerance"] = self._rtolerance
-        componentDictionary[ self._solver.name ][             "monitor"] = True
-        componentDictionary[ self._solver.name ][       "minIterations"] = 1
-        componentDictionary[ self._solver.name ][       "maxIterations"] = 5000
+        #componentDictionary[ self._solver.name ][           "tolerance"] = self._rtolerance
+        #componentDictionary[ self._solver.name ][             "monitor"] = True
+        #componentDictionary[ self._solver.name ][       "minIterations"] = 1
+        #componentDictionary[ self._solver.name ][       "maxIterations"] = 5000
 
 
     def solve(self, nonLinearIterate=None):

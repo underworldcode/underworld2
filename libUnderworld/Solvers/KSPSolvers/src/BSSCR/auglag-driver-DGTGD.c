@@ -253,7 +253,7 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
     }
     MatGetVecs( S, PETSC_NULL, &h_hat );
     Vec f_tmp;
-    /* It may be the case that the current velocity solution might not be bad guess for f_tmp? */
+    /* It may be the case that the current velocity solution might not be bad guess for f_tmp? <-- maybe not */
     MatGetVecs( K, PETSC_NULL, &f_tmp );
     scrSolveTime = MPI_Wtime();
     KSPSolve(ksp_inner, f, f_tmp);

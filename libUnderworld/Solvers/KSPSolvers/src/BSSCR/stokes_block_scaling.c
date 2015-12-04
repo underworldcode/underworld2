@@ -200,19 +200,7 @@ b and x are 2x1 block vectors
 PetscErrorCode BSSCR_MatBlock_ConstructScaling( MatStokesBlockScaling BA, Mat A, Vec b, Vec x )
 {
     if( BA->scaling_exists == PETSC_FALSE ) {
-	PetscInt M,N;
-	PetscTruth is_block;
 		
-	/* check A is 2x2 block matrix */
-	Stg_PetscObjectTypeCompare( (PetscObject)A, "block", &is_block );
-	if (is_block==PETSC_FALSE) {
-	    Stg_SETERRQ( PETSC_ERR_SUP, "Only valid for MatType = block" );
-	}
-	MatGetSize( A, &M, &N );
-	if ( (M!=2) || (N!=2) ) {
-	    Stg_SETERRQ2( PETSC_ERR_SUP, "Only valid for 2x2 block. Yours has dimension %Dx%D", M,N );
-	}
-
 	VecDuplicate( x, &BA->Lz ); 
 	VecDuplicate( x, &BA->Rz );
 		
@@ -312,22 +300,9 @@ PetscErrorCode BSSCR_MatStokesBlockUnScaleSystem( MatStokesBlockScaling BA, Mat 
 PetscErrorCode BSSCR_MatStokesBlockReportOperatorScales( Mat A, PetscTruth sym )
 {
 	Vec rA, rG;
-	PetscInt loc,M,N;
+	PetscInt loc;
 	PetscReal min, max;
 	Mat K,G,D,C;
-	PetscTruth is_block;
-	
-	
-	/* check A is 2x2 block matrix */
-	Stg_PetscObjectTypeCompare( (PetscObject)A, "block", &is_block );
-	if (is_block==PETSC_FALSE) {
-		Stg_SETERRQ( PETSC_ERR_SUP, "Only valid for MatType = block" );
-	}
-	MatGetSize( A, &M, &N );
-	if ( (M!=2) || (N!=2) ) {
-		Stg_SETERRQ2( PETSC_ERR_SUP, "Only valid for 2x2 block. Yours has dimension %Dx%D", M,N );
-	}
-	
 	
 	MatNestGetSubMat( A, 0,0, &K );
 	MatNestGetSubMat( A, 0,1, &G );

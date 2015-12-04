@@ -13,5 +13,8 @@ import sle
 from _stokes import Stokes
 from _timeintegration import TimeIntegration, SwarmAdvector
 from _advectiondiffusion import AdvectionDiffusion
-from _solver import Solver
+from _solver import Solver as _Solver
 from _thermal import SteadyStateHeat
+
+Solver=_Solver.factory
+
