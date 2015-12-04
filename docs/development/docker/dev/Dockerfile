@@ -28,7 +28,7 @@ RUN git clone https://github.com/underworldcode/underworld2 && \
     rm -fr PICellerator          && \
     rm -fr Solvers               && \
     cd ../../utils               && \
-    /usr/local/bin/tini -- xvfbrun.sh ./testNotebook.py TestDocTests.ipynb ../docs/tutorials/*
+#    /usr/local/bin/tini -- xvfbrun.sh ./testNotebook.py TestDocTests.ipynb ../docs/tutorials/*
 
 # copy underworld tutorials over
 RUN mkdir /workspace && \
