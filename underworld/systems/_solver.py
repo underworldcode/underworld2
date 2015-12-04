@@ -26,7 +26,7 @@ class Solver(_stgermain.StgCompoundComponent):
 
     def factory(eqs,type="BSSCR"):
         if isinstance(eqs, uw.systems.Stokes):
-            return _bsscr.Solver(eqs)
+            return _bsscr.StokesSolver(eqs)
         if isinstance(eqs, uw.systems.SteadyStateHeat):
             return _energy_solver.HeatSolver(eqs)
 
