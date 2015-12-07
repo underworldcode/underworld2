@@ -1,3 +1,6 @@
 [submodule "libUnderworld/gLucifer/Viewer"]
 	path = libUnderworld/gLucifer/Viewer
 	url = https://github.com/OKaluza/LavaVu.git
+[submodule "libUnderworld/h5py"]
+	path = libUnderworld/h5py
+	url = https://github.com/h5py/h5py
