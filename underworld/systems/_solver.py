@@ -15,7 +15,6 @@ from libUnderworld import Solvers
 import _bsscr
 import _energy_solver
 
-@staticmethod
 class Solver(_stgermain.StgCompoundComponent):
     """
     """
@@ -25,10 +24,12 @@ class Solver(_stgermain.StgCompoundComponent):
     def __init__(self, **kwargs):
         super(Solver, self).__init__(**kwargs)
 
+    @staticmethod
     def factory(eqs,type="BSSCR"):
         if isinstance(eqs, uw.systems.Stokes):
             return _bsscr.StokesSolver(eqs)
         elif isinstance(eqs, uw.systems.SteadyStateHeat):
             return _energy_solver.HeatSolver(eqs)
-        else ValueError("Unable to create solver. Provided system not recognised.")
+        else:
+            raise ValueError("Unable to create solver. Provided system not recognised.")
 
