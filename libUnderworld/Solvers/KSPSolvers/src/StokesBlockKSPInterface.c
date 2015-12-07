@@ -19,8 +19,9 @@
 #include <petscsnes.h>
 #include <petscis.h> 
 #include <petscviewer.h>
-
+#include <petscsys.h>
 #include <petscversion.h>
+
 #if ( (PETSC_VERSION_MAJOR >= 3) && (PETSC_VERSION_MINOR >=3) )
   #if (PETSC_VERSION_MINOR >=6)
      #include "petsc/private/kspimpl.h"
@@ -172,36 +173,24 @@ void _StokesBlockKSPInterface_AssignFromXML( void* solver, Stg_ComponentFactory*
 	//Bool                    monitor;
 	Stokes_SLE *            st_sle;
 	PETScMGSolver *         mg;
-	Name                filename;
-	char* 		        string;
+	//Name                filename;
+	//char* 		        string;
 
 	_SLE_Solver_AssignFromXML( self, cf, data );
-
-	filename = Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"OptionsFile", "" );
-	string = Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"OptionsString", "" );
-
-	printf("****************************************************************\n");
-	printf("1. %s - Adding file %s to the options\n",self->name,filename);
-	printf("2. %s - Adding string %s to the options\n",self->name,string);
-	printf("****************************************************************\n");
-
-	PetscOptionsInsertFile(PETSC_COMM_WORLD, filename, PETSC_FALSE);
-	PetscOptionsInsertString(string);
-
 
 	preconditioner = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"Preconditioner", StiffnessMatrix, False, data  );
 	st_sle  = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"stokesEqn", Stokes_SLE, True, data  ); 
 	mg      = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"mgSolver", PETScMGSolver, False, data);
 	k2StiffMat = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"2ndStressTensorMatrix", StiffnessMatrix, False, data  );
 	f2ForceVec = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"2ndForceVector", ForceVector, False, data  );
-	penaltyNumber   = Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"penaltyNumber", 1.0  );
+	penaltyNumber   = Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"penaltyNumber", 0.0  );
 	hFactor         = Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"hFactor", 0.0  );
 	mStiffMat = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"MassMatrix", StiffnessMatrix, False, data  );
 	jForceVec = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"JunkForceVector", ForceVector, False, data  );
 	vmStiffMat = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"VelocityMassMatrix", StiffnessMatrix, False, data  );
 	vmForceVec = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"VMassForceVector", ForceVector, False, data  );
     
-	_StokesBlockKSPInterface_Init( self, preconditioner, st_sle, mg, filename, string, k2StiffMat, mStiffMat, 
+	_StokesBlockKSPInterface_Init( self, preconditioner, st_sle, mg, NULL, NULL, k2StiffMat, mStiffMat, 
                                    f2ForceVec, jForceVec, penaltyNumber, hFactor, vmStiffMat, vmForceVec);
 
 }
@@ -242,17 +231,15 @@ void SBKSP_SetSolver( void* solver, void* stokesSLE ) {
 
 }
 void SBKSP_SetPenalty( void* solver, double penalty ) {
-    StokesBlockKSPInterface* self = (StokesBlockKSPInterface*) solver;
-    self->penaltyNumber=penalty;
+  StokesBlockKSPInterface* self = (StokesBlockKSPInterface*) solver;
+  self->penaltyNumber=penalty;
 }
-//void SBKSP_SetMGActive( void* solver, PetscTruth flag ) {
-//    StokesBlockKSPInterface* self = (StokesBlockKSPInterface*) solver;
-//    self->mg_active=flag;  
-//}
-void SBKSP_SetPenaltyTerms(void* solver, void* stokesSLE){
-  
-  
+
+int SBKSP_GetPressureIts(void *solver){
+  StokesBlockKSPInterface* self = (StokesBlockKSPInterface*) solver;
+  return self->stats.pressure_its;
 }
+
 /***********************************************************************************************************/
 /***********************************************************************************************************/
 /***********************************************************************************************************/
@@ -292,7 +279,14 @@ void SBKSP_GetStokesOperators(
 /***********************************************************************************************************/
 /* Sets up Solver to be a custom ksp (KSP_BSSCR) solve by default: */
 void _StokesBlockKSPInterface_Solve( void* solver, void* _stokesSLE ) {
+  StokesBlockKSPInterface* self    = (StokesBlockKSPInterface*)solver;
+  PetscLogDouble flopsA,flopsB;
+
+  PetscGetFlops(&flopsA);
   _BlockSolve(solver, _stokesSLE);
+  PetscGetFlops(&flopsB);
+  self->stats.total_flops=(double)(flopsB-flopsA);
+  
 }
 PetscErrorCode _BlockSolve( void* solver, void* _stokesSLE ) {
   Stokes_SLE*  stokesSLE  = (Stokes_SLE*)_stokesSLE;
@@ -321,7 +315,7 @@ PetscErrorCode _BlockSolve( void* solver, void* _stokesSLE ) {
   PetscTruth sym,flg;
   PetscErrorCode ierr;
   
-  PetscInt   M,N, m,n;
+  PetscInt   N,n;
 
   SBKSP_GetStokesOperators( stokesSLE, &K,&G,&D,&C, &approxS, &f,&h, &u,&p );
 

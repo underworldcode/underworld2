@@ -269,8 +269,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
             libUnderworld.StgFEM.SystemLinearEquations_SetToNonLinear(self._stokesSLE._cself, True )
         else:
             libUnderworld.StgFEM.SystemLinearEquations_SetToNonLinear(self._stokesSLE._cself, False )
-        #import pdb;
-        #pdb.set_trace()
+
         if self._stokesSLE._PICSwarm:
             self._stokesSLE._PICSwarm.repopulate()
 
@@ -291,6 +290,9 @@ class StokesSolver(_stgermain.StgCompoundComponent):
             libUnderworld.StgFEM.SystemLinearEquations_NonLinearExecute(self._stokesSLE._cself, None)
         else:
             libUnderworld.StgFEM.SystemLinearEquations_ExecuteSolver(self._stokesSLE._cself, None)
+
+        #import pdb;
+        #pdb.set_trace()
 
         libUnderworld.StgFEM.SystemLinearEquations_UpdateSolutionOntoNodes(self._stokesSLE._cself, None)
 

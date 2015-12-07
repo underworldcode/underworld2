@@ -30,6 +30,6 @@ class Solver(_stgermain.StgCompoundComponent):
         if isinstance(eqs, uw.systems.SteadyStateHeat):
             return _energy_solver.HeatSolver(eqs)
 
-        assert 0, "Bad shape creation: " + type
+        assert 0, "System is of unknown type"
     factory = staticmethod(factory)
 
