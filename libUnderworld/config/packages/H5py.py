@@ -31,7 +31,14 @@ class H5py(Package):
         cmd = "python setup.py configure -m"
         subp = subprocess.Popen(cmd, shell=True); subp.wait()
         cmd = 'python setup.py build --build-lib '+ os.path.dirname(mpath)
-        subp = subprocess.Popen( cmd , shell=True); subp.wait()
+        subp = subprocess.Popen( cmd , shell=True); 
+        if subp.wait() != 0:
+            cmd = 'python setup.py build_ext -I /usr/lib/openmpi/include --build-lib '+ os.path.dirname(mpath)
+            subp = subprocess.Popen( cmd , shell=True); 
+            if subp.wait() != 0:
+                import sys
+                print "Failed building h5py :(\n"
+                sys.exit(1)
         os.chdir(self._h5pysrc+'/..')
 
 
