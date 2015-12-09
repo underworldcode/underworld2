@@ -84,7 +84,8 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
     char suffix[PETSC_MAX_PATH_LEN];
     char str[PETSC_MAX_PATH_LEN];
     PetscTruth flg, extractMats;
-    
+    PetscLogDouble flopsA,flopsB;
+
     /***************************************************************************************************************/
     /***************************************************************************************************************/
     //if( bsscrp_self->solver->st_sle->context->loadFromCheckPoint ){
@@ -253,7 +254,7 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
     }
     MatGetVecs( S, PETSC_NULL, &h_hat );
     Vec f_tmp;
-    /* It may be the case that the current velocity solution might not be bad guess for f_tmp? */
+    /* It may be the case that the current velocity solution might not be bad guess for f_tmp? <-- maybe not */
     MatGetVecs( K, PETSC_NULL, &f_tmp );
     scrSolveTime = MPI_Wtime();
     KSPSolve(ksp_inner, f, f_tmp);
@@ -368,10 +369,16 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
     if(found && min_it > 0){
         BSSCR_KSPSetConvergenceMinIts(ksp_S, min_it, bsscrp_self);
     }
+
+    /** Pressure Solve **/
+    PetscGetFlops(&flopsA);
     scrSolveTime = MPI_Wtime();
     KSPSolve( ksp_S, h_hat, p );
     scrSolveTime =  MPI_Wtime() - scrSolveTime;
-    PetscPrintf( PETSC_COMM_WORLD, "\n\t* KSPSolve( ksp_S, h_hat, p )  Solve  Finished in time: %lf seconds\n\n", scrSolveTime);
+    PetscGetFlops(&flopsB);
+    PetscPrintf( PETSC_COMM_WORLD, "\n\t* KSPSolve( ksp_S, h_hat, p )  Solve Finished in time: %lf seconds\n\n", scrSolveTime);
+    bsscrp_self->solver->stats.pressure_time=scrSolveTime;
+    bsscrp_self->solver->stats.pressure_flops=(double)(flopsB-flopsA);
 
     /***************************************/
     if((hnorm < 1e-6) && (hnorm > 1e-20)){
@@ -421,8 +428,13 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
       MatSchurComplementSetKSP( S, ksp_new_inner );/* need to give the Schur it's inner ksp back for when we destroy it at end */
       ksp_inner=ksp_new_inner;
     }
+
+    PetscGetFlops(&flopsA);
     KSPSolve(ksp_inner, t, u);         /* Solve, then restore default tolerance and initial guess */
+    PetscGetFlops(&flopsB);
+    bsscrp_self->solver->stats.velocity_backsolve_flops=(double)(flopsB-flopsA);
     a11SingleSolveTime = MPI_Wtime() - a11SingleSolveTime;              /* ------------------ Final V Solve */
+    bsscrp_self->solver->stats.velocity_backsolve_time=a11SingleSolveTime;
 
     flg=0;
     PetscOptionsGetString( PETSC_NULL, "-solutiondumpdir", name, PETSC_MAX_PATH_LEN-1, &flg );

@@ -218,6 +218,14 @@ class Drawing(_stgermain.StgCompoundComponent):
         return self._opacity
 
     @property
+    def colourBar(self):
+        """    colourBar (dict): return colour bar of drawing object, create if doesn't yet exist.
+        """
+        if not self._colourBar:
+            self._colourBar = ColourBar(colourMap=self._colourMap)
+        return self._colourBar
+
+    @property
     def properties(self):
         """    properties (dict): visual properties of drawing object, passed to LavaVu to control rendering output of object.
         """
@@ -234,7 +242,7 @@ class ColourBar(Drawing):
 
     def __init__(self, colourMap, *args, **kwargs):
         #Default properties
-        self._properties = {"colourbar" : 1, "height" : 10, "lengthfactor" : 0.8, 
+        self._properties = {"colourbar" : 1, "height" : None, "lengthfactor" : 0.8, 
                 "margin" : 16, "border" : 1, "precision" : 2, "scientific" : False, "font" : "small", 
                 "ticks" : 0, "printticks" : True, "printunits" : False, "scalevalue" : 1.0} #tick0-tick10 : val
     
@@ -584,7 +592,7 @@ class Mesh(Drawing):
     """
     _objectsDict = { "_dr": "lucMeshViewer" }
 
-    def __init__( self, mesh, nodeNumbers=False, segmentsPerEdge=1, properties=None, opacity=-1, *args, **kwargs ):
+    def __init__( self, mesh, nodeNumbers=False, segmentsPerEdge=1, properties={"linesmooth" : False}, opacity=-1, *args, **kwargs ):
 
         if not isinstance(mesh,_uwmesh.FeMesh):
             raise TypeError("'mesh' object passed in must be of type 'FeMesh'")

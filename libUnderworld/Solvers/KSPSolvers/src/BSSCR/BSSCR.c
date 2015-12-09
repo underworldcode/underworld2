@@ -238,6 +238,7 @@ PetscErrorCode  KSPSolve_BSSCR(KSP ksp)
 
     TotalSolveTime =  MPI_Wtime() - TotalSolveTime;
     PetscPrintf( PETSC_COMM_WORLD, "\n\t* Total BSSCR Linear solve time: %lf seconds\n\n", TotalSolveTime);
+    bsscr->solver->stats.total_time=TotalSolveTime;
     PetscFunctionReturn(0);
 }
 

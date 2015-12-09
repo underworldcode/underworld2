@@ -83,15 +83,8 @@ void Energy_SLE_Solver_InitAll( Energy_SLE_Solver* solver, Bool useStatSolve, in
 }
 
 void _Energy_SLE_Solver_Delete( void* sle ) {
-	Energy_SLE_Solver* self = (Energy_SLE_Solver*)sle;
+  //Energy_SLE_Solver* self = (Energy_SLE_Solver*)sle;
 
-	//FreeObject( self->ksp );
-	Stg_KSPDestroy(&self->ksp );
-
-	if( self->residual != PETSC_NULL ) {
-		//FreeObject( self->residual );
-		Stg_VecDestroy(&self->residual );
-	}
 }
 
 void _Energy_SLE_Solver_Print( void* solver, Stream* stream ) {
@@ -128,6 +121,13 @@ void _Energy_SLE_Solver_AssignFromXML( void* sleSolver, Stg_ComponentFactory* cf
 	_SLE_Solver_AssignFromXML( self, cf, data );
 }
 
+void Energy_SLE_Solver_SetSolver( void* solver, void* heatSLE ) {
+	SLE_Solver* self = (SLE_Solver*) solver;
+	SystemLinearEquations* sle  = (SystemLinearEquations*) heatSLE;
+	
+    sle->solver=self;
+
+}
 /* Build */
 void _Energy_SLE_Solver_Build( void* sleSolver, void* standardSLE ) {
 	Energy_SLE_Solver*	self = (Energy_SLE_Solver*)sleSolver;
@@ -143,11 +143,6 @@ void _Energy_SLE_Solver_Build( void* sleSolver, void* standardSLE ) {
 	Journal_DPrintf( self->debug, "building a standard L.A. solver for the \"%s\" matrix.\n", stiffMat->name );
 
 	Stg_Component_Build( stiffMat, standardSLE, False );
-
-   if( self->ksp == PETSC_NULL ){
-		KSPCreate( sle->comm, &self->ksp );
-      KSPSetOptionsPrefix( self->ksp, "EnergySolver_" );
-   }
 
 	Stream_UnIndentBranch( StgFEM_SLE_ProvidedSystems_Energy_Debug );
 }
@@ -180,40 +175,45 @@ void _Energy_SLE_Solver_SolverSetup( void* sleSolver, void* standardSLE ) {
 	Stream_IndentBranch( StgFEM_SLE_ProvidedSystems_Energy_Debug );
 	
 	Journal_DPrintf( self->debug, "Initialising the L.A. solver for the \"%s\" matrix.\n", stiffMat->name );
-	Stg_KSPSetOperators( self->ksp, stiffMat->matrix, stiffMat->matrix, DIFFERENT_NONZERO_PATTERN );
-    KSPSetFromOptions( self->ksp );
+
 	Stream_UnIndentBranch( StgFEM_SLE_ProvidedSystems_Energy_Debug );
 	
-	if( self->maxIterations > 0 ) {
-		KSPSetTolerances( self->ksp, PETSC_DEFAULT, PETSC_DEFAULT, PETSC_DEFAULT, self->maxIterations );
-	}
 
-	VecDuplicate( ((ForceVector**)sle->forceVectors->data)[0]->vector, &self->residual );
 }
 
 
 void _Energy_SLE_Solver_Solve( void* sleSolver, void* standardSLE ) {
-	Energy_SLE_Solver*     self       = (Energy_SLE_Solver*)sleSolver;
-	SystemLinearEquations* sle        = (SystemLinearEquations*) standardSLE;
-	Iteration_Index        iterations;
-        PetscTruth isNull;
-        MatNullSpace nullsp;
+	Energy_SLE_Solver*     self     = (Energy_SLE_Solver*)sleSolver;
+	SystemLinearEquations* sle      = (SystemLinearEquations*) standardSLE;
+    StiffnessMatrix*       stiffMat = (StiffnessMatrix*)sle->stiffnessMatrices->data[0];
+	PetscInt     iterations;
+    PetscTruth   isNull;
+    MatNullSpace nullsp;
 
 	
 	Journal_DPrintf( self->debug, "In %s - for standard SLE solver\n", __func__ );
 	Stream_IndentBranch( StgFEM_SLE_ProvidedSystems_Energy_Debug );
 	
-	if ( (sle->stiffnessMatrices->count > 1 ) ||
-		(sle->forceVectors->count > 1 ) )
-	{
-		Stream* warning = Stream_RegisterChild( StgFEM_Warning, self->type );
-		Journal_Printf( warning, "Warning: Energy solver unable to solve more that one matrix/vector.\n" );
+    if( self->ksp == PETSC_NULL ){
+      KSPCreate( sle->comm, &self->ksp );
+      KSPSetOptionsPrefix( self->ksp, "EnergySolver_" );
+    }
+	Stg_KSPSetOperators( self->ksp, stiffMat->matrix, stiffMat->matrix, DIFFERENT_NONZERO_PATTERN );
+    KSPSetFromOptions( self->ksp );
+
+	if( self->maxIterations > 0 ) {
+		KSPSetTolerances( self->ksp, PETSC_DEFAULT, PETSC_DEFAULT, PETSC_DEFAULT, self->maxIterations );
+	}
+
+	if ( (sle->stiffnessMatrices->count > 1 ) || (sle->forceVectors->count > 1 ) ) {
+      Stream* warning = Stream_RegisterChild( StgFEM_Warning, self->type );
+      Journal_Printf( warning, "Warning: Energy solver will not solve more that one matrix/vector.\n" );
 	}
 
 	if ( sle->solutionVectors->count > 1 ) {
-		Stream* warning = Stream_RegisterChild( StgFEM_Warning, self->type );
-		Journal_Printf( warning, "Warning: More than 1 solution vector provided to standard sle. Ignoring second and subsequent"
-			" solution vectors.\n" );
+      Stream* warning = Stream_RegisterChild( StgFEM_Warning, self->type );
+      Journal_Printf( warning, "Warning: More than 1 solution vector provided to standard sle. Ignoring second and subsequent"
+                      " solution vectors.\n" );
 	}
 
     isNull = Energy_SLE_HasNullSpace(((StiffnessMatrix**)sle->stiffnessMatrices->data)[0]->matrix);
@@ -225,7 +225,7 @@ void _Energy_SLE_Solver_Solve( void* sleSolver, void* standardSLE ) {
       MatSetNullSpace(((StiffnessMatrix**)sle->stiffnessMatrices->data)[0]->matrix, nullsp);
 #endif
     }
-
+    /*** Solve ***/
 	KSPSolve( self->ksp,
 		    ((ForceVector*) sle->forceVectors->data[0])->vector, 
 		    ((SolutionVector*) sle->solutionVectors->data[0])->vector );
@@ -233,16 +233,12 @@ void _Energy_SLE_Solver_Solve( void* sleSolver, void* standardSLE ) {
 
 	Journal_DPrintf( self->debug, "Solved after %u iterations.\n", iterations );
 	Stream_UnIndentBranch( StgFEM_SLE_ProvidedSystems_Energy_Debug );
-	
-	/* calculate the residual */
-   /* TODO: need to make this optional */
-	MatMult( ((StiffnessMatrix**)sle->stiffnessMatrices->data)[0]->matrix, 
-		 ((SolutionVector**)sle->solutionVectors->data)[0]->vector, 
-		 self->residual );
-	VecAYPX( self->residual, -1.0, ((ForceVector**)sle->forceVectors->data)[0]->vector );
     
     if(isNull)
       Stg_MatNullSpaceDestroy(&nullsp);
+    
+    /* Destroys should be here */
+    Stg_KSPDestroy(&self->ksp);
 }
 
 

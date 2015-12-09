@@ -12,6 +12,22 @@
 	/** Textual name of this class */
 	extern const Type StokesBlockKSPInterface_Type;
 
+        #define __STATS \
+                int pressure_its; /** Need vanilla c-types so we can talk to Python **/ \
+                int velocity_backsolve_its; \
+                double pressure_time; \
+                double velocity_backsolve_time;\
+                double total_time;  \
+                double total_flops; \
+                double pressure_flops; \
+                double velocity_backsolve_flops;\
+                double vmin, vmax;                   \
+                double pmin, pmax;                   \
+                double p_sum;                        \
+
+        struct STATS { __STATS };
+        typedef struct STATS STATS;
+
         /** if too much stuff ends up on this struct then possibly just
         extend the BSSCR struct instead at some point */
         #define __StokesBlockKSPInterface  \
@@ -31,6 +47,7 @@
 		Stokes_SLE    *    st_sle;  \
         PETScMGSolver *    mg;      \
         PetscTruth         mg_active; \
+        STATS              stats;     \
         int DIsSym;                                              \
         /* approxS often same as preconditioner above */         \
 		Mat K2, M, approxS, S;                                   \
@@ -101,6 +118,7 @@
 
     void SBKSP_SetSolver( void* solver, void* stokesSLE );
     void SBKSP_SetPenalty( void* solver, double penalty );
+    int  SBKSP_GetPressureIts(void *solver);
     //void SBKSP_SetMGActive( void* solver, PetscTruth flag );
 
     void SBKSP_GetStokesOperators( 
