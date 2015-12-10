@@ -30,21 +30,8 @@ import function
 import swarm
 import systems
 import utils
+import _net
 
-#import threading
-#def go():
-#    import urllib2
-#    try:
-#        print("Hottub time!!")
-#        response = urllib2.urlopen('http://github.moresi.info')
-#        html = response.read()
-#        print("Hottub time!!")
-#    except:
-#        pass
-#    return
-#    #print("Nein!!")
-#thread = threading.Thread( target=go )
-#thread.start()
 # ok, now set this back to the original value
 _sys.setdlopenflags( _oldflags )
 
@@ -141,5 +128,26 @@ class _del_uw_class:
 
 _delclassinstance = _del_uw_class(libUnderworld.StGermain_Tools.StgFinalise, _data)
 
+# lets shoot off some info now
+if rank() == 0:
+    import os
+    # disable collection of data if requested
+    if "UW_NO_USAGE_METRICS" not in os.environ:
+        try:
+            label = ""
+            # get platform info
+            import platform
+            label +=        platform.system()
+            label += "__" + platform.release()
+            # check if docker
+            import os.path
+            if (os.path.isfile("/.dockerinit")):
+                label += "__docker"
 
-
+            # send info async
+            import threading
+            thread = threading.Thread( target=_net.PostGAEvent, args=( "runtime", "import", label, nProcs() ) )
+            thread.daemon = True
+            thread.start()
+        except: # continue quietly if something above failed
+            pass

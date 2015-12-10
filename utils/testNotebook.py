@@ -13,6 +13,8 @@ simply run to completion without errors.
 testnumber = 0
 
 import os, sys, subprocess, string
+# lets disable metrics for tests
+os.environ["UW_NO_USAGE_METRICS"] = "1"
 
 from runipy.notebook_runner import NotebookRunner, NotebookError
 
