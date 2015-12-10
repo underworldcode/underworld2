@@ -14,6 +14,22 @@ from libUnderworld import petsc
 from libUnderworld import Solvers
 from _options import Options
 
+class Stats(object):
+    pressure_its=0
+    velocity_backsolve_its=0
+    pressure_time=0.
+    velocity_backsolve_time=0.
+    total_time=0.
+    total_flops=0.
+    pressure_flops=0.
+    velocity_backsolve_flops=0.
+    vmin=0.
+    vmax=0.
+    pmin=0.
+    pmax=0.
+    p_sum=0.
+
+    
 class OptionsMG(Options):
     """
     Set Multigrid PETSc options
@@ -269,8 +285,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
             libUnderworld.StgFEM.SystemLinearEquations_SetToNonLinear(self._stokesSLE._cself, True )
         else:
             libUnderworld.StgFEM.SystemLinearEquations_SetToNonLinear(self._stokesSLE._cself, False )
-        #import pdb;
-        #pdb.set_trace()
+
         if self._stokesSLE._PICSwarm:
             self._stokesSLE._PICSwarm.repopulate()
 
@@ -291,6 +306,9 @@ class StokesSolver(_stgermain.StgCompoundComponent):
             libUnderworld.StgFEM.SystemLinearEquations_NonLinearExecute(self._stokesSLE._cself, None)
         else:
             libUnderworld.StgFEM.SystemLinearEquations_ExecuteSolver(self._stokesSLE._cself, None)
+
+        #import pdb;
+        #pdb.set_trace()
 
         libUnderworld.StgFEM.SystemLinearEquations_UpdateSolutionOntoNodes(self._stokesSLE._cself, None)
 
@@ -452,3 +470,19 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         if solve_type=="superludist":
             self.options.A11.set_superludist()
 
+    def stats(self):
+        stats=Stats()
+        stats.pressure_its             = self._cself.stats.pressure_its
+        stats.velocity_backsolve_its   = self._cself.stats.velocity_backsolve_its
+        stats.pressure_time            = self._cself.stats.pressure_time
+        stats.velocity_backsolve_time  = self._cself.stats.velocity_backsolve_time
+        stats.total_time               = self._cself.stats.total_time
+        stats.total_flops              = self._cself.stats.total_flops
+        stats.pressure_flops           = self._cself.stats.pressure_flops
+        stats.velocity_backsolve_flops = self._cself.stats.velocity_backsolve_flops
+        stats.vmin  = self._cself.stats.vmin
+        stats.vmax  = self._cself.stats.vmax
+        stats.pmin  = self._cself.stats.pmin
+        stats.pmax  = self._cself.stats.pmax
+        stats.p_sum = self._cself.stats.p_sum
+        return stats
