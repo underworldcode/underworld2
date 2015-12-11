@@ -128,7 +128,7 @@ class _del_uw_class:
 
 _delclassinstance = _del_uw_class(libUnderworld.StGermain_Tools.StgFinalise, _data)
 
-# lets shoot off some info now
+# lets shoot off some usage metrics
 if rank() == 0:
     import os
     # disable collection of data if requested

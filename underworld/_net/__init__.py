@@ -17,8 +17,11 @@ import urllib
 import uuid
 
 GA_TRACKING_ID = "UA-35748138-7"
-# generate random uuid per import
-GA_CLIENT_ID = str(uuid.uuid4())
+# The following should return the mac address as a machine identifier.
+# This is useful to get an idea about unique users, but note that
+# where no mac address is found, a random number is instead returned.
+from uuid import getnode
+GA_CLIENT_ID = str(getnode())
 
 
 def PostGAEvent( category, action, label=None, value=None ):
@@ -47,10 +50,13 @@ def PostGAEvent( category, action, label=None, value=None ):
         connection = httplib.HTTPSConnection('www.google-analytics.com')
         form_fields = {
         "v"  : "1",             # Version.
-        "aip": "1",             # Enable IP anonymizing
+        "aip": "1",             # Enable IP anonymizing.
         "tid": GA_TRACKING_ID,  # Tracking ID / Web property / Property ID.
+        "ds" : "app",           # Data Source.
         "cid": GA_CLIENT_ID,    # Anonymous Client ID.
         "t"  : "event",         # Event hit type.
+        "an" : "underworld2",   # Application name.
+        "av" : "alpha",         # Application version.
         "ec" : category,        # Event Category. Required.
         "ea" : action,          # Event Action. Required.
         "el" : label,           # Event label.
