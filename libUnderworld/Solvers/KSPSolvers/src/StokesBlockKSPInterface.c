@@ -330,28 +330,31 @@ PetscErrorCode _BlockSolve( void* solver, void* _stokesSLE ) {
     sym = PETSC_FALSE;
     Solver->DIsSym = sym;
   }
-
-  if( !C ) {/* need a 'zero' matrix to keep fieldsplit happy in petsc? */
-    MatType mtype;
-    Vec V;
-    //MatGetSize( G, &M, &N );
-    VecGetSize(p, &N);
-    VecGetLocalSize( p, &n );
-    MatCreate( PetscObjectComm((PetscObject) K), &C );
-	MatSetSizes( C, PETSC_DECIDE ,PETSC_DECIDE, N, N );
-    #if (((PETSC_VERSION_MAJOR==3) && (PETSC_VERSION_MINOR>=3)) || (PETSC_VERSION_MAJOR>3) )
+  flg=PETSC_FALSE;
+  PetscOptionsHasName(PETSC_NULL,"-use_petsc_ksp",&flg);
+  if (flg) {
+    if( !C ) {/* need a 'zero' matrix to keep fieldsplit happy in petsc? */
+      MatType mtype;
+      Vec V;
+      //MatGetSize( G, &M, &N );
+      VecGetSize(p, &N);
+      VecGetLocalSize( p, &n );
+      MatCreate( PetscObjectComm((PetscObject) K), &C );
+      MatSetSizes( C, PETSC_DECIDE ,PETSC_DECIDE, N, N );
+#if (((PETSC_VERSION_MAJOR==3) && (PETSC_VERSION_MINOR>=3)) || (PETSC_VERSION_MAJOR>3) )
       MatSetUp(C);
-    #endif
-    MatGetType( G, &mtype );
-	MatSetType( C, mtype );
-    MatGetVecs( G, &V, PETSC_NULL );
-    VecSet(V, 0.0);
-    //VecSet(h, 1.0);
-    ierr = VecAssemblyBegin( V );CHKERRQ(ierr);
-    ierr = VecAssemblyEnd  ( V );CHKERRQ(ierr);
-    ierr = MatDiagonalSet(C,V,INSERT_VALUES);CHKERRQ(ierr);
-    ierr = MatAssemblyBegin( C, MAT_FINAL_ASSEMBLY );CHKERRQ(ierr);
-    ierr = MatAssemblyEnd  ( C, MAT_FINAL_ASSEMBLY );CHKERRQ(ierr);
+#endif
+      MatGetType( G, &mtype );
+      MatSetType( C, mtype );
+      MatGetVecs( G, &V, PETSC_NULL );
+      VecSet(V, 0.0);
+      //VecSet(h, 1.0);
+      ierr = VecAssemblyBegin( V );CHKERRQ(ierr);
+      ierr = VecAssemblyEnd  ( V );CHKERRQ(ierr);
+      ierr = MatDiagonalSet(C,V,INSERT_VALUES);CHKERRQ(ierr);
+      ierr = MatAssemblyBegin( C, MAT_FINAL_ASSEMBLY );CHKERRQ(ierr);
+      ierr = MatAssemblyEnd  ( C, MAT_FINAL_ASSEMBLY );CHKERRQ(ierr);
+    }
   }
   a[0][0]=K;  a[0][1]=G;
   a[1][0]=Gt; a[1][1]=C;
