@@ -186,7 +186,7 @@ class Drawing(_stgermain.StgCompoundComponent):
                font      (str):  label font (small/fixed/sans/serif/vector)
                scaling (float):  label font scaling (for "vector" font only)
         """
-        self.geomType = _libUnderworld.gLucifer.lucPointType
+        self.geomType = _libUnderworld.gLucifer.lucLabelType
         self.vertices.append(pos)
         self.labels.append(text)
         self._setProperties({"font" : font, "fontscale" : scaling})
