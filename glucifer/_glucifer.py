@@ -43,8 +43,8 @@ class Figure(_stgermain.StgCompoundComponent):
     _viewerProc = None
 
     def __init__(self, database=None, num=None, figsize=(640,480), boundingBox=None, facecolour="white",
-                 edgecolour="black", title="", axis=False, properties=None, **kwargs):
-        """ The initialiser takes as arguments 'num', 'figsize', 'boundingBox', 'facecolour', 'edgecolour', 'title', 'axis' and 'properties'.   See help(Figure) for full details on these options.
+                 edgecolour="black", title="", axis=False, antialias=3, properties=None, **kwargs):
+        """ The initialiser takes as arguments 'num', 'figsize', 'boundingBox', 'facecolour', 'edgecolour', 'title', 'axis', 'antialias' and 'properties'.   See help(Figure) for full details on these options.
         """
         if database and not isinstance(database,str):
             raise TypeError("'database' object passed in must be of python type 'str'")
@@ -79,6 +79,10 @@ class Figure(_stgermain.StgCompoundComponent):
 
         if not isinstance(axis,bool):
             raise TypeError("'axis' object passed in must be of python type 'bool'")
+
+        if antialias and not isinstance(antialias,(int,float)):
+            raise TypeError("'antialias' object passed in must be of python type 'float' or 'int'")
+        self.antialias=antialias
 
         #Setup default properties
         self._properties = {"title" : title, "axis" : axis, "axislength" : 0.2, "antialias" : True,
@@ -375,18 +379,19 @@ class Figure(_stgermain.StgCompoundComponent):
     def _generate_image(self, asfile=False):
         if uw.rank() == 0:
             #Render with viewer
+            args = [self._lvbin, self._db.path, "-" + str(self._db.timeStep), "-p0", "-z" + str(self.antialias)]
             if asfile:
                 starting_directory = os.getcwd()
-                lavavu.initViewer([self._lvbin, "-" + str(self._db.timeStep), "-I", "-p0", self._db.path, ":"] + self._script)
+                lavavu.initViewer(args + ["-I", ":"] + self._script)
             else:
-                imagestr = lavavu.initViewer([self._lvbin, "-" + str(self._db.timeStep), "-u", "-h", "-p0", self._db.path, ":"] + self._script)
+                imagestr = lavavu.initViewer(args + ["-u", ":"] + self._script)
                 from IPython.display import Image,HTML
                 return HTML("<img src='%s'>" % imagestr)
 
     def _generate_HTML(self):
         if uw.rank() == 0:
             #Export encoded json string
-            jsonstr = lavavu.initViewer([self._lvbin, "-" + str(self._db.timeStep), "-U", "-h", "-p0", self._db.path, ":"] + self._script)
+            jsonstr = lavavu.initViewer([self._lvbin, "-" + str(self._db.timeStep), "-U", "-p0", self._db.path, ":"] + self._script)
             if not os.path.isdir("html"):
                 #Create link to web content directory
                 os.symlink(self._lvpath + 'html', 'html')
