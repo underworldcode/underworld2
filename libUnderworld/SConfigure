@@ -1,6 +1,10 @@
 import platform, os, sys
 from config import Package, packages, cc
 
+conf_success_file='.config_success'
+# remove 'success' file
+if os.path.exists(conf_success_file):
+    os.remove(conf_success_file)
 #
 # Add options to be passed on to build.
 #
@@ -304,9 +308,12 @@ if not (GetOption('help') or GetOption('clean')):
             offscreen_env.SaveConfig('offscreen.cfg')
 
 #
+# Create a test file. This file is the indicator of a successful build
+#
+open(conf_success_file, 'w').close() 
+#
 # Print success message.
 #
-
 print
 print '***************************************'
 print '* Successfully configured.            *'
