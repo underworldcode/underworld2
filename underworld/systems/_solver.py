@@ -24,12 +24,12 @@ class Solver(_stgermain.StgCompoundComponent):
     def __init__(self, **kwargs):
         super(Solver, self).__init__(**kwargs)
 
+    @staticmethod
     def factory(eqs,type="BSSCR"):
         if isinstance(eqs, uw.systems.Stokes):
             return _bsscr.StokesSolver(eqs)
-        if isinstance(eqs, uw.systems.SteadyStateHeat):
+        elif isinstance(eqs, uw.systems.SteadyStateHeat):
             return _energy_solver.HeatSolver(eqs)
-
-        assert 0, "System is of unknown type"
-    factory = staticmethod(factory)
+        else:
+            raise ValueError("Unable to create solver. Provided system not recognised.")
 

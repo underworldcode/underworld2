@@ -186,7 +186,7 @@ class Drawing(_stgermain.StgCompoundComponent):
                font      (str):  label font (small/fixed/sans/serif/vector)
                scaling (float):  label font scaling (for "vector" font only)
         """
-        self.geomType = _libUnderworld.gLucifer.lucPointType
+        self.geomType = _libUnderworld.gLucifer.lucLabelType
         self.vertices.append(pos)
         self.labels.append(text)
         self._setProperties({"font" : font, "fontscale" : scaling})
@@ -244,7 +244,8 @@ class ColourBar(Drawing):
         #Default properties
         self._properties = {"colourbar" : 1, "height" : None, "lengthfactor" : 0.8, 
                 "margin" : 16, "border" : 1, "precision" : 2, "scientific" : False, "font" : "small", 
-                "ticks" : 0, "printticks" : True, "printunits" : False, "scalevalue" : 1.0} #tick0-tick10 : val
+                "ticks" : 0, "printticks" : True, "printunits" : False, "scalevalue" : 1.0,
+                "font" : "vector", "fontscale" : 0.4} #tick0-tick10 : val
     
         # build parent
         super(ColourBar,self).__init__(colourMap=colourMap, *args, **kwargs)
@@ -607,7 +608,7 @@ class Mesh(Drawing):
         self._segmentsPerEdge = segmentsPerEdge
 
         #Default properties
-        self._properties = {"lit" : False, "linewidth" : 0.1, 
+        self._properties = {"lit" : False, "font" : "vector", "fontscale" : 0.1,
                            "pointsize" : 5 if self._nodeNumbers else 1, 
                            "pointtype" : 2 if self._nodeNumbers else 4};
         

@@ -471,18 +471,18 @@ class StokesSolver(_stgermain.StgCompoundComponent):
             self.options.A11.set_superludist()
 
     def stats(self):
-        stats=Stats()
-        stats.pressure_its             = self._cself.stats.pressure_its
-        stats.velocity_backsolve_its   = self._cself.stats.velocity_backsolve_its
-        stats.pressure_time            = self._cself.stats.pressure_time
-        stats.velocity_backsolve_time  = self._cself.stats.velocity_backsolve_time
-        stats.total_time               = self._cself.stats.total_time
-        stats.total_flops              = self._cself.stats.total_flops
-        stats.pressure_flops           = self._cself.stats.pressure_flops
-        stats.velocity_backsolve_flops = self._cself.stats.velocity_backsolve_flops
-        stats.vmin  = self._cself.stats.vmin
-        stats.vmax  = self._cself.stats.vmax
-        stats.pmin  = self._cself.stats.pmin
-        stats.pmax  = self._cself.stats.pmax
-        stats.p_sum = self._cself.stats.p_sum
-        return stats
+        # stats=Stats()
+        # stats.pressure_its             = self._cself.stats.pressure_its
+        # stats.velocity_backsolve_its   = self._cself.stats.velocity_backsolve_its
+        # stats.pressure_time            = self._cself.stats.pressure_time
+        # stats.velocity_backsolve_time  = self._cself.stats.velocity_backsolve_time
+        # stats.total_time               = self._cself.stats.total_time
+        # stats.total_flops              = self._cself.stats.total_flops
+        # stats.pressure_flops           = self._cself.stats.pressure_flops
+        # stats.velocity_backsolve_flops = self._cself.stats.velocity_backsolve_flops
+        # stats.vmin  = self._cself.stats.vmin
+        # stats.vmax  = self._cself.stats.vmax
+        # stats.pmin  = self._cself.stats.pmin
+        # stats.pmax  = self._cself.stats.pmax
+        # stats.p_sum = self._cself.stats.p_sum
+        return self._cself.stats
