@@ -306,7 +306,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
     ########################################################################
     ### the solve function
     ########################################################################
-    def solve(self, nonLinearIterate=None, **kwargs):
+    def solve(self, nonLinearIterate=None, print_stats=False, **kwargs):
         """ solve the Stokes system
         """
         Solvers.SBKSP_SetSolver(self._cself, self._stokesSLE._cself)
@@ -356,7 +356,8 @@ class StokesSolver(_stgermain.StgCompoundComponent):
 
         libUnderworld.StgFEM.SystemLinearEquations_UpdateSolutionOntoNodes(self._stokesSLE._cself, None)
         
-        self.print_stats()
+        if print_stats:
+            self.print_stats()
 
     ########################################################################
     ### create vectors and matrices for augmented lagrangian solve
