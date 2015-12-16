@@ -19,7 +19,9 @@ IWalls = mesh.specialSets["MinI_VertexSet"] + mesh.specialSets["MaxI_VertexSet"]
 JWalls = mesh.specialSets["MinJ_VertexSet"] + mesh.specialSets["MaxJ_VertexSet"]
 freeslip = uw.conditions.DirichletCondition(velocityField, (IWalls, JWalls))
 
-
+# We are going to make use of one of the existing analytic solutions so that we may easily
+# obtain functions for a viscosity profile and forcing terms.
+# Exact solution solCx with defaults
 sol = fn.analytic.SolCx()
 stokesSystem = uw.systems.Stokes(velocityField,pressureField,sol.viscosityFn,sol.bodyForceFn,conditions=[freeslip,], rtolerance=1.e-5)
 #Run the BSSCR Solver
