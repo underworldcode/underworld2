@@ -140,10 +140,7 @@ if env['prefix'] != env.GetLaunchDir():
 if env['with_viewer']:
    if not os.path.exists(dir+'/gLucifer/Viewer'):
       os.makedirs(dir+'/gLucifer/Viewer')
-   Execute(Delete(File(env['build_dir']+'/gLucifer/Viewer/offscreen.cfg')))
-   Execute(Copy(File(env['build_dir']+'/gLucifer/Viewer/output.cfg'), File('output.cfg')))
    Execute(Copy(File(env['build_dir']+'/gLucifer/Viewer/viewer.cfg'), File('viewer.cfg')))
-   Execute(Copy(File(env['build_dir']+'/gLucifer/Viewer/offscreen.cfg'), File('offscreen.cfg')))
 
 Export('env')
 
