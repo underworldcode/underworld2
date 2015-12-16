@@ -32,7 +32,7 @@ stokesSystem = uw.systems.Stokes(velocityField,pressureField,solA.viscosityFn,so
 
 #Run the BSSCR Solver
 # can optionally set penalty this way
-solver=uw.systems.Solver(stokesSystem, penalty=0.0)
+solver=uw.systems.Solver(stokesSystem)
 solver.options.A11.ksp_rtol=1e-4
 solver.options.scr.ksp_rtol=1e-3
 solver.options.main.Q22_pc_type='uwscale'

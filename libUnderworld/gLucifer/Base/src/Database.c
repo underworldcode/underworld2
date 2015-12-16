@@ -572,7 +572,6 @@ void lucDatabase_OutputDrawingObject(lucDatabase* self, lucViewport* viewport, l
       /* Save object id */
       object->id = sqlite3_last_insert_rowid(self->db);
       Journal_Printf(lucInfo, "      Drawing object: %s %s id %d\n", object->name, object->type, object->id);
-      printf("      Drawing object: %s %s id %d props %s\n", object->name, object->type, object->id, object->properties);
 
       /* Save colour maps */
       if (object->colourMap)
@@ -1043,12 +1042,12 @@ void lucDatabase_OpenDatabase(lucDatabase* self)
       {
          strcpy(self->path, "file:glucifer_database?mode=memory&cache=shared");
          flags = flags | SQLITE_OPEN_URI;
-         printf("Defaulting to memory database: %s\n", self->path);
+         Journal_Printf(lucInfo, "Defaulting to memory database: %s\n", self->path);
       }
 
       if (sqlite3_open_v2(self->path, &self->db, flags, self->vfs))
       {
-         printf("Can't open database: (%s) %s\n", self->path, sqlite3_errmsg(self->db));
+         Journal_Printf(lucError, "Can't open database: (%s) %s\n", self->path, sqlite3_errmsg(self->db));
          self->db = NULL;
          return;
       }
@@ -1118,7 +1117,7 @@ Bool lucDatabase_IssueSQL(sqlite3* db, const char* SQL)
    char* zErrMsg;
    if (sqlite3_exec(db, SQL, NULL, 0, &zErrMsg) != SQLITE_OK)
    {
-      printf("SQLite Issue: %s\n", zErrMsg);
+      Journal_Printf(lucError, "SQLite Issue: %s\n", zErrMsg);
       sqlite3_free(zErrMsg);
       return False;
    }
@@ -1148,11 +1147,11 @@ void lucDatabase_AttachDatabase(lucDatabase* self)
    /* Attach new database */
    if (sqlite3_open_v2(path, &self->db2, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, self->vfs))
    {
-      printf("Can't open database: %s\n", sqlite3_errmsg(self->db2));
+      Journal_Printf(lucError, "Can't open database: %s\n", sqlite3_errmsg(self->db2));
       self->db2 = NULL;
       return;
    }
-   printf("Database file %s opened\n", path);
+   Journal_Printf(lucInfo, "Database file %s opened\n", path);
 }
 
 void lucDatabase_DeleteGeometry(lucDatabase* self, int start_timestep, int end_timestep)
@@ -1206,7 +1205,7 @@ int lucDatabase_WriteGeometry(lucDatabase* self, int index, lucGeometryType type
    /* Prepare statement... */
    if (sqlite3_prepare_v2(db, SQL, -1, &statement, NULL) != SQLITE_OK)
    {
-      printf("SQL prepare error: (%s) %s\n", SQL, sqlite3_errmsg(db));
+      Journal_Printf(lucError, "SQL prepare error: (%s) %s\n", SQL, sqlite3_errmsg(db));
       abort(); //Database errors fatal?
       return 0;
    }
@@ -1216,7 +1215,7 @@ int lucDatabase_WriteGeometry(lucDatabase* self, int index, lucGeometryType type
    {
       if (sqlite3_bind_text(statement, 1, block->labels, strlen(block->labels), SQLITE_STATIC) != SQLITE_OK)
       {
-         printf("SQL bind error: %s\n", sqlite3_errmsg(db));
+         Journal_Printf(lucError, "SQL bind error: %s\n", sqlite3_errmsg(db));
          abort(); //Database errors fatal?
          return 0;
       }
@@ -1225,7 +1224,7 @@ int lucDatabase_WriteGeometry(lucDatabase* self, int index, lucGeometryType type
    /* Setup blob data for insert */
    if (sqlite3_bind_blob(statement, 2, buffer, src_len, SQLITE_STATIC) != SQLITE_OK)
    {
-      printf("SQL bind error: %s\n", sqlite3_errmsg(db));
+      Journal_Printf(lucError, "SQL bind error: %s\n", sqlite3_errmsg(db));
       abort(); //Database errors fatal?
       return 0;
    }
@@ -1233,7 +1232,7 @@ int lucDatabase_WriteGeometry(lucDatabase* self, int index, lucGeometryType type
    /* Execute statement */
    if (sqlite3_step(statement) != SQLITE_DONE )
    {
-      printf("SQL step error: (%s) %s\n", SQL, sqlite3_errmsg(db));
+      Journal_Printf(lucError, "SQL step error: (%s) %s\n", SQL, sqlite3_errmsg(db));
       abort(); //Database errors fatal?
    }
 
@@ -1263,7 +1262,7 @@ void lucDatabase_BackupDbFile(lucDatabase* self, char* filename)
    int flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
    if (sqlite3_open_v2(filename, &toDb, flags, self->vfs))
    {
-      printf("Can't open database: (%s) %s\n", filename, sqlite3_errmsg(toDb));
+      Journal_Printf(lucError, "Can't open database: (%s) %s\n", filename, sqlite3_errmsg(toDb));
       return;
    }
 

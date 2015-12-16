@@ -3,7 +3,6 @@ from MPI import MPI
 from PETSc import PETSc
 from HDF5 import HDF5
 from spatialdata import spatialdata
-from OSMesa import OSMesa
 from OpenGL import OpenGL
 from SDL import SDL
 from X11 import X11
