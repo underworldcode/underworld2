@@ -216,6 +216,50 @@ class MGSolver(_stgermain.StgCompoundComponent):
 
 class StokesSolver(_stgermain.StgCompoundComponent):
     """
+    The Block Stokes Schur Complement Solver:
+    This solves the saddle-point system
+    
+    [ K  G][u] = [f]
+    [ G' C][p]   [h]
+
+    via a Schur complement method.
+    
+    We first solve:
+      a: S*p= G'*Ki*f - h,
+
+    where S = G'*Ki*G-C and Ki = inverse of K.
+
+    Then we backsolve for the velocity
+      b: K*u = f - G*p.
+    
+    The effect of the inverse of K in (a) is obtained via a KSPSolve in PETSc.
+    This has the prefix 'A11' (often called the 'inner' solve)
+    
+    The solve in (a) for the pressure has prefix 'scr'.
+    
+    Assuming the returned solver is called 'solver':
+
+    It is possible to configure these solves individually via the
+      solver.options.A11
+    and
+      solver.options.scr
+    dictionaries. 
+    
+    Try uw.help(solver.options.A11) for some details.
+    
+    Common configurations are provided via the
+    solver.set_inner_method() function.
+    
+    solver.set_inner_method("mg") sets up a multigrid solve for the inner solve. This is the default.
+    solver.set_inner_method("mumps") will set up a parallel direct solve on the inner solve.
+    solver.set_inner_method("lu") will set up a serial direct solve on the inner solve.
+    
+    uw.help(solver.set_inner_method) for more.
+    
+    For more advanced configurations use the
+    solver.options.A11/scr dictionaries directly.
+    
+    uw.help(solver.options) to see more.
     """
     _objectsDict = {  "_stokessolver" : "StokesBlockKSPInterface"  }
     _selfObjectName = "_stokessolver"    
@@ -311,6 +355,8 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         #pdb.set_trace()
 
         libUnderworld.StgFEM.SystemLinearEquations_UpdateSolutionOntoNodes(self._stokesSLE._cself, None)
+        
+        self.print_stats()
 
     ########################################################################
     ### create vectors and matrices for augmented lagrangian solve
@@ -343,7 +389,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
     ### assemble vectors and matrices for augmented lagrangian solve
     ########################################################################
     def _setup_penalty_objects(self):
-        # using this function se we don't need to add anything extra to the stokeSLE struct
+        # using this function so we don't need to add anything extra to the stokeSLE struct
 
         # zero the vectors
         petsc.SetVec(self._vmfvector._cself.vector, 0.0)  # this complains about memory leaks
@@ -440,7 +486,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         self.mgObj=mgObj # must attach object here: else immediately goes out of scope and is destroyed
         self._cself.mg = mgObj._cself
 
-    def configure(self,solve_type="mg"):
+    def set_inner_method(self,solve_type="mg"):
         """
         Configure velocity/inner solver (A11 PETSc prefix).
 
@@ -469,20 +515,46 @@ class StokesSolver(_stgermain.StgCompoundComponent):
             self.options.A11.set_superlu()
         if solve_type=="superludist":
             self.options.A11.set_superludist()
+    
+    def set_inner_rtol(self, rtol):
+        self.options.A11.ksp_rtol=rtol
 
-    def stats(self):
-        # stats=Stats()
-        # stats.pressure_its             = self._cself.stats.pressure_its
-        # stats.velocity_backsolve_its   = self._cself.stats.velocity_backsolve_its
-        # stats.pressure_time            = self._cself.stats.pressure_time
-        # stats.velocity_backsolve_time  = self._cself.stats.velocity_backsolve_time
-        # stats.total_time               = self._cself.stats.total_time
-        # stats.total_flops              = self._cself.stats.total_flops
-        # stats.pressure_flops           = self._cself.stats.pressure_flops
-        # stats.velocity_backsolve_flops = self._cself.stats.velocity_backsolve_flops
-        # stats.vmin  = self._cself.stats.vmin
-        # stats.vmax  = self._cself.stats.vmax
-        # stats.pmin  = self._cself.stats.pmin
-        # stats.pmax  = self._cself.stats.pmax
-        # stats.p_sum = self._cself.stats.p_sum
+    def set_outer_rtol(self, rtol):
+        self.options.scr.ksp_rtol=rtol
+
+    def set_mg_levels(self, levels):
+        """
+        Set the number of multigrid levels manually.
+        It is set automatically by default.
+        """
+        self.options.mg.levels=levels
+
+    def get_stats(self):
         return self._cself.stats
+
+    def print_stats(self):
+        if 0==uw.rank():
+            print "Pressure iterations: %d" % (self._cself.stats.pressure_its)
+            print "Velocity iterations: %d (backsolve)" % (self._cself.stats.velocity_backsolve_its)
+            print " "
+            print "Pressure solve time: %.4e" %(self._cself.stats.pressure_time)
+            print "Velocity solve time: %.4e (backsolve)" %(self._cself.stats.velocity_backsolve_time)
+            print "Total solve time   : %.4e" %(self._cself.stats.total_time)
+            print " "
+            print "Velocity solution min/max: %.4e/%.4e" % (self._cself.stats.vmin,self._cself.stats.vmax)
+            print "Pressure solution min/max: %.4e/%.4e" % (self._cself.stats.pmin,self._cself.stats.pmax)
+
+    def set_penalty(self, penalty):
+        """
+        By setting the penalty, the Augmented Lagrangian Method is used as the solve.
+        This method is not recommended for normal use as there is additional memory and cpu overhead.
+        This method can often help improve convergence issues for subduction-type problems with large viscosity 
+        contrasts that are having trouble converging.
+        
+        A penalty of roughly 0.1 of the maximum viscosity contrast is not a bad place to start as a guess. (check notes/paper)
+        """
+        if isinstance(self.options.main.penalty, float) and self.options.main.penalty >= 0.0:
+            self.options.main.penalty=penalty
+        elif 0==uw.rank():
+            print "Invalid penalty number chosen. Penalty must be a positive float."
+            

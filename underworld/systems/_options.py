@@ -34,12 +34,6 @@ class Options(object):
         self.ksp_rtol=1e-5
         self._mg_active=True
 
-    def clear(self):
-        """
-        Clear all options.
-        """
-        self.__dict__.clear()
-
     def set_lu(self):
         """
         Set up options for LU serial solve.
