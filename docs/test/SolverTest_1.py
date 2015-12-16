@@ -1,5 +1,9 @@
+'''
+This script simply executes a solver, and ensures the expected number of iterations are performed. 
+An exception is thrown otherwise.
+'''
+
 import underworld as uw
-import math
 from underworld import function as fn
 
 res=32
