@@ -70,7 +70,6 @@ env.AddMethod( UWExit )
 env.UsePackage(packages.libm)
 env.UsePackage(packages.libXML2)
 env.UsePackage(packages.HDF5)
-env.UsePackage(packages.OSMesa)
 env.UsePackage(packages.OpenGL)
 env.UsePackage(packages.SDL)
 env.UsePackage(packages.X11)
@@ -247,8 +246,7 @@ if not (GetOption('help') or GetOption('clean')):
         if platform.system() != 'Darwin' and env.get('with_glut'):
             glut = win = env.ConfigurePackage(packages.Glut, required=False).result
 
-        # If OSMesa found, use it for gLucifer in Underworld
-        # If not, try AGL (mac) or use config of other windowing systems detected for interactive
+        # try AGL (mac) or use config of other windowing systems detected for interactive
         agl = 0
         # Try for AGL window if on Darwin...
         if not win and platform.system() == 'Darwin' and env.get('with_agl'):
