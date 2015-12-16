@@ -40,4 +40,4 @@ VOLUME /workspace
 WORKDIR /workspace
 
 # launch notebook
-CMD ["jupyter", "notebook"]
+CMD ["jupyter", "notebook", " --no-browser"]
