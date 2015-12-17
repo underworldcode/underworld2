@@ -17,9 +17,12 @@ import urllib
 import uuid
 
 GA_TRACKING_ID = "UA-35748138-7"
+
 # The following should return the mac address as a machine identifier.
 # This is useful to get an idea about unique users, but note that
-# where no mac address is found, a random number is instead returned.
+# where no mac address is found, a random number is instead returned,
+# but it's irrelevant as if there's no mac address, there's
+# no network, so metrics will not be dispatched.
 from uuid import getnode
 GA_CLIENT_ID = str(getnode())
 
