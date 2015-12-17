@@ -23,6 +23,8 @@ import contextlib
 import time
 import abc
 import h5py
+from mpi4py import MPI
+
 
 class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
     """
@@ -344,21 +346,13 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         if not isinstance(filename, str):
             raise TypeError("'filename', must be of type 'str'")
 
-
-        import h5py
-        from mpi4py import MPI
-
         h5f = h5py.File(name=filename, mode="w", driver='mpio', comm=MPI.COMM_WORLD)
 
         # save attributes and simple data - MUST be parallel as driver is mpio
         h5f.attrs['dimensions'] = self.dim
         h5f.attrs['mesh resolution'] = self.elementRes
-
-        max_dset = h5f.create_dataset("max", shape=(self.dim,), dtype='float64')
-        max_dset[:] = self.maxCoord[:]
-
-        min_dset = h5f.create_dataset("min", shape=(self.dim,), dtype='float64')
-        min_dset[:] = self.minCoord[:]
+        h5f.attrs['max'] = self.maxCoord
+        h5f.attrs['min'] = self.minCoord
 
         # write the vertices
         globalShape = ( self.nodesGlobal, self.data.shape[1] )
@@ -366,7 +360,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
                                   shape=globalShape,
                                   dtype='float64')
 
-        local = len(self.data_nodegId)
+        local = self.nodesLocal
         # write to the dset using the global node ids
         dset[self.data_nodegId[0:local],:] = self.data[0:local]
         #dset[self.data_nodegId[:,:]] = self.data[:] # broken in h5py

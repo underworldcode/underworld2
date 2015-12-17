@@ -16,6 +16,7 @@ import libUnderworld.libUnderworldPy.Function as _cfn
 from timeit import default_timer as timer
 from mpi4py import MPI
 import sys
+import shutil
 
 class Integral(_stgermain.StgCompoundComponent):
     """
@@ -431,12 +432,14 @@ class LogBook(object):
             return None
 
         # Build outputDir and write to XDMF
-        if not os.path.exists(outputDir):
-            try:
-                os.makedirs(outputDir)
-            except:
-                print("Can not make directory {}".format(outputDir))
-                raise
+        if os.path.exists(outputDir):
+            shutil.rmtree(outputDir)
+
+        try:
+            os.makedirs(outputDir)
+        except:
+            print("Can not make directory {}".format(outputDir))
+            raise
         
         # create the xdmf file name
         self._xdmfFN = xdmfFN = outputDir+"/XDMF.Files.xdmf"
@@ -544,7 +547,7 @@ class LogBook(object):
             fieldFN = outputDir+"/{}.".format(k)+uniId+".h5"
             reffieldFN = os.path.basename(fieldFN)
 
-            feVar.save(fieldFN, refmeshFN)
+            feVar.save(fieldFN)
             #feVar.save(fieldFN)
             string += _fieldschema( (k,feVar), reffieldFN, mesh )
         
