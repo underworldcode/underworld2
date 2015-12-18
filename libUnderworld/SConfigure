@@ -261,7 +261,7 @@ if not (GetOption('help') or GetOption('clean')):
             env.ConfigurePackage(packages.OpenGL, required=False).result
 
         # An interactive windowing system is required for viewer
-        if not win:
+        if not (glut or x11 or sdl or agl):
             print '****  WARNING ****'
             print 'Need a windowing system for gLucifer Viewer, either'
             print 'X11, SDL, Glut or AGL. None of these could be found.'

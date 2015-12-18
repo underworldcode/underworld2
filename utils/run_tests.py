@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 """
-Simple script for running and testing notebooks.
+This script tests multiple python scripts or Jupyter Notebooks. A test is 
+considered to have been completed successfully if it returns with the '0' exit 
+code, which should signify that no uncaught exceptions were encountered.
 
-Usage: `testNotebook.py foo.ipynb [bar.ipynb [...]]`
+This script will return a non-zero exit code if any tests fail.
 
-Notebooks are considered to complete the test successfully if they
-simply run to completion without errors.
+Usage: `run_tests.py foo.py [bar.ipynb [...]]`
+
 
 """
 
@@ -40,7 +42,7 @@ def run_file(fname, dir, logFile):
       bool:  True = pass, False = fail.
   """
   global testnumber
-  if fname.endswith(".ipynb"):
+  if fname.endswith(".ipynb") or fname.endswith(".py") :
 
     # create the test directory if needed
     try:
@@ -48,7 +50,10 @@ def run_file(fname, dir, logFile):
     except:
        os.mkdir(dir)
 
-    exe = ["runipy"]
+    if fname.endswith(".ipynb"):
+       exe = ["runipy"]
+    else:
+       exe = ["python"]
     exe.append(fname)         # append filename
 
     testnumber += 1
