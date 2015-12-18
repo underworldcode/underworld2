@@ -17,6 +17,7 @@ from timeit import default_timer as timer
 from mpi4py import MPI
 import sys
 import shutil
+import os
 
 class Integral(_stgermain.StgCompoundComponent):
     """
@@ -348,19 +349,23 @@ def _fieldschema((field_name, field), filename, elementMesh ):
     
     return out
 
-import os
-#### TO Deprecated Nov 2015
-def xdmf_write( objects, mesh, outputDir='./output', time=None):
+def _createMeshName( mesh, outputDir='./output', time=None):
     """
-    Depreciated function, instead use the LogBook class
-
-    log = LogBook( objects, mesh, outputDir= )
-    log.write(time=time)
-
+    Returns a string - "outputDir/Mesh_res_time.h5"
+    
     """
-    raise RuntimeError("Depreciated function, instead use the LogBook class, eg:\n"+
-                       "log = LogBook( objects, mesh, outputDir= )\n" +
-                       "log.write(time=time)\n" )
+    # get resolution string
+    tmp=map(str,mesh.elementRes)
+    st=''
+    for x in tmp:
+        st += str(x)+'x'
+    st = st[:-1]
+
+    if time == None:
+        return outputDir + "/Mesh_"+st+".h5"
+    else:
+        return outputDir + "/Mesh_"+st+str(time)+".h5"
+
 
 class LogBook(object):
     """
@@ -521,7 +526,7 @@ class LogBook(object):
         self._internalCount += 1
 
         # setup filenames
-        meshFN = outputDir+"/mesh." + uniId +".h5"    
+        meshFN = uw.utils._createMeshName( mesh, outputDir )
         refmeshFN = os.path.basename(meshFN)    
 
         # the xmf file is stored in 'string'
@@ -548,7 +553,6 @@ class LogBook(object):
             reffieldFN = os.path.basename(fieldFN)
 
             feVar.save(fieldFN)
-            #feVar.save(fieldFN)
             string += _fieldschema( (k,feVar), reffieldFN, mesh )
         
         # write the footer to the xmf    

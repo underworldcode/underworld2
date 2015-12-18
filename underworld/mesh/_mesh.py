@@ -363,7 +363,6 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         local = self.nodesLocal
         # write to the dset using the global node ids
         dset[self.data_nodegId[0:local],:] = self.data[0:local]
-        #dset[self.data_nodegId[:,:]] = self.data[:] # broken in h5py
 
         # write the element node connectivity
         self.data_enMap

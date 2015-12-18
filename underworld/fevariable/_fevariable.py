@@ -187,9 +187,10 @@ class FeVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgermain
             the name of the output hdf5 file
 
         Saves the fevariable to the 'filename' in hdf5 format. An 'ExternalLink' (hdf5 
-        file association) is setup to the FeVariable's mesh so the field values can 
-        access the mesh geometry & topology. 
-        Note that this is a global method, ie. all processes must call it.
+        file association) is created to the FeVariable's mesh file so the field values can 
+        access the mesh's geometry & topology. Also the element type used for this field
+        it saved as an attribute to output file.
+        Note that this is a global method - all processes must call it.
 
         """
         if not isinstance(filename, str):
@@ -209,27 +210,25 @@ class FeVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgermain
         local = mesh.nodesLocal
         dset[mesh.data_nodegId[0:local],:] = self.data[0:local]
 
-        ## setup reference to mesh - might need to call mesh.save()
+        # save a hdf5 attribute to the elementType used for this field - maybe useful
+        h5f.attrs["elementType"] = np.string_(mesh.elementType)
 
-        # get path to save mesh file
+        ## setup reference to mesh - THE GEOMETRY MESH
         saveDir = os.path.dirname(filename)
-        meshfilename = saveDir + "/Mesh.h5"
+
+        if hasattr( mesh.generator, "geometryMesh"):
+            mesh = mesh.generator.geometryMesh
+
+        meshfilename = uw.utils._createMeshName( mesh, saveDir )
 
         # check if it already exists - if not CREATE a mesh file
         # ASSUMES mesh is constant in time !!!
         if not os.path.exists(meshfilename):
-            # only get geometryMesh - no subMesh to save
-            if hasattr( mesh.generator, "geometryMesh"):
-                mesh = mesh.generator.geometryMesh
-
             # call save on mesh
             mesh.save( meshfilename )
             
         # set reference to mesh (all procs must call following)
         h5f["mesh"] = h5py.ExternalLink(meshfilename, "./")
-
-        # save a hdf5 attribute to the elementType used for this field - maybe useful
-        h5f.attrs["elementType"] = np.string_(mesh.elementType)
 
         h5f.close()
 
