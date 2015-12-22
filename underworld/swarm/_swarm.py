@@ -56,10 +56,8 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
     _objectsDict = {            "_swarm": "GeneralSwarm",
                           "_cellLayout" : "ElementCellLayout",
                     "_pMovementHandler" : "ParticleMovementHandler",
-                         "_pShadowSync" : "ParticleShadowSync",
                       "_escapedRoutine" : "EscapedRoutine"
                     }
-#                      "_particleLayout" : "SpaceFillerParticleLayout",
 
     def __init__(self, feMesh, particleEscape=False, **kwargs):
         """
@@ -94,8 +92,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         componentDictionary[ self._swarm.name ][                 "dim"] = self._feMesh.dim
         componentDictionary[ self._swarm.name ][          "CellLayout"] = self._cellLayout.name
         componentDictionary[ self._swarm.name ][      "createGlobalId"] = False
-        componentDictionary[ self._swarm.name ]["ParticleCommHandlers"] = [self._pMovementHandler.name,
-                                                                           self._pShadowSync.name]
+        componentDictionary[ self._swarm.name ]["ParticleCommHandlers"] = [self._pMovementHandler.name,]
         if self.particleEscape:
             componentDictionary[ self._swarm.name ][  "EscapedRoutine"] = self._escapedRoutine.name
         

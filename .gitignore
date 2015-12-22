@@ -2,6 +2,8 @@
 syntax: glob
 
 *~
+.build_success
+.config_success
 .ipynb_checkpoints
 .scon*
 config.*
@@ -30,6 +32,7 @@ libUnderworld/libUnderworldPy/c_arrays.py
 libUnderworld/libUnderworldPy/c_pointers.py
 libUnderworld/libUnderworldPy/gLucifer.py
 libUnderworld/libUnderworldPy/petsc.py
+libUnderworld/libUnderworldPy/LavaVu.py
 testResults
 
 # switch to regexp syntax.
