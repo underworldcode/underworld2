@@ -55,6 +55,9 @@ class H5py(Package):
         if not self.testh5py(self._h5pyp):
             print "Can't find a built version of the h5py module ... building h5py ",
             self.h5pybuild(self._h5pyp)
+            # lets run the test again.. this will also ensure that the module is importable below
+            if not self.testh5py(self._h5pyp):
+                raise RuntimeError("Unable to import h5py module. It was possibly not build successfully.")
             print "h5py installed at "+self._h5pyp + " ",
 
         try:

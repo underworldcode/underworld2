@@ -13,6 +13,5 @@ class Mpi4py(Package):
         try:
             import mpi4py as m4
         except ImportError:
-            print "Cannot import mpi4py. Perhaps it is not installed."
-            raise
+            raise ImportError("\n\nCannot import mpi4py. Perhaps it is not installed.\n\n")
         yield env
