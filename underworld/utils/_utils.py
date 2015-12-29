@@ -330,12 +330,13 @@ def xdmf_write( objects, mesh, outputDir='./output', time=None):
         raise TypeError("'time' argument must be of type float")
     
     # test 'outputDir' is writable and valid
-    if not os.path.exists(outputDir):
-        try:
-            os.makedirs(outputDir)
-        except:
-            print("Can not make directory {}".format(outputDir))
-            raise
+    if uw.rank() == 0:
+        if not os.path.exists(outputDir):
+            try:
+                os.makedirs(outputDir)
+            except:
+                print("Cannot make directory {}".format(outputDir))
+                raise
     
     ### End Error Check ###
     

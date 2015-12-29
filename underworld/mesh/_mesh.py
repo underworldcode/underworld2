@@ -298,13 +298,6 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         if not isinstance(filename, str):
             raise TypeError("'filename', must be of type 'str'")
         
-        # test if the filename is writable - is this safe in parallel?
-        try:
-            handle=open(filename, "w")
-        except IOError:
-            sys.exit("Could not open file {}".format(filename))
-        handle.close()
-            
         uw.libUnderworld.StgFEM._FeMesh_DumpMeshHDF5( self._cself, filename )
 
 
