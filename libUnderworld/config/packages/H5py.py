@@ -1,6 +1,7 @@
 import os
 from config import Package
 from Mpi4py import Mpi4py
+from MPI import MPI
 
 class H5py(Package):
 
@@ -25,22 +26,31 @@ class H5py(Package):
         import subprocess
         print "Building private h5py version at " + mpath
         os.chdir(self._h5pysrc)
-        cmd = "python setup.py configure -m"
-        subp = subprocess.Popen(cmd, shell=True); subp.wait()
-        cmd = 'python setup.py build --build-lib '+ os.path.dirname(mpath)
-        subp = subprocess.Popen( cmd , shell=True); 
+        subp = subprocess.Popen('python setup.py configure -m', shell=True); subp.wait()
+        cmd = 'python setup.py build_ext --include-dirs='
+        # use all header paths the config has thus far added.
+        # we really just need the path to mpi.h
+        for header_path in self.env["CPPPATH"]:
+            cmd += header_path +':' 
+        cmd2 = ' --build-lib ' + os.path.dirname(mpath)
+        cmd += cmd2
+        subp = subprocess.Popen( cmd , shell=True);
         if subp.wait() != 0:
-            cmd = 'python setup.py build_ext -I /usr/lib/openmpi/include --build-lib '+ os.path.dirname(mpath)
-            subp = subprocess.Popen( cmd , shell=True); 
-            if subp.wait() != 0:
-                import sys
-                print "Failed building h5py :(\n"
-                sys.exit(1)
+            import sys
+            print "Failed building h5py :(\n"
+            sys.exit(1)
+        # need to run this now to make it importable
+        subp = subprocess.Popen('python setup.py build' + cmd2, shell=True); subp.wait()
+        if subp.wait() != 0:
+            import sys
+            print "Failed building h5py :(\n"
+            sys.exit(1)
         os.chdir(self._h5pysrc+'/..')
     ##########################################
 
     def setup_dependencies(self):
         self.mpi4py = self.add_dependency(Mpi4py, required=True)
+        self.MPI = self.add_dependency(MPI, required=True)
 
     def gen_envs(self, loc):
         env = self.env.Clone()
