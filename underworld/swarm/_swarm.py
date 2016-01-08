@@ -177,23 +177,74 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         return libUnderworld.Function.SwarmInput(self._particleCoordinates._cself)
 
     def save(self, filename):
-        """ 
-        Save the swarm to the provided filename. Note that this is a
-        global method, ie. all processes must call it.
-        
-        File is saved using hdf5 file format.
         """
+        Save the swarm to disk.
+        
+        Parameters
+        ----------
+        filename : str
+            The filename for the saved file. Relative or absolute paths may be 
+            used, but all directories must exist.
+            
+        Notes
+        -----
+        This method must be called collectively by all processes.
+
+        Example
+        -------
+        First create the swarm, and populate with layout:
+
+        >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
+        >>> swarm = uw.swarm.Swarm(mesh)
+        >>> swarm.populate_using_layout(uw.swarm.layouts.PerCellGaussLayout(swarm,2))
+        
+        Let's save to a file:
+        
+        >>> swarm.save("saved_swarm.h5")
+        
+        Now let's try and reload. First create an empty swarm, and then load:
+        
+        >>> clone_swarm = uw.swarm.Swarm(mesh)
+        >>> clone_swarm.load( "saved_swarm.h5" )
+        
+        And let's check for equality:
+        
+        >>> import numpy as np
+        >>> np.allclose(swarm.particleCoordinates.data,clone_swarm.particleCoordinates.data)
+        True
+        
+        Let's clean up.
+        >>> import os; os.remove( "saved_swarm.h5" )
+    
+        """
+
         if not isinstance(filename, str):
             raise TypeError("Expected filename to be provided as a string")
 
         # just save the particle coordinates SwarmVariable
         self.particleCoordinates.save(filename)
 
-    def load( self, filename ):
+    def load( self, filename, verbose=False ):
         """
-        Load a swarm from hdf5 file.
-        Must run this before 'SwarmVariable' fields are loaded because this function
-        creates a mapping function required to read 'SwarmVariable' fields onto this swarm
+        Load a swarm from disk. Note that this must be called before any SwarmVariable
+        members can be loaded.
+        
+        Parameters
+        ----------
+        filename : str
+            The filename for the saved file. Relative or absolute paths may be 
+            used.
+        verbose : bool
+            Prints a swarm load progress bar.
+        
+        Notes
+        -----
+        This method must be called collectively by all processes.
+
+        Example
+        -------
+        Refer to example provided for 'save' method.
+        
         """
 
         if not isinstance(filename, str):
@@ -211,7 +262,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
 
-        if rank == 0:
+        if rank == 0 and verbose:
             bar = uw.utils.ProgressBar( start=0, end=dset.shape[0]-1, title="loading "+filename)
 
         valid = np.zeros(0, dtype='i') # array for read in
@@ -245,13 +296,11 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
             # append to valid            
             valid = np.append(valid, tmp)
 
-            if rank == 0:
+            if rank == 0 and verbose:
                 bar.update(chunkEnd)
 
         h5f.close()
         self._local2globalMap = valid
-
-        return valid
 
     def _invalidatelocal2globalmap(self):
         self._local2globalMap = None # set numpy array to None
