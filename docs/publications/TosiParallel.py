@@ -230,9 +230,9 @@ for index in mesh.specialSets["MaxJ_VertexSet"]:
 iWalls = mesh.specialSets["MinI_VertexSet"] + mesh.specialSets["MaxI_VertexSet"]
 jWalls = mesh.specialSets["MinJ_VertexSet"] + mesh.specialSets["MaxJ_VertexSet"]
 freeslipBC = uw.conditions.DirichletCondition( variable      = velocityField, 
-                                               nodeIndexSets = (iWalls, jWalls) )
+                                               indexSetsPerDof = (iWalls, jWalls) )
 tempBC     = uw.conditions.DirichletCondition( variable      = temperatureField, 
-                                               nodeIndexSets = (jWalls,) )
+                                               indexSetsPerDof = (jWalls,) )
 
 
 # Set up material parameters and functions

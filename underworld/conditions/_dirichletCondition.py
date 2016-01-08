@@ -41,7 +41,7 @@ class DirichletCondition(_SystemCondition):
     _objectsDict = { "_pyvc": "PythonVC" }
     _selfObjectName = "_pyvc"
 
-    def __init__(self, variable, nodeIndexSets):
+    def __init__(self, variable, indexSetsPerDof=None, nodeIndexSets=None):
         """
         Class initialiser.
         
@@ -49,21 +49,24 @@ class DirichletCondition(_SystemCondition):
         ----------
         variable : uw.meshvariable.MeshVariable
             This is the variable for which the Direchlet condition applies.
-        nodeIndexSets : list, tuple, IndexSet
+        indexSetsPerDof : list, tuple, IndexSet
             The index set(s) which flag nodes/DOFs as Dirichlet conditions.
             Note that the user must provide an index set for each degree of
             freedom of the variable.  So for a vector variable of rank 2 (say Vx & Vy),
             two index sets must be provided (say VxDofSet, VyDofSet).
         """
 
+        if nodeIndexSets: # Deprecate post mid 2016, remember to clean the function signture too
+            raise ValueError( "Parameter 'nodeIndexSets' has been renamed to 'indexSetsPerDof'. Please use indexSetsPerDof instead" )
+
         if not isinstance( variable, uw.meshvariable.MeshVariable ):
             raise TypeError("Provided variable must be of class 'MeshVariable'.")
         self._variable = variable
 
-        if isinstance( nodeIndexSets, uw.container.IndexSet):
-            indexSets = ( nodeIndexSets, )
-        elif isinstance( nodeIndexSets, (list,tuple)):
-            indexSets = nodeIndexSets
+        if isinstance( indexSetsPerDof, uw.container.IndexSet):
+            indexSets = ( indexSetsPerDof, )
+        elif isinstance( indexSetsPerDof, (list,tuple)):
+            indexSets = indexSetsPerDof
         else:
             raise TypeError("You must provide the required indexSet as an 'IndexSet' \n"+
                              "item, or as a list or tuple of 'IndexSet' items.")
