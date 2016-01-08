@@ -143,8 +143,8 @@ class SwarmAdvector(TimeIntegration):
         >>> from underworld import function as fn
         >>> dim=2;
         >>> elementMesh = uw.mesh.FeMesh_Cartesian(elementType="Q1/dQ0", elementRes=(9,9), minCoord=(-1.,-1.), maxCoord=(1.,1.))
-        >>> velocityField = uw.meshvariable.MeshVariable( feMesh=elementMesh, nodeDofCount=dim )
-        >>> swarm = uw.swarm.Swarm(feMesh=elementMesh)
+        >>> velocityField = uw.meshvariable.MeshVariable( mesh=elementMesh, nodeDofCount=dim )
+        >>> swarm = uw.swarm.Swarm(mesh=elementMesh)
         >>> particle = np.zeros((1,2))
         >>> particle[0] = [0.2,-0.2]
         >>> swarm.add_particles_with_coordinates(particle)

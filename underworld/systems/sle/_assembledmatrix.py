@@ -80,7 +80,7 @@ class AssembledMatrix(_stgermain.StgCompoundComponent):
             componentDictionary[ self._matrix.name ]["allowZeroElementContributions"] = "False"
         else:
             componentDictionary[ self._matrix.name ]["allowZeroElementContributions"] = "True"
-        componentDictionary[ self._matrix.name ]["dim"] = self._meshVariableCol._feMesh.generator.dim
+        componentDictionary[ self._matrix.name ]["dim"] = self._meshVariableCol._mesh.generator.dim
         if self._rhs:
             componentDictionary[ self._matrix.name ][         "RHS"] = self._rhs._cself.name
         if self._rhs_T:

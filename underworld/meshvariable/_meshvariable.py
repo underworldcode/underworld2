@@ -19,10 +19,10 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
 
     >>> # first create mesh
     >>> linearMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
-    >>> scalarFeVar = uw.meshvariable.MeshVariable( feMesh=linearMesh, nodeDofCount=1, dataType="double" )
+    >>> scalarFeVar = uw.meshvariable.MeshVariable( mesh=linearMesh, nodeDofCount=1, dataType="double" )
 
     or a vector meshvariable can be created
-    >>> vectorFeVar = uw.meshvariable.MeshVariable( feMesh=linearMesh, nodeDofCount=3, dataType="double" )
+    >>> vectorFeVar = uw.meshvariable.MeshVariable( mesh=linearMesh, nodeDofCount=3, dataType="double" )
 
     To set / read nodal values, use the numpy interface via the 'data' property.
 
@@ -34,11 +34,11 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
 
     _supportedDataTypes = ["char","short","int","float", "double"]
 
-    def __init__(self, feMesh, nodeDofCount, dataType="double", **kwargs):
+    def __init__(self, mesh, nodeDofCount, dataType="double", **kwargs):
         """
         Parameters:
         -----------
-            feMesh : FeMesh
+            mesh : FeMesh
             dataType : string (only option - 'double')
             nodeDofCount : int
 
@@ -46,9 +46,9 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
 
         """
 
-        if not isinstance(feMesh, uw.mesh.FeMesh):
-            raise TypeError("'feMesh' object passed in must be of type 'FeMesh'")
-        self._feMesh = feMesh
+        if not isinstance(mesh, uw.mesh.FeMesh):
+            raise TypeError("'mesh' object passed in must be of type 'FeMesh'")
+        self._mesh = mesh
 
         if not isinstance(dataType,str):
             raise TypeError("'dataType' object passed in must be of type 'str'")
@@ -85,11 +85,11 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         return self._nodeDofCount
 
     @property
-    def feMesh(self):
+    def mesh(self):
         """
-        feMesh (FeMesh): Supporting FeMesh for this MeshVariable.
+        mesh (FeMesh): Supporting FeMesh for this MeshVariable.
         """
-        return self._feMesh
+        return self._mesh
 
     @property
     def data(self):
@@ -106,7 +106,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         no data copying is required.
 
         >>> linearMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
-        >>> scalarFeVar = uw.meshvariable.MeshVariable( feMesh=linearMesh, nodeDofCount=1, dataType="double" )
+        >>> scalarFeVar = uw.meshvariable.MeshVariable( mesh=linearMesh, nodeDofCount=1, dataType="double" )
         >>> scalarFeVar.data.shape
         (289, 1)
 
@@ -127,7 +127,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         # call parents method
         super(MeshVariable,self)._add_to_stg_dict(componentDictionary)
 
-        componentDictionary[ self._cmeshvariable.name ]["mesh"]                 = self._feMesh._cself.name
+        componentDictionary[ self._cmeshvariable.name ]["mesh"]                 = self._mesh._cself.name
         componentDictionary[ self._cmeshvariable.name ]["Rank"]                 = "Vector"
         componentDictionary[ self._cmeshvariable.name ]["DataType"]             = self.dataType
         componentDictionary[ self._cmeshvariable.name ]["VectorComponentCount"] = self.nodeDofCount
@@ -137,10 +137,10 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
 
         componentDictionary[ self._doflayout.name    ]["MeshVariable"]         = self._cmeshvariable.name
 
-        componentDictionary[ self._meshvariable.name   ]["FEMesh"]               = self._feMesh._cself.name
+        componentDictionary[ self._meshvariable.name   ]["FEMesh"]               = self._mesh._cself.name
         componentDictionary[ self._meshvariable.name   ]["DofLayout"]            = self._doflayout.name
         componentDictionary[ self._meshvariable.name   ]["fieldComponentCount"]  = self.nodeDofCount
-        componentDictionary[ self._meshvariable.name   ]["dim"]                  = self._feMesh.generator.dim
+        componentDictionary[ self._meshvariable.name   ]["dim"]                  = self._mesh.generator.dim
 
     def _setup(self):
         # now actually setup function guy
@@ -209,7 +209,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         if not isinstance(deepcopy, bool):
             raise TypeError("'deepcopy' parameter is expected to be of type 'bool'.")
 
-        newFe = MeshVariable(self.feMesh, self.nodeDofCount, self.dataType)
+        newFe = MeshVariable(self.mesh, self.nodeDofCount, self.dataType)
 
         if deepcopy:
             newFe.data[:] = self.data[:]

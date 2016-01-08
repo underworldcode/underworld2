@@ -126,7 +126,7 @@ class ConstitutiveMatrixTerm(MatrixAssemblyTerm):
         # call parents method
         super(ConstitutiveMatrixTerm,self)._add_to_stg_dict(componentDictionary)
 
-        componentDictionary[ self._cself.name ]["dim"] = self._integrationSwarm._feMesh.dim
+        componentDictionary[ self._cself.name ]["dim"] = self._integrationSwarm._mesh.dim
 
     def _setup(self):
         # lets setup fn tings

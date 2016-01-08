@@ -78,7 +78,7 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
         self._phiDotField = phiDotField
 
         # check compatibility of phiField and velocityField
-        if velocityField.data.shape[1] != self._phiField.feMesh.dim:
+        if velocityField.data.shape[1] != self._phiField.mesh.dim:
             raise TypeError( "Provided 'velocityField' must be the same dimensionality as the phiField's mesh" )
         self._velocityField = velocityField
 
@@ -104,7 +104,7 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
         self._massVector     = sle.AssembledVector(phiField)
 
         # create swarm
-        self._gaussSwarm = uw.swarm.GaussIntegrationSwarm(self._phiField.feMesh)
+        self._gaussSwarm = uw.swarm.GaussIntegrationSwarm(self._phiField.mesh)
 
         super(AdvectionDiffusion, self).__init__(**kwargs)
 
@@ -118,7 +118,7 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
         componentDictionary[ self._cself.name ][     "Residual"] = self._residualVector._cself.name
         componentDictionary[ self._cself.name ][   "MassMatrix"] = self._massVector._cself.name
         componentDictionary[ self._cself.name ][  "PhiDotField"] = self._phiDotField._cself.name
-        componentDictionary[ self._cself.name ][          "dim"] = self._phiField.feMesh.dim
+        componentDictionary[ self._cself.name ][          "dim"] = self._phiField.mesh.dim
         componentDictionary[ self._cself.name ]["courantFactor"] = self._courantFactor
 
     def _setup(self):

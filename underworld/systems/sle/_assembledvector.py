@@ -64,7 +64,7 @@ class AssembledVector(_stgermain.StgCompoundComponent):
         super(AssembledVector,self)._add_to_stg_dict(componentDictionary)
         
         componentDictionary[ self._vector.name ]["FeVariable"] = self._meshVariable._cself.name
-        componentDictionary[ self._vector.name ][       "dim"] = self._meshVariable.feMesh.generator.dim
+        componentDictionary[ self._vector.name ][       "dim"] = self._meshVariable.mesh.generator.dim
 
 #    def _setup(self):
 #        # add terms to vector

@@ -113,10 +113,10 @@ mesh = uw.mesh.FeMesh_Cartesian( elementType = ("Q1/dQ0"),
                                  minCoord    = (0., 0.), 
                                  maxCoord    = (1., 1.))
 
-velocityField       = uw.meshvariable.MeshVariable( feMesh=mesh,         nodeDofCount=2 )
-pressureField       = uw.meshvariable.MeshVariable( feMesh=mesh.subMesh, nodeDofCount=1 )
-temperatureField    = uw.meshvariable.MeshVariable( feMesh=mesh,         nodeDofCount=1 )
-temperatureDotField = uw.meshvariable.MeshVariable( feMesh=mesh,         nodeDofCount=1 )
+velocityField       = uw.meshvariable.MeshVariable( mesh=mesh,         nodeDofCount=2 )
+pressureField       = uw.meshvariable.MeshVariable( mesh=mesh.subMesh, nodeDofCount=1 )
+temperatureField    = uw.meshvariable.MeshVariable( mesh=mesh,         nodeDofCount=1 )
+temperatureDotField = uw.meshvariable.MeshVariable( mesh=mesh,         nodeDofCount=1 )
 
 
 # Set initial conditions and boundary conditions
@@ -145,10 +145,10 @@ if(LoadFromFile == True):
                                        elementRes  = (savedRes, savedRes), 
                                        minCoord    = (0., 0.), 
                                        maxCoord    = (1., 1.) )
-    temperatureFieldSaved    = uw.meshvariable.MeshVariable( feMesh=meshSaved,         nodeDofCount=1 )
-    temperatureDotFieldSaved = uw.meshvariable.MeshVariable( feMesh=meshSaved,         nodeDofCount=1 )
-    pressureFieldSaved       = uw.meshvariable.MeshVariable( feMesh=meshSaved.subMesh, nodeDofCount=1 )
-    velocityFieldSaved       = uw.meshvariable.MeshVariable( feMesh=meshSaved,         nodeDofCount=2 )
+    temperatureFieldSaved    = uw.meshvariable.MeshVariable( mesh=meshSaved,         nodeDofCount=1 )
+    temperatureDotFieldSaved = uw.meshvariable.MeshVariable( mesh=meshSaved,         nodeDofCount=1 )
+    pressureFieldSaved       = uw.meshvariable.MeshVariable( mesh=meshSaved.subMesh, nodeDofCount=1 )
+    velocityFieldSaved       = uw.meshvariable.MeshVariable( mesh=meshSaved,         nodeDofCount=2 )
 
     temperatureFieldSaved.load(    inputPath+'temperatureField.h5' )
     temperatureDotFieldSaved.load( inputPath+'temperatureDotField.h5' )

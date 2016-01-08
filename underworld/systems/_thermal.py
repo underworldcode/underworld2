@@ -108,7 +108,7 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
         self._kmatrix = sle.AssembledMatrix( temperatureField, temperatureField, rhs=self._fvector )
 
         # create swarm
-        self._gaussSwarm = uw.swarm.GaussIntegrationSwarm(self._temperatureField.feMesh)
+        self._gaussSwarm = uw.swarm.GaussIntegrationSwarm(self._temperatureField.mesh)
         self._PICSwarm = None
         if self._swarm:
             self._PICSwarm = uw.swarm.PICIntegrationSwarm(self._swarm)

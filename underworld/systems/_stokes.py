@@ -30,7 +30,7 @@ class Stokes(_stgermain.StgCompoundComponent):
 
         if not isinstance( velocityField, uw.meshvariable.MeshVariable):
             raise TypeError( "Provided 'velocityField' must be of 'MeshVariable' class." )
-        if velocityField.nodeDofCount != velocityField.feMesh.dim:
+        if velocityField.nodeDofCount != velocityField.mesh.dim:
             raise ValueError( "Provided 'velocityField' must be a vector field of same dimensionality as its mesh." )
         self._velocityField = velocityField
         if not isinstance( pressureField, uw.meshvariable.MeshVariable):
@@ -89,7 +89,7 @@ class Stokes(_stgermain.StgCompoundComponent):
         self._preconditioner = sle.AssembledMatrix( pressureField, pressureField, rhs=self._hvector, allowZeroContrib=True )
         
         # create swarm
-        self._gaussSwarm = uw.swarm.GaussIntegrationSwarm(self._velocityField.feMesh)
+        self._gaussSwarm = uw.swarm.GaussIntegrationSwarm(self._velocityField.mesh)
         self._PICSwarm = None
         if self._swarm:
             self._PICSwarm = uw.swarm.PICIntegrationSwarm(self._swarm)

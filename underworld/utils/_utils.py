@@ -62,7 +62,7 @@ class Integral(_stgermain.StgCompoundComponent):
         if not mesh:
             raise ValueError("A mesh object must be provided")
         if not isinstance(mesh, uw.mesh.FeMesh):
-            raise TypeError("'feMesh' object passed in must be of type 'FeMesh'")
+            raise TypeError("'mesh' object passed in must be of type 'FeMesh'")
         self._mesh = mesh
         self._cself.mesh = self._mesh._cself
         
@@ -224,7 +224,7 @@ def _fieldschema((field_name, field), filename, elementMesh ):
 
     dof_count = field.data.shape[1]
     variableType = "NumberType=\"Float\" Precision=\"8\""
-    nodesGlobal = field.feMesh.nodesGlobal
+    nodesGlobal = field.mesh.nodesGlobal
     offset = 0 #OK: Temporary to get 3D running
 
     # get the location of the field nodes on the mesh
@@ -281,7 +281,7 @@ def xdmf_write( objects, mesh, outputDir='./output', time=None):
         paired MeshVariables in the XDMF output. Eg: {'vField': foo, 'pField: foo2 }
         MeshVariable foo will be labelled 'vField', MeshVariable foo2 will be labelled 'pField'
     
-    mesh : feMesh
+    mesh : mesh
         The elementMesh that all fields are defined over
     
     time : scalar
@@ -362,7 +362,7 @@ def xdmf_write( objects, mesh, outputDir='./output', time=None):
         fieldFN = outputDir+"/{}.".format(k)+uniId+".h5"
         
         # not sure multi meshes work so far - further testing required
-        #if( feVar.feMesh != mesh ):
+        #if( feVar.mesh != mesh ):
         #    raise RuntimeError("Unexpected mesh, {} xmf writer needs further implementation\n".format(k)+
         #                       "to handle multiple meshes.\n")
         

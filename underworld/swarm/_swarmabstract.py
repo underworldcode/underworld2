@@ -8,7 +8,7 @@
 ##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
 import underworld as uw
 import underworld._stgermain as _stgermain
-import underworld.mesh as mesh
+#import underworld.mesh as mesh
 import weakref
 import libUnderworld
 import _swarmvariable as svar
@@ -29,17 +29,17 @@ class SwarmAbstract(_stgermain.StgCompoundComponent):
 
     _supportedDataTypes = ["char","short","int","float", "double"]
 
-    def __init__(self, feMesh, **kwargs):
+    def __init__(self, mesh, **kwargs):
         """
         Parameters
         ----------
-        feMesh : uw.mesh.FeMesh
-            The FeMesh the swarm is supported by. See Swarm.feMesh property docstring
+        mesh : uw.mesh.FeMesh
+            The FeMesh the swarm is supported by. See Swarm.mesh property docstring
             for further information.
         """
-        if not isinstance(feMesh, mesh.FeMesh):
-            raise TypeError("'feMesh' object passed in must be of type 'FeMesh'")
-        self._feMesh = feMesh
+        if not isinstance(mesh, uw.mesh.FeMesh):
+            raise TypeError("'mesh' object passed in must be of type 'FeMesh'")
+        self._mesh = mesh
 
         # lets init these guy
         self._variables = []
@@ -49,14 +49,14 @@ class SwarmAbstract(_stgermain.StgCompoundComponent):
         super(SwarmAbstract,self).__init__(**kwargs)
 
     @property
-    def feMesh(self):
+    def mesh(self):
         """    
-        feMesh (FeMesh): Supporting FeMesh for this Swarm. All swarms are required to be
+        mesh (FeMesh): Supporting FeMesh for this Swarm. All swarms are required to be
             supported by mesh (or similar) objects, which provide the data structures
             necessary for efficient particle locating/tracking, as well as the necessary
             mechanism for the swarm parallel decomposition.
         """
-        return self._feMesh
+        return self._mesh
 
     def _setup(self):
         # add coord swarm variable now (if available)
@@ -101,12 +101,12 @@ class SwarmAbstract(_stgermain.StgCompoundComponent):
         # call parents method
 
         super(SwarmAbstract,self)._add_to_stg_dict(componentDictionary)
-        componentDictionary[ self._swarm.name ][                 "dim"] = self._feMesh.dim
+        componentDictionary[ self._swarm.name ][                 "dim"] = self._mesh.dim
         componentDictionary[ self._swarm.name ][          "CellLayout"] = self._cellLayout.name
         componentDictionary[ self._swarm.name ][      "createGlobalId"] = False
-        componentDictionary[ self._swarm.name ][              "FeMesh"] = self._feMesh._cself.name
+        componentDictionary[ self._swarm.name ][              "FeMesh"] = self._mesh._cself.name
 
-        componentDictionary[ self._cellLayout.name ]["Mesh"]            = self._feMesh._cself.name
+        componentDictionary[ self._cellLayout.name ]["Mesh"]            = self._mesh._cself.name
 
     def add_variable(self, dataType, count):
         """ 

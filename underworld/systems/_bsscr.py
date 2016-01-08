@@ -75,7 +75,7 @@ class OptionsMG(Options):
         else:
             levels=1
             lvls=[] 
-            res_tuple=field.feMesh.elementRes
+            res_tuple=field.mesh.elementRes
             for res in res_tuple:
                 levels=1
                 while res%2 == 0:
@@ -379,7 +379,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         # create assembly terms
         self._velocMassMatTerm = sle.VelocityMassMatrixTerm( integrationSwarm=stokesSLE._gaussSwarm, assembledObject=self._vmmatrix)
         self._pressMassMatTerm = sle.PressureMassMatrixTerm( integrationSwarm=stokesSLE._gaussSwarm, assembledObject=self._mmatrix,
-                                                             mesh = velocityField._feMesh)
+                                                             mesh = velocityField._mesh)
         
         # attach terms to live solver struct
         self._cself.vmForceVec = self._vmfvector._cself
