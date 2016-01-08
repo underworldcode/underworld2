@@ -94,8 +94,8 @@ class SwarmAdvector(TimeIntegration):
 
         Parameters
         ----------
-        velocityField : FeVariable
-            The FeVariable field used for evaluating the velocity field that advects the swarm particles
+        velocityField : MeshVariable
+            The MeshVariable field used for evaluating the velocity field that advects the swarm particles
 
         swarm : Swarm
             Particle swarm that will be advected by the given velocity field
@@ -107,8 +107,8 @@ class SwarmAdvector(TimeIntegration):
 
         """
 
-        if not isinstance( velocityField, uw.fevariable.FeVariable):
-            raise ValueError( "Provided 'velocityField' must be of 'FeVariable' class." )
+        if not isinstance( velocityField, uw.meshvariable.MeshVariable):
+            raise ValueError( "Provided 'velocityField' must be of 'MeshVariable' class." )
         self._velocityField = velocityField
 
         if swarm and not isinstance(swarm, uw.swarm.Swarm):
@@ -143,7 +143,7 @@ class SwarmAdvector(TimeIntegration):
         >>> from underworld import function as fn
         >>> dim=2;
         >>> elementMesh = uw.mesh.FeMesh_Cartesian(elementType="Q1/dQ0", elementRes=(9,9), minCoord=(-1.,-1.), maxCoord=(1.,1.))
-        >>> velocityField = uw.fevariable.FeVariable( feMesh=elementMesh, nodeDofCount=dim )
+        >>> velocityField = uw.meshvariable.MeshVariable( feMesh=elementMesh, nodeDofCount=dim )
         >>> swarm = uw.swarm.Swarm(feMesh=elementMesh)
         >>> particle = np.zeros((1,2))
         >>> particle[0] = [0.2,-0.2]

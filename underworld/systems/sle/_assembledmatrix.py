@@ -17,24 +17,24 @@ class AssembledMatrix(_stgermain.StgCompoundComponent):
     _objectsDict = { "_matrix": "StiffnessMatrix" }
     _selfObjectName = "_matrix"
 
-#    def __init__(self, feVariableRow, feVariableCol, assemblyTerms=[], rhs=None, rhs_T=None, **kwargs):
-    def __init__(self, feVariableRow, feVariableCol, rhs=None, rhs_T=None, allowZeroContrib=False, **kwargs):
+#    def __init__(self, meshVariableRow, meshVariableCol, assemblyTerms=[], rhs=None, rhs_T=None, **kwargs):
+    def __init__(self, meshVariableRow, meshVariableCol, rhs=None, rhs_T=None, allowZeroContrib=False, **kwargs):
         """
         Args:
-            feVariableRow (FeVariable)
-            feVariableCol (FeVariable)
+            meshVariableRow (MeshVariable)
+            meshVariableCol (MeshVariable)
 
         See property docstrings for further information on each argument.
         
         """
         
-        if not isinstance(feVariableRow, uw.fevariable.FeVariable):
-            raise TypeError("'fevariableRow' object passed in must be of type 'FeVariable'")
+        if not isinstance(meshVariableRow, uw.meshvariable.MeshVariable):
+            raise TypeError("'meshvariableRow' object passed in must be of type 'MeshVariable'")
 
-        if not isinstance(feVariableCol, uw.fevariable.FeVariable):
-            raise TypeError("'fevariableCol' object passed in must be of type 'FeVariable'")
-        self._feVariableRow = feVariableRow
-        self._feVariableCol = feVariableCol
+        if not isinstance(meshVariableCol, uw.meshvariable.MeshVariable):
+            raise TypeError("'meshvariableCol' object passed in must be of type 'MeshVariable'")
+        self._meshVariableRow = meshVariableRow
+        self._meshVariableCol = meshVariableCol
 
 
         if rhs and not isinstance(rhs, _assembledvector.AssembledVector):
@@ -58,29 +58,29 @@ class AssembledMatrix(_stgermain.StgCompoundComponent):
         
 
     @property
-    def feVariableRow(self):
+    def meshVariableRow(self):
         """    
-        feVariableRow (FeVariable): FeVariable object for matrix row.
+        meshVariableRow (MeshVariable): MeshVariable object for matrix row.
         """
-        return self._feVariableRow
+        return self._meshVariableRow
     @property
-    def feVariableCol(self):
+    def meshVariableCol(self):
         """    
-        feVariableCol (FeVariable): FeVariable object for matrix xol.
+        meshVariableCol (MeshVariable): MeshVariable object for matrix xol.
         """
-        return self._feVariableCol
+        return self._meshVariableCol
 
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method
         super(AssembledMatrix,self)._add_to_stg_dict(componentDictionary)
         
-        componentDictionary[ self._matrix.name ][   "RowVariable"] = self._feVariableRow._cself.name
-        componentDictionary[ self._matrix.name ]["ColumnVariable"] = self._feVariableCol._cself.name
+        componentDictionary[ self._matrix.name ][   "RowVariable"] = self._meshVariableRow._cself.name
+        componentDictionary[ self._matrix.name ]["ColumnVariable"] = self._meshVariableCol._cself.name
         if self.allowZeroContrib == False:
             componentDictionary[ self._matrix.name ]["allowZeroElementContributions"] = "False"
         else:
             componentDictionary[ self._matrix.name ]["allowZeroElementContributions"] = "True"
-        componentDictionary[ self._matrix.name ]["dim"] = self._feVariableCol._feMesh.generator.dim
+        componentDictionary[ self._matrix.name ]["dim"] = self._meshVariableCol._feMesh.generator.dim
         if self._rhs:
             componentDictionary[ self._matrix.name ][         "RHS"] = self._rhs._cself.name
         if self._rhs_T:

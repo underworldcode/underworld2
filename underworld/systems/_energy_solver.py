@@ -26,8 +26,8 @@ class HeatSolver(_stgermain.StgCompoundComponent):
             raise TypeError("Provided system must be of 'SteadyStateHeat' class")
         self._heatSLE=heatSLE
         self._temperatureField=heatSLE._temperatureField
-        if not isinstance( heatSLE._temperatureField, uw.fevariable.FeVariable):
-            raise TypeError( "Provided 'temperatureField' must be of 'FeVariable' class." )
+        if not isinstance( heatSLE._temperatureField, uw.meshvariable.MeshVariable):
+            raise TypeError( "Provided 'temperatureField' must be of 'MeshVariable' class." )
         # create solutions vector
         self._temperatureSol = sle.SolutionVector(heatSLE._temperatureField)
         if not isinstance(rtolerance, float):

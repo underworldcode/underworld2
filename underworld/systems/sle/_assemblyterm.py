@@ -189,8 +189,8 @@ class AdvDiffResidualVectorTerm(VectorAssemblyTerm):
 
     def __init__( self, velocityField, diffusivity, **kwargs ):
 
-        if not isinstance( velocityField, uw.fevariable.FeVariable):
-            raise TypeError( "Provided 'velocityField' must be of 'FeVariable' class." )
+        if not isinstance( velocityField, uw.meshvariable.MeshVariable):
+            raise TypeError( "Provided 'velocityField' must be of 'MeshVariable' class." )
         self._velocityField = velocityField
 
         if not isinstance( diffusivity, (int,float) ):

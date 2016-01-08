@@ -6,10 +6,10 @@ linearMesh = uw.mesh.FeMesh_Cartesian("Q2/dQ1", (32,32), (0.,0.), (1.,1.))
 
 constantMesh = linearMesh.subMesh
 
-velocityField = uw.fevariable.FeVariable(linearMesh,2)
+velocityField = uw.meshvariable.MeshVariable(linearMesh,2)
 velocityField.data[:] = (0.,0.)
 
-pressureField = uw.fevariable.FeVariable(constantMesh,1)
+pressureField = uw.meshvariable.MeshVariable(constantMesh,1)
 pressureField.data[:] = 0.
 
 # freeslip

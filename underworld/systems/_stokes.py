@@ -28,13 +28,13 @@ class Stokes(_stgermain.StgCompoundComponent):
 
     def __init__(self, velocityField, pressureField, viscosityFn, bodyForceFn=None, swarm=None, conditions=[], rtolerance=1.0e-5, **kwargs):
 
-        if not isinstance( velocityField, uw.fevariable.FeVariable):
-            raise TypeError( "Provided 'velocityField' must be of 'FeVariable' class." )
+        if not isinstance( velocityField, uw.meshvariable.MeshVariable):
+            raise TypeError( "Provided 'velocityField' must be of 'MeshVariable' class." )
         if velocityField.nodeDofCount != velocityField.feMesh.dim:
             raise ValueError( "Provided 'velocityField' must be a vector field of same dimensionality as its mesh." )
         self._velocityField = velocityField
-        if not isinstance( pressureField, uw.fevariable.FeVariable):
-            raise TypeError( "Provided 'pressureField' must be of 'FeVariable' class." )
+        if not isinstance( pressureField, uw.meshvariable.MeshVariable):
+            raise TypeError( "Provided 'pressureField' must be of 'MeshVariable' class." )
         if pressureField.nodeDofCount != 1:
             raise ValueError( "Provided 'pressureField' must be a scalar field (ie pressureField.nodeDofCount==1)." )
         self._pressureField = pressureField

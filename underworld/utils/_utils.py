@@ -9,7 +9,7 @@
 import underworld as uw
 import underworld._stgermain as _stgermain
 import underworld.mesh as mesh
-import underworld.fevariable as fevariable
+import underworld.meshvariable as meshvariable
 import underworld.function
 import libUnderworld
 import libUnderworld.libUnderworldPy.Function as _cfn
@@ -102,18 +102,18 @@ class Integral(_stgermain.StgCompoundComponent):
                     inSet = int(guy) in allBoundaryNodes
                     if not inSet:
                         raise ValueError("Your surfaceIndexSet appears to contain node(s) which do not belong to the mesh boundary. Surface integration across internal nodes is not currently supported.")
-                # create feVariable
-                deltaFeVariable = uw.fevariable.FeVariable(mesh, 1)
+                # create meshVariable
+                deltaMeshVariable = uw.meshvariable.MeshVariable(mesh, 1)
                 # init to zero
-                deltaFeVariable.data[:] = 0.
+                deltaMeshVariable.data[:] = 0.
                 # set to 1 on provided vertices
-                deltaFeVariable.data[surfaceIndexSet.data] = 1.
+                deltaMeshVariable.data[surfaceIndexSet.data] = 1.
                 # replace fn with delta*fn
                 # note that we need to use this condition so that we only capture border swarm particles
-                # on the surface itself. for those directly adjacent, the deltaFeVariable will evaluate
+                # on the surface itself. for those directly adjacent, the deltaMeshVariable will evaluate
                 # to non-zero (but less than 1.), so we need to remove those from the integration as well.
                 self._maskFn = underworld.function.branching.conditional(
-                                                  [  ( deltaFeVariable > 0.999, 1. ),
+                                                  [  ( deltaMeshVariable > 0.999, 1. ),
                                                      (                    True, 0. )   ] )
                 self._fn = self._fn * self._maskFn
                 integrationSwarm = uw.swarm.GaussBorderIntegrationSwarm(mesh)
@@ -209,14 +209,14 @@ def _spacetimeschema( elementMesh, time, filename ):
 
 def _fieldschema((field_name, field), filename, elementMesh ):
     """
-    Writes output the xmf portion for a FeVariable
+    Writes output the xmf portion for a MeshVariable
     """
 
     # Error check
     if not isinstance(field_name, str):
         raise TypeError("'field_name', must be of type str")
-    if not isinstance(field, uw.fevariable.FeVariable):
-        raise TypeError("'field', must be of type FeVariable")
+    if not isinstance(field, uw.meshvariable.MeshVariable):
+        raise TypeError("'field', must be of type MeshVariable")
     if not isinstance(filename, str):
         raise TypeError("'field_name', must be of type str")
     if not isinstance(elementMesh, uw.mesh.FeMesh):
@@ -277,9 +277,9 @@ def xdmf_write( objects, mesh, outputDir='./output', time=None):
     Parameters
     ----------
     objects : dict
-        Dictionary containing strings that map to FeVariables. The strings label the 
-        paired FeVariables in the XDMF output. Eg: {'vField': foo, 'pField: foo2 }
-        FeVariable foo will be labelled 'vField', FeVariable foo2 will be labelled 'pField'
+        Dictionary containing strings that map to MeshVariables. The strings label the 
+        paired MeshVariables in the XDMF output. Eg: {'vField': foo, 'pField: foo2 }
+        MeshVariable foo will be labelled 'vField', MeshVariable foo2 will be labelled 'pField'
     
     mesh : feMesh
         The elementMesh that all fields are defined over
@@ -307,8 +307,8 @@ def xdmf_write( objects, mesh, outputDir='./output', time=None):
     for (k,v) in objects.items():
         if not isinstance(k, str):
             raise TypeError("'objects' keys must be of type 'str'")
-        if not isinstance(v, uw.fevariable.FeVariable):
-            raise TypeError("object with key '{}' must be of type 'FeVariable'".format(k))
+        if not isinstance(v, uw.meshvariable.MeshVariable):
+            raise TypeError("object with key '{}' must be of type 'MeshVariable'".format(k))
              
     # test 'mesh' arg
     if not isinstance(mesh, uw.mesh.FeMesh):
