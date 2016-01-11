@@ -366,7 +366,6 @@ def _createMeshName( mesh, outputDir='./output', time=None):
     else:
         return outputDir + "/Mesh_"+st+str(time)+".h5"
 
-
 class LogBook(object):
     """
     Class for recording Underworld information onto disk
