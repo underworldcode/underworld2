@@ -14,6 +14,8 @@ import _swarmvariable as svar
 import underworld.function as function
 import libUnderworld
 import underworld as uw
+from mpi4py import MPI
+import h5py
 
 
 class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Save):
@@ -48,6 +50,9 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
     array([0], dtype=int32)
 
     """
+    # numpy array to map local particle indices to global indicies, used for loading from file
+    _local2globalMap = None
+
     _objectsDict = {            "_swarm": "GeneralSwarm",
                           "_cellLayout" : "ElementCellLayout",
                     "_pMovementHandler" : "ParticleMovementHandler",
@@ -180,14 +185,88 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         """
         if not isinstance(filename, str):
             raise TypeError("Expected filename to be provided as a string")
-        libUnderworld.StgDomain.Swarm_DumpToHDF5( self._cself, filename )
 
+        # just save the particle coordinates SwarmVariable
+        self.particleCoordinates.save(filename)
 
+    def load( self, filename ):
+        """
+        Load a swarm from hdf5 file.
+        Must run this before 'SwarmVariable' fields are loaded because this function
+        creates a mapping function required to read 'SwarmVariable' fields onto this swarm
+        """
 
+        if not isinstance(filename, str):
+            raise TypeError("Expected 'filename' to be provided as a string")
 
+        # open hdf5 file
+        h5f = h5py.File(name=filename, mode="r", driver='mpio', comm=MPI.COMM_WORLD)
 
+        dset = h5f.get('data')
+        if dset == None:
+            raise RuntimeError("Can't find 'data' in file '{0}'.\n".format(filename))
+        if dset.shape[1] != self.particleCoordinates.data.shape[1]:
+            raise RuntimeError("Cannot load file data on current swarm. Data in file '{0}', " \
+                               "has {1} components -the particlesCoords has {2} components".format(filename, dset.shape[1], self.particleCoordinates.data.shape[1]))
+        comm = MPI.COMM_WORLD
+        rank = comm.Get_rank()
 
+        if rank == 0:
+            bar = uw.utils.ProgressBar( start=0, end=dset.shape[0]-1, title="loading "+filename)
 
+        valid = np.zeros(0, dtype='i') # array for read in
+        chunk=int(1e4) # read in this many points at a time
 
+        (multiples, remainder) = divmod( dset.shape[0], chunk )
+        for ii in xrange(multiples+1):
+            # setup the points to begin and end reading in 
+            chunkStart = ii*chunk
+            if ii == multiples:
+                chunkEnd = chunkStart + remainder
+                if remainder == 0: # in the case remainder is 0 
+                    break
+            else:
+                chunkEnd = chunkStart + chunk
+            
+            # add particles to swarm, ztmp is the corresponding local array
+            # non-local particles are not added and their ztmp index is -1
+            ztmp = self.add_particles_with_coordinates(dset[ chunkStart : chunkEnd ])
+            tmp = np.copy(ztmp) # copy because ztmp is 'readonly'
 
+            # slice out -neg bits and make the local indices global
+            it = np.nditer(tmp, op_flags=['readwrite'], flags=['f_index'])
+            while not it.finished:
+                if it[0] >= 0:
+                    it[0] = chunkStart+it.index # local to global
+                it.iternext()
 
+            # slice out -neg bits
+            tmp = tmp[tmp[:]>=0]
+            # append to valid            
+            valid = np.append(valid, tmp)
+
+            if rank == 0:
+                bar.update(chunkEnd)
+
+        h5f.close()
+        self._local2globalMap = valid
+
+        return valid
+
+    def _invalidatelocal2globalmap(self):
+        self._local2globalMap = None # set numpy array to None
+
+    @property
+    def particleGlobalCount(self):
+        """
+        Returns the global number (across all processors) of particles in the swarm
+        """
+
+        # setup mpi basic vars
+        comm = MPI.COMM_WORLD
+        rank = comm.Get_rank()
+        nProcs = comm.Get_size()
+
+        # allgather the number of particles each proc has
+        procCount = comm.allgather(self.particleLocalCount)
+        return sum(procCount)

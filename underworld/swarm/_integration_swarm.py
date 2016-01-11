@@ -83,6 +83,8 @@ class PICIntegrationSwarm(IntegrationSwarm):
         This method repopulates the PIC swarm using the provided
         global swarm. The weights are also recalculated.
         """
+
+        self._mappedSwarm._invalidatelocal2globalmap() # invalidate as population control will mess it
         libUnderworld.PICellerator._CoincidentMapper_Map( self._mapper )
         libUnderworld.PICellerator.WeightsCalculator_CalculateAll( self._weights._cself, self._cself )
         libUnderworld.PICellerator.IntegrationPointsSwarm_ClearSwarmMaps( self._cself )
