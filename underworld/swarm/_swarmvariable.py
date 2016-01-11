@@ -184,12 +184,33 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         return arrayguy
 
     def load( self, filename ):
+        """
+        Load the swarm variable from disk. This must be called *after* the swarm.load().
+        
+        Parameters
+        ----------
+        filename : str
+            The filename for the saved file. Relative or absolute paths may be 
+            used, but all directories must exist.
+            
+        Notes
+        -----
+        This method must be called collectively by all processes.
+        
+
+        Example
+        -------
+        Refer to example provided for 'save' method.
+        
+        """
+
         if not isinstance(filename, str):
             raise TypeError("Expected 'filename' to be provided as a string")
         
         gIds = self.swarm._local2globalMap
         if not isinstance(gIds, np.ndarray):
-            raise RuntimeError("'Swarm' associate with this 'SwarmVariable' doesn't have a valid '_local2globalMap'")
+            raise RuntimeError("'Swarm' associate with this 'SwarmVariable' doesn't have a valid '_local2globalMap'.\n" \
+                               "Please ensure that you have loaded the swarm prior to loading any swarm variables.")
 
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
@@ -235,10 +256,58 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         h5f.close();
 
 
-    def save( self, filename, swarmfilepath=None ):
+    def save( self, filename, swarmFilepath=None ):
+        """
+        Save the swarm variable to disk.
+        
+        Parameters
+        ----------
+        filename : str
+            The filename for the saved file. Relative or absolute paths may be 
+            used, but all directories must exist.
+        swarmFilepath : str (optional)
+            Path to the save swarm file. If provided, a softlink is created within
+            the swarm variable file to the swarm file.
+            
+        Notes
+        -----
+        This method must be called collectively by all processes.
+
+        Example
+        -------
+        First create the swarm, populate, then add a variable:
+
+        >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
+        >>> swarm = uw.swarm.Swarm(mesh)
+        >>> swarm.populate_using_layout(uw.swarm.layouts.PerCellGaussLayout(swarm,2))
+        >>> svar = swarm.add_variable("int",1)
+        
+        Write something to variable
+        
+        >>> import numpy as np
+        >>> svar.data[:] = np.arange(swarm.particleLocalCount)
+        
+        Save to a file:
+        
+        >>> svar.save("saved_swarm_variable.h5")
+        
+        Now let's try and reload. First create a new swarm variable, and then load:
+        
+        >>> clone_svar = swarm.add_variable("int",1)
+        >>> clone_svar.load( "saved_swarm_variable.h5" )
+        
+        Now check for equality:
+        
+        >>> import numpy as np
+        >>> np.allclose(svar.data,clone_svar.particleCoordinates.data)
+        True
+        
+        Clean up:
+        >>> if uw.rank == 0: import os; os.remove( "saved_swarm_variable.h5" )
+    
+        """
         if not isinstance(filename, str):
             raise TypeError("Expected 'filename' to be provided as a string")
-
 
         # setup mpi basic vars
         comm = MPI.COMM_WORLD

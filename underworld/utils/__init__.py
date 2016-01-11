@@ -8,7 +8,7 @@
 ##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
 
 """
-Various utilities classes & functions.
+Various utility classes & functions.
 
 """
 

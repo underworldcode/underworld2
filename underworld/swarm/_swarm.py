@@ -50,8 +50,6 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
     array([0], dtype=int32)
 
     """
-    # numpy array to map local particle indices to global indicies, used for loading from file
-    _local2globalMap = None
 
     _objectsDict = {            "_swarm": "GeneralSwarm",
                           "_cellLayout" : "ElementCellLayout",
@@ -74,6 +72,9 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         self._PICSwarm = None
         
         self.particleEscape = particleEscape
+
+        # numpy array to map local particle indices to global indicies, used for loading from file
+        _local2globalMap = None
 
         # build parent
         super(Swarm,self).__init__(feMesh, **kwargs)
@@ -198,7 +199,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         >>> swarm = uw.swarm.Swarm(mesh)
         >>> swarm.populate_using_layout(uw.swarm.layouts.PerCellGaussLayout(swarm,2))
         
-        Let's save to a file:
+        Save to a file:
         
         >>> swarm.save("saved_swarm.h5")
         
@@ -207,14 +208,14 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         >>> clone_swarm = uw.swarm.Swarm(mesh)
         >>> clone_swarm.load( "saved_swarm.h5" )
         
-        And let's check for equality:
+        Now check for equality:
         
         >>> import numpy as np
         >>> np.allclose(swarm.particleCoordinates.data,clone_swarm.particleCoordinates.data)
         True
         
-        Let's clean up.
-        >>> import os; os.remove( "saved_swarm.h5" )
+        Clean up:
+        >>> if uw.rank == 0: import os; os.remove( "saved_swarm.h5" )
     
         """
 
