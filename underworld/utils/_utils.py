@@ -366,29 +366,6 @@ def _createMeshName( mesh, outputDir='./output', time=None):
     else:
         return outputDir + "/Mesh_"+st+str(time)+".h5"
 
-    """
-    # setup a unique id 'uniId' with ZFILL!
-    uniId = str(self._internalCount).zfill(5)
-        
-    # if the 'time' arg is empty use the _internalCount number to specify the time for XDMF
-    if time==None:
-        time = self._internalCount
-    elif not isinstance(time, float or int):
-        raise TypeError("'time' argument must be of type float")
-    
-    # test 'outputDir' is writable and valid
-    if uw.rank() == 0:
-        if not os.path.exists(outputDir):
-            try:
-                os.makedirs(outputDir)
-            except:
-                print("Cannot make directory {}".format(outputDir))
-                raise
-    
-    ### End Error Check ###
-    
-"""
-
 class LogBook(object):
     """
     Class for recording Underworld information onto disk
