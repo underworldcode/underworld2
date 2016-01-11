@@ -80,9 +80,11 @@ void _GeneralSwarm_Delete( void* swarm )
    int ii;
    
    self->previousIntSwarmMap=NULL;
-   for (ii=0; ii<List_GetSize(self->intSwarmMapList); ii++) {
-      map = *(SwarmMap**)List_GetItem(self->intSwarmMapList, ii);
-      Stg_Class_Delete(map);
+   if(self->intSwarmMapList){
+       for (ii=0; ii<List_GetSize(self->intSwarmMapList); ii++) {
+          map = *(SwarmMap**)List_GetItem(self->intSwarmMapList, ii);
+          Stg_Class_Delete(map);
+       }
    }
    Stg_Class_Delete(self->intSwarmMapList);
    
