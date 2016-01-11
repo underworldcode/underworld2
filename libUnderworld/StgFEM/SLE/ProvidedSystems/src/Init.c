@@ -14,7 +14,7 @@
 #include "StgFEM/SLE/SystemSetup/SystemSetup.h"
 #include "StgFEM/SLE/ProvidedSystems/Energy/Energy.h"
 #include "StgFEM/SLE/ProvidedSystems/StokesFlow/StokesFlow.h"
-#include "StgFEM/SLE/ProvidedSystems/AdvectionDiffusion/AdvectionDiffusion.h"
+//#include "StgFEM/SLE/ProvidedSystems/AdvectionDiffusion/AdvectionDiffusion.h"
 #include "Init.h"
 
 #include <stdio.h>
@@ -26,7 +26,7 @@ Bool StgFEM_SLE_ProvidedSystems_Init( int* argc, char** argv[] ) {
 	
 	StgFEM_SLE_ProvidedSystems_Energy_Init( argc, argv );
 	StgFEM_SLE_ProvidedSystems_StokesFlow_Init( argc, argv );
-	StgFEM_SLE_ProvidedSystems_AdvectionDiffusion_Init( argc, argv );
+//	StgFEM_SLE_ProvidedSystems_AdvectionDiffusion_Init( argc, argv );
 	
 	return True;
 }

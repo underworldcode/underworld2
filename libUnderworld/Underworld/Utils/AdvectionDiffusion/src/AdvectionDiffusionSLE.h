@@ -8,8 +8,8 @@
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 
 
-#ifndef __StgFEM_SLE_ProvidedSystems_AdvectionDiffusion_AdvectionDiffusionSLE_h__
-#define __StgFEM_SLE_ProvidedSystems_AdvectionDiffusion_AdvectionDiffusionSLE_h__
+#ifndef __Underworld_AdvectionDiffusion_AdvectionDiffusionSLE_h__
+#define __Underworld_AdvectionDiffusion_AdvectionDiffusionSLE_h__
 
 	extern const Type AdvectionDiffusionSLE_Type;
 	

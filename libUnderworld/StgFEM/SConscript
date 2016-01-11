@@ -38,7 +38,7 @@ tst_input = []
 # Process each directory uniformly.
 #
 
-dirs = Split('Discretisation SLE/SystemSetup SLE/ProvidedSystems/AdvectionDiffusion ' \
+dirs = Split('Discretisation SLE/SystemSetup ' \
              'SLE/ProvidedSystems/AdvDiff_CharGalerkin SLE/ProvidedSystems/Energy ' \
              'SLE/ProvidedSystems/StokesFlow SLE/ProvidedSystems SLE ' \
              'Assembly libStgFEM Utils')

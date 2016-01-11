@@ -35,7 +35,7 @@ tst_input = []
 # Process each directory uniformly.
 #
 
-dirs = Split('Function Rheology Utils libUnderworld')
+dirs = Split('Function Rheology Utils/AdvectionDiffusion Utils libUnderworld')
 for d in dirs:
     # Need the module name, which is just the directory.
     mod_name = env['ESCAPE']('"' + ''.join(d.split('/')) + '"')

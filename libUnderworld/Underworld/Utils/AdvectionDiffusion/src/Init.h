@@ -8,9 +8,9 @@
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 
 
-#ifndef __StgFEM_SLE_ProvidedSystems_AdvectionDiffusion_Init_h__
-#define __StgFEM_SLE_ProvidedSystems_AdvectionDiffusion_Init_h__
+#ifndef __Underworld_AdvectionDiffusion_Init_h__
+#define __Underworld_AdvectionDiffusion_Init_h__
 	
-	Bool StgFEM_SLE_ProvidedSystems_AdvectionDiffusion_Init( int* argc, char** argv[] );
+	Bool Underworld_AdvectionDiffusion_Init( int* argc, char** argv[] );
 	
-#endif /* __StgFEM_SLE_ProvidedSystems_AdvectionDiffusion_Init_h__ */
+#endif /* __Underworld_AdvectionDiffusion_Init_h__ */

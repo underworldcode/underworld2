@@ -10,25 +10,25 @@
 #include <mpi.h>
 #include <StGermain/StGermain.h>
 #include <StgDomain/StgDomain.h>
-#include "StgFEM/Discretisation/Discretisation.h"
-#include "StgFEM/SLE/SystemSetup/SystemSetup.h"
+#include <StgFEM/StgFEM.h>
+#include <PICellerator/PICellerator.h>
 #include "types.h"
 #include "Init.h"
 #include "AdvectionDiffusion.h"
 
 #include <stdio.h>
 
-Stream* StgFEM_SLE_ProvidedSystems_AdvectionDiffusion_Debug = NULL;
+Stream* Underworld_AdvectionDiffusion_Debug = NULL;
 
 /** Initialises the Linear Algebra package, then any init for this package
 such as streams etc */
-Bool StgFEM_SLE_ProvidedSystems_AdvectionDiffusion_Init( int* argc, char** argv[] ) {
+Bool Underworld_AdvectionDiffusion_Init( int* argc, char** argv[] ) {
 	Stg_ComponentRegister* componentRegister = Stg_ComponentRegister_Get_ComponentRegister();
 
 	Journal_Printf( Journal_Register( DebugStream_Type, (Name)"Context"  ), "In: %s\n", __func__ ); 
 	
 	/* initialise this level's streams */
-	StgFEM_SLE_ProvidedSystems_AdvectionDiffusion_Debug = Stream_RegisterChild( StgFEM_SLE_Debug,
+	Underworld_AdvectionDiffusion_Debug = Stream_RegisterChild( StgFEM_SLE_Debug,
 		"ProvidedSystems_AdvectionDiffusion" );
 
 	Stg_ComponentRegister_Add( componentRegister, AdvectionDiffusionSLE_Type, (Name)"0", _AdvectionDiffusionSLE_DefaultNew  );

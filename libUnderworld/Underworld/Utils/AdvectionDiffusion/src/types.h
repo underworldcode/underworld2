@@ -7,18 +7,15 @@
 **                                                                                  **
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 
+#ifndef __Underworld_AdvectionDiffusion_types_h__
+#define __Underworld_AdvectionDiffusion_types_h__
 
-#ifndef __StgFEM_SLE_ProvidedSystems_AdvectionDiffusion_AdvectionDiffusion_h__
-#define __StgFEM_SLE_ProvidedSystems_AdvectionDiffusion_AdvectionDiffusion_h__
+	/* Classes */
+	typedef	struct AdvectionDiffusionSLE         AdvectionDiffusionSLE; 
+	typedef	struct AdvDiffResidualForceTerm      AdvDiffResidualForceTerm; 
+	typedef	struct LumpedMassMatrixForceTerm     LumpedMassMatrixForceTerm; 
+	typedef	struct AdvDiffMulticorrector         AdvDiffMulticorrector; 
 
-#include "types.h"
-#include "AdvectionDiffusionSLE.h"
-#include "Multicorrector.h"
-#include "Residual.h"
-#include "Timestep.h"
-#include "UpwindParameter.h"
-#include "LumpedMassMatrixForceTerm.h"
-#include "Init.h"
-#include "Finalise.h"
+	typedef enum { Exact, DoublyAsymptoticAssumption, CriticalAssumption } AdvDiffResidualForceTerm_UpwindParamFuncType;
 
 #endif

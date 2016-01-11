@@ -8,8 +8,8 @@
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 
 
-#ifndef __StgFEM_SLE_ProvidedSystems_AdvectionDiffusion_UpwindParameter_h__
-#define __StgFEM_SLE_ProvidedSystems_AdvectionDiffusion_UpwindParameter_h__
+#ifndef __Underworld_AdvectionDiffusion_UpwindParameter_h__
+#define __Underworld_AdvectionDiffusion_UpwindParameter_h__
 
 #define SUPG_MIN_DIFFUSIVITY 1.0e-20
 

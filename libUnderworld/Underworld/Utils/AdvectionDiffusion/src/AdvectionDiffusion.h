@@ -8,9 +8,17 @@
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 
 
-#ifndef __StgFEM_SLE_ProvidedSystems_AdvectionDiffusion_Finalise_h__
-#define __StgFEM_SLE_ProvidedSystems_AdvectionDiffusion_Finalise_h__
-	
-	Bool StgFEM_SLE_ProvidedSystems_AdvectionDiffusion_Finalise( void );
-	
-#endif /* __StgFEM_SLE_ProvidedSystems_AdvectionDiffusion_Finalise_h__ */
+#ifndef __Underworld_AdvectionDiffusion_AdvectionDiffusion_h__
+#define __Underworld_AdvectionDiffusion_AdvectionDiffusion_h__
+
+#include "types.h"
+#include "AdvectionDiffusionSLE.h"
+#include "Multicorrector.h"
+#include "Residual.h"
+#include "Timestep.h"
+#include "UpwindParameter.h"
+#include "LumpedMassMatrixForceTerm.h"
+#include "Init.h"
+#include "Finalise.h"
+
+#endif

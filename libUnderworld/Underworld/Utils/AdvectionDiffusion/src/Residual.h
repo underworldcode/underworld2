@@ -8,8 +8,8 @@
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 
 
-#ifndef __StgFEM_SLE_ProvidedSystems_AdvectionDiffusion_Residual_h__
-#define __StgFEM_SLE_ProvidedSystems_AdvectionDiffusion_Residual_h__
+#ifndef __Underworld_AdvectionDiffusion_Residual_h__
+#define __Underworld_AdvectionDiffusion_Residual_h__
 
 	typedef double (AdvDiffResidualForceTerm_UpwindParamFunction)( void* residual, double pecletNumber );
 	
