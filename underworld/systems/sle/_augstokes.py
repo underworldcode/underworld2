@@ -28,7 +28,7 @@ class AugStokes(_stgermain.StgCompoundComponent):
 
     _supportedDataTypes = ["char","short","int","float", "double"]
 
-    def __init__(self, velocityFeVariable, pressureFeVariable, temperatureFeVariable=None, pic=True, bodyforces=[], **kwargs):
+    def __init__(self, velocityMeshVariable, pressureMeshVariable, temperatureMeshVariable=None, pic=True, bodyforces=[], **kwargs):
         """
         Args:
             
@@ -36,30 +36,30 @@ class AugStokes(_stgermain.StgCompoundComponent):
         
         """
         # build parent
-        super(FeVariable,self).__init__(**kwargs)
+        super(MeshVariable,self).__init__(**kwargs)
         
         # now create a bunch of stuff
         Ra=1.0
-        if temperatureFeVariable is None:
+        if temperatureMeshVariable is None:
             #then build a temperature field
-            mesh = velocityFeVariable._feMesh
-            temperatureFeVariable = uw.fevariable.FeVariable( feMesh=mesh, nodeDofCount=1, dataType="double")
+            mesh = velocityMeshVariable._mesh
+            temperatureMeshVariable = uw.meshvariable.MeshVariable( mesh=mesh, nodeDofCount=1, dataType="double")
 
         #create our own int swarm here?
         
-        thermalBuoyancyTerm = ThermalBuoyancy(temperatureFeVariable, intswarm, Ra)
+        thermalBuoyancyTerm = ThermalBuoyancy(temperatureMeshVariable, intswarm, Ra)
 
-        f = ForceVector(velocityFeVariable,[])
-        h = ForceVector(pressureFeVariable,[])
-        u = SolutionVector(velocityFeVariable)
-        p = SolutionVector(pressureFeVariable)
+        f = ForceVector(velocityMeshVariable,[])
+        h = ForceVector(pressureMeshVariable,[])
+        u = SolutionVector(velocityMeshVariable)
+        p = SolutionVector(pressureMeshVariable)
         
 
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method
         super(AugStokes,self)._add_to_stg_dict(componentDictionary)
         
-        #componentDictionary[ self._augstokes.name ]["AugLagStokes_SLE"] = self._feVariable._cself.name
+        #componentDictionary[ self._augstokes.name ]["AugLagStokes_SLE"] = self._meshVariable._cself.name
 
 
 

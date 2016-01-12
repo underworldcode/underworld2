@@ -113,10 +113,10 @@ mesh = uw.mesh.FeMesh_Cartesian( elementType = ("Q1/dQ0"),
                                  minCoord    = (0., 0.), 
                                  maxCoord    = (1., 1.))
 
-velocityField       = uw.fevariable.FeVariable( feMesh=mesh,         nodeDofCount=2 )
-pressureField       = uw.fevariable.FeVariable( feMesh=mesh.subMesh, nodeDofCount=1 )
-temperatureField    = uw.fevariable.FeVariable( feMesh=mesh,         nodeDofCount=1 )
-temperatureDotField = uw.fevariable.FeVariable( feMesh=mesh,         nodeDofCount=1 )
+velocityField       = uw.meshvariable.MeshVariable( mesh=mesh,         nodeDofCount=2 )
+pressureField       = uw.meshvariable.MeshVariable( mesh=mesh.subMesh, nodeDofCount=1 )
+temperatureField    = uw.meshvariable.MeshVariable( mesh=mesh,         nodeDofCount=1 )
+temperatureDotField = uw.meshvariable.MeshVariable( mesh=mesh,         nodeDofCount=1 )
 
 
 # Set initial conditions and boundary conditions
@@ -145,10 +145,10 @@ if(LoadFromFile == True):
                                        elementRes  = (savedRes, savedRes), 
                                        minCoord    = (0., 0.), 
                                        maxCoord    = (1., 1.) )
-    temperatureFieldSaved    = uw.fevariable.FeVariable( feMesh=meshSaved,         nodeDofCount=1 )
-    temperatureDotFieldSaved = uw.fevariable.FeVariable( feMesh=meshSaved,         nodeDofCount=1 )
-    pressureFieldSaved       = uw.fevariable.FeVariable( feMesh=meshSaved.subMesh, nodeDofCount=1 )
-    velocityFieldSaved       = uw.fevariable.FeVariable( feMesh=meshSaved,         nodeDofCount=2 )
+    temperatureFieldSaved    = uw.meshvariable.MeshVariable( mesh=meshSaved,         nodeDofCount=1 )
+    temperatureDotFieldSaved = uw.meshvariable.MeshVariable( mesh=meshSaved,         nodeDofCount=1 )
+    pressureFieldSaved       = uw.meshvariable.MeshVariable( mesh=meshSaved.subMesh, nodeDofCount=1 )
+    velocityFieldSaved       = uw.meshvariable.MeshVariable( mesh=meshSaved,         nodeDofCount=2 )
 
     temperatureFieldSaved.load(    inputPath+'temperatureField.h5' )
     temperatureDotFieldSaved.load( inputPath+'temperatureDotField.h5' )
@@ -230,9 +230,9 @@ for index in mesh.specialSets["MaxJ_VertexSet"]:
 iWalls = mesh.specialSets["MinI_VertexSet"] + mesh.specialSets["MaxI_VertexSet"]
 jWalls = mesh.specialSets["MinJ_VertexSet"] + mesh.specialSets["MaxJ_VertexSet"]
 freeslipBC = uw.conditions.DirichletCondition( variable      = velocityField, 
-                                               nodeIndexSets = (iWalls, jWalls) )
+                                               indexSetsPerDof = (iWalls, jWalls) )
 tempBC     = uw.conditions.DirichletCondition( variable      = temperatureField, 
-                                               nodeIndexSets = (jWalls,) )
+                                               indexSetsPerDof = (jWalls,) )
 
 
 # Set up material parameters and functions

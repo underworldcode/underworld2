@@ -126,7 +126,7 @@ class ConstitutiveMatrixTerm(MatrixAssemblyTerm):
         # call parents method
         super(ConstitutiveMatrixTerm,self)._add_to_stg_dict(componentDictionary)
 
-        componentDictionary[ self._cself.name ]["dim"] = self._integrationSwarm._feMesh.dim
+        componentDictionary[ self._cself.name ]["dim"] = self._integrationSwarm._mesh.dim
 
     def _setup(self):
         # lets setup fn tings
@@ -189,8 +189,8 @@ class AdvDiffResidualVectorTerm(VectorAssemblyTerm):
 
     def __init__( self, velocityField, diffusivity, **kwargs ):
 
-        if not isinstance( velocityField, uw.fevariable.FeVariable):
-            raise TypeError( "Provided 'velocityField' must be of 'FeVariable' class." )
+        if not isinstance( velocityField, uw.meshvariable.MeshVariable):
+            raise TypeError( "Provided 'velocityField' must be of 'MeshVariable' class." )
         self._velocityField = velocityField
 
         if not isinstance( diffusivity, (int,float) ):

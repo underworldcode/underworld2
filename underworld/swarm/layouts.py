@@ -106,8 +106,8 @@ class PerCellGaussLayout(_ParticleLayout):
 
         super(PerCellGaussLayout,self)._add_to_stg_dict(componentDictionary)
         
-        componentDictionary[ self._layout.name ][           "dim"] = self.swarm.feMesh.dim
-        componentDictionary[ self._layout.name ][        "FeMesh"] = self.swarm.feMesh._cself.name
+        componentDictionary[ self._layout.name ][           "dim"] = self.swarm.mesh.dim
+        componentDictionary[ self._layout.name ][        "FeMesh"] = self.swarm.mesh._cself.name
         componentDictionary[ self._layout.name ]["gaussParticles"] = self.gaussPointCount
 
 
@@ -169,7 +169,7 @@ class GlobalSpaceFillerLayout(_ParticleLayout):
 
         super(GlobalSpaceFillerLayout,self)._add_to_stg_dict(componentDictionary)
         
-        componentDictionary[ self._layout.name ][                           "dim"] = self.swarm.feMesh.dim
+        componentDictionary[ self._layout.name ][                           "dim"] = self.swarm.mesh.dim
         componentDictionary[ self._layout.name ]["averageInitialParticlesPerCell"] = self.particlesPerCell
 
 
@@ -215,7 +215,7 @@ class _PerCellMeshParticleLayout(_ParticleLayout):
         super(_PerCellMeshParticleLayout,self)._add_to_stg_dict(componentDictionary)
         
         componentDictionary[ self._layout.name ]["cellParticleCount"] = self.particlesPerCell
-        componentDictionary[ self._layout.name ][           "FeMesh"] = self.swarm.feMesh._cself.name
+        componentDictionary[ self._layout.name ][           "FeMesh"] = self.swarm.mesh._cself.name
         componentDictionary[ self._layout.name ][         "filltype"] = self._filltype
 
 

@@ -58,8 +58,8 @@ def MaxI_VertexSet( mesh ):
     """
     return _uw.mesh.FeMesh_IndexSet( object           = mesh,
                                      topologicalIndex = 0,
-                                     size             = _libUnderworld.StgDomain.Mesh_GetDomainSize( mesh._femesh, _libUnderworld.StgDomain.MT_VERTEX ),
-                                     fromObject       = _libUnderworld.StgDomain.RegularMeshUtils_CreateGlobalMaxISet( mesh._femesh ) )
+                                     size             = _libUnderworld.StgDomain.Mesh_GetDomainSize( mesh._mesh, _libUnderworld.StgDomain.MT_VERTEX ),
+                                     fromObject       = _libUnderworld.StgDomain.RegularMeshUtils_CreateGlobalMaxISet( mesh._mesh ) )
 
 
 @_meshCheck
@@ -81,8 +81,8 @@ def MinI_VertexSet( mesh ):
     """
     return _uw.mesh.FeMesh_IndexSet( object           = mesh,
                                      topologicalIndex = 0,
-                                     size             = _libUnderworld.StgDomain.Mesh_GetDomainSize( mesh._femesh, _libUnderworld.StgDomain.MT_VERTEX ),
-                                     fromObject       = _libUnderworld.StgDomain.RegularMeshUtils_CreateGlobalMinISet( mesh._femesh ) )
+                                     size             = _libUnderworld.StgDomain.Mesh_GetDomainSize( mesh._mesh, _libUnderworld.StgDomain.MT_VERTEX ),
+                                     fromObject       = _libUnderworld.StgDomain.RegularMeshUtils_CreateGlobalMinISet( mesh._mesh ) )
 
 @_meshCheck
 def MaxJ_VertexSet( mesh ):
@@ -103,8 +103,8 @@ def MaxJ_VertexSet( mesh ):
     """
     return _uw.mesh.FeMesh_IndexSet( object           = mesh,
                                      topologicalIndex = 0,
-                                     size             = _libUnderworld.StgDomain.Mesh_GetDomainSize( mesh._femesh, _libUnderworld.StgDomain.MT_VERTEX ),
-                                     fromObject       = _libUnderworld.StgDomain.RegularMeshUtils_CreateGlobalMaxJSet( mesh._femesh ) )
+                                     size             = _libUnderworld.StgDomain.Mesh_GetDomainSize( mesh._mesh, _libUnderworld.StgDomain.MT_VERTEX ),
+                                     fromObject       = _libUnderworld.StgDomain.RegularMeshUtils_CreateGlobalMaxJSet( mesh._mesh ) )
 
 @_meshCheck
 def MinJ_VertexSet( mesh ):
@@ -125,8 +125,8 @@ def MinJ_VertexSet( mesh ):
     """
     return _uw.mesh.FeMesh_IndexSet( object           = mesh,
                                      topologicalIndex = 0,
-                                     size             = _libUnderworld.StgDomain.Mesh_GetDomainSize( mesh._femesh, _libUnderworld.StgDomain.MT_VERTEX ),
-                                     fromObject       = _libUnderworld.StgDomain.RegularMeshUtils_CreateGlobalMinJSet( mesh._femesh ) )
+                                     size             = _libUnderworld.StgDomain.Mesh_GetDomainSize( mesh._mesh, _libUnderworld.StgDomain.MT_VERTEX ),
+                                     fromObject       = _libUnderworld.StgDomain.RegularMeshUtils_CreateGlobalMinJSet( mesh._mesh ) )
 
 
 @_meshCheck
@@ -151,8 +151,8 @@ def MaxK_VertexSet( mesh ):
     
     return _uw.mesh.FeMesh_IndexSet( object           = mesh,
                                      topologicalIndex = 0,
-                                     size             = _libUnderworld.StgDomain.Mesh_GetDomainSize( mesh._femesh, _libUnderworld.StgDomain.MT_VERTEX ),
-                                     fromObject       = _libUnderworld.StgDomain.RegularMeshUtils_CreateGlobalMaxKSet( mesh._femesh ) )
+                                     size             = _libUnderworld.StgDomain.Mesh_GetDomainSize( mesh._mesh, _libUnderworld.StgDomain.MT_VERTEX ),
+                                     fromObject       = _libUnderworld.StgDomain.RegularMeshUtils_CreateGlobalMaxKSet( mesh._mesh ) )
 
 
 @_meshCheck
@@ -174,8 +174,8 @@ def MinK_VertexSet( mesh ):
     """
     return _uw.mesh.FeMesh_IndexSet( object           = mesh,
                                      topologicalIndex = 0,
-                                     size             = _libUnderworld.StgDomain.Mesh_GetDomainSize( mesh._femesh, _libUnderworld.StgDomain.MT_VERTEX ),
-                                     fromObject       = _libUnderworld.StgDomain.RegularMeshUtils_CreateGlobalMinKSet( mesh._femesh ) )
+                                     size             = _libUnderworld.StgDomain.Mesh_GetDomainSize( mesh._mesh, _libUnderworld.StgDomain.MT_VERTEX ),
+                                     fromObject       = _libUnderworld.StgDomain.RegularMeshUtils_CreateGlobalMinKSet( mesh._mesh ) )
 
 @_meshCheck
 def AllWalls( mesh ):

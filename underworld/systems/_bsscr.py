@@ -70,12 +70,12 @@ class OptionsMG(Options):
         """
         Automatically set Multigrid levels based off mesh resolution.
         """
-        if not isinstance( field, uw.fevariable.FeVariable):
-            raise TypeError( "Provided field must be of 'FeVariable' class." )
+        if not isinstance( field, uw.meshvariable.MeshVariable):
+            raise TypeError( "Provided field must be of 'MeshVariable' class." )
         else:
             levels=1
             lvls=[] 
-            res_tuple=field.feMesh.elementRes
+            res_tuple=field.mesh.elementRes
             for res in res_tuple:
                 levels=1
                 while res%2 == 0:
@@ -198,8 +198,8 @@ class MGSolver(_stgermain.StgCompoundComponent):
     def __init__(self, field, levels=2, **kwargs):
         if not isinstance(levels, int) or levels < 1:
             raise TypeError( "'levels' must be positive integer.")
-        if not isinstance( field, uw.fevariable.FeVariable):
-            raise TypeError( "Provided 'field' must be of 'FeVariable' class." )
+        if not isinstance( field, uw.meshvariable.MeshVariable):
+            raise TypeError( "Provided 'field' must be of 'MeshVariable' class." )
 
         self._levels=levels
         self._field=field
@@ -279,11 +279,11 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         
         self.options.mg.set_levels(field=velocityField)
 
-        if not isinstance( velocityField, uw.fevariable.FeVariable):
-            raise TypeError( "Provided 'velocityField' must be of 'FeVariable' class." )
+        if not isinstance( velocityField, uw.meshvariable.MeshVariable):
+            raise TypeError( "Provided 'velocityField' must be of 'MeshVariable' class." )
         self._velocityField = velocityField
-        if not isinstance( pressureField, uw.fevariable.FeVariable):
-            raise TypeError( "Provided 'pressureField' must be of 'FeVariable' class." )
+        if not isinstance( pressureField, uw.meshvariable.MeshVariable):
+            raise TypeError( "Provided 'pressureField' must be of 'MeshVariable' class." )
         self._pressureField = pressureField
 
         super(StokesSolver, self).__init__(**kwargs)
@@ -379,7 +379,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         # create assembly terms
         self._velocMassMatTerm = sle.VelocityMassMatrixTerm( integrationSwarm=stokesSLE._gaussSwarm, assembledObject=self._vmmatrix)
         self._pressMassMatTerm = sle.PressureMassMatrixTerm( integrationSwarm=stokesSLE._gaussSwarm, assembledObject=self._mmatrix,
-                                                             mesh = velocityField._feMesh)
+                                                             mesh = velocityField._mesh)
         
         # attach terms to live solver struct
         self._cself.vmForceVec = self._vmfvector._cself

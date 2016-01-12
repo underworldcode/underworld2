@@ -16,15 +16,15 @@ class AssembledVector(_stgermain.StgCompoundComponent):
     _objectsDict = { "_vector": "ForceVector" }
     _selfObjectName = "_vector"
 
-#    def __init__(self, feVariable, assemblyTerms=[], **kwargs):
-    def __init__(self, feVariable, **kwargs):
+#    def __init__(self, meshVariable, assemblyTerms=[], **kwargs):
+    def __init__(self, meshVariable, **kwargs):
         """
         Class initialiser.
         
         Parameter
         ---------
-        feVariable    : fevariable.FeVariable
-            The FeVariable for which the SLE vector should be created
+        meshVariable    : meshvariable.MeshVariable
+            The MeshVariable for which the SLE vector should be created
             
         Returns
         -------
@@ -32,9 +32,9 @@ class AssembledVector(_stgermain.StgCompoundComponent):
 
         """
         
-        if not isinstance(feVariable, uw.fevariable.FeVariable):
-            raise TypeError("'feVariable' object passed in must be of type 'FeVariable'")
-        self._feVariable = feVariable
+        if not isinstance(meshVariable, uw.meshvariable.MeshVariable):
+            raise TypeError("'meshVariable' object passed in must be of type 'MeshVariable'")
+        self._meshVariable = meshVariable
 
 #        if not isinstance(assemblyTerms, (tuple,list)):
 #            raise TypeError("'assemblyTerms' object passed in must be of type 'list' or 'tuple'")
@@ -45,11 +45,11 @@ class AssembledVector(_stgermain.StgCompoundComponent):
         
 
     @property
-    def feVariable(self):
+    def meshVariable(self):
         """    
-        feVariable (FeVariable): FeVariable object for which this SLE vector corresponds.
+        meshVariable (MeshVariable): MeshVariable object for which this SLE vector corresponds.
         """
-        return self._feVariable
+        return self._meshVariable
 
     @property
     def petscVector(self):
@@ -63,8 +63,8 @@ class AssembledVector(_stgermain.StgCompoundComponent):
         # call parents method
         super(AssembledVector,self)._add_to_stg_dict(componentDictionary)
         
-        componentDictionary[ self._vector.name ]["FeVariable"] = self._feVariable._cself.name
-        componentDictionary[ self._vector.name ][       "dim"] = self._feVariable.feMesh.generator.dim
+        componentDictionary[ self._vector.name ]["FeVariable"] = self._meshVariable._cself.name
+        componentDictionary[ self._vector.name ][       "dim"] = self._meshVariable.mesh.generator.dim
 
 #    def _setup(self):
 #        # add terms to vector

@@ -57,12 +57,12 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
                       "_escapedRoutine" : "EscapedRoutine"
                     }
 
-    def __init__(self, feMesh, particleEscape=False, **kwargs):
+    def __init__(self, mesh, particleEscape=False, **kwargs):
         """
         Parameters
         ----------
-        feMesh : uw.mesh.FeMesh
-            The FeMesh the swarm is supported by. See Swarm.feMesh property docstring
+        mesh : uw.mesh.FeMesh
+            The FeMesh the swarm is supported by. See Swarm.mesh property docstring
             for further information.
         particleEscape : bool
             If set to true, particles are allowed to escape from the domain.
@@ -77,11 +77,11 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         self._local2globalMap = None
 
         # build parent
-        super(Swarm,self).__init__(feMesh, **kwargs)
+        super(Swarm,self).__init__(mesh, **kwargs)
 
     def _setup(self):
         if self._cself.particleCoordVariable:
-            self._particleCoordinates = svar.SwarmVariable(self, "double", self.feMesh.dim, _cself=self._cself.particleCoordVariable)
+            self._particleCoordinates = svar.SwarmVariable(self, "double", self.mesh.dim, _cself=self._cself.particleCoordVariable)
         self._cself.isAdvecting = True
 
 
@@ -90,7 +90,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
 
         super(Swarm,self)._add_to_stg_dict(componentDictionary)
         
-        componentDictionary[ self._swarm.name ][                 "dim"] = self._feMesh.dim
+        componentDictionary[ self._swarm.name ][                 "dim"] = self._mesh.dim
         componentDictionary[ self._swarm.name ][          "CellLayout"] = self._cellLayout.name
         componentDictionary[ self._swarm.name ][      "createGlobalId"] = False
         componentDictionary[ self._swarm.name ]["ParticleCommHandlers"] = [self._pMovementHandler.name,]
@@ -98,7 +98,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
             componentDictionary[ self._swarm.name ][  "EscapedRoutine"] = self._escapedRoutine.name
         
 
-        componentDictionary[ self._cellLayout.name ]["Mesh"]            = self._feMesh._cself.name
+        componentDictionary[ self._cellLayout.name ]["Mesh"]            = self._mesh._cself.name
 
     def add_particles_with_coordinates( self, coordinatesArray ):
         """
@@ -158,10 +158,10 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
             raise TypeError("'coordinateArray' must be provided as a numpy array")
         if not len(coordinatesArray.shape) == 2 :
             raise ValueError("The 'coordinateArray' is expected to be two dimensional.")
-        if not coordinatesArray.shape[1] == self.feMesh.dim :
+        if not coordinatesArray.shape[1] == self.mesh.dim :
             raise ValueError("""The 'coordinateArray' must have shape n*dim, where 'n' is the
                               number of particles to add, and 'dim' is the dimensionality of
-                              the supporting mesh ({}).""".format(self.feMesh.dim) )
+                              the supporting mesh ({}).""".format(self.mesh.dim) )
         retarr = self._cself.GeneralSwarm_AddParticlesFromCoordArray( coordinatesArray )
         # lets realloc swarm now
         libUnderworld.StgDomain.Swarm_Realloc(self._cself)

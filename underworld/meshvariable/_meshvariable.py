@@ -15,34 +15,34 @@ import h5py
 import numpy as np
 import os
 
-class FeVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgermain.Save,_stgermain.Load):
+class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgermain.Save,_stgermain.Load):
     """
-    The FeVariable class generates a variable supported by a finite element mesh.
+    The MeshVariable class generates a variable supported by a finite element mesh.
 
-    For example, to create a scalar feVariable:
+    For example, to create a scalar meshVariable:
 
     >>> # first create mesh
     >>> linearMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
-    >>> scalarFeVar = uw.fevariable.FeVariable( feMesh=linearMesh, nodeDofCount=1, dataType="double" )
+    >>> scalarFeVar = uw.meshvariable.MeshVariable( mesh=linearMesh, nodeDofCount=1, dataType="double" )
 
-    or a vector fevariable can be created
-    >>> vectorFeVar = uw.fevariable.FeVariable( feMesh=linearMesh, nodeDofCount=3, dataType="double" )
+    or a vector meshvariable can be created
+    >>> vectorFeVar = uw.meshvariable.MeshVariable( mesh=linearMesh, nodeDofCount=3, dataType="double" )
 
     To set / read nodal values, use the numpy interface via the 'data' property.
 
     """
-    _objectsDict = { "_fevariable": "FeVariable",
-                     "_meshvariable": "MeshVariable",
+    _objectsDict = { "_meshvariable": "FeVariable",
+                     "_cmeshvariable": "MeshVariable",
                      "_doflayout" : "DofLayout" }
-    _selfObjectName = "_fevariable"
+    _selfObjectName = "_meshvariable"
 
     _supportedDataTypes = ["char","short","int","float", "double"]
 
-    def __init__(self, feMesh, nodeDofCount, dataType="double", **kwargs):
+    def __init__(self, mesh, nodeDofCount, dataType="double", **kwargs):
         """
         Parameters:
         -----------
-            feMesh : FeMesh
+            mesh : FeMesh
             dataType : string (only option - 'double')
             nodeDofCount : int
 
@@ -50,9 +50,9 @@ class FeVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgermain
 
         """
 
-        if not isinstance(feMesh, uw.mesh.FeMesh):
-            raise TypeError("'feMesh' object passed in must be of type 'FeMesh'")
-        self._feMesh = feMesh
+        if not isinstance(mesh, uw.mesh.FeMesh):
+            raise TypeError("'mesh' object passed in must be of type 'FeMesh'")
+        self._mesh = mesh
 
         if not isinstance(dataType,str):
             raise TypeError("'dataType' object passed in must be of type 'str'")
@@ -61,7 +61,7 @@ class FeVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgermain
         self._dataType = dataType
 
         if not dataType=="double":
-            raise ValueError("Only Fevariables of type 'double' are currently supported.")
+            raise ValueError("Only MeshVariables of type 'double' are currently supported.")
 
         if not isinstance(nodeDofCount, int):
             raise TypeError("'nodeDofCount' object passed in must be of type 'int'")
@@ -73,7 +73,7 @@ class FeVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgermain
         # occurs in the _setup method below
         self._fncself=None
         # build parent
-        super(FeVariable,self).__init__(argument_fns=None, **kwargs)
+        super(MeshVariable,self).__init__(argument_fns=None, **kwargs)
 
     @property
     def dataType(self):
@@ -89,11 +89,11 @@ class FeVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgermain
         return self._nodeDofCount
 
     @property
-    def feMesh(self):
+    def mesh(self):
         """
-        feMesh (FeMesh): Supporting FeMesh for this FeVariable.
+        mesh (FeMesh): Supporting FeMesh for this MeshVariable.
         """
-        return self._feMesh
+        return self._mesh
 
     @property
     def data(self):
@@ -110,7 +110,7 @@ class FeVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgermain
         no data copying is required.
 
         >>> linearMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
-        >>> scalarFeVar = uw.fevariable.FeVariable( feMesh=linearMesh, nodeDofCount=1, dataType="double" )
+        >>> scalarFeVar = uw.meshvariable.MeshVariable( mesh=linearMesh, nodeDofCount=1, dataType="double" )
         >>> scalarFeVar.data.shape
         (289, 1)
 
@@ -125,26 +125,26 @@ class FeVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgermain
         >>> scalarFeVar.data[100]
         array([ 15.333])
         """
-        return libUnderworld.StGermain.Variable_getAsNumpyArray(self._meshvariable)
+        return libUnderworld.StGermain.Variable_getAsNumpyArray(self._cmeshvariable)
 
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method
-        super(FeVariable,self)._add_to_stg_dict(componentDictionary)
+        super(MeshVariable,self)._add_to_stg_dict(componentDictionary)
 
-        componentDictionary[ self._meshvariable.name ]["mesh"]                 = self._feMesh._cself.name
-        componentDictionary[ self._meshvariable.name ]["Rank"]                 = "Vector"
-        componentDictionary[ self._meshvariable.name ]["DataType"]             = self.dataType
-        componentDictionary[ self._meshvariable.name ]["VectorComponentCount"] = self.nodeDofCount
-        componentDictionary[ self._meshvariable.name ]["names"]                = []
+        componentDictionary[ self._cmeshvariable.name ]["mesh"]                 = self._mesh._cself.name
+        componentDictionary[ self._cmeshvariable.name ]["Rank"]                 = "Vector"
+        componentDictionary[ self._cmeshvariable.name ]["DataType"]             = self.dataType
+        componentDictionary[ self._cmeshvariable.name ]["VectorComponentCount"] = self.nodeDofCount
+        componentDictionary[ self._cmeshvariable.name ]["names"]                = []
         for ii in range(0,self.nodeDofCount):
-            componentDictionary[ self._meshvariable.name ]["names"].append( self._meshvariable.name + "_" + str(ii) )
+            componentDictionary[ self._cmeshvariable.name ]["names"].append( self._meshvariable.name + "_" + str(ii) )
 
-        componentDictionary[ self._doflayout.name    ]["MeshVariable"]         = self._meshvariable.name
+        componentDictionary[ self._doflayout.name    ]["MeshVariable"]         = self._cmeshvariable.name
 
-        componentDictionary[ self._fevariable.name   ]["FEMesh"]               = self._feMesh._cself.name
-        componentDictionary[ self._fevariable.name   ]["DofLayout"]            = self._doflayout.name
-        componentDictionary[ self._fevariable.name   ]["fieldComponentCount"]  = self.nodeDofCount
-        componentDictionary[ self._fevariable.name   ]["dim"]                  = self._feMesh.generator.dim
+        componentDictionary[ self._meshvariable.name   ]["FEMesh"]               = self._mesh._cself.name
+        componentDictionary[ self._meshvariable.name   ]["DofLayout"]            = self._doflayout.name
+        componentDictionary[ self._meshvariable.name   ]["fieldComponentCount"]  = self.nodeDofCount
+        componentDictionary[ self._meshvariable.name   ]["dim"]                  = self._mesh.generator.dim
 
     def _setup(self):
         # now actually setup function guy
@@ -156,7 +156,7 @@ class FeVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgermain
     @property
     def gradientFn(self):
         """
-        gradientFn (Function): Returns a Function for the gradient field of this fevariable.
+        gradientFn (Function): Returns a Function for the gradient field of this meshvariable.
         """
         # lets define a wrapper class here
 
@@ -164,30 +164,30 @@ class FeVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgermain
 
 
         class _gradient(function.Function):
-            def __init__(self, fevariable, **kwargs):
+            def __init__(self, meshvariable, **kwargs):
 
                 # create instance
-                self._fncself = _cfn.GradFeVariableFn(fevariable._cself)
+                self._fncself = _cfn.GradFeVariableFn(meshvariable._cself)
 
                 # build parent
                 super(_gradient,self).__init__(argument_fns=None, **kwargs)
 
-                self._underlyingDataItems.add(fevariable)
+                self._underlyingDataItems.add(meshvariable)
 
 
         return _gradient(self)
 
     def save( self, filename ):
         """
-        Global method to save the fevariable to disk
+        Global method to save the MeshVariable to disk
 
         Parameters
         ----------
         filename : string
             the name of the output hdf5 file
 
-        Saves the fevariable to the 'filename' in hdf5 format. An 'ExternalLink' (hdf5 
-        file association) is created to the FeVariable's mesh file so the field values can 
+        Saves the MeshVariable to the 'filename' in hdf5 format. An 'ExternalLink' (hdf5
+        file association) is created to the MeshVariable's mesh file so the field values can
         access the mesh's geometry & topology. Also the element type used for this field
         it saved as an attribute to output file.
         Note that this is a global method - all processes must call it.
@@ -196,7 +196,7 @@ class FeVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgermain
         if not isinstance(filename, str):
             raise TypeError("Expected 'filename' to be provided as a string")
 
-        mesh = self.feMesh
+        mesh = self.mesh
         h5f = h5py.File(name=filename, mode="w", driver='mpio', comm=MPI.COMM_WORLD)
 
         # ugly global shape def
@@ -234,7 +234,7 @@ class FeVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgermain
 
     def _oldsave(self, filename):
         """
-        Save the fevariable to the provided filename. Note that this is a
+        Save the meshvariable to the provided filename. Note that this is a
         global method, ie. all processes must call it.
 
         File is saved using hdf5 file format.
@@ -243,22 +243,31 @@ class FeVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgermain
             raise TypeError("Expected filename to be provided as a string")
         libUnderworld.StgFEM.FeVariable_SaveToFile( self._cself, filename )
 
-    def load(self, filename ):
+    def load(self, filename, interpolate=False ):
         """
-        Load the fevariable from the provided filename (hdf5 file). Note that this is a
-        global method, ie. all processes must call it.
+        Load the MeshVariable from the provided filename. 
+        
+        Parameters
+        ----------
+            filename: str
+                The filename for the saved file. Relative or absolute paths may be
+                used, but all directories must exist.
+            interpolate: bool (default False)
+                Set to True to interpolate a file containing different resolution data.
+                Note that a temporary MeshVariable with the file data will be build 
+                on **each** processor. Also note that the temporary MeshVariable 
+                can only be built if its corresponding mesh file is available.
+        
+        Notes
+        -----
+        This method must be called collectively by all processes.
 
-        If the filename field is the exact same shape as the current FeVariable
-        it is assumed the fields are identical and the values are read directly
-        into the current FeVariable.
-
-        If the filename and the current FeVariable have different resolutions
-        then a temporary fevariable of the filename field is built on each 
-        processor and interpolated to the current FeVariable's node values.
-        Note: The temporary FeVariable can only be built it the filename field
-        is associated with a 'mesh', i.e. it was 
+        If the file data is the same length as the current MeshVariable,
+        it is assumed the fields are identical and the values are read 
+        directly into the current MeshVariable.
 
         Provided files must be in hdf5 format, and use the correct schema.
+
         """
         if not isinstance(filename, str):
             raise TypeError("Expected filename to be provided as a string")
@@ -273,15 +282,19 @@ class FeVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgermain
         if dof != self.data.shape[1]:
             raise RuntimeError("Can't load hdf5 '{0}', incompatible data shape".format(filename))
         
-        if len(dset) == self.feMesh.nodesGlobal:
+        if len(dset) == self.mesh.nodesGlobal:
 
             # assume dset matches field exactly
-            mesh = self.feMesh
+            mesh = self.mesh
             local = mesh.nodesLocal
 
             self.data[0:local] = dset[mesh.data_nodegId[0:local],:]
 
         else:
+            if not interpolate:
+                raise RuntimeError("Provided data file appears to be for a different resolution MeshVariable.\n"\
+                                   "If you would like to interpolate the data to the current variable, please set\n" \
+                                   "the 'interpolate' parameter. Check docstring for important caveats of interpolation method.")
 
             # if here then we build a local version of the entire file field and interpolate it's values
 
@@ -311,20 +324,20 @@ class FeVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgermain
                                           minCoord    = tuple(inputMin), 
                                           maxCoord    = tuple(inputMax), 
                                           partitioned=False)
-            inputField = uw.fevariable.FeVariable( feMesh=inputMesh, nodeDofCount=dof )
+            inputField = uw.meshvariable.MeshVariable( feMesh=inputMesh, nodeDofCount=dof )
             
             # copy hdf5 numpy array onto serial inputField
             inputField.data[:] = dset[:]
 
             # interpolate 'inputField' onto the self nodes
-            self.data[:] = inputField.evaluate(self.feMesh.data)
+            self.data[:] = inputField.evaluate(self.mesh.data)
 
         uw.libUnderworld.StgFEM._FeVariable_SyncShadowValues( self._cself )
         h5f.close()
 
     def copy(self, deepcopy=False):
         """
-        This method returns a copy of the fevariable.
+        This method returns a copy of the meshvariable.
 
         Parameters:
         ----------
@@ -336,7 +349,7 @@ class FeVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgermain
         if not isinstance(deepcopy, bool):
             raise TypeError("'deepcopy' parameter is expected to be of type 'bool'.")
 
-        newFe = FeVariable(self.feMesh, self.nodeDofCount, self.dataType)
+        newFe = MeshVariable(self.mesh, self.nodeDofCount, self.dataType)
 
         if deepcopy:
             newFe.data[:] = self.data[:]

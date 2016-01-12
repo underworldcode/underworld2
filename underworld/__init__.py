@@ -24,7 +24,7 @@ _sys.setdlopenflags( _oldflags | _ctypes.RTLD_GLOBAL )
 import libUnderworld
 import container
 import mesh
-import fevariable
+import meshvariable
 import conditions
 import function
 import swarm
