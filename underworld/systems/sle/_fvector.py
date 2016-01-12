@@ -19,36 +19,36 @@ class ForceVector(_stgermain.StgCompoundComponent):
     _objectsDict = { "_vector": "ForceVector" }
     _selfObjectName = "_vector"
 
-    def __init__(self, feVariable, **kwargs):
+    def __init__(self, meshVariable, **kwargs):
         """
         Parameters
         ----------
-            feVariable : FeVariable
+            meshVariable : MeshVariable
 
         See property docstrings for further information on each argument.
         
         """
         
-        if not isinstance(feVariable, fevariable.FeVariable):
-            raise TypeError("'feVariable' object passed in must be of type 'FeVariable'")
-        self._feVariable = feVariable
+        if not isinstance(meshVariable, meshvariable.MeshVariable):
+            raise TypeError("'meshVariable' object passed in must be of type 'MeshVariable'")
+        self._meshVariable = meshVariable
         
         # build parent
         super(Vector,self).__init__(**kwargs)
         
 
     @property
-    def feVariable(self):
+    def meshVariable(self):
         """    
-        feVariable (FeVariable): FeVariable object for which this SLE vector corresponds.
+        meshVariable (MeshVariable): MeshVariable object for which this SLE vector corresponds.
         """
-        return self._feVariable
+        return self._meshVariable
 
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method
-        super(FeVariable,self)._add_to_stg_dict(componentDictionary)
+        super(MeshVariable,self)._add_to_stg_dict(componentDictionary)
         
-        componentDictionary[ self._vector.name ]["FeVariable"] = self._feVariable._cself.name
+        componentDictionary[ self._vector.name ]["FeVariable"] = self._meshVariable._cself.name
 
     def AddTerm(assemblyTerm):
         """

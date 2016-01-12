@@ -8,8 +8,8 @@
 ##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
 
 """
-   routines relating to fevariable class
+   routines relating to meshvariable class
 
 """
 
-from _fevariable import FeVariable
+from _meshvariable import MeshVariable

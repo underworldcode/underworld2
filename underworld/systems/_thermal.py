@@ -29,7 +29,7 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
         where, k is the conductivity, T is the temperature (solution), h is the heating r.h.s
         
         >>> linearMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.) )
-        >>> tField = uw.fevariable.FeVariable( linearMesh, 1 )
+        >>> tField = uw.meshvariable.MeshVariable( linearMesh, 1 )
         >>> topNodes = linearMesh.specialSets["MaxJ_VertexSet"]
         >>> bottomNodes = linearMesh.specialSets["MinJ_VertexSet"]
         >>> tbcs = uw.conditions.DirichletCondition(tField, topNodes + bottomNodes)
@@ -47,7 +47,7 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
         
         Parameters
         ----------
-        temperatureField : FeVariable
+        temperatureField : MeshVariable
             The solution field for temperature
         conductivityFn : Function
             The conductivy function that defines the conductivity across the domain
@@ -60,8 +60,8 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
             Constructed system for managing the Steady State Equation
         """
 
-        if not isinstance( temperatureField, uw.fevariable.FeVariable):
-            raise TypeError( "Provided 'temperatureField' must be of 'FeVariable' class." )
+        if not isinstance( temperatureField, uw.meshvariable.MeshVariable):
+            raise TypeError( "Provided 'temperatureField' must be of 'MeshVariable' class." )
         self._temperatureField = temperatureField
 
         try:
@@ -108,7 +108,7 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
         self._kmatrix = sle.AssembledMatrix( temperatureField, temperatureField, rhs=self._fvector )
 
         # create swarm
-        self._gaussSwarm = uw.swarm.GaussIntegrationSwarm(self._temperatureField.feMesh)
+        self._gaussSwarm = uw.swarm.GaussIntegrationSwarm(self._temperatureField.mesh)
         self._PICSwarm = None
         if self._swarm:
             self._PICSwarm = uw.swarm.PICIntegrationSwarm(self._swarm)

@@ -31,8 +31,8 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
 
     A number of element types are supported.
     """
-    _objectsDict = { "_femesh": "FeMesh" }
-    _selfObjectName = "_femesh"
+    _objectsDict = { "_mesh": "FeMesh" }
+    _selfObjectName = "_mesh"
     
     _supportedElementTypes = ["Q2","Q1","DQ1","DPC1","DQ0"]
 
@@ -50,7 +50,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         
         Returns
         -------
-        feMesh : FeMesh
+        mesh : FeMesh
             Constructed FeMesh object.
 
         """
@@ -80,7 +80,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         # add the empty set
         self.specialSets["Empty"]  = lambda selfobject: uw.mesh.FeMesh_IndexSet( object           = selfobject,
                                                                                  topologicalIndex = 0,
-                                                                                 size             = libUnderworld.StgDomain.Mesh_GetDomainSize( selfobject._femesh, libUnderworld.StgDomain.MT_VERTEX ))
+                                                                                 size             = libUnderworld.StgDomain.Mesh_GetDomainSize( selfobject._mesh, libUnderworld.StgDomain.MT_VERTEX ))
     @property
     def elementType(self):
         """ 
@@ -262,16 +262,16 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
                 This special dictionary simply calls the function with the mesh object
                 before returning it.
                 """
-                def __init__(self, femesh):
-                    self._femesh = weakref.ref(femesh)
+                def __init__(self, mesh):
+                    self._mesh = weakref.ref(mesh)
 
                     # call parents method
                     super(_SpecialSetsDict,self).__init__()
                 def __getitem__(self,index):
                     # get item using regular dict
                     item = super(_SpecialSetsDict,self).__getitem__(index)
-                    # now call using femesh and return
-                    return item(self._femesh())
+                    # now call using mesh and return
+                    return item(self._mesh())
             self._specialSets = _SpecialSetsDict(self)
             
         return self._specialSets
@@ -280,13 +280,13 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         # call parents method
         super(FeMesh,self)._add_to_stg_dict(componentDictionary)
         
-        componentDictionary[self._femesh.name]["elementType"] = self._elementType
+        componentDictionary[self._mesh.name]["elementType"] = self._elementType
 
     def _get_iterator(self):
         # lets create the full index set
         iset = FeMesh_IndexSet(      object           = self,
                                      topologicalIndex = 0,
-                                     size             = libUnderworld.StgDomain.Mesh_GetDomainSize( self._femesh, libUnderworld.StgDomain.MT_VERTEX ) )
+                                     size             = libUnderworld.StgDomain.Mesh_GetDomainSize( self._mesh, libUnderworld.StgDomain.MT_VERTEX ) )
         iset.addAll()
         return iset._get_iterator()
 
@@ -322,7 +322,7 @@ class MeshGenerator(_stgermain.StgCompoundComponent):
             
         Returns
         ------
-        feMesh: MeshGenerator
+        mesh: MeshGenerator
                 
         
         """
@@ -377,7 +377,7 @@ class CartesianMeshGenerator(MeshGenerator):
             
         Returns
         ------
-        feMesh: CartesianMeshGenerator
+        mesh: CartesianMeshGenerator
                 
         
         """
@@ -753,7 +753,7 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
             
         Returns
         ------
-        feMesh: FeMesh_Cartesian
+        mesh: FeMesh_Cartesian
         
         """
 
@@ -825,10 +825,10 @@ class FeMesh_IndexSet(uw.container.ObjectifiedIndexSet, function.FunctionInput):
             
         Returns
         ------
-        feMeshIndices: FeMesh_IndexSet
+        meshIndices: FeMesh_IndexSet
 
         >>> amesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.) )
-        >>> iset = uw.libUnderworld.StgDomain.RegularMeshUtils_CreateGlobalMaxISet( amesh._femesh )
+        >>> iset = uw.libUnderworld.StgDomain.RegularMeshUtils_CreateGlobalMaxISet( amesh._mesh )
         >>> uw.mesh.FeMesh_IndexSet( amesh, topologicalIndex=0, size=amesh.nodesGlobal, fromObject=iset )
         FeMesh_IndexSet([ 4,  9, 14, 19, 24])
                 

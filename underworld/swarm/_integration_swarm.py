@@ -22,7 +22,7 @@ class IntegrationSwarm(_swarmabstract.SwarmAbstract):
 
     def _setup(self):
         if self._cself.localCoordVariable:
-            self._particleCoordinates = svar.SwarmVariable(self, "double", self.feMesh.dim, _cself=self._cself.localCoordVariable)
+            self._particleCoordinates = svar.SwarmVariable(self, "double", self.mesh.dim, _cself=self._cself.localCoordVariable)
         if self._cself.weightVariable:
             self._weightsVariable = svar.SwarmVariable(self, "double", 1, _cself=self._cself.weightVariable)
 
@@ -60,7 +60,7 @@ class PICIntegrationSwarm(IntegrationSwarm):
         self._weights = uw.swarm._weights.PCDVC(swarm, inFlow=self._mappedSwarm.particleEscape )
 
         # build parent
-        super(PICIntegrationSwarm,self).__init__(swarm.feMesh, **kwargs)
+        super(PICIntegrationSwarm,self).__init__(swarm.mesh, **kwargs)
 
 
     def _add_to_stg_dict(self,componentDictionary):
@@ -70,7 +70,7 @@ class PICIntegrationSwarm(IntegrationSwarm):
         
         componentDictionary[ self._swarm.name ][     "WeightsCalculator"]  = self._weights._cself.name
 
-        componentDictionary[ self._cellLayout.name ]["Mesh"]               = self._feMesh._cself.name
+        componentDictionary[ self._cellLayout.name ]["Mesh"]               = self._mesh._cself.name
 
         componentDictionary[ self._mapper.name ][          "GeneralSwarm"] = self._mappedSwarm._cself.name
         componentDictionary[ self._mapper.name ]["IntegrationPointsSwarm"] = self._swarm.name
@@ -93,17 +93,17 @@ class GaussIntegrationSwarm(IntegrationSwarm):
     _objectsDict = {  "_cellLayout" : "SingleCellLayout",
                   "_particleLayout" : "GaussParticleLayout" }
 
-    def __init__(self, feMesh, particleCount=None, **kwargs):
+    def __init__(self, mesh, particleCount=None, **kwargs):
         """
         Parameters
         ----------
-        feMesh : uw.mesh.FeMesh
-            The FeMesh the swarm is supported by. See Swarm.feMesh property docstring
+        mesh : uw.mesh.FeMesh
+            The FeMesh the swarm is supported by. See Swarm.mesh property docstring
             for further information.
             
         particleCount : unsigned
             Number of gauss particles in each direction.  Must take value in [1,5].
-            Default behaviour chooses an appropriate count for the provided feMesh:
+            Default behaviour chooses an appropriate count for the provided mesh:
                 Constant : 1
                   Linear : 2
                Quadratic : 4
@@ -116,7 +116,7 @@ class GaussIntegrationSwarm(IntegrationSwarm):
                              "DQ1"  : 2,
                              "DPC1" : 2,
                              "Q2"   : 3  }
-            particleCount = partCountMap[ feMesh.elementType.upper() ]
+            particleCount = partCountMap[ mesh.elementType.upper() ]
         if not isinstance(particleCount, int):
             raise ValueError("'particleCount' parameter must be of type 'int'.")
         if particleCount not in [1,2,3,4,5]:
@@ -124,7 +124,7 @@ class GaussIntegrationSwarm(IntegrationSwarm):
         self._particleCount = particleCount
 
         # build parent
-        super(GaussIntegrationSwarm,self).__init__(feMesh, **kwargs)
+        super(GaussIntegrationSwarm,self).__init__(mesh, **kwargs)
 
 
     def _add_to_stg_dict(self,componentDictionary):
@@ -135,7 +135,7 @@ class GaussIntegrationSwarm(IntegrationSwarm):
         componentDictionary[ self._swarm.name          ][             "CellLayout"] = self._cellLayout.name
         componentDictionary[ self._swarm.name          ][         "ParticleLayout"] = self._particleLayout.name
 
-        componentDictionary[ self._particleLayout.name ][                    "dim"] = self._feMesh.dim
+        componentDictionary[ self._particleLayout.name ][                    "dim"] = self._mesh.dim
         componentDictionary[ self._particleLayout.name ][         "gaussParticles"] = self._particleCount
 
 class GaussBorderIntegrationSwarm(GaussIntegrationSwarm):
@@ -143,21 +143,21 @@ class GaussBorderIntegrationSwarm(GaussIntegrationSwarm):
     """
     _objectsDict = { "_particleLayout" : "GaussBorderParticleLayout" }
 
-    def __init__(self, feMesh, particleCount=None, **kwargs):
+    def __init__(self, mesh, particleCount=None, **kwargs):
         """
         Parameters
         ----------
-        feMesh : uw.mesh.FeMesh
-            The FeMesh the swarm is supported by. See Swarm.feMesh property docstring
+        mesh : uw.mesh.FeMesh
+            The FeMesh the swarm is supported by. See Swarm.mesh property docstring
             for further information.
             
         particleCount : unsigned
             Number of gauss particles in each direction.  Must take value in [1,5].
-            Default behaviour chooses an appropriate count for the provided feMesh:
+            Default behaviour chooses an appropriate count for the provided mesh:
                 Constant : 1
                   Linear : 2
                Quadratic : 4
 
         """
         # build parent
-        super(GaussBorderIntegrationSwarm,self).__init__(feMesh, particleCount, **kwargs)
+        super(GaussBorderIntegrationSwarm,self).__init__(mesh, particleCount, **kwargs)

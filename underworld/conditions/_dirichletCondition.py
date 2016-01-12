@@ -30,7 +30,7 @@ class DirichletCondition(_SystemCondition):
     via the numpy interface.
     
     >>> linearMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.) )
-    >>> velocityField = uw.fevariable.FeVariable( linearMesh, 2 )
+    >>> velocityField = uw.meshvariable.MeshVariable( linearMesh, 2 )
     >>> velocityField.data[:] = [0.,0.]  # set velocity zero everywhere, which will of course include the boundaries.
     >>> IWalls = linearMesh.specialSets["MinI_VertexSet"] + linearMesh.specialSets["MaxI_VertexSet"]  # get some wall index sets
     >>> JWalls = linearMesh.specialSets["MinJ_VertexSet"] + linearMesh.specialSets["MaxJ_VertexSet"]
@@ -41,29 +41,32 @@ class DirichletCondition(_SystemCondition):
     _objectsDict = { "_pyvc": "PythonVC" }
     _selfObjectName = "_pyvc"
 
-    def __init__(self, variable, nodeIndexSets):
+    def __init__(self, variable, indexSetsPerDof=None, nodeIndexSets=None):
         """
         Class initialiser.
         
         Parameters
         ----------
-        variable : uw.fevariable.FeVariable
+        variable : uw.meshvariable.MeshVariable
             This is the variable for which the Direchlet condition applies.
-        nodeIndexSets : list, tuple, IndexSet
+        indexSetsPerDof : list, tuple, IndexSet
             The index set(s) which flag nodes/DOFs as Dirichlet conditions.
             Note that the user must provide an index set for each degree of
             freedom of the variable.  So for a vector variable of rank 2 (say Vx & Vy),
             two index sets must be provided (say VxDofSet, VyDofSet).
         """
 
-        if not isinstance( variable, uw.fevariable.FeVariable ):
-            raise TypeError("Provided variable must be of class 'FeVariable'.")
+        if nodeIndexSets: # Deprecate post mid 2016, remember to clean the function signture too
+            raise ValueError( "Parameter 'nodeIndexSets' has been renamed to 'indexSetsPerDof'. Please use indexSetsPerDof instead" )
+
+        if not isinstance( variable, uw.meshvariable.MeshVariable ):
+            raise TypeError("Provided variable must be of class 'MeshVariable'.")
         self._variable = variable
 
-        if isinstance( nodeIndexSets, uw.container.IndexSet):
-            indexSets = ( nodeIndexSets, )
-        elif isinstance( nodeIndexSets, (list,tuple)):
-            indexSets = nodeIndexSets
+        if isinstance( indexSetsPerDof, uw.container.IndexSet):
+            indexSets = ( indexSetsPerDof, )
+        elif isinstance( indexSetsPerDof, (list,tuple)):
+            indexSets = indexSetsPerDof
         else:
             raise TypeError("You must provide the required indexSet as an 'IndexSet' \n"+
                              "item, or as a list or tuple of 'IndexSet' items.")

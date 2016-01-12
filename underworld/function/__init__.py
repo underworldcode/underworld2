@@ -13,7 +13,7 @@ The function module contains the Function class, and related classes.
 Function objects are constructed in python, but evaluated in C for 
 efficiency. They provide a high level interface for users to compose model
 behaviour (such as viscosity), as well as a natural interface by which
-discrete data (such as fevariables) may be utilised.
+discrete data (such as meshvariables) may be utilised.
 
 """
 

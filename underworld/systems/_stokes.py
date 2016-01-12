@@ -28,13 +28,13 @@ class Stokes(_stgermain.StgCompoundComponent):
 
     def __init__(self, velocityField, pressureField, viscosityFn, bodyForceFn=None, swarm=None, conditions=[], rtolerance=1.0e-5, **kwargs):
 
-        if not isinstance( velocityField, uw.fevariable.FeVariable):
-            raise TypeError( "Provided 'velocityField' must be of 'FeVariable' class." )
-        if velocityField.nodeDofCount != velocityField.feMesh.dim:
+        if not isinstance( velocityField, uw.meshvariable.MeshVariable):
+            raise TypeError( "Provided 'velocityField' must be of 'MeshVariable' class." )
+        if velocityField.nodeDofCount != velocityField.mesh.dim:
             raise ValueError( "Provided 'velocityField' must be a vector field of same dimensionality as its mesh." )
         self._velocityField = velocityField
-        if not isinstance( pressureField, uw.fevariable.FeVariable):
-            raise TypeError( "Provided 'pressureField' must be of 'FeVariable' class." )
+        if not isinstance( pressureField, uw.meshvariable.MeshVariable):
+            raise TypeError( "Provided 'pressureField' must be of 'MeshVariable' class." )
         if pressureField.nodeDofCount != 1:
             raise ValueError( "Provided 'pressureField' must be a scalar field (ie pressureField.nodeDofCount==1)." )
         self._pressureField = pressureField
@@ -89,7 +89,7 @@ class Stokes(_stgermain.StgCompoundComponent):
         self._preconditioner = sle.AssembledMatrix( pressureField, pressureField, rhs=self._hvector, allowZeroContrib=True )
         
         # create swarm
-        self._gaussSwarm = uw.swarm.GaussIntegrationSwarm(self._velocityField.feMesh)
+        self._gaussSwarm = uw.swarm.GaussIntegrationSwarm(self._velocityField.mesh)
         self._PICSwarm = None
         if self._swarm:
             self._PICSwarm = uw.swarm.PICIntegrationSwarm(self._swarm)

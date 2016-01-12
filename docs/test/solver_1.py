@@ -9,9 +9,9 @@ from underworld import function as fn
 res=32
 mesh = uw.mesh.FeMesh_Cartesian("Q1/DQ0", (res,res), (0.,0.), (1.,1.))
 
-velocityField = uw.fevariable.FeVariable(mesh,2)
+velocityField = uw.meshvariable.MeshVariable(mesh,2)
 velocityField.data[:] = (0.,0.)
-pressureField = uw.fevariable.FeVariable(mesh.subMesh,1)
+pressureField = uw.meshvariable.MeshVariable(mesh.subMesh,1)
 pressureField.data[:] = 0.
 
 # freeslip

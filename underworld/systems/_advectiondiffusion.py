@@ -33,11 +33,11 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
 
         Parameters
         ----------
-        phiField : FeVariable
+        phiField : MeshVariable
             The concentration field, typically the temperature field
 
-        phiDotField : FeVariable
-            A FeVariable that defines the initial time derivative of the phiField.
+        phiDotField : MeshVariable
+            A MeshVariable that defines the initial time derivative of the phiField.
             Typically 0 at the beginning of a model, e.g. phiDotField.data[:]=0
             When using a phiField loaded from disk one should also load the phiDotField to ensure 
             the solving method has the time derivative information for a smooth restart. 
@@ -45,7 +45,7 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
             map exactly to this field's dirichlet conditions, the value of which ought to be 0 
             for constant values of phi.
 
-        velocityField : FeVariable
+        velocityField : MeshVariable
             The velocity field
 
         diffusivity : float
@@ -65,20 +65,20 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
         self._diffusivity   = diffusivity
         self._courantFactor = courantFactor
         
-        if not isinstance( phiField, uw.fevariable.FeVariable):
-            raise TypeError( "Provided 'phiField' must be of 'FeVariable' class." )
+        if not isinstance( phiField, uw.meshvariable.MeshVariable):
+            raise TypeError( "Provided 'phiField' must be of 'MeshVariable' class." )
         if phiField.data.shape[1] != 1:
             raise TypeError( "Provided 'phiField' must be a scalar" )
         self._phiField = phiField
 
-        if not isinstance( phiDotField, (uw.fevariable.FeVariable, type(None))):
-            raise TypeError( "Provided 'phiDotField' must be 'None' or of 'FeVariable' class." )
+        if not isinstance( phiDotField, (uw.meshvariable.MeshVariable, type(None))):
+            raise TypeError( "Provided 'phiDotField' must be 'None' or of 'MeshVariable' class." )
         if self._phiField.data.shape != phiDotField.data.shape:
             raise TypeError( "Provided 'phiDotField' is not the same shape as the provided 'phiField'" )
         self._phiDotField = phiDotField
 
         # check compatibility of phiField and velocityField
-        if velocityField.data.shape[1] != self._phiField.feMesh.dim:
+        if velocityField.data.shape[1] != self._phiField.mesh.dim:
             raise TypeError( "Provided 'velocityField' must be the same dimensionality as the phiField's mesh" )
         self._velocityField = velocityField
 
@@ -104,7 +104,7 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
         self._massVector     = sle.AssembledVector(phiField)
 
         # create swarm
-        self._gaussSwarm = uw.swarm.GaussIntegrationSwarm(self._phiField.feMesh)
+        self._gaussSwarm = uw.swarm.GaussIntegrationSwarm(self._phiField.mesh)
 
         super(AdvectionDiffusion, self).__init__(**kwargs)
 
@@ -118,7 +118,7 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
         componentDictionary[ self._cself.name ][     "Residual"] = self._residualVector._cself.name
         componentDictionary[ self._cself.name ][   "MassMatrix"] = self._massVector._cself.name
         componentDictionary[ self._cself.name ][  "PhiDotField"] = self._phiDotField._cself.name
-        componentDictionary[ self._cself.name ][          "dim"] = self._phiField.feMesh.dim
+        componentDictionary[ self._cself.name ][          "dim"] = self._phiField.mesh.dim
         componentDictionary[ self._cself.name ]["courantFactor"] = self._courantFactor
 
     def _setup(self):
