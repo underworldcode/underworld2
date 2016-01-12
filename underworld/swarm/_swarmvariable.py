@@ -183,7 +183,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         self.swarm._livingArrays[self] = arrayguy
         return arrayguy
 
-    def load( self, filename ):
+    def load( self, filename, verbose=False ):
         """
         Load the swarm variable from disk. This must be called *after* the swarm.load().
         
@@ -192,6 +192,8 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         filename : str
             The filename for the saved file. Relative or absolute paths may be 
             used, but all directories must exist.
+        verbose : bool
+            Prints a swarm variable load progress bar.
             
         Notes
         -----
@@ -205,7 +207,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         """
 
         if not isinstance(filename, str):
-            raise TypeError("Expected 'filename' to be provided as a string")
+            raise TypeError("'filename' parameter must be of type 'str'")
         
         gIds = self.swarm._local2globalMap
         if not isinstance(gIds, np.ndarray):
@@ -220,7 +222,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
 
         dset = h5f.get('data')
         if dset == None:
-            raise RuntimeError("Can't find 'data' in file '{0}'.\n".format(filename))
+            raise RuntimeError("Can't find 'data' in file '{}'.\n".format(filename))
         particleGobalCount = self.swarm.particleGlobalCount
         if dset.shape[0] != particleGobalCount:
             raise RuntimeError("Cannot load {0}'s data on current swarm. Incompatible numbers of particles in file '{1}'.".format(filename, filename)+
@@ -237,7 +239,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         chunk = int(1e3)
         (multiples, remainder) = divmod( size, chunk )
 
-        if rank == 0:
+        if rank == 0 and verbose:
             bar = uw.utils.ProgressBar( start=0, end=size-1, title="loading "+filename)
 
         for ii in xrange(multiples+1):
@@ -250,7 +252,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
                 chunkEnd = chunkStart + chunk
             self.data[chunkStart:chunkEnd] = dset[gIds[chunkStart:chunkEnd],:] 
 
-            if rank == 0:
+            if rank == 0 and verbose:
                 bar.update(chunkEnd)
 
         h5f.close();
@@ -285,29 +287,36 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         Write something to variable
         
         >>> import numpy as np
-        >>> svar.data[:] = np.arange(swarm.particleLocalCount)
+        >>> svar.data[:,0] = np.arange(swarm.particleLocalCount)
         
         Save to a file:
         
+        >>> swarm.save("saved_swarm.h5")
         >>> svar.save("saved_swarm_variable.h5")
         
-        Now let's try and reload. First create a new swarm variable, and then load:
+        Now let's try and reload. First create a new swarm and swarm variable, 
+        and then load both:
         
-        >>> clone_svar = swarm.add_variable("int",1)
-        >>> clone_svar.load( "saved_swarm_variable.h5" )
+        >>> clone_swarm = uw.swarm.Swarm(mesh)
+        >>> clone_svar = clone_swarm.add_variable("int",1)
+        >>> clone_swarm.load("saved_swarm.h5")
+        >>> clone_svar.load("saved_swarm_variable.h5")
         
         Now check for equality:
         
         >>> import numpy as np
-        >>> np.allclose(svar.data,clone_svar.particleCoordinates.data)
+        >>> np.allclose(svar.data,clone_svar.data)
         True
         
         Clean up:
-        >>> if uw.rank == 0: import os; os.remove( "saved_swarm_variable.h5" )
+        >>> if uw.rank() == 0: import os; os.remove( "saved_swarm.h5" ); os.remove( "saved_swarm_variable.h5" )
     
         """
+        
+        if swarmFilepath:
+            raise RuntimeError("The 'swarmFilepath' option is currently disabled.")
         if not isinstance(filename, str):
-            raise TypeError("Expected 'filename' to be provided as a string")
+            raise TypeError("'filename' parameter must be of type 'str'")
 
         # setup mpi basic vars
         comm = MPI.COMM_WORLD
@@ -333,15 +342,15 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         dset[offset:offset+swarm.particleLocalCount] = self.data[:]
 
         # link to the swarm file if it's provided
-        if swarmfilepath:
+        if swarmFilepath and uw.rank()==0:
             import os
-            if not isinstance(swarmfilepath, str):
-                raise TypeError("Expected 'swarmfilepath' to be provided as a string")
-            
-            if not os.path.exists(swarmfilepath):
-                raise TypeError("Expected 'swarmfilename' to be provided as a string")
+            if not isinstance(swarmFilepath, str):
+                raise TypeError("'swarmFilepath' parameter must be of type 'str'")
+        
+            if not os.path.exists(swarmFilepath):
+                raise RuntimeError("Swarm file '{}' does not appear to exist.".format(swarmFilepath))
             # path trickery to create external
-            (dirname, swarmfile) = os.path.split(swarmfilepath)
+            (dirname, swarmfile) = os.path.split(swarmFilepath)
             if dirname == "":
                 dirname = '.'
             h5f["swarm"] = h5py.ExternalLink(swarmfile, dirname)

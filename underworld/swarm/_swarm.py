@@ -74,7 +74,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         self.particleEscape = particleEscape
 
         # numpy array to map local particle indices to global indicies, used for loading from file
-        _local2globalMap = None
+        self._local2globalMap = None
 
         # build parent
         super(Swarm,self).__init__(feMesh, **kwargs)
@@ -215,7 +215,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         True
         
         Clean up:
-        >>> if uw.rank == 0: import os; os.remove( "saved_swarm.h5" )
+        >>> if uw.rank() == 0: import os; os.remove( "saved_swarm.h5" )
     
         """
 
