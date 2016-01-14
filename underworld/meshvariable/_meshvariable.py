@@ -21,7 +21,11 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
 
     For example, to create a scalar meshVariable:
 
-    >>> # first create mesh
+    Example
+    -------
+    
+    First create mesh
+    
     >>> linearMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
     >>> scalarFeVar = uw.meshvariable.MeshVariable( mesh=linearMesh, nodeDofCount=1, dataType="double" )
 
@@ -177,20 +181,50 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
 
         return _gradient(self)
 
-    def save( self, filename ):
+    def save( self, filename, meshFilename=None ):
         """
-        Global method to save the MeshVariable to disk
+        Save the MeshVariable to disk. 
 
         Parameters
         ----------
         filename : string
-            the name of the output hdf5 file
+            The name of the output file.
+        meshFilename : string, optional
+            If provided, a link to the created mesh file is created within the 
+            mesh variable file.
 
-        Saves the MeshVariable to the 'filename' in hdf5 format. An 'ExternalLink' (hdf5
-        file association) is created to the MeshVariable's mesh file so the field values can
-        access the mesh's geometry & topology. Also the element type used for this field
-        it saved as an attribute to output file.
-        Note that this is a global method - all processes must call it.
+        Notes
+        -----
+        This method must be called collectively by all processes.
+        
+        Example
+        -------
+        First create the mesh add a variable:
+
+        >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
+        >>> var = uw.meshvariable.MeshVariable( mesh=mesh, nodeDofCount=1, dataType="double" )
+        
+        Write something to variable
+        
+        >>> import numpy as np
+        >>> var.data[:,0] = np.arange(var.data.shape[0])
+        
+        Save to a file:
+        
+        >>> var.save("saved_mesh_variable.h5")
+        
+        Now let's try and reload.
+        
+        >>> clone_var = uw.meshvariable.MeshVariable( mesh=mesh, nodeDofCount=1, dataType="double" )
+        >>> clone_var.load("saved_mesh_variable.h5")
+        
+        Now check for equality:
+        
+        >>> np.allclose(var.data,clone_var.data)
+        True
+        
+        Clean up:
+        >>> if uw.rank() == 0: import os; os.remove( "saved_mesh_variable.h5" )
 
         """
         if not isinstance(filename, str):
@@ -219,16 +253,13 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         if hasattr( mesh.generator, "geometryMesh"):
             mesh = mesh.generator.geometryMesh
 
-        meshfilename = uw.utils._createMeshName( mesh, saveDir )
+        if meshFilename:
+            if not os.path.exists(meshFilename):
+                # call save on mesh
+                mesh.save( meshfilename )
 
-        # check if it already exists - if not CREATE a mesh file
-        # ASSUMES mesh is constant in time !!!
-        if not os.path.exists(meshfilename):
-            # call save on mesh
-            mesh.save( meshfilename )
-            
-        # set reference to mesh (all procs must call following)
-        h5f["mesh"] = h5py.ExternalLink(meshfilename, "./")
+            # set reference to mesh (all procs must call following)
+            h5f["mesh"] = h5py.ExternalLink(meshFilename, "./")
 
         h5f.close()
 
@@ -245,7 +276,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
 
     def load(self, filename, interpolate=False ):
         """
-        Load the MeshVariable from the provided filename. 
+        Load the MeshVariable from disk.
         
         Parameters
         ----------
@@ -257,16 +288,22 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
                 Note that a temporary MeshVariable with the file data will be build 
                 on **each** processor. Also note that the temporary MeshVariable 
                 can only be built if its corresponding mesh file is available.
+                Also note that the supporting mesh mush be regular.
         
         Notes
         -----
         This method must be called collectively by all processes.
 
-        If the file data is the same length as the current MeshVariable,
-        it is assumed the fields are identical and the values are read 
-        directly into the current MeshVariable.
+        If the file data array is the same length as the current variable
+        global size, it is assumed the file contains compatible data. Note that 
+        this may not be the case where for example where you have saved using a
+        2*8 resolution mesh, then loaded using an 8*2 resolution mesh.
 
         Provided files must be in hdf5 format, and use the correct schema.
+        
+        Example
+        -------
+        Refer to example provided for 'save' method.
 
         """
         if not isinstance(filename, str):
@@ -318,6 +355,10 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
             if inputMin is None:
                 raise RuntimeError("Can't read the 'min' for the field hdf5 file,"+
                        " was it created correctly?")
+            regular = h5f['mesh'].attrs.get('regular')
+            if regular and regular!=True:
+                raise RuntimeError("Saved mesh file appears to correspond to a irregular mesh.\n"\
+                                   "Interpolating from irregular mesh not currently supported." )
             # build the NON-PARALLEL field and mesh
             inputMesh = uw.mesh.FeMesh_Cartesian( elementType = ("Q1/dQ0"), 
                                           elementRes  = tuple(res), 
