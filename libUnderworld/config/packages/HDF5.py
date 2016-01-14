@@ -7,8 +7,6 @@ class HDF5(Package):
         yield ('/usr/local', ['/usr/local'], ['/usr/local'])
 
     def gen_envs(self, loc):
-	import pdb
-        pdb.set_trace()
         # attempt to use h5pcc to find lib
         import subprocess
         try:
