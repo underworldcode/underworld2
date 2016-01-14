@@ -39,7 +39,7 @@ StgData* StgInit( int argc, char* argv[] ) {
    char*                 inputPath = NULL;
    /* Initialise PETSc, get world info */
    if(!hasBeenMPIInit){
-	   MPI_Init( data->argcCpy, data->argvCpy );
+	   //MPI_Init( data->argcCpy, data->argvCpy );
 	   hasBeenMPIInit = 1;
    }
    MPI_Comm_dup( MPI_COMM_WORLD, &data->comm );

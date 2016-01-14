@@ -22,6 +22,9 @@ import underworld.function as function
 import contextlib
 import time
 import abc
+import h5py
+from mpi4py import MPI
+
 
 class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
     """
@@ -118,6 +121,40 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         libUnderworld.StgDomain.Mesh_SetGenerator(self._cself, generator._gen)
 
     @property
+    def data_enMap(self):
+        """
+        (np.array): Numpy array to the global node ids
+        """
+        uw.libUnderworld.StgDomain.Mesh_GenerateENMapVar(self._cself)
+        arr = uw.libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.enMapVar)
+        if( len(arr) % self.elementsLocal != 0 ):
+            RuntimeError("Unsupported element to node mapping for save routine"+
+                    "\nThere doesn't appear to be elements with a consistent number of nodes")
+
+        # we ASSUME a constant number of nodes for each element
+        # and we reshape the arr accordingly
+        nodesPerElement = len(arr)/self.elementsLocal
+        return arr.reshape(self.elementsLocal, nodesPerElement)
+
+    @property
+    def data_elgId(self):
+        """
+        (np.array): Numpy array to the global node ids
+        """
+        uw.libUnderworld.StgDomain.Mesh_GenerateElGlobalIdVar(self._cself)
+        arr = uw.libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.eGlobalIdsVar)
+        return arr
+
+    @property
+    def data_nodegId(self):
+        """
+        (np.array): Numpy array to the global node ids
+        """
+        uw.libUnderworld.StgDomain.Mesh_GenerateNodeGlobalIdVar(self._cself)
+        arr = uw.libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.vGlobalIdsVar)
+        return arr
+        
+    @property
     def data(self):
         """ 
         data (np.array):  Numpy proxy array proxy to underlying object 
@@ -134,6 +171,9 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         If you are modifying the mesh, remember to modify any submesh associated with
         it accordingly.
 
+        Example
+        -------
+        
         >>> import underworld as uw
         >>> someMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1', elementRes=(2,2), minCoord=(-1.,-1.), maxCoord=(1.,1.) )
         >>> someMesh.data.shape
@@ -166,7 +206,9 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         
         Any submesh will also be appropriately updated on return from the context
         manager.
-
+        
+        Example
+        -------
         >>> import underworld as uw
         >>> someMesh = uw.mesh.FeMesh_Cartesian()
         >>> with someMesh.deform_mesh():
@@ -209,6 +251,8 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         """
         Returns the number of global nodes on the mesh
 
+        Example
+        -------
         >>> someMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1', elementRes=(2,2), minCoord=(-1.,-1.), maxCoord=(1.,1.) )
         >>> someMesh.nodesGlobal
         9
@@ -216,10 +260,25 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         return libUnderworld.StgDomain.Mesh_GetGlobalSize(self._cself, 0)
 
     @property 
+    def elementsLocal(self):
+        """
+        Returns the number of local elements on the mesh
+
+        Example
+        -------
+        >>> someMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1', elementRes=(2,2), minCoord=(-1.,-1.), maxCoord=(1.,1.) )
+        >>> someMesh.elementsLocal
+        4
+        """
+        return libUnderworld.StgDomain.Mesh_GetLocalSize(self._cself, self.dim)
+
+    @property 
     def elementsGlobal(self):
         """
         Returns the number of global elements on the mesh
 
+        Example
+        -------
         >>> someMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1', elementRes=(2,2), minCoord=(-1.,-1.), maxCoord=(1.,1.) )
         >>> someMesh.elementsGlobal
         4
@@ -236,6 +295,9 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         Other mesh (such as the Q1 & Q2) will be reset to their 
         post-construction state.
 
+        Notes
+        -----
+        This method must be called collectively by all processes.
         """
         self.generator._reset(self)
         # if we have a submesh, reset it as well
@@ -248,6 +310,8 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         """
         This dictionary stores a set of special data sets relating to mesh objects. 
         
+        Example
+        -------
         >>> import underworld as uw
         >>> someMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1', elementRes=(2,2), minCoord=(0.,0.), maxCoord=(1.,1.) )
         >>> someMesh.specialSets.keys()
@@ -292,6 +356,90 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
 
     def save( self, filename ):
         """
+        Save the mesh to disk
+
+        Parameters
+        ----------
+        filename : string
+            The name of the output file.
+
+        Notes
+        -----
+        This method must be called collectively by all processes.
+        
+        Example
+        -------
+        First create the mesh:
+
+        >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
+        
+        Save to a file:
+        
+        >>> mesh.save("saved_mesh.h5")
+        
+        Now let's try and reload. First create new mesh (note the different spatial size):
+        
+        >>> clone_mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.5,1.5) )
+
+        Confirm clone mesh is different from original mesh:
+        
+        >>> import numpy as np
+        >>> np.allclose(mesh.data,clone_mesh.data)
+        False
+        
+        Now reload using saved file:
+        
+        >>> clone_mesh.load("saved_mesh.h5")
+        
+        Now check for equality:
+        
+        >>> np.allclose(mesh.data,clone_mesh.data)
+        True
+        
+        Clean up:
+        >>> if uw.rank() == 0: import os; os.remove( "saved_mesh.h5" )
+
+        """
+        if not isinstance(filename, str):
+            raise TypeError("'filename', must be of type 'str'")
+
+        h5f = h5py.File(name=filename, mode="w", driver='mpio', comm=MPI.COMM_WORLD)
+
+        # save attributes and simple data - MUST be parallel as driver is mpio
+        h5f.attrs['dimensions'] = self.dim
+        h5f.attrs['mesh resolution'] = self.elementRes
+        h5f.attrs['max'] = self.maxCoord
+        h5f.attrs['min'] = self.minCoord
+        h5f.attrs['regular'] = self._cself.isRegular
+
+        # write the vertices
+        globalShape = ( self.nodesGlobal, self.data.shape[1] )
+        dset = h5f.create_dataset("vertices", 
+                                  shape=globalShape,
+                                  dtype='float64')
+
+        local = self.nodesLocal
+        # write to the dset using the global node ids
+        dset[self.data_nodegId[0:local],:] = self.data[0:local]
+
+        # write the element node connectivity
+        self.data_enMap
+        globalShape = ( self.elementsGlobal, self.data_enMap.shape[1] )
+        dset = h5f.create_dataset("en_map", 
+                                  shape=globalShape,
+                                  dtype='int64')
+
+        if len(self.data_elgId) != len(self.data_enMap):
+            RuntimeError("Error in mesh.data_enMap - required for h5save")
+
+        local = len(self.data_elgId)
+        # write to the dset using the global node ids
+        dset[self.data_elgId[0:local],:] = self.data_enMap[0:local]
+
+        h5f.close()
+
+    def _oldsave( self, filename ):
+        """
         Saves the mesh in hdf5 format to 'filename'. Note, this is a
         global method, ie. all processes must call it.
         """
@@ -299,6 +447,66 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
             raise TypeError("'filename', must be of type 'str'")
         
         uw.libUnderworld.StgFEM._FeMesh_DumpMeshHDF5( self._cself, filename )
+
+    def load(self, filename ):
+        """
+        Load the mesh from disk.
+        
+        Parameters
+        ----------
+            filename: str
+                The filename for the saved file. Relative or absolute paths may be
+                used, but all directories must exist.
+        
+        Notes
+        -----
+        This method must be called collectively by all processes.
+
+        If the file data array is the same length as the current mesh
+        global size, it is assumed the file contains compatible data. Note that 
+        this may not be the case where for example where you have saved using a
+        2*8 resolution mesh, then loaded using an 8*2 resolution mesh.
+
+        Provided files must be in hdf5 format, and use the correct schema.
+        
+        Example
+        -------
+        Refer to example provided for 'save' method.
+
+        """
+        if not isinstance(filename, str):
+            raise TypeError("Expected filename to be provided as a string")
+
+        # get field and mesh information 
+        h5f = h5py.File( filename, "r", driver='mpio', comm=MPI.COMM_WORLD );
+
+        # get resolution of old mesh
+        res = h5f.attrs['mesh resolution']
+        if res is None:
+            raise RuntimeError("Can't read the 'mesh resolution' for the field hdf5 file,"+
+                   " was it created correctly?")
+        
+        if (res == self.elementRes).all() == False:
+            raise RuntimeError("Provided file mesh resolution does not appear to correspond to\n"\
+                               "resolution of mesh object.")
+
+        dset = h5f.get('vertices')
+        if dset == None:
+            raise RuntimeError("Can't find the 'vertices' dataset in hdf5 file '{0}'".format(filename) )
+
+        dof = dset.shape[1]
+        if dof != self.data.shape[1]:
+            raise RuntimeError("Can't load hdf5 '{0}', incompatible data shape".format(filename))
+        
+        if len(dset) != self.nodesGlobal:
+            raise RuntimeError("Provided data file appears to be for a different resolution mesh.")
+
+        with self.deform_mesh():
+            self.data[0:self.nodesLocal] = dset[self.data_nodegId[0:self.nodesLocal],:]
+
+        # note that deform_mesh always sets the mesh to irregular.
+        # reset this according to what the saved file has.
+        self._cself.isRegular = h5f.attrs['regular']
 
 
 

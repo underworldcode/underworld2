@@ -377,5 +377,8 @@
    void FeVariable_SetBC( void* feVariable, void* bc );
 
    void _FeVariable_CreateNewEqnNumber( void* variable );
+
+   FeVariable* FeVariable_ReadFromFileWithMesh( void* templateFeVariable, const char* feVarFilename, const char* meshFilename, Bool partitioned );
+   void FeVariable_InterpolateFromFile( void* feVariable, const char* feVarFilename, const char* meshFilename );
 #endif /* __StgFEM_Discretisation_FeVariable_h__ */
 

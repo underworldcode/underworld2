@@ -31,8 +31,9 @@ class map(_Function):
         Function which returns integer key values. This function will be evaluated 
         first to determine which function from the mapping is to be used. 
     mapping: dict(Function)
-        Python dictionary providing a mapping from unsigned integer values to 
-        Underworld functions.
+        Python dictionary providing a mapping from unsigned integer 'key' values to
+        underworld 'value' functions. Note that the provided 'value' functions must
+        return values of type 'double'.
     fn_default: Function (or convertible)
         Default function to be utilised when the key (returned by fn_key function)
         does not correspond to any key value in the mapping dictionary.
@@ -77,7 +78,7 @@ class map(_Function):
     """
     
 
-    def __init__(self, fn_key=None, mapping=None, fn_default=None, keyFunc=None, mappingDict=None, defaultFunc=None, *args, **kwargs):
+    def __init__(self, fn_key, mapping, fn_default=None, keyFunc=None, mappingDict=None, defaultFunc=None, *args, **kwargs):
         
         #DEPRECATE
         if keyFunc:
@@ -88,7 +89,7 @@ class map(_Function):
             raise RuntimeError("Note that the 'defaultFunc' parameter has been renamed to 'fn_default'.")
             
         # error check mapping
-        if mapping and not isinstance(mapping, dict):
+        if not isinstance(mapping, dict):
             raise TypeError("'mapping' object passed in must be of python type 'dict'")
 
         fn_key = _Function._CheckIsFnOrConvertOrThrow(fn_key)

@@ -22,6 +22,11 @@ class Numpy(Package):
         yield ('/usr/local', [], [])
 
     def gen_envs(self, loc):
+        try:
+            import numpy as np
+        except ImportError:
+            print "Cannot import numpy. Perhaps it is not installed."
+            raise
         for env in Package.gen_envs(self, loc):
             self.headers = [self.python.headers[0], 'numpy/arrayobject.h']
             env.AppendUnique(CPPPATH=[self.location[1][0]])

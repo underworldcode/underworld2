@@ -283,7 +283,7 @@ class Figure(_stgermain.StgCompoundComponent):
             finaloutFile = frontpart+splitgenfilename[1]
             os.rename(generatedFilename,finaloutFile)
 
-    def save_database(self,filename,regen=False):
+    def save_database(self,filename,regen=True):
         """  Saves the generated database to the provided filename.
             
              Args:

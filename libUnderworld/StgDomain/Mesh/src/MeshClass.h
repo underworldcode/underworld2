@@ -25,8 +25,14 @@
 								\
 		/* Mesh info */					\
 		MeshTopology*			topo;		\
-		double*			vertices;		\
-		Variable*			verticesVariable;		\
+                double*                 vertices;		\
+                Variable*               verticesVariable; \
+                int*                    elgid;  \
+                Variable*               eGlobalIdsVar; \
+                int*                    verticesgid; \
+                Variable*               vGlobalIdsVar; \
+                int*                    e_n; \
+                Variable*               enMapVar; \
 								\
 		List*				vars;		\
 								\
@@ -182,6 +188,9 @@
 	void Mesh_Sync( void* mesh );
 
     void Mesh_GenerateVertices( void* mesh, unsigned nVerts, unsigned nDims );
+    Variable* Mesh_GenerateNodeGlobalIdVar( void* mesh );
+    Variable* Mesh_GenerateENMapVar( void* mesh );
+    Variable* Mesh_GenerateElGlobalIdVar( void* mesh );
 
 
 	/*--------------------------------------------------------------------------------------------------------------------------

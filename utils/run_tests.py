@@ -28,52 +28,50 @@ except ImportError:
     DEVNULL = open(os.devnull, 'wb')
 
 
-# for every ipynb
-def run_file(fname, dir, logFile):
-  """
-  Runs ipython notebook using runipy. 
-  
-  Parameters
-  ----------
-      fname: input filename
-      dir:   output directory
-  Returns
-  -------
-      bool:  True = pass, False = fail.
-  """
-  global testnumber
-  if fname.endswith(".ipynb") or fname.endswith(".py") :
+def run_file(fname, dir):
+    """
+    Runs ipython notebook using runipy. 
 
+    Parameters
+    ----------
+        fname: input filename
+        dir:   output directory
+    Returns
+    -------
+        bool:  True = pass, False = fail.
+    """
+    global testnumber
     # create the test directory if needed
     try:
-       os.stat(dir)
+        os.stat(dir)
     except:
-       os.mkdir(dir)
+        os.mkdir(dir)
 
     if fname.endswith(".ipynb"):
-       exe = ["runipy"]
+        exe = ["runipy"]
+    elif fname.endswith(".py"):
+        exe = ["python"]
     else:
-       exe = ["python"]
+        raise ValueError("Filename must have extension 'py' or 'ipynb'.")
     exe.append(fname)         # append filename
 
     testnumber += 1
     out = dir+"test_"+str(testnumber)+"__"+os.path.basename(fname)
-    exe.append(out)       # append output notebook filename
-
-    print("\nRunning "+fname);
-    logFile.write("\nRunning "+fname);
+    if fname.endswith(".ipynb"):
+        exe.append(out)       # append output notebook filename
 
     # try run runipy on given notebook
     try:
-      subprocess.check_call( exe, stdout=DEVNULL, stderr=logFile )
+        outFile = open(out+".out", "w")
+        errFile = open(out+".err", "w")
+        subprocess.check_call( exe, stdout=outFile, stderr=errFile )
     except subprocess.CalledProcessError:
-      print(" .... ERROR (see "+out+" for details)")
-      logFile.write(" .... ERROR (see "+out+" for details)\n"); logFile.flush()
-      return False
+        return False
     else:
-      print(" .... PASS"); 
-      logFile.write(" .... PASS"); logFile.flush()
-      return True
+        return True
+    finally:
+        outFile.close()
+        errFile.close()
 
 
 if __name__ == '__main__':
@@ -105,11 +103,20 @@ if __name__ == '__main__':
     logFileName = "testing.log"
     logFile = open(dir+logFileName, "w")
 
-    for ipynb in sys.argv[1:]:
-        result = run_file( ipynb, dir, logFile )
-        if result == False:
-            nfails = nfails+1
-            list_fails.append(ipynb)
+    for arg in sys.argv[1:]:
+        if arg.endswith(".ipynb") or arg.endswith(".py") :
+            print("\nRunning "+arg);
+            logFile.write("\nRunning "+arg);
+            result = run_file( arg, dir )
+            if result:
+                print(" .... PASS");
+                logFile.write(" .... PASS"); logFile.flush()
+            else:
+                out = dir+"test_"+str(testnumber)+"__"+os.path.basename(arg)+"*"
+                print(" .... ERROR (see "+out+" for details)")
+                logFile.write(" .... ERROR (see "+out+" for details)\n"); logFile.flush()
+                nfails = nfails+1
+                list_fails.append(arg)
 
     # Report in testing.log
     logFile.write("\nNumber of fails " + str(nfails) +":\n"); logFile.flush()

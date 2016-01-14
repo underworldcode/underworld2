@@ -97,7 +97,7 @@ int main( int argc, char* argv[] ) {
    Dictionary*           sources = NULL;
 
    /* Initialise PETSc, get world info */
-   MPI_Init( &argc, &argv );
+   //MPI_Init( &argc, &argv );
    MPI_Comm_dup( MPI_COMM_WORLD, &CommWorld );
    MPI_Comm_size( CommWorld, &numProcessors );
    MPI_Comm_rank( CommWorld, &rank );
