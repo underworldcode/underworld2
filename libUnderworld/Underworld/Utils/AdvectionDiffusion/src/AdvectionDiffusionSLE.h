@@ -11,6 +11,44 @@
 #ifndef __Underworld_AdvectionDiffusion_AdvectionDiffusionSLE_h__
 #define __Underworld_AdvectionDiffusion_AdvectionDiffusionSLE_h__
 
+#ifdef __cplusplus
+
+extern "C++" {
+
+
+#include <Underworld/Function/Function.hpp>
+#include <Underworld/Function/FEMCoordinate.hpp>
+
+    struct SUPGVectorTerm_NA__Fn_cppdata
+    {
+        Fn::Function* fn;
+        Fn::Function::func func;
+        std::shared_ptr<FEMCoordinate> input;
+    };
+
+    void _SUPGVectorTerm_NA__Fn_SetFn( void* _self, Fn::Function* fn );
+
+}
+
+extern "C" {
+#endif
+
+#include "mpi.h"
+#include <StGermain/StGermain.h>
+#include <StgDomain/StgDomain.h>
+#include <StgFEM/StgFEM.h>
+#include <PICellerator/PICellerator.h>
+
+/*
+#include "StgFEM/Discretisation/Discretisation.h"
+#include "StgFEM/SLE/SystemSetup/SystemSetup.h"
+*/
+
+#include "types.h"
+#include "Residual.h"
+#include "Multicorrector.h"
+#include "Timestep.h"
+    
 	extern const Type AdvectionDiffusionSLE_Type;
 	
 	#define __AdvectionDiffusionSLE \
@@ -36,7 +74,8 @@
 		Variable_Register*			variableReg; \
 		FieldVariable_Register*		fieldVariableReg;\
                                                                  \
-                Bool pureDiffusion;
+                Bool pureDiffusion; \
+                void *cppdata;
 	
 	struct AdvectionDiffusionSLE { __AdvectionDiffusionSLE };
 		
@@ -60,10 +99,6 @@
 		FieldVariable_Register*	fieldVariable_Register ) ;
 	
 	
-	#ifndef ZERO
-	#define ZERO 0
-	#endif
-
 	#define ADVECTIONDIFFUSIONSLE_DEFARGS \
                 SYSTEMLINEAREQUATIONS_DEFARGS
 
@@ -91,8 +126,6 @@
 
 	void _AdvectionDiffusionSLE_Print( void* sle, Stream* stream );
 
-	void* _AdvectionDiffusionSLE_Copy( void* sle, void* dest, Bool deep, Name nameExt, PtrMap* ptrMap );
-
 	/** Virtual Functions from "Stg_Component" Class */
 	void* _AdvectionDiffusionSLE_DefaultNew( Name name );
 
@@ -110,6 +143,10 @@
 	Vec _AdvectionDiffusionSLE_GetResidual( void* sle, Index fv_I );
 
 	void AdvectionDiffusionSLE_ResetStoredValues( void* sle );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

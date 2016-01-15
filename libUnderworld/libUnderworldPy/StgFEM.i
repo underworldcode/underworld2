@@ -54,12 +54,14 @@ import_array();
 %include "SLE/SystemSetup/SystemLinearEquations.h"
 %include "SLE/SystemSetup/ForceVector.h"
 %include "SLE/SystemSetup/types.h"
+/*
 %include "SLE/ProvidedSystems/AdvectionDiffusion/AdvectionDiffusionSLE.h"
 %include "SLE/ProvidedSystems/AdvectionDiffusion/LumpedMassMatrixForceTerm.h"
 %include "SLE/ProvidedSystems/AdvectionDiffusion/Multicorrector.h"
 %include "SLE/ProvidedSystems/AdvectionDiffusion/Residual.h"
 %include "SLE/ProvidedSystems/AdvectionDiffusion/Timestep.h"
 %include "SLE/ProvidedSystems/AdvectionDiffusion/types.h"
+*/
 %include "SLE/ProvidedSystems/Energy/Energy_SLE.h"
 %include "SLE/ProvidedSystems/Energy/Energy_SLE_Solver.h"
 %include "SLE/ProvidedSystems/Energy/types.h"

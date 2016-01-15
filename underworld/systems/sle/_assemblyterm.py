@@ -98,8 +98,6 @@ class VectorAssemblyTerm_NA__Fn(VectorAssemblyTerm):
         self._fn = _fn
         libUnderworld.Underworld._VectorAssemblyTerm_NA__Fn_SetFn( self._cself, self._fn._fncself )
 
-
-
 class GradientStiffnessMatrixTerm(MatrixAssemblyTerm):
     _objectsDict = { "_assemblyterm": "GradientStiffnessMatrixTerm" }
     pass
@@ -193,11 +191,17 @@ class AdvDiffResidualVectorTerm(VectorAssemblyTerm):
             raise TypeError( "Provided 'velocityField' must be of 'MeshVariable' class." )
         self._velocityField = velocityField
 
+        _fn = uw.function.Function._CheckIsFnOrConvertOrThrow(diffusivity)
+        if not isinstance( _fn, uw.function.Function):
+            raise ValueError( "Provided 'diffusivity' must be of or convertible to 'Function' class." )
+        self._fn = _fn
+        '''
         if not isinstance( diffusivity, (int,float) ):
             raise TypeError( "Provided 'diffusivity' must be 'float' type." )
         if float(diffusivity) <= 0:
             raise ValueError( "Provided 'diffusivity' must take positive values." )
         self._diffusivity = diffusivity
+        '''
 
         # build parent
         super(AdvDiffResidualVectorTerm,self).__init__(**kwargs)
@@ -208,8 +212,64 @@ class AdvDiffResidualVectorTerm(VectorAssemblyTerm):
         super(AdvDiffResidualVectorTerm,self)._add_to_stg_dict(componentDictionary)
         
         componentDictionary[ self._cself.name ][     "VelocityField"] = self._velocityField._cself.name
-        componentDictionary[ self._cself.name ]["defaultDiffusivity"] = self._diffusivity
         componentDictionary[ self._cself.name ][  "UpwindXiFunction"] = "DoublyAsymptoticAssumption"
+
+    def _setup(self):
+        # lets setup fn tings
+        libUnderworld.Underworld._SUPGVectorTerm_NA__Fn_SetFn( self._cself, self._fn._fncself )
+
+    @property
+    def fn(self):
+        return self._fn
+
+    @fn.setter
+    def fn(self, value):
+        _fn = uw.function.Function._CheckIsFnOrConvertOrThrow(value)
+        if not isinstance( _fn, uw.function.Function):
+            raise ValueError( "Provided 'fn' must be of or convertible to 'Function' class." )
+        self._fn = _fn
+        libUnderworld.Underworld._SUPGVectorTerm_NA__Fn_SetFn( self._cself, self._fn._fncself )
+
+
+
+
+class SUPGVectorTerm_NA__Fn(VectorAssemblyTerm):
+    """
+    """
+    _objectsDict = { "_assemblyterm": "AdvDiffResidualForceTerm" }
+
+    def __init__(self, fn, **kwargs):
+        """
+        """
+        
+        _fn = uw.function.Function._CheckIsFnOrConvertOrThrow(fn)
+        if not isinstance( _fn, uw.function.Function):
+            raise ValueError( "Provided 'fn' must be of or convertible to 'Function' class." )
+        self._fn = _fn
+
+        # build parent
+        super(SUPGVectorTerm_NA__Fn,self).__init__(**kwargs)
+
+
+    def _add_to_stg_dict(self,componentDictionary):
+        # call parents method
+        super(SUPGVectorTerm_NA__Fn,self)._add_to_stg_dict(componentDictionary)
+
+    def _setup(self):
+        # lets setup fn tings
+        libUnderworld.Underworld._SUPGVectorTerm_NA__Fn_SetFn( self._cself, self._fn._fncself )
+
+    @property
+    def fn(self):
+        return self._fn
+
+    @fn.setter
+    def fn(self, value):
+        _fn = uw.function.Function._CheckIsFnOrConvertOrThrow(value)
+        if not isinstance( _fn, uw.function.Function):
+            raise ValueError( "Provided 'fn' must be of or convertible to 'Function' class." )
+        self._fn = _fn
+        libUnderworld.Underworld._SUPGVectorTerm_NA__Fn_SetFn( self._cself, self._fn._fncself )
 
 
 class PressureMassMatrixTerm(MatrixAssemblyTerm):

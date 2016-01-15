@@ -16,7 +16,6 @@
 #include "Multicorrector.h"
 #include "Residual.h"
 #include "Timestep.h"
-#include "UpwindParameter.h"
 #include "LumpedMassMatrixForceTerm.h"
 #include "Init.h"
 #include "Finalise.h"

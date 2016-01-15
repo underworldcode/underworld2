@@ -56,6 +56,13 @@ extern "C" {
 %include "Utils/types.h"
 %include "Utils/XDMFGenerator.h"
 
+%include "Utils/AdvectionDiffusion/AdvectionDiffusionSLE.h"
+%include "Utils/AdvectionDiffusion/LumpedMassMatrixForceTerm.h"
+%include "Utils/AdvectionDiffusion/Multicorrector.h"
+%include "Utils/AdvectionDiffusion/Residual.h"
+%include "Utils/AdvectionDiffusion/Timestep.h"
+%include "Utils/AdvectionDiffusion/types.h"
+
 %include "Utils/Fn_Integrate.h"
 %include "Utils/VectorAssemblyTerm_NA__Fn.h"
 %include "Utils/MatrixAssemblyTerm_NA_i__NB_i__Fn.h"

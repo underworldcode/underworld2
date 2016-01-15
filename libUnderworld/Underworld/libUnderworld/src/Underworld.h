@@ -12,6 +12,7 @@
 #define __Underworld_h__
 	
 	#include "Rheology/Rheology.h"
+	#include "Utils/AdvectionDiffusion/AdvectionDiffusion.h"
 	#include "Utils/Utils.h"
 
 	#include "Init.h"
