@@ -508,7 +508,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         # reset this according to what the saved file has.
         self._cself.isRegular = h5f.attrs['regular']
 
-
+        h5f.close()
 
 
 class MeshGenerator(_stgermain.StgCompoundComponent):
