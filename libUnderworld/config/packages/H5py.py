@@ -35,10 +35,7 @@ class H5py(Package):
         cmd2 = ' --build-lib ' + os.path.dirname(mpath)
         cmd += cmd2
 
-        if os.path.basename(self.env['CC']) in ['mpicc']:
-            cmd3 = 'CC=mpicc ' +cmd
-
-        subp = subprocess.Popen( cmd3 , shell=True);
+        subp = subprocess.Popen( 'CC='+self.env['CC']+' '+cmd, shell=True);
         if subp.wait() != 0:
             import sys
             print "Failed building h5py :(\n"
