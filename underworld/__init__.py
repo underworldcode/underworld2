@@ -30,6 +30,8 @@ is very well suited to complex fluids which is how the solid Earth behaves
 on a geological timescale.
 """
 
+__version__ = "2.0.0b"
+
 # ok, first need to change default python dlopen flags to global
 # this is because when python imports the module, the shared libraries are loaded as RTLD_LOCAL
 # and then when MPI_Init is called, OpenMPI tries to dlopen its plugin, they are unable to
@@ -49,6 +51,12 @@ import function
 import swarm
 import systems
 import utils
+
+try:
+    from ._uwid import uwid as _id
+except:
+    import uuid
+    _id = str(uuid.uuid4())
 import _net
 
 # ok, now set this back to the original value
@@ -142,14 +150,17 @@ _delclassinstance = _del_uw_class(libUnderworld.StGermain_Tools.StgFinalise, _da
 
 # lets shoot off some usage metrics
 if rank() == 0:
+    import pdb
+    pdb.set_trace()
     def _sendData():
         import os
         # disable collection of data if requested
         if "UW_NO_USAGE_METRICS" not in os.environ:
-            label = ""
             # get platform info
             import platform
-            label +=        platform.system()
+            label =         'v'+__version__
+            label += "__" + 'n'+str(nProcs())
+            label += "__" + platform.system()
             label += "__" + platform.release()
             # check if docker
             import os.path
