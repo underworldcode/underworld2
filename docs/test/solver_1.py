@@ -29,7 +29,6 @@ stokesSystem = uw.systems.Stokes(velocityField,pressureField,sol.viscosityFn,sol
 #Run the BSSCR Solver
 # can optionally set penalty this way
 solver=uw.systems.Solver(stokesSystem)
-solver.options.main.log_summary=''
 solver.solve()
 stats=solver.get_stats()
 
