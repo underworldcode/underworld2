@@ -8,8 +8,7 @@
 ##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
 
 """
-   routines relating to swarm class
-
+   Routines relating to swarm type objects.
 """
 
 from _swarm import Swarm

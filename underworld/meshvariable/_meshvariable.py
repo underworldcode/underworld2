@@ -10,6 +10,10 @@ import underworld._stgermain as _stgermain
 import underworld as uw
 import libUnderworld.libUnderworldPy.Function as _cfn
 import libUnderworld
+from mpi4py import MPI
+import h5py
+import numpy as np
+import os
 
 class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgermain.Save,_stgermain.Load):
     """
@@ -17,7 +21,11 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
 
     For example, to create a scalar meshVariable:
 
-    >>> # first create mesh
+    Example
+    -------
+    
+    First create mesh
+    
     >>> linearMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
     >>> scalarFeVar = uw.meshvariable.MeshVariable( mesh=linearMesh, nodeDofCount=1, dataType="double" )
 
@@ -57,7 +65,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         self._dataType = dataType
 
         if not dataType=="double":
-            raise ValueError("Only Fevariables of type 'double' are currently supported.")
+            raise ValueError("Only MeshVariables of type 'double' are currently supported.")
 
         if not isinstance(nodeDofCount, int):
             raise TypeError("'nodeDofCount' object passed in must be of type 'int'")
@@ -173,7 +181,206 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
 
         return _gradient(self)
 
-    def save(self, filename):
+    def xdmf( self, filename, varname, meshSavedData, fieldSavedData, modeltime=0.  ):
+        """
+        Creates an xdmf file, filename, associating the fieldSavedData file on 
+        the meshSavedData file
+
+        Notes
+        -----
+        xdmf contain 2 files: an .xml and a .h5 file. See http://www.xdmf.org/index.php/Main_Page
+        This method only needs to be called by the master process, all other 
+        processes return quiely.
+
+        Parameters
+        ----------
+        filename : str
+            Full output path to write the xdmf file
+        varname : str
+            The xdmf name to give the field
+        meshSavedData : underworld.SaveFileData
+            Handler returned for saving a mesh. underworld.mesh.save(xxx)
+        fieldSavedData : underworld.SavedFileData
+            Handler returned from saving a field. underworld.meshvariable.save(xxx)
+        modeltime : float (default 0.0)
+            The time recorded in the xdmf output file
+
+        Example
+        -------
+        First create the mesh add a variable:
+        >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
+        >>> var = uw.meshvariable.MeshVariable( mesh=mesh, nodeDofCount=1, dataType="double" )
+        
+        Write something to variable
+        
+        >>> import numpy as np
+        >>> var.data[:,0] = np.arange(var.data.shape[0])
+        
+        Save mesh and var to a file:
+        
+        >>> meshDat = mesh.save("saved_mesh_variable.h5")
+        >>> varDat = var.save("saved_mesh.h5")
+        
+        Now let's create the xdmf file
+        
+        >>> var.xdmf("TESTxdmf", "TestVar", meshDat, varDat)
+
+        Does file exist?
+        
+        >>> import os
+        >>> if uw.rank() == 0: os.path.isfile("TESTxdmf.xdmf")
+        True
+        
+        Clean up:
+        >>> if uw.rank() == 0:
+        ...     import os; 
+        ...     os.remove( "saved_mesh_variable.h5" )
+        ...     os.remove( "saved_mesh.h5" )
+        ...     os.remove( "TESTxdmf.xdmf" )
+
+        """
+        if uw.rank() == 0:
+            if not isinstance(varname, str):
+                raise ValueError("'varname' must be of type str")
+            if not isinstance(filename, str):
+                raise ValueError("'filename' must be of type str")
+            if not isinstance(meshSavedData, uw.SavedFileData ):
+                raise ValueError("'meshSavedData' must be of type SavedFileData")
+            if not isinstance(fieldSavedData, uw.SavedFileData ):
+                raise ValueError("'fieldSavedData' must be of type SavedFileData")
+            if not isinstance(modeltime, (int,float)):
+                raise ValueError("'modeltime' must be of type int or float")
+            modeltime = float(modeltime)    # make modeltime a float
+            
+            elementMesh = self.mesh
+            if hasattr(elementMesh.generator, 'geometryMesh'):
+                elementMesh = elementMesh.generator.geometryMesh
+
+            # get the elementMesh - if self is a subMeshed variable get the parent
+            if elementMesh != meshSavedData.pyobj:
+                raise RuntimeError("'meshSavedData file doesn't correspond to the object's mesh")
+
+
+            if not filename.lower().endswith('.xdmf'):
+                filename += '.xdmf'
+            refmeshFN = os.path.basename(meshSavedData.filename)    
+            reffieldFN = os.path.basename(fieldSavedData.filename)
+            elementMesh = meshSavedData.pyobj
+
+            # the xmf file is stored in 'string'
+            # 1st write header
+            string = ("<?xml version=\"1.0\" ?>\n" +
+                      "<Xdmf xmlns:xi=\"http://www.w3.org/2001/XInclude\" Version=\"2.0\">\n" +
+                      "<Domain>\n")
+            if not modeltime == None:
+                string += uw.utils._spacetimeschema(elementMesh, modeltime, refmeshFN)
+            else:
+                string += uw.utils._spacetimeschema(elementMesh, 0, refmeshFN)
+            string += uw.utils._fieldschema( (varname,self), reffieldFN, elementMesh )
+            # write the footer to the xmf    
+            string += ("</Grid>\n" + 
+                       "</Domain>\n" + 
+                       "</Xdmf>\n" )
+
+            # write the string to file - only proc 0
+            xdmfFH = open(filename, "w")
+            xdmfFH.write(string)
+            xdmfFH.close()
+
+    def save( self, filename, meshFilename=None ):
+        """
+        Save the MeshVariable to disk. 
+
+        Parameters
+        ----------
+        filename : string
+            The name of the output file.
+        meshFilename : string, optional
+            If provided, a link to the created mesh file is created within the 
+            mesh variable file.
+
+        Notes
+        -----
+        This method must be called collectively by all processes.
+        
+        Returns
+        -------
+        SavedFileData
+            Data object relating to saved file. This only needs to be retained
+            if you wish to create XDMF files and can be ignored otherwise.
+        
+        Example
+        -------
+        First create the mesh add a variable:
+
+        >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
+        >>> var = uw.meshvariable.MeshVariable( mesh=mesh, nodeDofCount=1, dataType="double" )
+        
+        Write something to variable
+        
+        >>> import numpy as np
+        >>> var.data[:,0] = np.arange(var.data.shape[0])
+        
+        Save to a file (note that the 'ignoreMe' object isn't really required):
+        
+        >>> ignoreMe = var.save("saved_mesh_variable.h5")
+        
+        Now let's try and reload.
+        
+        >>> clone_var = uw.meshvariable.MeshVariable( mesh=mesh, nodeDofCount=1, dataType="double" )
+        >>> clone_var.load("saved_mesh_variable.h5")
+        
+        Now check for equality:
+        
+        >>> np.allclose(var.data,clone_var.data)
+        True
+        
+        Clean up:
+        >>> if uw.rank() == 0: 
+        ...     import os; 
+        ...     os.remove( "saved_mesh_variable.h5" )
+
+        """
+        if not isinstance(filename, str):
+            raise TypeError("Expected 'filename' to be provided as a string")
+
+        mesh = self.mesh
+        h5f = h5py.File(name=filename, mode="w", driver='mpio', comm=MPI.COMM_WORLD)
+
+        # ugly global shape def
+        globalShape = ( mesh.nodesGlobal, self.data.shape[1] )
+        # create dataset
+        dset = h5f.create_dataset("data", 
+                                  shape=globalShape,
+                                  dtype='f')
+
+        # write to the dset using the global node ids
+        local = mesh.nodesLocal
+        dset[mesh.data_nodegId[0:local],:] = self.data[0:local]
+
+        # save a hdf5 attribute to the elementType used for this field - maybe useful
+        h5f.attrs["elementType"] = np.string_(mesh.elementType)
+
+        ## setup reference to mesh - THE GEOMETRY MESH
+        saveDir = os.path.dirname(filename)
+
+        if hasattr( mesh.generator, "geometryMesh"):
+            mesh = mesh.generator.geometryMesh
+
+        if meshFilename:
+            if not os.path.exists(meshFilename):
+                # call save on mesh
+                mesh.save( meshfilename )
+
+            # set reference to mesh (all procs must call following)
+            h5f["mesh"] = h5py.ExternalLink(meshFilename, "./")
+
+        h5f.close()
+
+        # return our file handle
+        return uw.SavedFileData(self, filename)
+
+    def _oldsave(self, filename):
         """
         Save the meshvariable to the provided filename. Note that this is a
         global method, ie. all processes must call it.
@@ -184,16 +391,107 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
             raise TypeError("Expected filename to be provided as a string")
         libUnderworld.StgFEM.FeVariable_SaveToFile( self._cself, filename )
 
-    def load(self, filename):
+    def load(self, filename, interpolate=False ):
         """
-        Load the meshvariable from the provided filename. Note that this is a
-        global method, ie. all processes must call it.
+        Load the MeshVariable from disk.
+        
+        Parameters
+        ----------
+            filename: str
+                The filename for the saved file. Relative or absolute paths may be
+                used, but all directories must exist.
+            interpolate: bool (default False)
+                Set to True to interpolate a file containing different resolution data.
+                Note that a temporary MeshVariable with the file data will be build 
+                on **each** processor. Also note that the temporary MeshVariable 
+                can only be built if its corresponding mesh file is available.
+                Also note that the supporting mesh mush be regular.
+        
+        Notes
+        -----
+        This method must be called collectively by all processes.
 
-        Provided file must be in hdf5 format, and use the correct schema.
+        If the file data array is the same length as the current variable
+        global size, it is assumed the file contains compatible data. Note that 
+        this may not be the case where for example where you have saved using a
+        2*8 resolution mesh, then loaded using an 8*2 resolution mesh.
+
+        Provided files must be in hdf5 format, and use the correct schema.
+        
+        Example
+        -------
+        Refer to example provided for 'save' method.
+
         """
         if not isinstance(filename, str):
             raise TypeError("Expected filename to be provided as a string")
-        libUnderworld.StgFEM.FeVariable_ReadFromFile( self._cself, filename )
+
+        # get field and mesh information 
+        h5f = h5py.File( filename, "r", driver='mpio', comm=MPI.COMM_WORLD );
+        dset = h5f.get('data')
+        if dset == None:
+            raise RuntimeError("Can't find the 'data' in hdf5 file '{0}'".format(filename) )
+
+        dof = dset.shape[1]
+        if dof != self.data.shape[1]:
+            raise RuntimeError("Can't load hdf5 '{0}', incompatible data shape".format(filename))
+        
+        if len(dset) == self.mesh.nodesGlobal:
+
+            # assume dset matches field exactly
+            mesh = self.mesh
+            local = mesh.nodesLocal
+
+            self.data[0:local] = dset[mesh.data_nodegId[0:local],:]
+
+        else:
+            if not interpolate:
+                raise RuntimeError("Provided data file appears to be for a different resolution MeshVariable.\n"\
+                                   "If you would like to interpolate the data to the current variable, please set\n" \
+                                   "the 'interpolate' parameter. Check docstring for important caveats of interpolation method.")
+
+            # if here then we build a local version of the entire file field and interpolate it's values
+
+            # first get file field's mesh
+            if h5f.get('mesh') == None:
+                raise RuntimeError("The hdf5 field to be loaded must have an associated "+
+                        "'mesh' hdf5 file, was it created correctly?")
+            # get resolution of old mesh    
+            res = h5f['mesh'].attrs.get('mesh resolution')
+            if res is None:
+                raise RuntimeError("Can't read the 'mesh resolution' for the field hdf5 file,"+
+                       " was it created correctly?")
+
+            # get max of old mesh    
+            inputMax = h5f['mesh'].attrs.get('max')
+            if inputMax is None:
+                raise RuntimeError("Can't read the 'max' for the field hdf5 file,"+
+                       " was it created correctly?")
+
+            inputMin = h5f['mesh'].attrs.get('min')
+            if inputMin is None:
+                raise RuntimeError("Can't read the 'min' for the field hdf5 file,"+
+                       " was it created correctly?")
+            regular = h5f['mesh'].attrs.get('regular')
+            if regular and regular!=True:
+                raise RuntimeError("Saved mesh file appears to correspond to a irregular mesh.\n"\
+                                   "Interpolating from irregular mesh not currently supported." )
+            # build the NON-PARALLEL field and mesh
+            inputMesh = uw.mesh.FeMesh_Cartesian( elementType = ("Q1/dQ0"), 
+                                          elementRes  = tuple(res), 
+                                          minCoord    = tuple(inputMin), 
+                                          maxCoord    = tuple(inputMax), 
+                                          partitioned=False)
+            inputField = uw.meshvariable.MeshVariable( feMesh=inputMesh, nodeDofCount=dof )
+            
+            # copy hdf5 numpy array onto serial inputField
+            inputField.data[:] = dset[:]
+
+            # interpolate 'inputField' onto the self nodes
+            self.data[:] = inputField.evaluate(self.mesh.data)
+
+        uw.libUnderworld.StgFEM._FeVariable_SyncShadowValues( self._cself )
+        h5f.close()
 
     def copy(self, deepcopy=False):
         """

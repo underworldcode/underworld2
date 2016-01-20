@@ -127,6 +127,20 @@ Bug reporting
 Use the github issue tracker! Changes relating to issue tracker issues should register
 which issue they relate to in the commit log. 
 
+Version Numbering
+=================
+Underworld uses the convention
+
+X.Y.Z
+
+where
+
+X = Major version number. This will be '2' for the foreseeable future. 
+Y = Minor version number. This will increment major feature releases, or with scheduled 
+    releases (such as quarterly releases). 
+Z = Patch version. While on the development branch, this will be '0'. It will switch to
+    '1' when a stable branch is first created, and increment from there on the stable 
+    branch as bug fixes are ported through. 
 
 Testing
 =======

@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+#!/bin/env python
 '''
 This script simply executes a solver, and ensures the expected number of iterations are performed. 
 An exception is thrown otherwise.

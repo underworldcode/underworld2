@@ -7,10 +7,30 @@
 ##                                                                                   ##
 ##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
 """
-Underworld-II is a python-friendly version of the Underworld geodynamics code which provides a programmable and flexible front end to all the functionality of the code running in a parallel HPC environment. This gives signficant advantages to the user, with access to the power of python libraries for setup of complex problems, analysis at runtime, problem steering, and coupling of multiple problems. Underworld2 is integrated with the literate programming environment of the jupyter notebook system for tutorials and as a teaching tool for solid Earth geoscience.
+Underworld2 is a python-friendly version of the Underworld geodynamics 
+code which provides a programmable and flexible front end to all the 
+functionality of the code running in a parallel HPC environment. This 
+gives signficant advantages to the user, with access to the power of 
+python libraries for setup of complex problems, analysis at runtime, 
+problem steering, and coupling of multiple problems. 
 
-Underworld is an open-source, particle-in-cell finite element code tuned for large-scale geodynamics simulations. The numerical algorithms allow the tracking of history information through the high-strain deformation associated with fluid flow (for example, transport of the stress tensor in a viscoelastic, convecting medium, or the advection of fine-scale damage parameters by the large-scale flow). The finite element mesh can be static or dynamic, but it is not contrained to move in lock-step with the evolving geometry of the fluid. This hybrid approach is very well suited to complex fluids which is how the solid Earth behaves on a geological timescale.
+Underworld2 is integrated with the literate programming environment of 
+the jupyter notebook system for tutorials and as a teaching tool for 
+solid Earth geoscience.
+
+Underworld is an open-source, particle-in-cell finite element code 
+tuned for large-scale geodynamics simulations. The numerical algorithms 
+allow the tracking of history information through the high-strain 
+deformation associated with fluid flow (for example, transport of the 
+stress tensor in a viscoelastic, convecting medium, or the advection of 
+fine-scale damage parameters by the large-scale flow). The finite 
+element mesh can be static or dynamic, but it is not contrained to move 
+in lock-step with the evolving geometry of the fluid. This hybrid approach 
+is very well suited to complex fluids which is how the solid Earth behaves 
+on a geological timescale.
 """
+
+__version__ = "2.0.0b"
 
 # ok, first need to change default python dlopen flags to global
 # this is because when python imports the module, the shared libraries are loaded as RTLD_LOCAL
@@ -25,11 +45,18 @@ import libUnderworld
 import container
 import mesh
 import meshvariable
+import fevariable
 import conditions
 import function
 import swarm
 import systems
 import utils
+
+try:
+    from ._uwid import uwid as _id
+except:
+    import uuid
+    _id = str(uuid.uuid4())
 import _net
 
 # ok, now set this back to the original value
@@ -45,13 +72,10 @@ def rank():
     """
     Returns the rank of the current processors.
 
-    Parameters
-    ----------
-        None
-
-    Returns:
-    ----------
-        rank (unsigned) : Rank of current processor.
+    Returns
+    -------
+        unsigned
+            Rank of current processor.
     """
     return _data.rank
 
@@ -60,13 +84,10 @@ def nProcs():
     """
     Returns the number of processors being utilised by the simulation.
 
-    Parameters
-    ----------
-        None
-
-    Returns:
-    ----------
-        nProcs (unsigned) : Number of processors.
+    Returns
+    -------
+        unsigned
+            Number of processors.
     """
     return _data.nProcs
 
@@ -79,12 +100,11 @@ def help(object):
 
     Parameters
     ----------
-        object:  Any python object.
+        object:  object
+            Any python object.
 
-    Returns:
-    ----------
-        None
     """
+    
     print("Object docstring:\n")
     print(object.__doc__)
     print("Object initialiser docstring:\n")
@@ -113,6 +133,15 @@ def _prepend_message_to_exception(e, message):
     raise type(e), type(e)(message + '\n' + e.message), _sys.exc_info()[2]
 
 
+class SavedFileData(object):
+    '''
+    A class used to define saved data
+    '''
+    def __init__(self, pyobj, filename):
+        self.pyobj = pyobj
+        self.filename = filename
+
+
 class _del_uw_class:
     """
     This simple class simply facilitates calling StgFinalise on uw exit
@@ -130,14 +159,14 @@ _delclassinstance = _del_uw_class(libUnderworld.StGermain_Tools.StgFinalise, _da
 
 # lets shoot off some usage metrics
 if rank() == 0:
-    import os
-    # disable collection of data if requested
-    if "UW_NO_USAGE_METRICS" not in os.environ:
-        try:
-            label = ""
+    def _sendData():
+        import os
+        # disable collection of data if requested
+        if "UW_NO_USAGE_METRICS" not in os.environ:
             # get platform info
             import platform
-            label +=        platform.system()
+            label  =        'n'+str(nProcs())
+            label += "__" + platform.system()
             label += "__" + platform.release()
             # check if docker
             import os.path
@@ -149,5 +178,8 @@ if rank() == 0:
             thread = threading.Thread( target=_net.PostGAEvent, args=( "runtime", "import", label, nProcs() ) )
             thread.daemon = True
             thread.start()
-        except: # continue quietly if something above failed
-            pass
+
+    try:
+        _sendData()
+    except: # continue quietly if something above failed
+        pass

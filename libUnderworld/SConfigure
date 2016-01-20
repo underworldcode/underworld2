@@ -70,6 +70,8 @@ env.AddMethod( UWExit )
 env.UsePackage(packages.libm)
 env.UsePackage(packages.libXML2)
 env.UsePackage(packages.HDF5)
+env.UsePackage(packages.Mpi4py)
+env.UsePackage(packages.H5py)
 env.UsePackage(packages.OpenGL)
 env.UsePackage(packages.SDL)
 env.UsePackage(packages.X11)
@@ -190,6 +192,8 @@ if not (GetOption('help') or GetOption('clean')):
     env.ConfigurePackage(packages.Python, required=True)
     env.ConfigurePackage(packages.PETSc)
     env.ConfigurePackage(packages.Numpy, required=True)
+    env.ConfigurePackage(packages.Mpi4py, required=True)
+    env.ConfigurePackage(packages.H5py)
 
     #Set debug and optimise settings last to override any from PETSc
     if env.get('optimisation_flag', None) == 'default':
@@ -274,15 +278,29 @@ if not (GetOption('help') or GetOption('clean')):
 #
 # Create a test file. This file is the indicator of a successful build
 #
-open(conf_success_file, 'w').close() 
+open(conf_success_file, 'w').close()
+
 #
-# Print success message.
+# Create an installation ID file if it doesn't already exist.
 #
+
+idfile = "../underworld/_uwid.py"
+if not os.path.isfile(idfile):
+    import uuid
+    with open(idfile,"w+") as f:
+        f.write("uwid = \'" + str(uuid.uuid4())  + "\'" )
+
 print
-print '***************************************'
-print '* Successfully configured.            *'
-print '* Now run \'./scons.py\' to build.      *'
-print '***************************************'
+print '*****************************************************************'
+print '* Successfully configured.                                      *'
+print '*                                                               *'
+print '* Note that basic usage metrics are dispatched when you use     *'
+print '* Underworld.                                                   *'
+print '* To opt out, set the UW_NO_USAGE_METRICS environment variable. *'
+print '* See PRIVACY.md for full details.                              *'
+print '*                                                               *'
+print '* Now run \'./scons.py\' to build.                                *'
+print '*****************************************************************'
 print
 
 

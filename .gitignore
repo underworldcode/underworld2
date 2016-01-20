@@ -1,6 +1,7 @@
 # use glob syntax.
 syntax: glob
 
+_uwid.py
 *~
 .build_success
 .config_success

@@ -47,7 +47,7 @@ Fn::Map::func Fn::Map::getFunction( IOsptr sample_input )
         // check if output castable to IO_double
         auto _defaultFuncOut = std::dynamic_pointer_cast<const IO_double>(_defaultFuncFunc( sample_input ) );
         if (!_defaultFuncOut)
-            throw std::invalid_argument( "Default function does not appear to return a 'double' value, as required." );
+            throw std::invalid_argument( "Default function does not appear to return a 'double' value, as required by the 'map' function." );
 
         outputSize = _defaultFuncOut->size();
     }
@@ -66,7 +66,8 @@ Fn::Map::func Fn::Map::getFunction( IOsptr sample_input )
             if (!doubleio)
             {
                 std::stringstream ss;
-                ss << "Function with key " << ii << " does not appear to return a 'double' value, as required";
+                ss << "Function with key " << ii << " does not appear to return a 'double' value.\n\
+                                                      Note that the 'map' function currently only supports 'double' return values.";
                 throw std::invalid_argument( ss.str());
             }
             if (outputSize != -1)

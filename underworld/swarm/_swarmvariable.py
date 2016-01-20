@@ -12,8 +12,11 @@ import underworld.mesh as mesh
 import numpy as np
 import libUnderworld
 import _swarmabstract as sab
+import _swarm
 import underworld.function as function
 import libUnderworld.libUnderworldPy.Function as _cfn
+from mpi4py import MPI
+import h5py
 
 class SwarmVariable(_stgermain.StgClass, function.Function):
 
@@ -179,3 +182,181 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         # add to swarms weakref dict
         self.swarm._livingArrays[self] = arrayguy
         return arrayguy
+
+    def load( self, filename, verbose=False ):
+        """
+        Load the swarm variable from disk. This must be called *after* the swarm.load().
+        
+        Parameters
+        ----------
+        filename : str
+            The filename for the saved file. Relative or absolute paths may be 
+            used, but all directories must exist.
+        verbose : bool
+            Prints a swarm variable load progress bar.
+            
+        Notes
+        -----
+        This method must be called collectively by all processes.
+        
+
+        Example
+        -------
+        Refer to example provided for 'save' method.
+        
+        """
+
+        if not isinstance(filename, str):
+            raise TypeError("'filename' parameter must be of type 'str'")
+        
+        gIds = self.swarm._local2globalMap
+        if not isinstance(gIds, np.ndarray):
+            raise RuntimeError("'Swarm' associate with this 'SwarmVariable' doesn't have a valid '_local2globalMap'.\n" \
+                               "Please ensure that you have loaded the swarm prior to loading any swarm variables.")
+
+        comm = MPI.COMM_WORLD
+        rank = comm.Get_rank()
+
+        # open hdf5 file
+        h5f = h5py.File(name=filename, mode="r", driver='mpio', comm=MPI.COMM_WORLD)
+
+        dset = h5f.get('data')
+        if dset == None:
+            raise RuntimeError("Can't find 'data' in file '{}'.\n".format(filename))
+        particleGobalCount = self.swarm.particleGlobalCount
+        if dset.shape[0] != particleGobalCount:
+            raise RuntimeError("Cannot load {0}'s data on current swarm. Incompatible numbers of particles in file '{1}'.".format(filename, filename)+
+                    " Particle count: file {0}, this swarm {1}\n".format(dset.shape[0], particleGobalCount))
+        size = len(gIds)
+        if self.data.shape[0] != size:
+            raise RuntimeError("Invalid mapping from file '{0}' to swarm.\n".format(filename) +
+                 "Ensure the swarm corresponds exactly to the file '{0}' by loading the swarm immediately".format(filename) +
+                    "before this 'SwarmVariable' load\n")
+        if dset.shape[1] != self.data.shape[1]:
+            raise RuntimeError("Cannot load file data on current swarm. Data in file '{0}', " \
+                               "has {1} components -the particlesCoords has {2} components".format(filename, dset.shape[1], self.particleCoordinates.data.shape[1]))
+
+        chunk = int(1e3)
+        (multiples, remainder) = divmod( size, chunk )
+
+        if rank == 0 and verbose:
+            bar = uw.utils.ProgressBar( start=0, end=size-1, title="loading "+filename)
+
+        for ii in xrange(multiples+1):
+            chunkStart = ii*chunk
+            if ii == multiples:
+                chunkEnd = chunkStart + remainder
+                if remainder == 0:
+                    break
+            else:
+                chunkEnd = chunkStart + chunk
+            self.data[chunkStart:chunkEnd] = dset[gIds[chunkStart:chunkEnd],:] 
+
+            if rank == 0 and verbose:
+                bar.update(chunkEnd)
+
+        h5f.close();
+
+
+    def save( self, filename, swarmFilepath=None ):
+        """
+        Save the swarm variable to disk.
+        
+        Parameters
+        ----------
+        filename : str
+            The filename for the saved file. Relative or absolute paths may be 
+            used, but all directories must exist.
+        swarmFilepath : str (optional)
+            Path to the save swarm file. If provided, a softlink is created within
+            the swarm variable file to the swarm file.
+            
+        Notes
+        -----
+        This method must be called collectively by all processes.
+
+        Example
+        -------
+        First create the swarm, populate, then add a variable:
+
+        >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
+        >>> swarm = uw.swarm.Swarm(mesh)
+        >>> swarm.populate_using_layout(uw.swarm.layouts.PerCellGaussLayout(swarm,2))
+        >>> svar = swarm.add_variable("int",1)
+        
+        Write something to variable
+        
+        >>> import numpy as np
+        >>> svar.data[:,0] = np.arange(swarm.particleLocalCount)
+        
+        Save to a file:
+        
+        >>> swarm.save("saved_swarm.h5")
+        >>> svar.save("saved_swarm_variable.h5")
+        
+        Now let's try and reload. First create a new swarm and swarm variable, 
+        and then load both:
+        
+        >>> clone_swarm = uw.swarm.Swarm(mesh)
+        >>> clone_svar = clone_swarm.add_variable("int",1)
+        >>> clone_swarm.load("saved_swarm.h5")
+        >>> clone_svar.load("saved_swarm_variable.h5")
+        
+        Now check for equality:
+        
+        >>> import numpy as np
+        >>> np.allclose(svar.data,clone_svar.data)
+        True
+        
+        Clean up:
+        >>> if uw.rank() == 0:
+        ...     import os; 
+        ...     os.remove( "saved_swarm.h5" )
+        ...     os.remove( "saved_swarm_variable.h5" )
+
+        """
+        
+        if swarmFilepath:
+            raise RuntimeError("The 'swarmFilepath' option is currently disabled.")
+        if not isinstance(filename, str):
+            raise TypeError("'filename' parameter must be of type 'str'")
+
+        # setup mpi basic vars
+        comm = MPI.COMM_WORLD
+        rank = comm.Get_rank()
+        nProcs = comm.Get_size()
+
+        # allgather the number of particles each proc has
+        swarm = self.swarm
+        procCount = comm.allgather(swarm.particleLocalCount)
+        particleGlobalCount = swarm.particleGlobalCount
+
+        # calculate the hdf5 file offset
+        offset=0
+        for i in xrange(rank):
+            offset += procCount[i]
+
+        # open parallel hdf5 file
+        h5f = h5py.File(name=filename, mode="w", driver='mpio', comm=MPI.COMM_WORLD)
+        globalShape = (particleGlobalCount, self.data.shape[1])
+        dset = h5f.create_dataset("data", 
+                                   shape=globalShape,
+                                   dtype='f')
+        dset[offset:offset+swarm.particleLocalCount] = self.data[:]
+
+        # link to the swarm file if it's provided
+        if swarmFilepath and uw.rank()==0:
+            import os
+            if not isinstance(swarmFilepath, str):
+                raise TypeError("'swarmFilepath' parameter must be of type 'str'")
+        
+            if not os.path.exists(swarmFilepath):
+                raise RuntimeError("Swarm file '{}' does not appear to exist.".format(swarmFilepath))
+            # path trickery to create external
+            (dirname, swarmfile) = os.path.split(swarmFilepath)
+            if dirname == "":
+                dirname = '.'
+            h5f["swarm"] = h5py.ExternalLink(swarmfile, dirname)
+
+        h5f.close()
+
