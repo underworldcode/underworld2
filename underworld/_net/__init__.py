@@ -52,12 +52,17 @@ def PostGAEvent( category, action, label=None, value=None ):
         "cid": GA_CLIENT_ID,    # Anonymous Client ID.
         "t"  : "event",         # Event hit type.
         "an" : "underworld2",   # Application name.
-        "av" : "alpha",         # Application version.
+        "av" : uw.__version__,  # Application version.
         "ec" : category,        # Event Category. Required.
         "ea" : action,          # Event Action. Required.
         "el" : label,           # Event label.
         "ev" : value,           # Event value.
         }
+        import os
+        # add user id if set
+        if "UW_USER_ID" in os.environ:
+            form_fields["uid"] = os.environ["UW_USER_ID"]
+
         params = urllib.urlencode(form_fields)
         connection.connect()
         connection.request('POST', '/collect?%s' % params, '', { "Content-Type": "application/x-www-form-urlencoded" })

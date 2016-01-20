@@ -150,16 +150,13 @@ _delclassinstance = _del_uw_class(libUnderworld.StGermain_Tools.StgFinalise, _da
 
 # lets shoot off some usage metrics
 if rank() == 0:
-    import pdb
-    pdb.set_trace()
     def _sendData():
         import os
         # disable collection of data if requested
         if "UW_NO_USAGE_METRICS" not in os.environ:
             # get platform info
             import platform
-            label =         'v'+__version__
-            label += "__" + 'n'+str(nProcs())
+            label  =        'n'+str(nProcs())
             label += "__" + platform.system()
             label += "__" + platform.release()
             # check if docker
