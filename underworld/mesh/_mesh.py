@@ -400,6 +400,9 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         >>> if uw.rank() == 0: import os; os.remove( "saved_mesh.h5" )
 
         """
+        if hasattr(self.generator, 'geometryMesh'):
+            raise RuntimeError("Cannot save this mesh as it's a subMesh. "
+                                + "Most likely you only need to save its geometryMesh") 
         if not isinstance(filename, str):
             raise TypeError("'filename', must be of type 'str'")
 
@@ -437,6 +440,11 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         dset[self.data_elgId[0:local],:] = self.data_enMap[0:local]
 
         h5f.close()
+
+        # return our file handle
+        return uw.SavedFileData(self, filename)
+
+
 
     def _oldsave( self, filename ):
         """

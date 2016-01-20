@@ -125,6 +125,15 @@ def _prepend_message_to_exception(e, message):
     raise type(e), type(e)(message + '\n' + e.message), _sys.exc_info()[2]
 
 
+class SavedFileData(object):
+    '''
+    A class used to define saved data
+    '''
+    def __init__(self, pyobj, filename):
+        self.pyobj = pyobj
+        self.filename = filename
+
+
 class _del_uw_class:
     """
     This simple class simply facilitates calling StgFinalise on uw exit

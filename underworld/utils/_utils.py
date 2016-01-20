@@ -167,11 +167,10 @@ class Integral(_stgermain.StgCompoundComponent):
                                "Note that mask functions are only set for surface integration.")
         return self._maskFn
 
-
 ### Code for XDMF output ###
 def _spacetimeschema( elementMesh, time, filename ):
     """
-    Writes out the initial portion of an xmf file.
+    Writes the initial portion of an xdmf file.
     The mesh is output as a <Grid> with the <Time> also recorded
     """
     dim=elementMesh.dim
@@ -194,20 +193,6 @@ def _spacetimeschema( elementMesh, time, filename ):
             out += "\t<Topology Type=\"{0}\" NumberOfElements=\"{1}\">\n".format( topologyType,  nGlobalEls)
             out += "\t\t<DataItem ItemType=\"Function\" Dimensions=\"{0} {1}\" Function=\"JOIN($0, $1, $3, $2, $4, $5, $7, $6)\">\n".format(nGlobalEls, nodesPerElement)
 
-        """
-        for n_i in xrange(nodesPerElement):
-            out += "\t\t<DataItem ItemType=\"HyperSlab\" Dimensions=\"{0} 1\" Name=\"C{1}\">\n".format( nGlobalEls, n_i )
-            out += "\t\t\t\t<DataItem Dimensions=\"3 2\" Format=\"XML\"> 0 {0} 1 1 {1} 1 </DataItem>\n".format( n_i, nGlobalEls )
-            out += "\t\t\t\t<DataItem Format=\"HDF\" NumberType=\"Int\" Dimensions=\"{0} 1\">{1}:/en_map</DataItem>\n".format( nGlobalEls, filename )
-            out += "\t\t</DataItem>\n"
-
-        out += "\t\t</DataItem>\n"
-
-
-        out += "\t<Topology Type=\"{0}\" NumberOfElements=\"{1}\">\n".format( topologyType,  nGlobalEls)
-        out += "\t\t<DataItem Format=\"HDF\" DataType=\"Int\" Dimensions=\"{0} {1}\">{2}:/connectivity</DataItem>\n".format(nGlobalEls, nodesPerElement, filename)
-        """
-
     elif elementMesh.elementType=='Q2':
         # for quadratic meshes
         if elementMesh.dim == 2:
@@ -226,6 +211,7 @@ def _spacetimeschema( elementMesh, time, filename ):
         raise RuntimeError("XDMF code doesn't support mesh with 'elementType' {0}".format(elementMesh.elementType))
 
 
+    # define each hyperslab element for the element-node map
     for n_i in xrange(nodesPerElement):
         out += "\t\t<DataItem ItemType=\"HyperSlab\" Dimensions=\"{0} 1\" Name=\"C{1}\">\n".format( nGlobalEls, n_i )
         out += "\t\t\t\t<DataItem Dimensions=\"3 2\" Format=\"XML\"> 0 {0} 1 1 {1} 1 </DataItem>\n".format( n_i, nGlobalEls )
@@ -288,7 +274,6 @@ def _fieldschema((field_name, field), filename, elementMesh ):
        # more conditions needed above for various pressure elementTypes??? 
        # valid XDMF centers are "Node | Cell | Grid | Face | Edge" - http://www.xdmf.org/index.php/XDMF_Model_and_Format
 
-
     if dof_count==1:
         out = "\t<Attribute Type=\"Scalar\" Center=\"%s\" Name=\"%s\">\n" % (centering, field_name)
         out += "\t\t<DataItem ItemType=\"HyperSlab\" Dimensions=\"%u 1\" >\n" % (nodesGlobal)
@@ -346,14 +331,14 @@ def _fieldschema((field_name, field), filename, elementMesh ):
     
     return out
 
-    
-    return out
-
-def _createMeshName( mesh, outputDir='./output', time=None):
+def _createMeshName( mesh, outputDir='./output', index=None):
     """
     Returns a string - "outputDir/Mesh_res_time.h5"
     
     """
+    if not index == None:
+        if not isinstance(index, int):
+            ValueError("'index' must be None or type int")
     # get resolution string
     tmp=map(str,mesh.elementRes)
     st=''
@@ -361,19 +346,24 @@ def _createMeshName( mesh, outputDir='./output', time=None):
         st += str(x)+'x'
     st = st[:-1]
 
-    if time == None:
-        return outputDir + "/Mesh_"+st+".h5"
+    if index == None:
+        return "{0}/Mesh_{1}.h5".format(outputDir,st)
     else:
-        return outputDir + "/Mesh_"+st+str(time)+".h5"
+        return "{0}/Mesh_{1}.{2}.h5".format(outputDir, st, index )
 
 class LogBook(object):
     """
-    Class for recording Underworld information onto disk
+    Class for recording Underworld information onto disk in xdmf format
+
+    Notes
+    -----
+    http://www.xdmf.org/index.php/Main_Page
+
     """
 
     def __init__(self, objects, mesh, outputDir="./output" ):
         """
-        The LogBook class saves (and maybe later will read) Underworld objects to disk in XDMF format. eg. hdf5 format for heavy data,
+        The xdmf class saves (and maybe later will read) Underworld objects to disk in XDMF format. eg. hdf5 format for heavy data,
         (eg: fields & swarms) xml format for metadata that describes heavy data. The resultant data
         XDMF data file is '<outputDir>/XDMF.temporalFiles.xdmf'. 
         
@@ -412,7 +402,7 @@ class LogBook(object):
                 if not isinstance(v, uw.meshvariable.MeshVariable):
                     raise TypeError("object with key '{}' must be of type 'MeshVariable'".format(k))
                 # check if we support field elementType on master mesh
-                # get the location of the field nodes on the mesh
+                # currently support TODO 
                 if( v.mesh.nodesGlobal == mesh.nodesGlobal ):
                     pass
                 elif ( v.mesh.nodesGlobal == mesh.elementsGlobal ):
@@ -666,3 +656,168 @@ class ProgressBar(object):
 
         sys.stdout.flush()
 
+
+def xdmf_write( objects, mesh, outputDir='./output', time=None):
+    """
+    Writes out Underworld objects to disk in XDMF format. eg. hdf5 format for heavy data,
+    (eg: fields & swarms) xml format for metadata that describes heavy data. The resultant data
+    XDMF data file is '<outputDir>/XDMF.temporalFiles.xdmf'. 
+    
+    Parameters
+    ----------
+    objects : dict
+        Dictionary containing strings that map to MeshVariables. The strings label the 
+        paired MeshVariables in the XDMF output. Eg: {'vField': foo, 'pField: foo2 }
+        MeshVariable foo will be labelled 'vField', MeshVariable foo2 will be labelled 'pField'
+    
+    mesh : mesh
+        The elementMesh that all fields are defined over
+    
+    time : scalar
+        An optional parameter to record the model time when the XDMF file is written.
+        If not provided the XDMF time will be the nth occasion this function has been called.
+    
+    outputDir : string
+        The path to record all hdf5 and xml files. By default this path is './output'.
+        xdmf_write() only writes to this directory, possible overwriting existing files.
+
+    """
+
+    self = xdmf_write # HACK for simply refering to 'static' vars on this function via self
+    
+    ### Error Check input ###
+    # test 'objects' arg
+    if not isinstance( objects, dict):
+        raise TypeError("'objects' passed in must be of type 'dict'")
+    if len(objects) < 1:
+        raise ValueError("'objects' dictionary must contain one 'name' : field pair\n" +
+                         "e.g. {'vfield' : myVelocityField }")
+    
+    for (k,v) in objects.items():
+        if not isinstance(k, str):
+            raise TypeError("'objects' keys must be of type 'str'")
+        if not isinstance(v, uw.meshvariable.MeshVariable):
+            raise TypeError("object with key '{}' must be of type 'MeshVariable'".format(k))
+             
+    # test 'mesh' arg
+    if not isinstance(mesh, uw.mesh.FeMesh):
+        raise TypeError("'mesh' must be of type 'FeMesh'")
+    
+    # setup up _internalCount on this function 
+    if not hasattr( self, "_internalCount"):
+        self._internalCount = 0
+    else:
+        self._internalCount += 1
+
+    # setup a unique id 'uniId' with ZFILL!
+    uniId = str(self._internalCount).zfill(5)
+        
+    # if the 'time' arg is empty use the _internalCount number to specify the time for XDMF
+    if time==None:
+        time = self._internalCount
+    elif not isinstance(time, float or int):
+        raise TypeError("'time' argument must be of type float")
+    
+    # test 'outputDir' is writable and valid
+    if uw.rank() == 0:
+        if not os.path.exists(outputDir):
+            try:
+                os.makedirs(outputDir)
+            except:
+                print("Cannot make directory {}".format(outputDir))
+                raise
+    
+    ### End Error Check ###
+    
+
+    ### start constructing the .xmf for the 
+
+    # xmf file is stored in 'string'
+    # 1st write header
+    string = ("<?xml version=\"1.0\" ?>\n" +
+              "<Xdmf xmlns:xi=\"http://www.w3.org/2001/XInclude\" Version=\"2.0\">\n" +
+              "<Domain>\n")
+    
+    # Save the mesh under file <outputDir/mesh.uniId.h5>    
+    meshFN = outputDir + "/mesh." + uniId +".h5"    
+    mesh.save(meshFN)
+    
+    # append to xmf 
+    meshFN = "mesh." + uniId +".h5" # rewrite name
+    string += _spacetimeschema(mesh, time, meshFN)
+    
+    ## Save the fields under the file <outputDir/name.uniId.h5>
+    for (k,feVar) in objects.items():
+        fieldFN = outputDir+"/{}.".format(k)+uniId+".h5"
+        
+        # not sure multi meshes work so far - further testing required
+        #if( feVar.mesh != mesh ):
+        #    raise RuntimeError("Unexpected mesh, {} xmf writer needs further implementation\n".format(k)+
+        #                       "to handle multiple meshes.\n")
+        
+        feVar.save(fieldFN)
+
+        fieldFN = "{}.".format(k)+uniId+".h5"
+        string += _fieldschema( (k,feVar), fieldFN, mesh )
+        
+    # write the footer to the xmf    
+    string += ("</Grid>\n" + 
+               "</Domain>\n" + 
+               "</Xdmf>\n" )
+    
+
+    ### if PARALLEL only proc 0 is to write the xdmf ###
+    if uw.rank() != 0:
+        return
+
+    # open the would be xmf file
+    xmfFN = outputDir+"/XDMF."+uniId+".xmf"
+
+    # open or overwrite xmfFN
+    try:
+        xmfFH=open(xmfFN, "w")
+    except:
+        print("Cannot make the file {}".format(xmfFN))
+        raise
+    
+    # write string to xmf file
+    xmfFH.write(string)
+    xmfFH.close()
+    
+    xmfname = os.path.basename(xmfFN)
+    xdmfFN = outputDir+"/XDMF.Files.xdmf"
+
+    if not hasattr(self, "_createdXDMF"):
+        xdmfFH = open(xdmfFN, "w")
+        string = ("<?xml version=\"1.0\" ?>\n" +
+                  "<Xdmf xmlns:xi=\"http://www.w3.org/2001/XInclude\" Version=\"2.0\">\n" + 
+                  "<Grid GridType=\"Collection\" CollectionType=\"Temporal\" Name=\"FEM_Mesh_Fields\">\n" +
+                  "\n    <xi:include href=\"{}\" ".format(xmfname) + 
+                  "xpointer=\"xpointer(//Xdmf/Domain/Grid[1])\"/>\n" +
+                  "</Grid>\n" + 
+                  "</Xdmf>")
+        xdmfFH.write(string)
+        xdmfFH.close()
+
+        refxdmfFN = os.path.basename(xdmfFN)
+        xdmfTemporalFiles = outputDir+"/XDMF.temporalFiles.xdmf"
+        xdmfFH = open( xdmfTemporalFiles, "w" )
+        xdmfFH.write("<?xml version=\"1.0\" ?>\n" +
+                     "<Xdmf xmlns:xi=\"http://www.w3.org/2001/XInclude\" Version=\"2.0\">\n" +
+                     "<Domain>\n" + 
+                     "<xi:include href=\"{}\" xpointer=\"xpointer(//Xdmf/Grid)\"/>\n".format(refxdmfFN) +
+                     "</Domain>\n" +
+                     "</Xdmf>\n")
+        xdmfFH.close()
+
+        self._createdXDMF = True
+    else:
+        xdmfFH = open(xdmfFN, "r+")
+        xdmfFH.seek(-16,2)  # exact move of filePtr 16 bytes from the end of the file - before the "</Grid>"
+        xdmfFH.truncate()   # nuke all of file after this point
+        string = ("\n    <xi:include href=\"{}\" ".format(xmfname) + 
+                  "xpointer=\"xpointer(//Xdmf/Domain/Grid[1])\"/>\n" +
+                  "</Grid>\n" + 
+                  "</Xdmf>")
+        xdmfFH.write(string)
+        xdmfFH.close()
