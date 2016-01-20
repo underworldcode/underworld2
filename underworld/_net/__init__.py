@@ -15,17 +15,10 @@ import json,httplib,urllib
 import httplib
 import urllib
 import uuid
+import underworld as uw
 
 GA_TRACKING_ID = "UA-35748138-7"
-
-# The following should return the mac address as a machine identifier.
-# This is useful to get an idea about unique users, but note that
-# where no mac address is found, a random number is instead returned,
-# but it's irrelevant as if there's no mac address, there's
-# no network, so metrics will not be dispatched.
-from uuid import getnode
-GA_CLIENT_ID = str(getnode())
-
+GA_CLIENT_ID = uw._id
 
 def PostGAEvent( category, action, label=None, value=None ):
     """ 
@@ -59,12 +52,17 @@ def PostGAEvent( category, action, label=None, value=None ):
         "cid": GA_CLIENT_ID,    # Anonymous Client ID.
         "t"  : "event",         # Event hit type.
         "an" : "underworld2",   # Application name.
-        "av" : "alpha",         # Application version.
+        "av" : uw.__version__,  # Application version.
         "ec" : category,        # Event Category. Required.
         "ea" : action,          # Event Action. Required.
         "el" : label,           # Event label.
         "ev" : value,           # Event value.
         }
+        import os
+        # add user id if set
+        if "UW_USER_ID" in os.environ:
+            form_fields["uid"] = os.environ["UW_USER_ID"]
+
         params = urllib.urlencode(form_fields)
         connection.connect()
         connection.request('POST', '/collect?%s' % params, '', { "Content-Type": "application/x-www-form-urlencoded" })
