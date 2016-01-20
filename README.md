@@ -60,7 +60,7 @@ Various example files are provided in `InputFiles` and may be run as follows:
 Privacy
 -------
 
-Note that basic usage metrics are dispatched when you use Underworld. To opt out, set the UW_NO_USAGE_METRICS environment variable. See PRIVACY.md for full details.                                   
+Note that basic usage metrics are dispatched when you use Underworld. To opt out, set the UW_NO_USAGE_METRICS environment variable. See `PRIVACY.md` for full details.                                   
 
 Bedtime reading
 ---------------
