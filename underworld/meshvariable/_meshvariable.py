@@ -183,11 +183,14 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
 
     def xdmf( self, filename, varname, meshSavedData, fieldSavedData, modeltime=0.  ):
         """
-        Creates an xdmf file, filename, associating the fieldSavedData file on the meshSavedData file
+        Creates an xdmf file, filename, associating the fieldSavedData file on 
+        the meshSavedData file
 
         Notes
         -----
         xdmf contain 2 files: an .xml and a .h5 file. See http://www.xdmf.org/index.php/Main_Page
+        This method only needs to be called by the master process, all other 
+        processes return quiely.
 
         Parameters
         ----------
@@ -201,54 +204,86 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
             Handler returned from saving a field. underworld.meshvariable.save(xxx)
         modeltime : float (default 0.0)
             The time recorded in the xdmf output file
-        """
 
-        if not isinstance(varname, str):
-            raise ValueError("'varname' must be of type str")
-        if not isinstance(filename, str):
-            raise ValueError("'filename' must be of type str")
-        if not isinstance(meshSavedData, uw.SavedFileData ):
-            raise ValueError("'meshSavedData' must be of type SavedFileData")
-        if not isinstance(fieldSavedData, uw.SavedFileData ):
-            raise ValueError("'fieldSavedData' must be of type SavedFileData")
-        if not isinstance(modeltime, (int,float)):
-            raise ValueError("'modeltime' must be of type int or float")
-        modeltime = float(modeltime)    # make modeltime a float
+        Example
+        -------
+        First create the mesh add a variable:
+        >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
+        >>> var = uw.meshvariable.MeshVariable( mesh=mesh, nodeDofCount=1, dataType="double" )
         
-        comm = MPI.COMM_WORLD
+        Write something to variable
+        
+        >>> import numpy as np
+        >>> var.data[:,0] = np.arange(var.data.shape[0])
+        
+        Save mesh and var to a file:
+        
+        >>> meshDat = mesh.save("saved_mesh_variable.h5")
+        >>> varDat = var.save("saved_mesh.h5")
+        
+        Now let's create the xdmf file
+        
+        >>> var.xdmf("TESTxdmf", "TestVar", meshDat, varDat)
 
-        elementMesh = self.mesh
-        if hasattr(elementMesh.generator, 'geometryMesh'):
-            elementMesh = elementMesh.generator.geometryMesh
+        Does file exist?
+        
+        >>> import os
+        >>> if uw.rank() == 0: os.path.isfile("TESTxdmf.xdmf")
+        True
+        
+        Clean up:
+        >>> if uw.rank() == 0:
+        ...     import os; 
+        ...     os.remove( "saved_mesh_variable.h5" )
+        ...     os.remove( "saved_mesh.h5" )
+        ...     os.remove( "TESTxdmf.xdmf" )
 
-        # get the elementMesh - if self is a subMeshed variable get the parent
-        if elementMesh != meshSavedData.pyobj:
-            raise RuntimeError("'meshSavedData file doesn't correspond to the object's mesh")
-
-
-        xdmfFN = filename+'.xdmf'
-        refmeshFN = os.path.basename(meshSavedData.filename)    
-        reffieldFN = os.path.basename(fieldSavedData.filename)
-        elementMesh = meshSavedData.pyobj
-
-        # the xmf file is stored in 'string'
-        # 1st write header
-        string = ("<?xml version=\"1.0\" ?>\n" +
-                  "<Xdmf xmlns:xi=\"http://www.w3.org/2001/XInclude\" Version=\"2.0\">\n" +
-                  "<Domain>\n")
-        if not modeltime == None:
-            string += uw.utils._spacetimeschema(elementMesh, modeltime, refmeshFN)
-        else:
-            string += uw.utils._spacetimeschema(elementMesh, 0, refmeshFN)
-        string += uw.utils._fieldschema( (varname,self), reffieldFN, elementMesh )
-        # write the footer to the xmf    
-        string += ("</Grid>\n" + 
-                   "</Domain>\n" + 
-                   "</Xdmf>\n" )
-
-        # write the string to file - only proc 0
+        """
         if uw.rank() == 0:
-            xdmfFH = open(xdmfFN, "w")
+            if not isinstance(varname, str):
+                raise ValueError("'varname' must be of type str")
+            if not isinstance(filename, str):
+                raise ValueError("'filename' must be of type str")
+            if not isinstance(meshSavedData, uw.SavedFileData ):
+                raise ValueError("'meshSavedData' must be of type SavedFileData")
+            if not isinstance(fieldSavedData, uw.SavedFileData ):
+                raise ValueError("'fieldSavedData' must be of type SavedFileData")
+            if not isinstance(modeltime, (int,float)):
+                raise ValueError("'modeltime' must be of type int or float")
+            modeltime = float(modeltime)    # make modeltime a float
+            
+            elementMesh = self.mesh
+            if hasattr(elementMesh.generator, 'geometryMesh'):
+                elementMesh = elementMesh.generator.geometryMesh
+
+            # get the elementMesh - if self is a subMeshed variable get the parent
+            if elementMesh != meshSavedData.pyobj:
+                raise RuntimeError("'meshSavedData file doesn't correspond to the object's mesh")
+
+
+            if not filename.lower().endswith('.xdmf'):
+                filename += '.xdmf'
+            refmeshFN = os.path.basename(meshSavedData.filename)    
+            reffieldFN = os.path.basename(fieldSavedData.filename)
+            elementMesh = meshSavedData.pyobj
+
+            # the xmf file is stored in 'string'
+            # 1st write header
+            string = ("<?xml version=\"1.0\" ?>\n" +
+                      "<Xdmf xmlns:xi=\"http://www.w3.org/2001/XInclude\" Version=\"2.0\">\n" +
+                      "<Domain>\n")
+            if not modeltime == None:
+                string += uw.utils._spacetimeschema(elementMesh, modeltime, refmeshFN)
+            else:
+                string += uw.utils._spacetimeschema(elementMesh, 0, refmeshFN)
+            string += uw.utils._fieldschema( (varname,self), reffieldFN, elementMesh )
+            # write the footer to the xmf    
+            string += ("</Grid>\n" + 
+                       "</Domain>\n" + 
+                       "</Xdmf>\n" )
+
+            # write the string to file - only proc 0
+            xdmfFH = open(filename, "w")
             xdmfFH.write(string)
             xdmfFH.close()
 
@@ -268,6 +303,12 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         -----
         This method must be called collectively by all processes.
         
+        Returns
+        -------
+        SavedFileData
+            Data object relating to saved file. This only needs to be retained
+            if you wish to create XDMF files and can be ignored otherwise.
+        
         Example
         -------
         First create the mesh add a variable:
@@ -280,9 +321,9 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         >>> import numpy as np
         >>> var.data[:,0] = np.arange(var.data.shape[0])
         
-        Save to a file:
+        Save to a file (note that the 'ignoreMe' object isn't really required):
         
-        >>> var.save("saved_mesh_variable.h5")
+        >>> ignoreMe = var.save("saved_mesh_variable.h5")
         
         Now let's try and reload.
         
@@ -295,7 +336,9 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         True
         
         Clean up:
-        >>> if uw.rank() == 0: import os; os.remove( "saved_mesh_variable.h5" )
+        >>> if uw.rank() == 0: 
+        ...     import os; 
+        ...     os.remove( "saved_mesh_variable.h5" )
 
         """
         if not isinstance(filename, str):

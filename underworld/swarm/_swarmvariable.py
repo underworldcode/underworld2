@@ -309,8 +309,11 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         True
         
         Clean up:
-        >>> if uw.rank() == 0: import os; os.remove( "saved_swarm.h5" ); os.remove( "saved_swarm_variable.h5" )
-    
+        >>> if uw.rank() == 0:
+        ...     import os; 
+        ...     os.remove( "saved_swarm.h5" )
+        ...     os.remove( "saved_swarm_variable.h5" )
+
         """
         
         if swarmFilepath:

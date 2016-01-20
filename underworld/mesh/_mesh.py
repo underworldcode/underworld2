@@ -373,9 +373,9 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
 
         >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
         
-        Save to a file:
+        Save to a file (note that the 'ignoreMe' object isn't really required):
         
-        >>> mesh.save("saved_mesh.h5")
+        >>> ignoreMe = mesh.save("saved_mesh.h5")
         
         Now let's try and reload. First create new mesh (note the different spatial size):
         
@@ -397,7 +397,9 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         True
         
         Clean up:
-        >>> if uw.rank() == 0: import os; os.remove( "saved_mesh.h5" )
+        >>> if uw.rank() == 0:
+        ...     import os; 
+        ...     os.remove( "saved_mesh.h5" )
 
         """
         if hasattr(self.generator, 'geometryMesh'):
