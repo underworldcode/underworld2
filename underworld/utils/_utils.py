@@ -245,7 +245,6 @@ def _fieldschema((field_name, field), filename, elementMesh ):
     """
     Writes output the xmf portion for a MeshVariable
     """
-
     # Error check
     if not isinstance(field_name, str):
         raise TypeError("'field_name', must be of type str")
@@ -275,57 +274,57 @@ def _fieldschema((field_name, field), filename, elementMesh ):
        # valid XDMF centers are "Node | Cell | Grid | Face | Edge" - http://www.xdmf.org/index.php/XDMF_Model_and_Format
 
     if dof_count==1:
-        out = "\t<Attribute Type=\"Scalar\" Center=\"%s\" Name=\"%s\">\n" % (centering, field_name)
-        out += "\t\t<DataItem ItemType=\"HyperSlab\" Dimensions=\"%u 1\" >\n" % (nodesGlobal)
-        out += "\t\t\t<DataItem Dimensions=\"3 2\" Format=\"XML\"> 0 0 1 1 %u 1 </DataItem>\n" % (nodesGlobal)
-        out += "\t\t\t<DataItem Format=\"HDF\" %s Dimensions=\"%u %u\">%s:/data</DataItem>\n" % (variableType, nodesGlobal, dof_count, filename )
+        out = "\t<Attribute Type=\"Scalar\" Center=\"{0}\" Name=\"{1}\">\n".format(centering, field_name)
+        out += "\t\t<DataItem ItemType=\"HyperSlab\" Dimensions=\"{0} 1\" >\n".format(nodesGlobal)
+        out += "\t\t\t<DataItem Dimensions=\"3 2\" Format=\"XML\"> 0 0 1 1 {0} 1 </DataItem>\n".format(nodesGlobal)
+        out += "\t\t\t<DataItem Format=\"HDF\" {0} Dimensions=\"{1} {2}\">{3}:/data</DataItem>\n".format(variableType, nodesGlobal, dof_count, filename )
         out += "\t\t</DataItem>\n"
         out += "\t</Attribute>\n"
     
     elif dof_count==2:
-        out = "\t<Attribute Type=\"Vector\" Center=\"%s\" Name=\"%s\">\n" % (centering, field_name)
-        out += "\t<DataItem ItemType=\"Function\"  Dimensions=\"%u 3\" Function=\"JOIN($0, $1, 0*$1)\">\n" % (nodesGlobal)
+        out = "\t<Attribute Type=\"Vector\" Center=\"{0}\" Name=\"{1}\">\n".format(centering, field_name)
+        out += "\t<DataItem ItemType=\"Function\"  Dimensions=\"{0} 3\" Function=\"JOIN($0, $1, 0*$1)\">\n".format(nodesGlobal)
         # X values
-        out += "\t\t<DataItem ItemType=\"HyperSlab\" Dimensions=\"%u 1\" Name=\"XValue\">\n" % (nodesGlobal)
-        out += "\t\t\t<DataItem Dimensions=\"3 2\" Format=\"XML\"> 0 0 1 1 %u 1 </DataItem>\n" % (nodesGlobal)
-        out += "\t\t\t<DataItem Format=\"HDF\" %s Dimensions=\"%u %u\">%s:/data</DataItem>\n" % (variableType, nodesGlobal, dof_count, filename )
+        out += "\t\t<DataItem ItemType=\"HyperSlab\" Dimensions=\"{0} 1\" Name=\"XValue\">\n".format(nodesGlobal)
+        out += "\t\t\t<DataItem Dimensions=\"3 2\" Format=\"XML\"> 0 0 1 1 {0} 1 </DataItem>\n".format(nodesGlobal)
+        out += "\t\t\t<DataItem Format=\"HDF\" {0} Dimensions=\"{1} {2}\">{3}:/data</DataItem>\n".format(variableType, nodesGlobal, dof_count, filename )
         out += "\t\t</DataItem>\n"
         # Y values
-        out += "\t\t<DataItem ItemType=\"HyperSlab\" Dimensions=\"%u 1\" Name=\"YValue\">\n" % (nodesGlobal)
-        out += "\t\t\t<DataItem Dimensions=\"3 2\" Format=\"XML\"> 0 1 1 1 %u 1 </DataItem>\n" % (nodesGlobal)
-        out += "\t\t\t<DataItem Format=\"HDF\" %s Dimensions=\"%u %u\">%s:/data</DataItem>\n" % (variableType, nodesGlobal, dof_count, filename )
+        out += "\t\t<DataItem ItemType=\"HyperSlab\" Dimensions=\"{0} 1\" Name=\"YValue\">\n".format(nodesGlobal)
+        out += "\t\t\t<DataItem Dimensions=\"3 2\" Format=\"XML\"> 0 1 1 1 {0} 1 </DataItem>\n".format(nodesGlobal)
+        out += "\t\t\t<DataItem Format=\"HDF\" {0} Dimensions=\"{1} {2}\">{3}:/data</DataItem>\n".format(variableType, nodesGlobal, dof_count, filename )
         out += "\t\t</DataItem>\n"
         out += "\t</DataItem>\n"
         out += "\t</Attribute>\n"
 
     elif dof_count==3:
-        out =  "\t<Attribute Type=\"Vector\" Center=\"%s\" Name=\"%s\">\n".format(centering,  field_name)
-        out += "\t\t<DataItem ItemType=\"HyperSlab\" Dimensions=\"%u 3\" >\n".format(nodesGlobal)
-        out += "\t\t\t<DataItem Dimensions=\"3 2\" Format=\"XML\"> 0 %u 1 1 %u 3 </DataItem>\n".format(offset, nodesGlobal)
-        out += "\t\t\t<DataItem Format=\"HDF\" %s Dimensions=\"%u %u\">%s:/data</DataItem>\n".format(variableType, nodesGlobal, dof_count, filename)
+        out =  "\t<Attribute Type=\"Vector\" Center=\"{0}\" Name=\"{1}\">\n".format(centering,  field_name)
+        out += "\t\t<DataItem ItemType=\"HyperSlab\" Dimensions=\"{0} 3\" >\n".format(nodesGlobal)
+        out += "\t\t\t<DataItem Dimensions=\"3 2\" Format=\"XML\"> 0 {0} 1 1 {1} 3 </DataItem>\n".format(offset, nodesGlobal)
+        out += "\t\t\t<DataItem Format=\"HDF\" {0} Dimensions=\"{1} {2}\">{3}:/data</DataItem>\n".format(variableType, nodesGlobal, dof_count, filename)
         out += "\t\t</DataItem>\n"
         out += "\t</Attribute>\n"
     
     elif dof_count==6 and dim==3:
-        out =  "\t<Attribute Type=\"Tensor6\" Center=\"%s\" Name=\"%s\">\n".format(centering,  field_name)
-        out += "\t\t<DataItem ItemType=\"HyperSlab\" Dimensions=\"%u %u\" >\n".format(nodesGlobal, dof_count)
-        out += "\t\t\t<DataItem Dimensions=\"3 2\" Format=\"XML\"> 0 %u 1 1 %u %u </DataItem>\n".format(offset, nodesGlobal, dof_count)
-        out += "\t\t\t<DataItem Format=\"HDF\" %s Dimensions=\"%u %u\">%s:/data</DataItem>\n".format(variableType, nodesGlobal, dof_count, filename)
+        out =  "\t<Attribute Type=\"Tensor6\" Center=\"{0}\" Name=\"{1}\">\n".format(centering,  field_name)
+        out += "\t\t<DataItem ItemType=\"HyperSlab\" Dimensions=\"{0} {1}\" >\n".format(nodesGlobal, dof_count)
+        out += "\t\t\t<DataItem Dimensions=\"3 2\" Format=\"XML\"> 0 {0} 1 1 {1} {2} </DataItem>\n".format(offset, nodesGlobal, dof_count)
+        out += "\t\t\t<DataItem Format=\"HDF\" {0} Dimensions=\"{1} {2}\">{3}:/data</DataItem>\n".format(variableType, nodesGlobal, dof_count, filename)
         out += "\t\t</DataItem>\n"
         out += "\t</Attribute>\n"
     elif dof_count==9 and dim==3:
-        out =  "\t<Attribute Type=\"Tensor\" Center=\"%s\" Name=\"%s\">\n".format(centering,  field_name)
-        out += "\t\t<DataItem ItemType=\"HyperSlab\" Dimensions=\"%u %u\" >\n".format(nodesGlobal, dof_count)
-        out += "\t\t\t<DataItem Dimensions=\"3 2\" Format=\"XML\"> 0 %u 1 1 %u %u </DataItem>\n".format(offset, nodesGlobal, dof_count)
-        out += "\t\t\t<DataItem Format=\"HDF\" %s Dimensions=\"%u %u\">%s:/data</DataItem>\n".format(variableType, nodesGlobal, dof_count, filename)
+        out =  "\t<Attribute Type=\"Tensor\" Center=\"{0}\" Name=\"{1}\">\n".format(centering,  field_name)
+        out += "\t\t<DataItem ItemType=\"HyperSlab\" Dimensions=\"{0} {1}\" >\n".format(nodesGlobal, dof_count)
+        out += "\t\t\t<DataItem Dimensions=\"3 2\" Format=\"XML\"> 0 {0} 1 1 {1} {2} </DataItem>\n".format(offset, nodesGlobal, dof_count)
+        out += "\t\t\t<DataItem Format=\"HDF\" {0} Dimensions=\"{1} {2}\">{3}:/data</DataItem>\n".format(variableType, nodesGlobal, dof_count, filename)
         out += "\t\t</DataItem>\n"
         out += "\t</Attribute>\n"
     else:
         for d_i in xrange(dof_count):
-            out = "\t<Attribute Type=\"Scalar\" Center=\"%s\" Name=\"%s-Component-%u\">\n".format(centering, field_name, d_i)
-            out += "\t\t<DataItem ItemType=\"HyperSlab\" Dimensions=\"%u 1\" >\n".format(nodesGlobal)
-            out += "\t\t\t<DataItem Dimensions=\"3 2\" Format=\"XML\"> 0 %u 1 1 %u 1 </DataItem>\n".format(offset, nodesGlobal)
-            out += "\t\t\t<DataItem Format=\"HDF\" %s Dimensions=\"%u %u\">%s:/data</DataItem>\n".format(variableType, nodesGlobal, dof_count, filename)
+            out = "\t<Attribute Type=\"Scalar\" Center=\"{0}\" Name=\"{1}-Component-{2}\">\n".format(centering, field_name, d_i)
+            out += "\t\t<DataItem ItemType=\"HyperSlab\" Dimensions=\"{0} 1\" >\n".format(nodesGlobal)
+            out += "\t\t\t<DataItem Dimensions=\"3 2\" Format=\"XML\"> 0 {0} 1 1 {1} 1 </DataItem>\n".format(offset, nodesGlobal)
+            out += "\t\t\t<DataItem Format=\"HDF\" {0} Dimensions=\"{1} {2}\">{3}:/data</DataItem>\n".format(variableType, nodesGlobal, dof_count, filename)
             out += "\t\t</DataItem>\n"
             out += "\t</Attribute>\n"
     
