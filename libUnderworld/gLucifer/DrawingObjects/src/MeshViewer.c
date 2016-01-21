@@ -110,7 +110,6 @@ void _lucMeshViewer_AssignFromXML( void* drawingObject, Stg_ComponentFactory* cf
    self->displayEdges = Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"displayEdges", True );
 
    self->colourVariable = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"ColourField", FieldVariable, False, data  );
-   self->sizeVariable = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"SizeField", FieldVariable, False, data  );
 }
 
 void _lucMeshViewer_Build( void* drawingObject, void* data )
@@ -118,7 +117,6 @@ void _lucMeshViewer_Build( void* drawingObject, void* data )
    lucMeshViewer*	self = (lucMeshViewer*)drawingObject;
 
    Stg_Component_Build( self->colourVariable, data, False );
-   Stg_Component_Build( self->sizeVariable, data, False );
 }
 
 void _lucMeshViewer_Initialise( void* drawingObject, void* data )
@@ -149,7 +147,7 @@ void _lucMeshViewer_Draw( void* drawingObject, lucDatabase* database, void* _con
    lucColourMap*           colourMap      = self->colourMap;
 
    Journal_Firewall( Mesh_GetDomainSize( self->mesh, MT_VERTEX ),
-                     NULL, "Error when trying to render mesh. Provided mesh may not be supported." );
+                     NULL, "Error when trying to sample mesh. Provided mesh may not be supported." );
 
    /* Scale Colour Maps */
    if ( self->colourVariable && colourMap )
@@ -194,11 +192,6 @@ void _lucMeshViewer_Draw( void* drawingObject, lucDatabase* database, void* _con
          {
             float val = (float)value;
             lucDatabase_AddValues(database, 1, lucPointType, lucColourValueData, self->colourMap, &val);
-         }
-         if (self->sizeVariable && FieldVariable_InterpolateValueAt( self->sizeVariable, vert, &value ) == LOCAL)
-         {
-            float size = (float)value;
-            lucDatabase_AddValues(database, 1, lucPointType, lucSizeData, NULL, &size);
          }
       }
    }
