@@ -50,6 +50,7 @@ import function
 import swarm
 import systems
 import utils
+import meshvariable
 
 try:
     from ._uwid import uwid as _id
