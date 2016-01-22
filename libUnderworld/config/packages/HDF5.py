@@ -34,3 +34,18 @@ class HDF5(Package):
                 env.PrependUnique(LIBS=['hdf5'])
                 yield env
 
+    def check(self, conf, env):
+        call = """ 
+            #if H5_HAVE_PARALLEL != 1
+                #error "Error: Your HDF5 installation does not appear to be parallel mode enabled."
+            #endif
+         """
+        result = conf.CheckLibWithHeader(None, ['mpi.h','hdf5.h'], 'c', call=call, autoadd=0)
+
+        if not result:
+            print('\n\nYour HDF5 installation located in: %s'%repr(self.location[0]))
+            print('does not appear to be parallel mode enabled.\n' \
+                  'Please ensure that you have a parallel version of\n' \
+                  'the HDF5 library installed.\n')
+        return result
+

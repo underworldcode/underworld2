@@ -244,9 +244,9 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
                 raise ValueError("'varname' must be of type str")
             if not isinstance(filename, str):
                 raise ValueError("'filename' must be of type str")
-            if not isinstance(meshSavedData, uw.SavedFileData ):
+            if not isinstance(meshSavedData, uw.utils.SavedFileData ):
                 raise ValueError("'meshSavedData' must be of type SavedFileData")
-            if not isinstance(fieldSavedData, uw.SavedFileData ):
+            if not isinstance(fieldSavedData, uw.utils.SavedFileData ):
                 raise ValueError("'fieldSavedData' must be of type SavedFileData")
             if not isinstance(modeltime, (int,float)):
                 raise ValueError("'modeltime' must be of type int or float")
@@ -378,7 +378,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         h5f.close()
 
         # return our file handle
-        return uw.SavedFileData(self, filename)
+        return uw.utils.SavedFileData(self, filename)
 
     def _oldsave(self, filename):
         """

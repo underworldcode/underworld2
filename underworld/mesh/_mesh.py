@@ -594,7 +594,7 @@ class CartesianMeshGenerator(MeshGenerator):
             List or tuple of floats specifying minimum mesh location. See CartesianMeshGenerator.minCoord
             docstring for further information.
         maxCoord: list, tuple
-            List or tuple of floats specifying maximum mesh location. See CartesianMeshGenerator.minCoord
+            List or tuple of floats specifying maximum mesh location. See CartesianMeshGenerator.maxCoord
             docstring for further information.
         periodic: list, tuple
             List or tuple of bools, specifying mesh periodicity in each direction.

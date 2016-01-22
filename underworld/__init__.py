@@ -44,7 +44,6 @@ _sys.setdlopenflags( _oldflags | _ctypes.RTLD_GLOBAL )
 import libUnderworld
 import container
 import mesh
-import meshvariable
 import fevariable
 import conditions
 import function
@@ -55,8 +54,8 @@ import utils
 try:
     from ._uwid import uwid as _id
 except:
-    import uuid
-    _id = str(uuid.uuid4())
+    import uuid as _uuid
+    _id = str(_uuid.uuid4())
 import _net
 
 # ok, now set this back to the original value
@@ -131,16 +130,6 @@ def _prepend_message_to_exception(e, message):
     http://stackoverflow.com/questions/6062576/adding-information-to-a-python-exception
     """
     raise type(e), type(e)(message + '\n' + e.message), _sys.exc_info()[2]
-
-
-class SavedFileData(object):
-    '''
-    A class used to define saved data
-    '''
-    def __init__(self, pyobj, filename):
-        self.pyobj = pyobj
-        self.filename = filename
-
 
 class _del_uw_class:
     """

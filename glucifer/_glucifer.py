@@ -1,6 +1,15 @@
+##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
+##                                                                                   ##
+##  This file forms part of the Underworld geophysics modelling application.         ##
+##                                                                                   ##
+##  For full license and copyright information, please refer to the LICENSE.md file  ##
+##  located at the project root, or contact the authors.                             ##
+##                                                                                   ##
+##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
+
+
 import underworld as uw
 import errno
-import weakref
 import underworld._stgermain as _stgermain
 import os
 import urllib2
@@ -9,7 +18,7 @@ from base64 import b64encode
 import libUnderworld
 import _LavaVu as lavavu
 from multiprocessing import Process
-from . import objects
+import objects
 
 # lets create somewhere to dump data for this session
 import os
@@ -25,15 +34,66 @@ except OSError as exception:
         raise
 
 class Figure(_stgermain.StgCompoundComponent):
-    """  The Figure class provides the base container for gLucifer drawing objects, and associated routines for image generation.
-         Generally the user will use the figure() routine to generate or recall Figure instances.
-         
-         A minimal workflow might be as follows:
-            fig = glucifer.figure()                              # generate a Figure instance
-            fig + glucifer.objects.Surface(mesh, velocityField)  # add Surface drawing object
-            fig.show()                                           # show the image (in ipython notebook)
+    """  
+    The Figure class provides a window within which gLucifer drawing objects
+    may be rendered. It also provides associated routines for image generation
+    and visualisation.
+    
+    In addition to parameter specification below, see property docstrings for
+    further information.
+
+    Parameters
+    ----------
+        figsize: tuple, default=(640,480)
+            Image resolution provided as a tuple.
+        boundingBox: tuple, default=None
+            Tuple of coordiante tuples defining figure bounding box.
+            For example ( (0.1,0.1), (0.9,0.9) )
+        facecolour: str, default="white"
+            Background colour for figure.
+        edgecolour: str, default="black"
+            Edge colour for figure.
+        title: str, default=None
+            Figure title.
+        axis: bool, default=False
+            Bool to determine if figure axis should be drawn.
+        antialias: unsigned, default=3
+            Antialiasing oversampling. For a value of 2, the image will be
+            rendered at twice the resolution, and then downsampled. Setting
+            this to 1 disables antialiasing.
+        properties: str, default=None
+            Further properties to set on the figure.
             
-         Currently, the Surface, Points & VectorArrows are the supported drawing objects.  See help() on these objects for their respective options.
+    Example
+    -------
+        
+    Create a figure:
+    >>> import glucifer
+    >>> fig = glucifer.Figure()
+
+    We need a mesh
+    >>> import underworld as uw
+    >>> mesh = uw.mesh.FeMesh_Cartesian()
+
+    Add drawing objects:
+    >>> fig.append( glucifer.objects.Surface( mesh, 1.) )
+    
+    Draw image (note, in a Jupyter notebook, this will render the image within the notebook).
+    >>> fig.show()
+    <IPython.core.display.HTML object>
+    
+    Save the image
+    >>> fig.save_image("test_image.png")
+
+    Save the database
+    >>> fig.save_database("test_db.gldb")
+    
+    Clean up:
+    >>> if uw.rank() == 0: 
+    ...     import os; 
+    ...     os.remove( "test_db.gldb" )
+    ...     os.remove( "test_image.png" )
+
     """
     _objectsDict = { "_db":"lucDatabase",
                     "_win":"lucWindow",
@@ -42,19 +102,8 @@ class Figure(_stgermain.StgCompoundComponent):
     _selfObjectName = "_db"
     _viewerProc = None
 
-    def __init__(self, database=None, num=None, figsize=(640,480), boundingBox=None, facecolour="white",
+    def __init__(self, figsize=(640,480), boundingBox=None, facecolour="white",
                  edgecolour="black", title="", axis=False, antialias=3, properties=None, **kwargs):
-        """ The initialiser takes as arguments 'num', 'figsize', 'boundingBox', 'facecolour', 'edgecolour', 'title', 'axis', 'antialias' and 'properties'.   See help(Figure) for full details on these options.
-        """
-        if database and not isinstance(database,str):
-            raise TypeError("'database' object passed in must be of python type 'str'")
-        self._database = database
-        if num and not isinstance(num,(str,int)):
-            raise TypeError("'num' object passed in must be of python type 'str' or 'int'")
-        if num and isinstance(num,str) and (" " in num):
-            raise ValueError("'num' object passed in must not contain any spaces.")
-        self._num = num
-
         if not isinstance(figsize,tuple):
             raise TypeError("'figsize' object passed in must be of python type 'tuple'")
         self._figsize = figsize
@@ -95,7 +144,6 @@ class Figure(_stgermain.StgCompoundComponent):
 
         self.draw = objects.Drawing()
         self._drawingObjects = [self.draw]
-        self._colourMaps = [self.draw._colourMap]
         self._script = []
 
         super(Figure,self).__init__(**kwargs)
@@ -110,7 +158,7 @@ class Figure(_stgermain.StgCompoundComponent):
         super(Figure,self)._add_to_stg_dict(componentDictionary)
 
         componentDictionary[self._db.name].update( {
-                            "filename"          :self._database, #"gluciferDB"+self._id,
+                            "filename"          :None,
                             "blocking"          :True,
                             "splitTransactions" :True,
                             "dbPath"            :tmpdir,
@@ -151,12 +199,6 @@ class Figure(_stgermain.StgCompoundComponent):
         _libUnderworld.gLucifer.lucViewport_SetProperties(self._vp, self._getProperties());
 
     @property
-    def filename(self):
-        """    database (str): filename for storing generated figure content, default: none (in-memory only)
-        """
-        return self._database
-
-    @property
     def figsize(self):
         """    figsize (tuple(int,int)): size of window in pixels, default: (640,480)
         """
@@ -193,31 +235,33 @@ class Figure(_stgermain.StgCompoundComponent):
         return self._drawingObjects
 
     @property
-    def colourMaps(self):
-        """    colourMaps : list of colour maps available within the figure.
-        """
-        return self._colourMaps
-
-    @property
     def properties(self):
-        """    properties (dict): visual properties of viewport, passed to LavaVu to control rendering output of figure.
+        """    
+        properties (dict): visual properties of viewport, passed to LavaVu to control 
+        rendering output of figure.
+        
+        When using the property setter, new properties are set, overwriting any duplicate 
+        keys but keeping existing values otherwise.
         """
         return self._properties
-
     @properties.setter
     def properties(self, value):
-        #Sets new properties, overwriting any duplicate keys but keeping existing values otherwise
         self._setProperties(value)
 
     def show(self, type="image"):
-        """    Shows the generated image inline within an ipython notebook
+        """    
+        Shows the generated image inline within an ipython notebook
         
-                Args:
-                    type(str) : Type of visualisation to display ('Image' or 'WebGL'). Default is 'Image'.
-                    
-                Returns:
-                    Ipython Image object (will be displayed inline in an ipython notebook).
-                    If Ipython is not found, nothing is returned.
+        Parameters
+        ----------
+            type: str
+                Type of visualisation to display ('Image' or 'WebGL'). Default is 'Image'.
+        
+        Returns
+        -------
+            Ipython HTML object (for type 'Image')
+            Ipython IFrame object (for type 'Webgl')
+            Note that if IPython is not installed, this method will return nothing.
 
         """
 
@@ -262,11 +306,17 @@ class Figure(_stgermain.StgCompoundComponent):
         return os.path.abspath(fname)
 
     def save_image(self,filename):
-        """  Saves the generated image to the provided filename.
-            
-             Args:
-               filename (str):  Filename to save file to.  May include an absolute or relative path.
+        """  
+        Saves the generated image to the provided filename.
+        
+        Parameters
+        ----------
+            filename :str
+                Filename to save file to.  May include an absolute or relative path.
         """
+        if not isinstance(filename, str):
+            raise TypeError("Provided parameter 'filename' must be of type 'str'. ")
+
         self._generate_DB()
         if uw.rank() == 0:
             self._generate_image(asfile=True)
@@ -284,15 +334,23 @@ class Figure(_stgermain.StgCompoundComponent):
             os.rename(generatedFilename,finaloutFile)
 
     def save_database(self,filename,regen=True):
-        """  Saves the generated database to the provided filename.
+        """  
+        Saves the generated database to the provided filename.
             
-             Args:
-               filename (str):  Filename to save file to.  May include an absolute or relative path.
-               regen   (bool):  Regenerate the database, only required if show() has not been called previously.
+        Parameters
+        ----------
+            filename :str
+                Filename to save file to.  May include an absolute or relative path.
+            regen :bool, default=True
+                Regenerate the database, only required if show() has not been called previously.
         """
         if regen:
             self._generate_DB()
         if uw.rank() == 0:
+            if not isinstance(filename, str):
+                raise TypeError("Provided parameter 'filename' must be of type 'str'. ")
+            if not filename.lower().endswith('.gldb'):
+                filename += '.gldb'
             libUnderworld.gLucifer.lucDatabase_BackupDbFile(self._db, filename)
 
     def _generate_DB(self):
@@ -307,9 +365,11 @@ class Figure(_stgermain.StgCompoundComponent):
 
         #Add drawing objects to register and output any custom data on them
         for object in self._drawingObjects:
-            #Only add default object if used
-            if object == self.draw and len(self.draw.vertices) == 0:
-                continue
+
+# I'M COMMENTING THIS OUT FOR NOW, AS WITHOUT IT, RENDERING AN EMPTY FIGURE EXPLODES.. KABOOM!  JM 1/16 
+#            #Only add default object if used
+#            if object == self.draw and len(self.draw.vertices) == 0:
+#                continue
 
             #Add the object to the drawing object register for the (default) viewport
             object._cself.id = 0
@@ -318,11 +378,10 @@ class Figure(_stgermain.StgCompoundComponent):
             if object._colourBar:
                 object._colourBar._dr.id = 0
                 libUnderworld.StGermain.Stg_ObjectList_Append(self._vp.drawingObject_Register.objects,object._colourBar._dr)
+            #Set ids to 0 as when > 0 flagged as already written to db and skipped
+            if object._colourMap:
+                object._colourMap._cself.id = 0
 
-        #Set ids to 0 as when > 0 flagged as already written to db and skipped
-        for object in self.colourMaps:
-            object._cself.id = 0
-                
         # go ahead and fill db
         libUnderworld.gLucifer.lucDatabase_DeleteWindows(self._db)
         libUnderworld.gLucifer.lucDatabase_OutputWindow(self._db, self._win)
@@ -403,7 +462,14 @@ class Figure(_stgermain.StgCompoundComponent):
         return ""
 
     def script(self, cmd=None):
-        #Append to or get contents of the saved script
+        """ 
+        Append to or get contents of the saved script.
+        
+        Parameters
+        ----------
+            cmd: str
+                Command to add to script.
+        """
         if cmd:
             if isinstance(cmd, list):
                 self._script += cmd
@@ -415,7 +481,8 @@ class Figure(_stgermain.StgCompoundComponent):
         return '\n'.join(self._script)
 
     def image(self):
-        #Get image from current viewer window
+        """ Get image from current viewer window.
+        """
         from IPython.display import Image,HTML
         if not self._viewerProc:
             return
@@ -425,6 +492,8 @@ class Figure(_stgermain.StgCompoundComponent):
         return HTML("<img src='%s'>" % image_data)
 
     def open_viewer(self, args=[]):
+        """ Open the viewer.
+        """
         self._generate_DB()
         if uw.rank() == 0:
             if self._viewerProc and self._viewerProc.is_alive():
@@ -437,6 +506,8 @@ class Figure(_stgermain.StgCompoundComponent):
             return HTML('''<a href='#' onclick='window.open("http://" + location.hostname + ":8080");'>Open Viewer Interface</a>''')
 
     def close_viewer(self):
+        """ Close the viewer.
+        """
         if self._viewerProc and self._viewerProc.is_alive():
            self.send_command("quit")
            self._viewerProc.join()
@@ -444,14 +515,22 @@ class Figure(_stgermain.StgCompoundComponent):
         self._viewerProc = None
 
     def run_script(self):
-        #Run the saved script on an open viewer instance
+        """ Run the saved script on an open viewer instance
+        """
         self.open_viewer()
         url = "http://localhost:8080/command=" + urllib2.quote(';'.join(self._script))
         response = urllib2.urlopen(url).read()
         #print response
   
     def send_command(self, cmd):
-        #Run command on an open viewer instance
+        """ 
+        Run command on an open viewer instance.
+        
+        Parameters
+        ----------
+            cmd: str
+                Command to send to open viewer.
+        """
         self.open_viewer()
         url = "http://localhost:8080/command=" + urllib2.quote(cmd)
         try:
@@ -464,21 +543,28 @@ class Figure(_stgermain.StgCompoundComponent):
             response = urllib2.urlopen(url).read()
 
     def clear(self):
-        """    Clears all the figure's drawing objects and colour maps
+        """    Clears all the figure's drawing objects and colour maps.
         """
         del self._drawingObjects[:]
-        del self._colourMaps[:]
 
     def __add__(self,drawing_object):
+        # DEPRECATE
+        raise RuntimeError("This method is now deprecated.\n" \
+                           "To add drawing objects to figures, use the append() method:\n" \
+                           "    someFigure.append(someDrawingObject)")
+    
+    def append(self,drawingObject):
         """
+        Add a drawing object to the figure. 
+        
+        Parameters
+        ----------
+            drawingObject: objects.Drawing
+                The drawing object to add to the figure
+                
+        
         """
-        if not isinstance(drawing_object, objects.Drawing):
+        if not isinstance(drawingObject, objects.Drawing):
             raise TypeError("Object your are trying to add to figure does not appear to be of type 'Drawing'.")
 
-        self._drawingObjects.append( drawing_object )
-        #Track colour maps
-        if drawing_object._colourMap:
-            self.colourMaps.append(drawing_object._colourMap)
-        return self
-
-
+        self._drawingObjects.append( drawingObject )

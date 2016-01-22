@@ -167,6 +167,22 @@ class Integral(_stgermain.StgCompoundComponent):
                                "Note that mask functions are only set for surface integration.")
         return self._maskFn
 
+class SavedFileData(object):
+    '''
+    A class used to define saved data.
+    
+    Parameters
+    ----------
+        pyobj: object
+            python object saved data relates to.
+        filename: str
+            filename for saved data.
+    '''
+    def __init__(self, pyobj, filename):
+        self.pyobj = pyobj
+        self.filename = filename
+
+
 ### Code for XDMF output ###
 def _spacetimeschema( elementMesh, time, filename ):
     """
@@ -248,7 +264,7 @@ def _fieldschema((field_name, field), filename, elementMesh ):
     # Error check
     if not isinstance(field_name, str):
         raise TypeError("'field_name', must be of type str")
-    if not isinstance(field, uw.meshvariable.MeshVariable):
+    if not isinstance(field, uw.mesh.MeshVariable):
         raise TypeError("'field', must be of type MeshVariable")
     if not isinstance(filename, str):
         raise TypeError("'field_name', must be of type str")
@@ -398,7 +414,7 @@ class LogBook(object):
             for (k,v) in objects.items():
                 if not isinstance(k, str):
                     raise TypeError("'objects' keys must be of type 'str'")
-                if not isinstance(v, uw.meshvariable.MeshVariable):
+                if not isinstance(v, uw.mesh.MeshVariable):
                     raise TypeError("object with key '{}' must be of type 'MeshVariable'".format(k))
                 # check if we support field elementType on master mesh
                 # currently support TODO 

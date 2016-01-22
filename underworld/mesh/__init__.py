@@ -13,4 +13,4 @@
 """
 
 from _mesh import FeMesh, FeMesh_Cartesian, FeMesh_IndexSet
-
+from _meshvariable import MeshVariable

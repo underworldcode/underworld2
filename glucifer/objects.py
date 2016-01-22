@@ -1,3 +1,12 @@
+##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
+##                                                                                   ##
+##  This file forms part of the Underworld geophysics modelling application.         ##
+##                                                                                   ##
+##  For full license and copyright information, please refer to the LICENSE.md file  ##
+##  located at the project root, or contact the authors.                             ##
+##                                                                                   ##
+##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
+
 import underworld as _underworld
 import underworld._stgermain as _stgermain
 import underworld.swarm as _swarmMod
@@ -19,12 +28,34 @@ import libUnderworld as _libUnderworld
 # FeVariableSurface
 
 class ColourMap(_stgermain.StgCompoundComponent):
+    """
+    The ColourMap class provides functionality for mapping colours to numerical
+    values.
+    
+    Parameters
+    ----------
+        colours: str, list.  default="#288FD0 #50B6B8 #989878 #C68838 #FF7520"
+            List of colours to use for drawing object colour map. Provided as a string
+            or as a list of strings. Example, "red blue", or ["red", "blue"]
+            This should not be specified if 'colourMap' is specified.
+        valueRange: tuple,list. default=None.
+            User defined value range to apply to colour map. Provided as a 
+            tuple of floats  (minValue, maxValue). If none is provided, the
+            value range will be determined automatically.
+        logScale: bool. default=False.
+            Bool to determine if the colourMap should use a logarithmic scale.
+        discrete: bool.  default=False.
+            Bool to determine if a discrete colour map should be used.
+            Discrete colour maps do not interpolate between colours and instead
+            use nearest neighbour for colouring.
+
+    """
     _selfObjectName = "_cm"
     _objectsDict = { "_cm": "lucColourMap" }
     
     #Default is a cool-warm map with low variance in luminosity/lightness
     def __init__(self, colours="#288FD0 #50B6B8 #989878 #C68838 #FF7520".split(), valueRange=None, logScale=False, discrete=False, **kwargs):
-    
+
         if not isinstance(colours,(str,list)):
             raise TypeError("'colours' object passed in must be of python type 'str' or 'list'")
         if isinstance(colours,(str)):
@@ -68,7 +99,7 @@ class ColourMap(_stgermain.StgCompoundComponent):
         super(ColourMap,self)._add_to_stg_dict(componentDictionary)
 
         componentDictionary[self._cm.name].update( {
-            "colours"       :" ".join(self.colours),
+            "colours"       :" ".join(self._colours),
             "logScale"      :self._logScale,
             "discrete"      :self._discrete,
             "maximum"       :self._valueRange[1],
@@ -77,35 +108,49 @@ class ColourMap(_stgermain.StgCompoundComponent):
         } )
 
     @property
-    def valueRange(self):
-        """     valueRange (list) : list of 2 numbers that define the min and max of the colour map values 
-        """
-        return self._valueRange
-
-    @property
     def dynamicRange(self):
-        """     dynamicRange (bool) : if True the max and min values of the field will automatically define the colour map value 
-                                      range and the valueRange list is ignored. If False the valueRange is used to define the 
-                                      colour map value range
+        """
+        dynamicRange (bool) : if True the max and min values of the field will 
+        automatically define the colour map value range and the valueRange list 
+        is ignored. If False the valueRange is used to define the colour map 
+        value range
         """
         return self._dynamicRange
 
-    @property
-    def colours(self):
-        """    colours (list): list of colours to use.  Should be provided as a list or a string.
-        """
-        return self._colours
-
-    @property
-    def logScale(self):
-        """    logScale (bool): Use a logarithm scale for the colourmap.
-        """
-        return self._logScale
 
 
 class Drawing(_stgermain.StgCompoundComponent):
+    """
+    This is the base class for all drawing objects but can also be instantiated 
+    as is for direct/custom drawing.
+    
+    Note that the defaults here are often overridden by the child objects. Please
+    inspect child constructor (__init__) itself to determine exact default settings.
+    
+    Parameters
+    ----------
+        colours: str, list.
+            See ColourMap class docstring for further information
+        colourMap: ColourMap. default=None
+            A ColourMap object for the object to use.
+            This should not be specified if 'colours' is specified.
+        properties: str.  default=None
+            Extra properties to apply to the drawing object.
+        opacity: float. default=-1.
+            Opacity of object. Must takes values from 0. to 1., while a value 
+            of -1 explicitly disables opacity.
+        colourBar: bool. default=False
+            Bool to determine if a colour bar should be rendered.
+        valueRange: tuple,list. default=None.
+            See ColourMap class docstring for further information
+        logScale: bool. default=False.
+            See ColourMap class docstring for further information
+        discrete: bool.  default=False.
+            See ColourMap class docstring for further information
+
+        
+    """
     _selfObjectName = "_dr"
-    #This is the base class for all drawing objects but can also be instantiated as is for direct/custom drawing 
     _objectsDict = { "_dr": "lucDrawingObject" } # child should replace _dr with own derived type
     
     def __init__(self, colours=None, colourMap=None, properties=None, opacity=-1, colourBar=False,
@@ -155,7 +200,7 @@ class Drawing(_stgermain.StgCompoundComponent):
         componentDictionary[self._dr.name].update( {
             "properties"    :self._getProperties(),
             "ColourMap"     :self._colourMap._cm.name,
-            "opacity"       :self.opacity
+            "opacity"       :self._opacity
         } )
 
     def _getProperties(self):
@@ -178,13 +223,19 @@ class Drawing(_stgermain.StgCompoundComponent):
 
     #Direct drawing methods
     def label(self, text, pos=(0.,0.,0.), font="sans", scaling=1):
-        """  Writes a label string
-            
-             Args:
-               pos     (tuple):  X,Y,Z position to place the label
-               text      (str):  label text
-               font      (str):  label font (small/fixed/sans/serif/vector)
-               scaling (float):  label font scaling (for "vector" font only)
+        """  
+        Writes a label string
+        
+        Parameters
+        ----------
+            text: str
+                label text.
+            pos: tuple
+                X,Y,Z position to place the label.
+            font : str
+                label font (small/fixed/sans/serif/vector).
+            scaling : float
+                label font scaling (for "vector" font only).
         """
         self.geomType = _libUnderworld.gLucifer.lucLabelType
         self.vertices.append(pos)
@@ -192,34 +243,37 @@ class Drawing(_stgermain.StgCompoundComponent):
         self._setProperties({"font" : font, "fontscale" : scaling})
 
     def point(self, pos=(0.,0.,0.)):
-        """  Draws a point
+        """  
+        Draws a point
             
-             Args:
-               pos (tuple):  X,Y,Z position to place the point
+        Parameters
+        ----------
+            pos : tuple
+                X,Y,Z position to place the point
         """
         self.geomType = _libUnderworld.gLucifer.lucPointType
         self.vertices.append(pos)
 
     def line(self, start=(0.,0.,0.), end=(0.,0.,0.)):
-        """  Draws a line
+        """  
+        Draws a line
             
-             Args:
-               start (tuple):  X,Y,Z position to start line
-               end   (tuple):  X,Y,Z position to end line
+        Parameters
+        ----------
+            start : tuple
+                X,Y,Z position to start line
+            end : tuple
+                X,Y,Z position to end line
         """
         self.geomType = _libUnderworld.gLucifer.lucLineType
         self.vertices.append(start)
         self.vertices.append(end)
 
     @property
-    def opacity(self):
-        """    opacity (float): Opacity of drawing object.  Takes values from 0. to 1., while a value of -1 explicitly disables opacity.
-        """
-        return self._opacity
-
-    @property
     def colourBar(self):
-        """    colourBar (dict): return colour bar of drawing object, create if doesn't yet exist.
+        """    
+        colourBar (dict): return colour bar of drawing object, create if 
+        doesn't yet exist.
         """
         if not self._colourBar:
             self._colourBar = ColourBar(colourMap=self._colourMap)
@@ -227,7 +281,9 @@ class Drawing(_stgermain.StgCompoundComponent):
 
     @property
     def properties(self):
-        """    properties (dict): visual properties of drawing object, passed to LavaVu to control rendering output of object.
+        """    
+        properties (dict): visual properties of drawing object, passed to 
+        LavaVu to control rendering output of object.
         """
         return self._properties
 
@@ -237,6 +293,14 @@ class Drawing(_stgermain.StgCompoundComponent):
         self._setProperties(value)
 
 class ColourBar(Drawing):
+    """
+    The ColourBar drawing object draws a colour bar for the provided colour map.
+    
+    Parameters
+    ----------
+        colourMap: ColourMap
+            Colour map for which the colour bar will be drawn.
+    """
     _selfObjectName = "_dr"
     _objectsDict = { "_dr": "lucDrawingObject" }
 
@@ -251,7 +315,7 @@ class ColourBar(Drawing):
         super(ColourBar,self).__init__(colourMap=colourMap, *args, **kwargs)
 
         #Always show at least 2 tick marks on a log scale
-        if self._colourMap.logScale and self._properties["ticks"] < 2:
+        if self._colourMap._logScale and self._properties["ticks"] < 2:
             self._properties["ticks"] = 2
 
     def _add_to_stg_dict(self,componentDictionary):
@@ -260,7 +324,21 @@ class ColourBar(Drawing):
 
 
 class CrossSection(Drawing):
-    """  This drawing object class defines a cross-section plane, derived classes plot data over this cross section
+    """  
+    This drawing object class defines a cross-section plane, derived classes 
+    plot data over this cross section
+    
+    See parent class for further parameter details. Also see property docstrings.
+    
+    Parameters
+    ---------
+        mesh : uw.mesh.Mesh
+            Mesh over which cross section is rendered.
+        fn : uw.function.Function
+            Function used to determine values to render.
+        crossSection : str, default=""
+            Cross Section definition, eg. z=0.
+        
     """
     _objectsDict = { "_dr": "lucCrossSection" }
 
@@ -307,7 +385,24 @@ class CrossSection(Drawing):
         return self._crossSection
 
 class Surface(CrossSection):
-    """  This drawing object class draws a surface using the provided scalar field.
+    """  
+    This drawing object class draws a surface using the provided scalar field.
+
+    See parent class for further parameter details. Also see property docstrings.
+    
+    Parameters
+    ---------
+        mesh : uw.mesh.Mesh
+            Mesh over which cross section is rendered.
+        fn : uw.function.Function
+            Function used to determine values to render.
+        drawSides : str, default="xyzXYZ"
+            Sides (x,y,z,X,Y,Z) for which the surface should be drawn.  
+        drawOnMesh : bool, default=False.
+            Bool to determine whether the surface rendering should explicitly
+            use the mesh object to generate the rendered surface. This may 
+            result in better quality rendering for deformed mesh, and may 
+            also be faster.
     """
     
     # let's just build both objects because we aint sure yet which one we want to use yet
@@ -347,9 +442,9 @@ class Surface(CrossSection):
         
         super(Surface,self)._add_to_stg_dict(componentDictionary)
 
-        componentDictionary[self._dr.name]["drawSides"] = self.drawSides
+        componentDictionary[self._dr.name]["drawSides"] = self._drawSides
         componentDictionary[self._dr.name][     "Mesh"] = self._mesh._cself.name
-        componentDictionary[self._dr2.name]["drawSides"] = self.drawSides
+        componentDictionary[self._dr2.name]["drawSides"] = self._drawSides
         componentDictionary[self._dr2.name][     "Mesh"] = self._mesh._cself.name
 
     def _setup(self):
@@ -366,14 +461,28 @@ class Surface(CrossSection):
             self._cself = self._drOrig
         super(Surface,self).__del__()
 
-    @property
-    def drawSides(self):
-        """    drawSides (str): sides (x,y,z,X,Y,Z) for which the surface should be drawn.  default is all sides ("xyzXYZ").
-        """
-        return self._drawSides
 
 class Points(Drawing):
-    """  This drawing object class draws a swarm of points.
+    """  
+    This drawing object class draws a swarm of points.
+    
+    See parent class for further parameter details. Also see property docstrings.
+    
+    Parameters
+    ---------
+        swarm : uw.swarm.Swarm
+            Swarm which provides locations for point rendering.
+        fn_colour : uw.function.Function
+            Function used to determine colour to render particle.
+            This function should return float/double values.
+        fn_mask : uw.function.Function
+            Function used to determine if a particle should be rendered. 
+            This function should return bool values. 
+        fn_size : uw.function.Function
+            Function used to determine size to render particle.
+            This function should return float/double values.
+        
+
     """
     _objectsDict = { "_dr": "lucSwarmViewer" }
 
@@ -418,7 +527,7 @@ class Points(Drawing):
         
         super(Points,self)._add_to_stg_dict(componentDictionary)
 
-        componentDictionary[ self._cself.name ][ "Swarm" ] = self.swarm._cself.name
+        componentDictionary[ self._cself.name ][ "Swarm" ] = self._swarm._cself.name
         
     def _setup(self):
         fnc_ptr = None
@@ -433,28 +542,6 @@ class Points(Drawing):
 
         _libUnderworld.gLucifer._lucSwarmViewer_SetFn( self._cself, fnc_ptr, fnm_ptr, fns_ptr, None )
 
-
-    @property
-    def swarm(self):
-        """    swarm (str): name of live underworld swarm for which points will be rendered.
-        """
-        return self._swarm
-    @property
-    def fn_colour(self):
-        """    fn_colour (uw.Function): Function evaluated to determine particle colour.
-        """
-        return self._colourVariable
-    @property
-    def pointSize(self):
-        """    pointSize (float): size of points
-        """
-        return self._properties["pointsize"]
-
-    @property
-    def pointType(self):
-        """    pointType (int): points type [0-4]
-        """
-        return self._properties["pointType"]
 
 class _GridSampler3D(CrossSection):
     """  This drawing object class samples a regular grid in 3D.
@@ -495,29 +582,41 @@ class _GridSampler3D(CrossSection):
         super(_GridSampler3D,self)._add_to_stg_dict(componentDictionary)
 
         componentDictionary[self._dr.name].update( {
-            "resolutionX": self.resolutionI,
-            "resolutionY": self.resolutionJ,
-            "resolutionZ": self.resolutionK
+            "resolutionX": self._resolutionI,
+            "resolutionY": self._resolutionJ,
+            "resolutionZ": self._resolutionK
             } )
 
-    @property
-    def resolutionI(self):
-        """    resolutionI (int): Number of samples in the X direction. Default is 16.
-        """
-        return self._resolutionI
-    @property
-    def resolutionJ(self):
-        """    resolutionJ (int): Number of samples in the Y direction. Default is 16.
-        """
-        return self._resolutionJ
-    @property
-    def resolutionK(self):
-        """    resolutionK (int): Number of samples in the Z direction. Default is 16.
-        """
-        return self._resolutionK
 
 class VectorArrows(_GridSampler3D):
-    """  This drawing object class draws vector arrows corresponding to the provided vector field.
+    """  
+    This drawing object class draws vector arrows corresponding to the provided vector field.
+
+    See parent class for further parameter details. Also see property docstrings.
+    
+    Parameters
+    ---------
+        mesh : uw.mesh.Mesh
+            Mesh over which vector arrows are rendered.
+        fn : uw.function.Function
+            Function used to determine vectors to render. 
+            Function should return a vector of floats/doubles of appropriate
+            dimensionality.
+        arrowHead : float
+             The size of the head of the arrow compared with the arrow length.
+             Must be in [0.,1.].
+        scaling : float
+            Scaling for entire arrow.
+        glyphs : int
+            Type of glyph to render for vector arrow.
+            0: Line, 1 or more: 3d arrow, higher number => better quality.
+        resolutionI : unsigned, default=16.
+            Number of samples in the I direction.
+        resolutionJ : unsigned, default=16.
+            Number of samples in the J direction.
+        resolutionK : unsigned, default=16.
+            Number of samples in the K direction.
+
     """
     _objectsDict = { "_dr": "lucVectorArrows" }
 
@@ -552,24 +651,27 @@ class VectorArrows(_GridSampler3D):
 
         componentDictionary[self._dr.name].update( {} )
 
-    @property
-    def arrowHead(self):
-        """    arrowHead (float): The size of the head of the arrow compared with the arrow length. Must be between [0, 1].   Default is 0.3.
-        """
-        return self._properties["arrowhead"]
-    @property
-    def scaling(self):
-        """    scaling (float): A factor to scale the size of the arrows by.  Default is 0.3.
-        """
-        return self._properties["scaling"]
-    @property
-    def glyphs(self):
-        """    glyphs (int): Type of glyph to render for vector arrow. (0: Line, 1 or more: 3d arrow, higher number => better quality)
-        """
-        return self._properties["glyphs"]
-
 class Volume(_GridSampler3D):
-    """  This drawing object class draws a volume using the provided scalar field.
+    """  
+    This drawing object class draws a volume using the provided scalar field.
+    
+    See parent class for further parameter details. Also see property docstrings.
+    
+    Parameters
+    ---------
+        mesh : uw.mesh.Mesh
+            Mesh over which object is rendered.
+        fn : uw.function.Function
+            Function used to determine colour values.
+            Function should return a vector of floats/doubles of appropriate
+            dimensionality.
+        resolutionI : unsigned, default=16.
+            Number of samples in the I direction.
+        resolutionJ : unsigned, default=16.
+            Number of samples in the J direction.
+        resolutionK : unsigned, default=16.
+            Number of samples in the K direction.
+
     """
     _objectsDict = { "_dr": "lucFieldSampler" }
 
@@ -589,7 +691,21 @@ class Volume(_GridSampler3D):
         super(Volume,self)._add_to_stg_dict(componentDictionary)
 
 class Mesh(Drawing):
-    """  This drawing object class draws a mesh.
+    """  
+    This drawing object class draws a mesh.
+    
+    See parent class for further parameter details. Also see property docstrings.
+    
+    Parameters
+    ---------
+        mesh : uw.mesh.Mesh
+            Mesh to render.
+        nodeNumbers : bool. default=False
+            Bool to determine whether global node numbers should be rendered. 
+        segmentsPerEdge : unsigned. default=1
+            Number of segments to render per cell/element edge. For higher 
+            order mesh, more segments are useful to render mesh curvature correctly.
+
     """
     _objectsDict = { "_dr": "lucMeshViewer" }
 
