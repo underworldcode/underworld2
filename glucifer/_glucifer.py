@@ -8,7 +8,8 @@ import time
 from base64 import b64encode
 import libUnderworld
 import _LavaVu as lavavu
-from multiprocessing import Process
+import subprocess
+from subprocess import Popen, PIPE, STDOUT
 from . import objects
 
 # lets create somewhere to dump data for this session
@@ -425,22 +426,23 @@ class Figure(_stgermain.StgCompoundComponent):
         return HTML("<img src='%s'>" % image_data)
 
     def open_viewer(self, args=[]):
-        self._generate_DB()
         if uw.rank() == 0:
-            if self._viewerProc and self._viewerProc.is_alive():
+            fname = os.path.join(tmpdir,"gluciferDB"+self._id+".gldb")
+            self.save_database(fname)
+            if self._viewerProc and self._viewerProc.poll() == None:
                 return
             #Open viewer with local web server for interactive/iterative use
-            self._viewerProc = Process(target=lavavu.initViewer, args=([self._lvbin, "-" + str(self._db.timeStep), "-L", "-p8080", "-q90", "-Q", self._db.path] + args, ))
-            self._viewerProc.start()
+            args = [self._lvbin, "-" + str(self._db.timeStep), "-L", "-p8080", "-q90", "-Q", fname] + args 
+            self._viewerProc = subprocess.Popen(args, stdout=PIPE, stdin=PIPE, stderr=STDOUT)
 
             from IPython.display import HTML
             return HTML('''<a href='#' onclick='window.open("http://" + location.hostname + ":8080");'>Open Viewer Interface</a>''')
 
     def close_viewer(self):
-        if self._viewerProc and self._viewerProc.is_alive():
+        #poll() returns None if the process is alive
+        if self._viewerProc and self._viewerProc.poll() == None:
            self.send_command("quit")
-           self._viewerProc.join()
-           #self._viewerProc.terminate()
+           self._viewerProc.kill()
         self._viewerProc = None
 
     def run_script(self):
