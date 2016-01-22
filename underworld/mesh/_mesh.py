@@ -363,6 +363,12 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         filename : string
             The name of the output file.
 
+        Returns
+        -------
+        SavedFileData
+            Data object relating to saved file. This only needs to be retained
+            if you wish to create XDMF files and can be ignored otherwise.
+            
         Notes
         -----
         This method must be called collectively by all processes.
