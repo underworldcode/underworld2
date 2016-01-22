@@ -14,7 +14,6 @@
 #include "StgFEM/SLE/SystemSetup/SystemSetup.h"
 #include "StgFEM/SLE/ProvidedSystems/Energy/Energy.h"
 #include "StgFEM/SLE/ProvidedSystems/StokesFlow/StokesFlow.h"
-//#include "StgFEM/SLE/ProvidedSystems/AdvectionDiffusion/AdvectionDiffusion.h"
 #include "Finalise.h"
 
 #include <stdio.h>
@@ -24,7 +23,6 @@ Bool StgFEM_SLE_ProvidedSystems_Finalise( void ) {
 	
 	StgFEM_SLE_ProvidedSystems_Energy_Finalise();
 	StgFEM_SLE_ProvidedSystems_StokesFlow_Finalise();
-//	StgFEM_SLE_ProvidedSystems_AdvectionDiffusion_Finalise();
 
 	return True;
 }
