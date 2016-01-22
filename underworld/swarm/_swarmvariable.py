@@ -17,6 +17,7 @@ import underworld.function as function
 import libUnderworld.libUnderworldPy.Function as _cfn
 from mpi4py import MPI
 import h5py
+import os
 
 class SwarmVariable(_stgermain.StgClass, function.Function):
 
@@ -271,6 +272,12 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
             Path to the save swarm file. If provided, a softlink is created within
             the swarm variable file to the swarm file.
             
+        Returns
+        -------
+        SavedFileData
+            Data object relating to saved file. This only needs to be retained
+            if you wish to create XDMF files and can be ignored otherwise.
+
         Notes
         -----
         This method must be called collectively by all processes.
@@ -291,8 +298,8 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         
         Save to a file:
         
-        >>> swarm.save("saved_swarm.h5")
-        >>> svar.save("saved_swarm_variable.h5")
+        >>> ignoreMe = swarm.save("saved_swarm.h5")
+        >>> ignoreMe = svar.save("saved_swarm_variable.h5")
         
         Now let's try and reload. First create a new swarm and swarm variable, 
         and then load both:
@@ -360,3 +367,115 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
 
         h5f.close()
 
+        return uw.SavedFileData( self, filename )
+
+    def xdmf( self, filename, varSavedData, varname, swarmSavedData, swarmname, modeltime=0.  ):
+        """
+        Creates an xdmf file, filename, associating the varSavedData file on 
+        the swarmSavedData file
+
+        Notes
+        -----
+        xdmf contain 2 files: an .xml and a .h5 file. See http://www.xdmf.org/index.php/Main_Page
+        This method only needs to be called by the master process, all other 
+        processes return quiely.
+
+        Parameters
+        ----------
+        filename : str
+            The output path to write the xdmf file. Relative or absolute paths may be 
+            used, but all directories must exist.
+        varname : str
+            The xdmf name to give the swarmVariable
+        swarmname : str
+            The xdmf name to give the swarm
+        swarmSavedData : underworld.SaveFileData
+            Handler returned for saving a swarm. underworld.swarm.Swarm.save(xxx)
+        varSavedData : underworld.SavedFileData
+            Handler returned from saving a SwarmVariable. underworld.swarm.SwarmVariable.save(xxx)
+        modeltime : float (default 0.0)
+            The time recorded in the xdmf output file
+
+        Example TODO
+        -------
+        
+        First create the swarm and add a variable:
+        >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
+        >>> swarm = uw.swarm.Swarm( mesh=mesh )
+        >>> swarmLayout = uw.swarm.layouts.PerCellGaussLayout(swarm,2)
+        >>> swarm.populate_using_layout( layout=swarmLayout )
+        >>> swarmVar = swarm.add_variable( dataType="int", count=1 )
+        
+        Write something to variable
+        
+        >>> import numpy as np
+        >>> swarmVar.data[:,0] = np.arange(swarmVar.data.shape[0])
+        
+        Save mesh and var to a file:
+        
+        >>> swarmDat = swarm.save("saved_swarm.h5")
+        >>> swarmVarDat = swarmVar.save("saved_swarmvariable.h5")
+        
+        Now let's create the xdmf file
+        
+        >>> swarmVar.xdmf("TESTxdmf", swarmVarDat, "var1", swarmDat, "MrSwarm" )
+
+        Does file exist?
+        
+        >>> import os
+        >>> if uw.rank() == 0: os.path.isfile("TESTxdmf.xdmf")
+        True
+        
+        Clean up:
+        >>> if uw.rank() == 0:
+        ...     import os; 
+        ...     os.remove( "saved_swarm.h5" )
+        ...     os.remove( "saved_swarmvariable.h5" )
+        ...     os.remove( "TESTxdmf.xdmf" )
+
+        """
+        if uw.rank() == 0:
+            if not isinstance(varname, str):
+                raise ValueError("'varname' must be of type str")
+            if not isinstance(swarmname, str):
+                raise ValueError("'swarmname' must be of type str")
+            if not isinstance(filename, str):
+                raise ValueError("'filename' must be of type str")
+            if not isinstance(swarmSavedData, uw.SavedFileData ):
+                raise ValueError("'swarmSavedData' must be of type SavedFileData")
+            if not isinstance(varSavedData, uw.SavedFileData ):
+                raise ValueError("'varSavedData' must be of type SavedFileData")
+            if not isinstance(modeltime, (int,float)):
+                raise ValueError("'modeltime' must be of type int or float")
+            modeltime = float(modeltime)    # make modeltime a float
+            
+            # get the elementMesh - if self is a subMeshed variable get the parent
+            if self.swarm != swarmSavedData.pyobj:
+                raise RuntimeError("'swarmSavedData file doesn't correspond to the object's swarm")
+
+            if not filename.lower().endswith('.xdmf'):
+                filename += '.xdmf'
+
+            # the xmf file is stored in 'string'
+            # 1st write header
+            string = uw.utils._xdmfheader()
+            """
+            ("<?xml version=\"1.0\" ?>\n" +
+                      "<Xdmf xmlns:xi=\"http://www.w3.org/2001/XInclude\" Version=\"2.0\">\n" +
+                      "<Domain>\n")
+            """
+
+            string += uw.utils._swarmspacetimeschema(swarmSavedData, swarmname, modeltime )
+            string += uw.utils._swarmvarschema( varSavedData, varname )
+            # write the footer to the xmf    
+            string += uw.utils._xdmffooter()
+            """
+            string += ("</Grid>\n" + 
+                       "</Domain>\n" + 
+                       "</Xdmf>\n" )
+            """
+
+            # write the string to file - only proc 0
+            xdmfFH = open(filename, "w")
+            xdmfFH.write(string)
+            xdmfFH.close()

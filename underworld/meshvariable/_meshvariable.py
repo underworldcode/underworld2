@@ -181,7 +181,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
 
         return _gradient(self)
 
-    def xdmf( self, filename, varname, meshSavedData, fieldSavedData, modeltime=0.  ):
+    def xdmf( self, filename, fieldSavedData, varname, meshSavedData, meshname, modeltime=0.  ):
         """
         Creates an xdmf file, filename, associating the fieldSavedData file on 
         the meshSavedData file
@@ -195,11 +195,14 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         Parameters
         ----------
         filename : str
-            Full output path to write the xdmf file
+            The output path to write the xdmf file. Relative or absolute paths may be 
+            used, but all directories must exist.
         varname : str
             The xdmf name to give the field
         meshSavedData : underworld.SaveFileData
             Handler returned for saving a mesh. underworld.mesh.save(xxx)
+        meshname : str
+            The xdmf name to give the mesh
         fieldSavedData : underworld.SavedFileData
             Handler returned from saving a field. underworld.meshvariable.save(xxx)
         modeltime : float (default 0.0)
@@ -223,7 +226,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         
         Now let's create the xdmf file
         
-        >>> var.xdmf("TESTxdmf", "TestVar", meshDat, varDat)
+        >>> var.xdmf("TESTxdmf", varDat, "var1", meshDat, "meshie" )
 
         Does file exist?
         
@@ -242,6 +245,8 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         if uw.rank() == 0:
             if not isinstance(varname, str):
                 raise ValueError("'varname' must be of type str")
+            if not isinstance(meshname, str):
+                raise ValueError("'meshname' must be of type str")
             if not isinstance(filename, str):
                 raise ValueError("'filename' must be of type str")
             if not isinstance(meshSavedData, uw.SavedFileData ):
@@ -263,24 +268,14 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
 
             if not filename.lower().endswith('.xdmf'):
                 filename += '.xdmf'
-            refmeshFN = os.path.basename(meshSavedData.filename)    
-            reffieldFN = os.path.basename(fieldSavedData.filename)
-            elementMesh = meshSavedData.pyobj
 
             # the xmf file is stored in 'string'
             # 1st write header
-            string = ("<?xml version=\"1.0\" ?>\n" +
-                      "<Xdmf xmlns:xi=\"http://www.w3.org/2001/XInclude\" Version=\"2.0\">\n" +
-                      "<Domain>\n")
-            if not modeltime == None:
-                string += uw.utils._spacetimeschema(elementMesh, modeltime, refmeshFN)
-            else:
-                string += uw.utils._spacetimeschema(elementMesh, 0, refmeshFN)
-            string += uw.utils._fieldschema( (varname,self), reffieldFN, elementMesh )
+            string = uw.utils._xdmfheader()
+            string += uw.utils._spacetimeschema( meshSavedData, meshname, modeltime )
+            string += uw.utils._fieldschema( fieldSavedData, varname )
             # write the footer to the xmf    
-            string += ("</Grid>\n" + 
-                       "</Domain>\n" + 
-                       "</Xdmf>\n" )
+            string += uw.utils._xdmffooter()
 
             # write the string to file - only proc 0
             xdmfFH = open(filename, "w")
@@ -294,7 +289,8 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         Parameters
         ----------
         filename : string
-            The name of the output file.
+            The name of the output file. Relative or absolute paths may be 
+            used, but all directories must exist.
         meshFilename : string, optional
             If provided, a link to the created mesh file is created within the 
             mesh variable file.
@@ -379,17 +375,6 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
 
         # return our file handle
         return uw.SavedFileData(self, filename)
-
-    def _oldsave(self, filename):
-        """
-        Save the meshvariable to the provided filename. Note that this is a
-        global method, ie. all processes must call it.
-
-        File is saved using hdf5 file format.
-        """
-        if not isinstance(filename, str):
-            raise TypeError("Expected filename to be provided as a string")
-        libUnderworld.StgFEM.FeVariable_SaveToFile( self._cself, filename )
 
     def load(self, filename, interpolate=False ):
         """

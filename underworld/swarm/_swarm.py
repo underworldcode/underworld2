@@ -187,6 +187,12 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
             The filename for the saved file. Relative or absolute paths may be 
             used, but all directories must exist.
             
+        Returns
+        -------
+        SavedFileData
+            Data object relating to saved file. This only needs to be retained
+            if you wish to create XDMF files and can be ignored otherwise.
+
         Notes
         -----
         This method must be called collectively by all processes.
@@ -201,7 +207,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         
         Save to a file:
         
-        >>> swarm.save("saved_swarm.h5")
+        >>> ignoreMe = swarm.save("saved_swarm.h5")
         
         Now let's try and reload. First create an empty swarm, and then load:
         
@@ -226,6 +232,8 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
 
         # just save the particle coordinates SwarmVariable
         self.particleCoordinates.save(filename)
+
+        return uw.SavedFileData( self, filename )
 
     def load( self, filename, verbose=False ):
         """
