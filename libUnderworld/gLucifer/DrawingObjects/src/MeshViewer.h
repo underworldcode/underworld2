@@ -26,8 +26,6 @@ extern const Type lucMeshViewer_Type;
       /* Other info */                                  \
       /* Node Colour */\
       FieldVariable*                  colourVariable;         \
-      /* Node Size */\
-      FieldVariable*                  sizeVariable;           \
       /* Stg_Class info */                              \
       unsigned                        nEdges;           \
       unsigned**                      edges;            \

@@ -7,15 +7,10 @@
 **                                                                                  **
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 
-#ifndef __StgFEM_SLE_ProvidedSystems_AdvectionDiffusion_types_h__
-#define __StgFEM_SLE_ProvidedSystems_AdvectionDiffusion_types_h__
 
-	/* Classes */
-	typedef	struct AdvectionDiffusionSLE         AdvectionDiffusionSLE; 
-	typedef	struct AdvDiffResidualForceTerm      AdvDiffResidualForceTerm; 
-	typedef	struct LumpedMassMatrixForceTerm     LumpedMassMatrixForceTerm; 
-	typedef	struct AdvDiffMulticorrector         AdvDiffMulticorrector; 
-
-	typedef enum { Exact, DoublyAsymptoticAssumption, CriticalAssumption } AdvDiffResidualForceTerm_UpwindParamFuncType;
-
-#endif
+#ifndef __Underworld_AdvectionDiffusion_Finalise_h__
+#define __Underworld_AdvectionDiffusion_Finalise_h__
+	
+	Bool Underworld_AdvectionDiffusion_Finalise( void );
+	
+#endif /* __Underworld_AdvectionDiffusion_Finalise_h__ */

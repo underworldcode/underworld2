@@ -9,8 +9,7 @@
 #include "mpi.h"
 #include <StGermain/StGermain.h>
 #include <StgDomain/StgDomain.h>
-#include "StgFEM/Discretisation/Discretisation.h"
-#include "StgFEM/SLE/SystemSetup/SystemSetup.h"
+#include <StgFEM/StgFEM.h>
 #include "types.h"
 #include "Timestep.h"
 
@@ -65,6 +64,7 @@ double AdvectionDiffusionSLE_DiffusiveTimestep( void* advectionDiffusionSLE ) {
 	
 	FeVariable_GetMinimumSeparation( self->phiField, &minSeparation, minSeparationEachDim );
 
+        self->maxDiffusivity = AdvDiffResidualForceTerm_GetMaxDiffusivity( self->advDiffResidualForceTerm);
 	/* This is quite a conservative estimate */
 
 	return self->courantFactor * minSeparation * minSeparation / self->maxDiffusivity;

@@ -7,9 +7,15 @@
 **                                                                                  **
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 
+
 #include <assert.h>
 #include <string.h>
+#include <sstream>
+#include <math.h>
 
+#include <mpi.h>
+#include <petsc.h>
+/*
 #include "mpi.h"
 #include <StGermain/StGermain.h>
 #include <StgDomain/StgDomain.h>
@@ -18,10 +24,11 @@
 
 #include "types.h"
 #include "AdvectionDiffusionSLE.h"
-#include "UpwindParameter.h"
 #include "Residual.h"
 #include "Multicorrector.h"
 #include "Timestep.h"
+*/
+#include "AdvectionDiffusionSLE.h"
 
 const Type AdvectionDiffusionSLE_Type = "AdvectionDiffusionSLE";
 #define SMALL_VALUE 1.0e-99
@@ -108,15 +115,6 @@ void _AdvectionDiffusionSLE_Init(
 	self->variableReg = variable_Register;
 	self->fieldVariableReg = fieldVariable_Register;
 
-	if ( self->context ) {
-		/* Create a specific name for the calcDt hook */
-		char* tmpName = Memory_Alloc_Array_Unnamed( char, strlen(self->name) + 7 + 1 );
-		sprintf( tmpName, "%s_CalcDt", self->name );
-
-                EntryPoint_AppendClassHook( self->context->calcDtEP, tmpName, AdvectionDiffusionSLE_CalculateDt, self->type, self );
-		//EP_AppendClassHook( self->context->calcDtEP, AdvectionDiffusionSLE_CalculateDt, self );
-		Memory_Free( tmpName );
-	}
     self->maxDiffusivity = SMALL_VALUE;
 
 }	
@@ -167,25 +165,13 @@ void _AdvectionDiffusionSLE_Print( void* sle, Stream* stream ) {
 }
 
 
-void* _AdvectionDiffusionSLE_Copy( void* _sle, void* dest, Bool deep, Name nameExt, PtrMap* ptrMap ) {
-	AdvectionDiffusionSLE*	self = (AdvectionDiffusionSLE*) _sle;
-	AdvectionDiffusionSLE*	newSLE;
-	
-	newSLE = _SystemLinearEquations_Copy( self, dest, deep, nameExt, ptrMap );
-	
-	/* TODO: Copy Method */
-	abort();
-	
-	return (void*)newSLE;
-}
-
 void* _AdvectionDiffusionSLE_DefaultNew( Name name ) {
 	/* Variables set in this function */
 	SizeT                                                       _sizeOfSelf = sizeof(AdvectionDiffusionSLE);
 	Type                                                               type = AdvectionDiffusionSLE_Type;
 	Stg_Class_DeleteFunction*                                       _delete = _AdvectionDiffusionSLE_Delete;
 	Stg_Class_PrintFunction*                                         _print = _AdvectionDiffusionSLE_Print;
-	Stg_Class_CopyFunction*                                           _copy = _AdvectionDiffusionSLE_Copy;
+	Stg_Class_CopyFunction*                                           _copy = NULL;
 	Stg_Component_DefaultConstructorFunction*           _defaultConstructor = _AdvectionDiffusionSLE_DefaultNew;
 	Stg_Component_ConstructFunction*                             _construct = _AdvectionDiffusionSLE_AssignFromXML;
 	Stg_Component_BuildFunction*                                     _build = _AdvectionDiffusionSLE_Build;
@@ -197,9 +183,8 @@ void* _AdvectionDiffusionSLE_DefaultNew( Name name ) {
 	SystemLinearEquations_VectorSetupFunction*                 _vectorSetup = _SystemLinearEquations_VectorSetup;
 	SystemLinearEquations_MG_SelectStiffMatsFunc*        _mgSelectStiffMats = _SystemLinearEquations_MG_SelectStiffMats;
 
-	/* Variables that are set to ZERO are variables that will be set either by the current _New function or another parent _New function further up the hierachy */
-	AllocationType                                            nameAllocationType = ZERO;
-	SystemLinearEquations_UpdateSolutionOntoNodesFunc*  _updateSolutionOntoNodes = ZERO;
+	AllocationType                                            nameAllocationType = GLOBAL;
+	SystemLinearEquations_UpdateSolutionOntoNodesFunc*  _updateSolutionOntoNodes = NULL;
 
 	return (void*) _AdvectionDiffusionSLE_New(  ADVECTIONDIFFUSIONSLE_PASSARGS  );
 }

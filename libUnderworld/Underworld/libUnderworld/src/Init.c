@@ -15,6 +15,7 @@
 #include <PICellerator/PICellerator.h>
 
 #include "Underworld/Rheology/Rheology.h"
+#include "Underworld/Utils/AdvectionDiffusion/AdvectionDiffusion.h"
 #include "Underworld/Utils/Utils.h"
 
 #include "Init.h"
@@ -59,9 +60,7 @@ Bool Underworld_Init( int* argc, char** argv[] ) {
 
       Underworld_Rheology_Init( argc, argv );
       Underworld_Utils_Init( argc, argv );
-
-         
-      
+      Underworld_AdvectionDiffusion_Init( argc, argv );
 
       Stream_Flush( Journal_Register( InfoStream_Type, (Name)"Context" ) );
       Stream_SetPrintingRank( Journal_Register( InfoStream_Type, (Name)"Context" ), tmp );

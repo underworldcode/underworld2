@@ -48,7 +48,10 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
         velocityField : MeshVariable
             The velocity field
 
-        diffusivity : float
+        diffusivity : float 
+
+        ***WRONG***
+
             The definition of diffusivity. (Currently constant, will be updated to a function next release )
 
         courantFactor : float (default 0.25)
@@ -146,7 +149,7 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
 
         """
         self._cself.currentDt = dt
-        libUnderworld.StgFEM._AdvectionDiffusionSLE_Execute( self._cself, None )
+        libUnderworld.Underworld._AdvectionDiffusionSLE_Execute( self._cself, None )
 
     def get_max_dt(self):
         """
@@ -158,4 +161,4 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
         float
             The maximum time interval appropriate to integrate the system in time
         """
-        return libUnderworld.StgFEM.AdvectionDiffusionSLE_CalculateDt( self._cself, None )
+        return libUnderworld.Underworld.AdvectionDiffusionSLE_CalculateDt( self._cself, None )

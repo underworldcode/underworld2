@@ -7,20 +7,15 @@
 **                                                                                  **
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 
-#include <mpi.h>
-#include <StGermain/StGermain.h>
-#include <StgDomain/StgDomain.h>
-#include "StgFEM/Discretisation/Discretisation.h"
-#include "StgFEM/SLE/SystemSetup/SystemSetup.h"
-#include "types.h"
-#include "Finalise.h"
+#ifndef __Underworld_AdvectionDiffusion_types_h__
+#define __Underworld_AdvectionDiffusion_types_h__
 
-#include <stdio.h>
+	/* Classes */
+	typedef	struct AdvectionDiffusionSLE         AdvectionDiffusionSLE; 
+	typedef	struct AdvDiffResidualForceTerm      AdvDiffResidualForceTerm; 
+	typedef	struct LumpedMassMatrixForceTerm     LumpedMassMatrixForceTerm; 
+	typedef	struct AdvDiffMulticorrector         AdvDiffMulticorrector; 
 
-Bool StgFEM_SLE_ProvidedSystems_AdvectionDiffusion_Finalise( void ) {
-	Journal_Printf( Journal_Register( DebugStream_Type, (Name)"Context"  ), "In: %s\n", __func__ ); 
-	
-	return True;
-}
+	typedef enum { Exact, DoublyAsymptoticAssumption, CriticalAssumption } AdvDiffResidualForceTerm_UpwindParamFuncType;
 
-
+#endif
