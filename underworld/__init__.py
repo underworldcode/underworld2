@@ -147,8 +147,17 @@ class _del_uw_class:
 
 _delclassinstance = _del_uw_class(libUnderworld.StGermain_Tools.StgFinalise, _data)
 
+def _in_doctest():
+    """
+    Returns true if running inside a doctest.
+    
+    http://stackoverflow.com/questions/8116118/how-to-determine-whether-code-is-running-in-a-doctest
+    """
+    return hasattr(sys.modules['__main__'], '_SpoofOut')
+
 # lets shoot off some usage metrics
-if rank() == 0:
+# send metrics *only* if we are rank=0, and if we are not running inside a doctest.
+if (rank() == 0) and not _in_doctest():
     def _sendData():
         import os
         # disable collection of data if requested
