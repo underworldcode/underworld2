@@ -43,7 +43,7 @@ class AugStokes(_stgermain.StgCompoundComponent):
         if temperatureMeshVariable is None:
             #then build a temperature field
             mesh = velocityMeshVariable._mesh
-            temperatureMeshVariable = uw.meshvariable.MeshVariable( mesh=mesh, nodeDofCount=1, dataType="double")
+            temperatureMeshVariable = uw.mesh.MeshVariable( mesh=mesh, nodeDofCount=1, dataType="double")
 
         #create our own int swarm here?
         

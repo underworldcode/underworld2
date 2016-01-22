@@ -27,10 +27,10 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
     First create mesh
     
     >>> linearMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
-    >>> scalarFeVar = uw.meshvariable.MeshVariable( mesh=linearMesh, nodeDofCount=1, dataType="double" )
+    >>> scalarFeVar = uw.mesh.MeshVariable( mesh=linearMesh, nodeDofCount=1, dataType="double" )
 
     or a vector meshvariable can be created
-    >>> vectorFeVar = uw.meshvariable.MeshVariable( mesh=linearMesh, nodeDofCount=3, dataType="double" )
+    >>> vectorFeVar = uw.mesh.MeshVariable( mesh=linearMesh, nodeDofCount=3, dataType="double" )
 
     To set / read nodal values, use the numpy interface via the 'data' property.
 
@@ -114,7 +114,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         no data copying is required.
 
         >>> linearMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
-        >>> scalarFeVar = uw.meshvariable.MeshVariable( mesh=linearMesh, nodeDofCount=1, dataType="double" )
+        >>> scalarFeVar = uw.mesh.MeshVariable( mesh=linearMesh, nodeDofCount=1, dataType="double" )
         >>> scalarFeVar.data.shape
         (289, 1)
 
@@ -201,7 +201,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         meshSavedData : underworld.SaveFileData
             Handler returned for saving a mesh. underworld.mesh.save(xxx)
         fieldSavedData : underworld.SavedFileData
-            Handler returned from saving a field. underworld.meshvariable.save(xxx)
+            Handler returned from saving a field. underworld.mesh.save(xxx)
         modeltime : float (default 0.0)
             The time recorded in the xdmf output file
 
@@ -209,7 +209,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         -------
         First create the mesh add a variable:
         >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
-        >>> var = uw.meshvariable.MeshVariable( mesh=mesh, nodeDofCount=1, dataType="double" )
+        >>> var = uw.mesh.MeshVariable( mesh=mesh, nodeDofCount=1, dataType="double" )
         
         Write something to variable
         
@@ -314,7 +314,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         First create the mesh add a variable:
 
         >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
-        >>> var = uw.meshvariable.MeshVariable( mesh=mesh, nodeDofCount=1, dataType="double" )
+        >>> var = uw.mesh.MeshVariable( mesh=mesh, nodeDofCount=1, dataType="double" )
         
         Write something to variable
         
@@ -327,7 +327,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         
         Now let's try and reload.
         
-        >>> clone_var = uw.meshvariable.MeshVariable( mesh=mesh, nodeDofCount=1, dataType="double" )
+        >>> clone_var = uw.mesh.MeshVariable( mesh=mesh, nodeDofCount=1, dataType="double" )
         >>> clone_var.load("saved_mesh_variable.h5")
         
         Now check for equality:
@@ -482,7 +482,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
                                           minCoord    = tuple(inputMin), 
                                           maxCoord    = tuple(inputMax), 
                                           partitioned=False)
-            inputField = uw.meshvariable.MeshVariable( feMesh=inputMesh, nodeDofCount=dof )
+            inputField = uw.mesh.MeshVariable( feMesh=inputMesh, nodeDofCount=dof )
             
             # copy hdf5 numpy array onto serial inputField
             inputField.data[:] = dset[:]

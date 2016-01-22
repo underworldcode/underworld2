@@ -23,7 +23,7 @@ class AssembledVector(_stgermain.StgCompoundComponent):
         
         Parameter
         ---------
-        meshVariable    : meshvariable.MeshVariable
+        meshVariable    : mesh.MeshVariable
             The MeshVariable for which the SLE vector should be created
             
         Returns
@@ -32,7 +32,7 @@ class AssembledVector(_stgermain.StgCompoundComponent):
 
         """
         
-        if not isinstance(meshVariable, uw.meshvariable.MeshVariable):
+        if not isinstance(meshVariable, uw.mesh.MeshVariable):
             raise TypeError("'meshVariable' object passed in must be of type 'MeshVariable'")
         self._meshVariable = meshVariable
 

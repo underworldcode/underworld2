@@ -29,7 +29,7 @@ class ForceVector(_stgermain.StgCompoundComponent):
         
         """
         
-        if not isinstance(meshVariable, meshvariable.MeshVariable):
+        if not isinstance(meshVariable, mesh.MeshVariable):
             raise TypeError("'meshVariable' object passed in must be of type 'MeshVariable'")
         self._meshVariable = meshVariable
         

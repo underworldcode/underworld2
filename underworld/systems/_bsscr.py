@@ -70,7 +70,7 @@ class OptionsMG(Options):
         """
         Automatically set Multigrid levels based off mesh resolution.
         """
-        if not isinstance( field, uw.meshvariable.MeshVariable):
+        if not isinstance( field, uw.mesh.MeshVariable):
             raise TypeError( "Provided field must be of 'MeshVariable' class." )
         else:
             levels=1
@@ -198,7 +198,7 @@ class MGSolver(_stgermain.StgCompoundComponent):
     def __init__(self, field, levels=2, **kwargs):
         if not isinstance(levels, int) or levels < 1:
             raise TypeError( "'levels' must be positive integer.")
-        if not isinstance( field, uw.meshvariable.MeshVariable):
+        if not isinstance( field, uw.mesh.MeshVariable):
             raise TypeError( "Provided 'field' must be of 'MeshVariable' class." )
 
         self._levels=levels
@@ -279,10 +279,10 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         
         self.options.mg.set_levels(field=velocityField)
 
-        if not isinstance( velocityField, uw.meshvariable.MeshVariable):
+        if not isinstance( velocityField, uw.mesh.MeshVariable):
             raise TypeError( "Provided 'velocityField' must be of 'MeshVariable' class." )
         self._velocityField = velocityField
-        if not isinstance( pressureField, uw.meshvariable.MeshVariable):
+        if not isinstance( pressureField, uw.mesh.MeshVariable):
             raise TypeError( "Provided 'pressureField' must be of 'MeshVariable' class." )
         self._pressureField = pressureField
 

@@ -30,7 +30,7 @@ class DirichletCondition(_SystemCondition):
     via the numpy interface.
     
     >>> linearMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.) )
-    >>> velocityField = uw.meshvariable.MeshVariable( linearMesh, 2 )
+    >>> velocityField = uw.mesh.MeshVariable( linearMesh, 2 )
     >>> velocityField.data[:] = [0.,0.]  # set velocity zero everywhere, which will of course include the boundaries.
     >>> IWalls = linearMesh.specialSets["MinI_VertexSet"] + linearMesh.specialSets["MaxI_VertexSet"]  # get some wall index sets
     >>> JWalls = linearMesh.specialSets["MinJ_VertexSet"] + linearMesh.specialSets["MaxJ_VertexSet"]
@@ -47,7 +47,7 @@ class DirichletCondition(_SystemCondition):
         
         Parameters
         ----------
-        variable : uw.meshvariable.MeshVariable
+        variable : uw.mesh.MeshVariable
             This is the variable for which the Direchlet condition applies.
         indexSetsPerDof : list, tuple, IndexSet
             The index set(s) which flag nodes/DOFs as Dirichlet conditions.
@@ -59,7 +59,7 @@ class DirichletCondition(_SystemCondition):
         if nodeIndexSets: # Deprecate post mid 2016, remember to clean the function signture too
             raise ValueError( "Parameter 'nodeIndexSets' has been renamed to 'indexSetsPerDof'. Please use indexSetsPerDof instead" )
 
-        if not isinstance( variable, uw.meshvariable.MeshVariable ):
+        if not isinstance( variable, uw.mesh.MeshVariable ):
             raise TypeError("Provided variable must be of class 'MeshVariable'.")
         self._variable = variable
 

@@ -30,12 +30,12 @@ class SolutionVector(_stgermain.StgCompoundComponent):
         See property docstrings for further information on each argument.
         
         >>> linearMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.) )
-        >>> tField = uw.meshvariable.MeshVariable( linearMesh, 1 )
+        >>> tField = uw.mesh.MeshVariable( linearMesh, 1 )
         >>> uw.libUnderworld.StgFEM._FeVariable_CreateNewEqnNumber( tField._cself )
         >>> sVector = uw.systems.sle.SolutionVector(tField)
         """
         
-        if not isinstance(meshVariable, uw.meshvariable.MeshVariable):
+        if not isinstance(meshVariable, uw.mesh.MeshVariable):
             raise TypeError("'meshVariable' object passed in must be of type 'MeshVariable'")
         self._meshVariable = meshVariable
         

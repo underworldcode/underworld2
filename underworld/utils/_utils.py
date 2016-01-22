@@ -9,7 +9,6 @@
 import underworld as uw
 import underworld._stgermain as _stgermain
 import underworld.mesh as mesh
-import underworld.meshvariable as meshvariable
 import underworld.function
 import libUnderworld
 import libUnderworld.libUnderworldPy.Function as _cfn
@@ -108,7 +107,7 @@ class Integral(_stgermain.StgCompoundComponent):
                     if not inSet:
                         raise ValueError("Your surfaceIndexSet appears to contain node(s) which do not belong to the mesh boundary. Surface integration across internal nodes is not currently supported.")
                 # create MeshVariable
-                deltaMeshVariable = uw.meshvariable.MeshVariable(mesh, 1)
+                deltaMeshVariable = uw.mesh.MeshVariable(mesh, 1)
                 # init to zero
                 deltaMeshVariable.data[:] = 0.
                 # set to 1 on provided vertices
@@ -711,7 +710,7 @@ def xdmf_write( objects, mesh, outputDir='./output', time=None):
     for (k,v) in objects.items():
         if not isinstance(k, str):
             raise TypeError("'objects' keys must be of type 'str'")
-        if not isinstance(v, uw.meshvariable.MeshVariable):
+        if not isinstance(v, uw.mesh.MeshVariable):
             raise TypeError("object with key '{}' must be of type 'MeshVariable'".format(k))
              
     # test 'mesh' arg

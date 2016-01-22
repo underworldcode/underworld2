@@ -450,7 +450,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         h5f.close()
 
         # return our file handle
-        return uw.SavedFileData(self, filename)
+        return uw.utils.SavedFileData(self, filename)
 
 
 

@@ -65,13 +65,13 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
         self._diffusivity   = diffusivity
         self._courantFactor = courantFactor
         
-        if not isinstance( phiField, uw.meshvariable.MeshVariable):
+        if not isinstance( phiField, uw.mesh.MeshVariable):
             raise TypeError( "Provided 'phiField' must be of 'MeshVariable' class." )
         if phiField.data.shape[1] != 1:
             raise TypeError( "Provided 'phiField' must be a scalar" )
         self._phiField = phiField
 
-        if not isinstance( phiDotField, (uw.meshvariable.MeshVariable, type(None))):
+        if not isinstance( phiDotField, (uw.mesh.MeshVariable, type(None))):
             raise TypeError( "Provided 'phiDotField' must be 'None' or of 'MeshVariable' class." )
         if self._phiField.data.shape != phiDotField.data.shape:
             raise TypeError( "Provided 'phiDotField' is not the same shape as the provided 'phiField'" )

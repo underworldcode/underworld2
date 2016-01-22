@@ -28,10 +28,10 @@ class AssembledMatrix(_stgermain.StgCompoundComponent):
         
         """
         
-        if not isinstance(meshVariableRow, uw.meshvariable.MeshVariable):
+        if not isinstance(meshVariableRow, uw.mesh.MeshVariable):
             raise TypeError("'meshvariableRow' object passed in must be of type 'MeshVariable'")
 
-        if not isinstance(meshVariableCol, uw.meshvariable.MeshVariable):
+        if not isinstance(meshVariableCol, uw.mesh.MeshVariable):
             raise TypeError("'meshvariableCol' object passed in must be of type 'MeshVariable'")
         self._meshVariableRow = meshVariableRow
         self._meshVariableCol = meshVariableCol
