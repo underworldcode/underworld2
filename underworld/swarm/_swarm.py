@@ -233,7 +233,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         # just save the particle coordinates SwarmVariable
         self.particleCoordinates.save(filename)
 
-        return uw.SavedFileData( self, filename )
+        return uw.utils.SavedFileData( self, filename )
 
     def load( self, filename, verbose=False ):
         """

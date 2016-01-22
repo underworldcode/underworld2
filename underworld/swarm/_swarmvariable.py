@@ -367,7 +367,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
 
         h5f.close()
 
-        return uw.SavedFileData( self, filename )
+        return uw.utils.SavedFileData( self, filename )
 
     def xdmf( self, filename, varSavedData, varname, swarmSavedData, swarmname, modeltime=0.  ):
         """
@@ -441,9 +441,9 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
                 raise ValueError("'swarmname' must be of type str")
             if not isinstance(filename, str):
                 raise ValueError("'filename' must be of type str")
-            if not isinstance(swarmSavedData, uw.SavedFileData ):
+            if not isinstance(swarmSavedData, uw.utils.SavedFileData ):
                 raise ValueError("'swarmSavedData' must be of type SavedFileData")
-            if not isinstance(varSavedData, uw.SavedFileData ):
+            if not isinstance(varSavedData, uw.utils.SavedFileData ):
                 raise ValueError("'varSavedData' must be of type SavedFileData")
             if not isinstance(modeltime, (int,float)):
                 raise ValueError("'modeltime' must be of type int or float")

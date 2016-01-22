@@ -430,8 +430,8 @@ def _fieldschema(varSavedFile, varname ):
 
 
     # Error check
-    if not isinstance(varSavedFile, uw.SavedFileData):
-        raise TypeError("'varSavedFile', must be of type uw.SavedFileData")
+    if not isinstance(varSavedFile, uw.utils.SavedFileData):
+        raise TypeError("'varSavedFile', must be of type uw.utils.SavedFileData")
     if not isinstance(varname, str):
         raise TypeError("'varname', must be of type str")
 
