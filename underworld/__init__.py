@@ -153,7 +153,7 @@ def _in_doctest():
     
     http://stackoverflow.com/questions/8116118/how-to-determine-whether-code-is-running-in-a-doctest
     """
-    return hasattr(sys.modules['__main__'], '_SpoofOut')
+    return hasattr(_sys.modules['__main__'], '_SpoofOut')
 
 # lets shoot off some usage metrics
 # send metrics *only* if we are rank=0, and if we are not running inside a doctest.
