@@ -110,7 +110,7 @@ Version Control
 ===============
 
 We follow the Gitflow Workflow:
-https://www.atlassian.com/git/examples/comparing-workflows/gitflow-workflow/
+https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow/
 
 Features branches should be created for anything besides quick fixes. Once ready for 
 publishing to the development branch, a pull request should be created and another 
@@ -129,7 +129,7 @@ which issue they relate to in the commit log.
 
 Version Numbering
 =================
-Underworld uses the convention
+Underworld uses a SemVer type convention, with names taking the form
 
 X.Y.Z
 
