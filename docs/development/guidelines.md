@@ -137,10 +137,13 @@ where
 
 X = Major version number. This will be '2' for the foreseeable future. 
 Y = Minor version number. This will increment major feature releases, or with scheduled 
-    releases (such as quarterly releases). 
-Z = Patch version. While on the development branch, this will be '0'. It will switch to
-    '1' when a stable branch is first created, and increment from there on the stable 
-    branch as bug fixes are ported through. 
+    releases (such as quarterly releases).  Unlike SemVer, changes to interface 
+    may occur with minor version increments. 
+Z = Patch version. Backwards compatible bug fixes. 
+
+The version number may also be appended with pre-release type designations, for
+example 2.0.0-beta, and the dev delopment branch will have version numbers appended
+with 'dev' (so 2.0.0-dev).
 
 Testing
 =======
