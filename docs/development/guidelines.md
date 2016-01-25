@@ -9,7 +9,7 @@ Directory Structure
 ** development             - Documents relevant to developers.
 *** broken                 - Input files & tests which are broken.
 ** tests                   - Python type scripts which are mainly for regression testing underworld.
-** tutorials               - Python type tutorial scripts for users. 
+** examples               - Python type example scripts for users. 
 ** user_guide              - IPython notebook based user guide
 * utils                    - Utility files.
 
@@ -23,18 +23,18 @@ For example, more thorough analytic tests might be housed here.
 
 All files here are read-only and should pass tests at all times.
 
-Tutorials (docs/tutorials)
+Examples (docs/examples)
 ---------
-Tutorials generally demonstrate complete underworld model construction and usage.
+Examples generally demonstrate complete underworld model construction and usage.
 
-Naming convention for tutorial files:
+Naming convention for example files:
 
 a_b_textual_name.ipynb (.py)
 
 where
 
 a: Loose indication of difficulty level (1=novice, 3=advanced)
-b: Unique & persistent integer identifier for tutorial
+b: Unique & persistent integer identifier for example
 
 Example: 2_04_Analytic Solutions.ipynb
 
@@ -110,7 +110,7 @@ Version Control
 ===============
 
 We follow the Gitflow Workflow:
-https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow/
+https://www.atlassian.com/git/examples/comparing-workflows/gitflow-workflow/
 
 Features branches should be created for anything besides quick fixes. Once ready for 
 publishing to the development branch, a pull request should be created and another 

@@ -28,9 +28,9 @@ RUN git clone https://github.com/underworldcode/underworld2 && \
     rm -fr PICellerator          && \
     rm -fr Solvers
 
-# copy underworld tutorials over
+# copy underworld examples over
 RUN mkdir /workspace && \
-    rsync -av /root/underworld2/docs/tutorials /workspace
+    rsync -av /root/underworld2/docs/examples /workspace
 
 # expose notebook port
 EXPOSE 8888
