@@ -139,11 +139,12 @@ X = Major version number. This will be '2' for the foreseeable future.
 Y = Minor version number. This will increment major feature releases, or with scheduled 
     releases (such as quarterly releases).  Unlike SemVer, changes to interface 
     may occur with minor version increments. 
-Z = Micro/Patch version. Backwards compatible bug fixes. Patch number 0 denotes 
-    a development version of underworld.
+Z = Micro/Patch version. Backwards compatible bug fixes.
 
 The version number may also be appended with pre-release type designations, for
 example 2.0.0b.
+
+Development software will be have the 'dev' suffix, so 2.0.0-dev
 
 Testing
 =======
