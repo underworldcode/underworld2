@@ -30,7 +30,7 @@ is very well suited to complex fluids which is how the solid Earth behaves
 on a geological timescale.
 """
 
-__version__ = "2.0.0"
+__version__ = "2.0.0-dev"
 
 # ok, first need to change default python dlopen flags to global
 # this is because when python imports the module, the shared libraries are loaded as RTLD_LOCAL
