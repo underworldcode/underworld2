@@ -129,7 +129,7 @@ which issue they relate to in the commit log.
 
 Version Numbering
 =================
-Underworld uses a SemVer type convention, with names taking the form
+Underworld follows PEP440 for versioning:
 
 X.Y.Z
 
@@ -139,11 +139,11 @@ X = Major version number. This will be '2' for the foreseeable future.
 Y = Minor version number. This will increment major feature releases, or with scheduled 
     releases (such as quarterly releases).  Unlike SemVer, changes to interface 
     may occur with minor version increments. 
-Z = Patch version. Backwards compatible bug fixes. 
+Z = Micro/Patch version. Backwards compatible bug fixes. Patch number 0 denotes 
+    a development version of underworld.
 
 The version number may also be appended with pre-release type designations, for
-example 2.0.0-beta, and the dev delopment branch will have version numbers appended
-with 'dev' (so 2.0.0-dev).
+example 2.0.0b.
 
 Testing
 =======
