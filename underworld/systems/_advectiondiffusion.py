@@ -48,11 +48,8 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
         velocityField : MeshVariable
             The velocity field
 
-        diffusivity : float 
-
-        ***WRONG***
-
-            The definition of diffusivity. (Currently constant, will be updated to a function next release )
+        diffusivity : uw.function.Function
+            Function that defines diffusivity
 
         courantFactor : float (default 0.25)
 
@@ -65,7 +62,7 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
             Constructed system for managing the Advection Diffusion Equation
             
         """
-        self._diffusivity   = diffusivity
+        self._diffusivity   = diffusivity # is error checked in the uw.sle.AdvDiffResidualVectorTerm()
         self._courantFactor = courantFactor
         
         if not isinstance( phiField, uw.mesh.MeshVariable):

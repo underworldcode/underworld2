@@ -201,7 +201,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
     def deform_mesh(self):
         """
         Any mesh deformation should occur within this context manager. Note that
-        certainly algorithms may be switched to their irregular mesh equivalents
+        certain algorithms may be switched to their irregular mesh equivalents
         (if not already set this way).
         
         Any submesh will also be appropriately updated on return from the context
