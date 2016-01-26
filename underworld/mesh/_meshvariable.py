@@ -467,7 +467,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
                                           minCoord    = tuple(inputMin), 
                                           maxCoord    = tuple(inputMax), 
                                           partitioned=False)
-            inputField = uw.mesh.MeshVariable( feMesh=inputMesh, nodeDofCount=dof )
+            inputField = uw.mesh.MeshVariable( mesh=inputMesh, nodeDofCount=dof )
             
             # copy hdf5 numpy array onto serial inputField
             inputField.data[:] = dset[:]
