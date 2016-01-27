@@ -110,7 +110,7 @@ Version Control
 ===============
 
 We follow the Gitflow Workflow:
-https://www.atlassian.com/git/examples/comparing-workflows/gitflow-workflow/
+https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow/
 
 Features branches should be created for anything besides quick fixes. Once ready for 
 publishing to the development branch, a pull request should be created and another 
@@ -129,7 +129,7 @@ which issue they relate to in the commit log.
 
 Version Numbering
 =================
-Underworld uses the convention
+Underworld follows PEP440 for versioning:
 
 X.Y.Z
 
@@ -137,10 +137,14 @@ where
 
 X = Major version number. This will be '2' for the foreseeable future. 
 Y = Minor version number. This will increment major feature releases, or with scheduled 
-    releases (such as quarterly releases). 
-Z = Patch version. While on the development branch, this will be '0'. It will switch to
-    '1' when a stable branch is first created, and increment from there on the stable 
-    branch as bug fixes are ported through. 
+    releases (such as quarterly releases).  Unlike SemVer, changes to interface 
+    may occur with minor version increments. 
+Z = Micro/Patch version. Backwards compatible bug fixes.
+
+The version number may also be appended with pre-release type designations, for
+example 2.0.0b.
+
+Development software will be have the 'dev' suffix, so 2.0.0-dev
 
 Testing
 =======
