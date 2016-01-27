@@ -3,6 +3,7 @@ syntax: glob
 
 _uwid.py
 *~
+h5py
 .build_success
 .config_success
 .ipynb_checkpoints

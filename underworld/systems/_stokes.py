@@ -13,20 +13,58 @@ import libUnderworld
 
 class Stokes(_stgermain.StgCompoundComponent):
     """
-    The system class that manages the Incompressible Stokes Equation
-    This class holds the numerical objects that define the equation and the solver to be used to solve the equation.
+    This class provides functionality for a discrete representation
+    of the incompressible Stokes equation. 
+    
+    Specifically, the class uses a mixed finite element method to 
+    construct a system of linear equations which may then be solved 
+    using an object of the underworld.system.Solver class.
+    
+    The underlying element types are determined by the supporting 
+    mesh used for the 'velocityField' and 'pressureField' parameters.
 
+    Parameters
+    ----------
+    velocityField : underworld.mesh.MeshVariable
+        Variable used to record system velocity.
+    pressureField : underworld.mesh.MeshVariable
+        Variable used to record system pressure.
+    fn_viscosity : underworld.function.Function
+        Function which reports a viscosity value. 
+        Function must return scalar float values.
+    fn_bodyforce : underworld.function.Function, default=None.
+        Function which reports a a body force for the system.
+        Function must return float values of identical dimensionality
+        to the provided velocity variable.
+    swarm : uw.swarm.Swarm, default=None.
+        If a swarm is provided, PIC type integration is utilised to build
+        up element integrals. The provided swarm is used as the basis for 
+        the PIC swarm.  
+        If no swarm is provided, Gauss style integration is used.
+    conditions : list of uw.conditions.DirichletCondition objects, default=None
+        Conditions to be placed on the system. Currently only 
+        Dirichlet conditions are supported.
+    
     Notes
     -----
-        .. math::
-
+    Constructor must be called by collectively all processes.
+    
 
     """
-    _objectsDict = {  "_system" : "Stokes_SLE",
-                      "_solver" : "Stokes_SLE_UzawaSolver" }
+    _objectsDict = {  "_system" : "Stokes_SLE" }
     _selfObjectName = "_system"
 
-    def __init__(self, velocityField, pressureField, viscosityFn, bodyForceFn=None, swarm=None, conditions=[], rtolerance=1.0e-5, **kwargs):
+    def __init__(self, velocityField, pressureField, fn_viscosity, fn_bodyforce=None, swarm=None, conditions=[], viscosityFn=None, bodyForceFn=None, rtolerance=None, **kwargs):
+        # DEPRECATE 1/16
+        if viscosityFn:
+            raise RuntimeError("Note that the 'viscosityFn' parameter has been renamed to 'fn_viscosity'.")
+        if bodyForceFn:
+            raise RuntimeError("Note that the 'bodyForceFn' parameter has been renamed to 'fn_bodyforce'.")
+        if rtolerance:
+            raise RuntimeError("Note that the 'rtolerance' parameter has been removed.\n" \
+                               "All solver functionality has been moved to underworld.systems.Solver.")
+
+
 
         if not isinstance( velocityField, uw.mesh.MeshVariable):
             raise TypeError( "Provided 'velocityField' must be of 'MeshVariable' class." )
@@ -39,14 +77,14 @@ class Stokes(_stgermain.StgCompoundComponent):
             raise ValueError( "Provided 'pressureField' must be a scalar field (ie pressureField.nodeDofCount==1)." )
         self._pressureField = pressureField
 
-        _viscosityFn = uw.function.Function._CheckIsFnOrConvertOrThrow(viscosityFn)
-        if not isinstance( _viscosityFn, uw.function.Function):
-            raise TypeError( "Provided 'viscosityFn' must be of or convertible to 'Function' class." )
+        _fn_viscosity = uw.function.Function._CheckIsFnOrConvertOrThrow(fn_viscosity)
+        if not isinstance( _fn_viscosity, uw.function.Function):
+            raise TypeError( "Provided 'fn_viscosity' must be of or convertible to 'Function' class." )
 
-        _bodyForceFn = uw.function.Function._CheckIsFnOrConvertOrThrow(bodyForceFn)
-        if _bodyForceFn and not isinstance( _bodyForceFn, uw.function.Function):
-            raise TypeError( "Provided 'bodyForceFn' must be of or convertible to 'Function' class." )
-        self._bodyForceFn = _bodyForceFn
+        _fn_bodyforce = uw.function.Function._CheckIsFnOrConvertOrThrow(fn_bodyforce)
+        if _fn_bodyforce and not isinstance( _fn_bodyforce, uw.function.Function):
+            raise TypeError( "Provided 'fn_bodyforce' must be of or convertible to 'Function' class." )
+        self._fn_bodyforce = _fn_bodyforce
 
         if swarm and not isinstance(swarm, uw.swarm.Swarm):
             raise TypeError( "Provided 'swarm' must be of 'Swarm' class." )
@@ -67,9 +105,6 @@ class Stokes(_stgermain.StgCompoundComponent):
             else:
                 raise ValueError("Condition object does not appear to apply to the provided velocityField or pressureField.")
 
-        if not isinstance(rtolerance, float):
-            raise TypeError( "Provided 'rtolerance' must be of 'rtolerance' class." )
-        self._rtolerance = rtolerance
         # ok, we've set some bcs, lets recreate eqnumbering
         libUnderworld.StgFEM._FeVariable_CreateNewEqnNumber( self._pressureField._cself )
         libUnderworld.StgFEM._FeVariable_CreateNewEqnNumber( self._velocityField._cself )
@@ -105,10 +140,10 @@ class Stokes(_stgermain.StgCompoundComponent):
             swarmguy = self._gaussSwarm
         self._constitMatTerm = sle.ConstitutiveMatrixTerm(  integrationSwarm=swarmguy,
                                                             assembledObject=self._kmatrix,
-                                                            fn=viscosityFn)
+                                                            fn=fn_viscosity)
         self._forceVecTerm   = sle.VectorAssemblyTerm_NA__Fn(   integrationSwarm=swarmguy,
                                                                 assembledObject=self._fvector,
-                                                                fn=bodyForceFn)
+                                                                fn=fn_bodyforce)
         super(Stokes, self).__init__(**kwargs)
 
 
@@ -124,75 +159,35 @@ class Stokes(_stgermain.StgCompoundComponent):
         componentDictionary[ self._cself.name ][       "PressureVector"] = self._pressureSol._cself.name
         componentDictionary[ self._cself.name ][          "ForceVector"] = self._fvector._cself.name
         componentDictionary[ self._cself.name ]["ContinuityForceVector"] = self._hvector._cself.name
-        componentDictionary[ self._cself.name ][    "killNonConvergent"] = False
-        componentDictionary[ self._cself.name ][           "SLE_Solver"] = self._solver.name
 
-        componentDictionary[ self._solver.name ][       "Preconditioner"] = self._preconditioner._cself.name
-        componentDictionary[ self._solver.name ][            "tolerance"] = self._rtolerance
-        componentDictionary[ self._solver.name ][              "monitor"] = True
-        componentDictionary[ self._solver.name ][        "minIterations"] = 1
-        componentDictionary[ self._solver.name ][        "maxIterations"] = 5000
-
-
-    def solve(self, nonLinearIterate=None):
-        """ solve the sle using provided solver
+    def solve(self, *args, **kwargs):
+        """ deprecated method
         """
-        # check for non-linearity
-        nonLinear = False
-        message = "Nonlinearity detected."
-        if self._velocityField in self.viscosityFn._underlyingDataItems:
-            nonLinear = True
-            message += "\nViscosity function depends on the velocity field provided to the Stokes system."
-        if self._pressureField in self.viscosityFn._underlyingDataItems:
-            nonLinear = True
-            message += "\nViscosity function depends on the pressure field provided to the Stokes system."
-        if self._velocityField in self.bodyForceFn._underlyingDataItems:
-            nonLinear = True
-            message += "\nBody force function depends on the velocity field provided to the Stokes system."
-        if self._pressureField in self.bodyForceFn._underlyingDataItems:
-            nonLinear = True
-            message += "\nBody force function depends on the pressure field provided to the Stokes system."
-
-        message += "\nPlease pass the 'nonLinearIterate' solve parameter to 'True' or 'False' to continue."
-        if nonLinear and (nonLinearIterate==None):
-            raise RuntimeError(message)
-        
-        if nonLinear and nonLinearIterate:
-            libUnderworld.StgFEM.SystemLinearEquations_SetToNonLinear(self._cself, True )
-        else:
-            libUnderworld.StgFEM.SystemLinearEquations_SetToNonLinear(self._cself, False )
-
-
-        if self._PICSwarm:
-            self._PICSwarm.repopulate()
-        libUnderworld.StgFEM.SystemLinearEquations_BC_Setup(self._cself, None)
-        libUnderworld.StgFEM.SystemLinearEquations_LM_Setup(self._cself, None)
-        libUnderworld.StgFEM.SystemLinearEquations_ZeroAllVectors(self._cself, None)
-        libUnderworld.StgFEM.SystemLinearEquations_MatrixSetup(self._cself, None)
-        libUnderworld.StgFEM.SystemLinearEquations_VectorSetup(self._cself, None)
-        if nonLinear and nonLinearIterate:
-            libUnderworld.StgFEM.SystemLinearEquations_NonLinearExecute(self._cself, None)
-        else:
-            libUnderworld.StgFEM.SystemLinearEquations_ExecuteSolver(self._cself, None)
-
-        ## execute solver
-        ### _SLE_Solver_Execute
-        #### SLE_Solver_SolverSetup
-        #### SLE_Solver_Solve
-
-        libUnderworld.StgFEM.SystemLinearEquations_UpdateSolutionOntoNodes(self._cself, None)
+        raise RuntimeError("This method is now deprecated. You now need to explicitly\n"\
+                           "create a solver, and then solve it:\n\n"\
+                           "    solver = uw.system.Solver(stokesSystemObject)\n"\
+                           "    solver.solve() \n\n"\
+                           "but note that you only need to create the solver once.")
 
     @property
-    def viscosityFn(self):
+    def fn_viscosity(self):
+        """
+        The viscosity function. You may change this function directly via this
+        property.
+        """
         return self._constitMatTerm.fn
-    @viscosityFn.setter
-    def viscosityFn(self, value):
+    @fn_viscosity.setter
+    def fn_viscosity(self, value):
         self._constitMatTerm.fn = value
 
     @property
-    def bodyForceFn(self):
+    def fn_bodyforce(self):
+        """
+        The body force function. You may change this function directly via this
+        property.
+        """
         return self._forceVecTerm.fn
-    @bodyForceFn.setter
-    def bodyForceFn(self, value):
+    @fn_bodyforce.setter
+    def fn_bodyforce(self, value):
         self._forceVecTerm.fn = value
 

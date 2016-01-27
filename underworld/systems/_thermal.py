@@ -13,68 +13,74 @@ import libUnderworld
 
 class SteadyStateHeat(_stgermain.StgCompoundComponent):
     """
-    The system class that manages the Steady State Heat Equation. 
-    This class holds the numerical objects that define the equation.
+    This class provides functionality for a discrete representation
+    of the steady state heat equation.
+    
+    The class uses a standard Galerkin finite element method to
+    construct a system of linear equations which may then be solved 
+    using an object of the underworld.system.Solver class.
+    
+    The underlying element types are determined by the supporting 
+    mesh used for the 'temperatureField'.
 
+    .. math::
+         \nabla { ( k \nabla \phi } ) = h
+
+    where, k is the diffusivity, T is the temperature, h is
+    a source term.
+
+    Parameters
+    ----------
+    temperatureField : underworld.mesh.MeshVariable
+        The solution field for temperature.
+    fn_diffusivity : underworld.function.Function
+        The conductivy function that defines the diffusivity across the domain.
+    fn_heating : underworld.function.Function, default=0.
+        The heating function that defines the heating across the domain.
 
     Notes
     -----
+    Constructor must be called by collectively all processes.
 
-    .. math:: $\nabla(k\nabla)T = h$
+    Example
+    -------
+    Setup a basic thermal system:
+    
+    >>> linearMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.) )
+    >>> tField = uw.mesh.MeshVariable( linearMesh, 1 )
+    >>> topNodes = linearMesh.specialSets["MaxJ_VertexSet"]
+    >>> bottomNodes = linearMesh.specialSets["MinJ_VertexSet"]
+    >>> tbcs = uw.conditions.DirichletCondition(tField, topNodes + bottomNodes)
+    >>> tField.data[topNodes.data] = 0.0
+    >>> tField.data[bottomNodes.data] = 1.0
+    >>> tSystem = uw.systems.SteadyStateHeat(temperatureField=tField, fn_diffusivity=1.0, conditions=[tbcs])
 
-    .. math:: 
-
-         \\nabla(k\\nabla)T = h
-
-        where, k is the conductivity, T is the temperature (solution), h is the heating r.h.s
-        
-        >>> linearMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.) )
-        >>> tField = uw.mesh.MeshVariable( linearMesh, 1 )
-        >>> topNodes = linearMesh.specialSets["MaxJ_VertexSet"]
-        >>> bottomNodes = linearMesh.specialSets["MinJ_VertexSet"]
-        >>> tbcs = uw.conditions.DirichletCondition(tField, topNodes + bottomNodes)
-        >>> tField.data[topNodes.data] = 0.0
-        >>> tField.data[bottomNodes.data] = 1.0
-        >>> tSystem = uw.systems.SteadyStateHeat(temperatureField=tField, conductivityFn=1.0, conditions=[tbcs])
     """
     _objectsDict = {  "_system" : "Energy_SLE" }
-                    #  "_solver" : "Energy_SLE_Solver" }
     _selfObjectName = "_system"
 
-    def __init__(self, temperatureField, conductivityFn, heatingFn=None, swarm=None, conditions=[], rtolerance=1.0e-5, **kwargs):
-        """
-        Create an instance of the Heat equation system
-        
-        Parameters
-        ----------
-        temperatureField : MeshVariable
-            The solution field for temperature
-        conductivityFn : Function
-            The conductivy function that defines the conductivity across the domain
-        heatingFn : Function
-            The heating r.h.s function that defines the heating across the domain
-
-        Returns
-        -------
-        SteadyStateHeat :
-            Constructed system for managing the Steady State Equation
-        """
+    def __init__(self, temperatureField, fn_diffusivity, fn_heating=0., swarm=None, conditions=[], conductivityFn=None, heatingFn=None, rtolerance=None, **kwargs):
+        if conductivityFn:
+            raise RuntimeError("Note that the 'conductivityFn' parameter has been renamed to 'fn_diffusivity'.")
+        if heatingFn:
+            raise RuntimeError("Note that the 'heatingFn' parameter has been renamed to 'fn_heating'.")
+        if rtolerance:
+            raise RuntimeError("Note that the 'rtolerance' parameter has been removed.\n" \
+                               "All solver functionality has been moved to underworld.systems.Solver.")
 
         if not isinstance( temperatureField, uw.mesh.MeshVariable):
             raise TypeError( "Provided 'temperatureField' must be of 'MeshVariable' class." )
         self._temperatureField = temperatureField
 
         try:
-            _conductivityFn = uw.function.Function._CheckIsFnOrConvertOrThrow(conductivityFn)
+            _fn_diffusivity = uw.function.Function._CheckIsFnOrConvertOrThrow(fn_diffusivity)
         except Exception as e:
-            raise uw._prepend_message_to_exception(e, "Exception encountered. Note that provided 'conductivityFn' must be of or convertible to 'Function' class.\nEncountered exception message:\n")
+            raise uw._prepend_message_to_exception(e, "Exception encountered. Note that provided 'fn_diffusivity' must be of or convertible to 'Function' class.\nEncountered exception message:\n")
 
-        if not heatingFn:
-            heatingFn = 0.
         try:
-            _heatingFn = uw.function.Function._CheckIsFnOrConvertOrThrow(heatingFn)
+            _fn_heating = uw.function.Function._CheckIsFnOrConvertOrThrow(fn_heating)
         except Exception as e:
-            raise uw._prepend_message_to_exception(e, "Exception encountered. Note that provided 'heatingFn' must be of or convertible to 'Function' class.\nEncountered exception message:\n")
+            raise uw._prepend_message_to_exception(e, "Exception encountered. Note that provided 'fn_heating' must be of or convertible to 'Function' class.\nEncountered exception message:\n")
 
         if swarm and not isinstance(swarm, uw.swarm.Swarm):
             raise TypeError( "Provided 'swarm' must be of 'Swarm' class." )
@@ -91,9 +97,6 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
             if cond.variable == self._temperatureField:
                 libUnderworld.StgFEM.FeVariable_SetBC( self._temperatureField._cself, cond._cself )
 
-        if not isinstance(rtolerance, float):
-            raise TypeError( "Provided 'rtolerance' must be of 'rtolerance' class." )
-        self._rtolerance = rtolerance
         # ok, we've set some bcs, lets recreate eqnumbering
         libUnderworld.StgFEM._FeVariable_CreateNewEqnNumber( self._temperatureField._cself )
         self._conditions = conditions
@@ -118,10 +121,10 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
             swarmguy = self._gaussSwarm
         self._kMatTerm = sle.MatrixAssemblyTerm_NA_i__NB_i__Fn(  integrationSwarm=swarmguy,
                                                                  assembledObject=self._kmatrix,
-                                                                 fn=_conductivityFn)
+                                                                 fn=_fn_diffusivity)
         self._forceVecTerm = sle.VectorAssemblyTerm_NA__Fn(   integrationSwarm=swarmguy,
                                                               assembledObject=self._fvector,
-                                                              fn=heatingFn)
+                                                              fn=fn_heating)
         super(SteadyStateHeat, self).__init__(**kwargs)
 
 
@@ -133,62 +136,36 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
         componentDictionary[ self._cself.name ][       "SolutionVector"] = self._temperatureSol._cself.name
         componentDictionary[ self._cself.name ][          "ForceVector"] = self._fvector._cself.name
         componentDictionary[ self._cself.name ][    "killNonConvergent"] = False
-        componentDictionary[ self._cself.name ][           "SLE_Solver"] = None #self._solver.name
+        componentDictionary[ self._cself.name ][           "SLE_Solver"] = None
 
-        #componentDictionary[ self._solver.name ][           "tolerance"] = self._rtolerance
-        #componentDictionary[ self._solver.name ][             "monitor"] = True
-        #componentDictionary[ self._solver.name ][       "minIterations"] = 1
-        #componentDictionary[ self._solver.name ][       "maxIterations"] = 5000
-
-
-    def solve(self, nonLinearIterate=None):
-        """ solve the sle using provided solver
+    def solve(self, *args, **kwargs):
+        """ deprecated method
         """
-        # check for non-linearity
-        nonLinear = False
-        message = "Nonlinearity detected."
-        if self._temperatureField in self.conductivityFn._underlyingDataItems:
-            nonLinear = True
-            message += "\nConductivity function depends on the temperature field provided to the system."
-        if self._temperatureField in self.heatingFn._underlyingDataItems:
-            nonLinear = True
-            message += "\nHeating function depends on the temperature field provided to the system."
-
-        message += "\nPlease set the 'nonLinearIterate' solve parameter to 'True' or 'False' to continue."
-        if nonLinear and (nonLinearIterate==None):
-            raise RuntimeError(message)
-        
-        if nonLinear and nonLinearIterate:
-            libUnderworld.StgFEM.SystemLinearEquations_SetToNonLinear(self._cself, True )
-        else:
-            libUnderworld.StgFEM.SystemLinearEquations_SetToNonLinear(self._cself, False )
-
-
-        if self._PICSwarm:
-            self._PICSwarm.repopulate()
-        libUnderworld.StgFEM.SystemLinearEquations_BC_Setup(self._cself, None)
-        libUnderworld.StgFEM.SystemLinearEquations_LM_Setup(self._cself, None)
-        libUnderworld.StgFEM.SystemLinearEquations_ZeroAllVectors(self._cself, None)
-        libUnderworld.StgFEM.SystemLinearEquations_MatrixSetup(self._cself, None)
-        libUnderworld.StgFEM.SystemLinearEquations_VectorSetup(self._cself, None)
-        if nonLinear and nonLinearIterate:
-            libUnderworld.StgFEM.SystemLinearEquations_NonLinearExecute(self._cself, None)
-        else:
-            libUnderworld.StgFEM.SystemLinearEquations_ExecuteSolver(self._cself, None)
-
-        libUnderworld.StgFEM.SystemLinearEquations_UpdateSolutionOntoNodes(self._cself, None)
+        raise RuntimeError("This method is now deprecated. You now need to explicitly\n"\
+                           "create a solver, and then solve it:\n\n"\
+                           "    solver = uw.system.Solver(heatSystemObject)\n"\
+                           "    solver.solve() \n\n"\
+                           "but note that you only need to create the solver once.")
 
     @property
-    def conductivityFn(self):
+    def fn_diffusivity(self):
+        """
+        The diffusivity function. You may change this function directly via this
+        property.
+        """
         return self._kMatTerm.fn
-    @conductivityFn.setter
-    def conductivityFn(self, value):
+    @fn_diffusivity.setter
+    def fn_diffusivity(self, value):
         self._kMatTerm.fn = value
 
     @property
-    def heatingFn(self):
+    def fn_heating(self):
+        """
+        The heating function. You may change this function directly via this
+        property.
+        """
         return self._forceVecTerm.fn
-    @heatingFn.setter
-    def heatingFn(self, value):
+    @fn_heating.setter
+    def fn_heating(self, value):
         self._forceVecTerm.fn = value
 

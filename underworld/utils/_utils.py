@@ -22,7 +22,28 @@ class Integral(_stgermain.StgCompoundComponent):
     """
     This class constructs a surface or volume integral of the provided function over a 
     given mesh.
+
+    Parameters
+    ----------
+    fn : uw.function.Function
+        Function to be integrated.
+    mesh : uw.mesh.FeMesh
+        The mesh over which integration is performed.
+    integrationType : str
+        Type of integration to perform.  Options are "volume" or "surface".
+    surfaceIndexSet : uw.mesh.FeMesh_IndexSet
+        Must be provided where integrationType is "surface".
+        This IndexSet determines which surface is to be integrated over.
+        Note that surface integration over interior nodes is not currently supported.
+    integrationSwarm : uw.swarm.IntegrationSwarm (optional)
+        User provided integration swarm.
     
+    Notes
+    -----
+    Constructor must be called by collectively all processes.
+    
+    Example
+    -------
     Calculate volume of mesh:
     
     >>> import underworld as uw
@@ -41,28 +62,7 @@ class Integral(_stgermain.StgCompoundComponent):
     _objectsDict = { "_integral": "Fn_Integrate" }
     _selfObjectName = "_integral"
 
-    def __init__(self, fn, mesh=None, integrationType="volume", surfaceIndexSet=None, integrationSwarm=None, feMesh=None, **kwargs):
-        """
-        Parameters
-        ----------
-        fn : uw.function.Function
-            Function to be integrated.
-        mesh : uw.mesh.FeMesh
-            The mesh over which integration is performed.
-        integrationType : str
-            Type of integration to perform.  Options are "volume" or "surface".
-        surfaceIndexSet : uw.mesh.FeMesh_IndexSet
-            Must be provided where integrationType is "surface".
-            This IndexSet determines which surface is to be integrated over.
-            Note that surface integration over interior nodes is not currently supported.
-        integrationSwarm : uw.swarm.IntegrationSwarm (optional)
-            User provided integration swarm.
-        
-        """
-        
-        if feMesh:  # DEPRECATE
-            raise ValueError("This parameter has been renamed to 'mesh'.")
-
+    def __init__(self, fn, mesh=None, integrationType="volume", surfaceIndexSet=None, integrationSwarm=None, **kwargs):
         if not mesh:
             raise ValueError("A mesh object must be provided")
         if not isinstance(mesh, uw.mesh.FeMesh):
@@ -141,6 +141,10 @@ class Integral(_stgermain.StgCompoundComponent):
         """
         Perform integration.
         
+        Notes
+        -----
+        Method must be called collectively by all processes.
+
         Returns
         -------
         result : list of floats

@@ -47,20 +47,7 @@ model construction. Ipython notebooks are utilised to allow users to directly
 interact with and modify content (temporarily). Where possible, visualisation 
 should be constructed using glucifer. 
 
-Chapter outline:
-
-01_GettingStarted.ipynb
-02_Meshing.ipynb
-03_FEVariables.ipynb
-04_Swarms.ipynb
-05_Functions.ipynb
-06_Systems.ipynb
-07_Utilities.ipynb
-08_Visualisation.ipynb
-09_Checkpointing.ipynb
-10_Parallelism.ipynb
-
-All files here are read-only and should pass tests at all times.
+All files should be read-only and should pass tests at all times.
 
 
 Coding Style
@@ -70,6 +57,9 @@ API Documentation
 -----------------
 Largely follow the numpy/scipy docstring conventions:
 https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt#docstring-standard
+
+Note that class constructors should be document at the class level docstring,
+not the __init__ method docstring. 
 
 
 Whitespace

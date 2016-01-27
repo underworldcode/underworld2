@@ -35,22 +35,22 @@ class _SolBase(object):
         super(_SolBase,self).__init__(**kwargs)
     
     @property
-    def velocityFn(self):
+    def fn_velocity(self):
         return _Sol_Function( self._csol.velocityFn )
     @property
-    def pressureFn(self):
+    def fn_pressure(self):
         return _Sol_Function( self._csol.pressureFn )
     @property
-    def stressFn(self):
+    def fn_stress(self):
         return _Sol_Function( self._csol.stressFn )
     @property
-    def strainRateFn(self):
+    def fn_strainRate(self):
         return _Sol_Function( self._csol.strainRateFn )
     @property
-    def viscosityFn(self):
+    def fn_viscosity(self):
         return _Sol_Function( self._csol.viscosityFn )
     @property
-    def bodyForceFn(self):
+    def fn_bodyforce(self):
         return _Sol_Function( self._csol.bodyForceFn )
 
 

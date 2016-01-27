@@ -241,7 +241,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         (multiples, remainder) = divmod( size, chunk )
 
         if rank == 0 and verbose:
-            bar = uw.utils.ProgressBar( start=0, end=size-1, title="loading "+filename)
+            bar = uw.utils._ProgressBar( start=0, end=size-1, title="loading "+filename)
 
         for ii in xrange(multiples+1):
             chunkStart = ii*chunk

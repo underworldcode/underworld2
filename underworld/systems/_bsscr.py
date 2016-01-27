@@ -351,9 +351,6 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         else:
             libUnderworld.StgFEM.SystemLinearEquations_ExecuteSolver(self._stokesSLE._cself, None)
 
-        #import pdb;
-        #pdb.set_trace()
-
         libUnderworld.StgFEM.SystemLinearEquations_UpdateSolutionOntoNodes(self._stokesSLE._cself, None)
         
         if print_stats:
@@ -456,16 +453,16 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         nonLinear = False
 
         message = "Nonlinearity detected."
-        if self._velocityField in self._stokesSLE.viscosityFn._underlyingDataItems:
+        if self._velocityField in self._stokesSLE.fn_viscosity._underlyingDataItems:
             nonLinear = True
             message += "\nviscosity function depends on the velocity field provided to the Stokes system."
-        if self._pressureField in self._stokesSLE.viscosityFn._underlyingDataItems:
+        if self._pressureField in self._stokesSLE.fn_viscosity._underlyingDataItems:
             nonLinear = True
             message += "\nviscosity function depends on the pressure field provided to the Stokes system."
-        if self._velocityField in self._stokesSLE.bodyForceFn._underlyingDataItems:
+        if self._velocityField in self._stokesSLE.fn_bodyforce._underlyingDataItems:
             nonLinear = True
             message += "\nBody force function depends on the velocity field provided to the Stokes system."
-        if self._pressureField in self._stokesSLE.bodyForceFn._underlyingDataItems:
+        if self._pressureField in self._stokesSLE.fn_bodyforce._underlyingDataItems:
             nonLinear = True
             message += "\nBody force function depends on the pressure field provided to the Stokes system."
 

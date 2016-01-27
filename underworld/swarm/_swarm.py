@@ -274,7 +274,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         rank = comm.Get_rank()
 
         if rank == 0 and verbose:
-            bar = uw.utils.ProgressBar( start=0, end=dset.shape[0]-1, title="loading "+filename)
+            bar = uw.utils._ProgressBar( start=0, end=dset.shape[0]-1, title="loading "+filename)
 
         valid = np.zeros(0, dtype='i') # array for read in
         chunk=int(1e4) # read in this many points at a time
