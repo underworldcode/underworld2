@@ -8,7 +8,6 @@
 ##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
 import underworld._stgermain as _stgermain
 import numpy as np
-#from underworld.swarm._swarmabstract import SwarmAbstract
 import _swarmabstract
 import _swarmvariable as svar
 import underworld.function as function
@@ -24,7 +23,16 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
     this class will store a set of unique particles. In this context, particles
     are data structures which store a location variable, along with any other
     variables the user requests.
-    
+
+    Parameters
+    ----------
+    mesh : uw.mesh.FeMesh
+        The FeMesh the swarm is supported by. See Swarm.mesh property docstring
+        for further information.
+    particleEscape : bool
+        If set to true, particles are allowed to escape from the domain.
+        
+
     For example, to create the swarm with some variables:
     
     >>> # first we need a mesh
@@ -58,16 +66,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
                     }
 
     def __init__(self, mesh, particleEscape=False, **kwargs):
-        """
-        Parameters
-        ----------
-        mesh : uw.mesh.FeMesh
-            The FeMesh the swarm is supported by. See Swarm.mesh property docstring
-            for further information.
-        particleEscape : bool
-            If set to true, particles are allowed to escape from the domain.
-        
-        """
+
         # if a PIC swarm is created for this guy, then it should record itself here
         self._PICSwarm = None
         
@@ -238,7 +237,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
     def load( self, filename, verbose=False ):
         """
         Load a swarm from disk. Note that this must be called before any SwarmVariable
-        members can be loaded.
+        members are loaded.
         
         Parameters
         ----------

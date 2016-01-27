@@ -28,27 +28,25 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
     Note that the swarm allocates one block of contiguous memory for all the particles.
     The per particle variable datums is then interlaced across this memory block.
     
-    It is most best practise to add all swarm variables before populating the swarm
+    The recommended practise is to add all swarm variables before populating the swarm
     to avoid costly reallocations.
     
     Swarm variables should be added via the add_variable swarm method.
     
+    Parameters
+    ----------
+    swarm : uw.swarm.Swarm
+        The swarm of particles for which we wish to add the variable
+    dataType: str
+        The data type for the variable. Available types are  "char", 
+        "short", "int", "float" or "double".
+    count: unsigned
+        The number of values to be stored for each particle.
+
     """
     _supportedDataTypes = ["char", "short", "int", "float", "double"]
 
     def __init__(self, swarm=None, dataType=None, count=None, **kwargs):
-        """
-        Parameters
-        ----------
-        swarm : uw.swarm.Swarm
-            The swarm of particles for which we wish to add the variable
-        dataType: str
-            The data type for the variable. Available types are  "char", 
-            "short", "int", "float" or "double".
-        count: unsigned
-            The number of values to be stored for each particle.
-        
-        """
         
         if not isinstance(swarm, sab.SwarmAbstract):
             raise TypeError("'swarm' object passed in must be of type 'Swarm'")

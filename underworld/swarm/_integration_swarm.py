@@ -9,13 +9,22 @@
 import underworld as uw
 import underworld._stgermain as _stgermain
 import libUnderworld
-#from underworld.swarm._swarmabstract import SwarmAbstract
 import _swarmabstract
 import _swarmvariable as svar
 from abc import ABCMeta
 
 class IntegrationSwarm(_swarmabstract.SwarmAbstract):
     """
+    Abstract class definition for IntegrationSwarms.
+
+    Note
+    ----
+    All IntegrationSwarms have the following SwarmVariables from this class.
+    1) localCoordVariable : double (number of particle, dimensions)
+        For local element coordinates of the particle
+    2) weightVariable : double (number of particles)
+        For the integration weight of each particle
+
     """
     _objectsDict = { "_swarm": "IntegrationPointsSwarm" }
     __metaclass__ = ABCMeta
@@ -38,18 +47,19 @@ class IntegrationSwarm(_swarmabstract.SwarmAbstract):
 
 class PICIntegrationSwarm(IntegrationSwarm):
     """
+    Class for an IntegrationSwarm that maps to another Swarm
+
+    Parameters
+    ----------
+    swarm : uw.swarm.Swarm
+        The PIC integration swarm maps to this user provided swarm.
+
     """
     _objectsDict = {  "_cellLayout" : "ElementCellLayout",
                           "_mapper" : "CoincidentMapper"
                     }
 
     def __init__(self, swarm, **kwargs):
-        """
-        Parameters
-        ----------
-        swarm : uw.swarm.Swarm
-            The PIC integration swarm maps to this user provided swarm.
-        """
         if not isinstance(swarm, uw.swarm.Swarm):
             raise ValueError("Provided swarm must be of class 'Swarm'.")
         self._mappedSwarm = swarm
@@ -91,26 +101,26 @@ class PICIntegrationSwarm(IntegrationSwarm):
         
 class GaussIntegrationSwarm(IntegrationSwarm):
     """
+    Class definition for a Gauss points swarm
+
+    Parameters
+    ----------
+    mesh : uw.mesh.FeMesh
+        The FeMesh the swarm is supported by. See Swarm.mesh property docstring
+        for further information.
+    particleCount : unsigned
+        Number of gauss particles in each direction.  Must take value in [1,5].
+        Default behaviour chooses an appropriate count for the provided mesh:
+            Constant : 1
+              Linear : 2
+           Quadratic : 4
+
     """
+
     _objectsDict = {  "_cellLayout" : "SingleCellLayout",
                   "_particleLayout" : "GaussParticleLayout" }
 
     def __init__(self, mesh, particleCount=None, **kwargs):
-        """
-        Parameters
-        ----------
-        mesh : uw.mesh.FeMesh
-            The FeMesh the swarm is supported by. See Swarm.mesh property docstring
-            for further information.
-            
-        particleCount : unsigned
-            Number of gauss particles in each direction.  Must take value in [1,5].
-            Default behaviour chooses an appropriate count for the provided mesh:
-                Constant : 1
-                  Linear : 2
-               Quadratic : 4
-
-        """
         if particleCount == None:
             # this is fragile.....
             partCountMap = { "DQ0"  : 1,
@@ -142,24 +152,22 @@ class GaussIntegrationSwarm(IntegrationSwarm):
 
 class GaussBorderIntegrationSwarm(GaussIntegrationSwarm):
     """
+    Parameters
+    ----------
+    mesh : uw.mesh.FeMesh
+        The FeMesh the swarm is supported by. See Swarm.mesh property docstring
+        for further information.
+        
+    particleCount : unsigned
+        Number of gauss particles in each direction.  Must take value in [1,5].
+        Default behaviour chooses an appropriate count for the provided mesh:
+            Constant : 1
+              Linear : 2
+           Quadratic : 4
+
     """
     _objectsDict = { "_particleLayout" : "GaussBorderParticleLayout" }
 
     def __init__(self, mesh, particleCount=None, **kwargs):
-        """
-        Parameters
-        ----------
-        mesh : uw.mesh.FeMesh
-            The FeMesh the swarm is supported by. See Swarm.mesh property docstring
-            for further information.
-            
-        particleCount : unsigned
-            Number of gauss particles in each direction.  Must take value in [1,5].
-            Default behaviour chooses an appropriate count for the provided mesh:
-                Constant : 1
-                  Linear : 2
-               Quadratic : 4
-
-        """
         # build parent
         super(GaussBorderIntegrationSwarm,self).__init__(mesh, particleCount, **kwargs)
