@@ -15,8 +15,8 @@ from _function import Function as _Function
 
 class _Sol_Function(_Function):
     """
-        This class simply wraps cpp Function class pointers 
-        in our hand rolled python Function class wrapper.
+    This class simply wraps cpp Function class pointers
+    in our hand rolled python Function class wrapper.
     """
     def __init__(self, cFunctionFn, **kwargs):
         self._fncself = cFunctionFn
@@ -299,16 +299,13 @@ class SolNL(_SolBase):
 
 
 class SolDB2d(_SolBase):
-
     def __init__(self, *args, **kwargs):
-        # check SolNL for some details
         self._ckeep = _cfn.SolDB2d()
         super(SolDB2d,self).__init__(_cfn.SolDB2dCRTP(self._ckeep,2), **kwargs)
 
 class SolDB3d(_SolBase):
 
     def __init__(self, Beta=4., *args, **kwargs):
-        # check SolNL for some details
         self._ckeep = _cfn.SolDB3d(Beta)
         super(SolDB3d,self).__init__(_cfn.SolDB3dCRTP(self._ckeep,3), **kwargs)
     @property

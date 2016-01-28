@@ -13,7 +13,41 @@ import libUnderworld.libUnderworldPy.Function as _cfn
 from _function import Function as _Function
 
 class constant(_Function):
-    """  This function returns a constant value.
+    """  
+    This function returns a constant value.
+    
+    Parameters
+    ----------
+    value: int,float,bool. scalar or vector.
+        The value the function should return.
+        
+    >>> import underworld as uw
+    >>> import underworld.function as fn
+    
+    >>> fn_const = fn.misc.constant( 3 )
+    >>> fn_const.evaluate(0.) # eval anywhere for constant
+    array([[3]], dtype=int32)
+
+    >>> fn_const = fn.misc.constant( (3,2,1) )
+    >>> fn_const.evaluate(0.) # eval anywhere for constant
+    array([[3, 2, 1]], dtype=int32)
+
+    >>> fn_const = fn.misc.constant( 3. )
+    >>> fn_const.evaluate(0.) # eval anywhere for constant
+    array([[ 3.]])
+
+    >>> fn_const = fn.misc.constant( (3.,2.,1.) )
+    >>> fn_const.evaluate(0.) # eval anywhere for constant
+    array([[ 3.,  2.,  1.]])
+    
+    >>> fn_const = fn.misc.constant( True )
+    >>> fn_const.evaluate(0.) # eval anywhere for constant
+    array([[ True]], dtype=bool)
+
+    >>> fn_const = fn.misc.constant( (True,False,True) )
+    >>> fn_const.evaluate(0.) # eval anywhere for constant
+    array([[ True, False,  True]], dtype=bool)
+    
     """
     def __init__(self, value, *args, **kwargs):
         
@@ -61,12 +95,12 @@ class constant(_Function):
                 tupleGuy = tuple(iterator)
                 lenTupleGuy = len(tupleGuy)
                 firstFella = tupleGuy[0]
-                if isinstance(firstFella, int):
+                if isinstance(firstFella,bool):
+                    ioguy = _cfn.IO_bool(lenTupleGuy,3)
+                elif isinstance(firstFella, int):
                     ioguy = _cfn.IO_int(lenTupleGuy,3)
                 elif isinstance(firstFella,float):
                     ioguy = _cfn.IO_double(lenTupleGuy,3)
-                elif isinstance(firstFella,bool):
-                    ioguy = _cfn.IO_bool(lenTupleGuy,3)
                 else:
                     raise ValueError("'value' object provided to Constant Function constructor does not appear to be valid.")
                 # right, now load in ze data

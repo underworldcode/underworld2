@@ -176,10 +176,10 @@ class SavedFileData(object):
     
     Parameters
     ----------
-        pyobj: object
-            python object saved data relates to.
-        filename: str
-            filename for saved data.
+    pyobj: object
+        python object saved data relates to.
+    filename: str
+        filename for saved data.
     '''
     def __init__(self, pyobj, filename):
         self.pyobj = pyobj

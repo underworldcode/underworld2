@@ -25,6 +25,26 @@ class SafeMaths(_Function):
     * Value overflow errors
     * Value underflow errors
     
+    If any of the above are encountered, and exception is thrown immediately. 
+    
+    Parameters
+    ----------
+    fn: underworld.Function
+        The function that is subject to the testing.
+        
+    Example
+    -------
+    >>> import underworld as uw
+    >>> import underworld.function as fn
+    >>> one = fn.misc.constant(1.)
+    >>> zero  = fn.misc.constant(0.)
+    >>> safeDivideByZero = fn.exception.SafeMaths(one/zero)
+    >>> safeDivideByZero.evaluate(0.)  # constant function, so eval anywhere
+    Traceback (most recent call last):
+    ...
+    RuntimeError: Divide by zero encountered while evaluating function.
+    
+    
     """
     
     def __init__(self, fn, *args, **kwargs):
