@@ -81,10 +81,12 @@ class Stokes(_stgermain.StgCompoundComponent):
         if not isinstance( _fn_viscosity, uw.function.Function):
             raise TypeError( "Provided 'fn_viscosity' must be of or convertible to 'Function' class." )
 
-        _fn_bodyforce = uw.function.Function._CheckIsFnOrConvertOrThrow(fn_bodyforce)
-        if _fn_bodyforce and not isinstance( _fn_bodyforce, uw.function.Function):
-            raise TypeError( "Provided 'fn_bodyforce' must be of or convertible to 'Function' class." )
-        self._fn_bodyforce = _fn_bodyforce
+        if not fn_bodyforce:
+            if velocityField.mesh.dim == 2:
+                fn_bodyforce = (0.,0.)
+            else:
+                fn_bodyforce = (0.,0.,0.)
+        self._fn_bodyforce = uw.function.Function._CheckIsFnOrConvertOrThrow(fn_bodyforce)
 
         if swarm and not isinstance(swarm, uw.swarm.Swarm):
             raise TypeError( "Provided 'swarm' must be of 'Swarm' class." )

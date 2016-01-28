@@ -17,40 +17,108 @@ import branching as _branching
 
 class stress_limiting_viscosity(_Function):
     """
-    Returns an viscosity value which effectively limits the fluid maximum stress.
-    Where the stress invariant (as calculated using the provided
-    stressFn) is greater than the stress limit (as provided by the
-    stressLimitFn), the returned viscosity will affect a fluid stress
-    at the stress limit. Otherwise, inputViscosityFn is passed through.
+    Returns a viscosity value which effectively limits the maximum fluid
+    stress. Where the stress invariant (as calculated using the provided
+    fn_stress) is greater than the stress limit (as provided by the
+    fn_stresslimit), the returned viscosity will affect a fluid stress
+    at the stress limit. Otherwise, fn_inputviscosity is passed through.
+    
+    Parameters
+    ----------
+    fn_stress: underworld.function.Function (or convertible).
+        Function which returns the current stress in the fluid.
+        Function should return a symmetric tensor of floating point values.
+    fn_stresslimit: underworld.function.Function (or convertible).  
+        Function which defines the stress limit.
+        Function should return a scalar floating point value.
+    fn_inputviscosity: underworld.function.Function (or convertible).
+        Function which defines the non-yielded viscosity value.
+        Function should return a scalar floating point value.
+
+    Example
+    -------
+    Lets setup a simple shear type configuration but with a viscosity
+    that increase vertically
+    
+    >>> import underworld as uw
+    >>> import underworld.function as fn
+    >>> mesh = uw.mesh.FeMesh_Cartesian(elementRes=(16,16), periodic=(True,False))
+    >>> velVar = uw.mesh.MeshVariable(mesh,2)
+    >>> pressVar = uw.mesh.MeshVariable(mesh.subMesh,1)
+
+    Simple shear boundary conditions:
+    >>> bot_nodes = mesh.specialSets["MinJ_VertexSet"]
+    >>> top_nodes = mesh.specialSets["MaxJ_VertexSet"]
+    >>> bc = uw.conditions.DirichletCondition(velVar, (top_nodes+bot_nodes,top_nodes+bot_nodes))
+    >>> velVar.data[bot_nodes.data] = (-0.5,0.)
+    >>> velVar.data[top_nodes.data] = ( 0.5,0.)
+
+    Vertically increasing exponential viscosity:
+    >>> fn_visc = fn.math.exp(12.*fn.coord()[1]+1.)
+    >>> stokesSys = uw.systems.Stokes(velVar,pressVar,fn_visc,conditions=[bc,])
+
+    Solve:
+    >>> solver = uw.systems.Solver(stokesSys)
+    >>> solver.solve()
+
+    Use the min_max function to determine a maximum stress
+    >>> fn_stress =  2.*fn_visc*uw.function.tensor.symmetric( velVar.fn_gradient )
+    >>> fn_minmax_inv = fn.view.min_max(fn.tensor.second_invariant(fn_stress))
+    >>> ignore = fn_minmax_inv.evaluate(mesh)
+    >>> import numpy as np
+    >>> np.isclose(fn_minmax_inv.max_global(), 49.2, rtol=1e-03)
+    True
+
+    Now lets set the limited viscosity. Note that the system is now non-linear.
+    >>> fn_visc_limited = fn.rheology.stress_limiting_viscosity(fn_stress,30.,fn_visc)
+    >>> stokesSys.fn_viscosity = fn_visc_limited
+    >>> solver.solve(nonLinearIterate=True)
+
+    Now check the stress.
+    >>> fn_stress = 2.*fn_visc_limited*uw.function.tensor.symmetric( velVar.fn_gradient )
+    >>> fn_minmax_inv = fn.view.min_max(fn.tensor.second_invariant(fn_stress))
+    >>> ignore = fn_minmax_inv.evaluate(mesh)
+    >>> np.isclose(fn_minmax_inv.max_global(), 30., rtol=1e-03)
+    True
+
+
     """
     
-    def __init__(self, stressFn, stressLimitFn, inputViscosityFn, *args, **kwargs):
+    def __init__(self, fn_stress, fn_stresslimit, fn_inputviscosity, stressFn=None, stressLimitFn=None, inputViscosityFn=None, *args, **kwargs):
 
-        _stressFn = _Function._CheckIsFnOrConvertOrThrow(stressFn)
-        if _stressFn == None:
-            raise ValueError( "Provided 'stressFn' must a 'Function' or convertible type.")
-        self._stressFn = _stressFn
+        # DEPRECATE 1/16
+        if stressFn:
+            raise RuntimeError("Note that the 'stressFn' parameter has been renamed to 'fn_stress'.")
+        if stressLimitFn:
+            raise RuntimeError("Note that the 'stressLimitFn' parameter has been renamed to 'fn_stresslimit'.")
+        if inputViscosityFn:
+            raise RuntimeError("Note that the 'inputViscosityFn' parameter has been renamed to 'fn_inputviscosity'.")
+
+        _fn_stress = _Function._CheckIsFnOrConvertOrThrow(fn_stress)
+        if _fn_stress == None:
+            raise ValueError( "Provided 'fn_stress' must a 'Function' or convertible type.")
+        self._fn_stress = _fn_stress
         
-        _stressLimitFn = _Function._CheckIsFnOrConvertOrThrow(stressLimitFn)
-        if _stressLimitFn == None:
-            raise ValueError( "Provided 'stressLimitFn' must a 'Function' or convertible type.")
-        self._stressLimitFn = _stressLimitFn
+        _fn_stresslimit = _Function._CheckIsFnOrConvertOrThrow(fn_stresslimit)
+        if _fn_stresslimit == None:
+            raise ValueError( "Provided 'fn_stresslimit' must a 'Function' or convertible type.")
+        self._fn_stresslimit = _fn_stresslimit
         
-        _inputViscosityFn = _Function._CheckIsFnOrConvertOrThrow(inputViscosityFn)
-        if _inputViscosityFn == None:
-            raise ValueError( "Provided 'inputViscosityFn' must a 'Function' or convertible type.")
-        self._inputViscosityFn = _inputViscosityFn
+        _fn_inputviscosity = _Function._CheckIsFnOrConvertOrThrow(fn_inputviscosity)
+        if _fn_inputviscosity == None:
+            raise ValueError( "Provided 'fn_inputviscosity' must a 'Function' or convertible type.")
+        self._fn_inputviscosity = _fn_inputviscosity
 
         # grab second inv of stress
-        secondInvFn = _tensor.second_invariant(self._stressFn)
+        secondInvFn = _tensor.second_invariant(self._fn_stress)
 
         # create conditional
-        self._conditional = _branching.conditional( [ ( secondInvFn > _stressLimitFn , inputViscosityFn*_stressLimitFn/secondInvFn ),    # if over limit, reduce viscosity
-                                                      ( True                         , inputViscosityFn                            ) ] ) # else return viscosity
+        self._conditional = _branching.conditional( [ ( secondInvFn > _fn_stresslimit , fn_inputviscosity*_fn_stresslimit/secondInvFn ),    # if over limit, reduce viscosity
+                                                      ( True                          , fn_inputviscosity                             ) ] ) # else return viscosity
 
         # this function is not based on a c function itself, so instead point the c pointer to the conditionals.
         self._fncself = self._conditional._fncself
         
         # build parent
-        super(stress_limiting_viscosity,self).__init__(argument_fns=[_stressFn,_stressLimitFn,_inputViscosityFn],**kwargs)
+        super(stress_limiting_viscosity,self).__init__(argument_fns=[_fn_stress,_fn_stresslimit,_fn_inputviscosity],**kwargs)
         

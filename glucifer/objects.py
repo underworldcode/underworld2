@@ -34,20 +34,20 @@ class ColourMap(_stgermain.StgCompoundComponent):
     
     Parameters
     ----------
-        colours: str, list.  default="#288FD0 #50B6B8 #989878 #C68838 #FF7520"
-            List of colours to use for drawing object colour map. Provided as a string
-            or as a list of strings. Example, "red blue", or ["red", "blue"]
-            This should not be specified if 'colourMap' is specified.
-        valueRange: tuple,list. default=None.
-            User defined value range to apply to colour map. Provided as a 
-            tuple of floats  (minValue, maxValue). If none is provided, the
-            value range will be determined automatically.
-        logScale: bool. default=False.
-            Bool to determine if the colourMap should use a logarithmic scale.
-        discrete: bool.  default=False.
-            Bool to determine if a discrete colour map should be used.
-            Discrete colour maps do not interpolate between colours and instead
-            use nearest neighbour for colouring.
+    colours: str, list.  default="#288FD0 #50B6B8 #989878 #C68838 #FF7520"
+        List of colours to use for drawing object colour map. Provided as a string
+        or as a list of strings. Example, "red blue", or ["red", "blue"]
+        This should not be specified if 'colourMap' is specified.
+    valueRange: tuple,list. default=None.
+        User defined value range to apply to colour map. Provided as a 
+        tuple of floats  (minValue, maxValue). If none is provided, the
+        value range will be determined automatically.
+    logScale: bool. default=False.
+        Bool to determine if the colourMap should use a logarithmic scale.
+    discrete: bool.  default=False.
+        Bool to determine if a discrete colour map should be used.
+        Discrete colour maps do not interpolate between colours and instead
+        use nearest neighbour for colouring.
 
     """
     _selfObjectName = "_cm"
@@ -129,24 +129,24 @@ class Drawing(_stgermain.StgCompoundComponent):
     
     Parameters
     ----------
-        colours: str, list.
-            See ColourMap class docstring for further information
-        colourMap: ColourMap. default=None
-            A ColourMap object for the object to use.
-            This should not be specified if 'colours' is specified.
-        properties: str.  default=None
-            Extra properties to apply to the drawing object.
-        opacity: float. default=-1.
-            Opacity of object. Must takes values from 0. to 1., while a value 
-            of -1 explicitly disables opacity.
-        colourBar: bool. default=False
-            Bool to determine if a colour bar should be rendered.
-        valueRange: tuple,list. default=None.
-            See ColourMap class docstring for further information
-        logScale: bool. default=False.
-            See ColourMap class docstring for further information
-        discrete: bool.  default=False.
-            See ColourMap class docstring for further information
+    colours: str, list.
+        See ColourMap class docstring for further information
+    colourMap: ColourMap. default=None
+        A ColourMap object for the object to use.
+        This should not be specified if 'colours' is specified.
+    properties: str.  default=None
+        Extra properties to apply to the drawing object.
+    opacity: float. default=-1.
+        Opacity of object. Must takes values from 0. to 1., while a value 
+        of -1 explicitly disables opacity.
+    colourBar: bool. default=False
+        Bool to determine if a colour bar should be rendered.
+    valueRange: tuple,list. default=None.
+        See ColourMap class docstring for further information
+    logScale: bool. default=False.
+        See ColourMap class docstring for further information
+    discrete: bool.  default=False.
+        See ColourMap class docstring for further information
 
         
     """
@@ -228,14 +228,14 @@ class Drawing(_stgermain.StgCompoundComponent):
         
         Parameters
         ----------
-            text: str
-                label text.
-            pos: tuple
-                X,Y,Z position to place the label.
-            font : str
-                label font (small/fixed/sans/serif/vector).
-            scaling : float
-                label font scaling (for "vector" font only).
+        text: str
+            label text.
+        pos: tuple
+            X,Y,Z position to place the label.
+        font : str
+            label font (small/fixed/sans/serif/vector).
+        scaling : float
+            label font scaling (for "vector" font only).
         """
         self.geomType = _libUnderworld.gLucifer.lucLabelType
         self.vertices.append(pos)
@@ -248,8 +248,8 @@ class Drawing(_stgermain.StgCompoundComponent):
             
         Parameters
         ----------
-            pos : tuple
-                X,Y,Z position to place the point
+        pos : tuple
+            X,Y,Z position to place the point
         """
         self.geomType = _libUnderworld.gLucifer.lucPointType
         self.vertices.append(pos)
@@ -260,10 +260,10 @@ class Drawing(_stgermain.StgCompoundComponent):
             
         Parameters
         ----------
-            start : tuple
-                X,Y,Z position to start line
-            end : tuple
-                X,Y,Z position to end line
+        start : tuple
+            X,Y,Z position to start line
+        end : tuple
+            X,Y,Z position to end line
         """
         self.geomType = _libUnderworld.gLucifer.lucLineType
         self.vertices.append(start)
@@ -298,8 +298,8 @@ class ColourBar(Drawing):
     
     Parameters
     ----------
-        colourMap: ColourMap
-            Colour map for which the colour bar will be drawn.
+    colourMap: ColourMap
+        Colour map for which the colour bar will be drawn.
     """
     _selfObjectName = "_dr"
     _objectsDict = { "_dr": "lucDrawingObject" }
@@ -332,12 +332,12 @@ class CrossSection(Drawing):
     
     Parameters
     ---------
-        mesh : uw.mesh.Mesh
-            Mesh over which cross section is rendered.
-        fn : uw.function.Function
-            Function used to determine values to render.
-        crossSection : str, default=""
-            Cross Section definition, eg. z=0.
+    mesh : uw.mesh.Mesh
+        Mesh over which cross section is rendered.
+    fn : uw.function.Function
+        Function used to determine values to render.
+    crossSection : str, default=""
+        Cross Section definition, eg. z=0.
         
     """
     _objectsDict = { "_dr": "lucCrossSection" }
@@ -392,17 +392,18 @@ class Surface(CrossSection):
     
     Parameters
     ---------
-        mesh : uw.mesh.Mesh
-            Mesh over which cross section is rendered.
-        fn : uw.function.Function
-            Function used to determine values to render.
-        drawSides : str, default="xyzXYZ"
-            Sides (x,y,z,X,Y,Z) for which the surface should be drawn.  
-        drawOnMesh : bool, default=False.
-            Bool to determine whether the surface rendering should explicitly
-            use the mesh object to generate the rendered surface. This may 
-            result in better quality rendering for deformed mesh, and may 
-            also be faster.
+    mesh : uw.mesh.Mesh
+        Mesh over which cross section is rendered.
+    fn : uw.function.Function
+        Function used to determine values to render.
+    drawSides : str, default="xyzXYZ"
+        Sides (x,y,z,X,Y,Z) for which the surface should be drawn.  
+    drawOnMesh : bool, default=False.
+        Note that this option is current disabled.
+        Bool to determine whether the surface rendering should explicitly
+        use the mesh object to generate the rendered surface. This may 
+        result in better quality rendering for deformed mesh, and may 
+        also be faster.
     """
     
     # let's just build both objects because we aint sure yet which one we want to use yet
@@ -414,6 +415,8 @@ class Surface(CrossSection):
                        valueRange=None, logScale=False, discrete=False,
                        *args, **kwargs):
 
+        if drawOnMesh:
+            raise RuntimeError("The 'drawOnMesh' option is currently disabled.")
         if not isinstance(drawSides,str):
             raise ValueError("'drawSides' argument must be of python type 'str'")
         self._drawSides = drawSides
@@ -470,17 +473,17 @@ class Points(Drawing):
     
     Parameters
     ---------
-        swarm : uw.swarm.Swarm
-            Swarm which provides locations for point rendering.
-        fn_colour : uw.function.Function
-            Function used to determine colour to render particle.
-            This function should return float/double values.
-        fn_mask : uw.function.Function
-            Function used to determine if a particle should be rendered. 
-            This function should return bool values. 
-        fn_size : uw.function.Function
-            Function used to determine size to render particle.
-            This function should return float/double values.
+    swarm : uw.swarm.Swarm
+        Swarm which provides locations for point rendering.
+    fn_colour : uw.function.Function
+        Function used to determine colour to render particle.
+        This function should return float/double values.
+    fn_mask : uw.function.Function
+        Function used to determine if a particle should be rendered. 
+        This function should return bool values. 
+    fn_size : uw.function.Function
+        Function used to determine size to render particle.
+        This function should return float/double values.
         
 
     """
@@ -596,26 +599,26 @@ class VectorArrows(_GridSampler3D):
     
     Parameters
     ---------
-        mesh : uw.mesh.Mesh
-            Mesh over which vector arrows are rendered.
-        fn : uw.function.Function
-            Function used to determine vectors to render. 
-            Function should return a vector of floats/doubles of appropriate
-            dimensionality.
-        arrowHead : float
-             The size of the head of the arrow compared with the arrow length.
-             Must be in [0.,1.].
-        scaling : float
-            Scaling for entire arrow.
-        glyphs : int
-            Type of glyph to render for vector arrow.
-            0: Line, 1 or more: 3d arrow, higher number => better quality.
-        resolutionI : unsigned, default=16.
-            Number of samples in the I direction.
-        resolutionJ : unsigned, default=16.
-            Number of samples in the J direction.
-        resolutionK : unsigned, default=16.
-            Number of samples in the K direction.
+    mesh : uw.mesh.Mesh
+        Mesh over which vector arrows are rendered.
+    fn : uw.function.Function
+        Function used to determine vectors to render. 
+        Function should return a vector of floats/doubles of appropriate
+        dimensionality.
+    arrowHead : float
+         The size of the head of the arrow compared with the arrow length.
+         Must be in [0.,1.].
+    scaling : float
+        Scaling for entire arrow.
+    glyphs : int
+        Type of glyph to render for vector arrow.
+        0: Line, 1 or more: 3d arrow, higher number => better quality.
+    resolutionI : unsigned, default=16.
+        Number of samples in the I direction.
+    resolutionJ : unsigned, default=16.
+        Number of samples in the J direction.
+    resolutionK : unsigned, default=16.
+        Number of samples in the K direction.
 
     """
     _objectsDict = { "_dr": "lucVectorArrows" }
@@ -659,18 +662,18 @@ class Volume(_GridSampler3D):
     
     Parameters
     ---------
-        mesh : uw.mesh.Mesh
-            Mesh over which object is rendered.
-        fn : uw.function.Function
-            Function used to determine colour values.
-            Function should return a vector of floats/doubles of appropriate
-            dimensionality.
-        resolutionI : unsigned, default=16.
-            Number of samples in the I direction.
-        resolutionJ : unsigned, default=16.
-            Number of samples in the J direction.
-        resolutionK : unsigned, default=16.
-            Number of samples in the K direction.
+    mesh : uw.mesh.Mesh
+        Mesh over which object is rendered.
+    fn : uw.function.Function
+        Function used to determine colour values.
+        Function should return a vector of floats/doubles of appropriate
+        dimensionality.
+    resolutionI : unsigned, default=16.
+        Number of samples in the I direction.
+    resolutionJ : unsigned, default=16.
+        Number of samples in the J direction.
+    resolutionK : unsigned, default=16.
+        Number of samples in the K direction.
 
     """
     _objectsDict = { "_dr": "lucFieldSampler" }
@@ -697,14 +700,14 @@ class Mesh(Drawing):
     See parent class for further parameter details. Also see property docstrings.
     
     Parameters
-    ---------
-        mesh : uw.mesh.Mesh
-            Mesh to render.
-        nodeNumbers : bool. default=False
-            Bool to determine whether global node numbers should be rendered. 
-        segmentsPerEdge : unsigned. default=1
-            Number of segments to render per cell/element edge. For higher 
-            order mesh, more segments are useful to render mesh curvature correctly.
+    ----------
+    mesh : uw.mesh.Mesh
+        Mesh to render.
+    nodeNumbers : bool. default=False
+        Bool to determine whether global node numbers should be rendered. 
+    segmentsPerEdge : unsigned. default=1
+        Number of segments to render per cell/element edge. For higher 
+        order mesh, more segments are useful to render mesh curvature correctly.
 
     """
     _objectsDict = { "_dr": "lucMeshViewer" }

@@ -27,14 +27,14 @@ class map(_Function):
     
     Parameters
     ----------
-    fn_key:  Function (or convertible)
+    fn_key:  underworld.function.Function (or convertible)
         Function which returns integer key values. This function will be evaluated 
         first to determine which function from the mapping is to be used. 
     mapping: dict(Function)
         Python dictionary providing a mapping from unsigned integer 'key' values to
         underworld 'value' functions. Note that the provided 'value' functions must
         return values of type 'double'.
-    fn_default: Function (or convertible)
+    fn_default: underworld.function.Function (or convertible)
         Default function to be utilised when the key (returned by fn_key function)
         does not correspond to any key value in the mapping dictionary.
     
@@ -43,6 +43,9 @@ class map(_Function):
     of a unit sphere. The unit sphere is represented by particles which 
     record a swarm variable to determine if they are or not inside the sphere.
 
+
+    Example
+    -------
     Setup mesh, swarm, swarmvariable & populate
     
     >>> import underworld as uw
@@ -143,6 +146,8 @@ class conditional(_Function):
         list of tuples, with each tuple being of the form (fn_condition, fn_action).
     
     
+    Example
+    -------
     The following example uses functions to represent a unit circle. Here a 
     conditional function report back the value '1.' inside the sphere (as per
     the first condition), and '0.' otherwise.
@@ -158,10 +163,7 @@ class conditional(_Function):
     array([ True], dtype=bool)
     """
 
-    def __init__(self, clauses, clauseList=None, *args, **kwargs):
-        #DEPRECATE
-        if clauseList:
-            raise RuntimeError("Note that the 'clauseList' parameter has been renamed to 'clauses'.")
+    def __init__(self, clauses, *args, **kwargs):
         # error check mapping
         if not isinstance(clauses, (list,tuple)):
             raise TypeError("'clauses' object passed in must be of python type 'list' or 'tuple'")

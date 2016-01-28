@@ -27,12 +27,12 @@ class cos(_Function):
 
     Parameters
     ----------
-    fn: Function (or convertible).  Default: None
+    fn: underworld.function.Function (or convertible).  Default: None
         The argument function. Default is None, in which case
         the input is processed directly.
 
-    Examples
-    --------
+    Example
+    -------
     >>> import math
     >>> import numpy as np
     >>> func = cos()
@@ -61,12 +61,12 @@ class sin(_Function):
 
     Parameters
     ----------
-    fn: Function (or convertible).  Default: None
+    fn: underworld.function.Function (or convertible).  Default: None
         The argument function. Default is None, in which case
         the input is processed directly.
 
-    Examples
-    --------
+    Example
+    -------
     >>> import math
     >>> import numpy as np
     >>> func = sin()
@@ -95,12 +95,12 @@ class tan(_Function):
 
     Parameters
     ----------
-    fn: Function (or convertible).  Default: None
+    fn: underworld.function.Function (or convertible).  Default: None
         The argument function. Default is None, in which case
         the input is processed directly.
 
-    Examples
-    --------
+    Example
+    -------
     >>> import math
     >>> import numpy as np
     >>> func = tan()
@@ -128,12 +128,12 @@ class acos(_Function):
 
     Parameters
     ----------
-    fn: Function (or convertible).  Default: None
+    fn: underworld.function.Function (or convertible).  Default: None
         The argument function. Default is None, in which case
         the input is processed directly.
 
-    Examples
-    --------
+    Example
+    -------
     >>> import math
     >>> import numpy as np
     >>> func = acos()
@@ -161,12 +161,12 @@ class asin(_Function):
 
     Parameters
     ----------
-    fn: Function (or convertible).  Default: None
+    fn: underworld.function.Function (or convertible).  Default: None
         The argument function. Default is None, in which case
         the input is processed directly.
 
-    Examples
-    --------
+    Example
+    -------
     >>> import math
     >>> import numpy as np
     >>> func = asin()
@@ -194,12 +194,12 @@ class atan(_Function):
 
     Parameters
     ----------
-    fn: Function (or convertible).  Default: None
+    fn: underworld.function.Function (or convertible).  Default: None
         The argument function. Default is None, in which case
         the input is processed directly.
 
-    Examples
-    --------
+    Example
+    -------
     >>> import math
     >>> import numpy as np
     >>> func = atan()
@@ -227,12 +227,12 @@ class cosh(_Function):
 
     Parameters
     ----------
-    fn: Function (or convertible).  Default: None
+    fn: underworld.function.Function (or convertible).  Default: None
         The argument function. Default is None, in which case
         the input is processed directly.
 
-    Examples
-    --------
+    Example
+    -------
     >>> import math
     >>> import numpy as np
     >>> func = cosh()
@@ -260,12 +260,12 @@ class sinh(_Function):
 
     Parameters
     ----------
-    fn: Function (or convertible).  Default: None
+    fn: underworld.function.Function (or convertible).  Default: None
         The argument function. Default is None, in which case
         the input is processed directly.
 
-    Examples
-    --------
+    Example
+    -------
     >>> import math
     >>> import numpy as np
     >>> func = sinh()
@@ -293,12 +293,12 @@ class tanh(_Function):
 
     Parameters
     ----------
-    fn: Function (or convertible).  Default: None
+    fn: underworld.function.Function (or convertible).  Default: None
         The argument function. Default is None, in which case
         the input is processed directly.
 
-    Examples
-    --------
+    Example
+    -------
     >>> import math
     >>> import numpy as np
     >>> func = tanh()
@@ -326,12 +326,12 @@ class acosh(_Function):
 
     Parameters
     ----------
-    fn: Function (or convertible).  Default: None
+    fn: underworld.function.Function (or convertible).  Default: None
         The argument function. Default is None, in which case
         the input is processed directly.
 
-    Examples
-    --------
+    Example
+    -------
     >>> import math
     >>> import numpy as np
     >>> func = acosh()
@@ -359,12 +359,12 @@ class asinh(_Function):
 
     Parameters
     ----------
-    fn: Function (or convertible).  Default: None
+    fn: underworld.function.Function (or convertible).  Default: None
         The argument function. Default is None, in which case
         the input is processed directly.
 
-    Examples
-    --------
+    Example
+    -------
     >>> import math
     >>> import numpy as np
     >>> func = asinh()
@@ -392,12 +392,12 @@ class atanh(_Function):
 
     Parameters
     ----------
-    fn: Function (or convertible).  Default: None
+    fn: underworld.function.Function (or convertible).  Default: None
         The argument function. Default is None, in which case
         the input is processed directly.
 
-    Examples
-    --------
+    Example
+    -------
     >>> import math
     >>> import numpy as np
     >>> func = atanh()
@@ -425,12 +425,12 @@ class exp(_Function):
 
     Parameters
     ----------
-    fn: Function (or convertible).  Default: None
+    fn: underworld.function.Function (or convertible).  Default: None
         The argument function. Default is None, in which case
         the input is processed directly.
 
-    Examples
-    --------
+    Example
+    -------
     >>> import math
     >>> import numpy as np
     >>> func = exp()
@@ -458,12 +458,12 @@ class log(_Function):
 
     Parameters
     ----------
-    fn: Function (or convertible).  Default: None
+    fn: underworld.function.Function (or convertible).  Default: None
         The argument function. Default is None, in which case
         the input is processed directly.
 
-    Examples
-    --------
+    Example
+    -------
     >>> import math
     >>> import numpy as np
     >>> func = log()
@@ -491,12 +491,12 @@ class log2(_Function):
 
     Parameters
     ----------
-    fn: Function (or convertible).  Default: None
+    fn: underworld.function.Function (or convertible).  Default: None
         The argument function. Default is None, in which case
         the input is processed directly.
 
-    Examples
-    --------
+    Example
+    -------
     >>> import math
     >>> import numpy as np
     >>> func = log2()
@@ -524,12 +524,12 @@ class log10(_Function):
 
     Parameters
     ----------
-    fn: Function (or convertible).  Default: None
+    fn: underworld.function.Function (or convertible).  Default: None
         The argument function. Default is None, in which case
         the input is processed directly.
 
-    Examples
-    --------
+    Example
+    -------
     >>> import math
     >>> import numpy as np
     >>> func = log10()
@@ -557,12 +557,12 @@ class sqrt(_Function):
 
     Parameters
     ----------
-    fn: Function (or convertible).  Default: None
+    fn: underworld.function.Function (or convertible).  Default: None
         The argument function. Default is None, in which case
         the input is processed directly.
 
-    Examples
-    --------
+    Example
+    -------
     >>> import math
     >>> import numpy as np
     >>> func = sqrt()
@@ -590,12 +590,12 @@ class erf(_Function):
 
     Parameters
     ----------
-    fn: Function (or convertible).  Default: None
+    fn: underworld.function.Function (or convertible).  Default: None
         The argument function. Default is None, in which case
         the input is processed directly.
 
-    Examples
-    --------
+    Example
+    -------
     >>> import math
     >>> import numpy as np
     >>> func = erf()
@@ -623,12 +623,12 @@ class erfc(_Function):
 
     Parameters
     ----------
-    fn: Function (or convertible).  Default: None
+    fn: underworld.function.Function (or convertible).  Default: None
         The argument function. Default is None, in which case
         the input is processed directly.
 
-    Examples
-    --------
+    Example
+    -------
     >>> import math
     >>> import numpy as np
     >>> func = erfc()
@@ -656,12 +656,12 @@ class abs(_Function):
 
     Parameters
     ----------
-    fn: Function (or convertible).  Default: None
+    fn: underworld.function.Function (or convertible).  Default: None
         The argument function. Default is None, in which case
         the input is processed directly.
 
-    Examples
-    --------
+    Example
+    -------
     >>> import math
     >>> import numpy as np
     >>> func = abs()
@@ -694,8 +694,8 @@ class pow(_Function):
     fn2: Function (or convertible).
          The power function.
 
-    Examples
-    --------
+    Example
+    -------
     >>> import math
     >>> import numpy as np
     >>> func = pow(input(),3.)
@@ -731,8 +731,8 @@ class dot(_Function):
     fn1,fn2: Function (or convertible).
         The argument functions.
 
-    Examples
-    --------
+    Example
+    -------
     >>> import math
     >>> import numpy as np
     >>> input1 = (2.,3.,4.)

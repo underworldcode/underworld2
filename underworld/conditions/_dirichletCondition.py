@@ -26,8 +26,26 @@ class DirichletCondition(_SystemCondition):
     to be a Dirichlet condition. The values at the Dirichlet nodes/DOFs is then left 
     untouched by the system.
     
+    Parameters
+    ----------
+    variable : uw.mesh.MeshVariable
+        This is the variable for which the Direchlet condition applies.
+    indexSetsPerDof : list, tuple, IndexSet
+        The index set(s) which flag nodes/DOFs as Dirichlet conditions.
+        Note that the user must provide an index set for each degree of
+        freedom of the variable.  So for a vector variable of rank 2 (say Vx & Vy),
+        two index sets must be provided (say VxDofSet, VyDofSet).
+
+    Notes
+    -----
     Note that it is necessary for the user to set the required value on the variable, possibly
     via the numpy interface.
+    
+    Constructor must be called by collectively all processes.
+
+    Example
+    -------
+    Basic setup and usage of Dirichlet conditions:
     
     >>> linearMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.) )
     >>> velocityField = uw.mesh.MeshVariable( linearMesh, 2 )
@@ -42,20 +60,6 @@ class DirichletCondition(_SystemCondition):
     _selfObjectName = "_pyvc"
 
     def __init__(self, variable, indexSetsPerDof=None, nodeIndexSets=None):
-        """
-        Class initialiser.
-        
-        Parameters
-        ----------
-        variable : uw.mesh.MeshVariable
-            This is the variable for which the Direchlet condition applies.
-        indexSetsPerDof : list, tuple, IndexSet
-            The index set(s) which flag nodes/DOFs as Dirichlet conditions.
-            Note that the user must provide an index set for each degree of
-            freedom of the variable.  So for a vector variable of rank 2 (say Vx & Vy),
-            two index sets must be provided (say VxDofSet, VyDofSet).
-        """
-
         if nodeIndexSets: # Deprecate post mid 2016, remember to clean the function signture too
             raise ValueError( "Parameter 'nodeIndexSets' has been renamed to 'indexSetsPerDof'. Please use indexSetsPerDof instead" )
 

@@ -265,7 +265,7 @@ tempBC     = uw.conditions.DirichletCondition( variable      = temperatureField,
 
 # In[ ]:
 
-secinv = fn.tensor.second_invariant( fn.tensor.symmetric( velocityField.gradientFn ) )
+secinv = fn.tensor.second_invariant( fn.tensor.symmetric( velocityField.fn_gradient ) )
 coordinate = fn.coord()
 
 
@@ -388,9 +388,9 @@ vdint = uw.utils.Integral( (4.*fn_viscosity*sinner), mesh )
 
 rmsSurfInt = uw.utils.Integral( fn=velocityField[0]*velocityField[0], mesh=mesh, integrationType='Surface', 
                           surfaceIndexSet=mesh.specialSets["MaxJ_VertexSet"])
-nuTop      = uw.utils.Integral( fn=temperatureField.gradientFn[1],    mesh=mesh, integrationType='Surface', 
+nuTop      = uw.utils.Integral( fn=temperatureField.fn_gradient[1],    mesh=mesh, integrationType='Surface', 
                           surfaceIndexSet=mesh.specialSets["MaxJ_VertexSet"])
-nuBottom   = uw.utils.Integral( fn=temperatureField.gradientFn[1],    mesh=mesh, integrationType='Surface', 
+nuBottom   = uw.utils.Integral( fn=temperatureField.fn_gradient[1],    mesh=mesh, integrationType='Surface', 
                           surfaceIndexSet=mesh.specialSets["MinJ_VertexSet"])
 
 
