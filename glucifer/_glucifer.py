@@ -333,6 +333,7 @@ class Figure(_stgermain.StgCompoundComponent):
                 frontpart = absfilename
             finaloutFile = frontpart+splitgenfilename[1]
             os.rename(generatedFilename,finaloutFile)
+            return finaloutFile
 
     def save_database(self,filename,regen=True):
         """  
