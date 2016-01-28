@@ -38,8 +38,9 @@ class SafeMaths(_Function):
     >>> import underworld.function as fn
     >>> one = fn.misc.constant(1.)
     >>> zero  = fn.misc.constant(0.)
-    >>> safeDivideByZero = fn.exception.SafeMaths(one/zero)
-    >>> safeDivideByZero.evaluate(0.)  # constant function, so eval anywhere
+    >>> fn_dividebyzero = one/zero
+    >>> safedividebyzero = fn.exception.SafeMaths(fn_dividebyzero)
+    >>> safedividebyzero.evaluate(0.)  # constant function, so eval anywhere
     Traceback (most recent call last):
     ...
     RuntimeError: Divide by zero encountered while evaluating function.

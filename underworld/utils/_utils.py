@@ -542,7 +542,6 @@ class ProgressBar(object):
             self._printTitle=False
             self._startTime=timer()
 
- #       import pdb; pdb.set_trace()
         while h < relprog:
             if h%5 == 0:
                 if h % 25 == 0:

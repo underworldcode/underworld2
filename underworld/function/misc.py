@@ -114,7 +114,41 @@ class constant(_Function):
 
 class max(_Function):
     """ 
-    max function.  Returns the maximum of its two arguments.
+    max function.  Returns the maximum of the results returned from 
+    its two argument function.
+    
+    Parameters
+    ----------
+    fn1: underworld.function.Function
+        First argument function. Function must return a float type.
+    fn1: underworld.function.Function
+        Second argument function. Function must return a float type.
+        
+    Example
+    -------
+    >>> import underworld as uw
+    >>> import underworld.function as fn
+    >>> import numpy as np
+    >>> testpoints = np.array(([[ 0.0], [0.2], [0.4], [0.6], [0.8], [1.01], [1.2], [1.4], [1.6], [1.8], [2.0],]))
+    
+    Create which return identical results via different paths:
+    >>> fn_x = fn.input()[0]
+    >>> fn_x_minus_one = fn_x - 1.
+    >>> fn_one_minus_x = 1. - fn_x
+    
+    Here we use 'max' and 'min' functions:
+    >>> fn_max = fn.misc.max(fn_one_minus_x,fn_x_minus_one)
+    >>> fn_min = fn.misc.min(fn_one_minus_x,fn_x_minus_one)
+    
+    Here we use the conditional functions:
+    >>> fn_conditional_max = fn.branching.conditional( ( ( fn_x <= 1., fn_one_minus_x ), ( fn_x > 1., fn_x_minus_one ) ))
+    >>> fn_conditional_min = fn.branching.conditional( ( ( fn_x >= 1., fn_one_minus_x ), ( fn_x < 1., fn_x_minus_one ) ))
+    
+    They should return identical results.
+    >>> np.allclose(fn_max.evaluate(testpoints),fn_conditional_max.evaluate(testpoints))
+    True
+    >>> np.allclose(fn_min.evaluate(testpoints),fn_conditional_min.evaluate(testpoints))
+    True
     """
     def __init__(self, fn1, fn2, **kwargs):
         fn1fn = _Function._CheckIsFnOrConvertOrThrow( fn1 )
@@ -133,7 +167,20 @@ class max(_Function):
 
 class min(_Function):
     """ 
-    min function.  Returns the minimum of its two arguments.
+    min function.  Returns the minimum of the results returned from
+    its two argument function.
+    
+    Parameters
+    ----------
+    fn1: underworld.function.Function
+        First argument function. Function must return a float type.
+    fn1: underworld.function.Function
+        Second argument function. Function must return a float type.
+        
+    Example
+    -------
+    See the example provided for 'max' function.
+    
     """
     def __init__(self, fn1, fn2, **kwargs):
         fn1fn = _Function._CheckIsFnOrConvertOrThrow( fn1 )
