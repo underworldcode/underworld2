@@ -138,10 +138,9 @@ stokesPIC = uw.systems.Stokes( velocityField = velocityField,
                                pressureField = pressureField,
                                swarm         = swarm, 
                                conditions    = [stokesBC,],
-                               viscosityFn   = viscosityFn, 
-                               bodyForceFn   = buoyancyFn )
+                               fn_viscosity  = viscosityFn,
+                               fn_bodyforce  = buoyancyFn )
 solver = uw.systems.Solver( stokesPIC )
-
 
 # **Create a system to advect the particles**
 advector = uw.systems.SwarmAdvector( swarm=swarm, velocityField=velocityField, order=2 )

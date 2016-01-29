@@ -171,5 +171,6 @@ def compare(imgFilename1, imgFilename2, verbose=False):
 
 if __name__ == "__main__":
     #Example usage, compare two images passed on command line
-    diffs = compare(sys.argv[1], sys.argv[2])
-    print diffs
+    if len(sys.argv)>2:
+        diffs = compare(sys.argv[1], sys.argv[2])
+        print diffs
