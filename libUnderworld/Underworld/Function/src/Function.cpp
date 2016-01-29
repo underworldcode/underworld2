@@ -99,9 +99,8 @@ Fn::MinMax::func Fn::MinMax::getFunction( IOsptr sample_input )
 
 void Fn::MinMax::reset()
 {
-    _size = -1;
-    _minVal =  std::numeric_limits<double>::max();
-    _maxVal = -std::numeric_limits<double>::max();
+    _minVal = std::numeric_limits<double>::max();
+    _maxVal = std::numeric_limits<double>::lowest();
 }
 
 double Fn::MinMax::getMin()

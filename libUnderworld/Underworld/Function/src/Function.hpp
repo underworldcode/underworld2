@@ -63,7 +63,7 @@ namespace Fn {
             Function* _fn;
             double _minVal;
             double _maxVal;
-            int _size;
+            int _size=-1;
     };
     
 }
