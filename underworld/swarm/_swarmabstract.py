@@ -8,7 +8,6 @@
 ##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
 import underworld as uw
 import underworld._stgermain as _stgermain
-#import underworld.mesh as mesh
 import weakref
 import libUnderworld
 import _swarmvariable as svar
@@ -19,6 +18,13 @@ class SwarmAbstract(_stgermain.StgCompoundComponent):
     this class will store a set of unique particles. In this context, particles
     are data structures which store a location variable, along with any other
     variables the user requests.
+
+    Parameters
+    ----------
+    mesh : uw.mesh.FeMesh
+        The FeMesh the swarm is supported by. See Swarm.mesh property docstring
+        for further information.
+
     """
     _objectsDict = {            "_swarm" : None,
                            "_cellLayout" : None
@@ -30,13 +36,7 @@ class SwarmAbstract(_stgermain.StgCompoundComponent):
     _supportedDataTypes = ["char","short","int","float", "double"]
 
     def __init__(self, mesh, **kwargs):
-        """
-        Parameters
-        ----------
-        mesh : uw.mesh.FeMesh
-            The FeMesh the swarm is supported by. See Swarm.mesh property docstring
-            for further information.
-        """
+
         if not isinstance(mesh, uw.mesh.FeMesh):
             raise TypeError("'mesh' object passed in must be of type 'FeMesh'")
         self._mesh = mesh

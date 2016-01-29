@@ -51,12 +51,17 @@ Fn::SafeMaths::func Fn::SafeMaths::getFunction( IOsptr sample_input )
 
 Fn::MinMax::func Fn::MinMax::getFunction( IOsptr sample_input )
 {
-    reset();
     // get function.. nothing to test
     func _func = _fn->getFunction( sample_input );
     
     std::shared_ptr<const FunctionIO> output = _func(sample_input);
-    _size = output->size();
+    unsigned fn_out_size = output->size();
+    if (_size < 0) {
+        _size = fn_out_size;
+    } else if ( _size != fn_out_size )
+        throw std::runtime_error("MinMax subject function's return size appears to have changed.\n\
+                                  Please reset MinMax, or create a new one.");
+
     if ( _size == 1 ) {
         return [_func,this](IOsptr input)->IOsptr {
 
@@ -95,7 +100,7 @@ Fn::MinMax::func Fn::MinMax::getFunction( IOsptr sample_input )
 void Fn::MinMax::reset()
 {
     _minVal = std::numeric_limits<double>::max();
-    _maxVal = std::numeric_limits<double>::min();
+    _maxVal = std::numeric_limits<double>::lowest();
 }
 
 double Fn::MinMax::getMin()

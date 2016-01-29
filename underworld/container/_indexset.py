@@ -21,7 +21,20 @@ class IndexSet(object):
     The IndexSet class provides a set type container for integer values.
     The underlying implementation is designed for memory efficiency. 
     Index insertion and removal is a constant time operation.
-    
+
+    Parameters
+    ----------
+    size : int
+        The size of the IndexSet. Note that the size corresponds to the maximum index
+        value (plus 1) the set is required to hold, *NOT* the number of elements in
+        the set. See IndexSet.size docstring for more information.
+    fromObject : iterable, array_like, IndexSet. Optional.
+        If provided, an IndexSet will be constructed using provided object's data. 
+        See 'add' method for more details on acceptable objects.
+        If not provided, empty set is generated.
+
+    Examples
+    --------
     You can add items via the constructor:
     >>> someSet = uw.container.IndexSet( 15, [3,14,2] )
     >>> someSet
@@ -43,19 +56,6 @@ class IndexSet(object):
     """
 
     def __init__(self, size, fromObject=None):
-        """
-        Parameters
-        ----------
-        size : int
-            The size of the IndexSet. Note that the size corresponds to the maximum index
-            value (plus 1) the set is required to hold, *NOT* the number of elements in
-            the set. See IndexSet.size docstring for more information.
-        fromObject : iterable, array_like, IndexSet. Optional.
-            If provided, an IndexSet will be constructed using provided object's data. 
-            See 'add' method for more details on acceptable objects.
-            If not provided, empty set is generated.
-        
-        """
         if not isinstance(size,int):
             raise ValueError("The 'size' parameter must be of type int.")
         if size <= 0:
@@ -100,7 +100,9 @@ class IndexSet(object):
             and non-negative. An iterable object may also be provided, with numpy arrays
             and IndexSets being significantly more efficient.
             
-            
+        
+        Example
+        -------
         Create an empty set and add items as necessary:
         >>> someSet = uw.container.IndexSet( 15 )
         >>> someSet.add(3)
@@ -130,7 +132,9 @@ class IndexSet(object):
             and non-negative. An iterable object may also be provided, with numpy arrays
             being significantly more efficient. Note that the 'remove' method can not 
             be provided with an IndexSet object, as the 'add' object can.
-        
+
+        Example
+        -------
         >>> someSet = uw.container.IndexSet( 15, [3,9,10] )
         >>> someSet
         IndexSet([ 3,  9, 10])
@@ -187,6 +191,8 @@ class IndexSet(object):
         indices: IndexSet
             IndexSet for which AND operation is performed. Note that provided set must be of type IndexSet.
             
+        Example
+        -------
         >>> someSet1 = uw.container.IndexSet( 15, [3,9,10] )
         >>> someSet2 = uw.container.IndexSet( 15, [1,9,12] )
         >>> someSet1.AND(someSet2)
@@ -212,6 +218,8 @@ class IndexSet(object):
         inSet: bool
             True if item is in set, False otherwise.
 
+        Example
+        -------
         >>> someSet = uw.container.IndexSet( 15, [3,9,10] )
         >>> 3 in someSet
         True
@@ -269,6 +277,8 @@ class IndexSet(object):
         numpy.ndarray (uint32)
             Array containing IndexSet members.
             
+        Example
+        -------
         >>> someSet = uw.container.IndexSet( 15, [3,9,10] )
         >>> someSet.data
         array([ 3,  9, 10], dtype=uint32)
@@ -291,6 +301,8 @@ class IndexSet(object):
         int: member count
             Returns the total number of members this set contains.
         
+        Example
+        -------
         >>> someSet = uw.container.IndexSet( 15, [3,9,10] )
         >>> someSet.count
         3
@@ -303,6 +315,8 @@ class IndexSet(object):
         """
         Inverts the index set in place.
         
+        Example
+        -------
         >>> someSet = uw.container.IndexSet( 15, [1,3,5,7,9,11,13] )
         >>> someSet.invert()
         >>> someSet
@@ -315,6 +329,8 @@ class IndexSet(object):
         """
         Set all indices of set to added.
 
+        Example
+        -------
         >>> someSet = uw.container.IndexSet( 5 )
         >>> someSet
         IndexSet([])
@@ -328,6 +344,8 @@ class IndexSet(object):
         """
         Clear set.  ie, set all indices to not included.
 
+        Example
+        -------
         >>> someSet = uw.container.IndexSet( 5, [1,2,3] )
         >>> someSet
         IndexSet([1, 2, 3])
@@ -351,13 +369,14 @@ class IndexSet(object):
         C = A + B
         
         Creates a new set C, then adds indices from A and B.
-
         
         Returns
         -------
         indexSet: IndexSet
             The new set (C).
 
+        Example
+        -------
         >>> someSet1 = uw.container.IndexSet( 15, [3,9,10] )
         >>> someSet2 = uw.container.IndexSet( 15, [1,9,12] )
         >>> someSet1 + someSet2
@@ -380,6 +399,8 @@ class IndexSet(object):
         
         Adds indices from A and B.
 
+        Example
+        -------
         >>> someSet1 = uw.container.IndexSet( 15, [3,9,10] )
         >>> someSet2 = uw.container.IndexSet( 15, [1,9,12] )
         >>> someSet1 += someSet2
@@ -404,6 +425,8 @@ class IndexSet(object):
         indexSet: IndexSet
             The new set (C).
 
+        Example
+        -------
         >>> someSet1 = uw.container.IndexSet( 15, [3,9,10] )
         >>> someSet2 = uw.container.IndexSet( 15, [1,9,12] )
         >>> someSet1 - someSet2
@@ -425,6 +448,8 @@ class IndexSet(object):
         
         Removes from A indices in B.
         
+        Example
+        -------
         >>> someSet1 = uw.container.IndexSet( 15, [3,9,10] )
         >>> someSet2 = uw.container.IndexSet( 15, [1,9,12] )
         >>> someSet1 -= someSet2
@@ -450,6 +475,8 @@ class IndexSet(object):
         indexSet: IndexSet
             The new set (C).
 
+        Example
+        -------
         >>> someSet1 = uw.container.IndexSet( 15, [3,9,10] )
         >>> someSet2 = uw.container.IndexSet( 15, [1,9,12] )
         >>> someSet1 & someSet2
@@ -470,6 +497,8 @@ class IndexSet(object):
         
         Performs logical AND operation with A and B. Results are stored in A.
         
+        Example
+        -------
         >>> someSet1 = uw.container.IndexSet( 15, [3,9,10] )
         >>> someSet2 = uw.container.IndexSet( 15, [1,9,12] )
         >>> someSet1 &= someSet2
@@ -494,6 +523,8 @@ class IndexSet(object):
         indexSet: IndexSet
             The new set (C).
 
+        Example
+        -------
         >>> someSet1 = uw.container.IndexSet( 15, [3,9,10] )
         >>> someSet2 = uw.container.IndexSet( 15, [1,9,12] )
         >>> someSet1 | someSet2
@@ -514,6 +545,8 @@ class IndexSet(object):
         
         Performs logical OR operation with A and B. Results are stored in A.
         
+        Example
+        -------
         >>> someSet1 = uw.container.IndexSet( 15, [3,9,10] )
         >>> someSet2 = uw.container.IndexSet( 15, [1,9,12] )
         >>> someSet1 |= someSet2

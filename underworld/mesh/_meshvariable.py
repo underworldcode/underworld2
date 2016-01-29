@@ -19,20 +19,32 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
     """
     The MeshVariable class generates a variable supported by a finite element mesh.
 
-    For example, to create a scalar meshVariable:
+    To set / read nodal values, use the numpy interface via the 'data' property.
+
+    Parameters
+    ----------
+    mesh : uw.mesh.FeMesh
+        The supporting mesh for the variable.
+    dataType : string, default="double"
+        The data type for the variable.
+        Note that only 'double' type variables are currently
+        supported
+    nodeDofCount : int
+        Number of degrees of freedom per node the variable should have.
+
+    See property docstrings for further information.
+
 
     Example
     -------
-    
-    First create mesh
-    
+    For example, to create a scalar meshVariable:
+
     >>> linearMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
     >>> scalarFeVar = uw.mesh.MeshVariable( mesh=linearMesh, nodeDofCount=1, dataType="double" )
 
-    or a vector meshvariable can be created
+    or a vector meshvariable can be created:
+    
     >>> vectorFeVar = uw.mesh.MeshVariable( mesh=linearMesh, nodeDofCount=3, dataType="double" )
-
-    To set / read nodal values, use the numpy interface via the 'data' property.
 
     """
     _objectsDict = { "_meshvariable": "FeVariable",
@@ -43,17 +55,6 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
     _supportedDataTypes = ["char","short","int","float", "double"]
 
     def __init__(self, mesh, nodeDofCount, dataType="double", **kwargs):
-        """
-        Parameters:
-        -----------
-            mesh : FeMesh
-            dataType : string (only option - 'double')
-            nodeDofCount : int
-
-        See property docstrings for further information on each argument.
-
-        """
-
         if not isinstance(mesh, uw.mesh.FeMesh):
             raise TypeError("'mesh' object passed in must be of type 'FeMesh'")
         self._mesh = mesh
@@ -76,6 +77,9 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         # add this to keep second parent happy.. not ideal. actualy function setup
         # occurs in the _setup method below
         self._fncself=None
+
+        # also null this guy initially
+        self._fn_gradient = None
         # build parent
         super(MeshVariable,self).__init__(argument_fns=None, **kwargs)
 
@@ -113,6 +117,8 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         As these arrays are simply proxys to the underlying memory structures,
         no data copying is required.
 
+        Example
+        -------
         >>> linearMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
         >>> scalarFeVar = uw.mesh.MeshVariable( mesh=linearMesh, nodeDofCount=1, dataType="double" )
         >>> scalarFeVar.data.shape
@@ -158,28 +164,46 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
 
 
     @property
+    def fn_gradient(self):
+        """
+        fn_gradient (Function): Returns a Function for the gradient field
+        of this meshvariable.
+        
+        Note that for a scalar variable `T`, the gradient function returns
+        an array of the form:
+
+        .. math::
+             [ \frac{\partial T}{\partial x}, \frac{\partial T}{\partial y}, \frac{\partial T}{\partial z} ]
+             
+        and for a vector variable `v`:
+        .. math::
+            [ \frac{\partial v_x}{\partial x}, \frac{\partial v_x}{\partial y}, \frac{\partial v_x}{\partial z}, \cdots, \frac{\partial v_z}{\partial x}, \frac{\partial v_z}{\partial y}, \frac{\partial v_z}{\partial z} ]
+
+        """
+        
+        if not self._fn_gradient:
+            # lets define a wrapper class here
+            import underworld.function as function
+            class _gradient(function.Function):
+                def __init__(self, meshvariable, **kwargs):
+
+                    # create instance
+                    self._fncself = _cfn.GradFeVariableFn(meshvariable._cself)
+
+                    # build parent
+                    super(_gradient,self).__init__(argument_fns=None, **kwargs)
+
+                    self._underlyingDataItems.add(meshvariable)
+
+            self._fn_gradient = _gradient(self)
+        return self._fn_gradient
+
+    @property
     def gradientFn(self):
-        """
-        gradientFn (Function): Returns a Function for the gradient field of this meshvariable.
-        """
-        # lets define a wrapper class here
+        #DEPRECATE 1/16
+        raise RuntimeError("The 'gradientFn' property has been renamed to 'fn_gradient'.")
+    
 
-        import underworld.function as function
-
-
-        class _gradient(function.Function):
-            def __init__(self, meshvariable, **kwargs):
-
-                # create instance
-                self._fncself = _cfn.GradFeVariableFn(meshvariable._cself)
-
-                # build parent
-                super(_gradient,self).__init__(argument_fns=None, **kwargs)
-
-                self._underlyingDataItems.add(meshvariable)
-
-
-        return _gradient(self)
 
     def xdmf( self, filename, fieldSavedData, varname, meshSavedData, meshname, modeltime=0.  ):
         """
@@ -382,15 +406,15 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         
         Parameters
         ----------
-            filename: str
-                The filename for the saved file. Relative or absolute paths may be
-                used, but all directories must exist.
-            interpolate: bool (default False)
-                Set to True to interpolate a file containing different resolution data.
-                Note that a temporary MeshVariable with the file data will be build 
-                on **each** processor. Also note that the temporary MeshVariable 
-                can only be built if its corresponding mesh file is available.
-                Also note that the supporting mesh mush be regular.
+        filename: str
+            The filename for the saved file. Relative or absolute paths may be
+            used, but all directories must exist.
+        interpolate: bool (default False)
+            Set to True to interpolate a file containing different resolution data.
+            Note that a temporary MeshVariable with the file data will be build 
+            on **each** processor. Also note that the temporary MeshVariable 
+            can only be built if its corresponding mesh file is available.
+            Also note that the supporting mesh mush be regular.
         
         Notes
         -----
@@ -482,11 +506,30 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         """
         This method returns a copy of the meshvariable.
 
-        Parameters:
+        Parameters
         ----------
-
         deepcopy: bool (default False)
-            If True, the underlying object data is also copied.
+            If True, the variable's data is also copied into
+            new variable.
+            
+        Example
+        -------
+        >>> mesh = uw.mesh.FeMesh_Cartesian()
+        >>> var = uw.mesh.MeshVariable(mesh,2)
+        >>> import math
+        >>> var.data[:] = (math.pi,math.exp(1.))
+        >>> varCopy = var.copy()
+        >>> varCopy.mesh == var.mesh
+        True
+        >>> varCopy.nodeDofCount == var.nodeDofCount
+        True
+        >>> import numpy as np
+        >>> np.allclose(var.data,varCopy.data)
+        False
+        >>> varCopy2 = var.copy(deepcopy=True)
+        >>> np.allclose(var.data,varCopy2.data)
+        True
+        
         """
 
         if not isinstance(deepcopy, bool):

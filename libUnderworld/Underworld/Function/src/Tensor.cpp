@@ -100,7 +100,7 @@ Fn::TensorFunc::func Fn::TensorFunc::getFunction( IOsptr sample_input )
             };
     } else if (_partFunc == get_deviatoric) {
         if (iotype!=FunctionIO::SymmetricTensor)
-            throw std::invalid_argument("TensorFunc expects Tensor input for 'get_deviatoric' function.");
+            throw std::invalid_argument("TensorFunc expects SymmetricTensor input for 'get_deviatoric' function.");
         std::shared_ptr<IO_double> _output = std::make_shared<IO_double>(funcio->size(),FunctionIO::SymmetricTensor);
         return [_output,_func, dim](IOsptr input)->IOsptr {
             std::shared_ptr<const IO_double> iodouble = debug_dynamic_cast<const IO_double>(_func(input));

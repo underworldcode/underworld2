@@ -45,25 +45,25 @@ class Figure(_stgermain.StgCompoundComponent):
 
     Parameters
     ----------
-        figsize: tuple, default=(640,480)
-            Image resolution provided as a tuple.
-        boundingBox: tuple, default=None
-            Tuple of coordiante tuples defining figure bounding box.
-            For example ( (0.1,0.1), (0.9,0.9) )
-        facecolour: str, default="white"
-            Background colour for figure.
-        edgecolour: str, default="black"
-            Edge colour for figure.
-        title: str, default=None
-            Figure title.
-        axis: bool, default=False
-            Bool to determine if figure axis should be drawn.
-        antialias: unsigned, default=3
-            Antialiasing oversampling. For a value of 2, the image will be
-            rendered at twice the resolution, and then downsampled. Setting
-            this to 1 disables antialiasing.
-        properties: str, default=None
-            Further properties to set on the figure.
+    figsize: tuple, default=(640,480)
+        Image resolution provided as a tuple.
+    boundingBox: tuple, default=None
+        Tuple of coordiante tuples defining figure bounding box.
+        For example ( (0.1,0.1), (0.9,0.9) )
+    facecolour: str, default="white"
+        Background colour for figure.
+    edgecolour: str, default="black"
+        Edge colour for figure.
+    title: str, default=None
+        Figure title.
+    axis: bool, default=False
+        Bool to determine if figure axis should be drawn.
+    antialias: unsigned, default=1
+        Antialiasing oversampling. For a value of 2, the image will be
+        rendered at twice the resolution, and then downsampled. Setting
+        this to 1 disables antialiasing.
+    properties: str, default=None
+        Further properties to set on the figure.
             
     Example
     -------
@@ -104,7 +104,7 @@ class Figure(_stgermain.StgCompoundComponent):
     _viewerProc = None
 
     def __init__(self, figsize=(640,480), boundingBox=None, facecolour="white",
-                 edgecolour="black", title="", axis=False, antialias=3, properties=None, **kwargs):
+                 edgecolour="black", title="", axis=False, antialias=1, properties=None, **kwargs):
         if not isinstance(figsize,tuple):
             raise TypeError("'figsize' object passed in must be of python type 'tuple'")
         self._figsize = figsize
@@ -255,14 +255,14 @@ class Figure(_stgermain.StgCompoundComponent):
         
         Parameters
         ----------
-            type: str
-                Type of visualisation to display ('Image' or 'WebGL'). Default is 'Image'.
+        type: str
+            Type of visualisation to display ('Image' or 'WebGL'). Default is 'Image'.
         
         Returns
         -------
-            Ipython HTML object (for type 'Image')
-            Ipython IFrame object (for type 'Webgl')
-            Note that if IPython is not installed, this method will return nothing.
+        Ipython HTML object (for type 'Image')
+        Ipython IFrame object (for type 'Webgl')
+        Note that if IPython is not installed, this method will return nothing.
 
         """
 
@@ -312,8 +312,8 @@ class Figure(_stgermain.StgCompoundComponent):
         
         Parameters
         ----------
-            filename :str
-                Filename to save file to.  May include an absolute or relative path.
+        filename :str
+            Filename to save file to.  May include an absolute or relative path.
         """
         if not isinstance(filename, str):
             raise TypeError("Provided parameter 'filename' must be of type 'str'. ")
@@ -341,10 +341,10 @@ class Figure(_stgermain.StgCompoundComponent):
             
         Parameters
         ----------
-            filename :str
-                Filename to save file to.  May include an absolute or relative path.
-            regen :bool, default=True
-                Regenerate the database, only required if show() has not been called previously.
+        filename :str
+            Filename to save file to.  May include an absolute or relative path.
+        regen :bool, default=True
+            Regenerate the database, only required if show() has not been called previously.
         """
         if regen:
             self._generate_DB()
@@ -469,8 +469,8 @@ class Figure(_stgermain.StgCompoundComponent):
         
         Parameters
         ----------
-            cmd: str
-                Command to add to script.
+        cmd: str
+            Command to add to script.
         """
         if cmd:
             if isinstance(cmd, list):
@@ -502,7 +502,7 @@ class Figure(_stgermain.StgCompoundComponent):
             if self._viewerProc and self._viewerProc.poll() == None:
                 return
             #Open viewer with local web server for interactive/iterative use
-            args = [self._lvbin, "-" + str(self._db.timeStep), "-L", "-p8080", "-q90", "-Q", fname] + args 
+            args = [self._lvbin, "-" + str(self._db.timeStep), "-L", "-p8080", "-q90", "-Q", fname] + args
             self._viewerProc = subprocess.Popen(args, stdout=PIPE, stdin=PIPE, stderr=STDOUT)
 
             from IPython.display import HTML
@@ -531,8 +531,8 @@ class Figure(_stgermain.StgCompoundComponent):
         
         Parameters
         ----------
-            cmd: str
-                Command to send to open viewer.
+        cmd: str
+            Command to send to open viewer.
         """
         self.open_viewer()
         url = "http://localhost:8080/command=" + urllib2.quote(cmd)
@@ -562,8 +562,8 @@ class Figure(_stgermain.StgCompoundComponent):
         
         Parameters
         ----------
-            drawingObject: objects.Drawing
-                The drawing object to add to the figure
+        drawingObject: objects.Drawing
+            The drawing object to add to the figure
                 
         
         """

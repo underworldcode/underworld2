@@ -16,8 +16,6 @@ import _bsscr
 import _energy_solver
 
 class Solver(_stgermain.StgCompoundComponent):
-    """
-    """
     _objectsDict = {  "_solver" : None  }
     _selfObjectName = "_solver"    
 
@@ -26,6 +24,12 @@ class Solver(_stgermain.StgCompoundComponent):
 
     @staticmethod
     def factory(eqs,type="BSSCR"):
+        """
+        This method simply returns a necessary solver for the provided system. 
+        For information on the specific solvers:
+            Stokes: See within the _bsscr module.
+            Thermal: See within the _energy_solver module.
+        """
         if isinstance(eqs, uw.systems.Stokes):
             return _bsscr.StokesSolver(eqs)
         elif isinstance(eqs, uw.systems.SteadyStateHeat):

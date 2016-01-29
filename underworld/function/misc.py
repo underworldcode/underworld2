@@ -13,7 +13,41 @@ import libUnderworld.libUnderworldPy.Function as _cfn
 from _function import Function as _Function
 
 class constant(_Function):
-    """  This function returns a constant value.
+    """  
+    This function returns a constant value.
+    
+    Parameters
+    ----------
+    value: int,float,bool. scalar or vector.
+        The value the function should return.
+        
+    >>> import underworld as uw
+    >>> import underworld.function as fn
+    
+    >>> fn_const = fn.misc.constant( 3 )
+    >>> fn_const.evaluate(0.) # eval anywhere for constant
+    array([[3]], dtype=int32)
+
+    >>> fn_const = fn.misc.constant( (3,2,1) )
+    >>> fn_const.evaluate(0.) # eval anywhere for constant
+    array([[3, 2, 1]], dtype=int32)
+
+    >>> fn_const = fn.misc.constant( 3. )
+    >>> fn_const.evaluate(0.) # eval anywhere for constant
+    array([[ 3.]])
+
+    >>> fn_const = fn.misc.constant( (3.,2.,1.) )
+    >>> fn_const.evaluate(0.) # eval anywhere for constant
+    array([[ 3.,  2.,  1.]])
+    
+    >>> fn_const = fn.misc.constant( True )
+    >>> fn_const.evaluate(0.) # eval anywhere for constant
+    array([[ True]], dtype=bool)
+
+    >>> fn_const = fn.misc.constant( (True,False,True) )
+    >>> fn_const.evaluate(0.) # eval anywhere for constant
+    array([[ True, False,  True]], dtype=bool)
+    
     """
     def __init__(self, value, *args, **kwargs):
         
@@ -61,12 +95,12 @@ class constant(_Function):
                 tupleGuy = tuple(iterator)
                 lenTupleGuy = len(tupleGuy)
                 firstFella = tupleGuy[0]
-                if isinstance(firstFella, int):
+                if isinstance(firstFella,bool):
+                    ioguy = _cfn.IO_bool(lenTupleGuy,3)
+                elif isinstance(firstFella, int):
                     ioguy = _cfn.IO_int(lenTupleGuy,3)
                 elif isinstance(firstFella,float):
                     ioguy = _cfn.IO_double(lenTupleGuy,3)
-                elif isinstance(firstFella,bool):
-                    ioguy = _cfn.IO_bool(lenTupleGuy,3)
                 else:
                     raise ValueError("'value' object provided to Constant Function constructor does not appear to be valid.")
                 # right, now load in ze data
@@ -80,7 +114,41 @@ class constant(_Function):
 
 class max(_Function):
     """ 
-    max function.  Returns the maximum of its two arguments.
+    max function.  Returns the maximum of the results returned from 
+    its two argument function.
+    
+    Parameters
+    ----------
+    fn1: underworld.function.Function
+        First argument function. Function must return a float type.
+    fn1: underworld.function.Function
+        Second argument function. Function must return a float type.
+        
+    Example
+    -------
+    >>> import underworld as uw
+    >>> import underworld.function as fn
+    >>> import numpy as np
+    >>> testpoints = np.array(([[ 0.0], [0.2], [0.4], [0.6], [0.8], [1.01], [1.2], [1.4], [1.6], [1.8], [2.0],]))
+    
+    Create which return identical results via different paths:
+    >>> fn_x = fn.input()[0]
+    >>> fn_x_minus_one = fn_x - 1.
+    >>> fn_one_minus_x = 1. - fn_x
+    
+    Here we use 'max' and 'min' functions:
+    >>> fn_max = fn.misc.max(fn_one_minus_x,fn_x_minus_one)
+    >>> fn_min = fn.misc.min(fn_one_minus_x,fn_x_minus_one)
+    
+    Here we use the conditional functions:
+    >>> fn_conditional_max = fn.branching.conditional( ( ( fn_x <= 1., fn_one_minus_x ), ( fn_x > 1., fn_x_minus_one ) ))
+    >>> fn_conditional_min = fn.branching.conditional( ( ( fn_x >= 1., fn_one_minus_x ), ( fn_x < 1., fn_x_minus_one ) ))
+    
+    They should return identical results.
+    >>> np.allclose(fn_max.evaluate(testpoints),fn_conditional_max.evaluate(testpoints))
+    True
+    >>> np.allclose(fn_min.evaluate(testpoints),fn_conditional_min.evaluate(testpoints))
+    True
     """
     def __init__(self, fn1, fn2, **kwargs):
         fn1fn = _Function._CheckIsFnOrConvertOrThrow( fn1 )
@@ -99,7 +167,20 @@ class max(_Function):
 
 class min(_Function):
     """ 
-    min function.  Returns the minimum of its two arguments.
+    min function.  Returns the minimum of the results returned from
+    its two argument function.
+    
+    Parameters
+    ----------
+    fn1: underworld.function.Function
+        First argument function. Function must return a float type.
+    fn1: underworld.function.Function
+        Second argument function. Function must return a float type.
+        
+    Example
+    -------
+    See the example provided for 'max' function.
+    
     """
     def __init__(self, fn1, fn2, **kwargs):
         fn1fn = _Function._CheckIsFnOrConvertOrThrow( fn1 )

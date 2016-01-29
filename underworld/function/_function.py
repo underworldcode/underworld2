@@ -24,7 +24,7 @@ SymmetricTensorType = _cfn.FunctionIO.SymmetricTensor
 TensorType = _cfn.FunctionIO.Tensor
 ArrayType  = _cfn.FunctionIO.Array
 
-class FunctionInput(object):
+class FunctionInput(underworld._stgermain.LeftOverParamsChecker):
     """
     Objects that inherit from this class are able to act as inputs
     to function evaluation from python.
@@ -36,7 +36,7 @@ class FunctionInput(object):
         c iterator object """
         pass
 
-class Function(object):
+class Function(underworld._stgermain.LeftOverParamsChecker):
     """
     Objects which inherit from this class provide user definable functions
     within Underworld.
@@ -790,7 +790,6 @@ class input(Function):
 
     Examples
     --------
-
     Here we see the input function simply passing through its input.
     >>> infunc = input()
     >>> np.isclose( infunc.evaluate( (1.,2.,3.) ), [ 1., 2., 3.] )

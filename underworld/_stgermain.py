@@ -14,7 +14,19 @@ import weakref
 import abc
 from collections import defaultdict
 
-class Save(object):
+class LeftOverParamsChecker(object):
+    # This class simply checks for any left over args or parameters.
+    # All objects need to inherit from it (usually indirectly) for the
+    # testing to occur. 
+    def __init__(self, *args, **kwargs):
+        if len(args)>0:
+            raise RuntimeError("There were left over arguments. args = [{}]\n".format(args)+\
+                               "Please check the function/method required arguments.")
+        if len(kwargs)>0:
+            raise RuntimeError("There were left over keyword arguments. kwargs = [{}]\n".format(kwargs)+\
+                               "Please check the function/method parameter names.")
+
+class Save(LeftOverParamsChecker):
     """
     Objects that inherit from this class are able to save their
     data to disk at the provided filename.
@@ -26,7 +38,7 @@ class Save(object):
         c iterator object """
         pass
 
-class Load(object):
+class Load(LeftOverParamsChecker):
     """
     Objects that inherit from this class are able to load their
     data from disk at the provided filename.
@@ -38,7 +50,7 @@ class Load(object):
         c iterator object """
         pass
 
-class StgClass(object):
+class StgClass(LeftOverParamsChecker):
     """ 
     This class is useful for instances where a python initialiser generates StGermain
     class objects using public construcors. It serves these main purposes:
@@ -74,10 +86,6 @@ class StgClass(object):
             #print(" deleting: "+self._cself.name+","+self._cself.type)
             libUnderworld.StGermain.Stg_Class_Unlock(self._cself)
             libUnderworld.StGermain.Stg_Class_Delete(self._cself)
-
-class StgStaleClass(object):
-    def __getattr__(self, name):
-        raise AttributeError("""Error. This object is now stale and cannot be used. All existing objects of (sub)type 'StgCompoundComponent' become stale when Finalise() or Init() are called.""")
 
 class _SetupClass(abc.ABCMeta):
     '''

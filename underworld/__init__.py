@@ -164,8 +164,7 @@ if (rank() == 0) and not _in_doctest():
         if "UW_NO_USAGE_METRICS" not in os.environ:
             # get platform info
             import platform
-            label  =        'n'+str(nProcs())
-            label += "__" + platform.system()
+            label  =        platform.system()
             label += "__" + platform.release()
             # check if docker
             import os.path

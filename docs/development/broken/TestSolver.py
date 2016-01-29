@@ -20,7 +20,7 @@ freeslip = uw.conditions.DirichletCondition(velocityField, (IWalls, JWalls))
 
 solA = fn.analytic.SolCx()
 
-stokesSystem = uw.systems.Stokes(velocityField,pressureField,solA.viscosityFn,solA.bodyForceFn,conditions=[freeslip,], rtolerance=1.e-5)
+stokesSystem = uw.systems.Stokes(velocityField,pressureField,solA.fn_viscosity,solA.fn_bodyforce,conditions=[freeslip,], rtolerance=1.e-5)
 
 # To set up Uzawa solver with mumps
 #from libUnderworld import petsc

@@ -32,7 +32,7 @@ class IArrayClass
 
 Fn::GradFeVariableFn::GradFeVariableFn( void* fevariable ):Function(), _fevariable(fevariable){
     if(!Stg_Class_IsInstance( _fevariable, FeVariable_Type ))
-        throw std::invalid_argument("Provided 'fevariable' does not appear to be of 'FeVariable' type.");
+        throw std::invalid_argument("Provided variable does not appear to be of 'MeshVariable' type.");
 
 
 }
@@ -44,8 +44,15 @@ Fn::GradFeVariableFn::func Fn::GradFeVariableFn::getFunction( IOsptr sample_inpu
     FeVariable* fevar = (FeVariable*)_fevariable;
     int numComponents = fevar->fieldComponentCount;
 
-    std::shared_ptr<IO_double> _output = std::make_shared<IO_double>(numComponents*fevar->dim, FunctionIO::Tensor);
+    FunctionIO::IOType iotype;
+    std::shared_ptr<IO_double> _output;
+    if (fevar->dim == 1) {
+        iotype = FunctionIO::Vector;
+    } else
+        iotype = FunctionIO::Tensor;
     
+    _output = std::make_shared<IO_double>(numComponents*fevar->dim, iotype);
+
     // if input is FEMCoordinate, eject appropriate lambda
     std::shared_ptr<const FEMCoordinate> femCoord = std::dynamic_pointer_cast<const FEMCoordinate>(sample_input);
     if ( femCoord ){

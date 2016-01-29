@@ -51,7 +51,7 @@ namespace Fn {
     class MinMax: public Function
     {
         public:
-            MinMax( Function *fn ): _fn(fn) {};
+            MinMax( Function *fn ): _fn(fn) {reset();};
             virtual ~MinMax(){};
             virtual func getFunction( IOsptr sample_input );
             double getMin();
@@ -63,7 +63,7 @@ namespace Fn {
             Function* _fn;
             double _minVal;
             double _maxVal;
-            unsigned _size;
+            int _size=-1;
     };
     
 }

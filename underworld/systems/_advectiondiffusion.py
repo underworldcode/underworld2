@@ -13,56 +13,57 @@ import libUnderworld
 
 class AdvectionDiffusion(_stgermain.StgCompoundComponent):
     """
-    The system class that manages the Advection Diffusion Equation.
-    This class holds the numerical objects that define the equation and the solver to be used to solve the equation.
+    This class provides functionality for a discrete representation
+    of an advection-diffusion equation.
+    
+    The class uses the Streamline Upwind Petrov Galerkin SUPG method
+    to integrate through time.
+
+    .. math::
+        \frac{\partial\phi}{\partial t}  + {\bf u } \cdot \nabla \phi= \nabla { ( k  \nabla \phi } )
+
+
+    Parameters
+    ----------
+    phiField : underworld.mesh.MeshVariable
+        The concentration field, typically the temperature field
+    phiDotField : underworld.mesh.MeshVariable
+        A MeshVariable that defines the initial time derivative of the phiField.
+        Typically 0 at the beginning of a model, e.g. phiDotField.data[:]=0
+        When using a phiField loaded from disk one should also load the phiDotField to ensure 
+        the solving method has the time derivative information for a smooth restart. 
+        No dirichlet conditions are required for this field as the phiField degrees of freedom
+        map exactly to this field's dirichlet conditions, the value of which ought to be 0 
+        for constant values of phi.
+    velocityField : underworld.mesh.MeshVariable
+        The velocity field.
+    fn_diffusivity : uw.function.Function
+        Function that defines diffusivity
+    conditions : list of uw.conditions.DirichletCondition objects, default=None
+        Conditions to be placed on the system. Currently only 
+        Dirichlet conditions are supported.            
 
     Notes
     -----
-    .. math::
-        \frac{DT}{Dt} = \kappa \nabla^{2} \phi + f
+    Constructor must be called by collectively all processes.
 
-        where \phi is the Concentration (e.g. temperature), t is time, \kappa is the diffusivity and f is a general source term 
     """
     _objectsDict = {  "_system" : "AdvectionDiffusionSLE",
                       "_solver" : "AdvDiffMulticorrector" }
     _selfObjectName = "_system"
 
-    def __init__(self, phiField, phiDotField, velocityField, diffusivity, courantFactor=.25, conditions=[], **kwargs):
-        """
-        Constructor for the Advection Diffusion Equation system
+    def __init__(self, phiField, phiDotField, velocityField, fn_diffusivity, courantFactor=None, diffusivity=None, conditions=[], **kwargs):
+        if courantFactor:
+            raise RuntimeError("Note that the 'courantFactor' parameter has been deprecated.\n"\
+                               "If you wish to modify your timestep, do so manually with the value\n"\
+                               "returned from the get_max_dt() method.")
+        if diffusivity:
+            raise RuntimeError("Note that the 'diffusivity' parameter has been deprecated.\n"\
+                               "Use the parameter 'fn_diffusivity' instead.")
 
-        Parameters
-        ----------
-        phiField : MeshVariable
-            The concentration field, typically the temperature field
+        self._diffusivity   = fn_diffusivity
 
-        phiDotField : MeshVariable
-            A MeshVariable that defines the initial time derivative of the phiField.
-            Typically 0 at the beginning of a model, e.g. phiDotField.data[:]=0
-            When using a phiField loaded from disk one should also load the phiDotField to ensure 
-            the solving method has the time derivative information for a smooth restart. 
-            No dirichlet conditions are required for this field as the phiField degrees of freedom
-            map exactly to this field's dirichlet conditions, the value of which ought to be 0 
-            for constant values of phi.
-
-        velocityField : MeshVariable
-            The velocity field
-
-        diffusivity : uw.function.Function
-            Function that defines diffusivity
-
-        courantFactor : float (default 0.25)
-
-        conditions[] : SystemCondition, list, tuple
-            Dirichlet boundary conditions to use for solving the advection diffusion system
-
-        Returns
-        -------
-        AdvectionDiffusion :
-            Constructed system for managing the Advection Diffusion Equation
-            
-        """
-        self._diffusivity   = diffusivity # is error checked in the uw.sle.AdvDiffResidualVectorTerm()
+        self._diffusivity   = fn_diffusivity
         self._courantFactor = courantFactor
         
         if not isinstance( phiField, uw.mesh.MeshVariable):
@@ -119,7 +120,7 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
         componentDictionary[ self._cself.name ][   "MassMatrix"] = self._massVector._cself.name
         componentDictionary[ self._cself.name ][  "PhiDotField"] = self._phiDotField._cself.name
         componentDictionary[ self._cself.name ][          "dim"] = self._phiField.mesh.dim
-        componentDictionary[ self._cself.name ]["courantFactor"] = self._courantFactor
+        componentDictionary[ self._cself.name ]["courantFactor"] = 0.25
 
     def _setup(self):
         # create assembly terms here.
@@ -150,12 +151,13 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
 
     def get_max_dt(self):
         """
-        Runs all methods to calculate numerically stable timestep which are associated with this advection diffusion system. 
-        The minimum timestep calculated is returned. (Minimum guarantees all time varying phenomena is appropriately captured.
+        Returns a numerically stable timestep size for the current system.
+        Note that as a default, this method returns a value one quarter the
+        size of the Courant timestep.
 
         Returns
         -------
         float
-            The maximum time interval appropriate to integrate the system in time
+            The timestep size.
         """
         return libUnderworld.Underworld.AdvectionDiffusionSLE_CalculateDt( self._cself, None )

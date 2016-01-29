@@ -49,7 +49,7 @@ class HeatSolver(_stgermain.StgCompoundComponent):
 
 
     def solve(self, nonLinearIterate=None, **kwargs):
-        """ solve the sle using provided solver
+        """ Solve the sle using provided solver.
         """
         # Set up options string from dictionaries.
         # We set up here so that we can set/change terms on the dictionaries before we run solve
@@ -62,10 +62,10 @@ class HeatSolver(_stgermain.StgCompoundComponent):
         # check for non-linearity
         nonLinear = False
         message = "Nonlinearity detected."
-        if self._temperatureField in self._heatSLE.conductivityFn._underlyingDataItems:
+        if self._temperatureField in self._heatSLE.fn_diffusivity._underlyingDataItems:
             nonLinear = True
-            message += "\nConductivity function depends on the temperature field provided to the system."
-        if self._temperatureField in self._heatSLE.heatingFn._underlyingDataItems:
+            message += "\nDiffusivity function depends on the temperature field provided to the system."
+        if self._temperatureField in self._heatSLE.fn_heating._underlyingDataItems:
             nonLinear = True
             message += "\nHeating function depends on the temperature field provided to the system."
 

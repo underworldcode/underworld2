@@ -315,7 +315,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         >>> import underworld as uw
         >>> someMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1', elementRes=(2,2), minCoord=(0.,0.), maxCoord=(1.,1.) )
         >>> someMesh.specialSets.keys()
-        ['MaxI_VertexSet', 'MinI_VertexSet', 'AllWalls', 'AllWalls_VertexSet', 'MinJ_VertexSet', 'MaxJ_VertexSet', 'Empty']
+        ['MaxI_VertexSet', 'MinI_VertexSet', 'AllWalls_VertexSet', 'MinJ_VertexSet', 'MaxJ_VertexSet', 'Empty']
         >>> someMesh.specialSets["MinJ_VertexSet"]
         FeMesh_IndexSet([0, 1, 2])
         
@@ -999,9 +999,6 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
             self.specialSets["MaxK_VertexSet"] = _specialSets_Cartesian.MaxK_VertexSet
             self.specialSets["MinK_VertexSet"] = _specialSets_Cartesian.MinK_VertexSet
         self.specialSets["AllWalls_VertexSet"] = _specialSets_Cartesian.AllWalls
-        def exceptionfunc(thing):
-            raise RuntimeError("This set has been renamed to AllWalls_VertexSet.")
-        self.specialSets["AllWalls"          ] = exceptionfunc
 
     def _setup(self):
         # build the sub-mesh now

@@ -208,8 +208,7 @@ class MGSolver(_stgermain.StgCompoundComponent):
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method
         super(MGSolver,self)._add_to_stg_dict(componentDictionary)
-        #import pdb;
-        #pdb.set_trace()
+
         componentDictionary[ self._cself.name ][     "levels"] = self._levels
         componentDictionary[ self._cself.name ]["opGenerator"] = self._mgGenerator.name
         componentDictionary[ self._mgGenerator.name ]["fineVariable"] = self._field._cself.name     
@@ -266,8 +265,6 @@ class StokesSolver(_stgermain.StgCompoundComponent):
     _optionsStr=''
 
     def __init__(self, stokesSLE, **kwargs):
-        #import pdb;
-        #pdb.set_trace()
         if not isinstance(stokesSLE, uw.systems.Stokes):
             raise TypeError("Provided system must be of 'Stokes' class")
 
@@ -350,9 +347,6 @@ class StokesSolver(_stgermain.StgCompoundComponent):
             libUnderworld.StgFEM.SystemLinearEquations_NonLinearExecute(self._stokesSLE._cself, None)
         else:
             libUnderworld.StgFEM.SystemLinearEquations_ExecuteSolver(self._stokesSLE._cself, None)
-
-        #import pdb;
-        #pdb.set_trace()
 
         libUnderworld.StgFEM.SystemLinearEquations_UpdateSolutionOntoNodes(self._stokesSLE._cself, None)
         
@@ -456,16 +450,16 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         nonLinear = False
 
         message = "Nonlinearity detected."
-        if self._velocityField in self._stokesSLE.viscosityFn._underlyingDataItems:
+        if self._velocityField in self._stokesSLE.fn_viscosity._underlyingDataItems:
             nonLinear = True
             message += "\nviscosity function depends on the velocity field provided to the Stokes system."
-        if self._pressureField in self._stokesSLE.viscosityFn._underlyingDataItems:
+        if self._pressureField in self._stokesSLE.fn_viscosity._underlyingDataItems:
             nonLinear = True
             message += "\nviscosity function depends on the pressure field provided to the Stokes system."
-        if self._velocityField in self._stokesSLE.bodyForceFn._underlyingDataItems:
+        if self._velocityField in self._stokesSLE.fn_bodyforce._underlyingDataItems:
             nonLinear = True
             message += "\nBody force function depends on the velocity field provided to the Stokes system."
-        if self._pressureField in self._stokesSLE.bodyForceFn._underlyingDataItems:
+        if self._pressureField in self._stokesSLE.fn_bodyforce._underlyingDataItems:
             nonLinear = True
             message += "\nBody force function depends on the pressure field provided to the Stokes system."
 
@@ -535,15 +529,15 @@ class StokesSolver(_stgermain.StgCompoundComponent):
 
     def print_stats(self):
         if 0==uw.rank():
-            print "Pressure iterations: %d" % (self._cself.stats.pressure_its)
-            print "Velocity iterations: %d (backsolve)" % (self._cself.stats.velocity_backsolve_its)
-            print " "
-            print "Pressure solve time: %.4e" %(self._cself.stats.pressure_time)
-            print "Velocity solve time: %.4e (backsolve)" %(self._cself.stats.velocity_backsolve_time)
-            print "Total solve time   : %.4e" %(self._cself.stats.total_time)
-            print " "
-            print "Velocity solution min/max: %.4e/%.4e" % (self._cself.stats.vmin,self._cself.stats.vmax)
-            print "Pressure solution min/max: %.4e/%.4e" % (self._cself.stats.pmin,self._cself.stats.pmax)
+            print( "Pressure iterations: %d" % (self._cself.stats.pressure_its) )
+            print( "Velocity iterations: %d (backsolve)" % (self._cself.stats.velocity_backsolve_its) )
+            print( " " )
+            print( "Pressure solve time: %.4e" %(self._cself.stats.pressure_time) )
+            print( "Velocity solve time: %.4e (backsolve)" %(self._cself.stats.velocity_backsolve_time) )
+            print( "Total solve time   : %.4e" %(self._cself.stats.total_time) )
+            print( " " )
+            print( "Velocity solution min/max: %.4e/%.4e" % (self._cself.stats.vmin,self._cself.stats.vmax) )
+            print( "Pressure solution min/max: %.4e/%.4e" % (self._cself.stats.pmin,self._cself.stats.pmax) )
 
     def set_penalty(self, penalty):
         """
@@ -557,5 +551,5 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         if isinstance(self.options.main.penalty, float) and self.options.main.penalty >= 0.0:
             self.options.main.penalty=penalty
         elif 0==uw.rank():
-            print "Invalid penalty number chosen. Penalty must be a positive float."
+            print( "Invalid penalty number chosen. Penalty must be a positive float." )
             

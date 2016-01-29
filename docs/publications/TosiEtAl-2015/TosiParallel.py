@@ -265,7 +265,7 @@ tempBC     = uw.conditions.DirichletCondition( variable      = temperatureField,
 
 # In[ ]:
 
-secinv = fn.tensor.second_invariant( fn.tensor.symmetric( velocityField.gradientFn ) )
+secinv = fn.tensor.second_invariant( fn.tensor.symmetric( velocityField.fn_gradient ) )
 coordinate = fn.coord()
 
 
@@ -282,13 +282,13 @@ viscosityl2 = fn.math.exp((math.log(ETA_T)*-1.*temperatureField) + (1.-coordinat
 viscosityp = ETA0 + YSTRESS/(secinv/math.sqrt(0.5)) #extra factor to account for underworld second invariant form
 
 if CASE == 1:
-    viscosityFn = viscosityl1
+    fn_viscosity = viscosityl1
 elif CASE == 2:
-    viscosityFn = 2./(1./viscosityl1 + 1./viscosityp)
+    fn_viscosity = 2./(1./viscosityl1 + 1./viscosityp)
 elif CASE == 3:
-    viscosityFn = viscosityl2
+    fn_viscosity = viscosityl2
 else:
-    viscosityFn = 2./(1./viscosityl2 + 1./viscosityp)
+    fn_viscosity = 2./(1./viscosityl2 + 1./viscosityp)
 
 
 # **Add functions for density and buoyancy**
@@ -314,8 +314,8 @@ buoyancyFn = densityFn * z_hat
 stokesPIC = uw.systems.Stokes( velocityField = velocityField, 
                                pressureField = pressureField,
                                conditions    = [freeslipBC,],
-                               viscosityFn   = fn.exception.SafeMaths( viscosityFn ), 
-                               bodyForceFn   = buoyancyFn )
+                               fn_viscosity   = fn.exception.SafeMaths( fn_viscosity ), 
+                               fn_bodyforce   = buoyancyFn )
 
 
 # Setup solver for the Stokes system of equations
@@ -340,7 +340,7 @@ solver.solve( nonLinearIterate=False )
 # In[ ]:
 
 advDiff = uw.systems.AdvectionDiffusion( temperatureField, temperatureDotField, velocityField,
-                                         diffusivity=1., conditions=[tempBC,] )
+                                         fn_diffusivity=1., conditions=[tempBC,] )
 
 
 # Metrics for benchmark
@@ -379,7 +379,7 @@ v2int   = uw.utils.Integral( fn.math.dot(velocityField,velocityField), mesh )
 dwint   = uw.utils.Integral( temperatureField*velocityField[1], mesh )
 
 sinner = fn.math.dot( secinv, secinv )
-vdint = uw.utils.Integral( (4.*viscosityFn*sinner), mesh )
+vdint = uw.utils.Integral( (4.*fn_viscosity*sinner), mesh )
 
 
 # **Setup surface integrals used in metric functions**
@@ -388,9 +388,9 @@ vdint = uw.utils.Integral( (4.*viscosityFn*sinner), mesh )
 
 rmsSurfInt = uw.utils.Integral( fn=velocityField[0]*velocityField[0], mesh=mesh, integrationType='Surface', 
                           surfaceIndexSet=mesh.specialSets["MaxJ_VertexSet"])
-nuTop      = uw.utils.Integral( fn=temperatureField.gradientFn[1],    mesh=mesh, integrationType='Surface', 
+nuTop      = uw.utils.Integral( fn=temperatureField.fn_gradient[1],    mesh=mesh, integrationType='Surface', 
                           surfaceIndexSet=mesh.specialSets["MaxJ_VertexSet"])
-nuBottom   = uw.utils.Integral( fn=temperatureField.gradientFn[1],    mesh=mesh, integrationType='Surface', 
+nuBottom   = uw.utils.Integral( fn=temperatureField.fn_gradient[1],    mesh=mesh, integrationType='Surface', 
                           surfaceIndexSet=mesh.specialSets["MinJ_VertexSet"])
 
 
@@ -478,7 +478,7 @@ while step < steps_end:
     Gravwork = gravwork(dwint)
     Viscdis = viscdis(vdint)
     nu1, nu0 = nusseltTB(temperatureField, mesh) # return top then bottom
-    etamax, etamin = visc_extr(viscosityFn)
+    etamax, etamin = visc_extr(fn_viscosity)
     # store results
     stepsVal.append(       step)
     timeVal.append(        realtime )
