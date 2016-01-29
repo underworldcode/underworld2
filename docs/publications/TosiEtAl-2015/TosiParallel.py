@@ -340,7 +340,7 @@ solver.solve( nonLinearIterate=False )
 # In[ ]:
 
 advDiff = uw.systems.AdvectionDiffusion( temperatureField, temperatureDotField, velocityField,
-                                         diffusivity=1., conditions=[tempBC,] )
+                                         fn_diffusivity=1., conditions=[tempBC,] )
 
 
 # Metrics for benchmark

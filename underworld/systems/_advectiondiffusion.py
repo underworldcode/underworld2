@@ -37,7 +37,7 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
         for constant values of phi.
     velocityField : underworld.mesh.MeshVariable
         The velocity field.
-    diffusivity : uw.function.Function
+    fn_diffusivity : uw.function.Function
         Function that defines diffusivity
     conditions : list of uw.conditions.DirichletCondition objects, default=None
         Conditions to be placed on the system. Currently only 
@@ -52,13 +52,18 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
                       "_solver" : "AdvDiffMulticorrector" }
     _selfObjectName = "_system"
 
-    def __init__(self, phiField, phiDotField, velocityField, diffusivity, courantFactor=None, conditions=[], **kwargs):
+    def __init__(self, phiField, phiDotField, velocityField, fn_diffusivity, courantFactor=None, diffusivity=None, conditions=[], **kwargs):
         if courantFactor:
             raise RuntimeError("Note that the 'courantFactor' parameter has been deprecated.\n"\
                                "If you wish to modify your timestep, do so manually with the value\n"\
                                "returned from the get_max_dt() method.")
+        if diffusivity:
+            raise RuntimeError("Note that the 'diffusivity' parameter has been deprecated.\n"\
+                               "Use the parameter 'fn_diffusivity' instead.")
 
-        self._diffusivity   = diffusivity
+        self._diffusivity   = fn_diffusivity
+
+        self._diffusivity   = fn_diffusivity
         self._courantFactor = courantFactor
         
         if not isinstance( phiField, uw.mesh.MeshVariable):
