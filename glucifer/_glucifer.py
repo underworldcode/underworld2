@@ -58,7 +58,7 @@ class Figure(_stgermain.StgCompoundComponent):
         Figure title.
     axis: bool, default=False
         Bool to determine if figure axis should be drawn.
-    antialias: unsigned, default=3
+    antialias: unsigned, default=1
         Antialiasing oversampling. For a value of 2, the image will be
         rendered at twice the resolution, and then downsampled. Setting
         this to 1 disables antialiasing.
@@ -104,7 +104,7 @@ class Figure(_stgermain.StgCompoundComponent):
     _viewerProc = None
 
     def __init__(self, figsize=(640,480), boundingBox=None, facecolour="white",
-                 edgecolour="black", title="", axis=False, antialias=3, properties=None, **kwargs):
+                 edgecolour="black", title="", axis=False, antialias=1, properties=None, **kwargs):
         if not isinstance(figsize,tuple):
             raise TypeError("'figsize' object passed in must be of python type 'tuple'")
         self._figsize = figsize
