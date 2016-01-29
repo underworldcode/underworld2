@@ -54,7 +54,7 @@ class Stokes(_stgermain.StgCompoundComponent):
     _objectsDict = {  "_system" : "Stokes_SLE" }
     _selfObjectName = "_system"
 
-    def __init__(self, velocityField, pressureField, fn_viscosity, fn_bodyforce=None, swarm=None, conditions=[], viscosityFn=None, bodyForceFn=None, rtolerance=None, **kwargs):
+    def __init__(self, velocityField, pressureField, fn_viscosity=None, fn_bodyforce=None, swarm=None, conditions=[], viscosityFn=None, bodyForceFn=None, rtolerance=None, **kwargs):
         # DEPRECATE 1/16
         if viscosityFn:
             raise RuntimeError("Note that the 'viscosityFn' parameter has been renamed to 'fn_viscosity'.")
@@ -77,6 +77,8 @@ class Stokes(_stgermain.StgCompoundComponent):
             raise ValueError( "Provided 'pressureField' must be a scalar field (ie pressureField.nodeDofCount==1)." )
         self._pressureField = pressureField
 
+        if not fn_viscosity:
+            raise ValueError("You must specify a viscosity function via the 'fn_viscosity' parameter.")
         _fn_viscosity = uw.function.Function._CheckIsFnOrConvertOrThrow(fn_viscosity)
         if not isinstance( _fn_viscosity, uw.function.Function):
             raise TypeError( "Provided 'fn_viscosity' must be of or convertible to 'Function' class." )
