@@ -86,7 +86,7 @@ class Stokes(_stgermain.StgCompoundComponent):
                 fn_bodyforce = (0.,0.)
             else:
                 fn_bodyforce = (0.,0.,0.)
-        self._fn_bodyforce = uw.function.Function._CheckIsFnOrConvertOrThrow(fn_bodyforce)
+        _fn_bodyforce = uw.function.Function._CheckIsFnOrConvertOrThrow(fn_bodyforce)
 
         if swarm and not isinstance(swarm, uw.swarm.Swarm):
             raise TypeError( "Provided 'swarm' must be of 'Swarm' class." )
@@ -142,10 +142,10 @@ class Stokes(_stgermain.StgCompoundComponent):
             swarmguy = self._gaussSwarm
         self._constitMatTerm = sle.ConstitutiveMatrixTerm(  integrationSwarm=swarmguy,
                                                             assembledObject=self._kmatrix,
-                                                            fn=fn_viscosity)
+                                                            fn=_fn_viscosity)
         self._forceVecTerm   = sle.VectorAssemblyTerm_NA__Fn(   integrationSwarm=swarmguy,
                                                                 assembledObject=self._fvector,
-                                                                fn=fn_bodyforce)
+                                                                fn=_fn_bodyforce)
         super(Stokes, self).__init__(**kwargs)
 
 
