@@ -30,7 +30,9 @@ RUN git clone https://github.com/underworldcode/underworld2 && \
 
 # copy underworld examples over
 RUN mkdir /workspace && \
-    rsync -av /root/underworld2/docs/examples /workspace
+    rsync -av /root/underworld2/docs/examples /workspace &&\
+    rsync -av /root/underworld2/docs/user_guide /workspace &&\
+    rsync -av /root/underworld2/docs/publications /workspace 
 
 # expose notebook port
 EXPOSE 8888
