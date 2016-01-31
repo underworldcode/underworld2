@@ -8,7 +8,7 @@ WORKDIR /root
 ENV PYTHONPATH $PYTHONPATH:/root/underworld2
 
 # get underworld, compile, delete some unnecessary files, trust notebooks, copy to workspace
-RUN git clone https://github.com/underworldcode/underworld2 && \
+RUN git clone --branch "development" --single-branch https://github.com/underworldcode/underworld2 && \
     cd underworld2/libUnderworld && \
     ./configure.py               && \
     ./scons.py                   && \
