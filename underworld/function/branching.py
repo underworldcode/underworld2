@@ -81,7 +81,7 @@ class map(_Function):
     """
     
 
-    def __init__(self, fn_key, mapping, fn_default=None, keyFunc=None, mappingDict=None, defaultFunc=None, *args, **kwargs):
+    def __init__(self, fn_key=None, mapping=None, fn_default=None, keyFunc=None, mappingDict=None, defaultFunc=None, *args, **kwargs):
         
         #DEPRECATE
         if keyFunc:
@@ -91,10 +91,13 @@ class map(_Function):
         if defaultFunc:
             raise RuntimeError("Note that the 'defaultFunc' parameter has been renamed to 'fn_default'.")
             
-        # error check mapping
+        if not mapping:
+            raise ValueError("You must specify a mapping via the 'mapping' parameter.")
         if not isinstance(mapping, dict):
             raise TypeError("'mapping' object passed in must be of python type 'dict'")
 
+        if not fn_key:
+            raise ValueError("You must specify a key function via the 'fn_key' parameter.")
         fn_key = _Function._CheckIsFnOrConvertOrThrow(fn_key)
 
         self.fn_default = _Function._CheckIsFnOrConvertOrThrow(fn_default)

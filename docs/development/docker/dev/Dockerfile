@@ -7,8 +7,8 @@ WORKDIR /root
 # setup environment
 ENV PYTHONPATH $PYTHONPATH:/root/underworld2
 
-# get underworld, compile, delete some unnecessary files, run tests.
-RUN git clone https://github.com/underworldcode/underworld2 && \
+# get underworld, compile, delete some unnecessary files, trust notebooks, copy to workspace
+RUN git clone --branch "master" --single-branch https://github.com/underworldcode/underworld2 && \
     cd underworld2/libUnderworld && \
     ./configure.py               && \
     ./scons.py                   && \
@@ -26,12 +26,11 @@ RUN git clone https://github.com/underworldcode/underworld2 && \
     rm -fr StgFEM                && \
     rm -fr StgDomain             && \
     rm -fr PICellerator          && \
-    rm -fr Solvers
-
-# copy underworld examples over
-RUN mkdir /workspace && \
-    rsync -av /root/underworld2/docs/examples /workspace &&\
-    rsync -av /root/underworld2/docs/user_guide /workspace &&\
+    rm -fr Solvers               && \
+    find /root/underworld2/docs -name \*.ipynb | xargs jupyter trust && \
+    mkdir /workspace                                                 && \
+    rsync -av /root/underworld2/docs/examples /workspace             && \
+    rsync -av /root/underworld2/docs/user_guide /workspace           && \
     rsync -av /root/underworld2/docs/publications /workspace 
 
 # expose notebook port

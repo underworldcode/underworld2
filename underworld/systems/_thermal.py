@@ -59,7 +59,7 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
     _objectsDict = {  "_system" : "Energy_SLE" }
     _selfObjectName = "_system"
 
-    def __init__(self, temperatureField, fn_diffusivity, fn_heating=0., swarm=None, conditions=[], conductivityFn=None, heatingFn=None, rtolerance=None, **kwargs):
+    def __init__(self, temperatureField, fn_diffusivity=None, fn_heating=0., swarm=None, conditions=[], conductivityFn=None, heatingFn=None, rtolerance=None, **kwargs):
         if conductivityFn:
             raise RuntimeError("Note that the 'conductivityFn' parameter has been renamed to 'fn_diffusivity'.")
         if heatingFn:
@@ -72,6 +72,8 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
             raise TypeError( "Provided 'temperatureField' must be of 'MeshVariable' class." )
         self._temperatureField = temperatureField
 
+        if not fn_diffusivity:
+            raise ValueError("You must specify a diffusivity function via the 'fn_diffusivity' parameter.")
         try:
             _fn_diffusivity = uw.function.Function._CheckIsFnOrConvertOrThrow(fn_diffusivity)
         except Exception as e:
