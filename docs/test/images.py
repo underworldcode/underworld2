@@ -28,12 +28,22 @@ You will need the Python Imaging Library (PIL) installed to use."""
 import sys
 from math import sqrt
 from math import fabs
-try:
-    import Image
-    import ImageChops
-except ImportError:
-    from PIL import Image
-    from PIL import ImageChops
+
+def importPIL():
+    #Check for PIL
+    #(requires pip install pillow)
+    global Image
+    global ImageChops
+    try:
+        import Image
+        import ImageChops
+    except ImportError:
+        try:
+            from PIL import Image
+            from PIL import ImageChops
+        except ImportError:
+            print "Unable to import PIL, Image testing disabled"
+            exit(0)
 
 def normalise(array, maxval):
    norm = [float(x) / maxval for x in array]
@@ -157,7 +167,7 @@ def compare(imgFilename1, imgFilename2, verbose=False):
     img2 = Image.open(imgFilename2)
     #Check size and components match
     if img1.size != img2.size or img1.getbands() != img2.getbands():
-        return False
+        return [1.0, 1.0]
     #Colour comparison
     dist1 = colourDiff(img1, img2)
     if verbose: print "Colour space difference: %f" % dist1
@@ -171,6 +181,8 @@ def compare(imgFilename1, imgFilename2, verbose=False):
 
 if __name__ == "__main__":
     #Example usage, compare two images passed on command line
+    importPIL()
     if len(sys.argv)>2:
         diffs = compare(sys.argv[1], sys.argv[2])
         print diffs
+

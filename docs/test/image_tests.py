@@ -8,6 +8,10 @@ from underworld import function as fn
 import glucifer
 import images
 
+#Don't fail tests if no PIL
+#(requires pip install pillow)
+images.importPIL()
+
 #Test function
 imagelist = []
 def genImage(fname):
@@ -16,15 +20,45 @@ def genImage(fname):
     outfile = os.path.basename(outfile)
     imagelist.append(outfile)
 
+#Error tolerance before test fails
+tolerance = (0.1, 0.05)
+expectedPath = 'expected/image_tests/'
+
+def floatsToStr(floatList):
+    """Convert a list/tuple of tolerance to a nice string to print"""
+    return "(%s)" % ", ".join(["%g" % val for val in floatList])
+
 def testImages():
+    results = []
     for f in imagelist:
-        #Expected files are all jpg as smaller better when stored in repo
+        #Expected files are all png
         base = os.path.splitext(f)[0]
-        passed = images.compare(outputPath+f, expectedPath+base+".jpg", verbose=True)
-        if passed:
-            print "Passed!"
+        outfile = outputPath+f
+        expfile = expectedPath+base+".png"
+        if not os.path.exists(expfile):
+            print "Test skipped, Reference image '%s' not found!\n" % expfile
+            continue
+        if not os.path.exists(outfile):
+            raise RuntimeError("Generated image '%s' not found!\n" % outfile)
+
+        diffs = images.compare(outfile, expfile)
+        currentResult = []
+        for diff, tol in zip(diffs, tolerance):
+            results.append(diff <= tol)
+            currentResult.append(diff <= tol)
+        if not all(currentResult):
+            print "FAIL: Image comp errors %s not"\
+                  " within tol %s of reference image: %s\n"\
+                % (floatsToStr(diffs), floatsToStr(tolerance), outfile)
         else:
-            print "Failed!"
+            print "PASS: Image comp errors %s within tolerances %s"\
+                  " of ref image: %s.\n"\
+                % (floatsToStr(diffs), floatsToStr(tolerance), outfile)
+    #Combined result
+    overallResult = all(results)
+    if not overallResult:
+        raise RuntimeError("Image tests failed due to one or more image comparisons above tolerance level!")
+    print "Tests Passed!"
 
 # Setup parameters for Rayleigh Taylor Benchmark
 # -----
@@ -37,7 +71,6 @@ eta = 1.0
 
 inputPath  = 'RTInput/'
 outputPath = 'RTOutput/'
-expectedPath = 'expected/'
 # Make output directory if necessary
 import os
 if not os.path.exists(outputPath):
@@ -97,10 +130,8 @@ materialVariable.data[:] = fn.branching.conditional( conditions ).evaluate(swarm
 
 
 # **Plot the particles by material**
-fig1 = glucifer.Figure()
+fig1 = glucifer.Figure(figsize=(250,250), properties={"margin" : 0})
 fig1.append( glucifer.objects.Points(swarm, materialVariable, pointSize=2, colourBar=False) )
-#fig1.show()
-genImage("imageSwarm")
 
 # Here we set a density of '0.' for the lightMaterial, and '1.' for the heavymaterial.
 densityMap   = { lightIndex:0., denseIndex:1. }
@@ -160,44 +191,45 @@ volume_integral = uw.utils.Integral( mesh=mesh, fn=1. )
 # Stepping. Initialise time and timestep.
 time         = 0.
 steps        = 0
-stepEnd      = 10  
+stepEnd      = 10
 outputEvery  = 1
 timeVal     = []
 vrmsVal     = []
+vrms        = 0.
+
+def doOutput():
+    # Calculate the RMS velocity.
+    vrms = math.sqrt( v2sum_integral.evaluate()[0] / volume_integral.evaluate()[0] )
+    # Store values in variables.
+    vrmsVal.append(vrms)
+    timeVal.append(time)
+
+    # print output
+    if steps%outputEvery == 0:
+        print 'step = {0:6d}; time = {1:.3e}; v_rms = {2:.3e}'.format(steps,time,vrms)
+            
+        # output snapshot of particles to figure.
+        outputFilename = "image"+str(steps).zfill(4)
+        genImage(outputFilename)
 
 # Run time loop until $v_{rms}$ is expected to settle; t = 2000 taken from van Keken *et al.* 1997.
-
-# In[17]:
-
 while steps<stepEnd:
+    # print output
+    doOutput()
+
     # Get solution for initial configuration.
     solver.solve()
     # Retrieve the maximum possible timestep for the advection system.
     dt = advector.get_max_dt()
     # Advect using this timestep size.
     advector.integrate(dt)
-    # Calculate the RMS velocity.
-    vrms = math.sqrt( v2sum_integral.evaluate()[0] / volume_integral.evaluate()[0] )
-    # Store values in variables.
-    vrmsVal.append(vrms)
-    timeVal.append(time)
-    # print output
-    if steps%outputEvery == 0:
-        print 'step = {0:6d}; time = {1:.3e}; v_rms = {2:.3e}'.format(steps,time,vrms)
-                
-        # output snapshot of particles to figure.
-        outputFilename = "image"+str(steps).zfill(4)
-        genImage(outputFilename)
         
     time += dt
     steps += 1
-print 'step = {0:6d}; time = {1:.3e}; v_rms = {2:.3e}'.format(steps,time,vrms)
 
+#Output final step state
+doOutput()
 
-# Post simulation analysis
-# -----
-# Plot final swarm positions.
-#fig1.show()
-#fig1.open_viewer()
-
+#Check the image results
 testImages()
+
