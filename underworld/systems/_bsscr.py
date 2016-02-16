@@ -130,9 +130,9 @@ class OptionsMGA(Options):
         self.mg_accelerating_smoothing=False
         self.mg_smoothing_adjust_on_convergence_rate=False
         # self.mg_accelerating_smoothing_view=True
-        self.mg_smooths_min = 2 
-        self.mg_smooths_max= 200
-        self.mg_smooths_to_start= 3
+        self.mg_smooths_min = 1
+        self.mg_smooths_max= 20
+        self.mg_smooths_to_start= 1
         self.mg_smoothing_acceleration=1.1
         self.mg_smoothing_increment=1
         self.mg_target_cycles_10fold_reduction=5
@@ -528,9 +528,17 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         return self._cself.stats
 
     def print_stats(self):
+        purple = "\033[0;35m"
+        endcol = "\033[00m"
+        boldpurple = "\033[1;35m"
         if 0==uw.rank():
-            print( "Pressure iterations: %d" % (self._cself.stats.pressure_its) )
-            print( "Velocity iterations: %d (backsolve)" % (self._cself.stats.velocity_backsolve_its) )
+            print boldpurple
+            print( " " )
+            print( "Pressure iterations: %3d" % (self._cself.stats.pressure_its) )
+            print( "Velocity iterations: %3d (presolve)      " % (self._cself.stats.velocity_presolve_its) )
+            print( "Velocity iterations: %3d (pressure solve)" % (self._cself.stats.velocity_pressuresolve_its) )
+            print( "Velocity iterations: %3d (backsolve)     " % (self._cself.stats.velocity_backsolve_its) )
+            print( "Velocity iterations: %3d (total solve)   " % (self._cself.stats.velocity_total_its) )
             print( " " )
             print( "Pressure solve time: %.4e" %(self._cself.stats.pressure_time) )
             print( "Velocity solve time: %.4e (backsolve)" %(self._cself.stats.velocity_backsolve_time) )
@@ -538,6 +546,8 @@ class StokesSolver(_stgermain.StgCompoundComponent):
             print( " " )
             print( "Velocity solution min/max: %.4e/%.4e" % (self._cself.stats.vmin,self._cself.stats.vmax) )
             print( "Pressure solution min/max: %.4e/%.4e" % (self._cself.stats.pmin,self._cself.stats.pmax) )
+            print( " " )
+            print endcol
 
     def set_penalty(self, penalty):
         """

@@ -18,7 +18,7 @@ PetscErrorCode MG_inner_solver_mgContext_initialise(MGContext *mgCtx) {
     mgCtx->useAcceleratingSmoothingMG   = PETSC_FALSE;
     mgCtx->acceleratingSmoothingMGView  = PETSC_FALSE;
 
-    mgCtx->smoothsToStartWith = 5;
+    mgCtx->smoothsToStartWith = 1;
     mgCtx->smoothsMax = 250;
     mgCtx->smoothingIncrement = 2;
     mgCtx->targetCyclesForTenfoldReduction = 3;
@@ -51,7 +51,8 @@ PetscErrorCode MG_inner_solver_pcmg_setup( KSP_BSSCR * bsscrp_self, MGContext *m
 
     PCSetType(pc_MG, PCMG);
     PCMGSetLevels(pc_MG, bsscrp_self->mg->nLevels, PETSC_NULL);
-    PCMGSetType(pc_MG, PC_MG_MULTIPLICATIVE);
+    //PCMGSetType(pc_MG, PC_MG_MULTIPLICATIVE);
+    PCMGSetType(pc_MG, PC_MG_KASKADE);
     #if ((PETSC_VERSION_MAJOR==3) && (PETSC_VERSION_MINOR>=2) )
     PCMGSetGalerkin( pc_MG, PETSC_TRUE );
     #else
