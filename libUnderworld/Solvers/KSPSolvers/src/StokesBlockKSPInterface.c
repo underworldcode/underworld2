@@ -281,12 +281,19 @@ void SBKSP_GetStokesOperators(
 void _StokesBlockKSPInterface_Solve( void* solver, void* _stokesSLE ) {
   StokesBlockKSPInterface* self    = (StokesBlockKSPInterface*)solver;
   PetscLogDouble flopsA,flopsB;
+  PetscTruth found, get_flops;
 
-  PetscGetFlops(&flopsA);
+  found = PETSC_FALSE;
+  get_flops = PETSC_FALSE;
+  PetscOptionsGetTruth( PETSC_NULL, "-get_flops", &get_flops, &found);
+  if(get_flops){
+    PetscGetFlops(&flopsA); }
+
   _BlockSolve(solver, _stokesSLE);
-  PetscGetFlops(&flopsB);
-  self->stats.total_flops=(double)(flopsB-flopsA);
-  
+
+  if(get_flops){
+    PetscGetFlops(&flopsB);
+    self->stats.total_flops=(double)(flopsB-flopsA); }
 }
 PetscErrorCode _BlockSolve( void* solver, void* _stokesSLE ) {
   Stokes_SLE*  stokesSLE  = (Stokes_SLE*)_stokesSLE;
