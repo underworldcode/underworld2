@@ -146,7 +146,6 @@ PetscErrorCode BSSCR_KSPConverged_Destroy(void *cctx)
   PetscFunctionReturn(0);
 }
 
-
 #undef __FUNCT__  
 #define __FUNCT__ "KSPRegisterBSSCR"
 PetscErrorCode PETSCKSP_DLLEXPORT KSPRegisterBSSCR(const char path[])
