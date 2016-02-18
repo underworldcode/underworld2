@@ -12,6 +12,8 @@ import libUnderworld
 import _swarmabstract
 import _swarmvariable as svar
 from abc import ABCMeta
+import underworld.function as function
+
 
 class IntegrationSwarm(_swarmabstract.SwarmAbstract):
     """
@@ -31,7 +33,7 @@ class IntegrationSwarm(_swarmabstract.SwarmAbstract):
 
     def _setup(self):
         if self._cself.localCoordVariable:
-            self._particleCoordinates = svar.SwarmVariable(self, "double", self.mesh.dim, _cself=self._cself.localCoordVariable)
+            self._particleCoordinates = svar.SwarmVariable(self, "double", self.mesh.generator.dim, _cself=self._cself.localCoordVariable)
         if self._cself.weightVariable:
             self._weightsVariable = svar.SwarmVariable(self, "double", 1, _cself=self._cself.weightVariable)
 
@@ -45,14 +47,39 @@ class IntegrationSwarm(_swarmabstract.SwarmAbstract):
 
 
 
-class PICIntegrationSwarm(IntegrationSwarm):
+class PICIntegrationSwarm(IntegrationSwarm,function.FunctionInput):
     """
     Class for an IntegrationSwarm that maps to another Swarm
+    
+    Note that this swarm can act as a function input. In this capacity,
+    the fundamental function input type is the FEMCoordinate (ie, the particle
+    local coordinate, the owning mesh, and the owning element). This input 
+    can be reduced to the global coordinate when returned within python. The
+    FEMCoordinate particle representation is useful when deforming a mesh, as 
+    it is possible to deform the mesh, and then use the FEMCoordinate to reset 
+    the particles within the moved mesh.
 
     Parameters
     ----------
     swarm : uw.swarm.Swarm
         The PIC integration swarm maps to this user provided swarm.
+        
+    Example
+    -------
+    This simple example checks that the true global coordiante, and that
+    derived from the local coordinate, are close to equal. Note that the 
+    PICIntegrationSwarm uses a voronoi centroid algorithm so we do not 
+    expect particle to exactly coincide.
+    
+    >>> import underworld as uw
+    >>> import numpy as np
+    >>> mesh = uw.mesh.FeMesh_Cartesian()
+    >>> swarm = uw.swarm.Swarm(mesh)
+    >>> swarm.populate_using_layout(uw.swarm.layouts.PerCellGaussLayout(swarm,4))
+    >>> picswarm = uw.swarm.PICIntegrationSwarm(swarm)
+    >>> picswarm.repopulate()
+    >>> np.allclose(swarm.particleCoordinates.data, uw.function.input().evaluate(picswarm),atol=1e-1)
+    True
 
     """
     _objectsDict = {  "_cellLayout" : "ElementCellLayout",
@@ -78,9 +105,9 @@ class PICIntegrationSwarm(IntegrationSwarm):
 
         super(PICIntegrationSwarm,self)._add_to_stg_dict(componentDictionary)
         
-        componentDictionary[ self._swarm.name ][     "WeightsCalculator"]  = self._weights._cself.name
+        componentDictionary[ self._swarm.name ][      "WeightsCalculator"] = self._weights._cself.name
 
-        componentDictionary[ self._cellLayout.name ]["Mesh"]               = self._mesh._cself.name
+        componentDictionary[ self._cellLayout.name ][              "Mesh"] = self._mesh._cself.name
 
         componentDictionary[ self._mapper.name ][          "GeneralSwarm"] = self._mappedSwarm._cself.name
         componentDictionary[ self._mapper.name ]["IntegrationPointsSwarm"] = self._swarm.name
@@ -98,6 +125,15 @@ class PICIntegrationSwarm(IntegrationSwarm):
         libUnderworld.PICellerator._CoincidentMapper_Map( self._mapper )
         libUnderworld.PICellerator.WeightsCalculator_CalculateAll( self._weights._cself, self._cself )
         libUnderworld.PICellerator.IntegrationPointsSwarm_ClearSwarmMaps( self._cself )
+
+    def _get_iterator(self):
+        """
+        This is the concrete method required by the FunctionInput class. 
+        
+        It effects using the PICSwarm as an input to functions.
+        """
+        return libUnderworld.Function.IntegrationSwarmInput(self._cself)
+
         
 class GaussIntegrationSwarm(IntegrationSwarm):
     """
@@ -147,7 +183,7 @@ class GaussIntegrationSwarm(IntegrationSwarm):
         componentDictionary[ self._swarm.name          ][             "CellLayout"] = self._cellLayout.name
         componentDictionary[ self._swarm.name          ][         "ParticleLayout"] = self._particleLayout.name
 
-        componentDictionary[ self._particleLayout.name ][                    "dim"] = self._mesh.dim
+        componentDictionary[ self._particleLayout.name ][                    "dim"] = self._mesh.generator.dim
         componentDictionary[ self._particleLayout.name ][         "gaussParticles"] = self._particleCount
 
 class GaussBorderIntegrationSwarm(GaussIntegrationSwarm):

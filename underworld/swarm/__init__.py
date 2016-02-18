@@ -8,7 +8,7 @@
 ##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
 
 """
-   Routines relating to swarm type objects.
+This module contains routines relating to swarm type objects.
 """
 
 from _swarm import Swarm

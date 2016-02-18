@@ -374,26 +374,6 @@ void _ConstitutiveMatrixCartesian_AssembleElement(
    }
 }
 
-void _TEMP_CalculateViscGuy( void* constitutiveMatrix, unsigned lElement_I, unsigned cellPartIndex, void* particle ){
-   ConstitutiveMatrixCartesian*     self       = (ConstitutiveMatrixCartesian*) constitutiveMatrix;
-   IntegrationPointsSwarm* swarm               = (IntegrationPointsSwarm*)self->integrationSwarm;
-
-//   ConstitutiveMatrixCartesian_cppdata* cppdata = (ConstitutiveMatrixCartesian_cppdata*)self->cppdata;
-//
-//   ParticleInCellCoordinate localCoord = ParticleInCellCoordinate( swarm->localCoordVariable );
-//   FEMCoordinate femCoord((void*)swarm->mesh, localCoord);
-//   localCoord.index() = lElement_I;  // set the elementId as the owning cell for the particleCoord
-//   femCoord.index()   = lElement_I;  // set the elementId for the fem coordinate
-//
-//   localCoord.particle_cellId(cellPartIndex);  // set the particleCoord cellId
-//
-//   /* evaluate function */
-//   std::shared_ptr<IO_double> funcout = debug_dynamic_cast<IO_double>(cppdata->func(femCoord));
-//   
-//   ConstitutiveMatrix_SetIsotropicViscosity( self, funcout->at() );
-
-}
-
 void _ConstitutiveMatrixCartesian2D_SetValueInAllEntries( void* constitutiveMatrix, double value ) {
    ConstitutiveMatrix* self   = (ConstitutiveMatrix*) constitutiveMatrix;
 

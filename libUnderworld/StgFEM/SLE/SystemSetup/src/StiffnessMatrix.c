@@ -1186,13 +1186,6 @@ void StiffnessMatrix_CalcNonZeros( void* stiffnessMatrix ) {
     self->diagonalNonZeroIndices = nDiagNonZeros;
     self->offDiagonalNonZeroIndices = nOffDiagNonZeros;
 
-    {
-        int tmp, ierr;
-        ierr = MPI_Allreduce( &netNonZeros, &tmp, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD );
-        netNonZeros = tmp;
-    }
-    Journal_Printf( stream, "Found %d nonzero entries.\n", netNonZeros );
-    Journal_Printf( stream, "Done.\n" );
     Stream_UnIndent( stream );
     Stream_UnIndent( stream );
     

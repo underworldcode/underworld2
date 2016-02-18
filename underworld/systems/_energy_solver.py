@@ -22,14 +22,9 @@ class HeatSolver(_stgermain.StgCompoundComponent):
     _selfObjectName = "_heatsolver"
 
     def __init__(self, heatSLE,  rtolerance=1.0e-5, **kwargs):
-        if not isinstance(heatSLE, uw.systems.SteadyStateHeat):
+        if not isinstance(heatSLE, (uw.systems.SteadyStateHeat, uw.utils.MeshVariable_Projection)):
             raise TypeError("Provided system must be of 'SteadyStateHeat' class")
         self._heatSLE=heatSLE
-        self._temperatureField=heatSLE._temperatureField
-        if not isinstance( heatSLE._temperatureField, uw.mesh.MeshVariable):
-            raise TypeError( "Provided 'temperatureField' must be of 'MeshVariable' class." )
-        # create solutions vector
-        self._temperatureSol = sle.SolutionVector(heatSLE._temperatureField)
         if not isinstance(rtolerance, float):
             raise TypeError( "Provided 'rtolerance' must be of type 'float'" )
         self._rtolerance=rtolerance
@@ -61,17 +56,6 @@ class HeatSolver(_stgermain.StgCompoundComponent):
         libUnderworld.StgFEM.Energy_SLE_Solver_SetSolver(self._cself, self._heatSLE._cself) # this sets solver on SLE struct.
         # check for non-linearity
         nonLinear = False
-        message = "Nonlinearity detected."
-        if self._temperatureField in self._heatSLE.fn_diffusivity._underlyingDataItems:
-            nonLinear = True
-            message += "\nDiffusivity function depends on the temperature field provided to the system."
-        if self._temperatureField in self._heatSLE.fn_heating._underlyingDataItems:
-            nonLinear = True
-            message += "\nHeating function depends on the temperature field provided to the system."
-
-        message += "\nPlease set the 'nonLinearIterate' solve parameter to 'True' or 'False' to continue."
-        if nonLinear and (nonLinearIterate==None):
-            raise RuntimeError(message)
         
         if nonLinear and nonLinearIterate:
             libUnderworld.StgFEM.SystemLinearEquations_SetToNonLinear(self._heatSLE._cself, True )

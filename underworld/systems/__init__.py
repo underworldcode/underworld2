@@ -7,7 +7,7 @@
 ##                                                                                   ##
 ##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
 """
-this is a docstring
+This module contains routines relating to differential system.
 """
 import sle
 from _stokes import Stokes

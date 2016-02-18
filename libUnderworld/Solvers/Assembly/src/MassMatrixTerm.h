@@ -6,56 +6,56 @@
 ** located at the project root, or contact the authors.                             **
 **                                                                                  **
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
-#ifndef __Solvers_Assembly_PressMassMatrixTerm_h__
-#define __Solvers_Assembly_PressMassMatrixTerm_h__
+#ifndef __Solvers_Assembly_MassMatrixTerm_h__
+#define __Solvers_Assembly_MassMatrixTerm_h__
 
 	/** Textual name of this class */
-	extern const Type PressMassMatrixTerm_Type;
+	extern const Type MassMatrixTerm_Type;
 
-	/** PressMassMatrixTerm class contents */
-	#define __PressMassMatrixTerm \
+	/** MassMatrixTerm class contents */
+	#define __MassMatrixTerm \
 		/* General info */ \
 		__StiffnessMatrixTerm \
 		/* Virtual info */ \
-		/* PressMassMatrixTerm info */ \
+		/* MassMatrixTerm info */ \
 		FeMesh*             geometryMesh; \
 		int		max_nElNodes_col; \
-		double	*Ni;
+      int      max_nElNodes_row; \
+		double	*Ni;  \
+		double	*Mi;
 
-	struct PressMassMatrixTerm { __PressMassMatrixTerm };
+	struct MassMatrixTerm { __MassMatrixTerm };
 
 	
 	#ifndef ZERO
 	#define ZERO 0
 	#endif
 
-	#define PRESSMASSMATRIXTERM_DEFARGS \
+	#define MASSMATRIXTERM_DEFARGS \
                 STIFFNESSMATRIXTERM_DEFARGS
 
-	#define PRESSMASSMATRIXTERM_PASSARGS \
+	#define MASSMATRIXTERM_PASSARGS \
                 STIFFNESSMATRIXTERM_PASSARGS
 
-	PressMassMatrixTerm* _PressMassMatrixTerm_New(  PRESSMASSMATRIXTERM_DEFARGS  );
-
-	void _PressMassMatrixTerm_Init( void* matrixTerm, FeMesh* geometryMesh );
+	MassMatrixTerm* _MassMatrixTerm_New(  MASSMATRIXTERM_DEFARGS  );
 	
-	void _PressMassMatrixTerm_Delete( void* matrixTerm );
+	void _MassMatrixTerm_Delete( void* matrixTerm );
 
-	void _PressMassMatrixTerm_Print( void* matrixTerm, Stream* stream );
+	void _MassMatrixTerm_Print( void* matrixTerm, Stream* stream );
 
-	void* _PressMassMatrixTerm_DefaultNew( Name name );
+	void* _MassMatrixTerm_DefaultNew( Name name );
 
-	void _PressMassMatrixTerm_AssignFromXML( void* matrixTerm, Stg_ComponentFactory* cf, void* data );
+	void _MassMatrixTerm_AssignFromXML( void* matrixTerm, Stg_ComponentFactory* cf, void* data );
 
-	void _PressMassMatrixTerm_Build( void* matrixTerm, void* data );
+	void _MassMatrixTerm_Build( void* matrixTerm, void* data );
 
-	void _PressMassMatrixTerm_Initialise( void* matrixTerm, void* data );
+	void _MassMatrixTerm_Initialise( void* matrixTerm, void* data );
 
-	void _PressMassMatrixTerm_Execute( void* matrixTerm, void* data );
+	void _MassMatrixTerm_Execute( void* matrixTerm, void* data );
 
-	void _PressMassMatrixTerm_Destroy( void* matrixTerm, void* data );
+	void _MassMatrixTerm_Destroy( void* matrixTerm, void* data );
 
-	void _PressMassMatrixTerm_AssembleElement( 
+	void _MassMatrixTerm_AssembleElement( 
 		void*							matrixTerm,
 		StiffnessMatrix*			stiffnessMatrix, 
 		Element_LocalIndex		lElement_I, 

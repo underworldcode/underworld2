@@ -13,7 +13,6 @@
 	
 	/* FE types/classes */
 	typedef struct Energy_SLE_Solver  Energy_SLE_Solver;
-	typedef struct Energy_SLE         Energy_SLE;
 
 	/* output streams: initialised in StgFEM_SLE_ProvidedSystems_Energy_Init() */
 	extern Stream* StgFEM_SLE_ProvidedSystems_Energy_Debug;

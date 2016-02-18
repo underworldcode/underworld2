@@ -23,10 +23,8 @@ Bool Solvers_Assembly_Init( int* argc, char** argv[] ) {
     
    Journal_Printf( Journal_Register( DebugStream_Type, (Name)"Context" ), "In: %s\n", __func__ );
    
-   Stg_ComponentRegister_Add( componentRegister, PressMassMatrixTerm_Type, (Name)"0", _PressMassMatrixTerm_DefaultNew  );
-   RegisterParent( PressMassMatrixTerm_Type, StiffnessMatrixTerm_Type );
-   Stg_ComponentRegister_Add( componentRegister, VelocityMassMatrixTerm_Type, (Name)"0", _VelocityMassMatrixTerm_DefaultNew  );
-   RegisterParent( VelocityMassMatrixTerm_Type, StiffnessMatrixTerm_Type );
+   Stg_ComponentRegister_Add( componentRegister, MassMatrixTerm_Type, (Name)"0", _MassMatrixTerm_DefaultNew  );
+   RegisterParent( MassMatrixTerm_Type, StiffnessMatrixTerm_Type );
    Stg_ComponentRegister_Add( componentRegister, Matrix_NaiNbj_Type, (Name)"0", _Matrix_NaiNbj_DefaultNew  );
    RegisterParent( Matrix_NaiNbj_Type, StiffnessMatrixTerm_Type );
    

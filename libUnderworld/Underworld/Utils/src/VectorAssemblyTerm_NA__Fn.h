@@ -49,6 +49,7 @@ extern "C" {
       \
       /* Virtual info */ \
       void*                   cppdata;   \
+      FeMesh*                 geometryMesh;
 
    struct VectorAssemblyTerm_NA__Fn { __VectorAssemblyTerm_NA__Fn };
 

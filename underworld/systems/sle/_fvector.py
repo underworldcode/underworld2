@@ -52,13 +52,6 @@ class ForceVector(_stgermain.StgCompoundComponent):
 
     def AddTerm(assemblyTerm):
         """
-        One of:
-        
-        ThermalBuoyancyForceTerm
-        MassMatrixTerm
-        LumpedMassMatrixForceTerm
-        AdvDiffResidualForceTerm
-
         """
         # make a call to underlying c-function 'ForceVector_AddTerm'
         _stgermain.StgFEM.ForceVector_AddTerm(self._cself, assemblyTerm._cself)

@@ -11,9 +11,8 @@
 	
 	#include "types.h"
 
-	#include "PressureMassMatrixTerm.h"
-        #include "VelocityMassMatrixTerm.h"
-        #include "Matrix_NaiNbj.h"
+	#include "MassMatrixTerm.h"
+   #include "Matrix_NaiNbj.h"
 	#include "ViscousPenaltyConstMatrixCartesian.h"
 
 	#include "Init.h"

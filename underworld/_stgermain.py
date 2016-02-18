@@ -228,6 +228,9 @@ class StgCompoundComponent(StgClass):
             componentDictionary = l()
             # ok... let child classes fill AssignFromXML dictionary as necessary
             self._add_to_stg_dict(componentDictionary)
+            # if empty, lets add something to force AssignFromXML phase to execute
+            if len(componentDictionary.keys()) == 0:
+                componentDictionary[self._cself.name]["DummyKey"] = "DummyValue"
             fullDictionary = {"components": componentDictionary}
             StgConstruct(fullDictionary)
             # lets build

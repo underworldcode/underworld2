@@ -31,7 +31,7 @@ SingleCellLayout* SingleCellLayout_New( Name name, AbstractContext* context, con
 	SingleCellLayout* self = (SingleCellLayout*) _SingleCellLayout_DefaultNew( name );
 
 	self->isConstructed = True;
-	_CellLayout_Init( (CellLayout*)self, context );
+	_CellLayout_Init( (CellLayout*)self );
 	_SingleCellLayout_Init( self, dimExists, min, max );
 
 	return self;

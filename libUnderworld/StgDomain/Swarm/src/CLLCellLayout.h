@@ -35,9 +35,7 @@
 	
 	/* Create a new CLLCellLayout and initialise */
 	void* _CLLCellLayout_DefaultNew( Name name );
-	
-   CLLCellLayout* CLLCellLayout_New( Name name, AbstractContext* context, void* mesh, double cellSize, unsigned meshDim, Bool parallelDecompose, unsigned expandFactor );
-	
+
 	/* Creation implementation / Virtual constructor */
 	
 	#ifndef ZERO

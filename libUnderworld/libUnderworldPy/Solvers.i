@@ -35,6 +35,6 @@ extern "C" {
 %import "Underworld.i"
 
 
-
+%include "Solvers/Assembly/MassMatrixTerm.h"
 %include "KSPSolvers/StokesBlockKSPInterface.h"
 %include "KSPSolvers/types.h"

@@ -70,37 +70,28 @@ IntegrationPointsSwarm* _IntegrationPointsSwarm_New( INTEGRATIONPOINTSSWARM_DEFA
 void _IntegrationPointsSwarm_AssignFromXML( void* integrationPoints, Stg_ComponentFactory* cf, void* data ) {
    IntegrationPointsSwarm* self = (IntegrationPointsSwarm*) integrationPoints;
    FeMesh*                 mesh;
-   TimeIntegrator*         timeIntegrator;
    WeightsCalculator*      weights;
-   Bool                    recalculateWeights;
-
+   
    /* This will also call _Swarm_Init */
    _Swarm_AssignFromXML( self, cf, data );
 
    mesh               = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"FeMesh", FeMesh, True, data );
-   timeIntegrator     = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"TimeIntegrator", TimeIntegrator, False, data );
    weights            = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"WeightsCalculator", WeightsCalculator, False, data );
-   recalculateWeights = Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"recalculateWeights", True );
 
-   _IntegrationPointsSwarm_Init( self, mesh, timeIntegrator, weights, recalculateWeights );
+   _IntegrationPointsSwarm_Init( self, mesh, weights );
 }
 
 void _IntegrationPointsSwarm_Init( 
    void*                   swarm,
    FeMesh*                 mesh, 
-   TimeIntegrator*         timeIntegrator,
-   WeightsCalculator*      weights,
-   Bool                    recalculateWeights )
+   WeightsCalculator*      weights )
 {
    IntegrationPointsSwarm* self = (IntegrationPointsSwarm*)swarm;
    LocalParticle           localParticle;
    IntegrationPoint        particle;
 
    self->mesh               = mesh;
-   self->timeIntegrator     = timeIntegrator;
    self->weights            = weights;
-
-   self->recalculateWeights = recalculateWeights;
 
    /* Disable checkpointing and reloading of IP swarms - currently they can't be reloaded if the particles
    don't have a global coord. We assume there is no history info on them which means we're happy to re-create
@@ -119,20 +110,6 @@ void _IntegrationPointsSwarm_Init(
 
    LiveComponentRegister_Add( LiveComponentRegister_GetLiveComponentRegister(), (Stg_Component*)self->localCoordVariable );
    LiveComponentRegister_Add( LiveComponentRegister_GetLiveComponentRegister(), (Stg_Component*)self->localCoordVariable->variable );
-
-   if ( timeIntegrator ) {
-      /* Assuming this is called from _IntegrationPointsSwarm_AssignFromXML, it would have always called construct
-       * on the mapper which in turn would have constructed any GeneralSwarms with it.
-       * The GeneralSwarms would have already appended their update routines to the EP, and hence this
-       * ensures that the _IntegrationPointsSwarm_UpdateHook will always be called last */
-      TimeIntegrator_InsertAfterFinishEP(
-         timeIntegrator,
-         (Name) "GeneralSwarm_Update", /* Needs to be after a the material update */
-         (Name) "IntegrationPointsSwarm_Update",
-         _IntegrationPointsSwarm_UpdateHook,
-         self->name,
-         self );
-   }
    
    /* _Construct calls _Swarm_Init */
 
@@ -171,8 +148,6 @@ void _IntegrationPointsSwarm_Build( void* integrationPoints, void* data ) {
    Stg_Component_Build( self->weightVariable, data, False );
    Stg_Component_Build( self->mesh, data, False );
 
-   if ( self->timeIntegrator != NULL )
-      Stg_Component_Build( self->timeIntegrator, data, False );
    if ( self->weights != NULL )
       Stg_Component_Build( self->weights, data, False );
 }
@@ -189,8 +164,6 @@ void _IntegrationPointsSwarm_Initialise( void* integrationPoints, void* data ) {
    Stg_Component_Initialise( self->weightVariable, data, False );
    Stg_Component_Initialise( self->mesh, data, False );
 
-   if ( self->timeIntegrator != NULL )
-      Stg_Component_Initialise( self->timeIntegrator, data, False );
    if ( self->weights != NULL )
       Stg_Component_Initialise( self->weights, data, False );
 
@@ -212,8 +185,6 @@ void _IntegrationPointsSwarm_Destroy( void* integrationPoints, void* data ) {
    Stg_Component_Destroy( self->weightVariable, data, False );
    Stg_Component_Destroy( self->mesh, data, False );
 
-   if ( self->timeIntegrator != NULL )
-      Stg_Component_Destroy( self->timeIntegrator, data, False );
    if ( self->weights != NULL )
       Stg_Component_Destroy( self->weights, data, False );
    

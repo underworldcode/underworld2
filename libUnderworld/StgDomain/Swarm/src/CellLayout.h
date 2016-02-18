@@ -81,7 +81,7 @@
 	CellLayout* _CellLayout_New(  CELLLAYOUT_DEFARGS  ); 
 
 	/* Initialise implementation */
-	void _CellLayout_Init( CellLayout* self, AbstractContext* context );
+	void _CellLayout_Init( CellLayout* self );
 	
 	/* Stg_Class_Delete a CellLayout construct */
 	void _CellLayout_Delete( void* cellLayout );

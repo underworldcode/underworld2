@@ -24,6 +24,7 @@ extern "C" {
 #include "Function.hpp"
 #include "MeshCoordinate.hpp"
 #include "ParticleCoordinate.hpp"
+#include "FEMCoordinate.hpp"
 
 namespace Fn {
 
@@ -90,6 +91,21 @@ class SwarmInput: public IOIterator
         void* _positionVariable;
         unsigned _position;
     
+};
+
+class IntegrationSwarmInput: public IOIterator
+{
+    public:
+        IntegrationSwarmInput( void* _intSwarm );
+        virtual IOIterator& operator++(int){ _position++; _setNewIO(); return *this;};
+        virtual ~IntegrationSwarmInput(){};
+        virtual void reset();
+    private:
+        static void* _CheckIsIntegrationSwarm(void* intSwarm);
+        void _setNewIO();
+        unsigned _position;
+        IntegrationPointsSwarm* _intSwarm;
+        std::shared_ptr<ParticleCoordinate> _localCoord;
 };
 
 

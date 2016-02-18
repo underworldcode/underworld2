@@ -389,9 +389,9 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
 
         if meshFilename:
             if not os.path.exists(meshFilename):
-                # call save on mesh
-                mesh.save( meshfilename )
-
+                raise ValueError("You are trying to link against the mesh file '{}'\n\
+                                  that does not appear to exist. If you need to link \n\
+                                  against a mesh file, please make sure it is created first.".format(meshFilename))
             # set reference to mesh (all procs must call following)
             h5f["mesh"] = h5py.ExternalLink(meshFilename, "./")
 

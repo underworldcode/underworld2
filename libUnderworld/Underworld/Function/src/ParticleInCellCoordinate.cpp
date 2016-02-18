@@ -36,7 +36,7 @@ unsigned ParticleInCellCoordinate::_Check_GetDimSize(void* swarmvariable){
    if(!Stg_Class_IsInstance( swarmvariable, SwarmVariable_Type ))
         throw std::invalid_argument("Provided 'object' does not appear to be of 'SwarmVariable' type.");
     return ((SwarmVariable*)swarmvariable)->dim;
- }
+}
 
 double &
 ParticleInCellCoordinate::at( size_t idx ){

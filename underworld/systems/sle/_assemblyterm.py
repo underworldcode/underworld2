@@ -19,12 +19,15 @@ class AssemblyTerm(_stgermain.StgCompoundComponent):
     _selfObjectName = "_assemblyterm"
 
     def __init__(self, integrationSwarm, extraInfo=None, **kwargs):
+        super(AssemblyTerm,self).__init__(**kwargs)
+
         if not isinstance(integrationSwarm, uw.swarm.IntegrationSwarm):
             raise TypeError("'integrationSwarm' object passed in must be of type 'IntegrationSwarm'")
         self._integrationSwarm = integrationSwarm
         self._extraInfo = extraInfo
-
-        super(AssemblyTerm,self).__init__(**kwargs)
+        
+        self._fn = None
+        self._set_fn_function = None
 
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method
@@ -32,13 +35,31 @@ class AssemblyTerm(_stgermain.StgCompoundComponent):
         componentDictionary[ self._cself.name ][    "Swarm"] = self._integrationSwarm._cself.name
         componentDictionary[ self._cself.name ]["ExtraInfo"] = self._extraInfo
 
+    @property
+    def fn(self):
+        return self._fn
+
+    @fn.setter
+    def fn(self, value):
+        if not self._set_fn_function:
+            raise RuntimeError("You cannot set a function for this assembly term.")
+        _fn = uw.function.Function._CheckIsFnOrConvertOrThrow(value)
+        if not isinstance( _fn, uw.function.Function):
+            raise ValueError( "Provided 'fn' must be of or convertible to 'Function' class." )
+        self._fn = _fn
+        self._set_fn_function( self._cself, self._fn._fncself )
+
+    def _setup(self):
+        # lets setup fn tings.. note that this uses the 'property' above
+        if self._set_fn_function:
+            self.fn = self._fn
 
 class VectorAssemblyTerm(AssemblyTerm):
     def __init__(self, assembledObject, **kwargs):
+        super(VectorAssemblyTerm,self).__init__(**kwargs)
         if not isinstance( assembledObject, _assembledvector.AssembledVector):
             raise TypeError("'assembledObject' passed in must be of type 'AssembledVector'")
         self._assembledObject = assembledObject
-        super(VectorAssemblyTerm,self).__init__(**kwargs)
 
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method
@@ -48,10 +69,10 @@ class VectorAssemblyTerm(AssemblyTerm):
 
 class MatrixAssemblyTerm(AssemblyTerm):
     def __init__(self, assembledObject=None, **kwargs):
+        super(MatrixAssemblyTerm,self).__init__(**kwargs)
         if not isinstance( assembledObject, (_assembledmatrix.AssembledMatrix, type(None))):
             raise TypeError("'assembledObject' passed in must be of type 'AssembledMatrix'")
         self._assembledObject = assembledObject
-        super(MatrixAssemblyTerm,self).__init__(**kwargs)
 
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method
@@ -65,38 +86,26 @@ class VectorAssemblyTerm_NA__Fn(VectorAssemblyTerm):
     """
     _objectsDict = { "_assemblyterm": "VectorAssemblyTerm_NA__Fn" }
 
-    def __init__(self, fn, **kwargs):
+    def __init__(self, fn, mesh=None, **kwargs):
         """
         """
-        
-        _fn = uw.function.Function._CheckIsFnOrConvertOrThrow(fn)
-        if not isinstance( _fn, uw.function.Function):
-            raise ValueError( "Provided 'fn' must be of or convertible to 'Function' class." )
-        self._fn = _fn
-
         # build parent
         super(VectorAssemblyTerm_NA__Fn,self).__init__(**kwargs)
+
+        self._set_fn_function = libUnderworld.Underworld._VectorAssemblyTerm_NA__Fn_SetFn
+        self._fn = fn
+        
+        if mesh:
+            if not isinstance( mesh, uw.mesh.FeMesh_Cartesian ):
+                raise TypeError( "The provided mesh must be of FeMesh_Cartesian class.")
+            # set directly
+            self._cself.geometryMesh = mesh._cself
+            self._mesh = mesh
 
 
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method
         super(VectorAssemblyTerm_NA__Fn,self)._add_to_stg_dict(componentDictionary)
-
-    def _setup(self):
-        # lets setup fn tings
-        libUnderworld.Underworld._VectorAssemblyTerm_NA__Fn_SetFn( self._cself, self._fn._fncself )
-
-    @property
-    def fn(self):
-        return self._fn
-
-    @fn.setter
-    def fn(self, value):
-        _fn = uw.function.Function._CheckIsFnOrConvertOrThrow(value)
-        if not isinstance( _fn, uw.function.Function):
-            raise ValueError( "Provided 'fn' must be of or convertible to 'Function' class." )
-        self._fn = _fn
-        libUnderworld.Underworld._VectorAssemblyTerm_NA__Fn_SetFn( self._cself, self._fn._fncself )
 
 class GradientStiffnessMatrixTerm(MatrixAssemblyTerm):
     _objectsDict = { "_assemblyterm": "GradientStiffnessMatrixTerm" }
@@ -112,13 +121,11 @@ class ConstitutiveMatrixTerm(MatrixAssemblyTerm):
     def __init__(self, fn, **kwargs):
         """
         """
-        _fn = uw.function.Function._CheckIsFnOrConvertOrThrow(fn)
-        if not isinstance( _fn, uw.function.Function):
-            raise ValueError( "Provided 'fn' must be of or convertible to 'Function' class." )
-        self._fn = _fn
-
         # build parent
         super(ConstitutiveMatrixTerm,self).__init__(**kwargs)
+
+        self._set_fn_function = libUnderworld.Underworld._ConstitutiveMatrixCartesian_SetFn
+        self._fn = fn
 
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method
@@ -126,57 +133,22 @@ class ConstitutiveMatrixTerm(MatrixAssemblyTerm):
 
         componentDictionary[ self._cself.name ]["dim"] = self._integrationSwarm._mesh.dim
 
-    def _setup(self):
-        # lets setup fn tings
-        libUnderworld.Underworld._ConstitutiveMatrixCartesian_SetFn( self._cself, self._fn._fncself )
-
-    @property
-    def fn(self):
-        return self._fn
-
-    @fn.setter
-    def fn(self, value):
-        _fn = uw.function.Function._CheckIsFnOrConvertOrThrow(value)
-        if not isinstance( _fn, uw.function.Function):
-            raise ValueError( "Provided 'fn' must be of or convertible to 'Function' class." )
-        self._fn = _fn
-        libUnderworld.Underworld._ConstitutiveMatrixCartesian_SetFn( self._cself, self._fn._fncself )
-
-
 class MatrixAssemblyTerm_NA_i__NB_i__Fn(MatrixAssemblyTerm):
     _objectsDict = { "_assemblyterm": "MatrixAssemblyTerm_NA_i__NB_i__Fn" }
 
     def __init__(self, fn, **kwargs):
         """
         """
-        _fn = uw.function.Function._CheckIsFnOrConvertOrThrow(fn)
-        if not isinstance( _fn, uw.function.Function):
-            raise ValueError( "Provided 'fn' must be of or convertible to 'Function' class." )
-        self._fn = _fn
-
         # build parent
         super(MatrixAssemblyTerm_NA_i__NB_i__Fn,self).__init__(**kwargs)
+
+        self._set_fn_function = libUnderworld.Underworld.MatrixAssemblyTerm_NA_i__NB_i__Fn_SetFn
+        self._fn = fn
+
 
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method
         super(MatrixAssemblyTerm_NA_i__NB_i__Fn,self)._add_to_stg_dict(componentDictionary)
-
-    def _setup(self):
-        # lets setup fn tings
-        libUnderworld.Underworld.MatrixAssemblyTerm_NA_i__NB_i__Fn_SetFn( self._cself, self._fn._fncself )
-
-    @property
-    def fn(self):
-        return self._fn
-
-    @fn.setter
-    def fn(self, value):
-        _fn = uw.function.Function._CheckIsFnOrConvertOrThrow(value)
-        if not isinstance( _fn, uw.function.Function):
-            raise ValueError( "Provided 'fn' must be of or convertible to 'Function' class." )
-        self._fn = _fn
-        libUnderworld.Underworld.MatrixAssemblyTerm_NA_i__NB_i__Fn_SetFn( self._cself, self._fn._fncself )
-
 
 class LumpedMassMatrixVectorTerm(VectorAssemblyTerm):
     _objectsDict = { "_assemblyterm": "LumpedMassMatrixForceTerm" }
@@ -185,20 +157,16 @@ class LumpedMassMatrixVectorTerm(VectorAssemblyTerm):
 class AdvDiffResidualVectorTerm(VectorAssemblyTerm):
     _objectsDict = { "_assemblyterm": "AdvDiffResidualForceTerm" }
 
-    def __init__( self, velocityField, diffusivity, **kwargs ):
+    def __init__( self, velocityField, fn, **kwargs ):
+        # build parent
+        super(AdvDiffResidualVectorTerm,self).__init__(**kwargs)
 
         if not isinstance( velocityField, uw.mesh.MeshVariable):
             raise TypeError( "Provided 'velocityField' must be of 'MeshVariable' class." )
         self._velocityField = velocityField
 
-        _fn = uw.function.Function._CheckIsFnOrConvertOrThrow(diffusivity)
-        if not isinstance( _fn, uw.function.Function):
-            raise ValueError( "Provided 'fn' must be of or convertible to 'Function' class." )
-        self._fn=_fn
-
-        # build parent
-        super(AdvDiffResidualVectorTerm,self).__init__(**kwargs)
-
+        self._set_fn_function = libUnderworld.Underworld._SUPGVectorTerm_NA__Fn_SetFn
+        self._fn = fn
 
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method
@@ -207,41 +175,20 @@ class AdvDiffResidualVectorTerm(VectorAssemblyTerm):
         componentDictionary[ self._cself.name ][     "VelocityField"] = self._velocityField._cself.name
         componentDictionary[ self._cself.name ][  "UpwindXiFunction"] = "DoublyAsymptoticAssumption"
 
-    def _setup(self):
-        # lets setup fn tings
-        libUnderworld.Underworld._SUPGVectorTerm_NA__Fn_SetFn( self._cself, self._fn._fncself )
 
-    @property
-    def fn(self):
-        return self._fn
-
-    @fn.setter
-    def fn(self, value):
-        _fn = uw.function.Function._CheckIsFnOrConvertOrThrow(value)
-        if not isinstance( _fn, uw.function.Function):
-            raise ValueError( "Provided 'fn' must be of or convertible to 'Function' class." )
-        self._fn = _fn
-        libUnderworld.Underworld._SUPGVectorTerm_NA__Fn_SetFn( self._cself, self._fn._fncself )
-
-
-class PressureMassMatrixTerm(MatrixAssemblyTerm):
-    _objectsDict = { "_assemblyterm": "PressMassMatrixTerm" }
+class MassMatrixTerm(MatrixAssemblyTerm):
+    _objectsDict = { "_assemblyterm": "MassMatrixTerm" }
 
     def __init__( self, mesh, **kwargs ):
+        super(MassMatrixTerm,self).__init__(**kwargs)
 
         if not isinstance( mesh, uw.mesh.FeMesh_Cartesian ):
             raise TypeError( "The provided mesh must be of FeMesh_Cartesian class.")
         self._mesh = mesh
 
-        super(PressureMassMatrixTerm,self).__init__(**kwargs)
-
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method
-        super(PressureMassMatrixTerm,self)._add_to_stg_dict(componentDictionary)
+        super(MassMatrixTerm,self)._add_to_stg_dict(componentDictionary)
         #Need GeometryMesh to to be able to calculate detJac in PressureMatrixTerm function
         componentDictionary[ self._cself.name ]["GeometryMesh"] = self._mesh._cself.name
-
-class VelocityMassMatrixTerm(MatrixAssemblyTerm):
-    _objectsDict = { "_assemblyterm": "VelocityMassMatrixTerm" }
-    pass
 

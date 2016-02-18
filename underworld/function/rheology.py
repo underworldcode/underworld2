@@ -7,7 +7,7 @@
 ##                                                                                   ##
 ##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
 """
-This module functions relating to rheological operations.
+This module contains functions relating to rheological operations.
 """
 
 import libUnderworld.libUnderworldPy.Function as _cfn

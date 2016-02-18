@@ -101,7 +101,7 @@ class SwarmAbstract(_stgermain.StgCompoundComponent):
         # call parents method
 
         super(SwarmAbstract,self)._add_to_stg_dict(componentDictionary)
-        componentDictionary[ self._swarm.name ][                 "dim"] = self._mesh.dim
+        componentDictionary[ self._swarm.name ][                 "dim"] = self._mesh.generator.dim
         componentDictionary[ self._swarm.name ][          "CellLayout"] = self._cellLayout.name
         componentDictionary[ self._swarm.name ][      "createGlobalId"] = False
         componentDictionary[ self._swarm.name ][              "FeMesh"] = self._mesh._cself.name

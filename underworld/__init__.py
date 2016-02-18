@@ -110,7 +110,7 @@ def help(object):
     print("Object initialiser docstring:\n")
     print(object.__init__.__doc__)
 
-# lets handle exceptions differently in parallel to ensure we call 
+# lets handle exceptions differently in parallel to ensure we call
 if nProcs() > 1:
     origexcepthook = _sys.excepthook
     def uw_uncaught_exception_handler(exctype, value, tb):

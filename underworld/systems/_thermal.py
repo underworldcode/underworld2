@@ -56,7 +56,7 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
     >>> tSystem = uw.systems.SteadyStateHeat(temperatureField=tField, fn_diffusivity=1.0, conditions=[tbcs])
 
     """
-    _objectsDict = {  "_system" : "Energy_SLE" }
+    _objectsDict = {  "_system" : "SystemLinearEquations" }
     _selfObjectName = "_system"
 
     def __init__(self, temperatureField, fn_diffusivity=None, fn_heating=0., swarm=None, conditions=[], conductivityFn=None, heatingFn=None, rtolerance=None, **kwargs):
@@ -104,7 +104,7 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
         self._conditions = conditions
 
         # create solutions vector
-        self._temperatureSol = sle.SolutionVector(temperatureField)
+        self._solutionVector = sle.SolutionVector(temperatureField)
 
         # create force vectors
         self._fvector = sle.AssembledVector(temperatureField)
@@ -129,16 +129,21 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
                                                               fn=fn_heating)
         super(SteadyStateHeat, self).__init__(**kwargs)
 
+    def _setup(self):
+#        uw.libUnderworld.StgFEM.SystemLinearEquations_AddStiffnessMatrix( self._cself, self._kmatrix._cself );
+        uw.libUnderworld.StGermain.Stg_ObjectList_Append( self._cself.stiffnessMatrices, self._kmatrix._cself )
+
+#        uw.libUnderworld.StgFEM.SystemLinearEquations_AddForceVector( self._cself, self._fvector._cself );
+        uw.libUnderworld.StGermain.Stg_ObjectList_Append( self._cself.forceVectors, self._fvector._cself )
+
+#        uw.libUnderworld.StgFEM.SystemLinearEquations_AddSolutionVector( self._cself, self._solutionVector._cself );
+        uw.libUnderworld.StGermain.Stg_ObjectList_Append( self._cself.solutionVectors, self._solutionVector._cself )
+
+
 
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method
         super(SteadyStateHeat,self)._add_to_stg_dict(componentDictionary)
-
-        componentDictionary[ self._cself.name ][      "StiffnessMatrix"] = self._kmatrix._cself.name
-        componentDictionary[ self._cself.name ][       "SolutionVector"] = self._temperatureSol._cself.name
-        componentDictionary[ self._cself.name ][          "ForceVector"] = self._fvector._cself.name
-        componentDictionary[ self._cself.name ][    "killNonConvergent"] = False
-        componentDictionary[ self._cself.name ][           "SLE_Solver"] = None
 
     def solve(self, *args, **kwargs):
         """ deprecated method

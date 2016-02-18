@@ -62,9 +62,6 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
                                "Use the parameter 'fn_diffusivity' instead.")
 
         self._diffusivity   = fn_diffusivity
-
-        self._diffusivity   = fn_diffusivity
-        self._courantFactor = courantFactor
         
         if not isinstance( phiField, uw.mesh.MeshVariable):
             raise TypeError( "Provided 'phiField' must be of 'MeshVariable' class." )
@@ -129,7 +126,7 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
         self._lumpedMassTerm = sle.LumpedMassMatrixVectorTerm( integrationSwarm = self._gaussSwarm,
                                                                 assembledObject = self._massVector  )
         self._residualTerm   = sle.AdvDiffResidualVectorTerm(     velocityField = self._velocityField,
-                                                                    diffusivity = self._diffusivity,
+                                                                             fn = self._diffusivity,
                                                                integrationSwarm = self._gaussSwarm,
                                                                 assembledObject = self._residualVector,
                                                                       extraInfo = self._cself.name )

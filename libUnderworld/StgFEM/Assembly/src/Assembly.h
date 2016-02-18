@@ -19,7 +19,6 @@
 	#include "DivergenceMatrixTerm.h"
 	#include "LaplacianStiffnessMatrixTerm.h"
 	#include "IsoviscousStressTensorTerm.h"
-	#include "MassMatrixTerm.h"
 
 	#include "Init.h"
 	#include "Finalise.h"
