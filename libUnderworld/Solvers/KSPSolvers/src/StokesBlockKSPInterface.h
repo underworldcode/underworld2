@@ -15,19 +15,12 @@
         #define __STATS \
                 int pressure_its; /** Need vanilla c-types so we can talk to Python **/ \
                 int velocity_backsolve_its; \
-                int velocity_presolve_its; \
-                int velocity_pressuresolve_its; \
-                int velocity_total_its; \
                 double pressure_time; \
                 double velocity_backsolve_time;\
-                double velocity_presolve_time; \
-                double velocity_pressuresolve_time; \
-                double velocity_total_time; \
                 double total_time;  \
                 double total_flops; \
                 double pressure_flops; \
                 double velocity_backsolve_flops;\
-                double velocity_presolve_flops;\
                 double vmin, vmax;                   \
                 double pmin, pmax;                   \
                 double p_sum;                        \
