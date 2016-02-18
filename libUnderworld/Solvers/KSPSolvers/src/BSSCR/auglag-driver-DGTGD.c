@@ -393,7 +393,7 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
       bsscrp_self->solver->stats.velocity_pressuresolve_its -= bsscrp_self->solver->stats.velocity_presolve_its;
     }
 #else
-    bsscrp_self->solver->stats.velocity_pressuresolve_its=-1
+    bsscrp_self->solver->stats.velocity_pressuresolve_its=-1;
 #endif
     scrSolveTime =  MPI_Wtime() - scrSolveTime;
     if(get_flops) {
