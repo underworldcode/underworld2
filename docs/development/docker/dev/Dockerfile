@@ -27,7 +27,7 @@ RUN git clone --branch "development" --single-branch https://github.com/underwor
     rm -fr StgDomain             && \
     rm -fr PICellerator          && \
     rm -fr Solvers               && \
-    find /root/underworld2/docs -name \*.ipynb | xargs jupyter trust && \
+    find /root/underworld2/docs -name \*.ipynb  -print0 | xargs -0 jupyter trust && \
     mkdir /workspace                                                 && \
     rsync -av /root/underworld2/docs/examples /workspace             && \
     rsync -av /root/underworld2/docs/user_guide /workspace           && \
