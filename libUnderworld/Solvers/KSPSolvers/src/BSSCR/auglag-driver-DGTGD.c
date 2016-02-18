@@ -387,14 +387,10 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
     KSPSolve( ksp_S, h_hat, p );
     /*************************************/
     /*************************************/
-#if ( (PETSC_VERSION_MAJOR >= 3) && (PETSC_VERSION_MINOR >= 6 ) && (PETSC_VERSION_SUBMINOR >= 1 ))
     KSPGetTotalIterations(ksp_inner, &bsscrp_self->solver->stats.velocity_pressuresolve_its);
     if(!change_A11rhspresolve){
       bsscrp_self->solver->stats.velocity_pressuresolve_its -= bsscrp_self->solver->stats.velocity_presolve_its;
     }
-#else
-    bsscrp_self->solver->stats.velocity_pressuresolve_its=-1
-#endif
     scrSolveTime =  MPI_Wtime() - scrSolveTime;
     if(get_flops) {
       PetscGetFlops(&flopsB);
