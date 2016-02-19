@@ -83,8 +83,8 @@ class OptionsMG(Options):
                     levels += 1
                 lvls.append(levels)
             self.levels=min(lvls)
-            if self.levels < 2:
-                raise TypeError("\nMultigrid levels must be >= 2.\nNeed more multiples of 2 in mesh resolution." )
+            #if self.levels < 2:
+            #    raise TypeError("\nMultigrid levels must be >= 2.\nNeed more multiples of 2 in mesh resolution." )
 
 class OptionsMGA(Options):
     """
