@@ -46,7 +46,8 @@ if 3 != stats.pressure_its:
     raise RuntimeError("Test returned wrong number of pressure iterations: should be 3")
 if 6 != stats.velocity_presolve_its:
     raise RuntimeError("Test returned wrong number of velocity pre solve iterations: should be 6")
-if 15 != stats.velocity_pressuresolve_its:
-    raise RuntimeError("Test returned wrong number of velocity pressure solve iterations: should be 15")
+if -1 != stats.velocity_pressuresolve_its:  # -1 will be returned if this stat isn't supported.
+    if 15 != stats.velocity_pressuresolve_its:
+        raise RuntimeError("Test returned wrong number of velocity pressure solve iterations: should be 15")
 if 6 != stats.velocity_backsolve_its:
     raise RuntimeError("Test returned wrong number of velocity back solve iterations: should be 6")

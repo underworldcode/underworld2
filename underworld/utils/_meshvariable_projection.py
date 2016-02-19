@@ -26,7 +26,7 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
     
     To project function F onto the variable, we solve:
     .. math::
-         \bf{u}_a\int_{\Omega} N_a N_b \partial\Omega = \int_{\Omega} \bf{F}\partial\Omega
+         \bf{u}_a\int_{\Omega} N_a N_b \partial\Omega = \int_{\Omega} \bf{F} N_b \partial\Omega
 
     Parameters
     ----------
