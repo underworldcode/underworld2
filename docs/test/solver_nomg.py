@@ -44,10 +44,10 @@ solver.print_stats()
 
 if 4 != stats.pressure_its:
     raise RuntimeError("Test returned wrong number of pressure iterations: should be 3")
-if 28 != stats.velocity_presolve_its:
+if 34 != stats.velocity_presolve_its:
     raise RuntimeError("Test returned wrong number of velocity pre solve iterations: should be 6")
 if -1 != stats.velocity_pressuresolve_its:  # -1 will be returned if this stat isn't supported.
-    if 109 != stats.velocity_pressuresolve_its:
+    if 132 != stats.velocity_pressuresolve_its:
         raise RuntimeError("Test returned wrong number of velocity pressure solve iterations: should be 15")
-if 30 != stats.velocity_backsolve_its:
+if 34 != stats.velocity_backsolve_its:
     raise RuntimeError("Test returned wrong number of velocity back solve iterations: should be 6")
