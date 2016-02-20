@@ -83,8 +83,8 @@ class OptionsMG(Options):
                     levels += 1
                 lvls.append(levels)
             self.levels=min(lvls)
-            #if self.levels < 2:
-            #    raise TypeError("\nMultigrid levels must be >= 2.\nNeed more multiples of 2 in mesh resolution." )
+            if self.levels < 2:
+                raise TypeError("\n\n\033[1;35mMultigrid levels must be >= 2.\nNeed more multiples of 2 in mesh resolution.\033[00m\n" )
 
 class OptionsMGA(Options):
     """
@@ -129,7 +129,7 @@ class OptionsMGA(Options):
         self.__dict__.clear()
         self.mg_accelerating_smoothing=False
         self.mg_smoothing_adjust_on_convergence_rate=False
-        # self.mg_accelerating_smoothing_view=True
+        self.mg_accelerating_smoothing_view=True
         self.mg_smooths_min = 1
         self.mg_smooths_max= 20
         self.mg_smooths_to_start= 1
@@ -274,8 +274,6 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         velocityField=stokesSLE._velocityField
         pressureField=stokesSLE._pressureField
         
-        self.options.mg.set_levels(field=velocityField)
-
         if not isinstance( velocityField, uw.mesh.MeshVariable):
             raise TypeError( "Provided 'velocityField' must be of 'MeshVariable' class." )
         self._velocityField = velocityField
@@ -303,7 +301,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
     ########################################################################
     ### the solve function
     ########################################################################
-    def solve(self, nonLinearIterate=None, print_stats=False, **kwargs):
+    def solve(self, nonLinearIterate=None, print_stats=False, mg_active=True, **kwargs):
         """ solve the Stokes system
         """
         Solvers.SBKSP_SetSolver(self._cself, self._stokesSLE._cself)
@@ -314,6 +312,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
 
         # Set up options string from dictionaries.
         # We set up here so that we can set/change terms on the dictionaries before we run solve
+        self.options.A11._mg_active = mg_active
         self._setup_options(**kwargs)
         petsc.OptionsClear() # reset the petsc options
         petsc.OptionsInsertString(self._optionsStr)
@@ -475,6 +474,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
     ########################################################################
     def _setup_mg(self):
         field =self._velocityField
+        self.options.mg.set_levels(field=field)
         levels=self.options.mg.levels
         mgObj=MGSolver(field,levels)
         # attach MG object to Solver struct
@@ -563,3 +563,5 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         elif 0==uw.rank():
             print( "Invalid penalty number chosen. Penalty must be a positive float." )
             
+    def _debug(self):
+        import pdb; pdb.set_trace()
