@@ -27,17 +27,7 @@ freeslip = uw.conditions.DirichletCondition(velocityField, (IWalls, JWalls))
 sol = fn.analytic.SolCx()
 stokesSystem = uw.systems.Stokes(velocityField,pressureField,sol.fn_viscosity,sol.fn_bodyforce,conditions=[freeslip,])
 #Run the BSSCR Solver
-# can optionally set penalty this way
 solver=uw.systems.Solver(stokesSystem)
-solver.options.A11.ksp_converged_reason=''
-#solver.options.mg.pc_mg_type="additive"
-#solver.options.mg.pc_mg_type="full"
-#solver.options.mg.pc_mg_type="kaskade"
-#solver.options.mg.pc_mg_type="multiplicative"
-solver.options.mg_accel.mg_accelerating_smoothing=0
-solver.options.mg_accel.mg_accelerating_smoothing_view=1
-#solver.options.main.penalty=1000.0
-#solver.options.main.help=''
 solver.solve(mg_active=False)
 stats=solver.get_stats()
 solver.print_stats()
