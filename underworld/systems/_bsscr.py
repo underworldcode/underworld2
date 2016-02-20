@@ -269,6 +269,8 @@ class StokesSolver(_stgermain.StgCompoundComponent):
             raise TypeError("Provided system must be of 'Stokes' class")
 
         self.options=OptionsGroup()
+        self.options.A11.ksp_rtol=1e-6
+
         self._stokesSLE=stokesSLE
 
         velocityField=stokesSLE._velocityField
@@ -370,7 +372,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         self._mmatrix  = sle.AssembledMatrix( pressureField, pressureField, rhs=self._junkfvector )
  
         # create assembly terms
-        self._velocMassMatTerm = sle.MassMatrixTerm( integrationSwarm=stokesSLE._gaussSwarm, assembledObject=self._vmmatrix)
+        # self._velocMassMatTerm = sle.MassMatrixTerm( integrationSwarm=stokesSLE._gaussSwarm, assembledObject=self._vmmatrix, mesh = velocityField._mesh)
         self._pressMassMatTerm = sle.MassMatrixTerm( integrationSwarm=stokesSLE._gaussSwarm, assembledObject=self._mmatrix,
                                                              mesh = velocityField._mesh)
         
@@ -404,15 +406,19 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         # if A11._mg_active is true we can still deactivate mg using its own flag
         if self.options.A11._mg_active == False:
             self.options.mg.active = self.options.A11._mg_active
+        del self.options.scr._mg_active # not currently used
         
         for key, value in self.options.main.__dict__.iteritems():
-            if key != 'penalty':
-                if value == 'bfbt':
+            if key != 'penalty': # don't add penalty to petsc options
+                if value == 'bfbt': # allowed alias
                     value = 'gtkg'
-                self._optionsStr = self._optionsStr+" "+"-"+key+" "+str(value)
+                if key != 'force_correction' or self.options.main.penalty > 0.0: # then add option
+                    if key != 'k_scale_only' or self.options.main.rescale_equations==True:
+                        self._optionsStr = self._optionsStr+" "+"-"+key+" "+str(value)
 
         for key, value in self.options.A11.__dict__.iteritems():
-            self._optionsStr = self._optionsStr+" "+"-A11_"+key+" "+str(value)
+            if key != '_mg_active':
+                self._optionsStr = self._optionsStr+" "+"-A11_"+key+" "+str(value)
 
         for key, value in self.options.scr.__dict__.iteritems():
             self._optionsStr = self._optionsStr+" "+"-scr_"+key+" "+str(value)
@@ -433,7 +439,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         else:
             self._optionsStr = self._optionsStr+" "+"-A11_"+"mg_active"+" "+"False"
 
-        if self.options.mg_accel.mg_accelerating_smoothing  and self.options.mg.active:
+        if self.options.mg_accel.mg_accelerating_smoothing and self.options.mg.active:
             for key, value in self.options.mg_accel.__dict__.iteritems():
                 if key != 'active' and key != 'levels':
                     self._optionsStr = self._optionsStr+" "+"-"+key+" "+str(str(value))
