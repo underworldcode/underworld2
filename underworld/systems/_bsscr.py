@@ -406,6 +406,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         # if A11._mg_active is true we can still deactivate mg using its own flag
         if self.options.A11._mg_active == False:
             self.options.mg.active = self.options.A11._mg_active
+        self.options.scr._mg_active=0
         del self.options.scr._mg_active # not currently used
         
         for key, value in self.options.main.__dict__.iteritems():
@@ -566,6 +567,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         """
         if isinstance(self.options.main.penalty, float) and self.options.main.penalty >= 0.0:
             self.options.main.penalty=penalty
+            self.options.main.Q22_pc_type="gkgdiag"
         elif 0==uw.rank():
             print( "Invalid penalty number chosen. Penalty must be a positive float." )
             

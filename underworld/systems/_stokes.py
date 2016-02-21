@@ -33,7 +33,7 @@ class Stokes(_stgermain.StgCompoundComponent):
         Function which reports a viscosity value. 
         Function must return scalar float values.
     fn_bodyforce : underworld.function.Function, default=None.
-        Function which reports a a body force for the system.
+        Function which reports a body force for the system.
         Function must return float values of identical dimensionality
         to the provided velocity variable.
     swarm : uw.swarm.Swarm, default=None.
