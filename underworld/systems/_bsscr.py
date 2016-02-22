@@ -83,8 +83,8 @@ class OptionsMG(Options):
                     levels += 1
                 lvls.append(levels)
             self.levels=min(lvls)
-            #if self.levels < 2:
-            #    raise TypeError("\nMultigrid levels must be >= 2.\nNeed more multiples of 2 in mesh resolution." )
+            if self.levels < 2:
+                raise TypeError("\n\n\033[1;35mMultigrid levels must be >= 2.\nNeed more multiples of 2 in mesh resolution.\033[00m\n" )
 
 class OptionsMGA(Options):
     """
@@ -129,7 +129,7 @@ class OptionsMGA(Options):
         self.__dict__.clear()
         self.mg_accelerating_smoothing=False
         self.mg_smoothing_adjust_on_convergence_rate=False
-        # self.mg_accelerating_smoothing_view=True
+        self.mg_accelerating_smoothing_view=True
         self.mg_smooths_min = 1
         self.mg_smooths_max= 20
         self.mg_smooths_to_start= 1
@@ -269,13 +269,13 @@ class StokesSolver(_stgermain.StgCompoundComponent):
             raise TypeError("Provided system must be of 'Stokes' class")
 
         self.options=OptionsGroup()
+        self.options.A11.ksp_rtol=1e-6
+
         self._stokesSLE=stokesSLE
 
         velocityField=stokesSLE._velocityField
         pressureField=stokesSLE._pressureField
         
-        self.options.mg.set_levels(field=velocityField)
-
         if not isinstance( velocityField, uw.mesh.MeshVariable):
             raise TypeError( "Provided 'velocityField' must be of 'MeshVariable' class." )
         self._velocityField = velocityField
@@ -303,7 +303,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
     ########################################################################
     ### the solve function
     ########################################################################
-    def solve(self, nonLinearIterate=None, print_stats=False, **kwargs):
+    def solve(self, nonLinearIterate=None, print_stats=False, mg_active=True, **kwargs):
         """ solve the Stokes system
         """
         Solvers.SBKSP_SetSolver(self._cself, self._stokesSLE._cself)
@@ -314,6 +314,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
 
         # Set up options string from dictionaries.
         # We set up here so that we can set/change terms on the dictionaries before we run solve
+        self.options.A11._mg_active = mg_active
         self._setup_options(**kwargs)
         petsc.OptionsClear() # reset the petsc options
         petsc.OptionsInsertString(self._optionsStr)
@@ -371,7 +372,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         self._mmatrix  = sle.AssembledMatrix( pressureField, pressureField, rhs=self._junkfvector )
  
         # create assembly terms
-        self._velocMassMatTerm = sle.MassMatrixTerm( integrationSwarm=stokesSLE._gaussSwarm, assembledObject=self._vmmatrix)
+        # self._velocMassMatTerm = sle.MassMatrixTerm( integrationSwarm=stokesSLE._gaussSwarm, assembledObject=self._vmmatrix, mesh = velocityField._mesh)
         self._pressMassMatTerm = sle.MassMatrixTerm( integrationSwarm=stokesSLE._gaussSwarm, assembledObject=self._mmatrix,
                                                              mesh = velocityField._mesh)
         
@@ -405,15 +406,20 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         # if A11._mg_active is true we can still deactivate mg using its own flag
         if self.options.A11._mg_active == False:
             self.options.mg.active = self.options.A11._mg_active
+        self.options.scr._mg_active=0
+        del self.options.scr._mg_active # not currently used
         
         for key, value in self.options.main.__dict__.iteritems():
-            if key != 'penalty':
-                if value == 'bfbt':
+            if key != 'penalty': # don't add penalty to petsc options
+                if value == 'bfbt': # allowed alias
                     value = 'gtkg'
-                self._optionsStr = self._optionsStr+" "+"-"+key+" "+str(value)
+                if key != 'force_correction' or self.options.main.penalty > 0.0: # then add option
+                    if key != 'k_scale_only' or self.options.main.rescale_equations==True:
+                        self._optionsStr = self._optionsStr+" "+"-"+key+" "+str(value)
 
         for key, value in self.options.A11.__dict__.iteritems():
-            self._optionsStr = self._optionsStr+" "+"-A11_"+key+" "+str(value)
+            if key != '_mg_active':
+                self._optionsStr = self._optionsStr+" "+"-A11_"+key+" "+str(value)
 
         for key, value in self.options.scr.__dict__.iteritems():
             self._optionsStr = self._optionsStr+" "+"-scr_"+key+" "+str(value)
@@ -434,7 +440,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         else:
             self._optionsStr = self._optionsStr+" "+"-A11_"+"mg_active"+" "+"False"
 
-        if self.options.mg_accel.mg_accelerating_smoothing  and self.options.mg.active:
+        if self.options.mg_accel.mg_accelerating_smoothing and self.options.mg.active:
             for key, value in self.options.mg_accel.__dict__.iteritems():
                 if key != 'active' and key != 'levels':
                     self._optionsStr = self._optionsStr+" "+"-"+key+" "+str(str(value))
@@ -475,6 +481,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
     ########################################################################
     def _setup_mg(self):
         field =self._velocityField
+        self.options.mg.set_levels(field=field)
         levels=self.options.mg.levels
         mgObj=MGSolver(field,levels)
         # attach MG object to Solver struct
@@ -560,6 +567,9 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         """
         if isinstance(self.options.main.penalty, float) and self.options.main.penalty >= 0.0:
             self.options.main.penalty=penalty
+            self.options.main.Q22_pc_type="gkgdiag"
         elif 0==uw.rank():
             print( "Invalid penalty number chosen. Penalty must be a positive float." )
             
+    def _debug(self):
+        import pdb; pdb.set_trace()
