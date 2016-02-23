@@ -503,52 +503,18 @@ int Journal_Firewall_Func( int expression, char* expressionText,
 */
 int Journal_Firewall_Trigger( int expression, void* _stream, char* fmt, ... ) {
    
-  // Set up error strings
-  stringstream ss;
-  ss << "Error encountered. Full restart recommended as exception safety not guaranteed. Error message:\n";
+   // Set up error strings
+   stringstream ss;
+   ss << "Error encountered. Full restart recommended as exception safety not guaranteed. Error message:\n";
 
-   int     result = 0;
-//   Stream* stream = (Stream*)_stream;
-//
-//   if( stream == NULL ) stream = Journal_Register( Error_Type, (Name)"Error Stream" );
-//
-//   /* Enforce enabling of stream because we really do want to see this */
-//   Stream_Enable( stream, True ); 
-//
-//   if( stJournal->enable && Stream_IsEnable( stream ) ) {
-      va_list ap;
-      char* fullerrorstring;
-      va_start( ap, fmt );
+   va_list ap;
+   char* fullerrorstring;
+   va_start( ap, fmt );
 
-      // copy the string into buffer
-	  Stg_vasprintf( &fullerrorstring, fmt, ap ) ;
-      ss << fullerrorstring;
-      Memory_Free(fullerrorstring);
-//
-//      Journal_Printf( stream, "\n\n-----------------------------STGERMAIN-ERROR-----------------------------\n" );
-//      result = Stream_Printf( stream, fmt, ap );
-//      Journal_Printf( stream, "\n-------------------------------------------------------------------------\n\n\n" );
-//      Stream_Flush( stream );
-
-//      va_end(ap);
-//   }
-
-
-   // new output string then throw exception
-  throw std::runtime_error( ss.str() );
-
-#if 0
-   /****** 
-    * 21 Aug 2015 - Jules
-    * Commenting out because the above runtime_error will raise the 
-    * custom underworld python exception. The following code block is no longer required.
-    *
-    * That said, the previous "unit" testing required the following pcu_assert 
-    * functionality to run tests and if necessary keep the executable from exiting
-    * upon a fail condition. 
-    *
-    * So i've left the following in a comment
-    ******/ 
+   // copy the string into buffer
+   Stg_vasprintf( &fullerrorstring, fmt, ap ) ;
+   ss << fullerrorstring;
+   Memory_Free(fullerrorstring);
 
    if( stJournal->firewallProducesAssert && !stJournal->firewallProtected ) {
       /* Use pcu_assert, so that StGermain PCU tests can check that a Firewall
@@ -559,20 +525,10 @@ int Journal_Firewall_Trigger( int expression, void* _stream, char* fmt, ... ) {
       pcu_rollback( expression );
    }
    else {
-      throw std::runtime_error("22 RuntimeError encounted, exception safety not guarenteed.\n\n"
-                      "Error message:\n\t");
-      int nProc=0;
-      MPI_Comm_size( MPI_COMM_WORLD, &nProc );
-      if ( nProc == 1 ) {
-         exit(EXIT_SUCCESS);
-      }
-      else {
-         MPI_Abort( MPI_COMM_WORLD, EXIT_SUCCESS );
-      }
+     throw std::runtime_error( ss.str() );
    }
-#endif
+   return 0;
 
-   return result;   
 }
 
 SizeT Journal_Write( void* _stream, void* data, SizeT elem_size, SizeT num_elems ) {

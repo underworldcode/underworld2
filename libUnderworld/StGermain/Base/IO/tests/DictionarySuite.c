@@ -408,15 +408,17 @@ void DictionarySuite_TestReadAllParamFromCommandLine( DictionarySuiteData* data 
 
    expectedVals[2] = Dictionary_Entry_Value_NewStruct();
    Dictionary_Entry_Value_AddMember( expectedVals[2], (Dictionary_Entry_Key)"bar", Dictionary_Entry_Value_FromDouble( 5 )  );
-   Stg_asprintf( &expectedKeys[3], "vpac" );
+   Stg_asprintf( &argv[6], "--hot.tub.times=fun");
+   Stg_asprintf( &expectedKeys[3], "hot" );
 
    expectedVals[3] = Dictionary_Entry_Value_NewStruct();
-   Dictionary_Entry_Value_AddMember( expectedVals[3], (Dictionary_Entry_Key)"csd", tmpStruct = Dictionary_Entry_Value_NewStruct()  );
-     Stg_asprintf( &argv[7], "--foo.bot=7");
+   Dictionary_Entry_Value_AddMember( expectedVals[3], (Dictionary_Entry_Key)"tub", tmpStruct = Dictionary_Entry_Value_NewStruct()  );
+   Dictionary_Entry_Value_AddMember( tmpStruct, (Dictionary_Entry_Key)"times", Dictionary_Entry_Value_FromString( "fun" )  );
+   Stg_asprintf( &argv[7], "--foo.bot=7");
    Dictionary_Entry_Value_AddMember( expectedVals[2], (Dictionary_Entry_Key)"bot", Dictionary_Entry_Value_FromDouble( 7 )  );
    Stg_asprintf( &argv[8], "--sports[]=hockey");
    Stg_asprintf( &expectedKeys[4], "sports" );
-
+   
    expectedVals[4] = Dictionary_Entry_Value_NewList();
    Dictionary_Entry_Value_AddElement( expectedVals[4], Dictionary_Entry_Value_FromString( "hockey" ) );
    Stg_asprintf( &argv[9], "--sports[]=chess");
