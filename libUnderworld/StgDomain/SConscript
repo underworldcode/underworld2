@@ -72,17 +72,7 @@ for d in dirs:
 # Need to install headers from libStgDomain.
 env.Install('include/StgDomain', Glob('libStgDomain/src/*.h'))
 
-#
-# Build plugins.
-#
-# Added an Import/export command so that items added here are added to env and can be used by other 
-# scons executables. Added it as Dictionaries so that the Toolbox ID can be preserved.
-# --KathleenHumble -20-08-2010
-
-Import('DOXYGEN_DIRS')
 pluginDirs = Split('libStgDomain/Toolbox')
-DOXYGEN_DIRS['StgDomain'] = pluginDirs
-Export('DOXYGEN_DIRS')
 
 pl_objs = []
 pl_regs = []
@@ -115,9 +105,6 @@ for d in pluginDirs:
     # Keep track of all the plugin objects.
     pl_objs += cur_objs
 
-Import('DOXYGEN_PLUGINS')
-DOXYGEN_PLUGINS['StgDomain'] = pl_objs
-Export('DOXYGEN_PLUGINS')
 #
 # Build shared library.
 #

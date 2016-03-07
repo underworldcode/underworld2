@@ -63,7 +63,7 @@ void AdvDiffMulticorrector_InitAll(
 {
    AdvDiffMulticorrector* self = (AdvDiffMulticorrector*) solver;
 
-   SLE_Solver_InitAll( self, False, 0 );
+   SLE_Solver_InitAll( self );
    _AdvDiffMulticorrector_Init( self, gamma, multiCorrectorIterations );
 }
 
@@ -173,8 +173,8 @@ void _AdvDiffMulticorrector_Solve( void* solver, void* _sle ) {
    Journal_DPrintf( sle->debug, "In func %s:\n", __func__ );
 
    /* First apply BC's */
-   FeVariable_ApplyBCs( sle->phiVector->feVariable, self->context );
-   FeVariable_ApplyBCs( sle->phiDotVector->feVariable, self->context );
+   FeVariable_ApplyBCs( sle->phiVector->feVariable, NULL );
+   FeVariable_ApplyBCs( sle->phiDotVector->feVariable, NULL );
 
    /* Put mesh data onto vectors */
    SolutionVector_LoadCurrentFeVariableValuesOntoVector( sle->phiVector );

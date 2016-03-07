@@ -100,7 +100,7 @@ Journal* Journal_New() {
    self->stdErr->fileHandle = stderr;
    self->stdErr->_opened = True;
    
-   self->firewallProducesAssert = True;
+   self->firewallProducesAssert = False;
 
    self->flushCount = 0;
    

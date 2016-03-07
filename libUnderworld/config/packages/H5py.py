@@ -73,6 +73,8 @@ class H5py(Package):
 
         try:
             import h5py
+            if not h5py.get_config().mpi:
+                raise
         except:
             import sys
             print "Can't import python module h5py" 

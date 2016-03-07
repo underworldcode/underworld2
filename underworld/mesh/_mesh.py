@@ -139,7 +139,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
     @property
     def data_elgId(self):
         """
-        (np.array): Numpy array to the global node ids
+        (np.array): Numpy array to the global element ids
         """
         uw.libUnderworld.StgDomain.Mesh_GenerateElGlobalIdVar(self._cself)
         arr = uw.libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.eGlobalIdsVar)
@@ -427,7 +427,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         globalShape = ( self.nodesGlobal, self.data.shape[1] )
         dset = h5f.create_dataset("vertices", 
                                   shape=globalShape,
-                                  dtype='float64')
+                                  dtype=self.data.dtype)
 
         local = self.nodesLocal
         # write to the dset using the global node ids
@@ -438,7 +438,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         globalShape = ( self.elementsGlobal, self.data_enMap.shape[1] )
         dset = h5f.create_dataset("en_map", 
                                   shape=globalShape,
-                                  dtype='int64')
+                                  dtype=self.data_enMap.dtype)
 
         if len(self.data_elgId) != len(self.data_enMap):
             RuntimeError("Error in mesh.data_enMap - required for h5save")

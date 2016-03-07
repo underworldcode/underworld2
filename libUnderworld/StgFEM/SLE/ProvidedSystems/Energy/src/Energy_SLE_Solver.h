@@ -32,7 +32,7 @@
 	/** Constructor */
 	void* Energy_SLE_Solver_DefaultNew( Name name );
 	
-	Energy_SLE_Solver* Energy_SLE_Solver_New( Name name, Bool useStatSolve, int statReps ) ;
+	Energy_SLE_Solver* Energy_SLE_Solver_New( Name name ) ;
 
 	/** Creation implementation / Virtual constructor */
 	
@@ -50,7 +50,7 @@
 	
 	/** Member variable initialisation */
 	void _Energy_SLE_Solver_Init( Energy_SLE_Solver* self );
-	void Energy_SLE_Solver_InitAll( Energy_SLE_Solver* solver, Bool useStatSolve, int statReps ) ;
+	void Energy_SLE_Solver_InitAll( Energy_SLE_Solver* solver ) ;
 	
 	/** Class_Delete() implementation */
 	void _Energy_SLE_Solver_Delete( void* sleSolver );

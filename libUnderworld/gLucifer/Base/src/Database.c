@@ -1204,37 +1204,20 @@ int lucDatabase_WriteGeometry(lucDatabase* self, int index, lucGeometryType type
 
    /* Prepare statement... */
    if (sqlite3_prepare_v2(db, SQL, -1, &statement, NULL) != SQLITE_OK)
-   {
-      Journal_Printf(lucError, "SQL prepare error: (%s) %s\n", SQL, sqlite3_errmsg(db));
-      abort(); //Database errors fatal?
-      return 0;
-   }
+      Journal_Firewall(0, NULL, "SQL prepare error: (%s) %s\n", SQL, sqlite3_errmsg(db));
 
    /* Setup text data for insert */
    if (block->labels)
-   {
       if (sqlite3_bind_text(statement, 1, block->labels, strlen(block->labels), SQLITE_STATIC) != SQLITE_OK)
-      {
-         Journal_Printf(lucError, "SQL bind error: %s\n", sqlite3_errmsg(db));
-         abort(); //Database errors fatal?
-         return 0;
-      }
-   }
+         Journal_Firewall(0, NULL, "SQL bind error: %s\n", sqlite3_errmsg(db));
 
    /* Setup blob data for insert */
    if (sqlite3_bind_blob(statement, 2, buffer, src_len, SQLITE_STATIC) != SQLITE_OK)
-   {
-      Journal_Printf(lucError, "SQL bind error: %s\n", sqlite3_errmsg(db));
-      abort(); //Database errors fatal?
-      return 0;
-   }
+      Journal_Firewall(0, NULL, "SQL bind error: %s\n", sqlite3_errmsg(db));
 
    /* Execute statement */
    if (sqlite3_step(statement) != SQLITE_DONE )
-   {
-      Journal_Printf(lucError, "SQL step error: (%s) %s\n", SQL, sqlite3_errmsg(db));
-      abort(); //Database errors fatal?
-   }
+      Journal_Firewall(0, NULL, "SQL step error: (%s) %s\n", SQL, sqlite3_errmsg(db));
 
    sqlite3_finalize(statement);
 
