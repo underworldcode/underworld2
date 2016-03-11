@@ -121,14 +121,14 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         libUnderworld.StgDomain.Mesh_SetGenerator(self._cself, generator._gen)
 
     @property
-    def data_enMap(self):
+    def data_elementNodes(self):
         """
-        (np.array): Numpy array to the global node ids
+        (np.array): Array specifying the nodes (global node id) for a given element (local element id).
         """
         uw.libUnderworld.StgDomain.Mesh_GenerateENMapVar(self._cself)
         arr = uw.libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.enMapVar)
         if( len(arr) % self.elementsLocal != 0 ):
-            RuntimeError("Unsupported element to node mapping for save routine"+
+            raise RuntimeError("Unsupported element to node mapping for save routine"+
                     "\nThere doesn't appear to be elements with a consistent number of nodes")
 
         # we ASSUME a constant number of nodes for each element
@@ -139,7 +139,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
     @property
     def data_elgId(self):
         """
-        (np.array): Numpy array to the global element ids
+        (np.array): Array specifying global element ids
         """
         uw.libUnderworld.StgDomain.Mesh_GenerateElGlobalIdVar(self._cself)
         arr = uw.libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.eGlobalIdsVar)
@@ -148,7 +148,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
     @property
     def data_nodegId(self):
         """
-        (np.array): Numpy array to the global node ids
+        (np.array): Array specifying global node ids
         """
         uw.libUnderworld.StgDomain.Mesh_GenerateNodeGlobalIdVar(self._cself)
         arr = uw.libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.vGlobalIdsVar)
@@ -434,18 +434,18 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         dset[self.data_nodegId[0:local],:] = self.data[0:local]
 
         # write the element node connectivity
-        self.data_enMap
-        globalShape = ( self.elementsGlobal, self.data_enMap.shape[1] )
+        self.data_elementNodes
+        globalShape = ( self.elementsGlobal, self.data_elementNodes.shape[1] )
         dset = h5f.create_dataset("en_map", 
                                   shape=globalShape,
-                                  dtype=self.data_enMap.dtype)
+                                  dtype=self.data_elementNodes.dtype)
 
-        if len(self.data_elgId) != len(self.data_enMap):
-            RuntimeError("Error in mesh.data_enMap - required for h5save")
+        if len(self.data_elgId) != len(self.data_elementNodes):
+            raise RuntimeError("Error in mesh.data_elementNodes - required for h5save")
 
         local = len(self.data_elgId)
         # write to the dset using the global node ids
-        dset[self.data_elgId[0:local],:] = self.data_enMap[0:local]
+        dset[self.data_elgId[0:local],:] = self.data_elementNodes[0:local]
 
         h5f.close()
 

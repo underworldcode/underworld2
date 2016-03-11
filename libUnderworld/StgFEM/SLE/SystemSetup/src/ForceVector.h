@@ -43,7 +43,6 @@
 	
 	ForceVector* ForceVector_New(
 		Name							name,
-		FiniteElementContext*	context,
 		FeVariable*					feVariable,
 		Dimension_Index			dim,
 		void*							entryPoint_Register,
@@ -109,7 +108,7 @@
 
 	void ForceVector_AddForceTerm( void* forceVector, void* forceTerm ) ;
 
-void ForceVector_AddModifyCallback( ForceVector* self, void* callback, void* object );
+    void ForceVector_Zero( void* forceVector ) ;
 
 #endif /* __StgFEM_SLE_SystemSetup_ForceVector_h__ */
 
