@@ -303,7 +303,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
     ########################################################################
     ### the solve function
     ########################################################################
-    def solve(self, nonLinearIterate=None, print_stats=False, mg_active=True, **kwargs):
+    def solve(self, nonLinearIterate=None, print_stats=False, **kwargs):
         """ solve the Stokes system
         """
         Solvers.SBKSP_SetSolver(self._cself, self._stokesSLE._cself)
@@ -314,7 +314,8 @@ class StokesSolver(_stgermain.StgCompoundComponent):
 
         # Set up options string from dictionaries.
         # We set up here so that we can set/change terms on the dictionaries before we run solve
-        self.options.A11._mg_active = mg_active
+        # self.options.A11._mg_active is True by default but can be changed before here via
+        # functions like set_lu
         self._setup_options(**kwargs)
         petsc.OptionsClear() # reset the petsc options
         petsc.OptionsInsertString(self._optionsStr)
@@ -401,7 +402,6 @@ class StokesSolver(_stgermain.StgCompoundComponent):
     ########################################################################
     def _setup_options(self, **kwargs):
         self._optionsStr=''
-
         # the A11._mg_active overrides the mg.active so we can set direct solve using A11 prefix
         # if A11._mg_active is true we can still deactivate mg using its own flag
         if self.options.A11._mg_active == False:
@@ -502,13 +502,9 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         """
         if solve_type=="mg":
             velocityField=self._stokesSLE._velocityField
-            #self.options.A11.clear()
-            #self.options.A11._mg_active=True
-            self.options.A11.reset()
+            self.options.A11.reset() # sets self.options.A11._mg_active=True
             self.options.mg.reset()
             self.options.mg.set_levels(field=velocityField)
-            #self.options.mg.list()
-            #self.options.A11.list()
         if solve_type=="mumps":
             self.options.A11.set_mumps()
         if solve_type=="lu":
