@@ -513,6 +513,10 @@ class StokesSolver(_stgermain.StgCompoundComponent):
             self.options.A11.set_superlu()
         if solve_type=="superludist":
             self.options.A11.set_superludist()
+        if solve_type=="nomg":
+            self.options.A11.reset()
+            self.options.mg.reset()
+            self.options.A11._mg_active=False
     
     def set_inner_rtol(self, rtol):
         self.options.A11.ksp_rtol=rtol
