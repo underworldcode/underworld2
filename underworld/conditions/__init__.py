@@ -12,4 +12,4 @@
 
 """
 
-from _dirichletCondition import DirichletCondition, _SystemCondition
+from _dirichletCondition import NeumannCondition, DirichletCondition, _SystemCondition

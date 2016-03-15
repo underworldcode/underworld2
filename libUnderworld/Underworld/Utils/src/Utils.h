@@ -16,6 +16,7 @@
    #include "XDMFGenerator.h"
 
    #include "VectorAssemblyTerm_NA__Fn.h"
+   #include "VectorSurfaceAssemblyTerm_NA__Fn__ni.h"
    #include "MatrixAssemblyTerm_NA_i__NB_i__Fn.h"
 
    #include "RBFManager.h"

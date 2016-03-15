@@ -21,11 +21,11 @@ class DirichletCondition(_SystemCondition):
     """
     The DirichletCondition class provides the required functionality to imposed Dirichlet
     conditions on your differential equation system.
-    
+
     The user is simply required to flag which nodes/DOFs should be considered by the system
-    to be a Dirichlet condition. The values at the Dirichlet nodes/DOFs is then left 
+    to be a Dirichlet condition. The values at the Dirichlet nodes/DOFs is then left
     untouched by the system.
-    
+
     Parameters
     ----------
     variable : uw.mesh.MeshVariable
@@ -40,13 +40,13 @@ class DirichletCondition(_SystemCondition):
     -----
     Note that it is necessary for the user to set the required value on the variable, possibly
     via the numpy interface.
-    
+
     Constructor must be called by collectively all processes.
 
     Example
     -------
     Basic setup and usage of Dirichlet conditions:
-    
+
     >>> linearMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.) )
     >>> velocityField = uw.mesh.MeshVariable( linearMesh, 2 )
     >>> velocityField.data[:] = [0.,0.]  # set velocity zero everywhere, which will of course include the boundaries.
@@ -54,12 +54,13 @@ class DirichletCondition(_SystemCondition):
     >>> JWalls = linearMesh.specialSets["MinJ_VertexSet"] + linearMesh.specialSets["MaxJ_VertexSet"]
     >>> freeSlipBC = uw.conditions.DirichletCondition(velocityField, (IWalls,JWalls) )  # this will give free slip sides
     >>> noSlipBC = uw.conditions.DirichletCondition(velocityField, (IWalls+JWalls,IWalls+JWalls) )  # this will give no slip sides
-    
+
     """
     _objectsDict = { "_pyvc": "PythonVC" }
     _selfObjectName = "_pyvc"
 
     def __init__(self, variable, indexSetsPerDof=None, nodeIndexSets=None):
+
         if nodeIndexSets: # Deprecate post mid 2016, remember to clean the function signture too
             raise ValueError( "Parameter 'nodeIndexSets' has been renamed to 'indexSetsPerDof'. Please use indexSetsPerDof instead" )
 
@@ -91,8 +92,9 @@ class DirichletCondition(_SystemCondition):
         for position,set in enumerate(self._indexSets):
             if set:
                 libUnderworld.StGermain._PythonVC_SetIndexSetAtArrayPosition( self._cself, set._cself, position );
-            
+
         super(DirichletCondition,self).__init__()
+
 
     def _add_to_stg_dict(self,componentDict):
         pass
@@ -100,7 +102,7 @@ class DirichletCondition(_SystemCondition):
     @property
     def indexSets(self):
         """
-        Tuple or list of IndexSet objects. One set for each degree of freedom of the associated 
+        Tuple or list of IndexSet objects. One set for each degree of freedom of the associated
         variable. These sets flag which nodes/DOFs are to be considered Dirichlet.
         """
         return self._indexSets
@@ -112,3 +114,50 @@ class DirichletCondition(_SystemCondition):
         """
         return self._variable
 
+class NeumannCondition(DirichletCondition):
+    def __init__(self, gradientField, **kwargs ):
+        # call parent
+        super(NeumannCondition,self).__init__(**kwargs)
+
+        # if not isinstance( gradientField, uw.mesh.MeshVariable ):
+        #     raise TypeError("Error: a NeumannCondition has been without a 'gradientField'")
+        self._gradientField = gradientField
+
+    def addMe(self, vector ):
+
+        ##### Build everything for the VectorSurfaceAssemblyTerm_NA__Fn__ni.
+        # 1) a gauss border swarm
+        # 2) a mask function to only evaluate the fn_flux only on the nodes specified in fluxCond.indexSets
+        #####
+        mesh     = self.variable.mesh
+
+        ncs      = uw.mesh.FeMesh_IndexSet( mesh, topologicalIndex=0, size=mesh.nodesGlobal )
+        # record nodes within the condition
+        for ii in self.indexSets:
+            if ii:
+                ncs.add( ii )
+
+        alanBorderGaussSwarm = uw.swarm.GaussBorderIntegrationSwarm( mesh=mesh, particleCount=2 )
+        deltaMeshVariable = uw.mesh.MeshVariable(mesh, 1)
+        # set to 1 on provided vertices and 0 elsewhere
+        deltaMeshVariable.data[:] = 0.
+        deltaMeshVariable.data[ncs.data] = 1.
+        # note we use this condition to only capture border swarm particles
+        # on the surface itself. for those directly adjacent, the deltaMeshVariable will evaluate
+        # to non-zero (but less than 1.), so we need to remove those from the integration as well.
+        maskFn = uw.function.branching.conditional(
+                                          [  ( deltaMeshVariable > 0.999, 1. ),
+                                             (                      True, 0. )   ] )
+
+        # check if vector is correct object
+        return uw.systems.sle.VectorSurfaceAssemblyTerm_NA__Fn__ni(
+                                                    integrationSwarm = alanBorderGaussSwarm,
+                                                    assembledObject  = vector,
+                                                    fluxCond         = self )
+
+    @property
+    def gradientField(self):
+        """
+        Gradient Field for which this condition applies.
+        """
+        return self._gradientField

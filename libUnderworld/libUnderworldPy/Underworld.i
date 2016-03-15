@@ -65,4 +65,5 @@ extern "C" {
 
 %include "Utils/Fn_Integrate.h"
 %include "Utils/VectorAssemblyTerm_NA__Fn.h"
+%include "Utils/VectorSurfaceAssemblyTerm_NA__Fn__ni.h"
 %include "Utils/MatrixAssemblyTerm_NA_i__NB_i__Fn.h"

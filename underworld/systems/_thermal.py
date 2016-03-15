@@ -15,12 +15,12 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
     """
     This class provides functionality for a discrete representation
     of the steady state heat equation.
-    
+
     The class uses a standard Galerkin finite element method to
-    construct a system of linear equations which may then be solved 
+    construct a system of linear equations which may then be solved
     using an object of the underworld.system.Solver class.
-    
-    The underlying element types are determined by the supporting 
+
+    The underlying element types are determined by the supporting
     mesh used for the 'temperatureField'.
 
     .. math::
@@ -34,9 +34,11 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
     temperatureField : underworld.mesh.MeshVariable
         The solution field for temperature.
     fn_diffusivity : underworld.function.Function
-        The conductivy function that defines the diffusivity across the domain.
+        The function that defines the diffusivity across the domain.
     fn_heating : underworld.function.Function, default=0.
         The heating function that defines the heating across the domain.
+    fn_flux : underworld.function.Function, default=None.
+        The function that defines the the temperature flux along the domain boundary
 
     Notes
     -----
@@ -45,7 +47,7 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
     Example
     -------
     Setup a basic thermal system:
-    
+
     >>> linearMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.) )
     >>> tField = uw.mesh.MeshVariable( linearMesh, 1 )
     >>> topNodes = linearMesh.specialSets["MaxJ_VertexSet"]
@@ -59,7 +61,7 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
     _objectsDict = {  "_system" : "SystemLinearEquations" }
     _selfObjectName = "_system"
 
-    def __init__(self, temperatureField, fn_diffusivity=None, fn_heating=0., swarm=None, conditions=[], conductivityFn=None, heatingFn=None, rtolerance=None, **kwargs):
+    def __init__(self, temperatureField, fn_diffusivity=None, fn_heating=0., fn_flux=None, swarm=None, conditions=[], conductivityFn=None, heatingFn=None, rtolerance=None, **kwargs):
         if conductivityFn:
             raise RuntimeError("Note that the 'conductivityFn' parameter has been renamed to 'fn_diffusivity'.")
         if heatingFn:
@@ -90,18 +92,36 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
 
         if not isinstance(conditions, (uw.conditions._SystemCondition, list, tuple) ):
             raise TypeError( "Provided 'conditions' must be a list '_SystemCondition' objects." )
-        if len(conditions) > 1:
-            raise ValueError( "Multiple conditions are not currently supported." )
+
+        # error check dcs 'dirichlet conditions' and ncs 'neumann cond.' FeMesh_IndexSets
+        fluxCond = None
+        mesh     = temperatureField.mesh
+        ncs      = uw.mesh.FeMesh_IndexSet( mesh, topologicalIndex=0, size=mesh.nodesGlobal )
+        dcs      = uw.mesh.FeMesh_IndexSet( mesh, topologicalIndex=0, size=mesh.nodesGlobal )
+
         for cond in conditions:
             if not isinstance( cond, uw.conditions._SystemCondition ):
                 raise TypeError( "Provided 'conditions' must be a list '_SystemCondition' objects." )
-            # set the bcs on here.. will rearrange this in future. 
-            if cond.variable == self._temperatureField:
-                libUnderworld.StgFEM.FeVariable_SetBC( self._temperatureField._cself, cond._cself )
+            # set the bcs on here
+            if type( cond ) == uw.conditions.DirichletCondition:
+                if cond.variable == temperatureField:
+                    libUnderworld.StgFEM.FeVariable_SetBC( temperatureField._cself, cond._cself )
+                # add all dirichlet condition to dcs
+                dcs.add( cond.indexSets[0] )
+            elif type( cond ) == uw.conditions.NeumannCondition:
+                ncs.add( cond.indexSets[0] )
+                fluxCond=cond
+            else:
+                raise RuntimeError("Can't decide on input condition")
+
+        # check if condition definitions occur on the same nodes: error conditions presently
+        should_be_empty = dcs & ncs
+        if should_be_empty.count > 0:
+            raise ValueError("It appears both Neumann and Dirichlet conditions have been specified the following nodes\n" +
+                    "This is untested and we have disabled it for now.", should_be_empty.data)
 
         # ok, we've set some bcs, lets recreate eqnumbering
-        libUnderworld.StgFEM._FeVariable_CreateNewEqnNumber( self._temperatureField._cself )
-        self._conditions = conditions
+        libUnderworld.StgFEM._FeVariable_CreateNewEqnNumber( temperatureField._cself )
 
         # create solutions vector
         self._solutionVector = sle.SolutionVector(temperatureField)
@@ -113,7 +133,7 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
         self._kmatrix = sle.AssembledMatrix( temperatureField, temperatureField, rhs=self._fvector )
 
         # create swarm
-        self._gaussSwarm = uw.swarm.GaussIntegrationSwarm(self._temperatureField.mesh)
+        self._gaussSwarm = uw.swarm.GaussIntegrationSwarm(mesh)
         self._PICSwarm = None
         if self._swarm:
             self._PICSwarm = uw.swarm.PICIntegrationSwarm(self._swarm)
@@ -127,6 +147,31 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
         self._forceVecTerm = sle.VectorAssemblyTerm_NA__Fn(   integrationSwarm=swarmguy,
                                                               assembledObject=self._fvector,
                                                               fn=fn_heating)
+        # prepare fluxConditions
+        if fluxCond:
+            self._fvector = fluxCond.addMe( self, self._fvector )
+
+    #         ##### Build everything for the VectorSurfaceAssemblyTerm_NA__Fn__ni.
+    #         # 1) a gauss border swarm
+    #         # 2) a mask function to only evaluate the fn_flux only on the nodes specified in fluxCond.indexSets
+    #         #####
+       #
+    #         alanBorderGaussSwarm = uw.swarm.GaussBorderIntegrationSwarm( mesh=mesh, particleCount=2 )
+    #         deltaMeshVariable = uw.mesh.MeshVariable(mesh, 1)
+    #         # set to 1 on provided vertices and 0 elsewhere
+    #         deltaMeshVariable.data[:] = 0.
+    #         deltaMeshVariable.data[fluxCond.indexSets[0].data] = 1.
+    #         # note we use this condition to only capture border swarm particles
+    #         # on the surface itself. for those directly adjacent, the deltaMeshVariable will evaluate
+    #         # to non-zero (but less than 1.), so we need to remove those from the integration as well.
+    #         maskFn = uw.function.branching.conditional(
+    #                                           [  ( deltaMeshVariable > 0.999, 1. ),
+    #                                              (                      True, 0. )   ] )
+       #
+    #         self._surfaceFluxTerm = sle.VectorSurfaceAssemblyTerm_NA__Fn__ni(
+    #                                                     integrationSwarm = alanBorderGaussSwarm,
+    #                                                     assembledObject  = self._fvector,
+    #                                                     fluxCond         = fluxCond )
         super(SteadyStateHeat, self).__init__(**kwargs)
 
     def _setup(self):
@@ -175,4 +220,3 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
     @fn_heating.setter
     def fn_heating(self, value):
         self._forceVecTerm.fn = value
-

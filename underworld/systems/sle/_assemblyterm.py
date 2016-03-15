@@ -25,7 +25,7 @@ class AssemblyTerm(_stgermain.StgCompoundComponent):
             raise TypeError("'integrationSwarm' object passed in must be of type 'IntegrationSwarm'")
         self._integrationSwarm = integrationSwarm
         self._extraInfo = extraInfo
-        
+
         self._fn = None
         self._set_fn_function = None
 
@@ -81,6 +81,39 @@ class MatrixAssemblyTerm(AssemblyTerm):
             componentDictionary[ self._cself.name ]["StiffnessMatrix"] = self._assembledObject._cself.name
 
 
+class VectorSurfaceAssemblyTerm_NA__Fn__ni(VectorAssemblyTerm):
+    """
+    Assembly term for a Neumann condition
+    """
+    _objectsDict = { "_assemblyterm": "VectorSurfaceAssemblyTerm_NA__Fn__ni" }
+
+    def __init__(self, fluxCond, mesh=None, **kwargs):
+        """
+        """
+        # build parent
+        super(VectorSurfaceAssemblyTerm_NA__Fn__ni,self).__init__(**kwargs)
+
+        if not isinstance(fluxCond, uw.conditions.NeumannCondition):
+            raise ValueError( "Provided 'fluxCond' must be a NeumannCondition class." )
+        self._fluxCond = fluxCond
+
+        self._fn = fluxCond.gradientField
+        self._set_fn_function = libUnderworld.Underworld._VectorSurfaceAssemblyTerm_NA__Fn__ni_SetFn
+
+        # pass the NeumannConditions to the SurfaceAssemblyTerm so it knows which nodes to assemble the flux contribution
+        libUnderworld.Underworld._VectorSurfaceAssemblyTerm_SetBNodes( self._cself, self._fluxCond._cself )
+
+        if mesh:
+            if not isinstance( mesh, uw.mesh.FeMesh_Cartesian ):
+                raise TypeError( "The provided mesh must be of FeMesh_Cartesian class.")
+            # set directly
+            self._cself.geometryMesh = mesh._cself
+            self._mesh = mesh
+
+    def _add_to_stg_dict(self,componentDictionary):
+        # call parents method
+        super(VectorSurfaceAssemblyTerm_NA__Fn__ni,self)._add_to_stg_dict(componentDictionary)
+
 class VectorAssemblyTerm_NA__Fn(VectorAssemblyTerm):
     """
     """
@@ -94,7 +127,7 @@ class VectorAssemblyTerm_NA__Fn(VectorAssemblyTerm):
 
         self._set_fn_function = libUnderworld.Underworld._VectorAssemblyTerm_NA__Fn_SetFn
         self._fn = fn
-        
+
         if mesh:
             if not isinstance( mesh, uw.mesh.FeMesh_Cartesian ):
                 raise TypeError( "The provided mesh must be of FeMesh_Cartesian class.")
@@ -171,7 +204,7 @@ class AdvDiffResidualVectorTerm(VectorAssemblyTerm):
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method
         super(AdvDiffResidualVectorTerm,self)._add_to_stg_dict(componentDictionary)
-        
+
         componentDictionary[ self._cself.name ][     "VelocityField"] = self._velocityField._cself.name
         componentDictionary[ self._cself.name ][  "UpwindXiFunction"] = "DoublyAsymptoticAssumption"
 
@@ -191,4 +224,3 @@ class MassMatrixTerm(MatrixAssemblyTerm):
         super(MassMatrixTerm,self)._add_to_stg_dict(componentDictionary)
         #Need GeometryMesh to to be able to calculate detJac in PressureMatrixTerm function
         componentDictionary[ self._cself.name ]["GeometryMesh"] = self._mesh._cself.name
-
