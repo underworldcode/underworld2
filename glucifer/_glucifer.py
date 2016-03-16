@@ -332,7 +332,8 @@ class Figure(_stgermain.StgCompoundComponent):
             else:
                 frontpart = absfilename
             finaloutFile = frontpart+splitgenfilename[1]
-            os.rename(generatedFilename,finaloutFile)
+            import shutil
+            shutil.move(generatedFilename,finaloutFile)
             return finaloutFile
 
     def save_database(self,filename,regen=True):
