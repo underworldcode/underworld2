@@ -128,7 +128,8 @@ void _CoincidentMapper_Map( void* mapper ) {
 				"coord to a valid element local coordinate.\n"
                 "Particle coord was (%.3f,%.3f,%.3f).\n"
 				"Conversion to local coord was (%.4f,%.4f,%.4f).\n"
-                "Note that this error can occur when the mesh is overly deformed.",
+                "Note that this error can occur when the mesh is overly deformed,\n"
+                "or when you have deformed the mesh but not updated swarm particle ownerships.",
 				__func__, particle_lI, cell_dI, materialSwarm->name, materialSwarm->type,
 				materialPoint->coord[0], materialPoint->coord[1], materialPoint->coord[2],
                 integrationPoint->xi[0], integrationPoint->xi[1], integrationPoint->xi[2] );
