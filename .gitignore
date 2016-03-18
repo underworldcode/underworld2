@@ -36,6 +36,8 @@ libUnderworld/libUnderworldPy/gLucifer.py
 libUnderworld/libUnderworldPy/petsc.py
 libUnderworld/libUnderworldPy/LavaVu.py
 testResults
+docs/scratch
+
 
 # switch to regexp syntax.
 syntax: regexp
