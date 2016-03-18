@@ -87,11 +87,11 @@ class stress_limiting_viscosity(_Function):
     def __init__(self, fn_stress, fn_stresslimit, fn_inputviscosity, stressFn=None, stressLimitFn=None, inputViscosityFn=None, *args, **kwargs):
 
         # DEPRECATE 1/16
-        if stressFn:
+        if stressFn != None:
             raise RuntimeError("Note that the 'stressFn' parameter has been renamed to 'fn_stress'.")
-        if stressLimitFn:
+        if stressLimitFn != None:
             raise RuntimeError("Note that the 'stressLimitFn' parameter has been renamed to 'fn_stresslimit'.")
-        if inputViscosityFn:
+        if inputViscosityFn != None:
             raise RuntimeError("Note that the 'inputViscosityFn' parameter has been renamed to 'fn_inputviscosity'.")
 
         _fn_stress = _Function._CheckIsFnOrConvertOrThrow(fn_stress)
