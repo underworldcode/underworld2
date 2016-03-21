@@ -12,9 +12,9 @@ config.*
 build
 testLogs
 *.pyc
-*.cfg 
+*.cfg
 .DS_Store
-*.dblite         #  
+*.dblite         #
 *.orig
 *.bak
 :memory
@@ -37,6 +37,11 @@ libUnderworld/libUnderworldPy/petsc.py
 libUnderworld/libUnderworldPy/LavaVu.py
 testResults
 docs/scratch
+
+# We should probably not cache the output of all the examples - especially if we are going to leave the
+# notebook output cells in place. 
+
+docs/examples/SimpleShear2D
 
 
 # switch to regexp syntax.
