@@ -11,8 +11,6 @@
 #ifndef __StgDomain_Utils_SobolGenerator_h__
 #define __StgDomain_Utils_SobolGenerator_h__
 
-	extern int SobolGeneratorGeneratorCount;
-
 	/** Textual name of this class */
 	extern const Type SobolGenerator_Type;
 	
@@ -30,14 +28,14 @@
 		unsigned int *      directionalNumberList;                \
 		unsigned int        directionalNumbersAlloced;            \
 		unsigned int        lastCalculated_I;                     \
-		unsigned int        lastCalculatedNumber;                 \
+		unsigned int        lastCalculatedNumber;
 
 
 	struct SobolGenerator { __SobolGenerator };	
 
 	/** Public constructor */
-	SobolGenerator* SobolGenerator_NewFromTable( Name name ) ;
-	
+    SobolGenerator* SobolGenerator_NewFromTable( Name name, unsigned int generatorIndex ) ;
+
 	SobolGenerator* SobolGenerator_New( 
 			Name                                               name,
 			unsigned int                                       polynomialDegree,
@@ -81,8 +79,6 @@
 
 	double SobolGenerator_GetNextNumber_WithMinMax( void* sobolGenerator, double min, double max ) ;
 	double SobolGenerator_GetNumberByIndex_WithMinMax( void* sobolGenerator, unsigned int index, double min, double max ) ;
-
-    void _ZeroSobolGeneratorGeneratorCount();
 
 #endif /* __StgDomain_Utils_SobolGenerator_h__ */
 

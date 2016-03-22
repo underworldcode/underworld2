@@ -73,10 +73,10 @@ void _SpaceFillerParticleLayout_Init(
 	self->isConstructed = True;
 	self->dim           = dim;
 
-	self->sobolGenerator[I_AXIS] = SobolGenerator_NewFromTable( "xSobolGenerator" );
-	self->sobolGenerator[J_AXIS] = SobolGenerator_NewFromTable( "ySobolGenerator" );
+	self->sobolGenerator[I_AXIS] = SobolGenerator_NewFromTable( "xSobolGenerator", 0 );
+	self->sobolGenerator[J_AXIS] = SobolGenerator_NewFromTable( "ySobolGenerator", 1 );
 	if ( dim == 3 )
-		self->sobolGenerator[K_AXIS] = SobolGenerator_NewFromTable( "zSobolGenerator" );
+		self->sobolGenerator[K_AXIS] = SobolGenerator_NewFromTable( "zSobolGenerator", 2 );
 
 	/* Must set one or the other. Fail if both set, or none */
 	Journal_Firewall( 
