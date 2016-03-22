@@ -47,6 +47,13 @@ const Type PCDVC_Type = "PCDVC";
 /*----------------------------------------------------------------------------------------------------------------------------------
 ** Constructors
 */
+void PCDVC_Firewall( int nump, int lCell_I, char* funcguy )
+{
+    Journal_Firewall( nump , NULL, "Something went wrong in %s: Problem has an under resolved cell (Cell Id = %d).\n"
+                                   "You may need to check your initial particle layout configuration. A per cell layout might give better results than a global layout, "
+                                   "especially where you have a deformed mesh. Also, if particles are able to escape the domain, you can enable aggressive population "
+                                   "control by setting the 'particleEscape' swarm constructor parameter.", funcguy, lCell_I );
+}
 
 PCDVC* PCDVC_New(
 	Name						name,
@@ -362,8 +369,7 @@ void _PCDVC_Calculate3D( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ) {
 
     nump_orig = nump = cParticleCount = intSwarm->cellParticleCountTbl[lCell_I];
 
-    Journal_Firewall( nump , Journal_Register( Error_Type, (Name)"PCDVC" ), "Error in %s: Problem has an under resolved cell (Cell Id = %d), add more particles to your model.\n"
-                                                                            "If you haven't already, you might also consider enabling more aggressive population control by setting 'Inflow' to true for this PCDVC component.\n", __func__, lCell_I );
+    PCDVC_Firewall( nump, lCell_I, __func__ );
 
     dx = (BBXMAX - BBXMIN)/numx;
     dy = (BBYMAX - BBYMIN)/numy;
@@ -508,8 +514,7 @@ void _PCDVC_Calculate3D( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ) {
             free(particle);
 
             if(nump < 3){
-                Journal_Firewall( nump , Journal_Register( Error_Type, (Name)"PCDVC" ), "Something went horribly wrong in %s: Problem has an under resolved cell (Cell Id = %d), check or tune your population control parameters.\n"
-                                                                            "If you haven't already, you might also consider enabling more aggressive population control by setting 'Inflow' to true for this PCDVC component.\n", __func__, lCell_I );
+                PCDVC_Firewall( nump, lCell_I, __func__ );
                 Journal_Printf(Journal_Register( Info_Type, (Name)intSwarm->type  ),"WARNING in %s: There are only %d particles in cell (Cell Id=%d)",__func__, nump, lCell_I);
             }
             // init the data structures
@@ -644,8 +649,7 @@ void _PCDVC_Calculate3D( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ) {
         free(particle);
 
         if(nump < 3){
-            Journal_Firewall( nump , Journal_Register( Error_Type, (Name)"PCDVC" ), "Something went horribly wrong in %s: Problem has an under resolved cell (Cell Id = %d), check or tune your population control parameters.\n"
-                                                                            "If you haven't already, you might also consider enabling more aggressive population control by setting 'Inflow' to true for this PCDVC component.\n", __func__, lCell_I );
+            PCDVC_Firewall( nump, lCell_I, __func__ );
             Journal_Printf(Journal_Register( Info_Type, (Name)intSwarm->type  ),"WARNING in %s: There are only %d particles in cell (Cell Id=%d)",__func__, nump, lCell_I);
         }
         // init the data structures
@@ -762,8 +766,8 @@ void _PCDVC_Calculate2D( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ) {
 
     nump_orig = nump = cParticleCount = intSwarm->cellParticleCountTbl[lCell_I];
 
-    Journal_Firewall( nump , Journal_Register( Error_Type, (Name)"PCDVC" ), "Error in %s: Problem has an under resolved cell (Cell Id = %d), add more particles to your model.\n"
-                                                                            "If you haven't already, you might also consider enabling more aggressive population control by setting 'Inflow' to true for this PCDVC component.\n", __func__, lCell_I );
+    PCDVC_Firewall( nump, lCell_I, __func__ );
+    
     dx = (BBXMAX - BBXMIN)/numx;
     dy = (BBYMAX - BBYMIN)/numy;
     da = dx*dy;
@@ -907,8 +911,7 @@ void _PCDVC_Calculate2D( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ) {
             free(particle);
 
             if(nump < 3){
-                Journal_Firewall( nump , Journal_Register( Error_Type, (Name)"PCDVC" ), "Something went horribly wrong in %s: Problem has an under resolved cell (Cell Id = %d), check or tune your population control parameters.\n"
-                                                                            "If you haven't already, you might also consider enabling more aggressive population control by setting 'Inflow' to true for this PCDVC component.\n", __func__, lCell_I );
+                PCDVC_Firewall( nump, lCell_I, __func__ );
                 Journal_Printf(Journal_Register( Info_Type, (Name)intSwarm->type  ),"WARNING in %s: There are only %d particles in cell (Cell Id=%d)",__func__, nump, lCell_I);
             }
             // init the data structures
@@ -1039,8 +1042,7 @@ void _PCDVC_Calculate2D( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ) {
     if(delete_flag || split_flag ){/* then we need to redo the Voronoi diagram */
         free(particle);
         if(nump < 3){
-            Journal_Firewall( 0 , Journal_Register( Error_Type, (Name)"PCDVC" ), "Something went horribly wrong in %s: Problem has an under resolved cell (Cell Id = %d), check or tune your population control parameters.\n"
-                                                                            "If you haven't already, you might also consider enabling more aggressive population control by setting 'Inflow' to true for this PCDVC component.\n", __func__, lCell_I );
+            PCDVC_Firewall( nump, lCell_I, __func__ );
         }
         particle = (IntegrationPoint**)malloc((nump)*sizeof(IntegrationPoint*));
         // init the data structures
