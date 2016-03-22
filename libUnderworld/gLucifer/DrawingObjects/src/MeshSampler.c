@@ -81,7 +81,6 @@ void* _lucMeshSampler_DefaultNew( Name name )
 void _lucMeshSampler_AssignFromXML( void* drawingObject, Stg_ComponentFactory* cf, void* data )
 {
    lucMeshSampler*         self               = (lucMeshSampler*)drawingObject;
-   Index                  defaultRes;
 
    self->elementRes[I_AXIS] = Dictionary_GetInt( cf->rootDict, (Dictionary_Entry_Key)"elementResI"  );
    self->elementRes[J_AXIS] = Dictionary_GetInt( cf->rootDict, (Dictionary_Entry_Key)"elementResJ"  );

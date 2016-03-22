@@ -161,8 +161,6 @@ void _lucEigenvectorsCrossSection_Destroy( void* drawingObject, void* data ) {}
 void _lucEigenvectorsCrossSection_Draw( void* drawingObject, lucDatabase* database, void* _context )
 {
    lucEigenvectorsCrossSection*       self            = (lucEigenvectorsCrossSection*)drawingObject;
-   DomainContext*            context         = (DomainContext*) _context;
-
    _lucEigenvectorsCrossSection_DrawCrossSection( self, database);
 }
 

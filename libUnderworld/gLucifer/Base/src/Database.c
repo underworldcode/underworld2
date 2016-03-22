@@ -391,7 +391,7 @@ void lucDatabase_Dump(void* database)
       double wtime = MPI_Wtime();
       lucDatabase_Commit(self);
       wtime = MPI_Wtime() - wtime;
-      Journal_Printf(lucInfo, "    Transaction took %f seconds\n", wtime);
+      Journal_Printf(lucDebug, "    Transaction took %f seconds\n", wtime);
    }
 
    /* Skip if image output disabled or no script not found */
@@ -406,7 +406,7 @@ void lucDatabase_Dump(void* database)
             self->dump_script, self->dbPath,
             (self->transparent ? "-t " : ""), self->timeStep, self->path );
 
-   Journal_Printf(lucInfo, "Dump command: %s\n", dumpcmd);
+   Journal_Printf(lucDebug, "Dump command: %s\n", dumpcmd);
 
 
    if (!self->blocking)
@@ -470,7 +470,6 @@ void lucDatabase_OutputWindow(lucDatabase* self, void* _window)
    if (lucDatabase_BeginTransaction(self))
    {
       /* Save the window */
-      float *min, *max;
       if (window->useModelBounds)
       {
          snprintf(SQL, MAX_QUERY_LEN, "insert into window (name, width, height, colour, minX, minY, minZ, maxX, maxY, maxZ) values ('%s', %d, %d, %d, %g, %g, %g, %g, %g, %g)", 
@@ -489,7 +488,7 @@ void lucDatabase_OutputWindow(lucDatabase* self, void* _window)
       if (!lucDatabase_IssueSQL(self->db, SQL)) return;
       id = sqlite3_last_insert_rowid(self->db);
 
-      Journal_Printf(lucInfo, "Window: %s, id %d\n", window->name, id);
+      Journal_Printf(lucDebug, "Window: %s, id %d\n", window->name, id);
 
       viewport_I = 0;
       verticalCount = window->viewportLayout[0];
@@ -538,7 +537,7 @@ void lucDatabase_OutputViewport(lucDatabase* self, lucViewport* viewport, int wi
    /* Return viewport id */
    id = sqlite3_last_insert_rowid(self->db);
 
-   Journal_Printf(lucInfo, "   Viewport: %s id %d\n", viewport->name, id);
+   Journal_Printf(lucDebug, "   Viewport: %s id %d\n", viewport->name, id);
 
    /* Output object links */
    for ( object_I = 0 ; object_I < objectCount ; object_I++ )
@@ -571,7 +570,7 @@ void lucDatabase_OutputDrawingObject(lucDatabase* self, lucViewport* viewport, l
 
       /* Save object id */
       object->id = sqlite3_last_insert_rowid(self->db);
-      Journal_Printf(lucInfo, "      Drawing object: %s %s id %d\n", object->name, object->type, object->id);
+      Journal_Printf(lucDebug, "      Drawing object: %s %s id %d\n", object->name, object->type, object->id);
 
       /* Save colour maps */
       if (object->colourMap)
@@ -581,7 +580,6 @@ void lucDatabase_OutputDrawingObject(lucDatabase* self, lucViewport* viewport, l
       if (object->type == lucSwarmViewer_Type || object->type == lucSwarmVectors_Type || 
           object->type == lucSwarmShapes_Type || object->type == lucSwarmRGBColourViewer_Type)
       {
-         lucSwarmViewer* svobj = (lucSwarmViewer*)object;
          /* Only RGB viewer supports these for now */
          if (object->type == lucSwarmRGBColourViewer_Type)
          {
@@ -611,7 +609,7 @@ void lucDatabase_OutputColourMap(lucDatabase* self, lucColourMap* colourMap, luc
       /* Save id */
       colourMap->id = sqlite3_last_insert_rowid(self->db);
 
-      Journal_Printf(lucInfo, "         ColourMap: %s, id %d\n", colourMap->name, colourMap->id);
+      Journal_Printf(lucDebug, "         ColourMap: %s, id %d\n", colourMap->name, colourMap->id);
 
       /* Write colours and values */
       for (colour_I=0; colour_I < colourMap->colourCount; colour_I++)
@@ -628,7 +626,7 @@ void lucDatabase_OutputColourMap(lucDatabase* self, lucColourMap* colourMap, luc
    }
 
    /* Add reference for object */
-   Journal_Printf(lucInfo, "         Linking colourMap: %s to object %s\n", colourMap->name, object->name);
+   Journal_Printf(lucDebug, "         Linking colourMap: %s to object %s\n", colourMap->name, object->name);
    /* Link object & colour map */
    snprintf(SQL, MAX_QUERY_LEN, "insert into object_colourmap (object_id, colourmap_id, data_type) values (%d, %d, %d)", object->id, colourMap->id, type); 
    /*printf("%s\n", SQL);*/
@@ -654,7 +652,7 @@ void lucDatabase_OutputGeometry(lucDatabase* self, int object_id)
    unsigned int procs = self->nproc;
    unsigned int bytes = 0, outbytes = 0;
    double time, gtotal = 0, wtotal = 0;
-   //Journal_Printf(lucInfo, "gLucifer: writing geometry to database ...\n");
+   //Journal_Printf(lucDebug, "gLucifer: writing geometry to database ...\n");
 
    /* Write geometry to database */
    time = MPI_Wtime();
@@ -695,9 +693,9 @@ void lucDatabase_OutputGeometry(lucDatabase* self, int object_id)
    if (bytes > 0)
    {
       if (self->nproc > 1)
-         Journal_Printf(lucInfo, "    Gather data, took %f sec\n", gtotal);
+         Journal_Printf(lucDebug, "    Gather data, took %f sec\n", gtotal);
       if (self->rank == 0 && self->splitTransactions)
-         Journal_Printf(lucInfo, "    Transaction took %f seconds\n", wtotal);
+         Journal_Printf(lucDebug, "    Transaction took %f seconds\n", wtotal);
       Journal_Printf(lucInfo, "    %.3f kb of geometry data saved, %.3f kb written.\n", bytes/1000.0f, outbytes/1000.0f);
    }
 
@@ -772,7 +770,7 @@ void lucDatabase_GatherGeometry(lucDatabase* self, lucGeometryType type, lucGeom
       /* (keep dimcoeff and units from root proc) */
       if (self->rank == 0)
       {
-         //Journal_Printf(lucInfo, "Gathered %d values, took %f sec\n", total, MPI_Wtime() - time);
+         //Journal_Printf(lucDebug, "Gathered %d values, took %f sec\n", total, MPI_Wtime() - time);
          /* Add new data on master */
          for (p=1; p<self->nproc; p++)
          {
@@ -1042,7 +1040,7 @@ void lucDatabase_OpenDatabase(lucDatabase* self)
       {
          strcpy(self->path, "file:glucifer_database?mode=memory&cache=shared");
          flags = flags | SQLITE_OPEN_URI;
-         Journal_Printf(lucInfo, "Defaulting to memory database: %s\n", self->path);
+         Journal_Printf(lucDebug, "Defaulting to memory database: %s\n", self->path);
       }
 
       if (sqlite3_open_v2(self->path, &self->db, flags, self->vfs))
@@ -1151,7 +1149,7 @@ void lucDatabase_AttachDatabase(lucDatabase* self)
       self->db2 = NULL;
       return;
    }
-   Journal_Printf(lucInfo, "Database file %s opened\n", path);
+   Journal_Printf(lucDebug, "Database file %s opened\n", path);
 }
 
 void lucDatabase_DeleteGeometry(lucDatabase* self, int start_timestep, int end_timestep)
