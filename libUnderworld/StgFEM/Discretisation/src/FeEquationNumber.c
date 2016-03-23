@@ -394,17 +394,7 @@ void FeEquationNumber_BuildLocationMatrix( void* feEquationNumber ) {
 /** Build an element's local location matrix */
 Dof_EquationNumber** FeEquationNumber_BuildOneElementLocationMatrix( void* feEquationNumber, Element_LocalIndex lElement_I ) {
    FeEquationNumber* self = (FeEquationNumber*)feEquationNumber;
-   /* Node_DomainIndex elLocalNode_I; */
-   Node_DomainIndex numNodesThisElement, *elInc;
    Dof_EquationNumber** localLocationMatrix = NULL;
-   FeMesh* feMesh = self->feMesh;
-   /* Dof_Index numDofsThisNode = 0; */
-   IArray* inc;
-
-   inc = IArray_New();
-   FeMesh_GetElementNodes( feMesh, lElement_I, inc );
-   numNodesThisElement = IArray_GetSize( inc );
-   elInc = IArray_GetPtr( inc );
 
    /* HACK: Make sure global element location matrix is built. */
    if( !self->locationMatrixBuilt )
@@ -415,10 +405,10 @@ Dof_EquationNumber** FeEquationNumber_BuildOneElementLocationMatrix( void* feEqu
       /* set ptr to correct set of local nodes ptrs */
       localLocationMatrix = self->locationMatrix[lElement_I];
       Journal_DPrintfL( self->debugLM, 3, "set localLocationMatrix to pt. to big LM[%d] = %p\n",  lElement_I, self->locationMatrix[lElement_I] ) ;
+   } else {
+       /* ugly exit */
+       abort();
    }
-
-
-   Stg_Class_Delete( inc );
 
    return localLocationMatrix;
 }

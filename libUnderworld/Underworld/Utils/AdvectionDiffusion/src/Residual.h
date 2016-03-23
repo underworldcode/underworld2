@@ -19,15 +19,8 @@ extern "C++" {
 #include <Underworld/Function/Function.hpp>
 #include <Underworld/Function/FEMCoordinate.hpp>
 #include "Underworld/Utils/AdvectionDiffusion/AdvectionDiffusionSLE.h"
-/*
-    struct SUPGVectorTerm_NA__Fn_cppdata
-    {
-        Fn::Function* fn;
-        Fn::Function::func func;
-        std::shared_ptr<FEMCoordinate> input;
-    };
-*/
-    void _SUPGVectorTerm_NA__Fn_SetFn( void* _self, Fn::Function* fn );
+    void _SUPGVectorTerm_NA__Fn_SetDiffusivityFn( void* _self, Fn::Function* fn );
+    void _SUPGVectorTerm_NA__Fn_SetSourceFn( void* _self, Fn::Function* fn );
 
 }
 
@@ -54,7 +47,7 @@ extern "C" {
         __ForceTerm \
         \
         /* Virtual info */ \
-        AdvDiffResidualForceTerm_UpwindParamFunction*			_upwindParam; \
+        AdvDiffResidualForceTerm_UpwindParamFunction*           _upwindParam; \
         AdvDiffResidualForceTerm_GetDiffusivityFromIntPoint*	_getDiffusivityFromIntPoint; \
         double*     phiGrad; \
         double**    GNx; \
@@ -64,7 +57,8 @@ extern "C" {
         FeVariable* velocityField; \
         int         last_maxNodeCount; /* behaves like a static variable to record max node count per element */ \
         AdvDiffResidualForceTerm_UpwindParamFuncType    upwindParamType; \
-        void*    cppdata; \
+        void*    diffFn; \
+        void*    sourceFn; \
  
     struct AdvDiffResidualForceTerm {
         __AdvDiffResidualForceTerm
@@ -128,7 +122,7 @@ extern "C" {
     double AdvDiffResidualForceTerm_UpwindDiffusivity( 
             AdvDiffResidualForceTerm* self, 
             AdvectionDiffusionSLE* sle, 
-            void* cppdata,
+            void* diffFn,
             Swarm* swarm, 
             FeMesh* mesh, 
             Element_LocalIndex lElement_I, 
