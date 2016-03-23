@@ -12,7 +12,9 @@
 %include <std_string.i>
 
 %{
-std::string initViewer(int argc, char **argv);
+std::string execute(int argc, char **argv);
+void command(std::string cmd);
+std::string image(std::string filename="", int width=0, int height=0);
 %}
 
 %include "exception.i"
@@ -51,5 +53,7 @@ std::string initViewer(int argc, char **argv);
   free((char *) $2);
 }
 
-std::string initViewer(int argc, char **argv);
+std::string execute(int argc, char **argv);
+void command(std::string cmd);
+std::string image(std::string filename="", int width=0, int height=0);
 
