@@ -307,7 +307,7 @@ class ColourBar(Drawing):
     def __init__(self, colourMap, *args, **kwargs):
         #Default properties
         self._properties = {"colourbar" : 1, "height" : None, "lengthfactor" : 0.8, 
-                "margin" : 16, "border" : 1, "precision" : 2, "scientific" : False, "font" : "small", 
+                "margin" : 20, "border" : 1, "precision" : 2, "scientific" : False, "font" : "small", 
                 "ticks" : 0, "printticks" : True, "printunits" : False, "scalevalue" : 1.0,
                 "font" : "small", "fontscale" : 0.4} #tick0-tick10 : val
     

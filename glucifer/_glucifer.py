@@ -136,7 +136,7 @@ class Figure(_stgermain.StgCompoundComponent):
 
         #Setup default properties
         self._properties = {"title" : title, "axis" : axis, "axislength" : 0.2, "antialias" : True,
-            "margin" : 32, "border" : (1 if edgecolour else 0), "borderColour" : edgecolour, "rulers" : False, "timestep" : False, "zoomstep" : 0} 
+            "margin" : 34, "border" : (1 if edgecolour else 0), "borderColour" : edgecolour, "rulers" : False, "timestep" : False, "zoomstep" : 0} 
         
         if properties and not isinstance(properties,dict):
             raise TypeError("'properties' object passed in must be of python type 'dict'")
