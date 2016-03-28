@@ -15,7 +15,7 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
     """
     This class provides functionality for a discrete representation
     of an advection-diffusion equation.
-    
+
     The class uses the Streamline Upwind Petrov Galerkin SUPG method
     to integrate through time.
 
@@ -30,18 +30,18 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
     phiDotField : underworld.mesh.MeshVariable
         A MeshVariable that defines the initial time derivative of the phiField.
         Typically 0 at the beginning of a model, e.g. phiDotField.data[:]=0
-        When using a phiField loaded from disk one should also load the phiDotField to ensure 
-        the solving method has the time derivative information for a smooth restart. 
+        When using a phiField loaded from disk one should also load the phiDotField to ensure
+        the solving method has the time derivative information for a smooth restart.
         No dirichlet conditions are required for this field as the phiField degrees of freedom
-        map exactly to this field's dirichlet conditions, the value of which ought to be 0 
+        map exactly to this field's dirichlet conditions, the value of which ought to be 0
         for constant values of phi.
     velocityField : underworld.mesh.MeshVariable
         The velocity field.
     fn_diffusivity : uw.function.Function
         Function that defines diffusivity
     conditions : list of uw.conditions.DirichletCondition objects, default=None
-        Conditions to be placed on the system. Currently only 
-        Dirichlet conditions are supported.            
+        Conditions to be placed on the system. Currently only
+        Dirichlet conditions are supported.
 
     Notes
     -----
@@ -52,7 +52,7 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
                       "_solver" : "AdvDiffMulticorrector" }
     _selfObjectName = "_system"
 
-    def __init__(self, phiField, phiDotField, velocityField, fn_diffusivity, courantFactor=None, diffusivity=None, conditions=[], **kwargs):
+    def __init__(self, phiField, phiDotField, velocityField, fn_diffusivity, fn_sourceTerm=None, courantFactor=None, diffusivity=None, conditions=[], **kwargs):
         if courantFactor:
             raise RuntimeError("Note that the 'courantFactor' parameter has been deprecated.\n"\
                                "If you wish to modify your timestep, do so manually with the value\n"\
@@ -62,7 +62,9 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
                                "Use the parameter 'fn_diffusivity' instead.")
 
         self._diffusivity   = fn_diffusivity
-        
+        self._source        = fn_sourceTerm
+        self._courantFactor = courantFactor
+
         if not isinstance( phiField, uw.mesh.MeshVariable):
             raise TypeError( "Provided 'phiField' must be of 'MeshVariable' class." )
         if phiField.data.shape[1] != 1:
@@ -82,13 +84,11 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
 
         if not isinstance(conditions, (uw.conditions._SystemCondition, list, tuple) ):
             raise ValueError( "Provided 'conditions' must be a list '_SystemCondition' objects." )
-        if len(conditions) > 1:
-            raise ValueError( "Multiple conditions are not currently supported." )
         for cond in conditions:
             if not isinstance( cond, uw.conditions._SystemCondition ):
                 raise ValueError( "Provided 'conditions' must be a list '_SystemCondition' objects." )
-            # set the bcs on here.. will rearrange this in future. 
-            if cond.variable == self._phiField:
+            # set the bcs on here.. will rearrange this in future.
+            if type(cond) == uw.conditions.DirichletCondition:
                 libUnderworld.StgFEM.FeVariable_SetBC( self._phiField._cself, cond._cself )
                 libUnderworld.StgFEM.FeVariable_SetBC( self._phiDotField._cself, cond._cself )
 
@@ -117,7 +117,7 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
         componentDictionary[ self._cself.name ][   "MassMatrix"] = self._massVector._cself.name
         componentDictionary[ self._cself.name ][  "PhiDotField"] = self._phiDotField._cself.name
         componentDictionary[ self._cself.name ][          "dim"] = self._phiField.mesh.dim
-        componentDictionary[ self._cself.name ]["courantFactor"] = 0.25
+        componentDictionary[ self._cself.name ]["courantFactor"] = 0.50
 
     def _setup(self):
         # create assembly terms here.
@@ -126,10 +126,16 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
         self._lumpedMassTerm = sle.LumpedMassMatrixVectorTerm( integrationSwarm = self._gaussSwarm,
                                                                 assembledObject = self._massVector  )
         self._residualTerm   = sle.AdvDiffResidualVectorTerm(     velocityField = self._velocityField,
-                                                                             fn = self._diffusivity,
+                                                                    diffusivity = self._diffusivity,
+                                                                     sourceTerm = self._source,
                                                                integrationSwarm = self._gaussSwarm,
                                                                 assembledObject = self._residualVector,
                                                                       extraInfo = self._cself.name )
+        for cond in self._conditions:
+            if isinstance( cond, uw.conditions.NeumannCondition ):
+                # NOTE many NeumannConditions can be used but the _sufaceFluxTerm only records the last
+                self._surfaceFluxTerm = cond.addMe( self._residualVector )
+
         self._cself.advDiffResidualForceTerm = self._residualTerm._cself
 
 

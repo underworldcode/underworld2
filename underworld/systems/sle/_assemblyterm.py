@@ -45,7 +45,7 @@ class AssemblyTerm(_stgermain.StgCompoundComponent):
             raise RuntimeError("You cannot set a function for this assembly term.")
         _fn = uw.function.Function._CheckIsFnOrConvertOrThrow(value)
         if not isinstance( _fn, uw.function.Function):
-            raise ValueError( "Provided 'fn' must be of or convertible to 'Function' class." )
+            raise ValueError( "Provided 'fn' must be of, or convertible to, 'Function' class." )
         self._fn = _fn
         self._set_fn_function( self._cself, self._fn._fncself )
 
@@ -190,7 +190,7 @@ class LumpedMassMatrixVectorTerm(VectorAssemblyTerm):
 class AdvDiffResidualVectorTerm(VectorAssemblyTerm):
     _objectsDict = { "_assemblyterm": "AdvDiffResidualForceTerm" }
 
-    def __init__( self, velocityField, fn, **kwargs ):
+    def __init__( self, velocityField, diffusivity, sourceTerm, **kwargs ):
         # build parent
         super(AdvDiffResidualVectorTerm,self).__init__(**kwargs)
 
@@ -198,8 +198,16 @@ class AdvDiffResidualVectorTerm(VectorAssemblyTerm):
             raise TypeError( "Provided 'velocityField' must be of 'MeshVariable' class." )
         self._velocityField = velocityField
 
-        self._set_fn_function = libUnderworld.Underworld._SUPGVectorTerm_NA__Fn_SetFn
-        self._fn = fn
+        self._diffFn = uw.function.Function._CheckIsFnOrConvertOrThrow(diffusivity)
+        if not isinstance( self._diffFn, uw.function.Function ):
+            raise TypeError( "Provided 'diffusivity' must be of the type, or convertible to, 'Function' class ")
+        self._sourceFn = uw.function.Function._CheckIsFnOrConvertOrThrow(sourceTerm)
+        # if sourceTerm is None make it 0.0 fn object
+        if self._sourceFn == None:
+            self._sourceFn = uw.function.misc.Constant(0.0)
+
+        self._set_fn_function = None
+        self._fn = None
 
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method
@@ -208,6 +216,10 @@ class AdvDiffResidualVectorTerm(VectorAssemblyTerm):
         componentDictionary[ self._cself.name ][     "VelocityField"] = self._velocityField._cself.name
         componentDictionary[ self._cself.name ][  "UpwindXiFunction"] = "DoublyAsymptoticAssumption"
 
+    def _setup(self):
+        # lets override parent _setup definition because we use 2 function objects
+        libUnderworld.Underworld._SUPGVectorTerm_NA__Fn_SetDiffusivityFn( self._cself, self._diffFn._fncself )
+        libUnderworld.Underworld._SUPGVectorTerm_NA__Fn_SetSourceFn( self._cself, self._sourceFn._fncself )
 
 class MassMatrixTerm(MatrixAssemblyTerm):
     _objectsDict = { "_assemblyterm": "MassMatrixTerm" }

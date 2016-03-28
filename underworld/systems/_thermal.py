@@ -149,29 +149,8 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
                                                               fn=fn_heating)
         # prepare fluxConditions
         if fluxCond:
-            self._fvector = fluxCond.addMe( self, self._fvector )
+            self._surfaceFluxTerm = fluxCond.addMe( self._fvector )
 
-    #         ##### Build everything for the VectorSurfaceAssemblyTerm_NA__Fn__ni.
-    #         # 1) a gauss border swarm
-    #         # 2) a mask function to only evaluate the fn_flux only on the nodes specified in fluxCond.indexSets
-    #         #####
-       #
-    #         alanBorderGaussSwarm = uw.swarm.GaussBorderIntegrationSwarm( mesh=mesh, particleCount=2 )
-    #         deltaMeshVariable = uw.mesh.MeshVariable(mesh, 1)
-    #         # set to 1 on provided vertices and 0 elsewhere
-    #         deltaMeshVariable.data[:] = 0.
-    #         deltaMeshVariable.data[fluxCond.indexSets[0].data] = 1.
-    #         # note we use this condition to only capture border swarm particles
-    #         # on the surface itself. for those directly adjacent, the deltaMeshVariable will evaluate
-    #         # to non-zero (but less than 1.), so we need to remove those from the integration as well.
-    #         maskFn = uw.function.branching.conditional(
-    #                                           [  ( deltaMeshVariable > 0.999, 1. ),
-    #                                              (                      True, 0. )   ] )
-       #
-    #         self._surfaceFluxTerm = sle.VectorSurfaceAssemblyTerm_NA__Fn__ni(
-    #                                                     integrationSwarm = alanBorderGaussSwarm,
-    #                                                     assembledObject  = self._fvector,
-    #                                                     fluxCond         = fluxCond )
         super(SteadyStateHeat, self).__init__(**kwargs)
 
     def _setup(self):
