@@ -341,7 +341,7 @@ class Figure(_stgermain.StgCompoundComponent):
         if uw.rank() == 0:
             if not isinstance(filename, str):
                 raise TypeError("Provided parameter 'filename' must be of type 'str'. ")
-            if not filename.lower().endswith('.gldb'):
+            if not filename.lower().endswith('.gldb') and not filename.lower().endswith('.db'):
                 filename += '.gldb'
             libUnderworld.gLucifer.lucDatabase_BackupDbFile(self._db, filename)
 
@@ -433,6 +433,7 @@ class Figure(_stgermain.StgCompoundComponent):
             args = [self._lvbin, self._db.path, "-" + str(self._db.timeStep), "-p0", "-z" + str(self.quality), "-a", "-h", ":"] + self._script
             lavavu.execute(args)
             imagestr = lavavu.image(filename, size[0], size[1])
+            lavavu.clear() #Close and free memory
             #Return the generated filename
             if filename: return imagestr
             #Return inline image result

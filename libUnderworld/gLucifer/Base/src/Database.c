@@ -455,6 +455,8 @@ void lucDatabase_DeleteWindows(lucDatabase* self)
    lucDatabase_IssueSQL(self->db, "delete from viewport;");
    lucDatabase_IssueSQL(self->db, "delete from object;");
    lucDatabase_IssueSQL(self->db, "delete from viewport_object;");
+   lucDatabase_IssueSQL(self->db, "delete from object_colourmap;");
+   lucDatabase_IssueSQL(self->db, "delete from colourmap;");
 }
 
 void lucDatabase_OutputWindow(lucDatabase* self, void* _window)
@@ -610,19 +612,6 @@ void lucDatabase_OutputColourMap(lucDatabase* self, lucColourMap* colourMap, luc
       colourMap->id = sqlite3_last_insert_rowid(self->db);
 
       Journal_Printf(lucDebug, "         ColourMap: %s, id %d\n", colourMap->name, colourMap->id);
-
-      /* Write colours and values */
-      for (colour_I=0; colour_I < colourMap->colourCount; colour_I++)
-      {
-         lucColourMapping* cm = &colourMap->colourList[colour_I];
-         char value[32] = "null";
-         if (cm->value)
-            sprintf(value, "%g", *cm->value);
-         snprintf(SQL, MAX_QUERY_LEN, "insert into colourvalue (colourmap_id, colour, value) values (%d, %d, %s)", 
-                 colourMap->id, lucColour_ToInt(cm->colour), value);
-         /*printf("%s\n", SQL);*/
-         if (!lucDatabase_IssueSQL(self->db, SQL)) return;
-      }
    }
 
    /* Add reference for object */
@@ -1073,7 +1062,6 @@ void lucDatabase_CreateDatabase(lucDatabase* self)
    /* Delete structure tables, always recreated */
    lucDatabase_IssueSQL(self->db, "drop table IF EXISTS object_colourmap");
    lucDatabase_IssueSQL(self->db, "drop table IF EXISTS colourmap");
-   lucDatabase_IssueSQL(self->db, "drop table IF EXISTS colourvalue");
    lucDatabase_IssueSQL(self->db, "drop table IF EXISTS object");
    lucDatabase_IssueSQL(self->db, "drop table IF EXISTS window");
    lucDatabase_IssueSQL(self->db, "drop table IF EXISTS viewport");
@@ -1091,9 +1079,6 @@ void lucDatabase_CreateDatabase(lucDatabase* self)
 
    lucDatabase_IssueSQL(self->db, 
       "create table object (id INTEGER PRIMARY KEY ASC, name VARCHAR(256), colourmap_id INTEGER, colour INTEGER, opacity REAL, properties VARCHAR(2048), FOREIGN KEY (colourmap_id) REFERENCES colourmap (id) ON DELETE CASCADE ON UPDATE CASCADE)"); 
-
-   lucDatabase_IssueSQL(self->db, 
-      "create table colourvalue (id INTEGER PRIMARY KEY ASC, colourmap_id INTEGER, colour INTEGER, value REAL, FOREIGN KEY (colourmap_id) REFERENCES colourmap (id) ON DELETE CASCADE ON UPDATE CASCADE)"); 
 
    lucDatabase_IssueSQL(self->db, 
       "create table colourmap (id INTEGER PRIMARY KEY ASC, name VARCHAR(256), minimum REAL, maximum REAL, logscale INTEGER, discrete INTEGER, centreValue REAL, properties VARCHAR(2048))"); 
@@ -1252,7 +1237,6 @@ void lucDatabase_BackupDbFile(lucDatabase* self, char* filename)
    lucDatabase_IssueSQL(toDb, "drop table IF EXISTS timestep");
    lucDatabase_IssueSQL(toDb, "drop table IF EXISTS object_colourmap");
    lucDatabase_IssueSQL(toDb, "drop table IF EXISTS colourmap");
-   lucDatabase_IssueSQL(toDb, "drop table IF EXISTS colourvalue");
    lucDatabase_IssueSQL(toDb, "drop table IF EXISTS object");
    lucDatabase_IssueSQL(toDb, "drop table IF EXISTS window");
    lucDatabase_IssueSQL(toDb, "drop table IF EXISTS viewport");

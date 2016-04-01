@@ -15,6 +15,8 @@
 std::string execute(int argc, char **argv);
 void command(std::string cmd);
 std::string image(std::string filename="", int width=0, int height=0);
+void clear();
+void kill();
 %}
 
 %include "exception.i"
@@ -56,4 +58,6 @@ std::string image(std::string filename="", int width=0, int height=0);
 std::string execute(int argc, char **argv);
 void command(std::string cmd);
 std::string image(std::string filename="", int width=0, int height=0);
+void clear();
+void kill();
 
