@@ -431,7 +431,12 @@ class Figure(_stgermain.StgCompoundComponent):
         if uw.rank() == 0:
             #Render with viewer
             args = [self._lvbin, self._db.path, "-" + str(self._db.timeStep), "-p0", "-z" + str(self.quality), "-a", "-h", ":"] + self._script
+            cwd = os.getcwd()
             lavavu.execute(args)
+            try:
+                assert cwd == os.getcwd()
+            except AssertionError:
+                os.chdir(cwd)
             imagestr = lavavu.image(filename, size[0], size[1])
             lavavu.clear() #Close and free memory
             #Return the generated filename
@@ -443,7 +448,12 @@ class Figure(_stgermain.StgCompoundComponent):
     def _generate_HTML(self):
         if uw.rank() == 0:
             #Export encoded json string
+            cwd = os.getcwd()
             jsonstr = lavavu.execute([self._lvbin, "-" + str(self._db.timeStep), "-U", "-p0", self._db.path, ":"] + self._script)
+            try:
+                assert cwd == os.getcwd()
+            except AssertionError:
+                os.chdir(cwd)
             if not os.path.isdir("html"):
                 #Create link to web content directory
                 os.symlink(self._lvpath + 'html', 'html')
