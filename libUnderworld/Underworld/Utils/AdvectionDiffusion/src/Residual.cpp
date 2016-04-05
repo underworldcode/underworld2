@@ -297,7 +297,7 @@ void _AdvDiffResidualForceTerm_AssembleElement( void* forceTerm, ForceVector* fo
         std::shared_ptr<const IO_double> funcout = debug_dynamic_cast<const IO_double>(cppdata->func(cppdata->input));
         diffusivity = funcout->at();
 
-        assert( !isnan(diffusivity) );
+        assert( !std::isnan(diffusivity) );
 
         /* Add to element residual */
         factor = particle->weight * detJac;
