@@ -24,6 +24,7 @@
 
 #include <assert.h>
 #include <string.h>
+#include <cmath>
 
 #define ISQRT15 0.25819888974716112567
 #define SUPG_MIN_DIFFUSIVITY 1.0e-20
