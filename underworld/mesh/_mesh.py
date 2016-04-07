@@ -200,12 +200,12 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
     @contextlib.contextmanager
     def deform_mesh(self):
         """
-        Any mesh deformation should occur within this context manager. Note that
-        certain algorithms may be switched to their irregular mesh equivalents
-        (if not already set this way).
+        Any mesh deformation must occur within this python context manager. Note
+        that certain algorithms may be switched to their irregular mesh equivalents
+        (if not already set this way). This may have performance implications.
         
         Any submesh will also be appropriately updated on return from the context
-        manager.
+        manager, as will various mesh metrics. 
         
         Example
         -------
