@@ -24,6 +24,7 @@
 
 #include <assert.h>
 #include <string.h>
+#include <cmath>
 
 #define ISQRT15 0.25819888974716112567
 #define SUPG_MIN_DIFFUSIVITY 1.0e-20
@@ -297,7 +298,7 @@ void _AdvDiffResidualForceTerm_AssembleElement( void* forceTerm, ForceVector* fo
         std::shared_ptr<const IO_double> funcout = debug_dynamic_cast<const IO_double>(cppdata->func(cppdata->input));
         diffusivity = funcout->at();
 
-        assert( !isnan(diffusivity) );
+        assert( !std::isnan(diffusivity) );
 
         /* Add to element residual */
         factor = particle->weight * detJac;

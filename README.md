@@ -3,8 +3,9 @@ Underworld 2 / python underworld
 
 [_Underworld 2_](http://www.underworldcode.org) is a python-friendly version of the Underworld code which provides a  programmable and flexible front end to all the functionality of the code running in a parallel HPC environment. This gives signficant advantages to the user, with access to the power of python libraries for setup of complex problems, analysis at runtime, problem steering, and coupling of multiple problems. The python toolkit was funded by the NeCTAR [eresearch_tools](http://www.nectar.org.au/eresearch-tools) program.
 
-Jenkins | [![Build Status] (http://128.250.120.238:9080/buildStatus/icon?job=uw2)](http://128.250.120.238:9080/job/uw2)
+Compile | [![Build Status] (http://128.250.120.238:9080/buildStatus/icon?job=Compile)](http://128.250.120.238:9080/job/Compile)
 
+Model Tests | [![Build Status] (http://128.250.120.238:9080/buildStatus/icon?job=uw2)](http://128.250.120.238:9080/job/uw2)
 
 Dependencies
 -------------

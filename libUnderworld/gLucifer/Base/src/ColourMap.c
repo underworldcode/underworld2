@@ -223,6 +223,7 @@ void _lucColourMap_Delete( void* colourMap )
    }
 
    Memory_Free( self->colourList );
+   Memory_Free(self->properties);
 
    _Stg_Component_Delete( self );
 }

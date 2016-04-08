@@ -34,7 +34,7 @@ options = [
     ('--with-agl', 'with_agl', 'Enable AGL output (default 1)', eval(os.getenv('WITH_AGL','1')), 'int'),
     ('--with-glut', 'with_glut', 'Enable glut window (default 1)', eval(os.getenv('WITH_GLUT','1')), 'int'),
     ('--with-png', 'with_png', 'Enable PNG output (default 1)', eval(os.getenv('WITH_PNG','1')), 'int'),
-    ('--with-avcodec', 'with_avcodec', 'Enable avcodec movie output (default 1)', eval(os.getenv('WITH_AVCODEC','1')), 'int'),
+    ('--with-avcodec', 'with_avcodec', 'Enable avcodec movie output (default 1)', eval(os.getenv('WITH_AVCODEC','0')), 'int'),
     ('--with-gl2ps', 'with_gl2ps', 'Enable gl2ps vector output (default 1)', eval(os.getenv('WITH_GL2PS','1')), 'int'),
     ('--eptiming', 'eptiming', 'Enable Entry point timings: \'1\' will enable profiling for proc 0 only \'2\' will enable profiling per proc (previous setup)', 0, 'int'),
     ('--with-cautious-mode', 'with_cautious_mode', 'Enable extra checking on heavily used functions', 0, 'int'),

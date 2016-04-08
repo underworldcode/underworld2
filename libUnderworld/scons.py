@@ -7,13 +7,12 @@ if os.path.exists(build_success_file):
 
 sconsBin = os.path.join('config', 'scons', 'scons.py')
 
-subp = subprocess.Popen(
+returncode = subprocess.call(
     sconsBin + ' ' + ' '.join(sys.argv[1:]), shell=True
 )
-subp.wait()
 
 # So we can easily check if build was successful remotely
-if subp.returncode == 0: # success
+if returncode == 0: # success
     open(build_success_file, 'w').close() 
 # return the return code
-sys.exit(subp.returncode)
+sys.exit(returncode)

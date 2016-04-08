@@ -50,27 +50,27 @@ class IntegrationSwarm(_swarmabstract.SwarmAbstract):
 class PICIntegrationSwarm(IntegrationSwarm,function.FunctionInput):
     """
     Class for an IntegrationSwarm that maps to another Swarm
-    
+
     Note that this swarm can act as a function input. In this capacity,
     the fundamental function input type is the FEMCoordinate (ie, the particle
-    local coordinate, the owning mesh, and the owning element). This input 
+    local coordinate, the owning mesh, and the owning element). This input
     can be reduced to the global coordinate when returned within python. The
-    FEMCoordinate particle representation is useful when deforming a mesh, as 
-    it is possible to deform the mesh, and then use the FEMCoordinate to reset 
+    FEMCoordinate particle representation is useful when deforming a mesh, as
+    it is possible to deform the mesh, and then use the FEMCoordinate to reset
     the particles within the moved mesh.
 
     Parameters
     ----------
     swarm : uw.swarm.Swarm
         The PIC integration swarm maps to this user provided swarm.
-        
+
     Example
     -------
     This simple example checks that the true global coordiante, and that
-    derived from the local coordinate, are close to equal. Note that the 
-    PICIntegrationSwarm uses a voronoi centroid algorithm so we do not 
+    derived from the local coordinate, are close to equal. Note that the
+    PICIntegrationSwarm uses a voronoi centroid algorithm so we do not
     expect particle to exactly coincide.
-    
+
     >>> import underworld as uw
     >>> import numpy as np
     >>> mesh = uw.mesh.FeMesh_Cartesian()
@@ -86,15 +86,16 @@ class PICIntegrationSwarm(IntegrationSwarm,function.FunctionInput):
                           "_mapper" : "CoincidentMapper"
                     }
 
-    def __init__(self, swarm, **kwargs):
+    def __init__(self, swarm, particlesPerCell=25, maxDeletions=0, maxSplits=10, **kwargs):
         if not isinstance(swarm, uw.swarm.Swarm):
             raise ValueError("Provided swarm must be of class 'Swarm'.")
         self._mappedSwarm = swarm
         swarm._PICSwarm = self
-        
+
         # note that if the mapped swarm allows particles to escape, lets by default
         # switch inflow on.
-        self._weights = uw.swarm._weights.PCDVC(swarm, inFlow=self._mappedSwarm.particleEscape )
+        self._weights = uw.swarm._weights.PCDVC(swarm, inFlow=self._mappedSwarm.particleEscape,
+            particlesPerCell=particlesPerCell, maxDeletions=maxDeletions, maxSplits=maxSplits )
 
         # build parent
         super(PICIntegrationSwarm,self).__init__(swarm.mesh, **kwargs)
@@ -104,7 +105,7 @@ class PICIntegrationSwarm(IntegrationSwarm,function.FunctionInput):
         # call parents method
 
         super(PICIntegrationSwarm,self)._add_to_stg_dict(componentDictionary)
-        
+
         componentDictionary[ self._swarm.name ][      "WeightsCalculator"] = self._weights._cself.name
 
         componentDictionary[ self._cellLayout.name ][              "Mesh"] = self._mesh._cself.name
@@ -116,7 +117,7 @@ class PICIntegrationSwarm(IntegrationSwarm,function.FunctionInput):
         componentDictionary[ self._swarm.name ][ "IntegrationPointMapper"] = self._mapper.name
 
     def repopulate(self):
-        """ 
+        """
         This method repopulates the PIC swarm using the provided
         global swarm. The weights are also recalculated.
         """
@@ -128,13 +129,13 @@ class PICIntegrationSwarm(IntegrationSwarm,function.FunctionInput):
 
     def _get_iterator(self):
         """
-        This is the concrete method required by the FunctionInput class. 
-        
+        This is the concrete method required by the FunctionInput class.
+
         It effects using the PICSwarm as an input to functions.
         """
         return libUnderworld.Function.IntegrationSwarmInput(self._cself)
 
-        
+
 class GaussIntegrationSwarm(IntegrationSwarm):
     """
     Class definition for a Gauss points swarm
@@ -179,7 +180,7 @@ class GaussIntegrationSwarm(IntegrationSwarm):
         # call parents method
 
         super(GaussIntegrationSwarm,self)._add_to_stg_dict(componentDictionary)
-        
+
         componentDictionary[ self._swarm.name          ][             "CellLayout"] = self._cellLayout.name
         componentDictionary[ self._swarm.name          ][         "ParticleLayout"] = self._particleLayout.name
 
@@ -193,7 +194,7 @@ class GaussBorderIntegrationSwarm(GaussIntegrationSwarm):
     mesh : uw.mesh.FeMesh
         The FeMesh the swarm is supported by. See Swarm.mesh property docstring
         for further information.
-        
+
     particleCount : unsigned
         Number of gauss particles in each direction.  Must take value in [1,5].
         Default behaviour chooses an appropriate count for the provided mesh:

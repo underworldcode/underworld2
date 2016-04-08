@@ -17,7 +17,7 @@ class _Weights(_stgermain.StgCompoundComponent):
     def __init__(self, **kwargs):
         """
         """
-        
+
         # build parent
         super(_Weights,self).__init__(**kwargs)
 
@@ -27,12 +27,12 @@ class _Weights(_stgermain.StgCompoundComponent):
 
 class PCDVC(_Weights):
     """
-    
+
     """
     _objectsDict = { "_weights": "PCDVC" }
-    
+
     def __init__(self, swarm,
-                 resx=15,resy=15,resz=15, 
+                 resx=15,resy=15,resz=15,
                  lowerVolumeThreshold=0.6, upperVolumeThreshold=25,
                  maxDeletions=3, maxSplits=3,
                  centroidPositionRatio=0.01,
@@ -68,4 +68,3 @@ class PCDVC(_Weights):
         componentDictionary[ self._weights.name ]["centPosRatio"] = self.centroidPositionRatio
         componentDictionary[ self._weights.name ]["Inflow"] = self.inFlow
         componentDictionary[ self._weights.name ]["GeneralSwarm"] = self._swarm._cself.name
-        
