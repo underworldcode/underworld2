@@ -134,7 +134,7 @@ void _lucColourMap_Init(
    /* Write property string */
    self->properties = Memory_Alloc_Array(char, 4096, "properties");
    memset(self->properties, 0, 4086);
-   snprintf(self->properties, 4096, "colours=%s", _colourMapString);
+   snprintf(self->properties, 4096, "dynamic=%d\ncolours=%s", dynamicRange, _colourMapString);
 
    char* colourString = StG_Strdup(_colourMapString);
    char* colourMap_ptr = colourString;
