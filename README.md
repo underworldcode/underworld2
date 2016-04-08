@@ -5,7 +5,7 @@ Underworld 2 / python underworld
 
 Compile | [![Build Status] (http://128.250.120.238:9080/buildStatus/icon?job=Compile)](http://128.250.120.238:9080/job/Compile)
 
-Model Tests | [![Build Status] (http://128.250.120.238:9080/buildStatus/icon?job=uw2)](http://128.250.120.238:9080/job/uw2)
+Model Tests | [![Build Status](http://128.250.120.238:9080/job/tests/badge/icon)](http://128.250.120.238:9080/job/tests/)
 
 Dependencies
 -------------
