@@ -654,12 +654,8 @@ void SystemLinearEquations_ZeroAllVectors( void* sle, void* _context ) {
 	Index                       index;
 	ForceVector*                forceVector;
 	
-	Journal_DPrintf( self->debug, "In %s\n", __func__ );
-	for ( index = 0; index < self->forceVectors->count; index++ ) {
-		forceVector = (ForceVector*) self->forceVectors->data[index];
-		
-		VecSet( forceVector->vector, 0.0 );
-	}
+	for ( index = 0; index < self->forceVectors->count; index++ )
+		ForceVector_Zero( self->forceVectors->data[index] );
 }
 
 /* need to do this before the SLE specific function to set up the 

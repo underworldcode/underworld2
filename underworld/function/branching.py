@@ -84,11 +84,11 @@ class map(_Function):
     def __init__(self, fn_key=None, mapping=None, fn_default=None, keyFunc=None, mappingDict=None, defaultFunc=None, *args, **kwargs):
         
         #DEPRECATE
-        if keyFunc:
+        if keyFunc != None:
             raise RuntimeError("Note that the 'keyFunc' parameter has been renamed to 'fn_key'.")
-        if mappingDict:
+        if mappingDict != None:
             raise RuntimeError("Note that the 'mappingDict' parameter has been renamed to 'mapping'.")
-        if defaultFunc:
+        if defaultFunc != None:
             raise RuntimeError("Note that the 'defaultFunc' parameter has been renamed to 'fn_default'.")
             
         if not mapping:

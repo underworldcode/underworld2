@@ -19,9 +19,6 @@
 		/* General info */ \
 		__Stg_Component \
 		\
-		FiniteElementContext*	context; \
-		/* Virtual info */ \
-		\
 		/* StiffnessMatrix info */ \
 		Stream*						debug; \
 		Vec							vector; \
@@ -37,7 +34,6 @@
 
 	SolutionVector* SolutionVector_New(
 		Name							name,
-		FiniteElementContext*	context,
 		MPI_Comm						comm,
 		FeVariable*					feVariable );
 
@@ -57,7 +53,6 @@
 	/* Initialise implementation */
 	void _SolutionVector_Init( 
 		SolutionVector*			self,
-		FiniteElementContext*	context,
 		MPI_Comm						comm,
 		FeVariable*					feVariable );
 	

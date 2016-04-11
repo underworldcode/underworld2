@@ -53,10 +53,10 @@ void _IrregularMeshParticleLayout_Init( void* perCellLayout, FeMesh* feMesh, Dim
 	self->dim           	= dim;
 	self->cellParticleCount = cellParticleCount;
 
-	self->sobolGenerator[I_AXIS] = SobolGenerator_NewFromTable( "xSobolGenerator" );
-	self->sobolGenerator[J_AXIS] = SobolGenerator_NewFromTable( "ySobolGenerator" );
+	self->sobolGenerator[I_AXIS] = SobolGenerator_NewFromTable( "xSobolGenerator", 0 );
+	self->sobolGenerator[J_AXIS] = SobolGenerator_NewFromTable( "ySobolGenerator", 1 );
 	if ( dim == 3 )
-		self->sobolGenerator[K_AXIS] = SobolGenerator_NewFromTable( "zSobolGenerator" );
+		self->sobolGenerator[K_AXIS] = SobolGenerator_NewFromTable( "zSobolGenerator", 2 );
 
 	_PerCellParticleLayout_Init( self );
 }

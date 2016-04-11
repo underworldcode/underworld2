@@ -307,9 +307,9 @@ class ColourBar(Drawing):
     def __init__(self, colourMap, *args, **kwargs):
         #Default properties
         self._properties = {"colourbar" : 1, "height" : None, "lengthfactor" : 0.8, 
-                "margin" : 16, "border" : 1, "precision" : 2, "scientific" : False, "font" : "small", 
+                "margin" : 20, "border" : 1, "precision" : 2, "scientific" : False, "font" : "small", 
                 "ticks" : 0, "printticks" : True, "printunits" : False, "scalevalue" : 1.0,
-                "font" : "vector", "fontscale" : 0.4} #tick0-tick10 : val
+                "font" : "small", "fontscale" : 0.4} #tick0-tick10 : val
     
         # build parent
         super(ColourBar,self).__init__(colourMap=colourMap, *args, **kwargs)
@@ -727,9 +727,9 @@ class Mesh(Drawing):
         self._segmentsPerEdge = segmentsPerEdge
 
         #Default properties
-        self._properties = {"lit" : False, "font" : "vector", "fontscale" : 0.1,
-                           "pointsize" : 5 if self._nodeNumbers else 1, 
-                           "pointtype" : 2 if self._nodeNumbers else 4};
+        self._properties = {"lit" : False, "font" : "small", "fontscale" : 0.5,
+                            "pointsize" : 5 if self._nodeNumbers else 1, 
+                            "pointtype" : 2 if self._nodeNumbers else 4};
         
         # build parent
         super(Mesh,self).__init__( colours=None, colourMap=None, properties=properties, opacity=opacity, colourBar=False, *args, **kwargs )

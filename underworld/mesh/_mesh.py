@@ -36,13 +36,13 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
     """
     _objectsDict = { "_mesh": "FeMesh" }
     _selfObjectName = "_mesh"
-    
+
     _supportedElementTypes = ["Q2","Q1","DQ1","DPC1","DQ0"]
 
     def __init__(self, elementType, generator=None, **kwargs):
         """
         Class initialiser.
-        
+
         Parameter
         ---------
         elementType : str
@@ -50,14 +50,14 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         generator : MeshGenerator, default=None
             Generator object which builds the FeMesh.  See FeMesh.generator docstring for
             further info.
-        
+
         Returns
         -------
         mesh : FeMesh
             Constructed FeMesh object.
 
         """
-        
+
         if not isinstance(elementType,str):
             raise TypeError("'elementType' object passed in must be of type 'str'")
         if elementType.upper() not in self._supportedElementTypes:
@@ -73,7 +73,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
                                   You must provide a generator, or the mesh itself \
                                   must be of the MeshGenerator class.")
         self.generator = generator
-        
+
         self._dataWriteable = False
 
         # build parent
@@ -86,14 +86,14 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
                                                                                  size             = libUnderworld.StgDomain.Mesh_GetDomainSize( selfobject._mesh, libUnderworld.StgDomain.MT_VERTEX ))
     @property
     def elementType(self):
-        """ 
+        """
         elementType (str): Element type for FeMesh.
         Supported types are "Q2", "Q1", "dPc1" and "dQ0".
         """
         return self._elementType
     @property
     def generator(self):
-        """ 
+        """
         generator (MeshGenertor): Object which builds the mesh. Note that the mesh
         itself may be a generator, in which case this property will return the mesh
         object iself.
@@ -121,14 +121,14 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         libUnderworld.StgDomain.Mesh_SetGenerator(self._cself, generator._gen)
 
     @property
-    def data_enMap(self):
+    def data_elementNodes(self):
         """
-        (np.array): Numpy array to the global node ids
+        (np.array): Array specifying the nodes (global node id) for a given element (local element id).
         """
         uw.libUnderworld.StgDomain.Mesh_GenerateENMapVar(self._cself)
         arr = uw.libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.enMapVar)
         if( len(arr) % self.elementsLocal != 0 ):
-            RuntimeError("Unsupported element to node mapping for save routine"+
+            raise RuntimeError("Unsupported element to node mapping for save routine"+
                     "\nThere doesn't appear to be elements with a consistent number of nodes")
 
         # we ASSUME a constant number of nodes for each element
@@ -139,7 +139,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
     @property
     def data_elgId(self):
         """
-        (np.array): Numpy array to the global element ids
+        (np.array): Array specifying global element ids
         """
         uw.libUnderworld.StgDomain.Mesh_GenerateElGlobalIdVar(self._cself)
         arr = uw.libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.eGlobalIdsVar)
@@ -148,42 +148,42 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
     @property
     def data_nodegId(self):
         """
-        (np.array): Numpy array to the global node ids
+        (np.array): Array specifying global node ids
         """
         uw.libUnderworld.StgDomain.Mesh_GenerateNodeGlobalIdVar(self._cself)
         arr = uw.libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.vGlobalIdsVar)
         return arr
-        
+
     @property
     def data(self):
-        """ 
-        data (np.array):  Numpy proxy array proxy to underlying object 
+        """
+        data (np.array):  Numpy proxy array proxy to underlying object
         vertex data. Note that the returned array is a proxy for all the *local*
         vertices, and it is provided as 1d list.
-        
-        As these arrays are simply proxys to the underlying memory structures, 
+
+        As these arrays are simply proxys to the underlying memory structures,
         no data copying is required.
-        
-        Note that this property returns a read-only numpy array as default. If 
-        you wish to modify mesh vertex locations, you are required to use the 
+
+        Note that this property returns a read-only numpy array as default. If
+        you wish to modify mesh vertex locations, you are required to use the
         deform_mesh context manager.
-        
+
         If you are modifying the mesh, remember to modify any submesh associated with
         it accordingly.
 
         Example
         -------
-        
+
         >>> import underworld as uw
         >>> someMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1', elementRes=(2,2), minCoord=(-1.,-1.), maxCoord=(1.,1.) )
         >>> someMesh.data.shape
         (9, 2)
-        
+
         You can retrieve individual vertex locations
-        
+
         >>> someMesh.data[1]
         array([ 0., -1.])
-        
+
         You can modify these locations directly, but take care not to tangle the mesh!
         Mesh modifications must occur within the deform_mesh context manager.
 
@@ -198,15 +198,15 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         return arr
 
     @contextlib.contextmanager
-    def deform_mesh(self):
+    def deform_mesh(self, remainsRegular=False):
         """
         Any mesh deformation should occur within this context manager. Note that
         certain algorithms may be switched to their irregular mesh equivalents
         (if not already set this way).
-        
+
         Any submesh will also be appropriately updated on return from the context
         manager.
-        
+
         Example
         -------
         >>> import underworld as uw
@@ -219,8 +219,10 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
 
         """
         # set the general mesh algorithm now
-        uw.libUnderworld.StgDomain.Mesh_SetAlgorithms( self._cself, None )
-        self._cself.isRegular = False
+        if not remainsRegular:
+            uw.libUnderworld.StgDomain.Mesh_SetAlgorithms( self._cself, None )
+            self._cself.isRegular = False
+            
         self._dataWriteable = True
         try:
             yield
@@ -246,7 +248,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         """
         return libUnderworld.StgDomain.Mesh_GetLocalSize(self._cself, 0)
 
-    @property 
+    @property
     def nodesGlobal(self):
         """
         Returns the number of global nodes on the mesh
@@ -259,7 +261,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         """
         return libUnderworld.StgDomain.Mesh_GetGlobalSize(self._cself, 0)
 
-    @property 
+    @property
     def elementsLocal(self):
         """
         Returns the number of local elements on the mesh
@@ -272,7 +274,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         """
         return libUnderworld.StgDomain.Mesh_GetLocalSize(self._cself, self.dim)
 
-    @property 
+    @property
     def elementsGlobal(self):
         """
         Returns the number of global elements on the mesh
@@ -287,12 +289,12 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
 
     def reset(self):
         """
-        Reset the mesh.  
-        
+        Reset the mesh.
+
         Templated mesh (such as the DQ0 mesh) will be reset according
         to the current state of their geometryMesh.
-        
-        Other mesh (such as the Q1 & Q2) will be reset to their 
+
+        Other mesh (such as the Q1 & Q2) will be reset to their
         post-construction state.
 
         Notes
@@ -308,8 +310,8 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
     @property
     def specialSets(self):
         """
-        This dictionary stores a set of special data sets relating to mesh objects. 
-        
+        This dictionary stores a set of special data sets relating to mesh objects.
+
         Example
         -------
         >>> import underworld as uw
@@ -318,7 +320,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         ['MaxI_VertexSet', 'MinI_VertexSet', 'AllWalls_VertexSet', 'MinJ_VertexSet', 'MaxJ_VertexSet', 'Empty']
         >>> someMesh.specialSets["MinJ_VertexSet"]
         FeMesh_IndexSet([0, 1, 2])
-        
+
         """
         if not hasattr(self, "_specialSets"):
             class _SpecialSetsDict(dict):
@@ -337,13 +339,13 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
                     # now call using mesh and return
                     return item(self._mesh())
             self._specialSets = _SpecialSetsDict(self)
-            
+
         return self._specialSets
 
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method
         super(FeMesh,self)._add_to_stg_dict(componentDictionary)
-        
+
         componentDictionary[self._mesh.name]["elementType"] = self._elementType
 
     def _get_iterator(self):
@@ -368,49 +370,49 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         SavedFileData
             Data object relating to saved file. This only needs to be retained
             if you wish to create XDMF files and can be ignored otherwise.
-            
+
         Notes
         -----
         This method must be called collectively by all processes.
-        
+
         Example
         -------
         First create the mesh:
 
         >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
-        
+
         Save to a file (note that the 'ignoreMe' object isn't really required):
-        
+
         >>> ignoreMe = mesh.save("saved_mesh.h5")
-        
+
         Now let's try and reload. First create new mesh (note the different spatial size):
-        
+
         >>> clone_mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.5,1.5) )
 
         Confirm clone mesh is different from original mesh:
-        
+
         >>> import numpy as np
         >>> np.allclose(mesh.data,clone_mesh.data)
         False
-        
+
         Now reload using saved file:
-        
+
         >>> clone_mesh.load("saved_mesh.h5")
-        
+
         Now check for equality:
-        
+
         >>> np.allclose(mesh.data,clone_mesh.data)
         True
-        
+
         Clean up:
         >>> if uw.rank() == 0:
-        ...     import os; 
+        ...     import os;
         ...     os.remove( "saved_mesh.h5" )
 
         """
         if hasattr(self.generator, 'geometryMesh'):
             raise RuntimeError("Cannot save this mesh as it's a subMesh. "
-                                + "Most likely you only need to save its geometryMesh") 
+                                + "Most likely you only need to save its geometryMesh")
         if not isinstance(filename, str):
             raise TypeError("'filename', must be of type 'str'")
 
@@ -425,7 +427,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
 
         # write the vertices
         globalShape = ( self.nodesGlobal, self.data.shape[1] )
-        dset = h5f.create_dataset("vertices", 
+        dset = h5f.create_dataset("vertices",
                                   shape=globalShape,
                                   dtype=self.data.dtype)
 
@@ -434,18 +436,18 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         dset[self.data_nodegId[0:local],:] = self.data[0:local]
 
         # write the element node connectivity
-        self.data_enMap
-        globalShape = ( self.elementsGlobal, self.data_enMap.shape[1] )
-        dset = h5f.create_dataset("en_map", 
+        self.data_elementNodes
+        globalShape = ( self.elementsGlobal, self.data_elementNodes.shape[1] )
+        dset = h5f.create_dataset("en_map",
                                   shape=globalShape,
-                                  dtype=self.data_enMap.dtype)
+                                  dtype=self.data_elementNodes.dtype)
 
-        if len(self.data_elgId) != len(self.data_enMap):
-            RuntimeError("Error in mesh.data_enMap - required for h5save")
+        if len(self.data_elgId) != len(self.data_elementNodes):
+            raise RuntimeError("Error in mesh.data_elementNodes - required for h5save")
 
         local = len(self.data_elgId)
         # write to the dset using the global node ids
-        dset[self.data_elgId[0:local],:] = self.data_enMap[0:local]
+        dset[self.data_elgId[0:local],:] = self.data_elementNodes[0:local]
 
         h5f.close()
 
@@ -461,30 +463,30 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         """
         if not isinstance(filename, str):
             raise TypeError("'filename', must be of type 'str'")
-        
+
         uw.libUnderworld.StgFEM._FeMesh_DumpMeshHDF5( self._cself, filename )
 
     def load(self, filename ):
         """
         Load the mesh from disk.
-        
+
         Parameters
         ----------
             filename: str
                 The filename for the saved file. Relative or absolute paths may be
                 used, but all directories must exist.
-        
+
         Notes
         -----
         This method must be called collectively by all processes.
 
         If the file data array is the same length as the current mesh
-        global size, it is assumed the file contains compatible data. Note that 
+        global size, it is assumed the file contains compatible data. Note that
         this may not be the case where for example where you have saved using a
         2*8 resolution mesh, then loaded using an 8*2 resolution mesh.
 
         Provided files must be in hdf5 format, and use the correct schema.
-        
+
         Example
         -------
         Refer to example provided for 'save' method.
@@ -493,7 +495,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         if not isinstance(filename, str):
             raise TypeError("Expected filename to be provided as a string")
 
-        # get field and mesh information 
+        # get field and mesh information
         h5f = h5py.File( filename, "r", driver='mpio', comm=MPI.COMM_WORLD );
 
         # get resolution of old mesh
@@ -501,7 +503,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         if res is None:
             raise RuntimeError("Can't read the 'mesh resolution' for the field hdf5 file,"+
                    " was it created correctly?")
-        
+
         if (res == self.elementRes).all() == False:
             raise RuntimeError("Provided file mesh resolution does not appear to correspond to\n"\
                                "resolution of mesh object.")
@@ -513,7 +515,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         dof = dset.shape[1]
         if dof != self.data.shape[1]:
             raise RuntimeError("Can't load hdf5 '{0}', incompatible data shape".format(filename))
-        
+
         if len(dset) != self.nodesGlobal:
             raise RuntimeError("Provided data file appears to be for a different resolution mesh.")
 
@@ -537,18 +539,18 @@ class MeshGenerator(_stgermain.StgCompoundComponent):
     def __init__(self, partitioned=True, **kwargs):
         """
         Class initialiser.
-        
+
         Parameter
         ---------
         partitioned: bool
             If false, the mesh is not partitioned across entire processor pool. Instead
             mesh is entirely owned by processor which generated it.
-            
+
         Returns
         ------
         mesh: MeshGenerator
-                
-        
+
+
         """
         if not isinstance(partitioned,bool):
             raise TypeError("'partitioned' parameter must be of type 'bool'.")
@@ -572,19 +574,19 @@ class MeshGenerator(_stgermain.StgCompoundComponent):
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method
         super(MeshGenerator,self)._add_to_stg_dict(componentDictionary)
-        
+
         componentDictionary[self._gen.name]["partitioned"] = self._partitioned
 
 class CartesianMeshGenerator(MeshGenerator):
     """
     Abstract base class for all cartesian mesh generators.
-    Generators of this class provide algorithms to build meshes which are 
+    Generators of this class provide algorithms to build meshes which are
     logically and geometrically Cartesian.
     """
     def __init__(self, elementRes, minCoord, maxCoord, periodic=None, **kwargs):
         """
         Class initialiser.
-        
+
         Parameter
         ---------
         elementRes: list,tuple
@@ -598,12 +600,12 @@ class CartesianMeshGenerator(MeshGenerator):
             docstring for further information.
         periodic: list, tuple
             List or tuple of bools, specifying mesh periodicity in each direction.
-            
+
         Returns
         ------
         mesh: CartesianMeshGenerator
-                
-        
+
+
         """
 
         if not isinstance(elementRes,(list,tuple)):
@@ -614,7 +616,7 @@ class CartesianMeshGenerator(MeshGenerator):
         if not len(elementRes) in [2,3]:
             raise ValueError("For 'elementRes', you must provide a tuple of length 2 or 3 (for respectively a 2d or 3d mesh).")
         self._elementRes = elementRes
-        
+
         if not isinstance(minCoord,(list,tuple)):
             raise TypeError("'minCoord' object passed in must be of type 'list' or 'tuple'")
         for item in minCoord:
@@ -644,24 +646,24 @@ class CartesianMeshGenerator(MeshGenerator):
             if len(periodic) != len(elementRes):
                 raise ValueError("'periodic' tuple length ({}) must be the same as that of 'elementRes' ({}).".format(len(periodic),len(elementRes)))
         self._periodic = periodic
-        
+
         for ii in range(0,self.dim):
             if minCoord[ii] >= maxCoord[ii]:
                 raise ValueError("'minCoord[{}]' must be less than 'maxCoord[{}]'".format(ii,ii))
 
         # build parent
         super(CartesianMeshGenerator,self).__init__(**kwargs)
-        
+
     @property
     def elementRes(self):
-        """ 
+        """
         elementRes (list, tuple): Element count to generate in I, J & K
         directions. Must be provided as a tuple of integers.
         """
         return self._elementRes
     @property
     def minCoord(self):
-        """ 
+        """
         minCoord (list, tuple): Minimum coordinate position for cartesian mesh.
         Values correspond to minimums in each direction (I,J,K) of the mesh.
         Note, this is the value used for initialisation, but mesh may be advecting.
@@ -669,13 +671,13 @@ class CartesianMeshGenerator(MeshGenerator):
         return self._minCoord
     @property
     def periodic(self):
-        """ 
+        """
         periodic (list,tuple): List of bools specifying mesh periodicity in each direction.
         """
         return self._periodic
     @property
     def maxCoord(self):
-        """ 
+        """
         maxCoord (list, tuple): Maximum coordinate position for cartesian mesh.
         Values correspond to maximums in each direction (I,J,K) of the mesh.
         Note, this is the value used for initialisation, but mesh may be advecting.
@@ -685,7 +687,7 @@ class CartesianMeshGenerator(MeshGenerator):
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method
         super(CartesianMeshGenerator,self)._add_to_stg_dict(componentDictionary)
-        
+
         componentDictionary[self._gen.name][      "size"] = self._elementRes
         componentDictionary[self._gen.name][  "minCoord"] = self._minCoord
         componentDictionary[self._gen.name][  "maxCoord"] = self._maxCoord
@@ -700,7 +702,7 @@ class CartesianMeshGenerator(MeshGenerator):
         """
         Reset method for mesh generated using the cartesian generator. This method
         will reset the mesh to regular cartesian geometry.
-        
+
         >>> import underworld as uw
         >>> import numpy as np
         >>> mesh = uw.mesh.FeMesh_Cartesian(elementType='Q1')
@@ -720,7 +722,7 @@ class CartesianMeshGenerator(MeshGenerator):
         >>> mesh.reset()
         >>> np.allclose(mesh.data,vertexCopy)
         True
-        
+
         Lets do the same for the Q2 mesh:
         >>> mesh = uw.mesh.FeMesh_Cartesian(elementType='Q2')
         >>> vertexCopy = mesh.data.copy()
@@ -756,7 +758,7 @@ class LinearCartesianGenerator(CartesianMeshGenerator):
 
 class TemplatedMeshGenerator(MeshGenerator):
     """
-    Abstract Class. Children of this class provide algorithms to generate a 
+    Abstract Class. Children of this class provide algorithms to generate a
     mesh by stenciling nodes on the cells of the provided geometry mesh.
     """
     def __init__(self, geometryMesh, **kwargs):
@@ -769,17 +771,17 @@ class TemplatedMeshGenerator(MeshGenerator):
             raise TypeError("'geometryMesh' object passed in must be of type 'FeMesh'")
         # note we keep a weakref to avoid circular dependencies
         self._geometryMeshWeakref = weakref.ref(geometryMesh)
-        
+
         self._dim = self.geometryMesh.dim
-        
+
         super(TemplatedMeshGenerator,self).__init__(**kwargs)
 
     @property
     def geometryMesh(self):
-        """    
-        geometryMesh (FeMesh): This is the FeMesh from which the 
+        """
+        geometryMesh (FeMesh): This is the FeMesh from which the
         TemplatedMeshGenerator obtains the cells to template nodes upon.
-        Note that this class only retains a weakref to the geometryMesh, and 
+        Note that this class only retains a weakref to the geometryMesh, and
         therefore this property may return None.
         """
         return self._geometryMeshWeakref()
@@ -799,7 +801,7 @@ class LinearInnerGenerator(TemplatedMeshGenerator):
         """
         Reset method for mesh generated using the dPc1 generator. This method
         will reset the mesh according to its geometryMesh's current state.
-        
+
         >>> import underworld as uw
         >>> import numpy as np
         >>> mesh = uw.mesh.FeMesh_Cartesian(elementType='Q2/dPc1')
@@ -833,7 +835,7 @@ class dQ1Generator(TemplatedMeshGenerator):
         """
         Reset method for mesh generated using the dQ1 generator. This method
         will reset the mesh according to its geometryMesh's current state.
-        
+
         >>> import underworld as uw
         >>> import numpy as np
         >>> mesh = uw.mesh.FeMesh_Cartesian(elementType='Q2/dQ1')
@@ -866,7 +868,7 @@ class ConstantGenerator(TemplatedMeshGenerator):
         """
         Reset method for mesh generated using the dQ1 generator. This method
         will reset the mesh according to its geometryMesh's current state.
-        
+
         >>> import underworld as uw
         >>> import numpy as np
         >>> mesh = uw.mesh.FeMesh_Cartesian(elementType='Q1/dQ0')
@@ -893,20 +895,20 @@ class ConstantGenerator(TemplatedMeshGenerator):
 class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
     """
     This class generates a finite element mesh which is topologically cartesian
-    and geometrically regular. It is possible to directly build a dual mesh by 
+    and geometrically regular. It is possible to directly build a dual mesh by
     passing a pair of element types to the constructor.
-    
+
     For example, to create a linear mesh:
-        
+
     >>> import underworld as uw
     >>> someMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
     >>> someMesh.dim
     2
     >>> someMesh.elementRes
     (16, 16)
-    
+
     Alternatively, you can create a linear/constant dual mesh
-    
+
     >>> someDualMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
     >>> someDualMesh.elementType
     'Q1'
@@ -919,7 +921,7 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
     """
     _meshGenerator = [ "C2Generator", "CartesianGenerator" ]
     _objectsDict = { "_gen": None }  # this is set programmatically in __new__
-    
+
     def __new__(cls, elementType="Q1/dQ0", elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.), periodic=None, partitioned=True, **kwargs):
         # This class requires a custom __new__ so that we can decide which
         # type of generator is required dynamically
@@ -958,34 +960,34 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
             overruleDict["_gen"] = cls._meshGenerator[1]
 
         return super(FeMesh_Cartesian,cls).__new__(cls, objectsDictOverrule=overruleDict, **kwargs)
-    
-    
+
+
     def __init__(self, elementType="Q1/dQ0", elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.), periodic=None, partitioned=True, **kwargs):
         """
         Class initialiser.
-        
+
         Parameters
         ----------
             elementType: str
-                Mesh element type. Note that this class allows the user to 
-                (optionally) provide a pair of elementTypes for which a dual 
+                Mesh element type. Note that this class allows the user to
+                (optionally) provide a pair of elementTypes for which a dual
                 mesh will be created.
                 The submesh is accessible through the 'subMesh' property. The
                 primary mesh itself is the object returned by this constructor.
-                
+
             Refer to parent classes for further information on parameters.
-            
+
         Returns
         ------
         mesh: FeMesh_Cartesian
-        
+
         """
 
         if isinstance(elementType, str):
             # convert to tuple to make things easier
             import re
             elementType = re.split(",|-|/",elementType)
-        
+
         self._elementTypes = elementType
         # ok, lets go ahead and build primary mesh (ie, self)
         super(FeMesh_Cartesian,self).__init__(elementType=elementType[0], elementRes=elementRes, minCoord=minCoord, maxCoord=maxCoord, periodic=periodic, partitioned=partitioned, **kwargs)
@@ -1017,14 +1019,14 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
                 raise ValueError("The secondary mesh must be of type '{}': '{}' was passed in. Tested against '{}'".format(st,self._elementTypes[1].upper(), self._supportedElementTypes[1]) )
 
             self._secondaryMesh = FeMesh( elementType=self._elementTypes[1].upper(), generator=genSecondary )
-    
+
     @property
     def subMesh(self):
         """
         Returns the submesh where the object is a dual mesh, or None otherwise.
         """
         return self._secondaryMesh
-        
+
 
 class FeMesh_IndexSet(uw.container.ObjectifiedIndexSet, function.FunctionInput):
     """
@@ -1033,7 +1035,7 @@ class FeMesh_IndexSet(uw.container.ObjectifiedIndexSet, function.FunctionInput):
     def __init__(self, object, topologicalIndex=None, *args, **kwargs):
         """
         Class initialiser.
-        
+
         Parameter
         ---------
             topologicalIndex: int
@@ -1041,9 +1043,9 @@ class FeMesh_IndexSet(uw.container.ObjectifiedIndexSet, function.FunctionInput):
                 docstring for further info.
             object: FeMesh
                 The FeMesh instance from which the IndexSet was extracted.
-                
+
             See parent classes for further required/optional parameters.
-            
+
         Returns
         ------
         meshIndices: FeMesh_IndexSet
@@ -1052,7 +1054,7 @@ class FeMesh_IndexSet(uw.container.ObjectifiedIndexSet, function.FunctionInput):
         >>> iset = uw.libUnderworld.StgDomain.RegularMeshUtils_CreateGlobalMaxISet( amesh._mesh )
         >>> uw.mesh.FeMesh_IndexSet( amesh, topologicalIndex=0, size=amesh.nodesGlobal, fromObject=iset )
         FeMesh_IndexSet([ 4,  9, 14, 19, 24])
-                
+
         """
         if topologicalIndex not in (0,1,2,3):
             raise ValueError("Topological index must be within [0,3].")
@@ -1061,7 +1063,7 @@ class FeMesh_IndexSet(uw.container.ObjectifiedIndexSet, function.FunctionInput):
         self._toplogicalIndex = topologicalIndex
 
         super(FeMesh_IndexSet,self).__init__(object,*args,**kwargs)
-        
+
     @property
     def topologicalIndex(self):
         """
@@ -1078,7 +1080,7 @@ class FeMesh_IndexSet(uw.container.ObjectifiedIndexSet, function.FunctionInput):
         return repr(self.data).replace("array","FeMesh_IndexSet").replace(", dtype=uint32","")
 
     def _checkCompatWith(self,other):
-        """ 
+        """
         Checks that these have identical topo
         """
         # check parent first
@@ -1096,4 +1098,3 @@ class FeMesh_IndexSet(uw.container.ObjectifiedIndexSet, function.FunctionInput):
                            "Ie, remove the '()'.")
     def _get_iterator(self):
         return libUnderworld.Function.MeshIndexSet(self._cself, self.object._cself)
-

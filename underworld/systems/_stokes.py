@@ -56,11 +56,11 @@ class Stokes(_stgermain.StgCompoundComponent):
 
     def __init__(self, velocityField, pressureField, fn_viscosity=None, fn_bodyforce=None, swarm=None, conditions=[], viscosityFn=None, bodyForceFn=None, rtolerance=None, **kwargs):
         # DEPRECATE 1/16
-        if viscosityFn:
+        if viscosityFn != None:
             raise RuntimeError("Note that the 'viscosityFn' parameter has been renamed to 'fn_viscosity'.")
-        if bodyForceFn:
+        if bodyForceFn != None:
             raise RuntimeError("Note that the 'bodyForceFn' parameter has been renamed to 'fn_bodyforce'.")
-        if rtolerance:
+        if rtolerance != None:
             raise RuntimeError("Note that the 'rtolerance' parameter has been removed.\n" \
                                "All solver functionality has been moved to underworld.systems.Solver.")
 

@@ -24,6 +24,7 @@
 
 #include <assert.h>
 #include <string.h>
+#include <cmath>
 
 #define ISQRT15 0.25819888974716112567
 #define SUPG_MIN_DIFFUSIVITY 1.0e-20
@@ -291,14 +292,15 @@ void _AdvDiffResidualForceTerm_AssembleElement( void* forceTerm, ForceVector* fo
         /* Calculate total derivative (i.e. Dphi/Dt = \dot \phi + u . \grad \phi) */
         totalDerivative = phiDot + StGermain_VectorDotProduct( velocity, phiGrad, dim );
 
-        /* ev\aluate function for diffusivity */
+        /* evaluate function for diffusivity */
         std::shared_ptr<const IO_double> funcdiff = debug_dynamic_cast<const IO_double>(diffFn->func(diffFn->input));
         std::shared_ptr<const IO_double> funcsource = debug_dynamic_cast<const IO_double>(sourceFn->func(sourceFn->input));
         diffusivity = funcdiff->at();
         source = funcsource->at();
-        assert( !isnan(diffusivity) );
-        assert( !isnan(source) );
+        assert( !std::isnan(diffusivity) );
+        assert( !std::isnan(source) );
         totalDerivative -= source;  // as per first term in Eq. 3.2.18 
+
         /* Add to element residual */
         factor = particle->weight * detJac;
         for ( node_I = 0 ; node_I < elementNodeCount ; node_I++ ) {

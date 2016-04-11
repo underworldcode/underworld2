@@ -21,7 +21,6 @@
 #include <assert.h>
 
 const Type SobolGenerator_Type = "SobolGenerator";
-int SobolGeneratorGeneratorCount;
 
 /* Some macros for clarity */
 #define BITS_IN_A_BYTE 8
@@ -446,11 +445,7 @@ const unsigned int SobolGenerator_InitialDirectionNumbers[][13] = {
 	 };
 
 
-SobolGenerator* SobolGenerator_NewFromTable( Name name ) {
-	Index             generatorIndex;
-
-	generatorIndex = SobolGeneratorGeneratorCount;
-
+SobolGenerator* SobolGenerator_NewFromTable( Name name, unsigned int generatorIndex ) {
 	/* Make sure that the number generators used from this function is smaller than the number in the table */
 	Journal_Firewall(
 		generatorIndex < sizeof(SobolGenerator_PolynomialDegree)/sizeof(unsigned int),
@@ -458,20 +453,11 @@ SobolGenerator* SobolGenerator_NewFromTable( Name name ) {
 		"Error in func '%s' - Trying to instantiate a %dth SobolGenerator ('%s') using table, "
 		"but only %d initial directional numbers have been implemented. Please contact developers.\n",
 		__func__, generatorIndex + 1, name, sizeof(SobolGenerator_PolynomialDegree)/sizeof(unsigned int) );
-	
-	SobolGeneratorGeneratorCount++;
-	/* If we reach the end of the array of generators, restart from the first one - PatrickSunter, 3 August 2006 */
-	if ( SobolGeneratorGeneratorCount >= sizeof(SobolGenerator_PolynomialDegree)/sizeof(unsigned int) ) {
-		SobolGeneratorGeneratorCount = 0;
-	}
-		
-	return SobolGenerator_New( 
+
+	return SobolGenerator_New(
 			name,
 			SobolGenerator_PolynomialDegree[ generatorIndex ], 
 			SobolGenerator_PolynomialCoefficient[ generatorIndex ],
 			SobolGenerator_InitialDirectionNumbers[ generatorIndex ] );
 
 }
-
-/* this is just used for testing */
-void _ZeroSobolGeneratorGeneratorCount(){ SobolGeneratorGeneratorCount = 0; };

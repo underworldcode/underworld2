@@ -28,16 +28,20 @@ sol = fn.analytic.SolCx()
 stokesSystem = uw.systems.Stokes(velocityField,pressureField,sol.fn_viscosity,sol.fn_bodyforce,conditions=[freeslip,])
 #Run the BSSCR Solver
 solver=uw.systems.Solver(stokesSystem)
-solver.solve(mg_active=False)
+solver.set_inner_method("nomg")
+print solver.options.A11._mg_active
+solver.solve()
 stats=solver.get_stats()
 solver.print_stats()
+from libUnderworld import petsc
+petsc.OptionsPrint()
 
 if 4 != stats.pressure_its:
     raise RuntimeError("Test returned wrong number of pressure iterations: should be 3")
-if 34 != stats.velocity_presolve_its:
+if 28 != stats.velocity_presolve_its:
     raise RuntimeError("Test returned wrong number of velocity pre solve iterations: should be 6")
 if -1 != stats.velocity_pressuresolve_its:  # -1 will be returned if this stat isn't supported.
-    if 132 != stats.velocity_pressuresolve_its:
+    if 109 != stats.velocity_pressuresolve_its:
         raise RuntimeError("Test returned wrong number of velocity pressure solve iterations: should be 15")
-if 34 != stats.velocity_backsolve_its:
+if 30 != stats.velocity_backsolve_its:
     raise RuntimeError("Test returned wrong number of velocity back solve iterations: should be 6")

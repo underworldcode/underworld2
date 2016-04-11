@@ -392,8 +392,8 @@ void _AdvectionDiffusionSLE_Build( void* sle, void* data ) {
     sprintf( phiVecName, "%s-phiVector", self->name );
     phiDotVecName = Memory_Alloc_Array_Unnamed( char, strlen(self->name)+14 );
     sprintf( phiDotVecName, "%s-phiDotVector", self->name );
-    self->phiVector    = SolutionVector_New(    phiVecName, self->context, self->phiField->communicator,    self->phiField );
-    self->phiDotVector = SolutionVector_New( phiDotVecName, self->context, self->phiDotField->communicator, self->phiDotField );
+    self->phiVector    = SolutionVector_New(    phiVecName, self->phiField->communicator,    self->phiField );
+    self->phiDotVector = SolutionVector_New( phiDotVecName, self->phiDotField->communicator, self->phiDotField );
     Memory_Free(phiVecName);
     Memory_Free(phiDotVecName);
 
