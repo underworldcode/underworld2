@@ -32,7 +32,7 @@ options = [
     ('--with-sdl', 'with_sdl', 'Enable SDL output (default 1)', eval(os.getenv('WITH_SDL','1')), 'int'),
     ('--with-x11', 'with_x11', 'Enable X11 output (default 1)', eval(os.getenv('WITH_X11','1')), 'int'),
     ('--with-cgl', 'with_cgl', 'Enable CGL output (default 1)', eval(os.getenv('WITH_CGL','1')), 'int'),
-    ('--with-glut', 'with_glut', 'Enable glut window (default 1)', eval(os.getenv('WITH_GLUT','1')), 'int'),
+    ('--with-glut', 'with_glut', 'Enable glut window (default 0)', eval(os.getenv('WITH_GLUT','0')), 'int'),
     ('--with-png', 'with_png', 'Enable PNG output (default 1)', eval(os.getenv('WITH_PNG','1')), 'int'),
     ('--with-avcodec', 'with_avcodec', 'Enable avcodec movie output (default 1)', eval(os.getenv('WITH_AVCODEC','0')), 'int'),
     ('--with-gl2ps', 'with_gl2ps', 'Enable gl2ps vector output (default 1)', eval(os.getenv('WITH_GL2PS','1')), 'int'),
@@ -231,31 +231,24 @@ if not (GetOption('help') or GetOption('clean')):
         #Interactive capable viewer window
         win = 0
 
-        # Try for Glut window first on OS X
-        glut = 0
-        if platform.system() == 'Darwin' and env.get('with_glut'):
-            glut = win = env.ConfigurePackage(packages.Glut, required=False).result
+        # Try for CGL/Cocoa window if on Darwin...
+        cgl = 0
+        if platform.system() == 'Darwin' and env.get('with_cgl'):
+            cgl = win = env.ConfigurePackage(packages.CGL, required=False).result
 
         #Try configuring X11
         x11 = 0
-        if (not win or platform.system() != 'Darwin') and env.get('with_x11'):
+        if not win and env.get('with_x11'):
             x11 = win = env.ConfigurePackage(packages.X11, required=False).result
+
+        # Try for Glut window
+        if not win and env.get('with_glut'):
+            glut = win = env.ConfigurePackage(packages.Glut, required=False).result
 
         # Try for SDL window 
         sdl = 0
-        if (not win or platform.system() != 'Darwin') and env.get('with_sdl'):
+        if not win and env.get('with_sdl'):
             sdl = win = env.ConfigurePackage(packages.SDL, required=False).result
-
-        # Try for Glut window on Linux
-        if platform.system() != 'Darwin' and env.get('with_glut'):
-            glut = win = env.ConfigurePackage(packages.Glut, required=False).result
-
-        # try CGL (mac) or use config of other windowing systems detected for interactive
-        cgl = 0
-        # Try for CGL window if on Darwin...
-        #if not win and platform.system() == 'Darwin' and env.get('with_cgl'):
-        if platform.system() == 'Darwin' and env.get('with_cgl'):
-            cgl = win = env.ConfigurePackage(packages.CGL, required=False).result
 
         #Configure OpenGL for X11
         if x11 or platform.system() != 'Darwin':
