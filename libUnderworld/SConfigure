@@ -242,6 +242,7 @@ if not (GetOption('help') or GetOption('clean')):
             x11 = win = env.ConfigurePackage(packages.X11, required=False).result
 
         # Try for Glut window
+        glut = 0
         if not win and env.get('with_glut'):
             glut = win = env.ConfigurePackage(packages.Glut, required=False).result
 
