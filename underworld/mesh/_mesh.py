@@ -207,6 +207,9 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         Any submesh will also be appropriately updated on return from the context
         manager.
 
+        The general assumption is that the deformed mesh will no longer be regular (orthonormal)
+        but an over-ride to this is possible using `remainsRegular=True`
+
         Example
         -------
         >>> import underworld as uw
@@ -222,7 +225,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         if not remainsRegular:
             uw.libUnderworld.StgDomain.Mesh_SetAlgorithms( self._cself, None )
             self._cself.isRegular = False
-            
+
         self._dataWriteable = True
         try:
             yield
