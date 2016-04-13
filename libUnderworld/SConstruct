@@ -137,10 +137,10 @@ if env['prefix'] != env.GetLaunchDir():
    env.Install(env['prefix'], 'config.cfg')
    env.Install(os.path.join(env['prefix'],'share/StGermain/scripts'), Glob('script/*.py*'))
 
-if env['with_viewer']:
+if env['with_graphics']:
    if not os.path.exists(dir+'/gLucifer/Viewer'):
       os.makedirs(dir+'/gLucifer/Viewer')
-   Execute(Copy(File(env['build_dir']+'/gLucifer/Viewer/viewer.cfg'), File('viewer.cfg')))
+   Execute(Copy(File(env['build_dir']+'/gLucifer/Viewer/graphics.cfg'), File('graphics.cfg')))
 
 Export('env')
 
@@ -176,7 +176,7 @@ if env['with_glucifer']:
                duplicate=0)
     env.Prepend(LIBS=['gLucifer'])
 
-if env['with_viewer']:
+if env['with_graphics']:
     SConscript('gLucifer/Viewer/SConscript',
                variant_dir=env['build_dir'] + '/gLucifer/Viewer',
                duplicate=0)
