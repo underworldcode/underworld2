@@ -23,7 +23,7 @@ options = [
     ('--cxxflags', 'CXXFLAGS', 'Flags for the C compiler', '-std=c++11'),
     ('--with-credo', 'with_credo', 'Enable the CREDO sys test system (default 1)', eval(os.getenv('WITH_CREDO','1')), 'int'),
     ('--with-glucifer', 'with_glucifer', 'Enable gLucifer (default 1)', eval(os.getenv('WITH_GLUCIFER','1')), 'int'),
-    ('--with-viewer', 'with_viewer', 'Enable gLucifer viewer (default 1)', eval(os.getenv('WITH_VIEWER','1')), 'int'),
+    ('--with-graphics', 'with_graphics', 'Enable graphical output (default 1)', eval(os.getenv('WITH_GRAPHICS','1')), 'int'),
     ('--with-geothermal', 'with_geothermal', 'Enable Geothermal repository compile', os.path.isdir("Geothermal"), 'int'),
     ('--with-solvers', 'with_solvers', 'Enable Solvers repository compile', os.path.isdir("Solvers"), 'int'),
     ('--with-importers', 'with_importers', 'Enable importer toolbox compile', os.path.isdir("ImportersToolbox"), 'int'),
@@ -215,7 +215,7 @@ if not (GetOption('help') or GetOption('clean')):
 
     # If we're building gLucifer viewer then we need some more packages.
     viewer_env = 0
-    if env.get('with_viewer', None):
+    if env.get('with_graphics', None):
 
         # Configure auxilliary gLucifer packages.
         vis_env = base_env.Clone()
@@ -262,13 +262,13 @@ if not (GetOption('help') or GetOption('clean')):
             print 'X11, SDL, Glut or CGL. None of these could be found.'
             print 'The viewer will not be compiled.'
 
-            uw_env['with_viewer'] = 0
+            uw_env['with_graphics'] = 0
 
     # Export the environments
     uw_env.SaveConfig()
     
-    if env.get('with_viewer'):
-        vis_env.SaveConfig('viewer.cfg')
+    if env.get('with_graphics'):
+        vis_env.SaveConfig('graphics.cfg')
 
 #
 # Create a test file. This file is the indicator of a successful build
