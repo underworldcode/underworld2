@@ -60,8 +60,9 @@ class H5py(Package):
         via subprocess to keep our own python environment clean and allow
         re-importing after (perhaps) we have built our own h5py.
         '''
-        self._logfile.write("Attempting to import h5py.\n")
+        self._logfile.write("Attempting to import h5py...\n")
         proj_folder = os.path.realpath(os.path.dirname("../.."))
+        self._logfile.flush()
         subp = subprocess.Popen('python -c \'import sys\nsys.path.insert(0, \"{}\")\nimport h5py\''.format(proj_folder), shell=True, stdout=self._logfile, stderr=self._logfile)
         subp.wait()
         if subp.wait() != 0:
@@ -71,6 +72,7 @@ class H5py(Package):
 
         # next check for mpi compat
         self._logfile.write("Checking if h5py is built against mpi.\n")
+        self._logfile.flush()
         subp = subprocess.Popen('python -c \'import sys\nsys.path.insert(0, \"{}\")\nimport h5py\nif not h5py.get_config().mpi: raise RuntimeError\''.format(proj_folder), shell=True, stdout=self._logfile, stderr=self._logfile)
         subp.wait()
         if subp.wait() != 0:
