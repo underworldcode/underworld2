@@ -38,8 +38,9 @@ class PCDVC(_Weights):
                  centroidPositionRatio=0.01,
                  threshold = 0.8,
                  particlesPerCell = 25,
-                 inFlow=False, **kwargs
+                 inFlow=True, **kwargs
              ):
+
         self._swarm = swarm
         self.resx=resx
         self.resy=resy

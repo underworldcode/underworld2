@@ -23,7 +23,7 @@ options = [
     ('--cxxflags', 'CXXFLAGS', 'Flags for the C compiler', '-std=c++11'),
     ('--with-credo', 'with_credo', 'Enable the CREDO sys test system (default 1)', eval(os.getenv('WITH_CREDO','1')), 'int'),
     ('--with-glucifer', 'with_glucifer', 'Enable gLucifer (default 1)', eval(os.getenv('WITH_GLUCIFER','1')), 'int'),
-    ('--with-viewer', 'with_viewer', 'Enable gLucifer viewer (default 1)', eval(os.getenv('WITH_VIEWER','1')), 'int'),
+    ('--with-graphics', 'with_graphics', 'Enable graphical output (default 1)', eval(os.getenv('WITH_GRAPHICS','1')), 'int'),
     ('--with-geothermal', 'with_geothermal', 'Enable Geothermal repository compile', os.path.isdir("Geothermal"), 'int'),
     ('--with-solvers', 'with_solvers', 'Enable Solvers repository compile', os.path.isdir("Solvers"), 'int'),
     ('--with-importers', 'with_importers', 'Enable importer toolbox compile', os.path.isdir("ImportersToolbox"), 'int'),
@@ -31,8 +31,8 @@ options = [
     ('--with-viscoelastic', 'with_viscoelastic', 'Enable Viscoelastic repository compile', os.path.isdir("Viscoelastic"), 'int'),
     ('--with-sdl', 'with_sdl', 'Enable SDL output (default 1)', eval(os.getenv('WITH_SDL','1')), 'int'),
     ('--with-x11', 'with_x11', 'Enable X11 output (default 1)', eval(os.getenv('WITH_X11','1')), 'int'),
-    ('--with-agl', 'with_agl', 'Enable AGL output (default 1)', eval(os.getenv('WITH_AGL','1')), 'int'),
-    ('--with-glut', 'with_glut', 'Enable glut window (default 1)', eval(os.getenv('WITH_GLUT','1')), 'int'),
+    ('--with-cgl', 'with_cgl', 'Enable CGL output (default 1)', eval(os.getenv('WITH_CGL','1')), 'int'),
+    ('--with-glut', 'with_glut', 'Enable glut window (default 0)', eval(os.getenv('WITH_GLUT','0')), 'int'),
     ('--with-png', 'with_png', 'Enable PNG output (default 1)', eval(os.getenv('WITH_PNG','1')), 'int'),
     ('--with-avcodec', 'with_avcodec', 'Enable avcodec movie output (default 1)', eval(os.getenv('WITH_AVCODEC','0')), 'int'),
     ('--with-gl2ps', 'with_gl2ps', 'Enable gl2ps vector output (default 1)', eval(os.getenv('WITH_GL2PS','1')), 'int'),
@@ -76,7 +76,7 @@ env.UsePackage(packages.OpenGL)
 env.UsePackage(packages.SDL)
 env.UsePackage(packages.X11)
 env.UsePackage(packages.Glut)
-env.UsePackage(packages.AGL)
+env.UsePackage(packages.CGL)
 env.UsePackage(packages.libPNG)
 env.UsePackage(packages.libavcodec)
 env.UsePackage(packages.gl2ps)
@@ -215,7 +215,7 @@ if not (GetOption('help') or GetOption('clean')):
 
     # If we're building gLucifer viewer then we need some more packages.
     viewer_env = 0
-    if env.get('with_viewer', None):
+    if env.get('with_graphics', None):
 
         # Configure auxilliary gLucifer packages.
         vis_env = base_env.Clone()
@@ -231,49 +231,44 @@ if not (GetOption('help') or GetOption('clean')):
         #Interactive capable viewer window
         win = 0
 
-        # Try for Glut window first on OS X
-        glut = 0
-        if platform.system() == 'Darwin' and env.get('with_glut'):
-            glut = win = env.ConfigurePackage(packages.Glut, required=False).result
+        # Try for CGL/Cocoa window if on Darwin...
+        cgl = 0
+        if platform.system() == 'Darwin' and env.get('with_cgl'):
+            cgl = win = env.ConfigurePackage(packages.CGL, required=False).result
 
         #Try configuring X11
         x11 = 0
-        if (not win or platform.system() != 'Darwin') and env.get('with_x11'):
+        if not win and env.get('with_x11'):
             x11 = win = env.ConfigurePackage(packages.X11, required=False).result
+
+        # Try for Glut window
+        glut = 0
+        if not win and env.get('with_glut'):
+            glut = win = env.ConfigurePackage(packages.Glut, required=False).result
 
         # Try for SDL window 
         sdl = 0
-        if (not win or platform.system() != 'Darwin') and env.get('with_sdl'):
+        if not win and env.get('with_sdl'):
             sdl = win = env.ConfigurePackage(packages.SDL, required=False).result
-
-        # Try for Glut window on Linux
-        if platform.system() != 'Darwin' and env.get('with_glut'):
-            glut = win = env.ConfigurePackage(packages.Glut, required=False).result
-
-        # try AGL (mac) or use config of other windowing systems detected for interactive
-        agl = 0
-        # Try for AGL window if on Darwin...
-        if not win and platform.system() == 'Darwin' and env.get('with_agl'):
-            agl = win = env.ConfigurePackage(packages.AGL, required=False).result
 
         #Configure OpenGL for X11
         if x11 or platform.system() != 'Darwin':
             env.ConfigurePackage(packages.OpenGL, required=False).result
 
         # An interactive windowing system is required for viewer
-        if not (glut or x11 or sdl or agl):
+        if not (glut or x11 or sdl or cgl):
             print '****  WARNING ****'
             print 'Need a windowing system for gLucifer Viewer, either'
-            print 'X11, SDL, Glut or AGL. None of these could be found.'
+            print 'X11, SDL, Glut or CGL. None of these could be found.'
             print 'The viewer will not be compiled.'
 
-            uw_env['with_viewer'] = 0
+            uw_env['with_graphics'] = 0
 
     # Export the environments
     uw_env.SaveConfig()
     
-    if env.get('with_viewer'):
-        vis_env.SaveConfig('viewer.cfg')
+    if env.get('with_graphics'):
+        vis_env.SaveConfig('graphics.cfg')
 
 #
 # Create a test file. This file is the indicator of a successful build

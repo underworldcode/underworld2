@@ -16,10 +16,15 @@ import urllib2
 import time
 from base64 import b64encode
 import libUnderworld
-import _LavaVu as lavavu
 import subprocess
 from subprocess import Popen, PIPE, STDOUT
 from . import objects
+
+haveLavaVu = True
+try:
+    import _LavaVu as lavavu
+except:
+    haveLavaVu = False
 
 # lets create somewhere to dump data for this session
 import os
@@ -390,7 +395,7 @@ class Figure(_stgermain.StgCompoundComponent):
         #  and to pass it as first command line arg or if needed to get html path)
         self._lvpath = self._db.dump_script.replace("dump.sh", "")
         self._lvbin = self._lvpath + "LavaVu"
-        if not os.path.isfile(self._lvbin):
+        if haveLavaVu and not os.path.isfile(self._lvbin):
             raise RuntimeError("LavaVu rendering engine does not appear to exist. Perhaps it was not compiled.\nPlease check your configuration, or contact developers.")
         
     def _plotObject(self, drawingObject):
@@ -428,7 +433,7 @@ class Figure(_stgermain.StgCompoundComponent):
         libUnderworld.gLucifer.lucDatabase_OutputGeometry(self._db, drawingObject._dr.id)
 
     def _generate_image(self, filename="", size=(0,0)):
-        if uw.rank() == 0:
+        if haveLavaVu and uw.rank() == 0:
             #Render with viewer
             args = [self._lvbin, self._db.path, "-" + str(self._db.timeStep), "-p0", "-z" + str(self.quality), "-a", "-h", ":"] + self._script
             cwd = os.getcwd()
@@ -446,7 +451,7 @@ class Figure(_stgermain.StgCompoundComponent):
             return HTML("<img src='%s'>" % imagestr)
 
     def _generate_HTML(self):
-        if uw.rank() == 0:
+        if haveLavaVu and uw.rank() == 0:
             #Export encoded json string
             cwd = os.getcwd()
             jsonstr = lavavu.execute([self._lvbin, "-" + str(self._db.timeStep), "-U", "-p0", self._db.path, ":"] + self._script)
@@ -497,7 +502,7 @@ class Figure(_stgermain.StgCompoundComponent):
     def open_viewer(self, args=[]):
         """ Open the viewer.
         """
-        if uw.rank() == 0:
+        if haveLavaVu and uw.rank() == 0:
             fname = os.path.join(tmpdir,"gluciferDB"+self._id+".gldb")
             self.save_database(fname)
             if self._viewerProc and self._viewerProc.poll() == None:
