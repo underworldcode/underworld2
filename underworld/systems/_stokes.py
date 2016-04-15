@@ -54,7 +54,7 @@ class Stokes(_stgermain.StgCompoundComponent):
     _objectsDict = {  "_system" : "Stokes_SLE" }
     _selfObjectName = "_system"
 
-    def __init__(self, velocityField, pressureField, fn_viscosity=None, fn_bodyforce=None, swarm=None, conditions=[], viscosityFn=None, bodyForceFn=None, rtolerance=None, **kwargs):
+    def __init__(self, velocityField, pressureField, fn_viscosity=None, fn_bodyforce=None, swarm=None, conditions=[], viscosityFn=None, bodyForceFn=None, rtolerance=None, _fn_viscosity2=None, _fn_director=None, **kwargs):
         # DEPRECATE 1/16
         if viscosityFn != None:
             raise RuntimeError("Note that the 'viscosityFn' parameter has been renamed to 'fn_viscosity'.")
@@ -79,9 +79,17 @@ class Stokes(_stgermain.StgCompoundComponent):
 
         if not fn_viscosity:
             raise ValueError("You must specify a viscosity function via the 'fn_viscosity' parameter.")
-        _fn_viscosity = uw.function.Function._CheckIsFnOrConvertOrThrow(fn_viscosity)
+        _fn_viscosity  = uw.function.Function._CheckIsFnOrConvertOrThrow(fn_viscosity)
         if not isinstance( _fn_viscosity, uw.function.Function):
             raise TypeError( "Provided 'fn_viscosity' must be of or convertible to 'Function' class." )
+        if _fn_viscosity2:
+            _fn_viscosity2 = uw.function.Function._CheckIsFnOrConvertOrThrow(_fn_viscosity2)
+            if not isinstance( _fn_viscosity2, uw.function.Function):
+                raise TypeError( "Provided 'fn_viscosity2' must be of or convertible to 'Function' class." )
+        if _fn_director:
+            _fn_director = uw.function.Function._CheckIsFnOrConvertOrThrow(_fn_director)
+            if not isinstance( _fn_director, uw.function.Function):
+                raise TypeError( "Provided 'fn_director' must be of or convertible to 'Function' class." )
 
         if not fn_bodyforce:
             if velocityField.mesh.dim == 2:
@@ -142,9 +150,11 @@ class Stokes(_stgermain.StgCompoundComponent):
         swarmguy = self._PICSwarm
         if not swarmguy:
             swarmguy = self._gaussSwarm
-        self._constitMatTerm = sle.ConstitutiveMatrixTerm(  integrationSwarm=swarmguy,
-                                                            assembledObject=self._kmatrix,
-                                                            fn=_fn_viscosity)
+        self._constitMatTerm = sle.ConstitutiveMatrixTerm(  integrationSwarm = swarmguy,
+                                                            assembledObject  = self._kmatrix,
+                                                            fn_visc1         = _fn_viscosity,
+                                                            fn_visc2         = _fn_viscosity2,
+                                                            fn_director      = _fn_director)
         self._forceVecTerm   = sle.VectorAssemblyTerm_NA__Fn(   integrationSwarm=swarmguy,
                                                                 assembledObject=self._fvector,
                                                                 fn=_fn_bodyforce)
@@ -179,10 +189,10 @@ class Stokes(_stgermain.StgCompoundComponent):
         The viscosity function. You may change this function directly via this
         property.
         """
-        return self._constitMatTerm.fn
+        return self._constitMatTerm.fn_visc1
     @fn_viscosity.setter
     def fn_viscosity(self, value):
-        self._constitMatTerm.fn = value
+        self._constitMatTerm.fn_visc1 = value
 
     @property
     def fn_bodyforce(self):

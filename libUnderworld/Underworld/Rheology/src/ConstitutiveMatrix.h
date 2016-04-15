@@ -15,7 +15,7 @@
 	/* typedefs for virtual functions: */
 	typedef double  (ConstitutiveMatrix_GetValueFunc)            ( void* constitutiveMatrix );
 	typedef void    (ConstitutiveMatrix_SetValueFunc)            ( void* constitutiveMatrix, double value );
-	typedef void    (ConstitutiveMatrix_SetSecondViscosityFunc)  ( void* constitutiveMatrix, double value, XYZ vector );
+	typedef void    (ConstitutiveMatrix_SetSecondViscosityFunc)  ( void* constitutiveMatrix, double value, const XYZ vector );
 	typedef void    (ConstitutiveMatrix_Assemble_D_B_Func)       ( void* constitutiveMatrix, double** GNx, Node_Index node_I, double** D_B );
 	typedef void    (ConstitutiveMatrix_CalculateStressFunc)     ( void* constitutiveMatrix, SymmetricTensor strainRate, SymmetricTensor stress );
 	
