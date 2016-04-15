@@ -11,8 +11,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <string.h>
 #include <time.h>
+
+#include <string>
+#include <sstream>
 
 #include <Underworld/Function/FunctionIO.hpp>
 #include <Underworld/Function/FEMCoordinate.hpp>
