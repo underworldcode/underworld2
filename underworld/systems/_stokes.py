@@ -14,13 +14,13 @@ import libUnderworld
 class Stokes(_stgermain.StgCompoundComponent):
     """
     This class provides functionality for a discrete representation
-    of the incompressible Stokes equation. 
-    
-    Specifically, the class uses a mixed finite element method to 
-    construct a system of linear equations which may then be solved 
+    of the incompressible Stokes equation.
+
+    Specifically, the class uses a mixed finite element method to
+    construct a system of linear equations which may then be solved
     using an object of the underworld.system.Solver class.
-    
-    The underlying element types are determined by the supporting 
+
+    The underlying element types are determined by the supporting
     mesh used for the 'velocityField' and 'pressureField' parameters.
 
     Parameters
@@ -30,7 +30,7 @@ class Stokes(_stgermain.StgCompoundComponent):
     pressureField : underworld.mesh.MeshVariable
         Variable used to record system pressure.
     fn_viscosity : underworld.function.Function
-        Function which reports a viscosity value. 
+        Function which reports a viscosity value.
         Function must return scalar float values.
     fn_bodyforce : underworld.function.Function, default=None.
         Function which reports a body force for the system.
@@ -38,17 +38,17 @@ class Stokes(_stgermain.StgCompoundComponent):
         to the provided velocity variable.
     swarm : uw.swarm.Swarm, default=None.
         If a swarm is provided, PIC type integration is utilised to build
-        up element integrals. The provided swarm is used as the basis for 
-        the PIC swarm.  
+        up element integrals. The provided swarm is used as the basis for
+        the PIC swarm.
         If no swarm is provided, Gauss style integration is used.
     conditions : list of uw.conditions.DirichletCondition objects, default=None
-        Conditions to be placed on the system. Currently only 
+        Conditions to be placed on the system. Currently only
         Dirichlet conditions are supported.
-    
+
     Notes
     -----
     Constructor must be called by collectively all processes.
-    
+
 
     """
     _objectsDict = {  "_system" : "Stokes_SLE" }
@@ -109,7 +109,7 @@ class Stokes(_stgermain.StgCompoundComponent):
         for cond in conditions:
             if not isinstance( cond, uw.conditions._SystemCondition ):
                 raise TypeError( "Provided 'conditions' must be a list '_SystemCondition' objects." )
-            # set the bcs on here.. will rearrange this in future. 
+            # set the bcs on here.. will rearrange this in future.
             if cond.variable == self._velocityField:
                 libUnderworld.StgFEM.FeVariable_SetBC( self._velocityField._cself, cond._cself )
             elif cond.variable == self._pressureField:
@@ -134,7 +134,7 @@ class Stokes(_stgermain.StgCompoundComponent):
         self._kmatrix = sle.AssembledMatrix( velocityField, velocityField, rhs=self._fvector )
         self._gmatrix = sle.AssembledMatrix( velocityField, pressureField, rhs=self._fvector, rhs_T=self._hvector )
         self._preconditioner = sle.AssembledMatrix( pressureField, pressureField, rhs=self._hvector, allowZeroContrib=True )
-        
+
         # create swarm
         self._gaussSwarm = uw.swarm.GaussIntegrationSwarm(self._velocityField.mesh)
         self._PICSwarm = None
@@ -143,10 +143,10 @@ class Stokes(_stgermain.StgCompoundComponent):
             self._PICSwarm.repopulate()
         # create assembly terms
         self._gradStiffMatTerm = sle.GradientStiffnessMatrixTerm(   integrationSwarm=self._gaussSwarm,
-                                                                    assembledObject=self._gmatrix)
+          assembledObject=self._gmatrix)
         self._preCondMatTerm   = sle.PreconditionerMatrixTerm(  integrationSwarm=self._gaussSwarm,
                                                                 assembledObject=self._preconditioner)
-        
+
         swarmguy = self._PICSwarm
         if not swarmguy:
             swarmguy = self._gaussSwarm
@@ -204,4 +204,3 @@ class Stokes(_stgermain.StgCompoundComponent):
     @fn_bodyforce.setter
     def fn_bodyforce(self, value):
         self._forceVecTerm.fn = value
-

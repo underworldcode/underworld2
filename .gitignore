@@ -43,10 +43,12 @@ docs/scratch
 
 docs/examples/SimpleShear2D
 docs/examples/PureShear2D
+docs/examples/Buckling2D
 docs/publications/TosiEtAl-2015/TosiOutput
 
 
 # switch to regexp syntax.
+
 syntax: regexp
 (^|/)\.svn($|/)
 (^|/)\.hg($|/)
