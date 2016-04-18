@@ -83,6 +83,7 @@ class MatrixAssemblyTerm(AssemblyTerm):
 
 class VectorAssemblyTerm_VEP__Fn(VectorAssemblyTerm):
     """
+    Document!!  ... this is the viscoelastic force term assebler.  WIP.  use at own risk.
     """
     _objectsDict = { "_assemblyterm": "VectorAssemblyTerm_VEP" }
 

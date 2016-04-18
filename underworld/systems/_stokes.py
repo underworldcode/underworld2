@@ -54,7 +54,7 @@ class Stokes(_stgermain.StgCompoundComponent):
     _objectsDict = {  "_system" : "Stokes_SLE" }
     _selfObjectName = "_system"
 
-    def __init__(self, velocityField, pressureField, fn_viscosity=None, fn_bodyforce=None, swarm=None, conditions=[], viscosityFn=None, bodyForceFn=None, rtolerance=None, _fn_viscosity2=None, _fn_director=None, **kwargs):
+    def __init__(self, velocityField, pressureField, fn_viscosity=None, fn_bodyforce=None, swarm=None, conditions=[], viscosityFn=None, bodyForceFn=None, rtolerance=None, _fn_viscosity2=None, _fn_director=None, _fn_stresshistory=None, **kwargs):
         # DEPRECATE 1/16
         if viscosityFn != None:
             raise RuntimeError("Note that the 'viscosityFn' parameter has been renamed to 'fn_viscosity'.")
@@ -86,10 +86,17 @@ class Stokes(_stgermain.StgCompoundComponent):
             _fn_viscosity2 = uw.function.Function._CheckIsFnOrConvertOrThrow(_fn_viscosity2)
             if not isinstance( _fn_viscosity2, uw.function.Function):
                 raise TypeError( "Provided 'fn_viscosity2' must be of or convertible to 'Function' class." )
+
         if _fn_director:
             _fn_director = uw.function.Function._CheckIsFnOrConvertOrThrow(_fn_director)
             if not isinstance( _fn_director, uw.function.Function):
                 raise TypeError( "Provided 'fn_director' must be of or convertible to 'Function' class." )
+
+        if _fn_stresshistory:
+            _fn_stresshistory = uw.function.Function._CheckIsFnOrConvertOrThrow(_fn_stresshistory)
+            if not isinstance( _fn_stresshistory, uw.function.Function):
+                raise TypeError( "Provided '_fn_stresshistory' must be of or convertible to 'Function' class." )
+        
 
         if not fn_bodyforce:
             if velocityField.mesh.dim == 2:
@@ -150,7 +157,7 @@ class Stokes(_stgermain.StgCompoundComponent):
         swarmguy = self._PICSwarm
         if not swarmguy:
             swarmguy = self._gaussSwarm
-        self._intswarm = swarmguy
+        
         self._constitMatTerm = sle.ConstitutiveMatrixTerm(  integrationSwarm = swarmguy,
                                                             assembledObject  = self._kmatrix,
                                                             fn_visc1         = _fn_viscosity,
@@ -159,6 +166,11 @@ class Stokes(_stgermain.StgCompoundComponent):
         self._forceVecTerm   = sle.VectorAssemblyTerm_NA__Fn(   integrationSwarm=swarmguy,
                                                                 assembledObject=self._fvector,
                                                                 fn=_fn_bodyforce)
+        if _fn_stresshistory != None:
+            self._vepTerm    = sle.VectorAssemblyTerm_VEP__Fn(  integrationSwarm=swarmguy,
+        		                                                assembledObject=self._fvector,
+                		                                        fn=_fn_stresshistory )
+
         super(Stokes, self).__init__(**kwargs)
 
 
