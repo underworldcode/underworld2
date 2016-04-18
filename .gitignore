@@ -46,6 +46,9 @@ docs/examples/PureShear2D
 docs/examples/Buckling2D
 docs/publications/TosiEtAl-2015/TosiOutput
 
+docs/development/TransIsoCompression
+docs/development/TransIsoShear
+
 
 # switch to regexp syntax.
 
