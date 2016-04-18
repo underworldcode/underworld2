@@ -21,14 +21,11 @@ class HeatSolver(_stgermain.StgCompoundComponent):
     _objectsDict = {"_heatsolver" : "Energy_SLE_Solver" }
     _selfObjectName = "_heatsolver"
 
-    def __init__(self, heatSLE,  rtolerance=1.0e-5, **kwargs):
+    def __init__(self, heatSLE, **kwargs):
         if not isinstance(heatSLE, (uw.systems.SteadyStateHeat, uw.utils.MeshVariable_Projection)):
             raise TypeError("Provided system must be of 'SteadyStateHeat' class")
         self._heatSLE=heatSLE
-        if not isinstance(rtolerance, float):
-            raise TypeError( "Provided 'rtolerance' must be of type 'float'" )
-        self._rtolerance=rtolerance
-        
+
         self.options=OptionsGroup()
 
         super(HeatSolver, self).__init__(**kwargs)
@@ -36,12 +33,6 @@ class HeatSolver(_stgermain.StgCompoundComponent):
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method
         super(HeatSolver,self)._add_to_stg_dict(componentDictionary)
-
-        componentDictionary[ self._cself.name ][           "tolerance"] = self._rtolerance
-        componentDictionary[ self._cself.name ][             "monitor"] = True
-        componentDictionary[ self._cself.name ][       "minIterations"] = 1
-        componentDictionary[ self._cself.name ][       "maxIterations"] = 5000
-
 
     def solve(self, nonLinearIterate=None, **kwargs):
         """ Solve the sle using provided solver.
@@ -82,12 +73,11 @@ class HeatSolver(_stgermain.StgCompoundComponent):
     ########################################################################
     def _setup_options(self, **kwargs):
         self._optionsStr=''
-
         for key, value in self.options.EnergySolver.__dict__.iteritems():
-            self._optionsStr = self._optionsStr+" "+"-EnergySolver_"+key+" "+str(value)
+            self._optionsStr += " "+"-EnergySolver_"+key+" "+str(value)
             
         for key, value in kwargs.iteritems():      # kwargs is a regular dictionary
-            self._optionsStr = self._optionsStr+" "+"-"+key+" "+str(value)
+            self._optionsStr += " "+"-"+key+" "+str(value)
 
     def configure(self,solve_type=""):
         """
@@ -100,14 +90,22 @@ class HeatSolver(_stgermain.StgCompoundComponent):
         superlu     : SuperLU direct solver (serial only).
         lu          : LU direct solver (serial only).
         """
-        if solve_type=="mumps":
+        if not isinstance(solve_type,str):
+            raise TypeError("Solver type must be provided as a string. \
+                             \nCheck help for list of available solvers.")
+        _solve_type = solve_type.lower()
+        if _solve_type=="mumps":
             self.options.EnergySolver.set_mumps()
-        if solve_type=="lu":
+        elif _solve_type=="lu":
             self.options.EnergySolver.set_lu()
-        if solve_type=="superlu":
+        elif _solve_type=="superlu":
             self.options.EnergySolver.set_superlu()
-        if solve_type=="superludist":
+        elif _solve_type=="superludist":
             self.options.EnergySolver.set_superludist()
+        else:
+        # shouldn't get here
+            raise RuntimeError("Provided solver type not supported. \
+                                \nCheck help for list of available solvers.")
 
 
 class OptionsGroup(object):

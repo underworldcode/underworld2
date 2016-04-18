@@ -20,10 +20,7 @@
 
 Bool StgDomainUtils_Init( int* argc, char** argv[] ) {
 
-	/** awkward place to init this guy, but necessary */
-	
-	SobolGeneratorGeneratorCount = 0; 
-	Journal_Printf( Journal_Register( DebugStream_Type, (Name)"Context"  ), "In: %s\n", __func__ ); 
+    Journal_Printf( Journal_Register( DebugStream_Type, (Name)"Context"  ), "In: %s\n", __func__ );
 	
 	Stg_ComponentRegister_Add( Stg_ComponentRegister_Get_ComponentRegister(), DomainContext_Type, (Name)"0", (void* (*)(Name))_DomainContext_DefaultNew );
 	Stg_ComponentRegister_Add( Stg_ComponentRegister_Get_ComponentRegister( ), DofLayout_Type, "0", (void* (*)(Name))_DofLayout_DefaultNew );

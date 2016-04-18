@@ -14,13 +14,13 @@ import libUnderworld
 class Stokes(_stgermain.StgCompoundComponent):
     """
     This class provides functionality for a discrete representation
-    of the incompressible Stokes equation. 
-    
-    Specifically, the class uses a mixed finite element method to 
-    construct a system of linear equations which may then be solved 
+    of the incompressible Stokes equation.
+
+    Specifically, the class uses a mixed finite element method to
+    construct a system of linear equations which may then be solved
     using an object of the underworld.system.Solver class.
-    
-    The underlying element types are determined by the supporting 
+
+    The underlying element types are determined by the supporting
     mesh used for the 'velocityField' and 'pressureField' parameters.
 
     Parameters
@@ -30,7 +30,7 @@ class Stokes(_stgermain.StgCompoundComponent):
     pressureField : underworld.mesh.MeshVariable
         Variable used to record system pressure.
     fn_viscosity : underworld.function.Function
-        Function which reports a viscosity value. 
+        Function which reports a viscosity value.
         Function must return scalar float values.
     fn_bodyforce : underworld.function.Function, default=None.
         Function which reports a body force for the system.
@@ -38,29 +38,29 @@ class Stokes(_stgermain.StgCompoundComponent):
         to the provided velocity variable.
     swarm : uw.swarm.Swarm, default=None.
         If a swarm is provided, PIC type integration is utilised to build
-        up element integrals. The provided swarm is used as the basis for 
-        the PIC swarm.  
+        up element integrals. The provided swarm is used as the basis for
+        the PIC swarm.
         If no swarm is provided, Gauss style integration is used.
     conditions : list of uw.conditions.DirichletCondition objects, default=None
-        Conditions to be placed on the system. Currently only 
+        Conditions to be placed on the system. Currently only
         Dirichlet conditions are supported.
-    
+
     Notes
     -----
     Constructor must be called by collectively all processes.
-    
+
 
     """
     _objectsDict = {  "_system" : "Stokes_SLE" }
     _selfObjectName = "_system"
 
-    def __init__(self, velocityField, pressureField, fn_viscosity=None, fn_bodyforce=None, swarm=None, conditions=[], viscosityFn=None, bodyForceFn=None, rtolerance=None, **kwargs):
+    def __init__(self, velocityField, pressureField, fn_viscosity=None, fn_bodyforce=None, swarm=None, conditions=[], viscosityFn=None, bodyForceFn=None, rtolerance=None, _fn_viscosity2=None, _fn_director=None, **kwargs):
         # DEPRECATE 1/16
-        if viscosityFn:
+        if viscosityFn != None:
             raise RuntimeError("Note that the 'viscosityFn' parameter has been renamed to 'fn_viscosity'.")
-        if bodyForceFn:
+        if bodyForceFn != None:
             raise RuntimeError("Note that the 'bodyForceFn' parameter has been renamed to 'fn_bodyforce'.")
-        if rtolerance:
+        if rtolerance != None:
             raise RuntimeError("Note that the 'rtolerance' parameter has been removed.\n" \
                                "All solver functionality has been moved to underworld.systems.Solver.")
 
@@ -79,9 +79,17 @@ class Stokes(_stgermain.StgCompoundComponent):
 
         if not fn_viscosity:
             raise ValueError("You must specify a viscosity function via the 'fn_viscosity' parameter.")
-        _fn_viscosity = uw.function.Function._CheckIsFnOrConvertOrThrow(fn_viscosity)
+        _fn_viscosity  = uw.function.Function._CheckIsFnOrConvertOrThrow(fn_viscosity)
         if not isinstance( _fn_viscosity, uw.function.Function):
             raise TypeError( "Provided 'fn_viscosity' must be of or convertible to 'Function' class." )
+        if _fn_viscosity2:
+            _fn_viscosity2 = uw.function.Function._CheckIsFnOrConvertOrThrow(_fn_viscosity2)
+            if not isinstance( _fn_viscosity2, uw.function.Function):
+                raise TypeError( "Provided 'fn_viscosity2' must be of or convertible to 'Function' class." )
+        if _fn_director:
+            _fn_director = uw.function.Function._CheckIsFnOrConvertOrThrow(_fn_director)
+            if not isinstance( _fn_director, uw.function.Function):
+                raise TypeError( "Provided 'fn_director' must be of or convertible to 'Function' class." )
 
         if not fn_bodyforce:
             if velocityField.mesh.dim == 2:
@@ -101,7 +109,7 @@ class Stokes(_stgermain.StgCompoundComponent):
         for cond in conditions:
             if not isinstance( cond, uw.conditions._SystemCondition ):
                 raise TypeError( "Provided 'conditions' must be a list '_SystemCondition' objects." )
-            # set the bcs on here.. will rearrange this in future. 
+            # set the bcs on here.. will rearrange this in future.
             if cond.variable == self._velocityField:
                 libUnderworld.StgFEM.FeVariable_SetBC( self._velocityField._cself, cond._cself )
             elif cond.variable == self._pressureField:
@@ -126,7 +134,7 @@ class Stokes(_stgermain.StgCompoundComponent):
         self._kmatrix = sle.AssembledMatrix( velocityField, velocityField, rhs=self._fvector )
         self._gmatrix = sle.AssembledMatrix( velocityField, pressureField, rhs=self._fvector, rhs_T=self._hvector )
         self._preconditioner = sle.AssembledMatrix( pressureField, pressureField, rhs=self._hvector, allowZeroContrib=True )
-        
+
         # create swarm
         self._gaussSwarm = uw.swarm.GaussIntegrationSwarm(self._velocityField.mesh)
         self._PICSwarm = None
@@ -135,17 +143,19 @@ class Stokes(_stgermain.StgCompoundComponent):
             self._PICSwarm.repopulate()
         # create assembly terms
         self._gradStiffMatTerm = sle.GradientStiffnessMatrixTerm(   integrationSwarm=self._gaussSwarm,
-                                                                    assembledObject=self._gmatrix)
+          assembledObject=self._gmatrix)
         self._preCondMatTerm   = sle.PreconditionerMatrixTerm(  integrationSwarm=self._gaussSwarm,
                                                                 assembledObject=self._preconditioner)
-        
+
         swarmguy = self._PICSwarm
         if not swarmguy:
             swarmguy = self._gaussSwarm
         self._intswarm = swarmguy
-        self._constitMatTerm = sle.ConstitutiveMatrixTerm(  integrationSwarm=swarmguy,
-                                                            assembledObject=self._kmatrix,
-                                                            fn=_fn_viscosity)
+        self._constitMatTerm = sle.ConstitutiveMatrixTerm(  integrationSwarm = swarmguy,
+                                                            assembledObject  = self._kmatrix,
+                                                            fn_visc1         = _fn_viscosity,
+                                                            fn_visc2         = _fn_viscosity2,
+                                                            fn_director      = _fn_director)
         self._forceVecTerm   = sle.VectorAssemblyTerm_NA__Fn(   integrationSwarm=swarmguy,
                                                                 assembledObject=self._fvector,
                                                                 fn=_fn_bodyforce)
@@ -180,10 +190,10 @@ class Stokes(_stgermain.StgCompoundComponent):
         The viscosity function. You may change this function directly via this
         property.
         """
-        return self._constitMatTerm.fn
+        return self._constitMatTerm.fn_visc1
     @fn_viscosity.setter
     def fn_viscosity(self, value):
-        self._constitMatTerm.fn = value
+        self._constitMatTerm.fn_visc1 = value
 
     @property
     def fn_bodyforce(self):
@@ -195,4 +205,3 @@ class Stokes(_stgermain.StgCompoundComponent):
     @fn_bodyforce.setter
     def fn_bodyforce(self, value):
         self._forceVecTerm.fn = value
-

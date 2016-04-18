@@ -16,10 +16,15 @@ import urllib2
 import time
 from base64 import b64encode
 import libUnderworld
-import _LavaVu as lavavu
 import subprocess
 from subprocess import Popen, PIPE, STDOUT
 from . import objects
+
+haveLavaVu = True
+try:
+    import _LavaVu as lavavu
+except:
+    haveLavaVu = False
 
 # lets create somewhere to dump data for this session
 import os
@@ -58,10 +63,10 @@ class Figure(_stgermain.StgCompoundComponent):
         Figure title.
     axis: bool, default=False
         Bool to determine if figure axis should be drawn.
-    antialias: unsigned, default=1
-        Antialiasing oversampling. For a value of 2, the image will be
+    quality: unsigned, default=1
+        Antialiasing oversampling quality. For a value of 2, the image will be
         rendered at twice the resolution, and then downsampled. Setting
-        this to 1 disables antialiasing.
+        this to 1 disables antialiasing, values higher than 3 are not recommended..
     properties: str, default=None
         Further properties to set on the figure.
             
@@ -84,16 +89,16 @@ class Figure(_stgermain.StgCompoundComponent):
     <IPython.core.display.HTML object>
     
     Save the image
-    >>> fig.save_image("test_image.png")
+    >>> imgfile = fig.save_image("test_image")
 
     Save the database
-    >>> fig.save_database("test_db.gldb")
+    >>> dbfile = fig.save_database("test_db")
     
     Clean up:
     >>> if uw.rank() == 0: 
     ...     import os; 
-    ...     os.remove( "test_db.gldb" )
-    ...     os.remove( "test_image.png" )
+    ...     os.remove( dbfile )
+    ...     os.remove( imgfile )
 
     """
     _objectsDict = { "_db":"lucDatabase",
@@ -104,7 +109,7 @@ class Figure(_stgermain.StgCompoundComponent):
     _viewerProc = None
 
     def __init__(self, figsize=(640,480), boundingBox=None, facecolour="white",
-                 edgecolour="black", title="", axis=False, antialias=1, properties=None, **kwargs):
+                 edgecolour="black", title="", axis=False, quality=1, properties=None, **kwargs):
         if not isinstance(figsize,tuple):
             raise TypeError("'figsize' object passed in must be of python type 'tuple'")
         self._figsize = figsize
@@ -130,13 +135,13 @@ class Figure(_stgermain.StgCompoundComponent):
         if not isinstance(axis,bool):
             raise TypeError("'axis' object passed in must be of python type 'bool'")
 
-        if antialias and not isinstance(antialias,(int,float)):
-            raise TypeError("'antialias' object passed in must be of python type 'float' or 'int'")
-        self.antialias=antialias
+        if quality and not isinstance(quality,(int,float)):
+            raise TypeError("'quality' object passed in must be of python type 'float' or 'int'")
+        self.quality=quality
 
         #Setup default properties
         self._properties = {"title" : title, "axis" : axis, "axislength" : 0.2, "antialias" : True,
-            "margin" : 32, "border" : (1 if edgecolour else 0), "borderColour" : edgecolour, "rulers" : False, "timestep" : False, "zoomstep" : 0} 
+            "margin" : 34, "border" : (1 if edgecolour else 0), "borderColour" : edgecolour, "rulers" : False, "timestep" : False, "zoomstep" : 0} 
         
         if properties and not isinstance(properties,dict):
             raise TypeError("'properties' object passed in must be of python type 'dict'")
@@ -306,7 +311,7 @@ class Figure(_stgermain.StgCompoundComponent):
         
         return os.path.abspath(fname)
 
-    def save_image(self,filename):
+    def save_image(self, filename, size=(0,0)):
         """  
         Saves the generated image to the provided filename.
         
@@ -314,26 +319,16 @@ class Figure(_stgermain.StgCompoundComponent):
         ----------
         filename :str
             Filename to save file to.  May include an absolute or relative path.
+            size (tuple(int,int)): size of image in pixels, defaults to original figsize setting
         """
         if not isinstance(filename, str):
             raise TypeError("Provided parameter 'filename' must be of type 'str'. ")
+        if size and not isinstance(size,tuple):
+            raise TypeError("'size' object passed in must be of python type 'tuple'")
 
         self._generate_DB()
         if uw.rank() == 0:
-            self._generate_image(asfile=True)
-            generatedFilename=self._find_generated_file()
-            absfilename = os.path.abspath(filename)
-            
-            # lets set the final extension to that of the glucifer generated file
-            splitabsfilename = os.path.splitext(absfilename)
-            splitgenfilename = os.path.splitext(generatedFilename)
-            if splitabsfilename[1].lower() in [".png", ".jpg", ".jpeg"]:
-                frontpart = splitabsfilename[0]
-            else:
-                frontpart = absfilename
-            finaloutFile = frontpart+splitgenfilename[1]
-            os.rename(generatedFilename,finaloutFile)
-            return finaloutFile
+            return self._generate_image(filename, size)
 
     def save_database(self,filename,regen=True):
         """  
@@ -351,7 +346,7 @@ class Figure(_stgermain.StgCompoundComponent):
         if uw.rank() == 0:
             if not isinstance(filename, str):
                 raise TypeError("Provided parameter 'filename' must be of type 'str'. ")
-            if not filename.lower().endswith('.gldb'):
+            if not filename.lower().endswith('.gldb') and not filename.lower().endswith('.db'):
                 filename += '.gldb'
             libUnderworld.gLucifer.lucDatabase_BackupDbFile(self._db, filename)
 
@@ -400,7 +395,7 @@ class Figure(_stgermain.StgCompoundComponent):
         #  and to pass it as first command line arg or if needed to get html path)
         self._lvpath = self._db.dump_script.replace("dump.sh", "")
         self._lvbin = self._lvpath + "LavaVu"
-        if not os.path.isfile(self._lvbin):
+        if haveLavaVu and not os.path.isfile(self._lvbin):
             raise RuntimeError("LavaVu rendering engine does not appear to exist. Perhaps it was not compiled.\nPlease check your configuration, or contact developers.")
         
     def _plotObject(self, drawingObject):
@@ -437,22 +432,33 @@ class Figure(_stgermain.StgCompoundComponent):
         #Write the custom geometry to the database
         libUnderworld.gLucifer.lucDatabase_OutputGeometry(self._db, drawingObject._dr.id)
 
-    def _generate_image(self, asfile=False):
-        if uw.rank() == 0:
+    def _generate_image(self, filename="", size=(0,0)):
+        if haveLavaVu and uw.rank() == 0:
             #Render with viewer
-            args = [self._lvbin, self._db.path, "-" + str(self._db.timeStep), "-p0", "-z" + str(self.antialias)]
-            if asfile:
-                starting_directory = os.getcwd()
-                lavavu.initViewer(args + ["-I", ":"] + self._script)
-            else:
-                imagestr = lavavu.initViewer(args + ["-u", ":"] + self._script)
-                from IPython.display import Image,HTML
-                return HTML("<img src='%s'>" % imagestr)
+            args = [self._lvbin, self._db.path, "-" + str(self._db.timeStep), "-p0", "-z" + str(self.quality), "-a", "-h", ":"] + self._script
+            cwd = os.getcwd()
+            lavavu.execute(args)
+            try:
+                assert cwd == os.getcwd()
+            except AssertionError:
+                os.chdir(cwd)
+            imagestr = lavavu.image(filename, size[0], size[1])
+            lavavu.clear() #Close and free memory
+            #Return the generated filename
+            if filename: return imagestr
+            #Return inline image result
+            from IPython.display import Image,HTML
+            return HTML("<img src='%s'>" % imagestr)
 
     def _generate_HTML(self):
-        if uw.rank() == 0:
+        if haveLavaVu and uw.rank() == 0:
             #Export encoded json string
-            jsonstr = lavavu.initViewer([self._lvbin, "-" + str(self._db.timeStep), "-U", "-p0", self._db.path, ":"] + self._script)
+            cwd = os.getcwd()
+            jsonstr = lavavu.execute([self._lvbin, "-" + str(self._db.timeStep), "-U", "-p0", self._db.path, ":"] + self._script)
+            try:
+                assert cwd == os.getcwd()
+            except AssertionError:
+                os.chdir(cwd)
             if not os.path.isdir("html"):
                 #Create link to web content directory
                 os.symlink(self._lvpath + 'html', 'html')
@@ -496,7 +502,7 @@ class Figure(_stgermain.StgCompoundComponent):
     def open_viewer(self, args=[]):
         """ Open the viewer.
         """
-        if uw.rank() == 0:
+        if haveLavaVu and uw.rank() == 0:
             fname = os.path.join(tmpdir,"gluciferDB"+self._id+".gldb")
             self.save_database(fname)
             if self._viewerProc and self._viewerProc.poll() == None:

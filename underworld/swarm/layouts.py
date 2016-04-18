@@ -127,7 +127,6 @@ class GlobalSpaceFillerLayout(_ParticleLayout):
     >>> mesh = uw.mesh.FeMesh_Cartesian('Q1/dQ0', (1,1), (0.,0.), (1.,1.))
     >>> swarm = uw.swarm.Swarm(mesh)
     >>> layout = uw.swarm.layouts.GlobalSpaceFillerLayout(swarm,particlesPerCell=4)
-    >>> uw.libUnderworld.StgDomain._ZeroSobolGeneratorGeneratorCount()  # this step isn't necessary, but we include it to ensure deterministic results for this doctest
     >>> swarm.populate_using_layout(layout)
     >>> swarm.particleLocalCount
     4
@@ -228,7 +227,6 @@ class PerCellSpaceFillerLayout(_PerCellMeshParticleLayout):
     >>> mesh = uw.mesh.FeMesh_Cartesian('Q1/dQ0', (1,1), (0.,0.), (1.,1.))
     >>> swarm = uw.swarm.Swarm(mesh)
     >>> layout = uw.swarm.layouts.PerCellSpaceFillerLayout(swarm,particlesPerCell=4)
-    >>> uw.libUnderworld.StgDomain._ZeroSobolGeneratorGeneratorCount()  # this isn't usually necessary, but we include it to ensure deterministic results for this doctest
     >>> swarm.populate_using_layout(layout)
     >>> swarm.particleLocalCount
     4
@@ -267,7 +265,6 @@ class PerCellRandomLayout(_PerCellMeshParticleLayout):
     >>> mesh = uw.mesh.FeMesh_Cartesian('Q1/dQ0', (1,1), (0.,0.), (1.,1.))
     >>> swarm = uw.swarm.Swarm(mesh)
     >>> layout = uw.swarm.layouts.PerCellRandomLayout(swarm,particlesPerCell=4)
-    >>> uw.libUnderworld.StgDomain._ZeroSobolGeneratorGeneratorCount()  # this isn't usually necessary, but we include it to ensure deterministic results for this doctest
     >>> swarm.populate_using_layout(layout)
     >>> swarm.particleLocalCount
     4

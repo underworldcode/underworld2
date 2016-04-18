@@ -654,12 +654,8 @@ void SystemLinearEquations_ZeroAllVectors( void* sle, void* _context ) {
 	Index                       index;
 	ForceVector*                forceVector;
 	
-	Journal_DPrintf( self->debug, "In %s\n", __func__ );
-	for ( index = 0; index < self->forceVectors->count; index++ ) {
-		forceVector = (ForceVector*) self->forceVectors->data[index];
-		
-		VecSet( forceVector->vector, 0.0 );
-	}
+	for ( index = 0; index < self->forceVectors->count; index++ )
+		ForceVector_Zero( self->forceVectors->data[index] );
 }
 
 /* need to do this before the SLE specific function to set up the 
@@ -948,11 +944,6 @@ void SystemLinearEquations_SNESPicardFormalResidual( void *someSLE, Vec X, Vec F
 {
 	SystemLinearEquations *sle = (SystemLinearEquations*)someSLE;
     	SLE_Solver            *solver = (SLE_Solver*)sle->solver;
-	Stream*                 errorStream     = Journal_Register( Error_Type, (Name)sle->type  );
-
-	Journal_Printf( errorStream, "    **** SystemLinearEquations_SNESPicardFormalResidual: This option is un-tested and does not yet function correctly. \n");
-	Journal_Printf( errorStream, "    **** Use the default form function or specify --components.XXX.picard_FormFunctionType=PicardFormFunction_KSPResidual instead. \n");
-	Journal_Printf( errorStream, "    ****     [Dave May - 12 May, 2008] \n");
 	abort();
 
 	solver->_formResidual( (void*)sle,  (void*)solver, F );

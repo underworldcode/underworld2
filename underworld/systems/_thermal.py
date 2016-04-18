@@ -60,11 +60,12 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
     _selfObjectName = "_system"
 
     def __init__(self, temperatureField, fn_diffusivity=None, fn_heating=0., swarm=None, conditions=[], conductivityFn=None, heatingFn=None, rtolerance=None, **kwargs):
-        if conductivityFn:
+        # DEPRECATE
+        if conductivityFn != None:
             raise RuntimeError("Note that the 'conductivityFn' parameter has been renamed to 'fn_diffusivity'.")
-        if heatingFn:
+        if heatingFn != None:
             raise RuntimeError("Note that the 'heatingFn' parameter has been renamed to 'fn_heating'.")
-        if rtolerance:
+        if rtolerance != None:
             raise RuntimeError("Note that the 'rtolerance' parameter has been removed.\n" \
                                "All solver functionality has been moved to underworld.systems.Solver.")
 

@@ -119,45 +119,52 @@ class PETSc(Package):
             env.AppendUnique(CPPPATH=loc[1])
             env.AppendUnique(LIBPATH=loc[2])
             env.AppendUnique(RPATH=loc[2])
-            
-            # Add additional libraries.
-            if petscconf is not None:
-                from distutils import sysconfig
-                #import pdb; pdb.set_trace()
-                vars = {}
-                flags = None
-                sysconfig.parse_makefile(petscconf, vars)
-                if 'PACKAGES_LIBS' in vars:
-                   flags = sysconfig.expand_makefile_vars(vars['PACKAGES_LIBS'], vars)
-                elif 'PETSC_EXTERNAL_LIB_BASIC' in vars:
-                   flags = sysconfig.expand_makefile_vars(vars['PETSC_EXTERNAL_LIB_BASIC'], vars)
-            
-                # Static libs? i.e. no shared libs. Must also do this if we are
-                # linking static libraries.
-                if lib_types[1] is None or self.static:
-                    # Add a bunch of extra jazz.
-                    if 'X11_INCLUDE' in vars:
-                        flags += ' ' + sysconfig.expand_makefile_vars(str(vars['X11_INCLUDE']), vars)
-                    if 'MPI_INCLUDE' in vars:
-                        flags += ' ' + sysconfig.expand_makefile_vars(str(vars['MPI_INCLUDE']), vars)
-                    if 'BLASLAPACK_INCLUDE' in vars:
-                        flags += sysconfig.expand_makefile_vars(str(vars['BLASLAPACK_INCLUDE']), vars)
-                    if 'PCC_LINKER_FLAGS' in vars:
-                        flags += ' ' + sysconfig.expand_makefile_vars(str(vars['PCC_LINKER_FLAGS']), vars)
-                    if 'PCC_FLAGS' in vars:
-                        flags += ' ' + sysconfig.expand_makefile_vars(str(vars['PCC_FLAGS']), vars)
-                    if 'PCC_LINKER_LIBS' in vars:
-                        flags += ' ' + sysconfig.expand_makefile_vars(str(vars['PCC_LINKER_LIBS']), vars)
-
-                # Use SCons to parse the flags.
-                flag_dict = env.ParseFlags(flags)
-                # Store for later use.
-                env['PETSC_FLAGS'] = flag_dict
-                # Keep the libs for a bit later.
-                if 'LIBS' in flag_dict:
-                    extra_libs = flag_dict['LIBS']
-                    del flag_dict['LIBS']
-                env.MergeFlags(flag_dict)
+        
+####
+#### Disabling this block. I'm not convinced it's best for us to always explicitly
+#### link against the library petsc has linked against. I believe there are sometimes
+#### instances where there can be conflicts due to libraries we both (uw & petsc) require,
+#### but these instances seem pretty rare, and this block is breaking linking against homebrew
+#### petsc builds (note that this is due to petscvariable having incorrect info).
+####
+#            # Add additional libraries.
+#            if petscconf is not None:
+#                from distutils import sysconfig
+#                #import pdb; pdb.set_trace()
+#                vars = {}
+#                flags = None
+#                sysconfig.parse_makefile(petscconf, vars)
+#                if 'PACKAGES_LIBS' in vars:
+#                   flags = sysconfig.expand_makefile_vars(vars['PACKAGES_LIBS'], vars)
+#                elif 'PETSC_EXTERNAL_LIB_BASIC' in vars:
+#                   flags = sysconfig.expand_makefile_vars(vars['PETSC_EXTERNAL_LIB_BASIC'], vars)
+#            
+#                # Static libs? i.e. no shared libs. Must also do this if we are
+#                # linking static libraries.
+#                if lib_types[1] is None or self.static:
+#                    # Add a bunch of extra jazz.
+#                    if 'X11_INCLUDE' in vars:
+#                        flags += ' ' + sysconfig.expand_makefile_vars(str(vars['X11_INCLUDE']), vars)
+#                    if 'MPI_INCLUDE' in vars:
+#                        flags += ' ' + sysconfig.expand_makefile_vars(str(vars['MPI_INCLUDE']), vars)
+#                    if 'BLASLAPACK_INCLUDE' in vars:
+#                        flags += sysconfig.expand_makefile_vars(str(vars['BLASLAPACK_INCLUDE']), vars)
+#                    if 'PCC_LINKER_FLAGS' in vars:
+#                        flags += ' ' + sysconfig.expand_makefile_vars(str(vars['PCC_LINKER_FLAGS']), vars)
+#                    if 'PCC_FLAGS' in vars:
+#                        flags += ' ' + sysconfig.expand_makefile_vars(str(vars['PCC_FLAGS']), vars)
+#                    if 'PCC_LINKER_LIBS' in vars:
+#                        flags += ' ' + sysconfig.expand_makefile_vars(str(vars['PCC_LINKER_LIBS']), vars)
+#
+#                # Use SCons to parse the flags.
+#                flag_dict = env.ParseFlags(flags)
+#                # Store for later use.
+#                env['PETSC_FLAGS'] = flag_dict
+#                # Keep the libs for a bit later.
+#                if 'LIBS' in flag_dict:
+#                    extra_libs = flag_dict['LIBS']
+#                    del flag_dict['LIBS']
+#                env.MergeFlags(flag_dict)
 
         #env.PrependUnique(LIBS=libs)
         env.AppendUnique(LIBS=extra_libs)

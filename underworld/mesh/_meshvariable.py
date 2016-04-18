@@ -372,7 +372,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         # create dataset
         dset = h5f.create_dataset("data", 
                                   shape=globalShape,
-                                  dtype='f')
+                                  dtype=self.data.dtype)
 
         # write to the dset using the global node ids
         local = mesh.nodesLocal

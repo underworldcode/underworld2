@@ -58,12 +58,12 @@ extern const Type lucDatabase_Type;
       lucGeometryData*  data[lucMaxType][lucMaxDataType];   \
       pid_t             dump_pid;                           \
       char*             dump_script;                        \
-      char*             bin_path[MAX_PATH];                           \
+      char              bin_path[MAX_PATH];                 \
       /* Database */ \
       sqlite3*          db;                     \
       sqlite3*          db2;                    \
       sqlite3*          memdb;                  \
-      char              path[MAX_PATH];              \
+      char              path[MAX_PATH];         \
       /* Params */ \
       char*             filename;               \
       char*             vfs;                    \

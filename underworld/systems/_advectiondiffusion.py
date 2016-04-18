@@ -53,11 +53,11 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
     _selfObjectName = "_system"
 
     def __init__(self, phiField, phiDotField, velocityField, fn_diffusivity, courantFactor=None, diffusivity=None, conditions=[], **kwargs):
-        if courantFactor:
+        if courantFactor != None:
             raise RuntimeError("Note that the 'courantFactor' parameter has been deprecated.\n"\
                                "If you wish to modify your timestep, do so manually with the value\n"\
                                "returned from the get_max_dt() method.")
-        if diffusivity:
+        if diffusivity != None:
             raise RuntimeError("Note that the 'diffusivity' parameter has been deprecated.\n"\
                                "Use the parameter 'fn_diffusivity' instead.")
 

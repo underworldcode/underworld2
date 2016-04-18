@@ -79,10 +79,8 @@ env.Install('include/PICellerator', Glob('libPICellerator/src/*.h'))
 # scons executables. Added it as Dictionaries so that the Toolbox ID can be preserved.
 # --KathleenHumble -20-08-2010
 
-Import('DOXYGEN_DIRS')
 pluginDirs = Split('libPICellerator/Toolbox ' )
-DOXYGEN_DIRS['PICellerator'] = pluginDirs
-Export('DOXYGEN_DIRS')
+
 pl_objs = []
 pl_regs = []
 for d in pluginDirs:
@@ -113,9 +111,6 @@ for d in pluginDirs:
 
     # Keep track of all the plugin objects.
     pl_objs += cur_objs
-Import('DOXYGEN_PLUGINS')
-DOXYGEN_PLUGINS['PICellerator'] = pl_objs
-Export('DOXYGEN_PLUGINS')
 #
 # Build shared library.
 #

@@ -564,100 +564,6 @@ void IO_HandlerSuite_TestReadDuplicateEntryKeys( IO_HandlerSuiteData* data ) {
    pcu_check_true( paramVals2[0] == Dictionary_Entry_Value_AsUnsignedInt( elementDev ) );
 }
 
-void IO_HandlerSuite_TestReadNonExistent( IO_HandlerSuiteData* data ) {
-   char*   notExistFilename = "I_Dont_Exist.xml";
-   #define MAXLINE 1000
-   char*   errorFilename = "errorMsg-NonExist.txt";
-   char    expectedFilename[PCU_PATH_MAX];
-
-   Stream_RedirectFile( Journal_Register( Error_Type, (Name)XML_IO_Handler_Type  ), errorFilename );
-   Stream_ClearCustomFormatters( Journal_Register( Error_Type, (Name)XML_IO_Handler_Type ) );
-
-   if (0 == data->rank ) {
-      stJournal->firewallProtected = False;
-      #ifdef DEBUG
-      pcu_check_assert( IO_Handler_ReadAllFromFile( data->io_handler, notExistFilename, data->dict2, data->sources2 ) );
-      #else
-      IO_Handler_ReadAllFromFile( data->io_handler, notExistFilename, data->dict2, data->sources2 );
-      #endif
-      stJournal->firewallProtected = True;
-      pcu_filename_expected( errorFilename, expectedFilename );
-      pcu_check_fileEq( errorFilename, expectedFilename );
-      remove( errorFilename );
-   }
-}
-
-void IO_HandlerSuite_TestReadInvalid( IO_HandlerSuiteData* data ) {
-   char         invalidXMLFilename[PCU_PATH_MAX];
-   char         expectedErrorFilename[PCU_PATH_MAX];
-   const char*   errorFilename = "errorMsg-Invalid.txt";
-
-   pcu_filename_input( "Invalid.xml", invalidXMLFilename );
-   pcu_filename_expected( errorFilename, expectedErrorFilename );
-
-   Stream_RedirectFile( Journal_Register( Error_Type, (Name)XML_IO_Handler_Type  ), errorFilename );
-   Stream_ClearCustomFormatters( Journal_Register( Error_Type, (Name)XML_IO_Handler_Type ) );
-
-   if ( 0 == data->rank  ) {
-      stJournal->firewallProtected = False;
-      #ifdef DEBUG
-      pcu_check_assert( IO_Handler_ReadAllFromFile( data->io_handler, invalidXMLFilename, data->dict2, data->sources2 ) );
-      #else
-      IO_Handler_ReadAllFromFile( data->io_handler, invalidXMLFilename, data->dict2, data->sources2 );
-      #endif
-      stJournal->firewallProtected = True;
-      pcu_check_fileEq( errorFilename, expectedErrorFilename );
-      remove( errorFilename );
-   }
-}
-
-void IO_HandlerSuite_TestReadWrongNS( IO_HandlerSuiteData* data ) {
-   char         wrongNS_XMLFilename[PCU_PATH_MAX];
-   char         expectedErrorFilename[PCU_PATH_MAX];
-   const char*   errorFilename = "errorMsg-wrongNS.txt";
-
-   pcu_filename_input( "WrongNS.xml", wrongNS_XMLFilename );
-   pcu_filename_expected( errorFilename, expectedErrorFilename );
-
-   Stream_RedirectFile( Journal_Register( Error_Type, (Name)XML_IO_Handler_Type  ), errorFilename );
-   Stream_ClearCustomFormatters( Journal_Register( Error_Type, (Name)XML_IO_Handler_Type ) );
-
-   if ( 0 == data->rank  ) {
-      stJournal->firewallProtected = False;
-      #ifdef DEBUG
-      pcu_check_assert( IO_Handler_ReadAllFromFile( data->io_handler, wrongNS_XMLFilename, data->dict2, data->sources2 ) );
-      #else
-      IO_Handler_ReadAllFromFile( data->io_handler, wrongNS_XMLFilename, data->dict2, data->sources2 );
-      #endif
-      stJournal->firewallProtected = True;
-      pcu_check_fileEq( errorFilename, expectedErrorFilename );
-      remove( errorFilename );
-   }
-}
-
-void IO_HandlerSuite_TestReadWrongRootNode( IO_HandlerSuiteData* data ) {
-   char         wrongRootNode_XMLFilename[PCU_PATH_MAX];
-   char         expectedErrorFilename[PCU_PATH_MAX];
-   const char*   errorFilename = "./errorMsg-wrongRootNode.txt";
-
-   pcu_filename_input( "WrongRootNode.xml", wrongRootNode_XMLFilename );
-   pcu_filename_expected( errorFilename, expectedErrorFilename );
-
-   Stream_RedirectFile( Journal_Register( Error_Type, (Name)XML_IO_Handler_Type  ), errorFilename );
-   Stream_ClearCustomFormatters( Journal_Register( Error_Type, (Name)XML_IO_Handler_Type ) );
-
-   if ( 0 == data->rank  ) {
-      stJournal->firewallProtected = False;
-      #ifdef DEBUG
-      pcu_check_assert( IO_Handler_ReadAllFromFile( data->io_handler, wrongRootNode_XMLFilename, data->dict2, data->sources2 ) );
-      #else
-      IO_Handler_ReadAllFromFile( data->io_handler, wrongRootNode_XMLFilename, data->dict2, data->sources2 ); 
-      #endif
-      stJournal->firewallProtected = True;
-      pcu_check_fileEq( errorFilename, expectedErrorFilename ); 
-      remove( errorFilename );
-   }
-}
 
 void IO_HandlerSuite( pcu_suite_t* suite ) {
    pcu_suite_setData( suite, IO_HandlerSuiteData );
@@ -671,10 +577,6 @@ void IO_HandlerSuite( pcu_suite_t* suite ) {
    pcu_suite_addTest( suite, IO_HandlerSuite_TestReadRawDataEntries );
    pcu_suite_addTest( suite, IO_HandlerSuite_TestReadAllFromCommandLine );
    pcu_suite_addTest( suite, IO_HandlerSuite_TestReadDuplicateEntryKeys );
-   pcu_suite_addTest( suite, IO_HandlerSuite_TestReadNonExistent );
-   pcu_suite_addTest( suite, IO_HandlerSuite_TestReadInvalid );
-   pcu_suite_addTest( suite, IO_HandlerSuite_TestReadWrongNS );
-   pcu_suite_addTest( suite, IO_HandlerSuite_TestReadWrongRootNode );
 }
 
 

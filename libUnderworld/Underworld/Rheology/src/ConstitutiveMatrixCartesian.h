@@ -19,12 +19,15 @@ extern "C++" {
 
 struct ConstitutiveMatrixCartesian_cppdata
 {
-    Fn::Function* fn;
-    Fn::Function::func func;
+    Fn::Function::func func_visc1;
+    Fn::Function::func func_visc2;
+    Fn::Function::func func_director;
     std::shared_ptr<FEMCoordinate> input;
 };
 
-void _ConstitutiveMatrixCartesian_SetFn( void* _self, Fn::Function* fn );
+void _ConstitutiveMatrixCartesian_Set_Fn_Visc1(    void* _self, Fn::Function* fn_visc1    );
+void _ConstitutiveMatrixCartesian_Set_Fn_Visc2(    void* _self, Fn::Function* fn_visc2    );
+void _ConstitutiveMatrixCartesian_Set_Fn_Director( void* _self, Fn::Function* fn_director );
 
 }
 extern "C" {
@@ -88,8 +91,8 @@ void _ConstitutiveMatrixCartesian_AssignFromXML( void* constitutiveMatrix, Stg_C
 	void _ConstitutiveMatrixCartesian2D_IsotropicCorrection( void* constitutiveMatrix, double isotropicCorrection ) ;
 	void _ConstitutiveMatrixCartesian3D_IsotropicCorrection( void* constitutiveMatrix, double isotropicCorrection ) ;
 
-	void _ConstitutiveMatrixCartesian2D_SetSecondViscosity( void* constitutiveMatrix, double deltaViscosity, XYZ director );
-	void _ConstitutiveMatrixCartesian3D_SetSecondViscosity( void* constitutiveMatrix, double deltaViscosity, XYZ director );
+	void _ConstitutiveMatrixCartesian2D_SetSecondViscosity( void* constitutiveMatrix, double deltaViscosity, const XYZ director );
+	void _ConstitutiveMatrixCartesian3D_SetSecondViscosity( void* constitutiveMatrix, double deltaViscosity, const XYZ director );
 
 	void _ConstitutiveMatrixCartesian2D_Assemble_D_B( void* constitutiveMatrix, double** GNx, Node_Index node_I, double** D_B );
 	void _ConstitutiveMatrixCartesian3D_Assemble_D_B( void* constitutiveMatrix, double** GNx, Node_Index node_I, double** D_B );

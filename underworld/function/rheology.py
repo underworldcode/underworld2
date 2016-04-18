@@ -54,7 +54,7 @@ class stress_limiting_viscosity(_Function):
     >>> velVar.data[top_nodes.data] = ( 0.5,0.)
 
     Vertically increasing exponential viscosity:
-    >>> fn_visc = fn.math.exp(12.*fn.coord()[1]+1.)
+    >>> fn_visc = 1.
     >>> stokesSys = uw.systems.Stokes(velVar,pressVar,fn_visc,conditions=[bc,])
 
     Solve:
@@ -66,11 +66,11 @@ class stress_limiting_viscosity(_Function):
     >>> fn_minmax_inv = fn.view.min_max(fn.tensor.second_invariant(fn_stress))
     >>> ignore = fn_minmax_inv.evaluate(mesh)
     >>> import numpy as np
-    >>> np.isclose(fn_minmax_inv.max_global(), 50.7, rtol=1e-03)
+    >>> np.isclose(fn_minmax_inv.max_global(), 1.0, rtol=1e-05)
     True
 
     Now lets set the limited viscosity. Note that the system is now non-linear.
-    >>> fn_visc_limited = fn.rheology.stress_limiting_viscosity(fn_stress,30.,fn_visc)
+    >>> fn_visc_limited = fn.rheology.stress_limiting_viscosity(fn_stress,0.5,fn_visc)
     >>> stokesSys.fn_viscosity = fn_visc_limited
     >>> solver.solve(nonLinearIterate=True)
 
@@ -78,7 +78,7 @@ class stress_limiting_viscosity(_Function):
     >>> fn_stress = 2.*fn_visc_limited*uw.function.tensor.symmetric( velVar.fn_gradient )
     >>> fn_minmax_inv = fn.view.min_max(fn.tensor.second_invariant(fn_stress))
     >>> ignore = fn_minmax_inv.evaluate(mesh)
-    >>> np.isclose(fn_minmax_inv.max_global(), 30., rtol=1e-03)
+    >>> np.isclose(fn_minmax_inv.max_global(), 0.5, rtol=1e-05)
     True
 
 
@@ -87,11 +87,11 @@ class stress_limiting_viscosity(_Function):
     def __init__(self, fn_stress, fn_stresslimit, fn_inputviscosity, stressFn=None, stressLimitFn=None, inputViscosityFn=None, *args, **kwargs):
 
         # DEPRECATE 1/16
-        if stressFn:
+        if stressFn != None:
             raise RuntimeError("Note that the 'stressFn' parameter has been renamed to 'fn_stress'.")
-        if stressLimitFn:
+        if stressLimitFn != None:
             raise RuntimeError("Note that the 'stressLimitFn' parameter has been renamed to 'fn_stresslimit'.")
-        if inputViscosityFn:
+        if inputViscosityFn != None:
             raise RuntimeError("Note that the 'inputViscosityFn' parameter has been renamed to 'fn_inputviscosity'.")
 
         _fn_stress = _Function._CheckIsFnOrConvertOrThrow(fn_stress)

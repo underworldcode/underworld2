@@ -346,7 +346,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         globalShape = (particleGlobalCount, self.data.shape[1])
         dset = h5f.create_dataset("data", 
                                    shape=globalShape,
-                                   dtype='f')
+                                   dtype=self.data.dtype)
         dset[offset:offset+swarm.particleLocalCount] = self.data[:]
 
         # link to the swarm file if it's provided

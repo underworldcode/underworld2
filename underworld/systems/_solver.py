@@ -23,7 +23,7 @@ class Solver(_stgermain.StgCompoundComponent):
         super(Solver, self).__init__(**kwargs)
 
     @staticmethod
-    def factory(eqs,type="BSSCR"):
+    def factory(eqs,type="BSSCR", *args, **kwargs):
         """
         This method simply returns a necessary solver for the provided system. 
         For information on the specific solvers:
@@ -31,9 +31,9 @@ class Solver(_stgermain.StgCompoundComponent):
             Thermal: See within the _energy_solver module.
         """
         if isinstance(eqs, uw.systems.Stokes):
-            return _bsscr.StokesSolver(eqs)
+            return _bsscr.StokesSolver(eqs, *args, **kwargs)
         elif isinstance(eqs, (uw.systems.SteadyStateHeat, uw.utils.MeshVariable_Projection) ):
-            return _energy_solver.HeatSolver(eqs)
+            return _energy_solver.HeatSolver(eqs, *args, **kwargs)
         else:
             raise ValueError("Unable to create solver. Provided system not recognised.")
 

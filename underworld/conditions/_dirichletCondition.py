@@ -60,7 +60,7 @@ class DirichletCondition(_SystemCondition):
     _selfObjectName = "_pyvc"
 
     def __init__(self, variable, indexSetsPerDof=None, nodeIndexSets=None):
-        if nodeIndexSets: # Deprecate post mid 2016, remember to clean the function signture too
+        if nodeIndexSets != None: # Deprecate post mid 2016, remember to clean the function signture too
             raise ValueError( "Parameter 'nodeIndexSets' has been renamed to 'indexSetsPerDof'. Please use indexSetsPerDof instead" )
 
         if not isinstance( variable, uw.mesh.MeshVariable ):

@@ -796,9 +796,8 @@ Mat SROpGenerator_SimpleFinestLevel( SROpGenerator *self ) {
       sideSizes[1][ii] = elGrid->sizes[ii];
       sideSizes[0][ii] = elGrid->sizes[ii] / 2;
       if( sideSizes[0][ii] * 2 != elGrid->sizes[ii] ) {
-         printf( "(MG) Error: Too many levels specified for geometric multigrid.\n" );
-         printf( "            Please modify mesh size or reduce number of levels.\n" );
-         exit( 1 );
+         Journal_Firewall( 0, NULL, "In func %s: MG Error. Too many levels specified for geometric multigrid. \
+                                     Please modify mesh size or reduce number of levels", __func__ );
       }
       /* Need to check for Q2 vs Q1 Mesh here */
       if( is_q1 ){
@@ -1125,9 +1124,8 @@ Mat SROpGenerator_SimpleCoarserLevel( SROpGenerator *self, int level ) {
       if( sideSizes[1][ii] * ifrac != elGrid->sizes[ii] || 
           sideSizes[0][ii] * (ifrac * 2) != elGrid->sizes[ii] )
       {
-         printf( "(MG) Error: Too many levels specified for geometric multigrid.\n" );
-         printf( "            Please modify mesh size or reduce number of levels.\n" );
-         exit( 1 );
+         Journal_Firewall( 0, NULL, "In func %s: MG Error. Too many levels specified for geometric multigrid. \
+                                     Please modify mesh size or reduce number of levels", __func__ );
       }
       /* Need to check for Q2 vs Q1 Mesh here */
       if( is_q1 ){

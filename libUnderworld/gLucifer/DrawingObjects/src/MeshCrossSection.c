@@ -91,8 +91,6 @@ void _lucMeshCrossSection_AssignFromXML( void* drawingObject, Stg_ComponentFacto
 void _lucMeshCrossSection_Build( void* drawingObject, void* data )
 {
    lucMeshCrossSection*     self    = (lucMeshCrossSection*)drawingObject;
-   FeVariable*                     feVariable;
-   Mesh*                           mesh;
 
    /* Build field variable in parent */
    _lucCrossSection_Build(self, data);
@@ -114,7 +112,6 @@ void _lucMeshCrossSection_Destroy( void* drawingObject, void* data ) {}
 
 void _lucMeshCrossSection_Draw( void* drawingObject, lucDatabase* database, void* _context )
 {
-   lucMeshCrossSection*       self            = (lucMeshCrossSection*)drawingObject;
    /* Default draw routine, not yet implemented, draw as points? */
 }
 

@@ -47,13 +47,11 @@ void* Stokes_SLE_PenaltySolver_DefaultNew( Name name ) {
 }
 
 Stokes_SLE_PenaltySolver* Stokes_SLE_PenaltySolver_New(
-    Name                                        name,
-    Bool                                        useStatSolve, 
-    int                                         statReps )
+    Name                                        name )
 {
     Stokes_SLE_PenaltySolver* self = (Stokes_SLE_PenaltySolver*) Stokes_SLE_PenaltySolver_DefaultNew( name );
 
-    Stokes_SLE_PenaltySolver_InitAll( self, useStatSolve, statReps );
+    Stokes_SLE_PenaltySolver_InitAll( self );
 
     return self;
 }
@@ -79,14 +77,11 @@ void _Stokes_SLE_PenaltySolver_Init( void* solver ) {
     self->isConstructed       = True;
 }
 
-void Stokes_SLE_PenaltySolver_InitAll( 
-    void*                        solver,
-    Bool                         useStatSolve,
-    int                          statReps )
+void Stokes_SLE_PenaltySolver_InitAll( void* solver )
 {
     Stokes_SLE_PenaltySolver* self = (Stokes_SLE_PenaltySolver*)solver;
 
-    SLE_Solver_InitAll( self, useStatSolve, statReps );
+    SLE_Solver_InitAll( self );
     _Stokes_SLE_PenaltySolver_Init( self );
 }
 
