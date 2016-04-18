@@ -142,6 +142,7 @@ class Stokes(_stgermain.StgCompoundComponent):
         swarmguy = self._PICSwarm
         if not swarmguy:
             swarmguy = self._gaussSwarm
+        self._intswarm = swarmguy
         self._constitMatTerm = sle.ConstitutiveMatrixTerm(  integrationSwarm=swarmguy,
                                                             assembledObject=self._kmatrix,
                                                             fn=_fn_viscosity)
