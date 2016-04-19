@@ -200,12 +200,21 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
     @contextlib.contextmanager
     def deform_mesh(self, remainsRegular=False):
         """
-        Any mesh deformation should occur within this context manager. Note that
-        certain algorithms may be switched to their irregular mesh equivalents
-        (if not already set this way).
-
+        Any mesh deformation must occur within this python context manager. Note
+        that certain algorithms may be switched to their irregular mesh equivalents
+        (if not already set this way). This may have performance implications.
+        
         Any submesh will also be appropriately updated on return from the context
-        manager.
+        manager, as will various mesh metrics. 
+        
+        Parameters
+        ----------
+        remainsRegular : bool, default=False
+            The general assumption is that the deformed mesh will no longer be regular 
+            (orthonormal), and more general but less efficient algorithms will be 
+            selected via this context manager. To over-ride this behaviour, set 
+            this parameter to True.
+            
 
         Example
         -------
@@ -222,7 +231,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         if not remainsRegular:
             uw.libUnderworld.StgDomain.Mesh_SetAlgorithms( self._cself, None )
             self._cself.isRegular = False
-            
+
         self._dataWriteable = True
         try:
             yield

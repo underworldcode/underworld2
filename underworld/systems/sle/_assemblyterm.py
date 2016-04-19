@@ -151,7 +151,6 @@ class VectorSurfaceAssemblyTerm_NA__Fn__ni(VectorAssemblyTerm):
         self._fn = maskFn * nbc.flux
         self._set_fn_function = libUnderworld.Underworld._VectorSurfaceAssemblyTerm_NA__Fn__ni_SetFn
 
-
         if mesh:
             if not isinstance( mesh, uw.mesh.FeMesh_Cartesian ):
                 raise TypeError( "The provided mesh must be of FeMesh_Cartesian class.")
@@ -162,6 +161,33 @@ class VectorSurfaceAssemblyTerm_NA__Fn__ni(VectorAssemblyTerm):
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method
         super(VectorSurfaceAssemblyTerm_NA__Fn__ni,self)._add_to_stg_dict(componentDictionary)
+
+class VectorAssemblyTerm_VEP__Fn(VectorAssemblyTerm):
+    """
+    Document!!  ... this is the viscoelastic force term assebler.  WIP.  use at own risk.
+    """
+    _objectsDict = { "_assemblyterm": "VectorAssemblyTerm_VEP" }
+
+    def __init__(self, fn, mesh=None, **kwargs):
+        """
+        """
+        # build parent
+        super(VectorAssemblyTerm_VEP__Fn,self).__init__(**kwargs)
+
+        self._set_fn_function = libUnderworld.Underworld._VectorAssemblyTerm_VEP_SetFneForce
+        self._fn = fn
+        
+        if mesh:
+            if not isinstance( mesh, uw.mesh.FeMesh_Cartesian ):
+                raise TypeError( "The provided mesh must be of FeMesh_Cartesian class.")
+            # set directly
+            self._cself.geometryMesh = mesh._cself
+            self._mesh = mesh
+
+    def _add_to_stg_dict(self,componentDictionary):
+        # call parents method
+        super(VectorAssemblyTerm_VEP__Fn,self)._add_to_stg_dict(componentDictionary)
+
 
 class VectorAssemblyTerm_NA__Fn(VectorAssemblyTerm):
     """
@@ -200,14 +226,67 @@ class PreconditionerMatrixTerm(MatrixAssemblyTerm):
 class ConstitutiveMatrixTerm(MatrixAssemblyTerm):
     _objectsDict = { "_assemblyterm": "ConstitutiveMatrixCartesian" }
 
-    def __init__(self, fn, **kwargs):
+    def __init__(self, fn_visc1=None, fn_visc2=None, fn_director=None, **kwargs):
         """
         """
         # build parent
         super(ConstitutiveMatrixTerm,self).__init__(**kwargs)
 
-        self._set_fn_function = libUnderworld.Underworld._ConstitutiveMatrixCartesian_SetFn
-        self._fn = fn
+        # disable these, because this guy requires multiple functions
+        self._set_fn_function = None
+        self._fn = None
+        
+        if not fn_visc1:
+            raise ValueError("You must provide a viscosity for the ConstitutiveMatrixTerm")
+        self._fn_visc1    = fn_visc1
+        self._fn_visc2    = fn_visc2
+        self._fn_director = fn_director
+
+
+    @property
+    def fn_visc1(self):
+        return self._fn_visc1
+
+    @fn_visc1.setter
+    def fn_visc1(self, value):
+        _fn = uw.function.Function._CheckIsFnOrConvertOrThrow(value)
+        if not isinstance( _fn, uw.function.Function):
+            raise ValueError( "Provided 'fn' must be of or convertible to 'Function' class." )
+        self._fn_visc1 = _fn
+        libUnderworld.Underworld._ConstitutiveMatrixCartesian_Set_Fn_Visc1( self._cself, self._fn_visc1._fncself )
+
+    @property
+    def fn_visc2(self):
+        return self._fn_visc2
+
+    @fn_visc2.setter
+    def fn_visc2(self, value):
+        _fn = uw.function.Function._CheckIsFnOrConvertOrThrow(value)
+        if not isinstance( _fn, uw.function.Function):
+            raise ValueError( "Provided 'fn' must be of or convertible to 'Function' class." )
+        self._fn_visc2 = _fn
+        libUnderworld.Underworld._ConstitutiveMatrixCartesian_Set_Fn_Visc2( self._cself, self._fn_visc2._fncself )
+
+    @property
+    def fn_director(self):
+        return self._fn_director
+
+    @fn_director.setter
+    def fn_director(self, value):
+        _fn = uw.function.Function._CheckIsFnOrConvertOrThrow(value)
+        if not isinstance( _fn, uw.function.Function):
+            raise ValueError( "Provided 'fn' must be of or convertible to 'Function' class." )
+        self._fn_director = _fn
+        libUnderworld.Underworld._ConstitutiveMatrixCartesian_Set_Fn_Director( self._cself, self._fn_director._fncself )
+
+    def _setup(self):
+        # lets setup fn tings.. note that this uses the 'property' above
+        self.fn_visc1    = self._fn_visc1
+        if self._fn_visc2:
+            self.fn_visc2    = self._fn_visc2
+        if self._fn_director:
+            self.fn_director = self._fn_director
+
 
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method

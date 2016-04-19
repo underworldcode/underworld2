@@ -77,7 +77,7 @@ class Package:
                   action='store', help='%s libraries.'%n)
 
     def gen_locations(self):
-	yield None
+        yield None
 
     def gen_base_extensions(self):
         #OK, 5/2011 - added multiarch lib paths for ubuntu 11.04

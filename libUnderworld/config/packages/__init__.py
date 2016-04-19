@@ -9,7 +9,7 @@ from X11 import X11
 from Glut import Glut
 from libPNG import libPNG
 from libavcodec import libavcodec
-from AGL import AGL
+from CGL import CGL
 from SQLite3 import SQLite3
 from gl2ps import gl2ps
 from pcu import pcu

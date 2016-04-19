@@ -44,6 +44,9 @@ Bool Underworld_Utils_Init( int* argc, char** argv[] ) {
    Stg_ComponentRegister_Add( Stg_ComponentRegister_Get_ComponentRegister(), Fn_Integrate_Type, (Name)"0", _Fn_Integrate_DefaultNew  );
    RegisterParent(Fn_Integrate_Type, Stg_Component_Type);
 
+   Stg_ComponentRegister_Add( componentRegister, VectorAssemblyTerm_VEP_Type, (Name)"0", _VectorAssemblyTerm_VEP_DefaultNew  );
+   RegisterParent( VectorAssemblyTerm_VEP_Type, ForceTerm_Type );
+
 	return True;
 }
 

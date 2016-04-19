@@ -15,6 +15,7 @@
 
    typedef struct VectorAssemblyTerm_NA__Fn VectorAssemblyTerm_NA__Fn;
    typedef struct VectorSurfaceAssemblyTerm_NA__Fn__ni VectorSurfaceAssemblyTerm_NA__Fn__ni;
+   typedef struct VectorAssemblyTerm_VEP VectorAssemblyTerm_VEP;
    typedef struct MatrixAssemblyTerm_NA_i__NB_i__Fn MatrixAssemblyTerm_NA_i__NB_i__Fn;
 
    typedef struct RBFManager            RBFManager;

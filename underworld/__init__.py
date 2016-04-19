@@ -41,6 +41,12 @@ import ctypes as _ctypes
 _oldflags = _sys.getdlopenflags()
 _sys.setdlopenflags( _oldflags | _ctypes.RTLD_GLOBAL )
 
+# lets also set sys.path such that the project parent directory takes
+# precedence
+import os as _os
+_sys.path.insert(0, _os.path.realpath(_os.path.dirname("..")))
+
+
 import libUnderworld
 import container
 import mesh

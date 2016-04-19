@@ -14,4 +14,5 @@ from _svector import SolutionVector
 from _assemblyterm import AssemblyTerm, VectorAssemblyTerm, MatrixAssemblyTerm, \
                           VectorAssemblyTerm_NA__Fn, GradientStiffnessMatrixTerm, PreconditionerMatrixTerm, \
                           ConstitutiveMatrixTerm, AdvDiffResidualVectorTerm, LumpedMassMatrixVectorTerm, \
-                          MassMatrixTerm, MatrixAssemblyTerm_NA_i__NB_i__Fn, VectorSurfaceAssemblyTerm_NA__Fn__ni, AdvDiffResidualVectorTerm 
+                          MassMatrixTerm, MatrixAssemblyTerm_NA_i__NB_i__Fn, VectorSurfaceAssemblyTerm_NA__Fn__ni, \
+                          AdvDiffResidualVectorTerm, VectorAssemblyTerm_VEP__Fn
