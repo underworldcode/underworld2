@@ -324,6 +324,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         # set up MG
         if self.options.mg.active == True:
             self._setup_mg()
+
         # check for non-linearity
         nonLinear=self._check_linearity(nonLinearIterate)
 

@@ -81,6 +81,34 @@ class MatrixAssemblyTerm(AssemblyTerm):
             componentDictionary[ self._cself.name ]["StiffnessMatrix"] = self._assembledObject._cself.name
 
 
+class VectorAssemblyTerm_VEP__Fn(VectorAssemblyTerm):
+    """
+    Document!!  ... this is the viscoelastic force term assebler.  WIP.  use at own risk.
+    """
+    _objectsDict = { "_assemblyterm": "VectorAssemblyTerm_VEP" }
+
+    def __init__(self, fn, mesh=None, **kwargs):
+        """
+        """
+        # build parent
+        super(VectorAssemblyTerm_VEP__Fn,self).__init__(**kwargs)
+
+        self._set_fn_function = libUnderworld.Underworld._VectorAssemblyTerm_VEP_SetFneForce
+        self._fn = fn
+        
+        if mesh:
+            if not isinstance( mesh, uw.mesh.FeMesh_Cartesian ):
+                raise TypeError( "The provided mesh must be of FeMesh_Cartesian class.")
+            # set directly
+            self._cself.geometryMesh = mesh._cself
+            self._mesh = mesh
+
+
+    def _add_to_stg_dict(self,componentDictionary):
+        # call parents method
+        super(VectorAssemblyTerm_VEP__Fn,self)._add_to_stg_dict(componentDictionary)
+
+
 class VectorAssemblyTerm_NA__Fn(VectorAssemblyTerm):
     """
     """
