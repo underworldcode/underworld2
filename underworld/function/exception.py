@@ -62,3 +62,84 @@ class SafeMaths(_Function):
         super(SafeMaths,self).__init__(argument_fns=[_fn,],**kwargs)
         
 
+class CustomException(_Function):
+    """  
+    This function allows you to set custom exceptions within your model. You
+    must pass it two functions: the first function is the pass through function,
+    the second function is the required condition. You may also pass in a optional
+    third function whose output will be printed if the condition evaluates to False.
+    A CustomException function will perform the following logic:
+        1. Evaluate the condition function.
+        2. If it evaluates to False, an exception is thrown and the simulation
+           is halted. If a print function is provided, it will be evaluated 
+           and its results will be included in the exception message.
+        3. If it evaluates to True, the pass through function is evaluated
+           with the result then being return.
+    
+    
+    Parameters
+    ----------
+    fn_passthrough: underworld.Function
+        The pass through function
+    fn_condition: underworld.Function
+        The condition function
+    fn_print: underworld.Function (optional)
+        The print function
+        
+    Example
+    -------
+    >>> import underworld as uw
+    >>> import underworld.function as fn
+    >>> one = fn.misc.constant(1.)
+    >>> passing_one = fn.exception.CustomException( one, (one < 2.) )
+    >>> passing_one.evaluate(0.) # constant function, so eval anywhere
+    array([[ 1.]])
+    >>> failing_one = fn.exception.CustomException( one, (one > 2.) )
+    >>> failing_one.evaluate(0.) # constant function, so eval anywhere
+    Traceback (most recent call last):
+    ...
+    RuntimeError: CustomException condition function has evaluated to False for current input!
+    
+    Now with printing
+
+    >>> failing_one_by_five = fn.exception.CustomException( one, (one*5. > 20.), one*5. )
+    >>> failing_one_by_five.evaluate(0.) # constant function, so eval anywhere
+    Traceback (most recent call last):
+    ...
+    RuntimeError: CustomException condition function has evaluated to False for current input!
+    Print function returns the following values (cast to double precision):
+        ( 5 )
+    
+    """
+    
+    def __init__(self, fn_input, fn_condition, fn_print=None, *args, **kwargs):
+
+        _fn_input = _Function._CheckIsFnOrConvertOrThrow(fn_input)
+        if _fn_input == None:
+            raise ValueError( "provided 'fn_input' must a 'Function' or convertible.")
+        self._fn_input = _fn_input
+
+        _fn_condition = _Function._CheckIsFnOrConvertOrThrow(fn_condition)
+        if _fn_condition == None:
+            raise ValueError( "provided 'fn_condition' must a 'Function' or convertible.")
+        self._fn_condition = _fn_condition
+
+        if fn_print != None:
+            _fn_print = _Function._CheckIsFnOrConvertOrThrow(fn_print)
+            if _fn_print == None:
+                raise ValueError( "provided 'fn_print' must a 'Function' or convertible.")
+            self._fn_print = _fn_print
+
+        # create instance
+        if not fn_print:
+            self._fncself = _cfn.CustomException( self._fn_input._fncself, self._fn_condition._fncself )
+        else:
+            self._fncself = _cfn.CustomException( self._fn_input._fncself, self._fn_condition._fncself, self._fn_print._fncself )
+
+        # build parent
+        # note that we only pass in _fn_input as the argument_fns, as _fn_condition & _fn_print are
+        # not dynamically relevant... it is only used for performing the exception check.
+        super(CustomException,self).__init__(argument_fns=[_fn_input,],**kwargs)
+        
+
+
