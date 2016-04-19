@@ -84,24 +84,73 @@ class MatrixAssemblyTerm(AssemblyTerm):
 class VectorSurfaceAssemblyTerm_NA__Fn__ni(VectorAssemblyTerm):
     """
     Assembly term for a Neumann condition
+
+    Parameters
+    ----------
+    nbc : uw.conditions.NeumannCondition
+        See uw.conditions.NeumannCondition for details
+    swarm  : uw.swarm.GaussBorderIntegrationSwarm, default = None
+        Optional input to define the quadrature points (GaussBorderIntegrationSwarm) used to evaluate this integral.
+    surfaceGaussPoints : int, default 2
+        The number of quadrature points per element face to use in surface integration.
+        Will be used to create a GaussBorderIntegrationSwarm in the case the 'swarm' input is 'None'.
     """
     _objectsDict = { "_assemblyterm": "VectorSurfaceAssemblyTerm_NA__Fn__ni" }
 
-    def __init__(self, fluxCond, mesh=None, **kwargs):
+    def __init__(self, nbc, surfaceGaussPoints=2, mesh=None, **kwargs):
         """
+        Build an assembly term for a surface integral
+        Will create it's own integration swarm, no need to hand one in
         """
-        # build parent
-        super(VectorSurfaceAssemblyTerm_NA__Fn__ni,self).__init__(**kwargs)
+        if not isinstance(nbc, uw.conditions.NeumannCondition):
+            raise ValueError( "Provided 'nbc' must be a NeumannCondition class." )
+        self._nbc = nbc
+        mesh = nbc.variable.mesh
 
-        if not isinstance(fluxCond, uw.conditions.NeumannCondition):
-            raise ValueError( "Provided 'fluxCond' must be a NeumannCondition class." )
-        self._fluxCond = fluxCond
+        # is integrationSwarm passed in?
+        swarm = kwargs.get('integrationSwarm')
+        if swarm != None:
+            if not isinstance( swarm, uw.swarm.GaussBorderIntegrationSwarm):
+                raise ValueError("Provided 'borderSwarm' must be of type uw.swarm.GaussBorderIntegrationSwarm")
+        else: # no problem
+            print "Building surface 'integrationSwarm' for VectorSurfaceAssemblyTerm_NA__Fn__ni using "+str(surfaceGaussPoints)+" surface gauss points"
+            if not isinstance(surfaceGaussPoints, int):
+                raise TypeError( "Provided 'surfaceGaussPoints' must be a positive integer")
+            if surfaceGaussPoints < 1:
+                raise ValueError( "Provided 'surfaceGaussPoints' must be a positive integer")
+            kwargs['integrationSwarm'] = uw.swarm.GaussBorderIntegrationSwarm( mesh=mesh,
+                                                                         particleCount=surfaceGaussPoints )
 
-        self._fn = fluxCond.gradientField
-        self._set_fn_function = libUnderworld.Underworld._VectorSurfaceAssemblyTerm_NA__Fn__ni_SetFn
+        super(VectorSurfaceAssemblyTerm_NA__Fn__ni,self).__init__( **kwargs)
 
         # pass the NeumannConditions to the SurfaceAssemblyTerm so it knows which nodes to assemble the flux contribution
-        libUnderworld.Underworld._VectorSurfaceAssemblyTerm_SetBNodes( self._cself, self._fluxCond._cself )
+        libUnderworld.Underworld._VectorSurfaceAssemblyTerm_SetBNodes( self._cself, nbc._cself )
+
+        ##### Now construct the additional rhs force like term. Ingredients required for a surface integral
+        # 1) a gauss border swarm
+        # 2) a mask function to only evaluate the flux only on nodes specified in the nbc.indexSets
+        #####
+
+        deltaMeshVariable = uw.mesh.MeshVariable(mesh, 1)
+        deltaMeshVariable.data[:] = 0.
+
+        ncs  = uw.mesh.FeMesh_IndexSet( mesh, topologicalIndex=0, size=mesh.nodesGlobal )
+        # record nodes within the condition
+        for ii in nbc.indexSets:
+            if ii:
+                ncs.add( ii )
+        # set a value 1.0 on provided vertices
+        deltaMeshVariable.data[ncs.data] = 1.0
+        # note we use this condition to only capture border swarm particles
+        # on the surface itself. for those directly adjacent, the deltaMeshVariable will evaluate
+        # to non-zero (but less than 1.), so we need to remove those from the integration as well.
+        maskFn = uw.function.branching.conditional(
+                                          [  ( deltaMeshVariable > 0.999, 1. ),
+                                             (                      True, 0. )   ] )
+
+        self._fn = maskFn * nbc.flux
+        self._set_fn_function = libUnderworld.Underworld._VectorSurfaceAssemblyTerm_NA__Fn__ni_SetFn
+
 
         if mesh:
             if not isinstance( mesh, uw.mesh.FeMesh_Cartesian ):

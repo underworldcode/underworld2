@@ -114,49 +114,31 @@ class DirichletCondition(_SystemCondition):
         return self._variable
 
 class NeumannCondition(DirichletCondition):
-    def __init__(self, gradientField, **kwargs ):
+    """
+    This class defines Neumann conditions for a differential equation.
+    Neumann conditions specifiy a field's flux along a boundary.
+
+    As such the user specifices the field's flux as a uw.Function and the nodes where this flux
+    is to be applied - similar to uw.conditions.DirichletCondtion
+
+    Parameters
+    ----------
+    flux : uw.Function
+        See uw.Function for details
+
+    """
+
+    def __init__(self, flux, **kwargs ):
         # call parent
         super(NeumannCondition,self).__init__(**kwargs)
 
-        # if not isinstance( gradientField, uw.mesh.MeshVariable ):
-        #     raise TypeError("Error: a NeumannCondition has been without a 'gradientField'")
-        self._gradientField = gradientField
-
-    def addMe(self, vector ):
-
-        ##### Build everything for the VectorSurfaceAssemblyTerm_NA__Fn__ni.
-        # 1) a gauss border swarm
-        # 2) a mask function to only evaluate the fn_flux only on the nodes specified in fluxCond.indexSets
-        #####
-        mesh     = self.variable.mesh
-
-        ncs      = uw.mesh.FeMesh_IndexSet( mesh, topologicalIndex=0, size=mesh.nodesGlobal )
-        # record nodes within the condition
-        for ii in self.indexSets:
-            if ii:
-                ncs.add( ii )
-
-        alanBorderGaussSwarm = uw.swarm.GaussBorderIntegrationSwarm( mesh=mesh, particleCount=2 )
-        deltaMeshVariable = uw.mesh.MeshVariable(mesh, 1)
-        # set to 1 on provided vertices and 0 elsewhere
-        deltaMeshVariable.data[:] = 0.
-        deltaMeshVariable.data[ncs.data] = 1.
-        # note we use this condition to only capture border swarm particles
-        # on the surface itself. for those directly adjacent, the deltaMeshVariable will evaluate
-        # to non-zero (but less than 1.), so we need to remove those from the integration as well.
-        maskFn = uw.function.branching.conditional(
-                                          [  ( deltaMeshVariable > 0.999, 1. ),
-                                             (                      True, 0. )   ] )
-
-        # check if vector is correct object
-        return uw.systems.sle.VectorSurfaceAssemblyTerm_NA__Fn__ni(
-                                                    integrationSwarm = alanBorderGaussSwarm,
-                                                    assembledObject  = vector,
-                                                    fluxCond         = self )
+        # if not isinstance( flux, uw.mesh.MeshVariable ):
+        #     raise TypeError("Error: a NeumannCondition has been without a 'flux'")
+        self._flux = flux
 
     @property
-    def gradientField(self):
+    def flux(self):
         """
         Gradient Field for which this condition applies.
         """
-        return self._gradientField
+        return self._flux

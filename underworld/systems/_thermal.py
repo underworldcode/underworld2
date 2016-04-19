@@ -24,9 +24,9 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
     mesh used for the 'temperatureField'.
 
     .. math::
-         \nabla { ( k \nabla \phi } ) = h
+         \nabla { ( k \nabla \phi } ) + h = 0
 
-    where, k is the diffusivity, T is the temperature, h is
+    where, k is the diffusivity, \phi is the temperature, h is
     a source term.
 
     Parameters
@@ -37,9 +37,10 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
         The function that defines the diffusivity across the domain.
     fn_heating : underworld.function.Function, default=0.
         The heating function that defines the heating across the domain.
-    fn_flux : underworld.function.Function, default=None.
-        The function that defines the the temperature flux along the domain boundary
-
+    conditions : list, uw.conditions._SystemCondition, default = []
+        Numerical conditions to impose on the system.
+        uw.conditions.DirichletCondition : define scalar values of \phi
+        uw.conditions.NeumannCondition :   define the vector (k \nabla \phi)
     Notes
     -----
     Constructor must be called by collectively all processes.
@@ -61,7 +62,7 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
     _objectsDict = {  "_system" : "SystemLinearEquations" }
     _selfObjectName = "_system"
 
-    def __init__(self, temperatureField, fn_diffusivity=None, fn_heating=0., fn_flux=None, swarm=None, conditions=[], conductivityFn=None, heatingFn=None, rtolerance=None, **kwargs):
+    def __init__(self, temperatureField, fn_diffusivity=None, fn_heating=0., swarm=None, conditions=[], conductivityFn=None, heatingFn=None, rtolerance=None, **kwargs):
         if conductivityFn != None:
             raise RuntimeError("Note that the 'conductivityFn' parameter has been renamed to 'fn_diffusivity'.")
         if heatingFn != None:
@@ -94,7 +95,7 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
             raise TypeError( "Provided 'conditions' must be a list '_SystemCondition' objects." )
 
         # error check dcs 'dirichlet conditions' and ncs 'neumann cond.' FeMesh_IndexSets
-        fluxCond = None
+        nbc = None
         mesh     = temperatureField.mesh
         ncs      = uw.mesh.FeMesh_IndexSet( mesh, topologicalIndex=0, size=mesh.nodesGlobal )
         dcs      = uw.mesh.FeMesh_IndexSet( mesh, topologicalIndex=0, size=mesh.nodesGlobal )
@@ -110,15 +111,15 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
                 dcs.add( cond.indexSets[0] )
             elif type( cond ) == uw.conditions.NeumannCondition:
                 ncs.add( cond.indexSets[0] )
-                fluxCond=cond
+                nbc=cond
             else:
                 raise RuntimeError("Can't decide on input condition")
 
         # check if condition definitions occur on the same nodes: error conditions presently
         should_be_empty = dcs & ncs
         if should_be_empty.count > 0:
-            raise ValueError("It appears both Neumann and Dirichlet conditions have been specified the following nodes\n" +
-                    "This is untested and we have disabled it for now.", should_be_empty.data)
+            raise ValueError("It appears both Neumann and Dirichlet conditions have been specified the following node degrees of freedom\n" +
+                    "This is currently unsupported.", should_be_empty.data)
 
         # ok, we've set some bcs, lets recreate eqnumbering
         libUnderworld.StgFEM._FeVariable_CreateNewEqnNumber( temperatureField._cself )
@@ -132,24 +133,28 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
         # and matrices
         self._kmatrix = sle.AssembledMatrix( temperatureField, temperatureField, rhs=self._fvector )
 
-        # create swarm
+        # initialise swarms
         self._gaussSwarm = uw.swarm.GaussIntegrationSwarm(mesh)
         self._PICSwarm = None
+        intswarm = self._gaussSwarm
+
+        # if user provided a swarm we create a PIC swarm that maps to it
         if self._swarm:
             self._PICSwarm = uw.swarm.PICIntegrationSwarm(self._swarm)
+            intswarm = self._PICSwarm
 
-        swarmguy = self._PICSwarm
-        if not swarmguy:
-            swarmguy = self._gaussSwarm
-        self._kMatTerm = sle.MatrixAssemblyTerm_NA_i__NB_i__Fn(  integrationSwarm=swarmguy,
+        self._kMatTerm = sle.MatrixAssemblyTerm_NA_i__NB_i__Fn(  integrationSwarm=intswarm,
                                                                  assembledObject=self._kmatrix,
                                                                  fn=_fn_diffusivity)
-        self._forceVecTerm = sle.VectorAssemblyTerm_NA__Fn(   integrationSwarm=swarmguy,
+        self._forceVecTerm = sle.VectorAssemblyTerm_NA__Fn(   integrationSwarm=intswarm,
                                                               assembledObject=self._fvector,
                                                               fn=fn_heating)
-        # prepare fluxConditions
-        if fluxCond:
-            self._surfaceFluxTerm = fluxCond.addMe( self._fvector )
+        # prepare neumann conditions
+        if nbc:
+            self._surfaceFluxTerm = sle.VectorSurfaceAssemblyTerm_NA__Fn__ni(
+                                                                assembledObject = self._fvector,
+                                                                surfaceGaussPoints = 2,
+                                                                nbc = nbc )
 
         super(SteadyStateHeat, self).__init__(**kwargs)
 

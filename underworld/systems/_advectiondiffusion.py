@@ -39,9 +39,10 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
         The velocity field.
     fn_diffusivity : uw.function.Function
         Function that defines diffusivity
-    conditions : list of uw.conditions.DirichletCondition objects, default=None
-        Conditions to be placed on the system. Currently only
-        Dirichlet conditions are supported.
+    conditions : list, uw.conditions._SystemCondition, default = []
+        Numerical conditions to impose on the system.
+        uw.conditions.DirichletCondition : define scalar values of \phi
+        uw.conditions.NeumannCondition :   define the vector (k \nabla \phi)
 
     Notes
     -----
@@ -84,13 +85,34 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
 
         if not isinstance(conditions, (uw.conditions._SystemCondition, list, tuple) ):
             raise ValueError( "Provided 'conditions' must be a list '_SystemCondition' objects." )
+
+        # error check dcs 'dirichlet conditions' and ncs 'neumann cond.'
+        # currently we don't support them happening on the same dof.
+        nbc = None
+        mesh     = phiField.mesh
+        ncs      = uw.mesh.FeMesh_IndexSet( mesh, topologicalIndex=0, size=mesh.nodesGlobal )
+        dcs      = uw.mesh.FeMesh_IndexSet( mesh, topologicalIndex=0, size=mesh.nodesGlobal )
         for cond in conditions:
             if not isinstance( cond, uw.conditions._SystemCondition ):
-                raise ValueError( "Provided 'conditions' must be a list '_SystemCondition' objects." )
-            # set the bcs on here.. will rearrange this in future.
-            if type(cond) == uw.conditions.DirichletCondition:
-                libUnderworld.StgFEM.FeVariable_SetBC( self._phiField._cself, cond._cself )
-                libUnderworld.StgFEM.FeVariable_SetBC( self._phiDotField._cself, cond._cself )
+                raise TypeError( "Provided 'conditions' must be a list '_SystemCondition' objects." )
+            # set the bcs on here
+            if type( cond ) == uw.conditions.DirichletCondition:
+                if cond.variable == phiField:
+                    libUnderworld.StgFEM.FeVariable_SetBC( self._phiField._cself, cond._cself )
+                    libUnderworld.StgFEM.FeVariable_SetBC( self._phiDotField._cself, cond._cself )
+                # add all dirichlet condition to dcs
+                dcs.add( cond.indexSets[0] )
+            elif type( cond ) == uw.conditions.NeumannCondition:
+                ncs.add( cond.indexSets[0] )
+                nbc=cond
+            else:
+                raise RuntimeError("Can't decide on input condition")
+
+        # check if condition definitions occur on the same nodes
+        should_be_empty = dcs & ncs
+        if should_be_empty.count > 0:
+            raise ValueError("It appears both Neumann and Dirichlet conditions have been specified the following node degrees of freedom\n" +
+                    "This is currently unsupported.", should_be_empty.data)
 
         # ok, we've set some bcs, lets recreate eqnumbering
         libUnderworld.StgFEM._FeVariable_CreateNewEqnNumber( self._phiField._cself )
@@ -133,8 +155,11 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
                                                                       extraInfo = self._cself.name )
         for cond in self._conditions:
             if isinstance( cond, uw.conditions.NeumannCondition ):
-                # NOTE many NeumannConditions can be used but the _sufaceFluxTerm only records the last
-                self._surfaceFluxTerm = cond.addMe( self._residualVector )
+                #NOTE many NeumannConditions can be used but the _sufaceFluxTerm only records the last
+                self._surfaceFluxTerm = sle.VectorSurfaceAssemblyTerm_NA__Fn__ni(
+                                                                assembledObject  = self._residualVector,
+                                                                surfaceGaussPoints = 2,
+                                                                nbc         = cond )
 
         self._cself.advDiffResidualForceTerm = self._residualTerm._cself
 

@@ -250,7 +250,7 @@ void _VectorSurfaceAssemblyTerm_NA__Fn__ni_AssembleElement( void* forceTerm, For
         memset( fluxVector, 0, sizeof(double)*dim ); // zero the fluxVector
         if( dofsPerNode == 1 ) { // we can treat dphi_dx as a vector
             for( ii=0; ii<dim; ii++ ) 
-                fluxVector[0] -= dphi_dx[ii]*localNormal[ii];
+                fluxVector[0] += dphi_dx[ii]*localNormal[ii];
         } else if ( dofsPerNode == 2 || dofsPerNode == 3 ) {
             // treat dphi_dx as a symmetric tensor
             int index;
