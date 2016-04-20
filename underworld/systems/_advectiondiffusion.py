@@ -167,6 +167,7 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
     def integrate(self,dt):
         """
         Integrates the advection diffusion system through time, dt
+        Must be called collectively by all processes.
 
         Parameters
         ----------

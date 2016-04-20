@@ -176,7 +176,7 @@ class VectorAssemblyTerm_VEP__Fn(VectorAssemblyTerm):
 
         self._set_fn_function = libUnderworld.Underworld._VectorAssemblyTerm_VEP_SetFneForce
         self._fn = fn
-        
+
         if mesh:
             if not isinstance( mesh, uw.mesh.FeMesh_Cartesian ):
                 raise TypeError( "The provided mesh must be of FeMesh_Cartesian class.")
@@ -235,7 +235,7 @@ class ConstitutiveMatrixTerm(MatrixAssemblyTerm):
         # disable these, because this guy requires multiple functions
         self._set_fn_function = None
         self._fn = None
-        
+
         if not fn_visc1:
             raise ValueError("You must provide a viscosity for the ConstitutiveMatrixTerm")
         self._fn_visc1    = fn_visc1
@@ -329,10 +329,11 @@ class AdvDiffResidualVectorTerm(VectorAssemblyTerm):
         self._diffFn = uw.function.Function._CheckIsFnOrConvertOrThrow(diffusivity)
         if not isinstance( self._diffFn, uw.function.Function ):
             raise TypeError( "Provided 'diffusivity' must be of the type, or convertible to, 'Function' class ")
-        self._sourceFn = uw.function.Function._CheckIsFnOrConvertOrThrow(sourceTerm)
+
         # if sourceTerm is None make it 0.0 fn object
+        self._sourceFn = uw.function.Function._CheckIsFnOrConvertOrThrow(sourceTerm)
         if self._sourceFn == None:
-            self._sourceFn = uw.function.misc.Constant(0.0)
+            self._sourceFn = uw.function.misc.constant(0.0)
 
         self._set_fn_function = None
         self._fn = None

@@ -43,7 +43,7 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
         uw.conditions.NeumannCondition :   define the vector (k \nabla \phi)
     Notes
     -----
-    Constructor must be called by collectively all processes.
+    Constructor must be called collectively by all processes.
 
     Example
     -------
