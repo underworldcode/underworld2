@@ -367,11 +367,45 @@ class SolNL(_SolBase):
 
 
 class SolDB2d(_SolBase):
+    """
+    SolDB2d and solDB3d from:
+
+    @ARTICLE{2004IJNMF..46..183D,
+    author = {{Dohrmann}, C.~R. and {Bochev}, P.~B.},
+    title = "{A stabilized finite element method for the Stokes problem based on polynomial pressure projections}",
+    journal = {International Journal for Numerical Methods in Fluids},
+    keywords = {Stokes equations, stabilized mixed methods, equal-order interpolation, inf-sup condition},
+    year = 2004,
+    month = sep,
+    volume = 46,
+    pages = {183-201},
+    doi = {10.1002/fld.752},
+    adsurl = {http://adsabs.harvard.edu/abs/2004IJNMF..46..183D},
+    adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+
+    """
     def __init__(self, *args, **kwargs):
         self._ckeep = _cfn.SolDB2d()
         super(SolDB2d,self).__init__(_cfn.SolDB2dCRTP(self._ckeep,2), **kwargs)
 
 class SolDB3d(_SolBase):
+    """
+    SolDB2d and solDB3d from:
+
+    @ARTICLE{2004IJNMF..46..183D,
+    author = {{Dohrmann}, C.~R. and {Bochev}, P.~B.},
+    title = "{A stabilized finite element method for the Stokes problem based on polynomial pressure projections}",
+    journal = {International Journal for Numerical Methods in Fluids},
+    keywords = {Stokes equations, stabilized mixed methods, equal-order interpolation, inf-sup condition},
+    year = 2004,
+    month = sep,
+    volume = 46,
+    pages = {183-201},
+    doi = {10.1002/fld.752},
+    adsurl = {http://adsabs.harvard.edu/abs/2004IJNMF..46..183D},
+    adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+
+    """
 
     def __init__(self, Beta=4., *args, **kwargs):
         self._ckeep = _cfn.SolDB3d(Beta)
