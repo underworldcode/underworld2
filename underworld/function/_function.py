@@ -368,6 +368,12 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
         >>> falseFn = misc.constant(False)
         >>> (trueFn & falseFn).evaluate(0.) # note we can evaluate anywhere because it's a constant
         array([[False]], dtype=bool)
+        
+        Notes
+        -----
+        The '&' operator in python is usually used for bitwise 'and' operations, with the 
+        'and' operator used for boolean type operators. It is not possible to overload the
+        'and' operator in python, so instead the bitwise equivalent has been utilised.
 
         """
         return logical_and( self, other )
@@ -392,7 +398,15 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
         >>> (trueFn | falseFn).evaluate(0.) # note we can evaluate anywhere because it's a constant
         array([[ True]], dtype=bool)
 
+        Notes
+        -----
+        The '|' operator in python is usually used for bitwise 'or' operations, with the 'or'
+        operator used for boolean type operators. It is not possible to overload the
+        'or' operator in python, so instead the bitwise equivalent has been utilised.
+
+
         """
+
         return logical_or( self, other )
 
     def __getitem__(self,index):

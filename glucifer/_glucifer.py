@@ -499,7 +499,7 @@ class Figure(_stgermain.StgCompoundComponent):
         image_data = "data:image/png;base64,%s" % b64encode(response)
         return HTML("<img src='%s'>" % image_data)
 
-    def open_viewer(self, args=[]):
+    def open_viewer(self, args=[], background=True):
         """ Open the viewer.
         """
         if haveLavaVu and uw.rank() == 0:
@@ -507,12 +507,20 @@ class Figure(_stgermain.StgCompoundComponent):
             self.save_database(fname)
             if self._viewerProc and self._viewerProc.poll() == None:
                 return
-            #Open viewer with local web server for interactive/iterative use
-            args = [self._lvbin, "-" + str(self._db.timeStep), "-L", "-p8080", "-q90", "-Q", fname] + args
-            self._viewerProc = subprocess.Popen(args, stdout=PIPE, stdin=PIPE, stderr=STDOUT)
 
-            from IPython.display import HTML
-            return HTML('''<a href='#' onclick='window.open("http://" + location.hostname + ":8080");'>Open Viewer Interface</a>''')
+            #Open viewer with local web server for interactive/iterative use
+            args = [self._lvbin, "-" + str(self._db.timeStep), "-L", "-p8080", "-q90", fname] + args
+            if background:
+                self._viewerProc = subprocess.Popen(args, stdout=PIPE, stdin=PIPE, stderr=STDOUT)
+                from IPython.display import HTML
+                return HTML('''<a href='#' onclick='window.open("http://" + location.hostname + ":8080");'>Open Viewer Interface</a>''')
+            else:
+                cwd = os.getcwd()
+                lavavu.execute(args)
+                try:
+                    assert cwd == os.getcwd()
+                except AssertionError:
+                    os.chdir(cwd)
 
     def close_viewer(self):
         """ Close the viewer.

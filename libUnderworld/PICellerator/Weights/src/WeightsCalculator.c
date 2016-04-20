@@ -56,7 +56,7 @@ void _WeightsCalculator_Init( void* weightsCalculator, int dim ) {
 
 void _WeightsCalculator_Delete( void* weightsCalculator ) {
     WeightsCalculator* self = (WeightsCalculator*)weightsCalculator;
-        
+
     /* Delete parent */
     _Stg_Component_Delete( self );
 }
@@ -64,7 +64,7 @@ void _WeightsCalculator_Delete( void* weightsCalculator ) {
 
 void _WeightsCalculator_Print( void* weightsCalculator, Stream* stream ) {
     WeightsCalculator* self = (WeightsCalculator*)weightsCalculator;
-        
+
     /* Print parent */
     _Stg_Component_Print( self, stream );
 }
@@ -73,9 +73,9 @@ void _WeightsCalculator_Print( void* weightsCalculator, Stream* stream ) {
 void* _WeightsCalculator_Copy( void* weightsCalculator, void* dest, Bool deep, Name nameExt, PtrMap* ptrMap ) {
     WeightsCalculator*  self = (WeightsCalculator*)weightsCalculator;
     WeightsCalculator*  newWeightsCalculator;
-        
+
     newWeightsCalculator = (WeightsCalculator*)_Stg_Component_Copy( self, dest, deep, nameExt, ptrMap );
-        
+
     return (void*)newWeightsCalculator;
 }
 
@@ -86,7 +86,7 @@ void _WeightsCalculator_AssignFromXML( void* weightsCalculator, Stg_ComponentFac
     Dimension_Index      dim;
 
     //self->context = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"Context", FiniteElementContext, False, data );
-    //if( !self->context  ) 
+    //if( !self->context  )
     //    self->context = Stg_ComponentFactory_ConstructByName( cf, (Name)"context", FiniteElementContext, True, data  );
 
     dim = Stg_ComponentFactory_GetRootDictUnsignedInt( cf, (Dictionary_Entry_Key)"dim", 0  );
@@ -106,11 +106,11 @@ void _WeightsCalculator_Destroy( void* weightsCalculator, void* data ) {
 
 void _WeightsCalculator_Initialise( void* weightsCalculator, void* data ) {
 /*      WeightsCalculator*      self = (WeightsCalculator*)weightsCalculator; */
-        
+
 }
 void _WeightsCalculator_Execute( void* weightsCalculator, void* data ) {
 /*      WeightsCalculator*      self = (WeightsCalculator*)weightsCalculator; */
-        
+
 }
 
 /*--------------------------------------------------------------------------------------------------------------------------
@@ -124,7 +124,7 @@ void WeightsCalculator_CalculateCell( void* weightsCalculator, void* swarm, Cell
 }
 
 
-        
+
 /*----------------------------------------------------------------------------------------------------------------------------------
 ** Private Functions
 */
@@ -135,7 +135,7 @@ void WeightsCalculator_CalculateAll( void* weightsCalculator, void* _swarm ) {
     Swarm*               swarm          = (Swarm*) _swarm;
     Cell_LocalIndex          cellLocalCount = swarm->cellLocalCount;
     Cell_LocalIndex          lCell_I;
-    unsigned int         numberOfCompletionPrintIncrements=10;
+    unsigned int         numberOfCompletionPrintIncrements=3;
     double               completionRatioIncrement= 1 / (double)numberOfCompletionPrintIncrements;
     double               nextCompletionRatioToPrint=0;
     Cell_Index           nextCompletedCellCountToPrint=0;
@@ -169,7 +169,7 @@ void WeightsCalculator_CalculateAll( void* weightsCalculator, void* _swarm ) {
                     break;
                 }
             }
-            Journal_Printf( stream, "done %.0f%% (%u cells)...\n", 
+            Journal_Printf( stream, "done %.0f%% (%u cells)...\n",
                             (nextCompletionRatioToPrint * 100),
                             lCell_I+1 );
             nextCompletionRatioToPrint += completionRatioIncrement;
@@ -196,7 +196,7 @@ void WeightsCalculator_SetWeightsValueAllInCell( void* weightsCalculator, void* 
     Particle_InCellIndex         cParticleCount    = swarm->cellParticleCountTbl[lCell_I];
     Particle_InCellIndex         cParticle_I;
     IntegrationPoint*            particle;
-        
+
     /* Loop over particles in this cell */
     for ( cParticle_I = 0 ; cParticle_I < cParticleCount ; cParticle_I++ ) {
         particle = (IntegrationPoint*) Swarm_ParticleInCellAt( swarm, lCell_I, cParticle_I );
@@ -226,12 +226,12 @@ Constraint_Index WeightsCalculator_FindConstraintOrder( void* weightsCalculator,
     order--;
 
     if (order == (Constraint_Index) -1)
-        Journal_Printf( stream, "Weights '%s' for swarm '%s' satisfy no weight constraints.\n", 
+        Journal_Printf( stream, "Weights '%s' for swarm '%s' satisfy no weight constraints.\n",
                         self->name, swarm->name );
-    else 
-        Journal_Printf( stream, "Weights '%s' for swarm '%s' satisfy weight constraints to order %u.\n", 
+    else
+        Journal_Printf( stream, "Weights '%s' for swarm '%s' satisfy weight constraints to order %u.\n",
                         self->name, swarm->name, order );
-        
+
     return order;
 }
 
@@ -242,7 +242,7 @@ double WeightsCalculator_TestConstraint( void* weightsCalculator, void* _swarm, 
     double                       error            = 0.0;
 
     /* Loop over all local cells */
-    for ( lCell_I = 0 ; lCell_I < swarm->cellLocalCount ; lCell_I++ ) 
+    for ( lCell_I = 0 ; lCell_I < swarm->cellLocalCount ; lCell_I++ )
         error += WeightsCalculator_TestConstraintOverCell( self, swarm, lCell_I, dim, order );
 
     Journal_DPrintfL( swarm->debug, 2, "In func %s: Error for weights for constraints of order %u is %0.3g\n", __func__, order, error );
@@ -262,8 +262,8 @@ double WeightsCalculator_TestConstraintOverCell( void* weightsCalculator, void* 
     double                       error             = 0.0;
     double*                      xi;
     Constraint_Index             constraintCount   = 0;
-        
-    Journal_DPrintfL( swarm->debug, 2, 
+
+    Journal_DPrintfL( swarm->debug, 2,
                       "In func %s: For Cell %u and Dimension %u and order %u\n", __func__, lCell_I, dim, order );
     Stream_Indent( swarm->debug );
 
@@ -275,31 +275,31 @@ double WeightsCalculator_TestConstraintOverCell( void* weightsCalculator, void* 
             /************ Calculate Right Hand Side of Constraint **************************/
             if ( IS_ODD( power_i ) || IS_ODD( power_j ) || IS_ODD( order - power_i - power_j ) )
                 rightHandSide = 0.0;
-            else 
+            else
                 rightHandSide = volume/
                     (double)(( power_i + 1 )*( power_j + 1 )*( order - power_i - power_j + 1));
-                        
-            Journal_DPrintfL( swarm->debug, 3, 
-                              "Constraint %u: \\Sigma w_p \\xi^%u \\eta^%u \\Zeta^%u = %0.3g\n", 
+
+            Journal_DPrintfL( swarm->debug, 3,
+                              "Constraint %u: \\Sigma w_p \\xi^%u \\eta^%u \\Zeta^%u = %0.3g\n",
                               constraintCount, power_i, order - power_i - power_j, power_j , rightHandSide );
             /************ Calculate Left Hand Side of Constraint **************************/
             leftHandSide = 0.0;
-                        
+
             /* Loop over particles in this cell */
             Stream_Indent( swarm->debug );
             for ( cParticle_I = 0 ; cParticle_I < swarm->cellParticleCountTbl[lCell_I]; cParticle_I++ ) {
                 particle = (IntegrationPoint*) Swarm_ParticleInCellAt( swarm, lCell_I, cParticle_I );
-                                
+
                 /* Get local Coordinates of particle */
                 xi = particle->xi;
-                        
-                leftHandSide += particle->weight * 
+
+                leftHandSide += particle->weight *
                     pow( xi[ I_AXIS ], (double) power_i ) *
                     pow( xi[ J_AXIS ], (double) (order - power_i - power_j) ) *
                     pow( xi[ K_AXIS ], (double) power_j ) ;
-                Journal_DPrintfL( swarm->debug, 3, 
-                                  "ParticleInCell %u, weight = %0.3g, local element coords = (%0.3g, %0.3g, %0.3g)\n", 
-                                  cParticle_I, particle->weight, 
+                Journal_DPrintfL( swarm->debug, 3,
+                                  "ParticleInCell %u, weight = %0.3g, local element coords = (%0.3g, %0.3g, %0.3g)\n",
+                                  cParticle_I, particle->weight,
                                   xi[ I_AXIS ], xi[ J_AXIS ], xi[ K_AXIS ],
                                   power_i, (order - power_i - power_j), power_j );
             }
@@ -312,14 +312,14 @@ double WeightsCalculator_TestConstraintOverCell( void* weightsCalculator, void* 
 
         }
         /* 3D Constrain Equations collapse to 2D constraint equation only if j = 0 */
-        if (dim == 2) 
+        if (dim == 2)
             break;
     }
     Stream_UnIndent( swarm->debug );
 
-    Journal_Firewall( dim == 2 ? constraintCount == order + 1 : constraintCount*2 == (order + 1)*(order + 2) , 
+    Journal_Firewall( dim == 2 ? constraintCount == order + 1 : constraintCount*2 == (order + 1)*(order + 2) ,
                       Journal_Register( Error_Type, (Name)swarm->type  ),
-                      "In func %s: Number of constraints %u incorrect for dimension %u which should be %u\n", 
+                      "In func %s: Number of constraints %u incorrect for dimension %u which should be %u\n",
                       __func__ , dim == 2 ? order + 1 : (order + 1)*(order + 2)/2 );
 
     return error;
@@ -332,15 +332,15 @@ double WeightsCalculator_GetConstraintLHS( void* weightsCalculator, void* _swarm
     IntegrationPoint*            particle;
     double                       leftHandSide    = 0.0;
     double*                      xi;
-        
+
     /* Loop over particles in this cell */
     for ( cParticle_I = 0 ; cParticle_I < cParticleCount ; cParticle_I++ ) {
         particle = (IntegrationPoint*) Swarm_ParticleInCellAt( swarm, lCell_I, cParticle_I );
-                
+
         /* Get local Coordinates of particle */
         xi = particle->xi;
-        
-        leftHandSide += particle->weight * 
+
+        leftHandSide += particle->weight *
             pow( xi[ I_AXIS ], (double) power_i ) *
             pow( xi[ J_AXIS ], (double) power_j ) ;
 
@@ -351,7 +351,7 @@ double WeightsCalculator_GetConstraintLHS( void* weightsCalculator, void* _swarm
     return leftHandSide;
 }
 
-double WeightsCalculator_GetLocalCoordSum( void* weightsCalculator, void* _swarm, Cell_LocalIndex lCell_I, Index power_i, Index power_j, Index power_k ) 
+double WeightsCalculator_GetLocalCoordSum( void* weightsCalculator, void* _swarm, Cell_LocalIndex lCell_I, Index power_i, Index power_j, Index power_k )
 {
     Swarm*                       swarm           = (Swarm*) _swarm;
     Particle_InCellIndex         cParticleCount  = swarm->cellParticleCountTbl[lCell_I];
@@ -359,15 +359,15 @@ double WeightsCalculator_GetLocalCoordSum( void* weightsCalculator, void* _swarm
     IntegrationPoint*            particle;
     double                       localCoordSum   = 0.0;
     double*                      xi;
-        
+
     /* Loop over particles in this cell */
     for ( cParticle_I = 0 ; cParticle_I < cParticleCount ; cParticle_I++ ) {
         particle = (IntegrationPoint*) Swarm_ParticleInCellAt( swarm, lCell_I, cParticle_I );
-                
+
         /* Get local Coordinates of particle */
         xi = particle->xi;
-        
-        localCoordSum += 
+
+        localCoordSum +=
             pow( xi[ I_AXIS ], (double) power_i ) *
             pow( xi[ J_AXIS ], (double) power_j ) ;
 
@@ -389,7 +389,7 @@ double WeightsCalculator_SumCellWeights( void* weightsCalculator, void* _swarm, 
     /* Find Sum of the Weights */
     for ( cParticle_I = 0 ; cParticle_I < cParticleCount ; cParticle_I++ ) {
         particle = (IntegrationPoint*) Swarm_ParticleInCellAt( swarm, lCell_I, cParticle_I );
-                
+
         /* Put weight onto particle */
         weightsTotal += particle->weight;
     }
@@ -400,7 +400,7 @@ double WeightsCalculator_SumCellWeights( void* weightsCalculator, void* _swarm, 
 void WeightsCalculator_CheckEmptyCell( void* weightsCalculator, void* _swarm, Cell_LocalIndex lCell_I ) {
     WeightsCalculator*           self              = (WeightsCalculator*) weightsCalculator;
     Swarm*                       swarm           = (Swarm*) _swarm;
-    Particle_InCellIndex         cParticleCount  = swarm->cellParticleCountTbl[lCell_I];        
+    Particle_InCellIndex         cParticleCount  = swarm->cellParticleCountTbl[lCell_I];
 
     if ( cParticleCount == 0 ) {
         Journal_Firewall( cParticleCount, Journal_Register( Error_Type, (Name)self->type  ),
@@ -409,6 +409,3 @@ void WeightsCalculator_CheckEmptyCell( void* weightsCalculator, void* _swarm, Ce
                           __func__, self->type, self->name, swarm->type, swarm->name, lCell_I );
     }
 }
-                        
-
-
