@@ -23,7 +23,7 @@ class _Sol_Function(_Function):
         super(_Sol_Function,self).__init__(argument_fns=None, **kwargs)
 
 class _SolBase(object):
-    """  
+    """
     This function returns the various fields for
     analytic solutions. Note that this object itself is not a
     function object, but it instead provides the required
@@ -33,7 +33,7 @@ class _SolBase(object):
 
         self._csol = csol
         super(_SolBase,self).__init__(**kwargs)
-    
+
     @property
     def fn_velocity(self):
         return _Sol_Function( self._csol.velocityFn )
@@ -55,6 +55,26 @@ class _SolBase(object):
 
 
 class SolCx(_SolBase):
+    """
+    SolCx is a 2-dimensional analytical solution to the Stokes' flow  equations.
+    The boundary conditions are free-slip everywhere on a unit domain.
+    There is a viscosity jump in the x direction at $x=x_c$.
+    The flow is driven by a temperature field represented by the density, $ \\rho $, as follows:
+    $$
+         \\rho = -\sigma \sin (n_z \pi z) \cos (n_x \pi x).
+    $$
+
+    Parameters:
+
+    The variable parameters of this solution are:
+
+      - density parameter: $ \sigma $
+      - viscosities: $\eta_A$ and $\eta_B$
+      - viscosity jump location: $x_c$.
+      - wave number in z domain: $ n_z $. ($n_z$ may be non-integer) ((NOT AVAILABLE IN PYTHON))
+      - wave number in x domain: $ n_x $. ($n_x$ must be integer)
+
+    """
     def __init__(self, viscosityA=1., viscosityB=2., xc=0.25, nx=1, *args, **kwargs):
         if not isinstance(viscosityA, float) or viscosityA<=0:
             raise TypeError("'viscosityA' must be a positive float." )
@@ -107,6 +127,24 @@ class SolCx(_SolBase):
 
 
 class SolKx(_SolBase):
+    """
+    SolKx is a 2-dimensional analytical solution to the Cauchy equations with the acceleration term set to zero
+    to represent creeping flow. The boundary conditions are free-slip everywhere on a unit domain.
+    The viscosity varies exponentially in the x direction and is given by $\eta = \exp (2 B x)$.
+    The flow is driven by a temperature field represented by the density, $\\rho$, as follows:
+    $$
+        \\rho = -\sigma \sin (k_m z) \cos (k_n x).
+    $$
+
+    Parameters:
+
+    The variable parameters of this solution are:
+     - density/temperature parameter: $ \sigma $.
+     - wave number in z domain: $ k_m = m\pi{z} $. ($m$ may be non-integer)
+     - wave number in x domain: $ k_n = n\pi{x} $. ($n$ must be integer)
+     - viscosity parameter: $B$.
+
+    """
 
     def __init__(self, sigma=1., nx=1., nz=1, B=1.1512925465, *args, **kwargs):
         if not isinstance(sigma, float):
@@ -156,6 +194,23 @@ class SolKx(_SolBase):
 
 
 class SolKz(_SolBase):
+    """
+      SolKz is a 2-dimensional analytical solution to the Cauchy equations with the acceleration term set to zero
+      to represent creeping flow. The boundary conditions are free-slip everywhere on a unit domain.
+      The viscosity varies exponentially in the z direction and is given by $\eta = \exp (2 B z)$.
+      The flow is driven by a temperature field represented by the density, $\\rho$, as follows:
+      $$
+         \\rho = -\sigma \sin (k_m z) \cos (k_n x).
+      $$
+
+      Parameters:
+
+      The variable parameters of this solution are:
+        - density/temperature parameter: $ \sigma $.}
+        - wave number in z domain: $ k_m = m\pi{z} $. ($m$ may be non-integer)
+        - wave number in x domain: $ k_n = n\pi{x} $. ($n$ must be integer)
+        - viscosity parameter: $B$.
+   """
 
     def __init__(self, sigma=1., nx=1, nz=1., B=1., *args, **kwargs):
         if not isinstance(sigma, float) or sigma!=1.:
@@ -205,6 +260,13 @@ class SolKz(_SolBase):
 
 
 class SolM(_SolBase):
+    """
+    SolM inanis et vacua est,
+    SolM est illusio,
+    SolM non potest suggero vos sustentationem mentis
+
+    MV (Caesar Dandenonensis)
+    """
 
     def __init__(self, eta0=1., m=1, n=1., r=1.5, *args, **kwargs):
         if not isinstance(eta0, float) or eta0 <= 0.:
@@ -258,7 +320,13 @@ class SolM(_SolBase):
 
 
 class SolNL(_SolBase):
+    """
+    SolNL inanis et vacua est,
+    SolNL est illusio,
+    SolNL non potest suggero vos sustentationem mentis
 
+    MV (Caesar Dandenonensis)
+    """
     def __init__(self, eta0=1., n=1., r=1.5, *args, **kwargs):
         if not isinstance(eta0, float) or eta0 <= 0.:
             raise TypeError("'eta0' can be any positive float." )
