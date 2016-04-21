@@ -38,6 +38,9 @@ libUnderworld/libUnderworldPy/LavaVu.py
 testResults
 docs/scratch
 
+
+
+
 # We should probably not cache the output of all the examples - especially if we are going to leave the
 # notebook output cells in place.
 
@@ -58,3 +61,8 @@ syntax: regexp
 (^|/)\.hgtags($|/)
 
 *.cfg
+
+# To save the trouble of purging this for now.
+*/.texpadtmp/*
+
+libUnderworld/Underworld/SysTest/AnalyticPlugins/Doc/.texpadtmp/*

@@ -23,7 +23,7 @@
 
 #define KSPBSSCR         "bsscr"
 
-void bsscr_summary(KSP_BSSCR * bsscrp_self, KSP ksp_S, KSP ksp_inner, 
+void bsscr_summary(KSP_BSSCR * bsscrp_self, KSP ksp_S, KSP ksp_inner,
 		   Mat K,Mat K2,Mat D,Mat G,Mat C,Vec u,Vec p,Vec f,Vec h,Vec t,
 		   double penaltyNumber,PetscTruth KisJustK,double mgSetupTime,double scrSolveTime,double a11SingleSolveTime){
     PetscTruth flg, found;
@@ -31,7 +31,7 @@ void bsscr_summary(KSP_BSSCR * bsscrp_self, KSP ksp_S, KSP ksp_inner,
     PetscReal  rNorm, fNorm, uNorm, uNormInf, pNorm, pNormInf, p_sum, min, max;
     Vec q, qq, t2, t3;
     double solutionAnalysisTime;
-      
+
       PetscPrintf( PETSC_COMM_WORLD,  "\n\nSCR Solver Summary:\n\n");
       if(bsscrp_self->mg)
 	    PetscPrintf( PETSC_COMM_WORLD, "  Multigrid setup:        = %.4g secs \n", mgSetupTime);
@@ -42,12 +42,16 @@ void bsscr_summary(KSP_BSSCR * bsscrp_self, KSP ksp_S, KSP ksp_inner,
       KSPGetIterationNumber( ksp_inner, &iterations);
       bsscrp_self->solver->stats.velocity_backsolve_its = iterations;
       PetscPrintf( PETSC_COMM_WORLD,     "  Final V Solve:          = %.4g secs / %d its\n\n", a11SingleSolveTime, iterations);
+
       /***************************************************************************************************************/
-      flg = PETSC_TRUE; PetscOptionsGetTruth( PETSC_NULL, "-scr_ksp_solution_summary", &flg, &found );	
-      if(flg) {	
+
+      flg = PETSC_FALSE; /* Off by default */
+	  PetscOptionsGetTruth( PETSC_NULL, "-scr_ksp_solution_summary", &flg, &found );
+
+      if(flg) {
 	    PetscScalar KuNorm;
 	    solutionAnalysisTime = MPI_Wtime();
-	    VecGetSize( u, &uSize ); 
+	    VecGetSize( u, &uSize );
 	    VecGetSize( p, &pSize );
 	    VecDuplicate( u, &t2 );
 	    VecDuplicate( u, &t3 );
@@ -66,8 +70,8 @@ void bsscr_summary(KSP_BSSCR * bsscrp_self, KSP ksp_S, KSP ksp_inner,
 
 	    MatMult( K, u, t2); VecNorm(t2, NORM_2, &KuNorm);
 	    VecAYPX( t2, -1.0, t ); /* t2 <- -t2 + t  : t = f- G p  should be the formal residual vector, calculated on line 267 in auglag-driver-DGTGD.c*/
-	    VecNorm( t2, NORM_2, &rNorm );	
-	    VecNorm( f,  NORM_2, &fNorm );	
+	    VecNorm( t2, NORM_2, &rNorm );
+	    VecNorm( f,  NORM_2, &fNorm );
 	    if(KisJustK){
           PetscPrintf( PETSC_COMM_WORLD,"Velocity back-solve with original K matrix\n");
           PetscPrintf( PETSC_COMM_WORLD,"Solved    K u = G p -f\n");
@@ -130,12 +134,12 @@ void bsscr_summary(KSP_BSSCR * bsscrp_self, KSP ksp_S, KSP ksp_inner,
 	    }
 
 
-	    
+
 	    VecDuplicate( p, &q );
 	    MatMult( D, u, q );   /* q = G'*u = D*u */
-	    VecNorm( u, NORM_2, &uNorm );	
-	    VecNorm( q, NORM_2, &rNorm );	
-	
+	    VecNorm( u, NORM_2, &uNorm );
+	    VecNorm( q, NORM_2, &rNorm );
+
 	    PetscPrintf( PETSC_COMM_WORLD,  "  |G^T u|_2               = %.6e\n", rNorm );
 	    PetscPrintf( PETSC_COMM_WORLD,  "  |G^T u|_2/|u|_2         = %.6e\n", sqrt( (double) uSize / (double) pSize ) * rNorm / uNorm);
 
@@ -143,7 +147,7 @@ void bsscr_summary(KSP_BSSCR * bsscrp_self, KSP ksp_S, KSP ksp_inner,
 	    MatMultTranspose( G, u, qq );
 	    VecNorm( qq, NORM_2, &rNorm );
 	    PetscPrintf( PETSC_COMM_WORLD,  "  |G^T u|/|u|             = %.8e\n", rNorm/uNorm ); /* to compare directly with Uzawa */
-	    
+
 	    VecNorm( q, NORM_INFINITY, &rNorm );
 	    PetscPrintf( PETSC_COMM_WORLD,  "  |G^T u|_infty/|u|_2     = %.6e\n", sqrt( (double) uSize ) * rNorm / uNorm);
 	    /* create G'*u+C*p-h to check on this constraint */
@@ -156,17 +160,17 @@ void bsscr_summary(KSP_BSSCR * bsscrp_self, KSP ksp_S, KSP ksp_inner,
 	    VecAXPY( q, -1.0, h ); /* q = q-h;  G'*u + C*p - h  */
 	    VecNorm( q, NORM_2, &rNorm );
 	    PetscPrintf( PETSC_COMM_WORLD,  "  |G^T u + C p - h|        = %.8e  :constraint\n", rNorm );
-	    
+
 	    VecNorm( u, NORM_INFINITY, &uNormInf );
 	    VecNorm( u, NORM_2,        &uNorm );
 	    VecGetSize( u, &uSize );
-	
+
 	    VecNorm( p, NORM_INFINITY, &pNormInf );
 	    VecNorm( p, NORM_2,        &pNorm );
-	
-	    PetscPrintf( PETSC_COMM_WORLD,  "  |u|_{\\infty}  = %.6e , u_rms = %.6e\n", 
+
+	    PetscPrintf( PETSC_COMM_WORLD,  "  |u|_{\\infty}  = %.6e , u_rms = %.6e\n",
 	                 uNormInf, uNorm / sqrt( (double) uSize ) );
-		
+
 	    PetscPrintf( PETSC_COMM_WORLD,  "  |p|_{\\infty}  = %.6e , p_rms = %.6e\n",
 	                 pNormInf, pNorm / sqrt( (double) pSize ) );
 
@@ -181,19 +185,19 @@ void bsscr_summary(KSP_BSSCR * bsscrp_self, KSP ksp_S, KSP ksp_inner,
 	    PetscPrintf( PETSC_COMM_WORLD,  "  min/max(p)    = %.6e [%d] / %.6e [%d]\n",min,lmin,max,lmax);
         bsscrp_self->solver->stats.pmin = min;
         bsscrp_self->solver->stats.pmax = max;
-       
+
 	    VecSum( p, &p_sum );
 	    PetscPrintf( PETSC_COMM_WORLD,  "  \\sum_i p_i    = %.6e \n", p_sum );
         bsscrp_self->solver->stats.p_sum=p_sum;
 
 	    solutionAnalysisTime = MPI_Wtime() - solutionAnalysisTime;
-	
+
 	    PetscPrintf( PETSC_COMM_WORLD,  "\n  Time for this analysis  = %.4g secs\n\n",solutionAnalysisTime);
-	
+
 	    Stg_VecDestroy(&t2 );
 	    Stg_VecDestroy(&t3 );
 	    Stg_VecDestroy(&q );
-	    Stg_VecDestroy(&qq );	    
+	    Stg_VecDestroy(&qq );
       }
 
 }
