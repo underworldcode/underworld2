@@ -112,8 +112,8 @@ class VectorSurfaceAssemblyTerm_NA__Fn__ni(VectorAssemblyTerm):
         if swarm != None:
             if not isinstance( swarm, uw.swarm.GaussBorderIntegrationSwarm):
                 raise ValueError("Provided 'borderSwarm' must be of type uw.swarm.GaussBorderIntegrationSwarm")
-        else: # no problem
-            print "Building surface 'integrationSwarm' for VectorSurfaceAssemblyTerm_NA__Fn__ni using "+str(surfaceGaussPoints)+" surface gauss points"
+        else: # no swarm provide, so we build one
+            #print "Building surface 'integrationSwarm' for VectorSurfaceAssemblyTerm_NA__Fn__ni using "+str(surfaceGaussPoints)+" surface gauss points"
             if not isinstance(surfaceGaussPoints, int):
                 raise TypeError( "Provided 'surfaceGaussPoints' must be a positive integer")
             if surfaceGaussPoints < 1:

@@ -584,7 +584,7 @@ def nps_2norm( v, comm=MPI.COMM_WORLD ):
 
     if not isinstance(comm, MPI.Intracomm):
         raise TypeError("'comm' is not of value type 'MPI.Intracomm'")
-    if not isinstance(v, numpy.ndarray):
+    if not isinstance(v, np.ndarray):
         raise TypeError("'v' is not of value type 'numpy.ndarray'")
 
     lnorm_sq = np.linalg.norm(v)**2 # sq as this is 2-norm
