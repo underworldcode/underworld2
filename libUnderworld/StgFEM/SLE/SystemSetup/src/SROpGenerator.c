@@ -448,7 +448,6 @@ void SROpGenerator_GenOps( SROpGenerator* self, Mat* pOps, Mat* rOps ) {
 	}
 }
 
-//void SROpGenerator_GenLevelOp( SROpGenerator* self, unsigned level, Matrix* P ) {
 void SROpGenerator_GenLevelOp( SROpGenerator* self, unsigned level, Mat P ) {
 	Mesh		*fMesh, *cMesh;
 	unsigned	nDims;
@@ -460,6 +459,7 @@ void SROpGenerator_GenLevelOp( SROpGenerator* self, unsigned level, Mat P ) {
 	unsigned	fTopNode, cTopNode;
 	unsigned	fEqNum, cEqNum;
 	double		*localCoord, *basis;
+        double          *fineNodeCoord;
 	IArray		*incArray;
 	unsigned	n_i, dof_i, inc_i, e_i;
 
@@ -498,19 +498,25 @@ void SROpGenerator_GenLevelOp( SROpGenerator* self, unsigned level, Mat P ) {
 
 			if( fEqNum == (unsigned)-1 )
 				continue;
-
-			insist( Mesh_SearchElements( cMesh, Mesh_GetVertex( fMesh, n_i ), &ind ), == True );
-			FeMesh_CoordGlobalToLocal( cMesh, ind, Mesh_GetVertex( fMesh, n_i ), localCoord );
-			FeMesh_EvalBasis( cMesh, ind, localCoord, basis );
+                       
+                        fineNodeCoord = Mesh_GetVertex( fMesh, n_i );
+                        // find the element index on the coarse mesh, that contains the coord of the fine node
+                        // note: for node boardering on elements (most of them) it doesn't matter which element is returned
+                        // as both should give the same shape functions
+			insist( Mesh_SearchElements( cMesh, fineNodeCoord, &ind ), == True );
+			FeMesh_CoordGlobalToLocal( cMesh, ind, fineNodeCoord, localCoord );
+                        
+                        // evaluate the shape functions at the local coord
+			FeMesh_EvalBasis( cMesh, ind, localCoord, basis ); 
 			Mesh_GetIncidence( cMesh, nDims, ind, MT_VERTEX, incArray );
 			nInc = IArray_GetSize( incArray );
 			inc = IArray_GetPtr( incArray );
+                        /* */
 			for( inc_i = 0; inc_i < nInc; inc_i++ ) {
 				cTopNode = self->topMaps[level - 1][inc[inc_i]];
 				cEqNum = self->eqNums[level - 1][inc[inc_i]][dof_i];
 				if( cEqNum != (unsigned)-1 && !Num_Approx( basis[inc_i], 0.0 ) )
-					//Matrix_InsertEntries( P, 1, &fEqNum, 1, &cEqNum, basis + inc_i );
-					MatSetValues( P, 1, &fEqNum, 1, &cEqNum, basis + inc_i, INSERT_VALUES );
+					MatSetValues( P, 1, &fEqNum, 1, &cEqNum, &(basis[inc_i]), INSERT_VALUES );
 			}
 		}
 	}
@@ -519,8 +525,6 @@ void SROpGenerator_GenLevelOp( SROpGenerator* self, unsigned level, Mat P ) {
 	FreeArray( localCoord );
 	FreeArray( basis );
 
-	//Matrix_AssemblyBegin( P );
-	//Matrix_AssemblyEnd( P );
 	MatAssemblyBegin( P, MAT_FINAL_ASSEMBLY );
 	MatAssemblyEnd( P, MAT_FINAL_ASSEMBLY );
 }
@@ -741,14 +745,13 @@ Efficiency alert!!
   An more accurate estimate has thus been implemented.
 */
 
-//Matrix *SROpGenerator_SimpleFinestLevel( SROpGenerator *self ) {
 Mat SROpGenerator_SimpleFinestLevel( SROpGenerator *self ) {
    FeMesh *mesh;
    int nDims, nDofsPerNode;
-   int sideSizes[2][3];
+   int sideSizes[3];
    int inds[2][3], offsInds[3], nOffs[3];
-   int nGlobalNodes[2];
-   int nGlobalEqs[2];
+   int nGlobalNodes;
+   int nGlobalEqs;
    Grid *vertGrid, *elGrid, *grid[2], *offsGrid;
    int nodes[8];
    int nodeInd;
@@ -756,7 +759,6 @@ Mat SROpGenerator_SimpleFinestLevel( SROpGenerator *self ) {
    int nEntries, indices[8];
    double values[8];
    Mat P;
-   //PETScMatrix *mat;
    Mat mat;
    int ii, jj, kk;
    PetscInt o_nz, d_nz;
@@ -783,7 +785,7 @@ Mat SROpGenerator_SimpleFinestLevel( SROpGenerator *self ) {
    }
 
    nDofsPerNode = self->fineVar->dofLayout->dofCounts[0]; /* ASSUME */
-   elGrid = *Mesh_GetExtension( mesh, Grid**,  mesh->elGridId );
+   elGrid   = *Mesh_GetExtension( mesh, Grid**,  mesh->elGridId );
    vertGrid = *Mesh_GetExtension( mesh, Grid**,  mesh->vertGridId );
    is_q1 = PETSC_FALSE;
    /* test to see if NOT a Q1 mesh, if not then assume it is Q2 */
@@ -791,51 +793,40 @@ Mat SROpGenerator_SimpleFinestLevel( SROpGenerator *self ) {
      is_q1 = PETSC_TRUE;
      /* test some more here? */
    }
-   nGlobalNodes[0] = nGlobalNodes[1] = 1;
+   nGlobalNodes = 1;
    for( ii = 0; ii < nDims; ii++ ) {
-      sideSizes[1][ii] = elGrid->sizes[ii];
-      sideSizes[0][ii] = elGrid->sizes[ii] / 2;
-      if( sideSizes[0][ii] * 2 != elGrid->sizes[ii] ) {
-         Journal_Firewall( 0, NULL, "In func %s: MG Error. Too many levels specified for geometric multigrid. \
-                                     Please modify mesh size or reduce number of levels", __func__ );
+      sideSizes[ii] = elGrid->sizes[ii] / 2;
+      if( sideSizes[ii] * 2 != elGrid->sizes[ii] ) {
+         printf( "(MG) Error: Too many levels specified for geometric multigrid.\n" );
+         printf( "            Please modify mesh size or reduce number of levels.\n" );
+         exit( 1 );
       }
       /* Need to check for Q2 vs Q1 Mesh here */
       if( is_q1 ){
-      sideSizes[1][ii]++; sideSizes[0][ii]++;
+        sideSizes[ii]++;
       }else{/* assume Q2 elements */
-        sideSizes[1][ii] *= 2;
-        sideSizes[0][ii] *= 2;
-        sideSizes[1][ii]++; sideSizes[0][ii]++;
+        sideSizes[ii] *= 2;
+        sideSizes[ii]++;
       }
-      nGlobalNodes[1] *= sideSizes[1][ii];
-      nGlobalNodes[0] *= sideSizes[0][ii];
+      nGlobalNodes *= sideSizes[ii];
    }
 
    /* Have PETSc create the operator matrix and then extract local sizes
       and offsets into the global vector. */
-   nGlobalEqs[1] = nGlobalNodes[1] * nDofsPerNode;
-   nGlobalEqs[0] = nGlobalNodes[0] * nDofsPerNode;
-/*
-   Stg_MatCreateAIJ( MPI_COMM_WORLD,
-                    self->fineVar->eqNum->localEqNumsOwnedCount, PETSC_DECIDE,
-                    PETSC_DECIDE, nGlobalEqs[0],
-                    o_nz, PETSC_NULL, d_nz, PETSC_NULL, &P );
+   nGlobalEqs = nGlobalNodes * nDofsPerNode;
 
-*/
    MatCreate( MPI_COMM_WORLD, &P );
-   MatSetSizes( P, self->fineVar->eqNum->localEqNumsOwnedCount, PETSC_DECIDE, PETSC_DECIDE, nGlobalEqs[0] ); 
+   // a bit stupid because we know the global eqNum on the fine Mesh
+   MatSetSizes( P, self->fineVar->eqNum->localEqNumsOwnedCount, PETSC_DECIDE, PETSC_DECIDE, nGlobalEqs ); 
    MatSetType( P, MATAIJ );
 #if (((PETSC_VERSION_MAJOR==3) && (PETSC_VERSION_MINOR>=3)) || (PETSC_VERSION_MAJOR>3) )
    MatSetUp(P);
 #endif
 
-//   MatGetOwnershipRange( P, &sr, &er );
-
    PetscObjectGetComm( (PetscObject)P, &comm );
    MPI_Comm_size( comm, &nproc );
    MPI_Comm_rank( comm, &rank );
 
-//   printf( "  sr,er = %d -> %d \n", sr, er );
    {  Vec L,R;
       PetscInt M,N, m,n;     
       
@@ -862,7 +853,7 @@ Mat SROpGenerator_SimpleFinestLevel( SROpGenerator *self ) {
    offsGrid = Grid_New();
    Grid_SetNumDims( grid[0], nDims );
    Grid_SetNumDims( offsGrid, nDims );
-   Grid_SetSizes( grid[0], sideSizes[0] );
+   Grid_SetSizes( grid[0], sideSizes );
 
    /* Determine preallocation information */
    MatGetVecs( P, PETSC_NULL, &vec_d_nnz );
@@ -1055,13 +1046,10 @@ Mat SROpGenerator_SimpleFinestLevel( SROpGenerator *self ) {
 
 
    /* Create a new matrix. */
-   //mat = PETScMatrix_New( "" );
-   //mat->petscMat = P;
    mat = P;
    return mat;
 }
 
-//Matrix *SROpGenerator_SimpleCoarserLevel( SROpGenerator *self, int level ) {
 Mat SROpGenerator_SimpleCoarserLevel( SROpGenerator *self, int level ) {
    FeMesh *mesh;
    int nDims, nDofsPerNode, rowDof;
@@ -1124,8 +1112,9 @@ Mat SROpGenerator_SimpleCoarserLevel( SROpGenerator *self, int level ) {
       if( sideSizes[1][ii] * ifrac != elGrid->sizes[ii] || 
           sideSizes[0][ii] * (ifrac * 2) != elGrid->sizes[ii] )
       {
-         Journal_Firewall( 0, NULL, "In func %s: MG Error. Too many levels specified for geometric multigrid. \
-                                     Please modify mesh size or reduce number of levels", __func__ );
+         printf( "(MG) Error: Too many levels specified for geometric multigrid.\n" );
+         printf( "            Please modify mesh size or reduce number of levels.\n" );
+         exit( 1 );
       }
       /* Need to check for Q2 vs Q1 Mesh here */
       if( is_q1 ){
