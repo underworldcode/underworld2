@@ -19,6 +19,7 @@ import libUnderworld
 import subprocess
 from subprocess import Popen, PIPE, STDOUT
 from . import objects
+import libUnderworld as _libUnderworld
 
 haveLavaVu = True
 try:
