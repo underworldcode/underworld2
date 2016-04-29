@@ -17,8 +17,9 @@ imagelist = []
 def genImage(fname):
     global fig1
     outfile = fig1.save_image(outputPath+fname)
-    outfile = os.path.basename(outfile)
-    imagelist.append(outfile)
+    if outfile:
+      outfile = os.path.basename(outfile)
+      imagelist.append(outfile)
 
 #Error tolerance before test fails
 tolerance = (0.1, 0.05)
