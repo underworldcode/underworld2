@@ -256,7 +256,7 @@ class Figure(_stgermain.StgCompoundComponent):
 
     def show(self, type="image"):
         """    
-        Shows the generated image inline within an ipython notebook
+        Shows the generated image inline within an ipython notebook.
         
         Parameters
         ----------
@@ -278,7 +278,10 @@ class Figure(_stgermain.StgCompoundComponent):
                 if type.lower() == "webgl":
                     return self._generate_HTML()
                 else:
-                    return self._generate_image()
+                    #Return inline image result
+                    filename = self._generate_image()
+                    from IPython.display import Image,HTML
+                    return HTML("<img src='%s'>" % filename)
         except ImportError:
             pass
         except RuntimeError, e:
@@ -320,6 +323,13 @@ class Figure(_stgermain.StgCompoundComponent):
         filename :str
             Filename to save file to.  May include an absolute or relative path.
             size (tuple(int,int)): size of image in pixels, defaults to original figsize setting
+            
+        Returns
+        -------
+        filename: str
+            The final filename (including extension) used to save the image will be returned. Note
+            that only the root process will return this filename. All other processes will not return
+            anything.
         """
         if not isinstance(filename, str):
             raise TypeError("Provided parameter 'filename' must be of type 'str'. ")
@@ -327,8 +337,7 @@ class Figure(_stgermain.StgCompoundComponent):
             raise TypeError("'size' object passed in must be of python type 'tuple'")
 
         self._generate_DB()
-        if uw.rank() == 0:
-            return self._generate_image(filename, size)
+        return self._generate_image(filename, size)
 
     def save_database(self,filename,regen=True):
         """  
@@ -445,10 +454,7 @@ class Figure(_stgermain.StgCompoundComponent):
             imagestr = lavavu.image(filename, size[0], size[1])
             lavavu.clear() #Close and free memory
             #Return the generated filename
-            if filename: return imagestr
-            #Return inline image result
-            from IPython.display import Image,HTML
-            return HTML("<img src='%s'>" % imagestr)
+            return imagestr
 
     def _generate_HTML(self):
         if haveLavaVu and uw.rank() == 0:

@@ -138,7 +138,7 @@ void _FeMesh_Build( void* feMesh, void* data ) {
     }
 
 	Stream_Indent( stream );
-	Journal_Printf( stream, "Assigning FeMesh element types...\n" );
+//	Journal_Printf( stream, "Assigning FeMesh element types...\n" );
 	Stream_Indent( stream );
 
 	if( !strcmp( self->feElFamily, "Q2" ) ) {
@@ -206,8 +206,8 @@ void _FeMesh_Build( void* feMesh, void* data ) {
         Mesh_ElementType_Update( self->elTypes[0] );
     }
 
-	Journal_Printf( stream, "... FE element types are '%s',\n", elType->type );
-	Journal_Printf( stream, "... done.\n" );
+//	Journal_Printf( stream, "... FE element types are '%s',\n", elType->type );
+//	Journal_Printf( stream, "... done.\n" );
 	Stream_UnIndent( stream );
 	Stream_UnIndent( stream );
 }

@@ -191,7 +191,7 @@ void Stg_ComponentFactory_CreateComponents( Stg_ComponentFactory *self ) {
          }
 
          /* Print Message */
-         Journal_Printf( stream, "Instantiating %s as %s\n", componentType, componentName );
+         /* Journal_Printf( stream, "Instantiating %s as %s\n", componentType, componentName ); */
          
          /* Get Default Constructor for this type */
          componentConstructorFunction = Stg_ComponentRegister_AssertGet( 
@@ -228,7 +228,7 @@ void Stg_ComponentFactory_CreateComponents( Stg_ComponentFactory *self ) {
                                                                               "You may need to add 'mergeType=\"merge\"' to this component. Please check your input file.", __func__, componentName);
 
          /* Print Message */
-         Journal_Printf( stream, "Instantiating %s as %s\n", componentType, componentName );
+         /* Journal_Printf( stream, "Instantiating %s as %s\n", componentType, componentName ); */
          
          /* Get Default Constructor for this type */
          componentConstructorFunction = Stg_ComponentRegister_AssertGet( 
@@ -647,7 +647,7 @@ Stg_Component* _Stg_ComponentFactory_ConstructByName( void* cf, Name componentNa
       Journal_PrintfL( stream, 2, "Found.\n" );
 
       if ( !component->isConstructed ) {
-         Journal_Printf( stream, "%s has not been constructed yet. Constructing now.\n", componentName );
+         /* Journal_Printf( stream, "%s has not been constructed yet. Constructing now.\n", componentName ); */
          Stream_Indent( stream );
          Stg_Component_AssignFromXML( component, self, data, True );
          Stream_UnIndent( stream );

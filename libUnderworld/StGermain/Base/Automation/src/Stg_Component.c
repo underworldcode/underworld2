@@ -163,7 +163,7 @@ void Stg_Component_AssignFromXML( void* component, Stg_ComponentFactory* cf, voi
       
       Stream* stream = Journal_Register( Info_Type, "Stg_ComponentFactory" );
 
-      Journal_RPrintf( stream, "Constructing %s..\n", self->name );
+      /* Journal_RPrintf( stream, "Constructing %s..\n", self->name ); */
       Stream_Indent( stream );
       
       #ifdef USE_PROFILE

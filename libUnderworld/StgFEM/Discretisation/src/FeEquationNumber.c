@@ -606,17 +606,17 @@ void FeEquationNumber_BuildWithTopology( FeEquationNumber* self ) {
 
    inc = IArray_New();
 
-   stream = Journal_Register( Info_Type, (Name)self->type  );
-   Stream_SetPrintingRank( stream, 0 );
-
-   Journal_RPrintf( stream, "FeEquationNumber: '%s'\n", self->name );
-   Stream_Indent( stream );
-   Journal_RPrintf( stream, "Generating equation numbers...\n" );
-   Stream_Indent( stream );
-   if( self->removeBCs )
-      Journal_RPrintf( stream, "BCs set to be removed.\n" );
-   else
-      Journal_RPrintf( stream, "BCs will not be removed.\n" );
+//   stream = Journal_Register( Info_Type, (Name)self->type  );
+//   Stream_SetPrintingRank( stream, 0 );
+//
+//   Journal_RPrintf( stream, "FeEquationNumber: '%s'\n", self->name );
+//   Stream_Indent( stream );
+//   Journal_RPrintf( stream, "Generating equation numbers...\n" );
+//   Stream_Indent( stream );
+//   if( self->removeBCs )
+//      Journal_RPrintf( stream, "BCs set to be removed.\n" );
+//   else
+//      Journal_RPrintf( stream, "BCs will not be removed.\n" );
 
    startTime = MPI_Wtime();
 
@@ -792,18 +792,18 @@ void FeEquationNumber_BuildWithTopology( FeEquationNumber* self ) {
    self->_lowestGlobalEqNums = AllocArray( int, nProcs );
    (void)MPI_Allgather( &self->firstOwnedEqNum, 1, MPI_UNSIGNED, self->_lowestGlobalEqNums, 1, MPI_UNSIGNED, mpiComm );
 
-   endTime = MPI_Wtime();
+//   endTime = MPI_Wtime();
 
-   Journal_RPrintf( stream, "Assigned %d global equation numbers.\n", self->globalSumUnconstrainedDofs );
-   Journal_Printf( stream, "[%u] Assigned %d local equation numbers, within range %d to %d.\n", 
-                   rank, self->lastOwnedEqNum - self->firstOwnedEqNum + 1, self->firstOwnedEqNum, self->lastOwnedEqNum + 1 );
-   Stream_UnIndent( stream );
+//   Journal_RPrintf( stream, "Assigned %d global equation numbers.\n", self->globalSumUnconstrainedDofs );
+//   Journal_Printf( stream, "[%u] Assigned %d local equation numbers, within range %d to %d.\n", 
+//                   rank, self->lastOwnedEqNum - self->firstOwnedEqNum + 1, self->firstOwnedEqNum, self->lastOwnedEqNum + 1 );
+//   Stream_UnIndent( stream );
 
-   time = endTime - startTime;
-   (void)MPI_Reduce( &time, &tmin, 1, MPI_DOUBLE, MPI_MIN, 0, mpiComm );
-   (void)MPI_Reduce( &time, &tmax, 1, MPI_DOUBLE, MPI_MAX, 0, mpiComm );
-   Journal_RPrintf( stream, "... Completed in %g [min] / %g [max] seconds.\n", tmin, tmax );
-   Stream_UnIndent( stream );
+//   time = endTime - startTime;
+//   (void)MPI_Reduce( &time, &tmin, 1, MPI_DOUBLE, MPI_MIN, 0, mpiComm );
+//   (void)MPI_Reduce( &time, &tmax, 1, MPI_DOUBLE, MPI_MAX, 0, mpiComm );
+//   Journal_RPrintf( stream, "... Completed in %g [min] / %g [max] seconds.\n", tmin, tmax );
+//   Stream_UnIndent( stream );
 
    Stg_Class_Delete( inc );
 }

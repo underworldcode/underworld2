@@ -1122,9 +1122,9 @@ void StiffnessMatrix_CalcNonZeros( void* stiffnessMatrix ) {
     assert( self->rowVariable );
 
     stream = Journal_Register( Info_Type, (Name)self->type  );
-    Journal_Printf( stream, "Stiffness matrix: '%s'\n", self->name );
+//    Journal_Printf( stream, "Stiffness matrix: '%s'\n", self->name );
     Stream_Indent( stream );
-    Journal_Printf( stream, "Calculating number of nonzero entries...\n" );
+//    Journal_Printf( stream, "Calculating number of nonzero entries...\n" );
     Stream_Indent( stream );
 
     rowVar = self->rowVariable;
