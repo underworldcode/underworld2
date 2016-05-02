@@ -144,7 +144,8 @@ if(LoadFromFile == True):
     mesh64 = uw.mesh.FeMesh_Cartesian( elementType = ("Q1/dQ0"), 
                                        elementRes  = (64, 64), 
                                        minCoord    = (0., 0.), 
-                                       maxCoord    = (boxLength, boxHeight))
+                                       maxCoord    = (boxLength, boxHeight),
+                                       partitioned = False )
     temperatureField64  = uw.mesh.MeshVariable( mesh=mesh64, nodeDofCount=1 ) 
     
     # read in saved steady state temperature field data
