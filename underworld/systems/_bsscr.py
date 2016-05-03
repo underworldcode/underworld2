@@ -36,7 +36,7 @@ class OptionsMG(Options):
 
     active = <True,False>           : activates Multigrid
     levels = <n>                    : Multigrid grid levels
-    pc_mg_type  <additive,multiplicative,full,kaskade> : multiplicative is default
+    pc_mg_type <additive,multiplicative,full,kaskade> : multiplicative is default
     pc_mg_cycle_type <v,w>          : v or w
     pc_mg_multiplicative_cycles <n> : Sets the number of cycles to use for each preconditioner
                                       step of multigrid
@@ -47,6 +47,7 @@ class OptionsMG(Options):
     pc_mg_smoothup <n>              : Number of smoothing steps after interpolation
     pc_mg_smoothdown <n>            : Number of smoothing steps before applying restriction operator
     """
+
     def reset(self):
         """
         Reset values to initial defaults.
@@ -66,6 +67,7 @@ class OptionsMG(Options):
         #self.mg_levels_pc_type="sor"
         #self.pc_mg_smoothup= 5
         #self.pc_mg_smoothdown= 5
+
     def set_levels(self, field=''):
         """
         Automatically set Multigrid levels based off mesh resolution.
@@ -129,7 +131,7 @@ class OptionsMGA(Options):
         self.__dict__.clear()
         self.mg_accelerating_smoothing=False
         self.mg_smoothing_adjust_on_convergence_rate=False
-        self.mg_accelerating_smoothing_view=True
+        self.mg_accelerating_smoothing_view=False
         self.mg_smooths_min = 1
         self.mg_smooths_max= 20
         self.mg_smooths_to_start= 1
@@ -303,6 +305,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
     ########################################################################
     ### the solve function
     ########################################################################
+
     def solve(self, nonLinearIterate=None, print_stats=False, reinitialise=True, **kwargs):
         """ solve the Stokes system
         """
@@ -485,16 +488,21 @@ class StokesSolver(_stgermain.StgCompoundComponent):
     ########################################################################
     ### set up MG
     ########################################################################
+
     def _setup_mg(self):
+
         field =self._velocityField
-        self.options.mg.set_levels(field=field)
-        levels=self.options.mg.levels
-        mgObj=MGSolver(field,levels)
+
+        # If the levels have been set explicitly then no point in over-riding
+        if self.options.mg.levels == 0:
+            self.options.mg.set_levels(field=field)
+
+        mgObj=MGSolver(field,self.options.mg.levels)
         # attach MG object to Solver struct
         self.mgObj=mgObj # must attach object here: else immediately goes out of scope and is destroyed
         self._cself.mg = mgObj._cself
 
-    def set_inner_method(self,solve_type="mg"):
+    def set_inner_method(self, solve_type="mg"):
         """
         Configure velocity/inner solver (A11 PETSc prefix).
 
@@ -566,7 +574,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         """
         By setting the penalty, the Augmented Lagrangian Method is used as the solve.
         This method is not recommended for normal use as there is additional memory and cpu overhead.
-        This method can often help improve convergence issues for subduction-type problems with large viscosity
+        This method can often help improve convergence issues for problems with large viscosity
         contrasts that are having trouble converging.
 
         A penalty of roughly 0.1 of the maximum viscosity contrast is not a bad place to start as a guess. (check notes/paper)
