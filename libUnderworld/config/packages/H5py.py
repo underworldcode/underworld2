@@ -2,6 +2,7 @@ import os, sys
 from config import Package
 from Mpi4py import Mpi4py
 from MPI import MPI
+from HDF5 import HDF5
 import subprocess
 
 class H5py(Package):
@@ -13,13 +14,16 @@ class H5py(Package):
     def setup_dependencies(self):
         self.mpi4py = self.add_dependency(Mpi4py, required=True)
         self.MPI = self.add_dependency(MPI, required=True)
+        self.hdf5 = self.add_dependency(HDF5, required=True)
 
     def _buildh5py(self, cc):
         print("\nAttempting to build private h5py version at {} using cc={}. This may take a few minutes.".format(self._h5pyp,cc))
         os.chdir(self._h5pysrc)
         with open('h5py_build.out','w') as outfile:
             with open('h5py_build.err','w') as errfile:
-                subp = subprocess.Popen('python setup.py configure -m', shell=True, stdout=outfile, stderr=errfile)
+                command = "python setup.py configure -m --hdf5 " + self.hdf5.location[0]
+                print command
+                subp = subprocess.Popen(command.split(), stdout=outfile, stderr=errfile)
                 subp.wait()
                 if subp.wait() != 0:
                     self._logfile.write("Failed configuring h5py :(\nPlease check 'h5py_build.out' and 'h5py_build.err' in libUnderworld/h5py_ext")
