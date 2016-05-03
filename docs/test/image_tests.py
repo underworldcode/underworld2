@@ -17,7 +17,7 @@ imagelist = []
 def genImage(fname):
     global fig1
     outfile = fig1.save_image(outputPath+fname)
-    if uw.rank() == 0:
+    if (uw.rank() == 0) and outfile:
         outfile = os.path.basename(outfile)
         imagelist.append(outfile)
 
