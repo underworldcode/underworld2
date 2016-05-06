@@ -71,6 +71,15 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         self._PICSwarm = None
 
         self.particleEscape = particleEscape
+        # escape routine will be used during swarm advection, but lets also add
+        # it to the mesh post deform hook so that when the mesh is deformed,
+        # any particles that are found wanting are culled accordingly.
+        if self.particleEscape:
+            def _update_owners_then_escape_particles():
+                if uw.rank() == 0: print("Removing particles outside the mesh.")
+                self.update_particle_owners()
+                libUnderworld.PICellerator.EscapedRoutine_RemoveFromSwarm( self._escapedRoutine, self._cself )
+            mesh.add_post_deform_function( _update_owners_then_escape_particles )
 
         # numpy array to map local particle indices to global indicies, used for loading from file
         self._local2globalMap = None

@@ -215,8 +215,9 @@ void EscapedRoutine_SortParticleList( void* escapedRoutine ) {
 	qsort( self->particlesToRemoveList, self->particlesToRemoveCount, sizeof(unsigned), _EscapedRoutine_CompareParticles );
 }
 
-void EscapedRoutine_RemoveParticles( void* escapedRoutine, Swarm* swarm ) {
+void EscapedRoutine_RemoveParticles( void* escapedRoutine, void* _swarm ) {
 	EscapedRoutine*		self = (EscapedRoutine*) escapedRoutine;
+    Swarm*              swarm = (Swarm*) _swarm;
 	Index                 array_I;
 	StandardParticle*     particleToRemove;
 	Particle_Index        particleToRemove_I;

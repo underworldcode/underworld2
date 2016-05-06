@@ -98,7 +98,7 @@
 
 	void EscapedRoutine_SortParticleList( void* escapedRoutine );
 
-	void EscapedRoutine_RemoveParticles( void* escapedRoutine, Swarm* swarm );
+	void EscapedRoutine_RemoveParticles( void* escapedRoutine, void* _swarm );
 
 #endif 
 

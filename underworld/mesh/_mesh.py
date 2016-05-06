@@ -75,6 +75,11 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         self.generator = generator
 
         self._dataWriteable = False
+        
+        # these lists should be populated with closure functions
+        # which are executed before and/or after mesh deformations
+        self._pre_deform_functions = []
+        self._post_deform_functions = []
 
         # build parent
         super(FeMesh,self).__init__(**kwargs)
@@ -229,8 +234,13 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         """
         # set the general mesh algorithm now
         if not remainsRegular:
+            if uw.rank() == 0: print("Switching to irregular mesh algorithms.")
             uw.libUnderworld.StgDomain.Mesh_SetAlgorithms( self._cself, None )
             self._cself.isRegular = False
+        
+        # execute any pre deform functions
+        for function in self._pre_deform_functions:
+            function()
 
         self._dataWriteable = True
         try:
@@ -245,10 +255,44 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         finally:
             self._dataWriteable = False
             # call deformupdate, which updates various mesh metrics
+            if uw.rank() == 0: print("Updating mesh metrics.")
             uw.libUnderworld.StgDomain.Mesh_DeformationUpdate( self._cself )
             if hasattr(self,"subMesh") and self.subMesh:
                 # remesh the submesh based on the new primary
+                if uw.rank() == 0: print("Updating submesh for primary mesh changes.")
                 self.subMesh.reset()
+
+            # execute any post deform functions
+            for function in self._post_deform_functions:
+                function()
+
+    def add_pre_deform_function( self, function ):
+        """
+        Adds a function function to be executed before mesh deformation
+        is applied.
+
+        Parameters
+        ----------
+        function : function
+            Function to be executed. Closures should be used
+            where parameters are required.
+        
+        """
+        self._pre_deform_functions.append( function )
+
+    def add_post_deform_function( self, function ):
+        """
+        Adds a function function to be executed after mesh deformation
+        is applied.
+
+        Parameters
+        ----------
+        function : function
+            Function to be executed. Closures should be used
+            where parameters are required.
+        
+        """
+        self._post_deform_functions.append( function )
 
     @property
     def nodesLocal(self):
