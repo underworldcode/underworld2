@@ -234,7 +234,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         """
         # set the general mesh algorithm now
         if not remainsRegular:
-            if uw.rank() == 0: print("Switching to irregular mesh algorithms.")
+#            if uw.rank() == 0: print("Switching to irregular mesh algorithms.")
             uw.libUnderworld.StgDomain.Mesh_SetAlgorithms( self._cself, None )
             self._cself.isRegular = False
         
@@ -255,11 +255,11 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         finally:
             self._dataWriteable = False
             # call deformupdate, which updates various mesh metrics
-            if uw.rank() == 0: print("Updating mesh metrics.")
+#            if uw.rank() == 0: print("Updating mesh metrics.")
             uw.libUnderworld.StgDomain.Mesh_DeformationUpdate( self._cself )
             if hasattr(self,"subMesh") and self.subMesh:
                 # remesh the submesh based on the new primary
-                if uw.rank() == 0: print("Updating submesh for primary mesh changes.")
+#                if uw.rank() == 0: print("Updating submesh for primary mesh changes.")
                 self.subMesh.reset()
 
             # execute any post deform functions

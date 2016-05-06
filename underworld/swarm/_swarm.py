@@ -30,18 +30,22 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         The FeMesh the swarm is supported by. See Swarm.mesh property docstring
         for further information.
     particleEscape : bool
-        If set to true, particles are allowed to escape from the domain.
+        If set to true, particles are allowed to escape from the domain. This
+        may occur during particle advection, or when the mesh is deformed.
 
 
     For example, to create the swarm with some variables:
 
-    >>> # first we need a mesh
+    First we need a mesh:
     >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
-    >>> # create empty swarm
+
+    Create empty swarm:
     >>> swarm = uw.swarm.Swarm(mesh)
-    >>> # add a variable
+
+    Add a variable:
     >>> svar = swarm.add_variable("char",1)
-    >>> # add another
+
+    Add another:
     >>> svar = swarm.add_variable("double",3)
 
     Can also use a layout to fill with particles
@@ -56,6 +60,22 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
     array([ 0.0132078,  0.0132078])
     >>> swarm.owningCell.data[0]
     array([0], dtype=int32)
+
+    With particleEscape enabled, particles which are no longer with the mesh
+    domain are deleted.
+
+    >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
+    >>> swarm = uw.swarm.Swarm(mesh, particleEscape=True)
+    >>> swarm.particleLocalCount
+    0
+    >>> layout = uw.swarm.layouts.PerCellGaussLayout(swarm,2)
+    >>> swarm.populate_using_layout(layout)
+    >>> swarm.particleGlobalCount
+    1024
+    >>> with mesh.deform_mesh():
+    ...     mesh.data[:] += (0.5,0.)
+    >>> swarm.particleGlobalCount
+    512
 
     """
 
@@ -76,9 +96,10 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         # any particles that are found wanting are culled accordingly.
         if self.particleEscape:
             def _update_owners_then_escape_particles():
-                if uw.rank() == 0: print("Removing particles outside the mesh.")
+#                globCount = self.particleGlobalCount
                 self.update_particle_owners()
                 libUnderworld.PICellerator.EscapedRoutine_RemoveFromSwarm( self._escapedRoutine, self._cself )
+#                if uw.rank() == 0: print("Removed {} particles found outside the mesh.".format( globCount - self.particleGlobalCount))
             mesh.add_post_deform_function( _update_owners_then_escape_particles )
 
         # numpy array to map local particle indices to global indicies, used for loading from file
