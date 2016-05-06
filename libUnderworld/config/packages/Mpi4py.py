@@ -14,3 +14,7 @@ class Mpi4py(Package):
         # lets just return a dummy here.. this is a python package so it don't have
         # multiple locations
         yield ('', [''], [''])
+
+    def setup_options(self):
+        # this overwrites the default method so we don't add any options for this package.
+        pass
