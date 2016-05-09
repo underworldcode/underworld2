@@ -13,22 +13,22 @@ import libUnderworld
 
 class MeshVariable_Projection(_stgermain.StgCompoundComponent):
     """
-    This class provides functionality for projecting data 
+    This class provides functionality for projecting data
     from any underworld function onto a provided mesh variable.
-    
+
     For the variable :math:`\bf{U} =  \bf{u}_a N_a` and function :math:`F`,
-    we wish to determine appropriate values for :math:`\bf{u}_a` such 
-    that :math:`\bf{U} \simeq F`. 
-    
+    we wish to determine appropriate values for :math:`\bf{u}_a` such
+    that :math:`\bf{U} \simeq F`.
+
     Two projection methods are supported; weighted averages and weighted
     residuals. Generally speaking, weighted averages provide robust low
-    order results, while weighted residuals give higher accuracy but 
+    order results, while weighted residuals give higher accuracy but
     spurious results for _difficult_ functions :math:`F`.
 
     The weighted average method is defined as:
     .. math::
          \bf{u}_a = \frac{\int_{\Omega} \bf{F} N_a \partial\Omega }{\int_{\Omega} N_a \partial\Omega }
-    
+
     The weighted residual method constructs an SLE which is then solved to
     determine the unknowns:
     .. math::
@@ -56,9 +56,9 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
     >>> import numpy as np
     >>> mesh = uw.mesh.FeMesh_Cartesian()
     >>> U = uw.mesh.MeshVariable( mesh, 1 )
-    
+
     Lets cast a constant value onto this mesh variable
-    
+
     >>> const = 1.23456
     >>> projector = uw.utils.MeshVariable_Projection( U, const, type=0 )
     >>> np.allclose(U.data, const)
@@ -66,7 +66,7 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
     >>> projector.solve()
     >>> np.allclose(U.data, const)
     True
-    
+
     Now cast mesh coordinates onto a vector variable
 
     >>> U_coord = uw.mesh.MeshVariable( mesh, 2 )
@@ -76,13 +76,13 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
     True
 
     Project one mesh variable onto another
-    
+
     >>> U_copy = uw.mesh.MeshVariable( mesh, 2 )
     >>> projector = uw.utils.MeshVariable_Projection( U_copy, U_coord, type=1 )
     >>> projector.solve()
     >>> np.allclose(U_copy.data, U_coord.data)
     True
-    
+
     Project the coords to the submesh (usually the constant mesh)
 
     >>> U_submesh = uw.mesh.MeshVariable( mesh.subMesh, 2 )
@@ -90,7 +90,7 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
     >>> projector.solve()
     >>> np.allclose(U_submesh.data, mesh.subMesh.data)
     True
-    
+
 
     """
     _objectsDict = {  "_system" : "SystemLinearEquations" }
@@ -114,7 +114,7 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
         if swarm and not isinstance(swarm, uw.swarm.Swarm):
             raise TypeError( "Provided 'swarm' must be of 'Swarm' class." )
         self._swarm = swarm
-        
+
         if not type in [0,1]:
             raise ValueError( "Provided 'type' must take a value of 0 (weighted average) or 1 (weighted residual)." )
         self.type = type
@@ -123,13 +123,15 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
 
         # create force vectors
         self._fvector = sle.AssembledVector(meshVariable)
-        
+
 
         # create swarm
         self._gaussSwarm = uw.swarm.GaussIntegrationSwarm(self._meshVariable.mesh)
         self._PICSwarm = None
+
+        # This seems problematic but if we don't allow splits, this fails badly
         if self._swarm:
-            self._PICSwarm = uw.swarm.PICIntegrationSwarm(self._swarm)
+            self._PICSwarm = uw.swarm.PICIntegrationSwarm(self._swarm ) #  maxSplits=0, maxDeletions=0
 
         swarmguy = self._PICSwarm
         if not swarmguy:
@@ -146,7 +148,7 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
                                                               assembledObject=self._fvector,
                                                               fn=_fn,
                                                               mesh=geometryMesh )
-                                                              
+
         if self.type == 0:
             # create copy guy
             self._copyMeshVariable = meshVariable.copy()
@@ -211,4 +213,3 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
         if not self._solver:
             self._solver = uw.systems.Solver(self)
         self._solver.solve()
-

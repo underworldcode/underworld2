@@ -173,6 +173,7 @@ PetscErrorCode BSSCR_DRIVER_flex( KSP ksp, Mat stokes_A, Vec stokes_x, Vec stoke
     KSPSetFromOptions( ksp_inner );
 
     KSPSolve(ksp_inner,f,t);/* t=f/K */
+
     //bsscr_writeVec( t, "ts", "Writing t vector");
     MatMult(D,t,h_hat);/* G'*t */
     VecAXPY(h_hat, -1.0, h);/* h_hat = h_hat - h */

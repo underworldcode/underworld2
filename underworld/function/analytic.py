@@ -14,11 +14,11 @@ from _function import Function as _Function
 
 
 class _Sol_Function(_Function):
-    """
-    This class simply wraps cpp Function class pointers
-    in our hand rolled python Function class wrapper.
-    """
-    def __init__(self, cFunctionFn, **kwargs):
+   """
+   This class simply wraps cpp Function class pointers
+   in our hand rolled python Function class wrapper.
+   """
+   def __init__(self, cFunctionFn, **kwargs):
         self._fncself = cFunctionFn
         super(_Sol_Function,self).__init__(argument_fns=None, **kwargs)
 
@@ -128,22 +128,21 @@ class SolCx(_SolBase):
 
 class SolKx(_SolBase):
     """
-    SolKx is a 2-dimensional analytical solution to the Cauchy equations with the acceleration term set to zero
-    to represent creeping flow. The boundary conditions are free-slip everywhere on a unit domain.
-    The viscosity varies exponentially in the x direction and is given by $\eta = \exp (2 B x)$.
-    The flow is driven by a temperature field represented by the density, $\\rho$, as follows:
-    $$
-        \\rho = -\sigma \sin (k_m z) \cos (k_n x).
-    $$
+SolKx is a 2-dimensional analytical solution to the Cauchy equations with the acceleration term set to zero
+to represent creeping flow. The boundary conditions are free-slip everywhere on a unit domain.
+The viscosity varies exponentially in the x direction and is given by $\eta = \exp (2 B x)$.
+The flow is driven by a temperature field represented by the density, $\\rho$, as follows:
+$$
+    \\rho = -\sigma \sin (k_m z) \cos (k_n x).
+$$
 
-    Parameters:
+Parameters:
 
-    The variable parameters of this solution are:
-     - density/temperature parameter: $ \sigma $.
-     - wave number in z domain: $ k_m = m\pi{z} $. ($m$ may be non-integer)
-     - wave number in x domain: $ k_n = n\pi{x} $. ($n$ must be integer)
-     - viscosity parameter: $B$.
-
+The variable parameters of this solution are:
+ - density/temperature parameter: $ \sigma $.
+ - wave number in z domain: $ k_m = m\pi{z} $. ($m$ may be non-integer)
+ - wave number in x domain: $ k_n = n\pi{x} $. ($n$ must be integer)
+ - viscosity parameter: $B$.
     """
 
     def __init__(self, sigma=1., nx=1., nz=1, B=1.1512925465, *args, **kwargs):
@@ -210,7 +209,7 @@ class SolKz(_SolBase):
         - wave number in z domain: $ k_m = m\pi{z} $. ($m$ may be non-integer)
         - wave number in x domain: $ k_n = n\pi{x} $. ($n$ must be integer)
         - viscosity parameter: $B$.
-   """
+    """
 
     def __init__(self, sigma=1., nx=1, nz=1., B=1., *args, **kwargs):
         if not isinstance(sigma, float) or sigma!=1.:

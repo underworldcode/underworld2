@@ -181,9 +181,11 @@ PetscErrorCode  KSPSolve_BSSCR(KSP ksp)
     PetscPrintf( PETSC_COMM_WORLD, "\nBSSCR -- Block Stokes Schur Compliment Reduction Solver \n");
     /** Get the stokes Block matrix and its preconditioner matrix */
     ierr = Stg_PCGetOperators(ksp->pc,&Amat,&Pmat,PETSC_NULL);CHKERRQ(ierr);
+
     /** In Petsc proper, KSP's ksp->data is usually set in KSPCreate_XXX function.
         Here it is set in the _StokesBlockKSPInterface_Solve function instead so that we can ensure that the solver
         has everything it needs */
+
     bsscr         = (KSP_BSSCR*)ksp->data;
     //MG            = (PETScMGSolver*)bsscr->mg;
     SLE           = (Stokes_SLE*)bsscr->st_sle;
@@ -196,7 +198,9 @@ PetscErrorCode  KSPSolve_BSSCR(KSP ksp)
     }
 
     if( (bsscr->k2type != 0) ){
-      if(bsscr->buildK2 != PETSC_NULL)(*bsscr->buildK2)(ksp); /* building K2 from scaled version of stokes operators: K2 lives on bsscr struct = ksp->data */
+      if(bsscr->buildK2 != PETSC_NULL) {
+            (*bsscr->buildK2)(ksp); /* building K2 from scaled version of stokes operators: K2 lives on bsscr struct = ksp->data */
+        }
     }
 
     /* get sub matrix / vector objects */

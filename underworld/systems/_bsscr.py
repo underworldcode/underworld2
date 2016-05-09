@@ -561,6 +561,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
             print( "Velocity iterations: %3d (backsolve)     " % (self._cself.stats.velocity_backsolve_its) )
             print( "Velocity iterations: %3d (total solve)   " % (self._cself.stats.velocity_total_its) )
             print( " " )
+            print( "SCR RHS  solve time: %.4e" %(self._cself.stats.velocity_presolve_time) )
             print( "Pressure solve time: %.4e" %(self._cself.stats.pressure_time) )
             print( "Velocity solve time: %.4e (backsolve)" %(self._cself.stats.velocity_backsolve_time) )
             print( "Total solve time   : %.4e" %(self._cself.stats.total_time) )

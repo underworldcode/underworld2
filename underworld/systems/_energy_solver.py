@@ -43,11 +43,11 @@ class HeatSolver(_stgermain.StgCompoundComponent):
         petsc.OptionsClear() # reset the petsc options
         petsc.OptionsInsertString(self._optionsStr)
 
-        #self._heatSLE._cself.solver=self._cself 
+        #self._heatSLE._cself.solver=self._cself
         libUnderworld.StgFEM.Energy_SLE_Solver_SetSolver(self._cself, self._heatSLE._cself) # this sets solver on SLE struct.
         # check for non-linearity
         nonLinear = False
-        
+
         if nonLinear and nonLinearIterate:
             libUnderworld.StgFEM.SystemLinearEquations_SetToNonLinear(self._heatSLE._cself, True )
         else:
@@ -75,7 +75,7 @@ class HeatSolver(_stgermain.StgCompoundComponent):
         self._optionsStr=''
         for key, value in self.options.EnergySolver.__dict__.iteritems():
             self._optionsStr += " "+"-EnergySolver_"+key+" "+str(value)
-            
+
         for key, value in kwargs.iteritems():      # kwargs is a regular dictionary
             self._optionsStr += " "+"-"+key+" "+str(value)
 
@@ -104,6 +104,7 @@ class HeatSolver(_stgermain.StgCompoundComponent):
             self.options.EnergySolver.set_superludist()
         else:
         # shouldn't get here
+        
             raise RuntimeError("Provided solver type not supported. \
                                 \nCheck help for list of available solvers.")
 

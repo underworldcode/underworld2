@@ -37,16 +37,20 @@ libUnderworld/libUnderworldPy/petsc.py
 libUnderworld/libUnderworldPy/LavaVu.py
 testResults
 docs/scratch
+docs/test/*Output
 
 
 
 
-# We should probably not cache the output of all the examples - especially if we are going to leave the
-# notebook output cells in place.
+# We should probably not cache the output of all the examples -  if we are going to leave the
+# notebook output cells in place, then there is not much need.
 
 docs/examples/SimpleShear2D
 docs/examples/PureShear2D
 docs/examples/Buckling2D
+docs/examples/SlabSubduction
+docs/examples/*Output
+
 docs/publications/TosiEtAl-2015/TosiOutput
 
 docs/development/TransIsoCompression
