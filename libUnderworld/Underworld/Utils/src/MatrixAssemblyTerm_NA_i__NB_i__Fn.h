@@ -36,7 +36,7 @@ extern "C" {
 #include <StgDomain/StgDomain.h>
 #include <StgFEM/StgFEM.h>
 #include <PICellerator/PICellerator.h>
-#include <Underworld/Underworld.h>
+//#include <Underworld/Underworld.h>
 
    /** Textual name of this class */
    extern const Type MatrixAssemblyTerm_NA_i__NB_i__Fn_Type;

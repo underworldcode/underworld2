@@ -311,6 +311,28 @@ class MatrixAssemblyTerm_NA_i__NB_i__Fn(MatrixAssemblyTerm):
         # call parents method
         super(MatrixAssemblyTerm_NA_i__NB_i__Fn,self)._add_to_stg_dict(componentDictionary)
 
+class MatrixAssemblyTerm_NA__NB__Fn(MatrixAssemblyTerm):
+    _objectsDict = { "_assemblyterm": "MatrixAssemblyTerm_NA__NB__Fn" }
+
+    def __init__(self, fn, mesh, **kwargs):
+        """
+        """
+        # build parent
+        super(MatrixAssemblyTerm_NA__NB__Fn,self).__init__(**kwargs)
+
+        self._set_fn_function = libUnderworld.Underworld.MatrixAssemblyTerm_NA__NB__Fn_SetFn
+        self._fn = fn
+
+        if not isinstance( mesh, uw.mesh.FeMesh_Cartesian ):
+            raise TypeError( "The provided mesh must be of FeMesh_Cartesian class.")
+        # set mesh directly
+        self._cself.geometryMesh = mesh._cself
+        self._geometryMesh = mesh
+
+    def _add_to_stg_dict(self,componentDictionary):
+        # call parents method
+        super(MatrixAssemblyTerm_NA__NB__Fn,self)._add_to_stg_dict(componentDictionary)
+
 class LumpedMassMatrixVectorTerm(VectorAssemblyTerm):
     _objectsDict = { "_assemblyterm": "LumpedMassMatrixForceTerm" }
     pass
@@ -350,18 +372,11 @@ class AdvDiffResidualVectorTerm(VectorAssemblyTerm):
         libUnderworld.Underworld._SUPGVectorTerm_NA__Fn_SetDiffusivityFn( self._cself, self._diffFn._fncself )
         libUnderworld.Underworld._SUPGVectorTerm_NA__Fn_SetSourceFn( self._cself, self._sourceFn._fncself )
 
-class MassMatrixTerm(MatrixAssemblyTerm):
-    _objectsDict = { "_assemblyterm": "MassMatrixTerm" }
+class MassMatrixTerm(VectorAssemblyTerm):
+    _objectsDict = { "_assemblyterm": None }
+
+    def __new__(self, *args, **kwargs):
+        raise RuntimeError("The class MassMatrixTerm has been removed and replaced by MatrixAssemblyTerm_NA__NB__Fn")
 
     def __init__( self, mesh, **kwargs ):
-        super(MassMatrixTerm,self).__init__(**kwargs)
-
-        if not isinstance( mesh, uw.mesh.FeMesh_Cartesian ):
-            raise TypeError( "The provided mesh must be of FeMesh_Cartesian class.")
-        self._mesh = mesh
-
-    def _add_to_stg_dict(self,componentDictionary):
-        # call parents method
-        super(MassMatrixTerm,self)._add_to_stg_dict(componentDictionary)
-        #Need GeometryMesh to to be able to calculate detJac in PressureMatrixTerm function
-        componentDictionary[ self._cself.name ]["GeometryMesh"] = self._mesh._cself.name
+        pass

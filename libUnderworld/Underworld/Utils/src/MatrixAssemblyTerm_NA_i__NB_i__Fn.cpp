@@ -38,17 +38,17 @@ MatrixAssemblyTerm_NA_i__NB_i__Fn* _MatrixAssemblyTerm_NA_i__NB_i__Fn_New(  MATR
 
 void MatrixAssemblyTerm_NA_i__NB_i__Fn_SetFn( void* _self, Fn::Function* fn ){
     MatrixAssemblyTerm_NA_i__NB_i__Fn*  self = (MatrixAssemblyTerm_NA_i__NB_i__Fn*)_self;
-    
+
     // record fn to struct
     MatrixAssemblyTerm_NA_i__NB_i__Fn_cppdata* cppdata = (MatrixAssemblyTerm_NA_i__NB_i__Fn_cppdata*) self->cppdata;
     cppdata->fn = fn;
-    
+
     // setup fn
     IntegrationPointsSwarm* swarm = (IntegrationPointsSwarm*)self->integrationSwarm;
     std::shared_ptr<ParticleInCellCoordinate> localCoord = std::make_shared<ParticleInCellCoordinate>( swarm->localCoordVariable );
     cppdata->input = std::make_shared<FEMCoordinate>((void*)swarm->mesh, localCoord);
     cppdata->func = fn->getFunction(cppdata->input);
-    
+
     // check output conforms
     std::shared_ptr<const IO_double> iodub = std::dynamic_pointer_cast<const IO_double>(cppdata->func(cppdata->input));
     if( !iodub )
@@ -61,6 +61,8 @@ void MatrixAssemblyTerm_NA_i__NB_i__Fn_SetFn( void* _self, Fn::Function* fn ){
 void _MatrixAssemblyTerm_NA_i__NB_i__Fn_Delete( void* matrixTerm ) {
    MatrixAssemblyTerm_NA_i__NB_i__Fn* self = (MatrixAssemblyTerm_NA_i__NB_i__Fn*)matrixTerm;
 
+   delete (MatrixAssemblyTerm_NA_i__NB_i__Fn_cppdata*)self->cppdata;
+   
    _StiffnessMatrixTerm_Delete( self );
 }
 
@@ -95,7 +97,7 @@ void* _MatrixAssemblyTerm_NA_i__NB_i__Fn_DefaultNew( Name name ) {
 
 void _MatrixAssemblyTerm_NA_i__NB_i__Fn_AssignFromXML( void* matrixTerm, Stg_ComponentFactory* cf, void* data ) {
    MatrixAssemblyTerm_NA_i__NB_i__Fn* self = (MatrixAssemblyTerm_NA_i__NB_i__Fn*)matrixTerm;
-   
+
    /* Construct Parent */
    _StiffnessMatrixTerm_AssignFromXML( self, cf, data );
 
@@ -158,9 +160,9 @@ void _MatrixAssemblyTerm_NA_i__NB_i__Fn_AssembleElement(
       self->max_nElNodes = nodesPerEl;
    }
    GNx = self->GNx;
-   
+
    MatrixAssemblyTerm_NA_i__NB_i__Fn_cppdata* cppdata = (MatrixAssemblyTerm_NA_i__NB_i__Fn_cppdata*)self->cppdata;
-    
+
    debug_dynamic_cast<ParticleInCellCoordinate>(cppdata->input->localCoord())->index() = lElement_I;  // set the elementId as the owning cell for the particleCoord
    cppdata->input->index() = lElement_I;  // set the elementId for the fem coordinate
 
@@ -182,12 +184,10 @@ void _MatrixAssemblyTerm_NA_i__NB_i__Fn_AssembleElement(
       /* evaluate function */
       std::shared_ptr<const IO_double> funcout = debug_dynamic_cast<const IO_double>(cppdata->func(cppdata->input));
       F = funcout->at();
-      
+
       for( A=0; A<nodesPerEl; A++ )
          for( B=0; B<nodesPerEl; B++ )
             for ( i = 0; i < dim ; i++ )
                elStiffMat[A][B] += detJac * weight * GNx[i][A] * GNx[i][B] * F;
    }
 }
-
-

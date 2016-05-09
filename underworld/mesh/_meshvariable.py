@@ -43,7 +43,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
     >>> scalarFeVar = uw.mesh.MeshVariable( mesh=linearMesh, nodeDofCount=1, dataType="double" )
 
     or a vector meshvariable can be created:
-    
+
     >>> vectorFeVar = uw.mesh.MeshVariable( mesh=linearMesh, nodeDofCount=3, dataType="double" )
 
     """
@@ -168,19 +168,20 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         """
         fn_gradient (Function): Returns a Function for the gradient field
         of this meshvariable.
-        
+
         Note that for a scalar variable `T`, the gradient function returns
         an array of the form:
 
         .. math::
              [ \frac{\partial T}{\partial x}, \frac{\partial T}{\partial y}, \frac{\partial T}{\partial z} ]
-             
+
         and for a vector variable `v`:
         .. math::
-            [ \frac{\partial v_x}{\partial x}, \frac{\partial v_x}{\partial y}, \frac{\partial v_x}{\partial z}, \cdots, \frac{\partial v_z}{\partial x}, \frac{\partial v_z}{\partial y}, \frac{\partial v_z}{\partial z} ]
-
+            [ \frac{\partial v_x}{\partial x}, \frac{\partial v_x}{\partial y}, \frac{\partial v_x}{\partial z},
+              \frac{\partial v_y}{\partial x}, \frac{\partial v_y}{\partial y}, \frac{\partial v_y}{\partial z},
+              \frac{\partial v_z}{\partial x}, \frac{\partial v_z}{\partial y}, \frac{\partial v_z}{\partial z} ]
         """
-        
+
         if not self._fn_gradient:
             # lets define a wrapper class here
             import underworld.function as function
@@ -202,24 +203,24 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
     def gradientFn(self):
         #DEPRECATE 1/16
         raise RuntimeError("The 'gradientFn' property has been renamed to 'fn_gradient'.")
-    
+
 
 
     def xdmf( self, filename, fieldSavedData, varname, meshSavedData, meshname, modeltime=0.  ):
         """
-        Creates an xdmf file, filename, associating the fieldSavedData file on 
+        Creates an xdmf file, filename, associating the fieldSavedData file on
         the meshSavedData file
 
         Notes
         -----
         xdmf contain 2 files: an .xml and a .h5 file. See http://www.xdmf.org/index.php/Main_Page
-        This method only needs to be called by the master process, all other 
+        This method only needs to be called by the master process, all other
         processes return quiely.
 
         Parameters
         ----------
         filename : str
-            The output path to write the xdmf file. Relative or absolute paths may be 
+            The output path to write the xdmf file. Relative or absolute paths may be
             used, but all directories must exist.
         varname : str
             The xdmf name to give the field
@@ -237,30 +238,30 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         First create the mesh add a variable:
         >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
         >>> var = uw.mesh.MeshVariable( mesh=mesh, nodeDofCount=1, dataType="double" )
-        
+
         Write something to variable
-        
+
         >>> import numpy as np
         >>> var.data[:,0] = np.arange(var.data.shape[0])
-        
+
         Save mesh and var to a file:
-        
+
         >>> meshDat = mesh.save("saved_mesh_variable.h5")
         >>> varDat = var.save("saved_mesh.h5")
-        
+
         Now let's create the xdmf file
-        
+
         >>> var.xdmf("TESTxdmf", varDat, "var1", meshDat, "meshie" )
 
         Does file exist?
-        
+
         >>> import os
         >>> if uw.rank() == 0: os.path.isfile("TESTxdmf.xdmf")
         True
-        
+
         Clean up:
         >>> if uw.rank() == 0:
-        ...     import os; 
+        ...     import os;
         ...     os.remove( "saved_mesh_variable.h5" )
         ...     os.remove( "saved_mesh.h5" )
         ...     os.remove( "TESTxdmf.xdmf" )
@@ -280,7 +281,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
             if not isinstance(modeltime, (int,float)):
                 raise ValueError("'modeltime' must be of type int or float")
             modeltime = float(modeltime)    # make modeltime a float
-            
+
             elementMesh = self.mesh
             if hasattr(elementMesh.generator, 'geometryMesh'):
                 elementMesh = elementMesh.generator.geometryMesh
@@ -298,7 +299,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
             string = uw.utils._xdmfheader()
             string += uw.utils._spacetimeschema( meshSavedData, meshname, modeltime )
             string += uw.utils._fieldschema( fieldSavedData, varname )
-            # write the footer to the xmf    
+            # write the footer to the xmf
             string += uw.utils._xdmffooter()
 
             # write the string to file - only proc 0
@@ -308,56 +309,56 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
 
     def save( self, filename, meshFilename=None ):
         """
-        Save the MeshVariable to disk. 
+        Save the MeshVariable to disk.
 
         Parameters
         ----------
         filename : string
-            The name of the output file. Relative or absolute paths may be 
+            The name of the output file. Relative or absolute paths may be
             used, but all directories must exist.
         meshFilename : string, optional
-            If provided, a link to the created mesh file is created within the 
+            If provided, a link to the created mesh file is created within the
             mesh variable file.
 
         Notes
         -----
         This method must be called collectively by all processes.
-        
+
         Returns
         -------
         SavedFileData
             Data object relating to saved file. This only needs to be retained
             if you wish to create XDMF files and can be ignored otherwise.
-        
+
         Example
         -------
         First create the mesh add a variable:
 
         >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
         >>> var = uw.mesh.MeshVariable( mesh=mesh, nodeDofCount=1, dataType="double" )
-        
+
         Write something to variable
-        
+
         >>> import numpy as np
         >>> var.data[:,0] = np.arange(var.data.shape[0])
-        
+
         Save to a file (note that the 'ignoreMe' object isn't really required):
-        
+
         >>> ignoreMe = var.save("saved_mesh_variable.h5")
-        
+
         Now let's try and reload.
-        
+
         >>> clone_var = uw.mesh.MeshVariable( mesh=mesh, nodeDofCount=1, dataType="double" )
         >>> clone_var.load("saved_mesh_variable.h5")
-        
+
         Now check for equality:
-        
+
         >>> np.allclose(var.data,clone_var.data)
         True
-        
+
         Clean up:
-        >>> if uw.rank() == 0: 
-        ...     import os; 
+        >>> if uw.rank() == 0:
+        ...     import os;
         ...     os.remove( "saved_mesh_variable.h5" )
 
         """
@@ -370,7 +371,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         # ugly global shape def
         globalShape = ( mesh.nodesGlobal, self.data.shape[1] )
         # create dataset
-        dset = h5f.create_dataset("data", 
+        dset = h5f.create_dataset("data",
                                   shape=globalShape,
                                   dtype=self.data.dtype)
 
@@ -403,7 +404,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
     def load(self, filename, interpolate=False ):
         """
         Load the MeshVariable from disk.
-        
+
         Parameters
         ----------
         filename: str
@@ -411,22 +412,22 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
             used, but all directories must exist.
         interpolate: bool (default False)
             Set to True to interpolate a file containing different resolution data.
-            Note that a temporary MeshVariable with the file data will be build 
-            on **each** processor. Also note that the temporary MeshVariable 
+            Note that a temporary MeshVariable with the file data will be build
+            on **each** processor. Also note that the temporary MeshVariable
             can only be built if its corresponding mesh file is available.
             Also note that the supporting mesh mush be regular.
-        
+
         Notes
         -----
         This method must be called collectively by all processes.
 
         If the file data array is the same length as the current variable
-        global size, it is assumed the file contains compatible data. Note that 
+        global size, it is assumed the file contains compatible data. Note that
         this may not be the case where for example where you have saved using a
         2*8 resolution mesh, then loaded using an 8*2 resolution mesh.
 
         Provided files must be in hdf5 format, and use the correct schema.
-        
+
         Example
         -------
         Refer to example provided for 'save' method.
@@ -435,7 +436,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         if not isinstance(filename, str):
             raise TypeError("Expected filename to be provided as a string")
 
-        # get field and mesh information 
+        # get field and mesh information
         h5f = h5py.File( filename, "r", driver='mpio', comm=MPI.COMM_WORLD );
         dset = h5f.get('data')
         if dset == None:
@@ -444,7 +445,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         dof = dset.shape[1]
         if dof != self.data.shape[1]:
             raise RuntimeError("Can't load hdf5 '{0}', incompatible data shape".format(filename))
-        
+
         if len(dset) == self.mesh.nodesGlobal:
 
             # assume dset matches field exactly
@@ -465,13 +466,13 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
             if h5f.get('mesh') == None:
                 raise RuntimeError("The hdf5 field to be loaded must have an associated "+
                         "'mesh' hdf5 file, was it created correctly?")
-            # get resolution of old mesh    
+            # get resolution of old mesh
             res = h5f['mesh'].attrs.get('mesh resolution')
             if res is None:
                 raise RuntimeError("Can't read the 'mesh resolution' for the field hdf5 file,"+
                        " was it created correctly?")
 
-            # get max of old mesh    
+            # get max of old mesh
             inputMax = h5f['mesh'].attrs.get('max')
             if inputMax is None:
                 raise RuntimeError("Can't read the 'max' for the field hdf5 file,"+
@@ -486,13 +487,13 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
                 raise RuntimeError("Saved mesh file appears to correspond to a irregular mesh.\n"\
                                    "Interpolating from irregular mesh not currently supported." )
             # build the NON-PARALLEL field and mesh
-            inputMesh = uw.mesh.FeMesh_Cartesian( elementType = ("Q1/dQ0"), 
-                                          elementRes  = tuple(res), 
-                                          minCoord    = tuple(inputMin), 
-                                          maxCoord    = tuple(inputMax), 
+            inputMesh = uw.mesh.FeMesh_Cartesian( elementType = ("Q1/dQ0"),
+                                          elementRes  = tuple(res),
+                                          minCoord    = tuple(inputMin),
+                                          maxCoord    = tuple(inputMax),
                                           partitioned=False)
             inputField = uw.mesh.MeshVariable( mesh=inputMesh, nodeDofCount=dof )
-            
+
             # copy hdf5 numpy array onto serial inputField
             inputField.data[:] = dset[:]
 
@@ -511,7 +512,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         deepcopy: bool (default False)
             If True, the variable's data is also copied into
             new variable.
-            
+
         Example
         -------
         >>> mesh = uw.mesh.FeMesh_Cartesian()
@@ -529,7 +530,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         >>> varCopy2 = var.copy(deepcopy=True)
         >>> np.allclose(var.data,varCopy2.data)
         True
-        
+
         """
 
         if not isinstance(deepcopy, bool):

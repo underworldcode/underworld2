@@ -9,9 +9,7 @@
 #ifndef __Solvers_Assembly_types_h__
 #define __Solvers_Assembly_types_h__
 
-typedef struct MassMatrixTerm MassMatrixTerm;
 typedef struct Matrix_NaiNbj Matrix_NaiNbj;
 typedef struct ViscousPenaltyConstMatrixCartesian   ViscousPenaltyConstMatrixCartesian;
 
 #endif
-

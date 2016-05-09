@@ -8,10 +8,9 @@
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 #ifndef __Solvers_Assembly_Assembly_h__
 #define __Solvers_Assembly_Assembly_h__
-	
+
 	#include "types.h"
 
-	#include "MassMatrixTerm.h"
    #include "Matrix_NaiNbj.h"
 	#include "ViscousPenaltyConstMatrixCartesian.h"
 
@@ -19,4 +18,3 @@
 	#include "Finalise.h"
 
 #endif
-
