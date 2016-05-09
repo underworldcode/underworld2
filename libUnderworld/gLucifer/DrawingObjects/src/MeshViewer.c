@@ -153,7 +153,7 @@ void _lucMeshViewer_Draw( void* drawingObject, lucDatabase* database, void* _con
    if ( self->colourVariable && colourMap )
    {
       /* Colour by provided variable */
-      lucColourMap_CalibrateFromFieldVariable( colourMap, self->colourVariable );
+      //lucColourMap_CalibrateFromFieldVariable( colourMap, self->colourVariable );
    }
    else if (colourMap )
    {

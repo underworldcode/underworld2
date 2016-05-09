@@ -474,16 +474,17 @@ void lucDatabase_OutputWindow(lucDatabase* self, void* _window)
       /* Save the window */
       if (window->useModelBounds)
       {
-         snprintf(SQL, MAX_QUERY_LEN, "insert into window (name, width, height, colour, minX, minY, minZ, maxX, maxY, maxZ) values ('%s', %d, %d, %d, %g, %g, %g, %g, %g, %g)", 
-                  window->name, window->width, window->height, lucColour_ToInt(&window->backgroundColour), 
-                  self->minValue[0], self->minValue[1], self->minValue[2], self->maxValue[0], self->maxValue[1], self->maxValue[2]);
+         snprintf(SQL, MAX_QUERY_LEN, "insert into window (name, width, height, minX, minY, minZ, maxX, maxY, maxZ) values ('%s', %d, %d, %g, %g, %g, %g, %g, %g)", 
+                  window->name, window->width, window->height, 
+                  self->minValue[0], self->minValue[1], self->minValue[2],
+                  self->maxValue[0], self->maxValue[1], self->maxValue[2]);
       }
       else 
       {
          /* Don't write model bounds with this window
           * (used if visualising something other than model domain, eg: plot) */
-         snprintf(SQL, MAX_QUERY_LEN, "insert into window (name, width, height, colour) values ('%s', %d, %d, %d)",
-                  window->name, window->width, window->height, lucColour_ToInt(&window->backgroundColour));
+         snprintf(SQL, MAX_QUERY_LEN, "insert into window (name, width, height) values ('%s', %d, %d)",
+                  window->name, window->width, window->height);
       }
 
       /*printf("%s\n", SQL);*/
@@ -566,7 +567,7 @@ void lucDatabase_OutputDrawingObject(lucDatabase* self, lucViewport* viewport, l
    /* Save the object */
    if (!object->id) /* Not already written */
    {
-      snprintf(SQL, MAX_QUERY_LEN, "insert into object (name, colourmap_id, colour, opacity, properties) values ('%s_%s', 0, %d, %g, '%s')", object->type, object->name, lucColour_ToInt(&object->colour), object->opacity, object->properties); 
+      snprintf(SQL, MAX_QUERY_LEN, "insert into object (name, properties) values ('%s_%s', '%s')", object->type, object->name, object->properties); 
       /*printf("%s\n", SQL);*/
       if (!lucDatabase_IssueSQL(self->db, SQL)) return;
 
@@ -604,7 +605,7 @@ void lucDatabase_OutputColourMap(lucDatabase* self, lucColourMap* colourMap, luc
    {
       Index colour_I;
 
-      snprintf(SQL, MAX_QUERY_LEN, "insert into colourmap (name, minimum, maximum, logscale, discrete, centreValue, properties) values ('%s', %g, %g, %d, %d, %g, '%s')", colourMap->name, colourMap->minimum, colourMap->maximum, colourMap->logScale, colourMap->discrete, colourMap->centreValue, colourMap->properties );
+      snprintf(SQL, MAX_QUERY_LEN, "insert into colourmap (name, minimum, maximum, logscale, discrete, properties) values ('%s', %g, %g, %d, %d, '%s')", colourMap->name, colourMap->minimum, colourMap->maximum, colourMap->logScale, colourMap->discrete, colourMap->properties );
       /*printf("%s\n", SQL);*/
       if (!lucDatabase_IssueSQL(self->db, SQL)) return;
 
@@ -1081,7 +1082,7 @@ void lucDatabase_CreateDatabase(lucDatabase* self)
       "create table object (id INTEGER PRIMARY KEY ASC, name VARCHAR(256), colourmap_id INTEGER, colour INTEGER, opacity REAL, properties VARCHAR(2048), FOREIGN KEY (colourmap_id) REFERENCES colourmap (id) ON DELETE CASCADE ON UPDATE CASCADE)"); 
 
    lucDatabase_IssueSQL(self->db, 
-      "create table colourmap (id INTEGER PRIMARY KEY ASC, name VARCHAR(256), minimum REAL, maximum REAL, logscale INTEGER, discrete INTEGER, centreValue REAL, properties VARCHAR(2048))"); 
+      "create table colourmap (id INTEGER PRIMARY KEY ASC, name VARCHAR(256), minimum REAL, maximum REAL, logscale INTEGER, discrete INTEGER, properties VARCHAR(2048))"); 
 
    lucDatabase_IssueSQL(self->db, 
       "create table viewport (id INTEGER PRIMARY KEY ASC, title VARCHAR(256), x REAL, y REAL, near REAL, far REAL, aperture REAL, orientation INTEGER, focalPointX REAL, focalPointY REAL, focalPointZ REAL, translateX REAL, translateY REAL, translateZ REAL, rotateX REAL, rotateY REAL, rotateZ REAL, scaleX REAL, scaleY REAL, scaleZ real, properties VARCHAR(2048))"); 

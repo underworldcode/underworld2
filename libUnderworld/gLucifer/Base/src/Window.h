@@ -33,7 +33,6 @@ extern const Type lucWindow_Type;
       int*                                viewportLayout;               \
       Pixel_Index                         width;                        \
       Pixel_Index                         height;                       \
-      lucColour                           backgroundColour;             \
       DomainContext*                      context;                      \
       Bool                                isMaster;                     \
       char*                               title;                        \

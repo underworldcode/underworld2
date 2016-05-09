@@ -52,7 +52,6 @@ void _lucWindow_Init(
    AbstractContext*                                   context,
    Pixel_Index                                        width,
    Pixel_Index                                        height,
-   Name                                               backgroundColourName,
    Bool                                               antialias,
    lucDatabase*                                       database,
    Bool                                               useModelBounds,
@@ -78,8 +77,6 @@ void _lucWindow_Init(
 
    self->viewportList = viewportList; 
    self->viewportCount = viewportCount;
-
-   lucColour_FromString( &self->backgroundColour, backgroundColourName );
 
    if (!disabled && context)
    {
@@ -192,7 +189,6 @@ void _lucWindow_AssignFromXML( void* window, Stg_ComponentFactory* cf, void* dat
       context,
       width,
       height,
-      Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"backgroundColour", "white"  ),
       Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"antialias", True ),
       Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"Database", lucDatabase, False, data ),
       Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"useModelBounds", True ),

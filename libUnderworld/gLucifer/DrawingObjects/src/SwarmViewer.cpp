@@ -267,13 +267,14 @@ void _lucSwarmViewer_Draw( void* drawingObject, lucDatabase* database, void* _co
 
 void lucSwarmViewer_SetColourComponent(void* object, lucDatabase* database, SwarmVariable* var, Particle_Index lParticle_I, lucGeometryDataType type, lucColourMap* colourMap)
 {
+#if 0
    lucSwarmViewer* self = (lucSwarmViewer*)object;
    if (var && colourMap)
    {
       double value;
       lucColour colour;
       SwarmVariable_ValueAt( var, lParticle_I, &value );
-      lucColourMap_GetColourFromValue( colourMap, value, &colour, self->opacity );
+      //lucColourMap_GetColourFromValue( colourMap, value, &colour, self->opacity );
 
       /* Extract and overwrite component value */
       if (type == lucRedValueData)
@@ -289,6 +290,7 @@ void lucSwarmViewer_SetColourComponent(void* object, lucDatabase* database, Swar
       float valuef = value;
       lucDatabase_AddValues(database, 1, self->geomType, type, colourMap, &valuef);
    }
+#endif
 }
 
 /* Default Swarm Viewer Implementation */
