@@ -382,8 +382,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         self._mmatrix  = sle.AssembledMatrix( pressureField, pressureField, rhs=self._junkfvector )
 
         # create assembly terms
-        # self._velocMassMatTerm = sle.MassMatrixTerm( integrationSwarm=stokesSLE._gaussSwarm, assembledObject=self._vmmatrix, mesh = velocityField._mesh)
-        self._pressMassMatTerm = sle.MassMatrixTerm( integrationSwarm=stokesSLE._gaussSwarm, assembledObject=self._mmatrix,
+        self._pressMassMatTerm = sle.MatrixAssemblyTerm_NA__NB__Fn( integrationSwarm=stokesSLE._gaussSwarm, fn=1.0, assembledObject=self._mmatrix,
                                                              mesh = velocityField._mesh)
 
         # attach terms to live solver struct

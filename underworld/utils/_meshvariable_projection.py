@@ -163,9 +163,10 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
             # and matrices
             self._kmatrix = sle.AssembledMatrix( meshVariable, meshVariable, rhs=self._fvector )
             # matrix term
-            self._kMatTerm = sle.MassMatrixTerm(  integrationSwarm=swarmguy,
-                                                   assembledObject=self._kmatrix,
-                                                              mesh=geometryMesh )
+            self._kMatTerm = sle.MatrixAssemblyTerm_NA__NB__Fn(  integrationSwarm=swarmguy,
+                                                                 assembledObject=self._kmatrix,
+                                                                 fn = 1.0,
+                                                                 mesh=geometryMesh )
             self._solver = None
             self.solve = self._solve_residual
 
