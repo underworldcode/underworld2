@@ -123,10 +123,6 @@ class Figure(_stgermain.StgCompoundComponent):
             raise TypeError("'boundingBox[1]' object passed in must be of type 'tuple'")
         self._boundingBox = boundingBox
 
-        if not isinstance(facecolour,str):
-            raise TypeError("'facecolour' object passed in must be of python type 'str'")
-        self._facecolour = facecolour
-
         if not isinstance(edgecolour,str):
             raise TypeError("'edgecolour' object passed in must be of python type 'str'")
 
@@ -141,7 +137,7 @@ class Figure(_stgermain.StgCompoundComponent):
         self.quality=quality
 
         #Setup default properties
-        self._properties = {"title" : title, "axis" : axis, "axislength" : 0.2, "antialias" : True,
+        self._properties = {"title" : title, "axis" : axis, "axislength" : 0.2, "antialias" : True, "background" : facecolour,
             "margin" : 34, "border" : (1 if edgecolour else 0), "borderColour" : edgecolour, "rulers" : False, "timestep" : False, "zoomstep" : 0} 
         
         if properties and not isinstance(properties,dict):
@@ -184,7 +180,6 @@ class Figure(_stgermain.StgCompoundComponent):
                             "Viewport"          :[self._vp.name],
                             "width"             :self.figsize[0],
                             "height"            :self.figsize[1],
-                            "backgroundColour"  :self.facecolour,
                             "useModelBounds"    :self._boundingBox != None
         } )
         componentDictionary[self._vp.name].update( {
@@ -215,7 +210,7 @@ class Figure(_stgermain.StgCompoundComponent):
     def facecolour(self):
         """    facecolour : colour of face background, default: white
         """
-        return self._facecolour
+        return self._properties["background"]
 
     @property
     def edgecolour(self):

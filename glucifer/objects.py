@@ -136,9 +136,8 @@ class Drawing(_stgermain.StgCompoundComponent):
         This should not be specified if 'colours' is specified.
     properties: str.  default=None
         Extra properties to apply to the drawing object.
-    opacity: float. default=-1.
-        Opacity of object. Must takes values from 0. to 1., while a value 
-        of -1 explicitly disables opacity.
+    opacity: float. default=None.
+        Opacity of object. If provided, must take values from 0. to 1. 
     colourBar: bool. default=False
         Bool to determine if a colour bar should be rendered.
     valueRange: tuple,list. default=None.
@@ -153,7 +152,7 @@ class Drawing(_stgermain.StgCompoundComponent):
     _selfObjectName = "_dr"
     _objectsDict = { "_dr": "lucDrawingObject" } # child should replace _dr with own derived type
     
-    def __init__(self, colours=None, colourMap=None, properties=None, opacity=-1, colourBar=False,
+    def __init__(self, colours=None, colourMap=None, properties=None, opacity=None, colourBar=False,
                        valueRange=None, logScale=False, discrete=False,
                        *args, **kwargs):
 
@@ -173,11 +172,12 @@ class Drawing(_stgermain.StgCompoundComponent):
         if properties:
             self._properties.update(properties)
 
-        if not isinstance(opacity,(int,float)):
-            raise TypeError("'opacity' object passed in must be of python type 'int' or 'float'")
-        if float(opacity) > 1. or float(opacity) < -1.:
-            raise ValueError("'opacity' object must takes values from 0. to 1., while a value of -1 explicitly disables opacity.")
-        self._opacity = opacity
+        if opacity != None:
+            if not isinstance(opacity,(int,float)):
+                raise TypeError("'opacity' object passed in must be of python type 'int' or 'float'")
+            if float(opacity) > 1. or float(opacity) < -1.:
+                raise ValueError("'opacity' object must takes values from 0. to 1.")
+            self._properties.update({"opacity" : opacity})
         
         if not isinstance(colourBar, bool):
             raise TypeError("'colourBar' parameter must be of 'bool' type.")
@@ -199,8 +199,7 @@ class Drawing(_stgermain.StgCompoundComponent):
         # add an empty(ish) drawing object.  children should fill it out.
         componentDictionary[self._dr.name].update( {
             "properties"    :self._getProperties(),
-            "ColourMap"     :self._colourMap._cm.name,
-            "opacity"       :self._opacity
+            "ColourMap"     :self._colourMap._cm.name
         } )
 
     def _getProperties(self):
@@ -343,7 +342,7 @@ class CrossSection(Drawing):
     _objectsDict = { "_dr": "lucCrossSection" }
 
     def __init__(self, mesh, fn, crossSection="",
-                       colours=None, colourMap=None, properties=None, opacity=-1, colourBar=True,
+                       colours=None, colourMap=None, properties=None, opacity=None, colourBar=True,
                        valueRange=None, logScale=False, discrete=False,
                        *args, **kwargs):
 
@@ -411,7 +410,7 @@ class Surface(CrossSection):
                       "_dr2" : "lucScalarFieldOnMesh" }
 
     def __init__(self, mesh, fn, drawSides="xyzXYZ", drawOnMesh=False,
-                       colours=None, colourMap=None, properties=None, opacity=-1, colourBar=True,
+                       colours=None, colourMap=None, properties=None, opacity=None, colourBar=True,
                        valueRange=None, logScale=False, discrete=False,
                        *args, **kwargs):
 
@@ -490,7 +489,7 @@ class Points(Drawing):
     _objectsDict = { "_dr": "lucSwarmViewer" }
 
     def __init__(self, swarm, fn_colour=None, fn_mask=None, fn_size=None, pointSize=1.0, pointType=1, colourVariable=None,
-                       colours=None, colourMap=None, properties=None, opacity=-1, colourBar=True,
+                       colours=None, colourMap=None, properties=None, opacity=None, colourBar=True,
                        valueRange=None, logScale=False, discrete=False,
                        *args, **kwargs):
 
@@ -624,7 +623,7 @@ class VectorArrows(_GridSampler3D):
     _objectsDict = { "_dr": "lucVectorArrows" }
 
     def __init__(self, mesh, fn, arrowHead=0.3, scaling=0.3, glyphs=3,
-                       resolutionI=None, resolutionJ=None, resolutionK=None, properties=None, opacity=-1,
+                       resolutionI=None, resolutionJ=None, resolutionK=None, properties=None, opacity=None,
                        *args, **kwargs):
 
         if arrowHead:
@@ -679,7 +678,7 @@ class Volume(_GridSampler3D):
     _objectsDict = { "_dr": "lucFieldSampler" }
 
     def __init__(self, mesh, fn, resolutionI=None, resolutionJ=None, resolutionK=None,
-                       colours=None, colourMap=None, properties=None, opacity=-1, colourBar=True,
+                       colours=None, colourMap=None, properties=None, opacity=None, colourBar=True,
                        valueRange=None, logScale=False, discrete=False,
                        *args, **kwargs):
         # build parent
@@ -712,7 +711,7 @@ class Mesh(Drawing):
     """
     _objectsDict = { "_dr": "lucMeshViewer" }
 
-    def __init__( self, mesh, nodeNumbers=False, segmentsPerEdge=1, properties={"linesmooth" : False}, opacity=-1, *args, **kwargs ):
+    def __init__( self, mesh, nodeNumbers=False, segmentsPerEdge=1, properties={"linesmooth" : False}, opacity=None, *args, **kwargs ):
 
         if not isinstance(mesh,_uwmesh.FeMesh):
             raise TypeError("'mesh' object passed in must be of type 'FeMesh'")
