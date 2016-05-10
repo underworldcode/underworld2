@@ -215,6 +215,8 @@ void _SystemLinearEquations_Delete( void* sle ) {
 	
 	Journal_DPrintf( self->debug, "In %s\n", __func__ );
 	Stream_IndentBranch( StgFEM_Debug );
+
+        Stg_Class_Delete(self->integrationSetupEP);
 	
 	/* delete parent */
 	_Stg_Component_Delete( self );
