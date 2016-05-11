@@ -36,13 +36,10 @@ We periodically post build recipes for particular platforms on the [underworld b
 ```bash
     $ cd libUnderworld
     $ ./configure.py
-    $ ./scons.py
-    $ cd libUnderworldPy ; ./swigall.py ; cd ../
-    $ ./scons.py
+    $ ./compile.py
 ```
 
-Check available configuration options using `./configure.py --help`.  
-Library testing options may be found by running `./scons.py --help`.
+Check available configuration options using `./configure.py --help`. 
 
 Usage
 -----
