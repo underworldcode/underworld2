@@ -12,7 +12,7 @@ This module contains routines relating to swarm type objects.
 """
 
 from _swarm import Swarm
-from _integration_swarm import IntegrationSwarm, PICIntegrationSwarm, GaussIntegrationSwarm, GaussBorderIntegrationSwarm
+from _integration_swarm import IntegrationSwarm, VoronoiIntegrationSwarm, GaussIntegrationSwarm, GaussBorderIntegrationSwarm
 from _swarmvariable import SwarmVariable
 import layouts
 import _weights

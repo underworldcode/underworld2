@@ -151,7 +151,7 @@ swarmLayout = uw.swarm.layouts.GlobalSpaceFillerLayout( swarm=swarm, particlesPe
 swarm.populate_using_layout( layout=swarmLayout )
 
 # For population control, make this an integration swarm
-popSwarm = uw.swarm.PICIntegrationSwarm(swarm, particlesPerCell=50)
+popSwarm = uw.swarm.VoronoiIntegrationSwarm(swarm, particlesPerCell=50)
 
 surfaceSwarm = uw.swarm.Swarm( mesh=mesh, particleEscape=True )
 deformationSwarm = uw.swarm.Swarm ( mesh=mesh, particleEscape=True )

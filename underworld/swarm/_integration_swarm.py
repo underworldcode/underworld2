@@ -47,7 +47,7 @@ class IntegrationSwarm(_swarmabstract.SwarmAbstract):
 
 
 
-class PICIntegrationSwarm(IntegrationSwarm,function.FunctionInput):
+class VoronoiIntegrationSwarm(IntegrationSwarm,function.FunctionInput):
     """
     Class for an IntegrationSwarm that maps to another Swarm
 
@@ -64,11 +64,36 @@ class PICIntegrationSwarm(IntegrationSwarm,function.FunctionInput):
     swarm : uw.swarm.Swarm
         The PIC integration swarm maps to this user provided swarm.
 
+    lowerVolumeThreshold : 0-100%, default 0.6
+        lower % threshold volume for deletion of particles.
+        i.e if a particle volume < 0.25% of total then delete it
+
+    upperVolumeThreshold : 0-100%, default 25
+        upper % threshold volume for deletion of particles.
+        i.e if a particle volume > 15% of total then split it
+
+    maxDeletions : int, defualt 3
+        maximum number of particle deletions per cell
+
+    maxSplits : int, default 3
+        maximum number of particles splits per cell
+
+    resolutionX, resolutionY, resolutionZ : int, default 15
+        The resolution of the mesh used for the discrete voronoi algorithm
+
+    shotgun : bool, default False
+        Enable shotgun-style population control, for agressive repopulation.
+        Was formerly known as the 'inflow' option.
+
+    threshold : 0.0-1.0, default 0.8
+        Threshold for cell population in an inflow problem:
+        If a cell has less than 80% of its assigned particles then we re-populate
+
     Example
     -------
     This simple example checks that the true global coordiante, and that
     derived from the local coordinate, are close to equal. Note that the
-    PICIntegrationSwarm uses a voronoi centroid algorithm so we do not
+    VoronoiIntegrationSwarm uses a voronoi centroid algorithm so we do not
     expect particle to exactly coincide.
 
     >>> import underworld as uw
@@ -76,7 +101,7 @@ class PICIntegrationSwarm(IntegrationSwarm,function.FunctionInput):
     >>> mesh = uw.mesh.FeMesh_Cartesian()
     >>> swarm = uw.swarm.Swarm(mesh)
     >>> swarm.populate_using_layout(uw.swarm.layouts.PerCellGaussLayout(swarm,4))
-    >>> picswarm = uw.swarm.PICIntegrationSwarm(swarm)
+    >>> picswarm = uw.swarm.VoronoiIntegrationSwarm(swarm)
     >>> picswarm.repopulate()
     >>> np.allclose(swarm.particleCoordinates.data, uw.function.input().evaluate(picswarm),atol=1e-1)
     True
@@ -86,7 +111,14 @@ class PICIntegrationSwarm(IntegrationSwarm,function.FunctionInput):
                           "_mapper" : "CoincidentMapper"
                     }
 
-    def __init__(self, swarm, particlesPerCell=25, maxDeletions=0, maxSplits=10, **kwargs):
+    def __init__(self, swarm, resx=15,resy=15,resz=15,
+                 lowerVolumeThreshold=0.6, upperVolumeThreshold=25,
+                 maxDeletions=0, maxSplits=10,
+                 centroidPositionRatio=0.01,
+                 threshold = 0.8,
+                 particlesPerCell = 25,
+                 shotgun=False, **kwargs):
+
         if not isinstance(swarm, uw.swarm.Swarm):
             raise ValueError("Provided swarm must be of class 'Swarm'.")
         self._mappedSwarm = swarm
@@ -94,17 +126,20 @@ class PICIntegrationSwarm(IntegrationSwarm,function.FunctionInput):
 
         # note that if the mapped swarm allows particles to escape, lets by default
         # switch inflow on.
-        self._weights = uw.swarm._weights.PCDVC(swarm, inFlow=self._mappedSwarm.particleEscape,
-            particlesPerCell=particlesPerCell, maxDeletions=maxDeletions, maxSplits=maxSplits )
+        self._weights = uw.swarm._weights.PCDVC(swarm, inFlow=shotgun,
+            particlesPerCell=particlesPerCell, maxDeletions=maxDeletions, maxSplits=maxSplits, resx=resx,resy=resy,resz=resz,
+            lowerVolumeThreshold=lowerVolumeThreshold, upperVolumeThreshold=upperVolumeThreshold,
+            centroidPositionRatio=centroidPositionRatio,
+            threshold=threshold)
 
         # build parent
-        super(PICIntegrationSwarm,self).__init__(swarm.mesh, **kwargs)
+        super(VoronoiIntegrationSwarm,self).__init__(swarm.mesh, **kwargs)
 
 
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method
 
-        super(PICIntegrationSwarm,self)._add_to_stg_dict(componentDictionary)
+        super(VoronoiIntegrationSwarm,self)._add_to_stg_dict(componentDictionary)
 
         componentDictionary[ self._swarm.name ][      "WeightsCalculator"] = self._weights._cself.name
 

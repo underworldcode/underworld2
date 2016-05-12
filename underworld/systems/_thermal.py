@@ -140,7 +140,7 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
 
         # if user provided a swarm we create a PIC swarm that maps to it
         if self._swarm:
-            self._PICSwarm = uw.swarm.PICIntegrationSwarm(self._swarm)
+            self._PICSwarm = uw.swarm.VoronoiIntegrationSwarm(self._swarm)
             intswarm = self._PICSwarm
 
         self._kMatTerm = sle.MatrixAssemblyTerm_NA_i__NB_i__Fn(  integrationSwarm=intswarm,

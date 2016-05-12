@@ -146,7 +146,7 @@ class Stokes(_stgermain.StgCompoundComponent):
         self._gaussSwarm = uw.swarm.GaussIntegrationSwarm(self._velocityField.mesh)
         self._PICSwarm = None
         if self._swarm:
-            self._PICSwarm = uw.swarm.PICIntegrationSwarm(self._swarm)
+            self._PICSwarm = uw.swarm.VoronoiIntegrationSwarm(self._swarm)
             self._PICSwarm.repopulate()
         # create assembly terms
         self._gradStiffMatTerm = sle.GradientStiffnessMatrixTerm(   integrationSwarm=self._gaussSwarm,

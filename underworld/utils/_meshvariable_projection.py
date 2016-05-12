@@ -131,7 +131,7 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
 
         # This seems problematic but if we don't allow splits, this fails badly
         if self._swarm:
-            self._PICSwarm = uw.swarm.PICIntegrationSwarm(self._swarm ) #  maxSplits=0, maxDeletions=0
+            self._PICSwarm = uw.swarm.VoronoiIntegrationSwarm(self._swarm ) #  maxSplits=0, maxDeletions=0
 
         swarmguy = self._PICSwarm
         if not swarmguy:
