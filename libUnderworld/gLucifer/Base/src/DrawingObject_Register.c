@@ -14,10 +14,7 @@
 
 #include "Base.h"
 #include "types.h"
-#include "Viewport.h"
-#include "Viewport.h"
 #include "ColourMap.h"
-#include "Window.h"
 #include "DrawingObject_Register.h"
 #include "DrawingObject.h"
 

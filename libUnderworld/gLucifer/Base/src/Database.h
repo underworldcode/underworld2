@@ -14,7 +14,6 @@
 #include "sqlite3.h"
 #include "DrawingObject_Register.h"
 
-struct lucViewport;
 struct lucColourMap;
 struct lucDrawingObject;
 struct lucDrawingObject_Register;
@@ -56,8 +55,6 @@ extern const Type lucDatabase_Type;
       char*             labels[lucMaxType];                 \
       unsigned int      label_lengths[lucMaxType];          \
       lucGeometryData*  data[lucMaxType][lucMaxDataType];   \
-      pid_t             dump_pid;                           \
-      char*             dump_script;                        \
       char              bin_path[MAX_PATH];                 \
       /* Database */ \
       sqlite3*          db;                     \
@@ -71,11 +68,8 @@ extern const Type lucDatabase_Type;
       Bool              singleFile;             \
       Bool              writeimage;             \
       Bool              splitTransactions;      \
-      Bool              transparent;            \
       int               deleteAfter;            \
-      char*             timeUnits;              \
       Bool              disabled;               \
-      Bool              blocking;               \
       int               rank;                   \
       int               nproc;                  \
       MPI_Comm          communicator;           \
@@ -107,7 +101,6 @@ lucDatabase* lucDatabase_New(
    int               deleteAfter,
    Bool              writeimage,
    Bool              splitTransactions,
-   Bool              transparent,
    Bool              compressed,
    Bool              singleFile,
    char*             filename,
@@ -123,12 +116,8 @@ void _lucDatabase_Execute( void* database, void* data );
 void _lucDatabase_Destroy( void* database, void* data );
 
 void lucDatabase_Dump(void* database);
-void lucDatabase_Wait(lucDatabase* self);
 
-void lucDatabase_DeleteWindows(lucDatabase* self);
-void lucDatabase_OutputWindow(lucDatabase* self, void* window);
-void lucDatabase_OutputViewport(lucDatabase* self, lucViewport* viewport, int window_id, float x, float y);
-void lucDatabase_OutputDrawingObject(lucDatabase* self, lucViewport* viewport, lucDrawingObject* object);
+void lucDatabase_OutputDrawingObject(lucDatabase* self, lucDrawingObject* object);
 void lucDatabase_OutputColourMap(lucDatabase* self, lucColourMap* colourMap, lucDrawingObject* object, lucGeometryDataType type);
 
 void lucDatabase_ClearGeometry(lucDatabase* self);
@@ -170,6 +159,7 @@ int lucDatabase_WriteGeometry(lucDatabase* self, int index, lucGeometryType type
 
 void lucDatabase_BackupDb(sqlite3 *fromDb, sqlite3* toDb);
 void lucDatabase_BackupDbFile(lucDatabase* self, char* filename);
+void lucDatabase_WriteState(lucDatabase* self, const char* properties);
 
 #endif
 

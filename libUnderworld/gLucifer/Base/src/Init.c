@@ -31,25 +31,16 @@ Bool lucBase_Init()
    lucDebug = Journal_Register( Debug_Type, (Name)"lucDebug"  );
    lucError = Journal_Register( Error_Type, (Name)"lucError" );
 
-   Stg_ComponentRegister_Add( componentRegister, lucCamera_Type, (Name)"0", _lucCamera_DefaultNew  );
    Stg_ComponentRegister_Add( componentRegister, lucDrawingObject_Type, (Name)"0", _lucDrawingObject_DefaultNew  );
    Stg_ComponentRegister_Add( componentRegister, lucColourMap_Type, (Name)"0", _lucColourMap_DefaultNew  );
    Stg_ComponentRegister_Add( componentRegister, lucDatabase_Type, (Name)"0", _lucDatabase_DefaultNew  );
-   Stg_ComponentRegister_Add( componentRegister, lucViewport_Type, (Name)"0", _lucViewport_DefaultNew  );
-   Stg_ComponentRegister_Add( componentRegister, lucWindow_Type, (Name)"0", _lucWindow_DefaultNew  );
 
    /* Register Parents for type checking */
-   RegisterParent( lucCamera_Type,            Stg_Component_Type );
    RegisterParent( lucColourMap_Type,         Stg_Component_Type );
    RegisterParent( lucDatabase_Type,          Stg_Component_Type );
    RegisterParent( lucDrawingObject_Type,     Stg_Component_Type );
-   RegisterParent( lucViewport_Type,          Stg_Component_Type );
-   RegisterParent( lucWindow_Type,            Stg_Component_Type );
 
    RegisterParent( lucDrawingObject_Register_Type, NamedObject_Register_Type );
-
-   /* For backward compatibility */
-   Stg_ComponentRegister_Add( componentRegister, lucDefaultWindow_Type, (Name)"0", _lucWindow_DefaultNew  );
 
    return True;
 }

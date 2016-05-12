@@ -15,7 +15,6 @@
 #include <gLucifer/Base/Base.h>
 #include "types.h"
 #include "ColourMap.h"
-#include "X11Colours.h"
 #include <float.h>
 
 const Type lucColourMap_Type = "lucColourMap";

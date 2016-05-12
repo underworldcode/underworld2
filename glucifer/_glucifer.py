@@ -102,14 +102,11 @@ class Figure(_stgermain.StgCompoundComponent):
     ...     os.remove( imgfile )
 
     """
-    _objectsDict = { "_db":"lucDatabase",
-                    "_win":"lucWindow",
-                     "_vp":"lucViewport",
-                    "_cam":"lucCamera"}
+    _objectsDict = { "_db":"lucDatabase" }
     _selfObjectName = "_db"
     _viewerProc = None
 
-    def __init__(self, figsize=(640,480), boundingBox=None, facecolour="white",
+    def __init__(self, figsize=(640,480), boundingBox=((0,0,0),(0,0,0)), facecolour="white",
                  edgecolour="black", title="", axis=False, quality=1, properties=None, **kwargs):
         if not isinstance(figsize,tuple):
             raise TypeError("'figsize' object passed in must be of python type 'tuple'")
@@ -121,7 +118,6 @@ class Figure(_stgermain.StgCompoundComponent):
             raise TypeError("'boundingBox[0]' object passed in must be of type 'tuple'")
         if boundingBox and not isinstance(boundingBox[1],tuple):
             raise TypeError("'boundingBox[1]' object passed in must be of type 'tuple'")
-        self._boundingBox = boundingBox
 
         if not isinstance(edgecolour,str):
             raise TypeError("'edgecolour' object passed in must be of python type 'str'")
@@ -138,7 +134,9 @@ class Figure(_stgermain.StgCompoundComponent):
 
         #Setup default properties
         self._properties = {"title" : title, "axis" : axis, "axislength" : 0.2, "antialias" : True, "background" : facecolour,
-            "margin" : 34, "border" : (1 if edgecolour else 0), "borderColour" : edgecolour, "rulers" : False, "timestep" : False, "zoomstep" : 0} 
+            "margin" : 34, "border" : (1 if edgecolour else 0), "bordercolour" : edgecolour, "rulers" : False, "timestep" : False, "zoomstep" : 0} 
+        self._properties["min"] = boundingBox[0]
+        self._properties["max"] = boundingBox[1]
         
         if properties and not isinstance(properties,dict):
             raise TypeError("'properties' object passed in must be of python type 'dict'")
@@ -148,6 +146,7 @@ class Figure(_stgermain.StgCompoundComponent):
         self.draw = objects.Drawing()
         self._drawingObjects = [self.draw]
         self._script = []
+        self.step = 0
 
         super(Figure,self).__init__(**kwargs)
 
@@ -167,28 +166,13 @@ class Figure(_stgermain.StgCompoundComponent):
                             "dbPath"            :tmpdir,
         } )
 
-        if self._boundingBox:
-            componentDictionary[self._db.name]["minX"] = self._boundingBox[0][0]
-            componentDictionary[self._db.name]["minY"] = self._boundingBox[0][1]
-            componentDictionary[self._db.name]["minZ"] = self._boundingBox[0][2]
-            componentDictionary[self._db.name]["maxX"] = self._boundingBox[1][0]
-            componentDictionary[self._db.name]["maxY"] = self._boundingBox[1][1]
-            componentDictionary[self._db.name]["maxZ"] = self._boundingBox[1][2]
-
-        componentDictionary[self._win.name].update( {
-                            "Database"          :self._db.name,
-                            "Viewport"          :[self._vp.name],
-                            "width"             :self.figsize[0],
-                            "height"            :self.figsize[1],
-                            "useModelBounds"    :self._boundingBox != None
-        } )
-        componentDictionary[self._vp.name].update( {
-                            "Camera"            :self._cam.name,
-                            "properties"        :self._getProperties()
-        } )
-        componentDictionary[self._cam.name].update ( {
-                            "useBoundingBox"    : True
-        } )
+        if self._properties["min"] and self._properties["max"]:
+            componentDictionary[self._db.name]["minX"] = self._properties["min"][0]
+            componentDictionary[self._db.name]["minY"] = self._properties["min"][1]
+            componentDictionary[self._db.name]["minZ"] = self._properties["min"][2]
+            componentDictionary[self._db.name]["maxX"] = self._properties["max"][0]
+            componentDictionary[self._db.name]["maxY"] = self._properties["max"][1]
+            componentDictionary[self._db.name]["maxZ"] = self._properties["max"][2]
 
     def _getProperties(self):
         #Convert properties to string
@@ -196,9 +180,8 @@ class Figure(_stgermain.StgCompoundComponent):
 
     def _setProperties(self, newProps):
         #Update the properties values (merge)
-        #values of any existing keys are replaced and viewport is updated
+        #values of any existing keys are replaced
         self._properties.update(newProps)
-        _libUnderworld.gLucifer.lucViewport_SetProperties(self._vp, self._getProperties());
 
     @property
     def figsize(self):
@@ -356,10 +339,12 @@ class Figure(_stgermain.StgCompoundComponent):
             libUnderworld.gLucifer.lucDatabase_BackupDbFile(self._db, filename)
 
     def _generate_DB(self):
-        # remove any existing
-        libUnderworld.gLucifer.lucDatabase_DeleteGeometry(self._db, 0, 0); #Delete existing at timestep 0 (is this necessary?)
-        for ii in range(self._vp.drawingObject_Register.objects.count,0,-1):
-            libUnderworld.StGermain._Stg_ObjectList_RemoveByIndex(self._vp.drawingObject_Register.objects,ii-1, libUnderworld.StGermain.KEEP)
+        # Remove any existing data at current timestep
+        libUnderworld.gLucifer.lucDatabase_DeleteGeometry(self._db, self.step, self.step)
+        self._db.timeStep = self.step
+
+        for ii in range(self._db.drawingObject_Register.objects.count,0,-1):
+            libUnderworld.StGermain._Stg_ObjectList_RemoveByIndex(self._db.drawingObject_Register.objects,ii-1, libUnderworld.StGermain.KEEP)
 
         # first add drawing objects to viewport
         if len(self._drawingObjects) == 0:
@@ -368,41 +353,60 @@ class Figure(_stgermain.StgCompoundComponent):
         #Add drawing objects to register and output any custom data on them
         for object in self._drawingObjects:
 
-# I'M COMMENTING THIS OUT FOR NOW, AS WITHOUT IT, RENDERING AN EMPTY FIGURE EXPLODES.. KABOOM!  JM 1/16 
-#            #Only add default object if used
-#            if object == self.draw and len(self.draw.vertices) == 0:
-#                continue
+            #Only add default object if used
+            if object == self.draw and len(self.draw.vertices) == 0:
+                continue
 
-            #Add the object to the drawing object register for the (default) viewport
-            object._cself.id = 0
-            libUnderworld.StGermain.Stg_ObjectList_Append(self._vp.drawingObject_Register.objects,object._cself)
+            #Add the object to the drawing object register for the database
+            libUnderworld.StGermain.Stg_ObjectList_Append(self._db.drawingObject_Register.objects,object._cself)
             #For default colour bars created with drawing objects rather than added on their own, add manually
             if object._colourBar:
-                object._colourBar._dr.id = 0
-                libUnderworld.StGermain.Stg_ObjectList_Append(self._vp.drawingObject_Register.objects,object._colourBar._dr)
-            #Set ids to 0 as when > 0 flagged as already written to db and skipped
-            if object._colourMap:
-                object._colourMap._cself.id = 0
+                libUnderworld.StGermain.Stg_ObjectList_Append(self._db.drawingObject_Register.objects,object._colourBar._dr)
 
         # go ahead and fill db
-        libUnderworld.gLucifer.lucDatabase_DeleteWindows(self._db)
-        libUnderworld.gLucifer.lucDatabase_OutputWindow(self._db, self._win)
         libUnderworld.gLucifer._lucDatabase_Execute(self._db,None)
-        libUnderworld.gLucifer._lucWindow_Execute(self._win,None)
 
         #Output any custom geometry on objects
         for object in self._drawingObjects:
             self._plotObject(object)
 
+        #Write visualisation state as json data
+        libUnderworld.gLucifer.lucDatabase_WriteState(self._db, self._get_state())
+
         # Detect if viewer was built by finding executable...
         # (even though no longer needed as using libLavaVu 
         #  will keep this for now as is useful to know if the executable was built
         #  and to pass it as first command line arg or if needed to get html path)
-        self._lvpath = self._db.dump_script.replace("dump.sh", "")
-        self._lvbin = self._lvpath + "LavaVu"
+        self._lvpath = self._db.bin_path
+        self._lvbin = os.path.join(self._db.bin_path, "LavaVu")
         if haveLavaVu and not os.path.isfile(self._lvbin):
             raise RuntimeError("LavaVu rendering engine does not appear to exist. Perhaps it was not compiled.\nPlease check your configuration, or contact developers.")
-        
+
+    def _get_state(self):
+        import json
+        self._properties["resolution"] = self._figsize
+        export = dict()
+        export["properties"] = self._properties
+        views = [self._properties]
+        export["views"] = views
+        objects = []
+        for object in self._drawingObjects:
+            if object == self.draw and len(self.draw.vertices) == 0:
+                continue
+            #Default to stg object name if no user set name
+            if not "name" in object._properties:
+                object._properties["name"] = object._dr.name
+            objects.append(object._properties)
+            #Stupid, but we have to add the colour bar separately now, needs fixing
+            if object._colourBar:
+                object._colourBar._properties["name"] = object._colourBar._dr.name
+                objects.append(object._colourBar._properties)
+
+        export["objects"] = objects
+        #TODO: ColourMaps
+
+        return json.dumps(export, indent=2)
+
     def _plotObject(self, drawingObject):
         #General purpose plotting using db output
         #Plot all custom data drawn on provided object
@@ -440,13 +444,8 @@ class Figure(_stgermain.StgCompoundComponent):
     def _generate_image(self, filename="", size=(0,0)):
         if haveLavaVu and uw.rank() == 0:
             #Render with viewer
-            args = [self._lvbin, self._db.path, "-" + str(self._db.timeStep), "-p0", "-z" + str(self.quality), "-a", "-h", ":"] + self._script
-            cwd = os.getcwd()
+            args = [self._lvbin, self._db.path, "-" + str(self.step), "-p0", "-z" + str(self.quality), "-a", "-h", ":"] + self._script
             lavavu.execute(args)
-            try:
-                assert cwd == os.getcwd()
-            except AssertionError:
-                os.chdir(cwd)
             imagestr = lavavu.image(filename, size[0], size[1])
             lavavu.clear() #Close and free memory
             #Return the generated filename
@@ -455,12 +454,7 @@ class Figure(_stgermain.StgCompoundComponent):
     def _generate_HTML(self):
         if haveLavaVu and uw.rank() == 0:
             #Export encoded json string
-            cwd = os.getcwd()
-            jsonstr = lavavu.execute([self._lvbin, "-" + str(self._db.timeStep), "-U", "-p0", self._db.path, ":"] + self._script)
-            try:
-                assert cwd == os.getcwd()
-            except AssertionError:
-                os.chdir(cwd)
+            jsonstr = lavavu.execute([self._lvbin, "-" + str(self.step), "-U", "-p0", self._db.path, ":"] + self._script)
             if not os.path.isdir("html"):
                 #Create link to web content directory
                 os.symlink(self._lvpath + 'html', 'html')
@@ -511,18 +505,13 @@ class Figure(_stgermain.StgCompoundComponent):
                 return
 
             #Open viewer with local web server for interactive/iterative use
-            args = [self._lvbin, "-" + str(self._db.timeStep), "-L", "-p8080", "-q90", fname] + args
+            args = [self._lvbin, "-" + str(self.step), "-L", "-p8080", "-q90", fname] + args
             if background:
                 self._viewerProc = subprocess.Popen(args, stdout=PIPE, stdin=PIPE, stderr=STDOUT)
                 from IPython.display import HTML
                 return HTML('''<a href='#' onclick='window.open("http://" + location.hostname + ":8080");'>Open Viewer Interface</a>''')
             else:
-                cwd = os.getcwd()
                 lavavu.execute(args)
-                try:
-                    assert cwd == os.getcwd()
-                except AssertionError:
-                    os.chdir(cwd)
 
     def close_viewer(self):
         """ Close the viewer.

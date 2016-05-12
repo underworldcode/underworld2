@@ -61,6 +61,8 @@ std::string execute(int argc, char **argv);
 void command(std::string cmd);
 std::string image(std::string filename="", int width=0, int height=0);
 void addObject(std::string name, std::string properties);
+void loadState(std::string state);
+std::string getState();
 void loadVertices(std::vector< std::vector <float> > array);
 void loadValues(std::vector <float> array);
 void display();

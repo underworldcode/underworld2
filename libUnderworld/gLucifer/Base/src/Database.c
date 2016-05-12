@@ -51,7 +51,7 @@ lucDatabase* _lucDatabase_New(  LUCDATABASE_DEFARGS  )
    self->db2       = NULL;
    self->memdb     = NULL;
    self->vfs       = NULL;
-   self->timeUnits = NULL;
+   self->timeStep  = -1;
 
    return self;
 }
@@ -85,15 +85,12 @@ void _lucDatabase_Init(
    int                  deleteAfter,
    Bool                 writeimage,
    Bool                 splitTransactions,
-   Bool                 transparent,
    Bool                 compressed,
    Bool                 singleFile,
    char*                filename,
    char*                vfs,
-   Name                 timeUnits,
    char*                dbPath,
-   Bool                 disabled,
-   Bool                 blocking )
+   Bool                 disabled )
 {
    DrawingObject_Index object_I;
 
@@ -102,7 +99,6 @@ void _lucDatabase_Init(
    self->deleteAfter = deleteAfter;
    self->writeimage = writeimage;
    self->splitTransactions = splitTransactions;
-   self->transparent = transparent;
 
    self->compressed = compressed;
    self->singleFile = singleFile;
@@ -113,7 +109,6 @@ void _lucDatabase_Init(
       self->dbPath = StG_Strdup(dbPath);
    
    if (vfs && strlen(vfs)) self->vfs = StG_Strdup(vfs);
-   self->timeUnits = StG_Strdup(timeUnits);
    self->disabled = disabled;
    if(self->context)
       self->disabled = !self->context->vis;
@@ -135,11 +130,9 @@ void _lucDatabase_Init(
       self->labels[type] = NULL;
       self->label_lengths[type] = 0;
    }
-   self->dump_pid = 0;
 
-   /* Find dump script */
-   self->dump_script = NULL;
-   char binfile[MAX_PATH], binpath[MAX_PATH];
+   /* Set bin_path */
+   char binpath[MAX_PATH];
    FILE* fp;
    int pos;
    /* Strip lib from libpath */
@@ -149,16 +142,7 @@ void _lucDatabase_Init(
    {
       binpath[pos] = 0;
       sprintf(self->bin_path, "%s/bin", binpath);
-      sprintf(binfile, "%s/dump.sh", self->bin_path);
-      fp = fopen(binfile, "r");
-      if (fp)
-      {
-         self->dump_script = StG_Strdup(binfile);
-         fclose(fp);
-      }
    }
-   if (!self->dump_script)
-     self->dump_script = StG_Strdup("dump.sh");
 
    /* Add to entry points if we have our own list of drawing objects to output, bypassing window/viewport structures */
    if (!disabled && self->context)
@@ -167,8 +151,6 @@ void _lucDatabase_Init(
        * If we have our own list of drawing objects they will be dumped here */
       EP_PrependClassHook(  Context_GetEntryPoint( self->context, AbstractContext_EP_DumpClass ), self->_execute, self );
    }
-   
-   self->blocking = blocking;
    
    if(self->context){
       self->rank         = self->context->rank;
@@ -187,22 +169,19 @@ lucDatabase* lucDatabase_New(
    int               deleteAfter,
    Bool              writeimage,
    Bool              splitTransactions,
-   Bool              transparent,
    Bool              compressed,
    Bool              singleFile,
    char*             filename,
    char*             vfs)
 {
    lucDatabase* self = (lucDatabase*)_lucDatabase_DefaultNew("database");
-   _lucDatabase_Init(self, context, NULL, 0, deleteAfter, writeimage, splitTransactions, transparent, compressed, singleFile, filename, vfs, "", "", False, False);
+   _lucDatabase_Init(self, context, NULL, 0, deleteAfter, writeimage, splitTransactions, compressed, singleFile, filename, vfs, "", False);
    return self;
 }
 
 void _lucDatabase_Delete( void* database )
 {
    lucDatabase* self = (lucDatabase*)database;
-
-   lucDatabase_Wait(database);
 
    /* Delete geometry data stores */
    lucGeometryType type;
@@ -220,7 +199,6 @@ void _lucDatabase_Delete( void* database )
    if (self->filename) Memory_Free(self->filename);
    if (self->dbPath) Memory_Free(self->dbPath);
    if (self->vfs) Memory_Free(self->vfs);
-   if (self->timeUnits) Memory_Free(self->timeUnits);
    
 
    _Stg_Component_Delete( self );
@@ -258,15 +236,12 @@ void _lucDatabase_AssignFromXML( void* database, Stg_ComponentFactory* cf, void*
       Stg_ComponentFactory_GetInt( cf, self->name, (Dictionary_Entry_Key)"deleteAfter", 0),
       Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"writeimage", True),
       Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"splitTransactions", True),
-      Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"transparent", False),
       Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"compressed", True),
       Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"singleFile", True),
       Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"filename", NULL),
       Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"vfs", NULL),
-      Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"timeUnits", ""),
       Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"dbPath", "."),
-      Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"disable", False  ),
-      Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"blocking", False  )
+      Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"disable", False  )
       );
 }
 
@@ -287,8 +262,7 @@ void _lucDatabase_Execute( void* database, void* data )
     * they will be output by their parent window:
     * Window_Execute(Display) -> Viewport->Draw */
    lucDatabase* self = (lucDatabase*)database;
-   self->timeStep = 0;
-   float currentTime = 0.;
+   float currentTime = 0.0;
    if (self->context)
    {
       self->timeStep = self->context->timeStep;
@@ -301,19 +275,19 @@ void _lucDatabase_Execute( void* database, void* data )
    {
       if (!self->db)
       {
-         lucDrawingObject_Register* dr = self->drawingObject_Register;
-         Index objectCount = lucDrawingObject_Register_GetCount( dr );
-         Index object_I;
-
          /* Open and create database */
          lucDatabase_OpenDatabase(self);
+      }
 
-         /* Output own object settings */
-         for ( object_I = 0 ; object_I < objectCount ; object_I++ )
-         {
-            lucDrawingObject* object = lucDrawingObject_Register_GetByIndex( dr, object_I );
-            lucDatabase_OutputDrawingObject(self, NULL, object);
-         }
+      lucDrawingObject_Register* dr = self->drawingObject_Register;
+      Index objectCount = lucDrawingObject_Register_GetCount( dr );
+      Index object_I;
+
+      /* Output own object settings */
+      for ( object_I = 0 ; object_I < objectCount ; object_I++ )
+      {
+         lucDrawingObject* object = lucDrawingObject_Register_GetByIndex( dr, object_I );
+         lucDatabase_OutputDrawingObject(self, object);
       }
    }
 
@@ -393,176 +367,9 @@ void lucDatabase_Dump(void* database)
       wtime = MPI_Wtime() - wtime;
       Journal_Printf(lucDebug, "    Transaction took %f seconds\n", wtime);
    }
-
-   /* Skip if image output disabled or no script not found */
-   if (!self->writeimage || !self->dump_script)
-      return;
-
-   /* Dump via fork+exec */
-   /* Skip wait, should not cause lock problems as db access is read only
-   lucDatabase_Wait(database);*/
-   char* dumpcmd;
-   asprintf(&dumpcmd, "%s %s %s%d %s",
-            self->dump_script, self->dbPath,
-            (self->transparent ? "-t " : ""), self->timeStep, self->path );
-
-   Journal_Printf(lucDebug, "Dump command: %s\n", dumpcmd);
-
-
-   if (!self->blocking)
-   {
-      self->dump_pid = vfork();
-      if (self->dump_pid == 0)
-      {
-         char timestep[16];
-         sprintf(timestep, "%d", self->timeStep);
-         /* Code executed by child process */
-         execl(self->dump_script, self->dump_script, self->dbPath,
-               timestep, self->path, (self->transparent ? "-t" : (char*)0), (char *)0);
-         /* If we are still here, exec call failed */
-         Journal_Printf(lucError, "Exec failed!\n");
-         exit(1); /* Terminate the child process */
-      }
-      else if (self->dump_pid < 0)
-      {
-         Journal_Printf(lucError, "Fork process failed!\n");
-      }
-   }
-   else
-   {
-      system(dumpcmd);
-   }
-   
-   free(dumpcmd);
 }
 
-void lucDatabase_Wait(lucDatabase* self)
-{
-   if (self->dump_pid > 0)
-   {
-      /* Wait for previous job to finish before starting next*/
-      int childExitStatus;
-      waitpid(self->dump_pid, &childExitStatus, 0);
-      self->dump_pid = 0;
-   }
-}
-
-void lucDatabase_DeleteWindows(lucDatabase* self)
-{
-   /* Delete any existing window->viewport->object structure information */
-   lucDatabase_IssueSQL(self->db, "delete from window;");
-   lucDatabase_IssueSQL(self->db, "delete from window_viewport;");
-   lucDatabase_IssueSQL(self->db, "delete from viewport;");
-   lucDatabase_IssueSQL(self->db, "delete from object;");
-   lucDatabase_IssueSQL(self->db, "delete from viewport_object;");
-   lucDatabase_IssueSQL(self->db, "delete from object_colourmap;");
-   lucDatabase_IssueSQL(self->db, "delete from colourmap;");
-}
-
-void lucDatabase_OutputWindow(lucDatabase* self, void* _window)
-{
-   lucWindow* window = (lucWindow*)_window;
-   Index   viewport_I, vertical_I, horizontal_I;
-   Index   verticalCount, horizontalCount;
-   int id;
-
-   /* Open and create database */
-   lucDatabase_OpenDatabase(self);
-
-   if (lucDatabase_BeginTransaction(self))
-   {
-      /* Save the window */
-      if (window->useModelBounds)
-      {
-         snprintf(SQL, MAX_QUERY_LEN, "insert into window (name, width, height, minX, minY, minZ, maxX, maxY, maxZ) values ('%s', %d, %d, %g, %g, %g, %g, %g, %g)", 
-                  window->name, window->width, window->height, 
-                  self->minValue[0], self->minValue[1], self->minValue[2],
-                  self->maxValue[0], self->maxValue[1], self->maxValue[2]);
-      }
-      else 
-      {
-         /* Don't write model bounds with this window
-          * (used if visualising something other than model domain, eg: plot) */
-         snprintf(SQL, MAX_QUERY_LEN, "insert into window (name, width, height) values ('%s', %d, %d)",
-                  window->name, window->width, window->height);
-      }
-
-      /*printf("%s\n", SQL);*/
-      if (!lucDatabase_IssueSQL(self->db, SQL)) return;
-      id = sqlite3_last_insert_rowid(self->db);
-
-      Journal_Printf(lucDebug, "Window: %s, id %d\n", window->name, id);
-
-      viewport_I = 0;
-      verticalCount = window->viewportLayout[0];
-      for ( vertical_I = 0 ; vertical_I < verticalCount ; vertical_I++ )
-      {
-         /* Get horizontal count (columns) in this row */
-         horizontalCount = window->viewportLayout[ vertical_I + 1 ];
-         for ( horizontal_I = 0 ; horizontal_I < horizontalCount ; horizontal_I++ )
-         {
-            lucViewport* viewport = window->viewportList[ viewport_I ];
-            lucDatabase_OutputViewport(self, viewport, id, horizontal_I / (float)horizontalCount, vertical_I / (float)verticalCount);
-            viewport_I++;
-         }
-      }
-
-      /* Commit transaction */
-      lucDatabase_Commit(self);
-   }
-}
-
-void lucDatabase_OutputViewport(lucDatabase* self, lucViewport* viewport, int window_id, float x, float y)
-{
-   lucDrawingObject_Register* dr = (lucDrawingObject_Register*)viewport->drawingObject_Register;
-   Index objectCount = lucDrawingObject_Register_GetCount( dr );
-   Index   object_I;
-   char focus[64];
-   int id;
-   lucCamera* cam = viewport->camera;
-   float translate[3] = {cam->translate[0], cam->translate[1], cam->translate[2]}; 
-
-   /* Output objects (first so for back compatibility can write to some viewport properties) */
-   for ( object_I = 0 ; object_I < objectCount ; object_I++ )
-   {
-      lucDrawingObject* object = lucDrawingObject_Register_GetByIndex( dr, object_I );
-      lucDatabase_OutputDrawingObject(self, viewport, object);
-   }
-
-   /* Save the viewport - if added to multiple windows will create a new entry for each */
-   if (cam->centreFieldVariable || cam->useBoundingBox)
-      sprintf(focus, "null, null, null");
-   else
-      sprintf(focus, "%g, %g, %g", cam->focalPoint[0], cam->focalPoint[1], cam->focalPoint[2]);
-   snprintf(SQL, MAX_QUERY_LEN, "insert into viewport (x, y, near, far, aperture, orientation, focalPointX, focalPointY, focalPointZ, translateX, translateY, translateZ, rotateX, rotateY, rotateZ, scaleX, scaleY, scaleZ, properties) values (%g, %g, %g, %g, %g, %d, %s, %g, %g, %g, %g, %g, %g, %g, %g, %g, '%s')", x, y, viewport->nearClipPlane, viewport->farClipPlane, cam->aperture, cam->coordSystem, focus, translate[0], translate[1], translate[2], cam->rotate[0], cam->rotate[1], cam->rotate[2], viewport->scaleX, viewport->scaleY, viewport->scaleZ, viewport->properties);
-   /*printf("%s\n", SQL);*/
-   if (!lucDatabase_IssueSQL(self->db, SQL)) return;
-   /* Return viewport id */
-   id = sqlite3_last_insert_rowid(self->db);
-
-   Journal_Printf(lucDebug, "   Viewport: %s id %d\n", viewport->name, id);
-
-   /* Output object links */
-   for ( object_I = 0 ; object_I < objectCount ; object_I++ )
-   {
-      lucDrawingObject* object = lucDrawingObject_Register_GetByIndex( dr, object_I );
-      /* Write link to database */
-      if (object->id)
-      {
-         /* Link object & viewport */
-         snprintf(SQL, MAX_QUERY_LEN, "insert into viewport_object (viewport_id, object_id) values (%d, %d)", id, object->id); 
-         /*printf("%s\n", SQL);*/
-         if (!lucDatabase_IssueSQL(self->db, SQL)) return;
-      }
-   }
-
-   /* Link window & viewport */
-   snprintf(SQL, MAX_QUERY_LEN, "insert into window_viewport (window_id, viewport_id) values (%d, %d)", window_id, id); 
-   /*printf("%s\n", SQL);*/
-   if (!lucDatabase_IssueSQL(self->db, SQL)) return;
-}
-
-void lucDatabase_OutputDrawingObject(lucDatabase* self, lucViewport* viewport, lucDrawingObject* object)
+void lucDatabase_OutputDrawingObject(lucDatabase* self, lucDrawingObject* object)
 {
    /* Save the object */
    if (!object->id) /* Not already written */
@@ -603,8 +410,6 @@ void lucDatabase_OutputColourMap(lucDatabase* self, lucColourMap* colourMap, luc
    /* Save colourMap */
    if (!colourMap->id) /* Not already written */
    {
-      Index colour_I;
-
       snprintf(SQL, MAX_QUERY_LEN, "insert into colourmap (name, minimum, maximum, logscale, discrete, properties) values ('%s', %g, %g, %d, %d, '%s')", colourMap->name, colourMap->minimum, colourMap->maximum, colourMap->logScale, colourMap->discrete, colourMap->properties );
       /*printf("%s\n", SQL);*/
       if (!lucDatabase_IssueSQL(self->db, SQL)) return;
@@ -1028,7 +833,7 @@ void lucDatabase_OpenDatabase(lucDatabase* self)
       }
       else
       {
-         strcpy(self->path, "file:glucifer_database?mode=memory&cache=shared");
+         sprintf(self->path, "file:%s?mode=memory&cache=shared", self->name);
          flags = flags | SQLITE_OPEN_URI;
          Journal_Printf(lucDebug, "Defaulting to memory database: %s\n", self->path);
       }
@@ -1064,10 +869,7 @@ void lucDatabase_CreateDatabase(lucDatabase* self)
    lucDatabase_IssueSQL(self->db, "drop table IF EXISTS object_colourmap");
    lucDatabase_IssueSQL(self->db, "drop table IF EXISTS colourmap");
    lucDatabase_IssueSQL(self->db, "drop table IF EXISTS object");
-   lucDatabase_IssueSQL(self->db, "drop table IF EXISTS window");
-   lucDatabase_IssueSQL(self->db, "drop table IF EXISTS viewport");
-   lucDatabase_IssueSQL(self->db, "drop table IF EXISTS window_viewport");
-   lucDatabase_IssueSQL(self->db, "drop table IF EXISTS viewport_object");
+   lucDatabase_IssueSQL(self->db, "drop table IF EXISTS state");
 
    lucDatabase_IssueSQL(self->db, 
       "create table IF NOT EXISTS timestep (id INTEGER PRIMARY KEY ASC, time REAL, dim_factor REAL, units VARCHAR(32), properties VARCHAR(2048))");
@@ -1076,22 +878,12 @@ void lucDatabase_CreateDatabase(lucDatabase* self)
       "create table object_colourmap (id integer primary key asc, object_id integer, colourmap_id integer, data_type integer, foreign key (object_id) references object (id) on delete cascade on update cascade, foreign key (colourmap_id) references colourmap (id) on delete cascade on update cascade)");
 
    lucDatabase_IssueSQL(self->db, 
-      "create table viewport_object (id INTEGER PRIMARY KEY ASC, viewport_id INTEGER, object_id INTEGER, FOREIGN KEY (object_id) REFERENCES object (id) ON DELETE CASCADE ON UPDATE CASCADE, FOREIGN KEY (viewport_id) REFERENCES viewport (id) ON DELETE CASCADE ON UPDATE CASCADE)");
-
-   lucDatabase_IssueSQL(self->db, 
       "create table object (id INTEGER PRIMARY KEY ASC, name VARCHAR(256), colourmap_id INTEGER, colour INTEGER, opacity REAL, properties VARCHAR(2048), FOREIGN KEY (colourmap_id) REFERENCES colourmap (id) ON DELETE CASCADE ON UPDATE CASCADE)"); 
 
    lucDatabase_IssueSQL(self->db, 
       "create table colourmap (id INTEGER PRIMARY KEY ASC, name VARCHAR(256), minimum REAL, maximum REAL, logscale INTEGER, discrete INTEGER, properties VARCHAR(2048))"); 
 
-   lucDatabase_IssueSQL(self->db, 
-      "create table viewport (id INTEGER PRIMARY KEY ASC, title VARCHAR(256), x REAL, y REAL, near REAL, far REAL, aperture REAL, orientation INTEGER, focalPointX REAL, focalPointY REAL, focalPointZ REAL, translateX REAL, translateY REAL, translateZ REAL, rotateX REAL, rotateY REAL, rotateZ REAL, scaleX REAL, scaleY REAL, scaleZ real, properties VARCHAR(2048))"); 
-
-   lucDatabase_IssueSQL(self->db, 
-      "create table window_viewport (id INTEGER PRIMARY KEY ASC, window_id INTEGER, viewport_id INTEGER, FOREIGN KEY (window_id) REFERENCES window (id) ON DELETE CASCADE ON UPDATE CASCADE, FOREIGN KEY (viewport_id) REFERENCES viewport (id) ON DELETE CASCADE ON UPDATE CASCADE)"); 
-
-   lucDatabase_IssueSQL(self->db, 
-      "create table window (id INTEGER PRIMARY KEY ASC, name VARCHAR(256), width INTEGER, height INTEGER, colour INTEGER, minX REAL, minY REAL, minZ REAL, maxX REAL, maxY REAL, maxZ REAL, properties VARCHAR(2048))");
+   lucDatabase_IssueSQL(self->db, "create table state (id INTEGER PRIMARY KEY ASC, data TEXT)");
 }
 
 Bool lucDatabase_IssueSQL(sqlite3* db, const char* SQL)
@@ -1101,7 +893,7 @@ Bool lucDatabase_IssueSQL(sqlite3* db, const char* SQL)
    char* zErrMsg;
    if (sqlite3_exec(db, SQL, NULL, 0, &zErrMsg) != SQLITE_OK)
    {
-      Journal_Printf(lucError, "SQLite Issue: %s\n", zErrMsg);
+      Journal_Printf(lucError, "SQLite Issue: %s\n%s\n", zErrMsg, SQL);
       sqlite3_free(zErrMsg);
       return False;
    }
@@ -1239,10 +1031,7 @@ void lucDatabase_BackupDbFile(lucDatabase* self, char* filename)
    lucDatabase_IssueSQL(toDb, "drop table IF EXISTS object_colourmap");
    lucDatabase_IssueSQL(toDb, "drop table IF EXISTS colourmap");
    lucDatabase_IssueSQL(toDb, "drop table IF EXISTS object");
-   lucDatabase_IssueSQL(toDb, "drop table IF EXISTS window");
-   lucDatabase_IssueSQL(toDb, "drop table IF EXISTS viewport");
-   lucDatabase_IssueSQL(toDb, "drop table IF EXISTS window_viewport");
-   lucDatabase_IssueSQL(toDb, "drop table IF EXISTS viewport_object");
+   lucDatabase_IssueSQL(toDb, "drop table IF EXISTS state");
 
    sqlite3_backup *pBackup;  /* Backup object used to copy data */
    pBackup = sqlite3_backup_init(toDb, "main", self->db, "main");
@@ -1252,4 +1041,27 @@ void lucDatabase_BackupDbFile(lucDatabase* self, char* filename)
       (void)sqlite3_backup_finish(pBackup);
    }
    sqlite3_close(toDb);
+}
+
+void lucDatabase_WriteState(lucDatabase* self, const char* properties)
+{
+   sqlite3* db = self->db;
+   sqlite3_stmt* statement;
+   const char* SQL = "insert into state (data) values (?)";
+   /* Maintain a single entry only for now */
+   lucDatabase_IssueSQL(db, "delete from state");
+   
+   /* Prepare statement... */
+   if (sqlite3_prepare_v2(db, SQL, -1, &statement, NULL) != SQLITE_OK)
+      Journal_Firewall(0, NULL, "SQL prepare error: (%s) %s\n", SQL, sqlite3_errmsg(db));
+
+   /* Setup text data for insert */
+   if (sqlite3_bind_text(statement, 1, properties, strlen(properties), SQLITE_STATIC) != SQLITE_OK)
+      Journal_Firewall(0, NULL, "SQL bind error: %s\n", sqlite3_errmsg(db));
+
+   /* Execute statement */
+   if (sqlite3_step(statement) != SQLITE_DONE )
+      Journal_Firewall(0, NULL, "SQL step error: (%s) %s\n", SQL, sqlite3_errmsg(db));
+
+   sqlite3_finalize(statement);
 }

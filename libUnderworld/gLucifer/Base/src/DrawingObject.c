@@ -16,8 +16,6 @@
 
 #include "types.h"
 #include "ColourMap.h"
-#include "Viewport.h"
-#include "Window.h"
 #include "DrawingObject.h"
 #include "Init.h"
 
