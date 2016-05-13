@@ -476,9 +476,9 @@ class Figure(_stgermain.StgCompoundComponent):
     def open_viewer(self, args=[], background=True):
         """ Open the viewer.
         """
+        fname = os.path.join(tmpdir,"gluciferDB"+self._id+".gldb")
+        self.save_database(fname)
         if haveLavaVu and uw.rank() == 0:
-            fname = os.path.join(tmpdir,"gluciferDB"+self._id+".gldb")
-            self.save_database(fname, regen=False) ##Never call with regen on master only
             if self._viewerProc and self._viewerProc.poll() == None:
                 return
 
