@@ -1017,6 +1017,7 @@ void lucDatabase_BackupDb(sqlite3 *fromDb, sqlite3* toDb)
 
 void lucDatabase_BackupDbFile(lucDatabase* self, char* filename)
 {
+   if (self->rank > 0 || !self->db) return;
    sqlite3* toDb;
    int flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
    if (sqlite3_open_v2(filename, &toDb, flags, self->vfs))
