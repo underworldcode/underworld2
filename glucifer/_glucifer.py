@@ -105,6 +105,7 @@ class Figure(_stgermain.StgCompoundComponent):
     _objectsDict = { "_db":"lucDatabase" }
     _selfObjectName = "_db"
     _viewerProc = None
+    _lvbin = "LavaVu"
 
     def __init__(self, figsize=(640,480), boundingBox=((0,0,0),(0,0,0)), facecolour="white",
                  edgecolour="black", title="", axis=False, quality=1, properties=None, **kwargs):
@@ -269,29 +270,6 @@ class Figure(_stgermain.StgCompoundComponent):
             pass
         except:
             raise
-
-    def _find_generated_file(self):
-        # lets determine what we are outputting (jpg,png)
-        foundFile = None
-        fname = None
-        for extension in ("jpg", "jpeg", "png"):
-            #fname = os.path.join(tmpdir,self._win.name+".00000."+extension)
-            fname = self._win.name+".00000."+extension
-            if os.path.isfile(fname):
-                foundFile = fname
-                break
-        
-        if not foundFile:
-            raise RuntimeError("The required rendered image does not appear to have been created. Please contact developers. (" + fname + ")")
-        
-        return os.path.abspath(foundFile)
-
-    def _find_generated_DB(self):
-        fname = os.path.join(tmpdir,"gluciferDB"+self._id+".gldb")
-        if not os.path.isfile(fname):
-            raise RuntimeError("The database does not appear to have been created. Please contact developers.")
-        
-        return os.path.abspath(fname)
 
     def save_image(self, filename, size=(0,0)):
         """  
@@ -500,7 +478,7 @@ class Figure(_stgermain.StgCompoundComponent):
         """
         if haveLavaVu and uw.rank() == 0:
             fname = os.path.join(tmpdir,"gluciferDB"+self._id+".gldb")
-            self.save_database(fname)
+            self.save_database(fname, regen=False) ##Never call with regen on master only
             if self._viewerProc and self._viewerProc.poll() == None:
                 return
 
@@ -530,7 +508,7 @@ class Figure(_stgermain.StgCompoundComponent):
         response = urllib2.urlopen(url).read()
         #print response
   
-    def send_command(self, cmd):
+    def send_command(self, cmd, retry=True):
         """ 
         Run command on an open viewer instance.
         
@@ -539,16 +517,23 @@ class Figure(_stgermain.StgCompoundComponent):
         cmd: str
             Command to send to open viewer.
         """
-        self.open_viewer()
-        url = "http://localhost:8080/command=" + urllib2.quote(cmd)
-        try:
-            #print url
-            response = urllib2.urlopen(url).read()
-            #print response
-        except:
-            #Wait a second so server has time to start then try again
-            time.sleep(1)
-            response = urllib2.urlopen(url).read()
+        if haveLavaVu and uw.rank() == 0:
+            self.open_viewer()
+            url = "http://localhost:8080/command=" + urllib2.quote(cmd)
+            try:
+                #print url
+                response = urllib2.urlopen(url).read()
+                #print response
+            except:
+                print "Send command '" + cmd + "' failed, no response"
+                if retry:
+                    #Wait a few seconds so server has time to start then try again
+                    print "... retrying in 1s ..."
+                    time.sleep(1)
+                    self.send_command(cmd, False)
+                else:
+                    print "... failed, skipping ..."
+                    pass
 
     def clear(self):
         """    Clears all the figure's drawing objects and colour maps.
