@@ -1045,6 +1045,8 @@ void lucDatabase_BackupDbFile(lucDatabase* self, char* filename)
 
 void lucDatabase_WriteState(lucDatabase* self, const char* properties)
 {
+   if (self->rank > 0 || !self->db) return;
+
    sqlite3* db = self->db;
    sqlite3_stmt* statement;
    const char* SQL = "insert into state (data) values (?)";
