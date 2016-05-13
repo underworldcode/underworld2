@@ -431,6 +431,103 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
         """
         return at(self,index)
 
+
+    def _evaluate_global(fn, positions):
+        """
+        Prototype method for global evaluations of functions.
+
+        For the data it accepts floats, lists, tuples, numpy arrays, or any object which is of
+        class 'FunctionInput'. lists/tuples must contain floats only.
+
+        For the position values it is restricted to numpy arrays of N*(x,y) coordinate pairings
+        or (x,y,z) for 3D models.
+
+        Results are returned as numpy array.
+
+        Parameters
+        ----------
+        inputData: float, list, tuple, ndarray, FunctionInput
+            The input to the function. The form of this input must be appropriate
+            for the function being evaluated, or an exception will be thrown.
+
+        Returns
+        -------
+        ndarray: array of results
+        """
+        from mpi4py import MPI
+        comm = MPI.COMM_WORLD
+        rank = comm.Get_rank()
+        nprocs = comm.Get_size()
+    
+        # start with an array of zeros of the correct length
+        local =  np.zeros(len(positions), dtype=bool)
+        local_output = None
+        # go through the positions and fill elements where the data is available
+        for i in range(len(positions)):
+            try:
+                # get result
+                output = fn.evaluate(positions[i:i+1])
+                # flag as result found
+                local[i]  = True
+                # if not created, create
+                if not isinstance(local_output, np.ndarray):
+                    local_output =  np.zeros(len(positions), dtype=output.dtype)
+                local_output[i] = output
+            except: # leave blank
+                pass
+
+
+        # distill results down to local only
+        local_result_count = np.count_nonzero(local)
+        if local_result_count:
+            local_output_distilled = np.zeros(local_result_count, dtype=local_output.dtype)
+            array_positions        = np.zeros(local_result_count, dtype=int)
+            j=0
+            for i,val in enumerate(local):
+                if val:
+                    array_positions[j]=i
+                    local_output_distilled[j] = local_output[i]
+                    j+=1
+    
+        # data sending
+        total_output = None
+        if(rank!=0):
+            # send count
+            comm.send(local_result_count, dest=0, tag=0)
+            if local_result_count:
+                # next send position array
+                comm.send(array_positions, dest=0, tag=1)
+                # finally send actual data
+                comm.send(local_output_distilled,    dest=0, tag=2)
+        else:
+            # have output already from rank=0 proc; and lots of empties to fill in from others
+            # some data IS available two multiple processors - e.g. edges
+            for iProc in range(1,nprocs):
+                incoming_count = comm.recv(source=iProc, tag=0)
+                if incoming_count:
+                    incoming_positions = comm.recv(source=iProc, tag=1)
+                    incoming_data      = comm.recv(source=iProc, tag=2)
+                    # create array if not done already
+                    if not isinstance(total_output, np.ndarray):
+                        total_output =  np.zeros(len(positions), dtype=incoming_data.dtype)
+                    total_output[incoming_positions] = incoming_data
+
+        # finally copy our local results into the output
+        if (rank==0) and local_result_count:
+            if not isinstance(total_output,np.ndarray):
+                total_output =  np.zeros(len(positions), dtype=local_output_distilled.dtype)
+            total_output[array_positions] = local_output_distilled
+
+        if (rank==0) and (isinstance(total_output,np.ndarray)==False):
+            # if total_output is still non-existent, no results were found
+            raise RuntimeError("No results were found anywhere in the domain for provided input.")
+
+        if rank == 0:
+            return total_output
+        else:
+            # all other procs return None
+            return None
+
     def evaluate(self,inputData,inputType=None):
         """
         This method performs evaluate of a function at the given input(s).

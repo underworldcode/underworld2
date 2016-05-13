@@ -500,11 +500,11 @@ while step<nsteps:
     plasticStrain.data[:] += plasticStrainIncrement
 
     if (step%5 ==0):      
-        figVelocityPressure.save_image( outputPath + "figVP-" + str(step).zfill(4))
+#        figVelocityPressure.save_image( outputPath + "figVP-" + str(step).zfill(4))
         projectorStress = uw.utils.MeshVariable_Projection( meshDevStress, 
                                                            fn.tensor.second_invariant(devStressFn), type=0 )
         projectorStress.solve()
-        figStrain.save_image( outputPath + "figStrain-" + str(step).zfill(4))
+#        figStrain.save_image( outputPath + "figStrain-" + str(step).zfill(4))
         
     if uw.rank()==0:   
         print('step = {0:3d}; time = {1:.3e}; xmax = {2:.3f}; pmax = {3:.4f}; cpu time = {4:.2e}'
@@ -522,18 +522,18 @@ while step<nsteps:
 
 # In[23]:
 
-figVelocityPressure.save_image( outputPath + "figVP-" + str(step).zfill(4))
+#figVelocityPressure.save_image( outputPath + "figVP-" + str(step).zfill(4))
 projectorStress = uw.utils.MeshVariable_Projection( meshDevStress, 
                                                            fn.tensor.second_invariant(devStressFn), type=0 )
 projectorStress.solve()
-figStrain.save_image( outputPath + "figStrain-" + str(step).zfill(4))
+#figStrain.save_image( outputPath + "figStrain-" + str(step).zfill(4))
 
 
 # In[24]:
 
 projectorStress = uw.utils.MeshVariable_Projection( meshDevStress, fn.tensor.second_invariant(devStressFn), type=0 )
 projectorStress.solve()
-figMeshStress.save_image( outputPath + "figShearBand-" + str(step).zfill(4))
+#figMeshStress.save_image( outputPath + "figShearBand-" + str(step).zfill(4))
 
 
 # Post-analysis: Shear band angle calculation
@@ -550,51 +550,34 @@ figMeshStress.save_image( outputPath + "figShearBand-" + str(step).zfill(4))
 # 3. create a new variable and load the previously stored data onto it.
 # 4. use the new variable for analysis on a single processor.
 
-# **Save the deviatoric stress tensor to a single file - from all processors**
-
-# In[25]:
-
-mesh.save(outputPath+"Mesh.h5")
-meshDevStress.save(outputPath+"/meshDev_final.h5")
-
-
-# **Construct new mesh and variable on non-partitioned mesh**
-
-# In[26]:
-
-# build a non-partitioned mesh based on current xmin/max
-mesh0 = uw.mesh.FeMesh_Cartesian( elementType = ("Q1/dQ0"), 
-                                  elementRes  = ( resX, resY ), 
-                                  minCoord    = ( xmin, ymin ), 
-                                  maxCoord    = ( xmax, ymax ),
-                                  partitioned = False ) 
-
-# load previous mesh coordinate data onto new non-partitioned mesh
-mesh0.load(outputPath+'Mesh.h5')
-
-# load data onto the new mesh
-meshDevStress0  = uw.mesh.MeshVariable( mesh=mesh0, nodeDofCount=1 ) 
-meshDevStress0.load(outputPath+"/meshDev_final.h5")
-
-
 # **Conduct analysis on the first processor only**
 # 
 # Output to screen and to a summary text file.
 
-# In[27]:
+# In[32]:
 
+radius = 0.2
+nbin = 100
+theta = np.arange(0.,np.pi/2.0, np.pi/(2.*float(nbin)))
+fdev = np.zeros(nbin)
+xx = np.zeros(nbin)
+yy = np.zeros(nbin)
+fmax = 0.0
+for i in range(nbin):
+    xx[i] = radius*np.cos(np.pi/2.0 - theta[i])
+    yy[i] = radius*np.sin(np.pi/2.0 - theta[i])
+positions = np.zeros((nbin,2))
+for i in range(nbin):
+    positions[i][0]=xx[i]
+    positions[i][1]=yy[i]
+
+# global evaluations must be written so all processors go through this part
+#    (only rank=0 needs the correct info for the call though)
+fdev = meshDevStress._evaluate_global( positions )
+
+# back to rank=0 analysis
 if uw.rank()==0: 
-    radius = 0.2
-    nbin = 100
-    theta = np.arange(0.,np.pi/2.0, np.pi/(2.*float(nbin)))
-    fdev = np.zeros(nbin)
-    xx = np.zeros(nbin)
-    yy = np.zeros(nbin)
-    fmax = 0.0
     for i in range(nbin):
-        xx[i] = radius*np.cos(np.pi/2.0 - theta[i])
-        yy[i] = radius*np.sin(np.pi/2.0 - theta[i])
-        fdev[i] = meshDevStress0.evaluate([xx[i], yy[i]])[0][0]
         if(fmax<fdev[i]):
             fmax = fdev[i]
             thetamax = theta[i]
@@ -608,6 +591,11 @@ if uw.rank()==0:
     f = open('summary.out','w')
     f.write('{0:3d} {1:3d} {2:.1f} {3:.2f} {4:.1f} {5:.1f}'.format(resX, resY, cohesion, cinf, tanPhi, thetaDeg))
     f.close()
+
+
+# In[28]:
+
+fdev
 
 
 # Benchmark values
