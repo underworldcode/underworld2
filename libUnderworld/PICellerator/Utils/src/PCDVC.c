@@ -20,7 +20,7 @@
 
   For a description of the Voronoi algorithm, see the article by Velic et.al.
      "A Fast Robust Algorithm for computing Discrete Voronoi Diagrams in N-dimensions"
-  
+
 *****************************************************************************************************************/
 
 #include <StGermain/StGermain.h>
@@ -106,7 +106,7 @@ void _PCDVC_Init( void* pcdvc, GeneralSwarm* mps, double upT, double lowT,
                   int ParticlesPerCell, double Threshold )
 {
     PCDVC* self = (PCDVC*)pcdvc;
-	
+
     self->materialPointsSwarm = mps;
     self->upperT = upT;
     self->lowerT = lowT;
@@ -142,7 +142,7 @@ void _PCDVC_Print( void* pcdvc, Stream* stream ) {
 void* _PCDVC_Copy( void* pcdvc, void* dest, Bool deep, Name nameExt, PtrMap* ptrMap ) {
     PCDVC*	self = (PCDVC*)pcdvc;
     PCDVC*	newPCDVC;
-	
+
     newPCDVC = (PCDVC*)_DVCWeights_Copy( self, dest, deep, nameExt, ptrMap );
     return (void*)newPCDVC;
 }
@@ -184,7 +184,7 @@ void _PCDVC_AssignFromXML( void* pcdvc, Stg_ComponentFactory* cf, void *data ) {
 
     materialPointsSwarm = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"GeneralSwarm", GeneralSwarm, True, data  );
     Stream*  stream = Journal_Register( Info_Type, (Name)materialPointsSwarm->type  );
-	
+
     self->dim=materialPointsSwarm->dim;
 
     stream = Journal_Register( Info_Type, (Name)materialPointsSwarm->type  );
@@ -203,7 +203,8 @@ void _PCDVC_AssignFromXML( void* pcdvc, Stg_ComponentFactory* cf, void *data ) {
     // centred in the FEM cell.
     CentPosRatio =  Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"CentPosRatio", 0.01  );
     // just getting the initial PPC for now...maybe could make this a separate parameter yet if needed.
-    ParticlesPerCell = cf->getRootDictUnsignedInt( cf, "particlesPerCell", 25);
+    ParticlesPerCell = Stg_ComponentFactory_GetUnsignedInt( cf, self->name, (Dictionary_Entry_Key)"particlesPerCell", 25 );
+
     if(upT < lowT){
         lowT = 0.6;
         upT = 25;
@@ -241,7 +242,7 @@ void _PCDVC_Execute( void* pcdvc, void* data ) {
 /****************************************************************************************************
  This function deletes integration particle number intParticleToRemove_IndexWithinCell in lCell_I
  as well as the corresponding material point.
- It assumes the one to one coincidence mapper is being used. i.e. for every integration point 
+ It assumes the one to one coincidence mapper is being used. i.e. for every integration point
  there is one material point and vice versa.
 ******************************************************************************************************/
 void deleteIntParticleByIndexWithinCell( IntegrationPointsSwarm*  intSwarm, GeneralSwarm* matSwarm, Cell_LocalIndex lCell_I, Particle_Index intParticleToRemove_IndexWithinCell ) {
@@ -252,7 +253,7 @@ void deleteIntParticleByIndexWithinCell( IntegrationPointsSwarm*  intSwarm, Gene
 /****************************************************************************************************
  This function deletes integration particle number intParticleToRemove_IndexOnCPU
  on integration swarm as well as the corresponding material point.
- It assumes the one to one coincidence mapper is being used. i.e. for every integration point 
+ It assumes the one to one coincidence mapper is being used. i.e. for every integration point
  there is one material point and vice versa.
 ******************************************************************************************************/
 void deleteIntParticleByIndexOnCPU( IntegrationPointsSwarm*  intSwarm, GeneralSwarm* matSwarm, Particle_Index intParticleToRemove_IndexOnCPU ) {
@@ -274,7 +275,7 @@ void splitIntParticleByIndexWithinCell( IntegrationPointsSwarm*  intSwarm, Gener
     /* Add a new particle to end the end of each swarm */
     intNewParticle     = (IntegrationPoint*) Swarm_CreateNewParticle( intSwarm, &intNewParticle_IndexOnCPU );
     matNewParticle     = (GlobalParticle*)   Swarm_CreateNewParticle( matSwarm, &matNewParticle_IndexOnCPU );
-    
+
     /* Copy particle information */
     intParticleToSplit = (IntegrationPoint*) Swarm_ParticleInCellAt( intSwarm, lCell_I, intParticleToSplit_IndexWithinCell );
     matParticleToSplit = (  GlobalParticle*) Swarm_ParticleInCellAt( matSwarm, lCell_I, intParticleToSplit_IndexWithinCell );
@@ -287,7 +288,7 @@ void splitIntParticleByIndexWithinCell( IntegrationPointsSwarm*  intSwarm, Gener
 
     /* Copy new local position to xi on new int particle */
     memcpy( intNewParticle->xi, xi, sizeof(Coord) );
-	      
+
     /* Get new Global Coordinates from the Local Coordinates */
     FeMesh_CoordLocalToGlobal( mesh, lCell_I, xi, newCoord );
 
@@ -299,7 +300,7 @@ void splitIntParticleByIndexWithinCell( IntegrationPointsSwarm*  intSwarm, Gener
 int compare_indexOnCPU(const void * _particleA, const void * _particleB){
     struct deleteParticle * particleA = (struct deleteParticle *) _particleA;
     struct deleteParticle * particleB = (struct deleteParticle *) _particleB;
-      
+
     if(particleA->indexOnCPU < particleB->indexOnCPU)
         return 1;
     else
@@ -362,7 +363,7 @@ void _PCDVC_Calculate3D( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ) {
 
     /* end decs needed for particle control */
     /*************************************/
-	
+
     numx = self->resX;
     numy = self->resY;
     numz = self->resZ;
@@ -375,7 +376,7 @@ void _PCDVC_Calculate3D( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ) {
     dy = (BBYMAX - BBYMIN)/numy;
     dz = (BBZMAX - BBZMIN)/numz;
     da = dx*dy*dz;
-	
+
     // Construct the grid for the Voronoi cells only once.
     // If we wanted to call this function again during a job with a different resolution
     // then we should destroy the grid once we have looped through the whole mesh.
@@ -388,26 +389,26 @@ void _PCDVC_Calculate3D( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ) {
         self->pcdvcvisited++;
         _DVCWeights_ConstructGrid(&cells,numz,numy,numx,BBXMIN,BBYMIN,BBZMIN,BBXMAX,BBYMAX,BBZMAX);
     }
-	
+
     // init the data structures
     _DVCWeights_InitialiseStructs( (DVCWeights*)self, nump );
     pList = self->pList;
     bchain = self->bchain;
 
     _DVCWeights_ResetGrid3D(cells,numz*numy*numx);
-	
+
     particle = (IntegrationPoint**)malloc( (nump)*sizeof(IntegrationPoint*));
-	
+
     // initialize the particle positions to be the local coordinates of the material swarm particles
     // I am assuming the xi's (local coords) are precalculated somewhere and get reset based on material
     // positions each time step.
     for(i=0;i<nump;i++){
-	      
+
         particle[i] = (IntegrationPoint*) Swarm_ParticleInCellAt( intSwarm, lCell_I, i );
         pList[i].x = particle[i]->xi[0];
         pList[i].y = particle[i]->xi[1];
         pList[i].z = particle[i]->xi[2];
-	      
+
     }
     _DVCWeights_CreateVoronoi3D( bchain, pList, cells, dx, dy, dz, nump, numx, numy, numz, BBXMIN, BBXMAX, BBYMIN, BBYMAX, BBZMIN, BBZMAX);
     _DVCWeights_GetCentroids3D( cells, pList,numz,numy,numx,nump,da);
@@ -423,7 +424,7 @@ void _PCDVC_Calculate3D( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ) {
             break;
         }
     } */
-    
+
     /************************************/
     /************************************/
     /*    Start 3D Population Control   */
@@ -456,7 +457,7 @@ void _PCDVC_Calculate3D( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ) {
             dist = (pList[i].cx - pList[i].x)*(pList[i].cx - pList[i].x) + (pList[i].cy - pList[i].y)*(pList[i].cy - pList[i].y) + (pList[i].cz - pList[i].z)*(pList[i].cz - pList[i].z);
         }
         if(dist > CentPosRatio*FEMCEllspan){flag = 1;}
-	      
+
     }
     if(Inflow && (  ((1.0*nump_orig)/ParticlesPerCell < Thresh) || flag  ) ){
         int oneOda = (int)(1.0/da + 0.5);
@@ -467,7 +468,7 @@ void _PCDVC_Calculate3D( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ) {
         count=(int *)malloc(sizeof(int)*nump_orig);
         splitCount = 0;
         particleVoronoiCellList = (int **)malloc(nump_orig * sizeof(int *));// [i][j] is jth cell owned by particle i
-        for(i=0;i<nump_orig;i++){ 
+        for(i=0;i<nump_orig;i++){
             count[i] = (int)( pList[i].w*oneOda +0.5 ); // add the 0.5 so we don't lose anything from rounding down accidentally
             VCsize[i] = count[i];
             particleVoronoiCellList[i] = (int *)malloc( ( 1 + count[i] ) * sizeof(int));
@@ -484,9 +485,9 @@ void _PCDVC_Calculate3D( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ) {
         // we now have a list of cells from the grid belonging to each particle that make up each Voronoi cell in the Voronoi diagram
         // next lets compare how far our centroids are from the particle positions.
         // this is my criteria for a voronoi cell having a weird shape...too stretched out for example.
-        // this is exactly what happens in inflow situations.  
+        // this is exactly what happens in inflow situations.
         // Add a random number of new particles...
-        // But Need to add them where they are needed. 
+        // But Need to add them where they are needed.
         for(i=0;i<ParticlesPerCell;i++){
             j  =  (int) ( numx*numy*numz * (rand() / (RAND_MAX + 1.0)));
             xi[0] = cells[ j ].x;
@@ -521,18 +522,18 @@ void _PCDVC_Calculate3D( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ) {
             _DVCWeights_InitialiseStructs( (DVCWeights*)self, nump );
             pList = self->pList;
             bchain = self->bchain;
-	      
+
             particle = (IntegrationPoint**)malloc( (nump)*sizeof(IntegrationPoint*));
-	
+
             // re-initialize the particle positions to be the local coordinates of the material swarm particles
             // could do better here..instead of completely destroying these lists I could append to them I suppose.
             for(i=0;i<nump;i++){
-		    
+
                 particle[i] = (IntegrationPoint*) Swarm_ParticleInCellAt( intSwarm, lCell_I, i );
                 pList[i].x = particle[i]->xi[0];
                 pList[i].y = particle[i]->xi[1];
                 pList[i].z = particle[i]->xi[2];
-		    
+
             }
             _DVCWeights_ResetGrid3D(cells,numz*numy*numx);
             _DVCWeights_CreateVoronoi3D( bchain, pList, cells, dx, dy, dz, nump, numx, numy, numz, BBXMIN, BBXMAX, BBYMIN, BBYMAX, BBZMIN, BBZMAX);
@@ -548,9 +549,9 @@ void _PCDVC_Calculate3D( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ) {
         //VCsize = (int*)realloc(VCsize,nump_orig);
         //count = (int*)realloc(count,nump_orig);
         VCsize=(int *)malloc(sizeof(int)*nump);
-        count=(int *)malloc(sizeof(int)*nump); 
-	
-        for(i=0;i<nump;i++){ 
+        count=(int *)malloc(sizeof(int)*nump);
+
+        for(i=0;i<nump;i++){
             count[i] = (int)( pList[i].w*oneOda +0.5 ); // add the 0.5 so we don't lose anything from rounding down accidentally
             VCsize[i] = count[i];
             particleVoronoiCellList[i] = (int *)malloc( ( 1 + count[i] ) * sizeof(int));
@@ -657,18 +658,18 @@ void _PCDVC_Calculate3D( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ) {
         pList = self->pList;
         bchain = self->bchain;
         //_DVCWeights_ResetGrid3D(&cells,numz*numy*numx);
-	      
+
         particle = (IntegrationPoint**)malloc( (nump)*sizeof(IntegrationPoint*));
-	
+
         // re-initialize the particle positions to be the local coordinates of the material swarm particles
         for(i=0;i<nump;i++){
-		    
+
             particle[i] = (IntegrationPoint*) Swarm_ParticleInCellAt( intSwarm, lCell_I, i );
             pList[i].x = particle[i]->xi[0];
             pList[i].y = particle[i]->xi[1];
             pList[i].z = particle[i]->xi[2];
             //pList[i].index = i; // to track which particle numbers we have after sorting this list */
-		    
+
         }
         //printf("Population of matSwarm is %d\n",matSwarm->particleLocalCount);
         //printf("Population of intSwarm is %d\n",intSwarm->particleLocalCount);
@@ -692,7 +693,7 @@ void _PCDVC_Calculate3D( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ) {
         particle[i]->xi[2] = pList[i].cz;
         particle[i]->weight = pList[i].w;
 
-    }	
+    }
 
     free(particle);
     free(deleteList);
@@ -747,7 +748,7 @@ void _PCDVC_Calculate2D( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ) {
     int ParticlesPerCell = self->ParticlesPerCell;
     double CentPosRatio = self->CentPosRatio;
     //time_t tm;
-	
+
 
 //	SizeT                 intparticleSize     = intSwarm->particleExtensionMgr->finalSize;
 //	SizeT                 matparticleSize     = matSwarm->particleExtensionMgr->finalSize;
@@ -759,7 +760,7 @@ void _PCDVC_Calculate2D( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ) {
 
     /* end decs needed for particle control */
     /*************************************/
-	
+
 
     numx = self->resX;
     numy = self->resY;
@@ -767,11 +768,11 @@ void _PCDVC_Calculate2D( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ) {
     nump_orig = nump = cParticleCount = intSwarm->cellParticleCountTbl[lCell_I];
 
     PCDVC_Firewall( nump, lCell_I, __func__ );
-    
+
     dx = (BBXMAX - BBXMIN)/numx;
     dy = (BBYMAX - BBYMIN)/numy;
     da = dx*dy;
-	
+
     // Construct the grid for the Voronoi cells only once.
     // If we wanted to call this function again during a job with a different resolution
     // then we should destroy the grid once we have looped through the whole mesh.
@@ -786,26 +787,26 @@ void _PCDVC_Calculate2D( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ) {
 //	      time(&tm);
 //	      srand( (long) tm);
     }
-	
-	
+
+
     // init the data structures
     _DVCWeights_InitialiseStructs2D( (DVCWeights*)self, nump);
     pList  = self->pList;
     bchain = self->bchain;
 
     _DVCWeights_ResetGrid2D(cells,numy*numx);
-	
+
     particle = (IntegrationPoint**)malloc((nump)*sizeof(IntegrationPoint*));
-	
+
     // initialize the particle positions to be the local coordinates of the material swarm particles
     // I am assuming the xi's (local coords) are precalculated somewhere and get reset based on material
     // positions each time step.
     for(i=0;i<nump;i++){
-	      
+
         particle[i] = (IntegrationPoint*) Swarm_ParticleInCellAt( intSwarm, lCell_I, i );
         pList[i].x = particle[i]->xi[0];
         pList[i].y = particle[i]->xi[1];
-	      
+
     }
     _DVCWeights_CreateVoronoi2D( bchain, pList, cells, dx, dy, nump, numx, numy, BBXMIN, BBXMAX, BBYMIN, BBYMAX);
     _DVCWeights_GetCentroids2D( cells, pList,numy,numx,nump,da);
@@ -832,7 +833,7 @@ void _PCDVC_Calculate2D( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ) {
     /*      Start 2D Inflow Control     */
     /************************************/
     /************************************/
-    
+
     /**********************************************************************************/
     /** If is interface cell and splitInInterfaceCells is false then turn off Inflow **/
     /**********************************************************************************/
@@ -851,7 +852,7 @@ void _PCDVC_Calculate2D( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ) {
             dist = (pList[i].x-pList[i].cx)*(pList[i].x-pList[i].cx)+(pList[i].y-pList[i].cy)*(pList[i].y-pList[i].cy);;
         }
         if(dist > CentPosRatio*FEMCEllspan){flag = 1;}
-	      
+
     }
     if(Inflow && (  ((1.0*nump_orig)/ParticlesPerCell < Thresh) || flag  ) ){
         int oneOda = (int)(1.0/da + 0.5);
@@ -862,7 +863,7 @@ void _PCDVC_Calculate2D( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ) {
         count=(int *)malloc(sizeof(int)*nump_orig);
         splitCount = 0;
         particleVoronoiCellList = (int **)malloc(nump_orig * sizeof(int *));// [i][j] is jth cell owned by particle i
-        for(i=0;i<nump_orig;i++){ 
+        for(i=0;i<nump_orig;i++){
             count[i] = (int)( pList[i].w*oneOda +0.5 ); // add the 0.5 so we don't lose anything from rounding down accidentally
             VCsize[i] = count[i];
             particleVoronoiCellList[i] = (int *)malloc( ( 1 + count[i] ) * sizeof(int));
@@ -921,10 +922,10 @@ void _PCDVC_Calculate2D( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ) {
             particle = (IntegrationPoint**)malloc( (nump)*sizeof(IntegrationPoint*));
             // re-initialize the particle positions to be the local coordinates of the material swarm particles
             // could do better here..instead of completely destroying these lists I could append to them I suppose.
-            for(i=0;i<nump;i++){		    
+            for(i=0;i<nump;i++){
                 particle[i] = (IntegrationPoint*) Swarm_ParticleInCellAt( intSwarm, lCell_I, i );
                 pList[i].x = particle[i]->xi[0];
-                pList[i].y = particle[i]->xi[1];		    
+                pList[i].y = particle[i]->xi[1];
             }
             _DVCWeights_ResetGrid2D(cells,numy*numx);
             _DVCWeights_CreateVoronoi2D( bchain, pList, cells, dx, dy, nump, numx, numy, BBXMIN, BBXMAX, BBYMIN, BBYMAX);
@@ -937,9 +938,9 @@ void _PCDVC_Calculate2D( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ) {
         //recreate the lists.
         particleVoronoiCellList = (int **)malloc(nump * sizeof(int *));// [i][j] is jth cell owned by particle i
         VCsize=(int *)malloc(sizeof(int)*nump);
-        count=(int *)malloc(sizeof(int)*nump); 
-	
-        for(i=0;i<nump;i++){ 
+        count=(int *)malloc(sizeof(int)*nump);
+
+        for(i=0;i<nump;i++){
             count[i] = (int)( pList[i].w*oneOda +0.5 ); // add the 0.5 so we don't lose anything from rounding down accidentally
             VCsize[i] = count[i];
             particleVoronoiCellList[i] = (int *)malloc( ( 1 + count[i] ) * sizeof(int));
@@ -975,8 +976,8 @@ void _PCDVC_Calculate2D( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ) {
 
     /* need a struct for the deleteList because we must sort it by indexOnCPU and delete in reverse order
        so we don't have the potential problem of  deleting a particle from the list that points to the last particle on the swarm */
-    splitList  = (Particle_Index*)malloc(nump*sizeof(Particle_Index));	
-    deleteList = (struct deleteParticle*)malloc(nump*sizeof(struct deleteParticle));/* I don't think I am going to let you delete more than half the particles in a given cell */	
+    splitList  = (Particle_Index*)malloc(nump*sizeof(Particle_Index));
+    deleteList = (struct deleteParticle*)malloc(nump*sizeof(struct deleteParticle));/* I don't think I am going to let you delete more than half the particles in a given cell */
     for(i=0;i<nump;i++){
         if(pList[i].w > maxW){ /* maxW = pList[i].w; maxI = i;*/ splitList[splitCount] = i; splitCount++;}
         if(pList[i].w < minW){
@@ -1001,7 +1002,7 @@ void _PCDVC_Calculate2D( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ) {
     /* we now have our lists of particles to delete and split */
     Count = maxSplits > splitCount ? splitCount : maxSplits;
     /* lets do something different now..because am getting lines formed on inflow probs */
-    //if(Inflow){ Count = 0;} //turn off ordinary splitting if inflow is on for moment      
+    //if(Inflow){ Count = 0;} //turn off ordinary splitting if inflow is on for moment
     for(i=0;i<Count;i++){
         int j;
         maxI = splitList[i];
@@ -1015,7 +1016,7 @@ void _PCDVC_Calculate2D( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ) {
             j =  (int) (VCsize[maxI] * (rand() / (RAND_MAX + 1.0)));
             xi[0] = cells[ particleVoronoiCellList[maxI][j] ].x;
             xi[1] = cells[ particleVoronoiCellList[maxI][j] ].y;
-        }     
+        }
         split_flag = 1;
         nump++;
         splitIntParticleByIndexWithinCell( intSwarm, matSwarm, lCell_I, maxI, xi );
@@ -1051,12 +1052,12 @@ void _PCDVC_Calculate2D( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ) {
         bchain = self->bchain;
         // re-initialize the particle positions to be the local coordinates of the material swarm particles
         for(i=0;i<nump;i++){
-		    
+
             particle[i] = (IntegrationPoint*) Swarm_ParticleInCellAt( intSwarm, lCell_I, i );
             pList[i].x = particle[i]->xi[0];
             pList[i].y = particle[i]->xi[1];
             //pList[i].index = i; // to track which particle numbers we have after sorting this list */
-		    
+
         }
         //printf("Population of matSwarm is %d\n",matSwarm->particleLocalCount);
         //printf("Population of intSwarm is %d\n",intSwarm->particleLocalCount);
@@ -1082,7 +1083,7 @@ void _PCDVC_Calculate2D( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ) {
         particle[i]->xi[1] = pList[i].cy;
         particle[i]->weight = pList[i].w;
 
-    }	
+    }
     /* for(k=0;k<nump;k++){ */
 /* 	  printf("::In %s O(%10.7lf %10.7lf) C(%10.7lf %10.7lf) W(%.4lf)\n", __func__, pList[k].x, pList[k].y, pList[k].cx, pList[k].cy, pList[k].w); */
 /*     } */
@@ -1113,13 +1114,13 @@ void _PCDVC_Calculate( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ){
   if(lCell_I == 0 ){
   Journal_Printf( stream, "\nOn Proc %d: In func %s(): for swarm \"%s\" Population is %d\n", swarm->myRank, __func__, swarm->name, swarm->particleLocalCount );
   Journal_Printf( stream, "On Proc %d: In func %s(): for swarm \"%s\" Population is %d\n\n", matSwarm->myRank,__func__, matSwarm->name, matSwarm->particleLocalCount );
-  }      
+  }
 */
     if(dim == 3)
         _PCDVC_Calculate3D( pcdvc, _swarm, lCell_I);
     else
         _PCDVC_Calculate2D( pcdvc, _swarm, lCell_I);
-    
+
     /* if last cell done, let's realloc to account for deletions */
     if(lCell_I == swarm->cellLocalCount - 1){
         Swarm_Realloc( swarm );
@@ -1144,6 +1145,3 @@ void _PCDVC_Calculate( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ){
 /*-------------------------------------------------------------------------------------------------------------------------
 ** Public Functions
 */
-
-
-

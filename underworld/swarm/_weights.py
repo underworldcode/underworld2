@@ -68,4 +68,5 @@ class PCDVC(_Weights):
         componentDictionary[ self._weights.name ]["maxSplits"] = self.maxSplits
         componentDictionary[ self._weights.name ]["centPosRatio"] = self.centroidPositionRatio
         componentDictionary[ self._weights.name ]["Inflow"] = self.inFlow
+        componentDictionary[ self._weights.name ]["particlesPerCell"] = self.particlesPerCell
         componentDictionary[ self._weights.name ]["GeneralSwarm"] = self._swarm._cself.name
