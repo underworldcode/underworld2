@@ -90,7 +90,7 @@ void _lucDatabase_Init(
    char*                filename,
    char*                vfs,
    char*                dbPath,
-   Bool                 disabled )
+   Bool                 viewonly )
 {
    DrawingObject_Index object_I;
 
@@ -109,9 +109,7 @@ void _lucDatabase_Init(
       self->dbPath = StG_Strdup(dbPath);
    
    if (vfs && strlen(vfs)) self->vfs = StG_Strdup(vfs);
-   self->disabled = disabled;
-   if(self->context)
-      self->disabled = !self->context->vis;
+   self->viewonly = viewonly;
    self->drawingObject_Register = lucDrawingObject_Register_New();
 
    for ( object_I = 0 ; object_I < drawingObjectCount ; object_I++ )
@@ -145,7 +143,7 @@ void _lucDatabase_Init(
    }
 
    /* Add to entry points if we have our own list of drawing objects to output, bypassing window/viewport structures */
-   if (!disabled && self->context)
+   if (!viewonly && self->context)
    {
       /* Ensure our execute called before window execute by using Prepend...
        * If we have our own list of drawing objects they will be dumped here */
@@ -216,20 +214,6 @@ void _lucDatabase_AssignFromXML( void* database, Stg_ComponentFactory* cf, void*
 
    Dimension_Index dim = Stg_ComponentFactory_GetRootDictDouble( cf, (Dictionary_Entry_Key)"dim", 3.0  );
 
-   self->minValue[ I_AXIS ] = Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"minX", 0.0  );
-   self->minValue[ J_AXIS ] = Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"minY", 0.0  );
-   self->minValue[ K_AXIS ] = Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"minZ", 0.0  );
-
-   self->maxValue[ I_AXIS ] = Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"maxX", FLT_EPSILON  );
-   self->maxValue[ J_AXIS ] = Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"maxY", FLT_EPSILON  );
-   self->maxValue[ K_AXIS ] = Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"maxZ", FLT_EPSILON  );
-
-   if (dim == 2)
-   {
-      self->minValue[K_AXIS] += 0.5 * (self->maxValue[K_AXIS] - self->minValue[K_AXIS]);
-      self->maxValue[K_AXIS] = self->minValue[K_AXIS];
-   }
-
    _lucDatabase_Init( self, context, 
       drawingObjectList,
       drawingObjectCount,
@@ -241,7 +225,7 @@ void _lucDatabase_AssignFromXML( void* database, Stg_ComponentFactory* cf, void*
       Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"filename", NULL),
       Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"vfs", NULL),
       Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"dbPath", "."),
-      Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"disable", False  )
+      Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"viewonly", False  )
       );
 }
 
@@ -249,7 +233,7 @@ void _lucDatabase_Build( void* database, void* data )
 {
    lucDatabase* self = (lucDatabase*) database ;
    /* Get rendering engine to write images at each 'Dump' entry point. */
-   if (self->rank == 0 && !self->disabled && self->context)
+   if (self->rank == 0 && !self->viewonly && self->context)
       EP_AppendClassHook(  Context_GetEntryPoint( self->context, AbstractContext_EP_DumpClass ), lucDatabase_Dump, self);
 }
 
@@ -826,10 +810,14 @@ void lucDatabase_OpenDatabase(lucDatabase* self)
       /* Copy db from checkpointReadPath?? /
       if (restart && strlen(self->context->checkpointReadPath) > 0)*/
       int flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
+      if (self->viewonly) flags = SQLITE_OPEN_READWRITE;
 
       if (self->filename && strlen(self->filename))
       {
-         sprintf(self->path, "%s/%s.gldb", self->dbPath, self->filename);
+         if (self->path && strlen(self->path))
+            sprintf(self->path, "%s/%s", self->dbPath, self->filename);
+         else
+            strcpy(self->path, self->filename);
       }
       else
       {
@@ -844,6 +832,9 @@ void lucDatabase_OpenDatabase(lucDatabase* self)
          self->db = NULL;
          return;
       }
+
+      /* No table modifications */
+      if (self->viewonly) return;
 
       /* 10 sec timeout on busy(locked), as we are only accessing the db on root should not be necessary */
       sqlite3_busy_timeout(self->db, 10000);
@@ -1048,6 +1039,8 @@ void lucDatabase_WriteState(lucDatabase* self, const char* properties)
 {
    if (self->rank > 0 || !self->db) return;
 
+   lucDatabase_IssueSQL(self->db, "create table IF NOT EXISTS state (id INTEGER PRIMARY KEY ASC, data TEXT)");
+
    sqlite3* db = self->db;
    sqlite3_stmt* statement;
    const char* SQL = "insert into state (data) values (?)";
@@ -1068,3 +1061,4 @@ void lucDatabase_WriteState(lucDatabase* self, const char* properties)
 
    sqlite3_finalize(statement);
 }
+

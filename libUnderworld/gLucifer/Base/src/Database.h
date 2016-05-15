@@ -50,8 +50,6 @@ extern const Type lucDatabase_Type;
       DomainContext*    context;                            \
       /* Internal */ \
       lucDrawingObject_Register*    drawingObject_Register; \
-      float             minValue[3];                        \
-      float             maxValue[3];                        \
       char*             labels[lucMaxType];                 \
       unsigned int      label_lengths[lucMaxType];          \
       lucGeometryData*  data[lucMaxType][lucMaxDataType];   \
@@ -69,7 +67,7 @@ extern const Type lucDatabase_Type;
       Bool              writeimage;             \
       Bool              splitTransactions;      \
       int               deleteAfter;            \
-      Bool              disabled;               \
+      Bool              viewonly;               \
       int               rank;                   \
       int               nproc;                  \
       MPI_Comm          communicator;           \
