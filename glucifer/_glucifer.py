@@ -206,11 +206,8 @@ class Store(_stgermain.StgCompoundComponent):
                 #if not found locally, objects in db are hidden from view
                 for obj in state["objects"]:
                     obj["visible"] = False
-                    print "Lookup: " + obj["name"]
                     for object in objects:
-                        print object._properties["name"]
                         if obj["name"] == object._properties["name"]:
-                            print "Found: " + obj["name"]
                             #Merge/replace
                             obj.update(object._properties)
                             obj["visible"] = True
