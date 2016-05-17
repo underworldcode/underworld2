@@ -17,7 +17,7 @@
 #include <petscksp.h>
 #include <petscpc.h>
 #include <petscsnes.h>
-#include <petscis.h> 
+#include <petscis.h>
 #include <petscviewer.h>
 #include <petscsys.h>
 #include <petscversion.h>
@@ -74,7 +74,7 @@ void* _StokesBlockKSPInterface_DefaultNew( Name name ) {
 /* Creation implementation / Virtual constructor */
 /* Set up function pointers */
 StokesBlockKSPInterface* _StokesBlockKSPInterface_New( STOKESBLOCKKSPINTERFACE_DEFARGS )
-{    
+{
     StokesBlockKSPInterface* self;
     /* Allocate memory */
     assert( _sizeOfSelf >= sizeof(StokesBlockKSPInterface) );
@@ -85,12 +85,12 @@ StokesBlockKSPInterface* _StokesBlockKSPInterface_New( STOKESBLOCKKSPINTERFACE_D
     return self;
 }
 
-void _StokesBlockKSPInterface_Init( 
+void _StokesBlockKSPInterface_Init(
 		StokesBlockKSPInterface*      self,
 		StiffnessMatrix*   preconditioner,
 		Stokes_SLE *       st_sle,
 		PETScMGSolver *    mg,
-        Name   filename, 
+        Name   filename,
         char * string,
 		StiffnessMatrix*  k2StiffMat,
 		StiffnessMatrix*  mStiffMat,
@@ -114,33 +114,33 @@ void _StokesBlockKSPInterface_Init(
 	self->jForceVec = jForceVec;
 	self->vmStiffMat = vmStiffMat;
 	self->vmForceVec = vmForceVec;
-	/* add the vecs and matrices to the Base SLE class's dynamic lists, so they can be 
+	/* add the vecs and matrices to the Base SLE class's dynamic lists, so they can be
 	initialised and built properly */
-	
+
 	/*
-	if (k2StiffMat ) 
+	if (k2StiffMat )
 	    SystemLinearEquations_AddStiffnessMatrix( st_sle, k2StiffMat );
-		
-	if (f2ForceVec ) 		
+
+	if (f2ForceVec )
 	    SystemLinearEquations_AddForceVector( st_sle, f2ForceVec );
 
-	if (mStiffMat ) 
+	if (mStiffMat )
 	    SystemLinearEquations_AddStiffnessMatrix( st_sle, mStiffMat );
 
-	if (jForceVec ) 		
+	if (jForceVec )
 	    SystemLinearEquations_AddForceVector( st_sle, jForceVec );
-	
-	if (vmStiffMat ) 
+
+	if (vmStiffMat )
 	    SystemLinearEquations_AddStiffnessMatrix( st_sle, vmStiffMat );
 
-	if (vmForceVec ) 		
+	if (vmForceVec )
 	    SystemLinearEquations_AddForceVector( st_sle, vmForceVec );
     */
 }
 
 void _StokesBlockKSPInterface_Build( void* solver, void* sle ) {/* it is the sle here being passed in*/
 	StokesBlockKSPInterface*	self  = (StokesBlockKSPInterface*)solver;
-	
+
 	Stream_IndentBranch( StgFEM_Debug );
 
 	/* Build Preconditioner */
@@ -179,7 +179,7 @@ void _StokesBlockKSPInterface_AssignFromXML( void* solver, Stg_ComponentFactory*
 	_SLE_Solver_AssignFromXML( self, cf, data );
 
 	preconditioner = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"Preconditioner", StiffnessMatrix, False, data  );
-	st_sle  = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"stokesEqn", Stokes_SLE, True, data  ); 
+	st_sle  = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"stokesEqn", Stokes_SLE, True, data  );
 	mg      = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"mgSolver", PETScMGSolver, False, data);
 	k2StiffMat = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"2ndStressTensorMatrix", StiffnessMatrix, False, data  );
 	f2ForceVec = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"2ndForceVector", ForceVector, False, data  );
@@ -189,8 +189,8 @@ void _StokesBlockKSPInterface_AssignFromXML( void* solver, Stg_ComponentFactory*
 	jForceVec = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"JunkForceVector", ForceVector, False, data  );
 	vmStiffMat = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"VelocityMassMatrix", StiffnessMatrix, False, data  );
 	vmForceVec = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"VMassForceVector", ForceVector, False, data  );
-    
-	_StokesBlockKSPInterface_Init( self, preconditioner, st_sle, mg, NULL, NULL, k2StiffMat, mStiffMat, 
+
+	_StokesBlockKSPInterface_Init( self, preconditioner, st_sle, mg, NULL, NULL, k2StiffMat, mStiffMat,
                                    f2ForceVec, jForceVec, penaltyNumber, hFactor, vmStiffMat, vmForceVec);
 
 }
@@ -198,10 +198,10 @@ void _StokesBlockKSPInterface_AssignFromXML( void* solver, Stg_ComponentFactory*
 void _StokesBlockKSPInterface_Initialise( void* solver, void* data ) {
 	StokesBlockKSPInterface* self = (StokesBlockKSPInterface*) solver;
 	Stokes_SLE*             sle  = (Stokes_SLE*)  self->st_sle;
-	
+
 	/* Initialise Parent */
 	_SLE_Solver_Initialise( self, sle );
-	
+
 	if ( sle->context && (True == sle->context->loadFieldsFromCheckpoint) ) {
 		/* The previous timestep's velocity solution will be helpful in iterating to a better
 		solution faster - and thus make restarting from checkpoint more repeatable compared
@@ -217,7 +217,7 @@ void _StokesBlockKSPInterface_Initialise( void* solver, void* data ) {
 void _StokesBlockKSPInterface_SolverSetup( void* solver, void* stokesSLE ) {
 	StokesBlockKSPInterface* self = (StokesBlockKSPInterface*) solver;
 	//Stokes_SLE*             sle  = (Stokes_SLE*)             stokesSLE;
-	
+
  	Journal_DPrintf( self->debug, "In %s:\n", __func__ );
 	Stream_IndentBranch( StgFEM_Debug );
 
@@ -226,7 +226,7 @@ void _StokesBlockKSPInterface_SolverSetup( void* solver, void* stokesSLE ) {
 void SBKSP_SetSolver( void* solver, void* stokesSLE ) {
 	SLE_Solver* self = (SLE_Solver*) solver;
 	Stokes_SLE*              sle  = (Stokes_SLE*) stokesSLE;
-	
+
     sle->solver=self;
 
 }
@@ -244,18 +244,18 @@ int SBKSP_GetPressureIts(void *solver){
 /***********************************************************************************************************/
 /***********************************************************************************************************/
 
-void SBKSP_GetStokesOperators( 
+void SBKSP_GetStokesOperators(
 		Stokes_SLE *stokesSLE,
 		Mat *K,Mat *G,Mat *D,Mat *C,Mat *approxS,
 		Vec *f,Vec *h,Vec *u,Vec *p )
 {
-	
+
 	*K = *G = *D = *C = PETSC_NULL;
 	if (stokesSLE->kStiffMat){      *K = SBKSP_GetPetscMatrix( stokesSLE->kStiffMat->matrix );     }
 	if (stokesSLE->gStiffMat){      *G = SBKSP_GetPetscMatrix( stokesSLE->gStiffMat->matrix );     }
 	if (stokesSLE->dStiffMat){      *D = SBKSP_GetPetscMatrix( stokesSLE->dStiffMat->matrix );     }
 	if (stokesSLE->cStiffMat){      *C = SBKSP_GetPetscMatrix( stokesSLE->cStiffMat->matrix );     }
-	
+
 	/* preconditioner */
 	*approxS = PETSC_NULL;
 	if( ((StokesBlockKSPInterface*)stokesSLE->solver)->preconditioner ) {
@@ -263,16 +263,16 @@ void SBKSP_GetStokesOperators(
 
 		preconditioner = ((StokesBlockKSPInterface*)stokesSLE->solver)->preconditioner;
 		*approxS = SBKSP_GetPetscMatrix( preconditioner->matrix );
-	}	
-	
+	}
+
 	*f = *h = PETSC_NULL;
 	if (stokesSLE->fForceVec){      *f = SBKSP_GetPetscVector( stokesSLE->fForceVec->vector );     }
 	if (stokesSLE->hForceVec){      *h = SBKSP_GetPetscVector( stokesSLE->hForceVec->vector );     }
-	
+
 	*u = *p = PETSC_NULL;
 	if (stokesSLE->uSolnVec){       *u = SBKSP_GetPetscVector( stokesSLE->uSolnVec->vector );      }
 	if (stokesSLE->pSolnVec){       *p = SBKSP_GetPetscVector( stokesSLE->pSolnVec->vector );      }
-	
+
 }
 /***********************************************************************************************************/
 /***********************************************************************************************************/
@@ -321,7 +321,7 @@ PetscErrorCode _BlockSolve( void* solver, void* _stokesSLE ) {
   PC  stokes_pc;
   PetscTruth sym,flg;
   PetscErrorCode ierr;
-  
+
   PetscInt   N,n;
 
   SBKSP_GetStokesOperators( stokesSLE, &K,&G,&D,&C, &approxS, &f,&h, &u,&p );
@@ -340,7 +340,11 @@ PetscErrorCode _BlockSolve( void* solver, void* _stokesSLE ) {
   flg=PETSC_FALSE;
   PetscOptionsHasName(PETSC_NULL,"-use_petsc_ksp",&flg);
   if (flg) {
-    if( !C ) {/* need a 'zero' matrix to keep fieldsplit happy in petsc? */
+    if( !C ) {
+      /* Everything in this bracket, dependent on !C, is to build
+         a matrix with diagonals of 0 for C the previous comment ways
+
+      need a 'zero' matrix to keep fieldsplit happy in petsc? */
       MatType mtype;
       Vec V;
       //MatGetSize( G, &M, &N );
@@ -376,13 +380,13 @@ PetscErrorCode _BlockSolve( void* solver, void* _stokesSLE ) {
   ierr = VecCreateNest(PetscObjectComm((PetscObject) u), 2, NULL, x, &stokes_x);CHKERRQ(ierr);
   ierr = VecAssemblyBegin( stokes_x );CHKERRQ(ierr);
   ierr = VecAssemblyEnd( stokes_x);CHKERRQ(ierr);
-    
+
   b[0]=f;
   b[1]=h;
   ierr = VecCreateNest(PetscObjectComm((PetscObject) f), 2, NULL, b, &stokes_b);CHKERRQ(ierr);
   ierr = VecAssemblyBegin( stokes_b );CHKERRQ(ierr);
   ierr = VecAssemblyEnd( stokes_b);CHKERRQ(ierr);
-    
+
   /* if( approxS ) { */
   /*   a[0][0]=K;    a[0][1]=G; */
   /*   a[1][0]=NULL; a[1][1]=approxS; */
@@ -393,7 +397,7 @@ PetscErrorCode _BlockSolve( void* solver, void* _stokesSLE ) {
   /* else { */
     stokes_P = stokes_A;
   /* } */
-    
+
   /* probably should make a Destroy function for these two */
   /* Update options from file and/or string here so we can change things on the fly */
   //PetscOptionsInsertFile(PETSC_COMM_WORLD, Solver->optionsFile, PETSC_FALSE);
@@ -402,7 +406,7 @@ PetscErrorCode _BlockSolve( void* solver, void* _stokesSLE ) {
   ierr = KSPCreate( PETSC_COMM_WORLD, &stokes_ksp );CHKERRQ(ierr);
   Stg_KSPSetOperators( stokes_ksp, stokes_A, stokes_P, SAME_NONZERO_PATTERN );
   ierr = KSPSetType( stokes_ksp, "bsscr" );/* i.e. making this the default solver : calls KSPCreate_XXX */CHKERRQ(ierr);
-    
+
   ierr = KSPGetPC( stokes_ksp, &stokes_pc );CHKERRQ(ierr);
   ierr = PCSetType( stokes_pc, PCNONE );CHKERRQ(ierr);
   ierr = KSPSetInitialGuessNonzero( stokes_ksp, PETSC_TRUE );CHKERRQ(ierr);
@@ -410,7 +414,7 @@ PetscErrorCode _BlockSolve( void* solver, void* _stokesSLE ) {
 
   /*
     Doing this so the KSP Solver has access to the StgFEM Multigrid struct (PETScMGSolver).
-    As well as any custom stuff on the Stokes_SLE struct 
+    As well as any custom stuff on the Stokes_SLE struct
   */
   if( stokes_ksp->data ){/* then ksp->data has been created in a KSpSetUp_XXX function */
     /* testing for our KSP types that need the data that is on Solver... */
@@ -428,7 +432,7 @@ PetscErrorCode _BlockSolve( void* solver, void* _stokesSLE ) {
   }
 
   ierr = KSPSolve( stokes_ksp, stokes_b, stokes_x );CHKERRQ(ierr);
-    
+
   Stg_KSPDestroy(&stokes_ksp );
   //if( ((StokesBlockKSPInterface*)stokesSLE->solver)->preconditioner )
   if(stokes_P != stokes_A) { Stg_MatDestroy(&stokes_P ); }
@@ -439,8 +443,7 @@ PetscErrorCode _BlockSolve( void* solver, void* _stokesSLE ) {
   Stg_VecDestroy(&stokes_b);
 
   if(!D){ Stg_MatDestroy(&Gt); }
-  if(C){ Stg_MatDestroy(&C); }
+  if(C && (stokesSLE->cStiffMat->matrix != C) ){ Stg_MatDestroy(&C); }
 
   PetscFunctionReturn(0);
 }
-
