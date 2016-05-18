@@ -153,6 +153,7 @@ class Store(_stgermain.StgCompoundComponent):
             #Add nested colourbar objects
             if obj._colourBar and obj._colourBar not in self._objects:
                 self._objects.append(obj._colourBar)
+                obj._colourBar.parent = obj #Save parent ref
 
         #Set default names on objects where omitted by user
         #Needs to be updated every time as indices may have changed
@@ -176,8 +177,8 @@ class Store(_stgermain.StgCompoundComponent):
 
             #Add drawing objects to register and output any custom data on them
             for object in self._objects:
-                #Hide objects not in this figure
-                object._properties["visible"] = object in objects
+                #Hide objects not in this figure (also check parent for colour bars)
+                object._properties["visible"] = object in objects or obj.parent and obj.parent in objects
 
                 #Add the object to the drawing object register for the database
                 libUnderworld.StGermain.Stg_ObjectList_Append(self._db.drawingObject_Register.objects,object._cself)
