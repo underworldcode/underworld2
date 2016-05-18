@@ -148,6 +148,7 @@ class Store(_stgermain.StgCompoundComponent):
     def _generate(self, objects, viewprops):
         #First merge object list with active
         for obj in objects:
+            obj.parent = None
             if obj not in self._objects:
                 self._objects.append(obj)
             #Add nested colourbar objects
@@ -178,7 +179,7 @@ class Store(_stgermain.StgCompoundComponent):
             #Add drawing objects to register and output any custom data on them
             for object in self._objects:
                 #Hide objects not in this figure (also check parent for colour bars)
-                object._properties["visible"] = object in objects or obj.parent and obj.parent in objects
+                object._properties["visible"] = object in objects or obj.parent in objects
 
                 #Add the object to the drawing object register for the database
                 libUnderworld.StGermain.Stg_ObjectList_Append(self._db.drawingObject_Register.objects,object._cself)
@@ -491,12 +492,11 @@ class Figure():
         except:
             raise
 
-    def save_image(self, filename, size=(0,0)):
+    def save_image(self, filename="", size=(0,0)):
         # For back compatibility
         return self.save(filename, size)
 
     def save_database(self, filename, regen=True):
-        # For back compatibility
         if regen:
             self._generate_DB()
         return self.db.save(filename)
@@ -591,14 +591,15 @@ class Figure():
     def open_viewer(self, args=[], background=True):
         """ Open the viewer.
         """
-        if haveLavaVu and uw.rank() == 0:
-            fname = self.db.filename
-            if not fname:
-                fname = os.path.join(tmpdir,"gluciferDB"+self.db._id+".gldb")
-                self.db.save(fname)
-            if self._viewerProc and self._viewerProc.poll() == None:
-                return
+        fname = self.db.filename
+        if not fname:
+            fname = os.path.join(tmpdir,"gluciferDB"+self.db._id+".gldb")
+            self.save_database(fname)
+        #Already open?
+        if self._viewerProc and self._viewerProc.poll() == None:
+            return
 
+        if haveLavaVu and uw.rank() == 0:
             #Open viewer with local web server for interactive/iterative use
             args = [self.db._lvbin, "-" + str(self.db.step), "-L", "-p8080", "-q90", fname] + args
             if background:
