@@ -146,19 +146,19 @@ class Store(_stgermain.StgCompoundComponent):
             libUnderworld.gLucifer.lucDatabase_BackupDbFile(self._db, filename)
 
     def _generate(self, objects, viewprops):
-        #Add nested colourbar objects
-        for obj in objects:
-            if obj._colourBar:
-                objects.append(obj._colourBar)
-
         #First merge object list with active
-        allobjects = self._objects + list(set(objects) - set(self._objects))
+        for obj in objects:
+            if obj not in self._objects:
+                self._objects.append(obj)
+            #Add nested colourbar objects
+            if obj._colourBar and obj._colourBar not in self._objects:
+                self._objects.append(obj._colourBar)
 
         #Set default names on objects where omitted by user
         #Needs to be updated every time as indices may have changed
-        for o in range(len(allobjects)):
+        for o in range(len(self._objects)):
             #Default name + idx if no user set name
-            obj = allobjects[o]
+            obj = self._objects[o]
             if not "name" in obj.properties or obj.properties["name"][0] == '_':
                 if obj.properties.get("colourbar"):
                    obj.properties["name"] = '_ColourBar_' + str(o)
@@ -175,7 +175,7 @@ class Store(_stgermain.StgCompoundComponent):
                 libUnderworld.StGermain._Stg_ObjectList_RemoveByIndex(self._db.drawingObject_Register.objects,ii-1, libUnderworld.StGermain.KEEP)
 
             #Add drawing objects to register and output any custom data on them
-            for object in allobjects:
+            for object in self._objects:
                 #Hide objects not in this figure
                 object._properties["visible"] = object in objects
 
@@ -186,11 +186,11 @@ class Store(_stgermain.StgCompoundComponent):
             libUnderworld.gLucifer._lucDatabase_Execute(self._db,None)
 
             #Output any custom geometry on objects
-            for object in allobjects:
+            for object in self._objects:
                 self._plotObject(object)
 
             #Write visualisation state as json data
-            libUnderworld.gLucifer.lucDatabase_WriteState(self._db, self._get_state(allobjects, viewprops))
+            libUnderworld.gLucifer.lucDatabase_WriteState(self._db, self._get_state(self._objects, viewprops))
 
         else:
             #Open db, get state and update it to match active figure
@@ -223,9 +223,6 @@ class Store(_stgermain.StgCompoundComponent):
             state["views"][0].update(viewprops)
             #Write updated visualisation state as json data
             libUnderworld.gLucifer.lucDatabase_WriteState(self._db, json.dumps(state, indent=2))
-
-        #Save the active object list
-        self._objects = allobjects
 
     def _get_state(self, objects, viewprops):
         export = dict()
