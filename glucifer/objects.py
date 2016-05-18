@@ -268,6 +268,22 @@ class Drawing(_stgermain.StgCompoundComponent):
         self.vertices.append(start)
         self.vertices.append(end)
 
+    def vector(self, position=(0.,0.,0.), vector=(0.,0.,0.)):
+        """  
+        Draws a vector
+            
+        Parameters
+        ----------
+        position : tuple
+            X,Y,Z position to centre vector on
+        vector : tuple
+            X,Y,Z vector value
+        """
+        self.geomType = _libUnderworld.gLucifer.lucVectorType
+        self.vertices.append(position)
+        self.vectors.append(vector)
+
+
     @property
     def colourBar(self):
         """    
