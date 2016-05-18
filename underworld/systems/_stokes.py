@@ -129,9 +129,11 @@ class Stokes(_stgermain.StgCompoundComponent):
         libUnderworld.StgFEM._FeVariable_CreateNewEqnNumber( self._velocityField._cself )
         self._conditions = conditions
 
-        # create solutions vectors
+        # create solutions vectors and load fevariable values onto them for best first guess
         self._velocitySol = sle.SolutionVector(velocityField)
+        libUnderworld.StgFEM.SolutionVector_LoadCurrentFeVariableValuesOntoVector( self._velocitySol._cself );
         self._pressureSol = sle.SolutionVector(pressureField)
+        libUnderworld.StgFEM.SolutionVector_LoadCurrentFeVariableValuesOntoVector( self._pressureSol._cself );
 
         # create force vectors
         self._fvector = sle.AssembledVector(velocityField)

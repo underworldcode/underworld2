@@ -710,7 +710,7 @@ void SolutionVector_LoadCurrentFeVariableValuesOntoVector( void* solutionVector 
 	Node_LocalIndex		node_lI = 0;
 	Dof_Index		dof_I = 0;
 	double			value = 0;
-	Index			insertionIndex = 0;
+	PetscInt		insertionIndex = 0;
 	
 	for ( node_lI = 0; node_lI < FeMesh_GetNodeLocalSize( feMesh ); node_lI++ ) {
 		for ( dof_I = 0; dof_I < feVar->dofLayout->dofCounts[node_lI]; dof_I++ ) {

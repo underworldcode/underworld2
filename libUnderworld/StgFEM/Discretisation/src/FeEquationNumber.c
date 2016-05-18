@@ -172,12 +172,6 @@ void _FeEquationNumber_Destroy( void* feEquationNumber, void *data ){
    FeEquationNumber* self = (FeEquationNumber*) feEquationNumber;
    Index ii;
 
-   Stg_Component_Destroy( self->feMesh   , data, False );
-   Stg_Component_Destroy( self->dofLayout, data, False );
-   if ( self->linkedDofInfo ) Stg_Component_Destroy( self->dofLayout, data, False );
-   if ( self->bcs )           Stg_Component_Destroy( self->bcs      , data, False );
-	
-   FreeArray( self->remappedNodeInfos );
    /* free destination array memory */
    Journal_DPrintfL( self->debug, 2, "Freeing I.D. Array\n" );
    FreeArray( self->destinationArray );

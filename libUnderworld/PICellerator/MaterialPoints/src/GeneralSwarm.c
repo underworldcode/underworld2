@@ -464,10 +464,14 @@ unsigned GeneralSwarm_IntegrationPointMap( void* _self, void* _intSwarm, unsigne
     Mesh*	                intMesh  = (Mesh*)intSwarm->mesh;
     SwarmMap* map = NULL;
 
-    // first, lets check if the int swarm is mirroring a general swarm
+    // first, letchecks  if the int swarm is mirroring a general swarm
     if (intSwarm->mirroredSwarm == (Swarm*)self)
     {
         // ok, it is a mirrored swarm
+        // note that here we are *assuming* that the data structures of the general swarm and
+        // the integration swarm are identical... ie, in the 12th particle in the 15th element
+        // of the general swarm is 'coincident' to the 12th particle in the 15th element of the
+        // integration swarm (for example).
         return Swarm_ParticleCellIDtoLocalID(
                                         self,
                                         CellLayout_MapElementIdToCellId( self->cellLayout, elementId ),

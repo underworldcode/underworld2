@@ -238,6 +238,7 @@ void _FeVariable_Init(
 
 void _FeVariable_CreateNewEqnNumber( void* variable ) {
     FeVariable* self = (FeVariable*)variable;
+    Stg_Component_Destroy( self->eqNum, NULL, NULL );
     Stg_Class_Delete( self->eqNum );
     self->eqNum = FeEquationNumber_New(
         defaultFeVariableFeEquationNumberName,

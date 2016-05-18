@@ -126,6 +126,7 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
 
         # create solutions vector
         self._solutionVector = sle.SolutionVector(temperatureField)
+        libUnderworld.StgFEM.SolutionVector_LoadCurrentFeVariableValuesOntoVector( self._solutionVector._cself )
 
         # create force vectors
         self._fvector = sle.AssembledVector(temperatureField)
@@ -159,13 +160,8 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
         super(SteadyStateHeat, self).__init__(**kwargs)
 
     def _setup(self):
-#        uw.libUnderworld.StgFEM.SystemLinearEquations_AddStiffnessMatrix( self._cself, self._kmatrix._cself );
         uw.libUnderworld.StGermain.Stg_ObjectList_Append( self._cself.stiffnessMatrices, self._kmatrix._cself )
-
-#        uw.libUnderworld.StgFEM.SystemLinearEquations_AddForceVector( self._cself, self._fvector._cself );
         uw.libUnderworld.StGermain.Stg_ObjectList_Append( self._cself.forceVectors, self._fvector._cself )
-
-#        uw.libUnderworld.StgFEM.SystemLinearEquations_AddSolutionVector( self._cself, self._solutionVector._cself );
         uw.libUnderworld.StGermain.Stg_ObjectList_Append( self._cself.solutionVectors, self._solutionVector._cself )
 
 

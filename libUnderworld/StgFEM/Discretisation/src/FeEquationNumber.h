@@ -76,8 +76,6 @@
 		LinkedDofInfo*				linkedDofInfo; \
 		/** BCs applied to this mesh */ \
 		VariableCondition*		bcs; \
-		/** (possibly remapped for efficiency) table of domain&global node indexes */ \
-		RemappedNodeInfo*			remappedNodeInfos; \
 		/** map of (domain node, nodeLocalDof) -> global eq num */ \
 		Dof_EquationNumber**		destinationArray; \
 		/** Used to calculate globalSumUnconstrainedDofs */ \

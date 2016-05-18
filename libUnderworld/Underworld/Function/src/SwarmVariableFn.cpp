@@ -79,7 +79,7 @@ Fn::SwarmVariableFn::func Fn::SwarmVariableFn::getFunction( IOsptr sample_input 
         
         // return the lambda
         return [_output, swarmvar](IOsptr input)->IOsptr {
-            std::shared_ptr<const FEMCoordinate>      meshCoord = debug_dynamic_cast<const FEMCoordinate>(input);
+            std::shared_ptr<const FEMCoordinate>            meshCoord = debug_dynamic_cast<const FEMCoordinate>(input);
             std::shared_ptr<const ParticleInCellCoordinate> partCoord = debug_dynamic_cast<const ParticleInCellCoordinate>(meshCoord->localCoord());
             
             IntegrationPointsSwarm* intSwarm = (IntegrationPointsSwarm*)((SwarmVariable*)partCoord->object())->swarm;
