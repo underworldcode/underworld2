@@ -51,8 +51,8 @@ void _CoincidentMapper_AssignFromXML( void* mapper, Stg_ComponentFactory* cf, vo
 	self->integrationSwarm = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)IntegrationPointsSwarm_Type, IntegrationPointsSwarm, True, data  );
     self->materialSwarm    = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)GeneralSwarm_Type, GeneralSwarm, True, data  );
     
-    self->integrationSwarm->mirroredSwarm = self->materialSwarm;
-    self->materialSwarm->mirroredSwarm    = self->integrationSwarm;
+    self->integrationSwarm->mirroredSwarm = (Swarm*) self->materialSwarm;
+    self->materialSwarm->mirroredSwarm    = (Swarm*) self->integrationSwarm;
 }
 
 void _CoincidentMapper_Delete( void* mapper ) {
