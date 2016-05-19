@@ -360,3 +360,65 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         # allgather the number of particles each proc has
         procCount = comm.allgather(self.particleLocalCount)
         return sum(procCount)
+
+
+    def _globalParticleCoordinates(self):
+        """
+        Prototype method for returning all swarm particle locations.
+
+        This is only meant for 'tracer swarms' with small numbers of particles.
+
+        Results are returned as numpy array. Order may not preserved in all cases (work in progress).
+
+	This method must be called collectively by all processes, but only processor 0 will 
+        return the complete array.
+
+        Parameters
+        ----------
+        inputData: swarm object.
+
+        Returns
+        -------
+        ndarray: array of results of same length as the number of swarm particles. The array length 
+                 should match with swarm.particleGlobalCount
+        """
+        from mpi4py import MPI
+        import numpy as np
+        comm = MPI.COMM_WORLD
+        rank = comm.Get_rank()
+        nprocs = comm.Get_size()	
+
+        if(nprocs==1): # single processor
+            total_output = self.particleCoordinates.data
+            return total_output
+        else: # using function in parallel
+            # find size of particle coordinate data
+            swarmLen = np.shape(self.particleCoordinates.data)[0]
+            swarmDim = np.shape(self.particleCoordinates.data)[1]
+            if(swarmLen>0): # particles found on this processor
+                local_output = self.particleCoordinates.data
+            else:  # no particles found on this processor
+                local_output = None
+
+            total_output = None
+            if(rank!=0):
+                # send count
+                comm.send(swarmLen, dest=0, tag=0)
+                if swarmLen:
+                    # next send position array
+                    comm.send(local_output, dest=0, tag=1)
+            else: # rank=0
+                total_output = local_output
+                # collect particle data from processors in order - should (?) preserve indices. (pop control?)
+                for iProc in range(1,nprocs):
+                    incoming_count = comm.recv(source=iProc, tag=0)
+                    if incoming_count:
+                        incoming_data = comm.recv(source=iProc, tag=1)
+                        if not isinstance(total_output, np.ndarray):
+                            total_output =  incoming_data
+                        else:
+                            total_output = np.concatenate((total_output, incoming_data), axis=0)
+
+            return total_output
+
+
