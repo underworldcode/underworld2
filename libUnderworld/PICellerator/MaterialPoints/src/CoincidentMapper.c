@@ -88,26 +88,16 @@ void _CoincidentMapper_Map( void* mapper ) {
 	integrationSwarm->particleLocalCount = materialSwarm->particleLocalCount;
 	Swarm_Realloc( integrationSwarm );
 
-	for( cell_dI = 0; cell_dI < integrationSwarm->cellDomainCount; cell_dI++ ) {
+	for( cell_dI = 0; cell_dI < integrationSwarm->cellDomainCount; cell_dI++ )
 		integrationSwarm->cellParticleCountTbl[cell_dI] = 0;
-		integrationSwarm->cellParticleSizeTbl[cell_dI] = 0;
-
-		if ( integrationSwarm->cellParticleTbl[cell_dI] ) {
-			Memory_Free( integrationSwarm->cellParticleTbl[cell_dI] );
-		}
-		integrationSwarm->cellParticleTbl[cell_dI] = NULL;
-	}
 
 	/* Map each point */
-    particle_lI = 0;
 	for( cell_dI = 0; cell_dI < materialSwarm->cellDomainCount; cell_dI++ ) {
         for ( particle_cI = 0; particle_cI < materialSwarm->cellParticleCountTbl[cell_dI]; particle_cI++ ) {
-            materialPoint = (GlobalParticle*) Swarm_ParticleInCellAt( materialSwarm, cell_dI, particle_cI );
-            integrationPoint = (IntegrationPoint*)Swarm_ParticleAt( integrationSwarm, particle_lI );
+            particle_lI      = Swarm_ParticleCellIDtoLocalID( materialSwarm, cell_dI, particle_cI );
 
-            Journal_Firewall( cell_dI<materialSwarm->cellDomainCount, NULL,
-                "Error - in %s(): particle %u appears to be outside the domain.",
-                __func__, particle_lI );
+            materialPoint    =   (GlobalParticle*) Swarm_ParticleAt(    materialSwarm, particle_lI );
+            integrationPoint = (IntegrationPoint*) Swarm_ParticleAt( integrationSwarm, particle_lI );
 
             Swarm_AddParticleToCell( integrationSwarm, cell_dI, particle_lI );
 
@@ -137,7 +127,6 @@ void _CoincidentMapper_Map( void* mapper ) {
                     integrationPoint->xi[0], integrationPoint->xi[1], integrationPoint->xi[2] );
             }
 #endif
-            particle_lI++;
         }
     }
 }
