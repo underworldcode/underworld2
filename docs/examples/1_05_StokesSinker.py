@@ -25,6 +25,7 @@ import underworld as uw
 import math
 from underworld import function as fn
 import glucifer
+from mpi4py import MPI
 
 
 # Setup parameters
@@ -110,30 +111,11 @@ swarmLayout = uw.swarm.layouts.GlobalSpaceFillerLayout( swarm=swarm, particlesPe
 swarm.populate_using_layout( layout=swarmLayout )
 
 
-# **Create a tracer swarm**
-# 
-# Add a ``tracer swarm`` which consists of a single particle placed somewhere in the flow which we would like to track over time. In this case the centre of the dropping sphere. This allows us to plot the motion of the sphere over time.
-
-# In[7]:
-
-# Setup a new swarm.
-tracerSwarm = uw.swarm.Swarm( mesh=mesh )
-
-# Setup an array containing the position data from the centre of the sphere.
-particleCoordinates = np.zeros((1,2))     # 1 is for the number of particles,
-                                          # 2 for the number of dimensions for the position.
-# Copy position data for the sphere into the newly created array
-particleCoordinates[0] = sphereCentre     
-
-# Use this array to add particles to the new swarm.
-tracerSwarm.add_particles_with_coordinates(particleCoordinates)
-
-
 # **Define a shape**
 # 
 # Define a python function that mathematically describes a shape, in this case a circle offset to the centre of the sinker. Note that this returns an underworld function, which can be used in the branching condition function below.
 
-# In[8]:
+# In[7]:
 
 def inCircleFnGenerator(centre, radius):
     coord = fn.input()
@@ -145,7 +127,7 @@ def inCircleFnGenerator(centre, radius):
 # 
 # Use the location of each particle (stored in the 2 dimensional vector called ``coord``) to set the material type. In this case the circle function defined above will return ``True`` when the ``coord`` is within the circular sinker and ``False`` otherwise. The branching conditional function will then set the ``materialIndex`` data value for that particle to equal the ``materialHeavyIndex`` if it is inside the sinker, or the ``materialLightIndex`` otherwise.
 
-# In[9]:
+# In[8]:
 
 # Let's initialise the 'materialVariable' data to represent two different materials. 
 materialLightIndex = 0
@@ -171,11 +153,48 @@ materialIndex.data[:] = fn.branching.conditional( conditions ).evaluate(swarm)
 # 
 # This function first evaluates the first condition function (conditionFunction1), and if it evaluates to True, it returns the results obtained by executing the corresponding action function (actionFunction1). If it is not True then the next conditional function is tested and so on. If no condition functions return True, then the branching function will return an error. To avoid this, the last condition function may be set to True and the final action function serves the purpose of ``everything else``, for example a default background material index as in this case.
 
+# **Define minimum y coordinate function**
+# 
+# Define a function that finds the minimum y coordinate value for the sinker particles. This function uses ``mpi4py`` commands to allow the model to run in parallel and return the correct minimum value to processor 0.
+
+# In[9]:
+
+def GetSwarmYMin():
+    comm = MPI.COMM_WORLD
+    rank = comm.Get_rank()
+    nprocs = comm.Get_size()
+    ymax = 1.0
+    conditions = [ ( materialIndex > materialLightIndex , swarm.particleCoordinates ),
+                   ( True                               , (0.0, ymax) ) ]
+    positions = fn.branching.conditional( conditions ).evaluate(swarm)
+    try: # in case there are no swarm particles on this processor
+        ymin = np.min(positions[:,1])
+    except:
+        ymin = ymax
+    if(rank!=0):
+        # send min to proc0
+        comm.send(ymin, dest=0, tag=0)
+    else:
+        for iProc in range(1,nprocs):
+            ytemp = comm.recv(source=iProc, tag=0)
+            ymin = np.min((ymin, ytemp))
+    return ymin # only proc0 will have correct value in parallel runs
+
+
+# **Test minimum y coordinate function**
+
+# In[10]:
+
+ymin = GetSwarmYMin()
+if(uw.rank()==0):
+    print('Minimum y value for sinker = {0:.3e}'.format(ymin))
+
+
 # **Plot the particles by material**
 # 
 # Plot the initial positions of all swarm particles coloured by their material indices.
 
-# In[10]:
+# In[11]:
 
 fig1 = glucifer.Figure( figsize=(800,400) )
 fig1.append( glucifer.objects.Points(swarm, materialIndex, colourBar=False, pointSize=2.0) )
@@ -191,7 +210,7 @@ fig1.show()
 # 
 # The same approach is taken when setting up the density function for each particle in the swarm.
 
-# In[11]:
+# In[12]:
 
 # Set constants for the viscosity and density of the sinker.
 viscSphere = 10.0
@@ -216,7 +235,7 @@ buoyancyFn = -densityFn * z_hat
 # 
 # **Setup a Stokes system**
 
-# In[12]:
+# In[13]:
 
 stokesPIC = uw.systems.Stokes( velocityField = velocityField, 
                                pressureField = pressureField,
@@ -231,10 +250,9 @@ solver = uw.systems.Solver( stokesPIC )
 # 
 # Note that we need to set up two advector systems, one for each particle swarm (our global swarm and the tracer particle).
 
-# In[13]:
+# In[14]:
 
 advector  = uw.systems.SwarmAdvector( swarm=swarm,       velocityField=velocityField, order=2 )
-advector2 = uw.systems.SwarmAdvector( swarm=tracerSwarm, velocityField=velocityField, order=2 )
 
 
 # Analysis tools
@@ -244,7 +262,7 @@ advector2 = uw.systems.SwarmAdvector( swarm=tracerSwarm, velocityField=velocityF
 # 
 # Set up integrals used to calculate the RMS velocity.
 
-# In[14]:
+# In[15]:
 
 vdotv = fn.math.dot( velocityField, velocityField )
 v2sum_integral  = uw.utils.Integral( mesh=mesh, fn=vdotv )
@@ -258,30 +276,28 @@ volume_integral = uw.utils.Integral( mesh=mesh, fn=1. )
 # 
 # Note that there are two ``advector.integrate`` steps, one for each swarm, that need to be done each time step.
 
-# In[15]:
+# In[16]:
 
 # Stepping. Initialise time and timestep.
 time = 0.
 step = 0
 nsteps = 10
 if(uw.rank()==0):
-    tTracer = np.zeros(nsteps)
-    xTracer = np.zeros(nsteps)
-    yTracer = np.zeros(nsteps)
+    tSinker = np.zeros(nsteps)
+    ySinker = np.zeros(nsteps)
 # Perform 10 steps
 while step<nsteps:
     # Calculate and store/output at the start of each step (before solvers)
 
     # Determine and store tracer location.
-    positions = tracerSwarm._globalParticleCoordinates() # this will be None for uw.rank()!=0
+    ymin = GetSwarmYMin()
     # Calculate the RMS velocity
     vrms = math.sqrt( v2sum_integral.evaluate()[0] / volume_integral.evaluate()[0] )
     if(uw.rank()==0):
-        xTracer[step] = positions[0][0]
-        yTracer[step] = positions[0][1]
-        tTracer[step] = time
+        ySinker[step] = ymin
+        tSinker[step] = time
         print('step = {0:6d}; time = {1:.3e}; v_rms = {2:.3e}; height = {3:.3e}'
-              .format(step,time,vrms,yTracer[step]))
+              .format(step,time,vrms,ymin))
     
     # Get solution for initial configuration.
     solver.solve()
@@ -289,7 +305,6 @@ while step<nsteps:
     dt = advector.get_max_dt()
     # Advect using this timestep size.
     advector.integrate(dt)
-    advector2.integrate(dt)
     # Increment
     time += dt
     step += 1
@@ -302,20 +317,22 @@ while step<nsteps:
 # 
 # Plot the vertical component of the tracer particle's position as a function of time.
 
-# In[16]:
+# In[17]:
 
 if(uw.rank()==0):
-    print('Initial position: ({0:.3f}, {1:.3f})'.format(xTracer[0], yTracer[0]))
-    print('Final position:   ({0:.3f}, {1:.3f})'.format(xTracer[nsteps-1], yTracer[nsteps-1]))
+    print('Initial position: t = {0:.3f}, y = {1:.3f}'.format(tSinker[0], ySinker[0]))
+    print('Final position:   t = {0:.3f}, y = {1:.3f}'.format(tSinker[nsteps-1], ySinker[nsteps-1]))
 
-    #pylab.rcParams[ 'figure.figsize'] = 14, 6
-    #pyplot.plot(tTracer, yTracer)
-    #pyplot.show()
+    pylab.rcParams[ 'figure.figsize'] = 8, 6
+    pyplot.plot(tSinker, ySinker)
+    pyplot.xlabel('Time')
+    pyplot.ylabel('Height of bottom of sinker')
+    pyplot.savefig('SinkerYvsT.png')
 
 
 # **Plot the final particle positions**
 
-# In[17]:
+# In[18]:
 
 fig1.show()
 
@@ -324,7 +341,7 @@ fig1.show()
 # 
 # Plot the velocity field in the fluid induced by the motion of the sinking ball.
 
-# In[18]:
+# In[19]:
 
 velplotmax=0.02
 fig3 = glucifer.Figure( figsize=(800,400) )
@@ -332,25 +349,4 @@ velmagfield = uw.function.math.sqrt( uw.function.math.dot(velocityField,velocity
 fig3.append( glucifer.objects.VectorArrows(mesh, velocityField/(1.5*velplotmax), arrowHead=0.2, scaling=0.15) )
 fig3.append( glucifer.objects.Surface(mesh, velmagfield) )
 fig3.show()
-
-
-# **Reading swarm data**
-# 
-# Examine the spatial coordinate data for the tracer swarm particle at the current time step.
-
-# In[19]:
-
-positions = tracerSwarm._globalParticleCoordinates()  # all processors must call this function
-if(uw.rank()==0):  # only output using rank=0 processor
-    print(positions)
-
-
-# **Check for the size of the swarm position array**
-
-# In[20]:
-
-positions = swarm._globalParticleCoordinates()
-globalCount = swarm.particleGlobalCount
-if(uw.rank()==0):
-    print(len(positions), globalCount)
 
