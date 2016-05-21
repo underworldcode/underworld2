@@ -125,17 +125,15 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
         self._fvector = sle.AssembledVector(meshVariable)
 
 
-        # create swarm
-        self._gaussSwarm = uw.swarm.GaussIntegrationSwarm(self._meshVariable.mesh)
-        self._PICSwarm = None
-
-        # This seems problematic but if we don't allow splits, this fails badly
+        # we will use voronoi if that has been requested by the user, else use
+        # gauss integration.
         if self._swarm:
-            self._PICSwarm = uw.swarm.VoronoiIntegrationSwarm(self._swarm ) #  maxSplits=0, maxDeletions=0
-
-        swarmguy = self._PICSwarm
-        if not swarmguy:
-            swarmguy = self._gaussSwarm
+            intswarm = self._swarm._voronoi_swarm
+            # need to ensure voronoi is populated now, as assembly terms will call
+            # initial test functions which may require a valid voronoi swarm
+            self._swarm._voronoi_swarm.repopulate()
+        else:
+            intswarm = uw.swarm.GaussIntegrationSwarm(mesh)
 
         # determine the required geometry mesh.  for submesh, use the parent mesh.
         geometryMesh = self._meshVariable.mesh
@@ -144,7 +142,7 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
 
         self._fn = _fn
 
-        self._forceVecTerm = sle.VectorAssemblyTerm_NA__Fn(   integrationSwarm=swarmguy,
+        self._forceVecTerm = sle.VectorAssemblyTerm_NA__Fn(   integrationSwarm=intswarm,
                                                               assembledObject=self._fvector,
                                                               fn=_fn,
                                                               mesh=geometryMesh )
@@ -163,7 +161,7 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
             # and matrices
             self._kmatrix = sle.AssembledMatrix( meshVariable, meshVariable, rhs=self._fvector )
             # matrix term
-            self._kMatTerm = sle.MatrixAssemblyTerm_NA__NB__Fn(  integrationSwarm=swarmguy,
+            self._kMatTerm = sle.MatrixAssemblyTerm_NA__NB__Fn(  integrationSwarm=intswarm,
                                                                  assembledObject=self._kmatrix,
                                                                  fn = 1.0,
                                                                  mesh=geometryMesh )
@@ -189,8 +187,8 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
         Solve the projection for the current state of the provided function.
         """
         # first assemble \int{Fn.N}
-        if self._PICSwarm:
-            self._PICSwarm.repopulate()
+        if self._swarm:
+            self._swarm._voronoi_swarm.repopulate()
         libUnderworld.StgFEM.ForceVector_Zero( self._fvector._cself )
         libUnderworld.StgFEM.ForceVector_GlobalAssembly_General( self._fvector._cself )
         libUnderworld.StgFEM.SolutionVector_UpdateSolutionOntoNodes( self._fvector._cself );

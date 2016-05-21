@@ -134,15 +134,16 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
         # and matrices
         self._kmatrix = sle.AssembledMatrix( temperatureField, temperatureField, rhs=self._fvector )
 
-        # initialise swarms
-        self._gaussSwarm = uw.swarm.GaussIntegrationSwarm(mesh)
-        self._PICSwarm = None
-        intswarm = self._gaussSwarm
-
-        # if user provided a swarm we create a PIC swarm that maps to it
+        # we will use voronoi if that has been requested by the user, else use
+        # gauss integration.
         if self._swarm:
-            self._PICSwarm = uw.swarm.VoronoiIntegrationSwarm(self._swarm)
-            intswarm = self._PICSwarm
+            intswarm = self._swarm._voronoi_swarm
+            # need to ensure voronoi is populated now, as assembly terms will call
+            # initial test functions which may require a valid voronoi swarm
+            self._swarm._voronoi_swarm.repopulate()
+        else:
+            intswarm = uw.swarm.GaussIntegrationSwarm(mesh)
+
 
         self._kMatTerm = sle.MatrixAssemblyTerm_NA_i__NB_i__Fn(  integrationSwarm=intswarm,
                                                                  assembledObject=self._kmatrix,
@@ -164,20 +165,9 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
         uw.libUnderworld.StGermain.Stg_ObjectList_Append( self._cself.forceVectors, self._fvector._cself )
         uw.libUnderworld.StGermain.Stg_ObjectList_Append( self._cself.solutionVectors, self._solutionVector._cself )
 
-
-
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method
         super(SteadyStateHeat,self)._add_to_stg_dict(componentDictionary)
-
-    def solve(self, *args, **kwargs):
-        """ deprecated method
-        """
-        raise RuntimeError("This method is now deprecated. You now need to explicitly\n"\
-                           "create a solver, and then solve it:\n\n"\
-                           "    solver = uw.system.Solver(heatSystemObject)\n"\
-                           "    solver.solve() \n\n"\
-                           "but note that you only need to create the solver once.")
 
     @property
     def fn_diffusivity(self):

@@ -37,18 +37,10 @@ WeightsCalculator* _WeightsCalculator_New(  WEIGHTSCALCULATOR_DEFARGS  ) {
     /* General info */
 
     /* Virtual Info */
-    self->_calculate = _calculate;
+    self->_calculate      = _calculate;
 
     return self;
 }
-
-void _WeightsCalculator_Init( void* weightsCalculator, int dim ) {
-    WeightsCalculator* self = (WeightsCalculator*)weightsCalculator;
-
-    self->dim = dim;
-    self->cellLocalVolume = pow( 2.0, (double) dim );
-}
-
 
 /*------------------------------------------------------------------------------------------------------------------------
 ** Virtual functions
@@ -81,18 +73,7 @@ void* _WeightsCalculator_Copy( void* weightsCalculator, void* dest, Bool deep, N
 
 
 
-void _WeightsCalculator_AssignFromXML( void* weightsCalculator, Stg_ComponentFactory* cf, void* data ) {
-    WeightsCalculator*   self          = (WeightsCalculator*) weightsCalculator;
-    Dimension_Index      dim;
-
-    //self->context = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"Context", FiniteElementContext, False, data );
-    //if( !self->context  )
-    //    self->context = Stg_ComponentFactory_ConstructByName( cf, (Name)"context", FiniteElementContext, True, data  );
-
-    dim = Stg_ComponentFactory_GetRootDictUnsignedInt( cf, (Dictionary_Entry_Key)"dim", 0  );
-
-    _WeightsCalculator_Init( self, dim );
-}
+void _WeightsCalculator_AssignFromXML( void* weightsCalculator, Stg_ComponentFactory* cf, void* data ) {}
 
 void _WeightsCalculator_Build( void* weightsCalculator, void* data ) {
 /*      WeightsCalculator*      self = (WeightsCalculator*)weightsCalculator; */

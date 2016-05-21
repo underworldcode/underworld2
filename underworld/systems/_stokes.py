@@ -61,17 +61,7 @@ class Stokes(_stgermain.StgCompoundComponent):
     _objectsDict = {  "_system" : "Stokes_SLE" }
     _selfObjectName = "_system"
 
-    def __init__(self, velocityField, pressureField, fn_viscosity=None, fn_bodyforce=None, fn_lambda=None, swarm=None, conditions=[], viscosityFn=None, bodyForceFn=None, rtolerance=None, _fn_viscosity2=None, _fn_director=None, _fn_stresshistory=None, **kwargs):
-        # DEPRECATE 1/16
-        if viscosityFn != None:
-            raise RuntimeError("Note that the 'viscosityFn' parameter has been renamed to 'fn_viscosity'.")
-        if bodyForceFn != None:
-            raise RuntimeError("Note that the 'bodyForceFn' parameter has been renamed to 'fn_bodyforce'.")
-        if rtolerance != None:
-            raise RuntimeError("Note that the 'rtolerance' parameter has been removed.\n" \
-                               "All solver functionality has been moved to underworld.systems.Solver.")
-
-
+    def __init__(self, velocityField, pressureField, fn_viscosity=None, fn_bodyforce=None, fn_lambda=None, swarm=None, conditions=[], _fn_viscosity2=None, _fn_director=None, _fn_stresshistory=None, **kwargs):
 
         if not isinstance( velocityField, uw.mesh.MeshVariable):
             raise TypeError( "Provided 'velocityField' must be of 'MeshVariable' class." )
@@ -127,13 +117,13 @@ class Stokes(_stgermain.StgCompoundComponent):
             if not isinstance( cond, uw.conditions._SystemCondition ):
                 raise TypeError( "Provided 'conditions' must be a list '_SystemCondition' objects." )
             # set the bcs on here
-            if type( cond ) == uw.conditions.DirichletCondition:
+            if isinstance(cond, uw.conditions.DirichletCondition):
                 if cond.variable == self._velocityField:
                     libUnderworld.StgFEM.FeVariable_SetBC( self._velocityField._cself, cond._cself )
                 if cond.variable == self._pressureField:
                     libUnderworld.StgFEM.FeVariable_SetBC( self._pressureField._cself, cond._cself )
                 # add all dirichlet condition to dcs
-            elif type( cond ) == uw.conditions.NeumannCondition:
+            elif isinstance(cond, uw.conditions.NeumannCondition):
                 if nbc != None:
                     RuntimeError( "Provided 'conditions' can only accept one NeumannConditions condition object.")
                 nbc=cond
@@ -162,29 +152,28 @@ class Stokes(_stgermain.StgCompoundComponent):
         if fn_lambda != None:
             self._mmatrix = sle.AssembledMatrix( pressureField, pressureField, rhs=self._hvector, allowZeroContrib=True )
 
-
-        # create swarm
-        self._gaussSwarm = uw.swarm.GaussIntegrationSwarm(self._velocityField.mesh)
-        self._PICSwarm = None
-        if self._swarm:
-            self._PICSwarm = uw.swarm.VoronoiIntegrationSwarm(self._swarm)
-            self._PICSwarm.repopulate()
-        # create assembly terms
-        self._gradStiffMatTerm = sle.GradientStiffnessMatrixTerm(   integrationSwarm=self._gaussSwarm,
+        # create assembly terms which always use gauss integration
+        gaussSwarm = uw.swarm.GaussIntegrationSwarm(self._velocityField.mesh)
+        self._gradStiffMatTerm = sle.GradientStiffnessMatrixTerm(   integrationSwarm=gaussSwarm,
           assembledObject=self._gmatrix)
-        self._preCondMatTerm   = sle.PreconditionerMatrixTerm(  integrationSwarm=self._gaussSwarm,
+        self._preCondMatTerm   = sle.PreconditionerMatrixTerm(  integrationSwarm=gaussSwarm,
                                                                 assembledObject=self._preconditioner)
 
-        swarmguy = self._PICSwarm
-        if not swarmguy:
-            swarmguy = self._gaussSwarm
+        # for the following terms, we will use voronoi if that has been requested
+        # by the user, else use gauss again.
+        intswarm = gaussSwarm
+        if self._swarm:
+            intswarm = self._swarm._voronoi_swarm
+            # need to ensure voronoi is populated now, as assembly terms will call
+            # initial test functions which may require a valid voronoi swarm
+            self._swarm._voronoi_swarm.repopulate()
 
-        self._constitMatTerm = sle.ConstitutiveMatrixTerm(  integrationSwarm = swarmguy,
+        self._constitMatTerm = sle.ConstitutiveMatrixTerm(  integrationSwarm = intswarm,
                                                             assembledObject  = self._kmatrix,
                                                             fn_visc1         = _fn_viscosity,
                                                             fn_visc2         = _fn_viscosity2,
                                                             fn_director      = _fn_director)
-        self._forceVecTerm   = sle.VectorAssemblyTerm_NA__Fn(   integrationSwarm=swarmguy,
+        self._forceVecTerm   = sle.VectorAssemblyTerm_NA__Fn(   integrationSwarm=intswarm,
                                                                 assembledObject=self._fvector,
                                                                 fn=_fn_bodyforce)
         for cond in self._conditions:
@@ -206,13 +195,13 @@ class Stokes(_stgermain.StgCompoundComponent):
                                                       [  ( fn_lambda > 1.0e-8, 1.0/fn_lambda ),
                                                          (             True,     0.        )   ] )
 
-            self._compressibleTerm = sle.MatrixAssemblyTerm_NA__NB__Fn(  integrationSwarm=swarmguy,
+            self._compressibleTerm = sle.MatrixAssemblyTerm_NA__NB__Fn(  integrationSwarm=intswarm,
                                                                          assembledObject=self._mmatrix,
                                                                          mesh=self._velocityField.mesh,
                                                                          fn=logicFn )
 
         if _fn_stresshistory != None:
-            self._vepTerm    = sle.VectorAssemblyTerm_VEP__Fn(  integrationSwarm=swarmguy,
+            self._vepTerm    = sle.VectorAssemblyTerm_VEP__Fn(  integrationSwarm=intswarm,
         		                                                assembledObject=self._fvector,
                 		                                        fn=_fn_stresshistory )
 
@@ -233,15 +222,6 @@ class Stokes(_stgermain.StgCompoundComponent):
         componentDictionary[ self._cself.name ][       "PressureVector"] = self._pressureSol._cself.name
         componentDictionary[ self._cself.name ][          "ForceVector"] = self._fvector._cself.name
         componentDictionary[ self._cself.name ]["ContinuityForceVector"] = self._hvector._cself.name
-
-    def solve(self, *args, **kwargs):
-        """ deprecated method
-        """
-        raise RuntimeError("This method is now deprecated. You now need to explicitly\n"\
-                           "create a solver, and then solve it:\n\n"\
-                           "    solver = uw.system.Solver(stokesSystemObject)\n"\
-                           "    solver.solve() \n\n"\
-                           "but note that you only need to create the solver once.")
 
     @property
     def fn_viscosity(self):

@@ -12,6 +12,7 @@ import libUnderworld
 import _swarmabstract
 import _swarmvariable as svar
 from abc import ABCMeta
+import weakref
 import underworld.function as function
 
 
@@ -64,31 +65,6 @@ class VoronoiIntegrationSwarm(IntegrationSwarm,function.FunctionInput):
     swarm : uw.swarm.Swarm
         The PIC integration swarm maps to this user provided swarm.
 
-    lowerVolumeThreshold : 0-100%, default 0.6
-        lower % threshold volume for deletion of particles.
-        i.e if a particle volume < 0.25% of total then delete it
-
-    upperVolumeThreshold : 0-100%, default 25
-        upper % threshold volume for deletion of particles.
-        i.e if a particle volume > 15% of total then split it
-
-    maxDeletions : int, defualt 3
-        maximum number of particle deletions per cell
-
-    maxSplits : int, default 3
-        maximum number of particles splits per cell
-
-    resolutionX, resolutionY, resolutionZ : int, default 15
-        The resolution of the mesh used for the discrete voronoi algorithm
-
-    shotgun : bool, default False
-        Enable shotgun-style population control, for agressive repopulation.
-        Was formerly known as the 'inflow' option.
-
-    threshold : 0.0-1.0, default 0.8
-        Threshold for cell population in an inflow problem:
-        If a cell has less than 80% of its assigned particles then we re-populate
-
     Example
     -------
     This simple example checks that the true global coordiante, and that
@@ -101,9 +77,9 @@ class VoronoiIntegrationSwarm(IntegrationSwarm,function.FunctionInput):
     >>> mesh = uw.mesh.FeMesh_Cartesian()
     >>> swarm = uw.swarm.Swarm(mesh)
     >>> swarm.populate_using_layout(uw.swarm.layouts.PerCellGaussLayout(swarm,4))
-    >>> picswarm = uw.swarm.VoronoiIntegrationSwarm(swarm)
-    >>> picswarm.repopulate()
-    >>> np.allclose(swarm.particleCoordinates.data, uw.function.input().evaluate(picswarm),atol=1e-1)
+    >>> vswarm = uw.swarm.VoronoiIntegrationSwarm(swarm)
+    >>> vswarm.repopulate()
+    >>> np.allclose(swarm.particleCoordinates.data, uw.function.input().evaluate(vswarm),atol=1e-1)
     True
 
     """
@@ -111,26 +87,13 @@ class VoronoiIntegrationSwarm(IntegrationSwarm,function.FunctionInput):
                           "_mapper" : "CoincidentMapper"
                     }
 
-    def __init__(self, swarm, resx=15,resy=15,resz=15,
-                 lowerVolumeThreshold=0.6, upperVolumeThreshold=25,
-                 maxDeletions=0, maxSplits=10,
-                 centroidPositionRatio=0.01,
-                 threshold = 0.8,
-                 particlesPerCell = 25,
-                 shotgun=False, **kwargs):
+    def __init__(self, swarm, **kwargs):
 
         if not isinstance(swarm, uw.swarm.Swarm):
             raise ValueError("Provided swarm must be of class 'Swarm'.")
-        self._mappedSwarm = swarm
-        swarm._PICSwarm = self
-
-        # note that if the mapped swarm allows particles to escape, lets by default
-        # switch inflow on.
-        self._weights = uw.swarm._weights.PCDVC(swarm, inFlow=shotgun,
-            particlesPerCell=particlesPerCell, maxDeletions=maxDeletions, maxSplits=maxSplits, resx=resx,resy=resy,resz=resz,
-            lowerVolumeThreshold=lowerVolumeThreshold, upperVolumeThreshold=upperVolumeThreshold,
-            centroidPositionRatio=centroidPositionRatio,
-            threshold=threshold)
+        
+        self._mappedSwarm = weakref.ref(swarm)  # keep weakref to avoid circular dependency
+        self._weights = uw.swarm._weights.DVC()
 
         # build parent
         super(VoronoiIntegrationSwarm,self).__init__(swarm.mesh, **kwargs)
@@ -141,32 +104,40 @@ class VoronoiIntegrationSwarm(IntegrationSwarm,function.FunctionInput):
 
         super(VoronoiIntegrationSwarm,self)._add_to_stg_dict(componentDictionary)
 
-        componentDictionary[ self._swarm.name ][      "WeightsCalculator"] = self._weights._cself.name
-
         componentDictionary[ self._cellLayout.name ][              "Mesh"] = self._mesh._cself.name
 
-        componentDictionary[ self._mapper.name ][          "GeneralSwarm"] = self._mappedSwarm._cself.name
+        componentDictionary[ self._mapper.name ][          "GeneralSwarm"] = self._mappedSwarm()._cself.name  # note _mappedSwarm is a weakref
         componentDictionary[ self._mapper.name ]["IntegrationPointsSwarm"] = self._swarm.name
 
         componentDictionary[ self._swarm.name ][             "CellLayout"] = self._cellLayout.name
         componentDictionary[ self._swarm.name ][ "IntegrationPointMapper"] = self._mapper.name
 
-    def repopulate(self):
+    def repopulate(self, weights_calculator=None):
         """
-        This method repopulates the PIC swarm using the provided
+        This method repopulates the voronoi swarm using the provided
         global swarm. The weights are also recalculated.
-        """
+        
+        weights_calculator: uw.swarm.Weights, default=Weights
+            The weights calculator for the Voronoi swarm. If none is provided,
+            a default DVCWeights calculator is used.
 
-        self._mappedSwarm._invalidatelocal2globalmap() # invalidate as population control will mess it
+        """
+        if weights_calculator is None:
+            weights_calculator = self._weights
+        
+        if not isinstance( weights_calculator, uw.swarm._weights.DVC ):
+            raise TypeError("Provided 'weights_calculator' does not appear to be of correct class.")
+
+        self._mappedSwarm()._invalidatelocal2globalmap() # invalidate as population control will mess it, also not weakref of _mappedSwarm
         libUnderworld.PICellerator._CoincidentMapper_Map( self._mapper )
-        libUnderworld.PICellerator.WeightsCalculator_CalculateAll( self._weights._cself, self._cself )
+        libUnderworld.PICellerator.WeightsCalculator_CalculateAll( weights_calculator._cself, self._cself )
         libUnderworld.PICellerator.IntegrationPointsSwarm_ClearSwarmMaps( self._cself )
 
     def _get_iterator(self):
         """
         This is the concrete method required by the FunctionInput class.
 
-        It effects using the PICSwarm as an input to functions.
+        It affects using the voronoi swarm as an input to functions.
         """
         return libUnderworld.Function.IntegrationSwarmInput(self._cself)
 
@@ -196,7 +167,7 @@ class GaussIntegrationSwarm(IntegrationSwarm):
         if particleCount == None:
             # this is fragile.....
             partCountMap = { "DQ0"  : 1,
-                             "Q1"   : 2,
+                             "Q1"   : 3,
                              "DQ1"  : 2,
                              "DPC1" : 2,
                              "Q2"   : 3  }

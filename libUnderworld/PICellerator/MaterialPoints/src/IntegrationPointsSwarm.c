@@ -13,7 +13,6 @@
 #include <StgFEM/StgFEM.h>
 
 #include <PICellerator/PopulationControl/PopulationControl.h>
-#include <PICellerator/Weights/Weights.h>
 
 #include "MaterialPoints.h"
 #include "PICelleratorContext.h"
@@ -70,34 +69,24 @@ IntegrationPointsSwarm* _IntegrationPointsSwarm_New( INTEGRATIONPOINTSSWARM_DEFA
 void _IntegrationPointsSwarm_AssignFromXML( void* integrationPoints, Stg_ComponentFactory* cf, void* data ) {
    IntegrationPointsSwarm* self = (IntegrationPointsSwarm*) integrationPoints;
    FeMesh*                 mesh;
-   WeightsCalculator*      weights;
    
    /* This will also call _Swarm_Init */
    _Swarm_AssignFromXML( self, cf, data );
 
    mesh               = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"FeMesh", FeMesh, True, data );
-   weights            = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"WeightsCalculator", WeightsCalculator, False, data );
 
-   _IntegrationPointsSwarm_Init( self, mesh, weights );
+   _IntegrationPointsSwarm_Init( self, mesh );
 }
 
 void _IntegrationPointsSwarm_Init( 
    void*                   swarm,
-   FeMesh*                 mesh, 
-   WeightsCalculator*      weights )
+   FeMesh*                 mesh )
 {
    IntegrationPointsSwarm* self = (IntegrationPointsSwarm*)swarm;
    LocalParticle           localParticle;
    IntegrationPoint        particle;
 
    self->mesh               = mesh;
-   self->weights            = weights;
-
-   /* Disable checkpointing and reloading of IP swarms - currently they can't be reloaded if the particles
-   don't have a global coord. We assume there is no history info on them which means we're happy to re-create
-   them from scratch given the position the material points were in when the checkpoint was made as input
-   -- PatrickSunter 12 June 2006 */
-   self->isSwarmTypeToCheckPointAndReload = False;
 
    self->weightVariable = Swarm_NewScalarVariable( self, (Name)"Weight", GetOffsetOfMember( particle , weight ), 
       Variable_DataType_Double );
@@ -147,9 +136,6 @@ void _IntegrationPointsSwarm_Build( void* integrationPoints, void* data ) {
    Stg_Component_Build( self->localCoordVariable, data, False );
    Stg_Component_Build( self->weightVariable, data, False );
    Stg_Component_Build( self->mesh, data, False );
-
-   if ( self->weights != NULL )
-      Stg_Component_Build( self->weights, data, False );
 }
 
 void _IntegrationPointsSwarm_Initialise( void* integrationPoints, void* data ) {
@@ -163,9 +149,6 @@ void _IntegrationPointsSwarm_Initialise( void* integrationPoints, void* data ) {
    Stg_Component_Initialise( self->localCoordVariable, data, False );
    Stg_Component_Initialise( self->weightVariable, data, False );
    Stg_Component_Initialise( self->mesh, data, False );
-
-   if ( self->weights != NULL )
-      Stg_Component_Initialise( self->weights, data, False );
 
    Stream_UnIndentBranch( Swarm_Debug );
    Journal_DPrintf( self->debug, "...done in %s() for swarm \"%s\".\n",
@@ -184,19 +167,16 @@ void _IntegrationPointsSwarm_Destroy( void* integrationPoints, void* data ) {
    Stg_Component_Destroy( self->localCoordVariable, data, False );
    Stg_Component_Destroy( self->weightVariable, data, False );
    Stg_Component_Destroy( self->mesh, data, False );
-
-   if ( self->weights != NULL )
-      Stg_Component_Destroy( self->weights, data, False );
    
    _Swarm_Destroy( self, data );
 }
 
 void _IntegrationPointsSwarm_UpdateHook( void* timeIntegrator, void* swarm ) {
-   IntegrationPointsSwarm* self = (IntegrationPointsSwarm*)swarm;
-   // whatever is calling this needs to also ensure the new mapper is working
-   // and is called.  previously it was called here.
-   assert(0);
-   WeightsCalculator_CalculateAll(self->weights, self );
+//   IntegrationPointsSwarm* self = (IntegrationPointsSwarm*)swarm;
+//   // whatever is calling this needs to also ensure the new mapper is working
+//   // and is called.  previously it was called here.
+//   assert(0);
+//   WeightsCalculator_CalculateAll(self->weights, self );
 }
 
 void IntegrationPointsSwarm_ClearSwarmMaps( void* integrationPoints ) {

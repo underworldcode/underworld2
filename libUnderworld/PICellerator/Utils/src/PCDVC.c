@@ -57,7 +57,6 @@ void PCDVC_Firewall( int nump, int lCell_I, char* funcguy )
 
 PCDVC* PCDVC_New(
 	Name						name,
-	Dimension_Index		dim,
 	int*						res,
  	GeneralSwarm*	mps,
 	double					upT,
@@ -74,7 +73,6 @@ PCDVC* PCDVC_New(
     PCDVC *self = _PCDVC_DefaultNew( name );
 
     self->isConstructed = True;
-    _WeightsCalculator_Init( self, dim );
     _DVCWeights_Init( self, res );
     _PCDVC_Init( self, mps, upT, lowT, maxDeletions, maxSplits, splitInInterfaceCells, deleteInInterfaceCells, Inflow, CentPosRatio, ParticlesPerCell, Threshold );
 
@@ -184,8 +182,6 @@ void _PCDVC_AssignFromXML( void* pcdvc, Stg_ComponentFactory* cf, void *data ) {
 
     materialPointsSwarm = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"GeneralSwarm", GeneralSwarm, True, data  );
     Stream*  stream = Journal_Register( Info_Type, (Name)materialPointsSwarm->type  );
-
-    self->dim=materialPointsSwarm->dim;
 
     stream = Journal_Register( Info_Type, (Name)materialPointsSwarm->type  );
     upT = Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"upperT", 25  );
@@ -704,16 +700,11 @@ void _PCDVC_Calculate3D( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ) {
 /* Calculate the integration weighting for each particle by contructing
    a voronoi diagram in an element in 2D*/
 void _PCDVC_Calculate2D( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ) {
-    PCDVC*             self            = (PCDVC*)  pcdvc;
-    IntegrationPointsSwarm*  intSwarm  = (IntegrationPointsSwarm*) _swarm;
-    GeneralSwarm* matSwarm =	(GeneralSwarm*) self->materialPointsSwarm;
-    /* CoincidentMapper is a special case of the one to one mapper */
-    //CoincidentMapper* mapper  = (CoincidentMapper*)(intSwarm->mapper); /* need the mapper after-all to update the material ref */
+    PCDVC*                       self      = (PCDVC*)                  pcdvc;
+    IntegrationPointsSwarm*      intSwarm  = (IntegrationPointsSwarm*) _swarm;
+    GeneralSwarm*                matSwarm  = (GeneralSwarm*)           self->materialPointsSwarm;
     Particle_InCellIndex         cParticleCount;
     IntegrationPoint**           particle;
-
-    Swarm* swarm = (Swarm*) _swarm;
-    Dimension_Index dim = swarm->dim;
 
     double dx,dy,da;
     static struct cell *cells;// the connected grid
@@ -747,16 +738,8 @@ void _PCDVC_Calculate2D( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ) {
     double Thresh = self->Threshold;
     int ParticlesPerCell = self->ParticlesPerCell;
     double CentPosRatio = self->CentPosRatio;
-    //time_t tm;
-
-
-//	SizeT                 intparticleSize     = intSwarm->particleExtensionMgr->finalSize;
-//	SizeT                 matparticleSize     = matSwarm->particleExtensionMgr->finalSize;
-
-//	Coord                   newCoord;
     Coord                   xi;
 
-//	FiniteElement_Mesh*     mesh              = (FiniteElement_Mesh*)((ElementCellLayout*)matSwarm->cellLayout)->mesh;
 
     /* end decs needed for particle control */
     /*************************************/
@@ -784,15 +767,13 @@ void _PCDVC_Calculate2D( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ) {
            a pointer inside that function */
         self->pcdvcvisited++;
         _DVCWeights_ConstructGrid2D(&cells,numy,numx,BBXMIN,BBYMIN,BBXMAX,BBYMAX);
-//	      time(&tm);
-//	      srand( (long) tm);
     }
 
 
     // init the data structures
     _DVCWeights_InitialiseStructs2D( (DVCWeights*)self, nump);
-    pList  = self->pList;
     bchain = self->bchain;
+    pList  = self->pList;
 
     _DVCWeights_ResetGrid2D(cells,numy*numx);
 
@@ -1102,21 +1083,13 @@ void _PCDVC_Calculate2D( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ) {
 
 void _PCDVC_Calculate( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ){
     Swarm* swarm = (Swarm*) _swarm;
-    Dimension_Index dim = swarm->dim;
-    /* Stream*  stream = Journal_Register( Info_Type, (Name)swarm->type ); */
-    PCDVC*             self            = (PCDVC*)  pcdvc;
+    PCDVC*  self = (PCDVC*)  pcdvc;
     /* GeneralSwarm* matSwarm =	(GeneralSwarm*) self->materialPointsSwarm; */
     /* it might be nice to report the total deletions and splits as well as the final population here */
     /* One could set the parameters to be too aggressive and cause "swarm thrashing" where many particles
        are being created and destroyed while maintaining some population that it has converged on */
 
-/*
-  if(lCell_I == 0 ){
-  Journal_Printf( stream, "\nOn Proc %d: In func %s(): for swarm \"%s\" Population is %d\n", swarm->myRank, __func__, swarm->name, swarm->particleLocalCount );
-  Journal_Printf( stream, "On Proc %d: In func %s(): for swarm \"%s\" Population is %d\n\n", matSwarm->myRank,__func__, matSwarm->name, matSwarm->particleLocalCount );
-  }
-*/
-    if(dim == 3)
+    if(swarm->dim == 3)
         _PCDVC_Calculate3D( pcdvc, _swarm, lCell_I);
     else
         _PCDVC_Calculate2D( pcdvc, _swarm, lCell_I);

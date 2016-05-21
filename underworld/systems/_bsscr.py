@@ -336,8 +336,8 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         else:
             libUnderworld.StgFEM.SystemLinearEquations_SetToNonLinear(self._stokesSLE._cself, False )
 
-        if self._stokesSLE._PICSwarm and reinitialise:
-            self._stokesSLE._PICSwarm.repopulate()
+        if self._stokesSLE._swarm and reinitialise:
+            self._stokesSLE._swarm._voronoi_swarm.repopulate()
 
         # set up objects on SLE
 
@@ -382,7 +382,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         self._mmatrix  = sle.AssembledMatrix( pressureField, pressureField, rhs=self._junkfvector )
 
         # create assembly terms
-        self._pressMassMatTerm = sle.MatrixAssemblyTerm_NA__NB__Fn( integrationSwarm=stokesSLE._gaussSwarm, fn=1.0, assembledObject=self._mmatrix,
+        self._pressMassMatTerm = sle.MatrixAssemblyTerm_NA__NB__Fn( integrationSwarm=uw.swarm.GaussIntegrationSwarm(velocityField.mesh), fn=1.0, assembledObject=self._mmatrix,
                                                              mesh = velocityField._mesh)
 
         # attach terms to live solver struct

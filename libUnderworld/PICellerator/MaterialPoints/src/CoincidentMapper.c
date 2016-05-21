@@ -92,7 +92,7 @@ void _CoincidentMapper_Map( void* mapper ) {
 		integrationSwarm->cellParticleCountTbl[cell_dI] = 0;
 
 	/* Map each point */
-	for( cell_dI = 0; cell_dI < materialSwarm->cellDomainCount; cell_dI++ ) {
+    for( cell_dI = 0; cell_dI < materialSwarm->cellDomainCount; cell_dI++ ) {
         for ( particle_cI = 0; particle_cI < materialSwarm->cellParticleCountTbl[cell_dI]; particle_cI++ ) {
             particle_lI      = Swarm_ParticleCellIDtoLocalID( materialSwarm, cell_dI, particle_cI );
 

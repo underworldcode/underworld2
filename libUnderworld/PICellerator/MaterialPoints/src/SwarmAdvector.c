@@ -338,14 +338,7 @@ void SwarmAdvector_AdvectionSetup( TimeIntegrator* timeIntegrator, SwarmAdvector
 	FeVariable_SyncShadowValues( self->velocityField );
 }
 
-void SwarmAdvector_AdvectionFinish( TimeIntegrator* timeIntegrator, SwarmAdvector* self ) {
-	#if DEBUG
-		Swarm_CheckCoordsAreFinite( self->swarm );
-	#endif
-	
-	/* Move particles across processors because they've just been advected */
-	Swarm_UpdateAllParticleOwners( self->swarm );
-}
+void SwarmAdvector_AdvectionFinish( TimeIntegrator* timeIntegrator, SwarmAdvector* self ) {}
 
 double SwarmAdvector_MaxDt( void* swarmAdvector ) {
 	SwarmAdvector*	self = (SwarmAdvector*) swarmAdvector;

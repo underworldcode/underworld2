@@ -178,7 +178,7 @@ void   _DVCWeights_Calculate3D(
 
 
 
-DVCWeights* DVCWeights_New( Name name, Dimension_Index dim, int *res ) ;
+DVCWeights* DVCWeights_New( Name name, int *res ) ;
 
 	
 	#ifndef ZERO

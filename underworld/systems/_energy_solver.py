@@ -53,8 +53,8 @@ class HeatSolver(_stgermain.StgCompoundComponent):
         else:
             libUnderworld.StgFEM.SystemLinearEquations_SetToNonLinear(self._heatSLE._cself, False )
 
-        if self._heatSLE._PICSwarm:
-            self._heatSLE._PICSwarm.repopulate()
+        if self._heatSLE._swarm:
+            self._heatSLE._swarm._voronoi_swarm.repopulate()
 
         libUnderworld.StgFEM.SystemLinearEquations_BC_Setup(self._heatSLE._cself, None)
         libUnderworld.StgFEM.SystemLinearEquations_LM_Setup(self._heatSLE._cself, None)

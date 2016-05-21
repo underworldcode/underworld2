@@ -45,11 +45,10 @@ const Type DVCWeights_Type = "DVCWeights";
 /*----------------------------------------------------------------------------------------------------------------------------------
 ** Constructors
 */
-DVCWeights* DVCWeights_New( Name name, Dimension_Index dim, int *res ) {
+DVCWeights* DVCWeights_New( Name name, int *res ) {
 	DVCWeights *self = _DVCWeights_DefaultNew( name );
 
 	self->isConstructed = True;
-	_WeightsCalculator_Init( self, dim );
 	_DVCWeights_Init( self, res );
 
 	return self;
@@ -767,6 +766,7 @@ void _DVCWeights_CreateVoronoi2D( struct chain *bchain, struct particle *pList, 
     }//while
 }
 
+
 /* Calculate the integration weighting for each particle by contructing
    a voronoi diagram in an element in 3D*/
 void _DVCWeights_Calculate3D( void* dvcWeights, void* _swarm, Cell_LocalIndex lCell_I ) {
@@ -785,7 +785,7 @@ void _DVCWeights_Calculate3D( void* dvcWeights, void* _swarm, Cell_LocalIndex lC
     double BBYMAX = 1.0;
     double BBZMIN = -1.0;
     double BBZMAX = 1.0;
-    int i,k;
+    int i;
 
     numx = self->resX;
     numy = self->resY;
@@ -845,14 +845,7 @@ void _DVCWeights_Calculate3D( void* dvcWeights, void* _swarm, Cell_LocalIndex lC
         particle[i]->weight = pList[i].w;
 
     }   
-    for(k=0;k<nump;k++){
-        free(bchain[k].new_claimed_cells);
-        free(bchain[k].new_bound_cells);
-    }
     free(particle);
-    free(bchain);
-    free(pList);
-
 }
 
 /* Calculate the integration weighting for each particle by contructing
@@ -871,7 +864,7 @@ void _DVCWeights_Calculate2D( void* dvcWeights, void* _swarm, Cell_LocalIndex lC
     double BBXMAX = 1.0;
     double BBYMIN = -1.0;
     double BBYMAX = 1.0;
-    int i,k;
+    int i;
 
     numx = self->resX;
     numy = self->resY;
@@ -928,21 +921,15 @@ void _DVCWeights_Calculate2D( void* dvcWeights, void* _swarm, Cell_LocalIndex lC
         particle[i]->weight = pList[i].w;
 
     }   
-    for(k=0;k<nump;k++){
-        free(bchain[k].new_claimed_cells);
-        free(bchain[k].new_bound_cells);
-    }
+
     free(particle);
-    free(bchain);
-    free(pList);
 
 }
 
 void _DVCWeights_Calculate( void* dvcWeights, void* _swarm, Cell_LocalIndex lCell_I ){
     Swarm* swarm = (Swarm*) _swarm;
-    Dimension_Index dim = swarm->dim;
 
-    if(dim == 3){
+    if(swarm->dim == 3){
         _DVCWeights_Calculate3D( dvcWeights, _swarm, lCell_I);
     }
     else {

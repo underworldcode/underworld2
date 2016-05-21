@@ -87,9 +87,6 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
 
     def __init__(self, mesh, particleEscape=False, **kwargs):
 
-        # if a PIC swarm is created for this guy, then it should record itself here
-        self._PICSwarm = None
-
         self.particleEscape = particleEscape
         # escape routine will be used during swarm advection, but lets also add
         # it to the mesh post deform hook so that when the mesh is deformed,
@@ -360,6 +357,19 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         # allgather the number of particles each proc has
         procCount = comm.allgather(self.particleLocalCount)
         return sum(procCount)
+
+    @property
+    def _voronoi_swarm(self):
+        """
+        This property points to an integration type swarm which mirrors the 
+        current swarm. The mirror swarms particles are coincident with the 
+        current swarms, but use local coordinates to record positions, and also
+        records particle weights.
+        """
+        if not hasattr(self, '_voronoi_swarm_private'):
+            self._voronoi_swarm_private = uw.swarm.VoronoiIntegrationSwarm(self)
+        return self._voronoi_swarm_private
+
 
 
     def _globalParticleCoordinates(self):

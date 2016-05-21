@@ -10,7 +10,6 @@ import sys as _sys
 import os as _os
 import xml.etree.cElementTree as _ET
 import libUnderworld
-import weakref
 import abc
 from collections import defaultdict
 
