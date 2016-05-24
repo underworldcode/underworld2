@@ -18,8 +18,8 @@
 # In[1]:
 
 #%matplotlib inline
-import matplotlib.pyplot as pyplot
-import matplotlib.pylab as pylab
+#import matplotlib.pyplot as pyplot
+#import matplotlib.pylab as pylab
 import numpy as np
 import underworld as uw
 import math
@@ -323,10 +323,10 @@ if(uw.rank()==0):
     print('Initial position: t = {0:.3f}, y = {1:.3f}'.format(tSinker[0], ySinker[0]))
     print('Final position:   t = {0:.3f}, y = {1:.3f}'.format(tSinker[nsteps-1], ySinker[nsteps-1]))
 
-    pylab.rcParams[ 'figure.figsize'] = 8, 6
-    pyplot.plot(tSinker, ySinker)
-    pyplot.xlabel('Time')
-    pyplot.ylabel('Height of bottom of sinker')
+    #pylab.rcParams[ 'figure.figsize'] = 8, 6
+    #pyplot.plot(tSinker, ySinker)
+    #pyplot.xlabel('Time')
+    #pyplot.ylabel('Height of bottom of sinker')
     #pyplot.show()
 
 
