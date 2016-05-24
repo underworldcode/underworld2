@@ -1,5 +1,3 @@
-Jenkins | [![Build Status] (http://128.250.120.238:9080/buildStatus/icon?job=uw2)](http://128.250.120.238:9080/job/uw2)
-
 Underworld 2
 ============
 
