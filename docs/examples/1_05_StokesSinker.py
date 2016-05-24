@@ -317,7 +317,7 @@ while step<nsteps:
 # 
 # Plot the vertical component of the tracer particle's position as a function of time.
 
-# In[17]:
+# In[21]:
 
 if(uw.rank()==0):
     print('Initial position: t = {0:.3f}, y = {1:.3f}'.format(tSinker[0], ySinker[0]))
@@ -327,7 +327,7 @@ if(uw.rank()==0):
     pyplot.plot(tSinker, ySinker)
     pyplot.xlabel('Time')
     pyplot.ylabel('Height of bottom of sinker')
-    pyplot.savefig('SinkerYvsT.png')
+    #pyplot.show()
 
 
 # **Plot the final particle positions**
