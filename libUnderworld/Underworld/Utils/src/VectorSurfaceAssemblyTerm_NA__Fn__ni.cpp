@@ -67,8 +67,8 @@ void _VectorSurfaceAssemblyTerm_NA__Fn__ni_SetFn( void* _self, Fn::Function* fn 
     FeMesh* mesh = self->forceVector->feVariable->feMesh;
     IntegrationPointsSwarm* swarm = (IntegrationPointsSwarm*)self->integrationSwarm;
     int dphi_dx_size;
-    
-    /* Work out the input size: 
+
+    /* Work out the input size:
        if scalar field, assume a gradient vector of size mesh's dim
        else assume vector field and use a correnponding 2nd order symmetric tensor size
     */
@@ -203,7 +203,7 @@ void _VectorSurfaceAssemblyTerm_NA__Fn__ni_AssembleElement( void* forceTerm, For
     // get the element's nodes
     mesh = forceVector->feVariable->feMesh;
     elementType = FeMesh_GetElementType( mesh, lElement_I );
-    FeMesh_GetElementNodes( mesh, lElement_I, self->inc ); 
+    FeMesh_GetElementNodes( mesh, lElement_I, self->inc );
 
     // test if nodes are in the boundarySet bNodes (passed in from python)
     nodesPerEl = IArray_GetSize( self->inc );
@@ -216,14 +216,14 @@ void _VectorSurfaceAssemblyTerm_NA__Fn__ni_AssembleElement( void* forceTerm, For
             break;
         }
     }
-     
-    // not a boundary element - don't calculate 
+
+    // not a boundary element - don't calculate
     if( assemble == False ) return;
 
     // set up the function input
     VectorAssemblyTerm_NA__Fn_cppdata* cppdata = (VectorAssemblyTerm_NA__Fn_cppdata*)self->cppdata;
     debug_dynamic_cast<ParticleInCellCoordinate>(cppdata->input->localCoord())->index() = lElement_I;
-    cppdata->input->index() = lElement_I;  
+    cppdata->input->index() = lElement_I;
 
     cell_I = CellLayout_MapElementIdToCellId( swarm->cellLayout, lElement_I );
     cellParticleCount = swarm->cellParticleCountTbl[ cell_I ];
@@ -249,7 +249,7 @@ void _VectorSurfaceAssemblyTerm_NA__Fn__ni_AssembleElement( void* forceTerm, For
 
         memset( fluxVector, 0, sizeof(double)*dim ); // zero the fluxVector
         if( dofsPerNode == 1 ) { // we can treat dphi_dx as a vector
-            for( ii=0; ii<dim; ii++ ) 
+            for( ii=0; ii<dim; ii++ )
                 fluxVector[0] += dphi_dx[ii]*localNormal[ii];
         } else if ( dofsPerNode == 2 || dofsPerNode == 3 ) {
             // treat dphi_dx as a symmetric tensor
@@ -258,7 +258,7 @@ void _VectorSurfaceAssemblyTerm_NA__Fn__ni_AssembleElement( void* forceTerm, For
                 for( A=0; A<dim; A++ ) {
                     // get the index of sym tensor to multiply
                     index = SymmetricTensor_TensorMap( ii, A, dim );
-                    fluxVector[ii] += dphi_dx[index] * localNormal[ii];
+                    fluxVector[ii] += dphi_dx[index] * localNormal[A];
                 }
             }
         }

@@ -18,8 +18,8 @@
 # In[1]:
 
 #%matplotlib inline
-import matplotlib.pyplot as pyplot
-import matplotlib.pylab as pylab
+#import matplotlib.pyplot as pyplot
+#import matplotlib.pylab as pylab
 import numpy as np
 import underworld as uw
 import math
@@ -155,30 +155,17 @@ materialIndex.data[:] = fn.branching.conditional( conditions ).evaluate(swarm)
 
 # **Define minimum y coordinate function**
 # 
-# Define a function that finds the minimum y coordinate value for the sinker particles. This function uses ``mpi4py`` commands to allow the model to run in parallel and return the correct minimum value to processor 0.
+# Define a function that finds the minimum y coordinate value for the sinker particles. This function uses the in-built min/max function from ``underworld`` to obtain the minimum and maximum values of the function across all processors. The minimum values from each processor are gathered by the global min function which is then returned.
 
 # In[9]:
 
 def GetSwarmYMin():
-    comm = MPI.COMM_WORLD
-    rank = comm.Get_rank()
-    nprocs = comm.Get_size()
-    ymax = 1.0
-    conditions = [ ( materialIndex > materialLightIndex , swarm.particleCoordinates ),
-                   ( True                               , (0.0, ymax) ) ]
-    positions = fn.branching.conditional( conditions ).evaluate(swarm)
-    try: # in case there are no swarm particles on this processor
-        ymin = np.min(positions[:,1])
-    except:
-        ymin = ymax
-    if(rank!=0):
-        # send min to proc0
-        comm.send(ymin, dest=0, tag=0)
-    else:
-        for iProc in range(1,nprocs):
-            ytemp = comm.recv(source=iProc, tag=0)
-            ymin = np.min((ymin, ytemp))
-    return ymin # only proc0 will have correct value in parallel runs
+    fn_lowest_point_of_blob = fn.view.min_max(  fn.branching.map( fn_key=materialIndex, 
+                                             mapping={materialHeavyIndex:fn.coord()[1], materialLightIndex:1.99} ) )
+    fn_lowest_point_of_blob.reset()
+    fn_lowest_point_of_blob.evaluate(swarm)
+    min_global = fn_lowest_point_of_blob.min_global()
+    return min_global
 
 
 # **Test minimum y coordinate function**
@@ -323,11 +310,11 @@ if(uw.rank()==0):
     print('Initial position: t = {0:.3f}, y = {1:.3f}'.format(tSinker[0], ySinker[0]))
     print('Final position:   t = {0:.3f}, y = {1:.3f}'.format(tSinker[nsteps-1], ySinker[nsteps-1]))
 
-    pylab.rcParams[ 'figure.figsize'] = 8, 6
-    pyplot.plot(tSinker, ySinker)
-    pyplot.xlabel('Time')
-    pyplot.ylabel('Height of bottom of sinker')
-    pyplot.savefig('SinkerYvsT.png')
+    #pylab.rcParams[ 'figure.figsize'] = 8, 6
+    #pyplot.plot(tSinker, ySinker)
+    #pyplot.xlabel('Time')
+    #pyplot.ylabel('Height of bottom of sinker')
+    #pyplot.show()
 
 
 # **Plot the final particle positions**

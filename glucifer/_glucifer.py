@@ -56,6 +56,8 @@ class Store(_stgermain.StgCompoundComponent):
         Filename to use for a disk database, default is in memory only unless saved.
     properties: str, default=None
         Global properties to set on all figures stored.
+    view: bool, default=False
+        Set to true and pass filename if loading a saved database for revisualisation
             
     Example
     -------
@@ -81,15 +83,18 @@ class Store(_stgermain.StgCompoundComponent):
     _objectsDict = { "_db":"lucDatabase" }
     _selfObjectName = "_db"
 
-    def __init__(self, filename=None, properties=None, **kwargs):
+    def __init__(self, filename=None, properties=None, view=False, **kwargs):
 
         self.step = 0
+        if filename and not filename.lower().endswith('.gldb') and not filename.lower().endswith('.db'):
+            filename += '.gldb'
         self.filename = filename
         self._objects = []
         self.viewonly = False
 
         #Open an existing db?
-        if filename and os.path.isfile(filename):
+        if view and filename and os.path.isfile(filename):
+            print filename + " exists, loaded in view only mode"
             self.viewonly = True
 
         #Setup default properties
@@ -144,17 +149,22 @@ class Store(_stgermain.StgCompoundComponent):
             if not filename.lower().endswith('.gldb') and not filename.lower().endswith('.db'):
                 filename += '.gldb'
             libUnderworld.gLucifer.lucDatabase_BackupDbFile(self._db, filename)
+            return filename
 
     def _generate(self, objects, viewprops):
         #First merge object list with active
         for obj in objects:
+            #Add nested colourbar objects
+            if obj._colourBar:
+                objects.append(obj._colourBar)
+                obj._colourBar.parent = obj #Save parent ref
+
+            #Set default parent flag
             obj.parent = None
+
+            #Add to stored object list if not present
             if obj not in self._objects:
                 self._objects.append(obj)
-            #Add nested colourbar objects
-            if obj._colourBar and obj._colourBar not in self._objects:
-                self._objects.append(obj._colourBar)
-                obj._colourBar.parent = obj #Save parent ref
 
         #Set default names on objects where omitted by user
         #Needs to be updated every time as indices may have changed
@@ -177,19 +187,19 @@ class Store(_stgermain.StgCompoundComponent):
                 libUnderworld.StGermain._Stg_ObjectList_RemoveByIndex(self._db.drawingObject_Register.objects,ii-1, libUnderworld.StGermain.KEEP)
 
             #Add drawing objects to register and output any custom data on them
-            for object in self._objects:
+            for obj in self._objects:
                 #Hide objects not in this figure (also check parent for colour bars)
-                object._properties["visible"] = object in objects or obj.parent in objects
+                obj._properties["visible"] = bool(obj in objects or obj.parent and obj.parent in objects)
 
                 #Add the object to the drawing object register for the database
-                libUnderworld.StGermain.Stg_ObjectList_Append(self._db.drawingObject_Register.objects,object._cself)
+                libUnderworld.StGermain.Stg_ObjectList_Append(self._db.drawingObject_Register.objects,obj._cself)
 
             # go ahead and fill db
             libUnderworld.gLucifer._lucDatabase_Execute(self._db,None)
 
             #Output any custom geometry on objects
-            for object in self._objects:
-                self._plotObject(object)
+            for obj in self._objects:
+                self._plotObject(obj)
 
             #Write visualisation state as json data
             libUnderworld.gLucifer.lucDatabase_WriteState(self._db, self._get_state(self._objects, viewprops))
@@ -206,13 +216,14 @@ class Store(_stgermain.StgCompoundComponent):
             if len(objects):
                 #For each obj in db, lookup in local list by name, replace properties if found
                 #if not found locally, objects in db are hidden from view
-                for obj in state["objects"]:
-                    obj["visible"] = False
-                    for object in objects:
-                        if obj["name"] == object._properties["name"]:
+                for dbobj in state["objects"]:
+                    dbobj["visible"] = False
+                    for obj in objects:
+                        if obj.parent: print dbobj["name"] + " =P= " + obj.parent._properties["name"]
+                        if dbobj["name"] == obj._properties["name"]:
                             #Merge/replace
-                            obj.update(object._properties)
-                            obj["visible"] = True
+                            dbobj.update(obj._properties)
+                            dbobj["visible"] = True
             else:
                 #No objects passed in with figure, simply plot them all
                 for obj in state["objects"]:
@@ -472,10 +483,12 @@ class Figure():
 
         """
 
+        self._generate_DB()
+        if uw.rank() > 0:
+            return
         try:
-            from IPython.display import Image,HTML
-            self._generate_DB()
-            if uw.rank() == 0:
+            if __IPYTHON__:
+                from IPython.display import Image,HTML
                 if type.lower() == "webgl":
                     return self._generate_HTML()
                 else:
@@ -483,6 +496,14 @@ class Figure():
                     filename = self._generate_image()
                     from IPython.display import Image,HTML
                     return HTML("<img src='%s'>" % filename)
+        except NameError:
+            #Not in IPython, call default image save routine
+            args = [self.db._lvbin, self.db._db.path, 
+                    "-" + str(self.db.step), "-p0", "-z" + str(self.quality), 
+                    "-I", "-x" + str(self._figsize[0]) + "," + str(self._figsize[1])]
+            lavavu.execute(args)
+            lavavu.clear() #Close and free memory
+            pass
         except ImportError:
             pass
         except RuntimeError, e:
