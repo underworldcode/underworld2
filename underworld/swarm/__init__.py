@@ -15,4 +15,5 @@ from _swarm import Swarm
 import _weights
 from _integration_swarm import IntegrationSwarm, VoronoiIntegrationSwarm, GaussIntegrationSwarm, GaussBorderIntegrationSwarm
 from _swarmvariable import SwarmVariable
+from _population_control import PopulationControl
 import layouts

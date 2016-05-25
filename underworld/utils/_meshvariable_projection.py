@@ -133,7 +133,7 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
             # initial test functions which may require a valid voronoi swarm
             self._swarm._voronoi_swarm.repopulate()
         else:
-            intswarm = uw.swarm.GaussIntegrationSwarm(mesh)
+            intswarm = uw.swarm.GaussIntegrationSwarm(self._meshVariable.mesh)
 
         # determine the required geometry mesh.  for submesh, use the parent mesh.
         geometryMesh = self._meshVariable.mesh

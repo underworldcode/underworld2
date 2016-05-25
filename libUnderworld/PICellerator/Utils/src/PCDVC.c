@@ -447,14 +447,15 @@ void _PCDVC_Calculate3D( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ) {
     int *count; // count of how many cells each particle owns in the Voronoi diagram.
     int flag =0;
     double FEMCEllspan = BBXMAX - BBXMIN;
-    double dist;
-    if(Inflow){
-        for(i=0;i<nump_orig;i++){
-            dist = (pList[i].cx - pList[i].x)*(pList[i].cx - pList[i].x) + (pList[i].cy - pList[i].y)*(pList[i].cy - pList[i].y) + (pList[i].cz - pList[i].z)*(pList[i].cz - pList[i].z);
-        }
-        if(dist > CentPosRatio*FEMCEllspan){flag = 1;}
-
-    }
+    /* LOGIC HERE IS BOGUS.  NEED TO HAVE A CLOSER LOOK. DISABLE FOR NOW */
+//    double dist;
+//    if(Inflow){
+//        for(i=0;i<nump_orig;i++){
+//            dist = (pList[i].cx - pList[i].x)*(pList[i].cx - pList[i].x) + (pList[i].cy - pList[i].y)*(pList[i].cy - pList[i].y) + (pList[i].cz - pList[i].z)*(pList[i].cz - pList[i].z);
+//        }
+//        if(dist > CentPosRatio*FEMCEllspan){flag = 1;}
+//
+//    }
     if(Inflow && (  ((1.0*nump_orig)/ParticlesPerCell < Thresh) || flag  ) ){
         int oneOda = (int)(1.0/da + 0.5);
         int *VCsize=(int *)malloc(sizeof(int)*nump);
@@ -600,7 +601,7 @@ void _PCDVC_Calculate3D( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ) {
     /* sort the deleteList by indexOnCPU so we can delete the list in reverse order */
     qsort(deleteList, (deleteCount), sizeof(struct deleteParticle),compare_indexOnCPU);
 
-    if(maxDeletions > nump-4){ maxDeletions = nump/2;}
+//    if(maxDeletions > nump-4){ maxDeletions = nump/2;}
 
     /* we now have our lists of particles to delete and split */
     Count = maxSplits > splitCount ? splitCount : maxSplits;
@@ -827,14 +828,15 @@ void _PCDVC_Calculate2D( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ) {
     int *count; // count of how many cells each particle owns in the Voronoi diagram.
     int flag =0;
     double FEMCEllspan = BBXMAX - BBXMIN;
-    double dist;
-    if(Inflow){
-        for(i=0;i<nump_orig;i++){
-            dist = (pList[i].x-pList[i].cx)*(pList[i].x-pList[i].cx)+(pList[i].y-pList[i].cy)*(pList[i].y-pList[i].cy);;
-        }
-        if(dist > CentPosRatio*FEMCEllspan){flag = 1;}
-
-    }
+    /* LOGIC HERE IS BOGUS.  NEED TO HAVE A CLOSER LOOK. DISABLE FOR NOW */
+//    double dist;
+//    if(Inflow){
+//        for(i=0;i<nump_orig;i++){
+//            dist = (pList[i].x-pList[i].cx)*(pList[i].x-pList[i].cx)+(pList[i].y-pList[i].cy)*(pList[i].y-pList[i].cy);;
+//        }
+//        if(dist > CentPosRatio*FEMCEllspan){flag = 1;}
+//
+//    }
     if(Inflow && (  ((1.0*nump_orig)/ParticlesPerCell < Thresh) || flag  ) ){
         int oneOda = (int)(1.0/da + 0.5);
         int j;
@@ -978,7 +980,7 @@ void _PCDVC_Calculate2D( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ) {
       }
     */
 
-    if(maxDeletions > nump-4){ maxDeletions = Inflow ? nump - 4 : nump/2;}
+//    if(maxDeletions > nump-4){ maxDeletions = nump/2;}
 
     /* we now have our lists of particles to delete and split */
     Count = maxSplits > splitCount ? splitCount : maxSplits;
