@@ -874,7 +874,7 @@ void lucDatabase_CreateDatabase(lucDatabase* self)
    lucDatabase_IssueSQL(self->db, 
       "create table colourmap (id INTEGER PRIMARY KEY ASC, name VARCHAR(256), minimum REAL, maximum REAL, logscale INTEGER, discrete INTEGER, properties VARCHAR(2048))"); 
 
-   lucDatabase_IssueSQL(self->db, "create table state (id INTEGER PRIMARY KEY ASC, data TEXT)");
+   lucDatabase_IssueSQL(self->db, "create table state (id INTEGER PRIMARY KEY ASC, name VARCHAR(256), data TEXT)");
 }
 
 Bool lucDatabase_IssueSQL(sqlite3* db, const char* SQL)
@@ -1035,19 +1035,23 @@ void lucDatabase_BackupDbFile(lucDatabase* self, char* filename)
    sqlite3_close(toDb);
 }
 
-void lucDatabase_WriteState(lucDatabase* self, const char* properties)
+void lucDatabase_WriteState(lucDatabase* self, const char* name, const char* properties)
 {
    if (self->rank > 0 || !self->db) return;
+   const char* noname = "";
+   if (!name) name = noname;
 
-   lucDatabase_IssueSQL(self->db, "create table IF NOT EXISTS state (id INTEGER PRIMARY KEY ASC, data TEXT)");
+   lucDatabase_IssueSQL(self->db, "create table IF NOT EXISTS state (id INTEGER PRIMARY KEY ASC, name VARCHAR(256), data TEXT)");
 
    sqlite3* db = self->db;
-   sqlite3_stmt* statement;
-   const char* SQL = "insert into state (data) values (?)";
-   /* Maintain a single entry only for now */
-   lucDatabase_IssueSQL(db, "delete from state");
+
+   /* Delete any state entry with same name */
+   snprintf(SQL, MAX_QUERY_LEN,  "delete from state where name == '%s'", name);
+   lucDatabase_IssueSQL(db, SQL);
    
    /* Prepare statement... */
+   sqlite3_stmt* statement;
+   snprintf(SQL, MAX_QUERY_LEN,  "insert into state (name, data) values ('%s', ?)", name);
    if (sqlite3_prepare_v2(db, SQL, -1, &statement, NULL) != SQLITE_OK)
       Journal_Firewall(0, NULL, "SQL prepare error: (%s) %s\n", SQL, sqlite3_errmsg(db));
 

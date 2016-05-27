@@ -157,7 +157,7 @@ int lucDatabase_WriteGeometry(lucDatabase* self, int index, lucGeometryType type
 
 void lucDatabase_BackupDb(sqlite3 *fromDb, sqlite3* toDb);
 void lucDatabase_BackupDbFile(lucDatabase* self, char* filename);
-void lucDatabase_WriteState(lucDatabase* self, const char* properties);
+void lucDatabase_WriteState(lucDatabase* self, const char* name, const char* properties);
 
 #endif
 

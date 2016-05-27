@@ -23,6 +23,7 @@ frames (still experimental).
 
 """
 import _glucifer
-from _glucifer import Figure
 from _glucifer import Store
+from _glucifer import Figure
+from _glucifer import Viewer
 from . import objects
