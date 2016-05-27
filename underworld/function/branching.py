@@ -54,7 +54,7 @@ class map(_Function):
     >>> mesh = uw.mesh.FeMesh_Cartesian(elementRes=(8,8),minCoord=(-1.0, -1.0), maxCoord=(1.0, 1.0))
     >>> swarm = uw.swarm.Swarm(mesh)
     >>> svar = swarm.add_variable("int",1)
-    >>> swarm.populate_using_layout(uw.swarm.layouts.PerCellGaussLayout(swarm,4))
+    >>> swarm.populate_using_layout(uw.swarm.layouts.GlobalSpaceFillerLayout(swarm,20))
 
     For all particles in unit circle, set svar to 1
 
@@ -68,14 +68,14 @@ class map(_Function):
     here, you can use any object of the class Function.
     
     >>> fn_map = fn.branching.map(fn_key=svar, mapping={0: 0., 1:1.})
-    >>> np.isclose(np.pi, uw.utils.Integral(fn_map,mesh).evaluate(),rtol=1e-2)
+    >>> np.isclose(np.pi, uw.utils.Integral(fn_map,mesh).evaluate(),rtol=2e-2)
     array([ True], dtype=bool)
     
     Alternatively, we could utilise the default function to achieve the same 
     result.
     
     >>> fn_map = fn.branching.map(fn_key=svar, mapping={1: 1.}, fn_default=0.)
-    >>> np.isclose(np.pi, uw.utils.Integral(fn_map,mesh).evaluate(),rtol=1e-2)
+    >>> np.isclose(np.pi, uw.utils.Integral(fn_map,mesh).evaluate(),rtol=2e-2)
     array([ True], dtype=bool)
 
     """

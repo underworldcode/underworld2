@@ -144,20 +144,16 @@ class VoronoiIntegrationSwarm(IntegrationSwarm,function.FunctionInput):
 
 class GaussIntegrationSwarm(IntegrationSwarm):
     """
-    Class definition for a Gauss points swarm
+    Integration swarm which creates particles within an element at the Gauss 
+    points.
 
     Parameters
     ----------
     mesh : uw.mesh.FeMesh
         The FeMesh the swarm is supported by. See Swarm.mesh property docstring
         for further information.
-    particleCount : unsigned
+    particleCount : unsigned, default = 3
         Number of gauss particles in each direction.  Must take value in [1,5].
-        Default behaviour chooses an appropriate count for the provided mesh:
-            Constant : 1
-              Linear : 2
-           Quadratic : 4
-
     """
 
     _objectsDict = {  "_cellLayout" : "SingleCellLayout",
@@ -166,10 +162,10 @@ class GaussIntegrationSwarm(IntegrationSwarm):
     def __init__(self, mesh, particleCount=None, **kwargs):
         if particleCount == None:
             # this is fragile.....
-            partCountMap = { "DQ0"  : 1,
+            partCountMap = { "DQ0"  : 3,
                              "Q1"   : 3,
-                             "DQ1"  : 2,
-                             "DPC1" : 2,
+                             "DQ1"  : 3,
+                             "DPC1" : 3,
                              "Q2"   : 3  }
             particleCount = partCountMap[ mesh.elementType.upper() ]
         if not isinstance(particleCount, int):
@@ -195,18 +191,10 @@ class GaussIntegrationSwarm(IntegrationSwarm):
 
 class GaussBorderIntegrationSwarm(GaussIntegrationSwarm):
     """
-    Parameters
-    ----------
-    mesh : uw.mesh.FeMesh
-        The FeMesh the swarm is supported by. See Swarm.mesh property docstring
-        for further information.
-
-    particleCount : unsigned
-        Number of gauss particles in each direction.  Must take value in [1,5].
-        Default behaviour chooses an appropriate count for the provided mesh:
-            Constant : 1
-              Linear : 2
-           Quadratic : 4
+    Integration swarm which creates particles within the boundary faces of an 
+    element, at the Gauss points.
+    
+    See parent class for parameters.
 
     """
     _objectsDict = { "_particleLayout" : "GaussBorderParticleLayout" }
