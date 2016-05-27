@@ -72,7 +72,7 @@ class VoronoiIntegrationSwarm(IntegrationSwarm,function.FunctionInput):
         upper % threshold volume for deletion of particles.
         i.e if a particle volume > 15% of total then split it
 
-    maxDeletions : int, defualt 3
+    maxDeletions : int, default 3
         maximum number of particle deletions per cell
 
     maxSplits : int, default 3
@@ -113,7 +113,7 @@ class VoronoiIntegrationSwarm(IntegrationSwarm,function.FunctionInput):
 
     def __init__(self, swarm, resx=15,resy=15,resz=15,
                  lowerVolumeThreshold=0.6, upperVolumeThreshold=25,
-                 maxDeletions=0, maxSplits=10,
+                 maxDeletions=3, maxSplits=10,
                  centroidPositionRatio=0.01,
                  threshold = 0.8,
                  particlesPerCell = 25,
