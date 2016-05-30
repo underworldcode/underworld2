@@ -226,6 +226,16 @@ class Drawing(_stgermain.StgCompoundComponent):
             "ColourMap"     :self._colourMap._cm.name
         } )
 
+    #dict methods
+    def update(self, newdict):
+        self._properties.update(newdict)
+
+    def __getitem__(self, key):
+        return self._properties[key]
+
+    def __setitem__(self, key, item):
+        self._properties[key] = item
+
     def _getProperties(self):
         #Convert properties to string
         return '\n'.join(['%s=%s' % (k,v) for k,v in self._properties.iteritems()]);
@@ -467,9 +477,9 @@ class Surface(CrossSection):
 
 
         #Default properties
-        self._properties = {"cullface" : True};
+        self._properties = {"cullface" : True}
         # TODO: disable lighting if 2D (how to get dims?)
-        #self._properties["lit"] = False;
+        #self._properties["lit"] = False
         
         # build parent
         super(Surface,self).__init__( mesh=mesh, fn=fn,
@@ -557,7 +567,7 @@ class Points(Drawing):
             raise TypeError("'pointType' object passed in must be of python type 'int'")
 
         #Default properties
-        self._properties = {"pointsize" : pointSize, "pointtype" : pointType};
+        self._properties = {"pointsize" : pointSize, "pointtype" : pointType}
 
         # build parent
         super(Points,self).__init__(
@@ -679,7 +689,7 @@ class VectorArrows(_GridSampler3D):
                 raise TypeError("'glyphs' object passed in must be of python type 'int'")
 
         #Default properties
-        self._properties = {"arrowHead" : arrowHead, "scaling" : scaling, "glyphs" : glyphs};
+        self._properties = {"arrowHead" : arrowHead, "scaling" : scaling, "glyphs" : glyphs}
 
         # build parent
         super(VectorArrows,self).__init__( mesh=mesh, fn=fn, resolutionI=resolutionI, resolutionJ=resolutionJ, resolutionK=resolutionK,
@@ -768,7 +778,7 @@ class Mesh(Drawing):
         #Default properties
         self._properties = {"lit" : False, "font" : "small", "fontscale" : 0.5,
                             "pointsize" : 5 if self._nodeNumbers else 1, 
-                            "pointtype" : 2 if self._nodeNumbers else 4};
+                            "pointtype" : 2 if self._nodeNumbers else 4}
         
         # build parent
         super(Mesh,self).__init__( colours=None, colourMap=None, properties=properties, opacity=opacity, colourBar=False, *args, **kwargs )

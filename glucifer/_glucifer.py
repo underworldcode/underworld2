@@ -54,8 +54,6 @@ class Store(_stgermain.StgCompoundComponent):
     ----------
     filename: str, default=None
         Filename to use for a disk database, default is in memory only unless saved.
-    properties: str, default=None
-        Global properties to set on all figures stored.
     view: bool, default=False
         Set to true and pass filename if loading a saved database for revisualisation
             
@@ -83,7 +81,7 @@ class Store(_stgermain.StgCompoundComponent):
     _objectsDict = { "_db":"lucDatabase" }
     _selfObjectName = "_db"
 
-    def __init__(self, filename=None, properties=None, view=False, **kwargs):
+    def __init__(self, filename=None, view=False, **kwargs):
 
         self.step = 0
         if filename and not filename.lower().endswith('.gldb') and not filename.lower().endswith('.db'):
@@ -96,14 +94,6 @@ class Store(_stgermain.StgCompoundComponent):
         #Open an existing db?
         if view and filename and os.path.isfile(filename):
             self._viewonly = True
-
-        #Setup default properties
-        self._properties = {} 
-        
-        if properties and not isinstance(properties,dict):
-            raise TypeError("'properties' object passed in must be of python type 'dict'")
-        if properties:
-            self._properties.update(properties)
 
         super(Store,self).__init__(**kwargs)
 
@@ -151,7 +141,7 @@ class Store(_stgermain.StgCompoundComponent):
             libUnderworld.gLucifer.lucDatabase_BackupDbFile(self._db, filename)
             return filename
 
-    def _generate(self, figname, objects, viewprops):
+    def _generate(self, figname, objects, props):
         #First merge object list with active
         for obj in objects:
             #Add nested colourbar objects
@@ -208,7 +198,7 @@ class Store(_stgermain.StgCompoundComponent):
                 self._plotObject(obj)
 
             #Write visualisation state as json data
-            libUnderworld.gLucifer.lucDatabase_WriteState(self._db, figname, self._get_state(self._objects, viewprops))
+            libUnderworld.gLucifer.lucDatabase_WriteState(self._db, figname, self._get_state(self._objects, props))
 
         else:
             #Open db, get state and update it to match active figure
@@ -237,20 +227,21 @@ class Store(_stgermain.StgCompoundComponent):
                 for obj in state["objects"]:
                     obj["visible"] = True
             export = dict()
-            #Global properties stored on this object
-            state["properties"].update(self._properties)
+            #Global properties passed from figure
+            state["properties"].update(props)
             #View properties passed from figure
-            state["views"][0].update(viewprops)
+            #state["views"][0].update(viewprops)
+            state["views"][0].update(props)
             #Write updated visualisation state as json data
             libUnderworld.gLucifer.lucDatabase_WriteState(self._db, figname, json.dumps(state, indent=2))
 
-    def _get_state(self, objects, viewprops):
+    def _get_state(self, objects, props):
         #Get current state as string for export
         export = dict()
-        #Global properties stored on this object
-        export["properties"] = self._properties
+        #Global properties passed from figure
+        export["properties"] = props
         #View properties passed from figure
-        export["views"] = [viewprops]
+        export["views"] = [props] #[viewprops]
         #Objects passed from figure
         objlist = []
         for obj in objects:
@@ -311,7 +302,7 @@ class Store(_stgermain.StgCompoundComponent):
         """
         self._objects = []
 
-class Figure(object):
+class Figure(dict):
     """  
     The Figure class provides a window within which gLucifer drawing objects
     may be rendered. It also provides associated routines for image generation
@@ -377,7 +368,7 @@ class Figure(object):
     _viewerProc = None
 
     def __init__(self, store=None, name=None, figsize=(640,480), boundingBox=((0,0,0),(0,0,0)), facecolour="white",
-                 edgecolour="black", title="", axis=False, quality=1, properties=None, **kwargs):
+                 edgecolour="black", title="", axis=False, quality=1, properties=None, *args, **kwargs):
 
         #Create a default database just for this figure if none provided
         if store and isinstance(store, Store):
@@ -388,10 +379,6 @@ class Figure(object):
         if name and not isinstance(name,str):
             raise TypeError("'name' object passed in must be of python type 'str'")
         self.name = name
-
-        if not isinstance(figsize,tuple):
-            raise TypeError("'figsize' object passed in must be of python type 'tuple'")
-        self._figsize = figsize
 
         if boundingBox and not isinstance(boundingBox,tuple):
             raise TypeError("'boundingBox' object passed in must be of type 'tuple'")
@@ -414,61 +401,67 @@ class Figure(object):
         self.quality=quality
 
         #Setup default properties
-        self._properties = {"title" : title, "axis" : axis, "axislength" : 0.2, "antialias" : True, "background" : facecolour,
-            "margin" : 34, "border" : (1 if edgecolour else 0), "bordercolour" : edgecolour, "rulers" : False, "zoomstep" : 0} 
-        self._properties["min"] = boundingBox[0]
-        self._properties["max"] = boundingBox[1]
+        self.update({"title" : title, "axis" : axis, "axislength" : 0.2, "antialias" : True, "background" : facecolour,
+            "margin" : 34, "border" : (1 if edgecolour else 0), "bordercolour" : edgecolour, "rulers" : False, "zoomstep" : 0})
+        self["min"] = boundingBox[0]
+        self["max"] = boundingBox[1]
+
+        if not isinstance(figsize,tuple):
+            raise TypeError("'figsize' object passed in must be of python type 'tuple'")
+        self["resolution"] = figsize
         
         if properties and not isinstance(properties,dict):
             raise TypeError("'properties' object passed in must be of python type 'dict'")
         if properties:
-            self._properties.update(properties)
+            self.update(properties)
 
         self.draw = objects.Drawing()
         self._drawingObjects = []
         self._script = []
+
+        super(Figure, self).__init__(*args, **kwargs)
 
     def __del__(self):
         self.close_viewer()
 
     def _getProperties(self):
         #Convert properties to string
-        return '\n'.join(['%s=%s' % (k,v) for k,v in self._properties.iteritems()]);
+        return '\n'.join(['%s=%s' % (k,v) for k,v in self.iteritems()]);
 
     def _setProperties(self, newProps):
         #Update the properties values (merge)
         #values of any existing keys are replaced
-        self._properties.update(newProps)
+        self.update(newProps)
 
     @property
     def figsize(self):
         """    figsize (tuple(int,int)): size of window in pixels, default: (640,480)
         """
-        return self._figsize
+        return self["resolution"]
 
     @property
     def facecolour(self):
         """    facecolour : colour of face background, default: white
         """
-        return self._properties["background"]
+        return self["background"]
 
     @property
     def edgecolour(self):
         """    edgecolour : colour of figure border, default: white
         """
-        return self._properties["bordercolour"]
+        return self["bordercolour"]
 
     @property
     def title(self):
         """    title : a title for the image, default: None
         """
-        return self._properties["title"]
+        return self["title"]
 
     @property
     def axis(self):
         """    axis : Axis enabled if true.  Default False.
         """
-        return self._properties["axis"]
+        return self["axis"]
 
     @property
     def objects(self):
@@ -485,7 +478,7 @@ class Figure(object):
         When using the property setter, new properties are set, overwriting any duplicate 
         keys but keeping existing values otherwise.
         """
-        return self._properties
+        return self
     @properties.setter
     def properties(self, value):
         self._setProperties(value)
@@ -523,7 +516,7 @@ class Figure(object):
             if haveLavaVu and uw.rank() == 0:
                 args = [self.db._lvbin, self.db._db.path, 
                         "-" + str(self.db.step), "-p0", "-v", "-z" + str(self.quality), 
-                        "-I", "-x" + str(self._figsize[0]) + "," + str(self._figsize[1])]
+                        "-I", "-x" + str(self["resolution"][0]) + "," + str(self["resolution"][1])]
                 lavavu.execute(args)
                 lavavu.clear() #Close and free memory
             pass
@@ -572,11 +565,10 @@ class Figure(object):
 
     def _generate_DB(self):
         objects = self._drawingObjects[:]
-        self._properties["resolution"] = self._figsize
         #Only add default object if used
         if len(self.draw.vertices) > 0:
             objects.append(self.draw)
-        self.db._generate(self.name, objects, self._properties)
+        self.db._generate(self.name, objects, self)
 
     def _generate_image(self, filename="", size=(0,0)):
         if haveLavaVu and uw.rank() == 0:
@@ -599,7 +591,7 @@ class Figure(object):
             text_file.write(jsonstr);
             text_file.close()
             from IPython.display import IFrame
-            return IFrame("html/index.html#input.json", width=self._figsize[0], height=self._figsize[1])
+            return IFrame("html/index.html#input.json", width=self["resolution"][0], height=self["resolution"][1])
         return ""
 
     def script(self, cmd=None):
