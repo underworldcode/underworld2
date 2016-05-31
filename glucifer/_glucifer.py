@@ -64,18 +64,20 @@ class Store(_stgermain.StgCompoundComponent):
     >>> import glucifer
     >>> store = glucifer.Store()
 
-    We need a mesh
-    >>> import underworld as uw
-    >>> mesh = uw.mesh.FeMesh_Cartesian()
+    Optionally provide a filename so you don't need to call save later
+    >>> store = glucifer.Store('myvis')
 
-    Add drawing objects:
-    >>> store.append( glucifer.objects.Surface( mesh, 1.) )
+    Pass to figures when creating them
+    (Providing a name allows you to revisualise the figure from the name)
+    >>> fig = glucifer.Figure(store, name="myfigure")
     
-    Draw image (note, in a Jupyter notebook, this will render the image within the notebook).
-    >>> store.show()
+    When figures are rendered with show() or save(imgname), they are saved to storage
+    If you don't need to render an image but still want to store the figure to view later,
+    just call save() without a filename
+    >>> fig.save()
     
-    Save the database
-    >>> dbfile = store.save("test_db")
+    Save the database (only necessary if no filename provided when created)
+    >>> dbfile = store.save("myvis")
 
     """
     _objectsDict = { "_db":"lucDatabase" }
@@ -89,7 +91,6 @@ class Store(_stgermain.StgCompoundComponent):
         self.filename = filename
         self._objects = []
         self._viewonly = False
-        self.figures = []
 
         #Open an existing db?
         if view and filename and os.path.isfile(filename):
@@ -210,7 +211,7 @@ class Store(_stgermain.StgCompoundComponent):
                     found = True
                     break
             if not found:
-                state = states[len(states)-1]
+                state = states[-1]
 
             if len(objects):
                 #For each obj in db, lookup in local list by name, replace properties if found
@@ -260,6 +261,8 @@ class Store(_stgermain.StgCompoundComponent):
         lavavu.execute(args)
         #Get state, includes the list of objects in the loaded database
         statestr = lavavu.getState()
+        #Also save the step data
+        self.timesteps = json.loads(lavavu.getTimeSteps())
         lavavu.clear() #Close and free memory
         return json.loads(statestr)
 
@@ -501,6 +504,8 @@ class Figure(dict):
         """
 
         self._generate_DB()
+        if not haveLavaVu or uw.rank() > 0:
+            return
         try:
             if __IPYTHON__:
                 from IPython.display import display,Image,HTML
@@ -513,12 +518,11 @@ class Figure(dict):
                     display(HTML("<img src='%s'>" % filename))
         except NameError, ImportError:
             #Not in IPython, call default image save routine
-            if haveLavaVu and uw.rank() == 0:
-                args = [self.db._lvbin, self.db._db.path, 
-                        "-" + str(self.db.step), "-p0", "-v", "-z" + str(self.quality), 
-                        "-I", "-x" + str(self["resolution"][0]) + "," + str(self["resolution"][1])]
-                lavavu.execute(args)
-                lavavu.clear() #Close and free memory
+            args = [self.db._lvbin, self.db._db.path, 
+                    "-" + str(self.db.step), "-p0", "-v", "-z" + str(self.quality), 
+                    "-I", "-x" + str(self["resolution"][0]) + "," + str(self["resolution"][1])]
+            lavavu.execute(args)
+            lavavu.clear() #Close and free memory
             pass
         except RuntimeError, e:
             print "Error creating image: "
@@ -716,7 +720,19 @@ class Figure(dict):
 
         self._drawingObjects.append( drawingObject )
 
-class Viewer(list):
+    @property
+    def step(self):
+        """    
+        step (int): current timestep
+        """
+        return self.db.step
+
+    @step.setter
+    def step(self, value):
+        #Sets new step on db
+        self.db.step = value
+
+class Viewer(dict):
     """  
     The Viewer class provides an interface to load stored figures and revisualise them
     
@@ -739,34 +755,71 @@ class Viewer(list):
     >>> for fig in saved:
     >>>     print(fig.name)
 
-    Get a figure by name
+    Get first figure and display
+    >>> fig = saved.next()
+    >>> fig.show()
+
+    Get a figure by name and display
+    (A chosen name can be provided when creating the figures to make this easier)
     >>> fig = saved["myfig"]
-    
-    Save the image
-    >>> imgfile = fig.save("test_image")
+    >>> fig.show()
+
+    Display all figures at each timestep
+    >>> for step in saved.steps:
+    >>>    saved.step = step
+    >>>    for name in saved:
+    >>>        fig = saved[name]
+    >>>        fig.quality = 3
+    >>>        fig.properties["title"] = "Timestep ##"
+    >>>        fig.show()
 
     """
+
+    _index = 0
 
     def __init__(self, filename, *args, **kwargs):
 
         if not isinstance(filename,str):
             raise TypeError("'filename' object passed in must be of python type 'str'")
 
-        self.db = Store(filename, view=True)
-        self.maxstep = 0
+        self._db = Store(filename, view=True)
+        self.steps = []
 
         super(Viewer, self).__init__(*args, **kwargs)
 
         #Load existing figures and save names
-        states = self.db._read_state()
+        states = self._db._read_state()
         for state in states:
-            fig = Figure(self.db, name=str(state["figure"]), properties=state["properties"])
-            self.append(fig)
-            #Append objects
+            figname = str(state["figure"])
+            fig = Figure(self._db, name=figname, properties=state["properties"])
+            self[figname] = fig
+            #Append objects, just create generic Drawing type to hold properties
             for obj in state["objects"]:
                 if obj["visible"]:
                     fig.append(objects.Drawing(name=obj["name"], properties=obj))
-            if state["timesteps"] > self.maxstep:
-                self.maxstep = state["timesteps"]
+            #Save the largest timestep
+            if not "timesteps" in state: state["timesteps"] = 0
 
+        #Timestep info
+        self.steps = self._db.timesteps
+
+    def next(self):
+        #Return next available figure and increment index
+        if self._index >= len(self):
+            self._index = 0
+        key = list(self)[self._index]
+        self._index += 1
+        return self[key]
+
+    @property
+    def step(self):
+        """    
+        step (int): current timestep
+        """
+        return self._db.step
+
+    @step.setter
+    def step(self, value):
+        #Sets new step on db
+        self._db.step = value
 

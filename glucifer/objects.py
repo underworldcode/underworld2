@@ -350,8 +350,6 @@ class ColourBar(Drawing):
     colourMap: ColourMap
         Colour map for which the colour bar will be drawn.
     """
-    _selfObjectName = "_dr"
-    _objectsDict = { "_dr": "lucDrawingObject" }
 
     def __init__(self, colourMap, *args, **kwargs):
         #Default properties
@@ -366,11 +364,6 @@ class ColourBar(Drawing):
         #Always show at least 2 tick marks on a log scale
         if self._colourMap._logScale and self._properties["ticks"] < 2:
             self._properties["ticks"] = 2
-
-    def _add_to_stg_dict(self,componentDictionary):
-        # call parents method
-        super(ColourBar,self)._add_to_stg_dict(componentDictionary)
-
 
 class CrossSection(Drawing):
     """  
