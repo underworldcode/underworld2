@@ -37,19 +37,20 @@ class PopulationControl(_stgermain.LeftOverParamsChecker):
     maxSplits : int, default 3
         maximum number of particles splits per cell
 
-    inflow : bool, default False
+    aggressive : bool, default False
         When enabled, this option will invoke aggressive population control
         in elements where particle counts drop below some threshold.
 
-    inflowThreshold : default 0.8
-        lower cell particle population threshold beyond which inflow occurs.
-        i.e if (cellParticleCount/particlesPerCell)<inflowThreshold, then 
-        inflow will be enabled.
-        Note that this option is only valid if 'inflow' is enabled.
+    aggressiveThreshold : default 0.8
+        lower cell particle population threshold beyond which aggressive 
+        population control occurs.
+        i.e if (cellParticleCount/particlesPerCell)<aggressiveThreshold, then 
+        aggressive pop control will occur.
+        Note that this option is only valid if 'aggressive' is enabled.
     
     particlesPerCell:
         This is the desired number of particles each element should contain.
-        Note that this option is only valid if 'inflow' is enabled.
+        Note that this option is only valid if 'aggressive' is enabled.
 
     Example
     -------
@@ -71,14 +72,14 @@ class PopulationControl(_stgermain.LeftOverParamsChecker):
 
     def __init__(self, swarm,
                  deleteThreshold=0.006, splitThreshold=0.25, maxDeletions=0, maxSplits=3,
-                 inflow=False, inflowThreshold=0.8, particlesPerCell=None,
+                 aggressive=False, aggressiveThreshold=0.8, particlesPerCell=None,
                  **kwargs):
 
         self._swarm = swarm
         self._weights = _weights.PCDVC( swarm=swarm,
                                         deleteThreshold=deleteThreshold, splitThreshold=splitThreshold,
                                         maxDeletions=maxDeletions, maxSplits=maxSplits,
-                                        inflow=inflow, inflowThreshold=inflowThreshold, particlesPerCell=particlesPerCell,
+                                        aggressive=aggressive, aggressiveThreshold=aggressiveThreshold, particlesPerCell=particlesPerCell,
                                         **kwargs  )
 
 
@@ -90,4 +91,8 @@ class PopulationControl(_stgermain.LeftOverParamsChecker):
         This method repopulates the swarm.
         """
         self._swarm._voronoi_swarm.repopulate(weights_calculator=self._weights)
+        # repopulation potentially adds/removes particles... so we need to increment
+        # the swarm id.  note that this should occur *after* the repopulate call
+        # to avoid a potential unnecessary extra call to the coincident mapper
+        self._swarm._toggle_state()
 

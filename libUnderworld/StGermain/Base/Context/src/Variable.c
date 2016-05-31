@@ -1078,6 +1078,7 @@ PyObject* Variable_getAsNumpyArray( void* variable ){
                         NULL,
                         "Error: Numpy array generation from Variable class objects is only currently possible with simply (ie non-struct) variables." );
 
+    Variable_Update( variable );
     npy_intp dims[2] = { self->arraySize, self->dataTypeCounts[0] };
     
     int numtype=-1;

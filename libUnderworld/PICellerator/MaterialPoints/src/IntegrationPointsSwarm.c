@@ -188,6 +188,5 @@ void IntegrationPointsSwarm_ClearSwarmMaps( void* integrationPoints ) {
         map = *(SwarmMap**)List_GetItem(self->swarmsMappedTo, ii);
         SwarmMap_Clear(map);
     }
-
 }
 

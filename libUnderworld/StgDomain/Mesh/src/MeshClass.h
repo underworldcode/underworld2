@@ -35,6 +35,11 @@
                 Variable*               enMapVar; \
 								\
 		List*				vars;		\
+        /* just record these for various variable */ \
+        unsigned            nverts;\
+        unsigned            lVerts;\
+        unsigned            lEls; \
+        unsigned            localtotalNodes; \
 								\
 		double				minSep;		\
 		double*				minAxialSep;	\

@@ -15,6 +15,7 @@ import libUnderworld
 import underworld as uw
 from mpi4py import MPI
 import h5py
+import contextlib
 
 
 class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Save):
@@ -91,24 +92,23 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         # escape routine will be used during swarm advection, but lets also add
         # it to the mesh post deform hook so that when the mesh is deformed,
         # any particles that are found wanting are culled accordingly.
-        if self.particleEscape:
-            def _update_owners_then_escape_particles():
+        def _update_owners_then_escape_particles():
 #                globCount = self.particleGlobalCount
-                self.update_particle_owners()
+            self.update_particle_owners()
+            if particleEscape:
                 libUnderworld.PICellerator.EscapedRoutine_RemoveFromSwarm( self._escapedRoutine, self._cself )
 #                if uw.rank() == 0: print("Removed {} particles found outside the mesh.".format( globCount - self.particleGlobalCount))
-            mesh.add_post_deform_function( _update_owners_then_escape_particles )
+        mesh.add_post_deform_function( _update_owners_then_escape_particles )
 
-        # numpy array to map local particle indices to global indicies, used for loading from file
-        self._local2globalMap = None
-
+        # init this to -1 to signify no mapping has occurred
+        self._checkpointMapsToState = -1
+        
         # build parent
         super(Swarm,self).__init__(mesh, **kwargs)
 
     def _setup(self):
         if self._cself.particleCoordVariable:
-            self._particleCoordinates = svar.SwarmVariable(self, "double", self.mesh.dim, _cself=self._cself.particleCoordVariable)
-        self._cself.isAdvecting = True
+            self._particleCoordinates = svar.SwarmVariable(self, "double", self.mesh.dim, _cself=self._cself.particleCoordVariable, writeable=False)
 
 
     def _add_to_stg_dict(self,componentDictionary):
@@ -169,6 +169,8 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
                [ 0.8,  0.8]])
 
         """
+        # need to increment this as particles have been added!
+        self._toggle_state()
         if len(self._livingArrays) != 0:
             raise RuntimeError("""
             There appears to be {} swarm variable numpy array objects still in
@@ -339,9 +341,9 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
 
         h5f.close()
         self._local2globalMap = valid
+        # record which swarm state this corresponds to
+        self._checkpointMapsToState = self.stateId
 
-    def _invalidatelocal2globalmap(self):
-        self._local2globalMap = None # set numpy array to None
 
     @property
     def particleGlobalCount(self):
@@ -370,65 +372,85 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
             self._voronoi_swarm_private = uw.swarm.VoronoiIntegrationSwarm(self)
         return self._voronoi_swarm_private
 
-
-
-    def _globalParticleCoordinates(self):
+    @contextlib.contextmanager
+    def deform_swarm(self, update_owners=True):
         """
-        Prototype method for returning all swarm particle locations.
-
-        This is only meant for 'tracer swarms' with small numbers of particles.
-
-        Results are returned as numpy array. Order may not preserved in all cases (work in progress).
-
-	This method must be called collectively by all processes, but only processor 0 will 
-        return the complete array.
+        Any particle location modifications must occur within this python 
+        context manager. This is necessary as it is critical that certain
+        internal objects are updated when particle locations are modified.
 
         Parameters
         ----------
-        inputData: swarm object.
+        update_owners : bool, default=True
+            If this is set to False, particle ownership (which element owns a 
+            particular particle) is not updated at the conclusion of the context
+            manager. This is often necessary when both the mesh and particles 
+            are advecting simutaneously.
 
-        Returns
+        Example
         -------
-        ndarray: array of results of same length as the number of swarm particles. The array length 
-                 should match with swarm.particleGlobalCount
+        >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
+        >>> swarm = uw.swarm.Swarm(mesh)
+        >>> layout = uw.swarm.layouts.PerCellGaussLayout(swarm,2)
+        >>> swarm.populate_using_layout(layout)
+        >>> swarm.particleCoordinates.data[0]
+        array([ 0.0132078,  0.0132078])
+        
+        Attempted modification without using deform_swarm() should fail:
+        
+        >>> swarm.particleCoordinates.data[0] = [0.2,0.2]
+        Traceback (most recent call last):
+        ...
+        ValueError: assignment destination is read-only
+        
+        Within the deform_swarm() context manager, modification is allowed:
+        >>> with swarm.deform_swarm():
+        ...     swarm.particleCoordinates.data[0] = [0.2,0.2]
+        >>> swarm.particleCoordinates.data[0]
+        array([ 0.2,  0.2])
+
         """
-        from mpi4py import MPI
-        import numpy as np
-        comm = MPI.COMM_WORLD
-        rank = comm.Get_rank()
-        nprocs = comm.Get_size()	
+        # lock swarm
+        self._locked = True
+        # enable writeable array
+        self._particleCoordinates.data.flags.writeable = True
+        try:
+            yield
+        except Exception as e:
+            raise uw._prepend_message_to_exception(e, "An exception was encountered during particle deformation."
+                                                     +"Particle locations may not be correctly modified." )
+        finally:
+            # disable writeable array
+            self._particleCoordinates.data.flags.writeable = False
+            # unlock swarm
+            self._locked = False
+            # update owners
+            if update_owners:
+                self.update_particle_owners()
 
-        if(nprocs==1): # single processor
-            total_output = self.particleCoordinates.data
-            return total_output
-        else: # using function in parallel
-            # find size of particle coordinate data
-            swarmLen = np.shape(self.particleCoordinates.data)[0]
-            swarmDim = np.shape(self.particleCoordinates.data)[1]
-            if(swarmLen>0): # particles found on this processor
-                local_output = self.particleCoordinates.data
-            else:  # no particles found on this processor
-                local_output = None
+    def update_particle_owners(self):
+        """
+        This routine will update particles owners after particles have been
+        moved. This is both in terms of the cell/element the the
+        particle resides within, and also in terms of the parallel processor
+        decomposition (particles belonging on other processors will be sent across).
+        
+        Users should not call this as it will be called automatically at the 
+        conclusion of a deform_swarm() block.
+        
+        >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
+        >>> swarm = uw.swarm.Swarm(mesh)
+        >>> swarm.populate_using_layout(uw.swarm.layouts.PerCellGaussLayout(swarm,2))
+        >>> swarm.particleCoordinates.data[0]
+        array([ 0.0132078,  0.0132078])
+        >>> swarm.owningCell.data[0]
+        array([0], dtype=int32)
+        >>> with swarm.deform_swarm():
+        ...     swarm.particleCoordinates.data[0] = [0.1,0.1]
+        >>> swarm.owningCell.data[0]
+        array([17], dtype=int32)
 
-            total_output = None
-            if(rank!=0):
-                # send count
-                comm.send(swarmLen, dest=0, tag=0)
-                if swarmLen:
-                    # next send position array
-                    comm.send(local_output, dest=0, tag=1)
-            else: # rank=0
-                total_output = local_output
-                # collect particle data from processors in order - should (?) preserve indices. (pop control?)
-                for iProc in range(1,nprocs):
-                    incoming_count = comm.recv(source=iProc, tag=0)
-                    if incoming_count:
-                        incoming_data = comm.recv(source=iProc, tag=1)
-                        if not isinstance(total_output, np.ndarray):
-                            total_output =  incoming_data
-                        else:
-                            total_output = np.concatenate((total_output, incoming_data), axis=0)
-
-            return total_output
-
-
+        """
+        libUnderworld.StgDomain.Swarm_UpdateAllParticleOwners( self._cself );
+        libUnderworld.PICellerator.GeneralSwarm_ClearSwarmMaps( self._cself );
+        self._toggle_state()

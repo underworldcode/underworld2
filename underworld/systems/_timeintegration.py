@@ -128,7 +128,7 @@ class SwarmAdvector(TimeIntegration):
     def get_max_dt(self):
         return libUnderworld.PICellerator.SwarmAdvector_MaxDt(self._integrand)
 
-    def integrate(self, dt, updateParticleOwners=True):
+    def integrate(self, dt, update_owners=True):
         """
         Integrate the associated swarm in time, by dt, using the velocityfield that is associated with this class
 
@@ -136,9 +136,11 @@ class SwarmAdvector(TimeIntegration):
         ----------
         dt: double
             The timestep to use in the intergration
-        updateParticleOwners: bool, default=True
-            If this is set to False, particle ownership is not updated after advection.  
-            This is often necessary if you are advecting the mesh as well as the particles.
+        update_owners: bool, default=True
+            If this is set to False, particle ownership (which element owns a 
+            particular particle) is not updated after advection. This is often 
+            necessary when both the mesh and particles are advecting 
+            simutaneously.
 
         >>> import underworld as uw
         >>> import numpy as np
@@ -164,6 +166,5 @@ class SwarmAdvector(TimeIntegration):
         # this check isn't necessary, but good. possibly get rid.
         libUnderworld.StgDomain.Swarm_CheckCoordsAreFinite( self._integrand.swarm );
         # Move particles across processors because they've just been advected
-        if updateParticleOwners:
-            libUnderworld.StgDomain.Swarm_UpdateAllParticleOwners( self._integrand.swarm );
-        libUnderworld.PICellerator.GeneralSwarm_ClearSwarmMaps( self._integrand.swarm );
+        if update_owners:
+            self._swarm.update_particle_owners()

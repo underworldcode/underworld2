@@ -50,7 +50,7 @@ class PCDVC(DVC):
     def __init__(   self,
                     swarm,
                     deleteThreshold, splitThreshold, maxDeletions, maxSplits,
-                    inflow, inflowThreshold, particlesPerCell,
+                    aggressive, aggressiveThreshold, particlesPerCell,
                     **kwargs):
 
         if not isinstance(swarm, _swarm.Swarm):
@@ -83,19 +83,19 @@ class PCDVC(DVC):
             raise ValueError("'maxSplits' parameter must take non-negative values.")
         self._maxSplits=maxSplits
 
-        if not isinstance(inflow, bool):
-            raise TypeError("'inflow' parameter must of type 'bool'.")
-        self._inflow=inflow
+        if not isinstance(aggressive, bool):
+            raise TypeError("'aggressive' parameter must of type 'bool'.")
+        self._aggressive=aggressive
 
-        if inflow:
-            if not isinstance(inflowThreshold, (int,float)):
-                raise TypeError("'inflowThreshold' parameter must of type 'float'.")
-            if (inflowThreshold<0.) or (inflowThreshold>1.):
-                raise ValueError("'inflowThreshold' parameter must take values in [0.,1.].")
-            self._inflowThreshold=inflowThreshold
+        if aggressive:
+            if not isinstance(aggressiveThreshold, (int,float)):
+                raise TypeError("'aggressiveThreshold' parameter must of type 'float'.")
+            if (aggressiveThreshold<0.) or (aggressiveThreshold>1.):
+                raise ValueError("'aggressiveThreshold' parameter must take values in [0.,1.].")
+            self._aggressiveThreshold=aggressiveThreshold
 
             if particlesPerCell is None:
-                raise ValueError("'particlesPerCell' parameter must be provided where 'inflow' is True.")
+                raise ValueError("'particlesPerCell' parameter must be provided where 'aggressive' is True.")
             if not isinstance(particlesPerCell, int):
                 raise TypeError("'particlesPerCell' parameter must of type 'int'.")
             if particlesPerCell<=0:
@@ -112,7 +112,7 @@ class PCDVC(DVC):
         componentDictionary[ self._weights.name ][          "upperT"] = self._splitThreshold*100.
         componentDictionary[ self._weights.name ][    "maxDeletions"] = self._maxDeletions
         componentDictionary[ self._weights.name ][       "maxSplits"] = self._maxSplits
-        componentDictionary[ self._weights.name ][          "Inflow"] = self._inflow
-        if self._inflow:
-            componentDictionary[ self._weights.name ][       "Threshold"] = self._inflowThreshold
+        componentDictionary[ self._weights.name ][          "Inflow"] = self._aggressive
+        if self._aggressive:
+            componentDictionary[ self._weights.name ][       "Threshold"] = self._aggressiveThreshold
             componentDictionary[ self._weights.name ]["particlesPerCell"] = self._particlesPerCell

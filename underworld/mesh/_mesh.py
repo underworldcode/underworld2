@@ -73,13 +73,13 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
                                   You must provide a generator, or the mesh itself \
                                   must be of the MeshGenerator class.")
         self.generator = generator
-
-        self._dataWriteable = False
         
         # these lists should be populated with closure functions
         # which are executed before and/or after mesh deformations
         self._pre_deform_functions = []
         self._post_deform_functions = []
+        
+        self._arr = None
 
         # build parent
         super(FeMesh,self).__init__(**kwargs)
@@ -198,9 +198,10 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         array([ 0.1, -1.1])
 
         """
-        arr = uw.libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.verticesVariable)
-        arr.flags.writeable = self._dataWriteable
-        return arr
+        if self._arr is None:
+            self._arr = uw.libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.verticesVariable)
+            self._arr.flags.writeable = False
+        return self._arr
 
     @contextlib.contextmanager
     def deform_mesh(self, remainsRegular=False):
@@ -242,7 +243,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         for function in self._pre_deform_functions:
             function()
 
-        self._dataWriteable = True
+        self.data.flags.writeable = True
         try:
             yield
         except Exception as e:
@@ -253,7 +254,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
                                                      +"but will instead be updated automatically on return from "
                                                      +"the 'deform_mesh' context manager. \nEncountered exception message:\n")
         finally:
-            self._dataWriteable = False
+            self.data.flags.writeable = False
             # call deformupdate, which updates various mesh metrics
 #            if uw.rank() == 0: print("Updating mesh metrics.")
             uw.libUnderworld.StgDomain.Mesh_DeformationUpdate( self._cself )

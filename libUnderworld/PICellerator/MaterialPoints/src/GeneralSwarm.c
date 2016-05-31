@@ -574,6 +574,5 @@ void GeneralSwarm_ClearSwarmMaps( void* swarm ) {
         map = *(SwarmMap**)List_GetItem(self->intSwarmMapList, ii);
         SwarmMap_Clear(map);
     }
-
 }
 

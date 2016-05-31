@@ -37,11 +37,11 @@ from libUnderworld import petsc
 petsc.OptionsPrint()
 
 if 4 != stats.pressure_its:
-    raise RuntimeError("Test returned wrong number of pressure iterations: should be 3")
+    raise RuntimeError("Test returned wrong number of pressure iterations.")
 if 28 != stats.velocity_presolve_its:
-    raise RuntimeError("Test returned wrong number of velocity pre solve iterations: should be 6")
+    raise RuntimeError("Test returned wrong number of velocity pre solve iterations.")
 if -1 != stats.velocity_pressuresolve_its:  # -1 will be returned if this stat isn't supported.
-    if 109 != stats.velocity_pressuresolve_its:
-        raise RuntimeError("Test returned wrong number of velocity pressure solve iterations: should be 15")
+    if stats.velocity_pressuresolve_its < 100:
+        raise RuntimeError("Test returned wrong number of velocity pressure solve iterations.")
 if 30 != stats.velocity_backsolve_its:
-    raise RuntimeError("Test returned wrong number of velocity back solve iterations: should be 6")
+    raise RuntimeError("Test returned wrong number of velocity back solve iterations.")

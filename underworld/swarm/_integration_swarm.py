@@ -34,9 +34,9 @@ class IntegrationSwarm(_swarmabstract.SwarmAbstract):
 
     def _setup(self):
         if self._cself.localCoordVariable:
-            self._particleCoordinates = svar.SwarmVariable(self, "double", self.mesh.generator.dim, _cself=self._cself.localCoordVariable)
+            self._particleCoordinates = svar.SwarmVariable(self, "double", self.mesh.generator.dim, _cself=self._cself.localCoordVariable, writeable=False)
         if self._cself.weightVariable:
-            self._weightsVariable = svar.SwarmVariable(self, "double", 1, _cself=self._cself.weightVariable)
+            self._weightsVariable = svar.SwarmVariable(self, "double", 1, _cself=self._cself.weightVariable, writeable=False)
 
     @property
     def particleWeights(self):
@@ -94,6 +94,9 @@ class VoronoiIntegrationSwarm(IntegrationSwarm,function.FunctionInput):
         
         self._mappedSwarm = weakref.ref(swarm)  # keep weakref to avoid circular dependency
         self._weights = uw.swarm._weights.DVC()
+        
+        # init this to ensure we do mapping on first pass
+        self._mappedToState = -1
 
         # build parent
         super(VoronoiIntegrationSwarm,self).__init__(swarm.mesh, **kwargs)
@@ -116,7 +119,9 @@ class VoronoiIntegrationSwarm(IntegrationSwarm,function.FunctionInput):
         """
         This method repopulates the voronoi swarm using the provided
         global swarm. The weights are also recalculated.
-        
+
+        Parameters
+        ----------
         weights_calculator: uw.swarm.Weights, default=Weights
             The weights calculator for the Voronoi swarm. If none is provided,
             a default DVCWeights calculator is used.
@@ -128,10 +133,16 @@ class VoronoiIntegrationSwarm(IntegrationSwarm,function.FunctionInput):
         if not isinstance( weights_calculator, uw.swarm._weights.DVC ):
             raise TypeError("Provided 'weights_calculator' does not appear to be of correct class.")
 
-        self._mappedSwarm()._invalidatelocal2globalmap() # invalidate as population control will mess it, also not weakref of _mappedSwarm
-        libUnderworld.PICellerator._CoincidentMapper_Map( self._mapper )
-        libUnderworld.PICellerator.WeightsCalculator_CalculateAll( weights_calculator._cself, self._cself )
-        libUnderworld.PICellerator.IntegrationPointsSwarm_ClearSwarmMaps( self._cself )
+        # only update if necessary
+        if self._mappedToState != self._mappedSwarm().stateId:
+            libUnderworld.PICellerator._CoincidentMapper_Map( self._mapper )
+        # if weights calculator is PCDVC, then we need to always run as it potentially performs population control
+        if (self._mappedToState != self._mappedSwarm().stateId) or isinstance(weights_calculator,uw.swarm._weights.PCDVC):
+            libUnderworld.PICellerator.WeightsCalculator_CalculateAll( weights_calculator._cself, self._cself )
+            libUnderworld.PICellerator.IntegrationPointsSwarm_ClearSwarmMaps( self._cself )
+
+        self._mappedToState = self._mappedSwarm().stateId
+            
 
     def _get_iterator(self):
         """
@@ -152,7 +163,7 @@ class GaussIntegrationSwarm(IntegrationSwarm):
     mesh : uw.mesh.FeMesh
         The FeMesh the swarm is supported by. See Swarm.mesh property docstring
         for further information.
-    particleCount : unsigned, default = 3
+    particleCount : unsigned. Default is 3, unless Q2 mesh which takes default 5. 
         Number of gauss particles in each direction.  Must take value in [1,5].
     """
 
@@ -166,7 +177,7 @@ class GaussIntegrationSwarm(IntegrationSwarm):
                              "Q1"   : 3,
                              "DQ1"  : 3,
                              "DPC1" : 3,
-                             "Q2"   : 3  }
+                             "Q2"   : 5  }
             particleCount = partCountMap[ mesh.elementType.upper() ]
         if not isinstance(particleCount, int):
             raise ValueError("'particleCount' parameter must be of type 'int'.")

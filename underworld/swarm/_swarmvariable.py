@@ -18,6 +18,7 @@ import libUnderworld.libUnderworldPy.Function as _cfn
 from mpi4py import MPI
 import h5py
 import os
+import weakref
 
 class SwarmVariable(_stgermain.StgClass, function.Function):
 
@@ -42,15 +43,22 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         "short", "int", "float" or "double".
     count: unsigned
         The number of values to be stored for each particle.
-
+    writeable: bool, default=True
+        Signifies if the variable should be writeable.
     """
     _supportedDataTypes = ["char", "short", "int", "float", "double"]
 
-    def __init__(self, swarm=None, dataType=None, count=None, **kwargs):
+    def __init__(self, swarm=None, dataType=None, count=None, writeable=True, **kwargs):
         
         if not isinstance(swarm, sab.SwarmAbstract):
             raise TypeError("'swarm' object passed in must be of type 'Swarm'")
-        self._swarm = swarm
+        self._swarm = weakref.ref(swarm)
+
+        self._arr = None
+        self._writeable = writeable
+        
+        # clear the reference to numpy arrays, as memory layout *will* change.
+        swarm._clear_variable_arrays()
         
         if len(swarm._livingArrays) != 0:
             raise RuntimeError("""
@@ -95,7 +103,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
                 raise ValueError("Passed in cself object's dofcount must be same as that provided in arguments")
             # note that we aren't checking the datatype
         else:
-            varname = self._swarm._cself.name+"_"+str(len(self.swarm.variables))
+            varname = self.swarm._cself.name+"_"+str(len(self.swarm.variables))
             self._cself = libUnderworld.StgDomain.Swarm_NewVectorVariable(self.swarm._cself, varname, -1, dtype, count )
             libUnderworld.StGermain.Stg_Component_Build( self._cself, None, False );
             libUnderworld.StGermain.Stg_Component_Initialise( self._cself, None, False );
@@ -118,7 +126,8 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         """    
         swarm (Swarm): The swarm this variable belongs to.
         """
-        return self._swarm
+        # note that we only return a weakref to the swarm, hence the trailing parenthesis
+        return self._swarm()
 
     @property
     def dataType(self):
@@ -171,16 +180,26 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         >>> swarm.particleCoordinates.data[0]
         array([ 0.0132078,  0.0132078])
         >>> # move the particle
-        >>> swarm.particleCoordinates.data[0] = [.1,.1]
+        >>> with swarm.deform_swarm():
+        ...     swarm.particleCoordinates.data[0] = [0.2,0.2]
         >>> swarm.particleCoordinates.data[0]
-        array([ 0.1,  0.1])
-        >>> # don't forget to update owners after performing any moves
-        >>> swarm.update_particle_owners()
+        array([ 0.2,  0.2])
         """
-        arrayguy = libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.variable)
-        # add to swarms weakref dict
-        self.swarm._livingArrays[self] = arrayguy
-        return arrayguy
+        if self._arr is None:
+            self._arr = libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.variable)
+            # set to writeability
+            self._arr.flags.writeable = self._writeable
+            # add to swarms weakref dict
+            self.swarm._livingArrays[self] = self._arr
+        return self._arr
+
+    def _clear_array(self):
+        """
+        This removes the potentially defunct numpy swarm variable memory 
+        numpy view. It will be regenerated when required.
+        """
+        self._arr = None
+
 
     def load( self, filename, verbose=False ):
         """
@@ -207,11 +226,11 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
 
         if not isinstance(filename, str):
             raise TypeError("'filename' parameter must be of type 'str'")
-        
-        gIds = self.swarm._local2globalMap
-        if not isinstance(gIds, np.ndarray):
-            raise RuntimeError("'Swarm' associate with this 'SwarmVariable' doesn't have a valid '_local2globalMap'.\n" \
+
+        if self.swarm._checkpointMapsToState != self.swarm.stateId:
+            raise RuntimeError("'Swarm' associate with this 'SwarmVariable' does not appear to be in the correct state.\n" \
                                "Please ensure that you have loaded the swarm prior to loading any swarm variables.")
+        gIds = self.swarm._local2globalMap
 
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()

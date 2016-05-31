@@ -97,6 +97,20 @@ def nProcs():
     """
     return _data.nProcs
 
+def barrier():
+    """
+    Creates an MPI barrier. All processes wait here for others to catch up.
+
+    """
+    from mpi4py import MPI
+    MPI.COMM_WORLD.Barrier()
+
+def matplotlib_inline():
+    try :
+        if(__IPYTHON__) :
+            get_ipython().magic(u'matplotlib inline')
+    except:
+        pass
 
 def help(object, toScreen=True):
     """
