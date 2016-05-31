@@ -27,6 +27,25 @@ import libUnderworld as _libUnderworld
 # EigenVectors, EigenVectorCrossSection
 # FeVariableSurface
 
+#Some preset colourmaps
+# aim to reduce banding artifacts by being either 
+# - isoluminant
+# - smoothly increasing in luminance
+# - diverging in luminance about centre value
+colourMaps = {}
+#Isoluminant blue-orange
+colourMaps["isolum"] = "#288FD0 #50B6B8 #989878 #C68838 #FF7520".split()
+#Diverging blue-yellow-orange
+colourMaps["diverge"] = "#288FD0 #fbfb9f #FF7520".split()
+#Isoluminant rainbow blue-green-orange
+colourMaps["rainbow"] = "#5ed3ff #6fd6de #7ed7be #94d69f #b3d287 #d3ca7b #efc079 #ffb180".split()
+#CubeLaw indigo-blue-green-yellow
+colourMaps["cubelaw"] = "#440088 #831bb9 #578ee9 #3db6b6 #6ce64d #afeb56 #ffff88".split()
+#CubeLaw indigo-blue-green-orange-yellow
+colourMaps["cubelaw2"] = "#440088 #1b83b9 #6cc35b #ebbf56 #ffff88".split()
+#CubeLaw heat blue-magenta-yellow)
+colourMaps["smoothheat"] = "#440088 #831bb9 #c66f5d #ebbf56 #ffff88".split()
+
 class ColourMap(_stgermain.StgCompoundComponent):
     """
     The ColourMap class provides functionality for mapping colours to numerical
@@ -54,8 +73,10 @@ class ColourMap(_stgermain.StgCompoundComponent):
     _objectsDict = { "_cm": "lucColourMap" }
     
     #Default is a cool-warm map with low variance in luminosity/lightness
-    def __init__(self, colours="#288FD0 #50B6B8 #989878 #C68838 #FF7520".split(), valueRange=None, logScale=False, discrete=False, **kwargs):
+    def __init__(self, colours=None, valueRange=None, logScale=False, discrete=False, **kwargs):
 
+        if colours == None:
+            colours = colourMaps["diverge"]
         if not isinstance(colours,(str,list)):
             raise TypeError("'colours' object passed in must be of python type 'str' or 'list'")
         if isinstance(colours,(str)):
@@ -152,7 +173,7 @@ class Drawing(_stgermain.StgCompoundComponent):
     _selfObjectName = "_dr"
     _objectsDict = { "_dr": "lucDrawingObject" } # child should replace _dr with own derived type
     
-    def __init__(self, colours=None, colourMap=None, properties=None, opacity=None, colourBar=False,
+    def __init__(self, name=None, colours=None, colourMap=None, properties=None, opacity=None, colourBar=False,
                        valueRange=None, logScale=False, discrete=False,
                        *args, **kwargs):
 
@@ -186,6 +207,9 @@ class Drawing(_stgermain.StgCompoundComponent):
             #Create the associated colour bar
             self._colourBar = ColourBar(colourMap=self._colourMap)
 
+        if name and isinstance(name, str):
+            self._properties.update({"name" : name})
+
         self.resetDrawing()
 
         # build parent
@@ -201,6 +225,16 @@ class Drawing(_stgermain.StgCompoundComponent):
             "properties"    :self._getProperties(),
             "ColourMap"     :self._colourMap._cm.name
         } )
+
+    #dict methods
+    def update(self, newdict):
+        self._properties.update(newdict)
+
+    def __getitem__(self, key):
+        return self._properties[key]
+
+    def __setitem__(self, key, item):
+        self._properties[key] = item
 
     def _getProperties(self):
         #Convert properties to string
@@ -443,9 +477,9 @@ class Surface(CrossSection):
 
 
         #Default properties
-        self._properties = {"cullface" : True};
+        self._properties = {"cullface" : True}
         # TODO: disable lighting if 2D (how to get dims?)
-        #self._properties["lit"] = False;
+        #self._properties["lit"] = False
         
         # build parent
         super(Surface,self).__init__( mesh=mesh, fn=fn,
@@ -533,7 +567,7 @@ class Points(Drawing):
             raise TypeError("'pointType' object passed in must be of python type 'int'")
 
         #Default properties
-        self._properties = {"pointsize" : pointSize, "pointtype" : pointType};
+        self._properties = {"pointsize" : pointSize, "pointtype" : pointType}
 
         # build parent
         super(Points,self).__init__(
@@ -655,7 +689,7 @@ class VectorArrows(_GridSampler3D):
                 raise TypeError("'glyphs' object passed in must be of python type 'int'")
 
         #Default properties
-        self._properties = {"arrowHead" : arrowHead, "scaling" : scaling, "glyphs" : glyphs};
+        self._properties = {"arrowHead" : arrowHead, "scaling" : scaling, "glyphs" : glyphs}
 
         # build parent
         super(VectorArrows,self).__init__( mesh=mesh, fn=fn, resolutionI=resolutionI, resolutionJ=resolutionJ, resolutionK=resolutionK,
@@ -744,7 +778,7 @@ class Mesh(Drawing):
         #Default properties
         self._properties = {"lit" : False, "font" : "small", "fontscale" : 0.5,
                             "pointsize" : 5 if self._nodeNumbers else 1, 
-                            "pointtype" : 2 if self._nodeNumbers else 4};
+                            "pointtype" : 2 if self._nodeNumbers else 4}
         
         # build parent
         super(Mesh,self).__init__( colours=None, colourMap=None, properties=properties, opacity=opacity, colourBar=False, *args, **kwargs )
