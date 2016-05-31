@@ -91,7 +91,6 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
             if isinstance(cond, uw.conditions.DirichletCondition):
                 if cond.variable == self._phiField:
                     libUnderworld.StgFEM.FeVariable_SetBC( self._phiField._cself, cond._cself )
-                if cond.variable == self._phiDotField:
                     libUnderworld.StgFEM.FeVariable_SetBC( self._phiDotField._cself, cond._cself )
                 # add all dirichlet condition to dcs
                 dcs.add( cond.indexSets[0] )

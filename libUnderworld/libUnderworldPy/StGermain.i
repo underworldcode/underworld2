@@ -38,6 +38,8 @@ import_array();
 %exception {
     try {
         $action
+    } catch (const std::range_error& e) {
+        SWIG_exception(SWIG_ValueError, e.what());
     } catch (const std::exception& e) {
         SWIG_exception(SWIG_RuntimeError, e.what());
     }
