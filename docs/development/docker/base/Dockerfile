@@ -1,4 +1,4 @@
-FROM debian
+FROM debian:jessie
 MAINTAINER mansourjohn@gmail.com
 
 # install things
