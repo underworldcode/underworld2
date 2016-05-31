@@ -62,7 +62,6 @@ class Polygon(_Function):
            [False]], dtype=bool)
     
     """
-    #DEPRECATE note rotations comment above. still valid?
     def __init__(self, vertices, fn=None, *args, **kwargs):
 
         if fn:

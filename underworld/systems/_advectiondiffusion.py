@@ -53,18 +53,10 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
                       "_solver" : "AdvDiffMulticorrector" }
     _selfObjectName = "_system"
 
-    def __init__(self, phiField, phiDotField, velocityField, fn_diffusivity, fn_sourceTerm=None, courantFactor=None, diffusivity=None, conditions=[], **kwargs):
-        if courantFactor != None:
-            raise RuntimeError("Note that the 'courantFactor' parameter has been deprecated.\n"\
-                               "If you wish to modify your timestep, do so manually with the value\n"\
-                               "returned from the get_max_dt() method.")
-        if diffusivity != None:
-            raise RuntimeError("Note that the 'diffusivity' parameter has been deprecated.\n"\
-                               "Use the parameter 'fn_diffusivity' instead.")
+    def __init__(self, phiField, phiDotField, velocityField, fn_diffusivity, fn_sourceTerm=None, conditions=[], **kwargs):
 
         self._diffusivity   = fn_diffusivity
         self._source        = fn_sourceTerm
-        self._courantFactor = courantFactor
 
         if not isinstance( phiField, uw.mesh.MeshVariable):
             raise TypeError( "Provided 'phiField' must be of 'MeshVariable' class." )
