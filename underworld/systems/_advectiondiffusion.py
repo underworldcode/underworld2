@@ -88,17 +88,18 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
             if not isinstance( cond, uw.conditions._SystemCondition ):
                 raise TypeError( "Provided 'conditions' must be a list '_SystemCondition' objects." )
             # set the bcs on here
-            if type( cond ) == uw.conditions.DirichletCondition:
-                if cond.variable == phiField:
+            if isinstance(cond, uw.conditions.DirichletCondition):
+                if cond.variable == self._phiField:
                     libUnderworld.StgFEM.FeVariable_SetBC( self._phiField._cself, cond._cself )
+                if cond.variable == self._phiDotField:
                     libUnderworld.StgFEM.FeVariable_SetBC( self._phiDotField._cself, cond._cself )
                 # add all dirichlet condition to dcs
                 dcs.add( cond.indexSets[0] )
-            elif type( cond ) == uw.conditions.NeumannCondition:
+            elif isinstance( cond, uw.conditions.NeumannCondition):
                 ncs.add( cond.indexSets[0] )
                 nbc=cond
             else:
-                raise RuntimeError("Can't decide on input condition")
+                raise RuntimeError("Input condition type not recognised.")
 
         # check if condition definitions occur on the same nodes
         should_be_empty = dcs & ncs

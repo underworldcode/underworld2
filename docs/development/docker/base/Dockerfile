@@ -38,7 +38,8 @@ RUN apt-get update -qq && \
         mpi4py \
         matplotlib \
         runipy \
-        pillow
+        pillow \
+        pyvirtualdisplay
 
 # Install Tini.. this is required because CMD (below) doesn't play nice with notebooks for some reason: https://github.com/ipython/ipython/issues/7062, https://github.com/jupyter/notebook/issues/334
 RUN curl -L https://github.com/krallin/tini/releases/download/v0.6.0/tini > tini && \
