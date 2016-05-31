@@ -5,6 +5,6 @@ MAINTAINER mansourjohn@gmail.com
 WORKDIR /root/underworld2/utils
 
 # run tests
-RUN xvfbrun.sh ./run_tests.py ../docs/examples/1_* ../docs/user_guide/* ../docs/test/*
+RUN xvfbrun.sh ./run_tests.py ../docs/examples/1_*.ipynb ../docs/user_guide/*.ipynb ../docs/test/*
 
 WORKDIR /workspace
