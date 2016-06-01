@@ -1,4 +1,4 @@
-FROM underworldcode/base:dev
+FROM underworldcode/base:latest
 MAINTAINER mansourjohn@gmail.com
 
 # set working directory to /root
@@ -35,6 +35,8 @@ RUN git clone --branch "development" --single-branch https://github.com/underwor
 
 # expose notebook port
 EXPOSE 8888
+# expose glucifer port
+EXPOSE 8080
 
 # setup space for working in
 VOLUME /workspace

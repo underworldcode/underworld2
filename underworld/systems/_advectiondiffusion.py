@@ -53,18 +53,10 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
                       "_solver" : "AdvDiffMulticorrector" }
     _selfObjectName = "_system"
 
-    def __init__(self, phiField, phiDotField, velocityField, fn_diffusivity, fn_sourceTerm=None, courantFactor=None, diffusivity=None, conditions=[], **kwargs):
-        if courantFactor != None:
-            raise RuntimeError("Note that the 'courantFactor' parameter has been deprecated.\n"\
-                               "If you wish to modify your timestep, do so manually with the value\n"\
-                               "returned from the get_max_dt() method.")
-        if diffusivity != None:
-            raise RuntimeError("Note that the 'diffusivity' parameter has been deprecated.\n"\
-                               "Use the parameter 'fn_diffusivity' instead.")
+    def __init__(self, phiField, phiDotField, velocityField, fn_diffusivity, fn_sourceTerm=None, conditions=[], **kwargs):
 
         self._diffusivity   = fn_diffusivity
         self._source        = fn_sourceTerm
-        self._courantFactor = courantFactor
 
         if not isinstance( phiField, uw.mesh.MeshVariable):
             raise TypeError( "Provided 'phiField' must be of 'MeshVariable' class." )
@@ -92,6 +84,7 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
             if not isinstance( cond, uw.conditions._SystemCondition ):
                 raise TypeError( "Provided 'conditions' must be a list '_SystemCondition' objects." )
             # set the bcs on here
+<<<<<<< HEAD
             if type(cond) == uw.conditions.NeumannCondition:
                 if nbc != None:
                     # check only one nbc condition is given in 'conditions' list
@@ -100,8 +93,19 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
                 if cond.variable == self._phiField:
                     libUnderworld.StgFEM.FeVariable_SetBC( self._phiField._cself, cond._cself )
                     libUnderworld.StgFEM.FeVariable_SetBC( self._phiDotField._cself, cond._cself )
+=======
+            if isinstance( cond, uw.conditions.NeumannCondition):
+                ncs.add( cond.indexSets[0] )
+                nbc=cond
+            elif isinstance(cond, uw.conditions.DirichletCondition):
+                if cond.variable == self._phiField:
+                    libUnderworld.StgFEM.FeVariable_SetBC( self._phiField._cself, cond._cself )
+                    libUnderworld.StgFEM.FeVariable_SetBC( self._phiDotField._cself, cond._cself )
+                # add all dirichlet condition to dcs
+                dcs.add( cond.indexSets[0] )
+>>>>>>> 2.0.0b2
             else:
-                raise RuntimeError("Can't decide on input condition")
+                raise RuntimeError("Input condition type not recognised.")
 
         # ok, we've set some bcs, lets recreate eqnumbering
         libUnderworld.StgFEM._FeVariable_CreateNewEqnNumber( self._phiField._cself )

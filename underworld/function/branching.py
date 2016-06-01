@@ -81,16 +81,8 @@ class map(_Function):
     """
     
 
-    def __init__(self, fn_key=None, mapping=None, fn_default=None, keyFunc=None, mappingDict=None, defaultFunc=None, *args, **kwargs):
-        
-        #DEPRECATE
-        if keyFunc != None:
-            raise RuntimeError("Note that the 'keyFunc' parameter has been renamed to 'fn_key'.")
-        if mappingDict != None:
-            raise RuntimeError("Note that the 'mappingDict' parameter has been renamed to 'mapping'.")
-        if defaultFunc != None:
-            raise RuntimeError("Note that the 'defaultFunc' parameter has been renamed to 'fn_default'.")
-            
+    def __init__(self, fn_key=None, mapping=None, fn_default=None, *args, **kwargs):
+                    
         if not mapping:
             raise ValueError("You must specify a mapping via the 'mapping' parameter.")
         if not isinstance(mapping, dict):

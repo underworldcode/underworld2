@@ -431,123 +431,131 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
         """
         return at(self,index)
 
-    def _evaluate_global(fn, positions):
+    def evaluate_global(self, inputData, inputType=None):
         """
-        Prototype method for global evaluations of functions.
+        This method attempts to evalute inputData across all processes, and 
+        then consolide the results on the root processor. This is most useful
+        where you wish to evalute your functions using global coordinates 
+        which may span processes in a parallel simulation.
+        
+        Note that this method does not currently support 'FunctionInput' class
+        input data.
+        
+        Due to the communications required for this method, a significant 
+        performance overhead may be encountered. The standard `evaluate` method 
+        should be used instead wherever possible.
 
-        For the data it accepts floats, lists, tuples, numpy arrays, or any object which is of
-        class 'FunctionInput'. lists/tuples must contain floats only.
+        Please see `evaluate` method for parameter details.
 
-        For the position values it is restricted to numpy arrays of N*(x,y) coordinate pairings
-        or (x,y,z) for 3D models.
-
-        Results are returned as numpy array.
-
-        Parameters
-        ----------
-        inputData: float, list, tuple, ndarray, FunctionInput
-            The input to the function. The form of this input must be appropriate
-            for the function being evaluated, or an exception will be thrown.
-
+        Notes
+        -----
+        This method must be called collectively by all processes.
+        
         Returns
         -------
-        ndarray: array of results of same length as the number of positions
+        Only the root process gets the final results array. All other processes
+        are returned None.
+
         """
         from mpi4py import MPI
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
         nprocs = comm.Get_size()
 
-        if(nprocs==1): # single processor
-            total_output = fn.evaluate( positions )
-            return total_output
-        else: # using function in parallel
-            # start with an array of zeros of the correct length
-            shapeDim = len(np.shape(positions))
-            if(shapeDim==1): # single coordinate value rather than a list of (x,y,z) pairs on length len(positions)
-                arrayLength = 1
-                local =  np.zeros(arrayLength, dtype=bool)
-                local_output = None
-                try:
-                    # get result
-                    output = fn.evaluate( positions )
-                    # flag as result found
-                    local[0]  = True
-                    # if not created, create
-                    if not isinstance(local_output, np.ndarray):
-                        local_output =  np.zeros(arrayLength, dtype=output.dtype)
-                    local_output[0] = output
-                except: # leave blank
-                    pass
-            else:  # multiple positions passed in
-            # go through the positions and fill elements where the data is available
-                arrayLength = len(positions)
-                local =  np.zeros(arrayLength, dtype=bool)
-                local_output = None
-                for i in range(arrayLength):
-                    try:
-                        # get result
-                        output = fn.evaluate(positions[i])
-                        # flag as result found
-                        local[i]  = True
-                        # if not created, create
-                        if not isinstance(local_output, np.ndarray):
-                            local_output =  np.zeros(arrayLength, dtype=output.dtype)
-                        local_output[i] = output
-                    except: # leave blank
-                        pass
+        if isinstance(inputData, FunctionInput):
+            raise TypeError("This 'inputData' type is not currently supported for global function evaluation.")
+        # go through the inputData and fill elements where the data is available
+        if not isinstance(inputData, np.ndarray):
+            inputData = self._evaluate_data_convert_to_ndarray(inputData)
+        arrayLength = len(inputData)
+        local =  np.zeros(arrayLength, dtype=bool)
+        local_output = None
+        for i in range(arrayLength):
+            try:
+                # get result
+                output = self.evaluate(inputData[i:i+1], inputType)
+                # flag as result found
+                local[i]  = True
+                # if not created, create
+                if not isinstance(local_output, np.ndarray):
+                    local_output =  np.zeros( (arrayLength, output.shape[1]), dtype=output.dtype)
+                local_output[i] = output
+            except ValueError:
+                # ValueError is only raised for outside domain, which suggests that the
+                # evaluation probably occurred on another process.
+                pass
+            except:
+                # if a different error was raise, we should reraise
+                raise
 
-            # distill results down to local only
-            local_result_count = np.count_nonzero(local)
+        # distill results down to local only
+        local_result_count = np.count_nonzero(local)
+        if local_result_count:
+            local_output_distilled = np.zeros( (local_result_count, local_output.shape[1]), dtype=local_output.dtype)
+            array_positions        = np.zeros(local_result_count, dtype=int)
+            j=0
+            for i,val in enumerate(local):
+                if val:
+                    array_positions[j]=i
+                    local_output_distilled[j] = local_output[i]
+                    j+=1
+
+        # data sending
+        total_output = None
+        if(rank!=0):
+            # send count
+            comm.send(local_result_count, dest=0, tag=0)
             if local_result_count:
-                local_output_distilled = np.zeros(local_result_count, dtype=local_output.dtype)
-                array_positions        = np.zeros(local_result_count, dtype=int)
-                j=0
-                for i,val in enumerate(local):
-                    if val:
-                        array_positions[j]=i
-                        local_output_distilled[j] = local_output[i]
-                        j+=1
-    
-            # data sending
-            total_output = None
-            if(rank!=0):
-                # send count
-                comm.send(local_result_count, dest=0, tag=0)
-                if local_result_count:
-                    # next send position array
-                    comm.send(array_positions, dest=0, tag=1)
-                    # finally send actual data
-                    comm.send(local_output_distilled,    dest=0, tag=2)
-            else:
-                # have output already from rank=0 proc; and lots of empties to fill in from others
-                # some data IS available two multiple processors - e.g. edges
-                for iProc in range(1,nprocs):
-                    incoming_count = comm.recv(source=iProc, tag=0)
-                    if incoming_count:
-                        incoming_positions = comm.recv(source=iProc, tag=1)
-                        incoming_data      = comm.recv(source=iProc, tag=2)
-                        # create array if not done already
-                        if not isinstance(total_output, np.ndarray):
-                            total_output =  np.zeros(arrayLength, dtype=incoming_data.dtype)
-                        total_output[incoming_positions] = incoming_data
+                # next send position array
+                comm.send(array_positions, dest=0, tag=1)
+                # finally send actual data
+                comm.send(local_output_distilled,    dest=0, tag=2)
+        else:
+            # have output already from rank=0 proc; and lots of empties to fill in from others
+            # some data IS available two multiple processors - e.g. edges
+            for iProc in range(1,nprocs):
+                incoming_count = comm.recv(source=iProc, tag=0)
+                if incoming_count:
+                    incoming_positions = comm.recv(source=iProc, tag=1)
+                    incoming_data      = comm.recv(source=iProc, tag=2)
+                    # create array if not done already
+                    if not isinstance(total_output, np.ndarray):
+                        total_output =  np.zeros( (arrayLength, incoming_data.shape[1]), dtype=incoming_data.dtype)
+                    total_output[incoming_positions] = incoming_data
 
-            # finally copy our local results into the output
-            if (rank==0) and local_result_count:
-                if not isinstance(total_output,np.ndarray):
-                    total_output =  np.zeros(arrayLength, dtype=local_output_distilled.dtype)
-                total_output[array_positions] = local_output_distilled
+        # finally copy our local results into the output
+        if (rank==0) and local_result_count:
+            if not isinstance(total_output,np.ndarray):
+                total_output =  np.zeros( (arrayLength,local_output_distilled.shape[1]), dtype=local_output_distilled.dtype)
+            total_output[array_positions] = local_output_distilled
 
-            if (rank==0) and (isinstance(total_output,np.ndarray)==False):
-                # if total_output is still non-existent, no results were found
-                raise RuntimeError("No results were found anywhere in the domain for provided input.")
+        if (rank==0) and (isinstance(total_output,np.ndarray)==False):
+            # if total_output is still non-existent, no results were found
+            raise RuntimeError("No results were found anywhere in the domain for provided input.")
 
-            if rank == 0:
-                return total_output
-            else:
-                # all other procs return None
-                return None
+        if rank == 0:
+            return total_output
+        else:
+            # all other procs return None
+            return None
 
+
+    def _evaluate_data_convert_to_ndarray( self, inputData ):
+        # convert single values to tuples if necessary
+        if isinstance( inputData, float ):
+            inputData = (inputData,)
+        # convert to ndarray
+        if isinstance( inputData, (list,tuple) ):
+            arr = np.empty( [1,len(inputData)] )
+            ii = 0
+            for guy in inputData:
+                if not isinstance(guy, float):
+                    raise TypeError("Iterable inputs must only contain python 'float' objects.")
+                arr[0,ii] = guy
+                ii +=1
+            return arr
+        else:
+            raise TypeError("Input provided for function evaluation does not appear to be supported.")
 
     def evaluate(self,inputData,inputType=None):
         """
@@ -607,22 +615,9 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
             else:
                 inputType = ArrayType
             return _cfn.Query(self._fncself).query(_cfn.NumpyInput(inputData,inputType))
-        elif isinstance(inputData, float):
-            tupleInput = (inputData,)
-            # recurse
-            return self.evaluate( tupleInput, inputType )
-        elif isinstance(inputData, (list,tuple)):
-            arr = np.empty( [1,len(inputData)] )
-            ii = 0
-            for guy in inputData:
-                if not isinstance(guy, float):
-                    raise TypeError("Iterable inputs must only contain python 'float' objects.")
-                arr[0,ii] = guy
-                ii +=1
-            # recurse
-            return self.evaluate( arr, inputType )
         else:
-            raise TypeError("Input provided for function evaluation does not appear to be supported.")
+            # try convert and recurse
+            return self.evaluate( self._evaluate_data_convert_to_ndarray(inputData), inputType )
 
 class add(Function):
     """

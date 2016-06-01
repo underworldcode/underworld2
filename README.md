@@ -1,63 +1,44 @@
-Underworld 2 / python underworld
-================================
+Underworld 2
+============
 
-[_Underworld 2_](http://www.underworldcode.org) is a python-friendly version of the Underworld code which provides a  programmable and flexible front end to all the functionality of the code running in a parallel HPC environment. This gives signficant advantages to the user, with access to the power of python libraries for setup of complex problems, analysis at runtime, problem steering, and coupling of multiple problems. The python toolkit was funded by the NeCTAR [eresearch_tools](http://www.nectar.org.au/eresearch-tools) program.
+[_Underworld 2_](http://www.underworldcode.org) is a python-friendly version of the Underworld code which provides a programmable and flexible front end to all the functionality of the code running in a parallel HPC environment. This gives signficant advantages to the user, with access to the power of python libraries for setup of complex problems, analysis at runtime, problem steering, and multi physics coupling. While Underworld2 embraces Jupyter Notebooks as the preferred modelling environment, only standard python is required.
+
+The Underworld2 development team is based in Melbourne, Australia at the University of Melbourne and at Monash University led by Louis Moresi. We would like to acknowledge AuScope Simulation, Analysis and Modelling for providing long term funding which has made the project possible. Additional funding for specific improvements and additional functionality has come from the Australian Research Council (http://www.arc.gov.au). The python toolkit was funded by the NeCTAR eresearch_tools program. Underworld was originally developed in collaboration with the Victorian Partnership for Advanced Computing.
 
 Compile | [![Build Status] (http://128.250.120.238:9080/buildStatus/icon?job=Compile)](http://128.250.120.238:9080/job/Compile)
 
 Model Tests | [![Build Status](http://128.250.120.238:9080/job/tests/badge/icon)](http://128.250.120.238:9080/job/tests/)
 
-Dependencies
--------------
-  * PETSc 
-  * MPI
-  * hdf5 (optional, but recommended)
-  * numpy
-  * libpng
-  * swig
-  * build tools (gcc etc)
 
-Note: Headers will be required for above libraries (-dev packages).  Required libraries regularly included in system distributions are not listed. 
 
-Getting the code
-----------------
-* Install [Git](https://git-scm.com/)
-* In a terminal, run:
-```
-git clone https://github.com/underworldcode/underworld2.git
-```
+Getting Underworld2
+-------------------
+The Underworld2 docker container is the recommended method of installation for Windows, Mac OSX and Linux. It is available through the docker hub:
 
-Compilation
------------
+https://hub.docker.com/r/underworldcode/underworld2/
 
-We periodically post build recipes for particular platforms on the [underworld blog](http://www.underworldcode.org/pages/Blog) but the build strategy looks like this
+Please check our blog page for a writeup on using dockers:
 
+http://www.underworldcode.org/pages/Blog/
+
+If you need to compile Underworld2 (in particular for HPC usage), please refer to COMPILE.md
+
+
+Underworld Docker Usage
+------------
+To access Underworld2 examples, run the following command,
 
 ```bash
-    $ cd libUnderworld
-    $ ./configure.py
-    $ ./compile.py
+   docker run -p 8888:8888 underworldcode/underworld2
 ```
-
-Check available configuration options using `./configure.py --help`. 
-
-Usage
------
-You will first need to make the project directory available to import within python:
+and then (Linux users) browse to http://localhost:8888. For Windows/Mac, your docker containers will be run within a VM. To determine the address of this VM, check the output of:
 ```bash
-    $ export PYTHONPATH=$PYTHONPATH:/top/directory/of/project
+   docker-machine ip default 
 ```
-(note that if you are not using the bash shell, the required command will be different.)
+So, for example, you may need to browse to http://192.168.99.100:8888
 
-Various example files are provided in `InputFiles` and may be run as follows:
-
-```bash
-    $ cd InputFiles
-    $ python LidDriven.py
-```
 Privacy
 -------
-
 Note that basic usage metrics are dispatched when you use Underworld. To opt out, set the UW_NO_USAGE_METRICS environment variable. See `PRIVACY.md` for full details.                                   
 
 Bedtime reading

@@ -27,3 +27,24 @@ from _glucifer import Store
 from _glucifer import Figure
 from _glucifer import Viewer
 from . import objects
+
+_display = None
+
+def start_virtual_display():
+    """
+    This function will initialise the X virtual framebuffer (Xvfb).
+    Xvfb is useful on headless systems. Note that xvfb will need to be 
+    installed, as will pyvirtualdisplay.
+    """
+    from pyvirtualdisplay import Display
+    global _display
+    _display = Display(visible=0, size=(1600, 1200))
+    _display.start()
+
+def stop_virtual_display():
+    """
+    This function stops the X virtual framebuffer (Xvfb).
+    """
+    global _display
+    if not _display is None:
+        _display.stop()

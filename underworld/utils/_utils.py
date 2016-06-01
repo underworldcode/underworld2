@@ -158,9 +158,6 @@ class Integral(_stgermain.StgCompoundComponent):
             result.append(val.value(ii))
         return result
 
-    def integrate(self): # DEPRECATE
-        raise RuntimeError("This method has been renamed to 'evaluate'.")
-
     @property
     def maskFn(self):
         """

@@ -1,4 +1,4 @@
-FROM debian
+FROM debian:jessie
 MAINTAINER mansourjohn@gmail.com
 
 # install things
@@ -38,7 +38,10 @@ RUN apt-get update -qq && \
         mpi4py \
         matplotlib \
         runipy \
-        pillow
+        pillow \
+        pyvirtualdisplay \
+        ipyparallel
+
 
 # Install Tini.. this is required because CMD (below) doesn't play nice with notebooks for some reason: https://github.com/ipython/ipython/issues/7062, https://github.com/jupyter/notebook/issues/334
 RUN curl -L https://github.com/krallin/tini/releases/download/v0.6.0/tini > tini && \
@@ -53,8 +56,15 @@ RUN printf "#\041/bin/sh \n rm -f /tmp/.X99-lock && xvfb-run -s '-screen 0 1600x
 # Add a notebook profile.
 RUN mkdir -p -m 700 /root/.jupyter/ && \
     echo "c.NotebookApp.ip = '*'" >> /root/.jupyter/jupyter_notebook_config.py
+
+# Setup ipyparallel for mpi profile
+RUN ipcluster nbextension enable && \ 
+    ipython profile create --parallel --profile=mpi && \
+    echo "c.IPClusterEngines.engine_launcher_class = 'MPIEngineSetLauncher'" >> .ipython/profile_mpi/ipcluster_config.py
+
 # expose notebook port
 EXPOSE 8888
+
 
 
 # note we also use xvfb which is required for viz

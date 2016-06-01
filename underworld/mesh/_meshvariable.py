@@ -199,13 +199,6 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
             self._fn_gradient = _gradient(self)
         return self._fn_gradient
 
-    @property
-    def gradientFn(self):
-        #DEPRECATE 1/16
-        raise RuntimeError("The 'gradientFn' property has been renamed to 'fn_gradient'.")
-
-
-
     def xdmf( self, filename, fieldSavedData, varname, meshSavedData, meshname, modeltime=0.  ):
         """
         Creates an xdmf file, filename, associating the fieldSavedData file on
@@ -542,3 +535,13 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
             newFe.data[:] = self.data[:]
 
         return newFe
+
+    def syncronise(self):
+        """
+        This method is often necessary when Underworld is operating in parallel.
+        
+        It will syncronise the mesh variable so that it is consistent
+        with it's parallel neighbours. Specifically, the shadow space of each 
+        process obtains the required data from neighbouring processes.
+        """
+        uw.libUnderworld.StgFEM._FeVariable_SyncShadowValues( self._cself )

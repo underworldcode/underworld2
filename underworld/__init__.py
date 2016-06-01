@@ -50,13 +50,11 @@ _sys.path.insert(0, _os.path.realpath(_os.path.dirname("..")))
 import libUnderworld
 import container
 import mesh
-import fevariable
 import conditions
 import function
 import swarm
 import systems
 import utils
-import meshvariable
 
 try:
     from ._uwid import uwid as _id
