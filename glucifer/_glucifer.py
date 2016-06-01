@@ -54,6 +54,8 @@ class Store(_stgermain.StgCompoundComponent):
     ----------
     filename: str, default=None
         Filename to use for a disk database, default is in memory only unless saved.
+    split: bool, default=False
+        Set to true to write a separate database file for each timestep visualised
     view: bool, default=False
         Set to true and pass filename if loading a saved database for revisualisation
             
@@ -64,7 +66,7 @@ class Store(_stgermain.StgCompoundComponent):
     >>> import glucifer
     >>> store = glucifer.Store()
 
-    Optionally provide a filename so you don't need to call save later
+    Optionally provide a filename so you don't need to call save later (no extension)
     >>> store = glucifer.Store('myvis')
 
     Pass to figures when creating them
@@ -83,14 +85,17 @@ class Store(_stgermain.StgCompoundComponent):
     _objectsDict = { "_db":"lucDatabase" }
     _selfObjectName = "_db"
 
-    def __init__(self, filename=None, view=False, **kwargs):
+    def __init__(self, filename=None, split=False, view=False, **kwargs):
 
         self.step = 0
         if filename and not filename.lower().endswith('.gldb') and not filename.lower().endswith('.db'):
-            filename += '.gldb'
+            filename += ".gldb"
         self.filename = filename
         self._objects = []
         self._viewonly = False
+        #Don't split on timestep unless filename provided
+        if not self.filename: split = False
+        self._split = split
 
         #Open an existing db?
         if view and filename and os.path.isfile(filename):
@@ -104,10 +109,20 @@ class Store(_stgermain.StgCompoundComponent):
         # call parents method
         super(Store,self)._add_to_stg_dict(componentDictionary)
 
+        #Extension needs to added by lucDatabase when generating per timestep files
+        filename = self.filename
+        if filename:
+            #Need base name, strip extensions if provided
+            if filename.lower().endswith('.gldb'):
+                filename = filename[0:-5]
+            if filename.lower().endswith('.db'):
+                filename = filename[0:-3]
+
         componentDictionary[self._db.name].update( {
-                            "filename"          :self.filename,
+                            "filename"          :filename,
                             "blocking"          :True,
                             "splitTransactions" :True,
+                            "singleFile"        :not self._split,
                             "viewonly"          :self._viewonly,
                             "dbPath"            :".",
         } )
@@ -354,7 +369,7 @@ class Figure(dict):
 
     Add drawing objects:
     >>> fig.append( glucifer.objects.Surface( mesh, 1.) )
-    
+
     Draw image (note, in a Jupyter notebook, this will render the image within the notebook).
     >>> fig.show()
     <IPython.core.display.HTML object>
@@ -770,7 +785,7 @@ class Viewer(dict):
     >>>    for name in saved:
     >>>        fig = saved[name]
     >>>        fig.quality = 3
-    >>>        fig.properties["title"] = "Timestep ##"
+    >>>        fig["title"] = "Timestep ##"
     >>>        fig.show()
 
     """
@@ -797,8 +812,6 @@ class Viewer(dict):
             for obj in state["objects"]:
                 if obj["visible"]:
                     fig.append(objects.Drawing(name=obj["name"], properties=obj))
-            #Save the largest timestep
-            if not "timesteps" in state: state["timesteps"] = 0
 
         #Timestep info
         self.steps = self._db.timesteps

@@ -286,7 +286,7 @@ void _lucDatabase_Execute( void* database, void* data )
          if (!self->memdb)
          {
             /* Copy structure to template file */
-            sqlite3_open(":memory", &self->memdb);
+            sqlite3_open(":memory:", &self->memdb);
             lucDatabase_BackupDb(self->db, self->memdb);
             /* Remove any existing data in the memory copy (can only be one timestep) */
             lucDatabase_IssueSQL(self->memdb, "delete from geometry");
@@ -814,10 +814,10 @@ void lucDatabase_OpenDatabase(lucDatabase* self)
 
       if (self->filename && strlen(self->filename))
       {
-         if (self->path && strlen(self->path))
-            sprintf(self->path, "%s/%s", self->dbPath, self->filename);
+         if (self->dbPath && strlen(self->dbPath))
+            sprintf(self->path, "%s/%s.gldb", self->dbPath, self->filename);
          else
-            strcpy(self->path, self->filename);
+            sprintf(self->path, "%s.gldb", self->filename);
       }
       else
       {
