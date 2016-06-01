@@ -13,7 +13,7 @@
 
 	/** Textual name of this class */
 	extern const Type SystemLinearEquations_Type;
-	
+
 	/* virtual function interface */
 	typedef void (SystemLinearEquations_LM_SetupFunction) ( void* sle, void* data );
 	typedef void (SystemLinearEquations_MatrixSetupFunction) ( void* sle, void* data );
@@ -23,15 +23,15 @@
 
 	/* for solving non linear systems using Newton's method */
 	typedef int (SystemLinearEquations_BuildFFunc) ( SNES nls, Vec x, Vec f, void* context );
-	typedef int (SystemLinearEquations_BuildJFunc) ( SNES nls, Vec x, Mat* A, Mat* B, MatStructure* matStruct, void* context );	
+	typedef int (SystemLinearEquations_BuildJFunc) ( SNES nls, Vec x, Mat* A, Mat* B, MatStructure* matStruct, void* context );
 	typedef void (SystemLinearEquations_SetFFunc) ( Vec* F, void* context );
 	typedef void (SystemLinearEquations_ConfigureNonlinearSolver) ( void* nls, void* data );
 	typedef void (SLE_FormFunctionFunc)( void *someSLE, Vec X, Vec F, void *ctx );
-	
+
 	/*
 	** SystemLinearEquations class contents.
 	*/
-	
+
 	#define __SystemLinearEquations \
 		/* General info */ \
 		__Stg_Component \
@@ -114,8 +114,8 @@
 		Bool																picard_monitor; \
       SLE_FormFunctionFunc*										_sleFormFunction; \
       Bool                                               runatExecutePhase;
-		
-		
+
+
 	/** Abstract class to manage the set up, building, initialisation etc of a System of
 	Linear Equations - see SystemLinearEquations.h */
 	struct SystemLinearEquations { __SystemLinearEquations };
@@ -130,12 +130,12 @@
 		Bool							isNonLinear,
 		double						nonLinearTolerance,
 		Iteration_Index			nonLinearMaxIterations,
-		Bool							killNonConvergent,		
+		Bool							killNonConvergent,
 		EntryPoint_Register*		entryPoint_Register,
 		MPI_Comm						comm );
 
 	/** Creation implementation / Virtual constructor */
-	
+
 	#ifndef ZERO
 	#define ZERO 0
 	#endif
@@ -154,7 +154,7 @@
 	        _matrixSetup,             \
 	        _vectorSetup,             \
 	        _updateSolutionOntoNodes, \
-	        _mgSelectStiffMats      
+	        _mgSelectStiffMats
 
 	SystemLinearEquations* _SystemLinearEquations_New(  SYSTEMLINEAREQUATIONS_DEFARGS  );
 
@@ -180,15 +180,15 @@
 
 	/* Stg_Class_Print() implementation */
 	void _SystemLinearEquations_Print( void* sle, Stream* stream );
-	
+
 	/* Copy implementation */
 	#define SystemLinearEquations_Copy( self ) \
 		(SystemLinearEquations*)Stg_Class_Copy( self, NULL, False, NULL, NULL )
 	#define SystemLinearEquations_DeepCopy( self ) \
 		(SystemLinearEquations*)Stg_Class_Copy( self, NULL, True, NULL, NULL )
-		
+
 	void* _SystemLinearEquations_Copy( void* sle, void* dest, Bool deep, Name nameExt, PtrMap* ptrMap );
-	
+
 	/* +++ Virtual Functions +++ */
 	void* _SystemLinearEquations_DefaultNew( Name name ) ;
 
@@ -201,7 +201,7 @@
 	/** Stg_Component_Execute() implementation: Assembles the correct values into all matrices of the
 	system, then executes the system's solver. */
 	void _SystemLinearEquations_Execute( void* sle, void* data );
-	
+
 	void _SystemLinearEquations_Destroy( void* sle, void* data );
 
 	void SystemLinearEquations_ExecuteSolver( void* sle, void* data ) ;
@@ -214,7 +214,7 @@
 	void _SystemLinearEquations_LM_Setup( void* sle, void* data );
 
 	void SystemLinearEquations_IntegrationSetup( void* sle, void* data );
-	
+
 	/* Matrix Setup */
 	void SystemLinearEquations_MatrixSetup( void* sle, void* data );
 
@@ -226,7 +226,7 @@
 	void _SystemLinearEquations_VectorSetup( void* sle, void* data );
 
 	/* +++ Public Functions / Macros +++ */
-	
+
 	/* AddStiffnessMatrix macro */
 	#define SystemLinearEquations_AddStiffnessMatrix( sle, stiffnessMatrix ) \
 		Stg_ObjectList_Append( ((sle)->stiffnessMatrices), stiffnessMatrix )
@@ -292,16 +292,17 @@
 
 	void SystemLinearEquations_AddPostNonLinearEP( void* sle, const char* name, EntryPoint_2VoidPtr_Cast func );
 
+	void SystemLinearEquations_SetNonLinearTolerance( void* sle, double tol );
 	void SystemLinearEquations_SetToNonLinear( void* sle, Bool isNonLinear );
 
 	void SystemLinearEquations_CheckIfNonLinear( void* sle );
-	
+
 	/*
 	** All the multi-grid virtual functions and their general implementations.
 	*/
-	
+
 	void SystemLinearEquations_MG_Enable( void* _sle );
-	
+
 	void SystemLinearEquations_MG_SelectStiffMats( void* _sle, unsigned* nSMs, StiffnessMatrix*** sms );
 
 	void _SystemLinearEquations_MG_SelectStiffMats( void* _sle, unsigned* nSMs, StiffnessMatrix*** sms );
@@ -315,4 +316,3 @@
    void SystemLinearEquations_SetRunDuringExecutePhase( void* sle, Bool setRunDuringExectutePhase );
 
 #endif
-

@@ -15,7 +15,8 @@ import underworld._stgermain as _stgermain
 import libUnderworld
 
 class _SystemCondition(_stgermain.StgCompoundComponent):
-    pass
+    def _add_to_stg_dict(self,componentDict):
+        pass
 
 class DirichletCondition(_SystemCondition):
     """
@@ -91,10 +92,6 @@ class DirichletCondition(_SystemCondition):
 
         super(DirichletCondition,self).__init__()
 
-
-    def _add_to_stg_dict(self,componentDict):
-        pass
-
     @property
     def indexSets(self):
         """
@@ -110,7 +107,7 @@ class DirichletCondition(_SystemCondition):
         """
         return self._variable
 
-class NeumannCondition(DirichletCondition):
+class NeumannCondition(_SystemCondition):
     """
     This class defines Neumann conditions for a differential equation.
     Neumann conditions specifiy a field's flux along a boundary.
@@ -124,14 +121,39 @@ class NeumannCondition(DirichletCondition):
         See uw.Function for details
 
     """
+    _objectsDict = { "_pyvc": "PythonVC" }
+    _selfObjectName = "_pyvc"
 
-    def __init__(self, flux, **kwargs ):
+    def __init__(self, flux, variable=None, nodeIndexSet=None, **kwargs ):
+
+        if nodeIndexSet == None:
+            raise ValueError("No 'nodeIndexSet' provided to apply Neumann conditions")
+
+        _flux = uw.function.Function._CheckIsFnOrConvertOrThrow(flux)
+        if not isinstance( _flux, uw.function.Function):
+            raise ValueError( "Provided 'flux' must be of or convertible to 'Function' class." )
+        self._flux = _flux
+
+        if not isinstance( variable, uw.mesh.MeshVariable ):
+            raise TypeError("Provided variable must be of class 'MeshVariable'.")
+        self._variable = variable
+
+        if isinstance( nodeIndexSet, uw.container.IndexSet):
+            indexSet = nodeIndexSet
+        else:
+            raise TypeError("Provided 'nodeIndexSet' must be of type 'IndexSet', " \
+            "currently it is: ", type(nodeIndexSet)  )
+
+        self._indexSet = indexSet
+
+        # ok, lets setup the c array, only 1 of them
+        libUnderworld.StGermain._PythonVC_SetupIndexSetArray(self._cself,1 )
+
+        # now, lets add the indexSet objects
+        libUnderworld.StGermain._PythonVC_SetIndexSetAtArrayPosition( self._cself, self._indexSet._cself, 0 );
+
         # call parent
-        super(NeumannCondition,self).__init__(**kwargs)
-
-        # if not isinstance( flux, uw.mesh.MeshVariable ):
-        #     raise TypeError("Error: a NeumannCondition has been without a 'flux'")
-        self._flux = flux
+        super(NeumannCondition,self).__init__()
 
     @property
     def flux(self):
@@ -139,3 +161,18 @@ class NeumannCondition(DirichletCondition):
         Gradient Field for which this condition applies.
         """
         return self._flux
+
+    @property
+    def indexSet(self):
+        """
+        Node IndexSet objects. Represents the nodes, of the given variable's mesh,
+        that will be flagged to have this Neumann condition.
+        """
+        return self._indexSet
+
+    @property
+    def variable(self):
+        """
+        Variable for which this condition applies.
+        """
+        return self._variable

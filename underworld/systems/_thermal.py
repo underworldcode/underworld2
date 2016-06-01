@@ -58,7 +58,19 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
     >>> tField.data[bottomNodes.data] = 1.0
     >>> tSystem = uw.systems.SteadyStateHeat(temperatureField=tField, fn_diffusivity=1.0, conditions=[tbcs])
 
+    Example - of nonlinear diffusivity
+    ----------------------------------
+    >>> k = tField + 1.0
+    >>> tSystem = uw.systems.SteadyStateHeat(temperatureField=tField, fn_diffusivity=k, conditions=[tbcs])
+    >>> solver = uw.systems.Solver(tSystem)
+    >>> solver.solve()
+    Traceback (most recent call last):
+    ...
+    RuntimeError: Nonlinearity detected.
+    Diffusivity function depends on the temperature field provided to the system.
+    Please set the 'nonLinearIterate' solve parameter to 'True' or 'False' to continue.
     """
+
     _objectsDict = {  "_system" : "SystemLinearEquations" }
     _selfObjectName = "_system"
 

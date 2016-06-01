@@ -114,14 +114,15 @@ class Stokes(_stgermain.StgCompoundComponent):
         mesh = velocityField.mesh
 
         for cond in conditions:
+            # set the bcs on here
             if not isinstance( cond, uw.conditions._SystemCondition ):
                 raise TypeError( "Provided 'conditions' must be a list '_SystemCondition' objects." )
-            # set the bcs on here
-            if isinstance(cond, uw.conditions.NeumannCondition):
+            if type(cond) == uw.conditions.NeumannCondition:
                 if nbc != None:
+                    # check only one nbc condition is given in 'conditions' list
                     RuntimeError( "Provided 'conditions' can only accept one NeumannConditions condition object.")
                 nbc=cond
-            elif isinstance(cond, uw.conditions.DirichletCondition):
+            elif type(cond) == uw.conditions.DirichletCondition:
                 if cond.variable == self._velocityField:
                     libUnderworld.StgFEM.FeVariable_SetBC( self._velocityField._cself, cond._cself )
                 if cond.variable == self._pressureField:

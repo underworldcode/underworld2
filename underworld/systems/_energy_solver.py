@@ -34,21 +34,26 @@ class HeatSolver(_stgermain.StgCompoundComponent):
         # call parents method
         super(HeatSolver,self)._add_to_stg_dict(componentDictionary)
 
-    def solve(self, nonLinearIterate=None, **kwargs):
+    def solve(self, nonLinearIterate=None, nonLinearTolerance=1.0e-2, **kwargs):
         """ Solve the sle using provided solver.
         """
+
+        if not isinstance(nonLinearTolerance, float) or nonLinearTolerance < 0.0:
+            raise ValueError("'nonLinearTolerance' option must be of type 'float' and greater than 0.0")
+
         # Set up options string from dictionaries.
         # We set up here so that we can set/change terms on the dictionaries before we run solve
         self._setup_options(**kwargs)
         petsc.OptionsClear() # reset the petsc options
         petsc.OptionsInsertString(self._optionsStr)
 
-        #self._heatSLE._cself.solver=self._cself
         libUnderworld.StgFEM.Energy_SLE_Solver_SetSolver(self._cself, self._heatSLE._cself) # this sets solver on SLE struct.
+
         # check for non-linearity
-        nonLinear = False
+        nonLinear = self._check_linearity(nonLinearIterate)
 
         if nonLinear and nonLinearIterate:
+            libUnderworld.StgFEM.SystemLinearEquations_SetNonLinearTolerance(self._heatSLE._cself, nonLinearTolerance)
             libUnderworld.StgFEM.SystemLinearEquations_SetToNonLinear(self._heatSLE._cself, True )
         else:
             libUnderworld.StgFEM.SystemLinearEquations_SetToNonLinear(self._heatSLE._cself, False )
@@ -79,6 +84,27 @@ class HeatSolver(_stgermain.StgCompoundComponent):
         for key, value in kwargs.iteritems():      # kwargs is a regular dictionary
             self._optionsStr += " "+"-"+key+" "+str(value)
 
+    def _check_linearity(self, nonLinearIterate):
+
+        nonLinear = False
+
+        # can only check for the heatEq SLE
+        if isinstance(self._heatSLE, uw.systems.SteadyStateHeat):
+            sle = self._heatSLE
+            message = "Nonlinearity detected."
+            if sle._temperatureField in sle.fn_diffusivity._underlyingDataItems:
+                nonLinear = True
+                message += "\nDiffusivity function depends on the temperature field provided to the system."
+            if sle._temperatureField in sle.fn_heating._underlyingDataItems:
+                nonLinear = True
+                message += "\nHeating function depends on the temperature field provided to the system."
+            message += "\nPlease set the 'nonLinearIterate' solve parameter to 'True' or 'False' to continue."
+            if nonLinear and (nonLinearIterate==None):
+                raise RuntimeError(message)
+
+        return nonLinear
+
+
     def configure(self,solve_type=""):
         """
         Configure velocity/inner solver (A11 PETSc prefix).
@@ -104,7 +130,7 @@ class HeatSolver(_stgermain.StgCompoundComponent):
             self.options.EnergySolver.set_superludist()
         else:
         # shouldn't get here
-        
+
             raise RuntimeError("Provided solver type not supported. \
                                 \nCheck help for list of available solvers.")
 

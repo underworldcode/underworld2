@@ -734,9 +734,9 @@ void SystemLinearEquations_NonLinearExecute( void* sle, void* _context ) {
    Iteration_Index         maxIterations   = self->nonLinearMaxIterations;
    Bool                    converged;
    Stream*                 errorStream     = Journal_Register( Error_Type, (Name)self->type  );
-   double               wallTime;
+   double                  wallTime;
    Iteration_Index         minIterations   = self->nonLinearMinIterations;
-        SLE_Solver*             solver;
+   SLE_Solver*             solver;
 
    PetscScalar      currVecNorm, prevVecNorm;
 
@@ -1289,6 +1289,11 @@ void SystemLinearEquations_AddNonLinearEP( void* sle, const char* name, EntryPoi
 }
 
 
+void SystemLinearEquations_SetNonLinearTolerance( void* sle, double tol ){
+   SystemLinearEquations*   self = (SystemLinearEquations*) sle;
+   self->nonLinearTolerance = tol;
+   // SystemLinearEquations_SetToNonLinear( self, True );
+}
 
 void SystemLinearEquations_SetToNonLinear( void* sle, Bool isNonLinear ) {
    SystemLinearEquations*   self = (SystemLinearEquations*) sle;

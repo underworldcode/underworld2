@@ -60,7 +60,7 @@ RUN mkdir -p -m 700 /root/.jupyter/ && \
 # Setup ipyparallel for mpi profile
 RUN ipcluster nbextension enable && \ 
     ipython profile create --parallel --profile=mpi && \
-    echo "c.IPClusterEngines.engine_launcher_class = 'MPIEngineSetLauncher'" >> .ipython/profile_mpi/ipcluster_config.py
+    echo "c.IPClusterEngines.engine_launcher_class = 'MPIEngineSetLauncher'" >> /root/.ipython/profile_mpi/ipcluster_config.py
 
 # expose notebook port
 EXPOSE 8888

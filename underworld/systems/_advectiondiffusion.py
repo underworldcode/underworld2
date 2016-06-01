@@ -78,33 +78,22 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
         if not isinstance(conditions, (uw.conditions._SystemCondition, list, tuple) ):
             raise ValueError( "Provided 'conditions' must be a list '_SystemCondition' objects." )
 
-        # error check dcs 'dirichlet conditions' and ncs 'neumann cond.'
-        # currently we don't support them happening on the same dof.
-        nbc = None
-        mesh     = phiField.mesh
-        ncs      = uw.mesh.FeMesh_IndexSet( mesh, topologicalIndex=0, size=mesh.nodesGlobal )
-        dcs      = uw.mesh.FeMesh_IndexSet( mesh, topologicalIndex=0, size=mesh.nodesGlobal )
+        # check input 'conditions' list is valid
+        nbc      = None
         for cond in conditions:
             if not isinstance( cond, uw.conditions._SystemCondition ):
                 raise TypeError( "Provided 'conditions' must be a list '_SystemCondition' objects." )
             # set the bcs on here
-            if isinstance( cond, uw.conditions.NeumannCondition):
-                ncs.add( cond.indexSets[0] )
-                nbc=cond
-            elif isinstance(cond, uw.conditions.DirichletCondition):
+            if type(cond) == uw.conditions.NeumannCondition:
+                if nbc != None:
+                    # check only one nbc condition is given in 'conditions' list
+                    RuntimeError( "Provided 'conditions' can only accept one NeumannConditions condition object.")
+            elif type(cond) == uw.conditions.DirichletCondition:
                 if cond.variable == self._phiField:
                     libUnderworld.StgFEM.FeVariable_SetBC( self._phiField._cself, cond._cself )
                     libUnderworld.StgFEM.FeVariable_SetBC( self._phiDotField._cself, cond._cself )
-                # add all dirichlet condition to dcs
-                dcs.add( cond.indexSets[0] )
             else:
                 raise RuntimeError("Input condition type not recognised.")
-
-        # check if condition definitions occur on the same nodes
-        should_be_empty = dcs & ncs
-        if should_be_empty.count > 0:
-            raise ValueError("It appears both Neumann and Dirichlet conditions have been specified the following node degrees of freedom\n" +
-                    "This is currently unsupported.", should_be_empty.data)
 
         # ok, we've set some bcs, lets recreate eqnumbering
         libUnderworld.StgFEM._FeVariable_CreateNewEqnNumber( self._phiField._cself )
