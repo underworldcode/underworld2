@@ -306,7 +306,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
     ### the solve function
     ########################################################################
 
-    def solve(self, nonLinearIterate=None, print_stats=False, reinitialise=True, **kwargs):
+    def solve(self, nonLinearIterate=None, nonLinearTolerance=1.0e-2, print_stats=False, reinitialise=True, **kwargs):
         """ solve the Stokes system
         """
         Solvers.SBKSP_SetSolver(self._cself, self._stokesSLE._cself)
@@ -314,6 +314,9 @@ class StokesSolver(_stgermain.StgCompoundComponent):
             Solvers.SBKSP_SetPenalty(self._cself, self.options.main.penalty)
             if self.options.main.ksp_k2_type == "NULL":
                 self.options.main.ksp_k2_type = "GMG"
+
+        if not isinstance(nonLinearTolerance, float) or nonLinearTolerance < 0.0:
+            raise ValueError("'nonLinearTolerance' option must be of type 'float' and greater than 0.0")
 
         # Set up options string from dictionaries.
         # We set up here so that we can set/change terms on the dictionaries before we run solve
@@ -332,7 +335,9 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         nonLinear=self._check_linearity(nonLinearIterate)
 
         if nonLinear and nonLinearIterate:
-            libUnderworld.StgFEM.SystemLinearEquations_SetToNonLinear(self._stokesSLE._cself, True )
+            # self._stokesSLE._cself.nonLinearTolerance = nonLinearTolerance # set via python
+            libUnderworld.StgFEM.SystemLinearEquations_SetNonLinearTolerance(self._stokesSLE._cself, nonLinearTolerance)
+            libUnderworld.StgFEM.SystemLinearEquations_SetToNonLinear(self._stokesSLE._cself, True, )
         else:
             libUnderworld.StgFEM.SystemLinearEquations_SetToNonLinear(self._stokesSLE._cself, False )
 
@@ -363,6 +368,15 @@ class StokesSolver(_stgermain.StgCompoundComponent):
 
         if print_stats:
             self.print_stats()
+            if nonLinear and nonLinearIterate:
+                if uw.rank()==0:
+                    purple = "\033[0;35m"
+                    endcol = "\033[00m"
+                    boldpurple = "\033[1;35m"
+                    print boldpurple
+                    print( "Non linear iterations: %3d of 500 " % (self._stokesSLE._cself.nonLinearIteration_I) )
+                    print endcol
+                    print
 
     ########################################################################
     ### create vectors and matrices for augmented lagrangian solve
