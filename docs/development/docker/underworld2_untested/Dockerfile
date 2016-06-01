@@ -1,4 +1,4 @@
-FROM underworldcode/base:latest
+FROM underworldcode/base:dev
 MAINTAINER mansourjohn@gmail.com
 
 # set working directory to /root
