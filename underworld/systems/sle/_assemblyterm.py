@@ -133,14 +133,8 @@ class VectorSurfaceAssemblyTerm_NA__Fn__ni(VectorAssemblyTerm):
 
         deltaMeshVariable = uw.mesh.MeshVariable(mesh, 1)
         deltaMeshVariable.data[:] = 0.
-
-        ncs  = uw.mesh.FeMesh_IndexSet( mesh, topologicalIndex=0, size=mesh.nodesGlobal )
-        # record nodes within the condition
-        for ii in nbc.indexSets:
-            if ii:
-                ncs.add( ii )
         # set a value 1.0 on provided vertices
-        deltaMeshVariable.data[ncs.data] = 1.0
+        deltaMeshVariable.data[nbc.indexSet.data] = 1.0
         # note we use this condition to only capture border swarm particles
         # on the surface itself. for those directly adjacent, the deltaMeshVariable will evaluate
         # to non-zero (but less than 1.), so we need to remove those from the integration as well.
