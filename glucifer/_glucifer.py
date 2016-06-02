@@ -605,9 +605,6 @@ class Figure(dict):
 
     def _generate_HTML(self):
         if haveLavaVu and uw.rank() == 0:
-            # add this kludge to get webgl working.. run this first to ensure lavavu is in the required state
-            args = [self.db._lvbin, self.db._db.path, "-" + str(self.db.step), "-p0", "-z" + str(self.quality), "-a", "-h", ":"] + self._script
-            lavavu.execute(args)
             #Export encoded json string
             lv = LavaVu.load(self.db.lvargs())
             jsonstr = lv.web()
