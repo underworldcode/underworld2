@@ -14,6 +14,7 @@ import libUnderworld
 import libUnderworld.libUnderworldPy.Function as _cfn
 from timeit import default_timer as timer
 from mpi4py import MPI
+import h5py
 import numpy as np
 import sys
 import shutil
@@ -219,10 +220,16 @@ def _swarmspacetimeschema( swarmSavedData, swarmname, time ):
     """
     # retrieve bits about previously saved swarm file
     swarm = swarmSavedData.pyobj
-    filename = os.path.basename(swarmSavedData.filename)
+    filename = swarmSavedData.filename
 
-    # set parameters
-    globalCount = swarm.particleGlobalCount
+    # get swarm parameters - serially read from hdf5 file to get size
+    h5f = h5py.File(name=filename, mode="r")
+    dset = h5f.get('data')
+    if dset == None:
+        raise RuntimeError("Can't find 'data' in file '{}'.\n".format(filename))
+    globalCount = len(dset)
+    h5f.close()
+
     dim = swarm.mesh.dim
 
     out = "<Grid Name=\"{0}\" GridType=\"Uniform\">\n".format(swarmname)
@@ -308,10 +315,16 @@ def _swarmvarschema( varSavedData, varname ):
 
     # retrieve bits from varSavedData
     var = varSavedData.pyobj
-    varfilename = os.path.basename(varSavedData.filename)
+    varfilename = varSavedData.filename
 
-    # set parameters
-    globalCount = var.swarm.particleGlobalCount
+    # set parameters - serially open the varfilename
+    h5f = h5py.File(name=varfilename, mode="r")
+    dset = h5f.get('data')
+    if dset == None:
+        raise RuntimeError("Can't find 'data' in file '{}'.\n".format(filename))
+    globalCount = len(dset)
+    h5f.close()
+
     dof_count = var.data.shape[1]
     variableType = "NumberType=\"Float\" Precision=\"8\""
 
