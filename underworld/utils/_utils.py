@@ -556,7 +556,7 @@ class ProgressBar(object):
 
         sys.stdout.flush()
 
-def nps_2norm( v, comm=MPI.COMM_WORLD ):
+def _nps_2norm( v, comm=MPI.COMM_WORLD ):
     """
     Calculates the 2-norm of a numpy vector v.
     The vector may be decomposed across multiple processors as specified by 'comm'.
