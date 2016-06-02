@@ -24,6 +24,7 @@ import time
 import abc
 import h5py
 from mpi4py import MPI
+import numpy as np
 
 
 class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
@@ -73,12 +74,12 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
                                   You must provide a generator, or the mesh itself \
                                   must be of the MeshGenerator class.")
         self.generator = generator
-        
+
         # these lists should be populated with closure functions
         # which are executed before and/or after mesh deformations
         self._pre_deform_functions = []
         self._post_deform_functions = []
-        
+
         self._arr = None
 
         # build parent
@@ -209,18 +210,18 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         Any mesh deformation must occur within this python context manager. Note
         that certain algorithms may be switched to their irregular mesh equivalents
         (if not already set this way). This may have performance implications.
-        
+
         Any submesh will also be appropriately updated on return from the context
-        manager, as will various mesh metrics. 
-        
+        manager, as will various mesh metrics.
+
         Parameters
         ----------
         remainsRegular : bool, default=False
-            The general assumption is that the deformed mesh will no longer be regular 
-            (orthonormal), and more general but less efficient algorithms will be 
-            selected via this context manager. To over-ride this behaviour, set 
+            The general assumption is that the deformed mesh will no longer be regular
+            (orthonormal), and more general but less efficient algorithms will be
+            selected via this context manager. To over-ride this behaviour, set
             this parameter to True.
-            
+
 
         Example
         -------
@@ -238,7 +239,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
 #            if uw.rank() == 0: print("Switching to irregular mesh algorithms.")
             uw.libUnderworld.StgDomain.Mesh_SetAlgorithms( self._cself, None )
             self._cself.isRegular = False
-        
+
         # execute any pre deform functions
         for function in self._pre_deform_functions:
             function()
@@ -277,7 +278,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         function : function
             Function to be executed. Closures should be used
             where parameters are required.
-        
+
         """
         self._pre_deform_functions.append( function )
 
@@ -291,7 +292,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         function : function
             Function to be executed. Closures should be used
             where parameters are required.
-        
+
         """
         self._post_deform_functions.append( function )
 
@@ -1152,3 +1153,83 @@ class FeMesh_IndexSet(uw.container.ObjectifiedIndexSet, function.FunctionInput):
                            "Ie, remove the '()'.")
     def _get_iterator(self):
         return libUnderworld.Function.MeshIndexSet(self._cself, self.object._cself)
+
+class _FeMesh_Regional(FeMesh_Cartesian):
+    def __new__(cls, **kwargs):
+        return super(_FeMesh_Regional,cls).__new__(cls, **kwargs)
+
+    def __init__(self, elementRes=(16,16,10), radius=(3.0,6.0), latExtent=90.0, longExtent=90.0, **kwargs):
+        """
+        Class initialiser for Cubed-sphere mesh.
+
+        MinI_VertexSet / MaxI_VertexSet -> longitudinal walls : [min/max] = [west/east]
+        MinJ_VertexSet / MaxJ_VertexSet -> latitudinal walls  : [min/max] = [south/north]
+        MinK_VertexSet / MaxK_VertexSet -> radial walls       : [min/max] = [inner/outer]
+
+        Parameter
+        ---------
+            elementRes : 3-tuple
+                1st element - Number of elements across the longitudinal extent of the domain
+                2nd element - Number of elements across the latitudinal extent of the domain
+                3rd element - Number of elements across the radial length of the domain
+
+            radius : 2-tuple, default (3.0,6.0)
+                The radial position of the inner and outer surfaces respectively.
+                (inner radius, outer radius)
+
+            longExtent : float, default 90.0
+                The angular extent of the domain between great circles of longitude
+
+            latExtent : float, default 90.0
+                The angular extent of the domain between great circles of latitude
+
+            See parent classes for further required/optional parameters.
+
+        >>> (radMin, radMax) = (4.0,8.0)
+        >>> mesh = uw.mesh._FeMesh_Regional( elementRes=(20,20,14), radius=(radMin, radMax) )
+        >>> integral = uw.utils.Integral( 1.0, mesh).evaluate()[0]
+        >>> exact = 4/3.0*np.pi*(radMax**3 - radMin**2) / 6.0
+        >>> np.fabs(integral-exact)/exact < 1e-1
+        True
+
+
+        """
+
+        if not isinstance( latExtent, (float,int) ):
+            raise TypeError("Provided 'latExtent' must be a float or integer")
+        self._latExtent = latExtent
+        if not isinstance( longExtent, (float,int) ):
+            raise TypeError("Provided 'longExtent' must be a float or integer")
+        self._longExtent = longExtent
+        if not isinstance( radius, (tuple,list)):
+            raise TypeError("Provided 'radius' must be a tuple/list of 2 floats")
+        if len(radius) != 2:
+            raise ValueError("Provided 'radius' must be a tuple/list of 2 floats")
+        for el in radius:
+            if not isinstance( el, (float,int)) :
+                raise TypeError("Provided 'radius' must be a tuple/list of 2 floats")
+        self._radius = radius
+
+        lat_half = latExtent/2.0
+        long_half = longExtent/2.0
+
+        # call parent cartesian mesh
+        # build 3D mesh centred on (0.0,0.0,0.0) - in _setup() we deform the mesh
+        super(_FeMesh_Regional,self).__init__(elementType="Q1/dQ0", elementRes=elementRes,
+                    minCoord=(-long_half,-lat_half,radius[0]), maxCoord=(long_half,lat_half,radius[1]), periodic=None, **kwargs)
+
+    def _setup(self):
+
+        with self.deform_mesh():
+            # perform Cubed-sphere projection on coordinates
+            (x,y) = (np.tan(np.pi*self.data[:,0]/180.0), np.tan(np.pi*self.data[:,1]/180.0))
+            d = self.data[:,2] / np.sqrt( x**2 + y**2 + 1)
+            self.data[:,0] = d*x
+            self.data[:,1] = d*y
+            self.data[:,2] = d
+            #
+            # for index, coord in enumerate(mesh.data):
+            #     # perform Cubed-sphere projection on coordinates
+            #     (x,y,r) = (np.tan(np.pi*coord[0]/180.0), np.tan(np.pi*coord[1]/180.0), 1)
+            #     d = coord[2]/np.sqrt( x**2 + y**2 + 1)
+            #     mesh.data[index] = ( d*x, d*y, d)
