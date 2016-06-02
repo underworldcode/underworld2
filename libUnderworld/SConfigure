@@ -294,7 +294,7 @@ print '* Underworld.                                                   *'
 print '* To opt out, set the UW_NO_USAGE_METRICS environment variable. *'
 print '* See PRIVACY.md for full details.                              *'
 print '*                                                               *'
-print '* Now run \'./scons.py\' to build.                                *'
+print '* Now run \'./compile.py\' to build.                                *'
 print '*****************************************************************'
 print
 
