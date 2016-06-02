@@ -102,14 +102,9 @@ if env['static_libs']:
     l = env.StaticLibrary(env['build_dir'] + '/lib/StGermain', objs)
     env.Install(env['prefix'] + '/lib', l)
 
-#
-# FlattenXML, StGermain and test runner programs.
-#
+# test runner program
 
 libs = ['StGermain'] + env.get('LIBS', [])
-env.Program('bin/FlattenXML', 'Base/FlattenXML/src/main.c', LIBS=libs)
-if env['shared_libs']:
-    env.Program('bin/StGermain', 'src/main.c', LIBS=libs)
 env.PCUTest('tests/testStGermain', suites,
     PCU_LIBHEADERS="#include <StGermain/StGermain.h>",
     PCU_SETUP="StGermain_Init(&argc, &argv);\n" \
@@ -120,12 +115,3 @@ env.PCUTest('tests/testStGermain', suites,
     PCU_EXP=tst_exp,
     PCU_INPUT=tst_input,
     PROJECT="StGermain")
-
-#
-# Copy XML validation file to correct destination.
-#
-
-xmls = env.Install('lib', 'Base/IO/src/StGermain.xsd')
-env.Install('share/StGermain/scripts', Glob('pcu/script/*.py*'))
-env.Install('share/StGermain/scripts', Glob('script/*.py*'))
-

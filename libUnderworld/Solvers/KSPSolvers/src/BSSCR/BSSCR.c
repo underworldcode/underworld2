@@ -67,7 +67,7 @@ typedef struct {
 /*************************************************************************************************/
 /*************************************************************************************************/
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "BSSCR_KSPSetConvergenceMinIts"
 PetscErrorCode BSSCR_KSPSetConvergenceMinIts(KSP ksp, PetscInt n, KSP_BSSCR * bsscr)
 {
@@ -94,10 +94,10 @@ PetscErrorCode BSSCR_KSPSetConvergenceMinIts(KSP ksp, PetscInt n, KSP_BSSCR * bs
       ierr = KSPSetConvergenceTest(ksp,BSSCR_KSPConverged,(void*)bsscr);CHKERRQ(ierr);
 #endif
 
-      PetscFunctionReturn(0);   
+      PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "BSSCR_KSPConverged"
 PetscErrorCode BSSCR_KSPConverged(KSP ksp,PetscInt n,PetscReal rnorm,KSPConvergedReason *reason,void *cctx)
 {
@@ -129,7 +129,7 @@ PetscErrorCode BSSCR_KSPConverged(KSP ksp,PetscInt n,PetscReal rnorm,KSPConverge
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "BSSCR_KSPConverged_Destroy"
 PetscErrorCode BSSCR_KSPConverged_Destroy(void *cctx)
 {
@@ -146,8 +146,7 @@ PetscErrorCode BSSCR_KSPConverged_Destroy(void *cctx)
   PetscFunctionReturn(0);
 }
 
-
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "KSPRegisterBSSCR"
 PetscErrorCode PETSCKSP_DLLEXPORT KSPRegisterBSSCR(const char path[])
 {
@@ -159,7 +158,7 @@ PetscErrorCode PETSCKSP_DLLEXPORT KSPRegisterBSSCR(const char path[])
 }
 
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "KSPSolve_BSSCR"
 PetscErrorCode  KSPSolve_BSSCR(KSP ksp)
 {
@@ -167,7 +166,7 @@ PetscErrorCode  KSPSolve_BSSCR(KSP ksp)
     Vec            B, X; /* rhs and solution vectors */
     //MatStructure   pflag;
     PetscErrorCode ierr;
-    KSP_BSSCR *    bsscr;    
+    KSP_BSSCR *    bsscr;
     Stokes_SLE *    SLE;
     //PETScMGSolver * MG;
     Mat K,D,ApproxS;
@@ -179,12 +178,14 @@ PetscErrorCode  KSPSolve_BSSCR(KSP ksp)
 
     TotalSolveTime = MPI_Wtime();
 
-    PetscPrintf( PETSC_COMM_WORLD, "**** BSSCR -- Block Stokes Schur Compliment Reduction Solver **** \n");
+    PetscPrintf( PETSC_COMM_WORLD, "\nBSSCR -- Block Stokes Schur Compliment Reduction Solver \n");
     /** Get the stokes Block matrix and its preconditioner matrix */
     ierr = Stg_PCGetOperators(ksp->pc,&Amat,&Pmat,PETSC_NULL);CHKERRQ(ierr);
-    /** In Petsc proper, KSP's ksp->data is usually set in KSPCreate_XXX function. 
+
+    /** In Petsc proper, KSP's ksp->data is usually set in KSPCreate_XXX function.
         Here it is set in the _StokesBlockKSPInterface_Solve function instead so that we can ensure that the solver
         has everything it needs */
+
     bsscr         = (KSP_BSSCR*)ksp->data;
     //MG            = (PETScMGSolver*)bsscr->mg;
     SLE           = (Stokes_SLE*)bsscr->st_sle;
@@ -197,7 +198,9 @@ PetscErrorCode  KSPSolve_BSSCR(KSP ksp)
     }
 
     if( (bsscr->k2type != 0) ){
-      if(bsscr->buildK2 != PETSC_NULL)(*bsscr->buildK2)(ksp); /* building K2 from scaled version of stokes operators: K2 lives on bsscr struct = ksp->data */  
+      if(bsscr->buildK2 != PETSC_NULL) {
+            (*bsscr->buildK2)(ksp); /* building K2 from scaled version of stokes operators: K2 lives on bsscr struct = ksp->data */
+        }
     }
 
     /* get sub matrix / vector objects */
@@ -207,7 +210,7 @@ PetscErrorCode  KSPSolve_BSSCR(KSP ksp)
     if( ((StokesBlockKSPInterface*)SLE->solver)->preconditioner ) { /* SLE->solver->st_sle == SLE here, by the way */
         StiffnessMatrix *preconditioner;
         preconditioner = ((StokesBlockKSPInterface*)SLE->solver)->preconditioner;
-        ApproxS = BSSCR_GetPetscMatrix( preconditioner->matrix ); 
+        ApproxS = BSSCR_GetPetscMatrix( preconditioner->matrix );
     }
 
     sym = bsscr->DIsSym;
@@ -220,12 +223,12 @@ PetscErrorCode  KSPSolve_BSSCR(KSP ksp)
     flg = PETSC_FALSE;
     augment = PETSC_TRUE;
     PetscOptionsGetTruth(PETSC_NULL, "-augmented_lagrangian", &augment, &flg);
-    BSSCR_DRIVER_auglag( ksp, Amat, X, B, ApproxS, BA, sym, bsscr );   
+    BSSCR_DRIVER_auglag( ksp, Amat, X, B, ApproxS, BA, sym, bsscr );
 
     /**********************************************************/
     /***** END SOLVE!! ****************************************/
     /**********************************************************/
-    if( bsscr->do_scaling ){ 
+    if( bsscr->do_scaling ){
         (*bsscr->unscale)(ksp);  }
     if( (bsscr->k2type != 0) && bsscr->K2 != PETSC_NULL ){
         if(bsscr->k2type != K2_SLE){/* don't destroy here, as in this case, K2 is just pointing to an existing matrix on the SLE */
@@ -237,13 +240,13 @@ PetscErrorCode  KSPSolve_BSSCR(KSP ksp)
     ksp->reason = KSP_CONVERGED_RTOL;
 
     TotalSolveTime =  MPI_Wtime() - TotalSolveTime;
-    PetscPrintf( PETSC_COMM_WORLD, "\n\t* Total BSSCR Linear solve time: %lf seconds\n\n", TotalSolveTime);
+    PetscPrintf( PETSC_COMM_WORLD, "  Total BSSCR Linear solve time: %lf seconds\n\n", TotalSolveTime);
     bsscr->solver->stats.total_time=TotalSolveTime;
     PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
-#define __FUNCT__ "KSPDestroy_BSSCR" 
+#undef __FUNCT__
+#define __FUNCT__ "KSPDestroy_BSSCR"
 PetscErrorCode KSPDestroy_BSSCR(KSP ksp)
 {
     KSP_BSSCR     *bsscr = (KSP_BSSCR *)ksp->data;
@@ -265,7 +268,7 @@ PetscErrorCode KSPDestroy_BSSCR(KSP ksp)
     PetscFunctionReturn(0);
 }
 static const char *K2Types[] = {"NULL","DGMGD","GMG","GG","SLE","K2Type","K2_",0};
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "KSPSetFromOptions_BSSCR"
 #if ( (PETSC_VERSION_MAJOR >= 3) && (PETSC_VERSION_MINOR <6) )
 PetscErrorCode KSPSetFromOptions_BSSCR(KSP ksp)
@@ -303,15 +306,15 @@ PetscErrorCode KSPSetFromOptions_BSSCR(PetscOptions *PetscOptionsObject, KSP ksp
 }
 #endif
 
-#undef __FUNCT__  
-#define __FUNCT__ "KSPView_BSSCR" 
+#undef __FUNCT__
+#define __FUNCT__ "KSPView_BSSCR"
 PetscErrorCode KSPView_BSSCR(KSP ksp,PetscViewer viewer)
 {
     PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
-#define __FUNCT__ "KSPSetUp_BSSCR" 
+#undef __FUNCT__
+#define __FUNCT__ "KSPSetUp_BSSCR"
 PetscErrorCode KSPSetUp_BSSCR(KSP ksp)
 {
     KSP_BSSCR  *bsscr = (KSP_BSSCR *)ksp->data;
@@ -349,7 +352,7 @@ PetscErrorCode KSPSetUp_BSSCR(KSP ksp)
     if( scale ) {
         bsscr->scale       = KSPScale_BSSCR;
         bsscr->unscale     = KSPUnscale_BSSCR;
-        bsscr->do_scaling  = PETSC_TRUE; 
+        bsscr->do_scaling  = PETSC_TRUE;
         bsscr->scaletype   = KONLY;
         konly = PETSC_TRUE;
         found = PETSC_FALSE;
@@ -381,7 +384,7 @@ PetscErrorCode KSPSetUp_BSSCR(KSP ksp)
 }
 
 EXTERN_C_BEGIN
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "KSPCreate_BSSCR"
 PetscErrorCode PETSCKSP_DLLEXPORT KSPCreate_BSSCR(KSP ksp)
 {
@@ -392,7 +395,7 @@ PetscErrorCode PETSCKSP_DLLEXPORT KSPCreate_BSSCR(KSP ksp)
     ierr = PetscLogObjectMemory((PetscObject)ksp,sizeof(KSP_BSSCR));CHKERRQ(ierr);
     //ierr = PetscNewLog(ksp,KSP_BSSCR,&bsscr);CHKERRQ(ierr);
     ksp->data                              = (void*)bsscr;
-    
+
     #if ( (PETSC_VERSION_MAJOR >= 3) && (PETSC_VERSION_MINOR >= 2 ) )
     ierr = KSPSetSupportedNorm(ksp,KSP_NORM_PRECONDITIONED,PC_LEFT,0);CHKERRQ(ierr);
     ierr = KSPSetSupportedNorm(ksp,KSP_NORM_UNPRECONDITIONED,PC_LEFT,1);CHKERRQ(ierr);
@@ -400,7 +403,7 @@ PetscErrorCode PETSCKSP_DLLEXPORT KSPCreate_BSSCR(KSP ksp)
     ierr = KSPSetSupportedNorm(ksp,KSP_NORM_NONE,PC_LEFT,1);CHKERRQ(ierr);
     #endif
     /*
-       Sets the functions that are associated with this data structure 
+       Sets the functions that are associated with this data structure
        (in C++ this is the same as defining virtual functions)
     */
     ksp->ops->setup                = KSPSetUp_BSSCR;
@@ -425,4 +428,3 @@ PetscErrorCode PETSCKSP_DLLEXPORT KSPCreate_BSSCR(KSP ksp)
     PetscFunctionReturn(0);
 }
 EXTERN_C_END
-

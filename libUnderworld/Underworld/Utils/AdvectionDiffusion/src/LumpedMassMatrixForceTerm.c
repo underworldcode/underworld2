@@ -131,16 +131,7 @@ void _LumpedMassMatrixForceTerm_Destroy( void* forceTerm, void* data ) {
 void _LumpedMassMatrixForceTerm_AssembleElement( void* forceTerm, ForceVector* forceVector ,Element_LocalIndex lElement_I, double* elForceVector ) {
 	LumpedMassMatrixForceTerm* self = Stg_CheckType( forceTerm, LumpedMassMatrixForceTerm );
 
-#if 0
-	if ( Stg_Class_IsInstance( mesh->layout->elementLayout, ParallelPipedHexaEL_Type ) ) {
-		ForceTerm_SetAssembleElementFunction( self, _LumpedMassMatrixForceTerm_AssembleElement_Box  );
-	}
-	else {
-#endif
-		ForceTerm_SetAssembleElementFunction( self, _LumpedMassMatrixForceTerm_AssembleElement_General  );
-#if 0
-	}
-#endif
+    ForceTerm_SetAssembleElementFunction( self, _LumpedMassMatrixForceTerm_AssembleElement_General  );
 
 	ForceTerm_AssembleElement( self, forceVector, lElement_I, elForceVector );
 }
@@ -181,24 +172,3 @@ void _LumpedMassMatrixForceTerm_AssembleElement_General( void* forceTerm, ForceV
 				elForceVector[ nodeRow_I ] += shapeFunc[ nodeRow_I ] * shapeFunc[ nodeColumn_I ] * factor ; 
 	}
 }
-
-/** Shortcut for doing above calculation, optimised for a box shaped element */
-void _LumpedMassMatrixForceTerm_AssembleElement_Box( void* forceTerm, ForceVector* forceVector, Element_LocalIndex lElement_I, double* elForceVector ) {
-	FeVariable*                feVariable        = forceVector->feVariable;
-	Dimension_Index            dim               = forceVector->dim;
-	FeMesh*			feMesh              = feVariable->feMesh;
-	Element_NodeIndex          elementNodeCount;
-	ElementType*               elementType;
-	Node_Index                 node_I;
-	double                     detJac;
-	Coord                      xi = {0.0,0.0,0.0};
-
-	elementNodeCount = FeMesh_GetElementNodeSize( feMesh, lElement_I );
-	elementType = FeMesh_GetElementType( feMesh, lElement_I );
-	
-	detJac = ElementType_JacobianDeterminant( elementType, feMesh, lElement_I, xi, dim );
-	for ( node_I = 0 ; node_I < elementNodeCount ; node_I++ ) 
-		elForceVector[ node_I ] = detJac;
-}
-
-

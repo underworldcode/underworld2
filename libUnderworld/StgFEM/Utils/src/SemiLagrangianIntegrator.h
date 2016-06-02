@@ -27,7 +27,7 @@
       FeVariable*		              advectedField;		     \
       /* for problems with temporally evolving velocity */ \
       FeVariable*		              prevVelField;           \
-      Energy_SLE*                  sle;
+//      Energy_SLE*                  sle;
 
    /** Abstract class defining the interface for a SemiLagrangianIntegrator solver - see SemiLagrangianIntegrator.h */
    struct SemiLagrangianIntegrator { __SemiLagrangianIntegrator };

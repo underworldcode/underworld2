@@ -32,10 +32,7 @@
 	/** Constructor */
 	void* Stokes_SLE_PenaltySolver_DefaultNew( Name name );
 	
-	Stokes_SLE_PenaltySolver* Stokes_SLE_PenaltySolver_New(
-		Name                                        name,
-		Bool                                        useStatSolve, 
-		int                                         statReps );
+	Stokes_SLE_PenaltySolver* Stokes_SLE_PenaltySolver_New( Name name );
 
 	/** Creation implementation / Virtual constructor */
 	
@@ -53,10 +50,7 @@
 
 	/** Class member variable initialisation */
 	void _Stokes_SLE_PenaltySolver_Init( void* solver ) ;
-	void Stokes_SLE_PenaltySolver_InitAll( 
-		void*                        solver,
-		Bool                         useStatSolve,
-		int                          statReps );
+	void Stokes_SLE_PenaltySolver_InitAll( void* solver );
 
 	/** Class_Delete() implementation */
 	void _Stokes_SLE_PenaltySolver_Delete( void* solver );

@@ -30,7 +30,7 @@ ElementCellLayout* ElementCellLayout_New( Name name, AbstractContext* context, v
 	ElementCellLayout* self = _ElementCellLayout_DefaultNew( name );
 
 	self->isConstructed = True;
-	_CellLayout_Init( (CellLayout*)self, context );
+	_CellLayout_Init( (CellLayout*)self );
 	_ElementCellLayout_Init( self, mesh );
 
 	return self;

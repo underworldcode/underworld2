@@ -49,8 +49,6 @@
 	
 	Stokes_SLE_UzawaSolver* Stokes_SLE_UzawaSolver_New( 
 		Name                                        name,
-		Bool                                        useStatSolve, 
-		int                                         statReps,
 		StiffnessMatrix*                            preconditioner,
 		Iteration_Index                             maxUzawaIterations,
 		Iteration_Index                             minUzawaIterations,
@@ -84,8 +82,6 @@
 		
 	void Stokes_SLE_UzawaSolver_InitAll( 
 		void*                        solver,
-		Bool                         useStatSolve,
-		int                          statReps, 
 		StiffnessMatrix*             preconditioner, 
 		Iteration_Index              maxUzawaIterations,
 		Iteration_Index              minUzawaIterations,

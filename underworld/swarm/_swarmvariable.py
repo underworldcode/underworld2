@@ -18,40 +18,48 @@ import libUnderworld.libUnderworldPy.Function as _cfn
 from mpi4py import MPI
 import h5py
 import os
+import weakref
 
 class SwarmVariable(_stgermain.StgClass, function.Function):
 
     """
-    The SwarmVariable class allows users to add data to swarm particles.  The data 
+    The SwarmVariable class allows users to add data to swarm particles.  The data
     can be of type "char", "short", "int", "float" or "double".
-    
+
     Note that the swarm allocates one block of contiguous memory for all the particles.
     The per particle variable datums is then interlaced across this memory block.
-    
+
     The recommended practise is to add all swarm variables before populating the swarm
     to avoid costly reallocations.
-    
+
     Swarm variables should be added via the add_variable swarm method.
-    
+
     Parameters
     ----------
     swarm : uw.swarm.Swarm
         The swarm of particles for which we wish to add the variable
     dataType: str
-        The data type for the variable. Available types are  "char", 
+        The data type for the variable. Available types are  "char",
         "short", "int", "float" or "double".
     count: unsigned
         The number of values to be stored for each particle.
-
+    writeable: bool, default=True
+        Signifies if the variable should be writeable.
     """
     _supportedDataTypes = ["char", "short", "int", "float", "double"]
 
-    def __init__(self, swarm=None, dataType=None, count=None, **kwargs):
-        
+    def __init__(self, swarm=None, dataType=None, count=None, writeable=True, **kwargs):
+
         if not isinstance(swarm, sab.SwarmAbstract):
             raise TypeError("'swarm' object passed in must be of type 'Swarm'")
-        self._swarm = swarm
-        
+        self._swarm = weakref.ref(swarm)
+
+        self._arr = None
+        self._writeable = writeable
+
+        # clear the reference to numpy arrays, as memory layout *will* change.
+        swarm._clear_variable_arrays()
+
         if len(swarm._livingArrays) != 0:
             raise RuntimeError("""
             There appears to be {} swarm variable numpy array objects still in
@@ -64,17 +72,17 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
             reference to it. Once you have added the required swarm variables, you can easily
             regenerate the numpy views of other variables again using the 'data' property.""".format(len(swarm._livingArrays)))
 
-        
+
         if not isinstance(dataType,str):
             raise TypeError("'dataType' object passed in must be of type 'str'")
         if dataType.lower() not in self._supportedDataTypes:
             raise ValueError("'dataType' provided ({}) does not appear to be supported. \nSupported types are {}.".format(dataType.lower(),self._supportedDataTypes))
         self._dataType = dataType.lower()
-        
+
         if not isinstance(count,int) or (count<1):
             raise TypeError("Provided 'count' must be a positive integer.")
         self._count = count
-        
+
         if self._dataType == "double" :
             dtype = libUnderworld.StGermain.Variable_DataType_Double;
         elif self._dataType == "float" :
@@ -95,16 +103,16 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
                 raise ValueError("Passed in cself object's dofcount must be same as that provided in arguments")
             # note that we aren't checking the datatype
         else:
-            varname = self._swarm._cself.name+"_"+str(len(self.swarm.variables))
+            varname = self.swarm._cself.name+"_"+str(len(self.swarm.variables))
             self._cself = libUnderworld.StgDomain.Swarm_NewVectorVariable(self.swarm._cself, varname, -1, dtype, count )
             libUnderworld.StGermain.Stg_Component_Build( self._cself, None, False );
             libUnderworld.StGermain.Stg_Component_Initialise( self._cself, None, False );
-        
+
         self.swarm.variables.append(self)
-        
+
         # lets realloc swarm now
         libUnderworld.StgDomain.Swarm_Realloc(self.swarm._cself)
-        
+
         # create function guy
         self._fncself = _cfn.SwarmVariableFn(self._cself)
 
@@ -115,15 +123,16 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
 
     @property
     def swarm(self):
-        """    
+        """
         swarm (Swarm): The swarm this variable belongs to.
         """
-        return self._swarm
+        # note that we only return a weakref to the swarm, hence the trailing parenthesis
+        return self._swarm()
 
     @property
     def dataType(self):
         """
-        dataType (str): Data type for variable.  Supported types are 'char', 
+        dataType (str): Data type for variable.  Supported types are 'char',
         'short', 'int', 'float' and 'double'.
         """
         return self._dataType
@@ -135,17 +144,17 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         """
         return self._count
 
-    
+
     @property
     def data(self):
-        """    
+        """
         data (np.array):  Numpy proxy array to underlying variable data.
         Note that the returned array is a proxy for all the *local* particle
         data.
-        
+
         As numpy arrays are simply proxys to the underlying memory structures.
         no data copying is required.
-        
+
         >>> # create mesh
         >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
         >>> # create empty swarm
@@ -167,51 +176,62 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
                [255],
                [255]], dtype=int32)
 
+
         >>> # particle coords
         >>> swarm.particleCoordinates.data[0]
         array([ 0.0132078,  0.0132078])
         >>> # move the particle
-        >>> swarm.particleCoordinates.data[0] = [.1,.1]
+        >>> with swarm.deform_swarm():
+        ...     swarm.particleCoordinates.data[0] = [0.2,0.2]
         >>> swarm.particleCoordinates.data[0]
-        array([ 0.1,  0.1])
-        >>> # don't forget to update owners after performing any moves
-        >>> swarm.update_particle_owners()
+        array([ 0.2,  0.2])
         """
-        arrayguy = libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.variable)
-        # add to swarms weakref dict
-        self.swarm._livingArrays[self] = arrayguy
-        return arrayguy
+        if self._arr is None:
+            self._arr = libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.variable)
+            # set to writeability
+            self._arr.flags.writeable = self._writeable
+            # add to swarms weakref dict
+            self.swarm._livingArrays[self] = self._arr
+        return self._arr
+
+    def _clear_array(self):
+        """
+        This removes the potentially defunct numpy swarm variable memory
+        numpy view. It will be regenerated when required.
+        """
+        self._arr = None
+
 
     def load( self, filename, verbose=False ):
         """
         Load the swarm variable from disk. This must be called *after* the swarm.load().
-        
+
         Parameters
         ----------
         filename : str
-            The filename for the saved file. Relative or absolute paths may be 
+            The filename for the saved file. Relative or absolute paths may be
             used, but all directories must exist.
         verbose : bool
             Prints a swarm variable load progress bar.
-            
+
         Notes
         -----
         This method must be called collectively by all processes.
-        
+
 
         Example
         -------
         Refer to example provided for 'save' method.
-        
+
         """
 
         if not isinstance(filename, str):
             raise TypeError("'filename' parameter must be of type 'str'")
-        
-        gIds = self.swarm._local2globalMap
-        if not isinstance(gIds, np.ndarray):
-            raise RuntimeError("'Swarm' associate with this 'SwarmVariable' doesn't have a valid '_local2globalMap'.\n" \
+
+        if self.swarm._checkpointMapsToState != self.swarm.stateId:
+            raise RuntimeError("'Swarm' associate with this 'SwarmVariable' does not appear to be in the correct state.\n" \
                                "Please ensure that you have loaded the swarm prior to loading any swarm variables.")
+        gIds = self.swarm._local2globalMap
 
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
@@ -249,7 +269,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
                     break
             else:
                 chunkEnd = chunkStart + chunk
-            self.data[chunkStart:chunkEnd] = dset[gIds[chunkStart:chunkEnd],:] 
+            self.data[chunkStart:chunkEnd] = dset[gIds[chunkStart:chunkEnd],:]
 
             if rank == 0 and verbose:
                 bar.update(chunkEnd)
@@ -260,16 +280,16 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
     def save( self, filename, swarmFilepath=None ):
         """
         Save the swarm variable to disk.
-        
+
         Parameters
         ----------
         filename : str
-            The filename for the saved file. Relative or absolute paths may be 
+            The filename for the saved file. Relative or absolute paths may be
             used, but all directories must exist.
         swarmFilepath : str (optional)
             Path to the save swarm file. If provided, a softlink is created within
             the swarm variable file to the swarm file.
-            
+
         Returns
         -------
         SavedFileData
@@ -288,39 +308,39 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         >>> swarm = uw.swarm.Swarm(mesh)
         >>> swarm.populate_using_layout(uw.swarm.layouts.PerCellGaussLayout(swarm,2))
         >>> svar = swarm.add_variable("int",1)
-        
+
         Write something to variable
-        
+
         >>> import numpy as np
         >>> svar.data[:,0] = np.arange(swarm.particleLocalCount)
-        
+
         Save to a file:
-        
+
         >>> ignoreMe = swarm.save("saved_swarm.h5")
         >>> ignoreMe = svar.save("saved_swarm_variable.h5")
-        
-        Now let's try and reload. First create a new swarm and swarm variable, 
+
+        Now let's try and reload. First create a new swarm and swarm variable,
         and then load both:
-        
+
         >>> clone_swarm = uw.swarm.Swarm(mesh)
         >>> clone_svar = clone_swarm.add_variable("int",1)
         >>> clone_swarm.load("saved_swarm.h5")
         >>> clone_svar.load("saved_swarm_variable.h5")
-        
+
         Now check for equality:
-        
+
         >>> import numpy as np
         >>> np.allclose(svar.data,clone_svar.data)
         True
-        
+
         Clean up:
         >>> if uw.rank() == 0:
-        ...     import os; 
+        ...     import os;
         ...     os.remove( "saved_swarm.h5" )
         ...     os.remove( "saved_swarm_variable.h5" )
 
         """
-        
+
         if swarmFilepath:
             raise RuntimeError("The 'swarmFilepath' option is currently disabled.")
         if not isinstance(filename, str):
@@ -334,19 +354,20 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         # allgather the number of particles each proc has
         swarm = self.swarm
         procCount = comm.allgather(swarm.particleLocalCount)
-        particleGlobalCount = swarm.particleGlobalCount
+        particleGlobalCount = np.sum(procCount) #swarm.particleGlobalCount
 
         # calculate the hdf5 file offset
         offset=0
         for i in xrange(rank):
             offset += procCount[i]
 
+        # import pdb; pdb.set_trace()
         # open parallel hdf5 file
         h5f = h5py.File(name=filename, mode="w", driver='mpio', comm=MPI.COMM_WORLD)
         globalShape = (particleGlobalCount, self.data.shape[1])
-        dset = h5f.create_dataset("data", 
+        dset = h5f.create_dataset("data",
                                    shape=globalShape,
-                                   dtype='f')
+                                   dtype=self.data.dtype)
         dset[offset:offset+swarm.particleLocalCount] = self.data[:]
 
         # link to the swarm file if it's provided
@@ -354,7 +375,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
             import os
             if not isinstance(swarmFilepath, str):
                 raise TypeError("'swarmFilepath' parameter must be of type 'str'")
-        
+
             if not os.path.exists(swarmFilepath):
                 raise RuntimeError("Swarm file '{}' does not appear to exist.".format(swarmFilepath))
             # path trickery to create external
@@ -369,19 +390,19 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
 
     def xdmf( self, filename, varSavedData, varname, swarmSavedData, swarmname, modeltime=0.  ):
         """
-        Creates an xdmf file, filename, associating the varSavedData file on 
+        Creates an xdmf file, filename, associating the varSavedData file on
         the swarmSavedData file
 
         Notes
         -----
         xdmf contain 2 files: an .xml and a .h5 file. See http://www.xdmf.org/index.php/Main_Page
-        This method only needs to be called by the master process, all other 
-        processes return quiely.
+        This method only needs to be called by the master process, all other
+        processes return quietly.
 
         Parameters
         ----------
         filename : str
-            The output path to write the xdmf file. Relative or absolute paths may be 
+            The output path to write the xdmf file. Relative or absolute paths may be
             used, but all directories must exist.
         varname : str
             The xdmf name to give the swarmVariable
@@ -396,37 +417,37 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
 
         Example TODO
         -------
-        
+
         First create the swarm and add a variable:
         >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
         >>> swarm = uw.swarm.Swarm( mesh=mesh )
         >>> swarmLayout = uw.swarm.layouts.PerCellGaussLayout(swarm,2)
         >>> swarm.populate_using_layout( layout=swarmLayout )
         >>> swarmVar = swarm.add_variable( dataType="int", count=1 )
-        
+
         Write something to variable
-        
+
         >>> import numpy as np
         >>> swarmVar.data[:,0] = np.arange(swarmVar.data.shape[0])
-        
+
         Save mesh and var to a file:
-        
+
         >>> swarmDat = swarm.save("saved_swarm.h5")
         >>> swarmVarDat = swarmVar.save("saved_swarmvariable.h5")
-        
+
         Now let's create the xdmf file
-        
+
         >>> swarmVar.xdmf("TESTxdmf", swarmVarDat, "var1", swarmDat, "MrSwarm" )
 
         Does file exist?
-        
+
         >>> import os
         >>> if uw.rank() == 0: os.path.isfile("TESTxdmf.xdmf")
         True
-        
+
         Clean up:
         >>> if uw.rank() == 0:
-        ...     import os; 
+        ...     import os;
         ...     os.remove( "saved_swarm.h5" )
         ...     os.remove( "saved_swarmvariable.h5" )
         ...     os.remove( "TESTxdmf.xdmf" )
@@ -446,7 +467,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
             if not isinstance(modeltime, (int,float)):
                 raise ValueError("'modeltime' must be of type int or float")
             modeltime = float(modeltime)    # make modeltime a float
-            
+
             # get the elementMesh - if self is a subMeshed variable get the parent
             if self.swarm != swarmSavedData.pyobj:
                 raise RuntimeError("'swarmSavedData file doesn't correspond to the object's swarm")
@@ -465,11 +486,11 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
 
             string += uw.utils._swarmspacetimeschema(swarmSavedData, swarmname, modeltime )
             string += uw.utils._swarmvarschema( varSavedData, varname )
-            # write the footer to the xmf    
+            # write the footer to the xmf
             string += uw.utils._xdmffooter()
             """
-            string += ("</Grid>\n" + 
-                       "</Domain>\n" + 
+            string += ("</Grid>\n" +
+                       "</Domain>\n" +
                        "</Xdmf>\n" )
             """
 

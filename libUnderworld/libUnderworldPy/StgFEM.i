@@ -62,7 +62,6 @@ import_array();
 %include "SLE/ProvidedSystems/AdvectionDiffusion/Timestep.h"
 %include "SLE/ProvidedSystems/AdvectionDiffusion/types.h"
 */
-%include "SLE/ProvidedSystems/Energy/Energy_SLE.h"
 %include "SLE/ProvidedSystems/Energy/Energy_SLE_Solver.h"
 %include "SLE/ProvidedSystems/Energy/types.h"
 %include "SLE/ProvidedSystems/StokesFlow/Stokes_SLE.h"

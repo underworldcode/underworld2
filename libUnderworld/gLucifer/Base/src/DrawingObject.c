@@ -16,8 +16,6 @@
 
 #include "types.h"
 #include "ColourMap.h"
-#include "Viewport.h"
-#include "Window.h"
 #include "DrawingObject.h"
 #include "Init.h"
 
@@ -55,7 +53,6 @@ void _lucDrawingObject_Init(
    AbstractContext*     context,
    char*                properties,
    Bool                 disabled,
-   Name                 colourName,
    lucColourMap*        colourMap,
    float                opacity)
 {
@@ -71,7 +68,6 @@ void _lucDrawingObject_Init(
    self->needsToCleanUp = False;
    self->needsToDraw = True;
    self->disabled = disabled || (context && !self->context->vis);      /* Drawing disabled, defaults to false */
-   lucColour_FromString( &self->colour, colourName );
    self->colourMap = colourMap;
    self->opacity = opacity;        /* Transparency override, -1 to disable */
 
@@ -165,7 +161,6 @@ void _lucDrawingObject_AssignFromXML( void* drawingObject, Stg_ComponentFactory*
    _lucDrawingObject_Init( self, context,
       Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"properties", ""  ),
       Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"disable", False  ),
-      Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"colour", "black"  ),
       Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"ColourMap", lucColourMap, False, data),
       (float)Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"opacity", -1.0));
 }

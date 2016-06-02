@@ -1,17 +1,20 @@
 import os
 from config import Package
-from Python import Python
 
 class Mpi4py(Package):
 
-    def setup_dependencies(self):
-        self.python = self.add_dependency(Python, required=True)
-
-    def gen_envs(self, loc):
-        env = self.env.Clone()
-
+    def check(self, conf, env):
         try:
             import mpi4py as m4
         except ImportError:
-            raise ImportError("\n\nCannot import mpi4py. Perhaps it is not installed.\n\n")
-        yield env
+            return False
+        return True
+
+    def _gen_locations(self):
+        # lets just return a dummy here.. this is a python package so it don't have
+        # multiple locations
+        yield ('', [''], [''])
+
+    def setup_options(self):
+        # this overwrites the default method so we don't add any options for this package.
+        pass

@@ -202,8 +202,8 @@ void _lucIsosurfaceCrossSection_Draw( void* drawingObject, lucDatabase* database
          isosurf->triangleCount = 0;   /* Reset */
          isosurf->colourMap = NULL;
 
-         if ( colourMap )
-            lucColourMap_GetColourFromValue(colourMap, isovalue, &isosurf->colour, self->opacity);
+         //if ( colourMap )
+         //   lucColourMap_GetColourFromValue(colourMap, isovalue, &isosurf->colour, self->opacity);
 
          /* Run marching rectangles for this isovalue */
          isosurf->isovalue = isovalue;

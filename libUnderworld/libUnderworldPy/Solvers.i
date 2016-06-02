@@ -35,6 +35,5 @@ extern "C" {
 %import "Underworld.i"
 
 
-
 %include "KSPSolvers/StokesBlockKSPInterface.h"
 %include "KSPSolvers/types.h"

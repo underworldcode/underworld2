@@ -50,7 +50,7 @@ void _lucEigenvectorsCrossSection_Init(
    Name                          middleColourForNegativeName,
    Name                          greatestColourForNegativeName)
 {
-   if ( dim == 2 )
+   /*if ( dim == 2 )
    {
       lucColour_FromString( &self->colours[0], leastColourName );
       lucColour_FromString( &self->colours[1], greatestColourName );
@@ -66,7 +66,7 @@ void _lucEigenvectorsCrossSection_Init(
       lucColour_FromString( &self->colourForNegative[0], leastColourForNegativeName );
       lucColour_FromString( &self->colourForNegative[1], middleColourForNegativeName );
       lucColour_FromString( &self->colourForNegative[2], greatestColourForNegativeName );
-   }
+   }*/
 
    self->arrowHead = arrowHeadSize;
    self->scaling = lengthScale;
@@ -161,8 +161,6 @@ void _lucEigenvectorsCrossSection_Destroy( void* drawingObject, void* data ) {}
 void _lucEigenvectorsCrossSection_Draw( void* drawingObject, lucDatabase* database, void* _context )
 {
    lucEigenvectorsCrossSection*       self            = (lucEigenvectorsCrossSection*)drawingObject;
-   DomainContext*            context         = (DomainContext*) _context;
-
    _lucEigenvectorsCrossSection_DrawCrossSection( self, database);
 }
 

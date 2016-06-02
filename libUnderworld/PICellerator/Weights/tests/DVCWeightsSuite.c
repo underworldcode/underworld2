@@ -71,7 +71,7 @@ void DVCWeightsSuite_Setup( DVCWeightsSuiteData* data ) {
    data->da2D = data->dx*data->dy;
    
    int res[3] = {10,10,10};
-   data->dvcWeights = DVCWeights_New( "", 3, (int*) res );
+   data->dvcWeights = DVCWeights_New( "", (int*) res );
 }
 
 void DVCWeightsSuite_Teardown( DVCWeightsSuiteData* data ) {

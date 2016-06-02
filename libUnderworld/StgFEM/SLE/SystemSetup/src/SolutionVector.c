@@ -15,7 +15,6 @@
 
 #include "types.h"
 
-#include "FiniteElementContext.h"
 #include "SolutionVector.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -40,11 +39,11 @@ void _SolutionVector_ShareValuesNotStoredLocally(
 	Dof_EquationNumber**	reqFromOthers,
 	double*					localSolnVecValues );
 
-SolutionVector* SolutionVector_New( Name name, FiniteElementContext* context, MPI_Comm comm, FeVariable* feVariable ) {
+SolutionVector* SolutionVector_New( Name name, MPI_Comm comm, FeVariable* feVariable ) {
 	SolutionVector* self = _SolutionVector_DefaultNew( name );
 
 	self->isConstructed = True;
-	_SolutionVector_Init( self, context, comm, feVariable );
+	_SolutionVector_Init( self, comm, feVariable );
 
 	return self;
 }
@@ -81,11 +80,10 @@ SolutionVector* _SolutionVector_New(  SOLUTIONVECTOR_DEFARGS  ) {
 	return self;
 }
 
-void _SolutionVector_Init( SolutionVector* self, FiniteElementContext* context, MPI_Comm comm, FeVariable* feVariable ) {
+void _SolutionVector_Init( SolutionVector* self, MPI_Comm comm, FeVariable* feVariable ) {
 	/* General and Virtual info should already be set */
 	
 	/* SolutionVector info */
-	self->context = context;
 	self->debug = Stream_RegisterChild( StgFEM_SLE_SystemSetup_Debug, self->type );
 	self->comm = comm;
 	self->feVariable = feVariable;
@@ -160,15 +158,10 @@ void* _SolutionVector_Copy( void* solutionVector, void* dest, Bool deep, Name na
 
 void _SolutionVector_AssignFromXML( void* solutionVector, Stg_ComponentFactory* cf, void* data ) {
 	SolutionVector*			self = (SolutionVector*)solutionVector;
-	FeVariable*					feVariable = NULL;
-	FiniteElementContext*	context;
-
-	context = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"Context", FiniteElementContext, False, data );
-	if( !context  )
-		context = Stg_ComponentFactory_ConstructByName( cf, (Name)"context", FiniteElementContext, False, data  );
+	FeVariable*				feVariable = NULL;
 
 	feVariable = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"FeVariable", FeVariable, True, data  ) ;
-	_SolutionVector_Init( self, context, MPI_COMM_WORLD, (FeVariable*)feVariable );
+	_SolutionVector_Init( self, MPI_COMM_WORLD, (FeVariable*)feVariable );
 }
 
 
@@ -717,7 +710,7 @@ void SolutionVector_LoadCurrentFeVariableValuesOntoVector( void* solutionVector 
 	Node_LocalIndex		node_lI = 0;
 	Dof_Index		dof_I = 0;
 	double			value = 0;
-	Index			insertionIndex = 0;
+	PetscInt		insertionIndex = 0;
 	
 	for ( node_lI = 0; node_lI < FeMesh_GetNodeLocalSize( feMesh ); node_lI++ ) {
 		for ( dof_I = 0; dof_I < feVar->dofLayout->dofCounts[node_lI]; dof_I++ ) {

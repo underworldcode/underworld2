@@ -340,11 +340,11 @@ void _lucIsosurface_Draw( void* drawingObject, lucDatabase* database, void* _con
    /* Calibrate Colour Map */
    if (self->colourMap)
    {
-      if (self->colourField )
-         lucColourMap_CalibrateFromFieldVariable( self->colourMap, self->colourField );
-      else
-         /* Colour based on isovalue */
-         lucColourMap_CalibrateFromFieldVariable( self->colourMap, self->isosurfaceField );
+      //if (self->colourField )
+      //   lucColourMap_CalibrateFromFieldVariable( self->colourMap, self->colourField );
+      //else
+      //   /* Colour based on isovalue */
+      //   lucColourMap_CalibrateFromFieldVariable( self->colourMap, self->isosurfaceField );
    }
 
    /* Export triangles, separating walls and surface into two geometry objects */

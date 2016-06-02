@@ -26,8 +26,6 @@ extern "C++" {
         std::shared_ptr<FEMCoordinate> input;
     };
 
-    void _SUPGVectorTerm_NA__Fn_SetFn( void* _self, Fn::Function* fn );
-
 }
 
 extern "C" {

@@ -10,9 +10,10 @@
 
 %module LavaVu
 %include <std_string.i>
+%include <std_vector.i>
 
 %{
-std::string initViewer(int argc, char **argv);
+#include "../gLucifer/Viewer/src/LavaVu.h"
 %}
 
 %include "exception.i"
@@ -51,5 +52,22 @@ std::string initViewer(int argc, char **argv);
   free((char *) $2);
 }
 
-std::string initViewer(int argc, char **argv);
+namespace std {
+%template(Line)  vector <float>;
+%template(Array) vector < vector <float> >;
+}   
+
+std::string execute(int argc, char **argv);
+void command(std::string cmd);
+std::string image(std::string filename="", int width=0, int height=0);
+void addObject(std::string name, std::string properties);
+void loadState(std::string state);
+std::string getState();
+std::string getTimeSteps();
+void loadVertices(std::vector< std::vector <float> > array);
+void loadValues(std::vector <float> array);
+void display();
+void clear();
+void kill();
+
 

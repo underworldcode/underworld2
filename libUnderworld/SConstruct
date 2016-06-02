@@ -34,8 +34,8 @@ install_message = '%sInstalling %s==> %s$TARGET%s'% \
 
 # CUSTOMISE THE ENVIRONMENT HERE.
 env = Environment(ENV=os.environ,
-                  tools=['default', 'pcutest', 'stg', 'dist', 'doc'],
-                  toolpath=['StGermain/pcu/script', 'StGermain/script', 'script'])
+                  tools=['default', 'pcutest', 'dist'],
+                  toolpath=['StGermain/pcu/script', 'script'])
 
 # Check if scons is launched with detail flag.
 detail = ARGUMENTS.get('detail', 0)
@@ -137,10 +137,10 @@ if env['prefix'] != env.GetLaunchDir():
    env.Install(env['prefix'], 'config.cfg')
    env.Install(os.path.join(env['prefix'],'share/StGermain/scripts'), Glob('script/*.py*'))
 
-if env['with_viewer']:
+if env['with_graphics']:
    if not os.path.exists(dir+'/gLucifer/Viewer'):
       os.makedirs(dir+'/gLucifer/Viewer')
-   Execute(Copy(File(env['build_dir']+'/gLucifer/Viewer/viewer.cfg'), File('viewer.cfg')))
+   Execute(Copy(File(env['build_dir']+'/gLucifer/Viewer/graphics.cfg'), File('graphics.cfg')))
 
 Export('env')
 
@@ -176,7 +176,7 @@ if env['with_glucifer']:
                duplicate=0)
     env.Prepend(LIBS=['gLucifer'])
 
-if env['with_viewer']:
+if env['with_graphics']:
     SConscript('gLucifer/Viewer/SConscript',
                variant_dir=env['build_dir'] + '/gLucifer/Viewer',
                duplicate=0)
@@ -219,20 +219,4 @@ env.Prepend(LIBS=['libUnderworldPy'])
 
 
 
-# Dump package config.
-filename = env['build_dir'] + '/lib/pkgconfig/stgermain.pc'
-
-env.Dist("underworld-%s"%env.GetOption("dist_version"),
-         ["configure.py", "SConstruct", "config", "script", "StGermain",
-          "StgDomain", "StgFEM", "PICellerator", "Underworld",
-          "Experimental", "gLucifer"])
-
-
-#Run the functions to create the Alias commands for the documentation of stgUnderworld. 
-
-
-env.Alias("doc-codex", None, env.Action(env.AddCodexSuite()))
-env.Alias("doc", None, env.Action(env.AddAllSuite()))
-env.Alias("doc-doxygen", None, env.Action(env.AddDoxygenSuite()))
-env.Alias("doc-doxygenlite", None, env.Action(env.AddDoxygenLiteSuite()))
 

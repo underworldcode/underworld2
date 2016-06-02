@@ -157,8 +157,8 @@ void lucContourCrossSection_DrawCrossSection( void* drawingObject, lucDatabase* 
 
       for ( isovalue = minIsovalue ; isovalue <= maxIsovalue ; isovalue += self->interval )
       {
-         if ( self->colourMap )
-            lucColourMap_SetColourFromValue( self->colourMap, isovalue, self->opacity);
+         //if ( self->colourMap )
+         //   lucColourMap_SetColourFromValue( self->colourMap, isovalue, self->opacity);
 
          lucContourCrossSection_DrawContour( self, database, isovalue);
          self->coordIndex++;

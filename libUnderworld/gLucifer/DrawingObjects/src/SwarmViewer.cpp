@@ -256,25 +256,25 @@ void _lucSwarmViewer_Draw( void* drawingObject, lucDatabase* database, void* _co
       }
    }
    
-   /* Scale Colour Maps */
-   if ( self->colourMap && self->colourMap->dynamicRange && cppdata->fn_colour ){
-      lucColourMap_SetMinMax( self->colourMap, cppdata->fn_colour->getMinGlobal(), cppdata->fn_colour->getMaxGlobal() );
-      /* do a size zero add just so we can reset the colourmap */
-      lucDatabase_AddValues(database, 0, self->geomType, lucColourValueData, self->colourMap, NULL);
-  }
+   /* Set the value range */
+   if (cppdata->fn_colour)
+     lucGeometryData_Setup(database->data[self->geomType][lucColourValueData], cppdata->fn_colour->getMinGlobal(), cppdata->fn_colour->getMaxGlobal(), 1., "");
 
+   /* Dynamic Scale Colour Maps */
+   if ( self->colourMap && self->colourMap->dynamicRange && cppdata->fn_colour )
+      lucColourMap_SetMinMax( self->colourMap, self->colourMap->minimum, self->colourMap->maximum );
 }
-
 
 void lucSwarmViewer_SetColourComponent(void* object, lucDatabase* database, SwarmVariable* var, Particle_Index lParticle_I, lucGeometryDataType type, lucColourMap* colourMap)
 {
+#if 0
    lucSwarmViewer* self = (lucSwarmViewer*)object;
    if (var && colourMap)
    {
       double value;
       lucColour colour;
       SwarmVariable_ValueAt( var, lParticle_I, &value );
-      lucColourMap_GetColourFromValue( colourMap, value, &colour, self->opacity );
+      //lucColourMap_GetColourFromValue( colourMap, value, &colour, self->opacity );
 
       /* Extract and overwrite component value */
       if (type == lucRedValueData)
@@ -290,6 +290,7 @@ void lucSwarmViewer_SetColourComponent(void* object, lucDatabase* database, Swar
       float valuef = value;
       lucDatabase_AddValues(database, 1, self->geomType, type, colourMap, &valuef);
    }
+#endif
 }
 
 /* Default Swarm Viewer Implementation */

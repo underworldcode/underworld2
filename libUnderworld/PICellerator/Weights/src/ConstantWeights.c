@@ -28,11 +28,10 @@ const Type ConstantWeights_Type = "ConstantWeights";
 ** Constructors
 */
 
-ConstantWeights* ConstantWeights_New( Name name, int dim ) {
+ConstantWeights* ConstantWeights_New( Name name ) {
     ConstantWeights *self = _ConstantWeights_DefaultNew( name );
 
     self->isConstructed = True;
-    _WeightsCalculator_Init( self, dim );
     _ConstantWeights_Init( self );
 
 	return self;
@@ -148,9 +147,9 @@ void _ConstantWeights_Calculate( void* constantWeights, void* _swarm, Cell_Local
     Swarm*                       swarm           = (Swarm*) _swarm;
     double                       weight;
     Particle_InCellIndex         cParticleCount;
-                
+
     cParticleCount = swarm->cellParticleCountTbl[lCell_I];
-    weight = self->cellLocalVolume / (double) cParticleCount;
+    weight = pow( 2.0, (double) swarm->dim ) / (double) cParticleCount;
     WeightsCalculator_SetWeightsValueAllInCell( self, swarm, lCell_I, weight );
 }
 

@@ -48,7 +48,7 @@ void Fn::MeshIndexSet::reset()
     // setup first guy
     if (_position<_size) {
         // create io guy
-        _io = std::make_shared<MeshCoordinate>(_mesh);
+        _io = std::unique_ptr<MeshCoordinate>(new MeshCoordinate(_mesh));
         std::static_pointer_cast<MeshCoordinate>(_io)->index() = _indexArray[_position];
     }
 }
@@ -165,14 +165,13 @@ void Fn::SwarmInput::_setNewIO()
 {
     if (_position<_size)
     {
-        // create io guy
+        // set position (ie, particleLocalId) as required
         std::static_pointer_cast<ParticleCoordinate>(_io)->index() = _position;
     } else
     {
         _io = NULL;
     }
 }
-
 
 void Fn::SwarmInput::reset()
 {
@@ -182,6 +181,59 @@ void Fn::SwarmInput::reset()
         // create io guy
         _io = std::make_shared<ParticleCoordinate>(_positionVariable);
         std::static_pointer_cast<ParticleCoordinate>(_io)->index() = _position;
+    }
+}
+
+
+
+
+void* Fn::IntegrationSwarmInput::_CheckIsIntegrationSwarm(void* intSwarm){
+    // check is type IntegrationPointsSwarm
+    if(!Stg_Class_IsInstance( intSwarm, IntegrationPointsSwarm_Type ))
+        throw std::invalid_argument("Provided 'integrationSwarm' does not appear to be of 'IntegrationPointsSwarm' type.");
+    // lets also check that it has the correct celllayout type
+    if(!Stg_Class_IsInstance( ((IntegrationPointsSwarm*)intSwarm)->cellLayout, ElementCellLayout_Type ))
+        throw std::invalid_argument("Provided 'integrationSwarm' does not appear to have a cell layout of 'ElementCellLayout' type.");
+    return intSwarm;
+}
+
+Fn::IntegrationSwarmInput::IntegrationSwarmInput( void* integrationSwarm )
+    : IOIterator(),
+      _position(0),
+      _intSwarm((IntegrationPointsSwarm*)_CheckIsIntegrationSwarm(integrationSwarm))
+{
+    // get number of particles
+    _size = _intSwarm->particleLocalCount;
+}
+
+void Fn::IntegrationSwarmInput::_setNewIO()
+{
+    if (_position<_size)
+    {
+        // set position (ie, particleLocalId) as required
+        // first get owning cell
+        int owningCell = Variable_GetValueInt( _intSwarm->owningCellVariable->variable, _position );
+        // because this is a global swarm, the cellId is the localId, so set femcoord
+        std::static_pointer_cast<FEMCoordinate>(_io)->index() = owningCell;
+        // now set local coord
+        // note that because this is a ParticleCoordinate type, 'index' is the particleLocalId,
+        // note the cellId (as is the case for ParticleInCellCoord)
+        _localCoord->index() = _position;
+    }
+    else
+    {
+        _io = NULL;
+    }
+}
+
+void Fn::IntegrationSwarmInput::reset()
+{
+    _position = 0;
+    // setup first guy if necessary
+    if (_position<_size) {
+        // create io guy
+        _localCoord = std::make_shared<ParticleCoordinate>( _intSwarm->localCoordVariable );
+        _io = std::make_shared<FEMCoordinate>((void*)_intSwarm->mesh, _localCoord);
     }
 }
 

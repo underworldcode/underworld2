@@ -109,21 +109,6 @@ void _SwarmAdvector_Init(
 	    self->_calculateTimeDeriv = _SwarmAdvector_TimeDeriv_Quicker4IrregularMesh;
 	 }
 	self->periodicBCsManager = periodicBCsManager;
-	
-
-
-	TimeIntegrator_AppendSetupEP( self->timeIntegrator,  
-			"SwarmAdvector_AdvectionSetup", SwarmAdvector_AdvectionSetup,  self->name, self );
-	TimeIntegrator_PrependFinishEP( self->timeIntegrator,
-			"SwarmAdvector_AdvectionFinish", SwarmAdvector_AdvectionFinish,  self->name, self );
-	TimeIntegrator_InsertBeforeFinishEP( 
-		self->timeIntegrator,
-		"IntegrationPointsSwarm_Update", /* Must before this */
-		"GeneralSwarm_Update", 
-		_GeneralSwarm_UpdateHook, 
-		swarm->name, 
-		swarm );
-			
 }
 
 
@@ -334,18 +319,6 @@ void _SwarmAdvector_Intermediate( void* swarmAdvector, Index lParticle_I ) {
 /*---------------------------------------------------------------------------------------------------------------------
 ** Entry Point Hooks
 */
-void SwarmAdvector_AdvectionSetup( TimeIntegrator* timeIntegrator, SwarmAdvector* self ) {
-	FeVariable_SyncShadowValues( self->velocityField );
-}
-
-void SwarmAdvector_AdvectionFinish( TimeIntegrator* timeIntegrator, SwarmAdvector* self ) {
-	#if DEBUG
-		Swarm_CheckCoordsAreFinite( self->swarm );
-	#endif
-	
-	/* Move particles across processors because they've just been advected */
-	Swarm_UpdateAllParticleOwners( self->swarm );
-}
 
 double SwarmAdvector_MaxDt( void* swarmAdvector ) {
 	SwarmAdvector*	self = (SwarmAdvector*) swarmAdvector;

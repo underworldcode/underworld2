@@ -142,7 +142,7 @@ void _SemiLagrangianIntegrator_AssignFromXML( void* slIntegrator, Stg_ComponentF
       Stg_ObjectList_Append( self->varOldList, feVariable );
    }
 
-   self->sle = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"SLE", Energy_SLE, False, NULL  );
+//   self->sle = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"SLE", Energy_SLE, False, NULL  );
 
    /* for problems with temporally evolving velocity */
    self->prevVelField = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"PreviousTimeStepVelocityField", FeVariable, False, data );
@@ -153,12 +153,12 @@ void _SemiLagrangianIntegrator_AssignFromXML( void* slIntegrator, Stg_ComponentF
       EP_AppendClassHook( Context_GetEntryPoint( self->context, AbstractContext_EP_UpdateClass ), SemiLagrangianIntegrator_InitSolve, self );
    }
 
-   if( self->sle ) {
-      /** also set sle to run where required */
-      EP_InsertClassHookAfter( Context_GetEntryPoint( self->context, AbstractContext_EP_UpdateClass ), "SemiLagrangianIntegrator_InitSolve", SystemLinearEquations_GetRunEPFunction(), self->sle );
-      /** remember to disable the standard run at execute */
-      SystemLinearEquations_SetRunDuringExecutePhase( self->sle, False);
-   }
+//   if( self->sle ) {
+//      /** also set sle to run where required */
+//      EP_InsertClassHookAfter( Context_GetEntryPoint( self->context, AbstractContext_EP_UpdateClass ), "SemiLagrangianIntegrator_InitSolve", SystemLinearEquations_GetRunEPFunction(), self->sle );
+//      /** remember to disable the standard run at execute */
+//      SystemLinearEquations_SetRunDuringExecutePhase( self->sle, False);
+//   }
 
    self->isConstructed = True;
 }

@@ -29,10 +29,25 @@ stokesSystem = uw.systems.Stokes(velocityField,pressureField,sol.fn_viscosity,so
 #Run the BSSCR Solver
 # can optionally set penalty this way
 solver=uw.systems.Solver(stokesSystem)
+solver.options.A11.ksp_converged_reason=''
+#solver.options.mg.pc_mg_type="additive"
+#solver.options.mg.pc_mg_type="full"
+#solver.options.mg.pc_mg_type="kaskade"
+#solver.options.mg.pc_mg_type="multiplicative"
+solver.options.mg_accel.mg_accelerating_smoothing=0
+solver.options.mg_accel.mg_accelerating_smoothing_view=1
+#solver.options.main.penalty=1000.0
+#solver.options.main.help=''
 solver.solve()
 stats=solver.get_stats()
+solver.print_stats()
 
 if 3 != stats.pressure_its:
     raise RuntimeError("Test returned wrong number of pressure iterations: should be 3")
-if 4 != stats.velocity_backsolve_its:
-    raise RuntimeError("Test returned wrong number of velocitybacksolve iterations: should be 4")
+if 7 != stats.velocity_presolve_its:
+    raise RuntimeError("Test returned wrong number of velocity pre solve iterations: should be 6")
+if -1 != stats.velocity_pressuresolve_its:  # -1 will be returned if this stat isn't supported.
+    if 18 != stats.velocity_pressuresolve_its:
+        raise RuntimeError("Test returned wrong number of velocity pressure solve iterations: should be 15")
+if 7 != stats.velocity_backsolve_its:
+    raise RuntimeError("Test returned wrong number of velocity back solve iterations: should be 6")

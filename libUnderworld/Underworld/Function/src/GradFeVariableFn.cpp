@@ -96,6 +96,13 @@ Fn::GradFeVariableFn::func Fn::GradFeVariableFn::getFunction( IOsptr sample_inpu
     // if neither of the above worked, try plain old global coord
     std::shared_ptr<const IO_double> iodouble = std::dynamic_pointer_cast<const IO_double>(sample_input);
     if ( iodouble ){
+        if ( iodouble->size() != fevar->dim )
+        {
+            std::stringstream streamguy;
+            streamguy << "Function input dimensionality (" << iodouble->size() << ") ";
+            streamguy << "does not appear to match mesh variable dimensionality (" << fevar->dim << ").";
+            throw std::runtime_error(streamguy.str());
+        }
         return [_output,fevar](IOsptr input)->IOsptr {
             std::shared_ptr<const IO_double> iodouble = debug_dynamic_cast<const IO_double>(input);            
 
@@ -108,7 +115,7 @@ Fn::GradFeVariableFn::func Fn::GradFeVariableFn::getFunction( IOsptr sample_inpu
                     streamguy << ", "<< iodouble->at(ii);
                 streamguy << ") does not appear to be valid.\nLocation is probably outside local domain.";
                 
-                throw std::runtime_error(streamguy.str());
+                throw std::range_error(streamguy.str());
             }
 
 

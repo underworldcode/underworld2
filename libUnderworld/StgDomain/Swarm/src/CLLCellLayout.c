@@ -25,16 +25,6 @@
 
 const Type CLLCellLayout_Type = "CLLCellLayout";
 
-CLLCellLayout* CLLCellLayout_New( Name name, AbstractContext* context, void* geometryMesh, double cellSize, unsigned meshDim, Bool parallelDecompose, unsigned expandFactor ) {
-	CLLCellLayout* self = _CLLCellLayout_DefaultNew( name );
-
-	self->isConstructed = True;
-	_CellLayout_Init( (CellLayout*)self, context );
-   _CLLCellLayout_Init( self, geometryMesh, cellSize, meshDim, parallelDecompose, expandFactor );
-
-	return self;
-}
-
 void* _CLLCellLayout_DefaultNew( Name name ){
 	/* Variables set in this function */
 	SizeT                                                _sizeOfSelf = sizeof(CLLCellLayout);

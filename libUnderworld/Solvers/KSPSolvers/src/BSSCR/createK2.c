@@ -16,12 +16,20 @@
 #include "Solvers/KSPSolvers/KSPSolvers.h" /* for __KSP_COMMON */
 #include "BSSCR.h"
 #include "writeMatVec.h"
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "bsscr_buildK2"
+
+
+
+
+
 PetscErrorCode bsscr_buildK2(KSP ksp){
     KSP_BSSCR  *bsscr = (KSP_BSSCR *)ksp->data;
     Mat K,G,M, K2=0;
     Vec f2=0;
+    PetscReal minD,maxD;
+
+
     //MatStokesBlockScaling BA=bsscr->BA;
     Stokes_SLE*  stokesSLE  = (Stokes_SLE*)bsscr->solver->st_sle;
     StokesBlockKSPInterface* Solver = bsscr->solver;
@@ -37,54 +45,78 @@ PetscErrorCode bsscr_buildK2(KSP ksp){
     switch (bsscr->k2type) {
     case (K2_DGMGD):
     {/* Should only do this one if scaling is turned off. */
-	  Vec D;
+	      Vec D=0;
+          Vec MD = 0;
+          Mat GKG = 0;
+          Mat KG = 0;
+          Mat Mscale = 0;
+
 	  //AugLagStokes_SLE * stokesSLE = (AugLagStokes_SLE*)bsscr->st_sle;
 
-	  if (Solver->mStiffMat){      
-	      MatGetVecs( K, PETSC_NULL, &D );
-	      //MatGetRowMax( K, D, PETSC_NULL );
-          MatGetDiagonal( K, D );
-	      VecSqrt( D );  
+	  if (Solver->mStiffMat){
+
+         MatMatMult(K, G, MAT_INITIAL_MATRIX, PETSC_DEFAULT , &KG);
+         MatTransposeMatMult(G, KG, MAT_INITIAL_MATRIX, PETSC_DEFAULT ,&GKG);
+         MatGetVecs( GKG, PETSC_NULL, &MD );
+         MatGetDiagonal( GKG, MD );
+
 	      M = Solver->mStiffMat->matrix;
-	      bsscr_GMiGt(&K2,K,G,M);      /* K2 created */
-	      MatDiagonalScale(K2, D, D ); /* K2 = D*G*inv(M)*Gt*D */
+          MatDuplicate(M, MAT_COPY_VALUES, &Mscale );
+          MatDiagonalScale(Mscale, NULL, MD );
+
+          VecMin(MD, PETSC_NULL, &minD);
+          VecMax(MD, PETSC_NULL, &maxD);
+          VecScale(MD, 1.0/maxD);
+          VecMin(MD, PETSC_NULL, &minD);
+          VecMax(MD, PETSC_NULL, &maxD);
+
+	      bsscr_GMiGt(&K2,K,G,Mscale);      /* K2 created */
+
 	      Stg_VecDestroy(&D);
-	      PetscPrintf( PETSC_COMM_WORLD,  "\n\n-----  K2_DGMGD  ------\n\n");  }
+          Stg_VecDestroy(&MD);
+          Stg_MatDestroy(&GKG);
+          Stg_MatDestroy(&KG);
+
+
+	      PetscPrintf( PETSC_COMM_WORLD,  "\n\n-----  K2_DGMGD  ------");
+          PetscPrintf( PETSC_COMM_WORLD,  "    min %f, max %f \n\n", minD, maxD);
+
+      }
 	  else{
 	      PetscPrintf( PETSC_COMM_WORLD,"The Augmented Lagrangian Method DGMGD was specified but the SLE has no mStiffMat on it.\n");
 	      PetscPrintf( PETSC_COMM_WORLD,"You need to use the AugLagStokes_SLE class.\n");  }
     }
     break;
-    case (K2_GMG): 
+    case (K2_GMG):
     {
 	  //AugLagStokes_SLE * stokesSLE = (AugLagStokes_SLE*)bsscr->st_sle;
-	  if (Solver->mStiffMat){      
+	  if (Solver->mStiffMat){
 	      M = Solver->mStiffMat->matrix;
 	      bsscr_GMiGt(&K2,K,G,M);      /* K2 created */
 	      PetscPrintf( PETSC_COMM_WORLD,  "\n\n-----  K2_GMG  ------\n\n");
 	  }else{
 	      PetscPrintf( PETSC_COMM_WORLD,"The Augmented Lagrangian Method GMG was specified but the SLE has no mStiffMat on it.\n");
 	      PetscPrintf( PETSC_COMM_WORLD,"You need to use the AugLagStokes_SLE class.\n");
-	  } 
+	  }
     }
     break;
-    case (K2_GG): 
+    case (K2_GG):
     {
 	  bsscr_GGt(&K2,K,G);      /* K2 created */
-	  PetscPrintf( PETSC_COMM_WORLD,  "\n\n-----  K2_GG  ------\n\n"); 
+	  PetscPrintf( PETSC_COMM_WORLD,  "\n\n-----  K2_GG  ------\n\n");
     }
     break;
-    case (K2_SLE): 
+    case (K2_SLE):
     {
 	  //AugLagStokes_SLE * stokesSLE = (AugLagStokes_SLE*)bsscr->st_sle;
-	  if (Solver->mStiffMat){      
+	  if (Solver->mStiffMat){
 	      K2 = Solver->mStiffMat->matrix;
 	      if(Solver->jForceVec){ f2 = Solver->jForceVec->vector; }
 	      PetscPrintf( PETSC_COMM_WORLD,  "\n\n-----  K2_SLE  ------\n\n");
 	  }else{
 	      PetscPrintf( PETSC_COMM_WORLD,"The Augmented Lagrangian Method SLE was specified but the Solver has no Matrix on it.\n");
 	      PetscPrintf( PETSC_COMM_WORLD,"You need to set the K2 matrix on the StokesBlockKSPInterface class.\n");
-	  } 
+	  }
     }
     break;
     default:
@@ -99,8 +131,8 @@ PetscErrorCode bsscr_buildK2(KSP ksp){
 /* where D = diag(K)
          Gt = transpose(G)
 	 M is Pressure Mass Matrix */
-#undef __FUNCT__  
-#define __FUNCT__ "bsscr_DGMiGtD" 
+#undef __FUNCT__
+#define __FUNCT__ "bsscr_DGMiGtD"
 PetscErrorCode bsscr_DGMiGtD( Mat *_K2, Mat K, Mat G, Mat M){
     Mat K2;
     Vec diag;
@@ -113,7 +145,7 @@ PetscErrorCode bsscr_DGMiGtD( Mat *_K2, Mat K, Mat G, Mat M){
     MatGetVecs( K, &diag, PETSC_NULL );
     MatGetDiagonal( K, diag );
     VecSqrt(diag);
-    //VecReciprocal(diag);/* trying something different here */                                                                                                                     
+    //VecReciprocal(diag);/* trying something different here */
     MatGetVecs( M, &Mdiag, PETSC_NULL );
     MatGetDiagonal( M, Mdiag );
     VecReciprocal(Mdiag);
@@ -137,8 +169,8 @@ PetscErrorCode bsscr_DGMiGtD( Mat *_K2, Mat K, Mat G, Mat M){
 /* computes K2 = G*inv(M)*Gt */
 /* where Gt = transpose(G)
 	 M is Pressure Mass Matrix */
-#undef __FUNCT__  
-#define __FUNCT__ "bsscr_GMiGt" 
+#undef __FUNCT__
+#define __FUNCT__ "bsscr_GMiGt"
 PetscErrorCode bsscr_GMiGt( Mat *_K2, Mat K, Mat G, Mat M){
     Mat K2;
     Vec Mdiag;
@@ -166,8 +198,8 @@ PetscErrorCode bsscr_GMiGt( Mat *_K2, Mat K, Mat G, Mat M){
     PetscFunctionReturn(0);
 }
 /* computes K2 = G*Gt */
-#undef __FUNCT__  
-#define __FUNCT__ "bsscr_GGt" 
+#undef __FUNCT__
+#define __FUNCT__ "bsscr_GGt"
 PetscErrorCode bsscr_GGt( Mat *_K2, Mat K, Mat G){
     Mat K2;
     Mat Gtrans;
@@ -185,4 +217,3 @@ PetscErrorCode bsscr_GGt( Mat *_K2, Mat K, Mat G){
     *_K2=K2;
     PetscFunctionReturn(0);
 }
-

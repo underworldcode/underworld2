@@ -10,15 +10,13 @@ Usage: `run_tests.py foo.py [bar.ipynb [...]]`
 
 
 """
+import os, sys, subprocess, string
 
 # this global just increments as tests are run
 testnumber = 0
 
-import os, sys, subprocess, string
 # lets disable metrics for tests
 os.environ["UW_NO_USAGE_METRICS"] = "1"
-
-from runipy.notebook_runner import NotebookRunner, NotebookError
 
 # out a stream to /dev/null
 try:
@@ -27,6 +25,13 @@ except ImportError:
     import os
     DEVNULL = open(os.devnull, 'wb')
 
+# test if we can execute runipy
+can_runipy = True
+try:
+    subprocess.check_call("runipy -h".split(), stdout=DEVNULL, stderr=DEVNULL)
+except:
+    can_runipy = False
+    print("'runipy' does not appear to be available. All jupyter notebooks will be skipped.")
 
 def run_file(fname, dir):
     """
@@ -53,7 +58,7 @@ def run_file(fname, dir):
         exe = ["python"]
     else:
         raise ValueError("Filename must have extension 'py' or 'ipynb'.")
-    exe.append(fname)         # append filename
+    exe.append(os.path.basename(fname))         # append filename
 
     testnumber += 1
     out = dir+"test_"+str(testnumber)+"__"+os.path.basename(fname)
@@ -64,7 +69,8 @@ def run_file(fname, dir):
     try:
         outFile = open(out+".out", "w")
         errFile = open(out+".err", "w")
-        subprocess.check_call( exe, stdout=outFile, stderr=errFile )
+        script_dir = os.path.dirname(fname)  # get script directory to run from
+        subprocess.check_call( exe, stdout=outFile, stderr=errFile, cwd=script_dir )
     except subprocess.CalledProcessError:
         return False
     else:
@@ -75,25 +81,15 @@ def run_file(fname, dir):
 
 
 if __name__ == '__main__':
-
     if len(sys.argv) < 2:
         print __doc__ % {'scriptName' : sys.argv[0].split("/")[-1]}
         sys.exit(0)
-    # test if we can execute runipy
-    command = "runipy -h"
-    try:
-      subprocess.check_call(command.split(), stdout=DEVNULL, stderr=DEVNULL)
-    except:
-      print "\nCannot execute tests because I can't execute 'runipy'"
-      print "Make sure 'runipy' is installed"
-      print "$ pip install runipy\n\n"
-      sys.exit(1)
 
     nfails=0
     list_fails=[]
-    dir = "./testResults/"
-
+    
     # create the test directory if needed
+    dir = os.path.join(os.path.dirname(os.path.realpath(__file__)),"./testResults/")
     try:
        os.stat(dir)
     except:
@@ -105,7 +101,9 @@ if __name__ == '__main__':
 
     for arg in sys.argv[1:]:
         if arg.endswith(".ipynb") or arg.endswith(".py") :
-            print("\nRunning "+arg);
+            if arg.endswith(".ipynb") and not can_runipy:
+                continue
+            print("\nRunning test {}: {}".format(testnumber+1,arg));
             logFile.write("\nRunning "+arg);
             result = run_file( arg, dir )
             if result:

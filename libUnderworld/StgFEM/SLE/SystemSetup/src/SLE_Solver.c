@@ -14,7 +14,6 @@
 
 #include "types.h"
 
-#include "FiniteElementContext.h"
 #include "SLE_Solver.h"
 
 #include <assert.h>
@@ -50,7 +49,7 @@ SLE_Solver* _SLE_Solver_New(  SLE_SOLVER_DEFARGS  )
 
 }
 
-void _SLE_Solver_Init( SLE_Solver* self, Bool useStatSolve, int statReps ) {
+void _SLE_Solver_Init( SLE_Solver* self ) {
 	self->isConstructed = True;
 	self->extensionManager = ExtensionManager_New_OfExistingObject( self->name, self );
 	
@@ -78,13 +77,10 @@ void _SLE_Solver_Init( SLE_Solver* self, Bool useStatSolve, int statReps ) {
 	self->avgnumouterits = 0; 
 	self->avgtimeinnerits = 0; 
 	self->avgtimeouterits = 0;
-	
-	self->useStatSolve = useStatSolve;
-	self->nStatReps     = statReps;
 }
 
-void SLE_Solver_InitAll( void* sleSolver, Bool useStatSolve, int statReps ) {
-	_SLE_Solver_Init( (SLE_Solver*) sleSolver, useStatSolve, statReps );
+void SLE_Solver_InitAll( void* sleSolver ) {
+	_SLE_Solver_Init( (SLE_Solver*) sleSolver );
 }
 
 void* _SLE_Solver_Copy( void* sleSolver, void* dest, Bool deep, Name nameExt, PtrMap* ptrMap ) {
@@ -175,17 +171,8 @@ void _SLE_Solver_Build( void* sleSolver, void* data ) {
 
 void _SLE_Solver_AssignFromXML( void* sleSolver, Stg_ComponentFactory* cf, void* data ) {
 	SLE_Solver*		self = (SLE_Solver*)sleSolver;
-	Bool            useStatSolve;
-	int             nStatReps;
 
-	self->context = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"Context", FiniteElementContext, False, data );
-	if( !self->context  )
-		self->context = Stg_ComponentFactory_ConstructByName( cf, (Name)"context", FiniteElementContext, False, data  );
-
-	useStatSolve = Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"statSolve", False  );
-	nStatReps = Stg_ComponentFactory_GetInt( cf, self->name, (Dictionary_Entry_Key)"statReps", 0  );
-
-	_SLE_Solver_Init( self, useStatSolve, nStatReps );
+	_SLE_Solver_Init( self );
 }
 
 void _SLE_Solver_Initialise( void* sleSolver, void* data ) {

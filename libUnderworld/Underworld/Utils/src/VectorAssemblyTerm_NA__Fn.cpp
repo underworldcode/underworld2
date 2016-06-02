@@ -41,6 +41,7 @@ VectorAssemblyTerm_NA__Fn* _VectorAssemblyTerm_NA__Fn_New(  FORCEASSEMBLYTERM_NA
 
    /* Virtual info */
    self->cppdata = (void*) new VectorAssemblyTerm_NA__Fn_cppdata;
+   self->geometryMesh = NULL;
 
    return self;
 }
@@ -113,6 +114,7 @@ void _VectorAssemblyTerm_NA__Fn_AssignFromXML( void* forceTerm, Stg_ComponentFac
 
    /* Construct Parent */
    _ForceTerm_AssignFromXML( self, cf, data );
+
 }
 
 void _VectorAssemblyTerm_NA__Fn_Build( void* forceTerm, void* data ) {
@@ -167,8 +169,9 @@ void _VectorAssemblyTerm_NA__Fn_AssembleElement( void* forceTerm, ForceVector* f
    cppdata->input->index()   = lElement_I;  // set the elementId for the fem coordinate
 
    /* Set the element type */
-   elementType      = FeMesh_GetElementType( mesh, lElement_I );
-   nodesPerEl = elementType->nodeCount;
+   elementType = FeMesh_GetElementType( mesh, lElement_I );
+   nodesPerEl  = elementType->nodeCount;
+   
 
    /* assumes constant number of dofs per element */
    dofsPerNode = forceVector->feVariable->fieldComponentCount;
@@ -182,7 +185,11 @@ void _VectorAssemblyTerm_NA__Fn_AssembleElement( void* forceTerm, ForceVector* f
       xi       = particle->xi;
 
       /* Calculate Determinant of Jacobian and Shape Functions */
-      detJac = ElementType_JacobianDeterminant( elementType, mesh, lElement_I, xi, dim );
+      if (self->geometryMesh)
+         detJac = ElementType_JacobianDeterminant( FeMesh_GetElementType( self->geometryMesh, lElement_I ), self->geometryMesh, lElement_I, xi, dim );
+      else
+         detJac = ElementType_JacobianDeterminant( elementType, mesh, lElement_I, xi, dim );
+
       ElementType_EvaluateShapeFunctionsAt( elementType, xi, N );
 
       /* evaluate function */

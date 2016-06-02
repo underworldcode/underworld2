@@ -14,7 +14,6 @@
 	#include "types.h"
 		
 	#include "Energy_SLE_Solver.h"
-	#include "Energy_SLE.h"
 	
 	#include "Init.h"
 	#include "Finalise.h"

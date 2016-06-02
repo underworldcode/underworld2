@@ -199,7 +199,7 @@ extern "C" {
    
    /* Temporary revert back to old protoype to avoid compilation issues. Need to fix. */
    #define Journal_Firewall( expression, stream, ... ) \
-                             expression ? 0 : Journal_Firewall_Trigger( 0, stream, ##__VA_ARGS__ )
+                             expression ? 0 : Journal_Firewall_Trigger( expression, stream, ##__VA_ARGS__ )
    int Journal_Firewall_Trigger( int expression, void* stream, char* fmt, ... );
    
    #ifdef DEBUG

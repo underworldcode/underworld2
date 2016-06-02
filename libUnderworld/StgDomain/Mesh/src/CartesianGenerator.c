@@ -607,14 +607,14 @@ void CartesianGenerator_Generate( void* meshGenerator, void* _mesh, void* data )
 	assert( self );
 	assert( !self->elGrid || mesh );
 
-	Journal_Printf( stream, "Cartesian generator: '%s'\n", self->name );
+//	Journal_Printf( stream, "Cartesian generator: '%s'\n", self->name );
 	Stream_Indent( stream );
 
 	/* If we havn't been given anything, don't do anything. */
 	if( self->elGrid ) {
 		unsigned	d_i;
 
-		Journal_Printf( stream, "Target mesh: '%s'\n", mesh->name );
+//		Journal_Printf( stream, "Target mesh: '%s'\n", mesh->name );
 		Journal_Printf( stream, "Global element size: %d", self->elGrid->sizes[0] );
 		for( d_i = 1; d_i < self->elGrid->nDims; d_i++ )
 			Journal_Printf( stream, "x%d", self->elGrid->sizes[d_i] );
@@ -729,7 +729,7 @@ void _CartesianGenerator_GenElements( void* meshGenerator, IGraph* topo, Grid***
 	assert( topo );
 	assert( grids );
 
-	Journal_Printf( stream, "Generating elements...\n" );
+//	Journal_Printf( stream, "Generating elements...\n" );
 	Stream_Indent( stream );
 
 	grid = Grid_New();
@@ -756,7 +756,7 @@ void _CartesianGenerator_GenElements( void* meshGenerator, IGraph* topo, Grid***
 	FreeObject( grid );
 
 	MPI_Barrier( self->mpiComm );
-	Journal_Printf( stream, "... done.\n" );
+//	Journal_Printf( stream, "... done.\n" );
 	Stream_UnIndent( stream );
 }
 
@@ -780,7 +780,7 @@ void _CartesianGenerator_GenVertices( void* meshGenerator, IGraph* topo, Grid***
 	assert( topo );
 	assert( grids );
 
-	Journal_Printf( stream, "Generating vertices...\n" );
+//	Journal_Printf( stream, "Generating vertices...\n" );
 	Stream_Indent( stream );
 
 	MPI_Comm_rank( Comm_GetMPIComm( self->comm ), (int*)&rank );
@@ -824,7 +824,7 @@ void _CartesianGenerator_GenVertices( void* meshGenerator, IGraph* topo, Grid***
 	FreeObject( grid );
 
 	MPI_Barrier( self->mpiComm );
-	Journal_Printf( stream, "... done.\n" );
+//	Journal_Printf( stream, "... done.\n" );
 	Stream_UnIndent( stream );
 }
 
@@ -837,7 +837,7 @@ void _CartesianGenerator_GenEdges( void* meshGenerator, IGraph* topo, Grid*** gr
 	assert( self->elGrid->nDims >= 2 );
 	assert( self->elGrid->nDims <= 3 );
 
-	Journal_Printf( stream, "Generating edges...\n" );
+//	Journal_Printf( stream, "Generating edges...\n" );
 	Stream_Indent( stream );
 
 	if( self->elGrid->nDims == 2 )
@@ -846,7 +846,7 @@ void _CartesianGenerator_GenEdges( void* meshGenerator, IGraph* topo, Grid*** gr
 		CartesianGenerator_GenEdges3D( self, topo, grids );
 
 	MPI_Barrier( self->mpiComm );
-	Journal_Printf( stream, "... done.\n" );
+//	Journal_Printf( stream, "... done.\n" );
 	Stream_UnIndent( stream );
 }
 
@@ -866,7 +866,7 @@ void _CartesianGenerator_GenFaces( void* meshGenerator, IGraph* topo, Grid*** gr
 	assert( grids );
 	assert( self->elGrid->nDims == 3 );
 
-	Journal_Printf( stream, "Generating faces...\n" );
+//	Journal_Printf( stream, "Generating faces...\n" );
 	Stream_Indent( stream );
 
 	globalGrid = Grid_New();
@@ -949,7 +949,7 @@ void _CartesianGenerator_GenFaces( void* meshGenerator, IGraph* topo, Grid*** gr
 	FreeObject( globalGrid );
 
 	MPI_Barrier( self->mpiComm );
-	Journal_Printf( stream, "... done.\n" );
+//	Journal_Printf( stream, "... done.\n" );
 	Stream_UnIndent( stream );
 }
 
@@ -967,7 +967,7 @@ void _CartesianGenerator_GenElementVertexInc( void* meshGenerator, IGraph* topo,
 	assert( topo );
 	assert( grids );
 
-	Journal_Printf( stream, "Generating element-vertex incidence...\n" );
+//	Journal_Printf( stream, "Generating element-vertex incidence...\n" );
 	Stream_Indent( stream );
 
 	vertsPerEl = (topo->nDims == 1) ? 2 : (topo->nDims == 2) ? 4 : 8;
@@ -1025,7 +1025,7 @@ void _CartesianGenerator_GenElementVertexInc( void* meshGenerator, IGraph* topo,
 	FreeArray( dimInds );
 
 	MPI_Barrier( self->mpiComm );
-	Journal_Printf( stream, "... done.\n" );
+//	Journal_Printf( stream, "... done.\n" );
 	Stream_UnIndent( stream );
 }
 
@@ -1042,7 +1042,7 @@ void _CartesianGenerator_GenVolumeEdgeInc( void* meshGenerator, IGraph* topo, Gr
 	assert( grids );
 	assert( topo->nDims >= 3 );
 
-	Journal_Printf( stream, "Generating volume-edge incidence...\n" );
+//	Journal_Printf( stream, "Generating volume-edge incidence...\n" );
 	Stream_Indent( stream );
 
 	incEls = Memory_Alloc_Array_Unnamed( unsigned, 12 );
@@ -1102,7 +1102,7 @@ void _CartesianGenerator_GenVolumeEdgeInc( void* meshGenerator, IGraph* topo, Gr
 	FreeArray( dimInds );
 
 	MPI_Barrier( self->mpiComm );
-	Journal_Printf( stream, "... done.\n" );
+//	Journal_Printf( stream, "... done.\n" );
 	Stream_UnIndent( stream );
 }
 
@@ -1119,7 +1119,7 @@ void _CartesianGenerator_GenVolumeFaceInc( void* meshGenerator, IGraph* topo, Gr
 	assert( grids );
 	assert( topo->nDims >= 3 );
 
-	Journal_Printf( stream, "Generating volume-face incidence...\n" );
+//	Journal_Printf( stream, "Generating volume-face incidence...\n" );
 	Stream_Indent( stream );
 
 	incEls = Memory_Alloc_Array_Unnamed( unsigned, 6 );
@@ -1157,7 +1157,7 @@ void _CartesianGenerator_GenVolumeFaceInc( void* meshGenerator, IGraph* topo, Gr
 	FreeArray( dimInds );
 
 	MPI_Barrier( self->mpiComm );
-	Journal_Printf( stream, "... done.\n" );
+//	Journal_Printf( stream, "... done.\n" );
 	Stream_UnIndent( stream );
 }
 
@@ -1174,7 +1174,7 @@ void _CartesianGenerator_GenFaceVertexInc( void* meshGenerator, IGraph* topo, Gr
 	assert( grids );
 	assert( topo->nDims >= 2 );
 
-	Journal_Printf( stream, "Generating face-vertex incidence...\n" );
+//	Journal_Printf( stream, "Generating face-vertex incidence...\n" );
 	Stream_Indent( stream );
 
 	incEls = Memory_Alloc_Array_Unnamed( unsigned, 4 );
@@ -1250,7 +1250,7 @@ void _CartesianGenerator_GenFaceVertexInc( void* meshGenerator, IGraph* topo, Gr
 	FreeArray( dimInds );
 
 	MPI_Barrier( self->mpiComm );
-	Journal_Printf( stream, "... done.\n" );
+//	Journal_Printf( stream, "... done.\n" );
 	Stream_UnIndent( stream );
 }
 
@@ -1267,7 +1267,7 @@ void _CartesianGenerator_GenFaceEdgeInc( void* meshGenerator, IGraph* topo, Grid
 	assert( grids );
 	assert( topo->nDims >= 2 );
 
-	Journal_Printf( stream, "Generating face-edge incidence...\n" );
+//	Journal_Printf( stream, "Generating face-edge incidence...\n" );
 	Stream_Indent( stream );
 
 	incEls = Memory_Alloc_Array_Unnamed( unsigned, 4 );
@@ -1337,7 +1337,7 @@ void _CartesianGenerator_GenFaceEdgeInc( void* meshGenerator, IGraph* topo, Grid
 	FreeArray( dimInds );
 
 	MPI_Barrier( self->mpiComm );
-	Journal_Printf( stream, "... done.\n" );
+//	Journal_Printf( stream, "... done.\n" );
 	Stream_UnIndent( stream );
 }
 
@@ -1354,7 +1354,7 @@ void _CartesianGenerator_GenEdgeVertexInc( void* meshGenerator, IGraph* topo, Gr
 	assert( topo );
 	assert( grids );
 
-	Journal_Printf( stream, "Generating edge-vertex incidence...\n" );
+//	Journal_Printf( stream, "Generating edge-vertex incidence...\n" );
 	Stream_Indent( stream );
 
 	sync = IGraph_GetDomain( topo, 1 );
@@ -1407,7 +1407,7 @@ void _CartesianGenerator_GenEdgeVertexInc( void* meshGenerator, IGraph* topo, Gr
 	FreeArray( dimInds );
 
 	MPI_Barrier( self->mpiComm );
-	Journal_Printf( stream, "... done.\n" );
+//	Journal_Printf( stream, "... done.\n" );
 	Stream_UnIndent( stream );
 }
 
@@ -1420,7 +1420,7 @@ void _CartesianGenerator_GenElementTypes( void* meshGenerator, Mesh* mesh ) {
 	assert( self && Stg_CheckType( self, CartesianGenerator ) );
 
 	stream = Journal_Register( Info_Type, (Name)self->type  );
-	Journal_Printf( stream, "Generating element types...\n" );
+//	Journal_Printf( stream, "Generating element types...\n" );
 	Stream_Indent( stream );
 
 	mesh->nElTypes = 1;
@@ -1436,9 +1436,9 @@ void _CartesianGenerator_GenElementTypes( void* meshGenerator, Mesh* mesh ) {
 		Mesh_SetAlgorithms( mesh, Mesh_RegularAlgorithms_New( "", NULL ) );
 
 	MPI_Barrier( self->mpiComm );
-	Journal_Printf( stream, "... element types are '%s',\n", mesh->elTypes[0]->type );
-	Journal_Printf( stream, "... mesh algorithm type is '%s',\n", mesh->algorithms->type );
-	Journal_Printf( stream, "... done.\n" );
+//	Journal_Printf( stream, "... element types are '%s',\n", mesh->elTypes[0]->type );
+//	Journal_Printf( stream, "... mesh algorithm type is '%s',\n", mesh->algorithms->type );
+//	Journal_Printf( stream, "... done.\n" );
 	Stream_UnIndent( stream );
 }
 
@@ -2073,7 +2073,7 @@ void CartesianGenerator_CompleteVertexNeighbours( CartesianGenerator* self, IGra
 	assert( topo );
 	assert( grids );
 
-	Journal_Printf( stream, "Generating vertex neighbours...\n" );
+//	Journal_Printf( stream, "Generating vertex neighbours...\n" );
 	Stream_Indent( stream );
 
 	nDims = topo->nDims;
@@ -2159,7 +2159,7 @@ void CartesianGenerator_CompleteVertexNeighbours( CartesianGenerator* self, IGra
 	FreeArray( inds );
 
 	MPI_Barrier( self->mpiComm );
-	Journal_Printf( stream, "... done.\n" );
+//	Journal_Printf( stream, "... done.\n" );
 	Stream_UnIndent( stream );
 }
 
@@ -2188,7 +2188,7 @@ void CartesianGenerator_GenGeom( void* _self, void* _mesh, void* data ) {
     assert( self );
     assert( mesh  );
 
-    Journal_Printf( stream, "Generating geometry...\n" );
+//    Journal_Printf( stream, "Generating geometry...\n" );
     Stream_Indent( stream );
 
     /* Allocate for coordinates. */
@@ -2250,7 +2250,7 @@ void CartesianGenerator_GenGeom( void* _self, void* _mesh, void* data ) {
 
 
     MPI_Barrier( self->mpiComm );
-    Journal_Printf( stream, "... done.\n" );
+//    Journal_Printf( stream, "... done.\n" );
     Stream_UnIndent( stream );
 }
 

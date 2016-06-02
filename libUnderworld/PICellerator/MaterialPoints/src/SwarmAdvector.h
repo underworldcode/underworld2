@@ -83,9 +83,6 @@ void _SwarmAdvector_AssignFromXML( void* shape, Stg_ComponentFactory* cf, void* 
 	/*---------------------------------------------------------------------------------------------------------------------
 	** Entry Point Hooks
 	*/
-	void SwarmAdvector_AdvectionSetup( TimeIntegrator* timeIntegrator, SwarmAdvector* self ) ;
-	void SwarmAdvector_AdvectionFinish( TimeIntegrator* timeIntegrator, SwarmAdvector* self ) ;
-
     double SwarmAdvector_MaxDt( void* swarmAdvector ) ;
 
 	/*---------------------------------------------------------------------------------------------------------------------

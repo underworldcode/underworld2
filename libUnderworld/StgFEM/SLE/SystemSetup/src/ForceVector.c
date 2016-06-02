@@ -14,7 +14,6 @@
 
 #include "types.h"
 
-#include "FiniteElementContext.h"
 #include "SolutionVector.h"
 #include "ForceVector.h"
 #include "ForceTerm.h"
@@ -38,7 +37,6 @@ static const char	ForceVector_assembleForceVectorStr[] = "assembleForceVector";
 
 ForceVector* ForceVector_New(
 	Name							name,
-	FiniteElementContext*	context,
 	FeVariable*					feVariable,
 	Dimension_Index			dim,
 	void*							entryPoint_Register,
@@ -47,7 +45,7 @@ ForceVector* ForceVector_New(
 	ForceVector* self = _ForceVector_DefaultNew( name );
 
 	self->isConstructed = True;
-	_SolutionVector_Init( (SolutionVector*)self, context, comm, feVariable ); 
+	_SolutionVector_Init( (SolutionVector*)self, comm, feVariable );
 	_ForceVector_Init( self, dim, entryPoint_Register );
 
 	return self;
@@ -199,11 +197,6 @@ void _ForceVector_AssignFromXML( void* forceVector, Stg_ComponentFactory* cf, vo
 	
 	dim = Stg_ComponentFactory_GetRootDictUnsignedInt( cf, (Dictionary_Entry_Key)"dim", 0 );
 	dim = Stg_ComponentFactory_GetUnsignedInt( cf, self->name, (Dictionary_Entry_Key)"dim", dim );
-
-    if( self->context ) {
-        entryPointRegister = (void*)self->context->entryPoint_Register;
-        assert( entryPointRegister  );
-    }
 	
 	_ForceVector_Init( self, dim, entryPointRegister );
 }
@@ -253,17 +246,8 @@ void _ForceVector_Destroy( void* forceVector, void* data ) {
 
 void ForceVector_Assemble( void* forceVector ) {
 	ForceVector* self = (ForceVector*)forceVector;
-        int ii;
-	
-	Journal_DPrintf( self->debug, "In %s - for vector \"%s\" - calling the \"%s\" E.P.\n", __func__, self->name,
-			 self->assembleForceVector->name );
-
-	/* Call the Entry point directly from the base class */
-	/* Note that it may be empty: this is deliberate. */
-	if ( 0 == self->assembleForceVector->hooks->count ) {
-		Journal_DPrintf( self->debug, "(E.P. has no hooks loaded -> no assembly required.)\n" ); 
-	}	
-	
+    int ii;
+		
 	((FeEntryPoint_AssembleForceVector_CallFunction*)EntryPoint_GetRun( self->assembleForceVector ))(
 		self->assembleForceVector,
 		self );
@@ -418,13 +402,6 @@ void ForceVector_GlobalAssembly_General( void* forceVector ) {
 			//Vector_AddEntries( self->vector, totalDofsThisElement, (Index*)(elementLM[0]), elForceVecToAdd );
 			VecSetValues( self->vector, totalDofsThisElement, (PetscInt*)elementLM[0], elForceVecToAdd, ADD_VALUES );
 
-#if DEBUG
-			if( element_lI % outputInterval == 0 ) {
-				Journal_DPrintfL( self->debug, 2, "done %d percent of global force vector assembly (general) \n",
-						  (int)(100.0*((double)element_lI/(double)elementLocalCount)) );
-			}
-#endif
-
 			/* Cleanup: If we haven't built the big LM for all elements, free the temporary one */
 			if ( False == feVar->eqNum->locationMatrixBuilt ) {
 				Memory_Free( elementLM );
@@ -446,13 +423,6 @@ void ForceVector_GlobalAssembly_General( void* forceVector ) {
 	//Vector_AssemblyEnd( self->vector ); 
 	VecAssemblyBegin( self->vector );
 	VecAssemblyEnd( self->vector );
-
-#if DEBUG
-	if ( Stream_IsPrintableLevel( self->debug, 3 ) ) {
-		Journal_DPrintf( self->debug, "Completely built vector %s is:\n", self->name );
-		_ForceVector_VectorView( self->vector, self->debug );
-	}
-#endif
 
 	Stream_UnIndentBranch( StgFEM_Debug );
 }
@@ -487,11 +457,8 @@ Bool ForceVector_BCAsm_RowR( void* forceVec, Assembler* assm ) {
 	return True;
 }
 
-void ForceVector_AddModifyCallback( ForceVector* self, void* callback, void* object ) {
-   self->nModifyCBs++;
-   self->modifyCBs = ReallocArray( self->modifyCBs, Callback, self->nModifyCBs );
-   self->modifyCBs[self->nModifyCBs - 1].callback = callback;
-   self->modifyCBs[self->nModifyCBs - 1].object = object;
+void ForceVector_Zero( void* forceVector ) {
+	ForceVector* self = (ForceVector*) forceVector;
+    VecSet( self->vector, 0.0 );
+
 }
-
-

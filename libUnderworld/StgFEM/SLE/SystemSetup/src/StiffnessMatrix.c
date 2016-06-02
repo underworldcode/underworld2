@@ -1122,9 +1122,9 @@ void StiffnessMatrix_CalcNonZeros( void* stiffnessMatrix ) {
     assert( self->rowVariable );
 
     stream = Journal_Register( Info_Type, (Name)self->type  );
-    Journal_Printf( stream, "Stiffness matrix: '%s'\n", self->name );
+//    Journal_Printf( stream, "Stiffness matrix: '%s'\n", self->name );
     Stream_Indent( stream );
-    Journal_Printf( stream, "Calculating number of nonzero entries...\n" );
+//    Journal_Printf( stream, "Calculating number of nonzero entries...\n" );
     Stream_Indent( stream );
 
     rowVar = self->rowVariable;
@@ -1186,13 +1186,6 @@ void StiffnessMatrix_CalcNonZeros( void* stiffnessMatrix ) {
     self->diagonalNonZeroIndices = nDiagNonZeros;
     self->offDiagonalNonZeroIndices = nOffDiagNonZeros;
 
-    {
-        int tmp, ierr;
-        ierr = MPI_Allreduce( &netNonZeros, &tmp, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD );
-        netNonZeros = tmp;
-    }
-    Journal_Printf( stream, "Found %d nonzero entries.\n", netNonZeros );
-    Journal_Printf( stream, "Done.\n" );
     Stream_UnIndent( stream );
     Stream_UnIndent( stream );
     

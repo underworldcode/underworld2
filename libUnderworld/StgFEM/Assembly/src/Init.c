@@ -41,13 +41,11 @@ Bool StgFEM_Assembly_Init( int* argc, char** argv[] ) {
    Stg_ComponentRegister_Add( componentRegister, DivergenceMatrixTerm_Type, (Name)"0", _DivergenceMatrixTerm_DefaultNew );
    Stg_ComponentRegister_Add( componentRegister, LaplacianStiffnessMatrixTerm_Type, (Name)"0", _LaplacianStiffnessMatrixTerm_DefaultNew );
    Stg_ComponentRegister_Add( componentRegister, IsoviscousStressTensorTerm_Type, (Name)"0", _IsoviscousStressTensorTerm_DefaultNew );
-   Stg_ComponentRegister_Add( componentRegister, MassMatrixTerm_Type, (Name)"0", _MassMatrixTerm_DefaultNew  );
 
    RegisterParent( GradientStiffnessMatrixTerm_Type, StiffnessMatrixTerm_Type );
    RegisterParent( DivergenceMatrixTerm_Type, StiffnessMatrixTerm_Type );
    RegisterParent( LaplacianStiffnessMatrixTerm_Type, StiffnessMatrixTerm_Type );
    RegisterParent( IsoviscousStressTensorTerm_Type, StiffnessMatrixTerm_Type );
-   RegisterParent( MassMatrixTerm_Type, StiffnessMatrixTerm_Type );
 
    return True;
 }

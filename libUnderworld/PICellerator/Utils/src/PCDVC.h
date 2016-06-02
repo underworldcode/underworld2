@@ -74,7 +74,7 @@ struct deleteParticle{
 
 
 
-PCDVC* PCDVC_New( Name name, Dimension_Index dim, int* res,
+PCDVC* PCDVC_New( Name name, int* res,
                   GeneralSwarm* mps, double upT, double lowT,
                   int maxDeletions, int maxSplits, Bool splitInInterfaceCells,
                   Bool deleteInInterfaceCells, Bool Inflow, double CentPosRatio,

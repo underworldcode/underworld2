@@ -15,17 +15,18 @@ import underworld._stgermain as _stgermain
 import libUnderworld
 
 class _SystemCondition(_stgermain.StgCompoundComponent):
-    pass
+    def _add_to_stg_dict(self,componentDict):
+        pass
 
 class DirichletCondition(_SystemCondition):
     """
     The DirichletCondition class provides the required functionality to imposed Dirichlet
     conditions on your differential equation system.
-    
+
     The user is simply required to flag which nodes/DOFs should be considered by the system
-    to be a Dirichlet condition. The values at the Dirichlet nodes/DOFs is then left 
+    to be a Dirichlet condition. The values at the Dirichlet nodes/DOFs is then left
     untouched by the system.
-    
+
     Parameters
     ----------
     variable : uw.mesh.MeshVariable
@@ -40,13 +41,13 @@ class DirichletCondition(_SystemCondition):
     -----
     Note that it is necessary for the user to set the required value on the variable, possibly
     via the numpy interface.
-    
+
     Constructor must be called by collectively all processes.
 
     Example
     -------
     Basic setup and usage of Dirichlet conditions:
-    
+
     >>> linearMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.) )
     >>> velocityField = uw.mesh.MeshVariable( linearMesh, 2 )
     >>> velocityField.data[:] = [0.,0.]  # set velocity zero everywhere, which will of course include the boundaries.
@@ -54,15 +55,12 @@ class DirichletCondition(_SystemCondition):
     >>> JWalls = linearMesh.specialSets["MinJ_VertexSet"] + linearMesh.specialSets["MaxJ_VertexSet"]
     >>> freeSlipBC = uw.conditions.DirichletCondition(velocityField, (IWalls,JWalls) )  # this will give free slip sides
     >>> noSlipBC = uw.conditions.DirichletCondition(velocityField, (IWalls+JWalls,IWalls+JWalls) )  # this will give no slip sides
-    
+
     """
     _objectsDict = { "_pyvc": "PythonVC" }
     _selfObjectName = "_pyvc"
 
-    def __init__(self, variable, indexSetsPerDof=None, nodeIndexSets=None):
-        if nodeIndexSets: # Deprecate post mid 2016, remember to clean the function signture too
-            raise ValueError( "Parameter 'nodeIndexSets' has been renamed to 'indexSetsPerDof'. Please use indexSetsPerDof instead" )
-
+    def __init__(self, variable, indexSetsPerDof=None):
         if not isinstance( variable, uw.mesh.MeshVariable ):
             raise TypeError("Provided variable must be of class 'MeshVariable'.")
         self._variable = variable
@@ -91,16 +89,13 @@ class DirichletCondition(_SystemCondition):
         for position,set in enumerate(self._indexSets):
             if set:
                 libUnderworld.StGermain._PythonVC_SetIndexSetAtArrayPosition( self._cself, set._cself, position );
-            
-        super(DirichletCondition,self).__init__()
 
-    def _add_to_stg_dict(self,componentDict):
-        pass
+        super(DirichletCondition,self).__init__()
 
     @property
     def indexSets(self):
         """
-        Tuple or list of IndexSet objects. One set for each degree of freedom of the associated 
+        Tuple or list of IndexSet objects. One set for each degree of freedom of the associated
         variable. These sets flag which nodes/DOFs are to be considered Dirichlet.
         """
         return self._indexSets
@@ -112,3 +107,72 @@ class DirichletCondition(_SystemCondition):
         """
         return self._variable
 
+class NeumannCondition(_SystemCondition):
+    """
+    This class defines Neumann conditions for a differential equation.
+    Neumann conditions specifiy a field's flux along a boundary.
+
+    As such the user specifices the field's flux as a uw.Function and the nodes where this flux
+    is to be applied - similar to uw.conditions.DirichletCondtion
+
+    Parameters
+    ----------
+    flux : uw.Function
+        See uw.Function for details
+
+    """
+    _objectsDict = { "_pyvc": "PythonVC" }
+    _selfObjectName = "_pyvc"
+
+    def __init__(self, flux, variable=None, nodeIndexSet=None, **kwargs ):
+
+        if nodeIndexSet == None:
+            raise ValueError("No 'nodeIndexSet' provided to apply Neumann conditions")
+
+        _flux = uw.function.Function._CheckIsFnOrConvertOrThrow(flux)
+        if not isinstance( _flux, uw.function.Function):
+            raise ValueError( "Provided 'flux' must be of or convertible to 'Function' class." )
+        self._flux = _flux
+
+        if not isinstance( variable, uw.mesh.MeshVariable ):
+            raise TypeError("Provided variable must be of class 'MeshVariable'.")
+        self._variable = variable
+
+        if isinstance( nodeIndexSet, uw.container.IndexSet):
+            indexSet = nodeIndexSet
+        else:
+            raise TypeError("Provided 'nodeIndexSet' must be of type 'IndexSet', " \
+            "currently it is: ", type(nodeIndexSet)  )
+
+        self._indexSet = indexSet
+
+        # ok, lets setup the c array, only 1 of them
+        libUnderworld.StGermain._PythonVC_SetupIndexSetArray(self._cself,1 )
+
+        # now, lets add the indexSet objects
+        libUnderworld.StGermain._PythonVC_SetIndexSetAtArrayPosition( self._cself, self._indexSet._cself, 0 );
+
+        # call parent
+        super(NeumannCondition,self).__init__()
+
+    @property
+    def flux(self):
+        """
+        Gradient Field for which this condition applies.
+        """
+        return self._flux
+
+    @property
+    def indexSet(self):
+        """
+        Node IndexSet objects. Represents the nodes, of the given variable's mesh,
+        that will be flagged to have this Neumann condition.
+        """
+        return self._indexSet
+
+    @property
+    def variable(self):
+        """
+        Variable for which this condition applies.
+        """
+        return self._variable

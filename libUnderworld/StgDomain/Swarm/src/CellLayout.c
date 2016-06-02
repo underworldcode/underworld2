@@ -48,11 +48,7 @@ CellLayout* _CellLayout_New(  CELLLAYOUT_DEFARGS  ) {
 	return self;
 }
 
-void _CellLayout_Init( CellLayout* self, AbstractContext* context ) {
-	/* General and Virtual info should already be set */
-
-	self->context = context;	
-}
+void _CellLayout_Init( CellLayout* self ) {}
 
 void _CellLayout_Delete( void* cellLayout ) {
 	CellLayout* self = (CellLayout*)cellLayout;
@@ -110,13 +106,8 @@ void* _CellLayout_Copy( void* cellLayout, void* dest, Bool deep, Name nameExt, P
 
 void _CellLayout_AssignFromXML( void* cellLayout, Stg_ComponentFactory *cf, void* data ) {
 	CellLayout*			self = (CellLayout*)cellLayout;
-	AbstractContext*	context;
 
-	context = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"Context", AbstractContext, False, data );
-   if( !context  )
-      context = Stg_ComponentFactory_ConstructByName( cf, (Name)"context", AbstractContext, False, data  );
-
-	_CellLayout_Init( self, context );
+	_CellLayout_Init( self );
 }
 
 Cell_Index CellLayout_CellDomainCount( void* cellLayout ) {

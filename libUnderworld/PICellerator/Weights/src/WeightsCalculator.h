@@ -24,9 +24,7 @@ extern const Type WeightsCalculator_Type;
 	/* Virtual Info */ \
 	FiniteElementContext*						context; \
 	WeightsCalculator_CalculateFunction*  _calculate; \
-	/* Other Info */ \
-	double                                cellLocalVolume; \
-	Dimension_Index                       dim;
+	/* Other Info */ 
 
 	struct WeightsCalculator { __WeightsCalculator };
         
@@ -50,8 +48,6 @@ extern const Type WeightsCalculator_Type;
 	        _calculate
 
 	WeightsCalculator* _WeightsCalculator_New(  WEIGHTSCALCULATOR_DEFARGS  );
-
-	void _WeightsCalculator_Init( void* self , int dim );
 
 	/* Stg_Class_Delete WeightsCalculator implementation */
 	void _WeightsCalculator_Delete( void* self );

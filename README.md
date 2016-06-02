@@ -1,10 +1,14 @@
 Underworld 2
 ============
 
+[_Underworld 2_](http://www.underworldcode.org) is a python-friendly version of the Underworld code which provides a programmable and flexible front end to all the functionality of the code running in a parallel HPC environment. This gives signficant advantages to the user, with access to the power of python libraries for setup of complex problems, analysis at runtime, problem steering, and multi physics coupling. While Underworld2 embraces Jupyter Notebooks as the preferred modelling environment, only standard python is required.
 
-[_Underworld 2_](http://www.underworldcode.org) is a python-friendly version of the Underworld code which provides a programmable and flexible front end to all the functionality of the code running in a parallel HPC environment. This gives signficant advantages to the user, with access to the power of python libraries for setup of complex problems, analysis at runtime, problem steering, and coupling of multiple problems. The python toolkit was funded by the NeCTAR [eresearch_tools](http://www.nectar.org.au/eresearch-tools) program.
+The Underworld2 development team is based in Melbourne, Australia at the University of Melbourne and at Monash University led by Louis Moresi. We would like to acknowledge AuScope Simulation, Analysis and Modelling for providing long term funding which has made the project possible. Additional funding for specific improvements and additional functionality has come from the Australian Research Council (http://www.arc.gov.au). The python toolkit was funded by the NeCTAR eresearch_tools program. Underworld was originally developed in collaboration with the Victorian Partnership for Advanced Computing.
 
-While Underworld2 embraces Jupyter Notebooks as the preferred modelling environment, only standard python is required.
+Compile | [![Build Status] (http://128.250.120.238:9080/buildStatus/icon?job=Compile)](http://128.250.120.238:9080/job/Compile)
+
+Model Tests | [![Build Status](http://128.250.120.238:9080/job/tests/badge/icon)](http://128.250.120.238:9080/job/tests/)
+
 
 
 Getting Underworld2

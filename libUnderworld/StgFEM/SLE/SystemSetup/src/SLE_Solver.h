@@ -27,7 +27,6 @@
 	/** SLE_Solver class contents */
 	#define __SLE_Solver \
 		__Stg_Component \
-		FiniteElementContext*				context; \
 		ExtensionManager*						extensionManager; \
 		\
 		/* Virtual info */ \
@@ -63,10 +62,7 @@
 		double			avgtimenonlinearits; \
 		int				currenttimestep; \
 		int				previoustimestep; \
-		\
-		Bool                               useStatSolve; \
-		unsigned                           nStatReps;
-		
+        		
 	/** Abstract class defining the interface for a SLE_Solver solver - see SLE_Solver.h */
 	struct SLE_Solver { __SLE_Solver };
 
@@ -95,9 +91,9 @@
 	SLE_Solver* _SLE_Solver_New(  SLE_SOLVER_DEFARGS  );
 
 	/** class member initialisation */
-	void _SLE_Solver_Init( SLE_Solver* self, Bool useStatSolve, int statReps ) ;
+	void _SLE_Solver_Init( SLE_Solver* self ) ;
 
-	void SLE_Solver_InitAll( void* sleSolver, Bool useStatSolve, int statReps ) ;
+	void SLE_Solver_InitAll( void* sleSolver ) ;
 
 	/* --- Virtual function implementations --- */
 	

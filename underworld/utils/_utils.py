@@ -14,13 +14,15 @@ import libUnderworld
 import libUnderworld.libUnderworldPy.Function as _cfn
 from timeit import default_timer as timer
 from mpi4py import MPI
+import h5py
+import numpy as np
 import sys
 import shutil
 import os
 
 class Integral(_stgermain.StgCompoundComponent):
     """
-    This class constructs a surface or volume integral of the provided function over a 
+    This class constructs a surface or volume integral of the provided function over a
     given mesh.
 
     Parameters
@@ -37,27 +39,27 @@ class Integral(_stgermain.StgCompoundComponent):
         Note that surface integration over interior nodes is not currently supported.
     integrationSwarm : uw.swarm.IntegrationSwarm (optional)
         User provided integration swarm.
-    
+
     Notes
     -----
     Constructor must be called by collectively all processes.
-    
+
     Example
     -------
     Calculate volume of mesh:
-    
+
     >>> import underworld as uw
     >>> mesh = uw.mesh.FeMesh_Cartesian(minCoord=(0.,0.), maxCoord=(1.,1.))
     >>> volumeIntegral = uw.utils.Integral(fn=1.,mesh=mesh)
-    >>> volumeIntegral.evaluate()
-    [1.0]
-    
+    >>> np.isclose( 1., volumeIntegral.evaluate(), rtol=1e-8)
+    array([ True], dtype=bool)
+
     Calculate surface area of mesh:
-    
-    >>> surfaceIntegral = uw.utils.Integral(fn=1.,mesh=mesh, integrationType='surface', surfaceIndexSet=mesh.specialSets["AllWalls_VertexSet"])
-    >>> surfaceIntegral.evaluate()
-    [4.0]
-    
+
+    >>> surfaceIntegral = uw.utils.Integral(fn=1., mesh=mesh, integrationType='surface', surfaceIndexSet=mesh.specialSets["AllWalls_VertexSet"])
+    >>> np.isclose( 4., surfaceIntegral.evaluate(), rtol=1e-8)
+    array([ True], dtype=bool)
+
     """
     _objectsDict = { "_integral": "Fn_Integrate" }
     _selfObjectName = "_integral"
@@ -69,15 +71,15 @@ class Integral(_stgermain.StgCompoundComponent):
             raise TypeError("'feMesh' object passed in must be of type 'FeMesh'")
         self._mesh = mesh
         self._cself.mesh = self._mesh._cself
-        
+
         self._maskFn = None
-        
+
         self._fn = uw.function.Function._CheckIsFnOrConvertOrThrow(fn)
 
         if integrationType and integrationSwarm:
             raise RuntimeError("Either an 'integrationType' or an 'integrationSwarm' may be provided, but not both.\n"
                               +"You may need to set 'integrationType' to None.")
-        
+
         if integrationType:
             if not isinstance( integrationType, str ):
                 raise TypeError( "'integrationType' provided must be a string.")
@@ -131,7 +133,7 @@ class Integral(_stgermain.StgCompoundComponent):
 
         # lets setup fn tings
         libUnderworld.Underworld._Fn_Integrate_SetFn( self._cself, self._fn._fncself)
-        
+
         super(Integral,self).__init__(**kwargs)
 
     def _add_to_stg_dict(self,componentDictionary):
@@ -140,7 +142,7 @@ class Integral(_stgermain.StgCompoundComponent):
     def evaluate(self):
         """
         Perform integration.
-        
+
         Notes
         -----
         Method must be called collectively by all processes.
@@ -149,7 +151,7 @@ class Integral(_stgermain.StgCompoundComponent):
         -------
         result : list of floats
             Integration result. For vector integrals, a vector is returned.
-        
+
         """
         val = libUnderworld.Underworld.Fn_Integrate_Integrate( self._cself )
         result = []
@@ -157,9 +159,6 @@ class Integral(_stgermain.StgCompoundComponent):
             result.append(val.value(ii))
         return result
 
-    def integrate(self): # DEPRECATE
-        raise RuntimeError("This method has been renamed to 'evaluate'.")
-    
     @property
     def maskFn(self):
         """
@@ -173,7 +172,7 @@ class Integral(_stgermain.StgCompoundComponent):
 class SavedFileData(object):
     '''
     A class used to define saved data.
-    
+
     Parameters
     ----------
     pyobj: object
@@ -195,19 +194,19 @@ def _xdmfheader():
     return out
 
 def _xdmffooter():
-    out = ("</Grid>\n" + 
-           "</Domain>\n" + 
+    out = ("</Grid>\n" +
+           "</Domain>\n" +
            "</Xdmf>\n" )
     return out
 
 def _swarmspacetimeschema( swarmSavedData, swarmname, time ):
     """
     Writes the swarm geometry schema for a swarm variable xdmf file
-    
+
     Parameters:
     ----------
     swarmSavedData : SavedFileData
-        The SavedFileData handle to the saved Swarm. 
+        The SavedFileData handle to the saved Swarm.
     swarmname : str
         The name, in xdmf, to give the swam
     time : float
@@ -221,10 +220,16 @@ def _swarmspacetimeschema( swarmSavedData, swarmname, time ):
     """
     # retrieve bits about previously saved swarm file
     swarm = swarmSavedData.pyobj
-    filename = os.path.basename(swarmSavedData.filename)
+    filename = swarmSavedData.filename
 
-    # set parameters
-    globalCount = swarm.particleGlobalCount
+    # get swarm parameters - serially read from hdf5 file to get size
+    h5f = h5py.File(name=filename, mode="r")
+    dset = h5f.get('data')
+    if dset == None:
+        raise RuntimeError("Can't find 'data' in file '{}'.\n".format(filename))
+    globalCount = len(dset)
+    h5f.close()
+
     dim = swarm.mesh.dim
 
     out = "<Grid Name=\"{0}\" GridType=\"Uniform\">\n".format(swarmname)
@@ -294,7 +299,7 @@ def _xdmfAttributeschema( varname, variableType, centering, globalcount, dof_cou
 def _swarmvarschema( varSavedData, varname ):
     """"
     Writes the attribute schema for a swarm variable xdmf file
-    
+
     Parameters:
     ----------
     varSavedData : SavedFileData
@@ -310,27 +315,33 @@ def _swarmvarschema( varSavedData, varname ):
 
     # retrieve bits from varSavedData
     var = varSavedData.pyobj
-    varfilename = os.path.basename(varSavedData.filename)
-    
-    # set parameters
-    globalCount = var.swarm.particleGlobalCount
+    varfilename = varSavedData.filename
+
+    # set parameters - serially open the varfilename
+    h5f = h5py.File(name=varfilename, mode="r")
+    dset = h5f.get('data')
+    if dset == None:
+        raise RuntimeError("Can't find 'data' in file '{}'.\n".format(filename))
+    globalCount = len(dset)
+    h5f.close()
+
     dof_count = var.data.shape[1]
     variableType = "NumberType=\"Float\" Precision=\"8\""
 
     out = _xdmfAttributeschema( varname, variableType, "Node", globalCount, dof_count, varfilename )
 
     return out
-    
+
 
 
 def _spacetimeschema( savedMeshFile, meshname, time ):
     """
     Writes the geometry schema portion for a MeshVariable xdmf file
-    
+
     Parameters:
     ----------
     savedMeshFile : SavedFileData
-        The SavedFileData handle to the saved Mesh. 
+        The SavedFileData handle to the saved Mesh.
     meshname : str
         The name, in xdmf, to give the mesh
     time : float
@@ -400,7 +411,7 @@ def _spacetimeschema( savedMeshFile, meshname, time ):
         out += "\t\t<DataItem ItemType=\"Function\"  Dimensions=\"{0} 3\" Function=\"JOIN($0, $1, 0*$1)\">\n".format(nGlobalNodes)
         out += "\t\t\t<DataItem ItemType=\"HyperSlab\" Dimensions=\"{0} 1\" Name=\"XCoords\">\n".format(nGlobalNodes)
         out += "\t\t\t\t<DataItem Dimensions=\"3 2\" Format=\"XML\"> 0 0 1 1 {0} 1 </DataItem>\n".format(nGlobalNodes)
-        out += "\t\t\t\t<DataItem Format=\"HDF\" {0} Dimensions=\"{1} 2\">{2}:/vertices</DataItem>\n".format(variableType, nGlobalNodes, filename) 
+        out += "\t\t\t\t<DataItem Format=\"HDF\" {0} Dimensions=\"{1} 2\">{2}:/vertices</DataItem>\n".format(variableType, nGlobalNodes, filename)
         out += "\t\t\t</DataItem>\n"
         out += "\t\t\t<DataItem ItemType=\"HyperSlab\" Dimensions=\"{0} 1\" Name=\"YCoords\">\n".format(nGlobalNodes)
         out += "\t\t\t\t<DataItem Dimensions=\"3 2\" Format=\"XML\"> 0 1 1 1 {0} 1 </DataItem>\n".format(nGlobalNodes)
@@ -409,9 +420,9 @@ def _spacetimeschema( savedMeshFile, meshname, time ):
         out += "\t\t</DataItem>\n"
     if dim == 3:
         out += "\t<DataItem Format=\"HDF\" {0} Dimensions=\"{1} 3\">{2}:/vertices</DataItem>\n".format(variableType, nGlobalNodes, filename)
-        
+
     out += "\t</Geometry>\n"
-    
+
     return out
 
 def _fieldschema(varSavedFile, varname ):
@@ -451,7 +462,7 @@ def _fieldschema(varSavedFile, varname ):
     dim = mesh.dim
     dof_count = field.data.shape[1]
     nodesGlobal = field.mesh.nodesGlobal
-    
+
     variableType = "NumberType=\"Float\" Precision=\"8\""
     offset = 0 #OK: Temporary to get 3D running
 
@@ -462,7 +473,7 @@ def _fieldschema(varSavedFile, varname ):
         centering = "Cell"
     else:
         raise RuntimeError("Can't output field '{}', unsupported elementType '{}'\n".format(varname, field.mesh.elementType) )
-       # more conditions needed above for various pressure elementTypes??? 
+       # more conditions needed above for various pressure elementTypes???
        # valid XDMF centers are "Node | Cell | Grid | Face | Edge" - http://www.xdmf.org/index.php/XDMF_Model_and_Format
 
     out = _xdmfAttributeschema( varname, variableType, centering, nodesGlobal, dof_count, filename )
@@ -472,7 +483,7 @@ def _fieldschema(varSavedFile, varname ):
 def _createMeshName( mesh, outputDir='./output', index=None):
     """
     Returns a string - "outputDir/Mesh_res_time.h5"
-    
+
     """
     if not index == None:
         if not isinstance(index, int):
@@ -522,7 +533,7 @@ class ProgressBar(object):
             progress = float(progress)
         if not isinstance( progress, float ):
             raise TypeError( "In ProgressBar, 'progress', must be a scalar" )
-        
+
         start = self._start
         end = self._end
         markers = self._markers
@@ -535,7 +546,7 @@ class ProgressBar(object):
 
         if relprog > 100:
             sys.stdout.write("Warning: "+ str(self._title)+ "'s ProgressBar is done\n")
-            return 
+            return
 
         if self._printTitle:
             sys.stdout.write(str(self._title)+': ')
@@ -558,3 +569,37 @@ class ProgressBar(object):
 
         sys.stdout.flush()
 
+def _nps_2norm( v, comm=MPI.COMM_WORLD ):
+    """
+    Calculates the 2-norm of a numpy vector v.
+    The vector may be decomposed across multiple processors as specified by 'comm'.
+
+    Parameters
+    ----------
+    v : numpy.ndarray, numpy object
+        Assumed to be decomposed across processors as per 'comm'
+    comm : MPI.Intracomm, default = MPI.COMM_WORLD
+        The communicator that defines the group of processor to calculate the
+        vector norm. By default it is all processors.
+
+    Returns
+    -------
+      $$ ||v||_{2} $$
+
+      Returns this value to all processors
+
+    Note: This is a collective call and must be called by all processors with v
+    """
+
+
+    if not isinstance(comm, MPI.Intracomm):
+        raise TypeError("'comm' is not of value type 'MPI.Intracomm'")
+    if not isinstance(v, np.ndarray):
+        raise TypeError("'v' is not of value type 'numpy.ndarray'")
+
+    lnorm_sq = np.linalg.norm(v)**2 # sq as this is 2-norm
+
+    # comm all gather across procs
+    gnorm_sq = np.sum( comm.allgather(lnorm_sq) )
+
+    return np.sqrt(gnorm_sq)

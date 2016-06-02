@@ -7,30 +7,30 @@
 ##                                                                                   ##
 ##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
 """
-Underworld2 is a python-friendly version of the Underworld geodynamics 
-code which provides a programmable and flexible front end to all the 
-functionality of the code running in a parallel HPC environment. This 
-gives signficant advantages to the user, with access to the power of 
-python libraries for setup of complex problems, analysis at runtime, 
-problem steering, and coupling of multiple problems. 
+Underworld2 is a python-friendly version of the Underworld geodynamics
+code which provides a programmable and flexible front end to all the
+functionality of the code running in a parallel HPC environment. This
+gives signficant advantages to the user, with access to the power of
+python libraries for setup of complex problems, analysis at runtime,
+problem steering, and coupling of multiple problems.
 
-Underworld2 is integrated with the literate programming environment of 
-the jupyter notebook system for tutorials and as a teaching tool for 
+Underworld2 is integrated with the literate programming environment of
+the jupyter notebook system for tutorials and as a teaching tool for
 solid Earth geoscience.
 
-Underworld is an open-source, particle-in-cell finite element code 
-tuned for large-scale geodynamics simulations. The numerical algorithms 
-allow the tracking of history information through the high-strain 
-deformation associated with fluid flow (for example, transport of the 
-stress tensor in a viscoelastic, convecting medium, or the advection of 
-fine-scale damage parameters by the large-scale flow). The finite 
-element mesh can be static or dynamic, but it is not contrained to move 
-in lock-step with the evolving geometry of the fluid. This hybrid approach 
-is very well suited to complex fluids which is how the solid Earth behaves 
+Underworld is an open-source, particle-in-cell finite element code
+tuned for large-scale geodynamics simulations. The numerical algorithms
+allow the tracking of history information through the high-strain
+deformation associated with fluid flow (for example, transport of the
+stress tensor in a viscoelastic, convecting medium, or the advection of
+fine-scale damage parameters by the large-scale flow). The finite
+element mesh can be static or dynamic, but it is not contrained to move
+in lock-step with the evolving geometry of the fluid. This hybrid approach
+is very well suited to complex fluids which is how the solid Earth behaves
 on a geological timescale.
 """
 
-__version__ = "2.0.3b"
+__version__ = "2.0.0b2"
 
 # ok, first need to change default python dlopen flags to global
 # this is because when python imports the module, the shared libraries are loaded as RTLD_LOCAL
@@ -41,16 +41,20 @@ import ctypes as _ctypes
 _oldflags = _sys.getdlopenflags()
 _sys.setdlopenflags( _oldflags | _ctypes.RTLD_GLOBAL )
 
+# lets also set sys.path such that the project parent directory takes
+# precedence
+import os as _os
+_sys.path.insert(0, _os.path.realpath(_os.path.dirname("..")))
+
+
 import libUnderworld
 import container
 import mesh
-import fevariable
 import conditions
 import function
 import swarm
 import systems
 import utils
-import meshvariable
 
 try:
     from ._uwid import uwid as _id
@@ -91,8 +95,22 @@ def nProcs():
     """
     return _data.nProcs
 
+def barrier():
+    """
+    Creates an MPI barrier. All processes wait here for others to catch up.
 
-def help(object):
+    """
+    from mpi4py import MPI
+    MPI.COMM_WORLD.Barrier()
+
+def matplotlib_inline():
+    try :
+        if(__IPYTHON__) :
+            get_ipython().magic(u'matplotlib inline')
+    except:
+        pass
+
+def help(object, toScreen=True):
     """
     This help function simply prints the object's docstring, without also
     printing the entire object hierarchy's docstrings (as per the python
@@ -104,13 +122,28 @@ def help(object):
             Any python object.
 
     """
-    
-    print("Object docstring:\n")
-    print(object.__doc__)
-    print("Object initialiser docstring:\n")
-    print(object.__init__.__doc__)
 
-# lets handle exceptions differently in parallel to ensure we call 
+    import textwrap
+
+    wrapper = textwrap.TextWrapper(initial_indent = "  ", subsequent_indent="  ")
+
+    if toScreen:
+        print("Object docstring:\n")
+        print(object.__doc__)
+        print("Object initialiser docstring:\n")
+        print(object.__init__.__doc__)
+
+    docstring = ""
+    if object.__doc__:
+        docstring += object.__doc__
+    if object.__init__.__doc__:
+        docstring += object.__init__.__doc__
+
+    wrapper.wrap(docstring)
+
+    return(docstring)
+
+# lets handle exceptions differently in parallel to ensure we call
 if nProcs() > 1:
     origexcepthook = _sys.excepthook
     def uw_uncaught_exception_handler(exctype, value, tb):
@@ -126,7 +159,7 @@ if nProcs() > 1:
 
 def _prepend_message_to_exception(e, message):
     """
-    This function simply adds a message to an encountered exception. 
+    This function simply adds a message to an encountered exception.
     Currently it is not python 3 friendly.  Check here
     http://stackoverflow.com/questions/6062576/adding-information-to-a-python-exception
     """
@@ -150,7 +183,7 @@ _delclassinstance = _del_uw_class(libUnderworld.StGermain_Tools.StgFinalise, _da
 def _in_doctest():
     """
     Returns true if running inside a doctest.
-    
+
     http://stackoverflow.com/questions/8116118/how-to-determine-whether-code-is-running-in-a-doctest
     """
     return hasattr(_sys.modules['__main__'], '_SpoofOut')

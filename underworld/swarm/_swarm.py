@@ -15,11 +15,12 @@ import libUnderworld
 import underworld as uw
 from mpi4py import MPI
 import h5py
+import contextlib
 
 
 class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Save):
     """
-    The Swarm class supports particle like data structures. Each instance of 
+    The Swarm class supports particle like data structures. Each instance of
     this class will store a set of unique particles. In this context, particles
     are data structures which store a location variable, along with any other
     variables the user requests.
@@ -30,22 +31,26 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         The FeMesh the swarm is supported by. See Swarm.mesh property docstring
         for further information.
     particleEscape : bool
-        If set to true, particles are allowed to escape from the domain.
-        
+        If set to true, particles are allowed to escape from the domain. This
+        may occur during particle advection, or when the mesh is deformed.
+
 
     For example, to create the swarm with some variables:
-    
-    >>> # first we need a mesh
+
+    First we need a mesh:
     >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
-    >>> # create empty swarm
+
+    Create empty swarm:
     >>> swarm = uw.swarm.Swarm(mesh)
-    >>> # add a variable
+
+    Add a variable:
     >>> svar = swarm.add_variable("char",1)
-    >>> # add another
+
+    Add another:
     >>> svar = swarm.add_variable("double",3)
-    
+
     Can also use a layout to fill with particles
-    
+
     >>> swarm.particleLocalCount
     0
     >>> layout = uw.swarm.layouts.PerCellGaussLayout(swarm,2)
@@ -57,6 +62,37 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
     >>> swarm.owningCell.data[0]
     array([0], dtype=int32)
 
+    With particleEscape enabled, particles which are no longer within the mesh
+    domain are deleted.
+
+    >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
+    >>> swarm = uw.swarm.Swarm(mesh, particleEscape=True)
+    >>> swarm.particleLocalCount
+    0
+    >>> layout = uw.swarm.layouts.PerCellGaussLayout(swarm,2)
+    >>> swarm.populate_using_layout(layout)
+    >>> swarm.particleGlobalCount
+    1024
+    >>> with mesh.deform_mesh():
+    ...     mesh.data[:] += (0.5,0.)
+    >>> swarm.particleGlobalCount
+    512
+
+    Alternatively, moving the particles:
+
+    >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
+    >>> swarm = uw.swarm.Swarm(mesh, particleEscape=True)
+    >>> swarm.particleLocalCount
+    0
+    >>> layout = uw.swarm.layouts.PerCellGaussLayout(swarm,2)
+    >>> swarm.populate_using_layout(layout)
+    >>> swarm.particleGlobalCount
+    1024
+    >>> with swarm.deform_swarm():
+    ...     swarm.particleCoordinates.data[:] -= (0.5,0.)
+    >>> swarm.particleGlobalCount
+    512
+
     """
 
     _objectsDict = {            "_swarm": "GeneralSwarm",
@@ -67,35 +103,40 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
 
     def __init__(self, mesh, particleEscape=False, **kwargs):
 
-        # if a PIC swarm is created for this guy, then it should record itself here
-        self._PICSwarm = None
-        
         self.particleEscape = particleEscape
+        # escape routine will be used during swarm advection, but lets also add
+        # it to the mesh post deform hook so that when the mesh is deformed,
+        # any particles that are found wanting are culled accordingly.
+        def _update_owners():
+#                globCount = self.particleGlobalCount
+            self.update_particle_owners()
+#                if uw.rank() == 0: print("Removed {} particles found outside the mesh.".format( globCount - self.particleGlobalCount))
+        mesh.add_post_deform_function( _update_owners )
 
-        # numpy array to map local particle indices to global indicies, used for loading from file
-        self._local2globalMap = None
-
+        # init this to -1 to signify no mapping has occurred
+        self._checkpointMapsToState = -1
+        
         # build parent
         super(Swarm,self).__init__(mesh, **kwargs)
 
     def _setup(self):
         if self._cself.particleCoordVariable:
-            self._particleCoordinates = svar.SwarmVariable(self, "double", self.mesh.dim, _cself=self._cself.particleCoordVariable)
-        self._cself.isAdvecting = True
+            self._particleCoordinates = svar.SwarmVariable(self, "double", self.mesh.dim, _cself=self._cself.particleCoordVariable, writeable=False)
 
 
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method
 
         super(Swarm,self)._add_to_stg_dict(componentDictionary)
-        
+
         componentDictionary[ self._swarm.name ][                 "dim"] = self._mesh.dim
         componentDictionary[ self._swarm.name ][          "CellLayout"] = self._cellLayout.name
         componentDictionary[ self._swarm.name ][      "createGlobalId"] = False
         componentDictionary[ self._swarm.name ]["ParticleCommHandlers"] = [self._pMovementHandler.name,]
         if self.particleEscape:
             componentDictionary[ self._swarm.name ][  "EscapedRoutine"] = self._escapedRoutine.name
-        
+            componentDictionary[ self._escapedRoutine.name][ "particlesToRemoveDelta" ] = 1000
+
 
         componentDictionary[ self._cellLayout.name ]["Mesh"]            = self._mesh._cself.name
 
@@ -103,23 +144,23 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         """
         This method adds particles to the swarm using particle coordinates provided
         using a numpy array.
-        
+
         Note that particles with coordinates NOT local to the current processor will
         be reject/ignored.
-        
+
         Parameters
         ----------
         coordinatesArray : np.ndarray
-            The numpy array containing the coordinate of the new particles. Array is 
-            expected to take shape n*dim, where n is the number of new particles, and 
+            The numpy array containing the coordinate of the new particles. Array is
+            expected to take shape n*dim, where n is the number of new particles, and
             dim is the dimensionality of the swarm's supporting mesh.
 
         Returns
         ----------
         particleLocalIndex : np.ndarray
             Array containing the local index of the added particles. Rejected particles
-            are denoted with an index of -1. 
-            
+            are denoted with an index of -1.
+
 
         >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.) )
         >>> swarm = uw.swarm.Swarm(mesh)
@@ -139,8 +180,10 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
                [ 0.2,  0.1],
                [ 0.1,  0.2],
                [ 0.8,  0.8]])
-        
+
         """
+        # need to increment this as particles have been added!
+        self._toggle_state()
         if len(self._livingArrays) != 0:
             raise RuntimeError("""
             There appears to be {} swarm variable numpy array objects still in
@@ -169,9 +212,9 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
 
     def _get_iterator(self):
         """
-        This is the concrete method required by the FunctionInput class. 
-        
-        It effects using the particle coordinate swarm variable as an input 
+        This is the concrete method required by the FunctionInput class.
+
+        It effects using the particle coordinate swarm variable as an input
         when the swarm is used as the input to a function.
         """
         return libUnderworld.Function.SwarmInput(self._particleCoordinates._cself)
@@ -179,13 +222,13 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
     def save(self, filename):
         """
         Save the swarm to disk.
-        
+
         Parameters
         ----------
         filename : str
-            The filename for the saved file. Relative or absolute paths may be 
+            The filename for the saved file. Relative or absolute paths may be
             used, but all directories must exist.
-            
+
         Returns
         -------
         SavedFileData
@@ -203,27 +246,27 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
         >>> swarm = uw.swarm.Swarm(mesh)
         >>> swarm.populate_using_layout(uw.swarm.layouts.PerCellGaussLayout(swarm,2))
-        
+
         Save to a file:
-        
+
         >>> ignoreMe = swarm.save("saved_swarm.h5")
-        
+
         Now let's try and reload. First create an empty swarm, and then load:
-        
+
         >>> clone_swarm = uw.swarm.Swarm(mesh)
         >>> clone_swarm.load( "saved_swarm.h5" )
-        
+
         Now check for equality:
-        
+
         >>> import numpy as np
         >>> np.allclose(swarm.particleCoordinates.data,clone_swarm.particleCoordinates.data)
         True
-        
+
         Clean up:
         >>> if uw.rank() == 0:
-        ...     import os; 
+        ...     import os;
         ...     os.remove( "saved_swarm.h5" )
-    
+
         """
 
         if not isinstance(filename, str):
@@ -238,15 +281,15 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         """
         Load a swarm from disk. Note that this must be called before any SwarmVariable
         members are loaded.
-        
+
         Parameters
         ----------
         filename : str
-            The filename for the saved file. Relative or absolute paths may be 
+            The filename for the saved file. Relative or absolute paths may be
             used.
         verbose : bool
             Prints a swarm load progress bar.
-        
+
         Notes
         -----
         This method must be called collectively by all processes.
@@ -254,7 +297,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         Example
         -------
         Refer to example provided for 'save' method.
-        
+
         """
 
         if not isinstance(filename, str):
@@ -280,15 +323,15 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
 
         (multiples, remainder) = divmod( dset.shape[0], chunk )
         for ii in xrange(multiples+1):
-            # setup the points to begin and end reading in 
+            # setup the points to begin and end reading in
             chunkStart = ii*chunk
             if ii == multiples:
                 chunkEnd = chunkStart + remainder
-                if remainder == 0: # in the case remainder is 0 
+                if remainder == 0: # in the case remainder is 0
                     break
             else:
                 chunkEnd = chunkStart + chunk
-            
+
             # add particles to swarm, ztmp is the corresponding local array
             # non-local particles are not added and their ztmp index is -1
             ztmp = self.add_particles_with_coordinates(dset[ chunkStart : chunkEnd ])
@@ -303,7 +346,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
 
             # slice out -neg bits
             tmp = tmp[tmp[:]>=0]
-            # append to valid            
+            # append to valid
             valid = np.append(valid, tmp)
 
             if rank == 0 and verbose:
@@ -311,9 +354,9 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
 
         h5f.close()
         self._local2globalMap = valid
+        # record which swarm state this corresponds to
+        self._checkpointMapsToState = self.stateId
 
-    def _invalidatelocal2globalmap(self):
-        self._local2globalMap = None # set numpy array to None
 
     @property
     def particleGlobalCount(self):
@@ -329,3 +372,101 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         # allgather the number of particles each proc has
         procCount = comm.allgather(self.particleLocalCount)
         return sum(procCount)
+
+    @property
+    def _voronoi_swarm(self):
+        """
+        This property points to an integration type swarm which mirrors the 
+        current swarm. The mirror swarms particles are coincident with the 
+        current swarms, but use local coordinates to record positions, and also
+        records particle weights.
+        """
+        if not hasattr(self, '_voronoi_swarm_private'):
+            self._voronoi_swarm_private = uw.swarm.VoronoiIntegrationSwarm(self)
+        return self._voronoi_swarm_private
+
+    @contextlib.contextmanager
+    def deform_swarm(self, update_owners=True):
+        """
+        Any particle location modifications must occur within this python 
+        context manager. This is necessary as it is critical that certain
+        internal objects are updated when particle locations are modified.
+
+        Parameters
+        ----------
+        update_owners : bool, default=True
+            If this is set to False, particle ownership (which element owns a 
+            particular particle) is not updated at the conclusion of the context
+            manager. This is often necessary when both the mesh and particles 
+            are advecting simutaneously.
+
+        Example
+        -------
+        >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
+        >>> swarm = uw.swarm.Swarm(mesh)
+        >>> layout = uw.swarm.layouts.PerCellGaussLayout(swarm,2)
+        >>> swarm.populate_using_layout(layout)
+        >>> swarm.particleCoordinates.data[0]
+        array([ 0.0132078,  0.0132078])
+        
+        Attempted modification without using deform_swarm() should fail:
+        
+        >>> swarm.particleCoordinates.data[0] = [0.2,0.2]
+        Traceback (most recent call last):
+        ...
+        ValueError: assignment destination is read-only
+        
+        Within the deform_swarm() context manager, modification is allowed:
+        >>> with swarm.deform_swarm():
+        ...     swarm.particleCoordinates.data[0] = [0.2,0.2]
+        >>> swarm.particleCoordinates.data[0]
+        array([ 0.2,  0.2])
+
+        """
+        # lock swarm
+        self._locked = True
+        # enable writeable array
+        self._particleCoordinates.data.flags.writeable = True
+        try:
+            yield
+        except Exception as e:
+            raise uw._prepend_message_to_exception(e, "An exception was encountered during particle deformation."
+                                                     +"Particle locations may not be correctly modified." )
+        finally:
+            # disable writeable array
+            self._particleCoordinates.data.flags.writeable = False
+            # unlock swarm
+            self._locked = False
+            # update owners
+            if update_owners:
+                self.update_particle_owners()
+
+    def update_particle_owners(self):
+        """
+        This routine will update particles owners after particles have been
+        moved. This is both in terms of the cell/element the the
+        particle resides within, and also in terms of the parallel processor
+        decomposition (particles belonging on other processors will be sent across).
+        
+        Users should not call this as it will be called automatically at the 
+        conclusion of a deform_swarm() block.
+        
+        >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
+        >>> swarm = uw.swarm.Swarm(mesh)
+        >>> swarm.populate_using_layout(uw.swarm.layouts.PerCellGaussLayout(swarm,2))
+        >>> swarm.particleCoordinates.data[0]
+        array([ 0.0132078,  0.0132078])
+        >>> swarm.owningCell.data[0]
+        array([0], dtype=int32)
+        >>> with swarm.deform_swarm():
+        ...     swarm.particleCoordinates.data[0] = [0.1,0.1]
+        >>> swarm.owningCell.data[0]
+        array([17], dtype=int32)
+
+        """
+        libUnderworld.StgDomain.Swarm_UpdateAllParticleOwners( self._cself );
+        if self.particleEscape:
+            libUnderworld.PICellerator.EscapedRoutine_RemoveFromSwarm( self._escapedRoutine, self._cself )
+
+        libUnderworld.PICellerator.GeneralSwarm_ClearSwarmMaps( self._cself );
+        self._toggle_state()

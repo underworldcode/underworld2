@@ -42,6 +42,7 @@ class Options(object):
         self.ksp_type="preonly"
         self.pc_type="lu"
         self._mg_active=False
+        
 
     def set_mumps(self,pc_type="lu"):
         """

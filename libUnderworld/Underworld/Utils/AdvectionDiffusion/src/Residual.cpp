@@ -24,6 +24,7 @@
 
 #include <assert.h>
 #include <string.h>
+#include <cmath>
 
 #define ISQRT15 0.25819888974716112567
 #define SUPG_MIN_DIFFUSIVITY 1.0e-20
@@ -88,7 +89,8 @@ AdvDiffResidualForceTerm* _AdvDiffResidualForceTerm_New(  ADVDIFFRESIDUALFORCETE
 
     /* Virtual info */
     self->_upwindParam = _upwindParam;
-   self->cppdata = (void*) new SUPGVectorTerm_NA__Fn_cppdata;
+    self->diffFn = (void*) new SUPGVectorTerm_NA__Fn_cppdata;
+    self->sourceFn = (void*) new SUPGVectorTerm_NA__Fn_cppdata;
 
     return self;
 }
@@ -109,7 +111,8 @@ void _AdvDiffResidualForceTerm_Delete( void* residual )
 {
     AdvDiffResidualForceTerm* self = (AdvDiffResidualForceTerm*)residual;
 
-    delete (SUPGVectorTerm_NA__Fn_cppdata*)self->cppdata;
+    delete (SUPGVectorTerm_NA__Fn_cppdata*)self->diffFn;
+    delete (SUPGVectorTerm_NA__Fn_cppdata*)self->sourceFn;
 
     _ForceTerm_Delete( self );
 }
@@ -211,6 +214,7 @@ void _AdvDiffResidualForceTerm_AssembleElement( void* forceTerm, ForceVector* fo
     double*                    xi;
     double                     totalDerivative, diffusionTerm;
     double                     diffusivity         = NAN;
+    double                     source              = NAN;
     ElementType*               elementType         = FeMesh_GetElementType( phiField->feMesh, lElement_I );
     Node_Index                 elementNodeCount    = elementType->nodeCount;
     Node_Index                 node_I;
@@ -224,24 +228,28 @@ void _AdvDiffResidualForceTerm_AssembleElement( void* forceTerm, ForceVector* fo
     double                     udotu, perturbation;
     double                     upwindDiffusivity;
 
-    SUPGVectorTerm_NA__Fn_cppdata* cppdata = (SUPGVectorTerm_NA__Fn_cppdata*)(self->cppdata);
+    SUPGVectorTerm_NA__Fn_cppdata* diffFn = (SUPGVectorTerm_NA__Fn_cppdata*)(self->diffFn);
+    SUPGVectorTerm_NA__Fn_cppdata* sourceFn = (SUPGVectorTerm_NA__Fn_cppdata*)(self->sourceFn);
 
-    debug_dynamic_cast<ParticleInCellCoordinate>(cppdata->input->localCoord())->index() = lElement_I;  // set the elementId as the owning cell for the particleCoord
-    cppdata->input->index()   = lElement_I;  // set the elementId for the fem coordinate
+    debug_dynamic_cast<ParticleInCellCoordinate>(diffFn->input->localCoord())->index() = lElement_I;  // set the elementId as the owning cell for the particleCoord
+    debug_dynamic_cast<ParticleInCellCoordinate>(sourceFn->input->localCoord())->index() = lElement_I;  // set the elementId as the owning cell for the particleCoord
+    diffFn->input->index()   = lElement_I;  // set the elementId for the fem coordinate
+    sourceFn->input->index()   = lElement_I;  // set the elementId for the fem coordinate
 
     GNx     = self->GNx;
     phiGrad = self->phiGrad;
     Ni      = self->Ni;
     SUPGNi  = self->SUPGNi;
 
-    upwindDiffusivity  = AdvDiffResidualForceTerm_UpwindDiffusivity( self, sle, (void*)cppdata, swarm, phiField->feMesh, lElement_I, dim );
+    upwindDiffusivity  = AdvDiffResidualForceTerm_UpwindDiffusivity( self, sle, (void*)diffFn, swarm, phiField->feMesh, lElement_I, dim );
 
     /* Determine number of particles in element */
     cell_I = CellLayout_MapElementIdToCellId( swarm->cellLayout, lElement_I );
     cellParticleCount = swarm->cellParticleCountTbl[ cell_I ];
 
     for ( cParticle_I = 0 ; cParticle_I < cellParticleCount ; cParticle_I++ ) {
-        debug_dynamic_cast<ParticleInCellCoordinate>(cppdata->input->localCoord())->particle_cellId(cParticle_I);  // set the particleCoord cellId
+        debug_dynamic_cast<ParticleInCellCoordinate>(diffFn->input->localCoord())->particle_cellId(cParticle_I);  // set the particleCoord cellId
+        debug_dynamic_cast<ParticleInCellCoordinate>(sourceFn->input->localCoord())->particle_cellId(cParticle_I);  // set the particleCoord cellId
         lParticle_I     = swarm->cellParticleTbl[cell_I][cParticle_I];
 
         particle        = (IntegrationPoint*) Swarm_ParticleAt( swarm, lParticle_I );
@@ -249,20 +257,17 @@ void _AdvDiffResidualForceTerm_AssembleElement( void* forceTerm, ForceVector* fo
 
         /* Evaluate Shape Functions */
         ElementType_EvaluateShapeFunctionsAt(elementType, xi, Ni);
-
         /* Calculate Global Shape Function Derivatives */
         ElementType_ShapeFunctionsGlobalDerivs(
             elementType,
             phiField->feMesh, lElement_I,
             xi, dim, &detJac, GNx );
-
         /* Calculate Velocity */
         FeVariable_InterpolateFromMeshLocalCoord( self->velocityField, phiField->feMesh, lElement_I, xi, velocity );
 
         /* Build the SUPG shape functions */
         udotu = velocity[I_AXIS]*velocity[I_AXIS] + velocity[J_AXIS]*velocity[J_AXIS];
         if(dim == 3) udotu += velocity[ K_AXIS ] * velocity[ K_AXIS ];
-
         supgfactor = upwindDiffusivity / udotu;
         for ( node_I = 0 ; node_I < elementNodeCount ; node_I++ ) {
             /* In the case of per diffusion - just build regular shape functions */
@@ -270,34 +275,31 @@ void _AdvDiffResidualForceTerm_AssembleElement( void* forceTerm, ForceVector* fo
                 SUPGNi[node_I] = Ni[node_I];
                 continue;
             }
-
             perturbation = velocity[ I_AXIS ] * GNx[ I_AXIS ][ node_I ] + velocity[ J_AXIS ] * GNx[ J_AXIS ][ node_I ];
             if (dim == 3)
                 perturbation = perturbation + velocity[ K_AXIS ] * GNx[ K_AXIS ][ node_I ];
-
             /* p = \frac{\bar \kappa \hat u_j w_j }{ ||u|| } -  Eq. 3.2.25 */
             perturbation = supgfactor * perturbation;
-
             SUPGNi[node_I] = Ni[node_I] + perturbation;
         }
 
         /* Calculate phi on particle */
         _FeVariable_InterpolateNodeValuesToElLocalCoord( phiField, lElement_I, xi, &phi );
-
         /* Calculate Gradients of Phi */
         FeVariable_InterpolateDerivatives_WithGNx( phiField, lElement_I, GNx, phiGrad );
-
         /* Calculate time derivative of phi */
         _FeVariable_InterpolateNodeValuesToElLocalCoord( sle->phiDotField, lElement_I, xi, &phiDot );
-
         /* Calculate total derivative (i.e. Dphi/Dt = \dot \phi + u . \grad \phi) */
         totalDerivative = phiDot + StGermain_VectorDotProduct( velocity, phiGrad, dim );
 
-        /* ev\aluate function for diffusivity */
-        std::shared_ptr<const IO_double> funcout = debug_dynamic_cast<const IO_double>(cppdata->func(cppdata->input));
-        diffusivity = funcout->at();
-
-        assert( !isnan(diffusivity) );
+        /* evaluate function for diffusivity */
+        std::shared_ptr<const IO_double> funcdiff = debug_dynamic_cast<const IO_double>(diffFn->func(diffFn->input));
+        std::shared_ptr<const IO_double> funcsource = debug_dynamic_cast<const IO_double>(sourceFn->func(sourceFn->input));
+        diffusivity = funcdiff->at();
+        source = funcsource->at();
+        assert( !std::isnan(diffusivity) );
+        assert( !std::isnan(source) );
+        totalDerivative -= source;  // as per first term in Eq. 3.2.18 
 
         /* Add to element residual */
         factor = particle->weight * detJac;
@@ -316,12 +318,12 @@ void _AdvDiffResidualForceTerm_AssembleElement( void* forceTerm, ForceVector* fo
 
 }
 
-void _SUPGVectorTerm_NA__Fn_SetFn( void* _self, Fn::Function* fn ){
+void _SUPGVectorTerm_NA__Fn_SetDiffusivityFn( void* _self, Fn::Function* fn ){
     AdvDiffResidualForceTerm* self = (AdvDiffResidualForceTerm*)_self;
     
     // record fn to struct
-    SUPGVectorTerm_NA__Fn_cppdata* cppdata = (SUPGVectorTerm_NA__Fn_cppdata*) self->cppdata;
-    cppdata->fn = fn;
+    SUPGVectorTerm_NA__Fn_cppdata* diffFn = (SUPGVectorTerm_NA__Fn_cppdata*) self->diffFn;
+    diffFn->fn = fn;
     
     if( !self->forceVector )
         throw std::invalid_argument( "AdvDiffResidualForceTerm does not appear to have 'ForceVector' set. Please contact developers" );
@@ -331,11 +333,11 @@ void _SUPGVectorTerm_NA__Fn_SetFn( void* _self, Fn::Function* fn ){
 
     // setup fn
     std::shared_ptr<ParticleInCellCoordinate> localCoord = std::make_shared<ParticleInCellCoordinate>( swarm->localCoordVariable );
-    cppdata->input = std::make_shared<FEMCoordinate>((void*)mesh, localCoord);
-    cppdata->func = fn->getFunction(cppdata->input);
+    diffFn->input = std::make_shared<FEMCoordinate>((void*)mesh, localCoord);
+    diffFn->func = fn->getFunction(diffFn->input);
     
     // check output conforms
-    std::shared_ptr<const FunctionIO> sampleguy = cppdata->func(cppdata->input);
+    std::shared_ptr<const FunctionIO> sampleguy = diffFn->func(diffFn->input);
     std::shared_ptr<const IO_double> iodub = std::dynamic_pointer_cast<const IO_double>(sampleguy);
     if( !iodub )
         throw std::invalid_argument( "Assembly term expects functions to return 'double' type values." );
@@ -347,6 +349,37 @@ void _SUPGVectorTerm_NA__Fn_SetFn( void* _self, Fn::Function* fn ){
     }
 }
 
+void _SUPGVectorTerm_NA__Fn_SetSourceFn( void* _self, Fn::Function* fn ){
+    /* Set the source term 'function' */
+    AdvDiffResidualForceTerm* self = (AdvDiffResidualForceTerm*)_self;
+    
+    // record fn to struct
+    SUPGVectorTerm_NA__Fn_cppdata* sourceFn = (SUPGVectorTerm_NA__Fn_cppdata*) self->sourceFn;
+    sourceFn->fn = fn;
+    
+    if( !self->forceVector )
+        throw std::invalid_argument( "AdvDiffResidualForceTerm does not appear to have 'ForceVector' set. Please contact developers" );
+
+    FeMesh* mesh = self->forceVector->feVariable->feMesh;
+    IntegrationPointsSwarm* swarm = (IntegrationPointsSwarm*)self->integrationSwarm;
+
+    // setup fn
+    std::shared_ptr<ParticleInCellCoordinate> localCoord = std::make_shared<ParticleInCellCoordinate>( swarm->localCoordVariable );
+    sourceFn->input = std::make_shared<FEMCoordinate>((void*)mesh, localCoord);
+    sourceFn->func = fn->getFunction(sourceFn->input);
+    
+    // check output conforms
+    std::shared_ptr<const FunctionIO> sampleguy = sourceFn->func(sourceFn->input);
+    std::shared_ptr<const IO_double> iodub = std::dynamic_pointer_cast<const IO_double>(sampleguy);
+    if( !iodub )
+        throw std::invalid_argument( "Assembly term expects functions to return 'double' type values." );
+    if( iodub->size() != self->forceVector->feVariable->fieldComponentCount ){
+        std::stringstream ss;
+        ss << "Assembly term expects function to return array of size " << self->forceVector->feVariable->fieldComponentCount << ".\n";
+        ss << "Provied function returns array of size " << iodub->size() << ".";
+        throw std::invalid_argument( ss.str() );
+    }
+}
 /* Virtual Function Implementations */
 double _AdvDiffResidualForceTerm_UpwindParam( void* residual, double pecletNumber )
 {
@@ -399,7 +432,7 @@ double AdvDiffResidualForceTerm_UpwindDiffusivity(
 	Particle_InCellIndex       particleCount;
 
 	
-        SUPGVectorTerm_NA__Fn_cppdata* cppdata = (SUPGVectorTerm_NA__Fn_cppdata*)_cppdata;
+        SUPGVectorTerm_NA__Fn_cppdata* diffFn = (SUPGVectorTerm_NA__Fn_cppdata*)_cppdata;
 	/* Compute the average diffusivity */
 	/* Find Number of Particles in Element */
 	cell_I = CellLayout_MapElementIdToCellId( swarm->cellLayout, lElement_I );
@@ -408,9 +441,9 @@ double AdvDiffResidualForceTerm_UpwindDiffusivity(
 	/* Average diffusivity for element */
         averageDiffusivity = 0.0;
         for ( cParticle_I = 0 ; cParticle_I < particleCount ; cParticle_I++ ) {
-                debug_dynamic_cast<ParticleInCellCoordinate>(cppdata->input->localCoord())->particle_cellId(cParticle_I);  // set the particleCoord cellId
+                debug_dynamic_cast<ParticleInCellCoordinate>(diffFn->input->localCoord())->particle_cellId(cParticle_I);  // set the particleCoord cellId
                 /* evaluate function for diffusivity */
-                std::shared_ptr<const IO_double> funcout = debug_dynamic_cast<const IO_double>(cppdata->func(cppdata->input));
+                std::shared_ptr<const IO_double> funcout = debug_dynamic_cast<const IO_double>(diffFn->func(diffFn->input));
                 averageDiffusivity += funcout->at();
         }
         averageDiffusivity /= (double)particleCount;
@@ -468,7 +501,7 @@ double AdvDiffResidualForceTerm_GetMaxDiffusivity( void* residual ) {
     int e_i, cParticle_I, particleCount, cell_I, nEls;
     double maxDiffusivity = -1;
 
-    SUPGVectorTerm_NA__Fn_cppdata* cppdata = (SUPGVectorTerm_NA__Fn_cppdata*)self->cppdata;
+    SUPGVectorTerm_NA__Fn_cppdata* diffFn = (SUPGVectorTerm_NA__Fn_cppdata*)self->diffFn;
 
     nEls = FeMesh_GetElementLocalSize( self->forceVector->feVariable->feMesh );
 
@@ -477,14 +510,14 @@ double AdvDiffResidualForceTerm_GetMaxDiffusivity( void* residual ) {
         cell_I = CellLayout_MapElementIdToCellId( swarm->cellLayout, e_i );
         particleCount = swarm->cellParticleCountTbl[ cell_I ];
 
-        // setup cppdata to run 
-        debug_dynamic_cast<ParticleInCellCoordinate>(cppdata->input->localCoord())->index() = e_i;  // set the elementId as the owning cell for the particleCoord
-        cppdata->input->index()   = e_i;
+        // setup diffFn to run 
+        debug_dynamic_cast<ParticleInCellCoordinate>(diffFn->input->localCoord())->index() = e_i;  // set the elementId as the owning cell for the particleCoord
+        diffFn->input->index()   = e_i;
 
         for ( cParticle_I = 0 ; cParticle_I < particleCount ; cParticle_I++ ) {
-            debug_dynamic_cast<ParticleInCellCoordinate>(cppdata->input->localCoord())->particle_cellId(cParticle_I);  // set the particleCoord cellId
+            debug_dynamic_cast<ParticleInCellCoordinate>(diffFn->input->localCoord())->particle_cellId(cParticle_I);  // set the particleCoord cellId
             // evaluate function for diffusivity 
-            std::shared_ptr<const IO_double> funcout = debug_dynamic_cast<const IO_double>(cppdata->func(cppdata->input));
+            std::shared_ptr<const IO_double> funcout = debug_dynamic_cast<const IO_double>(diffFn->func(diffFn->input));
             if ( funcout->at() > maxDiffusivity ) {
                 maxDiffusivity = funcout->at();
             };

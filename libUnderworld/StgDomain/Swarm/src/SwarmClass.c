@@ -944,9 +944,9 @@ void Swarm_UpdateAllParticleOwners( void* swarm ) {
     int v_i;
 
    /* if not advecting, nothing to do */
-	if ( !self->isAdvecting ) {
-		return;
-	}
+//	if ( !self->isAdvecting ) {
+//		return;
+//	}
 
 	prog = Progress_New();
 	Progress_SetTitle( prog, "Updating particle owners" );
@@ -993,16 +993,18 @@ void Swarm_UpdateParticleOwner( void* swarm, Particle_Index particle_I ) {
 	newOwningCell = CellLayout_CellOf( self->cellLayout, particle );
 
 	if ( newOwningCell != particle->owningCell ) { /* if not still in same cell */
-		Cell_LocalIndex		oldOwningCell = particle->owningCell;
-		cParticle_I = Swarm_GetParticleIndexWithinCell( self, particle->owningCell, particle_I );
-		Swarm_RemoveParticleFromCell( self, oldOwningCell, cParticle_I );
+        if (particle->owningCell < self->cellDomainCount) {  /* if currently owned, remove */
+            Cell_LocalIndex		oldOwningCell = particle->owningCell;
+            cParticle_I = Swarm_GetParticleIndexWithinCell( self, particle->owningCell, particle_I );
+            Swarm_RemoveParticleFromCell( self, oldOwningCell, cParticle_I );
+        }
 	
-		/* if new cell is in my domain, add entry to new cell's table */
 		if ( newOwningCell == self->cellDomainCount ) {
 			/* "New cell == domain count -> Particle has moved outside domain */
 			particle->owningCell = self->cellDomainCount;
 		}	
 		else {
+            /* if new cell is in my domain, add entry to new cell's table */
 			Swarm_AddParticleToCell( self, newOwningCell, particle_I );
 		}
 	}

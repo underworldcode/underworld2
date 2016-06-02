@@ -51,8 +51,6 @@ void* _Stokes_SLE_UzawaSolver_DefaultNew( Name name ) {
 
 Stokes_SLE_UzawaSolver* Stokes_SLE_UzawaSolver_New( 
 		Name                                        name,
-		Bool                                        useStatSolve, 
-		int                                         statReps,
 		StiffnessMatrix*                            preconditioner,
 		Iteration_Index                             maxUzawaIterations,
 		Iteration_Index                             minUzawaIterations,
@@ -62,7 +60,7 @@ Stokes_SLE_UzawaSolver* Stokes_SLE_UzawaSolver_New(
 {		
 	Stokes_SLE_UzawaSolver* self = _Stokes_SLE_UzawaSolver_DefaultNew( name );
 
-	Stokes_SLE_UzawaSolver_InitAll( self, useStatSolve, statReps, preconditioner, maxUzawaIterations, minUzawaIterations, tolerance, useAbsoluteTolerance, monitor );
+	Stokes_SLE_UzawaSolver_InitAll( self, preconditioner, maxUzawaIterations, minUzawaIterations, tolerance, useAbsoluteTolerance, monitor );
 
 	return self;
 }
@@ -106,8 +104,6 @@ void _Stokes_SLE_UzawaSolver_Init(
 
 void Stokes_SLE_UzawaSolver_InitAll( 
 		void*                        solver,
-		Bool                         useStatSolve,
-		int                          statReps, 
 		StiffnessMatrix*             preconditioner, 
 		Iteration_Index              maxUzawaIterations,
 		Iteration_Index              minUzawaIterations,
@@ -117,7 +113,7 @@ void Stokes_SLE_UzawaSolver_InitAll(
 {
 	Stokes_SLE_UzawaSolver* self = (Stokes_SLE_UzawaSolver*)solver;
 
-	SLE_Solver_InitAll( self, useStatSolve, statReps );
+	SLE_Solver_InitAll( self );
 	_Stokes_SLE_UzawaSolver_Init( self, preconditioner, maxUzawaIterations, minUzawaIterations, tolerance, useAbsoluteTolerance, monitor );
 }
 

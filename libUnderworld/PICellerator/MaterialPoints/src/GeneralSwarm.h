@@ -76,9 +76,6 @@ void _GeneralSwarm_Init(
    void*                                 swarm,
    EscapedRoutine*                       escapedRoutine );
 
-/** TimeIntegrator hook, used to update envoke population control routines after advection */
-void _GeneralSwarm_UpdateHook( void* timeIntegrator, void* swarm );
-
 /* Public functions */
 
 /** Returns the particle extension at given point index */

@@ -15,20 +15,22 @@
 #include <stdlib.h>
 #include "checks.h"
 
-int pcu_jump_ready;
-jmp_buf pcu_jump_env;
-char* pcu_assert_cur;
-jmp_buf pcu_rollback_env;
+extern int pcu_jump_ready;
+extern jmp_buf pcu_jump_env;
+extern char* pcu_assert_cur;
+extern jmp_buf pcu_rollback_env;
 
 
 #ifndef NDEBUG
 
-#define pcu_assert( expr )                                      \
-   (pcu_jump_ready ?                                            \
-    (!(expr) ?                                                  \
-     (pcu_assert_cur = #expr, longjmp( pcu_jump_env, 1 )) :     \
-      (void)0) :                                                \
-     (!(expr) ? abort() : (void)0 ))
+#define pcu_assert( expr )                                          \
+   (pcu_jump_ready ?                                                \
+       (!(expr) ?                                                   \
+           (pcu_assert_cur = #expr, longjmp( pcu_jump_env, 1 ))     \
+          :(void)0)                                                 \
+      :(!(expr) ?                                                   \
+          abort()                                                   \
+         :(void)0 ))
 
 #else
 

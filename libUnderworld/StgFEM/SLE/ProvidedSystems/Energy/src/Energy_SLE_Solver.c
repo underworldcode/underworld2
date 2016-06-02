@@ -48,10 +48,10 @@ void* Energy_SLE_Solver_DefaultNew( Name name ) {
 	return _Energy_SLE_Solver_New(  ENERGY_SLE_SOLVER_PASSARGS  );
 }
 
-Energy_SLE_Solver* Energy_SLE_Solver_New( Name name, Bool useStatSolve, int statReps ) {
+Energy_SLE_Solver* Energy_SLE_Solver_New( Name name ) {
 	Energy_SLE_Solver* self = (Energy_SLE_Solver*) Energy_SLE_Solver_DefaultNew( name );
 
-	Energy_SLE_Solver_InitAll( self, useStatSolve, statReps ) ;
+	Energy_SLE_Solver_InitAll( self ) ;
 
 	return self;
 }
@@ -76,10 +76,10 @@ void _Energy_SLE_Solver_Init( Energy_SLE_Solver* self ) {
 	//self->ksp = NULL;
 	self->ksp = PETSC_NULL;
 }
-void Energy_SLE_Solver_InitAll( Energy_SLE_Solver* solver, Bool useStatSolve, int statReps ) {
+void Energy_SLE_Solver_InitAll( Energy_SLE_Solver* solver ) {
 	Energy_SLE_Solver* self = (Energy_SLE_Solver*)solver;
 
-	SLE_Solver_InitAll( self, useStatSolve, statReps );
+	SLE_Solver_InitAll( self );
 }
 
 void _Energy_SLE_Solver_Delete( void* sle ) {

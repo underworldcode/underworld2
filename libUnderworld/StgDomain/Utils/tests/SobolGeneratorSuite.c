@@ -66,7 +66,7 @@ void SobolGeneratorSuite_TestSobolGenerator( SobolGeneratorSuiteData* data ) {
       for ( sobol_I = 0 ; sobol_I < 100 ; sobol_I++ ) {
          sprintf( output_file, "testSobolGenerator.%03u.dat", sobol_I );
          Stream_RedirectFile( stream, output_file );
-         sobolGenerator = SobolGenerator_NewFromTable( output_file );
+         sobolGenerator = SobolGenerator_NewFromTable( output_file, sobol_I );
 
          Journal_Printf( stream," ****************** Testing SobolGenerator_GetDirectionalNumber ***************\n" );
          for ( index = 0 ; index < 30 ; index++ )

@@ -158,7 +158,7 @@ void C2Generator_GenElementVertexInc( void* meshGenerator, IGraph* topo, Grid***
 	assert( topo );
 	assert( grids );
 
-	Journal_Printf( stream, "Generating element-vertex incidence...\n" );
+//	Journal_Printf( stream, "Generating element-vertex incidence...\n" );
 	Stream_Indent( stream );
 
 	vertsPerEl = (topo->nDims == 1) ? 3 : (topo->nDims == 2) ? 9 : 27;
@@ -255,7 +255,7 @@ void C2Generator_GenElementVertexInc( void* meshGenerator, IGraph* topo, Grid***
 	FreeArray( dimInds );
 
 	MPI_Barrier( self->mpiComm );
-	Journal_Printf( stream, "... done.\n" );
+//	Journal_Printf( stream, "... done.\n" );
 	Stream_UnIndent( stream );
 }
 
@@ -268,7 +268,7 @@ void C2Generator_GenFaceVertexInc( void* meshGenerator, IGraph* topo, Grid*** gr
 	unsigned*	dimInds		= Memory_Alloc_Array( unsigned, topo->nDims, "edgeDimensionIndices" );
 
 	stream = Journal_Register( Info_Type, (Name)self->type  );
-	Journal_Printf( stream, "Generating face-vertex types...\n" );
+//	Journal_Printf( stream, "Generating face-vertex types...\n" );
 	Stream_Indent( stream );
 
 	for( face_i = 0; face_i < topo->remotes[MT_FACE]->nDomains; face_i++ ) {
@@ -364,7 +364,7 @@ void C2Generator_GenFaceVertexInc( void* meshGenerator, IGraph* topo, Grid*** gr
 
 	MPI_Barrier( self->mpiComm );
 	
-	Journal_Printf( stream, "... done.\n" );
+//	Journal_Printf( stream, "... done.\n" );
 	Stream_UnIndent( stream );
 }
 
@@ -378,7 +378,7 @@ void C2Generator_GenEdgeVertexInc( void* meshGenerator, IGraph* topo, Grid*** gr
 	unsigned*	dimInds		= Memory_Alloc_Array( unsigned, topo->nDims, "edgeDimensionIndices" );
 
 	stream = Journal_Register( Info_Type, (Name)self->type  );
-	Journal_Printf( stream, "Generating edge-vertex incidence...\n" );
+//	Journal_Printf( stream, "Generating edge-vertex incidence...\n" );
 	Stream_Indent( stream );
 
 	for( edge_i = 0; edge_i < Sync_GetNumDomains( sync ); edge_i++ ) {
@@ -438,7 +438,7 @@ void C2Generator_GenEdgeVertexInc( void* meshGenerator, IGraph* topo, Grid*** gr
 
 	MPI_Barrier( self->mpiComm );
 
-	Journal_Printf( stream, "... done.\n" );
+//	Journal_Printf( stream, "... done.\n" );
 	Stream_UnIndent( stream );
 }
 
@@ -452,7 +452,7 @@ void C2Generator_GenElementTypes( void* meshGenerator, Mesh* mesh ) {
 	assert( self );
 
 	stream = Journal_Register( Info_Type, (Name)self->type  );
-	Journal_Printf( stream, "Generating element types...\n" );
+//	Journal_Printf( stream, "Generating element types...\n" );
 	Stream_Indent( stream );
 
 	mesh->nElTypes = 1;
@@ -469,9 +469,9 @@ void C2Generator_GenElementTypes( void* meshGenerator, Mesh* mesh ) {
 		Mesh_SetAlgorithms( mesh, Mesh_RegularAlgorithms_New( "", NULL ) );
 
 	MPI_Barrier( self->mpiComm );
-	Journal_Printf( stream, "... element types are '%s',\n", mesh->elTypes[0]->type );
-	Journal_Printf( stream, "... mesh algorithm type is '%s',\n", mesh->algorithms->type );
-	Journal_Printf( stream, "... done.\n" );
+//	Journal_Printf( stream, "... element types are '%s',\n", mesh->elTypes[0]->type );
+//	Journal_Printf( stream, "... mesh algorithm type is '%s',\n", mesh->algorithms->type );
+//	Journal_Printf( stream, "... done.\n" );
 	Stream_UnIndent( stream );
 }
 

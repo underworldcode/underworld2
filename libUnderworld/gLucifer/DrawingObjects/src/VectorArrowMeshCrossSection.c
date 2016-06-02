@@ -100,8 +100,6 @@ void _lucVectorArrowMeshCrossSection_AssignFromXML( void* drawingObject, Stg_Com
 
 void _lucVectorArrowMeshCrossSection_Build( void* drawingObject, void* data )
 {
-   lucVectorArrowMeshCrossSection*  self           = (lucVectorArrowMeshCrossSection*)drawingObject;
-   /* Build field variable in parent */
    _lucMeshCrossSection_Build(drawingObject, data);
 
 }
@@ -113,8 +111,6 @@ void _lucVectorArrowMeshCrossSection_Destroy( void* drawingObject, void* data ) 
 void _lucVectorArrowMeshCrossSection_Draw( void* drawingObject, lucDatabase* database, void* _context )
 {
    lucVectorArrowMeshCrossSection*       self            = (lucVectorArrowMeshCrossSection*)drawingObject;
-   DomainContext*            context         = (DomainContext*) _context;
-
    _lucVectorArrowMeshCrossSection_DrawCrossSection( self, database );
 }
 

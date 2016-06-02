@@ -22,12 +22,9 @@
 	#define __IntegrationPointsSwarm \
 		__Swarm \
 		\
-		FeMesh*                   mesh;                 \
-		TimeIntegrator*                       timeIntegrator;       \
-		WeightsCalculator*                    weights;              \
+		FeMesh*                               mesh;                 \
 		SwarmVariable*                        localCoordVariable;    /** Set only if a local coord system swarm. */ \
 		SwarmVariable*                        weightVariable;       \
-		Bool                                  recalculateWeights;   \
         List*                                 swarmsMappedTo;
 
 
@@ -56,12 +53,7 @@
 
 	void _IntegrationPointsSwarm_AssignFromXML( void* shape, Stg_ComponentFactory* cf, void* data ) ;
 
-	void _IntegrationPointsSwarm_Init(
-		void*                                           swarm,
-		FeMesh*                             mesh, 
-		TimeIntegrator*                                 timeIntegrator,
-		WeightsCalculator*                              weights,
-		Bool                                            recalculateWeights );
+	void _IntegrationPointsSwarm_Init( void* swarm, FeMesh* mesh );
 
 	/* Stg_Class_Delete IntegrationPointsSwarm implementation */
 	void _IntegrationPointsSwarm_Delete( void* integrationPoints );

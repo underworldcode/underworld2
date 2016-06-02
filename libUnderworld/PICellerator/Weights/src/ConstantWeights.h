@@ -27,7 +27,7 @@
 	** Constructors
 	*/
 
-	ConstantWeights* ConstantWeights_New( Name name, int dim );
+	ConstantWeights* ConstantWeights_New( Name name );
 
 	
 	#ifndef ZERO

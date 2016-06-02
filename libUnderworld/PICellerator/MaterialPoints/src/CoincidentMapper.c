@@ -51,8 +51,8 @@ void _CoincidentMapper_AssignFromXML( void* mapper, Stg_ComponentFactory* cf, vo
 	self->integrationSwarm = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)IntegrationPointsSwarm_Type, IntegrationPointsSwarm, True, data  );
     self->materialSwarm    = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)GeneralSwarm_Type, GeneralSwarm, True, data  );
     
-    self->integrationSwarm->mirroredSwarm = self->materialSwarm;
-    self->materialSwarm->mirroredSwarm    = self->integrationSwarm;
+    self->integrationSwarm->mirroredSwarm = (Swarm*) self->materialSwarm;
+    self->materialSwarm->mirroredSwarm    = (Swarm*) self->integrationSwarm;
 }
 
 void _CoincidentMapper_Delete( void* mapper ) {
@@ -81,60 +81,53 @@ void _CoincidentMapper_Map( void* mapper ) {
 	GlobalParticle*				materialPoint;
 	FeMesh*						mesh = integrationSwarm->mesh;
 	Particle_Index				particle_lI;
+	Particle_Index				particle_cI;
+    
 	Cell_Index					cell_dI;
 
 	integrationSwarm->particleLocalCount = materialSwarm->particleLocalCount;
 	Swarm_Realloc( integrationSwarm );
 
-	for( cell_dI = 0; cell_dI < integrationSwarm->cellDomainCount; cell_dI++ ) {
+	for( cell_dI = 0; cell_dI < integrationSwarm->cellDomainCount; cell_dI++ )
 		integrationSwarm->cellParticleCountTbl[cell_dI] = 0;
-		integrationSwarm->cellParticleSizeTbl[cell_dI] = 0;
-
-		if ( integrationSwarm->cellParticleTbl[cell_dI] ) {
-			Memory_Free( integrationSwarm->cellParticleTbl[cell_dI] );
-		}
-		integrationSwarm->cellParticleTbl[cell_dI] = NULL;
-	}
 
 	/* Map each point */
-	for ( particle_lI = 0; particle_lI < materialSwarm->particleLocalCount; particle_lI++ ) {
-		integrationPoint = (IntegrationPoint*)Swarm_ParticleAt( integrationSwarm, particle_lI );
-		materialPoint = (GlobalParticle*)Swarm_ParticleAt( materialSwarm, particle_lI );
+    for( cell_dI = 0; cell_dI < materialSwarm->cellDomainCount; cell_dI++ ) {
+        for ( particle_cI = 0; particle_cI < materialSwarm->cellParticleCountTbl[cell_dI]; particle_cI++ ) {
+            particle_lI      = Swarm_ParticleCellIDtoLocalID( materialSwarm, cell_dI, particle_cI );
 
-		cell_dI = materialPoint->owningCell;
+            materialPoint    =   (GlobalParticle*) Swarm_ParticleAt(    materialSwarm, particle_lI );
+            integrationPoint = (IntegrationPoint*) Swarm_ParticleAt( integrationSwarm, particle_lI );
 
-        Journal_Firewall( cell_dI<materialSwarm->cellDomainCount, NULL,
-            "Error - in %s(): particle %u appears to be outside the domain.",
-            __func__, particle_lI );
+            Swarm_AddParticleToCell( integrationSwarm, cell_dI, particle_lI );
 
-		Swarm_AddParticleToCell( integrationSwarm, cell_dI, particle_lI );
-
-		/* Convert global to local coordinates */
-		ElementType_ConvertGlobalCoordToElLocal(
-			FeMesh_GetElementType( mesh, cell_dI ),
-			mesh, 
-			cell_dI, 
-			materialPoint->coord,
-			integrationPoint->xi );
+            /* Convert global to local coordinates */
+            ElementType_ConvertGlobalCoordToElLocal(
+                FeMesh_GetElementType( mesh, cell_dI ),
+                mesh, 
+                cell_dI, 
+                materialPoint->coord,
+                integrationPoint->xi );
 
 #ifdef DEBUG
-		/* Check the result is between -1 to 1 in all dimensions : if not, something is stuffed */
-        Index dim_I;
-		for ( dim_I= 0; dim_I < materialSwarm->dim; dim_I++ ) {
-			Journal_Firewall(
-				(integrationPoint->xi[dim_I] >= -1.001) && (integrationPoint->xi[dim_I] <= 1.001 ),
-				NULL,
-				"Error - in %s(): unable to map swarm particle %d in cell %d of swarm \"%s\" (type %s) "
-				"coord to a valid element local coordinate.\n"
-                "Particle coord was (%.3f,%.3f,%.3f).\n"
-				"Conversion to local coord was (%.4f,%.4f,%.4f).\n"
-                "Note that this error can occur when the mesh is overly deformed.",
-				__func__, particle_lI, cell_dI, materialSwarm->name, materialSwarm->type,
-				materialPoint->coord[0], materialPoint->coord[1], materialPoint->coord[2],
-                integrationPoint->xi[0], integrationPoint->xi[1], integrationPoint->xi[2] );
-		}
+            /* Check the result is between -1 to 1 in all dimensions : if not, something is stuffed */
+            Index dim_I;
+            for ( dim_I= 0; dim_I < materialSwarm->dim; dim_I++ ) {
+                Journal_Firewall(
+                    (integrationPoint->xi[dim_I] >= -1.001) && (integrationPoint->xi[dim_I] <= 1.001 ),
+                    NULL,
+                    "Error - in %s(): unable to map swarm particle %d in cell %d of swarm \"%s\" (type %s) "
+                    "coord to a valid element local coordinate.\n"
+                    "Particle coord was (%.3f,%.3f,%.3f).\n"
+                    "Conversion to local coord was (%.4f,%.4f,%.4f).\n"
+                    "Note that this error can occur when the mesh is overly deformed,\n"
+                    "or when you have deformed the mesh but not updated swarm particle ownerships.",
+                    __func__, particle_lI, cell_dI, materialSwarm->name, materialSwarm->type,
+                    materialPoint->coord[0], materialPoint->coord[1], materialPoint->coord[2],
+                    integrationPoint->xi[0], integrationPoint->xi[1], integrationPoint->xi[2] );
+            }
 #endif
-
+        }
     }
 }
 

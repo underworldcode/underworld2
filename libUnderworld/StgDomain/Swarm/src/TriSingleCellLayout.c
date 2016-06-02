@@ -38,7 +38,7 @@ TriSingleCellLayout* TriSingleCellLayout_New( Name name, AbstractContext* contex
 	TriSingleCellLayout* self = _TriSingleCellLayout_DefaultNew( name );
 
 	self->isConstructed = True;
-	_CellLayout_Init( (CellLayout*)self, context );
+	_CellLayout_Init( (CellLayout*)self );
 	_TriSingleCellLayout_Init( self, dictionary, dim );
 
 	return self;

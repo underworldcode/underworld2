@@ -44,6 +44,13 @@ class SwarmAbstract(_stgermain.StgCompoundComponent):
         # lets init these guy
         self._variables = []
         self._livingArrays = weakref.WeakValueDictionary()
+        
+        # add a state identifier... this is incremented whenever the swarm is modified.
+        self._stateId = 0
+
+        # add a lock to prevent changes to swarm state.. or rather to signify
+        # that the state shouldn't have change (though it may well have)
+        self._locked = False
 
         # build parent
         super(SwarmAbstract,self).__init__(**kwargs)
@@ -61,11 +68,9 @@ class SwarmAbstract(_stgermain.StgCompoundComponent):
     def _setup(self):
         # add coord swarm variable now (if available)
         if self._cself.owningCellVariable:
-            self._owningCell = svar.SwarmVariable(self, "int", 1, _cself=self._cself.owningCellVariable)
+            self._owningCell = svar.SwarmVariable(self, "int", 1, _cself=self._cself.owningCellVariable, writeable=False)
         if self._cself.globalIdVariable:
-            self._globalId = svar.SwarmVariable(self, "int", 1, _cself=self._cself.globalIdVariable)
-        # set this flag
-        self._cself.isAdvecting = False
+            self._globalId = svar.SwarmVariable(self, "int", 1, _cself=self._cself.globalIdVariable, writeable=False)
     
     @property
     def variables(self):
@@ -101,7 +106,7 @@ class SwarmAbstract(_stgermain.StgCompoundComponent):
         # call parents method
 
         super(SwarmAbstract,self)._add_to_stg_dict(componentDictionary)
-        componentDictionary[ self._swarm.name ][                 "dim"] = self._mesh.dim
+        componentDictionary[ self._swarm.name ][                 "dim"] = self._mesh.generator.dim
         componentDictionary[ self._swarm.name ][          "CellLayout"] = self._cellLayout.name
         componentDictionary[ self._swarm.name ][      "createGlobalId"] = False
         componentDictionary[ self._swarm.name ][              "FeMesh"] = self._mesh._cself.name
@@ -191,29 +196,6 @@ class SwarmAbstract(_stgermain.StgCompoundComponent):
         libUnderworld.StgDomain.ParticleLayout_InitialiseParticles( layout._cself, self._cself )
         libUnderworld.StgDomain._Swarm_InitialiseParticles( self._cself, None )
         
-    def update_particle_owners(self):
-        """
-        This routine will update particles owners after particles have been
-        moved. This is both in terms of the cell/element the the
-        particle resides within, and also in terms of the parallel processor
-        decomposition (particles belonging on other processors will be sent across).
-        
-        >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
-        >>> swarm = uw.swarm.Swarm(mesh)
-        >>> swarm.populate_using_layout(uw.swarm.layouts.PerCellGaussLayout(swarm,2))
-        >>> swarm.particleCoordinates.data[0]
-        array([ 0.0132078,  0.0132078])
-        >>> swarm.owningCell.data[0]
-        array([0], dtype=int32)
-        >>> swarm.particleCoordinates.data[0] = [0.1,0.1]
-        >>> swarm.owningCell.data[0]
-        array([0], dtype=int32)
-        >>> swarm.update_particle_owners()
-        >>> swarm.owningCell.data[0]
-        array([17], dtype=int32)
-
-        """
-        libUnderworld.StgDomain.Swarm_UpdateAllParticleOwners( self._cself );
 
     @property
     def particleCoordinates(self):
@@ -222,3 +204,35 @@ class SwarmAbstract(_stgermain.StgCompoundComponent):
         swarm particles.
         """
         return self._particleCoordinates
+
+    @property
+    def stateId(self):
+        """
+        Swarm state identifier. This is incremented whenever the swarm is 
+        modified.
+        """
+        return self._stateId
+
+    def _toggle_state(self):
+        """
+        Increment swarm state id, and updates swarm variable arrays.
+        """
+        self._stateId+=1
+        self._clear_variable_arrays()
+        if self._locked:
+            raise RuntimeError("""
+                Swarm is in a locked state and yet it appears an attempt has been
+                made to modify it (via change in particle population or the addition
+                of variables. This is not allowed and your current swarm state may 
+                now be invalid. """)
+
+    def _clear_variable_arrays(self):
+        """
+        As the underlying memory may change when swarm population changes, 
+        or when a new variable is added, the Numpy views to this memory
+        must be removed as they are potentially no longer valid.
+        """
+        for var in self._variables:
+            var._clear_array()
+
+
