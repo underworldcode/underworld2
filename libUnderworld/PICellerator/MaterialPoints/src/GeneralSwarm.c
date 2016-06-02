@@ -323,40 +323,6 @@ void _GeneralSwarm_Destroy( void* swarm, void* data )
 
 }
 
-void _GeneralSwarm_UpdateHook( void* timeIntegrator, void* swarm )
-{
-   GeneralSwarm* self = (GeneralSwarm*)swarm;
-   Index                cell;
-   Index                point_I;
-   GlobalParticle*      particle;
-
-   /* Need to check for escaped particles before the next block. */
-   if ( self->escapedRoutine )
-   {
-      Stg_Component_Execute( self->escapedRoutine, self, True );
-   }
-
-   /* Check that particles have not exited the box after advection */
-   if ( self->swarmAdvector  )
-   {
-      for ( point_I = 0; point_I < self->particleLocalCount; ++point_I )
-      {
-         particle = (GlobalParticle*)Swarm_ParticleAt( self, point_I );
-         cell = particle->owningCell;
-         Journal_Firewall(
-            cell < self->cellLocalCount,
-            Journal_MyStream( Error_Type, self ),
-            "In func %s: GlobalParticle '%d' outside element. Coord = {%g, %g, %g}\n",
-            __func__,
-            point_I,
-            particle->coord[ I_AXIS ],
-            particle->coord[ J_AXIS ],
-            particle->coord[ K_AXIS ] );
-      }
-   }
-
-}
-
 void* GeneralSwarm_GetExtensionAt( void* swarm, Index point_I, Index extHandle )
 {
    GeneralSwarm* self  = (GeneralSwarm*)swarm;

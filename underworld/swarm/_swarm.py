@@ -62,7 +62,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
     >>> swarm.owningCell.data[0]
     array([0], dtype=int32)
 
-    With particleEscape enabled, particles which are no longer with the mesh
+    With particleEscape enabled, particles which are no longer within the mesh
     domain are deleted.
 
     >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
@@ -75,6 +75,21 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
     1024
     >>> with mesh.deform_mesh():
     ...     mesh.data[:] += (0.5,0.)
+    >>> swarm.particleGlobalCount
+    512
+
+    Alternatively, moving the particles:
+
+    >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
+    >>> swarm = uw.swarm.Swarm(mesh, particleEscape=True)
+    >>> swarm.particleLocalCount
+    0
+    >>> layout = uw.swarm.layouts.PerCellGaussLayout(swarm,2)
+    >>> swarm.populate_using_layout(layout)
+    >>> swarm.particleGlobalCount
+    1024
+    >>> with swarm.deform_swarm():
+    ...     swarm.particleCoordinates.data[:] -= (0.5,0.)
     >>> swarm.particleGlobalCount
     512
 
@@ -92,13 +107,11 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         # escape routine will be used during swarm advection, but lets also add
         # it to the mesh post deform hook so that when the mesh is deformed,
         # any particles that are found wanting are culled accordingly.
-        def _update_owners_then_escape_particles():
+        def _update_owners():
 #                globCount = self.particleGlobalCount
             self.update_particle_owners()
-            if particleEscape:
-                libUnderworld.PICellerator.EscapedRoutine_RemoveFromSwarm( self._escapedRoutine, self._cself )
 #                if uw.rank() == 0: print("Removed {} particles found outside the mesh.".format( globCount - self.particleGlobalCount))
-        mesh.add_post_deform_function( _update_owners_then_escape_particles )
+        mesh.add_post_deform_function( _update_owners )
 
         # init this to -1 to signify no mapping has occurred
         self._checkpointMapsToState = -1
@@ -452,5 +465,8 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
 
         """
         libUnderworld.StgDomain.Swarm_UpdateAllParticleOwners( self._cself );
+        if self.particleEscape:
+            libUnderworld.PICellerator.EscapedRoutine_RemoveFromSwarm( self._escapedRoutine, self._cself )
+
         libUnderworld.PICellerator.GeneralSwarm_ClearSwarmMaps( self._cself );
         self._toggle_state()
