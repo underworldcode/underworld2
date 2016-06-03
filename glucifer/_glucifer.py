@@ -603,7 +603,6 @@ class Figure(dict):
             lv.clear() #Close and free memory
             #Return the generated filename
             return imagestr
-        return ""
 
     def _generate_HTML(self):
         if haveLavaVu and uw.rank() == 0:
@@ -800,17 +799,22 @@ class Viewer(dict):
     _index = 0
 
     def __init__(self, filename, *args, **kwargs):
-
         if not isinstance(filename,str):
             raise TypeError("'filename' object passed in must be of python type 'str'")
 
         self._db = Store(filename, view=True)
-        self.steps = []
+        self.steps = [-1]
 
         super(Viewer, self).__init__(*args, **kwargs)
 
+        if not haveLavaVu:
+            print("LavaVu build is required to use Viewer")
+            return
+
         #Load existing figures and save names
         states = self._db._read_state()
+        if not states:
+            return #No data
         for state in states:
             figname = str(state["figure"])
             fig = Figure(self._db, name=figname, properties=state["properties"])
