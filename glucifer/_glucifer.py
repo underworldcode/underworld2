@@ -273,6 +273,8 @@ class Store(_stgermain.StgCompoundComponent):
 
     def _read_state(self):
         #Read state from database
+        if not haveLavaVu or uw.rank() > 0:
+            return
         if not self._db.db:
             libUnderworld.gLucifer.lucDatabase_OpenDatabase(self._db)
         lv = LavaVu.load(self.lvargs())
@@ -512,11 +514,10 @@ class Figure(dict):
         type: str
             Type of visualisation to display ('Image' or 'WebGL'). Default is 'Image'.
         
-        Returns
-        -------
-        Ipython HTML object (for type 'Image')
-        Ipython IFrame object (for type 'Webgl')
-        Note that if IPython is not installed, this method will return nothing.
+        If IPython is installed, displays the result image or WebGL content inline
+
+        If IPython is not installed, this method will call the default image/web 
+        output routines to save the result with a default filename in the current directory
 
         """
 
@@ -602,6 +603,7 @@ class Figure(dict):
             lv.clear() #Close and free memory
             #Return the generated filename
             return imagestr
+        return ""
 
     def _generate_HTML(self):
         if haveLavaVu and uw.rank() == 0:
