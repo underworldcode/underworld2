@@ -58,9 +58,12 @@ RUN mkdir -p -m 700 /root/.jupyter/ && \
     echo "c.NotebookApp.ip = '*'" >> /root/.jupyter/jupyter_notebook_config.py
 
 # Setup ipyparallel for mpi profile
+WORKDIR /root/.jupyter
 RUN ipcluster nbextension enable && \ 
     ipython profile create --parallel --profile=mpi && \
     echo "c.IPClusterEngines.engine_launcher_class = 'MPIEngineSetLauncher'" >> /root/.ipython/profile_mpi/ipcluster_config.py
+
+WORKDIR /
 
 # expose notebook port
 EXPOSE 8888
