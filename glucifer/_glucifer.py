@@ -24,7 +24,7 @@ import libUnderworld as _libUnderworld
 
 haveLavaVu = True
 try:
-    import LavaVu
+    import libUnderworld.libUnderworldPy.LavaVu as LavaVu
 except:
     haveLavaVu = False
 
