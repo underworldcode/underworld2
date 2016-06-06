@@ -120,11 +120,9 @@ class Store(_stgermain.StgCompoundComponent):
 
         componentDictionary[self._db.name].update( {
                             "filename"          :filename,
-                            "blocking"          :True,
                             "splitTransactions" :True,
                             "singleFile"        :not self._split,
-                            "viewonly"          :self._viewonly,
-                            "dbPath"            :".",
+                            "viewonly"          :self._viewonly
         } )
 
     def _setup(self):
