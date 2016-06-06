@@ -46,7 +46,6 @@ lucDatabase* _lucDatabase_New(  LUCDATABASE_DEFARGS  )
    self = (lucDatabase*) _Stg_Component_New(  STG_COMPONENT_PASSARGS  );
    
    self->filename  = NULL;
-   self->dbPath    = NULL;
    self->db        = NULL;
    self->db2       = NULL;
    self->memdb     = NULL;
@@ -83,13 +82,11 @@ void _lucDatabase_Init(
    lucDrawingObject**   drawingObjectList,
    DrawingObject_Index  drawingObjectCount,
    int                  deleteAfter,
-   Bool                 writeimage,
    Bool                 splitTransactions,
    Bool                 compressed,
    Bool                 singleFile,
    char*                filename,
    char*                vfs,
-   char*                dbPath,
    Bool                 viewonly )
 {
    DrawingObject_Index object_I;
@@ -97,16 +94,11 @@ void _lucDatabase_Init(
    self->isConstructed = True;
    self->context = (DomainContext*)context;
    self->deleteAfter = deleteAfter;
-   self->writeimage = writeimage;
    self->splitTransactions = splitTransactions;
 
    self->compressed = compressed;
    self->singleFile = singleFile;
    self->filename = StG_Strdup(filename);
-   if (strcmp(".", dbPath) == 0 && context)
-      self->dbPath = StG_Strdup(context->outputPath);
-   else
-      self->dbPath = StG_Strdup(dbPath);
    
    if (vfs && strlen(vfs)) self->vfs = StG_Strdup(vfs);
    self->viewonly = viewonly;
@@ -165,7 +157,6 @@ void _lucDatabase_Init(
 lucDatabase* lucDatabase_New(
    AbstractContext*  context,
    int               deleteAfter,
-   Bool              writeimage,
    Bool              splitTransactions,
    Bool              compressed,
    Bool              singleFile,
@@ -173,7 +164,7 @@ lucDatabase* lucDatabase_New(
    char*             vfs)
 {
    lucDatabase* self = (lucDatabase*)_lucDatabase_DefaultNew("database");
-   _lucDatabase_Init(self, context, NULL, 0, deleteAfter, writeimage, splitTransactions, compressed, singleFile, filename, vfs, "", False);
+   _lucDatabase_Init(self, context, NULL, 0, deleteAfter, splitTransactions, compressed, singleFile, filename, vfs, False);
    return self;
 }
 
@@ -195,7 +186,6 @@ void _lucDatabase_Delete( void* database )
    if (self->memdb) sqlite3_close(self->memdb);
 
    if (self->filename) Memory_Free(self->filename);
-   if (self->dbPath) Memory_Free(self->dbPath);
    if (self->vfs) Memory_Free(self->vfs);
    
 
@@ -218,13 +208,11 @@ void _lucDatabase_AssignFromXML( void* database, Stg_ComponentFactory* cf, void*
       drawingObjectList,
       drawingObjectCount,
       Stg_ComponentFactory_GetInt( cf, self->name, (Dictionary_Entry_Key)"deleteAfter", 0),
-      Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"writeimage", True),
       Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"splitTransactions", True),
       Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"compressed", True),
       Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"singleFile", True),
       Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"filename", NULL),
       Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"vfs", NULL),
-      Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"dbPath", "."),
       Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"viewonly", False  )
       );
 }
@@ -814,10 +802,7 @@ void lucDatabase_OpenDatabase(lucDatabase* self)
 
       if (self->filename && strlen(self->filename))
       {
-         if (self->dbPath && strlen(self->dbPath))
-            sprintf(self->path, "%s/%s.gldb", self->dbPath, self->filename);
-         else
-            sprintf(self->path, "%s.gldb", self->filename);
+         sprintf(self->path, "%s.gldb", self->filename);
       }
       else
       {
@@ -909,7 +894,7 @@ void lucDatabase_AttachDatabase(lucDatabase* self)
       sqlite3_close(self->db2);
 
    /* Create path */
-   sprintf(path, "%s/%s%05d.gldb", self->dbPath, self->filename, self->timeStep);
+   sprintf(path, "%s%05d.gldb", self->filename, self->timeStep);
 
    /* Attach new database */
    if (sqlite3_open_v2(path, &self->db2, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, self->vfs))
