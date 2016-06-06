@@ -36,10 +36,10 @@ RUN git clone --branch "master" --single-branch https://github.com/underworldcod
 # expose notebook port
 EXPOSE 8888
 # expose glucifer port
-EXPOSE 8080
+EXPOSE 9999
 
 # setup space for working in
-VOLUME /workspace
+VOLUME /workspace/user_data
 WORKDIR /workspace
 
 # launch notebook

@@ -641,7 +641,7 @@ class Figure(dict):
         from IPython.display import Image,HTML
         if not self._viewerProc:
             return
-        url = "http://localhost:8080/image=0"
+        url = "http://localhost:9999/image=0"
         response = urllib2.urlopen(url).read()
         image_data = "data:image/png;base64,%s" % b64encode(response)
         return HTML("<img src='%s'>" % image_data)
@@ -659,11 +659,11 @@ class Figure(dict):
 
         if haveLavaVu and uw.rank() == 0:
             #Open viewer with local web server for interactive/iterative use
-            args = [self.db._lvbin, "-" + str(self.db.step), "-L", "-p8080", "-q90", fname] + args
+            args = [self.db._lvbin, "-" + str(self.db.step), "-L", "-p9999", "-q90", fname] + args
             if background:
                 self._viewerProc = subprocess.Popen(args, stdout=PIPE, stdin=PIPE, stderr=STDOUT)
                 from IPython.display import HTML
-                return HTML('''<a href='#' onclick='window.open("http://" + location.hostname + ":8080");'>Open Viewer Interface</a>''')
+                return HTML('''<a href='#' onclick='window.open("http://" + location.hostname + ":9999");'>Open Viewer Interface</a>''')
             else:
                 lavavu.execute(args)
 
@@ -680,7 +680,7 @@ class Figure(dict):
         """ Run the saved script on an open viewer instance
         """
         self.open_viewer()
-        url = "http://localhost:8080/command=" + urllib2.quote(';'.join(self._script))
+        url = "http://localhost:9999/command=" + urllib2.quote(';'.join(self._script))
         response = urllib2.urlopen(url).read()
         #print response
   
@@ -695,7 +695,7 @@ class Figure(dict):
         """
         if haveLavaVu and uw.rank() == 0:
             self.open_viewer()
-            url = "http://localhost:8080/command=" + urllib2.quote(cmd)
+            url = "http://localhost:9999/command=" + urllib2.quote(cmd)
             try:
                 #print url
                 response = urllib2.urlopen(url).read()
