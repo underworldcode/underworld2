@@ -24,7 +24,7 @@ import libUnderworld as _libUnderworld
 
 haveLavaVu = True
 try:
-    import LavaVu
+    import libUnderworld.libUnderworldPy.LavaVu as LavaVu
 except:
     haveLavaVu = False
 
@@ -273,6 +273,8 @@ class Store(_stgermain.StgCompoundComponent):
 
     def _read_state(self):
         #Read state from database
+        if not haveLavaVu or uw.rank() > 0:
+            return
         if not self._db.db:
             libUnderworld.gLucifer.lucDatabase_OpenDatabase(self._db)
         lv = LavaVu.load(self.lvargs())
@@ -512,11 +514,10 @@ class Figure(dict):
         type: str
             Type of visualisation to display ('Image' or 'WebGL'). Default is 'Image'.
         
-        Returns
-        -------
-        Ipython HTML object (for type 'Image')
-        Ipython IFrame object (for type 'Webgl')
-        Note that if IPython is not installed, this method will return nothing.
+        If IPython is installed, displays the result image or WebGL content inline
+
+        If IPython is not installed, this method will call the default image/web 
+        output routines to save the result with a default filename in the current directory
 
         """
 
@@ -798,17 +799,22 @@ class Viewer(dict):
     _index = 0
 
     def __init__(self, filename, *args, **kwargs):
-
         if not isinstance(filename,str):
             raise TypeError("'filename' object passed in must be of python type 'str'")
 
         self._db = Store(filename, view=True)
-        self.steps = []
+        self.steps = [-1]
 
         super(Viewer, self).__init__(*args, **kwargs)
 
+        if not haveLavaVu:
+            print("LavaVu build is required to use Viewer")
+            return
+
         #Load existing figures and save names
         states = self._db._read_state()
+        if not states:
+            return #No data
         for state in states:
             figname = str(state["figure"])
             fig = Figure(self._db, name=figname, properties=state["properties"])
