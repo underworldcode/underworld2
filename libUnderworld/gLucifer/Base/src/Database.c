@@ -809,6 +809,9 @@ void lucDatabase_OpenDatabase(lucDatabase* self)
          sprintf(self->path, "file:%s?mode=memory&cache=shared", self->name);
          flags = flags | SQLITE_OPEN_URI;
          Journal_Printf(lucDebug, "Defaulting to memory database: %s\n", self->path);
+         /* Set the delete-after window to 1 step *
+          * avoids accumulating old steps in memory */
+         if (self->deleteAfter == 0) self->deleteAfter = 1;
       }
 
       if (sqlite3_open_v2(self->path, &self->db, flags, self->vfs))
