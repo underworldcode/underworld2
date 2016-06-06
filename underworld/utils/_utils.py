@@ -178,11 +178,11 @@ class SavedFileData(object):
     pyobj: object
         python object saved data relates to.
     filename: str
-        filename for saved data.
+        filename for saved data, full path
     '''
     def __init__(self, pyobj, filename):
         self.pyobj = pyobj
-        self.filename = filename
+        self.filename = os.path.abspath(filename)
 
 
 ### Code for XDMF output ###

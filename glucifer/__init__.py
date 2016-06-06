@@ -48,3 +48,8 @@ def stop_virtual_display():
     global _display
     if not _display is None:
         _display.stop()
+
+import os as _os
+# disable collection of data if requested
+if "GLUCIFER_USE_XVFB" in _os.environ:
+    start_virtual_display()
