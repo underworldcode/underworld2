@@ -53,10 +53,6 @@ for d in dirs:
     # Setup where to look for files.
     src_dir = d + '/src'
     inc_dir = 'include/gLucifer/' + d
-    tst_dir = d + '/tests'
-    tst_exp_dir = tst_dir + '/expected'
-    tst_input_dir = tst_dir + '/input'
-    tst_install_dir = 'tests/gLucifer/' + d
 
     # Install the headers
     hdrs = env.Install(inc_dir, Glob(src_dir + '/*.h'))
@@ -66,13 +62,6 @@ for d in dirs:
     for src in srcs:
         stg_cpp_defs = cpp_defs + [('SOURCE_FILE', '"\\"' + src.name + '\\""')]
         objs += env.SharedObject(src, CPPDEFINES=stg_cpp_defs)
-
-    # Build any test suites we might find.
-    suites += env.Object(Glob(tst_dir + '/*Suite.c'))
-
-    # Install any test expected and input files
-    tst_exp += env.Install(tst_install_dir + '/expected', Glob(tst_exp_dir + '/*'))
-    tst_input += env.Install(tst_install_dir + '/input', Glob(tst_input_dir + '/*'))
 
 # Need to install headers from libgLucifer.
 env.Install('include/gLucifer', Glob('libgLucifer/src/*.h'))
@@ -220,52 +209,4 @@ if env['static_libs']:
     l = env.StaticLibrary(env['build_dir'] + '/lib/gLucifer', objs + pl_objs + reg_obj)
     env.Install(env['prefix'] + '/lib', l)
 
-#
-# Test runner program.
-#
 
-env.PCUTest('tests/testgLucifer', suites,
-    PCU_LIBHEADERS="#include <StGermain/StGermain.h>\n" \
-        "#include <StgDomain/StgDomain.h>\n"
-        "#include <StgFEM/StgFEM.h>\n" \
-        "#include <gLucifer/gLucifer.h>",
-    PCU_SETUP="\n" \
-        "#ifdef NOSHARED\n" \
-        "   stgdomain_register_static_modules();\n" \
-        "   stgfem_register_static_modules();\n" \
-        "   gLucifer_register_static_modules();\n" \
-        "   StGermain_Init(&argc, &argv);\n" \
-        "   StgDomain_Init(&argc, &argv);\n" \
-        "   StgFEM_Init(&argc, &argv);\n" \
-        "   gLucifer_Init(&argc, &argv);\n" \
-        "#else\n" \
-        "   StGermain_Init(&argc, &argv);\n" 
-        "   ModulesManager_LoadModule(stgToolboxesManager, \"gLucifer\" );\n" \
-        "#endif\n" \
-        "   stJournal->firewallProducesAssert = True;\n" \
-        "   stJournal->firewallProtected = True;",
-    PCU_TEARDOWN="#ifdef NOSHARED\n"
-        "   gLucifer_Finalise();\n" \
-        "   StgFEM_Finalise();\n" \
-        "   StgDomain_Finalise();\n" \
-        "   StGermain_Finalise();\n" \
-        "#else\n" \
-        "   ModulesManager_UnloadModule(stgToolboxesManager, \"gLucifer\" );\n" \
-        "   StGermain_Finalise();\n" \
-        "#endif", 
-    LIBS=libs,
-    PCU_EXP=tst_exp,
-    PCU_INPUT=tst_input,
-    PROJECT="gLucifer")
-
-#
-# Install XML input files.
-#
-
-env.Install('lib/StGermain/gLucifer', Glob('ModelComponents/*.xml'))
-
-# For now, consider the gLucifer tests an "integration" suite ... 
-#  may want to add a new type later.
-## NB: commented out until have a chance to go through test fails on 
-#  different architectures ...
-#env.AddVisualisationTestSuite('SysTest/testLuc.py')
