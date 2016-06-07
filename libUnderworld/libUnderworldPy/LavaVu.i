@@ -64,11 +64,7 @@ def load(args=["LavaVu", "-a"]):
     global app
     if not app:
       app = LavaVu()
-    try: 
-      execute(args, app)
-    except RuntimeError, e:
-        print "LavaVu error: " + e
-        pass
+    execute(args, app)
     return app
 %}
 

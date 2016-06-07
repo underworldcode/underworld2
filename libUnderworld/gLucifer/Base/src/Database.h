@@ -64,15 +64,13 @@ extern const Type lucDatabase_Type;
       char*             vfs;                    \
       Bool              compressed;             \
       Bool              singleFile;             \
-      Bool              writeimage;             \
       Bool              splitTransactions;      \
       int               deleteAfter;            \
       Bool              viewonly;               \
       int               rank;                   \
       int               nproc;                  \
       MPI_Comm          communicator;           \
-      int               timeStep;               \
-      char*             dbPath;
+      int               timeStep;
 
 struct lucDatabase
 {
@@ -97,7 +95,6 @@ lucDatabase* _lucDatabase_New(  LUCDATABASE_DEFARGS  );
 lucDatabase* lucDatabase_New(
    AbstractContext*  context,
    int               deleteAfter,
-   Bool              writeimage,
    Bool              splitTransactions,
    Bool              compressed,
    Bool              singleFile,
