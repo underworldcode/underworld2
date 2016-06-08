@@ -542,7 +542,8 @@ class Figure(dict):
                     lv = LavaVu.load(self.db.lvargs())
                     lv.web(True)
                 else:
-                    lv = LavaVu.load(self.db.lvargs(["-z" + str(self.quality), "-I",
+                    #-f-1 selects last figure/state in list
+                    lv = LavaVu.load(self.db.lvargs(["-f-1", "-z" + str(self.quality), "-I",
                                      "-x" + str(self["resolution"][0]) + "," + str(self["resolution"][1])] + self._script))
                 lv.clear() #Free memory
             except RuntimeError,e:
