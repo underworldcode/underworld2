@@ -182,6 +182,7 @@ class SavedFileData(object):
     '''
     def __init__(self, pyobj, filename):
         self.pyobj = pyobj
+        # required for swarms var .xdmf the need to read the original .h5 for the swarm
         self.filename = os.path.abspath(filename)
 
 
@@ -221,6 +222,7 @@ def _swarmspacetimeschema( swarmSavedData, swarmname, time ):
     # retrieve bits about previously saved swarm file
     swarm = swarmSavedData.pyobj
     filename = swarmSavedData.filename
+    refName = os.path.basename(swarmSavedData.filename)
 
     # get swarm parameters - serially read from hdf5 file to get size
     h5f = h5py.File(name=filename, mode="r")
@@ -243,7 +245,7 @@ def _swarmspacetimeschema( swarmSavedData, swarmname, time ):
     else:
         raise RuntimeError( "Unexpected dim value of {0}, supported value 2 and 3 only".format(dim) )
 
-    out += "\t\t\t<DataItem Format=\"HDF\" NumberType=\"Float\" Precision=\"8\" Dimensions=\"{0} {1}\">{2}:/data</DataItem>\n".format(globalCount, dim, filename)
+    out += "\t\t\t<DataItem Format=\"HDF\" NumberType=\"Float\" Precision=\"8\" Dimensions=\"{0} {1}\">{2}:/data</DataItem>\n".format(globalCount, dim, refName)
     out += "\t\t</Geometry>\n"
 
     return out
@@ -316,6 +318,7 @@ def _swarmvarschema( varSavedData, varname ):
     # retrieve bits from varSavedData
     var = varSavedData.pyobj
     varfilename = varSavedData.filename
+    refName = os.path.basename(varSavedData.filename)
 
     # set parameters - serially open the varfilename
     h5f = h5py.File(name=varfilename, mode="r")
@@ -328,7 +331,7 @@ def _swarmvarschema( varSavedData, varname ):
     dof_count = var.data.shape[1]
     variableType = "NumberType=\"Float\" Precision=\"8\""
 
-    out = _xdmfAttributeschema( varname, variableType, "Node", globalCount, dof_count, varfilename )
+    out = _xdmfAttributeschema( varname, variableType, "Node", globalCount, dof_count, refName )
 
     return out
 
