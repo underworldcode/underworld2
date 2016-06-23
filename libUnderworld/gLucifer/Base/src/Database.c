@@ -948,8 +948,8 @@ int lucDatabase_WriteGeometry(lucDatabase* self, int index, lucGeometryType type
       src_len = cmp_len;
    }
 
-   if (block->minimum == HUGE_VAL) block->minimum = 0;
-   if (block->maximum == -HUGE_VAL) block->maximum = 0;
+   if (fabs(block->minimum) == HUGE_VAL) block->minimum = 0;
+   if (fabs(block->maximum) == HUGE_VAL) block->maximum = 0;
 
    if (block->min[0] > block->max[0]) block->min[0] = block->max[0] = 0;
    if (block->min[1] > block->max[1]) block->min[1] = block->max[1] = 0;
@@ -959,22 +959,33 @@ int lucDatabase_WriteGeometry(lucDatabase* self, int index, lucGeometryType type
 
    /* Prepare statement... */
    if (sqlite3_prepare_v2(db, SQL, -1, &statement, NULL) != SQLITE_OK)
-      Journal_Firewall(0, NULL, "SQL prepare error: (%s) %s\n", SQL, sqlite3_errmsg(db));
+   {
+      Journal_Printf(lucError, "SQL prepare error: (%s) %s\n", SQL, sqlite3_errmsg(db));
+      src_len = 0;
+   }
 
    /* Setup text data for insert */
-   if (block->labels)
-      if (sqlite3_bind_text(statement, 1, block->labels, strlen(block->labels), SQLITE_STATIC) != SQLITE_OK)
-         Journal_Firewall(0, NULL, "SQL bind error: %s\n", sqlite3_errmsg(db));
+   if (src_len > 0 && block->labels && sqlite3_bind_text(statement, 1, block->labels, strlen(block->labels), SQLITE_STATIC) != SQLITE_OK)
+   {
+      Journal_Printf(lucError, "SQL bind error: %s\n", sqlite3_errmsg(db));
+      src_len = 0;
+   }
 
    /* Setup blob data for insert */
-   if (sqlite3_bind_blob(statement, 2, buffer, src_len, SQLITE_STATIC) != SQLITE_OK)
-      Journal_Firewall(0, NULL, "SQL bind error: %s\n", sqlite3_errmsg(db));
+   if (src_len > 0 && sqlite3_bind_blob(statement, 2, buffer, src_len, SQLITE_STATIC) != SQLITE_OK)
+   {
+      Journal_Printf(lucError, "SQL bind error: %s\n", sqlite3_errmsg(db));
+      src_len = 0;
+   }
 
    /* Execute statement */
-   if (sqlite3_step(statement) != SQLITE_DONE )
-      Journal_Firewall(0, NULL, "SQL step error: (%s) %s\n", SQL, sqlite3_errmsg(db));
+   if (src_len > 0 && sqlite3_step(statement) != SQLITE_DONE )
+   {
+      Journal_Printf(lucError, "SQL step error: (%s) %s\n", SQL, sqlite3_errmsg(db));
+      src_len = 0;
+   }
 
-   sqlite3_finalize(statement);
+   if (src_len > 0) sqlite3_finalize(statement);
 
    /* Free compression buffer */
    if (cmp_len > 0)
@@ -1041,15 +1052,24 @@ void lucDatabase_WriteState(lucDatabase* self, const char* name, const char* pro
    sqlite3_stmt* statement;
    snprintf(SQL, MAX_QUERY_LEN,  "insert into state (name, data) values ('%s', ?)", name);
    if (sqlite3_prepare_v2(db, SQL, -1, &statement, NULL) != SQLITE_OK)
-      Journal_Firewall(0, NULL, "SQL prepare error: (%s) %s\n", SQL, sqlite3_errmsg(db));
+   {
+      Journal_Printf(lucError, "SQL prepare error: (%s) %s\n", SQL, sqlite3_errmsg(db));
+      return;
+   }
 
    /* Setup text data for insert */
    if (sqlite3_bind_text(statement, 1, properties, strlen(properties), SQLITE_STATIC) != SQLITE_OK)
-      Journal_Firewall(0, NULL, "SQL bind error: %s\n", sqlite3_errmsg(db));
+   {
+      Journal_Printf(lucError, "SQL bind error: %s\n", sqlite3_errmsg(db));
+      return;
+   }
 
    /* Execute statement */
    if (sqlite3_step(statement) != SQLITE_DONE )
-      Journal_Firewall(0, NULL, "SQL step error: (%s) %s\n", SQL, sqlite3_errmsg(db));
+   {
+      Journal_Printf(lucError, "SQL step error: (%s) %s\n", SQL, sqlite3_errmsg(db));
+      return;
+   }
 
    sqlite3_finalize(statement);
 }

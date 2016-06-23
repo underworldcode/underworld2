@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 """
-This script tests multiple python scripts or Jupyter Notebooks. A test is 
-considered to have been completed successfully if it returns with the '0' exit 
+This script tests multiple python scripts or Jupyter Notebooks. A test is
+considered to have been completed successfully if it returns with the '0' exit
 code, which should signify that no uncaught exceptions were encountered.
 
 This script will return a non-zero exit code if any tests fail.
 
-Usage: `run_tests.py foo.py [bar.ipynb [...]]`
+Usage: `run_tests.py --nproc=3 --mpirun=mpirun foo.py [bar.ipynb [...]]`
 
 
 """
-import os, sys, subprocess, string
+import os, sys, subprocess, string, argparse, shutil
 
 # this global just increments as tests are run
 testnumber = 0
@@ -33,14 +33,42 @@ except:
     can_runipy = False
     print("'runipy' does not appear to be available. All jupyter notebooks will be skipped.")
 
-def run_file(fname, dir):
+
+def convert_ipynb_to_py(fname):
     """
-    Runs ipython notebook using runipy. 
+    Converts a given ipython notebook file into a python files
+    using the script `ipynb_to_py.sh`
+    """
+
+    try:
+        # create error files for reporting
+        outName = "./convert_"+os.path.basename(fname)+".out"
+        outFile = open(outName, "w")
+        subprocess.check_call(['sh', 'ipynb_to_py.sh', fname], stdout=outFile, stderr=outFile )
+    except subprocess.CalledProcessError:
+        print "Error: failed to convert "+fname+" to a .py script"
+        return False  # report test failed
+    finally:
+        outFile.close()
+
+    os.remove(outName)
+    return fname.replace('.ipynb', '.py')   # return new the python file
+
+def run_file(fname, dir, exe):
+    """
+    Runs a test and records stdout and stderr to givin directory.
+    Accepted input file format is .ipynb or .py.
+
 
     Parameters
     ----------
-        fname: input filename
-        dir:   output directory
+        fname:
+            input filename
+        dir:
+            output directory
+        exe:
+            the command to use as a per 1st argument of subprocess.Popen()
+
     Returns
     -------
         bool:  True = pass, False = fail.
@@ -52,20 +80,11 @@ def run_file(fname, dir):
     except:
         os.mkdir(dir)
 
-    if fname.endswith(".ipynb"):
-        exe = ["runipy"]
-    elif fname.endswith(".py"):
-        exe = ["python"]
-    else:
-        raise ValueError("Filename must have extension 'py' or 'ipynb'.")
-    exe.append(os.path.basename(fname))         # append filename
+    exe.append(os.path.basename(fname))  # append filename
 
     testnumber += 1
     out = dir+"test_"+str(testnumber)+"__"+os.path.basename(fname)
-    if fname.endswith(".ipynb"):
-        exe.append(out)       # append output notebook filename
 
-    # try run runipy on given notebook
     try:
         outFile = open(out+".out", "w")
         errFile = open(out+".err", "w")
@@ -81,13 +100,38 @@ def run_file(fname, dir):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print __doc__ % {'scriptName' : sys.argv[0].split("/")[-1]}
-        sys.exit(0)
 
+    # use the argparse module to read cmd line
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--nprocs", help="number of processors to use", type=int, default=1)
+    parser.add_argument("--mpirun", help="mpi command")
+    parser.add_argument("files", nargs="+", help="the input file list")
+    args = parser.parse_args()
+
+    # error check input
+    if len(args.files) == 0 :
+        parser.print_help()
+        sys.exit(1)
+
+    if args.nprocs < 1:
+        raise ValueError("Don't be a smart arse")
+    else:
+        nprocs = args.nprocs
+
+    if nprocs > 1: # run in parallel check mpirun executable is valid
+        if args.mpirun == None:
+            parser.print_help()
+            raise ValueError("'NPROCS' is >1, you must specify an executable to 'MPIRUN'")
+        try:
+            subprocess.check_call([args.mpirun, '-h'], stdout=DEVNULL, stderr=DEVNULL)
+        except:
+            raise ValueError("Given 'mpirun'(" + args.mpirun + ") command does not appear to be valid.")
+
+    # initialise test counters
     nfails=0
     list_fails=[]
-    
+    cleanup=False
+
     # create the test directory if needed
     dir = os.path.join(os.path.dirname(os.path.realpath(__file__)),"./testResults/")
     try:
@@ -99,22 +143,50 @@ if __name__ == '__main__':
     logFileName = "testing.log"
     logFile = open(dir+logFileName, "w")
 
-    for arg in sys.argv[1:]:
-        if arg.endswith(".ipynb") or arg.endswith(".py") :
-            if arg.endswith(".ipynb") and not can_runipy:
-                continue
-            print("\nRunning test {}: {}".format(testnumber+1,arg));
-            logFile.write("\nRunning "+arg);
-            result = run_file( arg, dir )
-            if result:
-                print(" .... PASS");
-                logFile.write(" .... PASS"); logFile.flush()
-            else:
-                out = dir+"test_"+str(testnumber)+"__"+os.path.basename(arg)+"*"
-                print(" .... ERROR (see "+out+" for details)")
-                logFile.write(" .... ERROR (see "+out+" for details)\n"); logFile.flush()
-                nfails = nfails+1
-                list_fails.append(arg)
+    # loop though tests given as input, ie args.files
+    for fname in args.files:
+
+        # if file is not ipynb or py skip it
+        is_ipynb = fname.endswith(".ipynb")
+        if not (is_ipynb or fname.endswith(".py")):
+            continue
+
+        # build executable command
+        exe = ['python']
+
+        if is_ipynb and nprocs==1 and can_runipy:
+            exe = ['runipy']   # use runipy instead
+        elif is_ipynb:
+            # convert ipynb to py and move to 'testResults'
+            print("* converting test {} to .py".format(fname));
+            logFile.write("\nconverting "+fname+" to a python script");
+
+            fname = convert_ipynb_to_py(fname) # convert
+            if fname == None:
+                raise RuntimeError("Unexpected error in converting ipynb to py")
+            cleanup=True
+
+        # if parallel build mpi command
+        if nprocs>1:
+            exe = [args.mpirun, '-np', str(nprocs), 'python']
+
+        # log and run test
+        print("Running test {}: {}".format(testnumber+1," ".join(exe)+" "+fname));
+        logFile.write("\nRunning "+ " ".join(exe)+" "+fname);
+        result = run_file( fname, dir, exe )
+        if result:
+            print(" .... PASS\n");
+            logFile.write(" .... PASS\n"); logFile.flush()
+        else:
+            out = dir+"test_"+str(testnumber)+"__"+os.path.basename(fname)+"*"
+            print(" .... ERROR (see "+out+" for details)\n")
+            logFile.write(" .... ERROR (see "+out+" for details)\n"); logFile.flush()
+            nfails = nfails+1
+            list_fails.append(fname)
+
+        if cleanup:   # clean up if required
+            os.remove(fname)
+            cleanup=False
 
     # Report in testing.log
     logFile.write("\nNumber of fails " + str(nfails) +":\n"); logFile.flush()
