@@ -4,7 +4,7 @@
 # Generated python files are created alongside their corresponding
 # notebook file.
 #
-# Usage: `ipynb_to_py.py foo.ipynb [bar.ipynb [...]]`
+# Usage: `ipynb_to_py.sh foo.ipynb [bar.ipynb [...]]`
 #################################################################
 
 

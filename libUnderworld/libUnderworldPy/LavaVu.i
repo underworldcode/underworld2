@@ -25,51 +25,55 @@
     }
 }
 
-%typemap(in) (int argc, char **argv) {
-  /* Check if is a list */
-  if (PyList_Check($input)) {
-    int i;
-    $1 = PyList_Size($input);
-    $2 = (char **) malloc(($1+1)*sizeof(char *));
-    for (i = 0; i < $1; i++) {
-      PyObject *o = PyList_GetItem($input,i);
-      if (PyString_Check(o))
-        $2[i] = PyString_AsString(PyList_GetItem($input,i));
-      else {
-        PyErr_SetString(PyExc_TypeError,"list must contain strings");
-        free($2);
-        return NULL;
-      }
-    }
-    $2[i] = 0;
-  } else {
-    PyErr_SetString(PyExc_TypeError,"not a list");
-    return NULL;
-  }
-}
-
-%typemap(freearg) (int argc, char **argv) {
-  free((char *) $2);
-}
-
 namespace std {
 %template(Line)  vector <float>;
 %template(Array) vector < vector <float> >;
+%template(List) vector <string>;
 }
 
 %pythoncode %{
 #Helper functions
-app = None
-def load(args=["LavaVu", "-a"]):
-    global app
+def load(app=None, arglist=[], binary="LavaVu", database=None, figure=None, startstep=None, endstep=None, 
+         port=0, verbose=False, interactive=False, hidden=True, quality=2, writeimage=False, res=None, script=None):
+    args = [] + arglist
+    #Convert options to args
+    if verbose:
+      args += ["-v"]
+    #Automation: scripted mode, no interaction
+    if not interactive:
+      args += ["-a"]
+    #Hidden window
+    if hidden:
+      args += ["-h"]
+    #Subsample anti-aliasing for image output
+    args += ["-z" + str(quality)]
+    #Timestep range
+    if startstep != None:
+      args += ["-" + str(startstep)]
+      if endstep != None:
+        args += ["-" + str(endstep)]
+    #Web server
+    args += ["-p" + str(port)]
+    #Database file
+    if database:
+      args += [database]
+    #Initial figure
+    if figure != None:
+      args += ["-f" + str(figure)]
+    #Output resolution
+    if res != None and isinstance(res,tuple):
+      args += ["-x" + str(res[0]) + "," + str(res[1])]
+    #Save image and quit
+    if writeimage:
+      args += ["-I"]
+    if script and isinstance(script,list):
+      args += script
+
     if not app:
-      app = LavaVu()
-    execute(args, app)
+      app = LavaVu(binary)
+    app.run(args)
     return app
 %}
-
-void execute(int argc, char **argv, LavaVu* app);
-void execute(int argc, char **argv);
 
 class LavaVu
 {
@@ -78,10 +82,10 @@ public:
   View* aview;
   DrawingObject* aobject;
 
-  LavaVu();
+  LavaVu(std::string binary="");
   ~LavaVu();
 
-  void run();
+  void run(std::vector<std::string> args={});
 
   bool parseCommands(std::string cmd);
   std::string image(std::string filename="", int width=0, int height=0);
