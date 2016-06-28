@@ -44,7 +44,7 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
     Functions aim to achieve a number of goals:
     * Provide a natural interface for mathematical behaviour description within python.
     * Provide a high level interface to Underworld discrete objects.
-    * Allow discrete objects to be used in combination to continuous objects.
+    * Allow discrete objects to be used in combination with continuous objects.
     * Handle the evaluation of discrete objects in the most efficient manner.
     * Perform all heavy calculations at the C-level for efficiency.
     * Provide an interface for users to evaluate functions directly within python,
@@ -908,8 +908,8 @@ class input(Function):
     to be manipulated directly, such as to extract a particular component.
     
     This function class is most often used when you wish to extract a particular
-    coodinate component for manipulation. For this reason, we also provide a 
-    proxy to this class called 'coord'.
+    coordinate component for manipulation. For this reason, we also provide an
+    alias to this class called 'coord'.
 
     Returns
     -------

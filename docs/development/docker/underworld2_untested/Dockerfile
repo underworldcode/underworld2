@@ -10,7 +10,7 @@ ENV PYTHONPATH $PYTHONPATH:/root/underworld2
 # get underworld, compile, delete some unnecessary files, trust notebooks, copy to workspace
 RUN git clone --branch "development" --single-branch https://github.com/underworldcode/underworld2 && \
     cd underworld2/libUnderworld && \
-    ./configure.py               && \
+    ./configure.py --with-debugging=0  && \
     ./scons.py                   && \
     cd libUnderworldPy           && \
     ./swigall.py                 && \

@@ -104,6 +104,12 @@ def barrier():
     MPI.COMM_WORLD.Barrier()
 
 def matplotlib_inline():
+    """
+    This function simply enables Jupyter Notebook inlined matplotlib results. 
+    Using this is preferable to directly using the standard Jupyter Notebook
+    magic, as if you export your notebook to standard python, inlining of 
+    matplotlib results will be automatically disabled.
+    """
     try :
         if(__IPYTHON__) :
             get_ipython().magic(u'matplotlib inline')
