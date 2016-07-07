@@ -389,9 +389,6 @@ class CrossSection(Drawing):
                        valueRange=None, logScale=False, discrete=False,
                        *args, **kwargs):
 
-        if isinstance(mesh, _underworld.function.Function):
-            raise TypeError("Note that the first two arguments for this constructor have been switched. "
-                            "Please specify the mesh (mesh), and then the function (fn), or use keyword arguments.")
         self._fn = _underworld.function.Function._CheckIsFnOrConvertOrThrow(fn)
         
         if not isinstance(mesh,_uwmesh.FeMesh):

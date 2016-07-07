@@ -79,7 +79,19 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
             return guy
         else:
             import misc
-            return misc.constant(guy)
+            try:
+                return misc.constant(guy)
+            except Exception as e:
+                import underworld as uw
+                raise uw._prepend_message_to_exception(e, "An exception was raised while try to convert an "
+                                                         +"object to an Underworld2 function. Usually this "
+                                                         +"occurs because you didn't pass in the correct "
+                                                         +"object. Please check your function arguments! "
+                                                         +"Note that only python types 'int', 'float' or "
+                                                         +"'bool' (and iterables of these types) are convertible "
+                                                         +"to functions.\n\n"
+                                                         +"Original encountered exception message:\n")
+
 
     def __add__(self,other):
         """

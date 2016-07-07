@@ -18,8 +18,10 @@ class constant(_Function):
     
     Parameters
     ----------
-    value: int,float,bool. scalar or vector.
-        The value the function should return.
+    value: int,float,bool. (iterables permitted)
+        The value the function should return. Note that iterable objects
+        which contain valid types are permitted, but must be homogeneous
+        in their type.
         
     >>> import underworld as uw
     >>> import underworld.function as fn
@@ -89,7 +91,9 @@ class constant(_Function):
             try:
                 iterator = iter(value)
             except TypeError:
-                raise ValueError("'value' object provided to Constant Function constructor does not appear to be valid.")
+                raise ValueError("'value' object provided to Constant Function constructor does not appear to be valid. "
+                                +"Only python types 'int', 'float' and 'bool' are acceptable, or iterable objects "
+                                +"homogeneous in these types.")
             else:
                 # iterable
                 tupleGuy = tuple(iterator)
@@ -102,12 +106,15 @@ class constant(_Function):
                 elif isinstance(firstFella,float):
                     ioguy = _cfn.IO_double(lenTupleGuy,3)
                 else:
-                    raise ValueError("'value' object provided to Constant Function constructor does not appear to be valid.")
+                    raise ValueError("'value' object provided to Constant Function appears to be an iterable, but "
+                                    +"does not appear to contain objects of python type 'int', 'float' or 'bool'.")
                 # right, now load in ze data
                 ii = 0
                 for val in tupleGuy:
                     if not isinstance(val,type(firstFella)):
-                        raise ValueError("Your array (or similar) must be homogeneous of type.")
+                        raise ValueError("'value' object provided to Constant Function appears to be an iterable, but "
+                                        +"does not appear to be homogeneous in type. Objects in iterable must all be "
+                                        +"of python type 'int', all of type 'float', or all of type 'bool'.")
                     ioguy.value(val,ii)
                     ii+=1;
         return ioguy
