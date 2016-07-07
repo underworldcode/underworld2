@@ -394,7 +394,7 @@ class Figure(dict):
     """
     _viewerProc = None
 
-    def __init__(self, store=None, name=None, figsize=(640,480), boundingBox=((0,0,0),(0,0,0)), facecolour="white",
+    def __init__(self, store=None, name=None, figsize=(640,480), boundingBox=None, facecolour="white",
                  edgecolour="black", title="", axis=False, quality=1, properties=None, *args, **kwargs):
 
         #Create a default database just for this figure if none provided
@@ -430,8 +430,12 @@ class Figure(dict):
         #Setup default properties
         self.update({"title" : title, "axis" : axis, "axislength" : 0.2, "antialias" : True, "background" : facecolour,
             "margin" : 34, "border" : (1 if edgecolour else 0), "bordercolour" : edgecolour, "rulers" : False, "zoomstep" : 0})
-        self["min"] = boundingBox[0]
-        self["max"] = boundingBox[1]
+        if boundingBox:
+            #Add 3rd dimension if missing
+            if len(boundingBox[0]) < 3 or len(boundingBox[1]) < 3:
+                boundingBox = (tuple(list(boundingBox[0]) + [0]), tuple(list(boundingBox[1]) + [0]))
+            self["min"] = boundingBox[0]
+            self["max"] = boundingBox[1]
 
         if not isinstance(figsize,tuple):
             raise TypeError("'figsize' object passed in must be of python type 'tuple'")
