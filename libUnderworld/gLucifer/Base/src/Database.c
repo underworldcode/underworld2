@@ -827,13 +827,6 @@ void lucDatabase_OpenDatabase(lucDatabase* self)
       /* 10 sec timeout on busy(locked), as we are only accessing the db on root should not be necessary */
       sqlite3_busy_timeout(self->db, 10000);
 
-      if (!self->context || !(self->context->loadFromCheckPoint))
-      {
-         /* Remove existing data */
-         lucDatabase_IssueSQL(self->db, "drop table IF EXISTS geometry");
-         lucDatabase_IssueSQL(self->db, "drop table IF EXISTS timestep");
-      }
-
       /* Create new tables when not present */
       lucDatabase_CreateDatabase(self);
    }
