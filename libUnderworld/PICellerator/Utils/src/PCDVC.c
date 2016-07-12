@@ -108,11 +108,11 @@ void _PCDVC_Init( void* pcdvc, GeneralSwarm* mps, double upT, double lowT,
     self->materialPointsSwarm = mps;
     self->upperT = upT;
     self->lowerT = lowT;
-    self->maxDeletions = self->maxDeletions_orig = maxDeletions;
-    self->maxSplits    = self->maxSplits_orig    = maxSplits;
-    self->Inflow       = self->Inflow_orig       = Inflow;
-    self->splitInInterfaceCells = self->splitInInterfaceCells_orig = splitInInterfaceCells;
-    self->deleteInInterfaceCells = self->deleteInInterfaceCells_orig = deleteInInterfaceCells;
+    self->maxDeletions = maxDeletions;
+    self->maxSplits    = maxSplits;
+    self->Inflow       = Inflow;
+    self->splitInInterfaceCells  = splitInInterfaceCells;
+    self->deleteInInterfaceCells = deleteInInterfaceCells;
     self->Threshold = Threshold;
     self->CentPosRatio = CentPosRatio;
     self->ParticlesPerCell = ParticlesPerCell;
