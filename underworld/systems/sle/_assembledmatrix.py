@@ -17,17 +17,16 @@ class AssembledMatrix(_stgermain.StgCompoundComponent):
     _objectsDict = { "_matrix": "StiffnessMatrix" }
     _selfObjectName = "_matrix"
 
-#    def __init__(self, meshVariableRow, meshVariableCol, assemblyTerms=[], rhs=None, rhs_T=None, **kwargs):
-    def __init__(self, meshVariableRow, meshVariableCol, rhs=None, rhs_T=None, allowZeroContrib=False, **kwargs):
+    def __init__(self, meshVariableRow, meshVariableCol, rhs=None, rhs_T=None, assembleOnNodes=False, **kwargs):
         """
         Args:
             meshVariableRow (MeshVariable)
             meshVariableCol (MeshVariable)
 
         See property docstrings for further information on each argument.
-        
+
         """
-        
+
         if not isinstance(meshVariableRow, uw.mesh.MeshVariable):
             raise TypeError("'meshvariableRow' object passed in must be of type 'MeshVariable'")
 
@@ -44,28 +43,25 @@ class AssembledMatrix(_stgermain.StgCompoundComponent):
             raise TypeError("'rhs_T' object passed in must be of type 'AssembledVector'")
         self._rhs   = rhs
         self._rhs_T = rhs_T
-        
-        if not isinstance( allowZeroContrib, bool ):
-            raise TypeError("'allowZeroContrib' must be of type 'bool'.")
-        self.allowZeroContrib = allowZeroContrib
-        
-#        if not isinstance(assemblyTerms, (tuple,list)):
-#            raise TypeError("'assemblyTerms' object passed in must be of type 'list' or 'tuple'")
-#        self._assemblyTerms = assemblyTerms
+
+        if not isinstance( assembleOnNodes, bool ):
+            raise TypeError("'assembleOnNodes' must be of type 'bool'.")
+        self.assembleOnNodes = assembleOnNodes
+
 
         # build parent
         super(AssembledMatrix,self).__init__(**kwargs)
-        
+
 
     @property
     def meshVariableRow(self):
-        """    
+        """
         meshVariableRow (MeshVariable): MeshVariable object for matrix row.
         """
         return self._meshVariableRow
     @property
     def meshVariableCol(self):
-        """    
+        """
         meshVariableCol (MeshVariable): MeshVariable object for matrix xol.
         """
         return self._meshVariableCol
@@ -73,18 +69,18 @@ class AssembledMatrix(_stgermain.StgCompoundComponent):
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method
         super(AssembledMatrix,self)._add_to_stg_dict(componentDictionary)
-        
+
         componentDictionary[ self._matrix.name ][   "RowVariable"] = self._meshVariableRow._cself.name
         componentDictionary[ self._matrix.name ]["ColumnVariable"] = self._meshVariableCol._cself.name
-        if self.allowZeroContrib == False:
-            componentDictionary[ self._matrix.name ]["allowZeroElementContributions"] = "False"
-        else:
-            componentDictionary[ self._matrix.name ]["allowZeroElementContributions"] = "True"
         componentDictionary[ self._matrix.name ]["dim"] = self._meshVariableCol._mesh.generator.dim
         if self._rhs:
             componentDictionary[ self._matrix.name ][         "RHS"] = self._rhs._cself.name
         if self._rhs_T:
             componentDictionary[ self._matrix.name ]["transposeRHS"] = self._rhs_T._cself.name
+        if self.assembleOnNodes == False:
+            componentDictionary[ self._matrix.name ]["assembleOnNodes"] = "False"
+        else:
+            componentDictionary[ self._matrix.name ]["assembleOnNodes"] = "True"
 
 
 #    def _setup(self):
@@ -97,4 +93,3 @@ class AssembledMatrix(_stgermain.StgCompoundComponent):
 #        self._assemblyTerms.append(assemblyTerm)
 #        assemblyTerm._cself.stiffnessMatrix = self._cself
 #        libUnderworld.StgFEM.StiffnessMatrix_AddStiffnessMatrixTerm(self._cself, assemblyTerm._cself)
-

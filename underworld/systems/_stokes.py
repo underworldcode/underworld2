@@ -149,9 +149,9 @@ class Stokes(_stgermain.StgCompoundComponent):
         # and matrices
         self._kmatrix = sle.AssembledMatrix( velocityField, velocityField, rhs=self._fvector )
         self._gmatrix = sle.AssembledMatrix( velocityField, pressureField, rhs=self._fvector, rhs_T=self._hvector )
-        self._preconditioner = sle.AssembledMatrix( pressureField, pressureField, rhs=self._hvector, allowZeroContrib=True )
+        self._preconditioner = sle.AssembledMatrix( pressureField, pressureField, rhs=self._hvector )
         if fn_lambda != None:
-            self._mmatrix = sle.AssembledMatrix( pressureField, pressureField, rhs=self._hvector, allowZeroContrib=True )
+            self._mmatrix = sle.AssembledMatrix( pressureField, pressureField, rhs=self._hvector )
 
         # create assembly terms which always use gauss integration
         gaussSwarm = uw.swarm.GaussIntegrationSwarm(self._velocityField.mesh)
