@@ -476,8 +476,9 @@ void StiffnessMatrix_Assemble( void* stiffnessMatrix, Bool bcRemoveQuery, void* 
 
 }
 
-#if 0
+
 void __StiffnessMatrix_NewAssembleNodeWise( void* stiffnessMatrix, Bool removeBCs, void* _sle, void* _context ) {
+#if 0
   const double one = 1.0;
   StiffnessMatrix*          self = (StiffnessMatrix*)stiffnessMatrix;
   SystemLinearEquations*		sle = (SystemLinearEquations*)_sle;
@@ -657,8 +658,8 @@ void __StiffnessMatrix_NewAssembleNodeWise( void* stiffnessMatrix, Bool removeBC
       VecAssemblyEnd( transVector );
   }
 
-}
 #endif
+}
 /* Callback version */
 void __StiffnessMatrix_NewAssemble( void* stiffnessMatrix, Bool removeBCs, void* _sle, void* _context ) {
     const double one = 1.0;
