@@ -119,15 +119,14 @@ void _lucVectorArrowCrossSection_Draw( void* drawingObject, lucDatabase* databas
 
 void _lucVectorArrowCrossSection_DrawCrossSection( void* drawingObject, lucDatabase* database)
 {
-   lucVectorArrowCrossSection*  self           = (lucVectorArrowCrossSection*)drawingObject;
-   double            min = 0.0, max = self->maximum;
-   Index          aIndex, bIndex;
+   lucVectorArrowCrossSection*  self = (lucVectorArrowCrossSection*)drawingObject;
+   double min = HUGE_VAL, max = -HUGE_VAL;
+   Index aIndex, bIndex;
 
-
-   if ( True == self->dynamicRange )
+   if ( False == self->dynamicRange )
    {
-      //min = FieldVariable_GetMinGlobalFieldMagnitude( vectorVariable );  JM: need to fix
-      //max = FieldVariable_GetMaxGlobalFieldMagnitude( vectorVariable );
+     min = 0.0;
+     max = self->maximum;
    }
 
    /* Force 3d vectors */
@@ -143,6 +142,17 @@ void _lucVectorArrowCrossSection_DrawCrossSection( void* drawingObject, lucDatab
       {
          if (self->values[aIndex][bIndex][0] != HUGE_VAL)
          {
+            if ( True == self->dynamicRange )
+            {
+              double mag = self->values[aIndex][bIndex][0]*self->values[aIndex][bIndex][0];
+              mag += self->values[aIndex][bIndex][1]*self->values[aIndex][bIndex][1];
+              mag += self->values[aIndex][bIndex][2]*self->values[aIndex][bIndex][2];
+              mag = sqrt(mag);
+              if (mag < min) min = mag;
+              if (mag > max) max = mag;
+
+            }
+
             lucDatabase_AddVertices(database, 1, lucVectorType, &self->vertices[aIndex][bIndex][0]);
             lucDatabase_AddVectors(database, 1, lucVectorType, min, max, &self->values[aIndex][bIndex][0]);
          }
