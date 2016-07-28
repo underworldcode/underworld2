@@ -42,7 +42,7 @@ suites = []
 tst_exp = []
 tst_input = []
 
-dirs = Split('Base DrawingObjects libgLucifer Viewer/src/sqlite3')
+dirs = Split('Base DrawingObjects libgLucifer')
 for d in dirs:
 
     # Need the module name, which is just the directory.
