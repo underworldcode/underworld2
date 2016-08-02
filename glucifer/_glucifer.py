@@ -26,6 +26,7 @@ haveLavaVu = True
 try:
     import libUnderworld.libUnderworldPy.LavaVu as LavaVu
 except:
+    print "WARNING: LavaVu not found, inline visualisation disabled"
     haveLavaVu = False
 
 # lets create somewhere to dump data for this session
