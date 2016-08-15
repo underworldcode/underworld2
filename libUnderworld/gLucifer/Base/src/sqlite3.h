@@ -1,1 +1,1 @@
-../../Viewer/src/sqlite3/src/sqlite3.h
+../../Viewer/src/sqlite3/sqlite3.h

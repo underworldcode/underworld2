@@ -107,10 +107,8 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
             raise TypeError( "Provided 'conditions' must be a list '_SystemCondition' objects." )
 
         # error check dcs 'dirichlet conditions' and ncs 'neumann cond.' FeMesh_IndexSets
-        nbc = None
-        mesh     = temperatureField.mesh
-        ncs      = uw.mesh.FeMesh_IndexSet( mesh, topologicalIndex=0, size=mesh.nodesGlobal )
-        dcs      = uw.mesh.FeMesh_IndexSet( mesh, topologicalIndex=0, size=mesh.nodesGlobal )
+        nbc  = None
+        mesh = temperatureField.mesh
 
         for cond in conditions:
             if not isinstance( cond, uw.conditions._SystemCondition ):
@@ -119,19 +117,10 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
             if type( cond ) == uw.conditions.DirichletCondition:
                 if cond.variable == temperatureField:
                     libUnderworld.StgFEM.FeVariable_SetBC( temperatureField._cself, cond._cself )
-                # add all dirichlet condition to dcs
-                dcs.add( cond.indexSets[0] )
             elif type( cond ) == uw.conditions.NeumannCondition:
-                ncs.add( cond.indexSets[0] )
                 nbc=cond
             else:
                 raise RuntimeError("Can't decide on input condition")
-
-        # check if condition definitions occur on the same nodes: error conditions presently
-        should_be_empty = dcs & ncs
-        if should_be_empty.count > 0:
-            raise ValueError("It appears both Neumann and Dirichlet conditions have been specified the following node degrees of freedom\n" +
-                    "This is currently unsupported.", should_be_empty.data)
 
         # ok, we've set some bcs, lets recreate eqnumbering
         libUnderworld.StgFEM._FeVariable_CreateNewEqnNumber( temperatureField._cself )
@@ -163,13 +152,14 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
         self._forceVecTerm = sle.VectorAssemblyTerm_NA__Fn(   integrationSwarm=intswarm,
                                                               assembledObject=self._fvector,
                                                               fn=fn_heating)
-        # prepare neumann conditions
-        if nbc:
-            self._surfaceFluxTerm = sle.VectorSurfaceAssemblyTerm_NA__Fn__ni(
-                                                                assembledObject = self._fvector,
+        # search for neumann conditions
+        for cond in conditions:
+            if isinstance( cond, uw.conditions.NeumannCondition ):
+                #NOTE many NeumannConditions can be used but the _sufaceFluxTerm only records the last
+                self._surfaceFluxTerm = sle.VectorSurfaceAssemblyTerm_NA__Fn__ni(
+                                                                assembledObject  = self._fvector,
                                                                 surfaceGaussPoints = 2,
-                                                                nbc = nbc )
-
+                                                                nbc         = cond )
         super(SteadyStateHeat, self).__init__(**kwargs)
 
     def _setup(self):
