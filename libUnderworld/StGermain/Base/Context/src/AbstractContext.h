@@ -20,11 +20,6 @@
 
    struct Context_CallInfo { __StGermain_Base_Context_CallInfo };
    
-   typedef enum CheckpointFileFormat {
-      CHECKPOINT_FORMAT_ASCII,   /* Default Stg Ascii text format */
-      CHECKPOINT_FORMAT_HDF5      /* Format using HDF5 library */
-   } CheckpointFileFormat;
-   
    /* AbstractContext entry point names */
    extern Type AbstractContext_EP_AssignFromXML;
    extern Type AbstractContext_EP_AssignFromXMLExtensions;
@@ -42,13 +37,7 @@
    extern Type AbstractContext_EP_PostSolvePreUpdateClass;
    extern Type AbstractContext_EP_Sync;
    extern Type AbstractContext_EP_FrequentOutput;
-   extern Type AbstractContext_EP_Dump;
-   extern Type AbstractContext_EP_DumpClass;
-   extern Type AbstractContext_EP_Save;
-   extern Type AbstractContext_EP_SaveClass;
-   extern Type AbstractContext_EP_DataSave;
-   extern Type AbstractContext_EP_DataSaveClass;
-   
+
    /* Textual name of this class */
    extern const Type AbstractContext_Type;
    extern const Type AbstractContext_Type_Verbose; /* Use for a particular info stream */
@@ -75,39 +64,14 @@
       unsigned int           timeStep; \
       double                 dt; \
       double                 dtFactor; \
-      /* This additional timestep is necessary for checkpoint restart runs, so it can be compared against
-         maxTimeSteps (which is now relative to job restart).*/ \
-      unsigned int           timeStepSinceJobRestart; \
       /* Maximum number of time steps to run for. If set to 0, then this will  be ignored. */ \
       int                    maxTimeSteps; \
-      /* Final Time Step: last time step to run till, no matter if maxTimeSteps still has some
-         left in a checkpoint restart run. If 0 (the default), not active. */ \
-      unsigned int           finalTimeStep; \
       Bool                   gracefulQuit; \
       unsigned int           frequentOutputEvery; \
-      Bool                   stepDump; \
-      unsigned int           dumpEvery; \
-      unsigned int           checkpointEvery; \
-      unsigned int           saveDataEvery; \
-      double                 checkpointAtTimeInc; \
-      double                 nextCheckpointTime; \
       Name                   experimentName; \
       char*                  outputPath; \
-      char*                  checkpointReadPath; \
-      char*                  checkpointWritePath; \
-      /* user set bool to determine whether checkpoint (or data) files should be placed in a per timestep directory */ \
-      Bool                   checkpointAppendStep; \
-      /* user set bool to determine whether checkpoint restarts should interpolate to new 
-         resolution (where resolution is different from checkpoints) */ \
-      Bool                   interpolateRestart; \
-      Bool                   loadFromCheckPoint; \
-      Bool                   loadFieldsFromCheckpoint; \
-      Bool                   loadSwarmsFromCheckpoint; \
       Bool                   outputSlimmedXML; \
       Bool                   vis; \
-      /* flattened XML output can be disabled if desired (default True) */ \
-      int                    restartTimestep; \
-      char*                  checkPointPrefixString; \
       Stream*                info; \
       Stream*                verbose; /* general error stream */ \
       Stream*                debug; \
@@ -133,12 +97,6 @@
       EntryPoint_Index       postSolveClassK; \
       EntryPoint_Index       syncK; \
       EntryPoint_Index       frequentOutputK; \
-      EntryPoint_Index       dumpK; \
-      EntryPoint_Index       dumpClassK; \
-      EntryPoint_Index       saveK; \
-      EntryPoint_Index       saveClassK; \
-      EntryPoint_Index       dataSaveK; \
-      EntryPoint_Index       dataSaveClassK; \
       \
       Variable_Register*     variable_Register; \
       EntryPoint_Register*   entryPoint_Register; \
@@ -216,12 +174,6 @@
    /* Runs the AbstractContext_EP_FrequentOutput Entry Point */
    void AbstractContext_FrequentOutput( void* context ) ;
    
-   /* Runs the AbstractContext_EP_Dump and AbstractContext_EP_DumpClass Entry Points */
-   void AbstractContext_Dump( void* context ) ;
-   
-   /* Runs the AbstractContext_EP_Save Entry Point */
-   void AbstractContext_Save( void* context ) ;
-
    /* Run an entry point... resolving from name (slower) */
    #define AbstractContext_Call( self, name, cast, handle )   ((cast)_AbstractContext_Call( self, name, &handle ))
    Func_Ptr _AbstractContext_Call( void* abstractContext, Name name, void** handle );
@@ -243,18 +195,7 @@
    
    /* function to error if no hooks to an entrypoint defined */
    void AbstractContext_ErrorIfNoHooks( void* context, EntryPoint_Index epIndex, const char* caller );
-   
-   Bool AbstractContext_CheckPointExists( void* context, Index timeStep );
 
-   /* Works out the prefix string to use for reading checkpoint files (input path + C.P. prefix)
-    * Note this allocates a string which the user needs to free when done. */ 
-   char* Context_GetCheckPointReadPrefixString( void* context );
-   char* Context_GetCheckPointWritePrefixStringTopLevel( void* context );
-
-   /* Works out the prefix string to use for writing checkpoint files (input path + C.P. prefix)
-    * Note this allocates a string which the user needs to free when done. */ 
-   char* Context_GetCheckPointWritePrefixString( void* context );
-   
    /* Context private methods ************************************************************************************************/
    
    /* Default construction hook, and overrides for the EP to handle the context/ptrToContext synchronisation */
@@ -272,16 +213,6 @@
    
    /* update configuration in preperation for next solve */
    void AbstractContext_Update(void* _context);
-
-   void _AbstractContext_LoadTimeInfoFromCheckPoint( void* _context, Index timeStep, double* dtLoadedFromFile );
-
-   void _AbstractContext_SaveTimeInfo( void* _context );
-
-   void _AbstractContext_CreateCheckpointDirectory( void* _context );
-
-   void _AbstractContext_AllOutput( void* _context );
-
-
 
 #endif /* __StGermain_Base_Context_AbstractContext_h__ */
 

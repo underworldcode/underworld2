@@ -126,43 +126,7 @@ void _AdvectionDiffusionSLE_Delete( void* sle ) {
 	_SystemLinearEquations_Delete( self );
 }
 
-void _AdvectionDiffusionSLE_Print( void* sle, Stream* stream ) {
-	AdvectionDiffusionSLE* self = (AdvectionDiffusionSLE*) sle;
-	
-	Journal_Printf( stream, "Printing contents of SLE Advection Diffusion '%s':\n", self->name );
-	Stream_Indent( stream );
-		Journal_PrintPointer( stream, self );
-		_Stg_Component_Print( self, stream );
-
-		Journal_Printf( stream, "Items from Constructor:\n");
-		Stream_Indent( stream );
-			Journal_PrintPointer( stream, self->phiField );
-			Journal_PrintPointer( stream, self->residual );
-			Journal_PrintPointer( stream, self->massMatrix );
-			Journal_PrintUnsignedInt( stream, self->dim );
-		Stream_UnIndent( stream );
-
-		Journal_Printf( stream, "Items from created by SLE self:\n");
-		Stream_Indent( stream );
-			Journal_PrintPointer( stream, self->phiDotArray );
-			Journal_PrintPointer( stream, self->phiDotField );
-			Journal_PrintPointer( stream, self->phiDotDofLayout );
-			Journal_PrintPointer( stream, self->phiVector );
-			Journal_PrintPointer( stream, self->phiDotVector );
-		Stream_UnIndent( stream );
-
-		Journal_Printf( stream, "Parameters set from dictionary:\n");
-		Stream_Indent( stream );
-			Journal_PrintDouble( stream, self->courantFactor );
-		Stream_UnIndent( stream );
-					
-		Journal_Printf( stream, "Stored Values:\n");
-		Stream_Indent( stream );
-			Journal_PrintDouble( stream, self->maxDiffusivity );
-		Stream_UnIndent( stream );
-
-	Stream_UnIndent( stream );
-}
+void _AdvectionDiffusionSLE_Print( void* sle, Stream* stream ) {}
 
 
 void* _AdvectionDiffusionSLE_DefaultNew( Name name ) {
@@ -226,7 +190,7 @@ void _AdvectionDiffusionSLE_AssignFromXML( void* sle, Stg_ComponentFactory* cf, 
 
         self->pureDiffusion = Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"pureDiffusion", False  );
 
-    self->phiDotField =  Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"PhiDotField", FeVariable, False, data  );
+    self->phiDotField =  Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"PhiDotField", FeVariable, True, data  );
 
 	_AdvectionDiffusionSLE_Init(
 		self,
@@ -245,8 +209,6 @@ void _AdvectionDiffusionSLE_Destroy( void* sle, void* data ) {
    __AdvDiffResidualForceTerm_FreeLocalMemory( self );
    Stg_Component_Destroy( self->phiDotVector, data, False );
    Stg_Component_Destroy( self->phiVector, data, False );
-
-   Memory_Free( self->phiDotArray );
 
    _SystemLinearEquations_Destroy( self, data );
 }
@@ -322,70 +284,7 @@ void _AdvectionDiffusionSLE_Build( void* sle, void* data ) {
 	Index							forceTerm_I;
 	Index							forceTermCount = Stg_ObjectList_Count( self->residual->forceTermList );
 	ForceTerm*					forceTerm;
-	int				         *nodeDomainCountPtr;
-	Variable*					variable;
-	Node_DomainIndex			node_I;
 
-	Journal_DPrintf( self->debug, "In %s()\n", __func__ );
-
-   /* HACK_4PPC, JG 31Aug10 */
-   self->isBuilt = True;
-
-	/* Create New FeVariable for Phi Dot */
-	if (!self->phiDotField) {
-		Variable_Register*			variable_Register;
-		FieldVariable_Register*		fieldVariable_Register;
-		char*								fieldName, *dofName, *fieldDotName, *phiVecName, *phiDotVecName;
-
-		variable_Register = self->variableReg;
-		fieldVariable_Register = self->fieldVariableReg;
-
-		Stg_Component_Build( self->phiField->feMesh, data, False );
-
-		nodeDomainCountPtr = &((IGraph*)self->phiField->feMesh->topo)->remotes[MT_VERTEX]->nDomains;
-
- 		/* must create unique names otherwise multiple instances of this component
-		* will index incorrect instances of this component's data */
-		fieldName = Memory_Alloc_Array_Unnamed( char, strlen(self->name)+8 );
-		sprintf( fieldName, "%s-phiDot", self->name );
-
-		dofName = Memory_Alloc_Array_Unnamed( char, strlen(self->name)+11 );
-		sprintf( dofName, "%s-dofLayout", self->name );
-
-		fieldDotName  = Memory_Alloc_Array_Unnamed( char, strlen(self->name)+13 );
-		sprintf( fieldDotName, "%s-phiDotField", self->name );
-
-		phiVecName = Memory_Alloc_Array_Unnamed( char, strlen(self->name)+11 );
-		sprintf( phiVecName, "%s-phiVector", self->name );
-
-		phiDotVecName = Memory_Alloc_Array_Unnamed( char, strlen(self->name)+14 );
-		sprintf( phiDotVecName, "%s-phiDotVector", self->name );
-
-		variable = Variable_NewScalar( fieldName, (AbstractContext*)self->context, Variable_DataType_Double, (Index*)nodeDomainCountPtr, NULL, (void**)&self->phiDotArray, variable_Register  );
-
-		self->phiDotDofLayout = DofLayout_New( dofName, (DomainContext*)self->context, variable_Register, *nodeDomainCountPtr, NULL );
-		//self->phiDotDofLayout = DofLayout_New( "dofLayout1", variable_Register, *nodeDomainCountPtr, NULL );
-		for( node_I = 0; node_I < *nodeDomainCountPtr ; node_I++ ) 
-			DofLayout_AddDof_ByVarName( self->phiDotDofLayout, variable->name, node_I );
-
-		self->phiDotField = FeVariable_New_FromTemplate(
-			fieldDotName,
-			(DomainContext*) self->context,
-			self->phiField,
-			self->phiDotDofLayout,
-			NULL,
-			False, False,
-			fieldVariable_Register );
-		self->phiDotField->context = (DomainContext*)self->context;
-
-
-		/* free original name variables */
-		Memory_Free(fieldName);
-		Memory_Free(dofName);
-		Memory_Free(fieldDotName);
-		Memory_Free(phiVecName);
-		Memory_Free(phiDotVecName);
-	}
     /* Construct Solution Vectors */
     char *phiVecName, *phiDotVecName;
     phiVecName = Memory_Alloc_Array_Unnamed( char, strlen(self->name)+11 );
@@ -398,39 +297,6 @@ void _AdvectionDiffusionSLE_Build( void* sle, void* data ) {
     Memory_Free(phiDotVecName);
 
 	_SystemLinearEquations_Build( self, data );
-
-	/* Get pointer to residual force term 
-	 * All Advection Diffusion SLE's need a force term of type AdvDiffResidualForceTerm for the algorithm to work
-	 * this chunk of code is making sure that one and only one is registered to the force vector */
-//	for ( forceTerm_I = 0 ; forceTerm_I < forceTermCount ; forceTerm_I++ ) {
-//		forceTerm = (ForceTerm*) Stg_ObjectList_At( self->residual->forceTermList, forceTerm_I );
-//
-//      /* HACK_4PPC, JG 31Aug10 */
-//		if ( Stg_Class_IsInstance( forceTerm, AdvDiffResidualForceTerm_Type ) || !strcmp( forceTerm->type, "SUPGAdvDiffTermPpc" ) ) {
-//			/* Check to make sure this force term is unique */
-//			if (self->advDiffResidualForceTerm != NULL) {
-//				Journal_Firewall( self->advDiffResidualForceTerm == NULL, errorStream, 
-//						"Error - More than one force term of type '%s' registered on %s '%s'. \n\tThey are %s and %s.\n", 
-//						AdvDiffResidualForceTerm_Type, self->type, self->name, 
-//						self->advDiffResidualForceTerm->name, forceTerm->name);
-//			}
-//
-//			/* Store pointer to force term */
-//			self->advDiffResidualForceTerm = (AdvDiffResidualForceTerm*) forceTerm;
-//                       
-//			/* HACK */
-//			Stg_Component_Build( self->advDiffResidualForceTerm, data, False );
-//
-//		}
-//	}
-//	/* Ensure that there is at least one force term with proper residual type */
-//	Journal_Firewall( self->advDiffResidualForceTerm != NULL, errorStream,
-//			"Error - No force terms of type '%s' registered on %s '%s'.\n",
-//			AdvDiffResidualForceTerm_Type, self->type, self->name );
-
-	if ( self->phiDotField ) {
-		self->phiDotArray = Memory_Alloc_Array( double, Mesh_GetDomainSize( self->phiDotField->feMesh, MT_VERTEX ), "phiDotArray" );
-	}
 
 	/* Force Vectors */
 	if ( self->residual )
@@ -454,13 +320,8 @@ void _AdvectionDiffusionSLE_Initialise( void* sle, void* data ) {
 	_SystemLinearEquations_Initialise( self, data );
 	
 	Stg_Component_Initialise( self->phiDotField, data, False );
-
-/* 	Stream* stream = Journal_Register( Info_Type, (Name)self->type  ); */
-/* 	FeVariable_PrintLocalDiscreteValues( self->phiDotField, stream ); */
 	
-	if ( context && False == context->loadFieldsFromCheckpoint ) {
-		DofLayout_SetAllToZero( self->phiDotField->dofLayout );
-	}
+    DofLayout_SetAllToZero( self->phiDotField->dofLayout );
 
 	/* Force Vectors */
 	Stg_Component_Initialise( self->residual, data, False );

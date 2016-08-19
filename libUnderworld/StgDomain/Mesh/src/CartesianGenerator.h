@@ -54,8 +54,6 @@
 		Comm*		comm;								\
 		Bool		regular;							\
 		Bool		periodic[3];							\
-		/* read cartesian mesh data from checkpoint file? */                            \
-		Bool		readFromFile;							\
 		unsigned	maxDecompDims;							\
 		unsigned*	minDecomp;							\
 		unsigned*	maxDecomp;							\
@@ -70,10 +68,8 @@
 		unsigned*	range;		/* Local element grid range for this processor */ \
 		unsigned*	vertOrigin;	/* Local node grid origin for this processor */ \
 		unsigned*	vertRange;  /* Local node grid range for this processor */ \
-                int             contactDepth[3][2];                     \
-                double          contactGeom[3]; \
-		char*           initVtkFile; /* for reading Rozel's mesh JG - 22Oct2012 */ \
-		char*           initMeshFile;
+        int             contactDepth[3][2];                     \
+        double          contactGeom[3];
 
 	struct CartesianGenerator { __CartesianGenerator };
 
@@ -207,9 +203,6 @@
 	void CartesianGenerator_Destruct( CartesianGenerator* self );
 	void CartesianGenerator_DestructTopology( CartesianGenerator* self );
 	void CartesianGenerator_DestructGeometry( CartesianGenerator* self );
-	void CartesianGenerator_ReadFromHDF5(  CartesianGenerator* self, Mesh* mesh, const char* filename );
-	void CartesianGenerator_ReadFromASCII( CartesianGenerator* self, Mesh* mesh, const char* filename ); 
-	void CartesianGenerator_ReadFromVTK(  CartesianGenerator* self, Mesh* mesh, const char* filename );
 
 #endif /* __StgDomain_Mesh_CartesianGenerator_h__ */
 

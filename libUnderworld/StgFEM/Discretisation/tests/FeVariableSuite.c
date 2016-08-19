@@ -69,7 +69,7 @@ FeVariable* BuildFeVariable_AsPosition( unsigned dim ) {
       (void**)arrayPtrs, varReg, "vx", "vy", "vz" );
    Variable_Register_BuildAll( varReg );
 
-   dofs = DofLayout_New( "", NULL, varReg, 0, feMesh );
+   dofs = DofLayout_New( "", varReg, 0, feMesh );
    dofs->nBaseVariables = dim;
    dofs->baseVariables = Memory_Alloc_Array_Unnamed( Variable*, dim );
    dofs->baseVariables[0] = var->components[0];
@@ -141,7 +141,7 @@ FeVariable* BuildFeVariable_AsConstant( unsigned dim ) {
    var = Variable_NewScalar( "pressure", NULL, Variable_DataType_Double, (Index*)(unsigned*)&arraySize, NULL, (void**)&arrayPtr, varReg );
    Variable_Register_BuildAll( varReg  );
 
-   dofs = DofLayout_New( "", NULL, varReg, 0, feMesh );
+   dofs = DofLayout_New( "", varReg, 0, feMesh );
    dofs->nBaseVariables = 1;
    dofs->baseVariables = Memory_Alloc_Array_Unnamed( Variable*, 1 );
    dofs->baseVariables[0] = var;

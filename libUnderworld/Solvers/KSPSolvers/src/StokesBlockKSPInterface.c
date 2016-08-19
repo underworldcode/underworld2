@@ -202,13 +202,6 @@ void _StokesBlockKSPInterface_Initialise( void* solver, void* data ) {
 	/* Initialise Parent */
 	_SLE_Solver_Initialise( self, sle );
 
-	if ( sle->context && (True == sle->context->loadFieldsFromCheckpoint) ) {
-		/* The previous timestep's velocity solution will be helpful in iterating to a better
-		solution faster - and thus make restarting from checkpoint more repeatable compared
-		to original non-restart solution */
-		SolutionVector_LoadCurrentFeVariableValuesOntoVector( sle->uSolnVec );
-		SolutionVector_LoadCurrentFeVariableValuesOntoVector( sle->pSolnVec );
-	}
 	KSPRegisterAllKSP("Solvers/KSPSolvers/src");
 }
 

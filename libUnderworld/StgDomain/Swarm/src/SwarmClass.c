@@ -7,10 +7,6 @@
 **                                                                                  **
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 
-#ifdef READ_HDF5
-#include <hdf5.h>
-#endif
-
 #include <mpi.h>
 #include <StGermain/StGermain.h>
 
@@ -644,53 +640,15 @@ void _Swarm_AssignFromXML( void* swarm, Stg_ComponentFactory* cf, void* data ) {
 
 void _Swarm_Build( void* swarm, void* data ) {
 	Swarm* self = (Swarm*)swarm;
-	AbstractContext* context = self->context;
-	
-	Journal_DPrintf( self->debug, "In %s(): for swarm \"%s\" (of type %s)\n", __func__, self->name, self->type ); 
-	Stream_IndentBranch( Swarm_Debug );
 
 	Stg_Component_Build( self->cellLayout, data, False );
 	Stg_Component_Build( self->particleLayout, data, False );
-	
-	Journal_DPrintf( self->debug, "allocating memory for cell->particle mappings:\n" );
+
 	_Swarm_BuildCells( self, data );
-	Journal_DPrintf( self->debug, "...done.\n" );
-
-	/* if loading from checkpoint, then delete the particle layout
-	 * created due to the user's specification in the input file,
-	 * and replace it with a FileParticleLayout, so that the particles
-	 * can be re-loaded with their exact state at the checkpointed time
-	 */
-	if ( context && context->loadSwarmsFromCheckpoint ) {
-		Journal_DPrintf( self->debug, "detected loadSwarmsFromCheckpoint mode enabled:\n" );
-		Stream_Indent( self->debug );
-
-		if ( False == self->isSwarmTypeToCheckPointAndReload ) {
-			Journal_DPrintf( self->debug, "...but this swarm type is set to not be checkpointed/reloaded, "
-				"so continuing.\n" );
-		}
-		else {
-			Swarm_ReplaceCurrentParticleLayoutWithFileParticleLayout( self, context );
-		}	
-		Stream_UnIndent( self->debug );
-	}
-	
-	Journal_DPrintf( self->debug, "allocating memory for particles:\n" );
 	_Swarm_BuildParticles( self, data );
-	Journal_DPrintf( self->debug, "...done.\n" );
-   
-	Journal_DPrintf( self->debug, "setting up the particle owningCell SwarmVariable:\n" );
 	Stg_Component_Build( self->owningCellVariable, data, False );
-	Journal_DPrintf( self->debug, "...done.\n" );
-	
-	Stream_UnIndentBranch( Swarm_Debug );
-	Journal_DPrintf( self->debug, "...done in %s().\n", __func__ );
-
     Stg_Component_Build( self->globalIdVariable, data, False );
 
-
-	if( self->ics && !(context && (True == context->loadSwarmsFromCheckpoint) ) )
-		Stg_Component_Build( self->ics, data, False );
 }
 
 			
@@ -706,33 +664,6 @@ void _Swarm_Initialise( void* swarm, void* data ) {
 	Stg_Component_Initialise( self->particleLayout, data, False );
 
 	_Swarm_InitialiseCells( self, data );
-
-   // initialise globalIdVariable first if 
-   if( self->globalIdVariable && !(self->context && (True == self->context->loadSwarmsFromCheckpoint) )  ) {
-      StandardParticle* particle=NULL;
-      int *countPerProc = Memory_Alloc_Array_Unnamed( int, self->nProc );
-      int myCount = self->particleLocalCount;
-      int myOffset, ii, *gidExt;
-
-      // communicate all local particle counts to other procs 
-      MPI_Allgather( &myCount, 1, MPI_INT,
-         countPerProc, 1, MPI_INT,
-         self->comm);
-
-      // calculate count offset for the local proc
-      myOffset=0;
-      for(ii=0; ii<self->myRank;ii++)
-         myOffset += countPerProc[ii];
-
-      // give particles a local index
-      for( ii=0; ii < self->particleLocalCount; ii++) {
-         particle = (StandardParticle*)Swarm_ParticleAt( self, ii );
-         gidExt = ExtensionManager_Get( self->particleExtensionMgr, particle, self->gidExtHandle );
-         *gidExt = myOffset + ii; 
-      }
-
-      Memory_Free( countPerProc );
-   }
 
 	_Swarm_InitialiseParticles( self, data );
 
@@ -988,7 +919,6 @@ void Swarm_UpdateParticleOwner( void* swarm, Particle_Index particle_I ) {
 	GlobalParticle*	        particle       = (GlobalParticle*) Swarm_ParticleAt( self, particle_I );
 	Cell_DomainIndex	newOwningCell;
 	Particle_InCellIndex	cParticle_I;
-	Coord*			coordPtr       = &particle->coord;
 
 	newOwningCell = CellLayout_CellOf( self->cellLayout, particle );
 
@@ -1646,56 +1576,6 @@ StandardParticle* Swarm_CreateNewParticle( void* swarm, Particle_Index* newParti
 }
 
 
-void Swarm_ReplaceCurrentParticleLayoutWithFileParticleLayout( void* swarm, void* _context ) {
-	Swarm*               self = (Swarm*)swarm;
-	AbstractContext*     context = (AbstractContext*)_context;
-	char*                name = NULL;
-	char*                swarmFileName     = NULL;
-	char*                swarmFileNamePart = NULL;
-	Index                checkpointfiles;
-
-	Stg_asprintf( &name, "%s-fileParticleLayout", self->name );
-
-   swarmFileNamePart = Context_GetCheckPointReadPrefixString( context );
-#ifdef READ_HDF5
-	Stg_asprintf( &swarmFileName, "%s%s.%05d", swarmFileNamePart, self->name, context->restartTimestep );
-#else
-	Stg_asprintf( &swarmFileName, "%s%s.%05d.dat", swarmFileNamePart, self->name, context->restartTimestep );
-#endif
-	
-	if(self->particleLayout)
-      Journal_DPrintf( self->debug, "overriding the particleLayout specified via XML/constructor\n"
-		"of \"%s\" (of type %s) with a FileParticleLayout to load\n"
-		"this swarm's checkpoint file from checkpointReadPath \"%s\",\n"
-		"with prefix \"%s\" from timestep %u with total name:\n\"%s\"\n",
-		self->particleLayout->name, self->particleLayout->type,
-		context->checkpointReadPath,
-		context->checkPointPrefixString, context->restartTimestep,
-		swarmFileName );
-
-	/* TODO: deleting this makes sense if this swarm "owns" the particle layout. Is it
-	* possible for 2 swarms to have the same particle layout? I guess so - may need
-	* to rethink later. Deleting is ok though for now since the "reference counter"
-	* was incremented when we got it out of the LC register.
-	* PatrickSunter - 13 June 2006
-	*/
-	Stg_Component_Destroy( self->particleLayout, NULL, False );
-	/* find out how many files fileparticlelayout is stored across.. currently for this function we assume we are reading from checkpoints.. TODO generalise */
-	/* set to one incase reading ascii */
-	checkpointfiles = 1;
-	/* now check if using hdf5 */ 
-	#ifdef READ_HDF5
-	checkpointfiles = _FileParticleLayout_GetFileCountFromTimeInfoFile( context );
-	#endif
-
-	self->particleLayout = (ParticleLayout*)FileParticleLayout_New( name, context, GlobalCoordSystem, False, 0, 0.0, swarmFileName, checkpointfiles );
-
-   Memory_Free( name );
-   Memory_Free( swarmFileName );
-   Memory_Free( swarmFileNamePart );
-   
-}
-
 Bool Swarm_AddCommHandler( Swarm *self, void *commHandler )
 {
 	assert( commHandler );
@@ -1718,229 +1598,4 @@ void Swarm_AddVariable( Swarm* self, SwarmVariable* swarmVar ) {
 				      SwarmClass_Type );
 	self->swarmVars[self->nSwarmVars] = swarmVar;
 	self->nSwarmVars++;
-}
-
-void Swarm_DumpToHDF5( void* _swarm, const char* filename ) {
-   Swarm*                  swarm = (Swarm*)_swarm;
-   hid_t                   file, fileSpace, fileData;
-   hid_t                   memSpace;
-   hid_t                   props;
-   hid_t                   attribData_id, attrib_id, group_id;
-   //herr_t                  status;
-   hsize_t                 size[2];
-   //hsize_t                 cdims[2];
-   hsize_t                 a_dims;
-   int                     attribData;
-   hsize_t                 count[2];
-   Particle_Index          lParticle_I = 0;
-   SwarmVariable*          swarmVar;
-   Index                   swarmVar_I;
-   char                    dataSpaceName[1024];
-                
-   /* Open the HDF5 output file. */
-   file = H5Fcreate( filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT );
-   Journal_Firewall(
-                file >= 0, 
-                NULL,
-                "Error in dump to hdf5 - Cannot create file %s.\n",
-                filename );
-
-   /* create file attribute to indicate whether file is empty, as HDF5 does not allow empty datasets */
-   attribData = swarm->particleLocalCount;
-   a_dims = 1;
-   attribData_id = H5Screate_simple(1, &a_dims, NULL);
-   #if (H5_VERS_MAJOR == 1 && H5_VERS_MINOR < 8) || H5Gopen_vers == 1
-      group_id  = H5Gopen(file, "/");
-      attrib_id = H5Acreate(group_id, "Swarm Particle Count", H5T_STD_I32BE, attribData_id, H5P_DEFAULT);
-   #else
-      group_id  = H5Gopen(file, "/", H5P_DEFAULT);
-      attrib_id = H5Acreate(group_id, "Swarm Particle Count", H5T_STD_I32BE, attribData_id, H5P_DEFAULT, H5P_DEFAULT);
-   #endif
-   H5Awrite(attrib_id, H5T_NATIVE_INT, &attribData);
-   H5Aclose(attrib_id);
-   H5Gclose(group_id);
-   H5Sclose(attribData_id);
-
-   if(swarm->particleLocalCount > 0){
-      /* Loop through the swarmVariable_Register */
-      for( swarmVar_I = 0; swarmVar_I < swarm->swarmVariable_Register->objects->count; swarmVar_I++ ) {
-         swarmVar = SwarmVariable_Register_GetByIndex( swarm->swarmVariable_Register, swarmVar_I );
-   
-         /* check that the swarmVariable should be stored */
-         if( swarmVar->isCheckpointedAndReloaded ) {
-            
-            /* Create our file space. */
-            size[0]  = swarm->particleLocalCount;
-            size[1]  = swarmVar->dofCount;   
-            fileSpace = H5Screate_simple( 2, size, NULL );
-            
-            /* Create our memory space. */
-            count[0] = swarm->particleLocalCount;
-            count[1] = swarmVar->dofCount;
-            memSpace = H5Screate_simple( 2, count, NULL );
-            H5Sselect_all( memSpace );
-           
-            /* set data chunking size.  as we are not opening and closing
-               dataset frequently, a large chunk size (the largest!) seems
-               appropriate, and gives good compression */
-            //cdims[0] = swarm->particleLocalCount;
-            //cdims[1] = swarmVar->dofCount;
-            
-            props  = H5Pcreate( H5P_DATASET_CREATE );
-            /* turn on hdf chunking.. as it is required for compression */
-            //status = H5Pset_chunk(props, 2, cdims);
-            /* turn on compression */
-            //status = H5Pset_deflate( props, 6);
-            /* turn on data checksum */ 
-            //status = H5Pset_fletcher32(props);
-   
-            /* Create a new dataspace */
-            sprintf( dataSpaceName, "/%s", swarmVar->name + strlen(swarm->name)+1 );
-            if( swarmVar->variable->dataTypes[0] == Variable_DataType_Int ) {
-               /* Allocate space for the values to be written to file */
-               int** value = Memory_Alloc_2DArray( int, swarm->particleLocalCount, swarmVar->dofCount, (Name)"swarmVariableValue"  );
-               
-               #if (H5_VERS_MAJOR == 1 && H5_VERS_MINOR < 8) || H5Dcreate_vers == 1
-               fileData = H5Dcreate( file, dataSpaceName, H5T_NATIVE_INT, fileSpace, props );
-               #else
-               fileData = H5Dcreate( file, dataSpaceName, H5T_NATIVE_INT, fileSpace,
-                                      H5P_DEFAULT, props, H5P_DEFAULT );
-               #endif
-               
-               /* Loop through local particles */      
-               for( lParticle_I=0; lParticle_I < swarm->particleLocalCount; lParticle_I++ ) {
-                  /* Write the value of the current swarmVariable at the current particle to the temp array */
-                  Variable_GetValue( swarmVar->variable, lParticle_I, value[lParticle_I] );
-               }
-               /* Write array to dataspace */
-               H5Dwrite( fileData, H5T_NATIVE_INT, memSpace, fileSpace, H5P_DEFAULT, *value );
-               Memory_Free( value );
-            }
-            else if( swarmVar->variable->dataTypes[0] == Variable_DataType_Char) {
-               char** value;
-               /* Allocate space for the values to be written to file */
-               value = Memory_Alloc_2DArray( char, swarm->particleLocalCount, swarmVar->dofCount, (Name)"swarmVariableValue"  );
-               
-               #if (H5_VERS_MAJOR == 1 && H5_VERS_MINOR < 8) || H5Dcreate_vers == 1
-               fileData = H5Dcreate( file, dataSpaceName, H5T_NATIVE_CHAR, fileSpace, props );
-               #else
-               fileData = H5Dcreate( file, dataSpaceName, H5T_NATIVE_CHAR, fileSpace,
-                                      H5P_DEFAULT, props, H5P_DEFAULT );
-               #endif
-               
-               /* Loop through local particles */      
-               for( lParticle_I=0; lParticle_I < swarm->particleLocalCount; lParticle_I++ ) {
-                  /* Write the value of the current swarmVariable at the current particle to the temp array */
-                  Variable_GetValue( swarmVar->variable, lParticle_I, value[lParticle_I] );
-               }
-               /* Write array to dataspace */
-               H5Dwrite( fileData, H5T_NATIVE_CHAR, memSpace, fileSpace, H5P_DEFAULT, *value );
-               Memory_Free( value );
-            }
-            else if( swarmVar->variable->dataTypes[0] == Variable_DataType_Float ) {
-               float** value;
-               /* Allocate space for the values to be written to file */
-               value = Memory_Alloc_2DArray( float, swarm->particleLocalCount, swarmVar->dofCount, (Name)"swarmVariableValue"  );
-               
-               #if (H5_VERS_MAJOR == 1 && H5_VERS_MINOR < 8) || H5Dcreate_vers == 1
-               fileData = H5Dcreate( file, dataSpaceName, H5T_NATIVE_FLOAT, fileSpace, props );
-               #else
-               fileData = H5Dcreate( file, dataSpaceName, H5T_NATIVE_FLOAT, fileSpace,
-                                      H5P_DEFAULT, props, H5P_DEFAULT );
-               #endif
-               
-               /* Loop through local particles */      
-               for( lParticle_I=0; lParticle_I < swarm->particleLocalCount; lParticle_I++ ) {       
-                  /* Write the value of the current swarmVariable at the current particle to the temp array */
-                  Variable_GetValue( swarmVar->variable, lParticle_I, value[lParticle_I] );
-               }
-               /* Write array to dataspace */
-               H5Dwrite( fileData, H5T_NATIVE_FLOAT, memSpace, fileSpace, H5P_DEFAULT, *value );
-               Memory_Free( value );
-            }
-            else {
-               double** value;
-               /* Allocate space for the values to be written to file */
-               value = Memory_Alloc_2DArray( double, swarm->particleLocalCount, swarmVar->dofCount, (Name)"swarmVariableValue"  );
-               
-               #if (H5_VERS_MAJOR == 1 && H5_VERS_MINOR < 8) || H5Dcreate_vers == 1
-               fileData = H5Dcreate( file, dataSpaceName, H5T_NATIVE_DOUBLE, fileSpace, props );
-               #else
-               fileData = H5Dcreate( file, dataSpaceName, H5T_NATIVE_DOUBLE, fileSpace,
-                                      H5P_DEFAULT, props, H5P_DEFAULT );
-               #endif          
-               
-               /* Loop through local particles */      
-               for( lParticle_I=0; lParticle_I < swarm->particleLocalCount; lParticle_I++ ) {
-                  /* Write the value of the current swarmVariable at the current particle to the temp array */
-                  Variable_GetValue( swarmVar->variable, lParticle_I, value[lParticle_I] );
-               }
-               /* Write array to dataspace */
-               H5Dwrite( fileData, H5T_NATIVE_DOUBLE, memSpace, fileSpace, H5P_DEFAULT, *value );
-               Memory_Free( value );
-            }
-            /* Close the dataspace */
-            H5Dclose( fileData );
-            H5Sclose( memSpace );
-            H5Sclose( fileSpace );
-            H5Pclose( props );
-         }
-      }
-      /* now save the element the particle belongs to, if available */
-      if( IsChild( ((Stg_Component*)swarm->cellLayout)->type, ElementCellLayout_Type )){
-         Mesh* cellLayoutMesh = ((ElementCellLayout*)swarm->cellLayout)->mesh;
-            
-         /* Create our file space. */
-         size[0]  = swarm->particleLocalCount;
-         fileSpace = H5Screate_simple( 1, size, NULL );
-         
-         /* Create our memory space. */
-         count[0] = swarm->particleLocalCount;
-         memSpace = H5Screate_simple( 1, count, NULL );
-         H5Sselect_all( memSpace );
-           
-         /* set data chunking size.  as we are not opening and closing
-            dataset frequently, a large chunk size (the largest!) seems
-            appropriate, and gives good compression */
-         //cdims[0] = swarm->particleLocalCount;
-         
-         props  = H5Pcreate( H5P_DATASET_CREATE );
-         /* turn on hdf chunking.. as it is required for compression */
-         //status = H5Pset_chunk(props, 1, cdims);
-         /* turn on compression */
-         //status = H5Pset_deflate( props, 6);
-         /* turn on data checksum */ 
-         //status = H5Pset_fletcher32(props);
-
-         /* Allocate space for the values to be written to file */
-         int* value = Memory_Alloc_Array( int, swarm->particleLocalCount, (Name)"swarmVariableValue"  );
-         
-         #if (H5_VERS_MAJOR == 1 && H5_VERS_MINOR < 8) || H5Dcreate_vers == 1
-         fileData = H5Dcreate( file, "OwningElement", H5T_NATIVE_INT, fileSpace, props );
-         #else
-         fileData = H5Dcreate( file, "OwningElement", H5T_NATIVE_INT, fileSpace,
-                                H5P_DEFAULT, props, H5P_DEFAULT );
-         #endif
-         
-         /* Loop through local particles */      
-         for( lParticle_I=0; lParticle_I < swarm->particleLocalCount; lParticle_I++ ) {
-            int particleOwningCell;
-            /** get owning cell */
-            Variable_GetValue( swarm->owningCellVariable->variable, lParticle_I, &particleOwningCell );
-            /** convert from domain to global, and save to array */
-            value[lParticle_I] = Mesh_DomainToGlobal( cellLayoutMesh, Mesh_GetDimSize( cellLayoutMesh ), particleOwningCell ); 
-         }
-         /* Write array to dataspace */
-         H5Dwrite( fileData, H5T_NATIVE_INT, memSpace, fileSpace, H5P_DEFAULT, value );
-         Memory_Free( value );
-         /* Close the dataspace */
-         H5Dclose( fileData );
-         H5Sclose( memSpace );
-         H5Sclose( fileSpace );
-         H5Pclose( props );
-      }
-   }
-   /* Close off all our handles. */
-   H5Fclose( file );
-   
 }

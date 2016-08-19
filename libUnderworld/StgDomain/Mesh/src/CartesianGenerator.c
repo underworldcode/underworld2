@@ -12,10 +12,6 @@
 #include <string.h>
 #include <assert.h>
 
-#ifdef READ_HDF5
-#include <hdf5.h>
-#endif
-
 #include <mpi.h>
 #include <StGermain/StGermain.h>
 
@@ -108,10 +104,7 @@ CartesianGenerator* _CartesianGenerator_New(  CARTESIANGENERATOR_DEFARGS  ) {
 	self->genFaceEdgeIncFunc = genFaceEdgeIncFunc;
 	self->genEdgeVertexIncFunc = genEdgeVertexIncFunc;
 	self->genElementTypesFunc = genElementTypesFunc;
-  self->calcGeomFunc = calcGeomFunc; 
-  self->initVtkFile = NULL;
-  self->initMeshFile = NULL;
-
+    self->calcGeomFunc = calcGeomFunc;
 
 	return self;
 }
@@ -142,9 +135,6 @@ void _CartesianGenerator_Init( CartesianGenerator* self ) {
 	self->vertOrigin = NULL;
 	self->vertRange = NULL;
    
-   /* set load from checkpoint to false by default */
-   self->readFromFile = False;
-
 }
 
 
@@ -154,9 +144,6 @@ void _CartesianGenerator_Init( CartesianGenerator* self ) {
 
 void _CartesianGenerator_Delete( void* meshGenerator ) {
 	CartesianGenerator*	self = (CartesianGenerator*)meshGenerator;
-
-	if( self->initVtkFile ) FreeArray( self->initVtkFile );
-	if( self->initMeshFile ) FreeArray( self->initMeshFile );
 
 	/* Delete the parent. */
 	_MeshGenerator_Delete( self );
@@ -192,10 +179,6 @@ void _CartesianGenerator_AssignFromXML( void* meshGenerator, Stg_ComponentFactor
 	Stream*						errorStream = Journal_Register( Error_Type, (Name)self->type  );
 	unsigned						d_i;
    AbstractContext*        context;	
-#ifdef READ_HDF5
-	hid_t file, fileData;
-#endif
-	char *_vtk_file = NULL;
 	
 	assert( self && Stg_CheckType( self, CartesianGenerator ) );
 	assert( cf );
@@ -288,7 +271,7 @@ void _CartesianGenerator_AssignFromXML( void* meshGenerator, Stg_ComponentFactor
 		crdMin = Memory_Alloc_Array_Unnamed( double, 3 );
 		crdMax = Memory_Alloc_Array_Unnamed( double, 3 );
 		for( d_i = 0; d_i < self->nDims; d_i++ ) {
-		   double maxVal;
+            double maxVal;
 			tmp = Dictionary_Entry_Value_GetElement( minList, d_i );
 			rootKey = Dictionary_Entry_Value_AsString( tmp );
 
@@ -305,180 +288,13 @@ void _CartesianGenerator_AssignFromXML( void* meshGenerator, Stg_ComponentFactor
 			/* test to ensure provided domain is valid */
 			maxVal =  (abs(crdMax[d_i]) > abs(crdMin[d_i])) ? abs(crdMax[d_i]) : abs(crdMin[d_i]);
 			if( maxVal == 0  ) maxVal = 1;  /* if maxVal is zero, then both numbers must be zero, set to one as next test will fail */
-         Journal_Firewall( ( ( (crdMax[d_i] - crdMin[d_i])/maxVal) > 1E-10 || d_i==J_AXIS), errorStream,
+            Journal_Firewall( ( ( (crdMax[d_i] - crdMin[d_i])/maxVal) > 1E-10 || d_i==J_AXIS), errorStream,
                      "\n\nError in %s for %s '%s'\n\n"
                      "Dimension of domain (min = %f, max = %f) for component number %u is not valid.\n\n",
                      __func__, self->type, self->name,
                      crdMin[d_i], crdMax[d_i], d_i);
 		}
-
-		if( context && self->context->loadFromCheckPoint  ) {
-         char*   meshReadFileName;
-         char*   meshReadFileNamePart;
-         self->readFromFile = True;
-#ifdef READ_HDF5
-         hid_t   attrib_id, group_id;
-         herr_t  status;
-
-         meshReadFileNamePart = Context_GetCheckPointReadPrefixString( context );
-
-         /*
-            The following is EVIL code. As we only checkpoint deforming meshes every timestep we need to query if the mesh is deforming.
-            Unfortunately the only way we can tell at the AssignFromXML phase of the code is by detecting if the Underworld_EulerDeform plugin
-            (the plugin responsible for deforming the mesh) is active.
-            So the following logic is:
-               if the Underworld_EulerDeform is loaded:
-                  read the mesh file at appropriate timestep
-               else:
-                  read the mesh file at timestep 0 
-         */
-         /** assumption: that the generator only generates one mesh, or that the information in that mesh's checkpoint
-         file is valid for all meshes being generated TODO: generalise **/
-         if( Stg_ObjectList_Get( context->plugins->modules, "Underworld_EulerDeform" ) ) {
-            Stg_asprintf( &meshReadFileName, "%sMesh.%s.%.5u.h5", meshReadFileNamePart, self->meshes[0]->name, self->context->restartTimestep );
-         } else {
-            Stg_asprintf( &meshReadFileName, "%sMesh.%s.%.5u.h5", meshReadFileNamePart, self->meshes[0]->name, 0 );
-         }
-	      
-	      /** Read in minimum coord. */
-	      file = H5Fopen( meshReadFileName, H5F_ACC_RDONLY, H5P_DEFAULT );
-	      
-	      if( !file ) {
-            /** file not found, so don't load from checkpoint */
-            self->readFromFile = False;
-				Journal_Printf( errorStream, 
-					"Warning - Couldn't find checkpoint mesh file with filename \"%s\".\n", 
-					meshReadFileName );
-			}
-			else {
-         int res[self->nDims];
-
-         #if (H5_VERS_MAJOR == 1 && H5_VERS_MINOR < 8) || H5Dopen_vers == 1
-	         fileData = H5Dopen( file, "/min" );
-         #else
-	         fileData = H5Dopen( file, "/min", H5P_DEFAULT );
-         #endif
-	         H5Dread( fileData, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, crdMin );
-	         H5Dclose( fileData );
-	         
-	         /** Read in maximum coord. */
-         #if (H5_VERS_MAJOR == 1 && H5_VERS_MINOR < 8) || H5Dopen_vers == 1
-	         fileData = H5Dopen( file, "/max" );
-         #else
-	         fileData = H5Dopen( file, "/max", H5P_DEFAULT );
-         #endif
-	         H5Dread( fileData, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, crdMax );
-	         H5Dclose( fileData );
-
-            /** get the file attributes  */
-         #if (H5_VERS_MAJOR == 1 && H5_VERS_MINOR < 8) || H5Gopen_vers == 1
-            group_id  = H5Gopen(file, "/");
-            attrib_id = H5Aopen_name(group_id, "checkpoint file version");
-         #else
-            group_id  = H5Gopen(file, "/", H5P_DEFAULT);
-            attrib_id = H5Aopen(group_id, "checkpoint file version", H5P_DEFAULT);
-         #endif
-
-         /** check for correct mesh size */
-      
-         #if H5_VERS_MAJOR == 1 && H5_VERS_MINOR < 8
-            attrib_id = H5Aopen_name(group_id, "mesh resolution");
-         #else
-            attrib_id = H5Aopen(group_id, "mesh resolution", H5P_DEFAULT);
-         #endif
-         status = H5Aread(attrib_id, H5T_NATIVE_INT, &res);
-         H5Aclose(attrib_id);
-   
-         if(self->nDims == 2){
-            if( !( (size[0] == res[0]) && (size[1] == res[1]) )){
-               if (context->interpolateRestart)
-                  self->readFromFile = False;
-               else
-                  Journal_Firewall( 
-                     NULL, 
-                     errorStream,
-                     "\n\nError in %s for %s '%s'\n"
-                     "Size of mesh (%u,%u) for checkpoint file (%s) does not correspond to simulation mesh size (%u,%u).\n\n"
-                     "If you would like to interpolate checkpoint data to simulation mesh size\n"
-                     "    please re-launch using '--interpolateRestart=1' flag\n\n", 
-                     __func__, self->type, self->name, 
-                     (unsigned int) res[0], (unsigned int) res[1],
-                     meshReadFileName,
-                     (unsigned int) size[0], (unsigned int) size[1]);
-            }
-         } else {
-            if( !( (size[0] == res[0]) && (size[1] == res[1]) && (size[2] == res[2]) )){
-               if (context->interpolateRestart)
-                  self->readFromFile = False;
-               else
-                  Journal_Firewall( 
-                     NULL, 
-                     errorStream,
-                     "\n\nError in %s for %s '%s'\n"
-                     "Size of mesh (%u,%u,%u) for checkpoint file (%s) does not correspond to simulation mesh size (%u,%u,%u).\n\n"
-                     "If you would like to interpolate checkpoint data to simulation mesh size\n"
-                     "    please re-launch using '--interpolateRestart=1' flag\n\n", 
-                     __func__, self->type, self->name, 
-                     (unsigned int) res[0], (unsigned int) res[1], (unsigned int) res[2],
-                     meshReadFileName,
-                     (unsigned int) size[0], (unsigned int) size[1], (unsigned int) size[2]);
-               }
-            }
-
-         H5Gclose(group_id);
-         H5Fclose( file );
-
-         }
-
-#else
-         Journal_Firewall(!context->interpolateRestart,  
-                     errorStream,"\n\n Interpolation restart not supported for ASCII checkpoint files \n\n");
-
-         meshReadFileNamePart = Context_GetCheckPointReadPrefixString( context );
-
-         // Evil plugin code to determine which mesh file to load
-         if( Stg_ObjectList_Get( context->plugins->modules, "Underworld_EulerDeform" ) ) {
-            Stg_asprintf( &meshReadFileName, "%sMesh.%s.%.5u.dat", meshReadFileNamePart, self->meshes[0]->name, self->context->restartTimestep );
-         } else {
-            Stg_asprintf( &meshReadFileName, "%sMesh.%s.%.5u.dat", meshReadFileNamePart, self->meshes[0]->name, 0 );
-         }
-	        
-			FILE* meshFile = fopen( meshReadFileName, "r" );	
-			/*Journal_Firewall( 
-				meshFile != 0, 
-				errorStream, 
-				"Error in %s - Couldn't find checkpoint mesh file with filename \"%s\" - aborting.\n", 
-				__func__,  
-				meshReadFileName );*/
-
-			if( meshFile == 0 ) {
-            /* file not found, so don't load from checkpoint */
-            self->readFromFile = False;            
-				Journal_Printf( errorStream, 
-					"Warning - Couldn't find checkpoint mesh file with filename \"%s\".\n", 
-					meshReadFileName );
-			}
-			else {
-				/* Read min and max coords from file */
-		      if(self->nDims==2)
-                  fscanf( meshFile, "Min: %lg %lg 0\n", &crdMin[0], &crdMin[1] );
-            else
-                  fscanf( meshFile, "Min: %lg %lg %lg\n", &crdMin[0], &crdMin[1], &crdMin[2] );
-		      if(self->nDims==2)
-                  fscanf( meshFile, "Max: %lg %lg 0\n", &crdMax[0], &crdMax[1] );
-            else
-                  fscanf( meshFile, "Max: %lg %lg %lg\n", &crdMax[0], &crdMax[1], &crdMax[2] );
-            
-				fclose( meshFile );
-			}
-#endif
 				
-                        self->initMeshFile=strdup( meshReadFileName );
-			Memory_Free( meshReadFileName );
-			Memory_Free( meshReadFileNamePart );
-
-		}	
-		   
 		/* Initial setup. */
 		CartesianGenerator_SetGeometryParams( self, crdMin, crdMax );
 
@@ -494,39 +310,10 @@ void _CartesianGenerator_AssignFromXML( void* meshGenerator, Stg_ComponentFactor
 	/* Read regular flag. */
 	self->regular = Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"regular", True  );
 
-	/* is there an initial vtk file, copy the file name */
-	_vtk_file = Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"initial_vtk_file", NULL  );
-  if( _vtk_file != NULL ) {
-    /* doing processing here because the _CartesianGenerator_Init is called BEFORE the AssignFromXML
-     * very TODO:Fix the this ordering issue
-     */
-    int rank;
-    int slength = strlen(_vtk_file);
-    self->initVtkFile = Memory_Alloc_Array_Unnamed( char, slength+1 );
-    strcpy( self->initVtkFile, _vtk_file );
-    // test if proc 0 can open the file
-    MPI_Comm_rank( self->mpiComm, &rank );
-    if( rank == 0 ) {
-      FILE *fptr=fopen(self->initVtkFile,"r");
-      if( fptr==NULL ) {
-        printf("Error in function %s\n"
-        "Trying to open the vtk file \'%s\' but can't - does it exist?\n", __func__, self->initVtkFile );
-        exit(EXIT_FAILURE);
-      }
-      fclose(fptr);
-    }
-	} else {
-    self->initVtkFile = NULL;
-  }
-
 	/* Read periodic flags. */
 	self->periodic[0] = Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"periodic_x", False  );
 	self->periodic[1] = Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"periodic_y", False  );
 	self->periodic[2] = Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"periodic_z", False  );
-
-	/* Read a general dictionary flag for which processor to watch. */
-	stream = Journal_Register( Info_Type, (Name)self->type  );
-	Stream_SetPrintingRank( stream, Dictionary_GetUnsignedInt_WithDefault( cf->rootDict, "rankToWatch", 0 ) );
 
 	/* Free stuff. */
 	FreeArray( size );
@@ -2181,52 +1968,13 @@ void CartesianGenerator_MapToDomain( CartesianGenerator* self, Sync* sync,
 void CartesianGenerator_GenGeom( void* _self, void* _mesh, void* data ) {
 	CartesianGenerator* self = (CartesianGenerator*)_self;
     Mesh*               mesh = (Mesh*)_mesh;
-    Stream*			   stream = Journal_Register( Info_Type, (Name)self->type );
     Sync*			      sync;
     AbstractContext* 	context = (AbstractContext*)data;
-
-    assert( self );
-    assert( mesh  );
-
-//    Journal_Printf( stream, "Generating geometry...\n" );
-    Stream_Indent( stream );
 
     /* Allocate for coordinates. */
     sync = (Sync*)IGraph_GetDomain( (IGraph*)mesh->topo, 0 );
     Mesh_GenerateVertices( mesh, Sync_GetNumDomains( sync ), mesh->topo->nDims );
 
-
-/* Below is the algorithm to choose method to generate node geometry
-
-    IF vtk node geometry file THEN
-	READ IN VTK FORMAT
-    ELSE IF loading from checkpoint THEN
-	READ IN HDF5 FORMAT (or ascii - depends on build options )
-    ELSE 
-	USE THE OBJECTS FUNCTION calcGeomFunc
-
-*/
-    if( self->initVtkFile ) {
-
-      CartesianGenerator_ReadFromVTK( self, mesh, self->initVtkFile );
-
-    } else if( context && context->loadFromCheckPoint 
-	    && context->timeStep == context->restartTimestep 
-	    && self->readFromFile) {
-
-	char*  meshReadFileName = strdup( self->initMeshFile );
-
-	#ifdef READ_HDF5
-        CartesianGenerator_ReadFromHDF5( self, mesh, meshReadFileName );
-        Journal_Printf( stream, "... loading from file %s.\n", meshReadFileName );
-	#else
-	Journal_Printf( stream, "... loading from file %s.\n", meshReadFileName );
-	CartesianGenerator_ReadFromASCII( self, mesh, meshReadFileName);      
-	#endif
-	Memory_Free( meshReadFileName );
-	Mesh_Sync( mesh );
-
-    } else { 
 	Grid*			      grid;
 	unsigned*		   inds;
 	double*			   steps;
@@ -2246,12 +1994,8 @@ void CartesianGenerator_GenGeom( void* _self, void* _mesh, void* data ) {
 	/* Free resources. */
 	FreeArray( inds );
 	FreeArray( steps );
-    }
-
 
     MPI_Barrier( self->mpiComm );
-//    Journal_Printf( stream, "... done.\n" );
-    Stream_UnIndent( stream );
 }
 
 void CartesianGenerator_CalcGeom( void* _self, Mesh* mesh, Sync* sync, Grid* grid, unsigned* inds, double* steps ) {	
@@ -2326,381 +2070,4 @@ void CartesianGenerator_DestructGeometry( CartesianGenerator* self ) {
 	FreeArray( self->crdMin );
 	FreeArray( self->crdMax );
 }
-
-void _quit_because_bad_vtkfile(FILE *inputFile, char *lineString, char *expected){
-  printf("ERROR: Input vtk file has unexpected string\n");
-  printf("\tUnderwrold expected a line starting with - \"%s\"\n", expected );
-  printf("\tInput line is - \"%s\"\n", lineString );
-
-  printf("Change input file to meet expected file:\n");
-  printf("Underworld basic VTK reader assumes this block exists in the given VTK file:\n");
-  printf("************************\n");  
-  printf("DATASET STRUCTURED_GRID\n");
-  printf("DIMENSIONS nx ny nz\n");
-  printf("POINTS n dataType\n");	      
-  printf("p0x p0y p0z\n");
-  printf("p1x p1y p1z\n");
-  printf("************************\n");
-
-  printf("nx, ny, nz and read in as integer values\n");
-  printf("p0x p0y p0z and read in as double values\n");
-	  
-
-  fclose( inputFile );
-  exit(EXIT_FAILURE);
-}
-
-void CartesianGenerator_ReadFromVTK(  CartesianGenerator* self, Mesh* mesh, const char* filename ){
-  /* Assume a LEGACY VTK FILE format to define the node points.
-     For definition of LEGACY format see - http://www.vtk.org/VTK/img/file-formats.pdf
-
-     Assumes only STRUCTURE_GRID is defined in VTK file.
-  */
-
-  Node_LocalIndex   lNode_I = 0;
-  FILE*             inputFile;
-  char              lineString[MAX_LINE_LENGTH];
-  int               nLocalNodes, res[3];
-  int		    myRank, nProcs;
-
-	double crds[3];
-	double *vert;
-	unsigned inds[3], i,j,k, ni,nj,nk, gNode_I;
-
-	long              offset_into_file = 0;
-	MPI_Status        status;
-	const int         FINISHED_WRITING_TAG = 100;
-	int ierr;
-
-  MPI_Comm_rank( self->mpiComm, &myRank );
-  MPI_Comm_size( self->mpiComm, &nProcs );
-
-  /* Here the file is read sequentially by each proc
-	 * starting from 0,1....rank-1. An offset into the 
-	 * file is maintained by each proc and passed to the
-	 * next proc into the squence */
-
-	/* wait for go-ahead from process ranked lower than me, to avoid competition writing to file */
-	if ( myRank != 0  && offset_into_file == 0 ) {
-		ierr=MPI_Recv( &offset_into_file, 1, MPI_LONG, myRank - 1, FINISHED_WRITING_TAG, self->mpiComm, &status );
-	}
-
-	// open the file
-	inputFile = fopen( filename, "r" );
-	assert(inputFile);
-
-	// offset into the input file
-	fseek( inputFile, offset_into_file, SEEK_SET );
-
-	// let proc 0 check file's compatibility
-	if( myRank == 0 ) {
-		int good = 0;
-		while( !feof(inputFile ) ) {
-			// check DATASET, and leave file ptr at the line
-			fgets( lineString, MAX_LINE_LENGTH, inputFile );
-			if( 0 == strncmp(lineString, "DATASET STRUCTURED_GRID", 23 ) ){
-				good++;
-				break;
-			}
-		}
-
-		if( good != 1 ) _quit_because_bad_vtkfile(inputFile, lineString, "DATASET STRUCTURED_GRID");
-
-		// assume next line is dimensions - check they are compatible
-		fgets( lineString, MAX_LINE_LENGTH, inputFile );
-		if( 0 != strncmp(lineString, "DIMENSIONS ", 10 ) ){
-			_quit_because_bad_vtkfile(inputFile, lineString, "DIMENSIONS ");
-		}
-		if( self->nDims == 2 ) {
-			sscanf( lineString, "DIMENSIONS %d %d", &res[0], &res[1] );
-			assert( self->vertGrid->sizes[0] == res[0] );
-			assert( self->vertGrid->sizes[1] == res[1] );
-		} else {
-			sscanf( lineString, "DIMENSIONS  %d %d %d", res, res+1, res+2 );
-			assert( self->vertGrid->sizes[0] == res[0] );
-			assert( self->vertGrid->sizes[1] == res[1] );
-			assert( self->vertGrid->sizes[2] == res[2] );
-		}
-		good++;
-
-		// next line is "POINTS n <datatype>"
-		fgets( lineString, MAX_LINE_LENGTH, inputFile );
-		if( 0 != strncmp(lineString, "POINTS ", 6 ) ) _quit_because_bad_vtkfile(inputFile, lineString, "POINTS ");
-	}
-
-	// IMPORTANT to offset the file here
-	offset_into_file = ftell( inputFile );
-
-	nLocalNodes = Mesh_GetLocalSize( mesh, MT_VERTEX );
-	lNode_I = 0;
-
-	ni = self->vertGrid->sizes[0];
-	nj = self->vertGrid->sizes[1];
-	nk = self->vertGrid->sizes[2];
-
-	// loops over the ijk mesh representation
-	for( k=0; k<nk; k++ ) {
-		for( j=0; j<nj; j++) {
-			for( i=0; i<ni; i++) {
-				// read in line
-				fgets( lineString, MAX_LINE_LENGTH, inputFile );
-
-				// ASSUME global ijk and calculate global node id
-				inds[0] = i;
-				inds[1] = j;
-				inds[2] = k;
-				gNode_I = Grid_Project( self->vertGrid, inds );
-		
-				// if local read in coords;
-				if( Mesh_GlobalToDomain( mesh, MT_VERTEX, gNode_I, &lNode_I ) )	
-				{
-					sscanf( lineString, "%lg %lg %lg ", crds, crds + 1, crds + 2 );
-					vert = Mesh_GetVertex( mesh, lNode_I );
-					vert[0] = crds[0]; vert[1] = crds[1]; vert[2] = crds[2];
-				}
-			}
-		}
-	}
-	
-	// close this proc input file
-	fclose( inputFile );
-
-	/* send go-ahead from next proc, using offset_into_file as a message */
-	if ( myRank != nProcs - 1 ) {
-		MPI_Ssend( &offset_into_file, 1, MPI_LONG, myRank + 1, FINISHED_WRITING_TAG, self->mpiComm );
-	}
-}
-
-#ifdef READ_HDF5
-void CartesianGenerator_ReadFromHDF5(  CartesianGenerator* self, Mesh* mesh, const char* filename ){
-	hid_t             file, fileSpace, fileData;
-	hsize_t           start[2], count[2], size[2], maxSize[2];   
-	hid_t             memSpace, error;
-	double            buf[4];
-   Node_LocalIndex   lNode_I = 0;
-	Node_GlobalIndex  gNode_I = 0;
-   int               totalVerts, ii;
-   unsigned int		noffset;
-   MeshCheckpointFileVersion ver;
-   hid_t					attrib_id, group_id;
-   herr_t				status;
-   char*					verticeName;
-	Stream*			   errorStream = Journal_Register( Error_Type, (Name)self->type  );   
-
-   /* Open the file and data set. */
-   file = H5Fopen( filename, H5F_ACC_RDONLY, H5P_DEFAULT );
-
-   /** get the file attributes to sanity and version checks */
-   #if (H5_VERS_MAJOR == 1 && H5_VERS_MINOR < 8) || H5Gopen_vers == 1
-      group_id  = H5Gopen(file, "/");
-      attrib_id = H5Aopen_name(group_id, "checkpoint file version");
-   #else
-      group_id  = H5Gopen(file, "/", H5P_DEFAULT);
-      attrib_id = H5Aopen(group_id, "checkpoint file version", H5P_DEFAULT);
-   #endif
-   /** if this attribute does not exist (attrib_id < 0) then we assume MeshCHECKPOINT_V1 and continue without checking attributes */
-   if(attrib_id < 0)
-      ver = MeshCHECKPOINT_V1;
-   else {
-      int checkVer;
-      int ndims;
-      int res[self->nDims];
-      unsigned*  sizes;
-
-      /** check for known checkpointing version type */
-
-      status = H5Aread(attrib_id, H5T_NATIVE_INT, &checkVer);
-      H5Aclose(attrib_id);
-      if(checkVer == 2)
-         ver = MeshCHECKPOINT_V2;
-      else
-         Journal_Firewall( (0), errorStream,
-            "\n\nError in %s for %s '%s'\n"
-            "Unknown checkpoint version (%u) for checkpoint file (%s).\n", 
-            __func__, self->type, self->name, (unsigned int) checkVer, filename);
-
-      /** check for correct number of dimensions */
-
-      #if H5_VERS_MAJOR == 1 && H5_VERS_MINOR < 8
-         attrib_id = H5Aopen_name(group_id, "dimensions");
-      #else
-         attrib_id = H5Aopen(group_id, "dimensions", H5P_DEFAULT);
-      #endif
-      status = H5Aread(attrib_id, H5T_NATIVE_INT, &ndims);
-      H5Aclose(attrib_id);      
-      Journal_Firewall( (ndims == self->nDims), errorStream,
-         "\n\nError in %s for %s '%s'\n"
-         "Number of dimensions (%u) for checkpoint file (%s) does not correspond to simulation dimensions (%u).\n", 
-         __func__, self->type, self->name, (unsigned int) ndims, filename,
-         self->nDims);
-
-      /** check for correct mesh size */
-      
-      #if H5_VERS_MAJOR == 1 && H5_VERS_MINOR < 8
-         attrib_id = H5Aopen_name(group_id, "mesh resolution");
-      #else
-         attrib_id = H5Aopen(group_id, "mesh resolution", H5P_DEFAULT);
-      #endif
-      status = H5Aread(attrib_id, H5T_NATIVE_INT, &res);
-      H5Aclose(attrib_id);
-
-      sizes = Grid_GetSizes( self->elGrid ); /** global no. of elements in each dim */
-      if(self->nDims == 2)
-         Journal_Firewall( 
-            ( (sizes[0] == res[0]) && (sizes[1] == res[1]) ), 
-            errorStream,
-            "\n\nError in %s for %s '%s'\n"
-            "Size of mesh (%u,%u) for checkpoint file (%s) does not correspond to simulation mesh size (%u, %u).\n", 
-            __func__, self->type, self->name, 
-            (unsigned int) res[0], (unsigned int) res[1],
-            filename,
-            (unsigned int) sizes[0], (unsigned int) sizes[1]);
-      else
-         Journal_Firewall( 
-            ( (sizes[0] == res[0]) && (sizes[1] == res[1]) && (sizes[2] == res[2]) ), 
-            errorStream,
-            "\n\nError in %s for %s '%s'\n"
-            "Size of mesh (%u,%u,%u) for checkpoint file (%s) does not correspond to simulation mesh size (%u,%u,%u).\n", 
-            __func__, self->type, self->name, 
-            (unsigned int) res[0], (unsigned int) res[1], (unsigned int) res[2],
-            filename,
-            (unsigned int) sizes[0], (unsigned int) sizes[1], (unsigned int) sizes[2]);
-   }
-   H5Gclose(group_id);
-   
-   /** account for different versions of checkpointing */
-   switch ( ver ) {
-      case MeshCHECKPOINT_V1:
-         noffset = 1;
-         Stg_asprintf( &verticeName, "/data" );
-         break;
-      case MeshCHECKPOINT_V2:
-         noffset = 0;
-         Stg_asprintf( &verticeName, "/vertices" );
-         break;
-      default:
-         Journal_Firewall( 0, errorStream,
-            "Error: in %s: unknown checkpoint file version.\n",
-            __func__ ); 
-   }
-   
-   /* Prepare to read vertices from file */		
-   #if (H5_VERS_MAJOR == 1 && H5_VERS_MINOR < 8) || H5Dopen_vers == 1
-   fileData = H5Dopen( file, verticeName );
-   #else
-   fileData = H5Dopen( file, verticeName, H5P_DEFAULT );
-   #endif
-   fileSpace = H5Dget_space( fileData );
-   Memory_Free( verticeName );
-   start[1] = 0;
-   count[0] = 1;
-   count[1] = mesh->topo->nDims + noffset;
-   memSpace = H5Screate_simple( 2, count, NULL );
-   totalVerts = Mesh_GetGlobalSize( mesh, 0 );
-
-   /* Get size of dataspace to check consistency */
-   H5Sget_simple_extent_dims( fileSpace, size, maxSize ); 
-
-   Journal_Firewall( 
-      (maxSize[0] == totalVerts), 
-      errorStream,
-      "\n\nError in %s for %s '%s'\n"
-      "Number of mesh vertices (%u) stored in %s does not correspond to total number of requested mesh vertices (%u).\n", 
-      __func__, 
-      self->type, 
-      self->name, 
-      (unsigned int)maxSize[0],
-      filename,
-      totalVerts);
-
-   for( ii=0; ii<totalVerts; ii++ ) {   
-      start[0] = ii;
-            
-      H5Sselect_hyperslab( fileSpace, H5S_SELECT_SET, start, NULL, count, NULL );
-      H5Sselect_all( memSpace );
-      
-      error = H5Dread( fileData, H5T_NATIVE_DOUBLE, memSpace, fileSpace, H5P_DEFAULT, buf );
-      gNode_I = ii;
-
-      Journal_Firewall( 
-         error >= 0, 
-         errorStream,
-         "\n\nError in %s for %s '%s' - Cannot read data in %s.\n", 
-         __func__, 
-         self->type, 
-         self->name, 
-         filename );
-      
-      if( Mesh_GlobalToDomain( mesh, MT_VERTEX, gNode_I, &lNode_I ) && 
-          lNode_I < Mesh_GetLocalSize( mesh, MT_VERTEX ) )
-      {
-         double *vert;
-
-         vert = Mesh_GetVertex( mesh, lNode_I );
-         vert[0] = buf[0 + noffset];
-         vert[1] = buf[1 + noffset];
-         if( mesh->topo->nDims ==3 )
-            vert[2] = buf[2 + noffset];
-      }
-   }
-         
-   /* Close handles */
-   H5Sclose( memSpace );
-   H5Sclose( fileSpace );
-   H5Dclose( fileData );
-   H5Fclose( file );
-   
-}
-#endif
-
-void CartesianGenerator_ReadFromASCII( CartesianGenerator* self, Mesh* mesh, const char* filename ){
-   int               proc_I;
-	Node_LocalIndex   lNode_I = 0;
-	Node_GlobalIndex  gNode_I = 0;
-	FILE*             inputFile;
-	char              lineString[MAX_LINE_LENGTH];
-	int			      rank, nRanks;
-
-   MPI_Comm_rank( self->mpiComm, &rank );
-   MPI_Comm_size( self->mpiComm, &nRanks );
-
-   /* This loop used to stop 2 processors trying to open the file at the same time, which
-   * seems to cause problems */
-   for ( proc_I = 0; proc_I < nRanks; proc_I++ ) {
-      MPI_Barrier( self->mpiComm );
-      if ( proc_I == rank ) {
-         /* Do the following since in parallel on some systems, the file
-          * doesn't get re-opened at the start automatically. */
-         inputFile = fopen( filename, "r" );
-
-         rewind( inputFile );
-      }
-   }
-   
-   fgets( lineString, MAX_LINE_LENGTH, inputFile );
-   fgets( lineString, MAX_LINE_LENGTH, inputFile );
-
-   while ( !feof(inputFile) ) {
-      fscanf( inputFile, "%u ", &gNode_I );
-      if( Mesh_GlobalToDomain( mesh, MT_VERTEX, gNode_I, &lNode_I ) && 
-          lNode_I < Mesh_GetLocalSize( mesh, MT_VERTEX ) )
-      {
-         double crds[3];
-         double *vert;
-
-         fscanf( inputFile, "%lg %lg %lg ", crds, crds + 1, crds + 2 );
-         vert = Mesh_GetVertex( mesh, lNode_I );
-         vert[0] = crds[0];
-         if( self->nDims >= 2 )
-            vert[1] = crds[1];
-         if( self->nDims >=3 )
-            vert[2] = crds[2];
-      }
-      else {
-         fgets( lineString, MAX_LINE_LENGTH, inputFile );
-      }
-   }
-
-}
-
 

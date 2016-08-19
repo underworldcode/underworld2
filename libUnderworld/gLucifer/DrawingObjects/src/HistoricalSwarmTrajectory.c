@@ -106,9 +106,6 @@ void _lucHistoricalSwarmTrajectory_AssignFromXML( void* drawingObject, Stg_Compo
 
    /* Construct Parent */
    _lucDrawingObject_AssignFromXML( self, cf, data );
-   unsigned int endstep = 0;
-   if (self->context) endstep = self->context->loadFromCheckPoint ? self->context->restartTimestep + self->context->maxTimeSteps : self->context->maxTimeSteps;
-   if (endstep < defaultSteps) defaultSteps = endstep;
 
    swarm         =  Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"Swarm", Swarm, True, data  );
 

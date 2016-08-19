@@ -509,18 +509,6 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         # return our file handle
         return uw.utils.SavedFileData(self, filename)
 
-
-
-    def _oldsave( self, filename ):
-        """
-        Saves the mesh in hdf5 format to 'filename'. Note, this is a
-        global method, ie. all processes must call it.
-        """
-        if not isinstance(filename, str):
-            raise TypeError("'filename', must be of type 'str'")
-
-        uw.libUnderworld.StgFEM._FeMesh_DumpMeshHDF5( self._cself, filename )
-
     def load(self, filename ):
         """
         Load the mesh from disk.

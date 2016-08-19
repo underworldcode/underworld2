@@ -11,12 +11,7 @@
 #ifndef __StgDomain_Swarm_Swarm_h__
 #define __StgDomain_Swarm_Swarm_h__
 
-#if defined(READ_HDF5) || defined(WRITE_HDF5)
-#include <hdf5.h>
-#endif
-
 	#include "types.h"
-	
 	#include "ShadowInfo.h"
 	#include "StandardParticle.h"
 	#include "IntegrationPoint.h"
@@ -29,7 +24,6 @@
 	#include "ParticleShadowSync.h"
 	#include "SingleCellLayout.h"
 	#include "ElementCellLayout.h"
-	#include "CLLCellLayout.h"
 	#include "SingleCellLayout.h"
 	#include "TriSingleCellLayout.h"
 	#include "Random.h"
@@ -39,11 +33,9 @@
 	#include "TriGaussParticleLayout.h"
 	#include "GaussBorderParticleLayout.h"
 	#include "GlobalParticleLayout.h"
-	#include "FileParticleLayout.h"
 	#include "SpaceFillerParticleLayout.h"
 	#include "SwarmVariable_Register.h"
 	#include "SwarmVariable.h"
-	#include "SwarmDump.h"
 	#include "Init.h"
 	#include "Finalise.h"
 

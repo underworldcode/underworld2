@@ -13,7 +13,6 @@
 
    #include "types.h"
    #include "UnderworldContext.h"
-   #include "XDMFGenerator.h"
 
    #include "VectorAssemblyTerm_NA__Fn.h"
    #include "VectorSurfaceAssemblyTerm_NA__Fn__ni.h"
