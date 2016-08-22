@@ -19,7 +19,6 @@
 		/* General info */ \
 		__Stg_Component \
 		\
-		DomainContext*			context; \
 		/* Virtual info */ \
 		\
 		/* Stg_Class info */ \
@@ -58,7 +57,7 @@
 	
 	DofLayout* _DofLayout_DefaultNew( Name name );
 	
-	DofLayout* DofLayout_New( Name name, DomainContext* context, Variable_Register* variableRegister, Index numItemsInLayout, void* mesh );
+	DofLayout* DofLayout_New( Name name, Variable_Register* variableRegister, Index numItemsInLayout, void* mesh );
 	
 	
 	#ifndef ZERO
@@ -75,7 +74,6 @@
 
 	void _DofLayout_Init(
 		void*						dofLayout,
-		DomainContext*			context,
 		Variable_Register*	variableRegister,
 		Index						numItemsInLayout,
 		Variable_Index			baseVariableCount,
@@ -159,17 +157,8 @@
 	source dofLayouts to have the same "shape". */
 	void DofLayout_CopyValues( void* dofLayout, void* destDofLayout );
 	
-	/* Map the dofLayout to another set of indices */
-	void DofLayout_Remap( void* dofLayout, Index newIndexCount, IndexMap* map );
-
 	/** Adds each variable in this array to each item in the dof layout */
 	void DofLayout_AddAllFromVariableArray( void* dofLayout, Variable_Index variableCount, Variable** variableArray ) ;
-
-	/** Saves all variables used by this dofLayout to files */
-	void DofLayout_SaveAllVariablesToFiles( void* dofLayout, char* prefixString, unsigned rank );
-
-	/** Saves all variables used by this dofLayout to files */
-	void DofLayout_LoadAllVariablesFromFiles( void* dofLayout, char* prefixString, unsigned rank );
 
 #endif /* __StgDomain_Utils_DofLayout_h__ */
 

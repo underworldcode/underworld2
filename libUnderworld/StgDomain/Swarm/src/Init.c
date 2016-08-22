@@ -41,20 +41,16 @@ Bool StgDomainSwarm_Init( int* argc, char** argv[] ) {
 	Stg_ComponentRegister_Add( Stg_ComponentRegister_Get_ComponentRegister(), GaussBorderParticleLayout_Type, (Name)"0", _GaussBorderParticleLayout_DefaultNew );
 	Stg_ComponentRegister_Add( Stg_ComponentRegister_Get_ComponentRegister( ), RandomParticleLayout_Type, "0", _RandomParticleLayout_DefaultNew );
 	Stg_ComponentRegister_Add( Stg_ComponentRegister_Get_ComponentRegister( ), SpaceFillerParticleLayout_Type, "0", _SpaceFillerParticleLayout_DefaultNew );
-	Stg_ComponentRegister_Add( Stg_ComponentRegister_Get_ComponentRegister( ), FileParticleLayout_Type, "0", _FileParticleLayout_DefaultNew );
 	Stg_ComponentRegister_Add( Stg_ComponentRegister_Get_ComponentRegister(), SingleCellLayout_Type, (Name)"0", _SingleCellLayout_DefaultNew );
 	Stg_ComponentRegister_Add( Stg_ComponentRegister_Get_ComponentRegister( ), ElementCellLayout_Type, "0", _ElementCellLayout_DefaultNew );
-	Stg_ComponentRegister_Add( Stg_ComponentRegister_Get_ComponentRegister( ), CLLCellLayout_Type, "0", _CLLCellLayout_DefaultNew );
 	Stg_ComponentRegister_Add( Stg_ComponentRegister_Get_ComponentRegister(), TriSingleCellLayout_Type, (Name)"0", (Stg_Component_DefaultConstructorFunction*)_TriSingleCellLayout_DefaultNew );
 	Stg_ComponentRegister_Add( Stg_ComponentRegister_Get_ComponentRegister( ), Swarm_Type, "0", (Stg_Component_DefaultConstructorFunction*)_Swarm_DefaultNew );
 	Stg_ComponentRegister_Add( Stg_ComponentRegister_Get_ComponentRegister(), SwarmVariable_Type, (Name)"0", _SwarmVariable_DefaultNew );
-	Stg_ComponentRegister_Add( Stg_ComponentRegister_Get_ComponentRegister( ), SwarmDump_Type, "0", _SwarmDump_DefaultNew );
 	Stg_ComponentRegister_Add( Stg_ComponentRegister_Get_ComponentRegister(), ParticleShadowSync_Type, (Name)"0", ParticleShadowSync_DefaultNew );
 	Stg_ComponentRegister_Add( Stg_ComponentRegister_Get_ComponentRegister( ), ParticleMovementHandler_Type, "0", ParticleMovementHandler_DefaultNew );
 
 	RegisterParent( CellLayout_Type, Stg_Component_Type );
 	RegisterParent( ElementCellLayout_Type, CellLayout_Type );
-	RegisterParent( CLLCellLayout_Type, CellLayout_Type );
 	RegisterParent( SingleCellLayout_Type, CellLayout_Type );
 	RegisterParent( TriSingleCellLayout_Type, CellLayout_Type );
 
@@ -71,7 +67,6 @@ Bool StgDomainSwarm_Init( int* argc, char** argv[] ) {
 		
 	RegisterParent( SwarmVariable_Register_Type, NamedObject_Register_Type );
 	RegisterParent( SwarmVariable_Type,         Stg_Component_Type );
-	RegisterParent( SwarmDump_Type,             Stg_Component_Type );
 	
 	RegisterParent( ParticleCommHandler_Type, Stg_Component_Type );
 	RegisterParent( ParticleMovementHandler_Type, ParticleCommHandler_Type);

@@ -470,6 +470,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         for key, value in kwargs.iteritems():      # kwargs is a regular dictionary
             self._optionsStr = self._optionsStr+" "+"-"+key+" "+str(value)
 
+
     ########################################################################
     ### check functional dependence of objects in solve
     ########################################################################
@@ -491,7 +492,17 @@ class StokesSolver(_stgermain.StgCompoundComponent):
             nonLinear = True
             message += "\nBody force function depends on the pressure field provided to the Stokes system."
 
+        if self._stokesSLE._constitMatTerm.fn_visc2:
+            if self._velocityField in self._stokesSLE._constitMatTerm.fn_visc2._underlyingDataItems:
+                nonLinear = True
+                message += "\nviscosity2 function depends on the velocity field provided to the Stokes system."
+
+            if self._pressureField in self._stokesSLE._constitMatTerm.fn_visc2._underlyingDataItems:
+                nonLinear = True
+                message += "\nviscosity2 function depends on the pressure field provided to the Stokes system."
+
         message += "\nPlease set the 'nonLinearIterate' solve parameter to 'True' or 'False' to continue."
+
         if nonLinear and (nonLinearIterate==None):
             raise RuntimeError(message)
 

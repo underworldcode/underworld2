@@ -123,7 +123,6 @@ void _lucDatabase_Init(
 
    /* Set bin_path */
    char binpath[MAX_PATH];
-   FILE* fp;
    int pos;
    /* Strip lib from libpath */
    strncpy(binpath, LIB_DIR, MAX_PATH-1);
@@ -132,14 +131,6 @@ void _lucDatabase_Init(
    {
       binpath[pos] = 0;
       sprintf(self->bin_path, "%s/bin", binpath);
-   }
-
-   /* Add to entry points if we have our own list of drawing objects to output, bypassing window/viewport structures */
-   if (!viewonly && self->context)
-   {
-      /* Ensure our execute called before window execute by using Prepend...
-       * If we have our own list of drawing objects they will be dumped here */
-      EP_PrependClassHook(  Context_GetEntryPoint( self->context, AbstractContext_EP_DumpClass ), self->_execute, self );
    }
    
    if(self->context){
@@ -202,8 +193,6 @@ void _lucDatabase_AssignFromXML( void* database, Stg_ComponentFactory* cf, void*
    /* Optional global drawing object list, can provide to database instead of windows+viewports */
    drawingObjectList = Stg_ComponentFactory_ConstructByList( cf, self->name, (Dictionary_Entry_Key)"DrawingObject", Stg_ComponentFactory_Unlimited, lucDrawingObject, False, &drawingObjectCount, data);
 
-   Dimension_Index dim = Stg_ComponentFactory_GetRootDictDouble( cf, (Dictionary_Entry_Key)"dim", 3.0  );
-
    _lucDatabase_Init( self, context, 
       drawingObjectList,
       drawingObjectCount,
@@ -217,13 +206,7 @@ void _lucDatabase_AssignFromXML( void* database, Stg_ComponentFactory* cf, void*
       );
 }
 
-void _lucDatabase_Build( void* database, void* data ) 
-{
-   lucDatabase* self = (lucDatabase*) database ;
-   /* Get rendering engine to write images at each 'Dump' entry point. */
-   if (self->rank == 0 && !self->viewonly && self->context)
-      EP_AppendClassHook(  Context_GetEntryPoint( self->context, AbstractContext_EP_DumpClass ), lucDatabase_Dump, self);
-}
+void _lucDatabase_Build( void* database, void* data ) {}
 
 void _lucDatabase_Initialise( void* database, void* data ) {}
 
@@ -301,13 +284,6 @@ void _lucDatabase_Execute( void* database, void* data )
          int deleteEnd = self->timeStep - self->deleteAfter - 1;
          if (deleteEnd >= 0)
             lucDatabase_DeleteGeometry(self, -1, deleteEnd);
-      }
-
-      if (self->context)
-      {
-         /* When restarted, delete any existing geometry at current timestep */
-         if (self->context->loadFromCheckPoint)
-            lucDatabase_DeleteGeometry(self, self->timeStep, self->timeStep);
       }
 
       /* Enter timestep in database */

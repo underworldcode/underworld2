@@ -15,7 +15,6 @@
 #include <StgDomain/Mesh/Mesh.h>
 
 #include "types.h"
-#include "DomainContext.h"
 #include "DofLayout.h"
 
 #include <stdlib.h>
@@ -42,11 +41,11 @@ Dof_Index	_DofLayout_AddVariable_ByName(void* dofLayout, Name varName);
 ** Constructor
 */
 
-DofLayout* DofLayout_New( Name name, DomainContext* context, Variable_Register* variableRegister, Index numItemsInLayout, void* mesh ) {
+DofLayout* DofLayout_New( Name name, Variable_Register* variableRegister, Index numItemsInLayout, void* mesh ) {
 	DofLayout* self = _DofLayout_DefaultNew( name );
 
 	self->isConstructed = True;
-	_DofLayout_Init( self, context, variableRegister, numItemsInLayout, 0, NULL, mesh );
+	_DofLayout_Init( self, variableRegister, numItemsInLayout, 0, NULL, mesh );
 
 	return self;
 }
@@ -87,15 +86,13 @@ DofLayout* _DofLayout_New(  DOFLAYOUT_DEFARGS  ) {
 
 void _DofLayout_Init(
 	void*						dofLayout,
-	DomainContext*			context,
-	Variable_Register*	variableRegister, 
+	Variable_Register*	variableRegister,
 	Index						numItemsInLayout,
 	Variable_Index			baseVariableCount,
 	Variable**				baseVariableArray,
 	void*						_mesh )
 {
 	DofLayout*	self = (DofLayout*)dofLayout;
-    self->context = context;
 	self->mesh = (Mesh*)_mesh;
 	
     if ( variableRegister )
@@ -122,9 +119,7 @@ void _DofLayout_Init(
 void _DofLayout_Delete(void* dofLayout) {
 	DofLayout* self = (DofLayout*)dofLayout;
 	
-    /* we create our own var register if no context, so must delete */
-    if (!self->context)
-        Stg_Class_Delete(self->_variableRegister);
+   Stg_Class_Delete(self->_variableRegister);
 	/* Stg_Class_Delete parent */
 	_Stg_Component_Delete( self );
 }
@@ -149,67 +144,9 @@ void _DofLayout_Print(void* dofLayout, Stream* stream) {
 
 
 void* _DofLayout_Copy( void* dofLayout, void* dest, Bool deep, Name nameExt, PtrMap* ptrMap ) {
-	DofLayout*	self = (DofLayout*)dofLayout;
-	DofLayout*	newDofLayout;
-	PtrMap*		map = ptrMap;
-	Bool			ownMap = False;
-	
-	if( !map ) {
-		map = PtrMap_New( 10 );
-		ownMap = True;
-	}
-	
-	newDofLayout = (DofLayout*)_Stg_Component_Copy( self, dest, deep, nameExt, map );
-	
-	newDofLayout->_variableRegister = self->_variableRegister;
-	newDofLayout->_numItemsInLayout = self->_numItemsInLayout;
-	newDofLayout->_totalVarCount = self->_totalVarCount;
-	
-	if( deep ) {
-		if( (newDofLayout->_variableEnabledSets = PtrMap_Find( map, self->_variableEnabledSets )) == NULL && self->_variableEnabledSets ) {
-			Index	set_I;
-			
-			newDofLayout->_variableEnabledSets = Memory_Alloc_Array( IndexSet*, newDofLayout->_totalVarCount, "DofLayout->_variableEnabledSets" );
-			for( set_I = 0; set_I < newDofLayout->_totalVarCount; set_I++ ) {
-				newDofLayout->_variableEnabledSets[set_I] = (IndexSet*)Stg_Class_Copy( self->_variableEnabledSets[set_I], NULL, deep, nameExt, map );
-			}
-			PtrMap_Append( map, self->_variableEnabledSets, newDofLayout->_variableEnabledSets );
-		}
-		
-		if( (newDofLayout->_varIndicesMapping = PtrMap_Find( map, self->_varIndicesMapping )) == NULL && self->_varIndicesMapping ) {
-			newDofLayout->_varIndicesMapping = Memory_Alloc_Array( Variable_Index, newDofLayout->_totalVarCount, "DofLayout->_varIndicesMapping" );
-			memcpy( newDofLayout->_varIndicesMapping, self->_varIndicesMapping, sizeof(Variable_Index) * newDofLayout->_totalVarCount );
-			PtrMap_Append( map, self->_varIndicesMapping, newDofLayout->_varIndicesMapping );
-		}
-		
-		if( (newDofLayout->dofCounts = PtrMap_Find( map, self->dofCounts )) == NULL && self->dofCounts ) {
-			newDofLayout->dofCounts = Memory_Alloc_Array( Index, newDofLayout->_numItemsInLayout, "DofLayout->dofCounts" );
-			memcpy( newDofLayout->dofCounts, self->dofCounts, sizeof(Index) * newDofLayout->_numItemsInLayout );
-			PtrMap_Append( map, self->dofCounts, newDofLayout->dofCounts );
-		}
-		
-		if( (newDofLayout->varIndices = PtrMap_Find( map, self->varIndices )) == NULL && self->varIndices ) {
-			Index	idx_I;
-			
-			newDofLayout->varIndices = Memory_Alloc_2DComplex( Variable_Index, newDofLayout->_numItemsInLayout, self->dofCounts, "DofLayout->varIndices" );
-			for( idx_I = 0; idx_I < newDofLayout->_numItemsInLayout; idx_I++ ) {
-				memcpy( newDofLayout->varIndices[idx_I], self->varIndices[idx_I], sizeof(Variable_Index) * newDofLayout->dofCounts[idx_I] );
-			}
-			PtrMap_Append( map, self->varIndices, newDofLayout->varIndices );
-		}
-	}
-	else {
-		newDofLayout->_variableEnabledSets = self->_variableEnabledSets;
-		newDofLayout->_varIndicesMapping = self->_varIndicesMapping;
-		newDofLayout->dofCounts = self->dofCounts;
-		newDofLayout->varIndices = self->varIndices;
-	}
-	
-	if( ownMap ) {
-		Stg_Class_Delete( map );
-	}
-	
-	return (void*)newDofLayout;
+   /* copy function deleted as it was possibly no longer correct. */
+   /* if required again, please check history for implementation. */
+   assert(0);
 }
 
 void _DofLayout_AssignFromXML( void* dofLayout, Stg_ComponentFactory* cf, void* data ) {
@@ -220,80 +157,31 @@ void _DofLayout_AssignFromXML( void* dofLayout, Stg_ComponentFactory* cf, void* 
    Variable_Index          baseVariableCount = 0;
    Variable**              baseVariableList = NULL;
    Mesh*							mesh;
-   DomainContext*				context=NULL;
    MeshVariable*           meshVar=NULL;
    int v_i;
 
-   /* Get component's dictionary setup */
-   assert( cf->componentDict );
-   thisComponentDict = Dictionary_GetDictionary( cf->componentDict, self->name );
-   assert( thisComponentDict );
+   variableRegister = Variable_Register_New();
 
-   context = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"Context", DomainContext, False, data );
-   if( !context  )
-      context = Stg_ComponentFactory_ConstructByName( cf, (Name)"context", DomainContext, False, data  );
-    
-   if ( context )
-       variableRegister = context->variable_Register;
-   else
-       variableRegister = Variable_Register_New();
+   meshVar = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"MeshVariable", MeshVariable, True, data );
 
+   /* new way. check history for the old way JM 08/16 */
+   mesh = meshVar->mesh;
+   baseVariableCount = meshVar->subVariablesCount;
+   baseVariableList = Memory_Alloc_Array( Variable*, baseVariableCount, "baseVariableList" );
 
-   meshVar = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"MeshVariable", MeshVariable, False, data );
-
-   /* DofLayout XML definitions can have 2 styles: new clean way or old dirty
-    * way.
-    * The clean way is via a MeshVariable dependency.
-    * The old way, left in for backwards compatibility relies on a mesh and be
-    * BaseVariables
-    */
-   if( meshVar ) {
-      /* new way */
-      mesh = meshVar->mesh;
-      baseVariableCount = meshVar->subVariablesCount;
-      baseVariableList = Memory_Alloc_Array( Variable*, baseVariableCount, "baseVariableList" );
-
-      /* setup up baseVariableCount & baseVariableList from the meshVar 
-       * and give those data structure to the init function */
-      if( baseVariableCount == 1 ){
-         baseVariableList[0] = meshVar;
-         Variable_Register_Add(variableRegister, baseVariableList[0]);
-      } else {
-         for ( v_i = 0 ; v_i < baseVariableCount ; v_i++ ) {
-             baseVariableList[v_i] = meshVar->components[v_i];
-             Variable_Register_Add(variableRegister, baseVariableList[v_i]);
-         }
-      }
+   /* setup up baseVariableCount & baseVariableList from the meshVar
+   * and give those data structure to the init function */
+   if( baseVariableCount == 1 ){
+      baseVariableList[0] = meshVar;
+      Variable_Register_Add(variableRegister, baseVariableList[0]);
    } else {
-      /* old way */
-      /* Get the mesh. */
-      mesh = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"mesh", Mesh, True, data );
-
-      if (( list = Dictionary_Get( thisComponentDict, (Dictionary_Entry_Key)"BaseVariables" ) ) ) {
-         Variable_Index	baseVariable_I    = 0;
-         Name				variableName;
-
-         baseVariableCount = Stg_ComponentFactory_GetUnsignedInt( cf, self->name, (Dictionary_Entry_Key)"BaseVariableCount", Dictionary_Entry_Value_GetCount( list ) );
-         Journal_Firewall(
-            baseVariableCount <= Dictionary_Entry_Value_GetCount( list  ),
-            Journal_Register( Error_Type, (Name)self->type  ),
-            "BaseVariableCount %u is too large for list given.\n", baseVariableCount );
-
-         baseVariableList = Memory_Alloc_Array( Variable*, baseVariableCount, "baseVariableList" );
-         
-         for ( baseVariable_I = 0 ; baseVariable_I < baseVariableCount ; baseVariable_I++ ) {
-            variableName = Dictionary_Entry_Value_AsString( Dictionary_Entry_Value_GetElement( list, baseVariable_I ) );
-
-            Journal_PrintfL( cf->infoStream, 2, "Looking for Variable '%s' in Variable_Register\n", variableName );
-            baseVariableList[ baseVariable_I ] = Variable_Register_GetByName( variableRegister, variableName );
-
-            if ( !baseVariableList[ baseVariable_I ] )
-               baseVariableList[ baseVariable_I ] = Stg_ComponentFactory_ConstructByName( cf, (Name)variableName, Variable, True, data  );
-         }
+      for ( v_i = 0 ; v_i < baseVariableCount ; v_i++ ) {
+         baseVariableList[v_i] = meshVar->components[v_i];
+         Variable_Register_Add(variableRegister, baseVariableList[v_i]);
       }
    }
 
-   _DofLayout_Init( self, context, variableRegister, 0, baseVariableCount, baseVariableList, mesh );
+   _DofLayout_Init( self, variableRegister, 0, baseVariableCount, baseVariableList, mesh );
 }
 
 void _DofLayout_Build( void* dofLayout, void* data ) {
@@ -301,8 +189,6 @@ void _DofLayout_Build( void* dofLayout, void* data ) {
 	Index			indexCount;
 	Index*		indices;
 	Index			set_I, i, pos;
-
-	assert( self );
 
 	/* Build mesh and extract domain size, if required. */
 	if( self->mesh ) {
@@ -419,7 +305,7 @@ Dof_Index _DofLayout_AddVariable_ByName(void* dofLayout, Name varName) {
 	dof_I = Variable_Register_GetIndex( self->_variableRegister, varName );
 	Journal_Firewall( 
 		dof_I != (unsigned)-1,
-		Journal_Register( Error_Type, (Name)DofLayout_Type  ),
+		NULL,
 		"Attempting to name a variable as a DOF that is not in the variable registry!\n" );
 	return _DofLayout_AddVariable_ByIndex( self, dof_I );
 }
@@ -454,16 +340,15 @@ void DofLayout_CopyValues( void* dofLayout, void* destDofLayout ) {
 	DofLayout*    dest = (DofLayout*)destDofLayout;
 	Index         ii = 0;
 	Dof_Index     dof_I = 0;
-	Stream*       error = Journal_Register( Error_Type, (Name)self->type );
 	
-	Journal_Firewall( (self->_numItemsInLayout == dest->_numItemsInLayout ), error,
+	Journal_Firewall( (self->_numItemsInLayout == dest->_numItemsInLayout ), NULL,
 		"Error: Number of items in source dof layout (%d) not equal to number of "
 		"items in destination dof layout (%d).\n",
 		self->_numItemsInLayout, dest->_numItemsInLayout );
 
 	for ( ii=0; ii < self->_numItemsInLayout; ii++ ) {
 		#ifdef CAUTIOUS
-		Journal_Firewall( (self->dofCounts[ii] == dest->dofCounts[ii] ), error,
+		Journal_Firewall( (self->dofCounts[ii] == dest->dofCounts[ii] ), NULL,
 			"Error: Number of dofs in source dof layout (item %d, %d dofs) not equal to "
 			"number of dofs in destination dof layout at same entry (%d).\n",
 			self->_numItemsInLayout, self->dofCounts[ii], dest->dofCounts[ii] );
@@ -475,7 +360,6 @@ void DofLayout_CopyValues( void* dofLayout, void* destDofLayout ) {
 		}
 	}
 }
-
 
 void DofLayout_SetAllToZero( void* dofLayout ) {
 	DofLayout*    self = (DofLayout*)dofLayout;
@@ -490,163 +374,17 @@ void DofLayout_SetAllToZero( void* dofLayout ) {
 	}
 }
 
-
-void DofLayout_Remap( void* dofLayout, Index newIndexCount, IndexMap* map ) {
-	DofLayout*	self = (DofLayout*)dofLayout;
-	Index		item_I;
-	
-	assert( newIndexCount && map ); /* TODO: change this to Journal commands */
-	
-	/*
-	** NOTE: it is possible that a remapping will eliminate some of the variables accessed
-	**	 by the DofLayout.  This will require a bit more effort to account for, but for
-	**	 the moment it shouldn't matter.
-	*/
-	
-	if( self->_variableEnabledSets ) {
-		IndexSet**	variableEnabledSets;
-		Index		set_I;
-		
-		variableEnabledSets = Memory_Alloc_Array( IndexSet*, self->_totalVarCount, "DofLayout->_variableEnabledSets" );
-		for( set_I = 0; set_I < self->_totalVarCount; set_I++ ) {
-			Index	itemCount;
-			Index*	items;
-			
-			variableEnabledSets[set_I] = IndexSet_New( newIndexCount );
-			
-			IndexSet_GetMembers( self->_variableEnabledSets[set_I], &itemCount, &items );
-			for( item_I = 0; item_I < itemCount; item_I++ ) {
-				Index	mappedValue = IndexMap_Find( map, items[item_I] );
-				
-				if( mappedValue < self->_numItemsInLayout ) {
-					IndexSet_Add( variableEnabledSets[set_I], mappedValue );
-				}
-			}
-			
-			Memory_Free( items );
-			Stg_Class_Delete( self->_variableEnabledSets[set_I] );
-		}
-		Memory_Free( self->_variableEnabledSets );
-		self->_variableEnabledSets = variableEnabledSets;
-	}
-	
-	/* Map dofCounts */
-	if( self->dofCounts ) {
-		Dof_Index*	dofCounts;
-		
-		dofCounts = Memory_Alloc_Array( Dof_Index, newIndexCount, "DofLayout->dofCounts" );
-		for( item_I = 0; item_I < self->_numItemsInLayout; item_I++ ) {
-			Index	mappedValue = IndexMap_Find( map, item_I );
-			
-			if( mappedValue < self->_numItemsInLayout ) {
-				dofCounts[mappedValue] = self->dofCounts[item_I];
-			}
-		}
-		Memory_Free( self->dofCounts );
-		self->dofCounts = dofCounts;
-	}
-	
-	/* Map varIndices */
-	if( self->varIndices ) {
-		Variable_Index**	varIndices;
-		
-		varIndices = Memory_Alloc_2DComplex( Variable_Index, newIndexCount, self->dofCounts, "DofLayout->varIndices" );
-		for( item_I = 0; item_I < self->_numItemsInLayout; item_I++ ) {
-			Index	mappedValue = IndexMap_Find( map, item_I );
-			
-			if( mappedValue < self->_numItemsInLayout ) {
-				memcpy( varIndices[mappedValue], 
-					self->varIndices[item_I], 
-					sizeof(Variable_Index) * self->dofCounts[mappedValue] );
-			}
-		}
-		Memory_Free( self->varIndices );
-		self->varIndices = varIndices;
-	}
-	
-	/* Overwrite old values */
-	self->_numItemsInLayout = newIndexCount;
-}
-
 void DofLayout_AddAllFromVariableArray( void* dofLayout, Variable_Index variableCount, Variable** variableArray ) {
 	DofLayout*      self        = (DofLayout*) dofLayout;
 	Index           item_I;
 	Index           itemCount   = self->_numItemsInLayout;
 	Variable_Index  variable_I;
-	Stream*         errorStream = Journal_Register( Error_Type, (Name)self->type );
 
 	for( variable_I = 0; variable_I < variableCount ; variable_I++  ) {
-		Journal_Firewall( variableArray[variable_I] != NULL, errorStream,
+		Journal_Firewall( variableArray[variable_I] != NULL, NULL,
 				"In func %s for %s '%s' - Variable %d in array is NULL.\n", __func__, self->type, self->name, variable_I);
 		for( item_I = 0; item_I < itemCount ; item_I++ ) {
 			DofLayout_AddDof_ByVarName( self, variableArray[variable_I]->name, item_I );
 		}
 	}
 }
-
-
-void DofLayout_SaveAllVariablesToFiles( void* dofLayout, char* prefixString, unsigned rank ) {
-	DofLayout*  self = (DofLayout*) dofLayout;
-	Index       ownedVar_I, var_I;
-	Variable*   variable = NULL;
-	char*       varFileName;
-	int         prefixStringLength=0;
-
-	for ( ownedVar_I = 0; ownedVar_I < self->_totalVarCount; ownedVar_I++ ) {
-		var_I = self->_varIndicesMapping[ownedVar_I];
-		variable = Variable_Register_GetByIndex( self->_variableRegister, var_I );
-
-		if ( prefixString ) {
-			prefixStringLength = strlen(prefixString);
-		}
-		else {
-			prefixStringLength = 0;
-		}
-
-		varFileName = Memory_Alloc_Array_Unnamed( char, prefixStringLength + strlen( variable->name ) + 5 + 4 + 1 );
-		if ( prefixString ) {
-			sprintf( varFileName, "%s.%s.dat.%.4d", prefixString, variable->name, rank );
-		}
-		else {
-			sprintf( varFileName, "%s.dat.%.4d", variable->name, rank );
-		}
-		
-		Variable_SaveToFileAsDoubles( variable, varFileName );
-		Memory_Free( varFileName );
-	}
-}
-
-
-void DofLayout_LoadAllVariablesFromFiles( void* dofLayout, char* prefixString, unsigned rank ) {
-	DofLayout*  self = (DofLayout*) dofLayout;
-	Index       ownedVar_I, var_I;
-	Variable*   variable = NULL;
-	char*       varFileName;
-	int         prefixStringLength=0;
-
-	for ( ownedVar_I = 0; ownedVar_I < self->_totalVarCount; ownedVar_I++ ) {
-		var_I = self->_varIndicesMapping[ownedVar_I];
-		variable = Variable_Register_GetByIndex( self->_variableRegister, var_I );
-
-		if ( prefixString ) {
-			prefixStringLength = strlen(prefixString);
-		}
-		else {
-			prefixStringLength = 0;
-		}
-
-		varFileName = Memory_Alloc_Array_Unnamed( char, prefixStringLength + strlen( variable->name ) + 6 + 4 + 1 );
-		if ( prefixString ) {
-			sprintf( varFileName, "%s.%s.dat.%.4d", prefixString, variable->name, rank );
-		}
-		else {
-			sprintf( varFileName, "%s.dat.%.4d", variable->name, rank );
-		}
-		
-		Variable_ReadFromFileAsDoubles( variable, varFileName );
-		Memory_Free( varFileName );
-	}
-}
-
-
-

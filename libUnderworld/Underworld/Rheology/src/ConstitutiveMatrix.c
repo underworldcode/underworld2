@@ -69,16 +69,7 @@ void _ConstitutiveMatrix_Init(
    self->columnSize          = 0;
    self->rowSize             = 0;
 
-   /* If we are restarting, there will be an existing valid solution for the velocity, pressure
-   etc fields - thus we record this so any yield rheologies will behave correctly */
-   if ( self->context && True == self->context->loadFieldsFromCheckpoint && restartUsingPreviousStokesSol == True ) {
-      self->previousSolutionExists = True;
-   }
-   else {
-      /* Otherwise, we don't want to set this as true till we've done at least one iteration of the
-      first solve */
-      self->previousSolutionExists = False;
-   }
+   self->previousSolutionExists = False;
 
    self->sle = NULL;
    self->sleNonLinearIteration_I = 0;

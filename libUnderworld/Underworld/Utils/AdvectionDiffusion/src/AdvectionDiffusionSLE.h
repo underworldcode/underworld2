@@ -58,7 +58,6 @@ extern "C" {
 		Dimension_Index				dim; \
 		/* Items Created By solver */ \
 		SolutionVector*				phiVector; /* should be passed in */ \
-		double*							phiDotArray; \
 		FeVariable*						phiDotField; \
 		DofLayout*						phiDotDofLayout; \
 		SolutionVector*				phiDotVector; \

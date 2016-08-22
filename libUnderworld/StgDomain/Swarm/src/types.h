@@ -50,7 +50,6 @@
 	typedef struct SingleCellLayout			SingleCellLayout;
 	typedef struct TriSingleCellLayout		TriSingleCellLayout;
 	typedef struct ElementCellLayout		ElementCellLayout;
-	typedef struct CLLCellLayout    		CLLCellLayout;
 	typedef struct ParticleLayout			ParticleLayout;
 	typedef struct PerCellParticleLayout		PerCellParticleLayout;
 	typedef struct RandomParticleLayout		RandomParticleLayout;
@@ -59,7 +58,6 @@
 	typedef struct GaussBorderParticleLayout	GaussBorderParticleLayout;
 	typedef struct GlobalParticleLayout		GlobalParticleLayout;
 	typedef struct SpaceFillerParticleLayout        SpaceFillerParticleLayout;
-	typedef struct FileParticleLayout		FileParticleLayout;
 	typedef struct Swarm				Swarm;
 	typedef struct Swarm_Register			Swarm_Register;
 	typedef struct ParticleCommHandler		ParticleCommHandler;
@@ -67,7 +65,6 @@
 	typedef struct ParticleShadowSync               ParticleShadowSync;
 	typedef struct SwarmVariable_Register           SwarmVariable_Register;
 	typedef struct SwarmVariable			SwarmVariable;
-	typedef struct SwarmDump			SwarmDump;
 
 	typedef struct BaseParticle                     BaseParticle;
 	typedef struct StandardParticle			StandardParticle;

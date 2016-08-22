@@ -77,18 +77,6 @@
 
 	struct Mesh { __Mesh };
 
-	/* Checkpoint file version enum */
-	typedef enum MeshCheckpointFileVersion {
-                MeshCHECKPOINT_V1 = 1,      /** Original checkpointing format   */
-                MeshCHECKPOINT_V2           /** * No longer store nodes within checkpoint files
-                                            * now store attributes including
-                                                 checkpoint version
-                                                 number of dimensions
-                                                 cartesion mesh size
-                                            * now store mesh connectivity for xmdf generator
-                                            * mesh vertex hdf group renamed to 'vertices' (from 'data') */
-	} MeshCheckpointFileVersion;
-
 	/*--------------------------------------------------------------------------------------------------------------------------
 	** Constructors
 	*/

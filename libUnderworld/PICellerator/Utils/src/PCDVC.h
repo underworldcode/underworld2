@@ -50,14 +50,6 @@ extern const Type PCDVC_Type;
     double                CentPosRatio;                                 \
     int                   ParticlesPerCell;                             \
     double                Threshold;                                    \
-    /* we also need to store some parameters, as everything is turned up      */ \
-    /* for interpolation restarts (which may require significant repopulation */ \
-    /* and after the first timestep needs to be set back to correct values    */ \
-    int                   maxDeletions_orig;                            \
-    int                   maxSplits_orig;                               \
-    Bool                  Inflow_orig;                                  \
-    Bool                  splitInInterfaceCells_orig;                   \
-    Bool                  deleteInInterfaceCells_orig;                  \
     int                   pcdvcvisited;
 
 

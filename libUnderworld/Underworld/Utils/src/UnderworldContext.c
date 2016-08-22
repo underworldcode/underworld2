@@ -17,7 +17,6 @@
 
 #include "types.h"
 #include "UnderworldContext.h"
-#include "XDMFGenerator.h"
 
 /* Textual name of this class - This is a global pointer which is used for times when you need to refer to class and not a particular instance of a class */
 const Type UnderworldContext_Type = "UnderworldContext";
@@ -80,25 +79,7 @@ UnderworldContext* _UnderworldContext_New(  UNDERWORLDCONTEXT_DEFARGS  ) {
 	return self;
 }
 
-void _UnderworldContext_Init( UnderworldContext* self ) {
-	self->isConstructed = True;
-
-	/* always generate XDMF files when we generate HDF5 checkpoints */
-#ifdef WRITE_HDF5
-	if( Dictionary_Entry_Value_AsBool( Dictionary_GetDefault( self->dictionary, "generateXDMF", Dictionary_Entry_Value_FromBool( True ) ) ) ){
-		ContextEP_Append( self, AbstractContext_EP_Save, XDMFGenerator_GenerateAll );
-		ContextEP_Append( self, AbstractContext_EP_DataSave, XDMFGenerator_GenerateAll );
-
-      if( Dictionary_Entry_Value_AsInt( Dictionary_GetDefault( self->dictionary, "checkpointEvery"    , Dictionary_Entry_Value_FromInt( 0 ) ) )  ||
-          Dictionary_Entry_Value_AsInt( Dictionary_GetDefault( self->dictionary, "saveDataEvery"      , Dictionary_Entry_Value_FromInt( 0 ) ) )	 ||
-          Dictionary_Entry_Value_AsInt( Dictionary_GetDefault( self->dictionary, "checkpointAtTimeInc", Dictionary_Entry_Value_FromInt( 0 ) ) )
-            ){
-            ContextEP_Append( self, AbstractContext_EP_Build, XDMFGenerator_GenerateTemporalTopLevel );
-      }
-	}
-#endif
-   
-}
+void _UnderworldContext_Init( UnderworldContext* self ) {}
 
 /* Virtual Functions -------------------------------------------------------------------------------------------------------------*/
 

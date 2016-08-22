@@ -386,7 +386,7 @@ class CrossSection(Drawing):
 
     def __init__(self, mesh, fn, crossSection="",
                        colours=None, colourMap=None, properties=None, opacity=None, colourBar=True,
-                       valueRange=None, logScale=False, discrete=False,
+                       valueRange=None, logScale=False, discrete=False, offsetEdges=True,
                        *args, **kwargs):
 
         self._fn = _underworld.function.Function._CheckIsFnOrConvertOrThrow(fn)
@@ -398,6 +398,7 @@ class CrossSection(Drawing):
         if not isinstance(crossSection,str):
             raise ValueError("'crossSection' argument must be of python type 'str'")
         self._crossSection = crossSection
+        self._offsetEdges = offsetEdges
 
         # build parent
         super(CrossSection,self).__init__(colours=colours, colourMap=colourMap, properties=properties, opacity=opacity, colourBar=colourBar,
@@ -405,6 +406,7 @@ class CrossSection(Drawing):
 
     def _setup(self):
         _libUnderworld.gLucifer._lucCrossSection_SetFn( self._cself, self._fn._fncself )
+        self._dr.offsetEdges = self._offsetEdges
 
     def _add_to_stg_dict(self,componentDictionary):
         # lets build up component dictionary
@@ -663,7 +665,8 @@ class VectorArrows(_GridSampler3D):
     _objectsDict = { "_dr": "lucVectorArrows" }
 
     def __init__(self, mesh, fn, arrowHead=0.3, scaling=0.3, glyphs=3,
-                       resolutionI=None, resolutionJ=None, resolutionK=None, properties=None, opacity=None,
+                       resolutionI=None, resolutionJ=None, resolutionK=None, 
+                       properties=None, opacity=None,
                        *args, **kwargs):
 
         if arrowHead:

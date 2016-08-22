@@ -54,7 +54,6 @@ extern "C" {
 %include "Rheology/ConstitutiveMatrixCartesian.h"
 %include "Rheology/types.h"
 %include "Utils/types.h"
-%include "Utils/XDMFGenerator.h"
 
 %include "Utils/AdvectionDiffusion/AdvectionDiffusionSLE.h"
 %include "Utils/AdvectionDiffusion/LumpedMassMatrixForceTerm.h"

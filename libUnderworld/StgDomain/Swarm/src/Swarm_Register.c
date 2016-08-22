@@ -20,7 +20,6 @@
 
 #include "ParticleLayout.h"
 #include "SwarmClass.h"
-#include "SwarmDump.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -178,52 +177,5 @@ Index Swarm_Register_GetIndexFromPointer( Swarm_Register* self, void* ptr ) {
 Swarm_Register* Swarm_Register_GetSwarm_Register() {
 	return stgSwarm_Register;
 }
-
-
-void Swarm_Register_SaveAllRegisteredSwarms( Swarm_Register* self, void* context ) {
-	Index                     swarmCount = self->swarmList->count;
-	Swarm**                   swarmList = NULL;
-	Index                     swarm_I;
-	Index                     swarmsToDumpCount = 0;
-	SwarmDump*                swarmDumper;
-	Swarm*                    swarm;
-	Stream*                   info = Journal_Register( Info_Type, (Name)self->type );
-
-	if ( swarmCount == 0  ) {
-		return;
-	}	
-	
-	Journal_Printf( info, "In %s(): about to save the swarms to disk:\n", __func__ );
-
-	swarmList = Memory_Alloc_Array_Unnamed( Swarm*, swarmCount ); 
-
-	for ( swarm_I=0 ; swarm_I < swarmCount; swarm_I++ ) {
-		swarm = Swarm_Register_At( self, swarm_I );
-		if ( swarm->isSwarmTypeToCheckPointAndReload == True ) {
-			swarmList[swarmsToDumpCount++] = swarm;
-		}
-	}
-	
-	if ( swarmsToDumpCount == 0 ) {
-		Journal_Printf( info, "found 0 swarms that need to be checkpointed -> nothing to do\n",
-			swarmsToDumpCount );
-	}
-	else {
-		Journal_Printf( info, "\t(found %u swarms that need to be checkpointed)\n",
-			swarmsToDumpCount );
-
-		/* Create new SwarmDump object to check point the swarms
-		 * We're not passing in the 'context' as the second argument because we don't need the swarm dumper to 
-		 * add a hook on the Save entrypoint - contexts can manually execute this function */ 
-		swarmDumper = SwarmDump_New( "swarmDumper", NULL, swarmList, swarmsToDumpCount, True, True, False );
-		/* Passing the context through allows the swarmDumper to check requested strings etc */
-		SwarmDump_Execute( swarmDumper, context );
-		Stg_Class_Delete( swarmDumper );
-	}
-
-	Memory_Free( swarmList );
-	Journal_Printf( info, "%s: saving of swarms completed.\n", __func__ );
-}
-
 
 

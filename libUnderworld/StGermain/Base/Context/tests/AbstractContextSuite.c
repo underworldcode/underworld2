@@ -103,11 +103,9 @@ void TestBuild( void* context ) {
 void TestInitialConditions( void* context ) {
    TestContext* self = (TestContext*)context;
    self->icHookCalled++;
-   /* Since the current convention for loading from checkpoint is that there's no special entry point and 
+   /* Since the current convention for loading from checkpoint is that there's no special entry point and
     * it should be done by the init() (possibly in data objects themselves), follow that here */   
-   if (self->loadFromCheckPoint) {
-      self->computedValue = GLOBAL_COMP_VALUE[self->restartTimestep];
-   }
+//   self->computedValue = GLOBAL_COMP_VALUE[self->restartTimestep];
 }
 
 double TestDt( void* context ) {
@@ -236,10 +234,6 @@ void AbstractContextSuite_TestRunBasic( AbstractContextSuiteData* data ) {
    ContextEP_ReplaceAll( data->ctx, AbstractContext_EP_Solve, TestSolve ); 
    ContextEP_ReplaceAll( data->ctx, AbstractContext_EP_Sync, TestSync ); 
    ContextEP_ReplaceAll( data->ctx, AbstractContext_EP_Dt, TestDt ); 
-   ContextEP_ReplaceAll( data->ctx, AbstractContext_EP_Dump, TestDump ); 
-   ContextEP_ReplaceAll( data->ctx, AbstractContext_EP_Save, TestCheckpoint ); 
-   ContextEP_ReplaceAll( data->ctx, AbstractContext_EP_FrequentOutput, TestOutput ); 
-   ContextEP_Append( data->ctx, AbstractContext_EP_Solve, TestSolve2 );
 
    Stg_Component_Build( data->ctx, 0 /* dummy */, False );
    Stg_Component_Initialise( data->ctx, 0 /* dummy */, False );

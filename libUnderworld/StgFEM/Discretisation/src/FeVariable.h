@@ -276,12 +276,6 @@
    used is a 2D box. */
    void FeVariable_PrintLocalDiscreteValues_2dBox( void* variable, Stream* stream );
 
-   /* Saves the current mesh coordinates, and value of each dof in the feVariable, to file */
-   void FeVariable_SaveToFile( void* feVariable, const char* filename );
-
-   /* Reads in everything to initialise a built FeVariable from a file */
-   void FeVariable_ReadFromFile( void* feVariable, const char* filename );
-
    /* Evaluates Spatial Derivatives using shape functions */
    InterpolationResult FeVariable_InterpolateDerivativesAt( void* variable, const double* globalCoord, double* value );
    
@@ -378,7 +372,5 @@
 
    void _FeVariable_CreateNewEqnNumber( void* variable );
 
-   FeVariable* FeVariable_ReadFromFileWithMesh( void* templateFeVariable, const char* feVarFilename, const char* meshFilename, Bool partitioned );
-   void FeVariable_InterpolateFromFile( void* feVariable, const char* feVarFilename, const char* meshFilename );
 #endif /* __StgFEM_Discretisation_FeVariable_h__ */
 

@@ -180,7 +180,6 @@ void _TimeIntegrand_Initialise( void* timeIntegrand, void* data ) {
 	TimeIntegrand* self = (TimeIntegrand*)timeIntegrand;
 	
 	Journal_DPrintf( self->debug, "In %s for %s '%s'\n", __func__, self->type, self->name );
-   if ( self->context && self->context->loadFromCheckPoint == False ) Stg_Component_Initialise( self->variable, NULL, False );
 }
 
 void _TimeIntegrand_Execute( void* timeIntegrand, void* data ) {

@@ -127,20 +127,5 @@
 
    /* Private functions -----------------------------------------------------------------------------------------------------*/
 
-   /** Saves all FeVariables known about by the context to file */
-   void _FiniteElementContext_SaveFieldVariables( void* context );
-
-   /** Saves all Swarms known about by the context to file (necessary to put this here since 
-   gauss integration swarms may need to be saved and reloaded) */
-   void _FiniteElementContext_SaveSwarms( void* context );
-
-   void _FiniteElementContext_SaveMesh( void* context );
-   
-   #ifdef WRITE_HDF5
-   void _FiniteElementContext_DumpMeshHDF5( void* context, FeMesh* mesh );
-   #else
-   void _FiniteElementContext_DumpMeshAscii( void* context, FeMesh* mesh );
-   #endif
-
 #endif /* __StgFEM_SLE_SystemSetup_Context_h__ */
 
