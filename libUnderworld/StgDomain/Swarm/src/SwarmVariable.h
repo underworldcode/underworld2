@@ -34,8 +34,6 @@
 		Index												dofCount; \
 		Dimension_Index								dim; \
 		SwarmVariable_Register*						swarmVariable_Register; \
-		/* set whether variable should be checkpointed and reloaded*/ \
-		Bool												isCheckpointedAndReloaded; \
 		int												   cachedTimestep;      \
       double                                    magnitudeMin;  \
       double                                    magnitudeMax;  \

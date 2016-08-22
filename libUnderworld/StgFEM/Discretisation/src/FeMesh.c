@@ -73,13 +73,7 @@ void _FeMesh_Init( FeMesh* self, ElementType* elType, const char* family, Bool e
 
 	self->feElType = elType;
 	self->feElFamily = family;
-	self->elementMesh = elementMesh;
-
-   /* checkpoint non-constant meshes */
-   if ( self->feElFamily && strcmp( self->feElFamily, "constant" ) ){
-      self->isCheckpointedAndReloaded = True;
-   }
-	
+	self->elementMesh = elementMesh;	
 	self->inc = IArray_New();
 }
 

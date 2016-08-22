@@ -92,7 +92,6 @@
       void*                   ics,
       void*                   linkedDofInfo,
       Dimension_Index         dim,
-      Bool                    isCheckpointedAndReloaded,
       Bool                    referenceSoulution,
       Bool                    loadReferenceEachTimestep,
       FieldVariable_Register* fieldVariable_Register );
@@ -127,7 +126,6 @@
       void*                   templateFeVariable,
       Index                   fieldComponentCount,
       Dimension_Index         dim,
-      Bool                    isCheckpointedAndReloaded,
       Bool                    referenceSoulution,
       Bool                    loadReferenceEachTimestep,
       MPI_Comm                communicator,

@@ -54,7 +54,6 @@ FeVariable* FeVariable_New_FromTemplate(
       templateFeVariable,
       templateFeVariable->fieldComponentCount,
       templateFeVariable->dim,
-      templateFeVariable->isCheckpointedAndReloaded,
       isReferenceSolution,
       loadReferenceEachTimestep,
       templateFeVariable->communicator,
@@ -74,7 +73,6 @@ FeVariable* FeVariable_New(
    void*                   ics,
    void*                   linkedDofInfo,
    Dimension_Index         dim,
-   Bool                    isCheckpointedAndReloaded,
    Bool                    isReferenceSolution,
    Bool                    loadReferenceEachTimestep,
    FieldVariable_Register* fV_Register )      
@@ -90,7 +88,6 @@ FeVariable* FeVariable_New(
       NULL,
       dofLayout->_totalVarCount,
       dim,
-      isCheckpointedAndReloaded,
       isReferenceSolution,
       loadReferenceEachTimestep,
       ((IGraph*)((FeMesh*)feMesh)->topo)->remotes[MT_VERTEX]->comm->mpiComm, 
@@ -108,7 +105,6 @@ FeVariable* FeVariable_New_Full(
    void*                   templateFeVariable,
    Index                   fieldComponentCount,
    Dimension_Index         dim,
-   Bool                    isCheckpointedAndReloaded,
    Bool                    isReferenceSolution,
    Bool                    loadReferenceEachTimestep,
    MPI_Comm                communicator,
@@ -118,7 +114,7 @@ FeVariable* FeVariable_New_Full(
 
    self->isConstructed = True;
 
-   _FieldVariable_Init( (FieldVariable*)self, context, fieldComponentCount, dim, isCheckpointedAndReloaded,
+   _FieldVariable_Init( (FieldVariable*)self, context, fieldComponentCount, dim,
       NULL, communicator, fieldVariable_Register, False );
 
    _FeVariable_Init( self, feMesh, dofLayout, bcs, False, ics, linkedDofInfo, templateFeVariable,

@@ -682,9 +682,6 @@ void _Matrix_NaiNbj3D_CalculateStress( void* constitutiveMatrix, SymmetricTensor
 //		"c40", "c41", "c42", "c43", "c44", "c45",
 //		"c50", "c51", "c52", "c53", "c54", "c55" );
 //	}
-//
-//	/* set the storedConstitutive matrix NOT to be checkpointed */
-//	self->storedConstSwarmVar->isCheckpointedAndReloaded = False;
 //}
 //
 //

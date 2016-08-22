@@ -60,7 +60,6 @@ void FieldVariableRegisterSuite_TestGetByIndex( FieldVariableRegisterSuiteData* 
          testFVs[ii] = FieldVariable_New(
             fvNames[ii],
             NULL,
-            0,
             3,
             False,
             data->comm,
@@ -98,7 +97,6 @@ void FieldVariableRegisterSuite_TestGetByName( FieldVariableRegisterSuiteData* d
          testFVs[ii] = FieldVariable_New(
             fvNames[ii],
             NULL,
-            0,
             3,
             False,
             data->comm,

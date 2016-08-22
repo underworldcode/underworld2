@@ -99,7 +99,6 @@ void WeightsSuite_TestElementIntegral(
       context->dim,
       False,
       False,
-      False,
       MPI_COMM_WORLD,
       context->fieldVariable_Register );
 

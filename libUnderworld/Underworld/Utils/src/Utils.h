@@ -20,8 +20,6 @@
    #include "MatrixAssemblyTerm_NA_i__NB_i__Fn.h"
    #include "MatrixAssemblyTerm_NA__NB__Fn.h"
 
-   #include "RBFManager.h"
-   #include "RBFFieldVariable.h"
    #include "Fn_Integrate.h"
 
    #include "Init.h"

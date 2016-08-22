@@ -96,7 +96,6 @@ Mesh* _Mesh_New(  MESH_DEFARGS  ) {
 	self->generator = NULL;
 	self->emReg = NULL;
 
-	self->isCheckpointedAndReloaded = False;
 	self->isDeforming     = False;
 
 	self->isRegular = False;

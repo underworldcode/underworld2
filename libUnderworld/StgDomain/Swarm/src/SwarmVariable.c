@@ -94,7 +94,6 @@ void _SwarmVariable_Init( void* swarmVariable,
    self->dofCount                    = dofCount;
    self->swarmVariable_Register      = swarm->swarmVariable_Register;
    self->dim                         = swarm->dim;
-   self->isCheckpointedAndReloaded   = True;
    self->useCacheMaxMin              = useCacheMaxMin;
    self->addToSwarmParticleExtension = addToSwarmParticleExtension;
 	
