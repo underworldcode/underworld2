@@ -327,6 +327,34 @@ class MatrixAssemblyTerm_NA__NB__Fn(MatrixAssemblyTerm):
         # call parents method
         super(MatrixAssemblyTerm_NA__NB__Fn,self)._add_to_stg_dict(componentDictionary)
 
+class  MatrixAssemblyTerm_RotationDof(MatrixAssemblyTerm):
+    _objectsDict = { "_assemblyterm": " MatrixAssemblyTerm_RotationDof" }
+
+    def __init__(self, radialFn, normalFn, mesh=None, **kwargs):
+        """
+        """
+        # build parent
+        super(MatrixAssemblyTerm_RotationDof,self).__init__(**kwargs)
+
+        self._set_fn_function = None #libUnderworld.Underworld.MatrixAssemblyTerm_RotationDof_SetFn
+        self._fn = None #fn
+
+        self._fn_radial = radialFn
+        self._fn_normal = normalFn
+
+        # if not isinstance( mesh,  uw.mesh.FeMesh_Cartesian ):
+        #     raise TypeError( "The provided mesh must be of FeMesh_Cartesian class.")
+        # set mesh directly
+        self._cself.geometryMesh = mesh._cself
+        self._geometryMesh = mesh
+
+        uw.libUnderworld.Underworld.MatrixAssemblyTerm_RotationDof_SetRadialFn(self._cself, radialFn._fncself)
+        uw.libUnderworld.Underworld.MatrixAssemblyTerm_RotationDof_SetNormalFn(self._cself, normalFn._fncself)
+
+    def _add_to_stg_dict(self,componentDictionary):
+        # call parents method
+        super(MatrixAssemblyTerm_RotationDof,self)._add_to_stg_dict(componentDictionary)
+
 class LumpedMassMatrixVectorTerm(VectorAssemblyTerm):
     _objectsDict = { "_assemblyterm": "LumpedMassMatrixForceTerm" }
     pass

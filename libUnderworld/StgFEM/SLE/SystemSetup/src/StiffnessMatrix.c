@@ -478,45 +478,39 @@ void StiffnessMatrix_Assemble( void* stiffnessMatrix, Bool bcRemoveQuery, void* 
 
 
 void __StiffnessMatrix_NewAssembleNodeWise( void* stiffnessMatrix, Bool removeBCs, void* _sle, void* _context ) {
-#if 0
+
   const double one = 1.0;
-  StiffnessMatrix*          self = (StiffnessMatrix*)stiffnessMatrix;
-  SystemLinearEquations*		sle = (SystemLinearEquations*)_sle;
-  FeVariable			          *rowVar, *colVar;
-  FeMesh				            *rowMesh, *colMesh;
-  FeEquationNumber		      *rowEqNum, *colEqNum;
-  DofLayout			*rowDofs, *colDofs;
-  unsigned			nRowEls;
-  int			nRowNodes, *rowNodes;
-  int			nColNodes, *colNodes;
-  unsigned			maxDofs, maxRCDofs, nDofs, nRowDofs, nColDofs;
-  double**			nStiffMat;
-  double*				bcVals;
-  Mat                       matrix = self->matrix;
-  Vec				vector, transVector;
-  int nRowNodeDofs, nColNodeDofs;
-  int rowInd, colInd;
-  double bc;
-  unsigned                  e_i, n_i, dof_i, n_j, dof_j;
+  StiffnessMatrix*         self = (StiffnessMatrix*)stiffnessMatrix;
+  SystemLinearEquations*   sle = (SystemLinearEquations*)_sle;
+  FeVariable               *rowVar, *colVar;
+  FeMesh                   *rowMesh;
+  FeEquationNumber         *rowEqNum, *colEqNum;
+  DofLayout                *rowDofs, *colDofs;
+  unsigned                 nRowEls;
+  int                      nRowNodes, *rowNodes;
+  int                      nColNodes, *colNodes;
+  unsigned                 maxDofs, maxRCDofs, nDofs, nRowDofs, nColDofs;
+  double**                 nStiffMat;
+  double*                  bcVals;
+  int                      nRowNodeDofs, nColNodeDofs;
+  int                      rowInd, colInd;
+  double                   bc;
+  unsigned                 e_i, n_i, dof_i, n_j, dof_j;
+
+  Mat matrix = self->matrix;
 
   assert( self && Stg_CheckType( self, StiffnessMatrix ) );
 
   rowVar = self->rowVariable;
   colVar = self->columnVariable ? self->columnVariable : rowVar;
   rowEqNum = rowVar->eqNum;  colEqNum = colVar->eqNum;
-  rowMesh = rowVar->feMesh;  colMesh = colVar->feMesh;
+  rowMesh = rowVar->feMesh;
   rowDofs = rowVar->dofLayout;  colDofs = colVar->dofLayout;
 
   nRowNodes = FeMesh_GetNodeLocalSize( rowMesh );
-  assert( (rowVar == colVar) ? !self->transRHS : 1 );
-
-  vector = self->rhs ? self->rhs->vector : NULL;
-  transVector = self->transRHS ? self->transRHS->vector : NULL;
   nStiffMat = NULL;
   bcVals = NULL;
   maxDofs = 0;
-
-  nStiffMat = ReallocArray2D( nStiffMat, double, nRowDofs, nColDofs );
 
   /* Begin assembling each element. */
   for( n_i = 0; n_i < nRowNodes; n_i++ ) {
@@ -538,127 +532,21 @@ void __StiffnessMatrix_NewAssembleNodeWise( void* stiffnessMatrix, Bool removeBC
       memset( nStiffMat[0], 0, nDofs * sizeof(double) );
       StiffnessMatrix_AssembleElement( self, n_i, sle, _context, nStiffMat );
 
+      /* Add to stiffness matrix. */
       MatSetValues( self->matrix,
                     nRowDofs, rowEqNum->destinationArray[n_i],
                     nColDofs, colEqNum->destinationArray[n_i],
                     nStiffMat[0], INSERT_VALUES );
-      /* Correct for BCs providing I'm not keeping them in. */
-      // if( vector ) {
-      //     memset( bcVals, 0, nRowDofs * sizeof(double) );
-      //
-      //     rowInd = 0;
-      //     for( n_i = 0; n_i < nRowNodes; n_i++ ) {
-      //         nRowNodeDofs = rowDofs->dofCounts[rowNodes[n_i]];
-      //         for( dof_i = 0; dof_i < nRowNodeDofs; dof_i++ ) {
-      //             if( !FeVariable_IsBC( rowVar, rowNodes[n_i], dof_i ) ) {
-      //                 colInd = 0;
-      //                 for( n_j = 0; n_j < nColNodes; n_j++ ) {
-      //                     nColNodeDofs = colDofs->dofCounts[colNodes[n_j]];
-      //                     for( dof_j = 0; dof_j < nColNodeDofs; dof_j++ ) {
-      //                         if( FeVariable_IsBC( colVar, colNodes[n_j], dof_j ) ) {
-      //                             bc = DofLayout_GetValueDouble( colDofs, colNodes[n_j], dof_j );
-      //                             bcVals[rowInd] -= bc * elStiffMat[rowInd][colInd];
-      //                         }
-      //                         colInd++;
-      //                     }
-      //                 }
-      //             }
-      //             rowInd++;
-      //         }
-      //     }
-      //
-      //     VecSetValues( vector, nRowDofs, (int*)rowEqNum->locationMatrix[e_i][0], bcVals, ADD_VALUES );
-      // }
-      // if( transVector ) {
-      //     memset( bcVals, 0, nColDofs * sizeof(double) );
-      //
-      //     colInd = 0;
-      //     for( n_i = 0; n_i < nColNodes; n_i++ ) {
-      //         nColNodeDofs = colDofs->dofCounts[colNodes[n_i]];
-      //         for( dof_i = 0; dof_i < nColNodeDofs; dof_i++ ) {
-      //             if( !FeVariable_IsBC( colVar, colNodes[n_i], dof_i ) ) {
-      //                 rowInd = 0;
-      //                 for( n_j = 0; n_j < nRowNodes; n_j++ ) {
-      //                     nRowNodeDofs = rowDofs->dofCounts[rowNodes[n_j]];
-      //                     for( dof_j = 0; dof_j < nRowNodeDofs; dof_j++ ) {
-      //                         if( FeVariable_IsBC( rowVar, rowNodes[n_j], dof_j ) ) {
-      //                             bc = DofLayout_GetValueDouble( rowDofs, rowNodes[n_j], dof_j );
-      //                             bcVals[colInd] -= bc * elStiffMat[rowInd][colInd];
-      //                         }
-      //                         rowInd++;
-      //                     }
-      //                 }
-      //             }
-      //             colInd++;
-      //         }
-      //     }
-      //
-      //     VecSetValues( transVector, nColDofs, (int*)colEqNum->locationMatrix[e_i][0], bcVals, ADD_VALUES );
-      // }
-
-      /* If keeping BCs in, zero corresponding entries in the element stiffness matrix. */
-      // if( !rowEqNum->removeBCs || !colEqNum->removeBCs ) {
-      //     rowInd = 0;
-      //     for( n_i = 0; n_i < nRowNodes; n_i++ ) {
-      //         nRowNodeDofs = rowDofs->dofCounts[rowNodes[n_i]];
-      //         for( dof_i = 0; dof_i < nRowNodeDofs; dof_i++ ) {
-      //             if( FeVariable_IsBC( rowVar, rowNodes[n_i], dof_i ) ) {
-      //                 memset( nStiffMat[rowInd], 0, nColDofs * sizeof(double) );
-      //             }
-      //             else {
-      //                 colInd = 0;
-      //                 for( n_j = 0; n_j < nColNodes; n_j++ ) {
-      //                     nColNodeDofs = colDofs->dofCounts[colNodes[n_j]];
-      //                     for( dof_j = 0; dof_j < nColNodeDofs; dof_j++ ) {
-      //                         if( FeVariable_IsBC( colVar, colNodes[n_j], dof_j ) )
-      //                             nStiffMat[rowInd][colInd] = 0.0;
-      //                         colInd++;
-      //                     }
-      //                 }
-      //             }
-      //             rowInd++;
-      //         }
-      //     }
-      // }
 
       /* Add to stiffness matrix. */
-      // MatSetValues( matrix,
-      //               nRowDofs, (int*)rowEqNum->locationMatrix[e_i][0],
-      //               nColDofs, (int*)colEqNum->locationMatrix[e_i][0],
-      //               nStiffMat[0], ADD_VALUES );
   }
 
   FreeArray( nStiffMat );
   FreeArray( bcVals );
 
-  /* If keeping BCs in and rows and columnns use the same variable, put ones in all BC'd diagonals. */
-  // if( !colEqNum->removeBCs && rowVar == colVar ) {
-  //     for( n_i = 0; n_i < FeMesh_GetNodeLocalSize( colMesh ); n_i++ ) {
-  //         nColNodeDofs = colDofs->dofCounts[n_i];
-  //         for( dof_i = 0; dof_i < nColNodeDofs; dof_i++ ) {
-  //             if( FeVariable_IsBC( colVar, n_i, dof_i ) ) {
-  //                 MatSetValues( self->matrix,
-  //                               1, colEqNum->destinationArray[n_i] + dof_i,
-  //                               1, colEqNum->destinationArray[n_i] + dof_i,
-  //                               (double*)&one, ADD_VALUES );
-  //             }
-  //         }
-  //     }
-  // }
-
   /* Reassemble the matrix and vectors. */
   MatAssemblyBegin( matrix, MAT_FINAL_ASSEMBLY );
   MatAssemblyEnd( matrix, MAT_FINAL_ASSEMBLY );
-  if( vector ) {
-      VecAssemblyBegin( vector );
-      VecAssemblyEnd( vector );
-  }
-  if( transVector) {
-      VecAssemblyBegin( transVector );
-      VecAssemblyEnd( transVector );
-  }
-
-#endif
 }
 /* Callback version */
 void __StiffnessMatrix_NewAssemble( void* stiffnessMatrix, Bool removeBCs, void* _sle, void* _context ) {
@@ -818,7 +706,7 @@ void __StiffnessMatrix_NewAssemble( void* stiffnessMatrix, Bool removeBCs, void*
         MatSetValues( matrix,
                       nRowDofs, (int*)rowEqNum->locationMatrix[e_i][0],
                       nColDofs, (int*)colEqNum->locationMatrix[e_i][0],
-                      elStiffMat[0], ADD_VALUES );
+                      elStiffMat[0], INSERT_VALUES ); //ADD_VALUES );
     }
 
     FreeArray( elStiffMat );

@@ -122,16 +122,17 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
                 # add all dirichlet condition to dcs
                 dcs.add( cond.indexSets[0] )
             elif type( cond ) == uw.conditions.NeumannCondition:
-                ncs.add( cond.indexSets[0] )
-                nbc=cond
+                pass
+                # ncs.add( cond.indexSets[0] )
+                # nbc=cond
             else:
                 raise RuntimeError("Can't decide on input condition")
 
         # check if condition definitions occur on the same nodes: error conditions presently
-        should_be_empty = dcs & ncs
-        if should_be_empty.count > 0:
-            raise ValueError("It appears both Neumann and Dirichlet conditions have been specified the following node degrees of freedom\n" +
-                    "This is currently unsupported.", should_be_empty.data)
+        # should_be_empty = dcs & ncs
+        # if should_be_empty.count > 0:
+        #     raise ValueError("It appears both Neumann and Dirichlet conditions have been specified the following node degrees of freedom\n" +
+        #             "This is currently unsupported.", should_be_empty.data)
 
         # ok, we've set some bcs, lets recreate eqnumbering
         libUnderworld.StgFEM._FeVariable_CreateNewEqnNumber( temperatureField._cself )
