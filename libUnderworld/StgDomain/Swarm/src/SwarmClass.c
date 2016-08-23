@@ -1429,6 +1429,25 @@ SwarmVariable* Swarm_NewVectorVariable(
 	return swarmVariable;
 }
 
+Variable* Swarm_GetShadowVariable( void* _swarm, Variable* variable )
+{
+	Swarm* self = (Swarm*) _swarm;
+	/* Construct */
+	return Variable_New(
+		NULL,
+		NULL,
+		1, 
+		variable->offsets,
+		variable->dataTypes,
+		variable->dataTypeCounts,
+		NULL,
+		&self->particleExtensionMgr->finalSize,
+		&self->shadowParticleCount,
+		NULL,
+		(void**)&self->shadowParticles,
+		NULL );
+
+}
 
 void Swarm_Realloc( void* swarm ) {
 	Swarm*         self               = (Swarm*) swarm;

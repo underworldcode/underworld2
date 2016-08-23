@@ -154,26 +154,21 @@ ParticleShadowSync* _ParticleShadowSync_New(  PARTICLESHADOWSYNC_DEFARGS  )
 	/* General info */
 	/* Virtual info */
 	
-	/* ParticleShadowSync info */
-	if( initFlag ){
-		_ParticleShadowSync_Init( self );
-	}
+    _ParticleShadowSync_Init( self );
 	
 	return self;
 }
 
 
-void _ParticleShadowSync_Init(
-		ParticleShadowSync*     self )
+void _ParticleShadowSync_Init( ParticleShadowSync* self )
 {
 	_ParticleCommHandler_Init( (ParticleCommHandler*)self );
 	self->particlesOutsideDomainIndices = NULL;
-	_ParticleCommHandler_ZeroShadowCommStrategyCounters( (ParticleCommHandler*)self );
 }
 
 
-void _ParticleShadowSync_Delete(void* pCommsHandler ) {
-
+void _ParticleShadowSync_Delete(void* pCommsHandler )
+{
 	_ParticleCommHandler_Delete( pCommsHandler );
 }
 
@@ -197,12 +192,7 @@ void* _ParticleShadowSync_CopyFunc( void* particleMovementHandler, void* dest, B
 		   nameExt, ptrMap );
 }
 
-void _ParticleShadowSync_AssignFromXML( void* pCommsHandler, Stg_ComponentFactory* cf, void* data ){
-	ParticleShadowSync *self = (ParticleShadowSync*)pCommsHandler;
-
-	self->isConstructed = True;
-	_ParticleShadowSync_Init( self );
-}
+void _ParticleShadowSync_AssignFromXML( void* pCommsHandler, Stg_ComponentFactory* cf, void* data ){}
 	
 void _ParticleShadowSync_Build( void* pCommsHandler, void *data ){
 }

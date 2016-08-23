@@ -55,6 +55,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         self._swarm = weakref.ref(swarm)
 
         self._arr = None
+        self._arrshadow = None
         self._writeable = writeable
 
         # clear the reference to numpy arrays, as memory layout *will* change.
@@ -155,6 +156,8 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         As numpy arrays are simply proxys to the underlying memory structures.
         no data copying is required.
 
+        Example
+        -------
         >>> # create mesh
         >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
         >>> # create empty swarm
@@ -194,12 +197,33 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
             self.swarm._livingArrays[self] = self._arr
         return self._arr
 
+    @property
+    def data_shadow(self):
+        """
+        data_shadow (np.array):  Numpy proxy array to underlying variable shadow
+        data.
+
+        Example
+        -------
+        Refer to example provided for 'data' property(/method).
+        
+        """
+        if self._arrshadow is None:
+            self._arrshadow = libUnderworld.StGermain.Variable_getAsNumpyArray(
+                                libUnderworld.StgDomain.Swarm_GetShadowVariable(self.swarm._cself, self._cself.variable) )
+            # set to writeability
+            self._arrshadow.flags.writeable = False
+            # add to swarms weakref dict
+            self.swarm._livingArrays[self] = self._arrshadow
+        return self._arrshadow
+
     def _clear_array(self):
         """
         This removes the potentially defunct numpy swarm variable memory
         numpy view. It will be regenerated when required.
         """
         self._arr = None
+        self._arrshadow = None
 
 
     def load( self, filename, verbose=False ):

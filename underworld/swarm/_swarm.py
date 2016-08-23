@@ -34,7 +34,6 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         If set to true, particles are allowed to escape from the domain. This
         may occur during particle advection, or when the mesh is deformed.
 
-
     For example, to create the swarm with some variables:
 
     First we need a mesh:
@@ -98,7 +97,8 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
     _objectsDict = {            "_swarm": "GeneralSwarm",
                           "_cellLayout" : "ElementCellLayout",
                     "_pMovementHandler" : "ParticleMovementHandler",
-                      "_escapedRoutine" : "EscapedRoutine"
+                      "_escapedRoutine" : "EscapedRoutine",
+                  "_particleShadowSync" : "ParticleShadowSync"
                     }
 
     def __init__(self, mesh, particleEscape=False, **kwargs):
@@ -136,7 +136,6 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         if self.particleEscape:
             componentDictionary[ self._swarm.name ][  "EscapedRoutine"] = self._escapedRoutine.name
             componentDictionary[ self._escapedRoutine.name][ "particlesToRemoveDelta" ] = 1000
-
 
         componentDictionary[ self._cellLayout.name ]["Mesh"]            = self._mesh._cself.name
 
@@ -423,7 +422,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         array([ 0.2,  0.2])
 
         """
-        # lock swarm
+        # lock swarm to prevent particle addition etc
         self._locked = True
         # enable writeable array
         self._particleCoordinates.data.flags.writeable = True
@@ -441,6 +440,30 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
             if update_owners:
                 self.update_particle_owners()
 
+    def shadow_particles_fetch(self):
+        """
+        When called, neighbouring processor particles which have coordinates 
+        within the current processor's shadow zone will be communicated to the 
+        current processor. Ie, the processor shadow zone is populated using 
+        particles that are owned by neighbouring processors. After this 
+        method has been called, particle shadow data is available via the 
+        `data_shadow` handles of SwarmVariable objects. This data is read only.
+        
+        Note that you will need to call this whenever neighbouring information
+        has potentially changed, for example after swarm advection, or after
+        you have modified a SwarmVariable object. 
+        
+        Any existing shadow information will be discarded when this is called.
+
+        Notes
+        -----
+        This method must be called collectively by all processes.
+
+        """
+        self._clear_variable_arrays()
+        uw.libUnderworld.StgDomain._ParticleShadowSync_Execute(self._particleShadowSync,self._cself)
+    
+
     def update_particle_owners(self):
         """
         This routine will update particles owners after particles have been
@@ -448,9 +471,15 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         particle resides within, and also in terms of the parallel processor
         decomposition (particles belonging on other processors will be sent across).
         
-        Users should not call this as it will be called automatically at the 
+        Users should not generally need to call this as it will be called automatically at the
         conclusion of a deform_swarm() block.
+
+        Notes
+        -----
+        This method must be called collectively by all processes.
         
+        Example
+        -------
         >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
         >>> swarm = uw.swarm.Swarm(mesh)
         >>> swarm.populate_using_layout(uw.swarm.layouts.PerCellGaussLayout(swarm,2))
