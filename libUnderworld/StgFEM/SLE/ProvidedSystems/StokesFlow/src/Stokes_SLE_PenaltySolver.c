@@ -88,13 +88,13 @@ void Stokes_SLE_PenaltySolver_InitAll( void* solver )
 
 void _Stokes_SLE_PenaltySolver_Delete( void* solver ) {
     Stokes_SLE_PenaltySolver* self = (Stokes_SLE_PenaltySolver*)solver;
-		
+
     Journal_DPrintf( self->debug, "In: %s \n", __func__);
 
     Stream_IndentBranch( StgFEM_Debug );
 
     Stream_UnIndentBranch( StgFEM_Debug );
-}       
+}
 
 
 void _Stokes_SLE_PenaltySolver_Print( void* solver, Stream* stream ) {
@@ -107,9 +107,9 @@ void _Stokes_SLE_PenaltySolver_Print( void* solver, Stream* stream ) {
 void* _Stokes_SLE_PenaltySolver_Copy( void* stokesSlePenaltySolver, void* dest, Bool deep, Name nameExt, PtrMap* ptrMap ) {
     Stokes_SLE_PenaltySolver* self = (Stokes_SLE_PenaltySolver*)stokesSlePenaltySolver;
     Stokes_SLE_PenaltySolver*	newStokesSlePenaltySolver;
-	
+
     newStokesSlePenaltySolver = _SLE_Solver_Copy( self, dest, deep, nameExt, ptrMap );
-	
+
     return (void*) newStokesSlePenaltySolver;
 }
 
@@ -126,7 +126,7 @@ void _Stokes_SLE_PenaltySolver_AssignFromXML( void* solver, Stg_ComponentFactory
     Stokes_SLE_PenaltySolver* self         = (Stokes_SLE_PenaltySolver*) solver;
 
     _SLE_Solver_AssignFromXML( self, cf, data );
-	
+
     _Stokes_SLE_PenaltySolver_Init( self );
 }
 
@@ -139,7 +139,7 @@ void _Stokes_SLE_PenaltySolver_Destroy( void* solver, void* data ) {
 void _Stokes_SLE_PenaltySolver_Initialise( void* solver, void* stokesSLE ) {
     Stokes_SLE_PenaltySolver* self = (Stokes_SLE_PenaltySolver*) solver;
     Stokes_SLE*             sle  = (Stokes_SLE*)             stokesSLE;
-	
+
     /* Initialise Parent */
     _SLE_Solver_Initialise( self, sle );
 }
@@ -147,7 +147,7 @@ void _Stokes_SLE_PenaltySolver_Initialise( void* solver, void* stokesSLE ) {
 /* SolverSetup */
 void _Stokes_SLE_PenaltySolver_SolverSetup( void* solver, void* stokesSLE ) {
     Stokes_SLE_PenaltySolver* self = (Stokes_SLE_PenaltySolver*) solver;
-	
+
     Journal_DPrintf( self->debug, "In %s:\n", __func__ );
     Stream_IndentBranch( StgFEM_Debug );
     Stream_UnIndentBranch( StgFEM_Debug );
@@ -155,7 +155,7 @@ void _Stokes_SLE_PenaltySolver_SolverSetup( void* solver, void* stokesSLE ) {
 
 
 void _Stokes_SLE_PenaltySolver_Solve( void* solver,void* stokesSLE ) {
-    Stokes_SLE_PenaltySolver* self            = (Stokes_SLE_PenaltySolver*)solver;	
+    Stokes_SLE_PenaltySolver* self            = (Stokes_SLE_PenaltySolver*)solver;
     Stokes_SLE*             sle             = (Stokes_SLE*)stokesSLE;
     /* Create shortcuts to stuff needed on sle */
     Mat                     kMatrix         = sle->kStiffMat->matrix;
@@ -185,7 +185,7 @@ void _Stokes_SLE_PenaltySolver_Solve( void* solver,void* stokesSLE ) {
     VecDuplicate( hVec, &hTempVec );
     VecDuplicate( fVec, &fTempVec );
     VecDuplicate( pVec, &diagC );
-	
+
     if( sle->dStiffMat == NULL ) {
         Journal_DPrintf( self->debug, "Div matrix == NULL : Problem is assumed to be symmetric. ie Div = GTrans \n");
 #if( PETSC_VERSION_MAJOR <= 2 )
@@ -264,7 +264,7 @@ void _Stokes_SLE_PenaltySolver_Solve( void* solver,void* stokesSLE ) {
     /*MatDiagonalScale( kHat, penalty, PETSC_NULL );*/
     MatScale( kHat, -1.0 );
     MatAXPY( kMatrix, 1.0, kHat, SAME_NONZERO_PATTERN );
-	
+
     /* Setup solver context and make sure that it uses a direct solver */
     KSPCreate( sle->comm, &ksp_v );
     Stg_KSPSetOperators( ksp_v, kMatrix, kMatrix, DIFFERENT_NONZERO_PATTERN );
@@ -274,7 +274,7 @@ void _Stokes_SLE_PenaltySolver_Solve( void* solver,void* stokesSLE ) {
     KSPSetFromOptions( ksp_v );
 
     KSPSolve( ksp_v, fTempVec, uVec );
-	
+
     /* Recover p */
     if( sle->dStiffMat == NULL ) {
 
@@ -297,7 +297,7 @@ void _Stokes_SLE_PenaltySolver_Solve( void* solver,void* stokesSLE ) {
     MatMult( divMat, uVec, hTempVec );    /* hTemp = Div v */
     VecAYPX( hTempVec, negOne, hVec );    /* hTemp = H - hTemp   : hTemp = H - Div v */
     MatMult( C_InvMat, hTempVec, pVec );  /* p = CInv hTemp      : p = CInv ( H - Div v ) */
-	
+
     Stg_MatDestroy(&kHat );
     if( fTempVec != PETSC_NULL ) Stg_VecDestroy(&fTempVec );
     if( hTempVec != PETSC_NULL ) Stg_VecDestroy(&hTempVec );
@@ -317,7 +317,8 @@ void Stokes_SLE_PenaltySolver_MakePenalty( Stokes_SLE_PenaltySolver* self, Stoke
     Mat kMat = sle->kStiffMat->matrix;
     FeMesh *mesh = sle->kStiffMat->rowVariable->feMesh;
     FeVariable *velField = sle->kStiffMat->rowVariable;
-    FeEquationNumber *eqNum = velField->eqNum;
+    SolutionVector* uVec = sle->uSolnVec;
+    FeEquationNumber *eqNum = uVec->eqNum;
     IArray *inc;
     PetscScalar *lambdaVals, lambdaMin, *penaltyVals;
     int numDofs, numLocalElems, nodeCur, numLocalNodes, rank, eq;
@@ -406,7 +407,7 @@ void Stokes_SLE_PenaltySolver_MakePenalty( Stokes_SLE_PenaltySolver* self, Stoke
     FeVariable_SyncShadowValues( velField );
 
     Stg_VecDestroy(&lambda );
-    
+
     VecRestoreArray( penalty, &penaltyVals );
     VecAssemblyBegin( penalty );
     VecAssemblyEnd( penalty );
@@ -426,4 +427,3 @@ void Stokes_SLE_PenaltySolver_MakePenalty( Stokes_SLE_PenaltySolver* self, Stoke
 
     *_penalty = penalty;
 }
-

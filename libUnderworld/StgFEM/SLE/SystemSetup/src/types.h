@@ -21,7 +21,6 @@
 	typedef struct SystemLinearEquations        SystemLinearEquations;
 	typedef struct SLE_Solver                   SLE_Solver;
 	typedef struct FiniteElementContext         FiniteElementContext;
-	typedef struct Assembler		Assembler;
         typedef struct MGOpGenerator			MGOpGenerator;
         typedef struct SROpGenerator			SROpGenerator;
         typedef struct PETScMGSolver			PETScMGSolver;

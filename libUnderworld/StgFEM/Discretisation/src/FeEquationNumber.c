@@ -17,6 +17,7 @@
 #include "Element.h"
 #include "FeMesh.h"
 #include "FeEquationNumber.h"
+#include "FeVariable.h"
 #include "LinkedDofInfo.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -104,19 +105,19 @@ void* FeEquationNumber_DefaultNew( Name name ) {
 /** Constructor implementation. */
 FeEquationNumber* _FeEquationNumber_New(  FEEQUATIONNUMBER_DEFARGS  ){
    FeEquationNumber* self;
-	
+
    /* Allocate memory */
    assert( _sizeOfSelf >= sizeof(FeEquationNumber) );
    self = (FeEquationNumber*)_Stg_Component_New(  STG_COMPONENT_PASSARGS  );
-	
+
    /* General info */
-	
+
    /* Virtual info */
    self->_build = _build;
    self->_initialise = _initialise;
-	
+
    /* Mesh info */
-	
+
    return self;
 }
 
@@ -124,7 +125,7 @@ FeEquationNumber* _FeEquationNumber_New(  FEEQUATIONNUMBER_DEFARGS  ){
 /** Constructor variables initialisation. Doesn't allocate any
     memory, just saves arguments and sets counters to 0. */
 void _FeEquationNumber_Init(
-   FeEquationNumber*		self, 
+   FeEquationNumber*		self,
 	DomainContext*			context,
    void*						feMesh,
    DofLayout*				dofLayout,
@@ -132,7 +133,7 @@ void _FeEquationNumber_Init(
    LinkedDofInfo*			linkedDofInfo )
 {
    /* General and Virtual info should already be set */
-	
+
    /* FinteElementMesh info */
 	self->context = context;
    self->feMesh = (FeMesh*)feMesh;
@@ -163,11 +164,11 @@ void _FeEquationNumber_Init(
 
 void _FeEquationNumber_AssignFromXML( void* feEquationNumber, Stg_ComponentFactory *cf, void* data ) {
 }
-	
+
 void _FeEquationNumber_Execute( void* feEquationNumber, void *data ){
-	
+
 }
-	
+
 void _FeEquationNumber_Destroy( void* feEquationNumber, void *data ){
    FeEquationNumber* self = (FeEquationNumber*) feEquationNumber;
    Index ii;
@@ -175,22 +176,22 @@ void _FeEquationNumber_Destroy( void* feEquationNumber, void *data ){
    /* free destination array memory */
    Journal_DPrintfL( self->debug, 2, "Freeing I.D. Array\n" );
    FreeArray( self->destinationArray );
-	
+
    if (self->locationMatrix) {
       Journal_DPrintfL( self->debug, 2, "Freeing Full L.M. Array\n" );
       for( ii = 0; ii < self->nDomainEls; ii++ )
          FreeArray( self->locationMatrix[ii] );
-         
+
       FreeArray( self->locationMatrix );
    }
 
-   if( self->bcEqNums ) 
+   if( self->bcEqNums )
       Stg_Class_Delete( self->bcEqNums );
-   
-   if( self->ownedMap ) 
+
+   if( self->ownedMap )
       Stg_Class_Delete( self->ownedMap );
 }
-	
+
 /* Copy */
 
 /** Stg_Class_Delete implementation. */
@@ -209,20 +210,20 @@ void _FeEquationNumber_Delete( void* feEquationNumber ) {
 /** Print implementation */
 void _FeEquationNumber_Print( void* mesh, Stream* stream ) {
    FeEquationNumber* self = (FeEquationNumber*)mesh;
-	
+
    /* General info */
    Journal_Printf( stream, "FeEquationNumber (ptr): %p\n", self );
-	
+
    /* Print parent */
    _Stg_Class_Print( self, stream );
-	
+
    /* Virtual info */
    Journal_Printf( stream,  "\t_build (func ptr): %p\n", self->_build );
    Journal_Printf( stream,  "\t_intialise (func ptr): %p\n", self->_initialise );
-	
+
    /* FeEquationNumber info */
    /* Don't print dofs or bcs as these will be printed by FeVariable */
-	
+
    if ( self->destinationArray ) {
       FeEquationNumber_PrintDestinationArray( self, stream );
       FeEquationNumber_PrintLocationMatrix( self, stream );
@@ -243,7 +244,7 @@ void _FeEquationNumber_Build( void* feEquationNumber, void* data ) {
    FeEquationNumber* self = (FeEquationNumber*) feEquationNumber;
 
    assert(self);
-	
+
    Journal_DPrintf( self->debug, "In %s:\n",  __func__ );
    Stream_IndentBranch( StgFEM_Debug );
 
@@ -304,7 +305,7 @@ Index FeEquationNumber_CalculateActiveEqCountAtNode(
 {
    FeEquationNumber*	self = (FeEquationNumber*) feEquationNumber;
    Dof_Index		nodalDof_I = 0;
-   Index			activeEqsAtCurrRowNode = 0;		
+   Index			activeEqsAtCurrRowNode = 0;
    Dof_EquationNumber	currEqNum;
    Bool			foundLowest = False;
 
@@ -384,29 +385,26 @@ void FeEquationNumber_BuildLocationMatrix( void* feEquationNumber ) {
    self->locationMatrix = locMat;
 }
 
+FeEquationNumber* _FeEquationNumber_Create( void* _self, Bool removeBCs ) {
+  /* Build a n equation number for a given feVariable */
+  FeVariable* feVar = Stg_CheckType( (FeVariable*)_self, FeVariable) ;
+  FeEquationNumber* eqNum=NULL;
+  Stg_Component_Build( feVar, NULL, False );
+  Stg_Component_Initialise( feVar, NULL, False );
+  eqNum = FeEquationNumber_New( "MrMoon",
+                                  feVar->context,
+                                  feVar->feMesh,
+                                  feVar->dofLayout,
+                                  feVar->bcs,
+                                  NULL );
 
-/** Build an element's local location matrix */
-Dof_EquationNumber** FeEquationNumber_BuildOneElementLocationMatrix( void* feEquationNumber, Element_LocalIndex lElement_I ) {
-   FeEquationNumber* self = (FeEquationNumber*)feEquationNumber;
-   Dof_EquationNumber** localLocationMatrix = NULL;
-
-   /* HACK: Make sure global element location matrix is built. */
-   if( !self->locationMatrixBuilt )
-      abort();
-
-   /* if ( big LM allocated ) set pointer into it correctly */
-   if ( self->locationMatrix ) {
-      /* set ptr to correct set of local nodes ptrs */
-      localLocationMatrix = self->locationMatrix[lElement_I];
-      Journal_DPrintfL( self->debugLM, 3, "set localLocationMatrix to pt. to big LM[%d] = %p\n",  lElement_I, self->locationMatrix[lElement_I] ) ;
-   } else {
-       /* ugly exit */
-       abort();
-   }
-
-   return localLocationMatrix;
+  eqNum->removeBCs = removeBCs;
+  memcpy( eqNum->periodic, feVar->periodic, 3*sizeof(Bool) );
+  Stg_Component_Build( eqNum, NULL, False );
+  Stg_Component_Initialise( eqNum, NULL, False );
+  // feVar->eqNum = self->eqNum; // We do it for now
+  return eqNum;
 }
-
 
 void FeEquationNumber_PrintDestinationArray( void* feFeEquationNumber, Stream* stream ) {
    FeEquationNumber* self = (FeEquationNumber*) feFeEquationNumber;
@@ -435,7 +433,7 @@ void FeEquationNumber_PrintDestinationArray( void* feFeEquationNumber, Stream* s
          }
          Journal_Printf( stream, "\n" );
       }
-   }		
+   }
 }
 
 void FeEquationNumber_PrintDestinationArrayBox( void* feFeEquationNumber, Stream* stream ) {
@@ -453,7 +451,7 @@ void FeEquationNumber_PrintDestinationArrayBox( void* feFeEquationNumber, Stream
 
 	MPI_Comm_rank( comm, (int*)&rank );
 	Journal_Printf( stream, "%d: *** Printing destination array ***\n", rank );
-	
+
 	vGrid = *Mesh_GetExtension( feMesh, Grid**,  feMesh->vertGridId );
 	nDofs = self->dofLayout->dofCounts[0];
 	sizeI = vGrid->sizes[ I_AXIS ];
@@ -488,7 +486,7 @@ void FeEquationNumber_PrintDestinationArrayBox( void* feFeEquationNumber, Stream
 				Journal_Printf( stream, "    " );
 		}
 		Journal_Printf( stream, "\n" );
-	}	
+	}
 }
 
 void FeEquationNumber_PrintLocationMatrix( void* feFeEquationNumber, Stream* stream ) {
@@ -504,7 +502,7 @@ void FeEquationNumber_PrintLocationMatrix( void* feFeEquationNumber, Stream* str
    Journal_Printf( stream, "%d: *** Printing location matrix ***\n", rank  );
 
    MPI_Comm_rank( comm, (int*)&rank );
-	
+
    for (gEl_I =0; gEl_I < elementGlobalCount; gEl_I++ ) {
       Element_LocalIndex lEl_I;
 
@@ -522,14 +520,14 @@ void FeEquationNumber_PrintLocationMatrix( void* feFeEquationNumber, Stream* str
          numNodesAtElement = IArray_GetSize( inc );
          incNodes = IArray_GetPtr( inc );
 
-         Journal_Printf( stream, "\tLM[(g/l el)%2d/%2d][(enodes)0-%d]", gEl_I, lEl_I, numNodesAtElement);	
+         Journal_Printf( stream, "\tLM[(g/l el)%2d/%2d][(enodes)0-%d]", gEl_I, lEl_I, numNodesAtElement);
          /* print the nodes and dofs */
          for ( elLocalNode_I = 0; elLocalNode_I < numNodesAtElement; elLocalNode_I++ ) {
             /* look up processor local node number. */
-            Element_LocalIndex currNode = incNodes[elLocalNode_I == 2 ? 3 : 
-                                                   elLocalNode_I == 3 ? 2 : 
-                                                   elLocalNode_I == 6 ? 7 : 
-                                                   elLocalNode_I == 7 ? 6 : 
+            Element_LocalIndex currNode = incNodes[elLocalNode_I == 2 ? 3 :
+                                                   elLocalNode_I == 3 ? 2 :
+                                                   elLocalNode_I == 6 ? 7 :
+                                                   elLocalNode_I == 7 ? 6 :
                                                    elLocalNode_I];
             /* get the number of dofs at current node */
             Dof_Index currNodeNumDofs = self->dofLayout->dofCounts[ currNode ];
@@ -540,7 +538,7 @@ void FeEquationNumber_PrintLocationMatrix( void* feFeEquationNumber, Stream* str
                Journal_Printf( stream, "%3d,", self->destinationArray[currNode][nodeLocalDof_I] );
             }
             Journal_Printf( stream, "), " );
-         }	
+         }
 
          Journal_Printf( stream, "\n" );
 
@@ -566,7 +564,7 @@ Partition_Index FeEquationNumber_CalculateOwningProcessorOfEqNum( void* feEquati
 
    return p_i - 1;
 
-}	
+}
 
 void FeEquationNumber_BuildWithTopology( FeEquationNumber* self ) {
    Stream*		stream;
@@ -628,7 +626,7 @@ void FeEquationNumber_BuildWithTopology( FeEquationNumber* self ) {
    links = self->linkedDofInfo;
 
    /* Allocate for destination array. */
-   dstArray = Memory_Alloc_2DComplex( int, nDomainNodes, nNodalDofs, 
+   dstArray = Memory_Alloc_2DComplex( int, nDomainNodes, nNodalDofs,
                                       "FeEquationNumber::destinationArray" );
 
    /* If needed, allocate for linked equation numbers. */
@@ -663,7 +661,7 @@ void FeEquationNumber_BuildWithTopology( FeEquationNumber* self ) {
 
       for( dof_i = 0; dof_i < nNodalDofs[n_i]; dof_i++ ) {
          varInd = self->dofLayout->varIndices[n_i][dof_i];
-         if( !self->bcs || !VariableCondition_IsCondition( self->bcs, n_i, varInd ) || 
+         if( !self->bcs || !VariableCondition_IsCondition( self->bcs, n_i, varInd ) ||
              !self->removeBCs )
          {
             if( links && links->linkedDofTbl[n_i][dof_i] != -1 ) {
@@ -712,7 +710,7 @@ void FeEquationNumber_BuildWithTopology( FeEquationNumber* self ) {
    for( n_i = 0; n_i < nLocalNodes; n_i++ ) {
       for( dof_i = 0; dof_i < nNodalDofs[n_i]; dof_i++ ) {
          varInd = self->dofLayout->varIndices[n_i][dof_i];
-         if( !self->bcs || !VariableCondition_IsCondition( self->bcs, n_i, varInd ) || 
+         if( !self->bcs || !VariableCondition_IsCondition( self->bcs, n_i, varInd ) ||
              !self->removeBCs )
          {
             if( links && links->linkedDofTbl[n_i][dof_i] != -1 ) {
@@ -728,15 +726,15 @@ void FeEquationNumber_BuildWithTopology( FeEquationNumber* self ) {
 
    /* Update all other procs. */
    sync = Mesh_GetSync( feMesh, MT_VERTEX );
-   Sync_SyncArray( sync, tuples, maxDofs * sizeof(unsigned), 
-                   tuples + nLocalNodes * maxDofs, maxDofs * sizeof(unsigned), 
+   Sync_SyncArray( sync, tuples, maxDofs * sizeof(unsigned),
+                   tuples + nLocalNodes * maxDofs, maxDofs * sizeof(unsigned),
                    maxDofs * sizeof(unsigned) );
 
    /* Update destination array's domain indices. */
    for( n_i = nLocalNodes; n_i < nDomainNodes; n_i++ ) {
       for( dof_i = 0; dof_i < nNodalDofs[n_i]; dof_i++ ) {
          varInd = self->dofLayout->varIndices[n_i][dof_i];
-         if( !self->bcs || !VariableCondition_IsCondition( self->bcs, n_i, varInd ) || 
+         if( !self->bcs || !VariableCondition_IsCondition( self->bcs, n_i, varInd ) ||
              !self->removeBCs )
          {
             dstArray[n_i][dof_i] = tuples[n_i * maxDofs + dof_i];
@@ -789,7 +787,7 @@ void FeEquationNumber_BuildWithTopology( FeEquationNumber* self ) {
 //   endTime = MPI_Wtime();
 
 //   Journal_RPrintf( stream, "Assigned %d global equation numbers.\n", self->globalSumUnconstrainedDofs );
-//   Journal_Printf( stream, "[%u] Assigned %d local equation numbers, within range %d to %d.\n", 
+//   Journal_Printf( stream, "[%u] Assigned %d local equation numbers, within range %d to %d.\n",
 //                   rank, self->lastOwnedEqNum - self->firstOwnedEqNum + 1, self->firstOwnedEqNum, self->lastOwnedEqNum + 1 );
 //   Stream_UnIndent( stream );
 
@@ -853,9 +851,9 @@ void FeEquationNumber_BuildWithDave( FeEquationNumber* self ) {
 /*
       Grid_Lift( vGrid, locals[ii], inds );
       usePeriodic = False;
-      for( jj = 0; jj < nDims; jj++ ) 
+      for( jj = 0; jj < nDims; jj++ )
       {
-         if( (periodic[jj] || self->periodic[jj]) && (inds[jj] == 0 || inds[jj] == vGrid->sizes[jj] - 1) ) 
+         if( (periodic[jj] || self->periodic[jj]) && (inds[jj] == 0 || inds[jj] == vGrid->sizes[jj] - 1) )
          {
             usePeriodic = True;
             break;
@@ -869,7 +867,7 @@ void FeEquationNumber_BuildWithDave( FeEquationNumber* self ) {
             isCond = VariableCondition_IsCondition( self->bcs, ii, varInd );
          else
             isCond = False;
-         
+
          if( isCond && self->removeBCs )
             dstArray[ii][jj] = -1;
          else
@@ -892,9 +890,9 @@ void FeEquationNumber_BuildWithDave( FeEquationNumber* self ) {
                continue;
             /*
             for( kk = 0; kk < nDofs; kk++ )
-               if( dstArray[jj][kk] == -1 ) 
+               if( dstArray[jj][kk] == -1 )
                   break;
-               if( kk < nDofs ) 
+               if( kk < nDofs )
                   continue;
             */
             periodicInds[ii][nPeriodicInds[ii]++] = locals[jj];
@@ -1026,13 +1024,13 @@ void FeEquationNumber_BuildWithDave( FeEquationNumber* self ) {
 
    /* Construct lowest global equation number list. */
    self->_lowestGlobalEqNums = AllocArray( int, nRanks );
-   (void)MPI_Allgather( &self->_lowestLocalEqNum, 1, MPI_UNSIGNED, 
+   (void)MPI_Allgather( &self->_lowestLocalEqNum, 1, MPI_UNSIGNED,
                         self->_lowestGlobalEqNums, 1, MPI_UNSIGNED,
                         mpiComm );
 
    FreeArray( locals );
 
-   /* 
+   /*
    printf( "%d: localEqNumsOwned = %d\n", rank, self->localEqNumsOwnedCount );
    printf( "%d: globalSumUnconstrainedDofs = %d\n", rank, self->globalSumUnconstrainedDofs );
    */
@@ -1057,7 +1055,7 @@ Input:
 Output;
   eqnums - contains full list of eqnums
 
-Assumptions: 
+Assumptions:
 - Ordering eqnums[] = { (node_0,[dof_0,dof_1,..,dof_x]), (node_1,[dof_0,dof_1,..,dof_x]), ... }
 - Any dirichlet set along a boundary deemed to be periodic will be clobbered.
 - Processors may have duplicate nodes in the g_node_id[] list.
@@ -1081,7 +1079,7 @@ PetscErrorCode _VecScatterBeginEnd( VecScatter vscat, Vec FROM, Vec TO, InsertMo
 	VecScatterBegin( vscat, FROM, TO, addv, mode );
 	VecScatterEnd( vscat, FROM, TO, addv, mode );
 #endif
-	
+
 	PetscFunctionReturn(0);
 }
 
@@ -1114,36 +1112,36 @@ int GenerateEquationNumbering(
 	VecScatter vscat_offset;
 	Vec seq_offset_list;
 	PetscInt offset, inc;
-	
+
 	PetscInt spanx,spany,spanz,total;
 	PetscInt loc;
 	PetscReal max;
 	PetscInt n_inserts;
-	
-	
+
+
 	ierr = MPI_Comm_rank(PETSC_COMM_WORLD,&rank);CHKERRQ(ierr);
 	ierr = MPI_Comm_size(PETSC_COMM_WORLD,&size);CHKERRQ(ierr);
-	
+
 	if( dof>=10 ) {
 		Stg_SETERRQ(PETSC_ERR_SUP, "Max allowable degrees of freedom per node = 10. Change static size" );
 	}
-	
-	
-	/* 
+
+
+	/*
 	Claim locally owned nodes. Duplicate nodes on the interior will be resolved by the processor
 	which inserts last.
 	*/
 	VecCreate( PETSC_COMM_WORLD, &g_ownership );
 	VecSetSizes( g_ownership, PETSC_DECIDE, nglobal );
 	VecSetFromOptions( g_ownership );
-	
+
 	for( i=0; i<nlocal; i++ ) {
 		VecSetValue( g_ownership, g_node_id[i], rank, INSERT_VALUES );
 	}
 	VecAssemblyBegin(g_ownership);
 	VecAssemblyEnd(g_ownership);
-	
-	
+
+
 	/* Mask out the periodic boundaries. */
 	periodic_mask = -6699.0;
 	if (periodic_x_gnode_id!=NULL) {
@@ -1163,30 +1161,30 @@ int GenerateEquationNumbering(
 	}
 	VecAssemblyBegin(g_ownership);
 	VecAssemblyEnd(g_ownership);
-	
+
 	/*
 	PetscPrintf(PETSC_COMM_WORLD, "g_ownership \n");
 	VecView( g_ownership, PETSC_VIEWER_STDOUT_WORLD );
 	*/
-	
+
 	/* Get all locally owned nodes */
 	VecCreate( PETSC_COMM_SELF, &local_ownership );
 	VecSetSizes( local_ownership, PETSC_DECIDE, nlocal );
 	VecSetFromOptions( local_ownership );
-	
+
 	PetscMalloc( sizeof(PetscInt)*nlocal, &_g_node_id);
 	for( i=0; i<nlocal; i++ ) {
-		_g_node_id[i] = g_node_id[i]; 
+		_g_node_id[i] = g_node_id[i];
 	}
 	ISCreateGeneralWithArray( PETSC_COMM_WORLD, nlocal, _g_node_id, &is_gnode );
 	VecScatterCreate( g_ownership, is_gnode, local_ownership, PETSC_NULL, &vscat_ownership );
-	
-	
+
+
 	/* assign unique equation numbers */
 	VecSet( local_ownership, -6699 );
 	_VecScatterBeginEnd( vscat_ownership, g_ownership, local_ownership, INSERT_VALUES, SCATTER_FORWARD );
-	
-	
+
+
 	/* Count instances of rank in the local_ownership vector */
 	VecGetArray( local_ownership, &_local_ownership );
 	local_eqnum_count = 0;
@@ -1195,9 +1193,9 @@ int GenerateEquationNumbering(
 			local_eqnum_count++;
 		}
 	}
-	
+
 	(void)MPI_Allreduce( &local_eqnum_count, &global_eqnum_count, 1, MPI_INT, MPI_SUM, PETSC_COMM_WORLD );
-	/* PetscPrintf( PETSC_COMM_SELF, 
+	/* PetscPrintf( PETSC_COMM_SELF,
 	    "[%d] number of local,global equations (without dofs) %d,%d \n", rank, local_eqnum_count, global_eqnum_count ); */
 	/* check */
 	spanx = NX;
@@ -1216,14 +1214,14 @@ int GenerateEquationNumbering(
 	if( total!=global_eqnum_count ) {
 		Stg_SETERRQ(PETSC_ERR_SUP, "Something stinks. Computed global size for nodes does not match expected" );
 	}
-	
-	
-	
+
+
+
 	VecCreate( PETSC_COMM_WORLD, &global_eqnum );
 	VecSetSizes( global_eqnum, PETSC_DECIDE, nglobal*dof );
 	VecSetFromOptions( global_eqnum );
 	VecSet( global_eqnum, 0.0 );
-	
+
 	/* Load existing eqnums in */
 	for( i=0; i<nlocal; i++ ) {
 		n_inserts = 0;
@@ -1243,11 +1241,11 @@ int GenerateEquationNumbering(
 	}
 	VecAssemblyBegin(global_eqnum);
 	VecAssemblyEnd(global_eqnum);
-	
-	
-	
-	
-	
+
+
+
+
+
 	/* Generate list of eqnums to get */
 	PetscMalloc( sizeof(PetscInt)*nlocal*dof, &to_fetch );
 	cnt = 0;
@@ -1260,19 +1258,19 @@ int GenerateEquationNumbering(
 		}
 	}
 	number_to_fetch = cnt;
-	
-	
+
+
 	VecCreate( PETSC_COMM_SELF, &local_eqnum );
 	VecSetSizes( local_eqnum, PETSC_DECIDE, number_to_fetch);
 	VecSetFromOptions( local_eqnum );
-	
+
 	ISCreateGeneralWithArray( PETSC_COMM_SELF, number_to_fetch, to_fetch, &is_eqnum );
 	VecScatterCreate( global_eqnum, is_eqnum, local_eqnum, PETSC_NULL, &vscat_eqnum );
-	
+
 	VecSet( local_eqnum, -6699 );
 	_VecScatterBeginEnd( vscat_eqnum, global_eqnum, local_eqnum, INSERT_VALUES, SCATTER_FORWARD );
-	
-	
+
+
 	/* compute offset */
 	/* count how many entries there are */
 	VecGetArray( local_eqnum, &_local_eqnum );
@@ -1283,7 +1281,7 @@ int GenerateEquationNumbering(
 		}
 	}
 	VecRestoreArray( local_eqnum, &_local_eqnum );
-	
+
 	VecCreate( PETSC_COMM_WORLD, &offset_list );
 	VecSetSizes( offset_list, PETSC_DECIDE, (size+1) );
 	VecSetFromOptions( offset_list );
@@ -1296,13 +1294,13 @@ int GenerateEquationNumbering(
 	PetscPrintf(PETSC_COMM_WORLD, "offset_list \n");
 	VecView( offset_list, PETSC_VIEWER_STDOUT_WORLD );
 	*/
-	
+
 	VecScatterCreateToAll(offset_list,&vscat_offset,&seq_offset_list);
 	_VecScatterBeginEnd( vscat_offset, offset_list, seq_offset_list, INSERT_VALUES, SCATTER_FORWARD );
-	
+
 	{
 		PetscScalar *_seq_offset_list;
-		
+
 		VecGetArray( seq_offset_list, &_seq_offset_list );
 		offset = _seq_offset_list[ rank ];
 		VecRestoreArray( seq_offset_list, &_seq_offset_list );
@@ -1310,10 +1308,10 @@ int GenerateEquationNumbering(
 	Stg_VecScatterDestroy(&vscat_offset);
 	Stg_VecDestroy(&offset_list);
 	Stg_VecDestroy(&seq_offset_list);
-	
+
 	/* PetscPrintf( PETSC_COMM_SELF, "[%d]: offset = %d \n", rank, offset ); */
-	
-	
+
+
 	VecGetArray( local_eqnum, &_local_eqnum );
 	inc = 0;
 	for( i=0; i<number_to_fetch; i++ ) {
@@ -1323,15 +1321,15 @@ int GenerateEquationNumbering(
 		}
 	}
 	VecRestoreArray( local_eqnum, &_local_eqnum );
-	
+
 	_VecScatterBeginEnd( vscat_eqnum, local_eqnum, global_eqnum, INSERT_VALUES, SCATTER_REVERSE );
 	/*
 	PetscPrintf(PETSC_COMM_WORLD, "global_eqnum \n");
 	VecView( global_eqnum, PETSC_VIEWER_STDOUT_WORLD );
 	*/
-	
+
 	/* For each periodic boundary, get the mapped nodes */
-	
+
 	if( periodic_x==PETSC_TRUE ) {
 		VecScatter vscat_p;
 		IS is_from;
@@ -1339,53 +1337,53 @@ int GenerateEquationNumbering(
 		Vec mapped;
 		PetscScalar *_mapped;
 		PetscInt c;
-		
+
 		PetscMalloc( sizeof(PetscInt)*npx*dof, &from );
 		PetscMalloc( sizeof(PetscInt)*npx*dof, &to );
-		
+
 		c = 0;
 		for( i=0; i<npx; i++ ) {
 			PetscInt I,J,K,gid,from_gid;
-			
+
 			gid = periodic_x_gnode_id[i];
 			K = gid/(NX*NY);
 			J = (gid - K*(NX*NY))/NX;
 			I = gid - K*(NX*NY) - J*NX;
 			from_gid = (I-(NX-1)) + J*NX + K*(NX*NY);
-			
+
 			for( d=0; d<dof; d++ ) {
 				to[c] = gid * dof + d;
 				from[c] = from_gid * dof + d;
 				c++;
 			}
 		}
-		
-		
+
+
 		VecCreate( PETSC_COMM_SELF, &mapped );
 		VecSetSizes( mapped, PETSC_DECIDE, npx*dof );
 		VecSetFromOptions( mapped );
-		
+
 		ISCreateGeneralWithArray( PETSC_COMM_SELF, npx*dof, from, &is_from );
 		VecScatterCreate( global_eqnum, is_from, mapped, PETSC_NULL, &vscat_p );
-		
+
 		_VecScatterBeginEnd( vscat_p, global_eqnum, mapped, INSERT_VALUES, SCATTER_FORWARD );
 		if( npx>0 ) {
 			VecGetArray( mapped, &_mapped );
 			VecSetValues( global_eqnum, npx*dof, to, _mapped,  INSERT_VALUES );
 			VecRestoreArray( mapped, &_mapped );
 		}
-		
+
 		VecAssemblyBegin(global_eqnum);
 		VecAssemblyEnd(global_eqnum);
-		
+
 		Stg_VecScatterDestroy(&vscat_p );
 		Stg_ISDestroy(&is_from );
 		Stg_VecDestroy(&mapped );
 		PetscFree( from );
 		PetscFree( to );
 	}
-	
-	
+
+
 	if( periodic_y==PETSC_TRUE ) {
 		VecScatter vscat_p;
 		IS is_from;
@@ -1393,45 +1391,45 @@ int GenerateEquationNumbering(
 		Vec mapped;
 		PetscScalar *_mapped;
 		PetscInt c;
-		
+
 		PetscMalloc( sizeof(PetscInt)*npy*dof, &from );
 		PetscMalloc( sizeof(PetscInt)*npy*dof, &to );
-		
+
 		c = 0;
 		for( i=0; i<npy; i++ ) {
 			PetscInt I,J,K,gid,from_gid;
-			
+
 			gid = periodic_y_gnode_id[i];
 			K = gid/(NX*NY);
 			J = (gid - K*(NX*NY))/NX;
 			I = gid - K*(NX*NY) - J*NX;
 			from_gid = I + (J - (NY - 1))*NX + K*(NX*NY);
-			
+
 			for( d=0; d<dof; d++ ) {
 				to[c] = gid * dof + d;
 				from[c] = from_gid * dof + d;
 				c++;
 			}
 		}
-		
-		
+
+
 		VecCreate( PETSC_COMM_SELF, &mapped );
 		VecSetSizes( mapped, PETSC_DECIDE, npy*dof );
 		VecSetFromOptions( mapped );
-		
+
 		ISCreateGeneralWithArray( PETSC_COMM_SELF, npy*dof, from, &is_from );
 		VecScatterCreate( global_eqnum, is_from, mapped, PETSC_NULL, &vscat_p );
-		
+
 		_VecScatterBeginEnd( vscat_p, global_eqnum, mapped, INSERT_VALUES, SCATTER_FORWARD );
 		if( npy>0 ) {
 			VecGetArray( mapped, &_mapped );
 			VecSetValues( global_eqnum, npy*dof, to, _mapped,  INSERT_VALUES );
 			VecRestoreArray( mapped, &_mapped );
 		}
-		
+
 		VecAssemblyBegin(global_eqnum);
 		VecAssemblyEnd(global_eqnum);
-		
+
 		Stg_VecScatterDestroy(&vscat_p );
 		Stg_ISDestroy(&is_from );
 		Stg_VecDestroy(&mapped );
@@ -1446,45 +1444,45 @@ int GenerateEquationNumbering(
 		Vec mapped;
 		PetscScalar *_mapped;
 		PetscInt c;
-		
+
 		PetscMalloc( sizeof(PetscInt)*npz*dof, &from );
 		PetscMalloc( sizeof(PetscInt)*npz*dof, &to );
-		
+
 		c = 0;
 		for( i=0; i<npz; i++ ) {
 			PetscInt I,J,K,gid,from_gid;
-			
+
 			gid = periodic_z_gnode_id[i];
 			K = gid/(NX*NY);
 			J = (gid - K*(NX*NY))/NX;
 			I = gid - K*(NX*NY) - J*NX;
 			from_gid = I + J*NX + (K - (NZ-1))*(NX*NY);
-			
+
 			for( d=0; d<dof; d++ ) {
 				to[c] = gid * dof + d;
 				from[c] = from_gid * dof + d;
 				c++;
 			}
 		}
-		
-		
+
+
 		VecCreate( PETSC_COMM_SELF, &mapped );
 		VecSetSizes( mapped, PETSC_DECIDE, npz*dof );
 		VecSetFromOptions( mapped );
-		
+
 		ISCreateGeneralWithArray( PETSC_COMM_SELF, npz*dof, from, &is_from );
 		VecScatterCreate( global_eqnum, is_from, mapped, PETSC_NULL, &vscat_p );
-		
+
 		_VecScatterBeginEnd( vscat_p, global_eqnum, mapped, INSERT_VALUES, SCATTER_FORWARD );
 		if( npz>0 ) {
 			VecGetArray( mapped, &_mapped );
 			VecSetValues( global_eqnum, npz*dof, to, _mapped,  INSERT_VALUES );
 			VecRestoreArray( mapped, &_mapped );
 		}
-		
+
 		VecAssemblyBegin(global_eqnum);
 		VecAssemblyEnd(global_eqnum);
-		
+
 		Stg_VecScatterDestroy(&vscat_p );
 		Stg_ISDestroy(&is_from );
 		Stg_VecDestroy(&mapped );
@@ -1492,13 +1490,13 @@ int GenerateEquationNumbering(
 		PetscFree( to );
 	}
 
-	
+
 	/*
 	PetscPrintf(PETSC_COMM_WORLD, "global_eqnum following periodic \n");
 	VecView( global_eqnum, PETSC_VIEWER_STDOUT_WORLD );
 	*/
-	
-	
+
+
 	/* Finally, scatter stuff from global_eqnums into MY array */
 	{
 		IS is_all_my_eqnums;
@@ -1507,9 +1505,9 @@ int GenerateEquationNumbering(
 		Vec all_my_eqnums;
 		PetscScalar *_all_my_eqnums;
 		VecScatter vscat_p;
-		
+
 		PetscMalloc( sizeof(PetscInt)*dof*nlocal, &all_my_eqnum_index );
-		
+
 		CNT = 0;
 		for( _I=0; _I<nlocal; _I++ ) {
 			for( _D=0; _D<dof; _D++ ) {
@@ -1517,7 +1515,7 @@ int GenerateEquationNumbering(
 				CNT++;
 			}
 		}
-		
+
 		ISCreateGeneralWithArray( PETSC_COMM_SELF, nlocal*dof, all_my_eqnum_index, &is_all_my_eqnums );
 		VecCreate( PETSC_COMM_SELF, &all_my_eqnums );
 		VecSetSizes( all_my_eqnums, PETSC_DECIDE, nlocal*dof );
@@ -1530,34 +1528,32 @@ int GenerateEquationNumbering(
 			eqnums[i] = (int)_all_my_eqnums[i];
 		}
 		VecRestoreArray( all_my_eqnums, &_all_my_eqnums );
-		
+
 		Stg_VecScatterDestroy(&vscat_p );
 		Stg_VecDestroy(&all_my_eqnums );
 		Stg_ISDestroy(&is_all_my_eqnums );
 		PetscFree( all_my_eqnum_index );
 	}
-	
+
 	VecMax( global_eqnum, &loc, &max );
 	*neqnums = (int)max;
 	(*neqnums)++;
-	
+
 	/* tidy up */
 	VecRestoreArray( local_ownership, &_local_ownership );
-	
-	
+
+
 	Stg_VecDestroy(&g_ownership );
 	Stg_VecDestroy(&local_ownership );
 	PetscFree( _g_node_id );
 	Stg_ISDestroy(&is_gnode );
 	Stg_VecScatterDestroy(&vscat_ownership );
-	
+
 	Stg_VecDestroy(&global_eqnum );
 	Stg_VecDestroy(&local_eqnum );
 	PetscFree( to_fetch );
 	Stg_ISDestroy(&is_eqnum );
 	Stg_VecScatterDestroy(&vscat_eqnum );
-	
+
 	return 0;
 }
-
-

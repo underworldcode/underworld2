@@ -34,7 +34,7 @@ FeVariable* FeVariable_New_FromTemplate(
    Name                    name,
    DomainContext*          context,
    void*                   _templateFeVariable,
-   DofLayout*              dofLayout, 
+   DofLayout*              dofLayout,
    void*                   ics,
    Bool                    isReferenceSolution,
    Bool                    loadReferenceEachTimestep,
@@ -42,9 +42,9 @@ FeVariable* FeVariable_New_FromTemplate(
 {
    FeVariable* templateFeVariable = _templateFeVariable;
    FeVariable* newFeVariable = NULL;
-   
+
    newFeVariable = FeVariable_New_Full(
-      name, 
+      name,
       context,
       templateFeVariable->feMesh,
       dofLayout,
@@ -68,14 +68,14 @@ FeVariable* FeVariable_New(
    Name                    name,
    DomainContext*          context,
    void*                   feMesh,
-   DofLayout*              dofLayout, 
+   DofLayout*              dofLayout,
    void*                   bcs,
    void*                   ics,
    void*                   linkedDofInfo,
    Dimension_Index         dim,
    Bool                    isReferenceSolution,
    Bool                    loadReferenceEachTimestep,
-   FieldVariable_Register* fV_Register )      
+   FieldVariable_Register* fV_Register )
 {
    return FeVariable_New_Full(
       name,
@@ -90,7 +90,7 @@ FeVariable* FeVariable_New(
       dim,
       isReferenceSolution,
       loadReferenceEachTimestep,
-      ((IGraph*)((FeMesh*)feMesh)->topo)->remotes[MT_VERTEX]->comm->mpiComm, 
+      ((IGraph*)((FeMesh*)feMesh)->topo)->remotes[MT_VERTEX]->comm->mpiComm,
       fV_Register );
 }
 
@@ -98,7 +98,7 @@ FeVariable* FeVariable_New_Full(
    Name                    name,
    DomainContext*          context,
    void*                   feMesh,
-   DofLayout*              dofLayout, 
+   DofLayout*              dofLayout,
    void*                   bcs,
    void*                   ics,
    void*                   linkedDofInfo,
@@ -108,7 +108,7 @@ FeVariable* FeVariable_New_Full(
    Bool                    isReferenceSolution,
    Bool                    loadReferenceEachTimestep,
    MPI_Comm                communicator,
-   FieldVariable_Register* fieldVariable_Register )      
+   FieldVariable_Register* fieldVariable_Register )
 {
    FeVariable* self = _FeVariable_DefaultNew( name );
 
@@ -152,29 +152,28 @@ void* _FeVariable_DefaultNew( Name name ) {
 
 FeVariable* _FeVariable_New( FEVARIABLE_DEFARGS ) {
    FeVariable* self;
-   
+
    /* Allocate memory */
    assert( _sizeOfSelf >= sizeof( FeVariable) );
-   
+
    self = (FeVariable*) _FieldVariable_New( FIELDVARIABLE_PASSARGS );
-   
+
    /* General info */
-   
+
    /* Virtual functions */
    self->_interpolateWithinElement = _interpolateWithinElement;
    self->_getValueAtNode = _getValueAtNode;
    self->_syncShadowValues = _syncShadowValues;
-   
+
    /* FeVariable info */
-   self->eqNum = NULL;
    self->tempData = NULL;
    return self;
 }
 
-void _FeVariable_Init( 
+void _FeVariable_Init(
    FeVariable* self,
    void*       feMesh,
-   DofLayout*  dofLayout, 
+   DofLayout*  dofLayout,
    void*       bcs,
    Bool        nonAABCs,
    void*       ics,
@@ -184,7 +183,7 @@ void _FeVariable_Init(
    Bool        loadReferenceEachTimestep )
 {
    /* General and Virtual info should already be set */
-   
+
    /* FeVariable info */
    self->debug = Stream_RegisterChild( StgFEM_Discretisation_Debug, self->type );
    self->feMesh = Stg_CheckType( feMesh, FeMesh );
@@ -200,58 +199,21 @@ void _FeVariable_Init(
 
    if( templateFeVariable )
       self->templateFeVariable = Stg_CheckType( templateFeVariable, FeVariable );
-   if( !isReferenceSolution ) {
-      if( self->templateFeVariable ) {
-         self->eqNum = self->templateFeVariable->eqNum;
-      }
-      else {
-//         self->eqNum = FeEquationNumber_New(
-//            defaultFeVariableFeEquationNumberName,
-//            self->context,
-//            self->feMesh,
-//            self->dofLayout,
-//            self->bcs,
-//            linkedDofInfo );
-//
-//         self->eqNum->removeBCs = self->removeBCs;
-//         memcpy( self->eqNum->periodic, self->periodic, 3*sizeof(Bool) );
-      }
-   }
-
-   self->buildEqNums = True;
 
    self->inc = IArray_New();
-   
+
    self->tempData = malloc(self->fieldComponentCount*sizeof(double));
-}
-
-void _FeVariable_CreateNewEqnNumber( void* variable ) {
-    FeVariable* self = (FeVariable*)variable;
-    Stg_Component_Destroy( self->eqNum, NULL, False );
-    Stg_Class_Delete( self->eqNum );
-    self->eqNum = FeEquationNumber_New(
-        defaultFeVariableFeEquationNumberName,
-        self->context,
-        self->feMesh,
-        self->dofLayout,
-        self->bcs,
-        NULL );
-
-    self->eqNum->removeBCs = self->removeBCs;
-    memcpy( self->eqNum->periodic, self->periodic, 3*sizeof(Bool) );
-    Stg_Component_Build( self->eqNum, NULL, False );
-    Stg_Component_Initialise( self->eqNum, NULL, False );
 }
 
 void _FeVariable_Delete( void* variable ) {
    FeVariable* self = (FeVariable*)variable;
    Journal_DPrintf( self->debug, "In %s- for \"%s\":\n", __func__, self->name );
-   
+
    if ( self->tempData ) {
        free( self->tempData );
        self->tempData = NULL;
    }
-   
+
    /* Stg_Class_Delete parent*/
    _Stg_Component_Delete( self );
 }
@@ -259,87 +221,16 @@ void _FeVariable_Delete( void* variable ) {
 /* --- Virtual Function Implementations --- */
 
 void _FeVariable_Print( void* variable, Stream* stream ) {
-   FeVariable* self = (FeVariable*)variable;
-   
-   /* General info */
-   Journal_Printf( stream, "FeVariable(ptr): %p\n", self );
-   
-   /* Print parent */
-   _Stg_Component_Print( self, stream );
-   
-   /* Virtual info */
-   
-   /* FeVariable info */
-   Stg_Class_Print( self->feMesh, stream );
-   if( self->dofLayout ) 
-      Stg_Class_Print( self->dofLayout, stream );
-   else 
-      Journal_Printf( stream, "\tdofLayout: (null)... not provided(may be Operator type)\n" );
-
-   if( self->bcs ) 
-      Stg_Class_Print( self->bcs, stream );
-   else 
-      Journal_Printf( stream, "\tbcs: (null)... not provided(may be Operator type)\n" );
-
-   if( self->linkedDofInfo ) 
-      Stg_Class_Print( self->linkedDofInfo, stream );
-   else 
-      Journal_Printf( stream, "\tlinkedDofInfo: (null)... not provided\n" );
-   
-   if( self->eqNum ) 
-      Stg_Class_Print( self->eqNum, stream );
-   else 
-      Journal_Printf( stream, "\teqNum: (null)... not built yet\n" );
 }
 
 void* _FeVariable_Copy( void* feVariable, void* dest, Bool deep, Name nameExt, PtrMap* ptrMap ) {
-   FeVariable* self = (FeVariable*)feVariable;
-   FeVariable* newFeVariable;
-   PtrMap*     map = ptrMap;
-   Bool        ownMap = False;
-   
-   if( !map ) {
-      map = PtrMap_New( 10 );
-      ownMap = True;
-   }
-   
-   newFeVariable = _FieldVariable_Copy( self, dest, deep, nameExt, map );
 
-   newFeVariable->templateFeVariable = self->templateFeVariable;
-   
-   if( deep ) {
-      newFeVariable->debug = self->debug; 
-      newFeVariable->feMesh = (FeMesh*)Stg_Class_Copy( self->feMesh, NULL, deep, nameExt, map );
-      newFeVariable->dofLayout = (DofLayout*)Stg_Class_Copy( self->dofLayout, NULL, deep, nameExt, map );
-      newFeVariable->bcs = (VariableCondition*)Stg_Class_Copy( self->bcs, NULL, deep, nameExt, map );
-
-      if( self->linkedDofInfo == NULL ) 
-         newFeVariable->linkedDofInfo = NULL;
-      else 
-         newFeVariable->linkedDofInfo = (LinkedDofInfo*)Stg_Class_Copy( self->linkedDofInfo, NULL,
-            deep, nameExt, map );
-
-      newFeVariable->eqNum = NULL;
-   }
-   else {
-      newFeVariable->debug = self->debug;
-      newFeVariable->feMesh = self->feMesh;
-      newFeVariable->dofLayout = self->dofLayout;
-      newFeVariable->bcs = self->bcs;
-      newFeVariable->linkedDofInfo = self->linkedDofInfo;
-      newFeVariable->eqNum = self->eqNum;
-   }
-   
-   if( ownMap ) 
-      Stg_Class_Delete( map );
-   
-   return(void*)newFeVariable;
 }
 
 void _FeVariable_Build( void* variable, void* data ) {
    FeVariable*    self = (FeVariable*)variable;
    unsigned       dim, numNodes;
-   
+
       Journal_DPrintf( self->debug, "In %s- for %s:\n", __func__, self->name );
       Stream_IndentBranch( StgFEM_Debug );
 
@@ -351,7 +242,7 @@ void _FeVariable_Build( void* variable, void* data ) {
 
       if( self->bcs )
          Stg_Component_Build( self->bcs, data, False );
-    
+
       if( self->linkedDofInfo )
          Stg_Component_Build( self->linkedDofInfo, data, False );
 
@@ -361,7 +252,7 @@ void _FeVariable_Build( void* variable, void* data ) {
 
       dim = Mesh_GetDimSize( self->feMesh );
 
-      /* 
+      /*
        * At least this will work for meshes with names other
        * than those listed above. I spent three hours finding
        * this out.
@@ -370,16 +261,6 @@ void _FeVariable_Build( void* variable, void* data ) {
 
       /* Allocate GNx here */
       self->GNx = Memory_Alloc_2DArray( double, dim, numNodes, (Name)"Global Shape Function Derivatives" );
-      
-      /* 
-       * Don't build the equation numbers for fields that aren't being solved for 
-       * (ie: error and reference fields).
-       */
-
-      if( self->buildEqNums )
-         Stg_Component_Build( self->eqNum, data, False );
-
-      Stream_UnIndentBranch( StgFEM_Debug );
 }
 
 void _FeVariable_AssignFromXML( void* variable, Stg_ComponentFactory* cf, void* data ) {
@@ -419,9 +300,6 @@ void _FeVariable_AssignFromXML( void* variable, Stg_ComponentFactory* cf, void* 
    nonAABCs = Stg_ComponentFactory_GetBool( cf, self->name,
       (Dictionary_Entry_Key)"nonAxisAlignedBCs", False );
 
-   /* TODO: should really be a parameter */
-   self->removeBCs = Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"removeBCs", True );
-
    self->periodic[0] = Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"PeriodicX", False );
    self->periodic[1] = Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"PeriodicY", False );
    self->periodic[2] = Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"PeriodicZ", False );
@@ -441,14 +319,14 @@ void _FeVariable_AssignFromXML( void* variable, Stg_ComponentFactory* cf, void* 
 
 void _FeVariable_Initialise( void* variable, void* data ) {
    FeVariable*             self = (FeVariable*)variable;
-   
+
    Stream_IndentBranch( StgFEM_Debug );
-   
+
    /* do basic mesh initialisation */
    Stg_Component_Initialise( self->feMesh, data, False );
    Stg_Component_Initialise( self->dofLayout, data, False );
 
-   if( self->linkedDofInfo ) 
+   if( self->linkedDofInfo )
       Stg_Component_Initialise( self->linkedDofInfo, data, False );
 
    if( self->bcs ) {
@@ -465,7 +343,7 @@ void FeVariable_ApplyBCs( void* variable, void* data ) {
 
    if( self->bcs ) {
       Journal_DPrintf( self->debug, "In %s- for %s:\n", __func__, self->name );
-      Journal_DPrintf( self->debug, "applying the B.C.s for this Variable.\n" ); 
+      Journal_DPrintf( self->debug, "applying the B.C.s for this Variable.\n" );
       VariableCondition_Apply( self->bcs, data );
    }
 }
@@ -473,7 +351,7 @@ void FeVariable_ApplyBCs( void* variable, void* data ) {
 Bool FeVariable_IsBC( void* variable, int node, int dof ) {
    FeVariable* self = (FeVariable*)variable;
 
-   if( self->bcs && 
+   if( self->bcs &&
        VariableCondition_IsCondition( self->bcs, node, self->dofLayout->varIndices[node][dof] ) )
       return True;
 
@@ -487,11 +365,6 @@ void _FeVariable_Destroy( void* variable, void* data ) {
    FeVariable* self = (FeVariable*)variable;
 
    Memory_Free( self->GNx );
-
-   if( self->eqNum && ( NULL == self->templateFeVariable ) ) {
-      Stg_Component_Destroy( self->eqNum, NULL, False );
-      self->eqNum = NULL;
-   }
 
    /* FeMesh bc and doflayout are purposely not deleted */
    if( self->inc != NULL ) {
@@ -581,19 +454,19 @@ double FeVariable_GetScalarAtNode( void* feVariable, Node_LocalIndex lNode_I ) {
    FeVariable* self = (FeVariable*)feVariable;
    Dof_Index   dofCountThisNode = 0;
    Dof_Index   nodeLocalDof_I = 0;
-   
+
    dofCountThisNode = self->fieldComponentCount;
    FeVariable_GetValueAtNode( self, lNode_I, self->tempData );
 
    if( dofCountThisNode > 1) {
       double magnitude = 0;
-      for( nodeLocalDof_I = 0; nodeLocalDof_I < dofCountThisNode; nodeLocalDof_I++ ) 
+      for( nodeLocalDof_I = 0; nodeLocalDof_I < dofCountThisNode; nodeLocalDof_I++ )
          magnitude += self->tempData[ nodeLocalDof_I ] * self->tempData[ nodeLocalDof_I ];
       return sqrt( magnitude );
    }
-   else 
+   else
       return self->tempData[0];
-}   
+}
 
 void _FeVariable_GetValueAtNode( void* feVariable, Node_DomainIndex dNode_I, double* value ) {
    FeVariable* self = (FeVariable*)feVariable;
@@ -602,7 +475,7 @@ void _FeVariable_GetValueAtNode( void* feVariable, Node_DomainIndex dNode_I, dou
    Dof_Index   nodeLocalDof_I = 0;
 
    dofCountThisNode = self->dofLayout->dofCounts[dNode_I];
-   
+
    for( nodeLocalDof_I=0; nodeLocalDof_I < dofCountThisNode; nodeLocalDof_I++ ) {
       currVariable = DofLayout_GetVariable( self->dofLayout, dNode_I, nodeLocalDof_I );
       value[ nodeLocalDof_I ] = Variable_GetValueDouble( currVariable, dNode_I );
@@ -617,14 +490,14 @@ void FeVariable_GetValueAtNodeGlobal( void* feVariable, Node_GlobalIndex gNode_I
    int                rootRankL = 0;
    int                rootRankG = 0;
    MPI_Comm           comm = self->communicator;
-   
+
    /* Find Local Index */
    if( Mesh_GlobalToDomain( mesh, MT_VERTEX, gNode_I, &lNode_I ) ) {
       /* If node is on local processor, then get value of field */
       FeVariable_GetValueAtNode( self, lNode_I, value );
       MPI_Comm_rank( comm, (int*)&rootRankL );
    }
-   
+
    /* Send to other processors */
    (void)MPI_Allreduce( &rootRankL, &rootRankG, 1, MPI_INT, MPI_MAX, comm );
    MPI_Bcast( value, self->fieldComponentCount, MPI_DOUBLE, rootRankG, comm );
@@ -645,7 +518,7 @@ void FeVariable_GetCoordAtNodeGlobal( void* feVariable, Node_GlobalIndex gNode_I
       memcpy( coord, Mesh_GetVertex( mesh, lNode_I ), self->dim * sizeof( double) );
       MPI_Comm_rank( comm, (int*)&rootRankL );
    }
-   
+
    /* Send to other processors */
    (void)MPI_Allreduce( &rootRankL, &rootRankG, 1, MPI_INT, MPI_MAX, comm );
    MPI_Bcast( coord, self->dim, MPI_DOUBLE, rootRankG, comm );
@@ -666,7 +539,7 @@ void FeVariable_ZeroField( void* feVariable ) {
 
    memset( values, 0, self->fieldComponentCount * sizeof(double) );
 
-   for( lNode_I = 0 ; lNode_I < lNodeCount; lNode_I++ ) 
+   for( lNode_I = 0 ; lNode_I < lNodeCount; lNode_I++ )
       FeVariable_SetValueAtNode( self, lNode_I, values );
 
    Memory_Free( values );
@@ -683,7 +556,7 @@ InterpolationResult FeVariable_GetElementLocalCoordAtGlobalCoord(
    InterpolationResult retValue;
    unsigned            elInd;
 
-   /* 
+   /*
     * Locate which mesh element given coord is in : use inclusive upper boundaries to save
     * the need to use shadow space if possible.
     */
@@ -695,22 +568,22 @@ InterpolationResult FeVariable_GetElementLocalCoordAtGlobalCoord(
       FieldVariable_GetMinAndMaxGlobalCoords( self, min, max );
 
       for( dim_I = 0; dim_I < self->dim; dim_I++ ) {
-         if( ( globalCoord[dim_I] < min[dim_I] ) || (globalCoord[dim_I] > max[dim_I] ) ) 
+         if( ( globalCoord[dim_I] < min[dim_I] ) || (globalCoord[dim_I] > max[dim_I] ) )
             outsideGlobal = True;
       }
 
-      if( outsideGlobal == True ) 
+      if( outsideGlobal == True )
          return OUTSIDE_GLOBAL;
-      else 
+      else
          return OTHER_PROC;
    }
    else {
       /* We found the coord is within a local or shadow element */
       ElementType* elementType = NULL;
       *elementCoordInPtr = elInd;
-      if( elInd < FeMesh_GetElementLocalSize( self->feMesh ) ) 
+      if( elInd < FeMesh_GetElementLocalSize( self->feMesh ) )
          retValue = LOCAL;
-      else 
+      else
          retValue = SHADOW;
 
       /* Convert global coordinate to local co-ordinates of element the coord is in */
@@ -719,7 +592,7 @@ InterpolationResult FeVariable_GetElementLocalCoordAtGlobalCoord(
       ElementType_ConvertGlobalCoordToElLocal(
          elementType,
          self->feMesh,
-         *elementCoordInPtr, 
+         *elementCoordInPtr,
          globalCoord,
          elLocalCoord );
    }
@@ -733,7 +606,7 @@ void FeVariable_SetValueAtNode( void* feVariable, Node_DomainIndex dNode_I, doub
 
    dofCountThisNode = self->dofLayout->dofCounts[dNode_I];
 
-   for( nodeLocalDof_I = 0; nodeLocalDof_I < dofCountThisNode; nodeLocalDof_I++ ) 
+   for( nodeLocalDof_I = 0; nodeLocalDof_I < dofCountThisNode; nodeLocalDof_I++ )
       DofLayout_SetValueDouble( (self)->dofLayout, dNode_I, nodeLocalDof_I, componentValues[nodeLocalDof_I] );
 }
 
@@ -761,7 +634,7 @@ void FeVariable_PrintLocalDiscreteValues_2dBox( void* variable, Stream* stream )
    unsigned        *localOrigin, *localRange;
    double          min[2], max[2];
 
-   if(self->feMesh->vertGridId == (unsigned)-1 || 
+   if(self->feMesh->vertGridId == (unsigned)-1 ||
        Mesh_GetDimSize( self->feMesh ) != 2 ) {
       Journal_Printf( eStream,
          "Warning: %s called on variable \"%s\", but this isn't stored on a "
@@ -786,7 +659,7 @@ void FeVariable_PrintLocalDiscreteValues_2dBox( void* variable, Stream* stream )
    insist( Mesh_GlobalToDomain( self->feMesh, MT_VERTEX, Grid_Project( vertGrid, inds ), &vertInd ), == True );
 
    verts[1] = Mesh_GetVertex( self->feMesh, vertInd );
-   
+
    nx = vertGrid->sizes[0];
    ny = vertGrid->sizes[1];
    dx = verts[1][0] - verts[0][0];
@@ -810,7 +683,7 @@ void FeVariable_PrintLocalDiscreteValues_2dBox( void* variable, Stream* stream )
    for( ii = 0; ii < 10; ii++ )
       Journal_Printf( stream, " " );
 
-   for( x_I=0; x_I < nx; x_I++ ) 
+   for( x_I=0; x_I < nx; x_I++ )
       Journal_Printf( stream, "|  xNode=%3d   ", x_I );
    Journal_Printf( stream, "|\n", x_I );
 
@@ -820,19 +693,19 @@ void FeVariable_PrintLocalDiscreteValues_2dBox( void* variable, Stream* stream )
          Journal_Printf( stream, " " );
 
       for( x_I = 0; x_I < nx; x_I++ ) {
-         if(y_I == ny-1) 
+         if(y_I == ny-1)
             Journal_Printf( stream, "-" );
-         else if(x_I == 0) 
+         else if(x_I == 0)
             Journal_Printf( stream, "|" );
-         else 
+         else
             Journal_Printf( stream, "*" );
 
          for(ii=0;ii<14;ii++)
             Journal_Printf( stream, "-" );
       }
-      if(y_I == ny-1) 
+      if(y_I == ny-1)
          Journal_Printf( stream, "-\n" );
-      else 
+      else
          Journal_Printf( stream, "|\n" );
 
       /* Now a row of y values */
@@ -847,14 +720,14 @@ void FeVariable_PrintLocalDiscreteValues_2dBox( void* variable, Stream* stream )
             insist( Mesh_GlobalToDomain( self->feMesh, MT_VERTEX, node_lI, &node_lI ), == True );
             currNodeNumDofs = dofLayout->dofCounts[node_lI];
 
-            if( currNodeNumDofs == 1 ) 
+            if( currNodeNumDofs == 1 )
                Journal_Printf( stream, "   " );
             Journal_Printf( stream, "(" );
-            for( dof_I=0; dof_I < currNodeNumDofs - 1 ; dof_I++ ) 
+            for( dof_I=0; dof_I < currNodeNumDofs - 1 ; dof_I++ )
                Journal_Printf( stream, "%5.2f,", DofLayout_GetValueDouble( dofLayout, node_lI, dof_I ) );
             Journal_Printf( stream, "%5.2f )", DofLayout_GetValueDouble( dofLayout, node_lI, dof_I ) );
-            
-            if( currNodeNumDofs == 1 ) 
+
+            if( currNodeNumDofs == 1 )
                Journal_Printf( stream, "   " );
             Journal_Printf( stream, "|" );
          }
@@ -866,7 +739,7 @@ void FeVariable_PrintLocalDiscreteValues_2dBox( void* variable, Stream* stream )
       }
       Journal_Printf( stream, "\n" );
    }
-   
+
    /*Blocks */
    for(ii=0;ii<10;ii++)
       Journal_Printf( stream, " " );
@@ -884,12 +757,12 @@ InterpolationResult FeVariable_InterpolateDerivativesAt( void* variable, const d
    Coord               elLocalCoord = {0,0,0};
    InterpolationResult retval = LOCAL;
 
-   /* 
+   /*
     * Need a special rule for points on this processor's boundary: instead of the normal
     * rule, "round" the point to lie inside the local space, rather than shadow.
     */
-   
-   /* 
+
+   /*
     * Locate which mesh element given coord is in : use inclusive upper boundaries to save
     * the need to use shadow space if possible.
     */
@@ -905,7 +778,7 @@ InterpolationResult FeVariable_InterpolateDerivativesAt( void* variable, const d
 
       /* Now interpolate the value at that coordinate, using shape functions */
       FeVariable_InterpolateDerivativesToElLocalCoord( self, elementCoordIn, elLocalCoord, value );
-   }   
+   }
    return retval;
 }
 
@@ -917,14 +790,14 @@ void FeVariable_InterpolateDerivativesToElLocalCoord(
 {
    FeVariable*     self = (FeVariable*)_feVariable;
    ElementType*    elementType = FeMesh_GetElementType( self->feMesh, lElement_I );
-   double**        GNx; 
+   double**        GNx;
    double          detJac;
    Dimension_Index dim = self->dim;
 
    GNx = self->GNx;
 
    /* Evaluate Global Shape Functions */
-   ElementType_ShapeFunctionsGlobalDerivs( 
+   ElementType_ShapeFunctionsGlobalDerivs(
       elementType,
       self->feMesh,
       lElement_I,
@@ -966,17 +839,17 @@ void FeVariable_InterpolateDerivatives_WithGNx(
    /* get fevariable top data pointer */
    /* note that we now assume much simpler memory layouts */
    double* feData = Variable_GetPtrDouble( DofLayout_GetVariable( self->dofLayout, 0, 0 ), 0 );
-   
+
    /* Interpolate derivative from nodes */
    for( elLocalNode_I = 0 ; elLocalNode_I < nInc ; elLocalNode_I++) {
       lNode_I = inc[ elLocalNode_I ];
-    
+
       for( dof_I = 0 ; dof_I < dofCount ; dof_I++ ) {
          double nodeValue = *(feData + lNode_I*dofCount + dof_I);
          value[dof_I*dim + 0] += GNx[0][elLocalNode_I] * nodeValue;
          value[dof_I*dim + 1] += GNx[1][elLocalNode_I] * nodeValue;
 
-         if( dim == 3 ) 
+         if( dim == 3 )
             value[dof_I*dim + 2] += GNx[2][elLocalNode_I] * nodeValue;
       }
    }
@@ -1020,7 +893,7 @@ void FeVariable_GetMinimumSeparation( void* feVariable, double* minSeparationPtr
 
    assert( self && Stg_CheckType( self, FeVariable ) );
    Mesh_GetMinimumSeparation( self->feMesh, minSeparationPtr, minSeparationEachDim );
-}   
+}
 
 void _FeVariable_SyncShadowValues( void* feVariable ) {
    FeVariable* self = (FeVariable*)feVariable;
@@ -1068,9 +941,9 @@ void _FeVariable_SyncShadowValues( void* feVariable ) {
          Sync_SyncArray(
             vertSync,
             arrayStart,
-            var->structSize, 
+            var->structSize,
             arrayEnd,
-            var->structSize, 
+            var->structSize,
             size );
       }
    }
@@ -1094,7 +967,7 @@ void FeVariable_PrintCoordsAndValues( void* _feVariable, Stream* stream ) {
    Dof_Index       nodeLocalDof_I;
    Variable*       currVariable;
    double*         nodeCoord;
-   
+
    /* Print Header of stream */
    Journal_Printf( stream, "# FeVariable - %s\n", self->name );
    Journal_Printf( stream, "#    x coord   |    y coord   |    z coord" );
@@ -1105,7 +978,7 @@ void FeVariable_PrintCoordsAndValues( void* _feVariable, Stream* stream ) {
       Journal_Printf( stream, "  |  %s", currVariable->name );
    }
    Journal_Printf( stream, "\n");
-   
+
    /* Loop over local nodes */
    for( node_I=0; node_I < nodeLocalCount ; node_I++ ) {
       currNodeNumDofs = self->dofLayout->dofCounts[ node_I ];
@@ -1115,18 +988,18 @@ void FeVariable_PrintCoordsAndValues( void* _feVariable, Stream* stream ) {
 
       Journal_Printf(
          stream,
-         "%12.6g   %12.6g   %12.6g   ", 
+         "%12.6g   %12.6g   %12.6g   ",
          nodeCoord[ I_AXIS ],
          nodeCoord[ J_AXIS ],
          nodeCoord[ K_AXIS ] );
-      
+
       /* Print each dof */
       for( nodeLocalDof_I = 0; nodeLocalDof_I < currNodeNumDofs; nodeLocalDof_I++ ) {
          currVariable = DofLayout_GetVariable( self->dofLayout, node_I, nodeLocalDof_I );
          Journal_Printf( stream, "%12.6g   ", Variable_GetValueDouble( currVariable, node_I ) );
       }
       Journal_Printf( stream, "\n" );
-   }   
+   }
 }
 
 #define MAX_ELEMENT_NODES 27
@@ -1165,12 +1038,12 @@ void _FeVariable_InterpolateNodeValuesToElLocalCoord(
    /* Now for each node, add that node's contribution at point */
    for( elLocalNode_I=0; elLocalNode_I < nInc; elLocalNode_I++ ) {
       lNode_I = inc[elLocalNode_I];
-      
+
       for( nodeLocalDof_I=0; nodeLocalDof_I < dofCountThisNode; nodeLocalDof_I++ ) {
          currVariable = DofLayout_GetVariable( self->dofLayout, lNode_I, nodeLocalDof_I );
          dofValueAtCurrNode = Variable_GetValueDouble( currVariable, lNode_I );
          value[nodeLocalDof_I] += dofValueAtCurrNode * shapeFuncsEvaluated[elLocalNode_I];
-      }   
+      }
    }
 }
 
@@ -1182,13 +1055,13 @@ void _FeVariable_PrintLocalOrDomainValues( void* variable, Index localOrDomainCo
    Dof_Index          nodeLocalDof_I;
    Dof_EquationNumber currEqNum;
    Variable*          currVariable;
-   
+
    for( node_I=0; node_I < localOrDomainCount; node_I++ ) {
       gNode_I = FeMesh_NodeDomainToGlobal( self->feMesh, node_I );
       Journal_Printf( stream, "node %d(global index %d):\n", node_I, gNode_I );
-      
+
       currNodeNumDofs = self->fieldComponentCount;
-      
+
       /* Print each dof */
       for( nodeLocalDof_I = 0; nodeLocalDof_I < currNodeNumDofs; nodeLocalDof_I++ ) {
          currVariable = DofLayout_GetVariable( self->dofLayout, node_I, nodeLocalDof_I );
@@ -1200,12 +1073,6 @@ void _FeVariable_PrintLocalOrDomainValues( void* variable, Index localOrDomainCo
             currVariable->name,
             Variable_GetValueDouble( currVariable, node_I ) );
 
-         currEqNum = self->eqNum->destinationArray[node_I][nodeLocalDof_I];
-
-         if( currEqNum == -1 ) 
-            Journal_Printf( stream, "(from BC)", currEqNum );
-         else 
-            Journal_Printf( stream, "(eq num %d)", currEqNum );
          Journal_Printf( stream, "\n", currEqNum );
       }
    }
@@ -1221,8 +1088,8 @@ InterpolationResult FeVariable_InterpolateFromMeshLocalCoord(
    FeVariable* self = (FeVariable*)feVariable;
 
    if( mesh == self->feMesh ) {
-      /* 
-       * If the meshes are identical - 
+      /*
+       * If the meshes are identical -
        * then we can just interpolate within the elements because the elements are the same.
        */
       FeVariable_InterpolateWithinElement( self, dElement_I, localCoord, value );
@@ -1231,8 +1098,8 @@ InterpolationResult FeVariable_InterpolateFromMeshLocalCoord(
    else {
       Coord globalCoord;
 
-      /* 
-       * If the meshes are different - 
+      /*
+       * If the meshes are different -
        * then we must find the global coordinates and interpolate to that.
        */
       FeMesh_CoordLocalToGlobal( mesh, dElement_I, localCoord, globalCoord );
@@ -1240,18 +1107,18 @@ InterpolationResult FeVariable_InterpolateFromMeshLocalCoord(
    }
 }
 
-/* 
+/*
  * TODO: can't assume all swarms have particles of type integrationPoint anymore.
  * should check that the given swarm does have I.P for the rest of these functions.
  */
-double FeVariable_IntegrateElement_AxisIndependent( 
+double FeVariable_IntegrateElement_AxisIndependent(
    void*               feVariable,
-   void*               _swarm, 
+   void*               _swarm,
    Element_DomainIndex dElement_I,
-   Dimension_Index     dim, 
+   Dimension_Index     dim,
    Axis                axis0,
-   Axis                axis1, 
-   Axis                axis2 ) 
+   Axis                axis1,
+   Axis                axis2 )
 {
    FeVariable*          self = (FeVariable*)feVariable;
    Swarm*               swarm = (Swarm*)_swarm;
@@ -1265,13 +1132,13 @@ double FeVariable_IntegrateElement_AxisIndependent(
    double               detJac;
    double               integral;
    double               value;
-   
+
    /* Initialise Summation of Integral */
    integral = 0.0;
 
    Journal_Firewall( self->fieldComponentCount == 1,
          NULL,
-         "Error in func %s:\nThis function can only handle integrating scalar fields. But field '%s' has '%d' components, can you reduce the component count by using an OperatorFeVariable, eg, where Operator is 'TakeFirstComponent'\n\n", __func__, self->fieldComponentCount ); 
+         "Error in func %s:\nThis function can only handle integrating scalar fields. But field '%s' has '%d' components, can you reduce the component count by using an OperatorFeVariable, eg, where Operator is 'TakeFirstComponent'\n\n", __func__, self->fieldComponentCount );
 
    /* Use feVariable's mesh as geometry mesh if one isn't passed in */
    if( Stg_Class_IsInstance( feMesh->algorithms, Mesh_CentroidAlgorithms_Type ) )
@@ -1303,7 +1170,7 @@ double FeVariable_IntegrateElement_AxisIndependent(
          value );
 
       /* Calculate Determinant of Jacobian */
-      detJac = ElementType_JacobianDeterminant_AxisIndependent( 
+      detJac = ElementType_JacobianDeterminant_AxisIndependent(
          elementType,
          mesh,
          dElement_I,
@@ -1316,7 +1183,7 @@ double FeVariable_IntegrateElement_AxisIndependent(
       /* Sum Integral */
       integral += detJac * particle->weight * value;
    }
-   
+
    return integral;
 }
 
@@ -1327,7 +1194,7 @@ double FeVariable_Integrate( void* feVariable, void* _swarm ) {
    Element_LocalIndex lElement_I;
    Element_LocalIndex elementLocalCount = FeMesh_GetElementLocalSize( feMesh );
    double             integral, integralGlobal;
-   
+
    /* Initialise Summation of Integral */
    integral = 0.0;
 
@@ -1343,7 +1210,7 @@ double FeVariable_Integrate( void* feVariable, void* _swarm ) {
          lElement_I,
          integral );
    }
-      
+
    /* Gather and sum integrals from other processors */
    (void)MPI_Allreduce( &integral, &integralGlobal, 1, MPI_DOUBLE, MPI_SUM, self->communicator );
 
@@ -1356,7 +1223,7 @@ double FeVariable_AverageTopLayer( void* feVariable, void* swarm, Axis layerAxis
 
    elGrid = *(Grid**)ExtensionManager_Get(
       self->feMesh->info,
-      self->feMesh, 
+      self->feMesh,
       self->feMesh->elGridId);
 
    return FeVariable_AverageLayer( self, swarm, layerAxis, elGrid->sizes[1] - 1 );
@@ -1382,13 +1249,13 @@ double FeVariable_AverageLayer( void* feVariable, void* swarm, Axis layerAxis, I
    unsigned        localInd[2], globalInd[2];
    double          *min, *max;
    unsigned        d_i;
-   
+
    integral = FeVariable_IntegrateLayer( self, swarm, layerAxis, layerIndex );
 
    /* Calculate layer thickness.  This assumes the mesh is regular. */
    vertGrid = *(Grid**)ExtensionManager_Get(
       self->feMesh->info,
-      self->feMesh, 
+      self->feMesh,
 self->feMesh->vertGridId );
 
    inds = Memory_Alloc_Array_Unnamed( unsigned, Mesh_GetDimSize( self->feMesh ) );
@@ -1404,13 +1271,13 @@ self->feMesh->vertGridId );
    inds[layerAxis]++;
    globalInd[1] = Grid_Project( vertGrid, inds );
 
-   if( Mesh_GlobalToDomain( self->feMesh, MT_VERTEX, globalInd[0], &localInd[0] ) && 
+   if( Mesh_GlobalToDomain( self->feMesh, MT_VERTEX, globalInd[0], &localInd[0] ) &&
        Mesh_GlobalToDomain( self->feMesh, MT_VERTEX, globalInd[1], &localInd[1] ) ) {
       heights[0] = Mesh_GetVertex( self->feMesh, localInd[0] )[layerAxis];
       heights[1] = Mesh_GetVertex( self->feMesh, localInd[1] )[layerAxis];
       sendThickness = heights[1] - heights[0];
    }
-   else 
+   else
       sendThickness = 0.0;
 
    (void)MPI_Allreduce( &sendThickness, &layerThickness, 1, MPI_DOUBLE, MPI_MAX, self->communicator );
@@ -1423,23 +1290,23 @@ self->feMesh->vertGridId );
 
    if( dim == 3 )
       integral /= max[ bAxis ] - min[ bAxis ];
-      
+
    FreeArray( min );
    FreeArray( max );
 
    return integral;
 }
 
-double FeVariable_IntegrateLayer_AxisIndependent( 
+double FeVariable_IntegrateLayer_AxisIndependent(
    void*           feVariable,
    void*           _swarm,
    Axis            layerAxis,
    Index           layerIndex,
-   Dimension_Index dim, 
+   Dimension_Index dim,
    Axis            axis0,
    Axis            axis1,
-   Axis            axis2 ) 
-{ 
+   Axis            axis2 )
+{
    FeVariable*         self = (FeVariable*)feVariable;
    Swarm*              swarm = (Swarm*)_swarm;
    Element_LocalIndex  lElement_I;
@@ -1464,7 +1331,7 @@ double FeVariable_IntegrateLayer_AxisIndependent(
          continue;
 
       /* Check if element is local */
-      if( !FeMesh_ElementGlobalToDomain( self->feMesh, gElement_I, &lElement_I ) || 
+      if( !FeMesh_ElementGlobalToDomain( self->feMesh, gElement_I, &lElement_I ) ||
           lElement_I >= FeMesh_GetElementLocalSize( self->feMesh ) )
          continue;
 
@@ -1503,7 +1370,7 @@ double FeVariable_AveragePlane( void* feVariable, Axis planeAxis, double planeHe
    Axis            bAxis = ( planeAxis == K_AXIS ? J_AXIS : K_AXIS );
    Dimension_Index dim = self->dim;
    double          min[3], max[3];
-   
+
    integral = FeVariable_IntegratePlane( self, planeAxis, planeHeight );
 
    Mesh_GetGlobalCoordRange( self->feMesh, min, max );
@@ -1546,7 +1413,7 @@ double FeVariable_IntegratePlane( void* feVariable, Axis planeAxis, double plane
    memcpy( planeCoord, Mesh_GetVertex( self->feMesh, 0 ), sizeof( Coord ) );
    planeCoord[ planeAxis ] = planeHeight;
 
-   if( Mesh_Algorithms_SearchElements( self->feMesh->algorithms, planeCoord, &lElement_I ) && 
+   if( Mesh_Algorithms_SearchElements( self->feMesh->algorithms, planeCoord, &lElement_I ) &&
        lElement_I < elementLocalCount )
    {
       Coord planeXiCoord;
@@ -1554,12 +1421,12 @@ double FeVariable_IntegratePlane( void* feVariable, Axis planeAxis, double plane
       gElement_I = FeMesh_ElementDomainToGlobal( self->feMesh, lElement_I );
       RegularMeshUtils_Element_1DTo3D( self->feMesh, gElement_I, planeIJK );
       planeLayer = planeIJK[ planeAxis ];
-      
+
       /* Find Local Coordinate of plane */
       FeMesh_CoordGlobalToLocal( self->feMesh, lElement_I, planeCoord, planeXiCoord );
       planeXi = planeXiCoord[ planeAxis ];
    }
-   
+
    /* Should be broadcast */
    (void)MPI_Allreduce( &planeXi, &planeXiGlobal, 1, MPI_DOUBLE, MPI_MAX, self->communicator );
    (void)MPI_Allreduce( &planeLayer, &planeLayerGlobal, 1, MPI_UNSIGNED, MPI_MAX, self->communicator );
@@ -1570,7 +1437,7 @@ double FeVariable_IntegratePlane( void* feVariable, Axis planeAxis, double plane
 
    if(self->dim == 3)
       dimExists[ bAxis ] = True;
-   
+
    singleCellLayout = SingleCellLayout_New(
       "cellLayout",
       (AbstractContext*)self->context,
@@ -1588,13 +1455,13 @@ double FeVariable_IntegratePlane( void* feVariable, Axis planeAxis, double plane
       self->dim - 1,
       particlesPerDim );
 
-   tmpSwarm = Swarm_New( 
+   tmpSwarm = Swarm_New(
       "tmpgaussSwarm", NULL,
-      singleCellLayout, 
+      singleCellLayout,
       gaussParticleLayout,
       self->dim,
-      sizeof( IntegrationPoint), 
-      extensionMgr_Register, 
+      sizeof( IntegrationPoint),
+      extensionMgr_Register,
       NULL,
       self->communicator,
       NULL );
@@ -1611,12 +1478,12 @@ double FeVariable_IntegratePlane( void* feVariable, Axis planeAxis, double plane
       particle->xi[ bAxis ] = storedXi_J_AXIS;
       particle->xi[ planeAxis ] = planeXiGlobal;
    }
-   
+
    integral = FeVariable_IntegrateLayer_AxisIndependent(
       self,
       tmpSwarm,
       planeAxis,
-      planeLayerGlobal, 
+      planeLayerGlobal,
       self->dim - 1,
       aAxis,
       bAxis,
@@ -1627,7 +1494,7 @@ double FeVariable_IntegratePlane( void* feVariable, Axis planeAxis, double plane
    Stg_Class_Delete( gaussParticleLayout );
    Stg_Class_Delete( singleCellLayout );
    Stg_Class_Delete( extensionMgr_Register );
-   
+
    return integral;
 }
 
@@ -1635,4 +1502,3 @@ double FeVariable_IntegratePlane( void* feVariable, Axis planeAxis, double plane
 void FeVariable_ImportExportInfo_Delete( void* ptr ) {
    /* Nothing to do - the ObjectAdaptor will take care of deleting the actual struct itself */
 }
-

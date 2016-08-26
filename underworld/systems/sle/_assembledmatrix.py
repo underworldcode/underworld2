@@ -17,7 +17,7 @@ class AssembledMatrix(_stgermain.StgCompoundComponent):
     _objectsDict = { "_matrix": "StiffnessMatrix" }
     _selfObjectName = "_matrix"
 
-    def __init__(self, meshVariableRow, meshVariableCol, rhs=None, rhs_T=None, assembleOnNodes=False, **kwargs):
+    def __init__(self, rowVector, colVector, rhs=None, rhs_T=None, assembleOnNodes=False, **kwargs):
         """
         Args:
             meshVariableRow (MeshVariable)
@@ -26,21 +26,21 @@ class AssembledMatrix(_stgermain.StgCompoundComponent):
         See property docstrings for further information on each argument.
 
         """
+        if not isinstance(rowVector, uw.systems.sle.SolutionVector):
+            raise TypeError("'rowVector' object passed in must be of type 'SolutionVector'")
 
-        if not isinstance(meshVariableRow, uw.mesh.MeshVariable):
-            raise TypeError("'meshvariableRow' object passed in must be of type 'MeshVariable'")
+        if not isinstance(colVector, uw.systems.sle.SolutionVector):
+            raise TypeError("'colVector' object passed in must be of type 'SolutionVector'")
 
-        if not isinstance(meshVariableCol, uw.mesh.MeshVariable):
-            raise TypeError("'meshvariableCol' object passed in must be of type 'MeshVariable'")
-        self._meshVariableRow = meshVariableRow
-        self._meshVariableCol = meshVariableCol
-
+        self._meshVariableRow = rowVector.meshVariable
+        self._meshVariableCol = colVector.meshVariable
 
         if rhs and not isinstance(rhs, _assembledvector.AssembledVector):
             raise TypeError("'rhs' object passed in must be of type 'AssembledVector'")
 
         if rhs_T and not isinstance(rhs_T, _assembledvector.AssembledVector):
             raise TypeError("'rhs_T' object passed in must be of type 'AssembledVector'")
+
         self._rhs   = rhs
         self._rhs_T = rhs_T
 
@@ -48,10 +48,11 @@ class AssembledMatrix(_stgermain.StgCompoundComponent):
             raise TypeError("'assembleOnNodes' must be of type 'bool'.")
         self.assembleOnNodes = assembleOnNodes
 
-
         # build parent
         super(AssembledMatrix,self).__init__(**kwargs)
 
+        self._cself.rowEqNum = rowVector.eqNumber._cself
+        self._cself.colEqNum = colVector.eqNumber._cself
 
     @property
     def meshVariableRow(self):

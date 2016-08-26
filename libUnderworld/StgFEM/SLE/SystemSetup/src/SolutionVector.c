@@ -53,8 +53,8 @@ void* _SolutionVector_DefaultNew( Name name ) {
 	SizeT                                              _sizeOfSelf = sizeof(SolutionVector);
 	Type                                                      type = SolutionVector_Type;
 	Stg_Class_DeleteFunction*                              _delete = _SolutionVector_Delete;
-	Stg_Class_PrintFunction*                                _print = _SolutionVector_Print;
-	Stg_Class_CopyFunction*                                  _copy = _SolutionVector_Copy;
+	Stg_Class_PrintFunction*                                _print = NULL;
+	Stg_Class_CopyFunction*                                  _copy = NULL;
 	Stg_Component_DefaultConstructorFunction*  _defaultConstructor = _SolutionVector_DefaultNew;
 	Stg_Component_ConstructFunction*                    _construct = _SolutionVector_AssignFromXML;
 	Stg_Component_BuildFunction*                            _build = _SolutionVector_Build;
@@ -68,21 +68,21 @@ void* _SolutionVector_DefaultNew( Name name ) {
 
 SolutionVector* _SolutionVector_New(  SOLUTIONVECTOR_DEFARGS  ) {
 	SolutionVector* self;
-	
+
 	/* Allocate memory */
 	assert( _sizeOfSelf >= sizeof(SolutionVector) );
 	self = (SolutionVector*)_Stg_Component_New(  STG_COMPONENT_PASSARGS  );
-	
+
 	/* General info */
-	
+
 	/* Virtual info */
-	
+
 	return self;
 }
 
 void _SolutionVector_Init( SolutionVector* self, MPI_Comm comm, FeVariable* feVariable ) {
 	/* General and Virtual info should already be set */
-	
+
 	/* SolutionVector info */
 	self->debug = Stream_RegisterChild( StgFEM_SLE_SystemSetup_Debug, self->type );
 	self->comm = comm;
@@ -91,68 +91,19 @@ void _SolutionVector_Init( SolutionVector* self, MPI_Comm comm, FeVariable* feVa
 
 void _SolutionVector_Delete( void* solutionVector ) {
 	SolutionVector* self = (SolutionVector*)solutionVector;
-	
-	Journal_DPrintf( self->debug, "In %s - for soln. vector %s\n", __func__, self->name );
-	Stream_IndentBranch( StgFEM_Debug );
-	
 	/* Stg_Class_Delete parent*/
 	_Stg_Component_Delete( self );
-	Stream_UnIndentBranch( StgFEM_Debug );
 }
 
 
 void _SolutionVector_Print( void* solutionVector, Stream* stream ) {
-	SolutionVector* self = (SolutionVector*)solutionVector;
-	
-	/* Set the Journal for printing informations */
-	Stream* solutionVectorStream = stream;
-	
-	/* General info */
-	Journal_Printf( solutionVectorStream, "SolutionVector (ptr): %p\n", self );
-	
-	/* Print parent */
-	_Stg_Component_Print( self, solutionVectorStream );
-	
-	/* Virtual info */
-	
-	/* SolutionVector info */
 
-	Stg_Class_Print( self->feVariable, solutionVectorStream );
-	Journal_Printf( solutionVectorStream, "\tComm: %u\n", self->comm );
 }
 
 
 void* _SolutionVector_Copy( void* solutionVector, void* dest, Bool deep, Name nameExt, PtrMap* ptrMap ) {
-	SolutionVector*	self = (SolutionVector*)solutionVector;
-	SolutionVector*	newSolutionVector;
-	PtrMap*		map = ptrMap;
-	Bool		ownMap = False;
-	
-	if( !map ) {
-		map = PtrMap_New( 10 );
-		ownMap = True;
-	}
-	
-	newSolutionVector = _Stg_Component_Copy( self, dest, deep, nameExt, map );
-	
-	/* TODO: copy vector? */
-	newSolutionVector->vector = self->vector;
-	newSolutionVector->comm = self->comm;
-	
-	if( deep ) {
-		newSolutionVector->debug = (Stream*)Stg_Class_Copy( self->debug, NULL, deep, nameExt, map );
-		newSolutionVector->feVariable = (FeVariable*)Stg_Class_Copy( self->feVariable, NULL, deep, nameExt, map );
-	}
-	else {
-		newSolutionVector->debug = self->debug;
-		newSolutionVector->feVariable = self->feVariable;
-	}
-	
-	if( ownMap ) {
-		Stg_Class_Delete( map );
-	}
-	
-	return (void*)newSolutionVector;
+  assert(0);
+  return 0;
 }
 
 
@@ -160,10 +111,10 @@ void _SolutionVector_AssignFromXML( void* solutionVector, Stg_ComponentFactory* 
 	SolutionVector*			self = (SolutionVector*)solutionVector;
 	FeVariable*				feVariable = NULL;
 
-	feVariable = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"FeVariable", FeVariable, True, data  ) ;
+	feVariable = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"FeVariable", FeVariable, True, data  );
+
 	_SolutionVector_Init( self, MPI_COMM_WORLD, (FeVariable*)feVariable );
 }
-
 
 void _SolutionVector_Build( void* solutionVector, void* data ) {
    SolutionVector* self = (SolutionVector*)solutionVector;
@@ -175,10 +126,10 @@ void _SolutionVector_Build( void* solutionVector, void* data ) {
    if( self->feVariable )
       Stg_Component_Build( self->feVariable, data, False );
 
-   Journal_Firewall( self->feVariable->eqNum, NULL, "Solution vector could not be built as provided FeVariable does not appear to have an equation number object.\nPlease contact developers." );
+   Journal_Firewall( (self->eqNum!=NULL), NULL, "Solution vector could not be built as provided FeVariable does not appear to have an equation number object.\nPlease contact developers." );
    /* Allocate the vector */
    VecCreate( self->comm, &self->vector );
-   VecSetSizes( self->vector, self->feVariable->eqNum->localEqNumsOwnedCount, PETSC_DECIDE );
+   VecSetSizes( self->vector, self->eqNum->localEqNumsOwnedCount, PETSC_DECIDE );
    VecSetFromOptions( self->vector );
 #if( PETSC_VERSION_MAJOR <= 2 && PETSC_VERSION_MINOR >= 3 && PETSC_VERSION_SUBMINOR >= 3 )
    VecSetOption( self->vector, VEC_IGNORE_NEGATIVE_INDICES );
@@ -189,17 +140,16 @@ void _SolutionVector_Build( void* solutionVector, void* data ) {
    Stream_UnIndentBranch( StgFEM_Debug );
 }
 
-
 void _SolutionVector_Initialise( void* solutionVector, void* data ) {
 	SolutionVector*          self = (SolutionVector *)solutionVector;
-	
+
 	Journal_DPrintf( self->debug, "In %s - for \"%s\"\n", __func__, self->name );
 	Stream_IndentBranch( StgFEM_Debug );
 	/* ensure variables are initialised */
 	if( self->feVariable ) {
 		Stg_Component_Initialise( self->feVariable, data, False );
 	}
-		
+
 	Stream_UnIndentBranch( StgFEM_Debug );
 }
 
@@ -232,7 +182,7 @@ void _SolutionVector_VectorView( Vec v, Stream* stream ) {
 	VecGetArray( v, &array );
 
 	Journal_Printf( stream, "%p = [", v );
-	for( entry_i = 0; entry_i < size; entry_i++ ) 
+	for( entry_i = 0; entry_i < size; entry_i++ )
 		Journal_Printf( stream, "\t%u: \t %.12g\n", entry_i, array[entry_i] );
 	Journal_Printf( stream, "];\n" );
 
@@ -249,7 +199,7 @@ void SolutionVector_UpdateSolutionOntoNodes( void* solutionVector ) {
 	FeVariable*		feVar = self->feVariable;
 	FeMesh*			feMesh = feVar->feMesh;
 	MPI_Comm		mpiComm;
-	FeEquationNumber*	eqNum = feVar->eqNum;
+	FeEquationNumber*	eqNum = self->eqNum;
 	Dof_EquationNumber	currEqNum;
 	Index			indexIntoLocalSolnVecValues;
 	Index*			reqFromOthersCounts;
@@ -263,7 +213,7 @@ void SolutionVector_UpdateSolutionOntoNodes( void* solutionVector ) {
 	double			initialGuessAtNonLocalEqNumsRatio = 0.1;
 	double			ratioToIncreaseRequestArraySize = 1.5;
 	Index			newReqFromOthersSize;
-	
+
 	Journal_DPrintf( self->debug, "In %s - for \"%s\"\n", __func__, self->name );
 	Stream_IndentBranch( StgFEM_Debug );
 
@@ -296,24 +246,24 @@ void SolutionVector_UpdateSolutionOntoNodes( void* solutionVector ) {
 		if (0 == reqFromOthersSizes[proc_I] ) {
 			reqFromOthersSizes[proc_I]++;
 		}
-		reqFromOthersInfos[proc_I] = Memory_Alloc_Array( RequestInfo, reqFromOthersSizes[proc_I], 
+		reqFromOthersInfos[proc_I] = Memory_Alloc_Array( RequestInfo, reqFromOthersSizes[proc_I],
 			"reqFromOthersInfos[proc_I]" );
 		reqFromOthers[proc_I] = Memory_Alloc_Array( Dof_EquationNumber, reqFromOthersSizes[proc_I],
 			"reqFromOthers[proc_I]" );
 	}
-	
+
 	/* Get the locally held part of the vector */
 	//Vector_GetArray( self->vector, &localSolnVecValues );
 	VecGetArray( self->vector, &localSolnVecValues );
-	
+
 	for( lNode_I=0; lNode_I < Mesh_GetLocalSize( feMesh, MT_VERTEX ); lNode_I++ ) {
 		currNodeNumDofs = feVar->dofLayout->dofCounts[ lNode_I ];
 		Journal_DPrintfL( self->debug, 3, "getting solutions for local node %d, has %d dofs.\n", lNode_I, currNodeNumDofs );
-		
+
 		/* process each dof */
 		for ( nodeLocalDof_I = 0; nodeLocalDof_I < currNodeNumDofs; nodeLocalDof_I++ ) {
 			Journal_DPrintfL( self->debug, 3, "\tdof %d: ", nodeLocalDof_I );
-			
+
 			currEqNum = eqNum->destinationArray[lNode_I][nodeLocalDof_I];
 			if( currEqNum != -1 ) {
 				Journal_DPrintfL( self->debug, 3, "is unconstrained, eqNum %d:", currEqNum );
@@ -327,9 +277,9 @@ void SolutionVector_UpdateSolutionOntoNodes( void* solutionVector ) {
 				}
 				else {
 					RequestInfo*	requestInfo;
-					
+
 					Journal_DPrintfL( self->debug, 3, "nonlocal -> add to req list " );
-					ownerProc = FeEquationNumber_CalculateOwningProcessorOfEqNum( eqNum, currEqNum ); 
+					ownerProc = FeEquationNumber_CalculateOwningProcessorOfEqNum( eqNum, currEqNum );
 					Journal_DPrintfL( self->debug, 3, "from proc %d\n", ownerProc );
 					/* first check count & realloc if necessary */
 					if (reqFromOthersCounts[ownerProc] == reqFromOthersSizes[ownerProc] ) {
@@ -339,12 +289,12 @@ void SolutionVector_UpdateSolutionOntoNodes( void* solutionVector ) {
 							newReqFromOthersSize++;
 						}
 						reqFromOthersSizes[ownerProc] = newReqFromOthersSize;
-						
+
 						Journal_DPrintfL( self->debug, 3, "req list from proc %d count %d now "
-							"equal to size, so reallocing to size %d\n", 
+							"equal to size, so reallocing to size %d\n",
 							ownerProc, reqFromOthersCounts[ownerProc],
 							reqFromOthersSizes[ownerProc] );
-							
+
 						reqFromOthersInfos[ownerProc] = Memory_Realloc_Array(
 							reqFromOthersInfos[ownerProc], RequestInfo, reqFromOthersSizes[ownerProc] );
 						reqFromOthers[ownerProc] = Memory_Realloc_Array(
@@ -355,18 +305,18 @@ void SolutionVector_UpdateSolutionOntoNodes( void* solutionVector ) {
 					requestInfo->nodeLocalDof_I = nodeLocalDof_I;
 					reqFromOthers[ownerProc][reqFromOthersCounts[ownerProc]] = currEqNum;
 					(reqFromOthersCounts[ownerProc])++;
-				}	
+				}
 			}
 			else {
 				Journal_DPrintfL( self->debug, 3, "is a BC, so skipping...\n" );
 			}
 		}
-	}				
-	
+	}
+
 	if ( nProc > 1 ) {
 		_SolutionVector_ShareValuesNotStoredLocally( self, reqFromOthersCounts, reqFromOthersInfos, reqFromOthers,
 			localSolnVecValues );
-	}	
+	}
 
 	for ( proc_I=0; proc_I < nProc; proc_I++ ) {
 		if (proc_I == myRank) continue;
@@ -401,7 +351,7 @@ void _SolutionVector_ShareValuesNotStoredLocally(
 
 	FeVariable*		feVar = self->feVariable;
 	FeMesh*			feMesh = feVar->feMesh;
-	FeEquationNumber*	eqNum = feVar->eqNum;
+	FeEquationNumber*	eqNum = self->eqNum;
 	Comm*			comm;
 	MPI_Comm		mpiComm;
 	Partition_Index		nProc;
@@ -452,9 +402,9 @@ void _SolutionVector_ShareValuesNotStoredLocally(
 			}
 			Journal_DPrintf( self->debug, "\n" );
 		}
-	}	
+	}
 	#endif
-	
+
 	/* send out my request counts, receive the req. counts others want from me */
 	MPI_Alltoall( reqFromOthersCounts, 1, MPI_UNSIGNED,
 		      reqFromMeCounts, 1, MPI_UNSIGNED, mpiComm );
@@ -479,15 +429,15 @@ void _SolutionVector_ShareValuesNotStoredLocally(
 	Journal_DPrintf( self->debug, "\n" );
 	Stream_UnIndent( self->debug );
 
-	if ( ( totalRequestedFromOthers == 0) && (totalRequestedFromMe == 0) ) 
-	{	
+	if ( ( totalRequestedFromOthers == 0) && (totalRequestedFromMe == 0) )
+	{
 		Journal_DPrintf( self->debug, "No vector values either required from others or "
 			"required by others from me, therefore cleaning up memory and returning.\n" );
 		Memory_Free( reqFromMeCounts );
 		Memory_Free( reqFromOthersHandles );
 		Memory_Free( reqValuesFromOthersHandles );
 		Memory_Free( reqValuesFromMeHandles );
-		Memory_Free( reqValuesFromOthers ); 
+		Memory_Free( reqValuesFromOthers );
 		Memory_Free( reqValuesFromOthersReceived );
 		Stream_UnIndentBranch( StgFEM_Debug );
 		return;
@@ -496,7 +446,7 @@ void _SolutionVector_ShareValuesNotStoredLocally(
 	Journal_DPrintfL( self->debug, 2, "Starting non-blocking sends of my lists of vector entry indices I want from others:\n" );
 	Stream_Indent( self->debug );
 	for( proc_I=0; proc_I < nProc; proc_I++) {
-		if ( proc_I == myRank ) continue; 
+		if ( proc_I == myRank ) continue;
 /* Journal_Printf( Journal_Register( Info_Type, (Name)"mpi"  ),  "!!! line %d, proc_I %d: count = %u\n", __LINE__, proc_I, reqFromOthersCounts[proc_I] ); */
 		if ( reqFromOthersCounts[proc_I] > 0 ) {
 			Journal_DPrintfL( self->debug, 2, "Sending to proc %d the list of %d vector entry indices I want from it:\n"
@@ -506,7 +456,7 @@ void _SolutionVector_ShareValuesNotStoredLocally(
 			reqFromOthersHandles[proc_I] = Memory_Alloc_Unnamed( MPI_Request );
 			ierr=MPI_Isend( reqFromOthers[proc_I], reqFromOthersCounts[proc_I], MPI_UNSIGNED,
 				proc_I, VALUE_REQUEST_TAG, mpiComm, reqFromOthersHandles[proc_I] );
-		}	
+		}
 	}
 	Stream_UnIndent( self->debug );
 
@@ -514,7 +464,7 @@ void _SolutionVector_ShareValuesNotStoredLocally(
 	Journal_DPrintfL( self->debug, 2, "Starting non-blocking receive of the vector entries I want from others:\n" );
 	Stream_Indent( self->debug );
 	for( proc_I=0; proc_I < nProc; proc_I++) {
-		if ( proc_I == myRank ) continue; 
+		if ( proc_I == myRank ) continue;
 		if ( reqFromOthersCounts[proc_I] > 0 ) {
 			Journal_DPrintfL( self->debug, 2, "Posting recv reqst from proc %d for the %d vector entries I want from it:\n"
 				"\t(tracking via reqValuesFromOthersHandles[%d], tag %d)\n", proc_I,
@@ -522,7 +472,7 @@ void _SolutionVector_ShareValuesNotStoredLocally(
 			reqValuesFromOthersHandles[proc_I] = Memory_Alloc_Unnamed( MPI_Request );
 			ierr=MPI_Irecv( reqValuesFromOthers[proc_I], reqFromOthersCounts[proc_I], MPI_DOUBLE,
 				proc_I, VALUE_TAG, mpiComm, reqValuesFromOthersHandles[proc_I] );
-		}	
+		}
 	}
 	Stream_UnIndent( self->debug );
 
@@ -532,17 +482,17 @@ void _SolutionVector_ShareValuesNotStoredLocally(
 	reqFromMe = Memory_Alloc_2DComplex( Dof_EquationNumber, nProc, reqFromMeCounts, "reqFromMe" );
 	reqValuesFromMe = Memory_Alloc_2DComplex( double, nProc, reqFromMeCounts, "reqValuesFromMe" );
 	for( proc_I=0; proc_I < nProc; proc_I++) {
-		if ( proc_I == myRank ) continue; 
+		if ( proc_I == myRank ) continue;
 /* /Journal_Printf( Journal_Register( Info_Type, (Name)"mpi"  ),  "!!! line %d, proc_I %d: count = %u\n", __LINE__, proc_I, reqFromMeCounts[proc_I] ); */
 		if ( reqFromMeCounts[proc_I] > 0 ) {
 			ierr=MPI_Recv( reqFromMe[proc_I], reqFromMeCounts[proc_I], MPI_UNSIGNED,
 				proc_I, VALUE_REQUEST_TAG, mpiComm, &status );
 			Journal_DPrintfL( self->debug, 3, "Received a list of %u requested vector entry indices from proc %u, "
 				"with tag %d\n", reqFromMeCounts[proc_I], proc_I, status.MPI_TAG );
-		}	
+		}
 	}
 	Stream_UnIndent( self->debug );
-	
+
 	#if DEBUG
 	if ( Stream_IsPrintableLevel( self->debug, 2 ) ) {
 		Journal_DPrintf( self->debug, "Final lists of vector entry indices other procs want from me are:\n" );
@@ -558,14 +508,14 @@ void _SolutionVector_ShareValuesNotStoredLocally(
 			}
 		}
 		Stream_UnIndent( self->debug );
-	}	
+	}
 	#endif
-	
+
 	/* for all those requested from me, non-blocking send out values */
 	Journal_DPrintfL( self->debug, 2, "Beginning non-blocking send out of vector entry lists requested by others:\n" );
 	Stream_Indent( self->debug );
 	for( proc_I=0; proc_I < nProc; proc_I++) {
-		if ( proc_I == myRank ) continue; 
+		if ( proc_I == myRank ) continue;
 		if ( reqFromMeCounts[proc_I] > 0 ) {
 			Journal_DPrintfL( self->debug, 3, "list to proc %d is: ", proc_I );
 			for ( req_I=0; req_I < reqFromMeCounts[proc_I]; req_I++ ) {
@@ -584,43 +534,43 @@ void _SolutionVector_ShareValuesNotStoredLocally(
 				reqFromMeCounts[proc_I], proc_I, VALUE_TAG );
 			ierr=MPI_Isend( reqValuesFromMe[proc_I], reqFromMeCounts[proc_I], MPI_DOUBLE,
 				proc_I, VALUE_TAG, mpiComm, reqValuesFromMeHandles[proc_I] );
-		}	
+		}
 	}
 	Stream_UnIndent( self->debug );
-	
+
 	Journal_DPrintfL( self->debug, 1, "Starting iterative-test receive of the vector entries I "
 		"requested from others:\n" );
 	/* Set up an array for keeping track of who we've received things from
 	 * already */
 	reqValueSetsFromOthersNotYetReceivedCount = nProc-1;
 	for( proc_I=0; proc_I < nProc; proc_I++) {
-		if ( proc_I == myRank ) continue; 
+		if ( proc_I == myRank ) continue;
 		reqValuesFromOthersReceived[proc_I] = False;
 		if ( reqFromOthersCounts[proc_I] == 0 ) {
 			reqValueSetsFromOthersNotYetReceivedCount--;
-		}	
-	}	
+		}
+	}
 
 	#if DEBUG
 	Journal_DPrintfL( self->debug, 2, "(Expecting %d receives from procs: ",
 		reqValueSetsFromOthersNotYetReceivedCount );
 	for( proc_I=0; proc_I < nProc; proc_I++) {
-		if ( proc_I == myRank ) continue; 
+		if ( proc_I == myRank ) continue;
 		if ( reqFromOthersCounts[proc_I] > 0 ) {
 			Journal_DPrintfL( self->debug, 2, "%d, ", proc_I );
-		}	
-	}	
+		}
+	}
 	Journal_DPrintfL( self->debug, 2, ")\n" );
 	#endif
 
 	Stream_Indent( self->debug );
 	/* now update the values at nodes that I requested from others, as they come in */
-	while ( reqValueSetsFromOthersNotYetReceivedCount ) {	
+	while ( reqValueSetsFromOthersNotYetReceivedCount ) {
 		int flag = 0;
 
 		Journal_DPrintfL( self->debug, 3, "%d sets still to go...\n", reqValueSetsFromOthersNotYetReceivedCount );
 		for( proc_I=0; proc_I < nProc; proc_I++) {
-			if ( proc_I == myRank ) continue; 
+			if ( proc_I == myRank ) continue;
 
 			if ( (reqFromOthersCounts[proc_I] > 0) && (False == reqValuesFromOthersReceived[proc_I]) ) {
 				MPI_Test( reqValuesFromOthersHandles[proc_I], &flag, &status );
@@ -646,10 +596,10 @@ void _SolutionVector_ShareValuesNotStoredLocally(
 					reqValuesFromOthersReceived[proc_I] = True;
 					reqValueSetsFromOthersNotYetReceivedCount--;
 					Memory_Free( reqValuesFromOthersHandles[proc_I] );
-				}	
-			}	
+				}
+			}
 		}
-	}	
+	}
 	Stream_UnIndent( self->debug );
 
 	/* MPI_Wait to be sure all sends to others have completed */
@@ -660,14 +610,14 @@ void _SolutionVector_ShareValuesNotStoredLocally(
 		"vector entry index lists I wanted from others were received:\n" );
 	Stream_Indent( self->debug );
 	for( proc_I=0; proc_I < nProc; proc_I++) {
-		if ( proc_I == myRank ) continue; 
+		if ( proc_I == myRank ) continue;
 		if ( reqFromOthersCounts[proc_I] > 0 ) {
-			ierr=MPI_Wait( reqFromOthersHandles[proc_I], MPI_STATUS_IGNORE ); 
+			ierr=MPI_Wait( reqFromOthersHandles[proc_I], MPI_STATUS_IGNORE );
 			Journal_DPrintfL( self->debug, 2, "Confirmed wait on reqFromOthersHandles[%u]"
 				"\n", proc_I );
 			Memory_Free( reqFromOthersHandles[proc_I] );
-		}	
-	}	
+		}
+	}
 	Stream_UnIndent( self->debug );
 	Journal_DPrintfL( self->debug, 2, "done.\n" );
 
@@ -675,14 +625,14 @@ void _SolutionVector_ShareValuesNotStoredLocally(
 		"vector entry values requested by others were received:\n" );
 	Stream_Indent( self->debug );
 	for( proc_I=0; proc_I < nProc; proc_I++) {
-		if ( proc_I == myRank ) continue; 
+		if ( proc_I == myRank ) continue;
 		if ( reqFromMeCounts[proc_I] > 0 ) {
 			ierr=MPI_Wait( reqValuesFromMeHandles[proc_I], MPI_STATUS_IGNORE );
 			Journal_DPrintfL( self->debug, 2, "Confirmed wait on reqValuesFromMeHandles[%u]"
 				"\n", proc_I );
 			Memory_Free( reqValuesFromMeHandles[proc_I] );
 		}
-	}	
+	}
 	Stream_UnIndent( self->debug );
 	Journal_DPrintfL( self->debug, 2, "done.\n" );
 
@@ -711,20 +661,18 @@ void SolutionVector_LoadCurrentFeVariableValuesOntoVector( void* solutionVector 
 	Dof_Index		dof_I = 0;
 	double			value = 0;
 	PetscInt		insertionIndex = 0;
-	
+
 	for ( node_lI = 0; node_lI < FeMesh_GetNodeLocalSize( feMesh ); node_lI++ ) {
 		for ( dof_I = 0; dof_I < feVar->dofLayout->dofCounts[node_lI]; dof_I++ ) {
 			value = DofLayout_GetValueDouble( feVar->dofLayout, node_lI, dof_I );
-			insertionIndex = feVar->eqNum->destinationArray[node_lI][dof_I];
+			insertionIndex = self->eqNum->destinationArray[node_lI][dof_I];
 			//Vector_InsertEntries( self->vector, 1, &insertionIndex, &value );
 			VecSetValues( self->vector, 1, &insertionIndex, &value, INSERT_VALUES );
-		}	
+		}
 	}
 
 	//Vector_AssemblyBegin( self->vector );
-	//Vector_AssemblyEnd( self->vector ); 
+	//Vector_AssemblyEnd( self->vector );
 	VecAssemblyBegin( self->vector );
-	VecAssemblyEnd( self->vector ); 
+	VecAssemblyEnd( self->vector );
 }
-
-

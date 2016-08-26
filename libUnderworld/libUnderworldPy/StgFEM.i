@@ -52,6 +52,7 @@ import_array();
 %include "SLE/SystemSetup/StiffnessMatrix.h"
 %include "SLE/SystemSetup/StiffnessMatrixTerm.h"
 %include "SLE/SystemSetup/SystemLinearEquations.h"
+%include "SLE/SystemSetup/SolutionVector.h"
 %include "SLE/SystemSetup/ForceVector.h"
 %include "SLE/SystemSetup/types.h"
 /*

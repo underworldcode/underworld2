@@ -14,7 +14,7 @@
 
 	/* typedefs for virtual functions: Other than  */
 	typedef void	(StiffnessMatrix_CalculateNonZeroEntriesFunction)	( void* stiffnessMatrix );
-	typedef void  (StiffnessMatrix_AssembleFunc) (void* stiffnessMatrix, Bool removeBCs, void* _sle, void* _context );
+	typedef void  (StiffnessMatrix_AssembleFunc) (void* stiffnessMatrix, void* _sle, void* _context );
 
 	/* #Defines and variables which allow generalising the assembly alg. for when row and col FeVariables different */
 	#define			MAX_FE_VARS	2
@@ -38,6 +38,8 @@
 		Stream*                                           debug;                          \
 		FeVariable*                                       rowVariable;                    \
 		FeVariable*                                       columnVariable;                 \
+    FeEquationNumber*                                 rowEqNum;/* Handled by Python */\
+		FeEquationNumber*                                 colEqNum;/* Handled by Python */\
 		ForceVector*                                      rhs;                            \
 		ForceVector*                                      transRHS;                       \
 		Mat                                               matrix;                         \
@@ -64,8 +66,6 @@
 									                  \
 		IArray* rowInc;	                \
 		IArray* colInc;                 \
-    int nModifyCBs;                 \
-    Callback* modifyCBs;
 
 	struct StiffnessMatrix { __StiffnessMatrix };
 
@@ -164,8 +164,8 @@
 
 	/** Interface to Build stiffness matrix. Calls an entry point, allowing user to specialise exactly what
 	should be assembled at run-time. */
-	void StiffnessMatrix_Assemble( void* stiffnessMatrix, Bool bcRemoveQuery, void* _sle, void* _context );
-	void __StiffnessMatrix_NewAssembleNodeWise( void* stiffnessMatrix, Bool bcRemoveQuery, void* _sle, void* _context );
+	void StiffnessMatrix_Assemble( void* stiffnessMatrix, void* _sle, void* _context );
+	void __StiffnessMatrix_NewAssembleNodeWise( void* stiffnessMatrix, void* _sle, void* _context );
 
 	/* +++ Public Functions +++ */
 

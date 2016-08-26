@@ -36,17 +36,16 @@
 		double fnorm; /* current residual of rhs of Jacobian system J*dx=-F */\
 		double knorm; /* current norm of stiffness matrix from Jacobian */
 
-	struct Stokes_SLE { __Stokes_SLE };	
+	struct Stokes_SLE { __Stokes_SLE };
 
-	Stokes_SLE* Stokes_SLE_New( 		
+	Stokes_SLE* Stokes_SLE_New(
 		Name							name,
 		FiniteElementContext*	context,
 		SLE_Solver*					solver,
-		Bool							removeBCs,
 		Bool							isNonLinear,
 		double						nonLinearTolerance,
 		Iteration_Index			nonLinearMaxIterations,
-		Bool							killNonConvergent,			
+		Bool							killNonConvergent,
 		EntryPoint_Register*		entryPoint_Register,
 		MPI_Comm						comm,
 		StiffnessMatrix*			kStiffMat,
@@ -59,7 +58,7 @@
 		ForceVector*				hForceVec );
 
 	/* Creation implementation / Virtual constructor */
-	
+
 	#ifndef ZERO
 	#define ZERO 0
 	#endif
@@ -72,8 +71,8 @@
 
 	Stokes_SLE* _Stokes_SLE_New(  STOKES_SLE_DEFARGS  );
 
-	void _Stokes_SLE_Init( 		
-		void*					sle, 
+	void _Stokes_SLE_Init(
+		void*					sle,
 		StiffnessMatrix*	kStiffMat,
 		StiffnessMatrix*	gStiffMat,
 		StiffnessMatrix*	dStiffMat,
@@ -88,8 +87,7 @@
 	void* _Stokes_SLE_DefaultNew( Name name );
 
 	void _Stokes_SLE_AssignFromXML( void* sle, Stg_ComponentFactory* cf, void* data );
-	
-	void _Stokes_SLE_MG_SelectStiffMats( void* _sle, unsigned* nSMs, StiffnessMatrix*** sms );
-	
-#endif
 
+	void _Stokes_SLE_MG_SelectStiffMats( void* _sle, unsigned* nSMs, StiffnessMatrix*** sms );
+
+#endif
