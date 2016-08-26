@@ -33,15 +33,14 @@
 const Type AdvectionDiffusionSLE_Type = "AdvectionDiffusionSLE";
 #define SMALL_VALUE 1.0e-99
 
-AdvectionDiffusionSLE* AdvectionDiffusionSLE_New( 
+AdvectionDiffusionSLE* AdvectionDiffusionSLE_New(
 	Name							name,
 	FiniteElementContext*	context,
 	SLE_Solver*					solver,
-	Bool							removeBCs,
 	Bool							isNonLinear,
 	double						nonLinearTolerance,
 	Iteration_Index			nonLinearMaxIterations,
-	Bool							killNonConvergent,		
+	Bool							killNonConvergent,
 	EntryPoint_Register*		entryPoint_Register,
 	MPI_Comm						comm,
 	FeVariable*					phiField,
@@ -50,12 +49,12 @@ AdvectionDiffusionSLE* AdvectionDiffusionSLE_New(
 	Dimension_Index			dim,
 	double						courantFactor,
 	Variable_Register*		variable_Register,
-	FieldVariable_Register*	fieldVariable_Register ) 
-{	
+	FieldVariable_Register*	fieldVariable_Register )
+{
 	AdvectionDiffusionSLE* self = (AdvectionDiffusionSLE*) _AdvectionDiffusionSLE_DefaultNew( name );
 
-	self->isConstructed = True;	
-	_SystemLinearEquations_Init( self, solver, removeBCs, NULL, context, False, isNonLinear, nonLinearTolerance,
+	self->isConstructed = True;
+	_SystemLinearEquations_Init( self, solver, NULL, context, False, isNonLinear, nonLinearTolerance,
 		nonLinearMaxIterations, killNonConvergent, 1, "", "", entryPoint_Register, comm );
 	_AdvectionDiffusionSLE_Init( self, phiField, residual, massMatrix, dim, courantFactor, variable_Register, fieldVariable_Register );
 
@@ -81,8 +80,8 @@ void _AdvectionDiffusionSLE_Init(
 	Stg_Component*				massMatrix,
 	Dimension_Index			dim,
 	double						courantFactor,
-	Variable_Register*		variable_Register,  
-	FieldVariable_Register*	fieldVariable_Register )		
+	Variable_Register*		variable_Register,
+	FieldVariable_Register*	fieldVariable_Register )
 {
 	AdvectionDiffusionSLE* self = (AdvectionDiffusionSLE*)sle;
 
@@ -117,7 +116,7 @@ void _AdvectionDiffusionSLE_Init(
 
     self->maxDiffusivity = SMALL_VALUE;
 
-}	
+}
 
 /** Virtual Functions from "Class" Class */
 void _AdvectionDiffusionSLE_Delete( void* sle ) {
@@ -171,7 +170,7 @@ void _AdvectionDiffusionSLE_AssignFromXML( void* sle, Stg_ComponentFactory* cf, 
     if (self->context) {
         variable_Register = self->context->variable_Register;
         assert( variable_Register );
-        fieldVariable_Register = self->context->fieldVariable_Register; 
+        fieldVariable_Register = self->context->fieldVariable_Register;
         assert( fieldVariable_Register );
     }
 
@@ -184,8 +183,8 @@ void _AdvectionDiffusionSLE_AssignFromXML( void* sle, Stg_ComponentFactory* cf, 
     dim = Stg_ComponentFactory_GetUnsignedInt( cf, self->name, (Dictionary_Entry_Key)"dim", dim  );
 
 	courantFactor = Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"courantFactor", 0.5  );
-	Journal_Firewall( 0.0 < courantFactor && courantFactor <= 1.0, 
-		error, "In func %s: CourantFactor read in from dictionary = %2.4f - This must be from 0 - 1.\n", 
+	Journal_Firewall( 0.0 < courantFactor && courantFactor <= 1.0,
+		error, "In func %s: CourantFactor read in from dictionary = %2.4f - This must be from 0 - 1.\n",
 		__func__, courantFactor );
 
         self->pureDiffusion = Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"pureDiffusion", False  );
@@ -199,7 +198,7 @@ void _AdvectionDiffusionSLE_AssignFromXML( void* sle, Stg_ComponentFactory* cf, 
 		massMatrix,
 		dim,
 		courantFactor,
-		variable_Register, 
+		variable_Register,
 		fieldVariable_Register );
 }
 
@@ -207,8 +206,6 @@ void _AdvectionDiffusionSLE_Destroy( void* sle, void* data ) {
    AdvectionDiffusionSLE* self = (AdvectionDiffusionSLE*) sle;
 
    __AdvDiffResidualForceTerm_FreeLocalMemory( self );
-   Stg_Component_Destroy( self->phiDotVector, data, False );
-   Stg_Component_Destroy( self->phiVector, data, False );
 
    _SystemLinearEquations_Destroy( self, data );
 }
@@ -217,7 +214,7 @@ void _AdvectionDiffusionSLE_Destroy( void* sle, void* data ) {
   The following function scans all the elements of the mesh associated with
   the residual forceterm phi to find the element with the most nodes.
   Once the maximum number of nodes is found we then may allocate memory for
-  GNx etc that now live on the AdvDiffResidualForceTerm struct. This way we 
+  GNx etc that now live on the AdvDiffResidualForceTerm struct. This way we
   do not reallocate memory for these arrays for every element.
  *******************************************************************************/
 void __AdvDiffResidualForceTerm_UpdateLocalMemory( AdvectionDiffusionSLE* sle ){
@@ -237,7 +234,7 @@ void __AdvDiffResidualForceTerm_UpdateLocalMemory( AdvectionDiffusionSLE* sle ){
 	for(e=0;e<n_elements;e++){
 		ElementType *elementType = FeMesh_GetElementType( phiMesh, e );
 		Node_Index elementNodeCount = elementType->nodeCount;
-	
+
 		if( elementNodeCount > max_elementNodeCount){
 			max_elementNodeCount = elementNodeCount;
 		}
@@ -272,7 +269,7 @@ void __AdvDiffResidualForceTerm_FreeLocalMemory( AdvectionDiffusionSLE* sle ){
 	Memory_Free(sle->advDiffResidualForceTerm->phiGrad);
 	Memory_Free(sle->advDiffResidualForceTerm->Ni);
 	Memory_Free(sle->advDiffResidualForceTerm->SUPGNi);
-  
+
 	Stg_Class_Delete(sle->advDiffResidualForceTerm->incarray);
 }
 
@@ -285,16 +282,8 @@ void _AdvectionDiffusionSLE_Build( void* sle, void* data ) {
 	Index							forceTermCount = Stg_ObjectList_Count( self->residual->forceTermList );
 	ForceTerm*					forceTerm;
 
-    /* Construct Solution Vectors */
-    char *phiVecName, *phiDotVecName;
-    phiVecName = Memory_Alloc_Array_Unnamed( char, strlen(self->name)+11 );
-    sprintf( phiVecName, "%s-phiVector", self->name );
-    phiDotVecName = Memory_Alloc_Array_Unnamed( char, strlen(self->name)+14 );
-    sprintf( phiDotVecName, "%s-phiDotVector", self->name );
-    self->phiVector    = SolutionVector_New(    phiVecName, self->phiField->communicator,    self->phiField );
-    self->phiDotVector = SolutionVector_New( phiDotVecName, self->phiDotField->communicator, self->phiDotField );
-    Memory_Free(phiVecName);
-    Memory_Free(phiDotVecName);
+  Journal_Firewall( (self->phiVector!=NULL), NULL, "PhiVector (SolutionVector) could not be found, python has not passed it in correctly.\nPlease contact developers." );
+  Journal_Firewall( (self->phiDotVector!=NULL), NULL, "PhiDotVector (SolutionVector) could not be found, python has not passed it in correctly.\nPlease contact developers." );
 
 	_SystemLinearEquations_Build( self, data );
 
@@ -303,12 +292,6 @@ void _AdvectionDiffusionSLE_Build( void* sle, void* data ) {
 		Stg_Component_Build( self->residual, data, False );
 	if ( self->massMatrix )
 		Stg_Component_Build( self->massMatrix, data, False );
-	
-	/* Solution Vectors */
-	if ( self->phiVector )
-		Stg_Component_Build( self->phiVector, data, False );
-	if ( self->phiDotVector )
-		Stg_Component_Build( self->phiDotVector, data, False );
 }
 
 void _AdvectionDiffusionSLE_Initialise( void* sle, void* data ) {
@@ -318,18 +301,14 @@ void _AdvectionDiffusionSLE_Initialise( void* sle, void* data ) {
 	Journal_DPrintf( self->debug, "In %s()\n", __func__ );
 
 	_SystemLinearEquations_Initialise( self, data );
-	
+
 	Stg_Component_Initialise( self->phiDotField, data, False );
-	
+
     DofLayout_SetAllToZero( self->phiDotField->dofLayout );
 
 	/* Force Vectors */
 	Stg_Component_Initialise( self->residual, data, False );
 	Stg_Component_Initialise( self->massMatrix, data, False );
-	
-	/* Solution Vectors */
-	Stg_Component_Initialise( self->phiVector, data, False );
-	Stg_Component_Initialise( self->phiDotVector, data, False );
 
 	AdvectionDiffusionSLE_ResetStoredValues( self );
 }
@@ -338,10 +317,10 @@ void _AdvectionDiffusionSLE_Execute( void* sle, void* _context ) {
 	AdvectionDiffusionSLE*     self  = (AdvectionDiffusionSLE*) sle;
 	FiniteElementContext*      context = (FiniteElementContext*) _context;
 //	double                     dt      = context->dt;
-	
+
 	AdvectionDiffusionSLE_ResetStoredValues( self );
 //	self->currentDt = dt;
-	
+
 	_SystemLinearEquations_Execute( self, context );
 }
 
@@ -355,9 +334,6 @@ Vec _AdvectionDiffusionSLE_GetResidual( void* sle, Index fv_I ) {
 
 void AdvectionDiffusionSLE_ResetStoredValues( void* sle ) {
 	AdvectionDiffusionSLE* self  = (AdvectionDiffusionSLE*) sle;
-	
+
 	self->maxDiffusivity = SMALL_VALUE;
 }
-
-
-

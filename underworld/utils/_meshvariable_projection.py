@@ -119,10 +119,9 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
             raise ValueError( "Provided 'type' must take a value of 0 (weighted average) or 1 (weighted residual)." )
         self.type = type
 
-        libUnderworld.StgFEM._FeVariable_CreateNewEqnNumber( self._meshVariable._cself )
-
+        eqNum = sle.EqNumber(meshVariable)
         # create force vectors
-        self._fvector = sle.AssembledVector(meshVariable)
+        self._fvector = sle.AssembledVector(meshVariable, eqNum)
 
 
         # we will use voronoi if that has been requested by the user, else use
@@ -157,9 +156,9 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
             self.solve = self._solve_average
         else:
             # create solutions vector
-            self._solutionVector = sle.SolutionVector(meshVariable)
+            self._solutionVector = sle.SolutionVector(meshVariable, eqNum)
             # and matrices
-            self._kmatrix = sle.AssembledMatrix( meshVariable, meshVariable, rhs=self._fvector )
+            self._kmatrix = sle.AssembledMatrix( self._solutionVector, self._solutionVector, rhs=self._fvector )
             # matrix term
             self._kMatTerm = sle.MatrixAssemblyTerm_NA__NB__Fn(  integrationSwarm=intswarm,
                                                                  assembledObject=self._kmatrix,

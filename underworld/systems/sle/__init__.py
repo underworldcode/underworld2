@@ -10,6 +10,7 @@
 """
 from _assembledvector import AssembledVector
 from _assembledmatrix import AssembledMatrix
+from _eqnum import EqNumber
 from _svector import SolutionVector
 from _assemblyterm import AssemblyTerm, VectorAssemblyTerm, MatrixAssemblyTerm, \
                           VectorAssemblyTerm_NA__Fn, GradientStiffnessMatrixTerm, PreconditionerMatrixTerm, \
