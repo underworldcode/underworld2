@@ -70,3 +70,19 @@ syntax: regexp
 */.texpadtmp/*
 
 libUnderworld/Underworld/SysTest/AnalyticPlugins/Doc/.texpadtmp/*
+
+docs/examples/BBOutput2/summary.txt
+
+docs/examples/subduction.gldb
+
+docs/test/Pressure_Error.png
+
+docs/user_guide/deformedMesh.h5
+
+docs/user_guide/highdef.png
+
+docs/user_guide/surf.gldb
+
+docs/user_guide/SwarmWithCircle.h5
+
+docs/user_guide/SwarmWithCircle.materialIndex.h5
