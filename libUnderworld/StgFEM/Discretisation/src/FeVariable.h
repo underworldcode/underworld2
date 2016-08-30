@@ -364,6 +364,4 @@
 
    void FeVariable_SetBC( void* feVariable, void* bc );
 
-  //  FeEquationNumber* _FeVariable_CreateNewEqnNumber( void* variable );
-
 #endif /* __StgFEM_Discretisation_FeVariable_h__ */

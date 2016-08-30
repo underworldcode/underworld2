@@ -294,9 +294,9 @@ void _StiffnessMatrix_Build( void* stiffnessMatrix, void* data ) {
 #if DEBUG
     if ( Stream_IsPrintableLevel( self->debug, 3 ) ) {
         Journal_DPrintf( self->debug, "Row variable(%s) I.D. array calc. as:\n", self->rowVariable->name );
-        FeEquationNumber_PrintDestinationArray( self->rowEqNum, self->debug );
+        FeEquationNumber_PrintmapNodeDof2Eq( self->rowEqNum, self->debug );
         Journal_DPrintf( self->debug, "Column variable(%s) I.D. array calc. as:\n", self->columnVariable->name );
-        FeEquationNumber_PrintDestinationArray( self->colEqNum, self->debug );
+        FeEquationNumber_PrintmapNodeDof2Eq( self->colEqNum, self->debug );
     }
 #endif
 
@@ -437,8 +437,8 @@ void __StiffnessMatrix_NewAssembleNodeWise( void* stiffnessMatrix, void* _sle, v
       StiffnessMatrix_AssembleElement( self, n_i, sle, _context, nStiffMat );
 
       MatSetValues( self->matrix,
-                    nRowDofs, rowEqNum->destinationArray[n_i],
-                    nColDofs, colEqNum->destinationArray[n_i],
+                    nRowDofs, rowEqNum->mapNodeDof2Eq[n_i],
+                    nColDofs, colEqNum->mapNodeDof2Eq[n_i],
                     nStiffMat[0], INSERT_VALUES );
       /* Correct for BCs providing I'm not keeping them in. */
       // if( vector ) {
@@ -536,8 +536,8 @@ void __StiffnessMatrix_NewAssembleNodeWise( void* stiffnessMatrix, void* _sle, v
   //         for( dof_i = 0; dof_i < nColNodeDofs; dof_i++ ) {
   //             if( FeVariable_IsBC( colVar, n_i, dof_i ) ) {
   //                 MatSetValues( self->matrix,
-  //                               1, colEqNum->destinationArray[n_i] + dof_i,
-  //                               1, colEqNum->destinationArray[n_i] + dof_i,
+  //                               1, colEqNum->mapNodeDof2Eq[n_i] + dof_i,
+  //                               1, colEqNum->mapNodeDof2Eq[n_i] + dof_i,
   //                               (double*)&one, ADD_VALUES );
   //             }
   //         }
@@ -729,8 +729,8 @@ void __StiffnessMatrix_NewAssemble( void* stiffnessMatrix, void* _sle, void* _co
             for( dof_i = 0; dof_i < nColNodeDofs; dof_i++ ) {
                 if( FeVariable_IsBC( colVar, n_i, dof_i ) ) {
                     MatSetValues( self->matrix,
-                                  1, colEqNum->destinationArray[n_i] + dof_i,
-                                  1, colEqNum->destinationArray[n_i] + dof_i,
+                                  1, colEqNum->mapNodeDof2Eq[n_i] + dof_i,
+                                  1, colEqNum->mapNodeDof2Eq[n_i] + dof_i,
                                   (double*)&one, ADD_VALUES );
                 }
             }
@@ -915,7 +915,7 @@ void StiffnessMatrix_CalcNonZeros( void* stiffnessMatrix ) {
 
     for( n_i = 0; n_i < FeMesh_GetNodeLocalSize( rowMesh ); n_i++ ) {
         for( dof_i = 0; dof_i < rowDofs->dofCounts[n_i]; dof_i++ ) {
-            rowEq = rowEqNum->destinationArray[n_i][dof_i];
+            rowEq = rowEqNum->mapNodeDof2Eq[n_i][dof_i];
 
             if( rowEq == -1 ) continue;
             if( !STreeMap_HasKey( rowEqNum->ownedMap, &rowEq ) ) continue;
@@ -934,7 +934,7 @@ void StiffnessMatrix_CalcNonZeros( void* stiffnessMatrix ) {
 
                 for( n_j = 0; n_j < nColNodes; n_j++ ) {
                     for( dof_j = 0; dof_j < colDofs->dofCounts[colNodes[n_j]]; dof_j++ ) {
-                        colEq = colEqNum->destinationArray[colNodes[n_j]][dof_j];
+                        colEq = colEqNum->mapNodeDof2Eq[colNodes[n_j]][dof_j];
 
                         if( colEq == -1 ) continue;
                         if( !STree_Has( candColEqs, &colEq  ) ) {

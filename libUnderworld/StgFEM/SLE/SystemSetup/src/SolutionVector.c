@@ -264,7 +264,7 @@ void SolutionVector_UpdateSolutionOntoNodes( void* solutionVector ) {
 		for ( nodeLocalDof_I = 0; nodeLocalDof_I < currNodeNumDofs; nodeLocalDof_I++ ) {
 			Journal_DPrintfL( self->debug, 3, "\tdof %d: ", nodeLocalDof_I );
 
-			currEqNum = eqNum->destinationArray[lNode_I][nodeLocalDof_I];
+			currEqNum = eqNum->mapNodeDof2Eq[lNode_I][nodeLocalDof_I];
 			if( currEqNum != -1 ) {
 				Journal_DPrintfL( self->debug, 3, "is unconstrained, eqNum %d:", currEqNum );
 
@@ -665,7 +665,7 @@ void SolutionVector_LoadCurrentFeVariableValuesOntoVector( void* solutionVector 
 	for ( node_lI = 0; node_lI < FeMesh_GetNodeLocalSize( feMesh ); node_lI++ ) {
 		for ( dof_I = 0; dof_I < feVar->dofLayout->dofCounts[node_lI]; dof_I++ ) {
 			value = DofLayout_GetValueDouble( feVar->dofLayout, node_lI, dof_I );
-			insertionIndex = self->eqNum->destinationArray[node_lI][dof_I];
+			insertionIndex = self->eqNum->mapNodeDof2Eq[node_lI][dof_I];
 			//Vector_InsertEntries( self->vector, 1, &insertionIndex, &value );
 			VecSetValues( self->vector, 1, &insertionIndex, &value, INSERT_VALUES );
 		}

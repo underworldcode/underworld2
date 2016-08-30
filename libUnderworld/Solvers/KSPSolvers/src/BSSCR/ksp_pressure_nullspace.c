@@ -53,7 +53,7 @@ PetscErrorCode KSPBuildPressure_CB_Nullspace_BSSCR(KSP ksp)
     for(j=0;j<numLocalNodes;j++){
 	i = globalNodeNumber = Mesh_DomainToGlobal( feMesh, MT_VERTEX, j);
 	RegularMeshUtils_Element_1DTo3D(feMesh, i, ijk);
-	eq = eq_num->destinationArray[j][0];/* get global equation number -- 2nd arg is always 0 because pressure has only one dof */
+	eq = eq_num->mapNodeDof2Eq[j][0];/* get global equation number -- 2nd arg is always 0 because pressure has only one dof */
 	if(eq != -1){
 	    if( (ijk[0]+ijk[1]+ijk[2])%2 ==0 ){
 		VecSetValue(t,eq,1.0,INSERT_VALUES);

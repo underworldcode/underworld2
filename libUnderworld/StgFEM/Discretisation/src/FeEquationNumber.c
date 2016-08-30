@@ -175,7 +175,7 @@ void _FeEquationNumber_Destroy( void* feEquationNumber, void *data ){
 
    /* free destination array memory */
    Journal_DPrintfL( self->debug, 2, "Freeing I.D. Array\n" );
-   FreeArray( self->destinationArray );
+   FreeArray( self->mapNodeDof2Eq );
 
    if (self->locationMatrix) {
       Journal_DPrintfL( self->debug, 2, "Freeing Full L.M. Array\n" );
@@ -224,12 +224,12 @@ void _FeEquationNumber_Print( void* mesh, Stream* stream ) {
    /* FeEquationNumber info */
    /* Don't print dofs or bcs as these will be printed by FeVariable */
 
-   if ( self->destinationArray ) {
-      FeEquationNumber_PrintDestinationArray( self, stream );
+   if ( self->mapNodeDof2Eq ) {
+      FeEquationNumber_PrintmapNodeDof2Eq( self, stream );
       FeEquationNumber_PrintLocationMatrix( self, stream );
    }
    else {
-      Journal_Printf( stream, "\tdestinationArray: (null)... not built yet\n" );
+      Journal_Printf( stream, "\tmapNodeDof2Eq: (null)... not built yet\n" );
       Journal_Printf( stream, "\tlocationMatrix: (null)... not built yet\n" );
    }
 }
@@ -273,15 +273,15 @@ void _FeEquationNumber_Build( void* feEquationNumber, void* data ) {
          for( jj = 0; jj < nDofs; jj++ ) {
             varInd = dofLayout->varIndices[ii][jj];
             if( bcs && VariableCondition_IsCondition( bcs, ii, varInd ) ) {
-               if( !STree_Has( self->bcEqNums, self->destinationArray[ii] + jj ) )
-                  STree_Insert( self->bcEqNums, self->destinationArray[ii] + jj );
+               if( !STree_Has( self->bcEqNums, self->mapNodeDof2Eq[ii] + jj ) )
+                  STree_Insert( self->bcEqNums, self->mapNodeDof2Eq[ii] + jj );
             }
          }
       }
    }
 
    if ( Stream_IsPrintableLevel( self->debug, 3 ) ) {
-      FeEquationNumber_PrintDestinationArray( self, self->debug );
+      FeEquationNumber_PrintmapNodeDof2Eq( self, self->debug );
    }
 
    Stream_UnIndentBranch( StgFEM_Debug );
@@ -310,7 +310,7 @@ Index FeEquationNumber_CalculateActiveEqCountAtNode(
    Bool			foundLowest = False;
 
    for ( nodalDof_I = 0; nodalDof_I < self->dofLayout->dofCounts[dNode_I]; nodalDof_I++ ) {
-      currEqNum = self->destinationArray[dNode_I][nodalDof_I];
+      currEqNum = self->mapNodeDof2Eq[dNode_I][nodalDof_I];
       if ( currEqNum != -1 ) {
          activeEqsAtCurrRowNode++;
          if ( False == foundLowest ) {
@@ -355,7 +355,7 @@ void FeEquationNumber_BuildLocationMatrix( void* feEquationNumber ) {
    nDomainEls = FeMesh_GetElementDomainSize( feMesh );
    nLocalNodes = FeMesh_GetNodeLocalSize( feMesh );
    nNodalDofs = self->dofLayout->dofCounts;
-   dstArray = self->destinationArray;
+   dstArray = self->mapNodeDof2Eq;
 
    /* Allocate for the location matrix. */
    locMat = AllocArray( int**, nDomainEls );
@@ -406,7 +406,7 @@ FeEquationNumber* _FeEquationNumber_Create( void* _self, Bool removeBCs ) {
   return eqNum;
 }
 
-void FeEquationNumber_PrintDestinationArray( void* feFeEquationNumber, Stream* stream ) {
+void FeEquationNumber_PrintmapNodeDof2Eq( void* feFeEquationNumber, Stream* stream ) {
    FeEquationNumber* self = (FeEquationNumber*) feFeEquationNumber;
    FeMesh*		feMesh = self->feMesh;
    MPI_Comm comm = Comm_GetMPIComm( Mesh_GetCommTopology( feMesh, MT_VERTEX ) );
@@ -421,22 +421,22 @@ void FeEquationNumber_PrintDestinationArray( void* feFeEquationNumber, Stream* s
       Node_DomainIndex dNode_I;
 
       if ( !Mesh_GlobalToDomain( feMesh, MT_VERTEX, gNode_I, &dNode_I ) ) {
-         Journal_Printf( stream, "\tdestinationArray[(gnode)%2d]: on another proc\n", gNode_I);
+         Journal_Printf( stream, "\tmapNodeDof2Eq[(gnode)%2d]: on another proc\n", gNode_I);
       }
       else {
          Dof_Index currNodeNumDofs = self->dofLayout->dofCounts[ dNode_I ];
          Dof_Index nodeLocalDof_I;
 
-         Journal_Printf( stream, "\tdestinationArray[(gnode)%2d][(dof)0-%d]:",gNode_I, currNodeNumDofs );
+         Journal_Printf( stream, "\tmapNodeDof2Eq[(gnode)%2d][(dof)0-%d]:",gNode_I, currNodeNumDofs );
          for( nodeLocalDof_I = 0; nodeLocalDof_I < currNodeNumDofs; nodeLocalDof_I++ ) {
-            Journal_Printf( stream, "%3d, ", self->destinationArray[dNode_I][nodeLocalDof_I] );
+            Journal_Printf( stream, "%3d, ", self->mapNodeDof2Eq[dNode_I][nodeLocalDof_I] );
          }
          Journal_Printf( stream, "\n" );
       }
    }
 }
 
-void FeEquationNumber_PrintDestinationArrayBox( void* feFeEquationNumber, Stream* stream ) {
+void FeEquationNumber_PrintmapNodeDof2EqBox( void* feFeEquationNumber, Stream* stream ) {
 	FeEquationNumber*   self = (FeEquationNumber*) feFeEquationNumber;
 	FeMesh*             feMesh = self->feMesh;
 	MPI_Comm            comm = Comm_GetMPIComm( Mesh_GetCommTopology( feMesh, MT_VERTEX ) );
@@ -468,7 +468,7 @@ void FeEquationNumber_PrintDestinationArrayBox( void* feFeEquationNumber, Stream
 				Journal_Printf( stream, "{ " );
 				if ( Mesh_GlobalToDomain( feMesh, MT_VERTEX, gNode_I, &lNode_I ) ) {
 					for ( dof_I = 0 ; dof_I < nDofs ; dof_I++ )
-						Journal_Printf( stream, "%3d ", self->destinationArray[lNode_I][dof_I] );
+						Journal_Printf( stream, "%3d ", self->mapNodeDof2Eq[lNode_I][dof_I] );
 				}
 				else {
 					for ( dof_I = 0 ; dof_I < nDofs ; dof_I++ )
@@ -535,7 +535,7 @@ void FeEquationNumber_PrintLocationMatrix( void* feFeEquationNumber, Stream* str
 
             Journal_Printf( stream, "({%2d}", currNode );
             for( nodeLocalDof_I = 0; nodeLocalDof_I < currNodeNumDofs; nodeLocalDof_I++ ) {
-               Journal_Printf( stream, "%3d,", self->destinationArray[currNode][nodeLocalDof_I] );
+               Journal_Printf( stream, "%3d,", self->mapNodeDof2Eq[currNode][nodeLocalDof_I] );
             }
             Journal_Printf( stream, "), " );
          }
@@ -627,7 +627,7 @@ void FeEquationNumber_BuildWithTopology( FeEquationNumber* self ) {
 
    /* Allocate for destination array. */
    dstArray = Memory_Alloc_2DComplex( int, nDomainNodes, nNodalDofs,
-                                      "FeEquationNumber::destinationArray" );
+                                      "FeEquationNumber::mapNodeDof2Eq" );
 
    /* If needed, allocate for linked equation numbers. */
    if( links ) {
@@ -759,7 +759,7 @@ void FeEquationNumber_BuildWithTopology( FeEquationNumber* self ) {
    }
 
    /* Store stuff on class. */
-   self->destinationArray = dstArray;
+   self->mapNodeDof2Eq = dstArray;
    self->locationMatrix = locMat;
    self->locationMatrixBuilt = True;
    self->remappingActivated = False;
@@ -1013,7 +1013,7 @@ void FeEquationNumber_BuildWithDave( FeEquationNumber* self ) {
    Stg_Class_Delete( inc );
 
    /* Fill in our other weird values. */
-   self->destinationArray = dstArray;
+   self->mapNodeDof2Eq = dstArray;
    self->locationMatrix = locMat;
    self->locationMatrixBuilt = True;
    self->remappingActivated = False;

@@ -374,7 +374,7 @@ void Stokes_SLE_PenaltySolver_MakePenalty( Stokes_SLE_PenaltySolver* self, Stoke
 
             for( kk = 0; kk < numDofs; kk++ ) {
 
-                eq = eqNum->destinationArray[nodeCur][kk];
+                eq = eqNum->mapNodeDof2Eq[nodeCur][kk];
                 if( eq == -1 )
                     continue;
 

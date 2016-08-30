@@ -77,7 +77,7 @@
 		/** BCs applied to this mesh */ \
 		VariableCondition*		bcs; \
 		/** map of (domain node, nodeLocalDof) -> global eq num */ \
-		Dof_EquationNumber**		destinationArray; \
+		Dof_EquationNumber**		mapNodeDof2Eq; \
 		/** Used to calculate globalSumUnconstrainedDofs */ \
 		Dof_EquationNumber		_highestLocalEqNum;\
 		/** Used to determine which procs hold which numbers */ \
@@ -205,7 +205,7 @@
 		Dof_EquationNumber*	lowestActiveEqNumAtNodePtr );
 
 	/** Prints only the destination array */
-	void FeEquationNumber_PrintDestinationArray( void* feEquationNumber, Stream* stream );
+	void FeEquationNumber_PrintmapNodeDof2Eq( void* feEquationNumber, Stream* stream );
 
   FeEquationNumber* _FeEquationNumber_Create( void* _self, Bool removeBCs );
 
@@ -229,7 +229,7 @@
 	handle parallel irregular meshes with any decomposition. The algorithm
 	is fully parallel, and communication has been minimised to 2 sets
 	of global communications. */
-	void _FeEquationNumber_BuildDestinationArray( FeEquationNumber* self );
+	void _FeEquationNumber_BuildmapNodeDof2Eq( FeEquationNumber* self );
 	#endif
 
 	void FeEquationNumber_BuildWithTopology( FeEquationNumber* self );

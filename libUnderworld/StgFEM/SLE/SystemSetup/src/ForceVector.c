@@ -339,16 +339,16 @@ void ForceVector_GlobalAssembly_General( void* forceVector ) {
 
     dofs = feVar->dofLayout;
     nNodes = FeMesh_GetNodeLocalSize( mesh );
-    assert( eqNum->destinationArray );
+    assert( eqNum->mapNodeDof2Eq );
     assert( dofs->dofCounts );
 
     // loop over dofs
     for( n_i = 0; n_i < nNodes; n_i++ ) {
-      assert( eqNum->destinationArray[n_i] );
+      assert( eqNum->mapNodeDof2Eq[n_i] );
       nDofs = dofs->dofCounts[n_i];
 
       for( dof_i = 0; dof_i < nDofs; dof_i++ ) {
-        rowEq = eqNum->destinationArray[n_i][dof_i];
+        rowEq = eqNum->mapNodeDof2Eq[n_i][dof_i];
 
         if( feVar->bcs && FeVariable_IsBC( feVar, n_i, dof_i ) ) {
           bc = DofLayout_GetValueDouble( dofs, n_i, dof_i );

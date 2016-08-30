@@ -342,7 +342,7 @@ void SROpGenerator_GenLevelEqNums( SROpGenerator* self, unsigned level ) {
 
 		topNode = self->topMaps[level][n_i];
 		for( dof_i = 0; dof_i < nNodalDofs[n_i]; dof_i++ ) {
-			if( self->fineEqNum->destinationArray[topNode][dof_i] != (unsigned)-1 )
+			if( self->fineEqNum->mapNodeDof2Eq[topNode][dof_i] != (unsigned)-1 )
 				dstArray[n_i][dof_i] = curEqNum++;
 			else
 				dstArray[n_i][dof_i] = (unsigned)-1;
@@ -379,7 +379,7 @@ void SROpGenerator_GenLevelEqNums( SROpGenerator* self, unsigned level ) {
 	for( n_i = nLocalNodes; n_i < nDomainNodes; n_i++ ) {
 		topNode = self->topMaps[level][n_i];
 		for( dof_i = 0; dof_i < nNodalDofs[n_i]; dof_i++ ) {
-			if( self->fineEqNum->destinationArray[topNode][dof_i] != (unsigned)-1 )
+			if( self->fineEqNum->mapNodeDof2Eq[topNode][dof_i] != (unsigned)-1 )
 				dstArray[n_i][dof_i] = tuples[n_i * maxDofs + dof_i];
 			else
 				dstArray[n_i][dof_i] = -1;
@@ -493,7 +493,7 @@ void SROpGenerator_GenLevelOp( SROpGenerator* self, unsigned level, Mat P ) {
 			if( self->eqNums[level] )
 				fEqNum = self->eqNums[level][n_i][dof_i];
 			else
-				fEqNum = self->fineEqNum->destinationArray[fTopNode][dof_i];
+				fEqNum = self->fineEqNum->mapNodeDof2Eq[fTopNode][dof_i];
 
 			if( fEqNum == (unsigned)-1 )
 				continue;
@@ -572,7 +572,7 @@ void SROpGenerator_CalcOpNonZeros( SROpGenerator* self, unsigned level,
 			if( self->eqNums[level] )
 				fEqNum = self->eqNums[level][n_i][dof_i];
 			else
-				fEqNum = self->fineEqNum->destinationArray[fTopNode][dof_i];
+				fEqNum = self->fineEqNum->mapNodeDof2Eq[fTopNode][dof_i];
 
 			if( fEqNum == (unsigned)-1 )
 				continue;
@@ -886,10 +886,10 @@ Mat SROpGenerator_SimpleFinestLevel( SROpGenerator *self ) {
       nEntries = offsGrid->nPoints;
       for( kk = 0; kk < nDofsPerNode; kk++ ) {
          /* Skip the entire thing if it's a BC. */
-         if( self->fineEqNum->destinationArray[ii][kk] == -1 )
+         if( self->fineEqNum->mapNodeDof2Eq[ii][kk] == -1 )
             continue;
 
-         row_idx = (PetscInt)(self->fineEqNum->destinationArray[ii][kk]);
+         row_idx = (PetscInt)(self->fineEqNum->mapNodeDof2Eq[ii][kk]);
 
 
          /* find owning proc */
@@ -997,14 +997,14 @@ Mat SROpGenerator_SimpleFinestLevel( SROpGenerator *self ) {
       nEntries = offsGrid->nPoints;
       for( kk = 0; kk < nDofsPerNode; kk++ ) {
          /* Skip the entire thing if it's a BC. */
-         if( self->fineEqNum->destinationArray[ii][kk] == -1 )
+         if( self->fineEqNum->mapNodeDof2Eq[ii][kk] == -1 )
             continue;
 
          for( jj = 0; jj < offsGrid->nPoints; jj++ ) {
             indices[jj] = nodes[jj] * nDofsPerNode + kk;
             values[jj] = dfrac;
          }
-         MatSetValues( P, 1, self->fineEqNum->destinationArray[ii] + kk,
+         MatSetValues( P, 1, self->fineEqNum->mapNodeDof2Eq[ii] + kk,
                        nEntries, indices, values, INSERT_VALUES );
       }
    }

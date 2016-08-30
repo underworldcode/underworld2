@@ -1053,7 +1053,6 @@ void _FeVariable_PrintLocalOrDomainValues( void* variable, Index localOrDomainCo
    Node_GlobalIndex   gNode_I = 0;
    Dof_Index          currNodeNumDofs;
    Dof_Index          nodeLocalDof_I;
-   Dof_EquationNumber currEqNum;
    Variable*          currVariable;
 
    for( node_I=0; node_I < localOrDomainCount; node_I++ ) {
@@ -1072,8 +1071,6 @@ void _FeVariable_PrintLocalOrDomainValues( void* variable, Index localOrDomainCo
             nodeLocalDof_I,
             currVariable->name,
             Variable_GetValueDouble( currVariable, node_I ) );
-
-         Journal_Printf( stream, "\n", currEqNum );
       }
    }
 }
