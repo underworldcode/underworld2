@@ -70,7 +70,10 @@ class markerLine2D:
         self.empty = False
         self.swarm.shadow_particles_fetch()        
 
-        all_particle_coords = np.concatenate((self.swarm.particleCoordinates.data, 
+        if uw.nProcs() == 1:
+            all_particle_coords = self.swarm.particleCoordinates.data
+        else:
+            all_particle_coords = np.concatenate((self.swarm.particleCoordinates.data,
                                               self.swarm.particleCoordinates.data_shadow))
  
         if len(all_particle_coords) < 3:
@@ -134,7 +137,10 @@ class markerLine2D:
         fpts = np.where( np.isinf(d) == False )[0]        
         director = np.zeros_like(coords)  
         
-        fdirector = np.concatenate((self.director.data, 
+        if uw.nProcs() == 1:
+            fdirector = self.director.data
+        else:
+            fdirector = np.concatenate((self.director.data,
                                     self.director.data_shadow))
               
         director[fpts] = fdirector[p[fpts]]
@@ -153,7 +159,10 @@ class markerLine2D:
         if self.empty:
             return np.empty((0,1)), np.empty(0, dtype="int")
         
-        fdirector = np.concatenate((self.director.data, 
+        if uw.nProcs() == 1:
+            fdirector = self.director.data
+        else:
+            fdirector = np.concatenate((self.director.data,
                                     self.director.data_shadow))
  
 
