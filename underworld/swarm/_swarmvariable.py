@@ -392,7 +392,9 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         dset = h5f.create_dataset("data",
                                    shape=globalShape,
                                    dtype=self.data.dtype)
-        dset[offset:offset+swarm.particleLocalCount] = self.data[:]
+
+        if swarm.particleLocalCount > 0: # only add if there are local particles
+            dset[offset:offset+swarm.particleLocalCount] = self.data[:]
 
         # link to the swarm file if it's provided
         if swarmFilepath and uw.rank()==0:

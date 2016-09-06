@@ -61,7 +61,8 @@ class Stokes(_stgermain.StgCompoundComponent):
     _objectsDict = {  "_system" : "Stokes_SLE" }
     _selfObjectName = "_system"
 
-    def __init__(self, velocityField, pressureField, fn_viscosity=None, fn_bodyforce=None, fn_lambda=None, swarm=None, conditions=[], _fn_viscosity2=None, _fn_director=None, _fn_stresshistory=None, **kwargs):
+    def __init__(self, velocityField, pressureField, fn_viscosity=None, fn_bodyforce=None, fn_lambda=None, swarm=None, conditions=[],
+                _removeBCs=True, _fn_viscosity2=None, _fn_director=None, _fn_stresshistory=None, **kwargs):
 
         if not isinstance( velocityField, uw.mesh.MeshVariable):
             raise TypeError( "Provided 'velocityField' must be of 'MeshVariable' class." )
@@ -83,6 +84,10 @@ class Stokes(_stgermain.StgCompoundComponent):
             _fn_viscosity2 = uw.function.Function.convert(_fn_viscosity2)
             if not isinstance( _fn_viscosity2, uw.function.Function):
                 raise TypeError( "Provided 'fn_viscosity2' must be of or convertible to 'Function' class." )
+
+        if not isinstance( _removeBCs, bool):
+            raise TypeError( "Provided '_removeBCs' must be of type bool." )
+        self._removeBCs = _removeBCs
 
         if _fn_director:
             _fn_director = uw.function.Function.convert(_fn_director)
@@ -121,31 +126,29 @@ class Stokes(_stgermain.StgCompoundComponent):
                     libUnderworld.StgFEM.FeVariable_SetBC( self._velocityField._cself, cond._cself )
                 if cond.variable == self._pressureField:
                     libUnderworld.StgFEM.FeVariable_SetBC( self._pressureField._cself, cond._cself )
-                # add all dirichlet condition to dcs
 
         self._conditions = conditions
 
-        # ok, we've set some bcs, lets recreate eqnumbering
-        libUnderworld.StgFEM._FeVariable_CreateNewEqnNumber( self._pressureField._cself )
-        libUnderworld.StgFEM._FeVariable_CreateNewEqnNumber( self._velocityField._cself )
-        self._conditions = conditions
+        self._eqNums = dict()
+        self._eqNums[velocityField] = sle.EqNumber( self._velocityField, self._removeBCs )
+        self._eqNums[pressureField] = sle.EqNumber( self._pressureField, self._removeBCs )
 
         # create solutions vectors and load fevariable values onto them for best first guess
-        self._velocitySol = sle.SolutionVector(velocityField)
+        self._velocitySol = sle.SolutionVector(velocityField, self._eqNums[velocityField])
+        self._pressureSol = sle.SolutionVector(pressureField, self._eqNums[pressureField])
         libUnderworld.StgFEM.SolutionVector_LoadCurrentFeVariableValuesOntoVector( self._velocitySol._cself );
-        self._pressureSol = sle.SolutionVector(pressureField)
         libUnderworld.StgFEM.SolutionVector_LoadCurrentFeVariableValuesOntoVector( self._pressureSol._cself );
 
         # create force vectors
-        self._fvector = sle.AssembledVector(velocityField)
-        self._hvector = sle.AssembledVector(pressureField)
+        self._fvector = sle.AssembledVector(velocityField, self._eqNums[velocityField] )
+        self._hvector = sle.AssembledVector(pressureField, self._eqNums[pressureField] )
 
         # and matrices
-        self._kmatrix = sle.AssembledMatrix( velocityField, velocityField, rhs=self._fvector )
-        self._gmatrix = sle.AssembledMatrix( velocityField, pressureField, rhs=self._fvector, rhs_T=self._hvector )
-        self._preconditioner = sle.AssembledMatrix( pressureField, pressureField, rhs=self._hvector )
+        self._kmatrix = sle.AssembledMatrix( self._velocitySol, self._velocitySol, rhs=self._fvector )
+        self._gmatrix = sle.AssembledMatrix( self._velocitySol, self._pressureSol, rhs=self._fvector, rhs_T=self._hvector )
+        self._preconditioner = sle.AssembledMatrix( self._pressureSol, self._pressureSol, rhs=self._hvector )
         if fn_lambda != None:
-            self._mmatrix = sle.AssembledMatrix( pressureField, pressureField, rhs=self._hvector )
+            self._mmatrix = sle.AssembledMatrix( self._pressureSol, self._pressureSol, rhs=self._hvector )
 
         # create assembly terms which always use gauss integration
         gaussSwarm = uw.swarm.GaussIntegrationSwarm(self._velocityField.mesh)

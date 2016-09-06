@@ -6,14 +6,18 @@
 ##  located at the project root, or contact the authors.                             ##
 ##                                                                                   ##
 ##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
+
 """
+Modules found in 'unsupported' have been contributed to the underworld2 code.
+These modules are not covered by the testing system, may contain additional python
+dependencies, are not yet well documented, are not guaranteed to work with every
+mesh type, may be limited to special cases (e.g. only 2D, only Cartesian) and
+may never become supported.
+
+  - interfaces: tracking of interfaces defined by point collections
 """
-from _assembledvector import AssembledVector
-from _assembledmatrix import AssembledMatrix
-from _eqnum import EqNumber
-from _svector import SolutionVector
-from _assemblyterm import AssemblyTerm, VectorAssemblyTerm, MatrixAssemblyTerm, \
-                          VectorAssemblyTerm_NA__Fn, GradientStiffnessMatrixTerm, PreconditionerMatrixTerm, \
-                          ConstitutiveMatrixTerm, AdvDiffResidualVectorTerm, LumpedMassMatrixVectorTerm, \
-                          MassMatrixTerm, MatrixAssemblyTerm_NA_i__NB_i__Fn, VectorSurfaceAssemblyTerm_NA__Fn__ni, \
-                          AdvDiffResidualVectorTerm, VectorAssemblyTerm_VEP__Fn, MatrixAssemblyTerm_NA__NB__Fn
+
+__version__ = "0.0"
+
+
+# import interfaces

@@ -39,7 +39,6 @@ SystemLinearEquations* SystemLinearEquations_New(
    Name                    name,
    FiniteElementContext*   context,
    SLE_Solver*             solver,
-   Bool                    removeBCs,
    void*                   nlSolver,
    Bool                    isNonLinear,
    double                  nonLinearTolerance,
@@ -54,7 +53,6 @@ SystemLinearEquations* SystemLinearEquations_New(
    _SystemLinearEquations_Init(
       self,
       solver,
-      removeBCs,
       nlSolver,
       context,
       False, /* TODO: A hack put in place for setting the convergence stream to 'off' if the SLE class is created from within the code, not via an xml */
@@ -103,7 +101,6 @@ SystemLinearEquations* _SystemLinearEquations_New(  SYSTEMLINEAREQUATIONS_DEFARG
 void _SystemLinearEquations_Init(
    void*                   sle,
    SLE_Solver*             solver,
-   Bool                    removeBCs,
    void*                   nlSolver,
    FiniteElementContext*   context,
    Bool                    makeConvergenceFile,
@@ -146,7 +143,6 @@ void _SystemLinearEquations_Init(
    self->stiffnessMatrices = Stg_ObjectList_New();
    self->forceVectors = Stg_ObjectList_New();
    self->solutionVectors = Stg_ObjectList_New();
-   self->removeBCs = removeBCs;
    self->context = context;
 
    /* Init NonLinear Stuff */
@@ -322,7 +318,6 @@ void _SystemLinearEquations_AssignFromXML( void* sle, Stg_ComponentFactory* cf, 
    double                  nonLinearTolerance;
    Iteration_Index         nonLinearMaxIterations;
    Bool                    isNonLinear;
-   Bool                    removeBCs;
    Bool                    killNonConvergent;
    Bool                    makeConvergenceFile;
    Iteration_Index         nonLinearMinIterations;
@@ -331,7 +326,6 @@ void _SystemLinearEquations_AssignFromXML( void* sle, Stg_ComponentFactory* cf, 
    Name                     optionsPrefix;
 
    solver = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)SLE_Solver_Type, SLE_Solver, False, data  ) ;
-   removeBCs = Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"removeBCs", True  );
 
    makeConvergenceFile      = Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"makeConvergenceFile", False  );
    isNonLinear               = Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"isNonLinear", False  );
@@ -368,7 +362,6 @@ void _SystemLinearEquations_AssignFromXML( void* sle, Stg_ComponentFactory* cf, 
    _SystemLinearEquations_Init(
       self,
       solver,
-      removeBCs,
       nlSolver,
       context,
       makeConvergenceFile,
@@ -531,7 +524,6 @@ void SystemLinearEquations_BC_Setup( void* sle, void* _context ) {
    }
 }
 
-
 void SystemLinearEquations_LM_Setup( void* sle, void* _context ) {
    SystemLinearEquations*               self = (SystemLinearEquations*)sle;
 
@@ -554,8 +546,8 @@ void _SystemLinearEquations_LM_Setup( void* sle, void* _context ) {
    for ( index = 0; index < self->stiffnessMatrices->count; index++ ) {
       StiffnessMatrix*            sm = (StiffnessMatrix*)self->stiffnessMatrices->data[index];
 
-      FeEquationNumber_BuildLocationMatrix( sm->rowVariable->eqNum );
-      FeEquationNumber_BuildLocationMatrix( sm->columnVariable->eqNum );
+      FeEquationNumber_BuildLocationMatrix( sm->rowEqNum );
+      FeEquationNumber_BuildLocationMatrix( sm->colEqNum );
    }
    Stream_UnIndentBranch( StgFEM_Debug );
 }
@@ -574,7 +566,7 @@ void _SystemLinearEquations_MatrixSetup( void* sle, void* _context ) {
    Journal_DPrintf( self->debug, "In %s\n", __func__ );
    Stream_IndentBranch( StgFEM_Debug );
    for ( index = 0; index < self->stiffnessMatrices->count; index++ ) {
-      StiffnessMatrix_Assemble( self->stiffnessMatrices->data[index], self->removeBCs, self, context );
+      StiffnessMatrix_Assemble( self->stiffnessMatrices->data[index], self, context );
    }
    Stream_UnIndentBranch( StgFEM_Debug );
 }

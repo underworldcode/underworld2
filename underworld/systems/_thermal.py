@@ -74,7 +74,7 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
     _objectsDict = {  "_system" : "SystemLinearEquations" }
     _selfObjectName = "_system"
 
-    def __init__(self, temperatureField, fn_diffusivity=None, fn_heating=0., swarm=None, conditions=[], conductivityFn=None, heatingFn=None, rtolerance=None, **kwargs):
+    def __init__(self, temperatureField, fn_diffusivity=None, fn_heating=0., swarm=None, conditions=[], _removeBCs=True, conductivityFn=None, heatingFn=None, rtolerance=None, **kwargs):
         if conductivityFn != None:
             raise RuntimeError("Note that the 'conductivityFn' parameter has been renamed to 'fn_diffusivity'.")
         if heatingFn != None:
@@ -105,6 +105,9 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
 
         if not isinstance(conditions, (uw.conditions._SystemCondition, list, tuple) ):
             raise TypeError( "Provided 'conditions' must be a list '_SystemCondition' objects." )
+        if not isinstance( _removeBCs, bool):
+            raise TypeError( "Provided '_removeBCs' must be of type bool." )
+        self._removeBCs = _removeBCs
 
         # error check dcs 'dirichlet conditions' and ncs 'neumann cond.' FeMesh_IndexSets
         nbc  = None
@@ -122,18 +125,18 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
             else:
                 raise RuntimeError("Can't decide on input condition")
 
-        # ok, we've set some bcs, lets recreate eqnumbering
-        libUnderworld.StgFEM._FeVariable_CreateNewEqnNumber( temperatureField._cself )
+        # build the equation numbering for the temperature field discretisation
+        tEqNums = self._tEqNums = sle.EqNumber( temperatureField, removeBCs=self._removeBCs )
 
         # create solutions vector
-        self._solutionVector = sle.SolutionVector(temperatureField)
+        self._solutionVector = sle.SolutionVector(temperatureField, tEqNums )
         libUnderworld.StgFEM.SolutionVector_LoadCurrentFeVariableValuesOntoVector( self._solutionVector._cself )
 
         # create force vectors
-        self._fvector = sle.AssembledVector(temperatureField)
+        self._fvector = sle.AssembledVector(temperatureField, tEqNums )
 
         # and matrices
-        self._kmatrix = sle.AssembledMatrix( temperatureField, temperatureField, rhs=self._fvector )
+        self._kmatrix = sle.AssembledMatrix( self._solutionVector, self._solutionVector, rhs=self._fvector )
 
         # we will use voronoi if that has been requested by the user, else use
         # gauss integration.

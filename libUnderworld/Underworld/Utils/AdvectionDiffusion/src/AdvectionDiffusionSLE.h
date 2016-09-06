@@ -46,9 +46,9 @@ extern "C" {
 #include "Residual.h"
 #include "Multicorrector.h"
 #include "Timestep.h"
-    
+
 	extern const Type AdvectionDiffusionSLE_Type;
-	
+
 	#define __AdvectionDiffusionSLE \
 		__SystemLinearEquations \
 		/* Items passed into constructor */ \
@@ -73,18 +73,17 @@ extern "C" {
                                                                  \
                 Bool pureDiffusion; \
                 void *cppdata;
-	
+
 	struct AdvectionDiffusionSLE { __AdvectionDiffusionSLE };
-		
-	AdvectionDiffusionSLE* AdvectionDiffusionSLE_New( 
+
+	AdvectionDiffusionSLE* AdvectionDiffusionSLE_New(
 		Name							name,
 		FiniteElementContext*	context,
 		SLE_Solver*					solver,
-		Bool							removeBCs,
 		Bool							isNonLinear,
 		double						nonLinearTolerance,
 		Iteration_Index			nonLinearMaxIterations,
-		Bool							killNonConvergent,		
+		Bool							killNonConvergent,
 		EntryPoint_Register*		entryPoint_Register,
 		MPI_Comm						comm,
 		FeVariable*					phiField,
@@ -94,8 +93,8 @@ extern "C" {
 		double						courantFactor,
 		Variable_Register*		variable_Register,
 		FieldVariable_Register*	fieldVariable_Register ) ;
-	
-	
+
+
 	#define ADVECTIONDIFFUSIONSLE_DEFARGS \
                 SYSTEMLINEAREQUATIONS_DEFARGS
 
@@ -111,7 +110,7 @@ extern "C" {
 		Stg_Component*				massMatrix,
 		Dimension_Index			dim,
 		double						courantFactor,
-		Variable_Register*		variable_Register,  
+		Variable_Register*		variable_Register,
 		FieldVariable_Register*	fieldVariable_Register );
 
 	void __AdvDiffResidualForceTerm_UpdateLocalMemory( AdvectionDiffusionSLE* sle );
@@ -146,4 +145,3 @@ extern "C" {
 #endif
 
 #endif
-

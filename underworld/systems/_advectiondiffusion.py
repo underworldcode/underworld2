@@ -94,20 +94,25 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
                     libUnderworld.StgFEM.FeVariable_SetBC( self._phiDotField._cself, cond._cself )
             else:
                 raise RuntimeError("Input condition type not recognised.")
-
-        # ok, we've set some bcs, lets recreate eqnumbering
-        libUnderworld.StgFEM._FeVariable_CreateNewEqnNumber( self._phiField._cself )
-        libUnderworld.StgFEM._FeVariable_CreateNewEqnNumber( self._phiDotField._cself )
         self._conditions = conditions
 
+        self._eqNumPhi    = sle.EqNumber( phiField )
+        self._eqNumPhiDot = sle.EqNumber( phiDotField )
+
+        self._phiSolution    = sle.SolutionVector( phiField, self._eqNumPhi )
+        self._phiDotSolution = sle.SolutionVector( phiDotField, self._eqNumPhiDot )
+
         # create force vectors
-        self._residualVector = sle.AssembledVector(phiField)
-        self._massVector     = sle.AssembledVector(phiField)
+        self._residualVector = sle.AssembledVector(phiField, self._eqNumPhi )
+        self._massVector     = sle.AssembledVector(phiField, self._eqNumPhi )
 
         # create swarm
         self._gaussSwarm = uw.swarm.GaussIntegrationSwarm(self._phiField.mesh)
 
         super(AdvectionDiffusion, self).__init__(**kwargs)
+
+        self._cself.phiVector = self._phiSolution._cself
+        self._cself.phiDotVector = self._phiDotSolution._cself
 
 
     def _add_to_stg_dict(self,componentDictionary):
