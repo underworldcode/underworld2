@@ -15,8 +15,8 @@
 extern const Type lucColourMap_Type;
 
 //A default colour map, used for mapping colour component values where no map provided
-#define LUC_DEFAULT_COLOURMAP lucColourMap_New("defaultColourMap", "black white", 0, 1, False, True, False)
-#define LUC_DEFAULT_ALPHAMAP lucColourMap_New("defaultAlphaMap", "#000000:0.0 black", 0, 1, False, True, False)
+#define LUC_DEFAULT_COLOURMAP lucColourMap_New("defaultColourMap", "black white", 0, 0, False, False)
+#define LUC_DEFAULT_ALPHAMAP lucColourMap_New("defaultAlphaMap", "#000000:0.0 black", 0, 0, False, False)
 
 struct lucColour 
 {
@@ -32,7 +32,6 @@ struct lucColour
       double                                 minimum;             \
       double                                 maximum;             \
       Bool                                   logScale;            \
-      Bool                                   dynamicRange;        \
       Bool                                   discrete;            \
       FieldVariable*                         fieldVariable;       \
       int                                    id;                  \
@@ -51,7 +50,6 @@ lucColourMap* lucColourMap_New(
    double                                       minimum,
    double                                       maximum,
    Bool                                         logScale,
-   Bool                                         dynamicRange,
    Bool                                         discrete
 );
 
@@ -75,7 +73,6 @@ void _lucColourMap_Init(
    double                        minimum,
    double                        maximum,
    Bool                          logScale,
-   Bool                          dynamicRange,
    Bool                          discrete );
 
 /** Virtual Functions */

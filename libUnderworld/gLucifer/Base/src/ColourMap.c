@@ -25,12 +25,11 @@ lucColourMap* lucColourMap_New(
    double                                             minimum,
    double                                             maximum,
    Bool                                               logScale,
-   Bool                                               dynamicRange,
    Bool                                               discrete)
 {
    lucColourMap* self = (lucColourMap*) _lucColourMap_DefaultNew( name );
 
-   _lucColourMap_Init( self, colourMapString, minimum, maximum, logScale, dynamicRange, discrete);
+   _lucColourMap_Init( self, colourMapString, minimum, maximum, logScale, discrete);
 
    return self;
 }
@@ -57,16 +56,14 @@ void _lucColourMap_Init(
    double                        minimum,
    double                        maximum,
    Bool                          logScale,
-   Bool                          dynamicRange,
    Bool                          discrete)
 {
    /* Write property string */
    self->properties = Memory_Alloc_Array(char, 4096, "properties");
    memset(self->properties, 0, 4086);
-   snprintf(self->properties, 4096, "dynamic=%d\ncolours=%s", dynamicRange, _colourMapString);
+   snprintf(self->properties, 4096, "colours=%s", _colourMapString);
 
    self->logScale     = logScale;
-   self->dynamicRange = dynamicRange;
    self->discrete     = discrete;
    /* Set the range minimum and maximum 
     * also scales the values to find colour bar positions [0,1] */
@@ -109,14 +106,9 @@ void* _lucColourMap_DefaultNew( Name name )
 void _lucColourMap_AssignFromXML( void* colourMap, Stg_ComponentFactory* cf, void* data )
 {
    lucColourMap* self             = (lucColourMap*) colourMap;
-   double centreValue, minimum, maximum;
-   Bool centreOnFixedValue, dynamicRange, logScale, discrete;
+   double minimum, maximum;
+   Bool logScale, discrete;
 
-   dynamicRange = Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"dynamicRange", False  );
-   centreOnFixedValue = False;
-   centreValue = 0;
-   if (dynamicRange)
-      centreOnFixedValue = Stg_ComponentFactory_TryDouble( cf, self->name, (Dictionary_Entry_Key)"centreValue", &centreValue);
    logScale = Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"logScale", False  );
    minimum = Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"minimum", logScale ? 1 : 0  );
    maximum = Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"maximum", 1  );
@@ -125,7 +117,7 @@ void _lucColourMap_AssignFromXML( void* colourMap, Stg_ComponentFactory* cf, voi
    _lucColourMap_Init(
       self,
       Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"colours", "Blue;White;Red" ),
-      minimum, maximum, logScale, dynamicRange, discrete
+      minimum, maximum, logScale, discrete
    );
 }
 

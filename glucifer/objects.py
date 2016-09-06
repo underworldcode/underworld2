@@ -96,12 +96,10 @@ class ColourMap(_stgermain.StgCompoundComponent):
             if not valueRange[0] < valueRange[1]:
                 raise ValueError("The first number of the valueRange list must be smaller than the second number")
 
-            # valueRange arg is good - turn off dynamicRange and use input 
-            self._dynamicRange = False
+            # valueRange arg is good 
             self._valueRange   = valueRange
         else:
-           self._dynamicRange = True
-           self._valueRange   = [0.0,1.0] # dummy value - not important
+           self._valueRange   = [0.0,0.0] # ignored
 
         if not isinstance(logScale, bool):
             raise TypeError("'logScale' parameter must be of 'bool' type.")
@@ -124,21 +122,8 @@ class ColourMap(_stgermain.StgCompoundComponent):
             "logScale"      :self._logScale,
             "discrete"      :self._discrete,
             "maximum"       :self._valueRange[1],
-            "minimum"       :self._valueRange[0],
-            "dynamicRange"  :self._dynamicRange
+            "minimum"       :self._valueRange[0]
         } )
-
-    @property
-    def dynamicRange(self):
-        """
-        dynamicRange (bool) : if True the max and min values of the field will 
-        automatically define the colour map value range and the valueRange list 
-        is ignored. If False the valueRange is used to define the colour map 
-        value range
-        """
-        return self._dynamicRange
-
-
 
 class Drawing(_stgermain.StgCompoundComponent):
     """

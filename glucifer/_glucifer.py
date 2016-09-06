@@ -282,7 +282,7 @@ class Store(_stgermain.StgCompoundComponent):
         try:
             lv = self.lvrun()
             #Get state, includes the list of objects in the loaded database
-            statestr = lv.getStates()
+            statestr = lv.getFigures()
             #Also save the step data
             self.timesteps = json.loads(lv.getTimeSteps())
             lv.clear() #Close and free memory

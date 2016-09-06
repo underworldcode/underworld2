@@ -261,7 +261,7 @@ void _lucSwarmViewer_Draw( void* drawingObject, lucDatabase* database, void* _co
      lucGeometryData_Setup(database->data[self->geomType][lucColourValueData], cppdata->fn_colour->getMinGlobal(), cppdata->fn_colour->getMaxGlobal(), 1., "");
 
    /* Dynamic Scale Colour Maps */
-   if ( self->colourMap && self->colourMap->dynamicRange && cppdata->fn_colour )
+   if ( self->colourMap && self->colourMap->minimum == self->colourMap->maximum && cppdata->fn_colour )
       lucColourMap_SetMinMax( self->colourMap, self->colourMap->minimum, self->colourMap->maximum );
 }
 
