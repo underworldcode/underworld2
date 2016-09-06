@@ -76,26 +76,26 @@ class Stokes(_stgermain.StgCompoundComponent):
 
         if not fn_viscosity:
             raise ValueError("You must specify a viscosity function via the 'fn_viscosity' parameter.")
-        _fn_viscosity  = uw.function.Function._CheckIsFnOrConvertOrThrow(fn_viscosity)
+        _fn_viscosity  = uw.function.Function.convert(fn_viscosity)
         if not isinstance( _fn_viscosity, uw.function.Function):
             raise TypeError( "Provided 'fn_viscosity' must be of or convertible to 'Function' class." )
         if _fn_viscosity2:
-            _fn_viscosity2 = uw.function.Function._CheckIsFnOrConvertOrThrow(_fn_viscosity2)
+            _fn_viscosity2 = uw.function.Function.convert(_fn_viscosity2)
             if not isinstance( _fn_viscosity2, uw.function.Function):
                 raise TypeError( "Provided 'fn_viscosity2' must be of or convertible to 'Function' class." )
 
         if _fn_director:
-            _fn_director = uw.function.Function._CheckIsFnOrConvertOrThrow(_fn_director)
+            _fn_director = uw.function.Function.convert(_fn_director)
             if not isinstance( _fn_director, uw.function.Function):
                 raise TypeError( "Provided 'fn_director' must be of or convertible to 'Function' class." )
 
         if _fn_stresshistory:
-            _fn_stresshistory = uw.function.Function._CheckIsFnOrConvertOrThrow(_fn_stresshistory)
+            _fn_stresshistory = uw.function.Function.convert(_fn_stresshistory)
             if not isinstance( _fn_stresshistory, uw.function.Function):
                 raise TypeError( "Provided '_fn_stresshistory' must be of or convertible to 'Function' class." )
 
         if fn_lambda != None:
-            fn_lambda = uw.function.Function._CheckIsFnOrConvertOrThrow(fn_lambda)
+            fn_lambda = uw.function.Function.convert(fn_lambda)
             if not isinstance(fn_lambda, uw.function.Function):
                 raise ValueError("Provided 'fn_lambda' must be of, or convertible to, the 'Function' class.")
 
@@ -104,7 +104,7 @@ class Stokes(_stgermain.StgCompoundComponent):
                 fn_bodyforce = (0.,0.)
             else:
                 fn_bodyforce = (0.,0.,0.)
-        _fn_bodyforce = uw.function.Function._CheckIsFnOrConvertOrThrow(fn_bodyforce)
+        _fn_bodyforce = uw.function.Function.convert(fn_bodyforce)
 
         if swarm and not isinstance(swarm, uw.swarm.Swarm):
             raise TypeError( "Provided 'swarm' must be of 'Swarm' class." )

@@ -74,7 +74,7 @@ class Integral(_stgermain.StgCompoundComponent):
 
         self._maskFn = None
 
-        self._fn = uw.function.Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = uw.function.Function.convert(fn)
 
         if integrationType and integrationSwarm:
             raise RuntimeError("Either an 'integrationType' or an 'integrationSwarm' may be provided, but not both.\n"

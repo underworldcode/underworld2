@@ -107,7 +107,7 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
         if not fn:
             raise ValueError("You must specify a function via the 'fn' parameter.")
         try:
-            _fn = uw.function.Function._CheckIsFnOrConvertOrThrow(fn)
+            _fn = uw.function.Function.convert(fn)
         except Exception as e:
             raise uw._prepend_message_to_exception(e, "Exception encountered. Note that provided 'fn' must be of or convertible to 'Function' class.\nEncountered exception message:\n")
 

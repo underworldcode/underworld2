@@ -86,17 +86,17 @@ class stress_limiting_viscosity(_Function):
     
     def __init__(self, fn_stress, fn_stresslimit, fn_inputviscosity, *args, **kwargs):
 
-        _fn_stress = _Function._CheckIsFnOrConvertOrThrow(fn_stress)
+        _fn_stress = _Function.convert(fn_stress)
         if _fn_stress == None:
             raise ValueError( "Provided 'fn_stress' must a 'Function' or convertible type.")
         self._fn_stress = _fn_stress
         
-        _fn_stresslimit = _Function._CheckIsFnOrConvertOrThrow(fn_stresslimit)
+        _fn_stresslimit = _Function.convert(fn_stresslimit)
         if _fn_stresslimit == None:
             raise ValueError( "Provided 'fn_stresslimit' must a 'Function' or convertible type.")
         self._fn_stresslimit = _fn_stresslimit
         
-        _fn_inputviscosity = _Function._CheckIsFnOrConvertOrThrow(fn_inputviscosity)
+        _fn_inputviscosity = _Function.convert(fn_inputviscosity)
         if _fn_inputviscosity == None:
             raise ValueError( "Provided 'fn_inputviscosity' must a 'Function' or convertible type.")
         self._fn_inputviscosity = _fn_inputviscosity

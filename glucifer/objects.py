@@ -389,7 +389,7 @@ class CrossSection(Drawing):
                        valueRange=None, logScale=False, discrete=False, offsetEdges=True,
                        *args, **kwargs):
 
-        self._fn = _underworld.function.Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = _underworld.function.Function.Convert(fn)
         
         if not isinstance(mesh,_uwmesh.FeMesh):
             raise TypeError("'mesh' object passed in must be of type 'FeMesh'")
@@ -544,13 +544,13 @@ class Points(Drawing):
 
         self._fn_colour = None
         if fn_colour != None:
-           self._fn_colour = _underworld.function.Function._CheckIsFnOrConvertOrThrow(fn_colour)
+           self._fn_colour = _underworld.function.Function.Convert(fn_colour)
         self._fn_mask = None
         if fn_mask != None:
-           self._fn_mask = _underworld.function.Function._CheckIsFnOrConvertOrThrow(fn_mask)
+           self._fn_mask = _underworld.function.Function.Convert(fn_mask)
         self._fn_size = None
         if fn_size != None:
-           self._fn_size = _underworld.function.Function._CheckIsFnOrConvertOrThrow(fn_size)
+           self._fn_size = _underworld.function.Function.Convert(fn_size)
 
         if not isinstance(pointSize,(float,int)):
             raise TypeError("'pointSize' object passed in must be of python type 'float' or 'int'")

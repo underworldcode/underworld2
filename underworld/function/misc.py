@@ -158,10 +158,10 @@ class max(_Function):
     True
     """
     def __init__(self, fn1, fn2, **kwargs):
-        fn1fn = _Function._CheckIsFnOrConvertOrThrow( fn1 )
+        fn1fn = _Function.convert( fn1 )
         if not isinstance( fn1fn, _Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
-        fn2fn = _Function._CheckIsFnOrConvertOrThrow( fn2 )
+        fn2fn = _Function.convert( fn2 )
         if not isinstance( fn2fn, _Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
         
@@ -190,10 +190,10 @@ class min(_Function):
     
     """
     def __init__(self, fn1, fn2, **kwargs):
-        fn1fn = _Function._CheckIsFnOrConvertOrThrow( fn1 )
+        fn1fn = _Function.convert( fn1 )
         if not isinstance( fn1fn, _Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
-        fn2fn = _Function._CheckIsFnOrConvertOrThrow( fn2 )
+        fn2fn = _Function.convert( fn2 )
         if not isinstance( fn2fn, _Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
         

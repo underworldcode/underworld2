@@ -42,7 +42,7 @@ class cos(_Function):
     """
     def __init__(self, fn=None, *args, **kwargs):
 
-        self._fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = _Function.convert(fn)
 
         fncself = None
         if self._fn:
@@ -76,7 +76,7 @@ class sin(_Function):
     """
     def __init__(self, fn=None, *args, **kwargs):
 
-        self._fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = _Function.convert(fn)
 
         fncself = None
         if self._fn:
@@ -110,7 +110,7 @@ class tan(_Function):
     """
     def __init__(self, fn=None, *args, **kwargs):
 
-        self._fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = _Function.convert(fn)
 
         fncself = None
         if self._fn:
@@ -143,7 +143,7 @@ class acos(_Function):
     """
     def __init__(self, fn=None, *args, **kwargs):
 
-        self._fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = _Function.convert(fn)
 
         fncself = None
         if self._fn:
@@ -176,7 +176,7 @@ class asin(_Function):
     """
     def __init__(self, fn=None, *args, **kwargs):
 
-        self._fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = _Function.convert(fn)
 
         fncself = None
         if self._fn:
@@ -209,7 +209,7 @@ class atan(_Function):
     """
     def __init__(self, fn=None, *args, **kwargs):
 
-        self._fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = _Function.convert(fn)
 
         fncself = None
         if self._fn:
@@ -242,7 +242,7 @@ class cosh(_Function):
     """
     def __init__(self, fn=None, *args, **kwargs):
 
-        self._fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = _Function.convert(fn)
 
         fncself = None
         if self._fn:
@@ -275,7 +275,7 @@ class sinh(_Function):
     """
     def __init__(self, fn=None, *args, **kwargs):
 
-        self._fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = _Function.convert(fn)
 
         fncself = None
         if self._fn:
@@ -308,7 +308,7 @@ class tanh(_Function):
     """
     def __init__(self, fn=None, *args, **kwargs):
 
-        self._fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = _Function.convert(fn)
 
         fncself = None
         if self._fn:
@@ -341,7 +341,7 @@ class acosh(_Function):
     """
     def __init__(self, fn=None, *args, **kwargs):
 
-        self._fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = _Function.convert(fn)
 
         fncself = None
         if self._fn:
@@ -374,7 +374,7 @@ class asinh(_Function):
     """
     def __init__(self, fn=None, *args, **kwargs):
 
-        self._fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = _Function.convert(fn)
 
         fncself = None
         if self._fn:
@@ -407,7 +407,7 @@ class atanh(_Function):
     """
     def __init__(self, fn=None, *args, **kwargs):
 
-        self._fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = _Function.convert(fn)
 
         fncself = None
         if self._fn:
@@ -440,7 +440,7 @@ class exp(_Function):
     """
     def __init__(self, fn=None, *args, **kwargs):
 
-        self._fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = _Function.convert(fn)
 
         fncself = None
         if self._fn:
@@ -473,7 +473,7 @@ class log(_Function):
     """
     def __init__(self, fn=None, *args, **kwargs):
 
-        self._fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = _Function.convert(fn)
 
         fncself = None
         if self._fn:
@@ -506,7 +506,7 @@ class log2(_Function):
     """
     def __init__(self, fn=None, *args, **kwargs):
 
-        self._fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = _Function.convert(fn)
 
         fncself = None
         if self._fn:
@@ -539,7 +539,7 @@ class log10(_Function):
     """
     def __init__(self, fn=None, *args, **kwargs):
 
-        self._fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = _Function.convert(fn)
 
         fncself = None
         if self._fn:
@@ -572,7 +572,7 @@ class sqrt(_Function):
     """
     def __init__(self, fn=None, *args, **kwargs):
 
-        self._fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = _Function.convert(fn)
 
         fncself = None
         if self._fn:
@@ -605,7 +605,7 @@ class erf(_Function):
     """
     def __init__(self, fn=None, *args, **kwargs):
 
-        self._fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = _Function.convert(fn)
 
         fncself = None
         if self._fn:
@@ -638,7 +638,7 @@ class erfc(_Function):
     """
     def __init__(self, fn=None, *args, **kwargs):
 
-        self._fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = _Function.convert(fn)
 
         fncself = None
         if self._fn:
@@ -671,7 +671,7 @@ class abs(_Function):
     """
     def __init__(self, fn=None, *args, **kwargs):
 
-        self._fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = _Function.convert(fn)
 
         fncself = None
         if self._fn:
@@ -707,10 +707,10 @@ class pow(_Function):
         # lets convert integer powers to floats
         if isinstance(fn2, int):
             fn2 = float(fn2)
-        fn1fn = _Function._CheckIsFnOrConvertOrThrow( fn1 )
+        fn1fn = _Function.convert( fn1 )
         if not isinstance( fn1fn, _Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
-        fn2fn = _Function._CheckIsFnOrConvertOrThrow( fn2 )
+        fn2fn = _Function.convert( fn2 )
         if not isinstance( fn2fn, _Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
 
@@ -745,10 +745,10 @@ class dot(_Function):
 
     """
     def __init__(self, fn1, fn2, **kwargs):
-        fn1fn = _Function._CheckIsFnOrConvertOrThrow( fn1 )
+        fn1fn = _Function.convert( fn1 )
         if not isinstance( fn1fn, _Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
-        fn2fn = _Function._CheckIsFnOrConvertOrThrow( fn2 )
+        fn2fn = _Function.convert( fn2 )
         if not isinstance( fn2fn, _Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
 

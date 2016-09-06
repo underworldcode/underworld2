@@ -90,12 +90,12 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
         if not fn_diffusivity:
             raise ValueError("You must specify a diffusivity function via the 'fn_diffusivity' parameter.")
         try:
-            _fn_diffusivity = uw.function.Function._CheckIsFnOrConvertOrThrow(fn_diffusivity)
+            _fn_diffusivity = uw.function.Function.convert(fn_diffusivity)
         except Exception as e:
             raise uw._prepend_message_to_exception(e, "Exception encountered. Note that provided 'fn_diffusivity' must be of or convertible to 'Function' class.\nEncountered exception message:\n")
 
         try:
-            _fn_heating = uw.function.Function._CheckIsFnOrConvertOrThrow(fn_heating)
+            _fn_heating = uw.function.Function.convert(fn_heating)
         except Exception as e:
             raise uw._prepend_message_to_exception(e, "Exception encountered. Note that provided 'fn_heating' must be of or convertible to 'Function' class.\nEncountered exception message:\n")
 

@@ -50,7 +50,7 @@ class SafeMaths(_Function):
     
     def __init__(self, fn, *args, **kwargs):
 
-        _fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        _fn = _Function.convert(fn)
         if _fn == None:
             raise ValueError( "provided 'fn' must a 'Function' or convertible.")
         self._fn = _fn
@@ -114,18 +114,18 @@ class CustomException(_Function):
     
     def __init__(self, fn_input, fn_condition, fn_print=None, *args, **kwargs):
 
-        _fn_input = _Function._CheckIsFnOrConvertOrThrow(fn_input)
+        _fn_input = _Function.convert(fn_input)
         if _fn_input == None:
             raise ValueError( "provided 'fn_input' must a 'Function' or convertible.")
         self._fn_input = _fn_input
 
-        _fn_condition = _Function._CheckIsFnOrConvertOrThrow(fn_condition)
+        _fn_condition = _Function.convert(fn_condition)
         if _fn_condition == None:
             raise ValueError( "provided 'fn_condition' must a 'Function' or convertible.")
         self._fn_condition = _fn_condition
 
         if fn_print != None:
-            _fn_print = _Function._CheckIsFnOrConvertOrThrow(fn_print)
+            _fn_print = _Function.convert(fn_print)
             if _fn_print == None:
                 raise ValueError( "provided 'fn_print' must a 'Function' or convertible.")
             self._fn_print = _fn_print

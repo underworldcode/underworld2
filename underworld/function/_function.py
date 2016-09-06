@@ -69,19 +69,78 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
         super(Function,self).__init__(**kwargs)
 
     @staticmethod
-    def _CheckIsFnOrConvertOrThrow(guy):
+    def convert(obj):
         """
-        This method will simply check if the provided fn is of Function type
+        This method will simply check if the provided object is of Function type
         or None type. If it is, it is simply returned. Otherwise, conversion
-        to a constant function is attempted.
+        to a function is attempted. 
+        
+        Parameters
+        ----------
+        obj: fn_like
+            The object to be converted. Note that if obj is of type None or
+            Function, it is simply returned immediately.
+            Where obj is of type int/float/double, a Constant type function 
+            is returned which evaluates to the provided object's value.
+            Where obj is of type list/tuple, a function will be returned
+            which evaluates to a vector of the provided list/tuple's values 
+            (where possible).
+
+        Returns
+        -------
+        Fn.Function or None.
+
+        Examples
+        --------
+        >>> import underworld as uw
+        >>> import underworld.function as fn
+        
+        >>> fn_const = fn.Function.convert( 3 )
+        >>> fn_const.evaluate(0.) # eval anywhere for constant
+        array([[3]], dtype=int32)
+
+        >>> fn_const == fn.Function.convert( fn_const )
+        True
+
+        >>> fn.Function.convert( None )
+
+        >>> fn1 = fn.input()
+        >>> fn2 = 10.*fn.input()
+        >>> fn3 = 100.*fn.input()
+        >>> vec = (fn1,fn2,fn3)
+        >>> fn_vec = fn.Function.convert(vec)
+        >>> fn_vec.evaluate([3.])
+        array([[   3.,   30.,  300.]])
+
         """
-        if isinstance(guy, (Function, type(None)) ):
-            return guy
+        if isinstance(obj, (Function, type(None)) ):
+            return obj
         else:
             import misc
             try:
-                return misc.constant(guy)
+                # first try convert directly to const type object
+                return misc.constant(obj)
             except Exception as e:
+                # ok, that failed, let's now try convert to vector of function type object
+                # first check that it is of type tuple or list
+                if isinstance(obj, (tuple,list)):
+                    # now check that it contains things that are convertible. recurse.
+                    objlist = []
+                    for item in obj:
+                        objlist.append( Function.convert(item) )
+                    # create identity matrix for basis vectors
+                    import numpy as np
+                    basisvecs = np.identity(len(obj))
+                    # convert these to uw functions
+                    basisfns = []
+                    for vec in basisvecs:
+                        basisfns.append( Function.convert(vec) )
+                    # now return final object summed
+                    vecfn = basisfns[0]*objlist[0]
+                    for index in range(1,len(obj)):
+                        vecfn = vecfn + basisfns[index]*objlist[index]
+                    return vecfn
+                
                 import underworld as uw
                 raise uw._prepend_message_to_exception(e, "An exception was raised while try to convert an "
                                                          +"object to an Underworld2 function. Usually this "
@@ -637,10 +696,10 @@ class add(Function):
     It is invoked by the overload methods __add__ and __radd__.
     """
     def __init__(self, fn1, fn2, **kwargs):
-        fn1fn = Function._CheckIsFnOrConvertOrThrow( fn1 )
+        fn1fn = Function.convert( fn1 )
         if not isinstance( fn1fn, Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
-        fn2fn = Function._CheckIsFnOrConvertOrThrow( fn2 )
+        fn2fn = Function.convert( fn2 )
         if not isinstance( fn2fn, Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
 
@@ -657,10 +716,10 @@ class subtract(Function):
     It is invoked by the overload methods __sub__ and __rsub__.
     """
     def __init__(self, x_Fn, y_Fn, **kwargs):
-        fn1fn = Function._CheckIsFnOrConvertOrThrow( x_Fn )
+        fn1fn = Function.convert( x_Fn )
         if not isinstance( fn1fn, Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
-        fn2fn = Function._CheckIsFnOrConvertOrThrow( y_Fn )
+        fn2fn = Function.convert( y_Fn )
         if not isinstance( fn2fn, Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
 
@@ -677,10 +736,10 @@ class multiply(Function):
     It is invoked by the overload method __mul__.
     """
     def __init__(self, fn1, fn2, **kwargs):
-        fn1fn = Function._CheckIsFnOrConvertOrThrow( fn1 )
+        fn1fn = Function.convert( fn1 )
         if not isinstance( fn1fn, Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
-        fn2fn = Function._CheckIsFnOrConvertOrThrow( fn2 )
+        fn2fn = Function.convert( fn2 )
         if not isinstance( fn2fn, Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
 
@@ -697,10 +756,10 @@ class divide(Function):
     It is invoked by the overload methods __div__ and __rdiv__.
     """
     def __init__(self, fn1, fn2, **kwargs):
-        fn1fn = Function._CheckIsFnOrConvertOrThrow( fn1 )
+        fn1fn = Function.convert( fn1 )
         if not isinstance( fn1fn, Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
-        fn2fn = Function._CheckIsFnOrConvertOrThrow( fn2 )
+        fn2fn = Function.convert( fn2 )
         if not isinstance( fn2fn, Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
 
@@ -717,10 +776,10 @@ class less(Function):
     It is invoked by the overload method __lt__.
     """
     def __init__(self, fn1, fn2, **kwargs):
-        fn1fn = Function._CheckIsFnOrConvertOrThrow( fn1 )
+        fn1fn = Function.convert( fn1 )
         if not isinstance( fn1fn, Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
-        fn2fn = Function._CheckIsFnOrConvertOrThrow( fn2 )
+        fn2fn = Function.convert( fn2 )
         if not isinstance( fn2fn, Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
 
@@ -737,10 +796,10 @@ class less_equal(Function):
     It is invoked by the overload method __le__.
     """
     def __init__(self, fn1, fn2, **kwargs):
-        fn1fn = Function._CheckIsFnOrConvertOrThrow( fn1 )
+        fn1fn = Function.convert( fn1 )
         if not isinstance( fn1fn, Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
-        fn2fn = Function._CheckIsFnOrConvertOrThrow( fn2 )
+        fn2fn = Function.convert( fn2 )
         if not isinstance( fn2fn, Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
 
@@ -757,10 +816,10 @@ class greater(Function):
     It is invoked by the overload method __gt__.
     """
     def __init__(self, fn1, fn2, **kwargs):
-        fn1fn = Function._CheckIsFnOrConvertOrThrow( fn1 )
+        fn1fn = Function.convert( fn1 )
         if not isinstance( fn1fn, Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
-        fn2fn = Function._CheckIsFnOrConvertOrThrow( fn2 )
+        fn2fn = Function.convert( fn2 )
         if not isinstance( fn2fn, Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
 
@@ -777,10 +836,10 @@ class greater_equal(Function):
     It is invoked by the overload method __ge__.
     """
     def __init__(self, fn1, fn2, **kwargs):
-        fn1fn = Function._CheckIsFnOrConvertOrThrow( fn1 )
+        fn1fn = Function.convert( fn1 )
         if not isinstance( fn1fn, Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
-        fn2fn = Function._CheckIsFnOrConvertOrThrow( fn2 )
+        fn2fn = Function.convert( fn2 )
         if not isinstance( fn2fn, Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
 
@@ -807,10 +866,10 @@ class greater_equal(Function):
 #    """
 #
 #    def __init__(self, fn1, fn2, **kwargs):
-#        fn1fn = Function._CheckIsFnOrConvertOrThrow( fn1 )
+#        fn1fn = Function.convert( fn1 )
 #        if not isinstance( fn1fn, Function ):
 #            raise TypeError("Functions must be of type (or convertible to) 'Function'.")
-#        fn2fn = Function._CheckIsFnOrConvertOrThrow( fn2 )
+#        fn2fn = Function.convert( fn2 )
 #        if not isinstance( fn2fn, Function ):
 #            raise TypeError("Functions must be of type (or convertible to) 'Function'.")
 #
@@ -836,10 +895,10 @@ class greater_equal(Function):
 #
 #    """
 #    def __init__(self, fn1, fn2, **kwargs):
-#        fn1fn = Function._CheckIsFnOrConvertOrThrow( fn1 )
+#        fn1fn = Function.convert( fn1 )
 #        if not isinstance( fn1fn, Function ):
 #            raise TypeError("Functions must be of type (or convertible to) 'Function'.")
-#        fn2fn = Function._CheckIsFnOrConvertOrThrow( fn2 )
+#        fn2fn = Function.convert( fn2 )
 #        if not isinstance( fn2fn, Function ):
 #            raise TypeError("Functions must be of type (or convertible to) 'Function'.")
 #
@@ -856,10 +915,10 @@ class logical_and(Function):
     It is invoked by the overload method __and__.
     """
     def __init__(self, fn1, fn2, **kwargs):
-        fn1fn = Function._CheckIsFnOrConvertOrThrow( fn1 )
+        fn1fn = Function.convert( fn1 )
         if not isinstance( fn1fn, Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
-        fn2fn = Function._CheckIsFnOrConvertOrThrow( fn2 )
+        fn2fn = Function.convert( fn2 )
         if not isinstance( fn2fn, Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
 
@@ -876,10 +935,10 @@ class logical_or(Function):
     It is invoked by the overload method __or__.
     """
     def __init__(self, fn1, fn2, **kwargs):
-        fn1fn = Function._CheckIsFnOrConvertOrThrow( fn1 )
+        fn1fn = Function.convert( fn1 )
         if not isinstance( fn1fn, Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
-        fn2fn = Function._CheckIsFnOrConvertOrThrow( fn2 )
+        fn2fn = Function.convert( fn2 )
         if not isinstance( fn2fn, Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
 
@@ -897,7 +956,7 @@ class at(Function):
     """
     def __init__(self, fn, n, *args, **kwargs):
 
-        _fn = Function._CheckIsFnOrConvertOrThrow(fn)
+        _fn = Function.convert(fn)
         if _fn == None:
             raise ValueError( "provided 'fn' must a 'Function' or convertible.")
         self._fn = _fn

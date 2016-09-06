@@ -30,7 +30,7 @@ class symmetric(_Function):
     """
     def __init__(self, fn, *args, **kwargs):
 
-        _fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        _fn = _Function.convert(fn)
         if _fn == None:
             raise ValueError( "provided 'fn' must a 'Function' or convertible.")
         self._fn = _fn
@@ -58,7 +58,7 @@ class antisymmetric(_Function):
     """
     def __init__(self, fn, *args, **kwargs):
 
-        _fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        _fn = _Function.convert(fn)
         if _fn == None:
             raise ValueError( "provided 'fn' must a 'Function' or convertible.")
         self._fn = _fn
@@ -86,7 +86,7 @@ class second_invariant(_Function):
     """
     def __init__(self, fn, *args, **kwargs):
 
-        _fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        _fn = _Function.convert(fn)
         if _fn == None:
             raise ValueError( "provided 'fn' must a 'Function' or convertible.")
         self._fn = _fn
@@ -114,7 +114,7 @@ class deviatoric(_Function):
     """
     def __init__(self, fn, *args, **kwargs):
 
-        _fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        _fn = _Function.convert(fn)
         if _fn == None:
             raise ValueError( "provided 'fn' must a 'Function' or convertible.")
         self._fn = _fn

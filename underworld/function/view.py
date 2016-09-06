@@ -92,7 +92,7 @@ class min_max(_Function):
     """
     def __init__(self, fn, *args, **kwargs):
 
-        _fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        _fn = _Function.convert(fn)
         if _fn == None:
             raise ValueError( "provided 'fn' must a 'Function' or convertible.")
         self._fn = _fn

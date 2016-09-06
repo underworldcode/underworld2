@@ -65,7 +65,7 @@ class Polygon(_Function):
     def __init__(self, vertices, fn=None, *args, **kwargs):
 
         if fn:
-            self._fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+            self._fn = _Function.convert(fn)
         else:
             self._fn = input()
         

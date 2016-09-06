@@ -90,9 +90,9 @@ class map(_Function):
 
         if not fn_key:
             raise ValueError("You must specify a key function via the 'fn_key' parameter.")
-        fn_key = _Function._CheckIsFnOrConvertOrThrow(fn_key)
+        fn_key = _Function.convert(fn_key)
 
-        self.fn_default = _Function._CheckIsFnOrConvertOrThrow(fn_default)
+        self.fn_default = _Function.convert(fn_default)
         if self.fn_default == None:
             fn_defaultCself = None
         else:
@@ -111,7 +111,7 @@ class map(_Function):
         for key, value in mapping.iteritems():
             if not isinstance(key, int) or key < 0:
                 raise ValueError("Key '{}' not valid. Mapping keys must be unsigned integers.".format(key))
-            funcVal = _Function._CheckIsFnOrConvertOrThrow(value)
+            funcVal = _Function.convert(value)
             if funcVal == None:
                 raise ValueError("'None' is not valid for mapped functions.")
             
@@ -170,9 +170,9 @@ class conditional(_Function):
                 raise TypeError("Clauses within the clause list must be of python type 'list' or 'tuple'")
             if len(clause) != 2:
                 raise ValueError("Clauses tuples must be of length 2.")
-            conditionFn = _Function._CheckIsFnOrConvertOrThrow(clause[0])
+            conditionFn = _Function.convert(clause[0])
             funcSet.add(conditionFn)
-            actionFn    = _Function._CheckIsFnOrConvertOrThrow(clause[1])
+            actionFn    = _Function.convert(clause[1])
             funcSet.add(actionFn)
             self._clauses.append( (conditionFn,actionFn) )
         
