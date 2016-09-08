@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# This script builds underworld2 on the rhel6 operating system at fram.
+# Tested successfully 8/9/2016
+
 # load numpy modules, which will also load other required modules.
 module load numpy/1.8.2-intel-2016a-Python-2.7.11
 
@@ -32,6 +35,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/petsc/rhel6/lib  # required by h5p
 
 # underworld
 git clone https://github.com/underworldcode/underworld2.git
+git checkout $1
 cd underworld2/libUnderworld
 ./configure.py --with-debugging=0 --numpy-dir=$EBROOTNUMPY/lib/python2.7/site-packages/numpy/core --python-dir=$EBROOTPYTHON
 ./compile.py
