@@ -371,14 +371,14 @@ buoyancyFn = -densityFn*z_hat
 
 # In[17]:
 
-stokesPIC = uw.systems.Stokes( velocityField = velocityField, 
+stokes = uw.systems.Stokes( velocityField = velocityField, 
                                pressureField = pressureField,
                                swarm         = swarm, 
                                conditions    = [velocityBCs,],
                                fn_viscosity  = viscosityFn, 
                                fn_bodyforce  = buoyancyFn )
 
-solver = uw.systems.Solver( stokesPIC )
+solver = uw.systems.Solver( stokes )
 
 ## Initial solve (drop the non-linearity the very first solve only)
 penaltyNumber=1.0e6

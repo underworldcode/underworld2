@@ -34,6 +34,45 @@ except:
     print("'runipy' does not appear to be available. All jupyter notebooks will be skipped.")
 
 
+def get_files(args,recursive):
+    """
+    Returns a list of files from a list of files/directories. 
+    Where recursive is true, directories are recursed and any files
+    within added to the returned files list.
+
+    Parameters
+    ----------
+        args: list
+            The files & directories
+        recursive: bool
+            if true, directories will be recursed for files
+
+    Returns
+    -------
+        list:  The files
+    """
+
+    files=[]
+    
+    for arg in args:
+        if not recursive:
+            if os.path.isfile(arg):
+                files.append(arg)
+        else:
+            for dirname, dirnames, filenames in os.walk(arg):
+                # add files to list
+                if '.ipynb_checkpoints' in dirname:
+                    continue
+                if 'development' in dirname:
+                    print('Skipping {}'.format(os.path.join(dirname, '')))
+                    continue
+                for file in filenames:
+                    files.append(os.path.join(dirname, file))
+
+    return files
+
+
+
 def convert_ipynb_to_py(fname):
     """
     Converts a given ipython notebook file into a python files
@@ -105,6 +144,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--nprocs", help="number of processors to use", type=int, default=1)
     parser.add_argument("--mpirun", help="mpi command")
+    parser.add_argument("--recursive", help="recurse directories for files", type=bool, default=False)
     parser.add_argument("files", nargs="+", help="the input file list")
     args = parser.parse_args()
 
@@ -144,7 +184,7 @@ if __name__ == '__main__':
     logFile = open(dir+logFileName, "w")
 
     # loop though tests given as input, ie args.files
-    for fname in args.files:
+    for fname in get_files(args.files, recursive=args.recursive):
 
         # if file is not ipynb or py skip it
         is_ipynb = fname.endswith(".ipynb")
@@ -202,3 +242,5 @@ if __name__ == '__main__':
         sys.exit(0)
     else:
         sys.exit(1)
+
+

@@ -365,12 +365,3 @@ class AdvDiffResidualVectorTerm(VectorAssemblyTerm):
         # lets override parent _setup definition because we use 2 function objects
         libUnderworld.Underworld._SUPGVectorTerm_NA__Fn_SetDiffusivityFn( self._cself, self._diffFn._fncself )
         libUnderworld.Underworld._SUPGVectorTerm_NA__Fn_SetSourceFn( self._cself, self._sourceFn._fncself )
-
-class MassMatrixTerm(VectorAssemblyTerm):
-    _objectsDict = { "_assemblyterm": None }
-
-    def __new__(self, *args, **kwargs):
-        raise RuntimeError("The class MassMatrixTerm has been removed and replaced by MatrixAssemblyTerm_NA__NB__Fn")
-
-    def __init__( self, mesh, **kwargs ):
-        pass

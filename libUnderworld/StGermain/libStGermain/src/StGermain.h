@@ -11,9 +11,6 @@
 #ifndef __StGermain_StGermain_h__
 #define __StGermain_StGermain_h__
 
-#ifdef HAVE_PYTHON
-   #include <Python.h>
-#endif
 #ifdef HAVE_SCONS
         #include "pcu/pcu.h"
 #endif

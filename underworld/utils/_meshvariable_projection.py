@@ -40,9 +40,11 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
         The variable you wish to project the function onto.
     fn : underworld.function.Function
         The function you wish to project.
-    swarm : underworld.swarm.Swarm, default=None.
-        For voronoi integration, provided the swarm to be used. Otherwise
-        Gauss integration will be performed.
+    voronoi_swarm : uw.swarm.Swarm, optional
+        If a voronoi_swarm is provided, voronoi type integration is utilised to 
+        integrate across elements. The provided swarm is used as the basis for
+        the voronoi integration. If no swarm is provided, Gauss integration 
+        is used.
     type : int, default=0
         Projection type.  0:'weighted average', 1:'weighted residual'
 
@@ -96,7 +98,15 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
     _objectsDict = {  "_system" : "SystemLinearEquations" }
     _selfObjectName = "_system"
 
-    def __init__(self, meshVariable=None, fn=None, swarm=None, type=0, **kwargs):
+    def __init__(self, meshVariable=None, fn=None, voronoi_swarm=None, type=0, swarm=None, **kwargs):
+        # DEPRECATE. JM 09/16
+        if swarm:
+            uw._warnings.warn("'swarm' paramater has been renamed to 'voronoi_swarm'. Please update your models. "+
+                          "'swarm' parameter will be removed in the next release.", DeprecationWarning)
+            if voronoi_swarm:
+                raise ValueError("Please provide only a 'voronoi_swarm'. 'swarm' is deprecated.")
+            
+            voronoi_swarm = swarm
 
         if not meshVariable:
             raise ValueError("You must specify a mesh variable via the 'meshVariable' parameter.")
@@ -111,9 +121,13 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
         except Exception as e:
             raise uw._prepend_message_to_exception(e, "Exception encountered. Note that provided 'fn' must be of or convertible to 'Function' class.\nEncountered exception message:\n")
 
-        if swarm and not isinstance(swarm, uw.swarm.Swarm):
+        if voronoi_swarm and not isinstance(swarm, uw.swarm.Swarm):
             raise TypeError( "Provided 'swarm' must be of 'Swarm' class." )
-        self._swarm = swarm
+        self._swarm = voronoi_swarm
+        if voronoi_swarm and meshVariable.mesh.elementType=='Q2':
+            uw._warnings.warn("Voronoi integration may yield unsatisfactory results for Q2 mesh.")
+            
+
 
         if not type in [0,1]:
             raise ValueError( "Provided 'type' must take a value of 0 (weighted average) or 1 (weighted residual)." )

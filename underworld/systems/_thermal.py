@@ -37,10 +37,16 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
         The function that defines the diffusivity across the domain.
     fn_heating : underworld.function.Function, default=0.
         The heating function that defines the heating across the domain.
+    voronoi_swarm : uw.swarm.Swarm, optional.
+        If a voronoi_swarm is provided, voronoi type integration is utilised to 
+        integrate across elements. The provided swarm is used as the basis for
+        the voronoi integration. If no swarm is provided, Gauss integration 
+        is used.
     conditions : list, uw.conditions._SystemCondition, default = []
         Numerical conditions to impose on the system.
         uw.conditions.DirichletCondition : define scalar values of \phi
         uw.conditions.NeumannCondition :   define the vector (k \nabla \phi)
+
     Notes
     -----
     Constructor must be called collectively by all processes.
@@ -74,14 +80,14 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
     _objectsDict = {  "_system" : "SystemLinearEquations" }
     _selfObjectName = "_system"
 
-    def __init__(self, temperatureField, fn_diffusivity=None, fn_heating=0., swarm=None, conditions=[], _removeBCs=True, conductivityFn=None, heatingFn=None, rtolerance=None, **kwargs):
-        if conductivityFn != None:
-            raise RuntimeError("Note that the 'conductivityFn' parameter has been renamed to 'fn_diffusivity'.")
-        if heatingFn != None:
-            raise RuntimeError("Note that the 'heatingFn' parameter has been renamed to 'fn_heating'.")
-        if rtolerance != None:
-            raise RuntimeError("Note that the 'rtolerance' parameter has been removed.\n" \
-                               "All solver functionality has been moved to underworld.systems.Solver.")
+    def __init__(self, temperatureField, fn_diffusivity=None, fn_heating=0., voronoi_swarm=None, conditions=[], _removeBCs=True, swarm=None, **kwargs):
+        # DEPRECATE. JM 09/16
+        if swarm:
+            uw._warnings.warn("'swarm' paramater has been renamed to 'voronoi_swarm'. Please update your models. "+
+                          "'swarm' parameter will be removed in the next release.", DeprecationWarning)
+            if voronoi_swarm:
+                raise ValueError("Please provide only a 'voronoi_swarm'. 'swarm' is deprecated.")
+            voronoi_swarm = swarm
 
         if not isinstance( temperatureField, uw.mesh.MeshVariable):
             raise TypeError( "Provided 'temperatureField' must be of 'MeshVariable' class." )
@@ -99,9 +105,11 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
         except Exception as e:
             raise uw._prepend_message_to_exception(e, "Exception encountered. Note that provided 'fn_heating' must be of or convertible to 'Function' class.\nEncountered exception message:\n")
 
-        if swarm and not isinstance(swarm, uw.swarm.Swarm):
+        if voronoi_swarm and not isinstance(swarm, uw.swarm.Swarm):
             raise TypeError( "Provided 'swarm' must be of 'Swarm' class." )
-        self._swarm = swarm
+        self._swarm = voronoi_swarm
+        if voronoi_swarm and temperatureField.mesh.elementType=='Q2':
+            uw._warnings.warn("Voronoi integration may yield unsatisfactory results for Q2 element types.")
 
         if not isinstance(conditions, (uw.conditions._SystemCondition, list, tuple) ):
             raise TypeError( "Provided 'conditions' must be a list '_SystemCondition' objects." )

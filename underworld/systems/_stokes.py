@@ -43,11 +43,11 @@ class Stokes(_stgermain.StgCompoundComponent):
         div(velocityField) = 0 is enofrced as the constaint equation.
         This method is incompatible with the 'penalty' stokes solver, ensure
         the 'penalty' of 0, is used when fn_lambda is used. By default this is the case.
-    swarm : uw.swarm.Swarm, default=None.
-        If a swarm is provided, PIC type integration is utilised to build
-        up element integrals. The provided swarm is used as the basis for
-        the PIC swarm.
-        If no swarm is provided, Gauss style integration is used.
+    voronoi_swarm : uw.swarm.Swarm, optional
+        If a voronoi_swarm is provided, voronoi type integration is utilised to 
+        integrate across elements. The provided swarm is used as the basis for
+        the voronoi integration. If no swarm is provided, Gauss integration 
+        is used.
     conditions : list of uw.conditions.DirichletCondition objects, default=None
         Conditions to be placed on the system. Currently only
         Dirichlet conditions are supported.
@@ -61,9 +61,16 @@ class Stokes(_stgermain.StgCompoundComponent):
     _objectsDict = {  "_system" : "Stokes_SLE" }
     _selfObjectName = "_system"
 
-    def __init__(self, velocityField, pressureField, fn_viscosity=None, fn_bodyforce=None, fn_lambda=None, swarm=None, conditions=[],
-                _removeBCs=True, _fn_viscosity2=None, _fn_director=None, _fn_stresshistory=None, **kwargs):
+    def __init__(self, velocityField, pressureField, fn_viscosity=None, fn_bodyforce=None, fn_lambda=None, voronoi_swarm=None, conditions=[],
+                _removeBCs=True, _fn_viscosity2=None, _fn_director=None, _fn_stresshistory=None, swarm=None, **kwargs):
 
+        # DEPRECATE. JM 09/16
+        if swarm:
+            uw._warnings.warn("'swarm' paramater has been renamed to 'voronoi_swarm'. Please update your models. "+
+                          "'swarm' parameter will be removed in the next release.", DeprecationWarning)
+            if voronoi_swarm:
+                raise ValueError("Please provide only a 'voronoi_swarm'. 'swarm' is deprecated.")
+            voronoi_swarm = swarm
         if not isinstance( velocityField, uw.mesh.MeshVariable):
             raise TypeError( "Provided 'velocityField' must be of 'MeshVariable' class." )
         if velocityField.nodeDofCount != velocityField.mesh.dim:
@@ -111,9 +118,11 @@ class Stokes(_stgermain.StgCompoundComponent):
                 fn_bodyforce = (0.,0.,0.)
         _fn_bodyforce = uw.function.Function.convert(fn_bodyforce)
 
-        if swarm and not isinstance(swarm, uw.swarm.Swarm):
-            raise TypeError( "Provided 'swarm' must be of 'Swarm' class." )
-        self._swarm = swarm
+        if voronoi_swarm and not isinstance(voronoi_swarm, uw.swarm.Swarm):
+            raise TypeError( "Provided 'voronoi_swarm' must be of 'Swarm' class." )
+        self._swarm = voronoi_swarm
+        if voronoi_swarm and velocityField.mesh.elementType=='Q2':
+            uw._warnings.warn("Voronoi integration may yield unsatisfactory results for Q2 mesh.")
 
         mesh = velocityField.mesh
 
