@@ -545,11 +545,11 @@ void lucCrossSection_SampleField(void* drawingObject, Bool reverse)
       Journal_Printf(lucInfo, " Gather in %f sec.\n", MPI_Wtime() - time);
    }
    
-   // finally, record encountered min/max to colourmap where appropriate
-   if ( self->colourMap && self->colourMap->minimum == self->colourMap->maximum)
+   // finally, record encountered min/max to colourmap
+   if ( self->colourMap)
    {
       lucColourMap_SetMinMax( self->colourMap, cppdata->fn->getMinGlobal(), cppdata->fn->getMaxGlobal() );
-      Journal_Printf(lucInfo, "ColourMap min/max range set to %f - %f\n", self->colourMap->minimum, self->colourMap->maximum);
+      //Journal_Printf(lucInfo, "ColourMap min/max range set to %f - %f\n", self->colourMap->minimum, self->colourMap->maximum);
    }
 }
 
