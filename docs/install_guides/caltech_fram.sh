@@ -40,8 +40,6 @@ export PYTHONPATH=$HOME/petsc/rhel6/lib:$PYTHONPATH            # for mpi4py
 export PATH=$HOME/petsc/rhel6/bin/:$HOME/swig/bin:$PATH        # for h5pcc and swig
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/petsc/rhel6/lib  # required by h5py
 
-export PYTHONPATH=$PYTHONPATH:$HOME/underworld2                # for underworld
-
 # underworld
 git clone https://github.com/underworldcode/underworld2.git
 cd underworld2/libUnderworld
