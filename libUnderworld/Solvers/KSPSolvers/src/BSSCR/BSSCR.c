@@ -425,6 +425,8 @@ PetscErrorCode PETSCKSP_DLLEXPORT KSPCreate_BSSCR(KSP ksp)
     bsscr->t           = NULL;/* null space vectors for pressure */
     bsscr->v           = NULL;
     bsscr->nstol       = 1e-7;/* null space detection tolerance */
+    bsscr->uStar       = NULL;
+    bsscr->been_here   = 0;
     PetscFunctionReturn(0);
 }
 EXTERN_C_END
