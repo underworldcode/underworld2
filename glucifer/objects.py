@@ -373,7 +373,7 @@ class CrossSection(Drawing):
 
     def __init__(self, mesh, fn, crossSection="",
                        colours=None, colourMap=None, properties=None, opacity=None, colourBar=True,
-                       valueRange=None, logScale=False, discrete=False, offsetEdges=True,
+                       valueRange=None, logScale=False, discrete=False, offsetEdges=None,
                        *args, **kwargs):
 
         self._fn = _underworld.function.Function.convert(fn)
@@ -393,7 +393,8 @@ class CrossSection(Drawing):
 
     def _setup(self):
         _libUnderworld.gLucifer._lucCrossSection_SetFn( self._cself, self._fn._fncself )
-        self._dr.offsetEdges = self._offsetEdges
+        if self._offsetEdges != None:
+            self._dr.offsetEdges = self._offsetEdges
 
     def _add_to_stg_dict(self,componentDictionary):
         # lets build up component dictionary
