@@ -1,7 +1,14 @@
 #!/bin/sh
 
 # This script builds underworld2 on the rhel6 operating system at fram.
+# To select the required branch to build, just specify the branch name:
+#   $./caltech_fram.sh development
+# Defaults to master branch
+
 # Tested successfully 8/9/2016
+
+# ensure we bail on errors
+set -e
 
 # load numpy modules, which will also load other required modules.
 module load numpy/1.8.2-intel-2016a-Python-2.7.11
@@ -33,9 +40,24 @@ export PYTHONPATH=$HOME/petsc/rhel6/lib:$PYTHONPATH            # for mpi4py
 export PATH=$HOME/petsc/rhel6/bin/:$HOME/swig/bin:$PATH        # for h5pcc and swig
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/petsc/rhel6/lib  # required by h5py
 
+export PYTHONPATH=$PYTHONPATH:$HOME/underworld2                # for underworld
+
 # underworld
 git clone https://github.com/underworldcode/underworld2.git
-git checkout $1
 cd underworld2/libUnderworld
+git checkout $1
 ./configure.py --with-debugging=0 --numpy-dir=$EBROOTNUMPY/lib/python2.7/site-packages/numpy/core --python-dir=$EBROOTPYTHON
 ./compile.py
+
+# some messages
+echo "#############################################"
+echo "Underworld2 built successfully.              "
+echo "Remember to set the required environment     "
+echo "variables before running Underworld2.        "
+echo "For bash:"
+echo "   export PYTHONPATH=$HOME/petsc/rhel6/lib:$HOME/underworld2:\$PYTHONPATH"
+echo "   export LD_LIBRARY_PATH=$HOME/petsc/rhel6/lib:\$LD_LIBRARY_PATH "
+echo ""
+echo "You will also want to load the numpy module: "
+echo "   module load numpy/1.8.2-intel-2016a-Python-2.7.11"
+echo "#############################################"

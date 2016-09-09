@@ -142,9 +142,10 @@ if __name__ == '__main__':
 
     # use the argparse module to read cmd line
     parser = argparse.ArgumentParser()
-    parser.add_argument("--nprocs", help="number of processors to use", type=int, default=1)
-    parser.add_argument("--mpirun", help="mpi command")
-    parser.add_argument("--recursive", help="recurse directories for files", type=bool, default=False)
+    parser.add_argument("--nprocs", help="Number of processors to use.", type=int, default=1)
+    parser.add_argument("--mpirun", help="MPI command to use.")
+    parser.add_argument("--recursive", help="Recurse directories for files.", type=bool, default=False)
+    parser.add_argument("--replace_outputs", help="Runs ipynb models replacing output cells.", type=bool, default=False)
     parser.add_argument("files", nargs="+", help="the input file list")
     args = parser.parse_args()
 
@@ -190,12 +191,16 @@ if __name__ == '__main__':
         is_ipynb = fname.endswith(".ipynb")
         if not (is_ipynb or fname.endswith(".py")):
             continue
+        
+        # if replacing outputs, only run ipynb models
+        if args.replace_outputs and fname.endswith(".py"):
+            continue
 
         # build executable command
         exe = ['python']
 
         if is_ipynb and nprocs==1 and can_runipy:
-            exe = ['runipy']   # use runipy instead
+            exe = ['runipy']      # use runipy instead
         elif is_ipynb:
             # convert ipynb to py and move to 'testResults'
             print("* converting test {} to .py".format(fname));
@@ -205,6 +210,11 @@ if __name__ == '__main__':
             if fname == None:
                 raise RuntimeError("Unexpected error in converting ipynb to py")
             cleanup=True
+
+        if args.replace_outputs:
+            if nprocs!=1:
+                raise RuntimeError("Can only replace outputs when running in serial.")
+            exe = ['runipy','-o']   # use runipy with -o arg
 
         # if parallel build mpi command
         if nprocs>1:

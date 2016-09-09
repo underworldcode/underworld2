@@ -141,7 +141,9 @@ Z = Micro/Patch version. Backwards compatible bug fixes.
 The version number may also be appended with pre-release type designations, for
 example 2.0.0b.
 
-Development software will be have the 'dev' suffix, so 2.0.0-dev
+Development software will be have the 'dev' suffix, so 2.0.0-dev, and should 
+represent the version the development is working towards, so 2.1.0-dev is working
+towards release 2.1.0. 
 
 Testing
 =======
