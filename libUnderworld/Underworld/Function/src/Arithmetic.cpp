@@ -26,7 +26,9 @@ Fn::Add::func Fn::Add::getFunction( IOsptr sample_input ){
         // test evaluation
         doubleio[ii] = std::dynamic_pointer_cast<const IO_double>(_func[ii](sample_input));
         if (!doubleio[ii])
-            throw std::invalid_argument("Operand in arithmetic function (Add) does not appear to return a 'double' type value, as required.");
+            throw std::invalid_argument("Operand in arithmetic function (Add) does not appear to return a 'double' type value, as required. "
+                                        "Note that where the operand Function you have constructed uses Python numeric objects, those objects "
+                                        "must be of 'float' type (so for example '2.' instead of '2').");
     }
     
     if (doubleio[0]->size() != doubleio[1]->size())
@@ -58,7 +60,9 @@ Fn::Multiply::func  Fn::Multiply::getFunction( IOsptr sample_input ){
         // test evaluation
         doubleio[ii] = std::dynamic_pointer_cast<const IO_double>(_func[ii](sample_input));
         if (!doubleio[ii])
-            throw std::invalid_argument("Operand in arithmetic function (Multiply) does not appear to return a 'double' type value, as required.");
+            throw std::invalid_argument("Operand in arithmetic function (Multiply) does not appear to return a 'double' type value, as required. "
+                                        "Note that where the operand Function you have constructed uses Python numeric objects, those objects "
+                                        "must be of 'float' type (so for example '2.' instead of '2').");
     }
     
     unsigned _minGuy = doubleio[0]->size() < doubleio[1]->size() ? 0 : 1;
@@ -112,7 +116,10 @@ Fn::Divide::func  Fn::Divide::getFunction( IOsptr sample_input ){
         // test evaluation
         doubleio[ii] = std::dynamic_pointer_cast<const IO_double>(_func[ii](sample_input));
         if (!doubleio[ii])
-            throw std::invalid_argument("Operand in arithmetic function (Divide) does not appear to return a 'double' type value, as required.");
+            throw std::invalid_argument("Operand in arithmetic function (Divide) does not appear to return a 'double' type value, as required. "
+                                        "Note that where the operand Function you have constructed uses Python numeric objects, those objects "
+                                        "must be of 'float' type (so for example '2.' instead of '2').");
+
     }
     
     unsigned _minGuy = doubleio[0]->size() < doubleio[1]->size() ? 0 : 1;
@@ -170,7 +177,10 @@ Fn::Dot::func Fn::Dot::getFunction( IOsptr sample_input ){
         // test evaluation
         doubleio[ii] = std::dynamic_pointer_cast<const IO_double>(_func[ii](sample_input));
         if (!doubleio[ii])
-            throw std::invalid_argument("Operand in arithmetic function (Dot) does not appear to return a 'double' type value, as required.");
+            throw std::invalid_argument("Operand in arithmetic function (Dot) does not appear to return a 'double' type value, as required. "
+                                        "Note that where the operand Function you have constructed uses Python numeric objects, those objects "
+                                        "must be of 'float' type (so for example '2.' instead of '2').");
+
     }
     
     if ( doubleio[0]->size() != doubleio[1]->size() )

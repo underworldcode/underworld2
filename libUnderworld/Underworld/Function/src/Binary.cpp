@@ -26,7 +26,10 @@ Fn::MathBinary::func  Fn::MathBinary::getFunction( IOsptr sample_input ){
         // test evaluation
         doubleio[ii] = std::dynamic_pointer_cast<const IO_double>(_func[ii](sample_input));
         if (!doubleio[ii])
-            throw std::invalid_argument("Operand in binary function does not appear to return a 'double' type value, as required.");
+            throw std::invalid_argument("Operand in binary function does not appear to return a 'double' type value, as required. "
+                                        "Note that where the operand Function you have constructed uses Python numeric objects, those objects "
+                                        "must be of 'float' type (so for example '2.' instead of '2').");
+
     }
     
     bool _identicalSize = ( doubleio[0]->size() == doubleio[1]->size() );

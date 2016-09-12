@@ -239,8 +239,8 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
 
         Save mesh and var to a file:
 
-        >>> meshDat = mesh.save("saved_mesh_variable.h5")
-        >>> varDat = var.save("saved_mesh.h5")
+        >>> meshDat = mesh.save("saved_mesh.h5")
+        >>> varDat = var.save("saved_mesh_variable.h5")
 
         Now let's create the xdmf file
 
