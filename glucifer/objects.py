@@ -713,6 +713,8 @@ class Volume(_GridSampler3D):
                        valueRange=None, logScale=False, discrete=False,
                        *args, **kwargs):
         # build parent
+        if mesh.dim == 2:
+            raise ValueError("Volume rendered requires a three dimensional mesh.")
         super(Volume,self).__init__( mesh=mesh, fn=fn, resolutionI=resolutionI, resolutionJ=resolutionJ, resolutionK=resolutionK,
                         colours=colours, colourMap=colourMap, properties=properties, opacity=opacity, colourBar=colourBar,
                         valueRange=valueRange, logScale=logScale, discrete=discrete, *args, **kwargs)
