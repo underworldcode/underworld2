@@ -10,6 +10,8 @@ if os.path.exists(build_success_file):
 # call scons once
 sconsBin = os.path.join('config', 'scons', 'scons.py')
 returncode = subprocess.call( sconsBin + ' ' + ' '.join(sys.argv[1:]), shell=True )
+if returncode != 0:
+    sys.exit(returncode)
 
 # run swig generation - must go down a directory
 os.chdir('libUnderworldPy')
