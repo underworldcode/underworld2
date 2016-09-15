@@ -67,7 +67,7 @@ class Stokes(_stgermain.StgCompoundComponent):
         # DEPRECATE. JM 09/16
         if swarm:
             uw._warnings.warn("'swarm' paramater has been renamed to 'voronoi_swarm'. Please update your models. "+
-                          "'swarm' parameter will be removed in the next release.", DeprecationWarning)
+                          "'swarm' parameter will be removed in the next release.")
             if voronoi_swarm:
                 raise ValueError("Please provide only a 'voronoi_swarm'. 'swarm' is deprecated.")
             voronoi_swarm = swarm

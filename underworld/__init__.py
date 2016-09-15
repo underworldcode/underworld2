@@ -222,8 +222,8 @@ if (rank() == 0) and not _in_doctest():
         pass
 
 # lets also enable deprecation warnings
-import warnings as _warnings
-_warnings.simplefilter('always', DeprecationWarning)
+#import warnings as _warnings
+#_warnings.simplefilter('always', DeprecationWarning)
 
 # enable the following to force exceptions on warnings
 #_warnings.simplefilter('error')
