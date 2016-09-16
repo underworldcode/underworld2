@@ -154,6 +154,11 @@ class ColourMap(_stgermain.StgCompoundComponent):
         """
         return self._properties
 
+    @properties.setter
+    def properties(self, value):
+        #Sets new properties, overwriting any duplicate keys but keeping existing values otherwise
+        self._setProperties(value)
+
 class Drawing(_stgermain.StgCompoundComponent):
     """
     This is the base class for all drawing objects but can also be instantiated 
@@ -348,6 +353,11 @@ class Drawing(_stgermain.StgCompoundComponent):
         LavaVu to control rendering output of object.
         """
         return self._properties
+
+    @properties.setter
+    def properties(self, value):
+        #Sets new properties, overwriting any duplicate keys but keeping existing values otherwise
+        self._setProperties(value)
 
 class ColourBar(Drawing):
     """
