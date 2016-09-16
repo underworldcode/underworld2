@@ -208,8 +208,10 @@ class Store(_stgermain.StgCompoundComponent):
                 #Hide objects not in this figure (also check parent for colour bars)
                 obj._properties["visible"] = bool(obj in objects or obj.parent and obj.parent in objects)
 
-                #Ensure property update triggered before object written to db
-                obj.properties = obj._properties;
+                #Ensure properties updated before object written to db
+                _libUnderworld.gLucifer.lucDrawingObject_SetProperties(obj._dr, obj._getProperties());
+                if obj._colourMap:
+                    _libUnderworld.gLucifer.lucColourMap_SetProperties(obj._colourMap._cm, obj._colourMap._getProperties());
 
                 #Add the object to the drawing object register for the database
                 libUnderworld.StGermain.Stg_ObjectList_Append(self._db.drawingObject_Register.objects,obj._cself)

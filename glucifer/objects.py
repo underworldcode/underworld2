@@ -75,16 +75,23 @@ class ColourMap(_stgermain.StgCompoundComponent):
     _objectsDict = { "_cm": "lucColourMap" }
     
     #Default is a cool-warm map with low variance in luminosity/lightness
-    def __init__(self, colours=None, valueRange=None, logScale=False, discrete=False, **kwargs):
+    def __init__(self, colours=None, valueRange=None, logScale=False, discrete=False, properties=None, **kwargs):
+
+        if not hasattr(self, 'properties'):
+            self._properties = {}
+        if properties and not isinstance(properties,dict):
+            raise TypeError("'properties' object passed in must be of python type 'dict'")
+        if properties:
+            self._properties.update(properties)
 
         if colours == None:
             colours = colourMaps["diverge"]
         if not isinstance(colours,(str,list)):
             raise TypeError("'colours' object passed in must be of python type 'str' or 'list'")
-        if isinstance(colours,(str)):
-            self._colours = colours.split()
+        if isinstance(colours,(list)):
+            self._properties.update({"colours" : ' '.join(colours)})
         else:
-            self._colours = colours
+            self._properties.update({"colours" : colours})
 
         if valueRange != None:
             # is valueRange correctly defined, ie list of length 2 made of numbers
@@ -99,17 +106,18 @@ class ColourMap(_stgermain.StgCompoundComponent):
                 raise ValueError("The first number of the valueRange list must be smaller than the second number")
 
             # valueRange arg is good 
-            self._valueRange   = valueRange
+            self._properties.update({"range" : [valueRange[0], valueRange[1]]})
         else:
-           self._valueRange   = [0.0,0.0] # ignored
+            self._properties.update({"range" : [0.0, 0.0]}) # ignored
 
         if not isinstance(logScale, bool):
             raise TypeError("'logScale' parameter must be of 'bool' type.")
         self._logScale = logScale
+        self._properties.update({"logscale" : logScale})
 
         if not isinstance(discrete, bool):
             raise TypeError("'discrete' parameter must be of 'bool' type.")
-        self._discrete = discrete
+        self._properties.update({"discrete" : discrete})
 
         # build parent
         super(ColourMap,self).__init__()
@@ -119,13 +127,32 @@ class ColourMap(_stgermain.StgCompoundComponent):
         # call parents method
         super(ColourMap,self)._add_to_stg_dict(componentDictionary)
 
-        componentDictionary[self._cm.name].update( {
-            "colours"       :" ".join(self._colours),
-            "logScale"      :self._logScale,
-            "discrete"      :self._discrete,
-            "maximum"       :self._valueRange[1],
-            "minimum"       :self._valueRange[0]
-        } )
+    #dict methods
+    def update(self, newdict):
+        self._properties.update(newdict)
+
+    def __getitem__(self, key):
+        return self._properties[key]
+
+    def __setitem__(self, key, item):
+        self._properties[key] = item
+
+    def _getProperties(self):
+        #Convert properties to string
+        return '\n'.join(['%s=%s' % (k,v) for k,v in self._properties.iteritems()]);
+
+    def _setProperties(self, newProps):
+        #Update the properties values (merge)
+        #values of any existing keys are replaced and drawing object is updated
+        self._properties.update(newProps)
+
+    @property
+    def properties(self):
+        """    
+        properties (dict): properties of colourmap 
+        colours, range, discrete, logscale.
+        """
+        return self._properties
 
 class Drawing(_stgermain.StgCompoundComponent):
     """
@@ -231,7 +258,6 @@ class Drawing(_stgermain.StgCompoundComponent):
         #Update the properties values (merge)
         #values of any existing keys are replaced and drawing object is updated
         self._properties.update(newProps)
-        _libUnderworld.gLucifer.lucDrawingObject_SetProperties(self._dr, self._getProperties());
 
     def resetDrawing(self):
         #Clear direct drawing data
@@ -322,11 +348,6 @@ class Drawing(_stgermain.StgCompoundComponent):
         LavaVu to control rendering output of object.
         """
         return self._properties
-
-    @properties.setter
-    def properties(self, value):
-        #Sets new properties, overwriting any duplicate keys but keeping existing values otherwise
-        self._setProperties(value)
 
 class ColourBar(Drawing):
     """
