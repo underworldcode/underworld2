@@ -23,6 +23,7 @@ from . import objects
 import libUnderworld as _libUnderworld
 
 haveLavaVu = True
+_lv = None
 try:
     import libUnderworld.libUnderworldPy.LavaVu as LavaVu
 except:
@@ -85,7 +86,6 @@ class Store(_stgermain.StgCompoundComponent):
     """
     _objectsDict = { "_db":"lucDatabase" }
     _selfObjectName = "_db"
-    _lv = None
 
     def __init__(self, filename=None, split=False, view=False, **kwargs):
 
@@ -160,7 +160,10 @@ class Store(_stgermain.StgCompoundComponent):
     def lvrun(self, db=None, *args, **kwargs):
         if not db:
             db = self._db.path
-        return LavaVu.load(self._lv, binary=self._lvbin, database=db, startstep=self.step, *args, **kwargs)
+        #Use a single global LavaVu instance to save resources
+        global _lv
+        _lv = LavaVu.load(_lv, cache=False, binary=self._lvbin, database=db, startstep=self.step, *args, **kwargs)
+        return _lv
 
     def _generate(self, figname, objects, props):
         #First merge object list with active
@@ -285,7 +288,6 @@ class Store(_stgermain.StgCompoundComponent):
             statestr = lv.getFigures()
             #Also save the step data
             self.timesteps = json.loads(lv.getTimeSteps())
-            lv.clear() #Close and free memory
             return json.loads(statestr)
         except RuntimeError,e:
             print "LavaVu error: " + str(e)
@@ -552,7 +554,6 @@ class Figure(dict):
                 else:
                     # -1 selects last figure/state in list
                     lv = self.db.lvrun(figure=-1, quality=self.quality, writeimage=True, res=self["resolution"], script=self._script)
-                lv.clear() #Free memory
             except RuntimeError,e:
                 print "LavaVu error: " + str(e)
                 pass
@@ -614,7 +615,6 @@ class Figure(dict):
             #Render with viewer
             lv = self.db.lvrun(quality=self.quality, script=self._script)
             imagestr = lv.image(filename, size[0], size[1])
-            lv.clear() #Close and free memory
             #Return the generated filename
             return imagestr
         except RuntimeError,e:

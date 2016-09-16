@@ -38,16 +38,9 @@ namespace std {
 %pythoncode %{
 import json
 #Helper functions
-instance = None
 def load(app=None, arglist=[], binary="LavaVu", database=None, figure=None, startstep=None, endstep=None, 
          port=0, verbose=False, interactive=False, hidden=True, cache=True,
          quality=2, writeimage=False, res=None, script=None):
-  #Destroy any active instance
-  global instance
-  if instance:
-    _LavaVu.delete_LavaVu(instance)
-    instance = None
-
   #Convert options to args
   args = [] + arglist
   if verbose:
@@ -88,28 +81,26 @@ def load(app=None, arglist=[], binary="LavaVu", database=None, figure=None, star
   if not app:
     app = LavaVu(binary)
   app.run(args)
-
-  #Save active instance and return
-  instance = app
   return app
 
 #Wrapper class for drawing object
 #handles property updating via internal dict
 class Obj():
-  def __init__(self, idict, *args, **kwargs):
+  def __init__(self, idict, instance, *args, **kwargs):
     self.dict = idict
+    self.instance = instance
     self.name = str(self.dict["name"])
 
   def get(self):
     #Retrieve updated props
-    props = json.loads(instance.getObject(self.name))
+    props = json.loads(self.instance.getObject(self.name))
     self.dict.clear()
     self.dict.update(props)
     self.name = str(self.dict["name"])
 
   def set(self):
     #Send updated props
-    instance.setObject(self.name, json.dumps(self.dict))
+    self.instance.setObject(self.name, json.dumps(self.dict))
     self.get()
 
   def __getitem__(self, key):
@@ -156,52 +147,75 @@ class Obj():
     return json.dumps(self.dict["data"])
 
   def vertices(self, data):
-    instance.parseCommands("select " + self.name)
-    instance.loadVectors(data, lucVertexData)
+    self.instance.parseCommands("select " + self.name)
+    self.instance.loadVectors(data, lucVertexData)
 
   def vectors(self, data):
-    instance.parseCommands("select " + self.name)
-    instance.loadVectors(data, lucVectorData)
+    self.instance.parseCommands("select " + self.name)
+    self.instance.loadVectors(data, lucVectorData)
 
   def values(self, data, type=lucColourValueData, label="", min=0., max=0.):
-    instance.parseCommands("select " + self.name)
-    instance.loadScalars(data, type, label, min, max)
+    self.instance.parseCommands("select " + self.name)
+    self.instance.loadScalars(data, type, label, min, max)
 
   def colours(self, data):
-    instance.parseCommands("select " + self.name)
-    instance.parseCommands("colours=" + str(data))
-    instance.parseCommands("read colours")
+    self.instance.parseCommands("select " + self.name)
+    self.instance.parseCommands("colours=" + str(data))
+    self.instance.parseCommands("read colours")
 
   def indices(self, data):
-    instance.parseCommands("select " + self.name)
-    instance.loadUnsigned(data, lucIndexData)
+    self.instance.parseCommands("select " + self.name)
+    self.instance.loadUnsigned(data, lucIndexData)
 
   def labels(self, data):
-    instance.parseCommands("select " + self.name)
-    instance.labels(data)
+    self.instance.parseCommands("select " + self.name)
+    self.instance.labels(data)
 
   #Property control interface
   #...TODO...
 
 #Wrapper dict+list of objects
 class Objects(dict):
-  def __init__(self):
+  def __init__(self, instance):
+    self.instance = instance
     pass
 
   def update(self):
     idx = 0
     self.list = []
-    for obj in instance.state["objects"]:
+    for obj in self.instance.state["objects"]:
       if obj["name"] in self:
         self[obj["name"]].get()
         self.list.append(self[obj["name"]])
       else:
-        o = Obj(obj)
+        o = Obj(obj, self.instance)
         self[obj["name"]] = o
         self.list.append(o)
 
   def __str__(self):
     return '\n'.join(self.keys())
+
+#Some preset colourmaps
+# aim to reduce banding artifacts by being either 
+# - isoluminant
+# - smoothly increasing in luminance
+# - diverging in luminance about centre value
+colourMaps = {}
+#Isoluminant blue-orange
+colourMaps["isolum"] = "#288FD0 #50B6B8 #989878 #C68838 #FF7520"
+#Diverging blue-yellow-orange
+colourMaps["diverge"] = "#288FD0 #fbfb9f #FF7520"
+#Isoluminant rainbow blue-green-orange
+colourMaps["rainbow"] = "#5ed3ff #6fd6de #7ed7be #94d69f #b3d287 #d3ca7b #efc079 #ffb180"
+#CubeLaw indigo-blue-green-yellow
+colourMaps["cubelaw"] = "#440088 #831bb9 #578ee9 #3db6b6 #6ce64d #afeb56 #ffff88"
+#CubeLaw indigo-blue-green-orange-yellow
+colourMaps["cubelaw2"] = "#440088 #1b83b9 #6cc35b #ebbf56 #ffff88"
+#CubeLaw heat blue-magenta-yellow)
+colourMaps["smoothheat"] = "#440088 #831bb9 #c66f5d #ebbf56 #ffff88"
+#Paraview cool-warm (diverging)
+colourMaps["coolwarm"] = "#3b4cc0 #7396f5 #b0cbfc #dcdcdc #f6bfa5 #ea7b60 #b50b27"
+#colourMaps["coolwarm"] = "#4860d1 #87a9fc #a7c5fd #dcdcdc #f2c8b4 #ee8669 #d95847"
 
 %}
 
@@ -220,6 +234,8 @@ public:
 
   bool loadFile(const std::string& file);
   bool parseCommands(std::string cmd);
+  void render();
+  void init();
   std::string image(std::string filename="", int width=0, int height=0, bool frame=false);
   std::string web(bool tofile=false);
   void defaultModel();
@@ -280,7 +296,7 @@ public:
     #Import state from lavavu
     self.state = json.loads(self.getState())
     if not isinstance(self.objects, Objects):
-      self.objects = Objects()
+      self.objects = Objects(self)
     self.objects.update()
 
   def set(self):
