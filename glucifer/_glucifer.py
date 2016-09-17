@@ -206,7 +206,7 @@ class Store(_stgermain.StgCompoundComponent):
             #Add drawing objects to register and output any custom data on them
             for obj in self._objects:
                 #Hide objects not in this figure (also check parent for colour bars)
-                obj._properties["visible"] = bool(obj in objects or obj.parent and obj.parent in objects)
+                obj.properties["visible"] = bool(obj in objects or obj.parent and obj.parent in objects)
 
                 #Ensure properties updated before object written to db
                 _libUnderworld.gLucifer.lucDrawingObject_SetProperties(obj._dr, obj._getProperties());
@@ -244,9 +244,9 @@ class Store(_stgermain.StgCompoundComponent):
                 for dbobj in state["objects"]:
                     dbobj["visible"] = False
                     for obj in objects:
-                        if dbobj["name"] == obj._properties["name"]:
+                        if dbobj["name"] == obj.properties["name"]:
                             #Merge/replace
-                            dbobj.update(obj._properties)
+                            dbobj.update(obj.properties)
                             dbobj["visible"] = True
             else:
                 #No objects passed in with figure, simply plot them all
@@ -271,7 +271,7 @@ class Store(_stgermain.StgCompoundComponent):
         #Objects passed from figure
         objlist = []
         for obj in objects:
-            objlist.append(obj._properties)
+            objlist.append(obj.properties)
 
         export["objects"] = objlist
         #TODO: ColourMap properties
