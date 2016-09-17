@@ -124,7 +124,6 @@ Fn::MinMax::func Fn::MinMax::getFunction( IOsptr sample_input )
             return _output;
         };
     } else {
-    // create and return the lambda
         return [_func,this](IOsptr input)->IOsptr {
 
             // perform func
@@ -152,18 +151,19 @@ void Fn::MinMax::reset()
 
 double Fn::MinMax::getMin()
 {
-    if (_size == 1)
-        return _minVal;
-    else
+    if (_size > 1)
         return std::sqrt(_minVal);
+    else
+        return _minVal;
 }
 
 double Fn::MinMax::getMax()
 {
-    if (_size == 1)
-        return _maxVal;
-    else
+    if (_size > 1)
         return std::sqrt(_maxVal);
+    else
+        return _maxVal;
+    
 }
 
 double Fn::MinMax::getMinGlobal()
