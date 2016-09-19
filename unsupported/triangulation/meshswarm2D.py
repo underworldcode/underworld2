@@ -372,7 +372,7 @@ class meshSwarm2D:
     def refine_swarm_too_narrow(self, max_aspect):
 
         tri = self.triangulation
-        pts = self.triangulation.points
+        pts = tri.points
 
         # Find "aspect ratio" of triangles and suggest centroid as new point
 
@@ -383,18 +383,11 @@ class meshSwarm2D:
         lS = np.vstack((lA, lB, lC)).T
 
         aspect = np.max(lS, axis=1 ) / np.min(lS, axis=1 )
-
-        # Any triangle (even partly) in the shadow, the aspect ratio should be ignored
         aspect[np.where(tri.simplices[:].max(axis=1) > self.shadow_data_start)] = 0.0
 
+        print "max aspect ratio = ", aspect.max()
+
         divide = np.where(aspect > max_aspect)
-
-        # if uw.rank()==0 and len(divide) != 0:
-        #     print uw.rank(), "PT: ", divide[0][0], aspect[divide[0][0]]
-        #     print self.shadow_data_start, tri.simplices[divide[0][0]]
-        #     print pts[tri.simplices[divide[0][0]]]
-
-        # print "min/max aspect ratio = ", aspect.min(), aspect.max()
 
         add_points = pts[tri.simplices[divide]].mean(axis=1)
 
@@ -433,9 +426,6 @@ class meshSwarm2D:
         del_targets2[self.shadow_data_start::] = 0
 
         del_points = np.where(np.logical_or(del_targets > 1, del_targets2 > 0))[0]
-
-
-#        print uw.rank(), "min edge - ", self.edge_lengths.min(), np.count_nonzero(del_targets), np.count_nonzero(del_targets2)
 
         return del_points
 
