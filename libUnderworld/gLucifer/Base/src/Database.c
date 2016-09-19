@@ -909,12 +909,13 @@ int lucDatabase_WriteGeometry(lucDatabase* self, int index, lucGeometryType type
       Journal_Firewall(buffer != NULL, lucError, "Compress database: Out of memory! %s '%s'.\n", self->type, self->name );
       Journal_Firewall(compress2(buffer, &cmp_len, (const unsigned char *)block->data, src_len, 1) == Z_OK,
          lucError, "Compress database failed! %s '%s'.\n", self->type, self->name );
-      if (cmp_len == src_len)
+      if (cmp_len >= src_len)
       {
          free(buffer);
          cmp_len = 0;
       }
-      src_len = cmp_len;
+      else
+        src_len = cmp_len;
    }
 
    if (fabs(block->minimum) == HUGE_VAL) block->minimum = 0;
