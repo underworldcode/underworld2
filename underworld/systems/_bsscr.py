@@ -316,7 +316,10 @@ class StokesSolver(_stgermain.StgCompoundComponent):
     ### the solve function
     ########################################################################
 
-    def solve(self, nonLinearIterate=None, nonLinearTolerance=1.0e-2, print_stats=False, reinitialise=True, **kwargs):
+    def solve(self, nonLinearIterate=None, nonLinearTolerance=1.0e-2,
+              nonLinearKillNonConvergent=False,
+              nonLinearMaxIterations=500,
+              print_stats=False, reinitialise=True, **kwargs):
         """ solve the Stokes system
         """
         Solvers.SBKSP_SetSolver(self._cself, self._stokesSLE._cself)
@@ -348,8 +351,13 @@ class StokesSolver(_stgermain.StgCompoundComponent):
             # self._stokesSLE._cself.nonLinearTolerance = nonLinearTolerance # set via python
             libUnderworld.StgFEM.SystemLinearEquations_SetNonLinearTolerance(self._stokesSLE._cself, nonLinearTolerance)
             libUnderworld.StgFEM.SystemLinearEquations_SetToNonLinear(self._stokesSLE._cself, True, )
+            self._stokesSLE._cself.nonLinearMaxIterations = nonLinearMaxIterations
+            self._stokesSLE._cself.killNonConvergent = nonLinearKillNonConvergent
+
         else:
             libUnderworld.StgFEM.SystemLinearEquations_SetToNonLinear(self._stokesSLE._cself, False )
+
+
 
         if self._stokesSLE._swarm and reinitialise:
             self._stokesSLE._swarm._voronoi_swarm.repopulate()
