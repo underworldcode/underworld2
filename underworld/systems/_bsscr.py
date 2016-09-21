@@ -396,6 +396,8 @@ class StokesSolver(_stgermain.StgCompoundComponent):
                     print endcol
                     print
 
+        return
+
     ########################################################################
     ### create vectors and matrices for augmented lagrangian solve
     ########################################################################
@@ -590,6 +592,18 @@ class StokesSolver(_stgermain.StgCompoundComponent):
 
     def get_stats(self):
         return self._cself.stats
+
+    def get_nonLinearStats(self):
+
+        class blank(object):
+            pass
+
+        a = blank()
+
+        a.picard_iterations = self._stokesSLE._cself.nonLinearIteration_I
+        a.picard_residual =   self._stokesSLE._cself.curResidual
+
+        return a
 
     def print_stats(self):
         purple = "\033[0;35m"
