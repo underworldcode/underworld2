@@ -21,7 +21,7 @@ import subprocess
 from subprocess import Popen, PIPE, STDOUT
 from . import objects
 import libUnderworld as _libUnderworld
-import lavavu
+import libUnderworld.libUnderworldPy.lavavu as lavavu
 
 # lets create somewhere to dump data for this session
 import os
