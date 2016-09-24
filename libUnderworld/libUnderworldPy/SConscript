@@ -62,7 +62,7 @@ if env.get('with_graphics', None):
     env = env.Clone()
     env["LIBS"] = ['LavaVu']
     objs = []
-    srcs = Glob('./LavaVu_wrap.cxx')
+    srcs = Glob('../gLucifer/Viewer/LavaVu_wrap.cxx')
     objs += env.SharedObject(srcs, CPPDEFINES=env.get('CPPDEFINES', []))
     # Build shared library.
     if env['shared_libs']:
