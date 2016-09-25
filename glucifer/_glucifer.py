@@ -153,7 +153,7 @@ class Store(_stgermain.StgCompoundComponent):
         if not db:
             db = self._db.path
         #Use default LavaVu instance to save resources
-        lavavu.viewer = lavavu.load(lavavu.viewer, cache=False, binary=self._lvbin, database=db, startstep=self.step, *args, **kwargs)
+        lavavu.viewer = lavavu.Viewer(lavavu.viewer, cache=False, binary=self._lvbin, database=db, startstep=self.step, *args, **kwargs)
         return lavavu.viewer
 
     def _generate(self, figname, objects, props):

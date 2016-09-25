@@ -69,14 +69,14 @@ if env.get('with_graphics', None):
         env.SharedLibrary('lib/LavaVuPython_swig', objs)
 
     # add the lavavu guy here
-    wrapperDict['LavaVu'] = ['LavaVuPython_wrap.cxx']
+    wrapperDict['LavaVuPython'] = ['LavaVuPython_wrap.cxx']
 
 else:
     path = Dir('.').srcnode().abspath
-    lvpy = os.path.join(path, 'LavaVu.py')
+    lvpy = os.path.join(path, 'LavaVuPython.py')
     if os.path.exists(lvpy):
         os.remove(lvpy)
-    lvwrap = os.path.join(path, 'LavaVu_wrap.cxx')
+    lvwrap = os.path.join(path, 'LavaVuPython_wrap.cxx')
     if os.path.exists(lvwrap):
         os.remove(lvwrap)
 
