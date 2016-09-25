@@ -40,7 +40,7 @@ for swigfile in swigfiles:
         raise RuntimeError("Error generating swig bindings.")
 
 #LavaVu setup
-subp = subprocess.Popen(swigcommandbase + ' -outdir . ../gLucifer/Viewer/LavaVu.i', shell=True )
+subp = subprocess.Popen(swigcommandbase + ' -outdir . ../gLucifer/Viewer/LavaVuPython.i', shell=True )
 if subp.wait() != 0 :
     raise RuntimeError("Error generating swig bindings.")
 
