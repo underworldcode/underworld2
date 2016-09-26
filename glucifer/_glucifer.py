@@ -669,8 +669,20 @@ class Figure(dict):
         image_data = "data:image/png;base64,%s" % b64encode(response)
         return HTML("<img src='%s'>" % image_data)
 
+    def viewer(self):
+        """ Open the inline viewer.
+        """
+        fname = self.db.filename
+        if not fname:
+            fname = os.path.join(tmpdir,"gluciferDB"+self.db._id+".gldb")
+            self.save_database(fname)
+        if lavavu.enabled and uw.rank() == 0:
+            lavavu.viewer = self.db.lvrun(db=fname)
+            lavavu.control.viewer()
+            return lavavu.viewer
+
     def open_viewer(self, args=[], background=True):
-        """ Open the viewer.
+        """ Open the external viewer.
         """
         fname = self.db.filename
         if not fname:
@@ -688,7 +700,7 @@ class Figure(dict):
                 from IPython.display import HTML
                 return HTML('''<a href='#' onclick='window.open("http://" + location.hostname + ":9999");'>Open Viewer Interface</a>''')
             else:
-                lv = self.db.lvrun(database=fname, port=9999, args=args)
+                lv = self.db.lvrun(db=fname, port=9999)
 
     def close_viewer(self):
         """ Close the viewer.
