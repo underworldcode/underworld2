@@ -109,12 +109,13 @@ extern "C" {
 %template(SolDB2dCRTP) Fn::AnalyticCRTP<Fn::SolDB2d>;
 %template(SolDB3dCRTP) Fn::AnalyticCRTP<Fn::SolDB3d>;
 
-%template(Relational_less         ) Fn::MathRelational<std::less<double>         , double, double>;
-%template(Relational_less_equal   ) Fn::MathRelational<std::less_equal<double>   , double, double>;
-//%template(Relational_equal_to     ) Fn::MathRelational<std::equal_to<double>     , double, double>;
-//%template(Relational_not_equal_to ) Fn::MathRelational<std::not_equal_to<double> , double, double>;
-%template(Relational_greater      ) Fn::MathRelational<std::greater<double>      , double, double>;
-%template(Relational_greater_equal) Fn::MathRelational<std::greater_equal<double>, double, double>;
-%template(Relational_logical_and  ) Fn::MathRelational<std::logical_and<bool>    , bool, char>;
-%template(Relational_logical_or   ) Fn::MathRelational<std::logical_or<bool>     , bool, char>;
-//%template(Relational_logical_not  ) Fn::MathRelational<std::logical_not<bool>    , bool, char>;
+%template(Relational_less         ) Fn::MathRelational<std::less<double>>;
+%template(Relational_less_equal   ) Fn::MathRelational<std::less_equal<double>>;
+//%template(Relational_equal_to     ) Fn::MathRelational<std::equal_to<double>>;
+//%template(Relational_not_equal_to ) Fn::MathRelational<std::not_equal_to<double>>;
+%template(Relational_greater      ) Fn::MathRelational<std::greater<double>>;
+%template(Relational_greater_equal) Fn::MathRelational<std::greater_equal<double>>;
+%template(Relational_logical_and  ) Fn::MathRelational<std::logical_and<bool>>;
+%template(Relational_logical_or   ) Fn::MathRelational<std::logical_or< bool>>;
+%template(Relational_logical_xor  ) Fn::MathRelational< Fn::logical_xor<bool>>;
+//%template(Relational_logical_not  ) Fn::MathRelational<std::logical_not<bool>>;

@@ -16,8 +16,7 @@ whether the queried locations are inside or outside the shape.
 import libUnderworld.libUnderworldPy.Function as _cfn
 from _function import Function as _Function
 from _function import input
-import sys
-import numpy as np
+import numpy as _np
 
 class Polygon(_Function):
     """  
@@ -69,7 +68,7 @@ class Polygon(_Function):
         else:
             self._fn = input()
         
-        if not isinstance(vertices, np.ndarray):
+        if not isinstance(vertices, _np.ndarray):
             raise TypeError( "Provided 'vertices' must be a numpy array." )
         if len(vertices.shape) != 2:
             raise TypeError( "Provided 'vertices' array must be 2 dimensional." )
@@ -79,7 +78,7 @@ class Polygon(_Function):
             raise TypeError( "Provided 'vertices' array must contain 2d vectors." )
         
         # ok, need to create a 3d array from the 2d array.. create array of required size
-        threedeearray = np.zeros( (vertices.shape[0],3) )
+        threedeearray = _np.zeros( (vertices.shape[0],3) )
         # now copy
         threedeearray[:,0:2] = vertices[:,0:2]
 

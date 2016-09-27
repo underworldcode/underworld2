@@ -367,11 +367,13 @@ class CrossSection(Drawing):
         Function used to determine values to render.
     crossSection : str, default=""
         Cross Section definition, eg. z=0.
+    resolution : unsigned, default=100
+        Surface rendered sampling resolution.
         
     """
     _objectsDict = { "_dr": "lucCrossSection" }
 
-    def __init__(self, mesh, fn, crossSection="",
+    def __init__(self, mesh, fn, crossSection="", resolution=100,
                        colours=None, colourMap=None, properties=None, opacity=None, colourBar=True,
                        valueRange=None, logScale=False, discrete=False, offsetEdges=None,
                        *args, **kwargs):
@@ -383,9 +385,15 @@ class CrossSection(Drawing):
         self._mesh = mesh
 
         if not isinstance(crossSection,str):
-            raise ValueError("'crossSection' argument must be of python type 'str'")
+            raise ValueError("'crossSection' parameter must be of python type 'str'")
         self._crossSection = crossSection
         self._offsetEdges = offsetEdges
+        
+        if not isinstance(resolution,int):
+            raise TypeError("'resolution' parameter must be of python type 'int'")
+        if resolution < 1:
+            raise ValueError("'resolution' parameter must be greater than zero")
+        self._resolution = resolution
 
         # build parent
         super(CrossSection,self).__init__(colours=colours, colourMap=colourMap, properties=properties, opacity=opacity, colourBar=colourBar,
@@ -404,7 +412,8 @@ class CrossSection(Drawing):
 
         componentDictionary[self._dr.name].update( {
                    "Mesh": self._mesh._cself.name,
-                   "crossSection": self._crossSection
+                   "crossSection": self._crossSection,
+                   "resolution" : self._resolution
             } )
 
     @property
@@ -447,7 +456,7 @@ class Surface(CrossSection):
         if drawOnMesh:
             raise RuntimeError("The 'drawOnMesh' option is currently disabled.")
         if not isinstance(drawSides,str):
-            raise ValueError("'drawSides' argument must be of python type 'str'")
+            raise ValueError("'drawSides' parameter must be of python type 'str'")
         self._drawSides = drawSides
 
         # if we wish to draw on mesh, switch live object

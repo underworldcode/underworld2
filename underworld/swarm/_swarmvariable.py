@@ -194,7 +194,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
             # set to writeability
             self._arr.flags.writeable = self._writeable
             # add to swarms weakref dict
-            self.swarm._livingArrays[self] = self._arr
+            self.swarm._livingArrays[self._cself.name + "_data"] = self._arr
         return self._arr
 
     @property
@@ -214,7 +214,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
             # set to writeability
             self._arrshadow.flags.writeable = False
             # add to swarms weakref dict
-            self.swarm._livingArrays[self] = self._arrshadow
+            self.swarm._livingArrays[self._cself.name + "_data_shadow"] = self._arrshadow
         return self._arrshadow
 
     def _clear_array(self):

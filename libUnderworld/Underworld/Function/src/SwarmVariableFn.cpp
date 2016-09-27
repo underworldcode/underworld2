@@ -67,8 +67,6 @@ Fn::SwarmVariableFn::func Fn::SwarmVariableFn::getFunction( IOsptr sample_input 
 
     std::shared_ptr<const FEMCoordinate>      meshCoord = std::dynamic_pointer_cast<const FEMCoordinate>(sample_input);
     std::shared_ptr<const ParticleCoordinate> partCoord = std::dynamic_pointer_cast<const ParticleCoordinate>(sample_input);
-    if (!(meshCoord||partCoord))
-        throw std::invalid_argument( "Provided input to SwarmVariableFn does not appear to be of supported type.\nSupported types are 'FEMCoordinate' and 'ParticleCoordinate'." );
     
     if( meshCoord )
     {
@@ -101,6 +99,8 @@ Fn::SwarmVariableFn::func Fn::SwarmVariableFn::getFunction( IOsptr sample_input 
     
     if (partCoord)
     {
+        if (((SwarmVariable*)partCoord->object())->swarm != swarmvar->swarm)
+            throw std::invalid_argument( "'ParticleCoordinate' input and `SwarmVariableFn` function appear to be based on different swarms." );
         // return the lambda
         return [_output, swarmvar](IOsptr input)->IOsptr {
             std::shared_ptr<const ParticleCoordinate>  partCoord = debug_dynamic_cast<const ParticleCoordinate>(input);
@@ -114,6 +114,11 @@ Fn::SwarmVariableFn::func Fn::SwarmVariableFn::getFunction( IOsptr sample_input 
             return debug_dynamic_cast<const FunctionIO>(_output);
         };
     }
+    
+    throw std::invalid_argument( "Provided input to SwarmVariableFn does not appear to be of supported type. "
+                                 "Supported types are 'FEMCoordinate' and 'ParticleCoordinate'. "
+                                 "From Python, these are provided by respectively 'VoronoiIntegrationSwarm' "
+                                 "and 'Swarm' type `FunctionInput` objects. " );
     
 }
 
