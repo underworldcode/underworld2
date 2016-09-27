@@ -17,6 +17,7 @@ All functions operate on and return 'double' type data (or
 """
 import libUnderworld.libUnderworldPy.Function as _cfn
 from _function import Function as _Function
+import underworld as _uw
 
 class cos(_Function):
     """
@@ -696,7 +697,7 @@ class pow(_Function):
     -------
     >>> import math
     >>> import numpy as np
-    >>> func = pow(input(),3.)
+    >>> func = pow(_uw.function.input(),3.)
     >>> np.allclose( func.evaluate(2.), math.pow(2.,3.) )
     True
 
