@@ -15,8 +15,8 @@
 extern const Type lucColourMap_Type;
 
 //A default colour map, used for mapping colour component values where no map provided
-#define LUC_DEFAULT_COLOURMAP lucColourMap_New("defaultColourMap", "black white", 0, 0, False, False)
-#define LUC_DEFAULT_ALPHAMAP lucColourMap_New("defaultAlphaMap", "#000000:0.0 black", 0, 0, False, False)
+#define LUC_DEFAULT_COLOURMAP lucColourMap_New("defaultColourMap", "colours=black white")
+#define LUC_DEFAULT_ALPHAMAP lucColourMap_New("defaultAlphaMap", "colours=#000000:0.0 black")
 
 struct lucColour 
 {
@@ -31,11 +31,7 @@ struct lucColour
       AbstractContext*                       context;             \
       double                                 minimum;             \
       double                                 maximum;             \
-      Bool                                   logScale;            \
-      Bool                                   discrete;            \
-      FieldVariable*                         fieldVariable;       \
       int                                    id;                  \
-      void*                                  object;              \
       char*                                  properties;          \
 
 struct lucColourMap
@@ -46,11 +42,7 @@ struct lucColourMap
 /** Constructors */
 lucColourMap* lucColourMap_New(
    Name                                         name,
-   char*                                        _colourMapString,
-   double                                       minimum,
-   double                                       maximum,
-   Bool                                         logScale,
-   Bool                                         discrete
+   char*                                        properties
 );
 
 
@@ -69,11 +61,7 @@ lucColourMap* _lucColourMap_New(  LUCCOLOURMAP_DEFARGS  );
 
 void _lucColourMap_Init(
    lucColourMap*                 self,
-   char*                         _colourMapString,
-   double                        minimum,
-   double                        maximum,
-   Bool                          logScale,
-   Bool                          discrete );
+   char*                         properties );
 
 /** Virtual Functions */
 void _lucColourMap_Delete( void* colourMap ) ;
@@ -85,6 +73,7 @@ void _lucColourMap_Initialise( void* colourMap, void* data ) ;
 void _lucColourMap_Execute( void* colourMap, void* data ) ;
 void _lucColourMap_Destroy( void* colourMap, void* data ) ;
 
+void lucColourMap_SetProperties( void* colourMap, char *props);
 void lucColourMap_SetMinMax( void* colourMap, double min, double max ) ;
 #endif
 

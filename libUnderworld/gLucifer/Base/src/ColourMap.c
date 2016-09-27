@@ -21,16 +21,10 @@ const Type lucColourMap_Type = "lucColourMap";
 
 lucColourMap* lucColourMap_New(
    Name                                               name,
-   char*                                              colourMapString,
-   double                                             minimum,
-   double                                             maximum,
-   Bool                                               logScale,
-   Bool                                               discrete)
+   char*                                              properties)
 {
    lucColourMap* self = (lucColourMap*) _lucColourMap_DefaultNew( name );
-
-   _lucColourMap_Init( self, colourMapString, minimum, maximum, logScale, discrete);
-
+   _lucColourMap_Init( self, properties);
    return self;
 }
 
@@ -52,25 +46,15 @@ lucColourMap* _lucColourMap_New(  LUCCOLOURMAP_DEFARGS  )
 
 void _lucColourMap_Init(
    lucColourMap*                 self,
-   char*                         _colourMapString,
-   double                        minimum,
-   double                        maximum,
-   Bool                          logScale,
-   Bool                          discrete)
+   char*                         properties )
+
 {
    /* Write property string */
    self->properties = Memory_Alloc_Array(char, 4096, "properties");
    memset(self->properties, 0, 4086);
-   snprintf(self->properties, 4096, "colours=%s\nrange=[%f,%f]", _colourMapString, minimum, maximum);
-
-   self->logScale     = logScale;
-   self->discrete     = discrete;
-   /* Set the range minimum and maximum 
-    * also scales the values to find colour bar positions [0,1] */
-   lucColourMap_SetMinMax(self, minimum, maximum);
-   self->fieldVariable = NULL;
+   strncpy(self->properties, properties, 4096);
+   lucColourMap_SetMinMax(self, 0, 0);
    self->id = 0;
-   self->object = NULL;
 }
 
 void _lucColourMap_Delete( void* colourMap )
@@ -106,18 +90,10 @@ void* _lucColourMap_DefaultNew( Name name )
 void _lucColourMap_AssignFromXML( void* colourMap, Stg_ComponentFactory* cf, void* data )
 {
    lucColourMap* self             = (lucColourMap*) colourMap;
-   double minimum, maximum;
-   Bool logScale, discrete;
-
-   logScale = Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"logScale", False  );
-   minimum = Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"minimum", logScale ? 1 : 0  );
-   maximum = Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"maximum", 1  );
-   discrete = Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"discrete", False  );
 
    _lucColourMap_Init(
       self,
-      Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"colours", "Blue;White;Red" ),
-      minimum, maximum, logScale, discrete
+      Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"properties", "colours=Blue;White;Red" )
    );
 }
 
@@ -126,6 +102,12 @@ void _lucColourMap_Initialise( void* colourMap, void* data ) { }
 void _lucColourMap_Execute( void* colourMap, void* data ) { }
 void _lucColourMap_Destroy( void* colourMap, void* data ) { }
 
+void lucColourMap_SetProperties( void* colourMap, char *props )
+{
+   lucColourMap* self = colourMap;
+   strncpy(self->properties, props, 4096);
+}
+
 void lucColourMap_SetMinMax( void* colourMap, double min, double max )
 {
    lucColourMap* self       = colourMap;
@@ -133,15 +115,5 @@ void lucColourMap_SetMinMax( void* colourMap, double min, double max )
    /* Copy to colour map */
    self->minimum = min;
    self->maximum = max;
-   if (self->logScale)
-   {
-      if (self->minimum <= DBL_MIN  )
-         self->minimum =  DBL_MIN;
-      if (self->maximum <= DBL_MIN )
-         self->maximum =  DBL_MIN;
-
-      if (self->minimum <= DBL_MIN || self->maximum == DBL_MIN )
-         Journal_DPrintf( lucInfo, "\n WARNING: Field used for logscale colourmap possibly contains non-positive values. \n" );
-   }
 }
 

@@ -21,13 +21,7 @@ import subprocess
 from subprocess import Popen, PIPE, STDOUT
 from . import objects
 import libUnderworld as _libUnderworld
-
-haveLavaVu = True
-try:
-    import libUnderworld.libUnderworldPy.LavaVu as LavaVu
-except:
-    print "WARNING: LavaVu not found, inline visualisation disabled"
-    haveLavaVu = False
+import libUnderworld.libUnderworldPy.lavavu as lavavu
 
 # lets create somewhere to dump data for this session
 import os
@@ -85,7 +79,6 @@ class Store(_stgermain.StgCompoundComponent):
     """
     _objectsDict = { "_db":"lucDatabase" }
     _selfObjectName = "_db"
-    _lv = None
 
     def __init__(self, filename=None, split=False, view=False, **kwargs):
 
@@ -134,11 +127,10 @@ class Store(_stgermain.StgCompoundComponent):
         #  and to pass it as first command line arg or if needed to get html path)
         self._lvpath = self._db.bin_path
         self._lvbin = os.path.join(self._db.bin_path, "LavaVu")
-        global haveLavaVu
-        if haveLavaVu and not os.path.isfile(self._lvbin):
+        if lavavu.enabled and not os.path.isfile(self._lvbin):
             print("LavaVu rendering engine does not appear to exist. Perhaps it was not compiled.\n"
                   "Please check your configuration, or contact developers.")
-            haveLavaVu = False
+            lavavu.enabled = False
 
     def save(self,filename):
         """  
@@ -160,7 +152,9 @@ class Store(_stgermain.StgCompoundComponent):
     def lvrun(self, db=None, *args, **kwargs):
         if not db:
             db = self._db.path
-        return LavaVu.load(self._lv, binary=self._lvbin, database=db, startstep=self.step, *args, **kwargs)
+        #Use default LavaVu instance to save resources
+        lavavu.viewer = lavavu.Viewer(lavavu.viewer, cache=False, binary=self._lvbin, database=db, startstep=self.step, *args, **kwargs)
+        return lavavu.viewer
 
     def _generate(self, figname, objects, props):
         #First merge object list with active
@@ -203,10 +197,12 @@ class Store(_stgermain.StgCompoundComponent):
             #Add drawing objects to register and output any custom data on them
             for obj in self._objects:
                 #Hide objects not in this figure (also check parent for colour bars)
-                obj._properties["visible"] = bool(obj in objects or obj.parent and obj.parent in objects)
+                obj.properties["visible"] = bool(obj in objects or obj.parent and obj.parent in objects)
 
-                #Ensure property update triggered before object written to db
-                obj.properties = obj._properties;
+                #Ensure properties updated before object written to db
+                _libUnderworld.gLucifer.lucDrawingObject_SetProperties(obj._dr, obj._getProperties());
+                if obj._colourMap:
+                    _libUnderworld.gLucifer.lucColourMap_SetProperties(obj._colourMap._cm, obj._colourMap._getProperties());
 
                 #Add the object to the drawing object register for the database
                 libUnderworld.StGermain.Stg_ObjectList_Append(self._db.drawingObject_Register.objects,obj._cself)
@@ -239,9 +235,9 @@ class Store(_stgermain.StgCompoundComponent):
                 for dbobj in state["objects"]:
                     dbobj["visible"] = False
                     for obj in objects:
-                        if dbobj["name"] == obj._properties["name"]:
+                        if dbobj["name"] == obj.properties["name"]:
                             #Merge/replace
-                            dbobj.update(obj._properties)
+                            dbobj.update(obj.properties)
                             dbobj["visible"] = True
             else:
                 #No objects passed in with figure, simply plot them all
@@ -266,7 +262,7 @@ class Store(_stgermain.StgCompoundComponent):
         #Objects passed from figure
         objlist = []
         for obj in objects:
-            objlist.append(obj._properties)
+            objlist.append(obj.properties)
 
         export["objects"] = objlist
         #TODO: ColourMap properties
@@ -275,7 +271,7 @@ class Store(_stgermain.StgCompoundComponent):
 
     def _read_state(self):
         #Read state from database
-        if not haveLavaVu or uw.rank() > 0:
+        if not lavavu.enabled or uw.rank() > 0:
             return
         if not self._db.db:
             libUnderworld.gLucifer.lucDatabase_OpenDatabase(self._db)
@@ -285,7 +281,6 @@ class Store(_stgermain.StgCompoundComponent):
             statestr = lv.getFigures()
             #Also save the step data
             self.timesteps = json.loads(lv.getTimeSteps())
-            lv.clear() #Close and free memory
             return json.loads(statestr)
         except RuntimeError,e:
             print "LavaVu error: " + str(e)
@@ -532,7 +527,7 @@ class Figure(dict):
         """
 
         self._generate_DB()
-        if not haveLavaVu or uw.rank() > 0:
+        if not lavavu.enabled or uw.rank() > 0:
             return
         try:
             if __IPYTHON__:
@@ -552,7 +547,6 @@ class Figure(dict):
                 else:
                     # -1 selects last figure/state in list
                     lv = self.db.lvrun(figure=-1, quality=self.quality, writeimage=True, res=self["resolution"], script=self._script)
-                lv.clear() #Free memory
             except RuntimeError,e:
                 print "LavaVu error: " + str(e)
                 pass
@@ -608,13 +602,12 @@ class Figure(dict):
         self.db._generate(self.name, objects, self)
 
     def _generate_image(self, filename="", size=(0,0)):
-        if not haveLavaVu or uw.rank() > 0:
+        if not lavavu.enabled or uw.rank() > 0:
             return
         try:
             #Render with viewer
             lv = self.db.lvrun(quality=self.quality, script=self._script)
             imagestr = lv.image(filename, size[0], size[1])
-            lv.clear() #Close and free memory
             #Return the generated filename
             return imagestr
         except RuntimeError,e:
@@ -623,7 +616,7 @@ class Figure(dict):
         return ""
 
     def _generate_HTML(self):
-        if not haveLavaVu or uw.rank() > 0:
+        if not lavavu.enabled or uw.rank() > 0:
             return
         try:
             #Export encoded json string
@@ -676,8 +669,20 @@ class Figure(dict):
         image_data = "data:image/png;base64,%s" % b64encode(response)
         return HTML("<img src='%s'>" % image_data)
 
+    def viewer(self):
+        """ Open the inline viewer.
+        """
+        fname = self.db.filename
+        if not fname:
+            fname = os.path.join(tmpdir,"gluciferDB"+self.db._id+".gldb")
+            self.save_database(fname)
+        if lavavu.enabled and uw.rank() == 0:
+            lavavu.viewer = self.db.lvrun(db=fname)
+            lavavu.control.viewer()
+            return lavavu.viewer
+
     def open_viewer(self, args=[], background=True):
-        """ Open the viewer.
+        """ Open the external viewer.
         """
         fname = self.db.filename
         if not fname:
@@ -687,7 +692,7 @@ class Figure(dict):
         if self._viewerProc and self._viewerProc.poll() == None:
             return
 
-        if haveLavaVu and uw.rank() == 0:
+        if lavavu.enabled and uw.rank() == 0:
             #Open viewer with local web server for interactive/iterative use
             if background:
                 self._viewerProc = subprocess.Popen([self.db._lvbin, "-" + str(self.db.step), "-p9999", "-q90", fname] + args,
@@ -695,7 +700,7 @@ class Figure(dict):
                 from IPython.display import HTML
                 return HTML('''<a href='#' onclick='window.open("http://" + location.hostname + ":9999");'>Open Viewer Interface</a>''')
             else:
-                lv = self.db.lvrun(database=fname, port=9999, args=args)
+                lv = self.db.lvrun(db=fname, port=9999)
 
     def close_viewer(self):
         """ Close the viewer.
@@ -723,7 +728,7 @@ class Figure(dict):
         cmd: str
             Command to send to open viewer.
         """
-        if haveLavaVu and uw.rank() == 0:
+        if lavavu.enabled and uw.rank() == 0:
             self.open_viewer()
             url = "http://localhost:9999/command=" + urllib2.quote(cmd)
             try:
@@ -834,7 +839,7 @@ class Viewer(dict):
 
         super(Viewer, self).__init__(*args, **kwargs)
 
-        if not haveLavaVu:
+        if not lavavu.enabled:
             print("LavaVu build is required to use Viewer")
             return
 
