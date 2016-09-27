@@ -75,16 +75,23 @@ class ColourMap(_stgermain.StgCompoundComponent):
     _objectsDict = { "_cm": "lucColourMap" }
     
     #Default is a cool-warm map with low variance in luminosity/lightness
-    def __init__(self, colours=None, valueRange=None, logScale=False, discrete=False, **kwargs):
+    def __init__(self, colours=None, valueRange=None, logScale=False, discrete=False, properties=None, **kwargs):
+
+        if not hasattr(self, 'properties'):
+            self.properties = {}
+        if properties and not isinstance(properties,dict):
+            raise TypeError("'properties' object passed in must be of python type 'dict'")
+        if properties:
+            self.properties.update(properties)
 
         if colours == None:
             colours = colourMaps["diverge"]
         if not isinstance(colours,(str,list)):
             raise TypeError("'colours' object passed in must be of python type 'str' or 'list'")
-        if isinstance(colours,(str)):
-            self._colours = colours.split()
+        if isinstance(colours,(list)):
+            self.properties.update({"colours" : ' '.join(colours)})
         else:
-            self._colours = colours
+            self.properties.update({"colours" : colours})
 
         if valueRange != None:
             # is valueRange correctly defined, ie list of length 2 made of numbers
@@ -99,17 +106,18 @@ class ColourMap(_stgermain.StgCompoundComponent):
                 raise ValueError("The first number of the valueRange list must be smaller than the second number")
 
             # valueRange arg is good 
-            self._valueRange   = valueRange
+            self.properties.update({"range" : [valueRange[0], valueRange[1]]})
         else:
-           self._valueRange   = [0.0,0.0] # ignored
+            self.properties.update({"range" : [0.0, 0.0]}) # ignored
 
         if not isinstance(logScale, bool):
             raise TypeError("'logScale' parameter must be of 'bool' type.")
         self._logScale = logScale
+        self.properties.update({"logscale" : logScale})
 
         if not isinstance(discrete, bool):
             raise TypeError("'discrete' parameter must be of 'bool' type.")
-        self._discrete = discrete
+        self.properties.update({"discrete" : discrete})
 
         # build parent
         super(ColourMap,self).__init__()
@@ -119,13 +127,19 @@ class ColourMap(_stgermain.StgCompoundComponent):
         # call parents method
         super(ColourMap,self)._add_to_stg_dict(componentDictionary)
 
-        componentDictionary[self._cm.name].update( {
-            "colours"       :" ".join(self._colours),
-            "logScale"      :self._logScale,
-            "discrete"      :self._discrete,
-            "maximum"       :self._valueRange[1],
-            "minimum"       :self._valueRange[0]
-        } )
+    #dict methods
+    def update(self, newdict):
+        self.properties.update(newdict)
+
+    def __getitem__(self, key):
+        return self.properties[key]
+
+    def __setitem__(self, key, item):
+        self.properties[key] = item
+
+    def _getProperties(self):
+        #Convert properties to string
+        return '\n'.join(['%s=%s' % (k,v) for k,v in self.properties.iteritems()]);
 
 class Drawing(_stgermain.StgCompoundComponent):
     """
@@ -174,18 +188,18 @@ class Drawing(_stgermain.StgCompoundComponent):
             self._colourMap = ColourMap(valueRange=valueRange, logScale=logScale)
 
         if not hasattr(self, 'properties'):
-            self._properties = {}
+            self.properties = {}
         if properties and not isinstance(properties,dict):
             raise TypeError("'properties' object passed in must be of python type 'dict'")
         if properties:
-            self._properties.update(properties)
+            self.properties.update(properties)
 
         if opacity != None:
             if not isinstance(opacity,(int,float)):
                 raise TypeError("'opacity' object passed in must be of python type 'int' or 'float'")
             if float(opacity) > 1. or float(opacity) < -1.:
                 raise ValueError("'opacity' object must takes values from 0. to 1.")
-            self._properties.update({"opacity" : opacity})
+            self.properties.update({"opacity" : opacity})
         
         if not isinstance(colourBar, bool):
             raise TypeError("'colourBar' parameter must be of 'bool' type.")
@@ -195,7 +209,7 @@ class Drawing(_stgermain.StgCompoundComponent):
             self._colourBar = ColourBar(colourMap=self._colourMap)
 
         if name and isinstance(name, str):
-            self._properties.update({"name" : name})
+            self.properties.update({"name" : name})
 
         self.resetDrawing()
 
@@ -215,23 +229,17 @@ class Drawing(_stgermain.StgCompoundComponent):
 
     #dict methods
     def update(self, newdict):
-        self._properties.update(newdict)
+        self.properties.update(newdict)
 
     def __getitem__(self, key):
-        return self._properties[key]
+        return self.properties[key]
 
     def __setitem__(self, key, item):
-        self._properties[key] = item
+        self.properties[key] = item
 
     def _getProperties(self):
         #Convert properties to string
-        return '\n'.join(['%s=%s' % (k,v) for k,v in self._properties.iteritems()]);
-
-    def _setProperties(self, newProps):
-        #Update the properties values (merge)
-        #values of any existing keys are replaced and drawing object is updated
-        self._properties.update(newProps)
-        _libUnderworld.gLucifer.lucDrawingObject_SetProperties(self._dr, self._getProperties());
+        return '\n'.join(['%s=%s' % (k,v) for k,v in self.properties.iteritems()]);
 
     def resetDrawing(self):
         #Clear direct drawing data
@@ -260,7 +268,7 @@ class Drawing(_stgermain.StgCompoundComponent):
         self.geomType = _libUnderworld.gLucifer.lucLabelType
         self.vertices.append(pos)
         self.labels.append(text)
-        self._setProperties({"font" : font, "fontscale" : scaling})
+        self.properties.update({"font" : font, "fontscale" : scaling}) #Merge
 
     def point(self, pos=(0.,0.,0.)):
         """  
@@ -315,19 +323,6 @@ class Drawing(_stgermain.StgCompoundComponent):
             self._colourBar = ColourBar(colourMap=self._colourMap)
         return self._colourBar
 
-    @property
-    def properties(self):
-        """    
-        properties (dict): visual properties of drawing object, passed to 
-        LavaVu to control rendering output of object.
-        """
-        return self._properties
-
-    @properties.setter
-    def properties(self, value):
-        #Sets new properties, overwriting any duplicate keys but keeping existing values otherwise
-        self._setProperties(value)
-
 class ColourBar(Drawing):
     """
     The ColourBar drawing object draws a colour bar for the provided colour map.
@@ -340,7 +335,7 @@ class ColourBar(Drawing):
 
     def __init__(self, colourMap, *args, **kwargs):
         #Default properties
-        self._properties = {"colourbar" : 1, "height" : None, "lengthfactor" : 0.8, 
+        self.properties = {"colourbar" : 1, "height" : None, "lengthfactor" : 0.8, 
                 "margin" : 20, "border" : 1, "precision" : 2, "scientific" : False, "font" : "small", 
                 "ticks" : 0, "printticks" : True, "printunits" : False, "scalevalue" : 1.0,
                 "font" : "small", "fontscale" : 0.4} #tick0-tick10 : val
@@ -349,8 +344,8 @@ class ColourBar(Drawing):
         super(ColourBar,self).__init__(colourMap=colourMap, *args, **kwargs)
 
         #Always show at least 2 tick marks on a log scale
-        if self._colourMap._logScale and self._properties["ticks"] < 2:
-            self._properties["ticks"] = 2
+        if self._colourMap._logScale and self.properties["ticks"] < 2:
+            self.properties["ticks"] = 2
 
 class CrossSection(Drawing):
     """  
@@ -457,9 +452,9 @@ class Surface(CrossSection):
 
 
         #Default properties
-        self._properties = {"cullface" : True}
+        self.properties = {"cullface" : True}
         # TODO: disable lighting if 2D (how to get dims?)
-        #self._properties["lit"] = False
+        #self.properties["lit"] = False
         
         # build parent
         super(Surface,self).__init__( mesh=mesh, fn=fn,
@@ -547,7 +542,7 @@ class Points(Drawing):
             raise TypeError("'pointType' object passed in must be of python type 'int'")
 
         #Default properties
-        self._properties = {"pointsize" : pointSize, "pointtype" : pointType}
+        self.properties = {"pointsize" : pointSize, "pointtype" : pointType}
 
         # build parent
         super(Points,self).__init__(
@@ -670,7 +665,7 @@ class VectorArrows(_GridSampler3D):
                 raise TypeError("'glyphs' object passed in must be of python type 'int'")
 
         #Default properties
-        self._properties = {"arrowHead" : arrowHead, "scaling" : scaling, "glyphs" : glyphs}
+        self.properties = {"arrowHead" : arrowHead, "scaling" : scaling, "glyphs" : glyphs}
 
         # build parent
         super(VectorArrows,self).__init__( mesh=mesh, fn=fn, resolutionI=resolutionI, resolutionJ=resolutionJ, resolutionK=resolutionK,
@@ -759,9 +754,9 @@ class Mesh(Drawing):
         self._segmentsPerEdge = segmentsPerEdge
 
         #Default properties
-        self._properties = {"lit" : False, "font" : "small", "fontscale" : 0.5,
-                            "pointsize" : 5 if self._nodeNumbers else 1, 
-                            "pointtype" : 2 if self._nodeNumbers else 4}
+        self.properties = {"lit" : False, "font" : "small", "fontscale" : 0.5,
+                           "pointsize" : 5 if self._nodeNumbers else 1, 
+                           "pointtype" : 2 if self._nodeNumbers else 4}
         
         # build parent
         super(Mesh,self).__init__( colours=None, colourMap=None, properties=properties, opacity=opacity, colourBar=False, *args, **kwargs )

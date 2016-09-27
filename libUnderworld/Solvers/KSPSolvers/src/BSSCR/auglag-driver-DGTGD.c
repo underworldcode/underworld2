@@ -79,8 +79,8 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
 
     MGContext mgCtx;
     double mgSetupTime, scrSolveTime, RHSsolveTime, a11SingleSolveTime, penaltyNumber;// hFactor;
-    static int been_here = 0;  /* Ha Ha Ha !! */
-    static Vec uStar;
+    int been_here = bsscrp_self->been_here;
+    Vec uStar = bsscrp_self->uStar;
 
     char name[PETSC_MAX_PATH_LEN];
     char matname[PETSC_MAX_PATH_LEN];

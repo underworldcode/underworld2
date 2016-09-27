@@ -28,7 +28,6 @@ swigfiles = [
               "Underworld.i",
               "Solvers.i",
               "gLucifer.i",
-              "LavaVu.i",
              ]
 #
 for swigfile in swigfiles:
@@ -39,3 +38,11 @@ for swigfile in swigfiles:
     subp = subprocess.Popen(swigcommandbase + swigheaders + ' ' + swigfile, shell=True )
     if subp.wait() != 0 :
         raise RuntimeError("Error generating swig bindings.")
+
+#LavaVu setup
+subp = subprocess.Popen(swigcommandbase + ' -outdir . ../gLucifer/Viewer/LavaVuPython.i', shell=True )
+if subp.wait() != 0 :
+    raise RuntimeError("Error generating swig bindings.")
+
+os.system('ln -s ../gLucifer/Viewer/lavavu.py')
+os.system('ln -s ../gLucifer/Viewer/control.py')

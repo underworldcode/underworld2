@@ -19,21 +19,24 @@ typedef enum {DEFAULT, KONLY} Stype;
 
 #define __KSP_BSSCR \
         __KSP_COMMON /* defined in StokesBlockKSPInterface.h has (st_sle, mg, DIsSym, preconditioner) */ \
-	Mat K2,M,S,approxS; \
-	Vec S1,S2,f2; /* S1 usually is sqrt(1/diag(K)) */	\
-	Vec t, v; /* null space vectors for pressure */ \
-	double nstol; \
-	int min_it; /* minimum iterations for KSP cf max_it */ \
-	K2Type k2type; \
-	MatStokesBlockScaling BA; /* sticking with this instead of using S1 and S2 for the moment */ \
-	PetscErrorCode (*scale)(KSP); \
-	PetscErrorCode (*unscale)(KSP); \
-	PetscErrorCode (*buildK2)(KSP); \
-	PetscErrorCode (*buildPNS)(KSP); \
-	/* check_cb_pressureNS:<- check for pressure checker-board nullspace; check_const_pressureNS:<- check for constant pressure nullspace */ \
-	PetscTruth scaled, do_scaling, K2built, check_cb_pressureNS, check_const_pressureNS, check_pressureNS; \
-        Stype scaletype; \
-        PetscReal snesabstol;
+  Mat K2,M,S,approxS; \
+  Vec S1,S2,f2; /* S1 usually is sqrt(1/diag(K)) */	\
+  Vec t, v; /* null space vectors for pressure */ \
+  double nstol; \
+  int min_it; /* minimum iterations for KSP cf max_it */ \
+  K2Type k2type; \
+  MatStokesBlockScaling BA; /* sticking with this instead of using S1 and S2 for the moment */ \
+  PetscErrorCode (*scale)(KSP); \
+  PetscErrorCode (*unscale)(KSP); \
+  PetscErrorCode (*buildK2)(KSP); \
+  PetscErrorCode (*buildPNS)(KSP); \
+  /* check_cb_pressureNS:<- check for pressure checker-board nullspace; check_const_pressureNS:<- check for constant pressure nullspace */ \
+  PetscTruth scaled, do_scaling, K2built, check_cb_pressureNS, check_const_pressureNS, check_pressureNS; \
+  Stype scaletype; \
+  PetscReal snesabstol; \
+  int been_here; \
+  Vec uStar; \
+    
 
 //typedef StokesBlockKSPInterface KSP_BSSCR;
 struct KSP_BSSCR { __KSP_BSSCR };
