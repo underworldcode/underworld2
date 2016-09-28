@@ -34,7 +34,7 @@ libUnderworld/libUnderworldPy/c_arrays.py
 libUnderworld/libUnderworldPy/c_pointers.py
 libUnderworld/libUnderworldPy/gLucifer.py
 libUnderworld/libUnderworldPy/petsc.py
-libUnderworld/libUnderworldPy/LavaVu.py
+libUnderworld/libUnderworldPy/lavavu.py
 testResults
 docs/scratch
 docs/test/*Output
