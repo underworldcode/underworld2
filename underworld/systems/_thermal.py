@@ -42,10 +42,8 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
         integrate across elements. The provided swarm is used as the basis for
         the voronoi integration. If no swarm is provided, Gauss integration 
         is used.
-    conditions : list, uw.conditions._SystemCondition, default = []
+    conditions : uw.conditions._SystemCondition (or list of), default = []
         Numerical conditions to impose on the system.
-        uw.conditions.DirichletCondition : define scalar values of \phi
-        uw.conditions.NeumannCondition :   define the vector (k \nabla \phi)
 
     Notes
     -----
@@ -111,8 +109,6 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
         if voronoi_swarm and temperatureField.mesh.elementType=='Q2':
             uw._warnings.warn("Voronoi integration may yield unsatisfactory results for Q2 element types.")
 
-        if not isinstance(conditions, (uw.conditions._SystemCondition, list, tuple) ):
-            raise TypeError( "Provided 'conditions' must be a list '_SystemCondition' objects." )
         if not isinstance( _removeBCs, bool):
             raise TypeError( "Provided '_removeBCs' must be of type bool." )
         self._removeBCs = _removeBCs
@@ -121,6 +117,10 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
         nbc  = None
         mesh = temperatureField.mesh
 
+        if not isinstance(conditions,(list,tuple)):
+            conditionslist = []
+            conditionslist.append(conditions)
+            conditions = conditionslist
         for cond in conditions:
             if not isinstance( cond, uw.conditions._SystemCondition ):
                 raise TypeError( "Provided 'conditions' must be a list '_SystemCondition' objects." )

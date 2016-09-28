@@ -30,7 +30,7 @@ class Integral(_stgermain.StgCompoundComponent):
 
     .. math:: F_{i}  =   \oint_{\Gamma} \,  f_i(\mathbf{x})  \,  \mathrm{d}\Gamma
 
-    for some surface $\Gamma$ (specified via an `IndexSet` object on the mesh). 
+    for some surface $\Gamma$ (specified via an `IndexSet` object on the mesh).
 
 
     Parameters
