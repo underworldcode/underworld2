@@ -8,6 +8,11 @@ from underworld import function as fn
 import glucifer
 import images
 
+#Check if the viewer is working
+if not glucifer.lavavu.enabled:
+    print "Image tests skipped, Viewer disabled"
+    exit()
+
 #Don't fail tests if no PIL
 #(requires pip install pillow)
 images.importPIL()
