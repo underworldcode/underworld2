@@ -81,7 +81,8 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
     def __init__(self, temperatureField, fn_diffusivity=None, fn_heating=0., voronoi_swarm=None, conditions=[], _removeBCs=True, swarm=None, **kwargs):
         # DEPRECATE. JM 09/16
         if swarm:
-            uw._warnings.warn("'swarm' paramater has been renamed to 'voronoi_swarm'. Please update your models. "+
+            import warnings
+            warnings.warn("'swarm' paramater has been renamed to 'voronoi_swarm'. Please update your models. "+
                           "'swarm' parameter will be removed in the next release.")
             if voronoi_swarm:
                 raise ValueError("Please provide only a 'voronoi_swarm'. 'swarm' is deprecated.")
@@ -107,7 +108,8 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
             raise TypeError( "Provided 'swarm' must be of 'Swarm' class." )
         self._swarm = voronoi_swarm
         if voronoi_swarm and temperatureField.mesh.elementType=='Q2':
-            uw._warnings.warn("Voronoi integration may yield unsatisfactory results for Q2 element types.")
+            import warnings
+            warnings.warn("Voronoi integration may yield unsatisfactory results for Q2 element types.")
 
         if not isinstance( _removeBCs, bool):
             raise TypeError( "Provided '_removeBCs' must be of type bool." )
