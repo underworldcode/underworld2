@@ -11,3 +11,8 @@ export HDF5_VERSION=1.8.14
 export PETSC_DIR=/projects/m18/opt/petsc-3.6.3
 export PYTHONPATH=/projects/m18/opt:$PYTHONPATH
 export PATH=/projects/m18/opt/swig-3.0.10/bin:$PATH
+
+./configure.py --python-dir=$PYTHON_ROOT
+./compile.py
+
+export PYTHONPATH=$PYTHONPATH:/path-to-Underworld2/underworld2
