@@ -89,15 +89,15 @@ class map(_Function):
     here, you can use any object of the class Function.
     
     >>> fn_map = fn.branching.map(fn_key=svar, mapping={0: 0., 1:1.})
-    >>> np.isclose(np.pi, uw.utils.Integral(fn_map,mesh).evaluate(),rtol=2e-2)
-    array([ True], dtype=bool)
+    >>> np.allclose(np.pi, uw.utils.Integral(fn_map,mesh).evaluate(),rtol=2e-2)
+    True
     
     Alternatively, we could utilise the default function to achieve the same 
     result.
     
     >>> fn_map = fn.branching.map(fn_key=svar, mapping={1: 1.}, fn_default=0.)
-    >>> np.isclose(np.pi, uw.utils.Integral(fn_map,mesh).evaluate(),rtol=2e-2)
-    array([ True], dtype=bool)
+    >>> np.allclose(np.pi, uw.utils.Integral(fn_map,mesh).evaluate(),rtol=2e-2)
+    True
 
     """
     
@@ -193,8 +193,8 @@ class conditional(_Function):
     >>> circleFn = fn.coord()[0]**2 + fn.coord()[1]**2
     >>> fn_conditional = fn.branching.conditional( [ (circleFn < 1., 1. ), \
                                                      (         True, 0. ) ] )
-    >>> np.isclose(np.pi, uw.utils.Integral(fn_conditional,mesh).evaluate(),rtol=1e-2)
-    array([ True], dtype=bool)
+    >>> np.allclose(np.pi, uw.utils.Integral(fn_conditional,mesh).evaluate(),rtol=1e-2)
+    True
     """
 
     def __init__(self, clauses, *args, **kwargs):

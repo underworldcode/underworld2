@@ -59,14 +59,14 @@ class Integral(_stgermain.StgCompoundComponent):
     >>> import underworld as uw
     >>> mesh = uw.mesh.FeMesh_Cartesian(minCoord=(0.,0.), maxCoord=(1.,1.))
     >>> volumeIntegral = uw.utils.Integral(fn=1.,mesh=mesh)
-    >>> np.isclose( 1., volumeIntegral.evaluate(), rtol=1e-8)
-    array([ True], dtype=bool)
+    >>> np.allclose( 1., volumeIntegral.evaluate(), rtol=1e-8)
+    True
 
     Calculate surface area of mesh:
 
     >>> surfaceIntegral = uw.utils.Integral(fn=1., mesh=mesh, integrationType='surface', surfaceIndexSet=mesh.specialSets["AllWalls_VertexSet"])
-    >>> np.isclose( 4., surfaceIntegral.evaluate(), rtol=1e-8)
-    array([ True], dtype=bool)
+    >>> np.allclose( 4., surfaceIntegral.evaluate(), rtol=1e-8)
+    True
 
     """
     _objectsDict = { "_integral": "Fn_Integrate" }

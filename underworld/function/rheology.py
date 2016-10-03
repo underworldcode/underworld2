@@ -66,7 +66,7 @@ class stress_limiting_viscosity(_Function):
     >>> fn_minmax_inv = fn.view.min_max(fn.tensor.second_invariant(fn_stress))
     >>> ignore = fn_minmax_inv.evaluate(mesh)
     >>> import numpy as np
-    >>> np.isclose(fn_minmax_inv.max_global(), 1.0, rtol=1e-05)
+    >>> np.allclose(fn_minmax_inv.max_global(), 1.0, rtol=1e-05)
     True
 
     Now lets set the limited viscosity. Note that the system is now non-linear.
@@ -78,7 +78,7 @@ class stress_limiting_viscosity(_Function):
     >>> fn_stress = 2.*fn_visc_limited*uw.function.tensor.symmetric( velVar.fn_gradient )
     >>> fn_minmax_inv = fn.view.min_max(fn.tensor.second_invariant(fn_stress))
     >>> ignore = fn_minmax_inv.evaluate(mesh)
-    >>> np.isclose(fn_minmax_inv.max_global(), 0.5, rtol=1e-05)
+    >>> np.allclose(fn_minmax_inv.max_global(), 0.5, rtol=1e-05)
     True
 
 

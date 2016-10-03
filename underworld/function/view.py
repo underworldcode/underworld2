@@ -77,15 +77,15 @@ class min_max(_Function):
     >>> fn_vec = fn.view.min_max(fn.input())
     >>> fn_vec.evaluate( ( 1., 1.) )
     array([[ 1.,  1.]])
-    >>> np.isclose(fn_vec.min_global(), math.sqrt(2.))
+    >>> np.allclose(fn_vec.min_global(), math.sqrt(2.))
     True
-    >>> np.isclose(fn_vec.max_global(), math.sqrt(2.))
+    >>> np.allclose(fn_vec.max_global(), math.sqrt(2.))
     True
     >>> fn_vec.evaluate( ( -1., 0.) )
     array([[-1.,  0.]])
-    >>> np.isclose(fn_vec.min_global(), 1. )
+    >>> np.allclose(fn_vec.min_global(), 1. )
     True
-    >>> np.isclose(fn_vec.max_global(), math.sqrt(2.))
+    >>> np.allclose(fn_vec.max_global(), math.sqrt(2.))
     True
     
 
