@@ -79,17 +79,10 @@ def convert_ipynb_to_py(fname):
     using the script `ipynb_to_py.sh`
     """
 
-    try:
-        # create error files for reporting
-        outName = "./convert_"+os.path.basename(fname)+".out"
-        outFile = open(outName, "w")
+    # create error files for reporting
+    outName = "./convert_"+os.path.basename(fname)+".out"
+    with open(outName, "w") as outFile:
         subprocess.check_call(['sh', 'ipynb_to_py.sh', fname], stdout=outFile, stderr=outFile )
-    except subprocess.CalledProcessError:
-        print "Error: failed to convert "+fname+" to a .py script"
-        return False  # report test failed
-    finally:
-        outFile.close()
-
     os.remove(outName)
     return fname.replace('.ipynb', '.py')   # return new the python file
 
@@ -203,12 +196,15 @@ if __name__ == '__main__':
             exe = ['runipy']      # use runipy instead
         elif is_ipynb:
             # convert ipynb to py and move to 'testResults'
-            print("* converting test {} to .py".format(fname));
+            print("Converting test {} to .py".format(fname));
             logFile.write("\nconverting "+fname+" to a python script");
 
-            fname = convert_ipynb_to_py(fname) # convert
-            if fname == None:
-                raise RuntimeError("Unexpected error in converting ipynb to py")
+            try:
+                fname = convert_ipynb_to_py(fname) # convert
+            except subprocess.CalledProcessError:
+                print "Error: unable to convert. Skipping."
+                continue
+
             cleanup=True
 
         if args.replace_outputs:

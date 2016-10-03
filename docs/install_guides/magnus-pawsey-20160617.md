@@ -34,5 +34,4 @@ aprun -n 1 -N 1 python compile.py
 # Test
 cd ..
 export PYTHONPATH=$PYTHONPATH:$PWD
-cd utils
-aprun -n 1 -N 1 
+aprun -n 1 -N 1 test_basic.sh
