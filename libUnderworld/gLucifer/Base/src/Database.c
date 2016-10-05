@@ -288,7 +288,7 @@ void _lucDatabase_Execute( void* database, void* data )
 
       /* Enter timestep in database */
       /* Write and update timestep */
-      snprintf(SQL, MAX_QUERY_LEN, "insert into timestep (id, time, properties) values (%d, %g, '%s')", self->timeStep, currentTime, "");
+      snprintf(SQL, MAX_QUERY_LEN, "insert or replace into timestep (id, time, properties) values (%d, %g, '%s')", self->timeStep, currentTime, "");
       /*printf("%s\n", SQL);*/
       if (!lucDatabase_IssueSQL(self->db, SQL)) return;
       /* Also write to attached db */
