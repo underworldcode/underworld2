@@ -151,7 +151,3 @@ class min_max(_Function):
         """ Resets the minimum and maximum values.
         """
         return self._fncself.reset()
-    def min(self):
-        raise RuntimeError("The 'min' method has been renamed to 'min_local'.")
-    def max(self):
-        raise RuntimeError("The 'max' method has been renamed to 'max_local'.")
