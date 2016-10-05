@@ -156,10 +156,6 @@ if __name__ == '__main__':
         if args.mpirun == None:
             parser.print_help()
             raise ValueError("'NPROCS' is >1, you must specify an executable to 'MPIRUN'")
-        try:
-            subprocess.check_call([args.mpirun, '-h'], stdout=DEVNULL, stderr=DEVNULL)
-        except:
-            raise ValueError("Given 'mpirun'(" + args.mpirun + ") command does not appear to be valid.")
 
     # initialise test counters
     nfails=0
