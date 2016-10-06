@@ -1,5 +1,5 @@
 FROM debian:jessie
-MAINTAINER mansourjohn@gmail.com
+MAINTAINER https://github.com/underworldcode/
 
 # install things
 RUN apt-get update -qq && \
