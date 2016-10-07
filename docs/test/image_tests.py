@@ -9,7 +9,7 @@ import glucifer
 import images
 
 #Check if the viewer is working
-if not glucifer.lavavu.enabled:
+if not glucifer.lavavu:
     print "Image tests skipped, Viewer disabled"
     exit()
 
