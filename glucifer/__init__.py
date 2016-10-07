@@ -26,8 +26,8 @@ import _glucifer
 from _glucifer import Store
 from _glucifer import Figure
 from _glucifer import Viewer
+from _glucifer import lavavu
 from . import objects
-import libUnderworld.libUnderworldPy.lavavu as lavavu
 
 _display = None
 

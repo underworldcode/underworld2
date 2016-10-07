@@ -21,7 +21,13 @@ import subprocess
 from subprocess import Popen, PIPE, STDOUT
 from . import objects
 import libUnderworld as _libUnderworld
-import libUnderworld.libUnderworldPy.lavavu as lavavu
+
+#Attempt to import lavavu module
+lavavu = None
+try:
+    import libUnderworld.libUnderworldPy.lavavu as lavavu
+except:
+    print "LavaVu module not found! disabling inline visualisation"
 
 # lets create somewhere to dump data for this session
 import os
@@ -127,10 +133,11 @@ class Store(_stgermain.StgCompoundComponent):
         #  and to pass it as first command line arg or if needed to get html path)
         self._lvpath = self._db.bin_path
         self._lvbin = os.path.join(self._db.bin_path, "LavaVu")
-        if lavavu.enabled and not os.path.isfile(self._lvbin):
+        global lavavu
+        if lavavu and not os.path.isfile(self._lvbin):
             print("LavaVu rendering engine does not appear to exist. Perhaps it was not compiled.\n"
                   "Please check your configuration, or contact developers.")
-            lavavu.enabled = False
+            lavavu = None
 
     def save(self,filename):
         """  
@@ -271,7 +278,8 @@ class Store(_stgermain.StgCompoundComponent):
 
     def _read_state(self):
         #Read state from database
-        if not lavavu.enabled or uw.rank() > 0:
+        global lavavu
+        if not lavavu or uw.rank() > 0:
             return
         if not self._db.db:
             libUnderworld.gLucifer.lucDatabase_OpenDatabase(self._db)
@@ -527,7 +535,8 @@ class Figure(dict):
         """
 
         self._generate_DB()
-        if not lavavu.enabled or uw.rank() > 0:
+        global lavavu
+        if not lavavu or uw.rank() > 0:
             return
         try:
             if __IPYTHON__:
@@ -602,7 +611,8 @@ class Figure(dict):
         self.db._generate(self.name, objects, self)
 
     def _generate_image(self, filename="", size=(0,0)):
-        if not lavavu.enabled or uw.rank() > 0:
+        global lavavu
+        if not lavavu or uw.rank() > 0:
             return
         try:
             #Render with viewer
@@ -616,7 +626,8 @@ class Figure(dict):
         return ""
 
     def _generate_HTML(self):
-        if not lavavu.enabled or uw.rank() > 0:
+        global lavavu
+        if not lavavu or uw.rank() > 0:
             return
         try:
             #Export encoded json string
@@ -676,7 +687,8 @@ class Figure(dict):
         if not fname:
             fname = os.path.join(tmpdir,"gluciferDB"+self.db._id+".gldb")
             self.save_database(fname)
-        if lavavu.enabled and uw.rank() == 0:
+        global lavavu
+        if lavavu and uw.rank() == 0:
             lavavu.viewer = self.db.lvrun(db=fname)
             lavavu.control.viewer()
             return lavavu.viewer
@@ -692,7 +704,8 @@ class Figure(dict):
         if self._viewerProc and self._viewerProc.poll() == None:
             return
 
-        if lavavu.enabled and uw.rank() == 0:
+        global lavavu
+        if lavavu and uw.rank() == 0:
             #Open viewer with local web server for interactive/iterative use
             if background:
                 self._viewerProc = subprocess.Popen([self.db._lvbin, "-" + str(self.db.step), "-p9999", "-q90", fname] + args,
@@ -728,7 +741,8 @@ class Figure(dict):
         cmd: str
             Command to send to open viewer.
         """
-        if lavavu.enabled and uw.rank() == 0:
+        global lavavu
+        if lavavu and uw.rank() == 0:
             self.open_viewer()
             url = "http://localhost:9999/command=" + urllib2.quote(cmd)
             try:
@@ -839,6 +853,7 @@ class Viewer(dict):
 
         super(Viewer, self).__init__(*args, **kwargs)
 
+        global lavavu
         if not lavavu.enabled:
             print("LavaVu build is required to use Viewer")
             return
