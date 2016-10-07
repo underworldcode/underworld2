@@ -853,7 +853,7 @@ class Viewer(dict):
         super(Viewer, self).__init__(*args, **kwargs)
 
         global lavavu
-        if not lavavu.enabled:
+        if not lavavu:
             print("LavaVu build is required to use Viewer")
             return
 
