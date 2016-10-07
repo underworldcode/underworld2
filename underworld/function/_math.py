@@ -15,10 +15,9 @@ the 'exp' class generates a function with uses std::exp(double).
 All functions operate on and return 'double' type data (or
 'float' from python).
 """
-import underworld as uw
 import libUnderworld.libUnderworldPy.Function as _cfn
 from _function import Function as _Function
-from _function import input
+import underworld as _uw
 
 class cos(_Function):
     """
@@ -36,8 +35,8 @@ class cos(_Function):
     >>> import math
     >>> import numpy as np
     >>> func = cos()
-    >>> np.isclose( func.evaluate(0.1234), math.cos(0.1234) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( func.evaluate(0.1234), math.cos(0.1234) )
+    True
 
     """
     def __init__(self, fn=None, *args, **kwargs):
@@ -70,8 +69,8 @@ class sin(_Function):
     >>> import math
     >>> import numpy as np
     >>> func = sin()
-    >>> np.isclose( func.evaluate(0.1234), math.sin(0.1234) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( func.evaluate(0.1234), math.sin(0.1234) )
+    True
 
     """
     def __init__(self, fn=None, *args, **kwargs):
@@ -104,8 +103,8 @@ class tan(_Function):
     >>> import math
     >>> import numpy as np
     >>> func = tan()
-    >>> np.isclose( func.evaluate(0.1234), math.tan(0.1234) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( func.evaluate(0.1234), math.tan(0.1234) )
+    True
 
     """
     def __init__(self, fn=None, *args, **kwargs):
@@ -137,8 +136,8 @@ class acos(_Function):
     >>> import math
     >>> import numpy as np
     >>> func = acos()
-    >>> np.isclose( func.evaluate(0.1234), math.acos(0.1234) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( func.evaluate(0.1234), math.acos(0.1234) )
+    True
 
     """
     def __init__(self, fn=None, *args, **kwargs):
@@ -170,8 +169,8 @@ class asin(_Function):
     >>> import math
     >>> import numpy as np
     >>> func = asin()
-    >>> np.isclose( func.evaluate(0.1234), math.asin(0.1234) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( func.evaluate(0.1234), math.asin(0.1234) )
+    True
 
     """
     def __init__(self, fn=None, *args, **kwargs):
@@ -203,8 +202,8 @@ class atan(_Function):
     >>> import math
     >>> import numpy as np
     >>> func = atan()
-    >>> np.isclose( func.evaluate(0.1234), math.atan(0.1234) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( func.evaluate(0.1234), math.atan(0.1234) )
+    True
 
     """
     def __init__(self, fn=None, *args, **kwargs):
@@ -236,8 +235,8 @@ class cosh(_Function):
     >>> import math
     >>> import numpy as np
     >>> func = cosh()
-    >>> np.isclose( func.evaluate(0.1234), math.cosh(0.1234) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( func.evaluate(0.1234), math.cosh(0.1234) )
+    True
 
     """
     def __init__(self, fn=None, *args, **kwargs):
@@ -269,8 +268,8 @@ class sinh(_Function):
     >>> import math
     >>> import numpy as np
     >>> func = sinh()
-    >>> np.isclose( func.evaluate(0.1234), math.sinh(0.1234) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( func.evaluate(0.1234), math.sinh(0.1234) )
+    True
 
     """
     def __init__(self, fn=None, *args, **kwargs):
@@ -302,8 +301,8 @@ class tanh(_Function):
     >>> import math
     >>> import numpy as np
     >>> func = tanh()
-    >>> np.isclose( func.evaluate(0.1234), math.tanh(0.1234) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( func.evaluate(0.1234), math.tanh(0.1234) )
+    True
 
     """
     def __init__(self, fn=None, *args, **kwargs):
@@ -335,8 +334,8 @@ class acosh(_Function):
     >>> import math
     >>> import numpy as np
     >>> func = acosh()
-    >>> np.isclose( func.evaluate(5.1234), math.acosh(5.1234) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( func.evaluate(5.1234), math.acosh(5.1234) )
+    True
 
     """
     def __init__(self, fn=None, *args, **kwargs):
@@ -368,8 +367,8 @@ class asinh(_Function):
     >>> import math
     >>> import numpy as np
     >>> func = asinh()
-    >>> np.isclose( func.evaluate(5.1234), math.asinh(5.1234) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( func.evaluate(5.1234), math.asinh(5.1234) )
+    True
 
     """
     def __init__(self, fn=None, *args, **kwargs):
@@ -401,8 +400,8 @@ class atanh(_Function):
     >>> import math
     >>> import numpy as np
     >>> func = atanh()
-    >>> np.isclose( func.evaluate(0.1234), math.atanh(0.1234) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( func.evaluate(0.1234), math.atanh(0.1234) )
+    True
 
     """
     def __init__(self, fn=None, *args, **kwargs):
@@ -434,8 +433,8 @@ class exp(_Function):
     >>> import math
     >>> import numpy as np
     >>> func = exp()
-    >>> np.isclose( func.evaluate(0.1234), math.exp(0.1234) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( func.evaluate(0.1234), math.exp(0.1234) )
+    True
 
     """
     def __init__(self, fn=None, *args, **kwargs):
@@ -467,8 +466,8 @@ class log(_Function):
     >>> import math
     >>> import numpy as np
     >>> func = log()
-    >>> np.isclose( func.evaluate(0.1234), math.log(0.1234) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( func.evaluate(0.1234), math.log(0.1234) )
+    True
 
     """
     def __init__(self, fn=None, *args, **kwargs):
@@ -500,8 +499,8 @@ class log2(_Function):
     >>> import math
     >>> import numpy as np
     >>> func = log2()
-    >>> np.isclose( func.evaluate(0.1234), math.log(0.1234,2) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( func.evaluate(0.1234), math.log(0.1234,2) )
+    True
 
     """
     def __init__(self, fn=None, *args, **kwargs):
@@ -533,8 +532,8 @@ class log10(_Function):
     >>> import math
     >>> import numpy as np
     >>> func = log10()
-    >>> np.isclose( func.evaluate(0.1234), math.log10(0.1234) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( func.evaluate(0.1234), math.log10(0.1234) )
+    True
 
     """
     def __init__(self, fn=None, *args, **kwargs):
@@ -566,8 +565,8 @@ class sqrt(_Function):
     >>> import math
     >>> import numpy as np
     >>> func = sqrt()
-    >>> np.isclose( func.evaluate(0.1234), math.sqrt(0.1234) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( func.evaluate(0.1234), math.sqrt(0.1234) )
+    True
 
     """
     def __init__(self, fn=None, *args, **kwargs):
@@ -599,8 +598,8 @@ class erf(_Function):
     >>> import math
     >>> import numpy as np
     >>> func = erf()
-    >>> np.isclose( func.evaluate(0.1234), math.erf(0.1234) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( func.evaluate(0.1234), math.erf(0.1234) )
+    True
 
     """
     def __init__(self, fn=None, *args, **kwargs):
@@ -632,8 +631,8 @@ class erfc(_Function):
     >>> import math
     >>> import numpy as np
     >>> func = erfc()
-    >>> np.isclose( func.evaluate(0.1234), math.erfc(0.1234) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( func.evaluate(0.1234), math.erfc(0.1234) )
+    True
 
     """
     def __init__(self, fn=None, *args, **kwargs):
@@ -665,8 +664,8 @@ class abs(_Function):
     >>> import math
     >>> import numpy as np
     >>> func = abs()
-    >>> np.isclose( func.evaluate(-0.1234), math.fabs(0.1234) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( func.evaluate(-0.1234), math.fabs(0.1234) )
+    True
 
     """
     def __init__(self, fn=None, *args, **kwargs):
@@ -698,9 +697,9 @@ class pow(_Function):
     -------
     >>> import math
     >>> import numpy as np
-    >>> func = pow(input(),3.)
-    >>> np.isclose( func.evaluate(2.), math.pow(2.,3.) )
-    array([[ True]], dtype=bool)
+    >>> func = pow(_uw.function.input(),3.)
+    >>> np.allclose( func.evaluate(2.), math.pow(2.,3.) )
+    True
 
     """
     def __init__(self, fn1, fn2, **kwargs):
@@ -740,8 +739,8 @@ class dot(_Function):
     >>> func = dot( input1, input2 )
 
     The function is constant, so evaluate anywhere:
-    >>> np.isclose( func.evaluate(0.), np.dot(input1,input2) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( func.evaluate(0.), np.dot(input1,input2) )
+    True
 
     """
     def __init__(self, fn1, fn2, **kwargs):

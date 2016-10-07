@@ -105,49 +105,17 @@ def barrier():
 
 def matplotlib_inline():
     """
-    This function simply enables Jupyter Notebook inlined matplotlib results. 
-    Using this is preferable to directly using the standard Jupyter Notebook
-    magic, as if you export your notebook to standard python, inlining of 
-    matplotlib results will be automatically disabled.
+    This function simply enables Jupyter Notebook inlined matplotlib results.
+    This is the same functionality provided by the Jupyter Notebook 
+    *%matplotlib inline* magic. Using this method is preferable as it 
+    allows notebooks to be converted to Python scripts which do not rely 
+    on ipython.
     """
     try :
         if(__IPYTHON__) :
             get_ipython().magic(u'matplotlib inline')
     except:
         pass
-
-def help(object, toScreen=True):
-    """
-    This help function simply prints the object's docstring, without also
-    printing the entire object hierarchy's docstrings (as per the python
-    build in help() function).
-
-    Parameters
-    ----------
-        object:  object
-            Any python object.
-
-    """
-
-    import textwrap
-
-    wrapper = textwrap.TextWrapper(initial_indent = "  ", subsequent_indent="  ")
-
-    if toScreen:
-        print("Object docstring:\n")
-        print(object.__doc__)
-        print("Object initialiser docstring:\n")
-        print(object.__init__.__doc__)
-
-    docstring = ""
-    if object.__doc__:
-        docstring += object.__doc__
-    if object.__init__.__doc__:
-        docstring += object.__init__.__doc__
-
-    wrapper.wrap(docstring)
-
-    return(docstring)
 
 # lets handle exceptions differently in parallel to ensure we call
 if nProcs() > 1:
@@ -222,8 +190,8 @@ if (rank() == 0) and not _in_doctest():
         pass
 
 # lets also enable deprecation warnings
-import warnings as _warnings
-_warnings.simplefilter('always', DeprecationWarning)
+#import warnings as _warnings
+#_warnings.simplefilter('always', DeprecationWarning)
 
 # enable the following to force exceptions on warnings
 #_warnings.simplefilter('error')

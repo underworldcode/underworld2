@@ -17,8 +17,7 @@ discrete data (such as meshvariables) may be utilised.
 
 """
 
-from _function import Function, FunctionInput, input, coord, at
-from _function import ScalarType, VectorType, SymmetricTensorType, TensorType, ArrayType
+from _function import Function, FunctionInput, input, coord
 import _math as math   # renamed this guy because it conflicts with other modules
 import analytic
 import misc

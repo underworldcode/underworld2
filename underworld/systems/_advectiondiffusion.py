@@ -39,10 +39,8 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
         The velocity field.
     fn_diffusivity : uw.function.Function
         Function that defines diffusivity
-    conditions : list, uw.conditions._SystemCondition, default = []
+    conditions : uw.conditions._SystemCondition (or list of), default = []
         Numerical conditions to impose on the system.
-        uw.conditions.DirichletCondition : define scalar values of \phi
-        uw.conditions.NeumannCondition :   define the vector (k \nabla \phi)
 
     Notes
     -----
@@ -75,14 +73,16 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
             raise TypeError( "Provided 'velocityField' must be the same dimensionality as the phiField's mesh" )
         self._velocityField = velocityField
 
-        if not isinstance(conditions, (uw.conditions._SystemCondition, list, tuple) ):
-            raise ValueError( "Provided 'conditions' must be a list '_SystemCondition' objects." )
+        if not isinstance(conditions,(list,tuple)):
+            conditionslist = []
+            conditionslist.append(conditions)
+            conditions = conditionslist
 
         # check input 'conditions' list is valid
-        nbc      = None
+        nbc = None
         for cond in conditions:
             if not isinstance( cond, uw.conditions._SystemCondition ):
-                raise TypeError( "Provided 'conditions' must be a list '_SystemCondition' objects." )
+                raise TypeError( "Provided 'conditions' must be a list 'SystemCondition' objects." )
             # set the bcs on here
             if type(cond) == uw.conditions.NeumannCondition:
                 if nbc != None:

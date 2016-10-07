@@ -48,9 +48,8 @@ class Stokes(_stgermain.StgCompoundComponent):
         integrate across elements. The provided swarm is used as the basis for
         the voronoi integration. If no swarm is provided, Gauss integration 
         is used.
-    conditions : list of uw.conditions.DirichletCondition objects, default=None
-        Conditions to be placed on the system. Currently only
-        Dirichlet conditions are supported.
+    conditions : uw.conditions.DirichletCondition object (or list of), default=None
+        Conditions to be placed on the system.
 
     Notes
     -----
@@ -66,8 +65,9 @@ class Stokes(_stgermain.StgCompoundComponent):
 
         # DEPRECATE. JM 09/16
         if swarm:
-            uw._warnings.warn("'swarm' paramater has been renamed to 'voronoi_swarm'. Please update your models. "+
-                          "'swarm' parameter will be removed in the next release.", DeprecationWarning)
+            import warnings
+            warnings.warn("'swarm' paramater has been renamed to 'voronoi_swarm'. Please update your models. "+
+                          "'swarm' parameter will be removed in the next release.")
             if voronoi_swarm:
                 raise ValueError("Please provide only a 'voronoi_swarm'. 'swarm' is deprecated.")
             voronoi_swarm = swarm
@@ -122,14 +122,19 @@ class Stokes(_stgermain.StgCompoundComponent):
             raise TypeError( "Provided 'voronoi_swarm' must be of 'Swarm' class." )
         self._swarm = voronoi_swarm
         if voronoi_swarm and velocityField.mesh.elementType=='Q2':
-            uw._warnings.warn("Voronoi integration may yield unsatisfactory results for Q2 mesh.")
+            import warnings
+            warnings.warn("Voronoi integration may yield unsatisfactory results for Q2 mesh.")
 
         mesh = velocityField.mesh
 
+        if not isinstance(conditions,(list,tuple)):
+            conditionslist = []
+            conditionslist.append(conditions)
+            conditions = conditionslist
         for cond in conditions:
             # set the bcs on here
             if not isinstance( cond, uw.conditions._SystemCondition ):
-                raise TypeError( "Provided 'conditions' must be a list '_SystemCondition' objects." )
+                raise TypeError( "Provided 'conditions' must be 'SystemCondition' objects." )
             elif type(cond) == uw.conditions.DirichletCondition:
                 if cond.variable == self._velocityField:
                     libUnderworld.StgFEM.FeVariable_SetBC( self._velocityField._cself, cond._cself )

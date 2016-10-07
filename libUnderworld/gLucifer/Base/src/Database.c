@@ -286,6 +286,9 @@ void _lucDatabase_Execute( void* database, void* data )
             lucDatabase_DeleteGeometry(self, -1, deleteEnd);
       }
 
+      /* Remove any geometry at current timestep before insertion */
+      lucDatabase_DeleteGeometry(self, self->timeStep, self->timeStep);
+
       /* Enter timestep in database */
       /* Write and update timestep */
       snprintf(SQL, MAX_QUERY_LEN, "insert into timestep (id, time, properties) values (%d, %g, '%s')", self->timeStep, currentTime, "");
@@ -880,6 +883,7 @@ void lucDatabase_AttachDatabase(lucDatabase* self)
 
 void lucDatabase_DeleteGeometry(lucDatabase* self, int start_timestep, int end_timestep)
 {
+   if (self->rank > 0) return;
    /* Remove data over timestep range */
    if (start_timestep < 0)
       snprintf(SQL, MAX_QUERY_LEN,  "delete from geometry where timestep <= %d; delete from timestep where id <= %d;", end_timestep, end_timestep);

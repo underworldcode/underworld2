@@ -18,7 +18,16 @@
 
 namespace Fn {
 
-    template <typename F, typename T, typename C >
+    /* add this because it isn't include in the stl */
+    template <class T> struct logical_xor {
+      bool operator() (const T& x, const T& y) const {return x!=y;}
+      typedef T first_argument_type;
+      typedef T second_argument_type;
+      typedef bool result_type;
+    };
+
+
+    template <typename F>
     class MathRelational: public Function
     {
         public:

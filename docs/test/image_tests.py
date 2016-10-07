@@ -173,7 +173,7 @@ stokesBC = uw.conditions.DirichletCondition( variable      = velocityField,
 # **Create a Stokes system**
 stokes = uw.systems.Stokes( velocityField = velocityField, 
                                pressureField = pressureField,
-                               swarm         = swarm, 
+                               voronoi_swarm = swarm, 
                                conditions    = [stokesBC,],
                                fn_viscosity  = viscosityFn,
                                fn_bodyforce  = buoyancyFn )

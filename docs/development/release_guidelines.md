@@ -13,6 +13,7 @@ Testing
 =======
 * Ensure 'run_tests.py' script run to completion without raising an exception.
 * Test on docker, OSX, linux, NCI and Pawsey machines.
+* Scaling tests on NCI and Pawsey machines.
 
 Tag release candidate 
 =====================

@@ -43,7 +43,7 @@ class AssemblyTerm(_stgermain.StgCompoundComponent):
     def fn(self, value):
         if not self._set_fn_function:
             raise RuntimeError("You cannot set a function for this assembly term.")
-        _fn = uw.function.Function.convert(value)
+        _fn = uw.function._function.Function.convert(value)
         if not isinstance( _fn, uw.function.Function):
             raise ValueError( "Provided 'fn' must be of, or convertible to, 'Function' class." )
         self._fn = _fn

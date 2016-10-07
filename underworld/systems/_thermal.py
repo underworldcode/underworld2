@@ -42,10 +42,8 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
         integrate across elements. The provided swarm is used as the basis for
         the voronoi integration. If no swarm is provided, Gauss integration 
         is used.
-    conditions : list, uw.conditions._SystemCondition, default = []
+    conditions : uw.conditions._SystemCondition (or list of), default = []
         Numerical conditions to impose on the system.
-        uw.conditions.DirichletCondition : define scalar values of \phi
-        uw.conditions.NeumannCondition :   define the vector (k \nabla \phi)
 
     Notes
     -----
@@ -83,8 +81,9 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
     def __init__(self, temperatureField, fn_diffusivity=None, fn_heating=0., voronoi_swarm=None, conditions=[], _removeBCs=True, swarm=None, **kwargs):
         # DEPRECATE. JM 09/16
         if swarm:
-            uw._warnings.warn("'swarm' paramater has been renamed to 'voronoi_swarm'. Please update your models. "+
-                          "'swarm' parameter will be removed in the next release.", DeprecationWarning)
+            import warnings
+            warnings.warn("'swarm' paramater has been renamed to 'voronoi_swarm'. Please update your models. "+
+                          "'swarm' parameter will be removed in the next release.")
             if voronoi_swarm:
                 raise ValueError("Please provide only a 'voronoi_swarm'. 'swarm' is deprecated.")
             voronoi_swarm = swarm
@@ -109,10 +108,9 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
             raise TypeError( "Provided 'swarm' must be of 'Swarm' class." )
         self._swarm = voronoi_swarm
         if voronoi_swarm and temperatureField.mesh.elementType=='Q2':
-            uw._warnings.warn("Voronoi integration may yield unsatisfactory results for Q2 element types.")
+            import warnings
+            warnings.warn("Voronoi integration may yield unsatisfactory results for Q2 element types.")
 
-        if not isinstance(conditions, (uw.conditions._SystemCondition, list, tuple) ):
-            raise TypeError( "Provided 'conditions' must be a list '_SystemCondition' objects." )
         if not isinstance( _removeBCs, bool):
             raise TypeError( "Provided '_removeBCs' must be of type bool." )
         self._removeBCs = _removeBCs
@@ -121,6 +119,10 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
         nbc  = None
         mesh = temperatureField.mesh
 
+        if not isinstance(conditions,(list,tuple)):
+            conditionslist = []
+            conditionslist.append(conditions)
+            conditions = conditionslist
         for cond in conditions:
             if not isinstance( cond, uw.conditions._SystemCondition ):
                 raise TypeError( "Provided 'conditions' must be a list '_SystemCondition' objects." )

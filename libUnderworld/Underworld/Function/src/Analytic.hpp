@@ -445,7 +445,7 @@ namespace Fn {
     };//class
 
   /*
-    SolDB2d and solDB3d from:
+    SolDB2d  from:
 
     @ARTICLE{2004IJNMF..46..183D,
    author = {{Dohrmann}, C.~R. and {Bochev}, P.~B.},

@@ -192,9 +192,8 @@ class Store(_stgermain.StgCompoundComponent):
         #Get name of first object for figure if none providedc
         if not figname and len(objects) > 0: figname = objects[0].properties["name"]
 
-        # Remove any existing data at current timestep
         if not self._viewonly:
-            libUnderworld.gLucifer.lucDatabase_DeleteGeometry(self._db, self.step, self.step)
+            #Set the write step
             self._db.timeStep = self.step
 
             #Delete all drawing objects in register

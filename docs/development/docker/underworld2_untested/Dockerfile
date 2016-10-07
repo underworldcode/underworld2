@@ -1,5 +1,5 @@
 FROM underworldcode/base:dev
-MAINTAINER mansourjohn@gmail.com
+MAINTAINER https://github.com/underworldcode/
 
 # set working directory to /root
 WORKDIR /root

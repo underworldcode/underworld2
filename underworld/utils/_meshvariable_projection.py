@@ -101,8 +101,9 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
     def __init__(self, meshVariable=None, fn=None, voronoi_swarm=None, type=0, swarm=None, **kwargs):
         # DEPRECATE. JM 09/16
         if swarm:
-            uw._warnings.warn("'swarm' paramater has been renamed to 'voronoi_swarm'. Please update your models. "+
-                          "'swarm' parameter will be removed in the next release.", DeprecationWarning)
+            import warnings
+            warnings.warn("'swarm' paramater has been renamed to 'voronoi_swarm'. Please update your models. "+
+                          "'swarm' parameter will be removed in the next release.")
             if voronoi_swarm:
                 raise ValueError("Please provide only a 'voronoi_swarm'. 'swarm' is deprecated.")
             
@@ -125,7 +126,8 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
             raise TypeError( "Provided 'swarm' must be of 'Swarm' class." )
         self._swarm = voronoi_swarm
         if voronoi_swarm and meshVariable.mesh.elementType=='Q2':
-            uw._warnings.warn("Voronoi integration may yield unsatisfactory results for Q2 mesh.")
+            import warnings
+            warnings.warn("Voronoi integration may yield unsatisfactory results for Q2 mesh.")
             
 
 

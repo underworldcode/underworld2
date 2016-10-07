@@ -1,5 +1,5 @@
 FROM debian:jessie
-MAINTAINER mansourjohn@gmail.com
+MAINTAINER https://github.com/underworldcode/
 
 # install things
 RUN apt-get update -qq && \
@@ -40,7 +40,8 @@ RUN apt-get update -qq && \
         runipy \
         pillow \
         pyvirtualdisplay \
-        ipyparallel
+        ipyparallel \
+        scipy
 
 
 # Install Tini.. this is required because CMD (below) doesn't play nice with notebooks for some reason: https://github.com/ipython/ipython/issues/7062, https://github.com/jupyter/notebook/issues/334
