@@ -96,8 +96,9 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
                 raise RuntimeError("Input condition type not recognised.")
         self._conditions = conditions
 
-        self._eqNumPhi    = sle.EqNumber( phiField )
-        self._eqNumPhiDot = sle.EqNumber( phiDotField )
+        # force removal of BCs as SUPG cannot handle leaving them in
+        self._eqNumPhi    = sle.EqNumber( phiField, removeBCs=True )
+        self._eqNumPhiDot = sle.EqNumber( phiDotField, removeBCs=True )
 
         self._phiSolution    = sle.SolutionVector( phiField, self._eqNumPhi )
         self._phiDotSolution = sle.SolutionVector( phiDotField, self._eqNumPhiDot )
@@ -141,11 +142,17 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
                                                                       extraInfo = self._cself.name )
         for cond in self._conditions:
             if isinstance( cond, uw.conditions.NeumannCondition ):
+
+                ### -VE flux - because of SUPG implementation ###
+                negativeCond = uw.conditions.NeumannCondition( flux=-1.0*cond.flux,
+                                                               variable=cond.variable,
+                                                               nodeIndexSet=cond.indexSet )
+
                 #NOTE many NeumannConditions can be used but the _sufaceFluxTerm only records the last
                 self._surfaceFluxTerm = sle.VectorSurfaceAssemblyTerm_NA__Fn__ni(
                                                                 assembledObject  = self._residualVector,
                                                                 surfaceGaussPoints = 2,
-                                                                nbc         = cond )
+                                                                nbc         = negativeCond )
 
         self._cself.advDiffResidualForceTerm = self._residualTerm._cself
 
