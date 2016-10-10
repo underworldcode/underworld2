@@ -44,9 +44,9 @@ class Stokes(_stgermain.StgCompoundComponent):
         This method is incompatible with the 'penalty' stokes solver, ensure
         the 'penalty' of 0, is used when fn_lambda is used. By default this is the case.
     voronoi_swarm : uw.swarm.Swarm, optional
-        If a voronoi_swarm is provided, voronoi type integration is utilised to 
+        If a voronoi_swarm is provided, voronoi type integration is utilised to
         integrate across elements. The provided swarm is used as the basis for
-        the voronoi integration. If no swarm is provided, Gauss integration 
+        the voronoi integration. If no swarm is provided, Gauss integration
         is used.
     conditions : uw.conditions.DirichletCondition object (or list of), default=None
         Conditions to be placed on the system.
@@ -196,17 +196,6 @@ class Stokes(_stgermain.StgCompoundComponent):
                                                                 surfaceGaussPoints = 2, # increase to resolve stress bc fluctuations
                                                                 nbc                = cond )
         if fn_lambda != None:
-            # some logic for constructing the lower-right [2,2] matrix in the stokes system
-            # [M] = [Na * 1.0/fn_lambda * Nb], where in our formulation Na and Nb are the pressure shape functions.
-            # see 4.3.21 of Hughes, Linear static and dynamic finite element analysis
-
-            # If fn_lambda is negligable, ie <1.0e-8, then we set the entry to 0.0, ie, incompressible
-            # otherwise we provide 1.0/lambda to [M]
-
-            logicFn = uw.function.branching.conditional(
-                                                      [  ( fn_lambda > 1.0e-8, 1.0/fn_lambda ),
-                                                         (             True,     0.        )   ] )
-
             self._compressibleTerm = sle.MatrixAssemblyTerm_NA__NB__Fn(  integrationSwarm=intswarm,
                                                                          assembledObject=self._mmatrix,
                                                                          mesh=self._velocityField.mesh,
