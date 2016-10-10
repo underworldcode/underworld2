@@ -1,4 +1,4 @@
-FROM underworldcode/underworld2_untested:dev
+FROM underworldcode/underworld2_untested:latest
 MAINTAINER https://github.com/underworldcode/
 
 # set working directory to /root
