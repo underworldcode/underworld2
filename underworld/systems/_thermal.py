@@ -38,9 +38,9 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
     fn_heating : underworld.function.Function, default=0.
         The heating function that defines the heating across the domain.
     voronoi_swarm : uw.swarm.Swarm, optional.
-        If a voronoi_swarm is provided, voronoi type integration is utilised to 
+        If a voronoi_swarm is provided, voronoi type integration is utilised to
         integrate across elements. The provided swarm is used as the basis for
-        the voronoi integration. If no swarm is provided, Gauss integration 
+        the voronoi integration. If no swarm is provided, Gauss integration
         is used.
     conditions : uw.conditions._SystemCondition (or list of), default = []
         Numerical conditions to impose on the system.
@@ -169,10 +169,16 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
         for cond in conditions:
             if isinstance( cond, uw.conditions.NeumannCondition ):
                 #NOTE many NeumannConditions can be used but the _sufaceFluxTerm only records the last
+
+                ### -VE flux because of Energy_SLE_Solver ###
+                negativeCond = uw.conditions.NeumannCondition( flux=-1.0*cond.flux,
+                                                               variable=cond.variable,
+                                                               nodeIndexSet=cond.indexSet )
+
                 self._surfaceFluxTerm = sle.VectorSurfaceAssemblyTerm_NA__Fn__ni(
                                                                 assembledObject  = self._fvector,
                                                                 surfaceGaussPoints = 2,
-                                                                nbc         = cond )
+                                                                nbc         = negativeCond )
         super(SteadyStateHeat, self).__init__(**kwargs)
 
     def _setup(self):
