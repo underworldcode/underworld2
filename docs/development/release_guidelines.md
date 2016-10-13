@@ -19,6 +19,8 @@ Tag release candidate
 =====================
 * Increment version number
 * Update ``underworld/__init__.py``
+* Update Dockerfiles.. both in branch that gets checked out, and also the tag for the docker which it inherits from (master branch should inherit from 'latest' tag dockers).
+
 
 Final Science/Production testing
 ================================
