@@ -28,6 +28,7 @@ RUN apt-get update -qq && \
         vim \
         less \
         xauth \
+        python-tk \
         swig && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*  && \
@@ -41,7 +42,12 @@ RUN apt-get update -qq && \
         pillow \
         pyvirtualdisplay \
         ipyparallel \
-        scipy
+        scipy && \
+    pip install 'ipython==4.2.0' --force-reinstall && \
+    pip install six --upgrade
+
+# ^^^ Note we choose an older version of ipython because it's tooltips work better.
+#     Also, the system six is too old, so we upgrade for the pip version
 
 
 # Install Tini.. this is required because CMD (below) doesn't play nice with notebooks for some reason: https://github.com/ipython/ipython/issues/7062, https://github.com/jupyter/notebook/issues/334
