@@ -29,7 +29,6 @@
 #include <Underworld/Function/FeVariableFn.hpp>
 #include <Underworld/Function/GradFeVariableFn.hpp>
 #include <Underworld/Function/Map.hpp>
-#include <Underworld/Function/Arithmetic.hpp>
 #include <Underworld/Function/Unary.hpp>
 #include <Underworld/Function/Binary.hpp>
 #include <Underworld/Function/Analytic.hpp>
@@ -55,7 +54,6 @@ extern "C" {
 
 %include "Function/FunctionIO.hpp"
 %include "Function/Function.hpp"
-%include "Function/Arithmetic.hpp"
 %include "Function/Unary.hpp"
 %include "Function/Binary.hpp"
 %include "Function/Constant.hpp"

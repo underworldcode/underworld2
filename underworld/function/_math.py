@@ -716,7 +716,7 @@ class pow(_Function):
         self._fn1 = fn1fn
         self._fn2 = fn2fn
         # ok finally lets create the fn
-        self._fncself = _cfn.MathBinary(self._fn1._fncself, self._fn2._fncself,  _cfn.MathBinary.pow )
+        self._fncself = _cfn.Pow(self._fn1._fncself, self._fn2._fncself )
         # build parent
         super(pow,self).__init__(argument_fns=[fn1fn,fn2fn],**kwargs)
 

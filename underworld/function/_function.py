@@ -230,7 +230,7 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
         True
 
         """
-        return -subtract( self, other )
+        return subtract( other, self )
 
     def  __neg__(self):
         """
@@ -828,7 +828,7 @@ class subtract(Function):
         self._fn1 = fn1fn
         self._fn2 = fn2fn
         # ok finally lets create the fn
-        self._fncself = _cfn.MathBinary(self._fn1._fncself, self._fn2._fncself,  _cfn.MathBinary.subtract )
+        self._fncself = _cfn.Subtract(self._fn1._fncself, self._fn2._fncself )
         # build parent
         super(subtract,self).__init__(argument_fns=[fn1fn,fn2fn], **kwargs)
 
