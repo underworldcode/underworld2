@@ -4,13 +4,13 @@ import underworld as uw
 
 from scipy.spatial import cKDTree as kdTree
 
-class markerLine2D(object):
+class markerSurface3D(object):
     """
-    All the bits and pieces needed to define a marker surface (in 2D) from a string of points
+    All the bits and pieces needed to define a marker surface (in 3D) from a string of points
     """
 
 
-    def __init__(self, mesh, velocityField, pointsX, pointsY, fthickness, fID, insidePt=(0.0,0.0)):
+    def __init__(self, mesh, velocityField, pointsX, pointsY, pointsZ, fthickness, insidePt=(0.0,0.0,0.0)):
 
 
         # Marker swarms are probably sparse, and on most procs will have nothing to do
@@ -32,11 +32,11 @@ class markerLine2D(object):
         # Set up the swarm and variables on all procs
 
         self.swarm = uw.swarm.Swarm( mesh=self.mesh, particleEscape=True )
-        self.director = self.swarm.add_variable( dataType="double", count=2)
+        self.director = self.swarm.add_variable( dataType="double", count=3)
         self._swarm_advector = uw.systems.SwarmAdvector( swarm=self.swarm,
                                                          velocityField=self.velocity, order=2 )
 
-        self.swarm.add_particles_with_coordinates(np.stack((pointsX, pointsY)).T)
+        self.swarm.add_particles_with_coordinates(np.stack((pointsX, pointsY, pointsZ)).T)
         self.director.data[...] = 0.0
 
         self._update_kdtree()
@@ -46,9 +46,9 @@ class markerLine2D(object):
 
 
 
-    def add_points(self, pointsX, pointsY):
+    def add_points(self, pointsX, pointsY, pointsZ):
 
-        self.swarm.add_particles_with_coordinates(np.stack((pointsX, pointsY)).T)
+        self.swarm.add_particles_with_coordinates(np.stack((pointsX, pointsY, pointsZ)).T)
 
         self.rebuild()
 
@@ -73,7 +73,7 @@ class markerLine2D(object):
 
         all_particle_coords = pc.reshape(-1,dims)
 
-        if len(all_particle_coords) < 3:
+        if len(all_particle_coords) < 4:
             self.empty = True
             self.kdtree = lambda x: float('inf')
         else:
@@ -116,31 +116,26 @@ class markerLine2D(object):
         return proximity, fpts
 
 
-    def compute_normals(self, coords, thickness=None):
+    def compute_normals(self, coords):
 
         # make sure this is called by all procs including those
         # which have an empty self
 
         self.swarm.shadow_particles_fetch()
 
-        if thickness==None:
-            thickness = self.thickness
-
         # Nx, Ny = _points_to_normals(self)
 
         if self.empty:
             return np.empty((0,2)), np.empty(0, dtype="int")
 
-        d, p   = self.kdtree.query( coords, distance_upper_bound=thickness )
+        d, p   = self.kdtree.query( coords, distance_upper_bound=self.thickness )
 
         fpts = np.where( np.isinf(d) == False )[0]
         director = np.zeros_like(coords)
 
-        if uw.nProcs() == 1:
-            fdirector = self.director.data
-        else:
-            fdirector = np.concatenate((self.director.data,
-                                    self.director.data_shadow))
+        dims = self.swarm.particleCoordinates.data.shape[1]
+        fdirector = np.append(self.director.data,
+                              self.director.data_shadow).reshape(-1,dims)
 
         director[fpts] = fdirector[p[fpts]]
 
@@ -180,6 +175,7 @@ class markerLine2D(object):
 
         return signed_distance, fpts
 
+
     def _update_surface_normals(self):
         """
         Rebuilds the normals for the string of points
@@ -196,34 +192,41 @@ class markerLine2D(object):
 
             Nx = np.empty(self.swarm.particleLocalCount)
             Ny = np.empty(self.swarm.particleLocalCount)
+            Nz = np.empty(self.swarm.particleLocalCount)
 
-            for i, xy in enumerate(particle_coords):
+            for i, xyz in enumerate(particle_coords):
                 r, neighbours = self.kdtree.query(particle_coords[i], k=3)
 
-                # neighbour points are neighbours[1] and neighbours[2]
+                # this point is neighbour[0] and neighbour points are neighbours[(1,2,3)]
+                XYZ1 = self.kdtree.data[neighbours[1]]
+                XYZ2 = self.kdtree.data[neighbours[2]]
+                XYZ3 = self.kdtree.data[neighbours[3]]
 
-                XY1 = self.kdtree.data[neighbours[1]]
-                XY2 = self.kdtree.data[neighbours[2]]
+                dXYZ1 = XYZ2 - XYZ1
+                dXYZ2 = XYZ3 - XYZ1
 
-                dXY = XY2 - XY1
+                # Cross product of those 2 vectors can be use as the local normal (perhaps)
 
-                Nx[i] =  dXY[1]
-                Ny[i] = -dXY[0]
+                Nx, Ny, Nz = np.cross(dXYZ1, dXYZ2)
 
                 if (self.insidePt):
-                    sign = np.sign((self.insidePt[0] - xy[0]) * Nx[i] +
-                                   (self.insidePt[1] - xy[1]) * Ny[i])
+                    sign = np.sign((self.insidePt[0] - xyz[0]) * Nx[i] +
+                                   (self.insidePt[1] - xyz[1]) * Ny[i] +
+                                   (self.insidePt[1] - xyz[2]) * Nz[i] )
                     Nx[i] *= sign
                     Ny[i] *= sign
+                    Nz[i] *= sign
 
 
             for i in range(0, self.swarm.particleLocalCount):
-                scale = 1.0 / np.sqrt(Nx[i]**2 + Ny[i]**2)
+                scale = 1.0 / np.sqrt(Nx[i]**2 + Ny[i]**2 + Nz[i]**2)
                 Nx[i] *= scale
                 Ny[i] *= scale
+                Nz[i] *= scale
 
 
             self.director.data[:,0] = Nx[:]
             self.director.data[:,1] = Ny[:]
+            self.director.data[:,2] = Nz[:]
 
         return

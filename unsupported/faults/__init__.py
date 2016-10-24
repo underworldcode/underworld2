@@ -5,10 +5,10 @@ import warnings
 
 warnings.warn(
 """\n
-The interface module is not supported.
+The fault module is not supported.
 Questions should be addressed to louis.moresi@unimelb.edu.au \n """
 )
 
 
-from marker2D import *
-from marker3D import *
+from faults2D import *
+#from marker3D import *
