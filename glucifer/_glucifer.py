@@ -21,16 +21,18 @@ import subprocess
 from subprocess import Popen, PIPE, STDOUT
 from . import objects
 import libUnderworld as _libUnderworld
+import sys
+import os
 
 #Attempt to import lavavu module
 lavavu = None
 try:
     import libUnderworld.libUnderworldPy.lavavu as lavavu
+    sys.path.append(os.path.dirname(lavavu.__file__))
 except:
     print "LavaVu module not found! disabling inline visualisation"
 
 # lets create somewhere to dump data for this session
-import os
 try:
     tmpdir = os.environ['TMPDIR']
 except:
@@ -85,6 +87,7 @@ class Store(_stgermain.StgCompoundComponent):
     """
     _objectsDict = { "_db":"lucDatabase" }
     _selfObjectName = "_db"
+    viewer = None
 
     def __init__(self, filename=None, split=False, view=False, **kwargs):
 
@@ -159,9 +162,15 @@ class Store(_stgermain.StgCompoundComponent):
     def lvrun(self, db=None, *args, **kwargs):
         if not db:
             db = self._db.path
-        #Use default LavaVu instance to save resources
-        lavavu.viewer = lavavu.Viewer(lavavu.viewer, cache=False, binary=self._lvbin, database=db, startstep=self.step, *args, **kwargs)
-        return lavavu.viewer
+        #Use a single LavaVu instance per db(store) to save resources
+        if not self.viewer:
+            self.viewer = lavavu.Viewer(reuse=True, cache=False, binary=self._lvbin, database=db, timestep=self.step, *args, **kwargs)
+        else:
+            self.viewer.setup(cache=False, database=db, timestep=self.step, *args, **kwargs)
+        return self.viewer
+        #lavavu.viewer = lavavu.Viewer(reuse=True, cache=False, binary=self._lvbin, database=db, timestep=self.step, *args, **kwargs)
+        #lavavu.viewer = lavavu.Viewer(reuse=False, cache=False, binary=self._lvbin, database=db, timestep=self.step, *args, **kwargs)
+        #return lavavu.viewer
 
     def _generate(self, figname, objects, props):
         #First merge object list with active
@@ -668,29 +677,22 @@ class Figure(dict):
         #Returns contents as newline separated string
         return '\n'.join(self._script)
 
-    def image(self):
-        """ Get image from current viewer window.
-        """
-        from IPython.display import Image,HTML
-        if not self._viewerProc:
-            return
-        url = "http://localhost:9999/image=0"
-        response = urllib2.urlopen(url).read()
-        image_data = "data:image/png;base64,%s" % b64encode(response)
-        return HTML("<img src='%s'>" % image_data)
-
     def viewer(self):
         """ Open the inline viewer.
         """
-        fname = self.db.filename
+        fname = self.db._db.path
+        #Create db if doesn't exist
         if not fname:
-            fname = os.path.join(tmpdir,"gluciferDB"+self.db._id+".gldb")
-            self.save_database(fname)
+            self._generate_DB()
+            fname = self.db._db.path
+        #Open viewer instance if doesn't exist
         global lavavu
         if lavavu and uw.rank() == 0:
-            lavavu.viewer = self.db.lvrun(db=fname)
-            lavavu.control.viewer()
-            return lavavu.viewer
+            if not self.db.viewer:
+                #print "Re-running with " + fname
+                self.db.lvrun(db=fname)
+            self.db.viewer.window()
+            return self.db.viewer
 
     def open_viewer(self, args=[], background=True):
         """ Open the external viewer.
