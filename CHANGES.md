@@ -1,6 +1,11 @@
 CHANGES: Underworld2
 =======================
 
+Release 2.1.1b  [2016-10-13]
+----------------------------
+* Improvements for docker usage.
+
+
 Release 2.1.0b  [2016-10-11]
 ----------------------------
 
