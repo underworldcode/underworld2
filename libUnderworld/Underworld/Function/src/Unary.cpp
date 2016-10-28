@@ -22,8 +22,8 @@ Fn::At::func Fn::At::getFunction( IOsptr sample_input )
         _func = [](IOsptr input)->IOsptr { return input; };
     }
     // test out to make sure it's double.. we should be able to relax this later
-    std::shared_ptr<const IO_double> funcio;
-    funcio = std::dynamic_pointer_cast<const IO_double>(_func(sample_input));
+    const IO_double* funcio;
+    funcio = dynamic_cast<const IO_double*>(_func(sample_input));
     if (!funcio)
         throw std::invalid_argument("At function expects functions to return a 'double' type object.");
 
@@ -34,14 +34,15 @@ Fn::At::func Fn::At::getFunction( IOsptr sample_input )
         throw std::invalid_argument( ss.str() );
     }
     // allocate memory for our output
-    std::shared_ptr<IO_double> _output = std::make_shared<IO_double>(1,FunctionIO::Scalar);
+    std::shared_ptr<IO_double> _output_sp = std::make_shared<IO_double>(1,FunctionIO::Scalar);
+    IO_double* _output = _output_sp.get();
     unsigned compforLambda = _component;
     unsigned iodatasize = funcio->_dataSize;
     std::size_t startOffset = iodatasize*(compforLambda    );
     std::size_t   endOffset = iodatasize*(compforLambda + 1);
 
-    return [_output,_func,startOffset,endOffset](IOsptr input)->IOsptr {
-        std::shared_ptr<const FunctionIO> io = _func(input);
+    return [_output,_output_sp,_func,startOffset,endOffset](IOsptr input)->IOsptr {
+        const FunctionIO* io = _func(input);
 
         // extract value
         std::copy( (char*)io->dataRaw() + startOffset,

@@ -28,7 +28,7 @@ Fn::Conditional::func Fn::Conditional::getFunction( IOsptr sample_input )
         // get condition func
         auto condfunc = _clause.at(ii).first->getFunction( sample_input );
         // check if returns bool
-        auto boolio = std::dynamic_pointer_cast<const IO_bool>(condfunc( sample_input ));
+        auto boolio = dynamic_cast<const IO_bool*>(condfunc( sample_input ));
         if (!boolio){
             std::stringstream ss;
             ss << "Issue with clause " << ii << " of conditional function.\n";
@@ -44,7 +44,7 @@ Fn::Conditional::func Fn::Conditional::getFunction( IOsptr sample_input )
         // get consequent func
         auto consfunc = _clause.at(ii).second->getFunction( sample_input );
         // check if returns bool
-        auto io = std::dynamic_pointer_cast<const FunctionIO>(consfunc( sample_input ));
+        auto io = dynamic_cast<const FunctionIO*>(consfunc( sample_input ));
         if (outputSize != -1){
             if (outputSize != (int)io->size()){
                 std::stringstream ss;

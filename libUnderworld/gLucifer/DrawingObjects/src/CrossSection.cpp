@@ -40,9 +40,9 @@ void _lucCrossSection_SetFn( void* _self, Fn::Function* fn ){
     std::shared_ptr<IO_double> globalCoord = std::make_shared<IO_double>( self->dim, FunctionIO::Vector );
     // grab first node for sample node
     memcpy( globalCoord->data(), Mesh_GetVertex( self->mesh, 0 ), self->dim*sizeof(double) );
-    cppdata->func = cppdata->fn->getFunction(globalCoord);
+    cppdata->func = cppdata->fn->getFunction(globalCoord.get());
     
-    std::shared_ptr<const FunctionIO> io = std::dynamic_pointer_cast<const FunctionIO>(cppdata->func(globalCoord));
+    const FunctionIO* io = dynamic_cast<const FunctionIO*>(cppdata->func(globalCoord.get()));
     if( !io )
         throw std::invalid_argument("Provided function does not appear to return a valid result.");
     self->fieldComponentCount = io->size();
@@ -484,7 +484,7 @@ void lucCrossSection_SampleField(void* drawingObject, Bool reverse)
              pos[J_AXIS] >= localMin[J_AXIS] && pos[J_AXIS] <= localMax[J_AXIS] &&
             (self->dim < 3 || (pos[K_AXIS] >= localMin[K_AXIS] && pos[K_AXIS] <= localMax[K_AXIS])))
          {
-            std::shared_ptr<const FunctionIO> output = debug_dynamic_cast<const FunctionIO>(cppdata->func(globalCoord));
+            const FunctionIO* output = debug_dynamic_cast<const FunctionIO*>(cppdata->func(globalCoord.get()));
 
             /* Value found locally, save */
             for (d=0; d<dims; d++)

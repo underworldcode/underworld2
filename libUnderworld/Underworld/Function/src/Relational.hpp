@@ -39,13 +39,13 @@ namespace Fn {
             virtual func getFunction( IOsptr sample_input )
                 {
                     // get lambda function.
-                    std::shared_ptr<const FunctionIO>  ioguy[2];
+                    const FunctionIO*  ioguy[2];
                     func _func[2];
                     for (unsigned ii=0; ii<2; ii++) {
                         // get lambda function
                         _func[ii] = _fn[ii]->getFunction( sample_input );
                         // test evaluation
-                        ioguy[ii] = std::dynamic_pointer_cast<const FunctionIO >(_func[ii](sample_input));
+                        ioguy[ii] = dynamic_cast<const FunctionIO *>(_func[ii](sample_input));
                         if (!ioguy[ii])
                             throw std::invalid_argument("Operand in relational function does not appear to return a supported type.");
                     }
@@ -59,15 +59,16 @@ namespace Fn {
                     }
                    
                     // allocate memory for our output
-                    std::shared_ptr<IO_bool> _output = std::make_shared<IO_bool>(1,FunctionIO::Scalar);
+                    std::shared_ptr<IO_bool> _output_sp = std::make_shared<IO_bool>(1,FunctionIO::Scalar);
+                    IO_bool* _output = _output_sp.get();
                     
                     // create functional object
                     auto relationalfunc = F();
                     unsigned count = ioguy[0]->size();
-                    return [_output,_func,relationalfunc,count](IOsptr input)->IOsptr {
-                        std::shared_ptr< const FunctionIO > io[2];
-                        io[0] = debug_dynamic_cast< const FunctionIO >( _func[0](input) ) ;
-                        io[1] = debug_dynamic_cast< const FunctionIO >( _func[1](input) ) ;
+                    return [_output,_output_sp,_func,relationalfunc,count](IOsptr input)->IOsptr {
+                         const FunctionIO * io[2];
+                        io[0] = debug_dynamic_cast< const FunctionIO *>( _func[0](input) ) ;
+                        io[1] = debug_dynamic_cast< const FunctionIO *>( _func[1](input) ) ;
 
                         // perform function.. note that we are implementing AND behaviour
                         // for vector objects.  this will possibly be generalised in the future.
@@ -82,7 +83,7 @@ namespace Fn {
                             }
                                 
                             
-                        return debug_dynamic_cast<const FunctionIO>(_output);
+                        return debug_dynamic_cast<const FunctionIO*>(_output);
                     };
                 }
             virtual ~MathRelational(){};

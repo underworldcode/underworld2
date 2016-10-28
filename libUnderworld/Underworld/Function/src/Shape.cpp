@@ -66,8 +66,7 @@ Fn::Function::func  Fn::Polygon::getFunction( IOsptr sample_input ){
         _func = [](IOsptr input)->IOsptr { return input; };
     }
     // test out to make sure it's double.. we should be able to relax this later
-    std::shared_ptr<const IO_double> funcio;
-    funcio = std::dynamic_pointer_cast<const IO_double>(_func(sample_input));
+    const IO_double* funcio = dynamic_cast<const IO_double*>(_func(sample_input));
     if (!funcio)
         throw std::invalid_argument("Polygon shape function expects a 'double' type object as input.");
 
@@ -80,16 +79,17 @@ Fn::Function::func  Fn::Polygon::getFunction( IOsptr sample_input ){
         throw std::invalid_argument(ss.str());
     }
     // allocate memory for our output
-    std::shared_ptr<IO_bool> _output = std::make_shared<IO_bool>(1,FunctionIO::Scalar);
+    std::shared_ptr<IO_bool> _output_sp = std::make_shared<IO_bool>(1,FunctionIO::Scalar);
+    IO_bool* _output = _output_sp.get();
 
     PolygonShape* polyshape = (PolygonShape*)_stgshape;
     
-    return [_output, polyshape, _func](IOsptr input)->IOsptr {
-        std::shared_ptr<const FunctionIO> io = _func(input);
+    return [_output, _output_sp, polyshape, _func](IOsptr input)->IOsptr {
+        const FunctionIO* io = _func(input);
 
         _output->at() = (bool)_PolygonShape_IsCoordInside( polyshape, (double*)io->dataRaw() );
 
-        return debug_dynamic_cast<const FunctionIO>(_output);
+        return debug_dynamic_cast<const FunctionIO*>(_output);
     };
 
 }

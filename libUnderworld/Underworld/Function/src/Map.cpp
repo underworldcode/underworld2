@@ -45,7 +45,7 @@ Fn::Map::func Fn::Map::getFunction( IOsptr sample_input )
         // get key function
         _defaultFuncFunc = _defaultFunc->getFunction( sample_input );
         // check if output castable to IO_double
-        auto _defaultFuncOut = std::dynamic_pointer_cast<const IO_double>(_defaultFuncFunc( sample_input ) );
+        auto _defaultFuncOut = dynamic_cast<const IO_double*>(_defaultFuncFunc( sample_input ) );
         if (!_defaultFuncOut)
             throw std::invalid_argument( "Default function does not appear to return a 'double' value, as required by the 'map' function. "
                                          "Note that where the defaut Function you have constructed uses Python numeric objects, those objects "
@@ -64,7 +64,7 @@ Fn::Map::func Fn::Map::getFunction( IOsptr sample_input )
             // get func
             _funcfuncArray[ii] = _funcArray[ii]->getFunction( sample_input );
             // check if returns double
-            auto doubleio = std::dynamic_pointer_cast<const IO_double>(_funcfuncArray[ii]( sample_input ));
+            auto doubleio = dynamic_cast<const IO_double*>(_funcfuncArray[ii]( sample_input ));
             if (!doubleio)
             {
                 std::stringstream ss;

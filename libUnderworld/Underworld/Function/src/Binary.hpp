@@ -26,7 +26,7 @@ namespace Fn {
             virtual ~Binary(){};
         protected:
             Function* _fn[2];
-            void initGetFunction( IOsptr sample_input, std::shared_ptr<const IO_double> doubleio[2], func _func[2] );
+            void initGetFunction( IOsptr sample_input, const IO_double* doubleio[2], func (&_func)[2] );
     };
 
     class Add: public Binary

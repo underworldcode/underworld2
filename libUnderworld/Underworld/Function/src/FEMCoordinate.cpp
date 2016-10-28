@@ -18,13 +18,15 @@ extern "C" {
 #include "FEMCoordinate.hpp"
 
 FEMCoordinate::FEMCoordinate( void* mesh, std::shared_ptr<IO_double> localCoord )
-   : IO_double( _Check_GetDimSize(mesh), FunctionIO::Vector), _localCoord(localCoord), _mesh(mesh), _index(0), _valueCalculated(false)
+   : IO_double( _Check_GetDimSize(mesh), FunctionIO::Vector), _localCoord_sp(localCoord), _localCoord(NULL), _mesh(mesh), _index(0), _valueCalculated(false)
 {
-    if( _localCoord->iotype() != FunctionIO::Vector)
+    if( _localCoord_sp->iotype() != FunctionIO::Vector)
         throw std::invalid_argument("Provided local coordinate must be of 'Vector' type.");
     
     if(!Stg_Class_IsInstance( mesh, FeMesh_Type ))
         throw std::invalid_argument("Provided 'object' does not appear to be of 'FeMesh' type.");
+    
+    _localCoord = _localCoord_sp.get();
 
 };
 
@@ -73,7 +75,7 @@ FEMCoordinate::_calculate_value() const
 
     FeMesh_CoordLocalToGlobal( _mesh,
         _index,
-        std::static_pointer_cast<const IO_double>(_localCoord)->data(),
+        const_cast<double*>(_localCoord->data()),
         _vector.data() );
     _valueCalculated = false;
 }

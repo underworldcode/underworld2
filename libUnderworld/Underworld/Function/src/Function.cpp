@@ -57,7 +57,7 @@ Fn::CustomException::func Fn::CustomException::getFunction( IOsptr sample_input 
     // the condition function
     func func_condition = _fn_condition->getFunction( sample_input );
     // need to ensure func_condition returns a bool
-    auto condition_output = std::dynamic_pointer_cast<const IO_bool>(func_condition( sample_input ));
+    auto condition_output = dynamic_cast<const IO_bool*>(func_condition( sample_input ));
     if (!condition_output)
         throw std::invalid_argument( "CustomException condition function does not appear to \
                                       return a Bool type output as required." );
@@ -71,7 +71,7 @@ Fn::CustomException::func Fn::CustomException::getFunction( IOsptr sample_input 
     return [ func_input, func_condition, func_print ](IOsptr input)->IOsptr {
         
         // now lets evaluate our condition function and check its output
-        std::shared_ptr<const IO_bool> condition_output = debug_dynamic_cast<const IO_bool>(func_condition(input));
+        const IO_bool* condition_output = debug_dynamic_cast<const IO_bool*>(func_condition(input));
         if (!condition_output->at())
         {
             std::stringstream ss;
@@ -101,7 +101,7 @@ Fn::MinMax::func Fn::MinMax::getFunction( IOsptr sample_input )
     // get function.. nothing to test
     func _func = _fn->getFunction( sample_input );
     
-    std::shared_ptr<const FunctionIO> output = _func(sample_input);
+    const FunctionIO* output = _func(sample_input);
     unsigned fn_out_size = output->size();
     if (_size < 0) {
         _size = fn_out_size;

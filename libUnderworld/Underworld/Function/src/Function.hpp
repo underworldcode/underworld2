@@ -15,12 +15,15 @@
 
 #include "FunctionIO.hpp"
 
+#if 0
+#endif
+
 namespace Fn {
 
     class Function
     {
         public:
-            typedef std::shared_ptr<const FunctionIO> IOsptr;
+            typedef const FunctionIO* IOsptr;
             typedef std::function<IOsptr( const IOsptr &input )> func;
             virtual func getFunction( IOsptr input )=0;
             virtual ~Function(){};

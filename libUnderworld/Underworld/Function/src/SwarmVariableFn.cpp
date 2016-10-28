@@ -35,27 +35,28 @@ Fn::SwarmVariableFn::func Fn::SwarmVariableFn::getFunction( IOsptr sample_input 
 
     SwarmVariable* swarmvar = (SwarmVariable*)_swarmvariable;
 
-    std::shared_ptr<FunctionIO> _output;
+    std::shared_ptr<FunctionIO> _output_sp;
 	switch( swarmvar->variable->dataTypes[0] ) {
 		case Variable_DataType_Double:
-            _output = std::make_shared<IO_double>(swarmvar->dofCount, FunctionIO::Array);
+            _output_sp = std::make_shared<IO_double>(swarmvar->dofCount, FunctionIO::Array);
 			break;
 		case Variable_DataType_Int:
-            _output = std::make_shared<IO_int>(swarmvar->dofCount, FunctionIO::Array);
+            _output_sp = std::make_shared<IO_int>(swarmvar->dofCount, FunctionIO::Array);
 			break;
 		case Variable_DataType_Char:
-            _output = std::make_shared<IO_char>(swarmvar->dofCount, FunctionIO::Array);
+            _output_sp = std::make_shared<IO_char>(swarmvar->dofCount, FunctionIO::Array);
 			break;
 		case Variable_DataType_Float:
-            _output = std::make_shared<IO_float>(swarmvar->dofCount, FunctionIO::Array);
+            _output_sp = std::make_shared<IO_float>(swarmvar->dofCount, FunctionIO::Array);
 			break;
 		case Variable_DataType_Short:
-            _output = std::make_shared<IO_short>(swarmvar->dofCount, FunctionIO::Array);
+            _output_sp = std::make_shared<IO_short>(swarmvar->dofCount, FunctionIO::Array);
 			break;
 		default:
 			throw std::invalid_argument( "SwarmVariable datatype does not appear to be supported." );
 	}
-    
+    FunctionIO* _output = _output_sp.get();
+
     // this isn't great
     if (swarmvar->dofCount == 1) {
         _output->_iotype = FunctionIO::Scalar;
@@ -65,20 +66,20 @@ Fn::SwarmVariableFn::func Fn::SwarmVariableFn::getFunction( IOsptr sample_input 
         _output->_iotype = FunctionIO::Array;
 
 
-    std::shared_ptr<const FEMCoordinate>      meshCoord = std::dynamic_pointer_cast<const FEMCoordinate>(sample_input);
-    std::shared_ptr<const ParticleCoordinate> partCoord = std::dynamic_pointer_cast<const ParticleCoordinate>(sample_input);
+    const FEMCoordinate*      meshCoord = dynamic_cast<const FEMCoordinate*>(sample_input);
+    const ParticleCoordinate* partCoord = dynamic_cast<const ParticleCoordinate*>(sample_input);
     
     if( meshCoord )
     {
-        std::shared_ptr<const ParticleInCellCoordinate> partCoord = std::dynamic_pointer_cast<const ParticleInCellCoordinate>(meshCoord->localCoord());
+        const ParticleInCellCoordinate* partCoord = dynamic_cast<const ParticleInCellCoordinate*>(meshCoord->localCoord());
         if (!partCoord)
             throw std::invalid_argument( "Provided 'FEMCoordinate' input to SwarmVariableFn does not appear to have 'ParticleInCellCoordinate' type local coordinate." );
 
         
         // return the lambda
-        return [_output, swarmvar](IOsptr input)->IOsptr {
-            std::shared_ptr<const FEMCoordinate>            meshCoord = debug_dynamic_cast<const FEMCoordinate>(input);
-            std::shared_ptr<const ParticleInCellCoordinate> partCoord = debug_dynamic_cast<const ParticleInCellCoordinate>(meshCoord->localCoord());
+        return [_output, _output_sp, swarmvar](IOsptr input)->IOsptr {
+            const FEMCoordinate*            meshCoord = debug_dynamic_cast<const FEMCoordinate*>(input);
+            const ParticleInCellCoordinate* partCoord = debug_dynamic_cast<const ParticleInCellCoordinate*>(meshCoord->localCoord());
             
             IntegrationPointsSwarm* intSwarm = (IntegrationPointsSwarm*)((SwarmVariable*)partCoord->object())->swarm;
             unsigned elementIndex = partCoord->index();
@@ -93,7 +94,7 @@ Fn::SwarmVariableFn::func Fn::SwarmVariableFn::getFunction( IOsptr sample_input 
             // copy swarmvariable datum into output
             memcpy( _output->dataRaw(), dataPtr, Variable_SizeOfDataType(swarmvar->variable->dataTypes[0]) * swarmvar->dofCount );
 
-            return debug_dynamic_cast<const FunctionIO>(_output);
+            return debug_dynamic_cast<const FunctionIO*>(_output);
         };
     }
     
@@ -102,8 +103,8 @@ Fn::SwarmVariableFn::func Fn::SwarmVariableFn::getFunction( IOsptr sample_input 
         if (((SwarmVariable*)partCoord->object())->swarm != swarmvar->swarm)
             throw std::invalid_argument( "'ParticleCoordinate' input and `SwarmVariableFn` function appear to be based on different swarms." );
         // return the lambda
-        return [_output, swarmvar](IOsptr input)->IOsptr {
-            std::shared_ptr<const ParticleCoordinate>  partCoord = debug_dynamic_cast<const ParticleCoordinate>(input);
+        return [_output, _output_sp, swarmvar](IOsptr input)->IOsptr {
+            const ParticleCoordinate*  partCoord = debug_dynamic_cast<const ParticleCoordinate*>(input);
             
             // find the position into the swarmvar array we need to copy from
             void* dataPtr = __Variable_GetStructPtr( swarmvar->variable, partCoord->index() );
@@ -111,7 +112,7 @@ Fn::SwarmVariableFn::func Fn::SwarmVariableFn::getFunction( IOsptr sample_input 
             // copy swarmvariable datum into output
             memcpy( _output->dataRaw(), dataPtr, Variable_SizeOfDataType(swarmvar->variable->dataTypes[0]) * swarmvar->dofCount );
 
-            return debug_dynamic_cast<const FunctionIO>(_output);
+            return debug_dynamic_cast<const FunctionIO*>(_output);
         };
     }
     

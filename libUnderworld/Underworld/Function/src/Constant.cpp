@@ -11,7 +11,7 @@
 Fn::Constant::func Fn::Constant::getFunction( IOsptr sample_input )
 {
     return [this](IOsptr input)->IOsptr {
-        return debug_dynamic_cast<const FunctionIO>(this->_constIO);
+        return debug_dynamic_cast<const FunctionIO*>(this->_constIO);
     };
 }
 

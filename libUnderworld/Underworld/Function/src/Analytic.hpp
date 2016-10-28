@@ -43,18 +43,19 @@ namespace Fn {
             virtual func getFunction( IOsptr sample_input )
             {
                 // setup output
-                std::shared_ptr<IO_double> _output = std::make_shared<IO_double>(outsize, outtype);
+                std::shared_ptr<IO_double> _output_sp = std::make_shared<IO_double>(outsize, outtype);
+                IO_double* _output = _output_sp.get();
 
-                std::shared_ptr<const IO_double> iodouble = std::dynamic_pointer_cast<const IO_double>(sample_input);
+                const IO_double* iodouble = dynamic_cast<const IO_double*>(sample_input);
                 T* solGuy = _sol;
                 membFuncType memberFuncGuy = memberFunc;
                 if ( iodouble && ((iodouble->size()==2)||(iodouble->size()==3)) ){
-                    return [_output,solGuy, memberFuncGuy](IOsptr input)->IOsptr {
-                        std::shared_ptr<const IO_double> iodouble = debug_dynamic_cast<const IO_double>(input);            
+                    return [_output, _output_sp, solGuy, memberFuncGuy](IOsptr input)->IOsptr {
+                        const IO_double* iodouble = debug_dynamic_cast<const IO_double*>(input);            
 
                         (solGuy->*memberFuncGuy)(iodouble->data(),_output->data());
 
-                        return debug_dynamic_cast<const FunctionIO>(_output);
+                        return debug_dynamic_cast<const FunctionIO*>(_output);
                     };
                 }
                 // if we get here, something aint right

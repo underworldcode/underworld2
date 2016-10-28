@@ -49,9 +49,9 @@ void _ConstitutiveMatrixCartesian_Set_Fn_Visc1( void* _self, Fn::Function* fn_vi
     std::shared_ptr<ParticleInCellCoordinate> localCoord = std::make_shared<ParticleInCellCoordinate>( swarm->localCoordVariable );
     cppdata->input = std::make_shared<FEMCoordinate>((void*)swarm->mesh, localCoord);
 
-    cppdata->func_visc1 = fn_visc1->getFunction(cppdata->input);
+    cppdata->func_visc1 = fn_visc1->getFunction(cppdata->input.get());
     // check output conforms
-    std::shared_ptr<const IO_double> iodub = std::dynamic_pointer_cast<const IO_double>(cppdata->func_visc1(cppdata->input));
+    const IO_double* iodub = dynamic_cast<const IO_double*>(cppdata->func_visc1(cppdata->input.get()));
     if( !iodub )
         throw std::invalid_argument("Viscosity function is expected to return 'double' type values.");
     if( iodub->size() != 1 )
@@ -70,8 +70,8 @@ void _ConstitutiveMatrixCartesian_Set_Fn_Visc2( void* _self, Fn::Function* fn_vi
     std::shared_ptr<ParticleInCellCoordinate> localCoord = std::make_shared<ParticleInCellCoordinate>( swarm->localCoordVariable );
     cppdata->input = std::make_shared<FEMCoordinate>((void*)swarm->mesh, localCoord);
 
-    cppdata->func_visc2 = fn_visc2->getFunction(cppdata->input);
-    std::shared_ptr<const IO_double> iodub = std::dynamic_pointer_cast<const IO_double>(cppdata->func_visc2(cppdata->input));
+    cppdata->func_visc2 = fn_visc2->getFunction(cppdata->input.get());
+    const IO_double* iodub = dynamic_cast<const IO_double*>(cppdata->func_visc2(cppdata->input.get()));
     if( !iodub )
         throw std::invalid_argument("Second viscosity function is expected to return 'double' type values.");
     if( iodub->size() != 1 )
@@ -91,8 +91,8 @@ void _ConstitutiveMatrixCartesian_Set_Fn_Director( void* _self, Fn::Function* fn
     cppdata->input = std::make_shared<FEMCoordinate>((void*)swarm->mesh, localCoord);
     
     // now setup director
-    cppdata->func_director = fn_director->getFunction(cppdata->input);
-    std::shared_ptr<const IO_double> iodub = std::dynamic_pointer_cast<const IO_double>(cppdata->func_director(cppdata->input));
+    cppdata->func_director = fn_director->getFunction(cppdata->input.get());
+    const IO_double* iodub = dynamic_cast<const IO_double*>(cppdata->func_director(cppdata->input.get()));
     if( !iodub )
         throw std::invalid_argument("Director function is expected to return 'double' type values.");
     if( iodub->size() != self->dim )
@@ -266,7 +266,6 @@ void _ConstitutiveMatrixCartesian_AssembleElement(
    Dof_Index               nodeDofCount;
    double**                Dtilda_B;
    double                  vel[3], velDerivs[9], *Ni, eta;
-   Bool                    oneToMany;
 
    self->sle = sle;
 
@@ -314,7 +313,7 @@ void _ConstitutiveMatrixCartesian_AssembleElement(
     if( cppdata->func_visc2 && !cppdata->func_director )
         throw std::invalid_argument("You do not appear to have a director set. If you have specified a second viscosity, you must also set a director.");
 
-   debug_dynamic_cast<ParticleInCellCoordinate>(cppdata->input->localCoord())->index() = lElement_I;  // set the elementId as the owning cell for the particleCoord
+   debug_dynamic_cast<ParticleInCellCoordinate*>(cppdata->input->localCoord())->index() = lElement_I;  // set the elementId as the owning cell for the particleCoord
    cppdata->input->index() = lElement_I;  // set the elementId for the fem coordinate
    
 
@@ -334,16 +333,16 @@ void _ConstitutiveMatrixCartesian_AssembleElement(
         FeVariable_InterpolateDerivatives_WithGNx(
            variable1, lElement_I, GNx, velDerivs );
 
-        debug_dynamic_cast<ParticleInCellCoordinate>(cppdata->input->localCoord())->particle_cellId(cParticle_I);  // set the particleCoord cellId
+        debug_dynamic_cast<ParticleInCellCoordinate*>(cppdata->input->localCoord())->particle_cellId(cParticle_I);  // set the particleCoord cellId
 
         /* evaluate function */
-        std::shared_ptr<const IO_double> visc1 = debug_dynamic_cast<const IO_double>(cppdata->func_visc1(cppdata->input));
+        const IO_double* visc1 = debug_dynamic_cast<const IO_double*>(cppdata->func_visc1(cppdata->input.get()));
 
         ConstitutiveMatrix_SetIsotropicViscosity( self, visc1->at() );
        
         if ( cppdata->func_visc2 ){
-            std::shared_ptr<const IO_double> visc2    = debug_dynamic_cast<const IO_double>(cppdata->func_visc2(cppdata->input));
-            std::shared_ptr<const IO_double> director = debug_dynamic_cast<const IO_double>(cppdata->func_director(cppdata->input));
+            const IO_double* visc2    = debug_dynamic_cast<const IO_double*>(cppdata->func_visc2(cppdata->input.get()));
+            const IO_double* director = debug_dynamic_cast<const IO_double*>(cppdata->func_director(cppdata->input.get()));
             ConstitutiveMatrix_SetSecondViscosity( self, visc2->at(), director->data() );
         }
 

@@ -18,9 +18,9 @@
 
 
 #ifdef DEBUG
-    #define debug_dynamic_cast std::dynamic_pointer_cast
+    #define debug_dynamic_cast dynamic_cast
 #else
-    #define debug_dynamic_cast std::static_pointer_cast
+    #define debug_dynamic_cast static_cast
 #endif
 
 #if !defined(SWIG_DO_NOT_WRAP)

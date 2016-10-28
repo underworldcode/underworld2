@@ -32,7 +32,7 @@ class IOIterator
 {
     public:
         virtual IOIterator& operator++(int) =0;
-        Function::IOsptr get(){ return debug_dynamic_cast<const FunctionIO>(_io); };
+        Function::IOsptr get(){ return debug_dynamic_cast<const FunctionIO*>(_io.get()); };
         virtual void reset() =0;
         unsigned size() const{ return _size; };
     protected:
