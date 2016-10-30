@@ -39,7 +39,7 @@ class Stokes(_stgermain.StgCompoundComponent):
     fn_lambda : underworld.function.Function, default=None.
         Function which defines a non solenoidal velocity field via the relationship
         div(velocityField) = fn_lambda * pressurefield
-        If fn_lambda is evaluated as 1e-8 or not defined then
+        If fn_lambda is <= 1e-8 it's effect is considered negligable and
         div(velocityField) = 0 is enofrced as the constaint equation.
         This method is incompatible with the 'penalty' stokes solver, ensure
         the 'penalty' of 0, is used when fn_lambda is used. By default this is the case.
@@ -196,6 +196,17 @@ class Stokes(_stgermain.StgCompoundComponent):
                                                                 surfaceGaussPoints = 2, # increase to resolve stress bc fluctuations
                                                                 nbc                = cond )
         if fn_lambda != None:
+            # some logic for constructing the lower-right [2,2] matrix in the stokes system
+            # [M] = [Na * 1.0/fn_lambda * Nb], where in our formulation Na and Nb are the pressure shape functions.
+            # see 4.3.21 of Hughes, Linear static and dynamic finite element analysis
+
+            # If fn_lambda is negligable, ie <1.0e-8, then we set the entry to 0.0, ie, incompressible
+            # otherwise we provide 1.0/lambda to [M]
+
+            logicFn = uw.function.branching.conditional(
+                                                      [  ( fn_lambda > 1.0e-8, 1.0/fn_lambda ),
+                                                      (                  True,     0.        )   ] )
+
             self._compressibleTerm = sle.MatrixAssemblyTerm_NA__NB__Fn(  integrationSwarm=intswarm,
                                                                          assembledObject=self._mmatrix,
                                                                          mesh=self._velocityField.mesh,
