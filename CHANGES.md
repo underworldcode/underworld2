@@ -1,6 +1,11 @@
 CHANGES: Underworld2
 =======================
 
+Release 2.1.2b  [2016-10-31]
+----------------------------
+* Bug fix for the stokes system's psuedo incompressibility
+
+
 Release 2.1.1b  [2016-10-13]
 ----------------------------
 * Improvements for docker usage.
