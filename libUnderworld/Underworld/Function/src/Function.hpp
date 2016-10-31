@@ -15,9 +15,6 @@
 
 #include "FunctionIO.hpp"
 
-#if 0
-#endif
-
 namespace Fn {
 
     class Function

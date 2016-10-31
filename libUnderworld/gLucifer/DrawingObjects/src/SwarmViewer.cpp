@@ -235,7 +235,7 @@ void _lucSwarmViewer_Draw( void* drawingObject, lucDatabase* database, void* _co
    {
       particleCoord->index() = lParticle_I;
       /* note we need to cast object to const version to ensure it selects const data() method */
-      const double* coord = const_cast<ParticleCoordinate*>(particleCoord.get())->data();
+      const double* coord = const_cast<const ParticleCoordinate*>(particleCoord.get())->data();
       /* Test to see if this particle should be drawn */
       if ( cppdata->fn_mask && !cppdata->func_mask(particleCoord.get())->at<bool>())
          continue;

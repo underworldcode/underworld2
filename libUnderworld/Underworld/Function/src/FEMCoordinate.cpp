@@ -75,7 +75,7 @@ FEMCoordinate::_calculate_value() const
 
     FeMesh_CoordLocalToGlobal( _mesh,
         _index,
-        const_cast<double*>(_localCoord->data()),
+        const_cast<const IO_double*>(_localCoord)->data(),
         _vector.data() );
     _valueCalculated = false;
 }

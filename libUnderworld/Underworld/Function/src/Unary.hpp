@@ -51,7 +51,7 @@ namespace Fn {
                         };
                     } else {  // return this version where no input function has been provided.  input get's processed directly.
                     
-                        return [_output](IOsptr input)->IOsptr {
+                        return [_output,_output_sp](IOsptr input)->IOsptr {
                             const IO_double* io = debug_dynamic_cast<const IO_double*>( input ) ;
 
                             // perform function

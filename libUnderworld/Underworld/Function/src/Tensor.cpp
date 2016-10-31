@@ -63,7 +63,7 @@ Fn::TensorFunc::func Fn::TensorFunc::getFunction( IOsptr sample_input )
         unsigned outsize = (dim = 2) ? 3 : 6;
         std::shared_ptr<IO_double> _output_sp = std::make_shared<IO_double>(outsize,FunctionIO::SymmetricTensor);
         IO_double* _output = _output_sp.get();
-        return [_output, _output_sp, _func, dim](IOsptr input)->IOsptr {
+        return [_output,_output_sp,_func,dim](IOsptr input)->IOsptr {
             const IO_double* iodouble = debug_dynamic_cast<const IO_double*>(_func(input));
 
             TensorArray_GetSymmetricPart( iodouble->data(), dim, _output->data() );
@@ -75,7 +75,7 @@ Fn::TensorFunc::func Fn::TensorFunc::getFunction( IOsptr sample_input )
             throw std::invalid_argument("TensorFunc expects Tensor input for 'get_antisymmetric' function.");
         std::shared_ptr<IO_double> _output_sp = std::make_shared<IO_double>(funcio->size(),FunctionIO::Tensor);
         IO_double* _output = _output_sp.get();
-        return [_output,_func, dim](IOsptr input)->IOsptr {
+        return [_output,_output_sp,_func,dim](IOsptr input)->IOsptr {
             const IO_double* iodouble = debug_dynamic_cast<const IO_double*>(_func(input));
 
             TensorArray_GetAntisymmetricPart( iodouble->data(), dim, _output->data() );
@@ -86,7 +86,7 @@ Fn::TensorFunc::func Fn::TensorFunc::getFunction( IOsptr sample_input )
         std::shared_ptr<IO_double> _output_sp = std::make_shared<IO_double>(1,FunctionIO::Scalar);
         IO_double* _output = _output_sp.get();
         if (iotype==FunctionIO::Tensor)
-            return [_output,_func, _output_sp, dim](IOsptr input)->IOsptr {
+            return [_output,_output_sp,_func, dim](IOsptr input)->IOsptr {
                 const IO_double* iodouble = debug_dynamic_cast<const IO_double*>(_func(input));
 
                 _output->at() = TensorArray_2ndInvariant( iodouble->data(), dim );
@@ -94,7 +94,7 @@ Fn::TensorFunc::func Fn::TensorFunc::getFunction( IOsptr sample_input )
                 return debug_dynamic_cast<const FunctionIO*>(_output);
             };
         else if (iotype==FunctionIO::SymmetricTensor)
-            return [_output,_func, dim](IOsptr input)->IOsptr {
+            return [_output,_output_sp, _func, dim](IOsptr input)->IOsptr {
                 const IO_double* iodouble = debug_dynamic_cast<const IO_double*>(_func(input));
 
                 _output->at() = SymmetricTensor_2ndInvariant( iodouble->data(), dim );
