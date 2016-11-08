@@ -300,6 +300,8 @@ class Store(_stgermain.StgCompoundComponent):
             return json.loads(statestr)
         except RuntimeError,e:
             print "LavaVu error: " + str(e)
+            import traceback
+            traceback.print_exc()
             pass
 
     def _plotObject(self, drawingObject):
@@ -566,6 +568,8 @@ class Figure(dict):
                     lv = self.db.lvrun(figure=-1, quality=self.quality, writeimage=True, res=self["resolution"], script=self._script)
             except RuntimeError,e:
                 print "LavaVu error: " + str(e)
+                import traceback
+                traceback.print_exc()
                 pass
             pass
         except RuntimeError, e:
@@ -630,6 +634,8 @@ class Figure(dict):
             return imagestr
         except RuntimeError,e:
             print "LavaVu error: " + str(e)
+            import traceback
+            traceback.print_exc()
             pass
         return ""
 
@@ -655,6 +661,8 @@ class Figure(dict):
             #return IFrame("html/index.html#" + base64.b64encode(jsonstr), width=self["resolution"][0], height=self["resolution"][1])
         except RuntimeError,e:
             print "LavaVu error: " + str(e)
+            import traceback
+            traceback.print_exc()
             pass
         return ""
 
