@@ -15,6 +15,7 @@ import underworld._stgermain as _stgermain
 import numpy as np
 import libUnderworld
 import copy
+import numbers
 
 class IndexSet(object):
     """
@@ -152,9 +153,9 @@ class IndexSet(object):
     
         
     def _addremove(self, indices, isadding):
-        if not isinstance(isadding, bool):
-            raise TypeError("The isadding parameter must be of type bool.")
-        if isinstance(indices, int):
+        # note we use numbers.Integral here which also catches numpy int types
+        if isinstance(indices, numbers.Integral):
+            indices = int(indices)
             if indices >= self.size or indices < 0:
                 raise ValueError("Provided index must be non-negative and "+
                                   "less than IndexSet maximum ({}).".format(self.size-1))
