@@ -25,6 +25,7 @@
 #include <Underworld/Function/Function.hpp>
 #include <Underworld/Function/Constant.hpp>
 #include <Underworld/Function/SwarmVariableFn.hpp>
+#include <Underworld/Function/ParticleFound.hpp>
 #include <Underworld/Function/FeVariableFn.hpp>
 #include <Underworld/Function/GradFeVariableFn.hpp>
 #include <Underworld/Function/Map.hpp>

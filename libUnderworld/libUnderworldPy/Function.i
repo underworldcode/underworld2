@@ -26,6 +26,7 @@
 #include <Underworld/Function/Function.hpp>
 #include <Underworld/Function/Constant.hpp>
 #include <Underworld/Function/SwarmVariableFn.hpp>
+#include <Underworld/Function/ParticleFound.hpp>
 #include <Underworld/Function/FeVariableFn.hpp>
 #include <Underworld/Function/GradFeVariableFn.hpp>
 #include <Underworld/Function/Map.hpp>
@@ -58,6 +59,7 @@ extern "C" {
 %include "Function/Binary.hpp"
 %include "Function/Constant.hpp"
 %include "Function/SwarmVariableFn.hpp"
+%include "Function/ParticleFound.hpp"
 %include "Function/FeVariableFn.hpp"
 %include "Function/GradFeVariableFn.hpp"
 %include "Function/Map.hpp"
