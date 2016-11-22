@@ -26,12 +26,12 @@
 
 /* creates and builds the "checker-board" null-space vectors for pressure
    and sets the t and v "Vec pointers" on the bsscr struct to point to them */
-#undef __FUNCT__  
-#define __FUNCT__ "KSPBuildPressure_CB_Nullspace_BSSCR" 
+#undef __FUNCT__
+#define __FUNCT__ "KSPBuildPressure_CB_Nullspace_BSSCR"
 PetscErrorCode KSPBuildPressure_CB_Nullspace_BSSCR(KSP ksp)
 {
     KSP_BSSCR        *bsscr = (KSP_BSSCR *)ksp->data;
-    FeEquationNumber *eq_num = bsscr->solver->st_sle->pSolnVec->feVariable->eqNum;
+    FeEquationNumber *eq_num = bsscr->solver->st_sle->pSolnVec->eqNum;
     FeMesh           *feMesh = bsscr->solver->st_sle->pSolnVec->feVariable->feMesh; /* is the pressure mesh */
     unsigned          ijk[3];
     Vec               t, v;
@@ -53,7 +53,7 @@ PetscErrorCode KSPBuildPressure_CB_Nullspace_BSSCR(KSP ksp)
     for(j=0;j<numLocalNodes;j++){
 	i = globalNodeNumber = Mesh_DomainToGlobal( feMesh, MT_VERTEX, j);
 	RegularMeshUtils_Element_1DTo3D(feMesh, i, ijk);
-	eq = eq_num->destinationArray[j][0];/* get global equation number -- 2nd arg is always 0 because pressure has only one dof */
+	eq = eq_num->mapNodeDof2Eq[j][0];/* get global equation number -- 2nd arg is always 0 because pressure has only one dof */
 	if(eq != -1){
 	    if( (ijk[0]+ijk[1]+ijk[2])%2 ==0 ){
 		VecSetValue(t,eq,1.0,INSERT_VALUES);
@@ -85,12 +85,12 @@ PetscErrorCode KSPBuildPressure_CB_Nullspace_BSSCR(KSP ksp)
 }
 /* creates and builds the "constant" null-space vector for pressure
    and sets the t "Vec pointer" on the bsscr struct to point to it */
-#undef __FUNCT__  
-#define __FUNCT__ "KSPBuildPressure_Const_Nullspace_BSSCR" 
+#undef __FUNCT__
+#define __FUNCT__ "KSPBuildPressure_Const_Nullspace_BSSCR"
 PetscErrorCode KSPBuildPressure_Const_Nullspace_BSSCR(KSP ksp)
 {
     KSP_BSSCR        *bsscr = (KSP_BSSCR *)ksp->data;
-    FeEquationNumber *eq_num = bsscr->solver->st_sle->pSolnVec->feVariable->eqNum;
+    FeEquationNumber *eq_num = bsscr->solver->st_sle->pSolnVec->eqNum;
     FeMesh           *feMesh = bsscr->solver->st_sle->pSolnVec->feVariable->feMesh; /* is the pressure mesh */
     unsigned          ijk[3];
     Vec               t;
@@ -125,8 +125,8 @@ PetscErrorCode KSPBuildPressure_Const_Nullspace_BSSCR(KSP ksp)
     PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
-#define __FUNCT__ "KSPRemovePressureNullspace_BSSCR" 
+#undef __FUNCT__
+#define __FUNCT__ "KSPRemovePressureNullspace_BSSCR"
 PetscErrorCode KSPRemovePressureNullspace_BSSCR(KSP ksp, Vec h_hat)
 {
     KSP_BSSCR            *bsscr = (KSP_BSSCR *)ksp->data;
@@ -181,4 +181,3 @@ PetscErrorCode KSPRemovePressureNullspace_BSSCR(KSP ksp, Vec h_hat)
 
     PetscFunctionReturn(0);
 }
-

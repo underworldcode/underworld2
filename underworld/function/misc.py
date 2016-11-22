@@ -158,17 +158,17 @@ class max(_Function):
     True
     """
     def __init__(self, fn1, fn2, **kwargs):
-        fn1fn = _Function._CheckIsFnOrConvertOrThrow( fn1 )
+        fn1fn = _Function.convert( fn1 )
         if not isinstance( fn1fn, _Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
-        fn2fn = _Function._CheckIsFnOrConvertOrThrow( fn2 )
+        fn2fn = _Function.convert( fn2 )
         if not isinstance( fn2fn, _Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
         
         self._fn1 = fn1fn
         self._fn2 = fn2fn
         # ok finally lets create the fn
-        self._fncself = _cfn.MathBinary(self._fn1._fncself, self._fn2._fncself,  _cfn.MathBinary.fmax )
+        self._fncself = _cfn.Max(self._fn1._fncself, self._fn2._fncself )
         # build parent
         super(max,self).__init__(argument_fns=[fn1fn,fn2fn],**kwargs)
 
@@ -190,17 +190,17 @@ class min(_Function):
     
     """
     def __init__(self, fn1, fn2, **kwargs):
-        fn1fn = _Function._CheckIsFnOrConvertOrThrow( fn1 )
+        fn1fn = _Function.convert( fn1 )
         if not isinstance( fn1fn, _Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
-        fn2fn = _Function._CheckIsFnOrConvertOrThrow( fn2 )
+        fn2fn = _Function.convert( fn2 )
         if not isinstance( fn2fn, _Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
         
         self._fn1 = fn1fn
         self._fn2 = fn2fn
         # ok finally lets create the fn
-        self._fncself = _cfn.MathBinary(self._fn1._fncself, self._fn2._fncself,  _cfn.MathBinary.fmin )
+        self._fncself = _cfn.Min(self._fn1._fncself, self._fn2._fncself )
         # build parent
         super(min,self).__init__(argument_fns=[fn1fn,fn2fn],**kwargs)
 

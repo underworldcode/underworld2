@@ -81,37 +81,3 @@ if env['shared_libs']:
     env.SharedLibrary('lib/StGermain', objs)
     env.SharedLibrary(env['prefix'] + '/lib/StGermain', objs)
 
-#
-# Build static library.
-#
-
-if env['static_libs']:
-
-    # In order to allow other projects to register their modules,
-    # we copy a template file to a standard location and direct
-    # SCons to build it in to the final static library. Before the
-    # build actually takes place the other projects will fill in
-    # there details.
-    dir = Dir(env['build_dir'] + '/StGermain').abspath
-    if not os.path.exists(dir):
-        os.makedirs(dir)
-    f = File(env['build_dir'] + '/StGermain/stg_static_modules.c')
-    Execute(Copy(f.abspath, File('libStGermain/src/stg_static_modules.c.tmpl')))
-
-    # Now build the library.
-    l = env.StaticLibrary(env['build_dir'] + '/lib/StGermain', objs)
-    env.Install(env['prefix'] + '/lib', l)
-
-# test runner program
-
-libs = ['StGermain'] + env.get('LIBS', [])
-env.PCUTest('tests/testStGermain', suites,
-    PCU_LIBHEADERS="#include <StGermain/StGermain.h>",
-    PCU_SETUP="StGermain_Init(&argc, &argv);\n" \
-    "   stJournal->firewallProducesAssert = True;\n" \
-    "   stJournal->firewallProtected = True;",
-    PCU_TEARDOWN="StGermain_Finalise();",
-    LIBS=libs,
-    PCU_EXP=tst_exp,
-    PCU_INPUT=tst_input,
-    PROJECT="StGermain")

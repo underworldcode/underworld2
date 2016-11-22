@@ -39,18 +39,17 @@ class Stokes(_stgermain.StgCompoundComponent):
     fn_lambda : underworld.function.Function, default=None.
         Function which defines a non solenoidal velocity field via the relationship
         div(velocityField) = fn_lambda * pressurefield
-        If fn_lambda is evaluated as 1e-8 or not defined then
+        If fn_lambda is <= 1e-8 it's effect is considered negligable and
         div(velocityField) = 0 is enofrced as the constaint equation.
         This method is incompatible with the 'penalty' stokes solver, ensure
         the 'penalty' of 0, is used when fn_lambda is used. By default this is the case.
-    swarm : uw.swarm.Swarm, default=None.
-        If a swarm is provided, PIC type integration is utilised to build
-        up element integrals. The provided swarm is used as the basis for
-        the PIC swarm.
-        If no swarm is provided, Gauss style integration is used.
-    conditions : list of uw.conditions.DirichletCondition objects, default=None
-        Conditions to be placed on the system. Currently only
-        Dirichlet conditions are supported.
+    voronoi_swarm : uw.swarm.Swarm, optional
+        If a voronoi_swarm is provided, voronoi type integration is utilised to
+        integrate across elements. The provided swarm is used as the basis for
+        the voronoi integration. If no swarm is provided, Gauss integration
+        is used.
+    conditions : uw.conditions.DirichletCondition object (or list of), default=None
+        Conditions to be placed on the system.
 
     Notes
     -----
@@ -61,8 +60,17 @@ class Stokes(_stgermain.StgCompoundComponent):
     _objectsDict = {  "_system" : "Stokes_SLE" }
     _selfObjectName = "_system"
 
-    def __init__(self, velocityField, pressureField, fn_viscosity=None, fn_bodyforce=None, fn_lambda=None, swarm=None, conditions=[], _fn_viscosity2=None, _fn_director=None, _fn_stresshistory=None, **kwargs):
+    def __init__(self, velocityField, pressureField, fn_viscosity=None, fn_bodyforce=None, fn_lambda=None, voronoi_swarm=None, conditions=[],
+                _removeBCs=True, _fn_viscosity2=None, _fn_director=None, _fn_stresshistory=None, swarm=None, **kwargs):
 
+        # DEPRECATE. JM 09/16
+        if swarm:
+            import warnings
+            warnings.warn("'swarm' paramater has been renamed to 'voronoi_swarm'. Please update your models. "+
+                          "'swarm' parameter will be removed in the next release.")
+            if voronoi_swarm:
+                raise ValueError("Please provide only a 'voronoi_swarm'. 'swarm' is deprecated.")
+            voronoi_swarm = swarm
         if not isinstance( velocityField, uw.mesh.MeshVariable):
             raise TypeError( "Provided 'velocityField' must be of 'MeshVariable' class." )
         if velocityField.nodeDofCount != velocityField.mesh.dim:
@@ -76,26 +84,30 @@ class Stokes(_stgermain.StgCompoundComponent):
 
         if not fn_viscosity:
             raise ValueError("You must specify a viscosity function via the 'fn_viscosity' parameter.")
-        _fn_viscosity  = uw.function.Function._CheckIsFnOrConvertOrThrow(fn_viscosity)
+        _fn_viscosity  = uw.function.Function.convert(fn_viscosity)
         if not isinstance( _fn_viscosity, uw.function.Function):
             raise TypeError( "Provided 'fn_viscosity' must be of or convertible to 'Function' class." )
         if _fn_viscosity2:
-            _fn_viscosity2 = uw.function.Function._CheckIsFnOrConvertOrThrow(_fn_viscosity2)
+            _fn_viscosity2 = uw.function.Function.convert(_fn_viscosity2)
             if not isinstance( _fn_viscosity2, uw.function.Function):
                 raise TypeError( "Provided 'fn_viscosity2' must be of or convertible to 'Function' class." )
 
+        if not isinstance( _removeBCs, bool):
+            raise TypeError( "Provided '_removeBCs' must be of type bool." )
+        self._removeBCs = _removeBCs
+
         if _fn_director:
-            _fn_director = uw.function.Function._CheckIsFnOrConvertOrThrow(_fn_director)
+            _fn_director = uw.function.Function.convert(_fn_director)
             if not isinstance( _fn_director, uw.function.Function):
                 raise TypeError( "Provided 'fn_director' must be of or convertible to 'Function' class." )
 
         if _fn_stresshistory:
-            _fn_stresshistory = uw.function.Function._CheckIsFnOrConvertOrThrow(_fn_stresshistory)
+            _fn_stresshistory = uw.function.Function.convert(_fn_stresshistory)
             if not isinstance( _fn_stresshistory, uw.function.Function):
                 raise TypeError( "Provided '_fn_stresshistory' must be of or convertible to 'Function' class." )
 
         if fn_lambda != None:
-            fn_lambda = uw.function.Function._CheckIsFnOrConvertOrThrow(fn_lambda)
+            fn_lambda = uw.function.Function.convert(fn_lambda)
             if not isinstance(fn_lambda, uw.function.Function):
                 raise ValueError("Provided 'fn_lambda' must be of, or convertible to, the 'Function' class.")
 
@@ -104,48 +116,53 @@ class Stokes(_stgermain.StgCompoundComponent):
                 fn_bodyforce = (0.,0.)
             else:
                 fn_bodyforce = (0.,0.,0.)
-        _fn_bodyforce = uw.function.Function._CheckIsFnOrConvertOrThrow(fn_bodyforce)
+        _fn_bodyforce = uw.function.Function.convert(fn_bodyforce)
 
-        if swarm and not isinstance(swarm, uw.swarm.Swarm):
-            raise TypeError( "Provided 'swarm' must be of 'Swarm' class." )
-        self._swarm = swarm
+        if voronoi_swarm and not isinstance(voronoi_swarm, uw.swarm.Swarm):
+            raise TypeError( "Provided 'voronoi_swarm' must be of 'Swarm' class." )
+        self._swarm = voronoi_swarm
+        if voronoi_swarm and velocityField.mesh.elementType=='Q2':
+            import warnings
+            warnings.warn("Voronoi integration may yield unsatisfactory results for Q2 mesh.")
 
         mesh = velocityField.mesh
 
+        if not isinstance(conditions,(list,tuple)):
+            conditionslist = []
+            conditionslist.append(conditions)
+            conditions = conditionslist
         for cond in conditions:
             # set the bcs on here
             if not isinstance( cond, uw.conditions._SystemCondition ):
-                raise TypeError( "Provided 'conditions' must be a list '_SystemCondition' objects." )
+                raise TypeError( "Provided 'conditions' must be 'SystemCondition' objects." )
             elif type(cond) == uw.conditions.DirichletCondition:
                 if cond.variable == self._velocityField:
                     libUnderworld.StgFEM.FeVariable_SetBC( self._velocityField._cself, cond._cself )
                 if cond.variable == self._pressureField:
                     libUnderworld.StgFEM.FeVariable_SetBC( self._pressureField._cself, cond._cself )
-                # add all dirichlet condition to dcs
 
         self._conditions = conditions
 
-        # ok, we've set some bcs, lets recreate eqnumbering
-        libUnderworld.StgFEM._FeVariable_CreateNewEqnNumber( self._pressureField._cself )
-        libUnderworld.StgFEM._FeVariable_CreateNewEqnNumber( self._velocityField._cself )
-        self._conditions = conditions
+        self._eqNums = dict()
+        self._eqNums[velocityField] = sle.EqNumber( self._velocityField, self._removeBCs )
+        self._eqNums[pressureField] = sle.EqNumber( self._pressureField, self._removeBCs )
 
         # create solutions vectors and load fevariable values onto them for best first guess
-        self._velocitySol = sle.SolutionVector(velocityField)
+        self._velocitySol = sle.SolutionVector(velocityField, self._eqNums[velocityField])
+        self._pressureSol = sle.SolutionVector(pressureField, self._eqNums[pressureField])
         libUnderworld.StgFEM.SolutionVector_LoadCurrentFeVariableValuesOntoVector( self._velocitySol._cself );
-        self._pressureSol = sle.SolutionVector(pressureField)
         libUnderworld.StgFEM.SolutionVector_LoadCurrentFeVariableValuesOntoVector( self._pressureSol._cself );
 
         # create force vectors
-        self._fvector = sle.AssembledVector(velocityField)
-        self._hvector = sle.AssembledVector(pressureField)
+        self._fvector = sle.AssembledVector(velocityField, self._eqNums[velocityField] )
+        self._hvector = sle.AssembledVector(pressureField, self._eqNums[pressureField] )
 
         # and matrices
-        self._kmatrix = sle.AssembledMatrix( velocityField, velocityField, rhs=self._fvector )
-        self._gmatrix = sle.AssembledMatrix( velocityField, pressureField, rhs=self._fvector, rhs_T=self._hvector )
-        self._preconditioner = sle.AssembledMatrix( pressureField, pressureField, rhs=self._hvector )
+        self._kmatrix = sle.AssembledMatrix( self._velocitySol, self._velocitySol, rhs=self._fvector )
+        self._gmatrix = sle.AssembledMatrix( self._velocitySol, self._pressureSol, rhs=self._fvector, rhs_T=self._hvector )
+        self._preconditioner = sle.AssembledMatrix( self._pressureSol, self._pressureSol, rhs=self._hvector )
         if fn_lambda != None:
-            self._mmatrix = sle.AssembledMatrix( pressureField, pressureField, rhs=self._hvector )
+            self._mmatrix = sle.AssembledMatrix( self._pressureSol, self._pressureSol, rhs=self._hvector )
 
         # create assembly terms which always use gauss integration
         gaussSwarm = uw.swarm.GaussIntegrationSwarm(self._velocityField.mesh)
@@ -188,7 +205,7 @@ class Stokes(_stgermain.StgCompoundComponent):
 
             logicFn = uw.function.branching.conditional(
                                                       [  ( fn_lambda > 1.0e-8, 1.0/fn_lambda ),
-                                                         (             True,     0.        )   ] )
+                                                      (                  True,     0.        )   ] )
 
             self._compressibleTerm = sle.MatrixAssemblyTerm_NA__NB__Fn(  integrationSwarm=intswarm,
                                                                          assembledObject=self._mmatrix,

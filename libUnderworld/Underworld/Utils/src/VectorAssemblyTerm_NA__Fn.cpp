@@ -59,11 +59,11 @@ void _VectorAssemblyTerm_NA__Fn_SetFn( void* _self, Fn::Function* fn ){
     // setup fn
     std::shared_ptr<ParticleInCellCoordinate> localCoord = std::make_shared<ParticleInCellCoordinate>( swarm->localCoordVariable );
     cppdata->input = std::make_shared<FEMCoordinate>((void*)mesh, localCoord);
-    cppdata->func = fn->getFunction(cppdata->input);
+    cppdata->func = fn->getFunction(cppdata->input.get());
     
     // check output conforms
-    std::shared_ptr<const FunctionIO> sampleguy = cppdata->func(cppdata->input);
-    std::shared_ptr<const IO_double> iodub = std::dynamic_pointer_cast<const IO_double>(sampleguy);
+    const FunctionIO* sampleguy = cppdata->func(cppdata->input.get());
+    const IO_double* iodub = dynamic_cast<const IO_double*>(sampleguy);
     if( !iodub )
         throw std::invalid_argument( "Assembly term expects functions to return 'double' type values." );
     if( !self->forceVector )
@@ -165,7 +165,7 @@ void _VectorAssemblyTerm_NA__Fn_AssembleElement( void* forceTerm, ForceVector* f
 
    VectorAssemblyTerm_NA__Fn_cppdata* cppdata = (VectorAssemblyTerm_NA__Fn_cppdata*)self->cppdata;
     
-   debug_dynamic_cast<ParticleInCellCoordinate>(cppdata->input->localCoord())->index() = lElement_I;  // set the elementId as the owning cell for the particleCoord
+   debug_dynamic_cast<ParticleInCellCoordinate*>(cppdata->input->localCoord())->index() = lElement_I;  // set the elementId as the owning cell for the particleCoord
    cppdata->input->index()   = lElement_I;  // set the elementId for the fem coordinate
 
    /* Set the element type */
@@ -180,7 +180,7 @@ void _VectorAssemblyTerm_NA__Fn_AssembleElement( void* forceTerm, ForceVector* f
    cellParticleCount = swarm->cellParticleCountTbl[ cell_I ];
 
    for ( cParticle_I = 0 ; cParticle_I < cellParticleCount ; cParticle_I++ ) {
-      debug_dynamic_cast<ParticleInCellCoordinate>(cppdata->input->localCoord())->particle_cellId(cParticle_I);  // set the particleCoord cellId
+      debug_dynamic_cast<ParticleInCellCoordinate*>(cppdata->input->localCoord())->particle_cellId(cParticle_I);  // set the particleCoord cellId
       particle = (IntegrationPoint*) Swarm_ParticleInCellAt( swarm, cell_I, cParticle_I );
       xi       = particle->xi;
 
@@ -193,7 +193,7 @@ void _VectorAssemblyTerm_NA__Fn_AssembleElement( void* forceTerm, ForceVector* f
       ElementType_EvaluateShapeFunctionsAt( elementType, xi, N );
 
       /* evaluate function */
-      std::shared_ptr<const IO_double> funcout = debug_dynamic_cast<const IO_double>(cppdata->func(cppdata->input));
+      const IO_double* funcout = debug_dynamic_cast<const IO_double*>(cppdata->func(cppdata->input.get()));
 
       factor = detJac * particle->weight;
       for( A = 0 ; A < nodesPerEl ; A++ )

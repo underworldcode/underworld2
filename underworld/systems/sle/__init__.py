@@ -10,10 +10,11 @@
 """
 from _assembledvector import AssembledVector
 from _assembledmatrix import AssembledMatrix
+from _eqnum import EqNumber
 from _svector import SolutionVector
 from _assemblyterm import AssemblyTerm, VectorAssemblyTerm, MatrixAssemblyTerm, \
                           VectorAssemblyTerm_NA__Fn, GradientStiffnessMatrixTerm, PreconditionerMatrixTerm, \
                           ConstitutiveMatrixTerm, AdvDiffResidualVectorTerm, LumpedMassMatrixVectorTerm, \
-                          MassMatrixTerm, MatrixAssemblyTerm_NA_i__NB_i__Fn, VectorSurfaceAssemblyTerm_NA__Fn__ni, \
+                          MatrixAssemblyTerm_NA_i__NB_i__Fn, VectorSurfaceAssemblyTerm_NA__Fn__ni, \
                           AdvDiffResidualVectorTerm, VectorAssemblyTerm_VEP__Fn, MatrixAssemblyTerm_NA__NB__Fn, \
                           MatrixAssemblyTerm_RotationDof

@@ -997,9 +997,9 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
 
         overruleDict = {}
         # Only supporting 2 'main' elements types here
-        if elementType[0] == cls._supportedElementTypes[0]:
+        if elementType[0].upper() == cls._supportedElementTypes[0]:
             overruleDict["_gen"] = cls._meshGenerator[0]
-        if elementType[0] == cls._supportedElementTypes[1]:
+        if elementType[0].upper() == cls._supportedElementTypes[1]:
             overruleDict["_gen"] = cls._meshGenerator[1]
 
         return super(FeMesh_Cartesian,cls).__new__(cls, objectsDictOverrule=overruleDict, **kwargs)

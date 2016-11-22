@@ -39,10 +39,8 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
         The velocity field.
     fn_diffusivity : uw.function.Function
         Function that defines diffusivity
-    conditions : list, uw.conditions._SystemCondition, default = []
+    conditions : uw.conditions._SystemCondition (or list of), default = []
         Numerical conditions to impose on the system.
-        uw.conditions.DirichletCondition : define scalar values of \phi
-        uw.conditions.NeumannCondition :   define the vector (k \nabla \phi)
 
     Notes
     -----
@@ -75,14 +73,16 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
             raise TypeError( "Provided 'velocityField' must be the same dimensionality as the phiField's mesh" )
         self._velocityField = velocityField
 
-        if not isinstance(conditions, (uw.conditions._SystemCondition, list, tuple) ):
-            raise ValueError( "Provided 'conditions' must be a list '_SystemCondition' objects." )
+        if not isinstance(conditions,(list,tuple)):
+            conditionslist = []
+            conditionslist.append(conditions)
+            conditions = conditionslist
 
         # check input 'conditions' list is valid
-        nbc      = None
+        nbc = None
         for cond in conditions:
             if not isinstance( cond, uw.conditions._SystemCondition ):
-                raise TypeError( "Provided 'conditions' must be a list '_SystemCondition' objects." )
+                raise TypeError( "Provided 'conditions' must be a list 'SystemCondition' objects." )
             # set the bcs on here
             if type(cond) == uw.conditions.NeumannCondition:
                 if nbc != None:
@@ -94,20 +94,26 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
                     libUnderworld.StgFEM.FeVariable_SetBC( self._phiDotField._cself, cond._cself )
             else:
                 raise RuntimeError("Input condition type not recognised.")
-
-        # ok, we've set some bcs, lets recreate eqnumbering
-        libUnderworld.StgFEM._FeVariable_CreateNewEqnNumber( self._phiField._cself )
-        libUnderworld.StgFEM._FeVariable_CreateNewEqnNumber( self._phiDotField._cself )
         self._conditions = conditions
 
+        # force removal of BCs as SUPG cannot handle leaving them in
+        self._eqNumPhi    = sle.EqNumber( phiField, removeBCs=True )
+        self._eqNumPhiDot = sle.EqNumber( phiDotField, removeBCs=True )
+
+        self._phiSolution    = sle.SolutionVector( phiField, self._eqNumPhi )
+        self._phiDotSolution = sle.SolutionVector( phiDotField, self._eqNumPhiDot )
+
         # create force vectors
-        self._residualVector = sle.AssembledVector(phiField)
-        self._massVector     = sle.AssembledVector(phiField)
+        self._residualVector = sle.AssembledVector(phiField, self._eqNumPhi )
+        self._massVector     = sle.AssembledVector(phiField, self._eqNumPhi )
 
         # create swarm
         self._gaussSwarm = uw.swarm.GaussIntegrationSwarm(self._phiField.mesh)
 
         super(AdvectionDiffusion, self).__init__(**kwargs)
+
+        self._cself.phiVector = self._phiSolution._cself
+        self._cself.phiDotVector = self._phiDotSolution._cself
 
 
     def _add_to_stg_dict(self,componentDictionary):
@@ -136,11 +142,17 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
                                                                       extraInfo = self._cself.name )
         for cond in self._conditions:
             if isinstance( cond, uw.conditions.NeumannCondition ):
+
+                ### -VE flux - because of SUPG implementation ###
+                negativeCond = uw.conditions.NeumannCondition( flux=-1.0*cond.flux,
+                                                               variable=cond.variable,
+                                                               nodeIndexSet=cond.indexSet )
+
                 #NOTE many NeumannConditions can be used but the _sufaceFluxTerm only records the last
                 self._surfaceFluxTerm = sle.VectorSurfaceAssemblyTerm_NA__Fn__ni(
                                                                 assembledObject  = self._residualVector,
                                                                 surfaceGaussPoints = 2,
-                                                                nbc         = cond )
+                                                                nbc         = negativeCond )
 
         self._cself.advDiffResidualForceTerm = self._residualTerm._cself
 

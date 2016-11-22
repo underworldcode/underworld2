@@ -31,7 +31,6 @@ FieldVariable* FieldVariable_New(
    DomainContext*          context,
    Index                   fieldComponentCount,
    Dimension_Index         dim,
-   Bool                    isCheckpointedAndReloaded,
    MPI_Comm                communicator,
    FieldVariable_Register* fieldVariable_Register ) 
 {
@@ -44,7 +43,6 @@ FieldVariable* FieldVariable_New(
       context,
       fieldComponentCount,
       dim,
-      isCheckpointedAndReloaded,
       NULL,
       communicator,
       fieldVariable_Register,
@@ -106,40 +104,13 @@ void _FieldVariable_Delete( void* fieldVariable ) {
    _Stg_Component_Delete( self );
 }
 
-void _FieldVariable_Print( void* _fieldVariable, Stream* stream ) {
-   FieldVariable* self = (FieldVariable*) _fieldVariable;
-
-   Journal_Printf( stream, "FieldVariable - '%s'\n", self->name );
-   Stream_Indent( stream );
-   _Stg_Component_Print( self, stream );
-
-   Journal_PrintPointer( stream, self->_interpolateValueAt );
-   Journal_PrintPointer( stream, self->_getMinGlobalFieldMagnitude );
-   Journal_PrintPointer( stream, self->_getMaxGlobalFieldMagnitude );
-   Journal_PrintPointer( stream, self->_cacheMinMaxGlobalFieldMagnitude );
-   Journal_PrintPointer( stream, self->_getMinAndMaxLocalCoords );
-   Journal_PrintPointer( stream, self->_getMinAndMaxGlobalCoords );
-
-   Journal_PrintValue( stream, self->fieldComponentCount );
-   Journal_PrintValue( stream, self->dim );
-   Journal_PrintBool( stream, self->isCheckpointedAndReloaded);
-   #ifdef LAM_MPI
-      Journal_PrintPointer( stream, self->communicator );
-   #elif  defined( OPEN_MPI )
-      Journal_PrintPointer( stream, self->communicator );
-   #else
-      Journal_PrintValue( stream, self->communicator );
-   #endif
-   Journal_PrintPointer( stream, self->fieldVariable_Register );
-   Stream_UnIndent( stream );
-}
+void _FieldVariable_Print( void* _fieldVariable, Stream* stream ) {}
 
 void _FieldVariable_Init( 
    FieldVariable*          self, 
    DomainContext*          context,
    Index                   fieldComponentCount, 
    Dimension_Index         dim,
-   Bool                    isCheckpointedAndReloaded,
    char*                   o_units,
    MPI_Comm                communicator, 
    FieldVariable_Register* fV_Register,
@@ -151,7 +122,6 @@ void _FieldVariable_Init(
    self->dim                       = dim;
    self->communicator              = communicator;
    self->fieldVariable_Register    = fV_Register;
-   self->isCheckpointedAndReloaded = isCheckpointedAndReloaded;
    self->useCacheMaxMin            = useCacheMaxMin;
 
    if( self != NULL && fV_Register != NULL ) {   
@@ -181,7 +151,6 @@ void* _FieldVariable_Copy( void* fieldVariable, void* dest, Bool deep, Name name
    newFieldVariable->_getMinAndMaxGlobalCoords = self->_getMinAndMaxGlobalCoords;
    newFieldVariable->fieldComponentCount       = self->fieldComponentCount;
    newFieldVariable->dim                       = self->dim;
-   newFieldVariable->isCheckpointedAndReloaded = self->isCheckpointedAndReloaded;
    newFieldVariable->communicator              = self->communicator;
    newFieldVariable->fieldVariable_Register    = self->fieldVariable_Register;
    newFieldVariable->extensionMgr              = Stg_Class_Copy( self->extensionMgr, NULL, deep, nameExt, map );
@@ -198,7 +167,6 @@ void _FieldVariable_AssignFromXML( void* fieldVariable, Stg_ComponentFactory* cf
    FieldVariable_Register* fV_Register=NULL;
    Dimension_Index         dim;
    Index                   fieldComponentCount;
-   Bool                    isCheckpointedAndReloaded, isCheckpointedAndReloaded2;
    Dictionary_Entry_Value* feVarsList = NULL;
    char*                   o_units = NULL;
    DomainContext*          context = NULL;
@@ -234,81 +202,11 @@ void _FieldVariable_AssignFromXML( void* fieldVariable, Stg_ComponentFactory* cf
    
    o_units = Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"outputUnits", NULL );
 
-   /* 
-    * Decide whether this FieldVariable will be checkpointed & reloaded, based on the dictionary list 
-    * "fieldVariableToCheckpoint". NB may want to put this in the XML component definintion of a
-    * FieldVariable itself, but for now prefer list so it can be centrally set.
-    * -- Pat, Jules, Kath - 29 November 2006 
-    */
-
-   isCheckpointedAndReloaded2 = Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"isCheckpointedAndReloaded", False );
-
-   /* Case insensitive search */
-   feVarsList = Dictionary_Get( cf->rootDict, (Dictionary_Entry_Key)"fieldVariablesToCheckpoint" );
-   if( NULL == feVarsList ) {
-      feVarsList = Dictionary_Get( cf->rootDict, (Dictionary_Entry_Key)"FieldVariablesToCheckpoint" );
-   }
-
-   if( feVarsList != NULL ) {
-      Index                   listLength = Dictionary_Entry_Value_GetCount( feVarsList );
-      Index                   var_I = 0;
-      Dictionary_Entry_Value* feVarDictValue = NULL;
-      char*                   fieldVariableName;
-   
-      /* if the 'fieldVariablesToCheckpoint' list is empty (but exists)
-       *    checkpoint every field
-       * else selectively checkpoint based on list entries */
-      if( listLength == 0 ) { 
-         isCheckpointedAndReloaded = True; 
-      }
-      else {
-         isCheckpointedAndReloaded = False;
-         for ( var_I = 0; var_I < listLength; var_I++  ) {
-            feVarDictValue = Dictionary_Entry_Value_GetElement( feVarsList, var_I );
-            fieldVariableName = Dictionary_Entry_Value_AsString( feVarDictValue ); 
-            if ( 0 == strcmp( self->name, fieldVariableName ) ) {
-               isCheckpointedAndReloaded = True;
-               break;
-            }
-         }
-      }
-   }
-   else {
-      /* If there's no special list, just checkpoint/reload everything. */
-      isCheckpointedAndReloaded = True;
-   }
-
-   isCheckpointedAndReloaded = (isCheckpointedAndReloaded || isCheckpointedAndReloaded2 );
-
-   feVarsList = NULL;
-   /* also include check to see if this fevariable should be saved for analysis purposes */ 
-   feVarsList = Dictionary_Get( cf->rootDict, (Dictionary_Entry_Key)"fieldVariablesToSave" );
-
-   if( NULL == feVarsList ) {
-      feVarsList = Dictionary_Get( cf->rootDict, (Dictionary_Entry_Key)"FieldVariablesToSave" );
-   }
-   if( feVarsList != NULL ) {
-      Index                   listLength = Dictionary_Entry_Value_GetCount( feVarsList );
-      Index                   var_I = 0;
-      Dictionary_Entry_Value* feVarDictValue = NULL;
-      char*                   fieldVariableName;
-   
-      for( var_I = 0; var_I < listLength; var_I++ ) {
-         feVarDictValue = Dictionary_Entry_Value_GetElement( feVarsList, var_I );
-         fieldVariableName = Dictionary_Entry_Value_AsString( feVarDictValue ); 
-
-         if( 0 == strcmp( self->name, fieldVariableName ) ) {
-            self->isSavedData = True;
-            break;
-         }
-      }
-   }
    _FieldVariable_Init(
       self,
       context,
       fieldComponentCount,
       dim,
-      isCheckpointedAndReloaded,
       o_units,
       MPI_COMM_WORLD,
       fV_Register,

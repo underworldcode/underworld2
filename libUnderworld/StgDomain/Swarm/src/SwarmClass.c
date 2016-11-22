@@ -181,9 +181,6 @@ void _Swarm_Init(
       LiveComponentRegister_Add( LiveComponentRegister_GetLiveComponentRegister(), (Stg_Component*)self->owningCellVariable->variable );
    }
 
-   /* disable checkpointing of OwningCell as it is reinitialised on startup */   
-   self->owningCellVariable->isCheckpointedAndReloaded = False;
-
    if( createGlobalIdVar && self->gidExtHandle == (unsigned)-1 ) {
 
       int *gidExt = NULL;
@@ -201,9 +198,6 @@ void _Swarm_Init(
          LiveComponentRegister_Add( LiveComponentRegister_GetLiveComponentRegister(), (Stg_Component*)self->globalIdVariable );
          LiveComponentRegister_Add( LiveComponentRegister_GetLiveComponentRegister(), (Stg_Component*)self->globalIdVariable->variable );
       }
-
-      /* disable checkpointing of globalIdVariable as it is reinitialised on startup */   
-      self->globalIdVariable->isCheckpointedAndReloaded = True;
 
    }
 
@@ -1326,8 +1320,6 @@ SwarmVariable* Swarm_NewScalarVariable(
 		variable_Register );
 
 	swarmVariable = SwarmVariable_New( name, self->context, self, variable, 1, False );
-   /* set variable to be checkpointed */
-	swarmVariable->isCheckpointedAndReloaded = True;
 
 	Memory_Free( name );
 
@@ -1419,21 +1411,17 @@ SwarmVariable* Swarm_NewVectorVariable(
 		variable_Register );
 
 	/* Need to free these guys individually */
-	for( vector_I = 0; vector_I < dataTypeCount; vector_I++ ) {
-		if ( swarmVariable_Register && variable_Register ) {
-			swarmVariable = SwarmVariable_New( 
+    if ( swarmVariable_Register && variable_Register ) {
+        for( vector_I = 0; vector_I < dataTypeCount; vector_I++ ) {
+			swarmVariable = SwarmVariable_New(
 					dataNames[ vector_I ], self->context, 
 					self, 
 					Variable_Register_GetByName( variable_Register, dataNames[ vector_I ] ),
 					1, False );
-         /* disable checkpointing of children, as data is stored when parent is checkpointed */
-         swarmVariable->isCheckpointedAndReloaded = False;
 		}
 		Memory_Free( dataNames[ vector_I ] );
 	}
 	swarmVariable = SwarmVariable_New( name, self->context, self, variable, dataTypeCount, False );
-   /* set variable to be checkpointed */
-   swarmVariable->isCheckpointedAndReloaded = True;
 
 	Memory_Free( dataNames );
 	Memory_Free( name );
@@ -1441,6 +1429,25 @@ SwarmVariable* Swarm_NewVectorVariable(
 	return swarmVariable;
 }
 
+Variable* Swarm_GetShadowVariable( void* _swarm, Variable* variable )
+{
+	Swarm* self = (Swarm*) _swarm;
+	/* Construct */
+	return Variable_New(
+		NULL,
+		NULL,
+		1, 
+		variable->offsets,
+		variable->dataTypes,
+		variable->dataTypeCounts,
+		NULL,
+		&self->particleExtensionMgr->finalSize,
+		&self->shadowParticleCount,
+		NULL,
+		(void**)&self->shadowParticles,
+		NULL );
+
+}
 
 void Swarm_Realloc( void* swarm ) {
 	Swarm*         self               = (Swarm*) swarm;

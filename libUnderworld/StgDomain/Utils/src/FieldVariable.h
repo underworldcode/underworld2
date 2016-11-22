@@ -57,7 +57,6 @@
       Dimension_Index                           dim; \
       MPI_Comm                                  communicator; \
       FieldVariable_Register*                   fieldVariable_Register; \
-      Bool                                      isCheckpointedAndReloaded; \
       /* Bool to determine whether the field variable should be saved on the saveData entry point */ \
       Bool                                      isSavedData; \
       int                                       cachedTimestep; \
@@ -80,7 +79,6 @@
       DomainContext*          context,
       Index                   fieldComponentCount,
       Dimension_Index         dim,
-      Bool                    isCheckpointedAndReloaded,
       MPI_Comm                communicator,
       FieldVariable_Register* fieldVariable_Register ) ;
    
@@ -114,7 +112,6 @@
       DomainContext*          context,
       Index                   fieldComponentCount, 
       Dimension_Index         dim,
-      Bool                    isCheckpointedAndReloaded,
       char*                   o_units,
       MPI_Comm                communicator, 
       FieldVariable_Register* fV_Register,

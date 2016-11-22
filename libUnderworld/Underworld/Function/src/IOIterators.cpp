@@ -48,7 +48,7 @@ void Fn::MeshIndexSet::reset()
     // setup first guy
     if (_position<_size) {
         // create io guy
-        _io = std::unique_ptr<MeshCoordinate>(new MeshCoordinate(_mesh));
+        _io = std::shared_ptr<MeshCoordinate>(new MeshCoordinate(_mesh));
         std::static_pointer_cast<MeshCoordinate>(_io)->index() = _indexArray[_position];
     }
 }

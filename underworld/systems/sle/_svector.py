@@ -18,41 +18,58 @@ class SolutionVector(_stgermain.StgCompoundComponent):
     -----
     low level stuff that should be reworked post alpha
     """
-    _objectsDict = { "_svector": "SolutionVector" }
-    _selfObjectName = "_svector"
+    _objectsDict = { "_vector": "SolutionVector" }
+    _selfObjectName = "_vector"
 
-    def __init__(self, meshVariable, **kwargs):
+    def __init__(self, meshVariable, eqNumber, **kwargs):
         """
         Parameters:
         -----------
             meshVariable (MeshVariable)
+            eqNumber     (EqNumber)
 
         See property docstrings for further information on each argument.
-        
+
         >>> linearMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.) )
         >>> tField = uw.mesh.MeshVariable( linearMesh, 1 )
-        >>> uw.libUnderworld.StgFEM._FeVariable_CreateNewEqnNumber( tField._cself )
-        >>> sVector = uw.systems.sle.SolutionVector(tField)
+        >>> eqNum = uw.systems.sle.EqNumber( tField )
+        >>> sVector = uw.systems.sle.SolutionVector(tField, eqNum )
         """
-        
+
+        # import ipdb; ipdb.set_trace()
         if not isinstance(meshVariable, uw.mesh.MeshVariable):
             raise TypeError("'meshVariable' object passed in must be of type 'MeshVariable'")
         self._meshVariable = meshVariable
-        
+        if not isinstance(eqNumber, uw.systems.sle.EqNumber):
+            raise TypeError("'eqNumber' object passed in must be of type 'EqNumber'")
+        self._eqNumber = eqNumber
+
+        if not eqNumber.meshVariable == meshVariable:
+            raise ValueError("Supplied 'eqNumber' doesn't correspond to the supplied 'meshVariable'")
+
         # build parent
         super(SolutionVector,self).__init__(**kwargs)
-        
+
+        # setup the 'c' SolutionVector to reference the eqNum 'c' object
+        self._cself.eqNum = self._eqNumber._cself
+
 
     @property
     def meshVariable(self):
-        """    
+        """
         meshVariable (MeshVariable): MeshVariable object for which this SLE vector corresponds.
         """
         return self._meshVariable
 
+    @property
+    def eqNumber(self):
+        """
+        eqNumber (EqNumber): EqNumber object corresponding to this vector.
+        """
+        return self._eqNumber
+
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method
         super(SolutionVector,self)._add_to_stg_dict(componentDictionary)
-        
-        componentDictionary[ self._svector.name ]["FeVariable"] = self._meshVariable._cself.name
 
+        componentDictionary[ self._vector.name ]["FeVariable"] = self._meshVariable._cself.name

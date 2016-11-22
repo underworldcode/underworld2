@@ -15,10 +15,9 @@ the 'exp' class generates a function with uses std::exp(double).
 All functions operate on and return 'double' type data (or
 'float' from python).
 """
-import underworld as uw
 import libUnderworld.libUnderworldPy.Function as _cfn
 from _function import Function as _Function
-from _function import input
+import underworld as _uw
 
 class cos(_Function):
     """
@@ -36,13 +35,13 @@ class cos(_Function):
     >>> import math
     >>> import numpy as np
     >>> func = cos()
-    >>> np.isclose( func.evaluate(0.1234), math.cos(0.1234) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( func.evaluate(0.1234), math.cos(0.1234) )
+    True
 
     """
     def __init__(self, fn=None, *args, **kwargs):
 
-        self._fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = _Function.convert(fn)
 
         fncself = None
         if self._fn:
@@ -70,13 +69,13 @@ class sin(_Function):
     >>> import math
     >>> import numpy as np
     >>> func = sin()
-    >>> np.isclose( func.evaluate(0.1234), math.sin(0.1234) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( func.evaluate(0.1234), math.sin(0.1234) )
+    True
 
     """
     def __init__(self, fn=None, *args, **kwargs):
 
-        self._fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = _Function.convert(fn)
 
         fncself = None
         if self._fn:
@@ -104,13 +103,13 @@ class tan(_Function):
     >>> import math
     >>> import numpy as np
     >>> func = tan()
-    >>> np.isclose( func.evaluate(0.1234), math.tan(0.1234) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( func.evaluate(0.1234), math.tan(0.1234) )
+    True
 
     """
     def __init__(self, fn=None, *args, **kwargs):
 
-        self._fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = _Function.convert(fn)
 
         fncself = None
         if self._fn:
@@ -137,13 +136,13 @@ class acos(_Function):
     >>> import math
     >>> import numpy as np
     >>> func = acos()
-    >>> np.isclose( func.evaluate(0.1234), math.acos(0.1234) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( func.evaluate(0.1234), math.acos(0.1234) )
+    True
 
     """
     def __init__(self, fn=None, *args, **kwargs):
 
-        self._fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = _Function.convert(fn)
 
         fncself = None
         if self._fn:
@@ -170,13 +169,13 @@ class asin(_Function):
     >>> import math
     >>> import numpy as np
     >>> func = asin()
-    >>> np.isclose( func.evaluate(0.1234), math.asin(0.1234) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( func.evaluate(0.1234), math.asin(0.1234) )
+    True
 
     """
     def __init__(self, fn=None, *args, **kwargs):
 
-        self._fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = _Function.convert(fn)
 
         fncself = None
         if self._fn:
@@ -203,13 +202,13 @@ class atan(_Function):
     >>> import math
     >>> import numpy as np
     >>> func = atan()
-    >>> np.isclose( func.evaluate(0.1234), math.atan(0.1234) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( func.evaluate(0.1234), math.atan(0.1234) )
+    True
 
     """
     def __init__(self, fn=None, *args, **kwargs):
 
-        self._fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = _Function.convert(fn)
 
         fncself = None
         if self._fn:
@@ -236,13 +235,13 @@ class cosh(_Function):
     >>> import math
     >>> import numpy as np
     >>> func = cosh()
-    >>> np.isclose( func.evaluate(0.1234), math.cosh(0.1234) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( func.evaluate(0.1234), math.cosh(0.1234) )
+    True
 
     """
     def __init__(self, fn=None, *args, **kwargs):
 
-        self._fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = _Function.convert(fn)
 
         fncself = None
         if self._fn:
@@ -269,13 +268,13 @@ class sinh(_Function):
     >>> import math
     >>> import numpy as np
     >>> func = sinh()
-    >>> np.isclose( func.evaluate(0.1234), math.sinh(0.1234) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( func.evaluate(0.1234), math.sinh(0.1234) )
+    True
 
     """
     def __init__(self, fn=None, *args, **kwargs):
 
-        self._fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = _Function.convert(fn)
 
         fncself = None
         if self._fn:
@@ -302,13 +301,13 @@ class tanh(_Function):
     >>> import math
     >>> import numpy as np
     >>> func = tanh()
-    >>> np.isclose( func.evaluate(0.1234), math.tanh(0.1234) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( func.evaluate(0.1234), math.tanh(0.1234) )
+    True
 
     """
     def __init__(self, fn=None, *args, **kwargs):
 
-        self._fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = _Function.convert(fn)
 
         fncself = None
         if self._fn:
@@ -335,13 +334,13 @@ class acosh(_Function):
     >>> import math
     >>> import numpy as np
     >>> func = acosh()
-    >>> np.isclose( func.evaluate(5.1234), math.acosh(5.1234) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( func.evaluate(5.1234), math.acosh(5.1234) )
+    True
 
     """
     def __init__(self, fn=None, *args, **kwargs):
 
-        self._fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = _Function.convert(fn)
 
         fncself = None
         if self._fn:
@@ -368,13 +367,13 @@ class asinh(_Function):
     >>> import math
     >>> import numpy as np
     >>> func = asinh()
-    >>> np.isclose( func.evaluate(5.1234), math.asinh(5.1234) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( func.evaluate(5.1234), math.asinh(5.1234) )
+    True
 
     """
     def __init__(self, fn=None, *args, **kwargs):
 
-        self._fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = _Function.convert(fn)
 
         fncself = None
         if self._fn:
@@ -401,13 +400,13 @@ class atanh(_Function):
     >>> import math
     >>> import numpy as np
     >>> func = atanh()
-    >>> np.isclose( func.evaluate(0.1234), math.atanh(0.1234) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( func.evaluate(0.1234), math.atanh(0.1234) )
+    True
 
     """
     def __init__(self, fn=None, *args, **kwargs):
 
-        self._fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = _Function.convert(fn)
 
         fncself = None
         if self._fn:
@@ -434,13 +433,13 @@ class exp(_Function):
     >>> import math
     >>> import numpy as np
     >>> func = exp()
-    >>> np.isclose( func.evaluate(0.1234), math.exp(0.1234) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( func.evaluate(0.1234), math.exp(0.1234) )
+    True
 
     """
     def __init__(self, fn=None, *args, **kwargs):
 
-        self._fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = _Function.convert(fn)
 
         fncself = None
         if self._fn:
@@ -467,13 +466,13 @@ class log(_Function):
     >>> import math
     >>> import numpy as np
     >>> func = log()
-    >>> np.isclose( func.evaluate(0.1234), math.log(0.1234) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( func.evaluate(0.1234), math.log(0.1234) )
+    True
 
     """
     def __init__(self, fn=None, *args, **kwargs):
 
-        self._fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = _Function.convert(fn)
 
         fncself = None
         if self._fn:
@@ -500,13 +499,13 @@ class log2(_Function):
     >>> import math
     >>> import numpy as np
     >>> func = log2()
-    >>> np.isclose( func.evaluate(0.1234), math.log(0.1234,2) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( func.evaluate(0.1234), math.log(0.1234,2) )
+    True
 
     """
     def __init__(self, fn=None, *args, **kwargs):
 
-        self._fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = _Function.convert(fn)
 
         fncself = None
         if self._fn:
@@ -533,13 +532,13 @@ class log10(_Function):
     >>> import math
     >>> import numpy as np
     >>> func = log10()
-    >>> np.isclose( func.evaluate(0.1234), math.log10(0.1234) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( func.evaluate(0.1234), math.log10(0.1234) )
+    True
 
     """
     def __init__(self, fn=None, *args, **kwargs):
 
-        self._fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = _Function.convert(fn)
 
         fncself = None
         if self._fn:
@@ -566,13 +565,13 @@ class sqrt(_Function):
     >>> import math
     >>> import numpy as np
     >>> func = sqrt()
-    >>> np.isclose( func.evaluate(0.1234), math.sqrt(0.1234) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( func.evaluate(0.1234), math.sqrt(0.1234) )
+    True
 
     """
     def __init__(self, fn=None, *args, **kwargs):
 
-        self._fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = _Function.convert(fn)
 
         fncself = None
         if self._fn:
@@ -599,13 +598,13 @@ class erf(_Function):
     >>> import math
     >>> import numpy as np
     >>> func = erf()
-    >>> np.isclose( func.evaluate(0.1234), math.erf(0.1234) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( func.evaluate(0.1234), math.erf(0.1234) )
+    True
 
     """
     def __init__(self, fn=None, *args, **kwargs):
 
-        self._fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = _Function.convert(fn)
 
         fncself = None
         if self._fn:
@@ -632,13 +631,13 @@ class erfc(_Function):
     >>> import math
     >>> import numpy as np
     >>> func = erfc()
-    >>> np.isclose( func.evaluate(0.1234), math.erfc(0.1234) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( func.evaluate(0.1234), math.erfc(0.1234) )
+    True
 
     """
     def __init__(self, fn=None, *args, **kwargs):
 
-        self._fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = _Function.convert(fn)
 
         fncself = None
         if self._fn:
@@ -665,13 +664,13 @@ class abs(_Function):
     >>> import math
     >>> import numpy as np
     >>> func = abs()
-    >>> np.isclose( func.evaluate(-0.1234), math.fabs(0.1234) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( func.evaluate(-0.1234), math.fabs(0.1234) )
+    True
 
     """
     def __init__(self, fn=None, *args, **kwargs):
 
-        self._fn = _Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = _Function.convert(fn)
 
         fncself = None
         if self._fn:
@@ -698,26 +697,26 @@ class pow(_Function):
     -------
     >>> import math
     >>> import numpy as np
-    >>> func = pow(input(),3.)
-    >>> np.isclose( func.evaluate(2.), math.pow(2.,3.) )
-    array([[ True]], dtype=bool)
+    >>> func = pow(_uw.function.input(),3.)
+    >>> np.allclose( func.evaluate(2.), math.pow(2.,3.) )
+    True
 
     """
     def __init__(self, fn1, fn2, **kwargs):
         # lets convert integer powers to floats
         if isinstance(fn2, int):
             fn2 = float(fn2)
-        fn1fn = _Function._CheckIsFnOrConvertOrThrow( fn1 )
+        fn1fn = _Function.convert( fn1 )
         if not isinstance( fn1fn, _Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
-        fn2fn = _Function._CheckIsFnOrConvertOrThrow( fn2 )
+        fn2fn = _Function.convert( fn2 )
         if not isinstance( fn2fn, _Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
 
         self._fn1 = fn1fn
         self._fn2 = fn2fn
         # ok finally lets create the fn
-        self._fncself = _cfn.MathBinary(self._fn1._fncself, self._fn2._fncself,  _cfn.MathBinary.pow )
+        self._fncself = _cfn.Pow(self._fn1._fncself, self._fn2._fncself )
         # build parent
         super(pow,self).__init__(argument_fns=[fn1fn,fn2fn],**kwargs)
 
@@ -740,15 +739,15 @@ class dot(_Function):
     >>> func = dot( input1, input2 )
 
     The function is constant, so evaluate anywhere:
-    >>> np.isclose( func.evaluate(0.), np.dot(input1,input2) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( func.evaluate(0.), np.dot(input1,input2) )
+    True
 
     """
     def __init__(self, fn1, fn2, **kwargs):
-        fn1fn = _Function._CheckIsFnOrConvertOrThrow( fn1 )
+        fn1fn = _Function.convert( fn1 )
         if not isinstance( fn1fn, _Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
-        fn2fn = _Function._CheckIsFnOrConvertOrThrow( fn2 )
+        fn2fn = _Function.convert( fn2 )
         if not isinstance( fn2fn, _Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
 

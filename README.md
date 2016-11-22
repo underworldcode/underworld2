@@ -5,11 +5,9 @@ Underworld 2
 
 The Underworld2 development team is based in Melbourne, Australia at the University of Melbourne and at Monash University led by Louis Moresi. We would like to acknowledge AuScope Simulation, Analysis and Modelling for providing long term funding which has made the project possible. Additional funding for specific improvements and additional functionality has come from the Australian Research Council (http://www.arc.gov.au). The python toolkit was funded by the NeCTAR eresearch_tools program. Underworld was originally developed in collaboration with the Victorian Partnership for Advanced Computing.
 
-Compile | [![Build Status] (http://128.250.120.238:9080/buildStatus/icon?job=Compile)](http://128.250.120.238:9080/job/Compile)
+Lastest stable release (master branch) [![Build Status](http://128.250.120.154:32779/buildStatus/icon?job=master)](http://128.250.120.154:32779/buildStatus/icon?job=master)
 
-Model Tests | [![Build Status](http://128.250.120.238:9080/job/tests/badge/icon)](http://128.250.120.238:9080/job/tests/)
-
-
+Development branch - compile | [![Build Status](http://128.250.120.154:32779/buildStatus/icon?job=compile-dev)](http://128.250.120.154:32779/buildStatus/icon?job=compile-dev) unit tests | [![Build Status](http://128.250.120.154:32779/buildStatus/icon?job=test-dev)](http://128.250.120.154:32779/buildStatus/icon?job=test-dev)
 
 Getting Underworld2
 -------------------

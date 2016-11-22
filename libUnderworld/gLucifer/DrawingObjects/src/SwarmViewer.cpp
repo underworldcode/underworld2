@@ -43,8 +43,8 @@ void _lucSwarmViewer_SetFn( void* _self, Fn::Function* fn_colour, Fn::Function* 
     if (fn_colour)
     {
         cppdata->fn_colour   = std::make_shared<Fn::MinMax>(fn_colour);
-        cppdata->func_colour = cppdata->fn_colour->getFunction(particleCoord);
-        std::shared_ptr<const FunctionIO> io = std::dynamic_pointer_cast<const FunctionIO>(cppdata->func_colour(particleCoord));
+        cppdata->func_colour = cppdata->fn_colour->getFunction(particleCoord.get());
+        const FunctionIO* io = dynamic_cast<const FunctionIO*>(cppdata->func_colour(particleCoord.get()));
         if( !io )
             throw std::invalid_argument("Provided function does not appear to return a valid result.");
         if( io->size() != 1 )
@@ -54,8 +54,8 @@ void _lucSwarmViewer_SetFn( void* _self, Fn::Function* fn_colour, Fn::Function* 
     if (fn_mask)
     {
         cppdata->fn_mask   = fn_mask;
-        cppdata->func_mask = cppdata->fn_mask->getFunction(particleCoord);
-        std::shared_ptr<const FunctionIO> io = std::dynamic_pointer_cast<const FunctionIO>(cppdata->func_mask(particleCoord));
+        cppdata->func_mask = cppdata->fn_mask->getFunction(particleCoord.get());
+        const FunctionIO* io = dynamic_cast<const FunctionIO*>(cppdata->func_mask(particleCoord.get()));
         if( !io )
             throw std::invalid_argument("Provided function does not appear to return a valid result.");
         if( io->size() != 1 )
@@ -65,8 +65,8 @@ void _lucSwarmViewer_SetFn( void* _self, Fn::Function* fn_colour, Fn::Function* 
     if (fn_size)
     {
         cppdata->fn_size   = std::make_shared<Fn::MinMax>(fn_size);
-        cppdata->func_size = cppdata->fn_size->getFunction(particleCoord);
-        std::shared_ptr<const FunctionIO> io = std::dynamic_pointer_cast<const FunctionIO>(cppdata->func_size(particleCoord));
+        cppdata->func_size = cppdata->fn_size->getFunction(particleCoord.get());
+        const FunctionIO* io = dynamic_cast<const FunctionIO*>(cppdata->func_size(particleCoord.get()));
         if( !io )
             throw std::invalid_argument("Provided function does not appear to return a valid result.");
         if( io->size() != 1 )
@@ -76,8 +76,8 @@ void _lucSwarmViewer_SetFn( void* _self, Fn::Function* fn_colour, Fn::Function* 
     if (fn_opacity)
     {
         cppdata->fn_opacity   = std::make_shared<Fn::MinMax>(fn_opacity);
-        cppdata->func_opacity = cppdata->fn_opacity->getFunction(particleCoord);
-        std::shared_ptr<const FunctionIO> io = std::dynamic_pointer_cast<const FunctionIO>(cppdata->func_opacity(particleCoord));
+        cppdata->func_opacity = cppdata->fn_opacity->getFunction(particleCoord.get());
+        const FunctionIO* io = dynamic_cast<const FunctionIO*>(cppdata->func_opacity(particleCoord.get()));
         if( !io )
             throw std::invalid_argument("Provided function does not appear to return a valid result.");
         if( io->size() != 1 )
@@ -235,9 +235,9 @@ void _lucSwarmViewer_Draw( void* drawingObject, lucDatabase* database, void* _co
    {
       particleCoord->index() = lParticle_I;
       /* note we need to cast object to const version to ensure it selects const data() method */
-      const double* coord = std::const_pointer_cast< const ParticleCoordinate>(particleCoord)->data();
+      const double* coord = const_cast<const ParticleCoordinate*>(particleCoord.get())->data();
       /* Test to see if this particle should be drawn */
-      if ( cppdata->fn_mask && !cppdata->func_mask(particleCoord)->at<bool>())
+      if ( cppdata->fn_mask && !cppdata->func_mask(particleCoord.get())->at<bool>())
          continue;
 
       /* Export particle position */
@@ -246,12 +246,12 @@ void _lucSwarmViewer_Draw( void* drawingObject, lucDatabase* database, void* _co
 
       if (cppdata->fn_colour) {
          /* evaluate function */
-         float valuef = cppdata->func_colour(particleCoord)->at<float>();
+         float valuef = cppdata->func_colour(particleCoord.get())->at<float>();
          lucDatabase_AddValues(database, 1, self->geomType, lucColourValueData, NULL, &valuef);
       }
       if (cppdata->fn_size) {
          /* evaluate function */
-         float valuef = cppdata->func_size(particleCoord)->at<float>();
+         float valuef = cppdata->func_size(particleCoord.get())->at<float>();
          lucDatabase_AddValues(database, 1, self->geomType, lucSizeData, NULL, &valuef);
       }
    }
@@ -261,7 +261,7 @@ void _lucSwarmViewer_Draw( void* drawingObject, lucDatabase* database, void* _co
      lucGeometryData_Setup(database->data[self->geomType][lucColourValueData], cppdata->fn_colour->getMinGlobal(), cppdata->fn_colour->getMaxGlobal(), 1., "");
 
    /* Dynamic Scale Colour Maps */
-   if ( self->colourMap && self->colourMap->dynamicRange && cppdata->fn_colour )
+   if ( self->colourMap && self->colourMap->minimum == self->colourMap->maximum && cppdata->fn_colour )
       lucColourMap_SetMinMax( self->colourMap, self->colourMap->minimum, self->colourMap->maximum );
 }
 

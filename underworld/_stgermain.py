@@ -170,7 +170,7 @@ class StgCompoundComponent(StgClass):
                                    "This probably means a parent class has mandated that this object be created, but the child class "
                                    "has not defined the object type (as required). Or you are trying to create an instance of an abstract class.".format(cls.__name__,key))
         # lets go ahead and create the python instance of this object
-        self = object.__new__(cls, *args, **kwargs)
+        self = object.__new__(cls)
 
         import string
         import random

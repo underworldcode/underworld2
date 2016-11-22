@@ -7,6 +7,7 @@
 ##                                                                                   ##
 ##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
 import underworld._stgermain as _stgermain
+import libUnderworld.libUnderworldPy.Function as _cfn
 import numpy as np
 import _swarmabstract
 import _swarmvariable as svar
@@ -31,9 +32,8 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         The FeMesh the swarm is supported by. See Swarm.mesh property docstring
         for further information.
     particleEscape : bool
-        If set to true, particles are allowed to escape from the domain. This
+        If set to true, particles are deleted when they leave the domain. This
         may occur during particle advection, or when the mesh is deformed.
-
 
     For example, to create the swarm with some variables:
 
@@ -98,7 +98,8 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
     _objectsDict = {            "_swarm": "GeneralSwarm",
                           "_cellLayout" : "ElementCellLayout",
                     "_pMovementHandler" : "ParticleMovementHandler",
-                      "_escapedRoutine" : "EscapedRoutine"
+                      "_escapedRoutine" : "EscapedRoutine",
+                  "_particleShadowSync" : "ParticleShadowSync"
                     }
 
     def __init__(self, mesh, particleEscape=False, **kwargs):
@@ -136,7 +137,6 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         if self.particleEscape:
             componentDictionary[ self._swarm.name ][  "EscapedRoutine"] = self._escapedRoutine.name
             componentDictionary[ self._escapedRoutine.name][ "particlesToRemoveDelta" ] = 1000
-
 
         componentDictionary[ self._cellLayout.name ]["Mesh"]            = self._mesh._cself.name
 
@@ -357,6 +357,60 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         # record which swarm state this corresponds to
         self._checkpointMapsToState = self.stateId
 
+    def fn_particle_found(self):
+        """
+        This function returns True where a particle is able to be found using 
+        the provided input to function evaluation.
+
+        Example
+        -------
+        Setup some things:
+        >>> import numpy as np
+        >>> mesh = uw.mesh.FeMesh_Cartesian(elementRes=(32,32))
+        >>> swarm = uw.swarm.Swarm(mesh, particleEscape=True)
+        >>> layout = uw.swarm.layouts.PerCellGaussLayout(swarm,2)
+        >>> swarm.populate_using_layout(layout)
+        
+        Now, evaluate the fn_particle_found function on the swarm.. all 
+        should be true
+        >>> fn_pf = swarm.fn_particle_found()
+        >>> fn_pf.evaluate(swarm).all()
+        True
+        
+        Evalute at arbitrary coord... should return False
+        >>> fn_pf.evaluate( (0.3,0.9) )
+        array([[False]], dtype=bool)
+        
+        Now, lets get rid of all particles outside of a circle, and look
+        to obtain pi/4.  First eject particles:
+        >>> with swarm.deform_swarm():
+        ...    for ind,coord in enumerate(swarm.particleCoordinates.data):
+        ...        if np.dot(coord,coord)>1.:
+        ...            swarm.particleCoordinates.data[ind] = (99999.,99999.)
+        
+        Now integrate and test
+        >>> incirc = uw.function.branching.conditional( ( (fn_pf,1.),(True,0.)  ) )
+        >>> np.isclose(uw.utils.Integral(incirc, mesh).evaluate(),np.pi/4.,rtol=2e-2)
+        array([ True], dtype=bool)
+        
+        """
+
+        if not hasattr(self, '_fn_particle_found'):
+            import underworld.function as function
+            # create inline class here.. as it's only required here
+            class _fn_particle_found(function.Function):
+                def __init__(self, swarm, **kwargs):
+
+                    # create instance
+                    self._fncself = _cfn.ParticleFound(swarm._cself)
+
+                    # build parent
+                    super(_fn_particle_found,self).__init__(argument_fns=None, **kwargs)
+                    self._underlyingDataItems.add(swarm)
+
+            self._fn_particle_found = _fn_particle_found(self)
+        return self._fn_particle_found
+
 
     @property
     def particleGlobalCount(self):
@@ -423,7 +477,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         array([ 0.2,  0.2])
 
         """
-        # lock swarm
+        # lock swarm to prevent particle addition etc
         self._locked = True
         # enable writeable array
         self._particleCoordinates.data.flags.writeable = True
@@ -441,6 +495,30 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
             if update_owners:
                 self.update_particle_owners()
 
+    def shadow_particles_fetch(self):
+        """
+        When called, neighbouring processor particles which have coordinates 
+        within the current processor's shadow zone will be communicated to the 
+        current processor. Ie, the processor shadow zone is populated using 
+        particles that are owned by neighbouring processors. After this 
+        method has been called, particle shadow data is available via the 
+        `data_shadow` handles of SwarmVariable objects. This data is read only.
+        
+        Note that you will need to call this whenever neighbouring information
+        has potentially changed, for example after swarm advection, or after
+        you have modified a SwarmVariable object. 
+        
+        Any existing shadow information will be discarded when this is called.
+
+        Notes
+        -----
+        This method must be called collectively by all processes.
+
+        """
+        self._clear_variable_arrays()
+        uw.libUnderworld.StgDomain._ParticleShadowSync_Execute(self._particleShadowSync,self._cself)
+    
+
     def update_particle_owners(self):
         """
         This routine will update particles owners after particles have been
@@ -448,9 +526,15 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         particle resides within, and also in terms of the parallel processor
         decomposition (particles belonging on other processors will be sent across).
         
-        Users should not call this as it will be called automatically at the 
+        Users should not generally need to call this as it will be called automatically at the
         conclusion of a deform_swarm() block.
+
+        Notes
+        -----
+        This method must be called collectively by all processes.
         
+        Example
+        -------
         >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
         >>> swarm = uw.swarm.Swarm(mesh)
         >>> swarm.populate_using_layout(uw.swarm.layouts.PerCellGaussLayout(swarm,2))

@@ -23,15 +23,14 @@
 /* Textual name of this class */
 const Type Stokes_SLE_Type = "Stokes_SLE";
 
-Stokes_SLE* Stokes_SLE_New( 
+Stokes_SLE* Stokes_SLE_New(
 	Name							name,
 	FiniteElementContext*	context,
 	SLE_Solver*					solver,
-	Bool							removeBCs,
 	Bool							isNonLinear,
 	double						nonLinearTolerance,
 	Iteration_Index			nonLinearMaxIterations,
-	Bool							killNonConvergent,		
+	Bool							killNonConvergent,
 	EntryPoint_Register*		entryPoint_Register,
 	MPI_Comm						comm,
 	StiffnessMatrix*			kStiffMat,
@@ -46,8 +45,8 @@ Stokes_SLE* Stokes_SLE_New(
 	Stokes_SLE* self = (Stokes_SLE*) _Stokes_SLE_DefaultNew( name );
 
 	self->isConstructed = True;
-	_SystemLinearEquations_Init( self, solver, removeBCs, NULL, context, False, isNonLinear, 
-      nonLinearTolerance, nonLinearMaxIterations, killNonConvergent, 1,  "", "", entryPoint_Register, comm ); 
+	_SystemLinearEquations_Init( self, solver, NULL, context, False, isNonLinear, 
+      nonLinearTolerance, nonLinearMaxIterations, killNonConvergent, 1,  "", "", entryPoint_Register, comm );
 	_Stokes_SLE_Init( self, kStiffMat, gStiffMat, dStiffMat, cStiffMat, uSolnVec, pSolnVec, fForceVec, hForceVec );
 
 	return self;
@@ -57,18 +56,18 @@ Stokes_SLE* Stokes_SLE_New(
 Stokes_SLE* _Stokes_SLE_New(  STOKES_SLE_DEFARGS  )
 {
 	Stokes_SLE* self;
-	
+
 	/* Allocate memory */
 	assert( _sizeOfSelf >= sizeof(Stokes_SLE) );
 	self = (Stokes_SLE*) _SystemLinearEquations_New(  SYSTEMLINEAREQUATIONS_PASSARGS  );
-	
+
 	/* Virtual info */
-	
+
 	return self;
 }
 
-void _Stokes_SLE_Init( 
-		void*                                               sle, 
+void _Stokes_SLE_Init(
+		void*                                               sle,
 		StiffnessMatrix*                                    kStiffMat,
 		StiffnessMatrix*                                    gStiffMat,
 		StiffnessMatrix*                                    dStiffMat,
@@ -76,7 +75,7 @@ void _Stokes_SLE_Init(
 		SolutionVector*                                     uSolnVec,
 		SolutionVector*                                     pSolnVec,
 		ForceVector*                                        fForceVec,
-		ForceVector*                                        hForceVec ) 
+		ForceVector*                                        hForceVec )
 {
 	Stokes_SLE* self = (Stokes_SLE*)sle;
 
@@ -84,21 +83,21 @@ void _Stokes_SLE_Init(
 	self->gStiffMat = gStiffMat;
 	self->dStiffMat = dStiffMat;
 	self->cStiffMat = cStiffMat;
-	self->uSolnVec  = uSolnVec; 
+	self->uSolnVec  = uSolnVec;
 	self->pSolnVec  = pSolnVec;
-	self->fForceVec = fForceVec;   
-	self->hForceVec = hForceVec;   
+	self->fForceVec = fForceVec;
+	self->hForceVec = hForceVec;
 
         self->null_vector=NULL;
 
-	/* add the vecs and matrices to the Base SLE class's dynamic lists, so they can be 
+	/* add the vecs and matrices to the Base SLE class's dynamic lists, so they can be
 	initialised and built properly */
 	SystemLinearEquations_AddStiffnessMatrix( self, kStiffMat );
 	SystemLinearEquations_AddStiffnessMatrix( self, gStiffMat );
 
-	if ( dStiffMat ) 
+	if ( dStiffMat )
 		SystemLinearEquations_AddStiffnessMatrix( self, dStiffMat );
-	if ( cStiffMat ) 
+	if ( cStiffMat )
 		SystemLinearEquations_AddStiffnessMatrix( self, cStiffMat );
 
 	SystemLinearEquations_AddSolutionVector( self, uSolnVec );
@@ -111,7 +110,7 @@ void _Stokes_SLE_Init(
 void _Stokes_SLE_Print( void* sle, Stream* stream ) {
 	Stokes_SLE* self = (Stokes_SLE*)sle;
 	/* Set the Journal for printing informations */
-	
+
 	/* General info */
 	Journal_Printf( stream, "Stokes_SLE (ptr): %p\n", self );
 	_SystemLinearEquations_Print( self, stream );
@@ -192,15 +191,12 @@ void _Stokes_SLE_AssignFromXML( void* sle, Stg_ComponentFactory* cf, void* data 
 
 void _Stokes_SLE_MG_SelectStiffMats( void* _sle, unsigned* nSMs, StiffnessMatrix*** sms ) {
 	Stokes_SLE*	self = (Stokes_SLE*)_sle;
-	
+
 	/*
 	** In this implementation, only the velocity matrix will have MG applied.
 	*/
-	
+
 	*nSMs = 1;
 	*sms = Memory_Alloc_Array( StiffnessMatrix*, 1, "Stokes_SLE" );
 	(*sms)[0] = self->kStiffMat;
 }
-
-
-

@@ -22,7 +22,7 @@ typedef struct {
    FiniteElementContext* context;
 } IsoviscousStiffnessData;
 
-void IsoviscousStiffness_Setup( IsoviscousStiffnessData* data ) { 
+void IsoviscousStiffness_Setup( IsoviscousStiffnessData* data ) {
    Journal_Enable_AllTypedStream( False );
    data->context=NULL;
 }
@@ -47,7 +47,7 @@ void IsoviscousStiffness2D( IsoviscousStiffnessData* data ) {
    int                   err;
 
    pcu_docstring( "This test compares a Stiffness matrix against a previously generated stiffness matrix"
-      "The stiffness matrix is generated from a 2D FEM model for an isoviscous fluid flow." 
+      "The stiffness matrix is generated from a 2D FEM model for an isoviscous fluid flow."
       "See testIsoviscous.xml for the actual xml used" );
 
    /* read in the xml input file */
@@ -63,7 +63,7 @@ void IsoviscousStiffness2D( IsoviscousStiffnessData* data ) {
        1 ) expected stiffness matrix, (made years ago)
        2) the current stiffness matrix.
 
-       both matricies are built using only an Arrhenius rheology 
+       both matricies are built using only an Arrhenius rheology
     */
 
    /* get the tolerance */
@@ -75,7 +75,7 @@ void IsoviscousStiffness2D( IsoviscousStiffnessData* data ) {
    stiffnessMatrix = (StiffnessMatrix*) LiveComponentRegister_Get( context->CF->LCRegister, (Name)matrixName );
    assert( stiffnessMatrix  );
 
-   StiffnessMatrix_Assemble( stiffnessMatrix, False, NULL, context );
+   StiffnessMatrix_Assemble( stiffnessMatrix, NULL, context );
 
    /* Get Stored Matrix from file */
    filename = Dictionary_GetString( dictionary, (Dictionary_Entry_Key)"StiffnessMatrixCompareFilename"  );
@@ -100,13 +100,13 @@ void IsoviscousStiffness2D( IsoviscousStiffnessData* data ) {
    stream = Journal_Register( Info_Type, (Name)"StiffnessMatrixComparison"  );
    Stream_RedirectFile_WithPrependedPath( stream, context->outputPath, "StiffnessMatrixCompare.dat" );
    Journal_PrintValue( infoStream, tolerance );
-   Journal_Printf( stream, "Comparison between stiffness matrix '%s' %s with tolerance %4g.\n", 
-         matrixName, 
+   Journal_Printf( stream, "Comparison between stiffness matrix '%s' %s with tolerance %4g.\n",
+         matrixName,
          ( errorNorm/matrixNorm < tolerance ? "passed" : "failed" ),
          tolerance );
          */
 
-   /* 
+   /*
    Stream_CloseFile( stream );
        To view the expected and computed matricies uncomment this
    PetscViewerASCIIOpen(context->communicator, "numerical.dat",&currViewer);

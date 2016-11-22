@@ -61,11 +61,11 @@ void _VectorAssemblyTerm_VEP_SetFneForce( void* _self, Fn::Function* fn ){
     // setup fn
     std::shared_ptr<ParticleInCellCoordinate> localCoord = std::make_shared<ParticleInCellCoordinate>( swarm->localCoordVariable );
     funeForce->input = std::make_shared<FEMCoordinate>((void*)mesh, localCoord);
-    funeForce->func = fn->getFunction(funeForce->input);
+    funeForce->func = fn->getFunction(funeForce->input.get());
     
     // check output conforms
-    std::shared_ptr<const FunctionIO> sampleguy = funeForce->func(funeForce->input);
-    std::shared_ptr<const IO_double> iodub = std::dynamic_pointer_cast<const IO_double>(sampleguy);
+    const FunctionIO* sampleguy = funeForce->func(funeForce->input.get());
+    const IO_double* iodub = dynamic_cast<const IO_double*>(sampleguy);
     if( !iodub )
         throw std::invalid_argument( "Assembly term expects functions to return 'double' type values." );
     if( !self->forceVector )
@@ -184,7 +184,7 @@ void _VectorAssemblyTerm_VEP_AssembleElement( void* forceTerm, ForceVector* forc
 
    VectorAssemblyTerm_VEP_cppdata* funeForce      = (VectorAssemblyTerm_VEP_cppdata*)self->funeForce;
     
-   debug_dynamic_cast<ParticleInCellCoordinate>(funeForce->input->localCoord())->index()      = lElement_I;  // set the elementId as the owning cell for the particleCoord
+   debug_dynamic_cast<ParticleInCellCoordinate*>(funeForce->input->localCoord())->index()      = lElement_I;  // set the elementId as the owning cell for the particleCoord
 
    funeForce->input->index()        = lElement_I;  // set the elementId for the fem coordinate
 
@@ -205,7 +205,7 @@ void _VectorAssemblyTerm_VEP_AssembleElement( void* forceTerm, ForceVector* forc
    cellParticleCount = swarm->cellParticleCountTbl[ cell_I ];
 
    for ( cParticle_I = 0 ; cParticle_I < cellParticleCount ; cParticle_I++ ) {
-      debug_dynamic_cast<ParticleInCellCoordinate>(funeForce->input->localCoord())->particle_cellId(cParticle_I);  // set the particleCoord cellId
+      debug_dynamic_cast<ParticleInCellCoordinate*>(funeForce->input->localCoord())->particle_cellId(cParticle_I);  // set the particleCoord cellId
       particle = (IntegrationPoint*) Swarm_ParticleInCellAt( swarm, cell_I, cParticle_I );
       xi       = particle->xi;
      
@@ -214,7 +214,7 @@ void _VectorAssemblyTerm_VEP_AssembleElement( void* forceTerm, ForceVector* forc
       ElementType_ShapeFunctionsGlobalDerivs( elementType, mesh, lElement_I, xi, dim, &detJac, GNx );
 
       /* evaluate function */
-      std::shared_ptr<const IO_double> funeForceout      = debug_dynamic_cast<const IO_double>(funeForce->func(funeForce->input));
+      const IO_double* funeForceout      = debug_dynamic_cast<const IO_double*>(funeForce->func(funeForce->input.get()));
       
       eForce = funeForceout->data();
       assert(eForce > 0); 

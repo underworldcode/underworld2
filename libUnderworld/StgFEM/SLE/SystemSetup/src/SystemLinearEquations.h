@@ -31,7 +31,6 @@
 	/*
 	** SystemLinearEquations class contents.
 	*/
-
 	#define __SystemLinearEquations \
 		/* General info */ \
 		__Stg_Component \
@@ -60,8 +59,6 @@
 		Name																integrationSetupEPName; \
 		EntryPoint*														integrationSetupEP; \
 		EntryPoint_Register*											entryPoint_Register; \
-		\
-		Bool																removeBCs; \
 		\
 		/* Non-linear info */ \
 		Bool																isNonLinear; \
@@ -125,7 +122,6 @@
 		Name							name,
 		FiniteElementContext*	context,
 		SLE_Solver*					solver,
-		Bool                    removeBCs,
 		void*							nlSolver,
 		Bool							isNonLinear,
 		double						nonLinearTolerance,
@@ -161,7 +157,6 @@
 	void _SystemLinearEquations_Init(
 		void*                   sle,
 		SLE_Solver*             solver,
-		Bool                    removeBCs,
 		void*                   nlSolver,
 		FiniteElementContext*   context,
 		Bool                    makeConvergenceFile,

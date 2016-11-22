@@ -93,7 +93,7 @@ void _SROpGenerator_Delete( void* srOpGenerator ) {
 
 void _SROpGenerator_Print( void* srOpGenerator, Stream* stream ) {
 	SROpGenerator*	self = (SROpGenerator*)srOpGenerator;
-	
+
 	/* Set the Journal for printing informations */
 	Stream* srOpGeneratorStream;
 	srOpGeneratorStream = Journal_Register( InfoStream_Type, (Name)"SROpGeneratorStream"  );
@@ -174,7 +174,6 @@ void SROpGenerator_SetFineVariable( void* srOpGenerator, void* _variable ) {
 
 	SROpGenerator_DestructMeshes( self );
 	self->fineVar = variable;
-	self->fineEqNum = NULL;
 }
 
 
@@ -225,8 +224,8 @@ void SROpGenerator_GenLevelMesh( SROpGenerator* self, unsigned level ) {
 	fMesh = self->meshes[level + 1];
 	nDims = Mesh_GetDimSize( fMesh );
 	fGen = (CartesianGenerator*)fMesh->generator;
-	Journal_Firewall( fGen && !strcmp( fGen->type, CartesianGenerator_Type ), 
-			  errorStream, 
+	Journal_Firewall( fGen && !strcmp( fGen->type, CartesianGenerator_Type ),
+			  errorStream,
 			  "\n" \
 			  "****************************************************************\n" \
 			  "* Error: Simple regular multigrid operator generation requires *\n" \
@@ -283,8 +282,8 @@ void SROpGenerator_GenLevelTopMap( SROpGenerator* self, unsigned level ) {
 				break;
 		}
 
-		Journal_Firewall( d_i == nDims, 
-				  errorStream, 
+		Journal_Firewall( d_i == nDims,
+				  errorStream,
 				  "\n" \
 				  "*****************************************************************\n" \
 				  "* Error: The finest grid could not be sub-sampled to all coarse *\n" \
@@ -311,7 +310,7 @@ void SROpGenerator_GenLevelEqNums( SROpGenerator* self, unsigned level ) {
 	unsigned		base, subTotal;
 	MPI_Comm		comm;
 	unsigned		nProcs, rank;
-	MPI_Status		status;	
+	MPI_Status		status;
 	unsigned*		tuples;
 	Sync*			sync;
 	unsigned		n_i, dof_i;
@@ -343,7 +342,7 @@ void SROpGenerator_GenLevelEqNums( SROpGenerator* self, unsigned level ) {
 
 		topNode = self->topMaps[level][n_i];
 		for( dof_i = 0; dof_i < nNodalDofs[n_i]; dof_i++ ) {
-			if( self->fineEqNum->destinationArray[topNode][dof_i] != (unsigned)-1 )
+			if( self->fineEqNum->mapNodeDof2Eq[topNode][dof_i] != (unsigned)-1 )
 				dstArray[n_i][dof_i] = curEqNum++;
 			else
 				dstArray[n_i][dof_i] = (unsigned)-1;
@@ -372,15 +371,15 @@ void SROpGenerator_GenLevelEqNums( SROpGenerator* self, unsigned level ) {
 
 	/* Update all other procs. */
 	sync = Mesh_GetSync( cMesh, MT_VERTEX );
-	Sync_SyncArray( sync, tuples, maxDofs * sizeof(unsigned), 
-			tuples + nLocalNodes * maxDofs, maxDofs * sizeof(unsigned), 
+	Sync_SyncArray( sync, tuples, maxDofs * sizeof(unsigned),
+			tuples + nLocalNodes * maxDofs, maxDofs * sizeof(unsigned),
 			maxDofs * sizeof(unsigned) );
 
 	/* Update destination array's domain indices. */
 	for( n_i = nLocalNodes; n_i < nDomainNodes; n_i++ ) {
 		topNode = self->topMaps[level][n_i];
 		for( dof_i = 0; dof_i < nNodalDofs[n_i]; dof_i++ ) {
-			if( self->fineEqNum->destinationArray[topNode][dof_i] != (unsigned)-1 )
+			if( self->fineEqNum->mapNodeDof2Eq[topNode][dof_i] != (unsigned)-1 )
 				dstArray[n_i][dof_i] = tuples[n_i * maxDofs + dof_i];
 			else
 				dstArray[n_i][dof_i] = -1;
@@ -413,7 +412,7 @@ void SROpGenerator_GenOps( SROpGenerator* self, Mat* pOps, Mat* rOps ) {
 	nLevels = self->nLevels;
 
 	for( l_i = nLevels - 1; l_i > 0; l_i-- ) {
-		nRows = self->eqNums[l_i] ? self->nLocalEqNums[l_i] : 
+		nRows = self->eqNums[l_i] ? self->nLocalEqNums[l_i] :
 			self->fineEqNum->localEqNumsOwnedCount;
 		nCols = self->nLocalEqNums[l_i - 1];
 
@@ -494,20 +493,20 @@ void SROpGenerator_GenLevelOp( SROpGenerator* self, unsigned level, Mat P ) {
 			if( self->eqNums[level] )
 				fEqNum = self->eqNums[level][n_i][dof_i];
 			else
-				fEqNum = self->fineEqNum->destinationArray[fTopNode][dof_i];
+				fEqNum = self->fineEqNum->mapNodeDof2Eq[fTopNode][dof_i];
 
 			if( fEqNum == (unsigned)-1 )
 				continue;
-                       
+
                         fineNodeCoord = Mesh_GetVertex( fMesh, n_i );
                         // find the element index on the coarse mesh, that contains the coord of the fine node
                         // note: for node boardering on elements (most of them) it doesn't matter which element is returned
                         // as both should give the same shape functions
 			insist( Mesh_SearchElements( cMesh, fineNodeCoord, &ind ), == True );
 			FeMesh_CoordGlobalToLocal( cMesh, ind, fineNodeCoord, localCoord );
-                        
+
                         // evaluate the shape functions at the local coord
-			FeMesh_EvalBasis( cMesh, ind, localCoord, basis ); 
+			FeMesh_EvalBasis( cMesh, ind, localCoord, basis );
 			Mesh_GetIncidence( cMesh, nDims, ind, MT_VERTEX, incArray );
 			nInc = IArray_GetSize( incArray );
 			inc = IArray_GetPtr( incArray );
@@ -529,7 +528,7 @@ void SROpGenerator_GenLevelOp( SROpGenerator* self, unsigned level, Mat P ) {
 	MatAssemblyEnd( P, MAT_FINAL_ASSEMBLY );
 }
 
-void SROpGenerator_CalcOpNonZeros( SROpGenerator* self, unsigned level, 
+void SROpGenerator_CalcOpNonZeros( SROpGenerator* self, unsigned level,
 				   unsigned** nDiagNonZeros, unsigned** nOffDiagNonZeros )
 {
 	Mesh		*fMesh, *cMesh;
@@ -573,7 +572,7 @@ void SROpGenerator_CalcOpNonZeros( SROpGenerator* self, unsigned level,
 			if( self->eqNums[level] )
 				fEqNum = self->eqNums[level][n_i][dof_i];
 			else
-				fEqNum = self->fineEqNum->destinationArray[fTopNode][dof_i];
+				fEqNum = self->fineEqNum->mapNodeDof2Eq[fTopNode][dof_i];
 
 			if( fEqNum == (unsigned)-1 )
 				continue;
@@ -651,7 +650,7 @@ void SROpGenerator_Simple( SROpGenerator *self, Mat* pOps, Mat* rOps ) {
       P = SROpGenerator_SimpleFinestLevel( self );
       PetscPrintf( PETSC_COMM_WORLD, "SROpGenerator_SimpleFinestLevel: time = %5.5e \n", MPI_Wtime()-t0 );
       pOps[self->nLevels - 1] = rOps[self->nLevels - 1] = P;
-     
+
       for( ii = self->nLevels - 2; ii > 0; ii-- ) {
 	     t0 = MPI_Wtime();
          P = SROpGenerator_SimpleCoarserLevel( self, ii );
@@ -695,11 +694,11 @@ PetscErrorCode _VecGetOwnershipRanges( Vec X, PetscInt **_ranges )
 #if(PETSC_VERSION_SUBMINOR==2)
   VecScatterBegin(all,out,INSERT_VALUES,SCATTER_FORWARD,scat);
   VecScatterEnd(all,out,INSERT_VALUES,SCATTER_FORWARD,scat);
-#elif(PETSC_VERSION_SUBMINOR==3) 
+#elif(PETSC_VERSION_SUBMINOR==3)
   VecScatterBegin(scat, all,out,INSERT_VALUES,SCATTER_FORWARD);
   VecScatterEnd(scat, all,out,INSERT_VALUES,SCATTER_FORWARD);
 #endif
-#endif 
+#endif
 
 #if(PETSC_VERSION_MAJOR==3)
   VecScatterBegin(scat, all,out,INSERT_VALUES,SCATTER_FORWARD);
@@ -720,7 +719,7 @@ PetscErrorCode _VecGetOwnershipRanges( Vec X, PetscInt **_ranges )
   Stg_VecDestroy(&out );
   Stg_VecDestroy(&all );
 
- 
+
   PetscFunctionReturn(0);
 }
 
@@ -729,15 +728,15 @@ PetscErrorCode _VecGetOwnershipRanges( Vec X, PetscInt **_ranges )
 Efficiency alert!!
   This comment relates to both SROpGenerator_SimpleFinestLevel() and
   SROpGenerator_SimpleCoarserLevel().
-  
+
   For O(n) setup times, we MUST provide some information concerning the
   preallocation of the nonzero structure for the restriction operators.
 
-  As a first hack we check the spatial dimension and choose a value accordingly. 
-  In doing so we have assumed that the fine grid is obtained by bisecting 
+  As a first hack we check the spatial dimension and choose a value accordingly.
+  In doing so we have assumed that the fine grid is obtained by bisecting
   the coarse grid. Coarse grid nodes are hiearchical. We have also assumed
   that the elements are quads (2d) and hexs (3d).
-  
+
   The hack above made little effort to miminise memory usage and as such we allocate
   the same amount of memory for the on and off diagonal parts of the restriction
   operator. This kinda kills use in parallel.
@@ -769,7 +768,7 @@ Mat SROpGenerator_SimpleFinestLevel( SROpGenerator *self ) {
    PetscTruth is_seq, is_q1/* test to see if NOT a Q1 mesh, if not then assume it is Q2 */;
    PetscInt p, proc_owner, *rranges,*cranges;
    MPI_Comm comm;
-   PetscMPIInt nproc,rank;  
+   PetscMPIInt nproc,rank;
 
    /* Calculate level side lengths. */
    mesh = self->fineVar->feMesh;
@@ -817,7 +816,7 @@ Mat SROpGenerator_SimpleFinestLevel( SROpGenerator *self ) {
 
    MatCreate( MPI_COMM_WORLD, &P );
    // a bit stupid because we know the global eqNum on the fine Mesh
-   MatSetSizes( P, self->fineVar->eqNum->localEqNumsOwnedCount, PETSC_DECIDE, PETSC_DECIDE, nGlobalEqs ); 
+   MatSetSizes( P, self->fineEqNum->localEqNumsOwnedCount, PETSC_DECIDE, PETSC_DECIDE, nGlobalEqs );
    MatSetType( P, MATAIJ );
 #if (((PETSC_VERSION_MAJOR==3) && (PETSC_VERSION_MINOR>=3)) || (PETSC_VERSION_MAJOR>3) )
    MatSetUp(P);
@@ -828,8 +827,8 @@ Mat SROpGenerator_SimpleFinestLevel( SROpGenerator *self ) {
    MPI_Comm_rank( comm, &rank );
 
    {  Vec L,R;
-      PetscInt M,N, m,n;     
-      
+      PetscInt M,N, m,n;
+
       MatGetSize( P, &M,&N );
       MatGetLocalSize( P, &m,&n );
 //      PetscPrintf( PETSC_COMM_WORLD, "size = %D x %D \n", M, N );
@@ -844,7 +843,7 @@ Mat SROpGenerator_SimpleFinestLevel( SROpGenerator *self ) {
       Stg_VecDestroy(&L );
       Stg_VecDestroy(&R );
     }
-  
+
    PetscMalloc( sizeof(PetscInt)*(er-sr), &o_nnz );
    PetscMalloc( sizeof(PetscInt)*(er-sr), &d_nnz );
 
@@ -887,10 +886,10 @@ Mat SROpGenerator_SimpleFinestLevel( SROpGenerator *self ) {
       nEntries = offsGrid->nPoints;
       for( kk = 0; kk < nDofsPerNode; kk++ ) {
          /* Skip the entire thing if it's a BC. */
-         if( self->fineVar->eqNum->destinationArray[ii][kk] == -1 )
+         if( self->fineEqNum->mapNodeDof2Eq[ii][kk] == -1 )
             continue;
 
-         row_idx = (PetscInt)(self->fineVar->eqNum->destinationArray[ii][kk]);
+         row_idx = (PetscInt)(self->fineEqNum->mapNodeDof2Eq[ii][kk]);
 
 
          /* find owning proc */
@@ -906,7 +905,7 @@ Mat SROpGenerator_SimpleFinestLevel( SROpGenerator *self ) {
          for( jj = 0; jj < offsGrid->nPoints; jj++ ) {
             indices[jj] = nodes[jj] * nDofsPerNode + kk;
           //  printf( "[%d]: (owner=%d): row=%d : c_index=%d \n", rank, proc_owner, row_idx, indices[jj] );
-	    if( (row_idx>=rranges[proc_owner]) && (row_idx<rranges[proc_owner+1]) ) {          
+	    if( (row_idx>=rranges[proc_owner]) && (row_idx<rranges[proc_owner+1]) ) {
                if( (indices[jj]>=cranges[proc_owner]) && (indices[jj]<cranges[proc_owner+1]) ) {
                   VecSetValue( vec_d_nnz, row_idx, 1.0, ADD_VALUES );
                }
@@ -998,14 +997,14 @@ Mat SROpGenerator_SimpleFinestLevel( SROpGenerator *self ) {
       nEntries = offsGrid->nPoints;
       for( kk = 0; kk < nDofsPerNode; kk++ ) {
          /* Skip the entire thing if it's a BC. */
-         if( self->fineVar->eqNum->destinationArray[ii][kk] == -1 )
+         if( self->fineEqNum->mapNodeDof2Eq[ii][kk] == -1 )
             continue;
 
          for( jj = 0; jj < offsGrid->nPoints; jj++ ) {
             indices[jj] = nodes[jj] * nDofsPerNode + kk;
             values[jj] = dfrac;
          }
-         MatSetValues( P, 1, self->fineVar->eqNum->destinationArray[ii] + kk,
+         MatSetValues( P, 1, self->fineEqNum->mapNodeDof2Eq[ii] + kk,
                        nEntries, indices, values, INSERT_VALUES );
       }
    }
@@ -1066,7 +1065,7 @@ Mat SROpGenerator_SimpleCoarserLevel( SROpGenerator *self, int level ) {
    double values[8];
    Mat P;
    //PETScMatrix *mat;
-   Mat mat; 
+   Mat mat;
    int ii, jj, kk;
    PetscInt o_nz, d_nz;
    PetscInt *o_nnz, *d_nnz;
@@ -1109,7 +1108,7 @@ Mat SROpGenerator_SimpleCoarserLevel( SROpGenerator *self, int level ) {
    for( ii = 0; ii < nDims; ii++ ) {
       sideSizes[1][ii] = elGrid->sizes[ii] / ifrac;
       sideSizes[0][ii] = elGrid->sizes[ii] / (ifrac * 2);
-      if( sideSizes[1][ii] * ifrac != elGrid->sizes[ii] || 
+      if( sideSizes[1][ii] * ifrac != elGrid->sizes[ii] ||
           sideSizes[0][ii] * (ifrac * 2) != elGrid->sizes[ii] )
       {
          printf( "(MG) Error: Too many levels specified for geometric multigrid.\n" );
@@ -1147,7 +1146,7 @@ Mat SROpGenerator_SimpleCoarserLevel( SROpGenerator *self, int level ) {
 #endif
    MatGetOwnershipRange( P, &eqRangeBegin, &eqRangeEnd );
 
-   {  
+   {
       Vec L,R;
       PetscInt M,N;
       MatGetSize( P, &M,&N );
@@ -1216,7 +1215,7 @@ Mat SROpGenerator_SimpleCoarserLevel( SROpGenerator *self, int level ) {
       }
 
       /* Insert this row into the operator matrix. */
-      row_idx = (PetscInt)ii;      
+      row_idx = (PetscInt)ii;
       /* find owning proc */
       proc_owner = -1;
       for( p=0; p<nproc; p++ ) {
@@ -1226,7 +1225,7 @@ Mat SROpGenerator_SimpleCoarserLevel( SROpGenerator *self, int level ) {
          }
       }
 /*
-      if( (row_idx>=sr) && (row_idx<er) ) { 
+      if( (row_idx>=sr) && (row_idx<er) ) {
         for( jj = 0; jj < offsGrid->nPoints; jj++ ) {
           indices[jj] = nodes[jj] * nDofsPerNode + rowDof;
           if( (indices[jj]>=sc) && (indices[jj]<ec) ) {
@@ -1253,7 +1252,7 @@ Mat SROpGenerator_SimpleCoarserLevel( SROpGenerator *self, int level ) {
       }
 
    }
-  
+
    VecAssemblyBegin( vec_d_nnz );
    VecAssemblyEnd( vec_d_nnz );
 
@@ -1272,7 +1271,7 @@ Mat SROpGenerator_SimpleCoarserLevel( SROpGenerator *self, int level ) {
    }
    VecRestoreArray( vec_o_nnz, &v );
 
-  
+
    if(nproc==1) {
       MatSeqAIJSetPreallocation( P, PETSC_NULL, d_nnz );
    }
@@ -1340,5 +1339,3 @@ Mat SROpGenerator_SimpleCoarserLevel( SROpGenerator *self, int level ) {
    mat = P;
    return mat;
 }
-
-

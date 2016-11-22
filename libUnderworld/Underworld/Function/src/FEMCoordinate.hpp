@@ -24,12 +24,13 @@ class FEMCoordinate: public IO_double
 
               unsigned&  index()            { _valueCalculated=false; return _index; };
         const unsigned   index()      const {                         return _index; };
-        std::shared_ptr<      IO_double> localCoord()       { _valueCalculated=false; return _localCoord; };
-        std::shared_ptr<const IO_double> localCoord() const {                         return _localCoord; };
+              IO_double* localCoord()       { _valueCalculated=false; return _localCoord; };
+        const IO_double* localCoord() const {                         return _localCoord; };
         const void* mesh() const {return _mesh;};
     private:
         static unsigned _Check_GetDimSize(void* mesh);
-        std::shared_ptr<IO_double> _localCoord;
+        std::shared_ptr<IO_double> _localCoord_sp;
+        IO_double* _localCoord;
         void* _mesh;
         unsigned _index;
         bool mutable _valueCalculated;

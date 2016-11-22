@@ -80,10 +80,10 @@ void _Fn_Integrate_SetFn( void* _self, Fn::Function* fn ){
     // setup fn
     std::shared_ptr<ParticleInCellCoordinate> localCoord = std::make_shared<ParticleInCellCoordinate>( self->integrationSwarm->localCoordVariable );
     cppdata->input = std::make_shared<FEMCoordinate>((void*)self->mesh, localCoord);
-    cppdata->func  = fn->getFunction(cppdata->input);
+    cppdata->func  = fn->getFunction(cppdata->input.get());
     
     // check output conforms
-    std::shared_ptr<const FunctionIO> io = std::dynamic_pointer_cast<const FunctionIO>(cppdata->func(cppdata->input));
+    const FunctionIO* io = dynamic_cast<const FunctionIO*>(cppdata->func(cppdata->input.get()));
     cppdata->sumLocal  = new IO_double(io->size(), io->iotype());
     cppdata->sumGlobal = new IO_double(io->size(), io->iotype());
 }
@@ -142,11 +142,11 @@ IO_double* Fn_Integrate_Integrate( void* fn_integrate ) {
         cellParticleCount = swarm->cellParticleCountTbl[ cell_I ];
         elementType = FeMesh_GetElementType( mesh, lElement_I );
     
-        debug_dynamic_cast<ParticleInCellCoordinate>(cppdata->input->localCoord())->index() = lElement_I;  // set the elementId as the owning cell for the particleCoord
+        debug_dynamic_cast<ParticleInCellCoordinate*>(cppdata->input->localCoord())->index() = lElement_I;  // set the elementId as the owning cell for the particleCoord
         cppdata->input->index()                                                             = lElement_I;    // set the elementId for the fem coordinate
         
         for ( cParticle_I = 0 ; cParticle_I < cellParticleCount ; cParticle_I++ ) {
-            debug_dynamic_cast<ParticleInCellCoordinate>(cppdata->input->localCoord())->particle_cellId(cParticle_I);  // set the particleCoord cellId
+            debug_dynamic_cast<ParticleInCellCoordinate*>(cppdata->input->localCoord())->particle_cellId(cParticle_I);  // set the particleCoord cellId
 
             particle = (IntegrationPoint*) Swarm_ParticleInCellAt( swarm, cell_I, cParticle_I );
             xi       = particle->xi;
@@ -160,7 +160,7 @@ IO_double* Fn_Integrate_Integrate( void* fn_integrate ) {
                 jacDet = ElementType_SurfaceJacobianDeterminant( elementType, mesh, lElement_I, xi, self->dim, localNormal );
             }
             /* evaluate function */
-            std::shared_ptr<const FunctionIO> funcout = debug_dynamic_cast<const FunctionIO>(cppdata->func(cppdata->input));
+            const FunctionIO* funcout = debug_dynamic_cast<const FunctionIO*>(cppdata->func(cppdata->input.get()));
 
             factor = jacDet * particle->weight;
             for( unsigned ii = 0 ; ii < funcout->size() ; ii++ )

@@ -8,6 +8,11 @@ from underworld import function as fn
 import glucifer
 import images
 
+#Check if the viewer is working
+if not glucifer.lavavu:
+    print "Image tests skipped, Viewer disabled"
+    exit()
+
 #Don't fail tests if no PIL
 #(requires pip install pillow)
 images.importPIL()
@@ -166,13 +171,13 @@ stokesBC = uw.conditions.DirichletCondition( variable      = velocityField,
 
 
 # **Create a Stokes system**
-stokesPIC = uw.systems.Stokes( velocityField = velocityField, 
+stokes = uw.systems.Stokes( velocityField = velocityField, 
                                pressureField = pressureField,
-                               swarm         = swarm, 
+                               voronoi_swarm = swarm, 
                                conditions    = [stokesBC,],
                                fn_viscosity  = viscosityFn,
                                fn_bodyforce  = buoyancyFn )
-solver = uw.systems.Solver( stokesPIC )
+solver = uw.systems.Solver( stokes )
 
 # **Create a system to advect the particles**
 advector = uw.systems.SwarmAdvector( swarm=swarm, velocityField=velocityField, order=2 )

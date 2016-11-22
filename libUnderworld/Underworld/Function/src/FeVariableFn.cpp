@@ -37,36 +37,37 @@ Fn::FeVariableFn::func Fn::FeVariableFn::getFunction( IOsptr sample_input )
     FeVariable* fevar = (FeVariable*)_fevariable;
     int numComponents = fevar->fieldComponentCount;
 
-    std::shared_ptr<IO_double> _output = std::make_shared<IO_double>(numComponents, FunctionIO::Array);
+    std::shared_ptr<IO_double> _output_sp = std::make_shared<IO_double>(numComponents, FunctionIO::Array);
+    IO_double* _output = _output_sp.get();
     
     // if input is FEMCoordinate, eject appropriate lambda
-    std::shared_ptr<const FEMCoordinate> femCoord = std::dynamic_pointer_cast<const FEMCoordinate>(sample_input);
+    const FEMCoordinate* femCoord = dynamic_cast<const FEMCoordinate*>(sample_input);
     if ( femCoord ){
         if( femCoord->mesh() == (void*) (fevar->feMesh->parentMesh ) )
-            return [_output,fevar](IOsptr input)->IOsptr {
-                std::shared_ptr<const FEMCoordinate> femCoord = debug_dynamic_cast<const FEMCoordinate>(input);
+            return [_output,_output_sp,fevar](IOsptr input)->IOsptr {
+                const FEMCoordinate* femCoord = debug_dynamic_cast<const FEMCoordinate*>(input);
                 
                 FeVariable_InterpolateWithinElement( fevar, femCoord->index(), femCoord->localCoord()->data(), _output->data() );
 
-                return debug_dynamic_cast<const FunctionIO>(_output);
+                return debug_dynamic_cast<const FunctionIO*>(_output);
             };
     };
 
     // if input is MeshCoordinate, eject appropriate lambda
-    std::shared_ptr<const MeshCoordinate> meshCoord = std::dynamic_pointer_cast<const MeshCoordinate>(sample_input);
+    const MeshCoordinate* meshCoord = dynamic_cast<const MeshCoordinate*>(sample_input);
     if ( meshCoord ){
         if( meshCoord->object() == (void*) (fevar->feMesh) )  // in this case, we need the identical mesh
-            return [_output,fevar](IOsptr input)->IOsptr {
-                std::shared_ptr<const MeshCoordinate> meshCoord = debug_dynamic_cast<const MeshCoordinate>(input);
+            return [_output,_output_sp,fevar](IOsptr input)->IOsptr {
+                const MeshCoordinate* meshCoord = debug_dynamic_cast<const MeshCoordinate*>(input);
                 
                 FeVariable_GetValueAtNode( fevar, meshCoord->index(), _output->data() );
 
-                return debug_dynamic_cast<const FunctionIO>(_output);
+                return debug_dynamic_cast<const FunctionIO*>(_output);
             };
     }
     
     // if neither of the above worked, try plain old global coord
-    std::shared_ptr<const IO_double> iodouble = std::dynamic_pointer_cast<const IO_double>(sample_input);
+    const IO_double* iodouble = dynamic_cast<const IO_double*>(sample_input);
     if ( iodouble ){
         if ( iodouble->size() != fevar->dim )
         {
@@ -75,8 +76,8 @@ Fn::FeVariableFn::func Fn::FeVariableFn::getFunction( IOsptr sample_input )
             streamguy << "does not appear to match mesh variable dimensionality (" << fevar->dim << ").";
             throw std::runtime_error(streamguy.str());
         }
-        return [_output,fevar](IOsptr input)->IOsptr {
-            std::shared_ptr<const IO_double> iodouble = debug_dynamic_cast<const IO_double>(input);            
+        return [_output,_output_sp,fevar](IOsptr input)->IOsptr {
+            const IO_double* iodouble = debug_dynamic_cast<const IO_double*>(input);            
 
             InterpolationResult retval = _FeVariable_InterpolateValueAt( fevar, iodouble->data(), _output->data() );
 
@@ -90,7 +91,7 @@ Fn::FeVariableFn::func Fn::FeVariableFn::getFunction( IOsptr sample_input )
                 throw std::range_error(streamguy.str());
             }
 
-            return debug_dynamic_cast<const FunctionIO>(_output);
+            return debug_dynamic_cast<const FunctionIO*>(_output);
         };
     }
     

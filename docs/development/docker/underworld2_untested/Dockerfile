@@ -1,5 +1,5 @@
 FROM underworldcode/base:dev
-MAINTAINER mansourjohn@gmail.com
+MAINTAINER https://github.com/underworldcode/
 
 # set working directory to /root
 WORKDIR /root
@@ -11,11 +11,7 @@ ENV PYTHONPATH $PYTHONPATH:/root/underworld2
 RUN git clone --branch "development" --single-branch https://github.com/underworldcode/underworld2 && \
     cd underworld2/libUnderworld && \
     ./configure.py --with-debugging=0  && \
-    ./scons.py                   && \
-    cd libUnderworldPy           && \
-    ./swigall.py                 && \
-    cd ..                        && \
-    ./scons.py                   && \
+    ./compile.py                 && \
     rm .sconsign.dblite          && \
     rm -fr .sconf_temp           && \
     cd build                     && \

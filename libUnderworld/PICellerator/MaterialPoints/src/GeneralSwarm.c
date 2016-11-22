@@ -313,7 +313,7 @@ unsigned GeneralSwarm_IntegrationPointMap( void* _self, void* _intSwarm, unsigne
     Mesh*	                intMesh  = (Mesh*)intSwarm->mesh;
     SwarmMap* map = NULL;
 
-    // first, letchecks  if the int swarm is mirroring a general swarm
+    // first, lets check if the int swarm is mirroring a general swarm
     if (intSwarm->mirroredSwarm == (Swarm*)self)
     {
         // ok, it is a mirrored swarm
@@ -325,7 +325,17 @@ unsigned GeneralSwarm_IntegrationPointMap( void* _self, void* _intSwarm, unsigne
                                         self,
                                         CellLayout_MapElementIdToCellId( self->cellLayout, elementId ),
                                         intPtCellId );
-    } else if ( self->previousIntSwarmMap && self->previousIntSwarmMap->swarm==intSwarm ) { /* next check if previous swarmmap */
+    }
+
+    // before we do anything else, lets check cell count
+    Cell_Index cell_M = CellLayout_MapElementIdToCellId( self->cellLayout, elementId );
+    unsigned cellPartCount = self->cellParticleCountTbl[ cell_M ];
+    // if zero, return
+    if (cellPartCount==0)
+        return (unsigned)-1;
+
+    
+    if ( self->previousIntSwarmMap && self->previousIntSwarmMap->swarm==intSwarm ) { /* next check if previous swarmmap */
         map = self->previousIntSwarmMap;
     } else {
         /* ok, previous is not our guy, check other existing: */
@@ -374,7 +384,6 @@ unsigned GeneralSwarm_IntegrationPointMap( void* _self, void* _intSwarm, unsigne
         );
         
         Cell_Index cell_I = CellLayout_MapElementIdToCellId( intSwarm->cellLayout, elementId );
-        Cell_Index cell_M = CellLayout_MapElementIdToCellId(     self->cellLayout, elementId );
 
         IntegrationPoint* integrationPoint = (IntegrationPoint*)Swarm_ParticleInCellAt( intSwarm, cell_I, intPtCellId );
         
@@ -386,7 +395,6 @@ unsigned GeneralSwarm_IntegrationPointMap( void* _self, void* _intSwarm, unsigne
         double         distance2_min = DBL_MAX;
         double         distance2;
         Particle_Index particle_M;
-        unsigned cellPartCount = self->cellParticleCountTbl[ cell_M ];
         
         Journal_Firewall( cellPartCount,
             Journal_Register( Error_Type, (Name)self->type  ),

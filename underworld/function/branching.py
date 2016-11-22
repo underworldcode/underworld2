@@ -12,7 +12,6 @@ Typically, these functions will select other user provided functions when
 certain conditions are met (with the condition also described by a function!).
 
 """
-import underworld as uw
 import libUnderworld.libUnderworldPy.Function as _cfn
 from _function import Function as _Function
 
@@ -21,9 +20,31 @@ class map(_Function):
     """
     This function performs a map to other functions. The user provides a python 
     dictionary which maps unsigned integers keys to underworld functions. The 
-    user must also provide a 'key function'. At evaluation time, the key function
-    is evaluated first, with the outcome value determining which function should
+    user must also provide a key function. At evaluation time, the key function
+    is evaluated first, with the outcome determining which function should
     finally be evaluated to return a value.
+    
+    For a set of value functions :math:`\{f_{v_0},f_{v_1},\ldots,f_{v_n}\}`,
+    corresponding keys :math:`\{k_0,k_1,\ldots,k_n\}', and key function
+    :math:`f_{k}`, we have:
+    
+    .. math::
+         f(\mathbf{r})=
+            \begin{cases}
+            f_{v_0}(\mathbf{r}),   & \text{if } f_{k}(\mathbf{r}) = k_0\\
+            f_{v_1}(\mathbf{r}),   & \text{if } f_{k}(\mathbf{r}) = k_1\\
+            ... \\
+            f_{v_n}(\mathbf{r}),   & \text{if } f_{k}(\mathbf{r}) = k_n\\
+            f_{d}  (\mathbf{r}),   & \text{otherwise}
+            \end{cases}
+            
+    As stated, the keys must be unsigned integers. The key function need not
+    return an unsigned integer, but whatever value it returns **will** be cast
+    to an unsigned integer so caution is advised.
+    
+    The default function is optional, but if none is provided, and the key 
+    function evaluates to a value which is not within the user provide set of 
+    keys, an exception will be thrown.
     
     Parameters
     ----------
@@ -34,7 +55,7 @@ class map(_Function):
         Python dictionary providing a mapping from unsigned integer 'key' values to
         underworld 'value' functions. Note that the provided 'value' functions must
         return values of type 'double'.
-    fn_default: underworld.function.Function (or convertible)
+    fn_default: underworld.function.Function (or convertible) (optional)
         Default function to be utilised when the key (returned by fn_key function)
         does not correspond to any key value in the mapping dictionary.
     
@@ -68,15 +89,15 @@ class map(_Function):
     here, you can use any object of the class Function.
     
     >>> fn_map = fn.branching.map(fn_key=svar, mapping={0: 0., 1:1.})
-    >>> np.isclose(np.pi, uw.utils.Integral(fn_map,mesh).evaluate(),rtol=2e-2)
-    array([ True], dtype=bool)
+    >>> np.allclose(np.pi, uw.utils.Integral(fn_map,mesh).evaluate(),rtol=2e-2)
+    True
     
     Alternatively, we could utilise the default function to achieve the same 
     result.
     
     >>> fn_map = fn.branching.map(fn_key=svar, mapping={1: 1.}, fn_default=0.)
-    >>> np.isclose(np.pi, uw.utils.Integral(fn_map,mesh).evaluate(),rtol=2e-2)
-    array([ True], dtype=bool)
+    >>> np.allclose(np.pi, uw.utils.Integral(fn_map,mesh).evaluate(),rtol=2e-2)
+    True
 
     """
     
@@ -90,9 +111,9 @@ class map(_Function):
 
         if not fn_key:
             raise ValueError("You must specify a key function via the 'fn_key' parameter.")
-        fn_key = _Function._CheckIsFnOrConvertOrThrow(fn_key)
+        fn_key = _Function.convert(fn_key)
 
-        self.fn_default = _Function._CheckIsFnOrConvertOrThrow(fn_default)
+        self.fn_default = _Function.convert(fn_default)
         if self.fn_default == None:
             fn_defaultCself = None
         else:
@@ -111,7 +132,7 @@ class map(_Function):
         for key, value in mapping.iteritems():
             if not isinstance(key, int) or key < 0:
                 raise ValueError("Key '{}' not valid. Mapping keys must be unsigned integers.".format(key))
-            funcVal = _Function._CheckIsFnOrConvertOrThrow(value)
+            funcVal = _Function.convert(value)
             if funcVal == None:
                 raise ValueError("'None' is not valid for mapped functions.")
             
@@ -125,20 +146,38 @@ class conditional(_Function):
     This function provides 'if/elif' type conditional behaviour.
     
     The user provides a list of tuples, with each tuple being of the 
-    form (fn_condition, fn_action). Effectively, each tuple provides a clause 
+    form (fn_condition, fn_resultant). Effectively, each tuple provides a clause
     within the if/elif statement. 
     
     When evaluated, the function traverses the clauses, stopping at the first 
     fn_condition which returns 'true'. It then executes the corresponding 
-    fn_action and returns the results.
+    fn_resultant and returns the results.
     
     If none of the provided clauses return a 'True' result, an exception is 
     raised.
+
+    For a set of condition functions :math:`\{f_{c_0},f_{c_1},\ldots,f_{c_n}\}`,
+    corresponding resultant functions :math:`\{f_{r_0},f_{r_1},\ldots,f_{r_n}\}`,
+    we have
+    
+    ```
+    if   :math:`\{f_{c_0}` :
+        return :math:`\{f_{r_0}`
+    elif :math:`\{f_{c_1}` :
+        return :math:`\{f_{r_1}`
+    ...
+    elif :math:`\{f_{c_n}` :
+        return :math:`\{f_{r_n}`
+    else :
+        raise RuntimeError("Reached end of conditional statement. At least one 
+                            of the clause conditions must evaluate to 'True'." );
+        
+    ```
     
     Parameters
     ----------
     clauses: list
-        list of tuples, with each tuple being of the form (fn_condition, fn_action).
+        list of tuples, with each tuple being of the form (fn_condition, fn_resultant).
     
     
     Example
@@ -154,8 +193,8 @@ class conditional(_Function):
     >>> circleFn = fn.coord()[0]**2 + fn.coord()[1]**2
     >>> fn_conditional = fn.branching.conditional( [ (circleFn < 1., 1. ), \
                                                      (         True, 0. ) ] )
-    >>> np.isclose(np.pi, uw.utils.Integral(fn_conditional,mesh).evaluate(),rtol=1e-2)
-    array([ True], dtype=bool)
+    >>> np.allclose(np.pi, uw.utils.Integral(fn_conditional,mesh).evaluate(),rtol=1e-2)
+    True
     """
 
     def __init__(self, clauses, *args, **kwargs):
@@ -170,11 +209,11 @@ class conditional(_Function):
                 raise TypeError("Clauses within the clause list must be of python type 'list' or 'tuple'")
             if len(clause) != 2:
                 raise ValueError("Clauses tuples must be of length 2.")
-            conditionFn = _Function._CheckIsFnOrConvertOrThrow(clause[0])
+            conditionFn = _Function.convert(clause[0])
             funcSet.add(conditionFn)
-            actionFn    = _Function._CheckIsFnOrConvertOrThrow(clause[1])
-            funcSet.add(actionFn)
-            self._clauses.append( (conditionFn,actionFn) )
+            resultantFn    = _Function.convert(clause[1])
+            funcSet.add(resultantFn)
+            self._clauses.append( (conditionFn,resultantFn) )
         
         # build parent
         self._fncself = _cfn.Conditional()

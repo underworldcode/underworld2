@@ -148,7 +148,6 @@ void PCDVCSuite_TestCircleInterface( PCDVCSuiteData* data ) {
       data->context->dim,
       False,
       False,
-      False,
       MPI_COMM_WORLD,
       data->context->fieldVariable_Register );
 
@@ -228,7 +227,6 @@ void PCDVCSuite_TestPolynomialFunction( PCDVCSuiteData* data ) {
       data->context->dim,
       False,
       False,
-      False,
       MPI_COMM_WORLD,
       data->context->fieldVariable_Register );
 
@@ -293,7 +291,6 @@ void PCDVCSuite_TestExponentialInterface( PCDVCSuiteData* data ) {
       NULL, 
       1,
       data->context->dim,
-      False,
       False,
       False,
       MPI_COMM_WORLD,

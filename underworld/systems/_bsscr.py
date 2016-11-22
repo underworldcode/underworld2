@@ -197,15 +197,22 @@ class MGSolver(_stgermain.StgCompoundComponent):
                       "_mgGenerator" : "SROpGenerator"      }
     _selfObjectName = "_mgSolver"
 
-    def __init__(self, field, levels=2, **kwargs):
+    def __init__(self, field, eqNum, levels=2, **kwargs):
         if not isinstance(levels, int) or levels < 1:
             raise TypeError( "'levels' must be positive integer.")
         if not isinstance( field, uw.mesh.MeshVariable):
             raise TypeError( "Provided 'field' must be of 'MeshVariable' class." )
+        if not isinstance( eqNum, sle.EqNumber):
+            raise TypeError( "Provided 'eqNum' must be of 'EqNumber' class." )
+        if not eqNum.meshVariable == field:
+            raise ValueError("Supplied 'eqNum' doesn't correspond to the supplied 'meshVariable'")
 
         self._levels=levels
         self._field=field
         super(MGSolver, self).__init__(**kwargs)
+
+        # attach the fine equation number via python
+        self._mgGenerator.fineEqNum = eqNum._cself
 
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method
@@ -285,6 +292,9 @@ class StokesSolver(_stgermain.StgCompoundComponent):
             raise TypeError( "Provided 'pressureField' must be of 'MeshVariable' class." )
         self._pressureField = pressureField
 
+        self._velocityEqNums = stokesSLE._eqNums[velocityField]
+        self._pressureEqNums = stokesSLE._eqNums[pressureField]
+
         super(StokesSolver, self).__init__(**kwargs)
 
     def _add_to_stg_dict(self,componentDictionary):
@@ -306,7 +316,10 @@ class StokesSolver(_stgermain.StgCompoundComponent):
     ### the solve function
     ########################################################################
 
-    def solve(self, nonLinearIterate=None, nonLinearTolerance=1.0e-2, print_stats=False, reinitialise=True, **kwargs):
+    def solve(self, nonLinearIterate=None, nonLinearTolerance=1.0e-2,
+              nonLinearKillNonConvergent=False,
+              nonLinearMaxIterations=500,
+              print_stats=False, reinitialise=True, **kwargs):
         """ solve the Stokes system
         """
         Solvers.SBKSP_SetSolver(self._cself, self._stokesSLE._cself)
@@ -338,8 +351,13 @@ class StokesSolver(_stgermain.StgCompoundComponent):
             # self._stokesSLE._cself.nonLinearTolerance = nonLinearTolerance # set via python
             libUnderworld.StgFEM.SystemLinearEquations_SetNonLinearTolerance(self._stokesSLE._cself, nonLinearTolerance)
             libUnderworld.StgFEM.SystemLinearEquations_SetToNonLinear(self._stokesSLE._cself, True, )
+            self._stokesSLE._cself.nonLinearMaxIterations = nonLinearMaxIterations
+            self._stokesSLE._cself.killNonConvergent = nonLinearKillNonConvergent
+
         else:
             libUnderworld.StgFEM.SystemLinearEquations_SetToNonLinear(self._stokesSLE._cself, False )
+
+
 
         if self._stokesSLE._swarm and reinitialise:
             self._stokesSLE._swarm._voronoi_swarm.repopulate()
@@ -378,6 +396,8 @@ class StokesSolver(_stgermain.StgCompoundComponent):
                     print endcol
                     print
 
+        return
+
     ########################################################################
     ### create vectors and matrices for augmented lagrangian solve
     ########################################################################
@@ -388,12 +408,12 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         pressureField=self._pressureField
         stokesSLE = self._stokesSLE
         # create junk force vectors -- we provide no assembly terms for these so they are 0 vectors.
-        self._vmfvector   = sle.AssembledVector(velocityField)
-        self._junkfvector = sle.AssembledVector(pressureField)
+        self._vmfvector   = sle.AssembledVector(velocityField, stokesSLE._eqNums[velocityField])
+        self._junkfvector = sle.AssembledVector(pressureField, stokesSLE._eqNums[pressureField])
 
         # and matrices
-        self._vmmatrix = sle.AssembledMatrix( velocityField, velocityField, rhs=self._vmfvector )
-        self._mmatrix  = sle.AssembledMatrix( pressureField, pressureField, rhs=self._junkfvector )
+        self._vmmatrix = sle.AssembledMatrix( stokesSLE._velocitySol, stokesSLE._velocitySol, rhs=self._vmfvector )
+        self._mmatrix  = sle.AssembledMatrix( stokesSLE._pressureSol, stokesSLE._pressureSol, rhs=self._junkfvector )
 
         # create assembly terms
         self._pressMassMatTerm = sle.MatrixAssemblyTerm_NA__NB__Fn( integrationSwarm=uw.swarm.GaussIntegrationSwarm(velocityField.mesh), fn=1.0, assembledObject=self._mmatrix,
@@ -417,8 +437,8 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         libUnderworld.StgFEM.ForceVector_Assemble(self._vmfvector._cself)
         libUnderworld.StgFEM.ForceVector_Assemble(self._junkfvector._cself)
         # matrix set up
-        libUnderworld.StgFEM.StiffnessMatrix_Assemble( self._vmmatrix._cself, self._stokesSLE._cself.removeBCs, self._stokesSLE._cself, None );
-        libUnderworld.StgFEM.StiffnessMatrix_Assemble( self._mmatrix._cself,  self._stokesSLE._cself.removeBCs, self._stokesSLE._cself, None );
+        libUnderworld.StgFEM.StiffnessMatrix_Assemble( self._vmmatrix._cself, self._stokesSLE._cself, None );
+        libUnderworld.StgFEM.StiffnessMatrix_Assemble( self._mmatrix._cself,  self._stokesSLE._cself, None );
     ########################################################################
     ### setup options for solve
     ########################################################################
@@ -516,12 +536,13 @@ class StokesSolver(_stgermain.StgCompoundComponent):
     def _setup_mg(self):
 
         field =self._velocityField
+        eqNum = self._velocityEqNums
 
         # If the levels have been set explicitly then no point in over-riding
         if self.options.mg.levels == 0:
             self.options.mg.set_levels(field=field)
 
-        mgObj=MGSolver(field,self.options.mg.levels)
+        mgObj=MGSolver(field,eqNum,self.options.mg.levels)
         # attach MG object to Solver struct
         self.mgObj=mgObj # must attach object here: else immediately goes out of scope and is destroyed
         self._cself.mg = mgObj._cself
@@ -571,6 +592,18 @@ class StokesSolver(_stgermain.StgCompoundComponent):
 
     def get_stats(self):
         return self._cself.stats
+
+    def get_nonLinearStats(self):
+
+        class blank(object):
+            pass
+
+        a = blank()
+
+        a.picard_iterations = self._stokesSLE._cself.nonLinearIteration_I
+        a.picard_residual =   self._stokesSLE._cself.curResidual
+
+        return a
 
     def print_stats(self):
         purple = "\033[0;35m"

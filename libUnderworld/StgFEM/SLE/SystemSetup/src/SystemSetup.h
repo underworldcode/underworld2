@@ -10,17 +10,16 @@
 
 #ifndef __StgFEM_SLE_SystemSetup_SystemSetup_h__
 #define __StgFEM_SLE_SystemSetup_SystemSetup_h__
-	
+
 	#include "types.h"
 
 	#include "EntryPoint.h"
-	
+
 	#include "StiffnessMatrix.h"
 	#include "StiffnessMatrixTerm.h"
 	#include "SolutionVector.h"
 	#include "ForceVector.h"
 	#include "ForceTerm.h"
-	#include "Assembler.h"
 
 	#include "SystemLinearEquations.h"
 	#include "SLE_Solver.h"

@@ -17,12 +17,19 @@ import libUnderworld.libUnderworldPy.Function as _cfn
 from abc import ABCMeta,abstractmethod
 import numpy as np
 import weakref
+import underworld as uw
 
 ScalarType = _cfn.FunctionIO.Scalar
 VectorType = _cfn.FunctionIO.Vector
 SymmetricTensorType = _cfn.FunctionIO.SymmetricTensor
 TensorType = _cfn.FunctionIO.Tensor
 ArrayType  = _cfn.FunctionIO.Array
+
+types = {          'scalar' : ScalarType,
+                   'vector' : VectorType,
+          'symmetrictensor' : SymmetricTensorType,
+                   'tensor' : TensorType,
+                    'array' : ArrayType   }
 
 class FunctionInput(underworld._stgermain.LeftOverParamsChecker):
     """
@@ -69,19 +76,78 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
         super(Function,self).__init__(**kwargs)
 
     @staticmethod
-    def _CheckIsFnOrConvertOrThrow(guy):
+    def convert(obj):
         """
-        This method will simply check if the provided fn is of Function type
+        This method will simply check if the provided object is of Function type
         or None type. If it is, it is simply returned. Otherwise, conversion
-        to a constant function is attempted.
+        to a function is attempted. 
+        
+        Parameters
+        ----------
+        obj: fn_like
+            The object to be converted. Note that if obj is of type None or
+            Function, it is simply returned immediately.
+            Where obj is of type int/float/double, a Constant type function 
+            is returned which evaluates to the provided object's value.
+            Where obj is of type list/tuple, a function will be returned
+            which evaluates to a vector of the provided list/tuple's values 
+            (where possible).
+
+        Returns
+        -------
+        Fn.Function or None.
+
+        Examples
+        --------
+        >>> import underworld as uw
+        >>> import underworld.function as fn
+        
+        >>> fn_const = fn.Function.convert( 3 )
+        >>> fn_const.evaluate(0.) # eval anywhere for constant
+        array([[3]], dtype=int32)
+
+        >>> fn_const == fn.Function.convert( fn_const )
+        True
+
+        >>> fn.Function.convert( None )
+
+        >>> fn1 = fn.input()
+        >>> fn2 = 10.*fn.input()
+        >>> fn3 = 100.*fn.input()
+        >>> vec = (fn1,fn2,fn3)
+        >>> fn_vec = fn.Function.convert(vec)
+        >>> fn_vec.evaluate([3.])
+        array([[   3.,   30.,  300.]])
+
         """
-        if isinstance(guy, (Function, type(None)) ):
-            return guy
+        if isinstance(obj, (Function, type(None)) ):
+            return obj
         else:
             import misc
             try:
-                return misc.constant(guy)
+                # first try convert directly to const type object
+                return misc.constant(obj)
             except Exception as e:
+                # ok, that failed, let's now try convert to vector of function type object
+                # first check that it is of type tuple or list
+                if isinstance(obj, (tuple,list)):
+                    # now check that it contains things that are convertible. recurse.
+                    objlist = []
+                    for item in obj:
+                        objlist.append( Function.convert(item) )
+                    # create identity matrix for basis vectors
+                    import numpy as np
+                    basisvecs = np.identity(len(obj))
+                    # convert these to uw functions
+                    basisfns = []
+                    for vec in basisvecs:
+                        basisfns.append( Function.convert(vec) )
+                    # now return final object summed
+                    vecfn = basisfns[0]*objlist[0]
+                    for index in range(1,len(obj)):
+                        vecfn = vecfn + basisfns[index]*objlist[index]
+                    return vecfn
+                
                 import underworld as uw
                 raise uw._prepend_message_to_exception(e, "An exception was raised while try to convert an "
                                                          +"object to an Underworld2 function. Usually this "
@@ -111,8 +177,8 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
         >>> import numpy as np
         >>> three = misc.constant(3.)
         >>> four  = misc.constant(4.)
-        >>> np.isclose( (three + four).evaluate(0.), [[ 7.]]  )  # note we can evaluate anywhere because it's a constant
-        array([[ True]], dtype=bool)
+        >>> np.allclose( (three + four).evaluate(0.), [[ 7.]]  )  # note we can evaluate anywhere because it's a constant
+        True
 
         """
         return add( self, other )
@@ -137,8 +203,8 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
         >>> import numpy as np
         >>> three = misc.constant(3.)
         >>> four  = misc.constant(4.)
-        >>> np.isclose( (three - four).evaluate(0.), [[ -1.]]  )  # note we can evaluate anywhere because it's a constant
-        array([[ True]], dtype=bool)
+        >>> np.allclose( (three - four).evaluate(0.), [[ -1.]]  )  # note we can evaluate anywhere because it's a constant
+        True
 
         """
         return subtract( self, other )
@@ -160,11 +226,11 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
         >>> import misc
         >>> import numpy as np
         >>> four  = misc.constant(4.)
-        >>> np.isclose( (5. - four).evaluate(0.), [[ 1.]]  )  # note we can evaluate anywhere because it's a constant
-        array([[ True]], dtype=bool)
+        >>> np.allclose( (5. - four).evaluate(0.), [[ 1.]]  )  # note we can evaluate anywhere because it's a constant
+        True
 
         """
-        return -subtract( self, other )
+        return subtract( other, self )
 
     def  __neg__(self):
         """
@@ -183,8 +249,8 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
         >>> import misc
         >>> import numpy as np
         >>> four = misc.constant(4.)
-        >>> np.isclose( (-four).evaluate(0.), [[ -4.]]  )  # note we can evaluate anywhere because it's a constant
-        array([[ True]], dtype=bool)
+        >>> np.allclose( (-four).evaluate(0.), [[ -4.]]  )  # note we can evaluate anywhere because it's a constant
+        True
 
         """
         return multiply( self, -1.0)
@@ -207,8 +273,8 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
         >>> import numpy as np
         >>> three = misc.constant(3.)
         >>> four  = misc.constant(4.)
-        >>> np.isclose( (three*four).evaluate(0.), [[ 12.]]  )  # note we can evaluate anywhere because it's a constant
-        array([[ True]], dtype=bool)
+        >>> np.allclose( (three*four).evaluate(0.), [[ 12.]]  )  # note we can evaluate anywhere because it's a constant
+        True
 
         """
         return multiply( self, other )
@@ -232,8 +298,8 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
         >>> import numpy as np
         >>> two  = misc.constant(2.)
         >>> four = misc.constant(4.)
-        >>> np.isclose( (four/two).evaluate(0.), [[ 2.]]  )  # note we can evaluate anywhere because it's a constant
-        array([[ True]], dtype=bool)
+        >>> np.allclose( (four/two).evaluate(0.), [[ 2.]]  )  # note we can evaluate anywhere because it's a constant
+        True
 
         """
         return divide( self, other )
@@ -259,8 +325,8 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
         >>> import numpy as np
         >>> two  = misc.constant(2.)
         >>> four = misc.constant(4.)
-        >>> np.isclose( (two**four).evaluate(0.), [[ 16.]]  )  # note we can evaluate anywhere because it's a constant
-        array([[ True]], dtype=bool)
+        >>> np.allclose( (two**four).evaluate(0.), [[ 16.]]  )  # note we can evaluate anywhere because it's a constant
+        True
 
         """
         import math
@@ -285,7 +351,7 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
         >>> import numpy as np
         >>> two  = misc.constant(2.)
         >>> four = misc.constant(4.)
-        >>> (two < four).evaluate(0.) # note we can evaluate anywhere because it's a constant
+        >>> (two < four).evaluate()
         array([[ True]], dtype=bool)
 
         """
@@ -308,7 +374,7 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
         >>> import misc
         >>> import numpy as np
         >>> two  = misc.constant(2.)
-        >>> (two <= two).evaluate(0.) # note we can evaluate anywhere because it's a constant
+        >>> (two <= two).evaluate()
         array([[ True]], dtype=bool)
 
         """
@@ -332,7 +398,7 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
         >>> import numpy as np
         >>> two  = misc.constant(2.)
         >>> four = misc.constant(4.)
-        >>> (two > four).evaluate(0.) # note we can evaluate anywhere because it's a constant
+        >>> (two > four).evaluate()
         array([[False]], dtype=bool)
 
         """
@@ -355,7 +421,7 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
         >>> import misc
         >>> import numpy as np
         >>> two  = misc.constant(2.)
-        >>> (two >= two).evaluate(0.) # note we can evaluate anywhere because it's a constant
+        >>> (two >= two).evaluate()
         array([[ True]], dtype=bool)
 
         """
@@ -367,7 +433,7 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
 
         Fn3 = Fn1 & Fn2
 
-        Creates a new function Fn3 which returns a bool result for the relation.
+        Creates a new function Fn3 which returns a bool result for the operation.
 
         Returns
         -------
@@ -378,7 +444,7 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
         >>> import misc
         >>> trueFn  = misc.constant(True)
         >>> falseFn = misc.constant(False)
-        >>> (trueFn & falseFn).evaluate(0.) # note we can evaluate anywhere because it's a constant
+        >>> (trueFn & falseFn).evaluate()
         array([[False]], dtype=bool)
         
         Notes
@@ -396,7 +462,7 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
 
         Fn3 = Fn1 | Fn2
 
-        Creates a new function Fn3 which returns a bool result for the relation.
+        Creates a new function Fn3 which returns a bool result for the operation.
 
         Returns
         -------
@@ -407,19 +473,55 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
         >>> import misc
         >>> trueFn  = misc.constant(True)
         >>> falseFn = misc.constant(False)
-        >>> (trueFn | falseFn).evaluate(0.) # note we can evaluate anywhere because it's a constant
+        >>> (trueFn | falseFn).evaluate()
         array([[ True]], dtype=bool)
 
         Notes
         -----
-        The '|' operator in python is usually used for bitwise 'or' operations, with the 'or'
-        operator used for boolean type operators. It is not possible to overload the
-        'or' operator in python, so instead the bitwise equivalent has been utilised.
+        The '|' operator in python is usually used for bitwise 'or' operations, 
+        with the 'or' operator used for boolean type operators. It is not possible 
+        to overload the 'or' operator in python, so instead the bitwise equivalent 
+        has been utilised.
 
 
         """
 
         return logical_or( self, other )
+
+    def __xor__(self,other):
+        """
+        Operator overloading for '^' operation:
+
+        Fn3 = Fn1 ^ Fn2
+
+        Creates a new function Fn3 which returns a bool result for the operation.
+
+        Returns
+        -------
+        fn.logical_xor: XOR function
+
+        Examples
+        --------
+        >>> import misc
+        >>> trueFn  = misc.constant(True)
+        >>> falseFn = misc.constant(False)
+        >>> (trueFn ^ falseFn).evaluate()
+        array([[ True]], dtype=bool)
+        >>> (trueFn ^ trueFn).evaluate()
+        array([[False]], dtype=bool)
+        >>> (falseFn ^ falseFn).evaluate()
+        array([[False]], dtype=bool)
+
+        Notes
+        -----
+        The '^' operator in python is usually used for bitwise 'xor' operations, 
+        however here we always use the logical version, with the operation 
+        inputs cast to their bool equivalents before the operation.  
+
+
+        """
+
+        return logical_xor( self, other )
 
     def __getitem__(self,index):
         """
@@ -437,8 +539,8 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
         --------
         >>> import misc
         >>> fn  = misc.constant((2.,3.,4.))
-        >>> np.isclose( fn[1].evaluate(0.), [[ 3.]]  )  # note we can evaluate anywhere because it's a constant
-        array([[ True]], dtype=bool)
+        >>> np.allclose( fn[1].evaluate(0.), [[ 3.]]  )  # note we can evaluate anywhere because it's a constant
+        True
 
         """
         return at(self,index)
@@ -569,20 +671,32 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
         else:
             raise TypeError("Input provided for function evaluation does not appear to be supported.")
 
-    def evaluate(self,inputData,inputType=None):
+    def evaluate(self,inputData=None,inputType=None):
         """
         This method performs evaluate of a function at the given input(s).
 
         It accepts floats, lists, tuples, numpy arrays, or any object which is of
-        class 'FunctionInput'. lists/tuples must contain floats only.
+        class `FunctionInput`. lists/tuples must contain floats only.
+        
+        `FunctionInput` class objects are shortcuts to their underlying data, often
+        with performance advantages, and sometimes they are the only valid input 
+        type (such as using `Swarm` objects as an inputs to `SwarmVariable` 
+        evaluation). Objects of class `FeMesh`, `Swarm`, `FeMesh_IndexSet` and
+        `VoronoiIntegrationSwarm` are also of class `FunctionInput`. See the 
+        Function section of the user guide for more information.
 
         Results are returned as numpy array.
 
         Parameters
         ----------
-        inputData: float, list, tuple, ndarray, FunctionInput
+        inputData: float, list, tuple, ndarray, FunctionInput.
             The input to the function. The form of this input must be appropriate
             for the function being evaluated, or an exception will be thrown.
+            Note that if no input is provided, function will be evaluated at `0.`
+        inputType: str
+            Specifies the type the provided data represents. Acceptable 
+            values are 'scalar', 'vector', 'symmetrictensor', 'tensor',
+            'array'.
 
         Returns
         -------
@@ -593,14 +707,61 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
         >>> import math
         >>> import _math as fnmath
         >>> sinfn = fnmath.sin()
-        >>> np.isclose( sinfn.evaluate(math.pi/4.), [[ 0.5*math.sqrt(2.)]]  )
-        array([[ True]], dtype=bool)
+        
+        Single evaluation:
+        
+        >>> np.allclose( sinfn.evaluate(math.pi/4.), [[ 0.5*math.sqrt(2.)]]  )
+        True
+        
+        Multiple evaluations
+        
         >>> intup = (0.,math.pi/4.,2.*math.pi)
-        >>> np.isclose( sinfn.evaluate(intup), [[ 0., 0.5*math.sqrt(2.), 0.]]  )
-        array([[ True,  True,  True]], dtype=bool)
-
+        >>> np.allclose( sinfn.evaluate(intup), [[ 0., 0.5*math.sqrt(2.), 0.]]  )
+        True
+        
+        
+        Single MeshVariable evaluations
+        
+        >>> mesh = uw.mesh.FeMesh_Cartesian()
+        >>> var = uw.mesh.MeshVariable(mesh,1)
+        >>> import numpy as np
+        >>> var.data[:,0] = np.linspace(0,1,len(var.data))
+        >>> result = var.evaluate( (0.2,0.5 ) )
+        >>> np.allclose( result, np.array([[ 0.45]]) )
+        True
+        
+        Numpy input MeshVariable evaluation
+        
+        >>> # evaluate at a set of locations.. provide these as a numpy array.
+        >>> count = 10
+        >>> # create an empty array
+        >>> locations = np.zeros( (count,2))
+        >>> # specify evaluation coodinates
+        >>> locations[:,0] = 0.5
+        >>> locations[:,1] = np.linspace(0.,1.,count)
+        >>> # evaluate
+        >>> result = var.evaluate(locations)
+        >>> np.allclose( result, np.array([[ 0.08333333], \
+                                          [ 0.17592593], \
+                                          [ 0.26851852], \
+                                          [ 0.36111111], \
+                                          [ 0.4537037 ], \
+                                          [ 0.5462963 ], \
+                                          [ 0.63888889], \
+                                          [ 0.73148148], \
+                                          [ 0.82407407], \
+                                          [ 0.91666667]])  )
+        True
+        
+        Using the mesh object as a FunctionInput
+        
+        >>> np.allclose( var.evaluate(mesh), var.evaluate(mesh.data))
+        True
+        
         """
-        if inputType != None and inputType not in (ScalarType,VectorType,SymmetricTensorType,TensorType,ArrayType):
+        if inputData is None:
+            inputData = 0.
+        if inputType != None and inputType not in types.keys():
             raise ValueError("Provided input type does not appear to be valid.")
         if isinstance(inputData, FunctionInput):
             if inputType != None:
@@ -637,10 +798,10 @@ class add(Function):
     It is invoked by the overload methods __add__ and __radd__.
     """
     def __init__(self, fn1, fn2, **kwargs):
-        fn1fn = Function._CheckIsFnOrConvertOrThrow( fn1 )
+        fn1fn = Function.convert( fn1 )
         if not isinstance( fn1fn, Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
-        fn2fn = Function._CheckIsFnOrConvertOrThrow( fn2 )
+        fn2fn = Function.convert( fn2 )
         if not isinstance( fn2fn, Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
 
@@ -657,17 +818,17 @@ class subtract(Function):
     It is invoked by the overload methods __sub__ and __rsub__.
     """
     def __init__(self, x_Fn, y_Fn, **kwargs):
-        fn1fn = Function._CheckIsFnOrConvertOrThrow( x_Fn )
+        fn1fn = Function.convert( x_Fn )
         if not isinstance( fn1fn, Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
-        fn2fn = Function._CheckIsFnOrConvertOrThrow( y_Fn )
+        fn2fn = Function.convert( y_Fn )
         if not isinstance( fn2fn, Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
 
         self._fn1 = fn1fn
         self._fn2 = fn2fn
         # ok finally lets create the fn
-        self._fncself = _cfn.MathBinary(self._fn1._fncself, self._fn2._fncself,  _cfn.MathBinary.subtract )
+        self._fncself = _cfn.Subtract(self._fn1._fncself, self._fn2._fncself )
         # build parent
         super(subtract,self).__init__(argument_fns=[fn1fn,fn2fn], **kwargs)
 
@@ -677,10 +838,10 @@ class multiply(Function):
     It is invoked by the overload method __mul__.
     """
     def __init__(self, fn1, fn2, **kwargs):
-        fn1fn = Function._CheckIsFnOrConvertOrThrow( fn1 )
+        fn1fn = Function.convert( fn1 )
         if not isinstance( fn1fn, Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
-        fn2fn = Function._CheckIsFnOrConvertOrThrow( fn2 )
+        fn2fn = Function.convert( fn2 )
         if not isinstance( fn2fn, Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
 
@@ -697,10 +858,10 @@ class divide(Function):
     It is invoked by the overload methods __div__ and __rdiv__.
     """
     def __init__(self, fn1, fn2, **kwargs):
-        fn1fn = Function._CheckIsFnOrConvertOrThrow( fn1 )
+        fn1fn = Function.convert( fn1 )
         if not isinstance( fn1fn, Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
-        fn2fn = Function._CheckIsFnOrConvertOrThrow( fn2 )
+        fn2fn = Function.convert( fn2 )
         if not isinstance( fn2fn, Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
 
@@ -717,10 +878,10 @@ class less(Function):
     It is invoked by the overload method __lt__.
     """
     def __init__(self, fn1, fn2, **kwargs):
-        fn1fn = Function._CheckIsFnOrConvertOrThrow( fn1 )
+        fn1fn = Function.convert( fn1 )
         if not isinstance( fn1fn, Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
-        fn2fn = Function._CheckIsFnOrConvertOrThrow( fn2 )
+        fn2fn = Function.convert( fn2 )
         if not isinstance( fn2fn, Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
 
@@ -737,10 +898,10 @@ class less_equal(Function):
     It is invoked by the overload method __le__.
     """
     def __init__(self, fn1, fn2, **kwargs):
-        fn1fn = Function._CheckIsFnOrConvertOrThrow( fn1 )
+        fn1fn = Function.convert( fn1 )
         if not isinstance( fn1fn, Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
-        fn2fn = Function._CheckIsFnOrConvertOrThrow( fn2 )
+        fn2fn = Function.convert( fn2 )
         if not isinstance( fn2fn, Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
 
@@ -757,10 +918,10 @@ class greater(Function):
     It is invoked by the overload method __gt__.
     """
     def __init__(self, fn1, fn2, **kwargs):
-        fn1fn = Function._CheckIsFnOrConvertOrThrow( fn1 )
+        fn1fn = Function.convert( fn1 )
         if not isinstance( fn1fn, Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
-        fn2fn = Function._CheckIsFnOrConvertOrThrow( fn2 )
+        fn2fn = Function.convert( fn2 )
         if not isinstance( fn2fn, Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
 
@@ -777,10 +938,10 @@ class greater_equal(Function):
     It is invoked by the overload method __ge__.
     """
     def __init__(self, fn1, fn2, **kwargs):
-        fn1fn = Function._CheckIsFnOrConvertOrThrow( fn1 )
+        fn1fn = Function.convert( fn1 )
         if not isinstance( fn1fn, Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
-        fn2fn = Function._CheckIsFnOrConvertOrThrow( fn2 )
+        fn2fn = Function.convert( fn2 )
         if not isinstance( fn2fn, Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
 
@@ -807,10 +968,10 @@ class greater_equal(Function):
 #    """
 #
 #    def __init__(self, fn1, fn2, **kwargs):
-#        fn1fn = Function._CheckIsFnOrConvertOrThrow( fn1 )
+#        fn1fn = Function.convert( fn1 )
 #        if not isinstance( fn1fn, Function ):
 #            raise TypeError("Functions must be of type (or convertible to) 'Function'.")
-#        fn2fn = Function._CheckIsFnOrConvertOrThrow( fn2 )
+#        fn2fn = Function.convert( fn2 )
 #        if not isinstance( fn2fn, Function ):
 #            raise TypeError("Functions must be of type (or convertible to) 'Function'.")
 #
@@ -836,10 +997,10 @@ class greater_equal(Function):
 #
 #    """
 #    def __init__(self, fn1, fn2, **kwargs):
-#        fn1fn = Function._CheckIsFnOrConvertOrThrow( fn1 )
+#        fn1fn = Function.convert( fn1 )
 #        if not isinstance( fn1fn, Function ):
 #            raise TypeError("Functions must be of type (or convertible to) 'Function'.")
-#        fn2fn = Function._CheckIsFnOrConvertOrThrow( fn2 )
+#        fn2fn = Function.convert( fn2 )
 #        if not isinstance( fn2fn, Function ):
 #            raise TypeError("Functions must be of type (or convertible to) 'Function'.")
 #
@@ -856,10 +1017,10 @@ class logical_and(Function):
     It is invoked by the overload method __and__.
     """
     def __init__(self, fn1, fn2, **kwargs):
-        fn1fn = Function._CheckIsFnOrConvertOrThrow( fn1 )
+        fn1fn = Function.convert( fn1 )
         if not isinstance( fn1fn, Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
-        fn2fn = Function._CheckIsFnOrConvertOrThrow( fn2 )
+        fn2fn = Function.convert( fn2 )
         if not isinstance( fn2fn, Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
 
@@ -872,14 +1033,14 @@ class logical_and(Function):
 
 class logical_or(Function):
     """
-    This class implements the OR relational operation.
+    This class implements the OR logical operation.
     It is invoked by the overload method __or__.
     """
     def __init__(self, fn1, fn2, **kwargs):
-        fn1fn = Function._CheckIsFnOrConvertOrThrow( fn1 )
+        fn1fn = Function.convert( fn1 )
         if not isinstance( fn1fn, Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
-        fn2fn = Function._CheckIsFnOrConvertOrThrow( fn2 )
+        fn2fn = Function.convert( fn2 )
         if not isinstance( fn2fn, Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
 
@@ -890,6 +1051,28 @@ class logical_or(Function):
         # build parent
         super(logical_or,self).__init__(argument_fns=[fn1fn,fn2fn], **kwargs)
 
+class logical_xor(Function):
+    """
+    This class implements the XOR logical operation.
+    It is invoked by the overload method __xor__.
+    """
+    def __init__(self, fn1, fn2, **kwargs):
+        fn1fn = Function.convert( fn1 )
+        if not isinstance( fn1fn, Function ):
+            raise TypeError("Functions must be of type (or convertible to) 'Function'.")
+        fn2fn = Function.convert( fn2 )
+        if not isinstance( fn2fn, Function ):
+            raise TypeError("Functions must be of type (or convertible to) 'Function'.")
+
+        self._fn1 = fn1fn
+        self._fn2 = fn2fn
+        # ok finally lets create the fn
+        self._fncself = _cfn.Relational_logical_xor(self._fn1._fncself, self._fn2._fncself )
+        # build parent
+        super(logical_xor,self).__init__(argument_fns=[fn1fn,fn2fn], **kwargs)
+
+
+
 class at(Function):
     """
     This class implements extraction the nth component of a function.
@@ -897,7 +1080,7 @@ class at(Function):
     """
     def __init__(self, fn, n, *args, **kwargs):
 
-        _fn = Function._CheckIsFnOrConvertOrThrow(fn)
+        _fn = Function.convert(fn)
         if _fn == None:
             raise ValueError( "provided 'fn' must a 'Function' or convertible.")
         self._fn = _fn
@@ -931,8 +1114,8 @@ class input(Function):
     --------
     Here we see the input function simply passing through its input.
     >>> infunc = input()
-    >>> np.isclose( infunc.evaluate( (1.,2.,3.) ), [ 1., 2., 3.] )
-    array([[ True,  True,  True]], dtype=bool)
+    >>> np.allclose( infunc.evaluate( (1.,2.,3.) ), [ 1., 2., 3.] )
+    True
 
     Often this behaviour is useful when we want to construct a function
     which operates on only a particular coordinate, such as a depth
@@ -944,8 +1127,8 @@ class input(Function):
     >>> density = baseDensity - 0.01*zcoord
     >>> testCoord1 = (0.1,0.4)
     >>> testCoord2 = (0.9,0.4)
-    >>> np.isclose( density.evaluate( testCoord1 ), density.evaluate( testCoord2 ) )
-    array([[ True]], dtype=bool)
+    >>> np.allclose( density.evaluate( testCoord1 ), density.evaluate( testCoord2 ) )
+    True
 
     """
     def __init__(self, *args, **kwargs):

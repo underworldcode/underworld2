@@ -25,10 +25,10 @@
 #include <Underworld/Function/Function.hpp>
 #include <Underworld/Function/Constant.hpp>
 #include <Underworld/Function/SwarmVariableFn.hpp>
+#include <Underworld/Function/ParticleFound.hpp>
 #include <Underworld/Function/FeVariableFn.hpp>
 #include <Underworld/Function/GradFeVariableFn.hpp>
 #include <Underworld/Function/Map.hpp>
-#include <Underworld/Function/Arithmetic.hpp>
 #include <Underworld/Function/Unary.hpp>
 #include <Underworld/Function/Binary.hpp>
 #include <Underworld/Function/Analytic.hpp>

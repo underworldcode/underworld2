@@ -53,6 +53,7 @@ extern "C" {
 %include "Swarm/ParticleCommHandler.h"
 %include "Swarm/ParticleMovementHandler.h"
 %include "Swarm/ParticleShadowSync.h"
+%include "Swarm/ParticleShadowSync.h"
 %include "Swarm/SingleCellLayout.h"
 %include "Swarm/SpaceFillerParticleLayout.h"
 %include "Swarm/SwarmClass.h"

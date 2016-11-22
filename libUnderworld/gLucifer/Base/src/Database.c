@@ -286,6 +286,9 @@ void _lucDatabase_Execute( void* database, void* data )
             lucDatabase_DeleteGeometry(self, -1, deleteEnd);
       }
 
+      /* Remove any geometry at current timestep before insertion */
+      lucDatabase_DeleteGeometry(self, self->timeStep, self->timeStep);
+
       /* Enter timestep in database */
       /* Write and update timestep */
       snprintf(SQL, MAX_QUERY_LEN, "insert into timestep (id, time, properties) values (%d, %g, '%s')", self->timeStep, currentTime, "");
@@ -358,7 +361,7 @@ void lucDatabase_OutputColourMap(lucDatabase* self, lucColourMap* colourMap, luc
    /* Save colourMap */
    if (!colourMap->id) /* Not already written */
    {
-      snprintf(SQL, MAX_QUERY_LEN, "insert into colourmap (name, minimum, maximum, logscale, discrete, properties) values ('%s', %g, %g, %d, %d, '%s')", colourMap->name, colourMap->minimum, colourMap->maximum, colourMap->logScale, colourMap->discrete, colourMap->properties );
+      snprintf(SQL, MAX_QUERY_LEN, "insert into colourmap (name, properties) values ('%s', '%s')", colourMap->name, colourMap->properties );
       /*printf("%s\n", SQL);*/
       if (!lucDatabase_IssueSQL(self->db, SQL)) return;
 
@@ -880,6 +883,7 @@ void lucDatabase_AttachDatabase(lucDatabase* self)
 
 void lucDatabase_DeleteGeometry(lucDatabase* self, int start_timestep, int end_timestep)
 {
+   if (self->rank > 0) return;
    /* Remove data over timestep range */
    if (start_timestep < 0)
       snprintf(SQL, MAX_QUERY_LEN,  "delete from geometry where timestep <= %d; delete from timestep where id <= %d;", end_timestep, end_timestep);
@@ -909,12 +913,13 @@ int lucDatabase_WriteGeometry(lucDatabase* self, int index, lucGeometryType type
       Journal_Firewall(buffer != NULL, lucError, "Compress database: Out of memory! %s '%s'.\n", self->type, self->name );
       Journal_Firewall(compress2(buffer, &cmp_len, (const unsigned char *)block->data, src_len, 1) == Z_OK,
          lucError, "Compress database failed! %s '%s'.\n", self->type, self->name );
-      if (cmp_len == src_len)
+      if (cmp_len >= src_len)
       {
          free(buffer);
          cmp_len = 0;
       }
-      src_len = cmp_len;
+      else
+        src_len = cmp_len;
    }
 
    if (fabs(block->minimum) == HUGE_VAL) block->minimum = 0;

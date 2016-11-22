@@ -40,12 +40,6 @@ Bool Underworld_Utils_Init( int* argc, char** argv[] ) {
     Stg_ComponentRegister_Add( componentRegister, MatrixAssemblyTerm_NA__NB__Fn_Type, (Name)"0", _MatrixAssemblyTerm_NA__NB__Fn_DefaultNew  );
      RegisterParent( MatrixAssemblyTerm_NA__NB__Fn_Type, StiffnessMatrixTerm_Type );
 
-    Stg_ComponentRegister_Add( Stg_ComponentRegister_Get_ComponentRegister(), RBFManager_Type, (Name)"0", _RBFManager_DefaultNew  );
-    RegisterParent( RBFManager_Type, Stg_Component_Type );
-
-    Stg_ComponentRegister_Add( Stg_ComponentRegister_Get_ComponentRegister(), RBFFieldVariable_Type, (Name)"0", _RBFFieldVariable_DefaultNew  );
-    RegisterParent( RBFFieldVariable_Type, FieldVariable_Type );
-
     Stg_ComponentRegister_Add( Stg_ComponentRegister_Get_ComponentRegister(), Fn_Integrate_Type, (Name)"0", _Fn_Integrate_DefaultNew  );
     RegisterParent(Fn_Integrate_Type, Stg_Component_Type);
 

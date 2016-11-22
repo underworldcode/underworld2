@@ -129,7 +129,7 @@ class NeumannCondition(_SystemCondition):
         if nodeIndexSet == None:
             raise ValueError("No 'nodeIndexSet' provided to apply Neumann conditions")
 
-        _flux = uw.function.Function._CheckIsFnOrConvertOrThrow(flux)
+        _flux = uw.function.Function.convert(flux)
         if not isinstance( _flux, uw.function.Function):
             raise ValueError( "Provided 'flux' must be of or convertible to 'Function' class." )
         self._flux = _flux

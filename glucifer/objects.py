@@ -34,17 +34,19 @@ import libUnderworld as _libUnderworld
 # - diverging in luminance about centre value
 colourMaps = {}
 #Isoluminant blue-orange
-colourMaps["isolum"] = "#288FD0 #50B6B8 #989878 #C68838 #FF7520".split()
+colourMaps["isolum"] = "#288FD0 #50B6B8 #989878 #C68838 #FF7520"
 #Diverging blue-yellow-orange
-colourMaps["diverge"] = "#288FD0 #fbfb9f #FF7520".split()
+colourMaps["diverge"] = "#288FD0 #fbfb9f #FF7520"
 #Isoluminant rainbow blue-green-orange
-colourMaps["rainbow"] = "#5ed3ff #6fd6de #7ed7be #94d69f #b3d287 #d3ca7b #efc079 #ffb180".split()
+colourMaps["rainbow"] = "#5ed3ff #6fd6de #7ed7be #94d69f #b3d287 #d3ca7b #efc079 #ffb180"
 #CubeLaw indigo-blue-green-yellow
-colourMaps["cubelaw"] = "#440088 #831bb9 #578ee9 #3db6b6 #6ce64d #afeb56 #ffff88".split()
+colourMaps["cubelaw"] = "#440088 #831bb9 #578ee9 #3db6b6 #6ce64d #afeb56 #ffff88"
 #CubeLaw indigo-blue-green-orange-yellow
-colourMaps["cubelaw2"] = "#440088 #1b83b9 #6cc35b #ebbf56 #ffff88".split()
+colourMaps["cubelaw2"] = "#440088 #1b83b9 #6cc35b #ebbf56 #ffff88"
 #CubeLaw heat blue-magenta-yellow)
-colourMaps["smoothheat"] = "#440088 #831bb9 #c66f5d #ebbf56 #ffff88".split()
+colourMaps["smoothheat"] = "#440088 #831bb9 #c66f5d #ebbf56 #ffff88"
+#Paraview cool-warm (diverging)
+colourMaps["coolwarm"] = "#3b4cc0 #7396f5 #b0cbfc #dcdcdc #f6bfa5 #ea7b60 #b50b27"
 
 class ColourMap(_stgermain.StgCompoundComponent):
     """
@@ -73,16 +75,23 @@ class ColourMap(_stgermain.StgCompoundComponent):
     _objectsDict = { "_cm": "lucColourMap" }
     
     #Default is a cool-warm map with low variance in luminosity/lightness
-    def __init__(self, colours=None, valueRange=None, logScale=False, discrete=False, **kwargs):
+    def __init__(self, colours=None, valueRange=None, logScale=False, discrete=False, properties=None, **kwargs):
+
+        if not hasattr(self, 'properties'):
+            self.properties = {}
+        if properties and not isinstance(properties,dict):
+            raise TypeError("'properties' object passed in must be of python type 'dict'")
+        if properties:
+            self.properties.update(properties)
 
         if colours == None:
             colours = colourMaps["diverge"]
         if not isinstance(colours,(str,list)):
             raise TypeError("'colours' object passed in must be of python type 'str' or 'list'")
-        if isinstance(colours,(str)):
-            self._colours = colours.split()
+        if isinstance(colours,(list)):
+            self.properties.update({"colours" : ' '.join(colours)})
         else:
-            self._colours = colours
+            self.properties.update({"colours" : colours})
 
         if valueRange != None:
             # is valueRange correctly defined, ie list of length 2 made of numbers
@@ -96,20 +105,19 @@ class ColourMap(_stgermain.StgCompoundComponent):
             if not valueRange[0] < valueRange[1]:
                 raise ValueError("The first number of the valueRange list must be smaller than the second number")
 
-            # valueRange arg is good - turn off dynamicRange and use input 
-            self._dynamicRange = False
-            self._valueRange   = valueRange
+            # valueRange arg is good 
+            self.properties.update({"range" : [valueRange[0], valueRange[1]]})
         else:
-           self._dynamicRange = True
-           self._valueRange   = [0.0,1.0] # dummy value - not important
+            self.properties.update({"range" : [0.0, 0.0]}) # ignored
 
         if not isinstance(logScale, bool):
             raise TypeError("'logScale' parameter must be of 'bool' type.")
         self._logScale = logScale
+        self.properties.update({"logscale" : logScale})
 
         if not isinstance(discrete, bool):
             raise TypeError("'discrete' parameter must be of 'bool' type.")
-        self._discrete = discrete
+        self.properties.update({"discrete" : discrete})
 
         # build parent
         super(ColourMap,self).__init__()
@@ -119,26 +127,19 @@ class ColourMap(_stgermain.StgCompoundComponent):
         # call parents method
         super(ColourMap,self)._add_to_stg_dict(componentDictionary)
 
-        componentDictionary[self._cm.name].update( {
-            "colours"       :" ".join(self._colours),
-            "logScale"      :self._logScale,
-            "discrete"      :self._discrete,
-            "maximum"       :self._valueRange[1],
-            "minimum"       :self._valueRange[0],
-            "dynamicRange"  :self._dynamicRange
-        } )
+    #dict methods
+    def update(self, newdict):
+        self.properties.update(newdict)
 
-    @property
-    def dynamicRange(self):
-        """
-        dynamicRange (bool) : if True the max and min values of the field will 
-        automatically define the colour map value range and the valueRange list 
-        is ignored. If False the valueRange is used to define the colour map 
-        value range
-        """
-        return self._dynamicRange
+    def __getitem__(self, key):
+        return self.properties[key]
 
+    def __setitem__(self, key, item):
+        self.properties[key] = item
 
+    def _getProperties(self):
+        #Convert properties to string
+        return '\n'.join(['%s=%s' % (k,v) for k,v in self.properties.iteritems()]);
 
 class Drawing(_stgermain.StgCompoundComponent):
     """
@@ -187,18 +188,18 @@ class Drawing(_stgermain.StgCompoundComponent):
             self._colourMap = ColourMap(valueRange=valueRange, logScale=logScale)
 
         if not hasattr(self, 'properties'):
-            self._properties = {}
+            self.properties = {}
         if properties and not isinstance(properties,dict):
             raise TypeError("'properties' object passed in must be of python type 'dict'")
         if properties:
-            self._properties.update(properties)
+            self.properties.update(properties)
 
         if opacity != None:
             if not isinstance(opacity,(int,float)):
                 raise TypeError("'opacity' object passed in must be of python type 'int' or 'float'")
             if float(opacity) > 1. or float(opacity) < -1.:
                 raise ValueError("'opacity' object must takes values from 0. to 1.")
-            self._properties.update({"opacity" : opacity})
+            self.properties.update({"opacity" : opacity})
         
         if not isinstance(colourBar, bool):
             raise TypeError("'colourBar' parameter must be of 'bool' type.")
@@ -208,7 +209,7 @@ class Drawing(_stgermain.StgCompoundComponent):
             self._colourBar = ColourBar(colourMap=self._colourMap)
 
         if name and isinstance(name, str):
-            self._properties.update({"name" : name})
+            self.properties.update({"name" : name})
 
         self.resetDrawing()
 
@@ -228,23 +229,17 @@ class Drawing(_stgermain.StgCompoundComponent):
 
     #dict methods
     def update(self, newdict):
-        self._properties.update(newdict)
+        self.properties.update(newdict)
 
     def __getitem__(self, key):
-        return self._properties[key]
+        return self.properties[key]
 
     def __setitem__(self, key, item):
-        self._properties[key] = item
+        self.properties[key] = item
 
     def _getProperties(self):
         #Convert properties to string
-        return '\n'.join(['%s=%s' % (k,v) for k,v in self._properties.iteritems()]);
-
-    def _setProperties(self, newProps):
-        #Update the properties values (merge)
-        #values of any existing keys are replaced and drawing object is updated
-        self._properties.update(newProps)
-        _libUnderworld.gLucifer.lucDrawingObject_SetProperties(self._dr, self._getProperties());
+        return '\n'.join(['%s=%s' % (k,v) for k,v in self.properties.iteritems()]);
 
     def resetDrawing(self):
         #Clear direct drawing data
@@ -273,7 +268,7 @@ class Drawing(_stgermain.StgCompoundComponent):
         self.geomType = _libUnderworld.gLucifer.lucLabelType
         self.vertices.append(pos)
         self.labels.append(text)
-        self._setProperties({"font" : font, "fontscale" : scaling})
+        self.properties.update({"font" : font, "fontscale" : scaling}) #Merge
 
     def point(self, pos=(0.,0.,0.)):
         """  
@@ -328,19 +323,6 @@ class Drawing(_stgermain.StgCompoundComponent):
             self._colourBar = ColourBar(colourMap=self._colourMap)
         return self._colourBar
 
-    @property
-    def properties(self):
-        """    
-        properties (dict): visual properties of drawing object, passed to 
-        LavaVu to control rendering output of object.
-        """
-        return self._properties
-
-    @properties.setter
-    def properties(self, value):
-        #Sets new properties, overwriting any duplicate keys but keeping existing values otherwise
-        self._setProperties(value)
-
 class ColourBar(Drawing):
     """
     The ColourBar drawing object draws a colour bar for the provided colour map.
@@ -353,7 +335,7 @@ class ColourBar(Drawing):
 
     def __init__(self, colourMap, *args, **kwargs):
         #Default properties
-        self._properties = {"colourbar" : 1, "height" : None, "lengthfactor" : 0.8, 
+        self.properties = {"colourbar" : 1, "height" : None, "lengthfactor" : 0.8, 
                 "margin" : 20, "border" : 1, "precision" : 2, "scientific" : False, "font" : "small", 
                 "ticks" : 0, "printticks" : True, "printunits" : False, "scalevalue" : 1.0,
                 "font" : "small", "fontscale" : 0.4} #tick0-tick10 : val
@@ -362,8 +344,8 @@ class ColourBar(Drawing):
         super(ColourBar,self).__init__(colourMap=colourMap, *args, **kwargs)
 
         #Always show at least 2 tick marks on a log scale
-        if self._colourMap._logScale and self._properties["ticks"] < 2:
-            self._properties["ticks"] = 2
+        if self._colourMap._logScale and self.properties["ticks"] < 2:
+            self.properties["ticks"] = 2
 
 class CrossSection(Drawing):
     """  
@@ -380,25 +362,33 @@ class CrossSection(Drawing):
         Function used to determine values to render.
     crossSection : str, default=""
         Cross Section definition, eg. z=0.
+    resolution : unsigned, default=100
+        Surface rendered sampling resolution.
         
     """
     _objectsDict = { "_dr": "lucCrossSection" }
 
-    def __init__(self, mesh, fn, crossSection="",
+    def __init__(self, mesh, fn, crossSection="", resolution=100,
                        colours=None, colourMap=None, properties=None, opacity=None, colourBar=True,
-                       valueRange=None, logScale=False, discrete=False, offsetEdges=True,
+                       valueRange=None, logScale=False, discrete=False, offsetEdges=None,
                        *args, **kwargs):
 
-        self._fn = _underworld.function.Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = _underworld.function.Function.convert(fn)
         
         if not isinstance(mesh,_uwmesh.FeMesh):
             raise TypeError("'mesh' object passed in must be of type 'FeMesh'")
         self._mesh = mesh
 
         if not isinstance(crossSection,str):
-            raise ValueError("'crossSection' argument must be of python type 'str'")
+            raise ValueError("'crossSection' parameter must be of python type 'str'")
         self._crossSection = crossSection
         self._offsetEdges = offsetEdges
+        
+        if not isinstance(resolution,int):
+            raise TypeError("'resolution' parameter must be of python type 'int'")
+        if resolution < 1:
+            raise ValueError("'resolution' parameter must be greater than zero")
+        self._resolution = resolution
 
         # build parent
         super(CrossSection,self).__init__(colours=colours, colourMap=colourMap, properties=properties, opacity=opacity, colourBar=colourBar,
@@ -406,7 +396,8 @@ class CrossSection(Drawing):
 
     def _setup(self):
         _libUnderworld.gLucifer._lucCrossSection_SetFn( self._cself, self._fn._fncself )
-        self._dr.offsetEdges = self._offsetEdges
+        if self._offsetEdges != None:
+            self._dr.offsetEdges = self._offsetEdges
 
     def _add_to_stg_dict(self,componentDictionary):
         # lets build up component dictionary
@@ -416,7 +407,8 @@ class CrossSection(Drawing):
 
         componentDictionary[self._dr.name].update( {
                    "Mesh": self._mesh._cself.name,
-                   "crossSection": self._crossSection
+                   "crossSection": self._crossSection,
+                   "resolution" : self._resolution
             } )
 
     @property
@@ -459,7 +451,7 @@ class Surface(CrossSection):
         if drawOnMesh:
             raise RuntimeError("The 'drawOnMesh' option is currently disabled.")
         if not isinstance(drawSides,str):
-            raise ValueError("'drawSides' argument must be of python type 'str'")
+            raise ValueError("'drawSides' parameter must be of python type 'str'")
         self._drawSides = drawSides
 
         # if we wish to draw on mesh, switch live object
@@ -469,9 +461,9 @@ class Surface(CrossSection):
 
 
         #Default properties
-        self._properties = {"cullface" : True}
+        self.properties = {"cullface" : True}
         # TODO: disable lighting if 2D (how to get dims?)
-        #self._properties["lit"] = False
+        #self.properties["lit"] = False
         
         # build parent
         super(Surface,self).__init__( mesh=mesh, fn=fn,
@@ -544,13 +536,13 @@ class Points(Drawing):
 
         self._fn_colour = None
         if fn_colour != None:
-           self._fn_colour = _underworld.function.Function._CheckIsFnOrConvertOrThrow(fn_colour)
+           self._fn_colour = _underworld.function.Function.convert(fn_colour)
         self._fn_mask = None
         if fn_mask != None:
-           self._fn_mask = _underworld.function.Function._CheckIsFnOrConvertOrThrow(fn_mask)
+           self._fn_mask = _underworld.function.Function.convert(fn_mask)
         self._fn_size = None
         if fn_size != None:
-           self._fn_size = _underworld.function.Function._CheckIsFnOrConvertOrThrow(fn_size)
+           self._fn_size = _underworld.function.Function.convert(fn_size)
 
         if not isinstance(pointSize,(float,int)):
             raise TypeError("'pointSize' object passed in must be of python type 'float' or 'int'")
@@ -559,7 +551,7 @@ class Points(Drawing):
             raise TypeError("'pointType' object passed in must be of python type 'int'")
 
         #Default properties
-        self._properties = {"pointsize" : pointSize, "pointtype" : pointType}
+        self.properties = {"pointsize" : pointSize, "pointtype" : pointType}
 
         # build parent
         super(Points,self).__init__(
@@ -682,7 +674,7 @@ class VectorArrows(_GridSampler3D):
                 raise TypeError("'glyphs' object passed in must be of python type 'int'")
 
         #Default properties
-        self._properties = {"arrowHead" : arrowHead, "scaling" : scaling, "glyphs" : glyphs}
+        self.properties = {"arrowHead" : arrowHead, "scaling" : scaling, "glyphs" : glyphs}
 
         # build parent
         super(VectorArrows,self).__init__( mesh=mesh, fn=fn, resolutionI=resolutionI, resolutionJ=resolutionJ, resolutionK=resolutionK,
@@ -725,6 +717,8 @@ class Volume(_GridSampler3D):
                        valueRange=None, logScale=False, discrete=False,
                        *args, **kwargs):
         # build parent
+        if mesh.dim == 2:
+            raise ValueError("Volume rendered requires a three dimensional mesh.")
         super(Volume,self).__init__( mesh=mesh, fn=fn, resolutionI=resolutionI, resolutionJ=resolutionJ, resolutionK=resolutionK,
                         colours=colours, colourMap=colourMap, properties=properties, opacity=opacity, colourBar=colourBar,
                         valueRange=valueRange, logScale=logScale, discrete=discrete, *args, **kwargs)
@@ -769,9 +763,9 @@ class Mesh(Drawing):
         self._segmentsPerEdge = segmentsPerEdge
 
         #Default properties
-        self._properties = {"lit" : False, "font" : "small", "fontscale" : 0.5,
-                            "pointsize" : 5 if self._nodeNumbers else 1, 
-                            "pointtype" : 2 if self._nodeNumbers else 4}
+        self.properties = {"lit" : False, "font" : "small", "fontscale" : 0.5,
+                           "pointsize" : 5 if self._nodeNumbers else 1, 
+                           "pointtype" : 2 if self._nodeNumbers else 4}
         
         # build parent
         super(Mesh,self).__init__( colours=None, colourMap=None, properties=properties, opacity=opacity, colourBar=False, *args, **kwargs )

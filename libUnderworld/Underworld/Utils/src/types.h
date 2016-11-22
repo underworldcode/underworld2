@@ -20,8 +20,6 @@
    typedef struct MatrixAssemblyTerm_NA__NB__Fn MatrixAssemblyTerm_NA__NB__Fn;
    typedef struct MatrixAssemblyTerm_RotationDof MatrixAssemblyTerm_RotationDof;
 
-   typedef struct RBFManager            RBFManager;
-   typedef struct RBFFieldVariable      RBFFieldVariable;
    typedef struct Fn_Integrate          Fn_Integrate;
 
 #endif

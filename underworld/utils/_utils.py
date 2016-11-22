@@ -22,8 +22,16 @@ import os
 
 class Integral(_stgermain.StgCompoundComponent):
     """
-    This class constructs a surface or volume integral of the provided function over a
-    given mesh.
+    The `Integral` class constructs the volume integral
+
+    .. math:: F_{i}  =   \int_V \, f_i(\mathbf{x}) \, \mathrm{d} V
+
+    for some function $f_i$ (specified by a `Function` object), over some domain $V$ (specified by an `FeMesh` object), or the surface integral
+
+    .. math:: F_{i}  =   \oint_{\Gamma} \,  f_i(\mathbf{x})  \,  \mathrm{d}\Gamma
+
+    for some surface $\Gamma$ (specified via an `IndexSet` object on the mesh).
+
 
     Parameters
     ----------
@@ -51,14 +59,14 @@ class Integral(_stgermain.StgCompoundComponent):
     >>> import underworld as uw
     >>> mesh = uw.mesh.FeMesh_Cartesian(minCoord=(0.,0.), maxCoord=(1.,1.))
     >>> volumeIntegral = uw.utils.Integral(fn=1.,mesh=mesh)
-    >>> np.isclose( 1., volumeIntegral.evaluate(), rtol=1e-8)
-    array([ True], dtype=bool)
+    >>> np.allclose( 1., volumeIntegral.evaluate(), rtol=1e-8)
+    True
 
     Calculate surface area of mesh:
 
     >>> surfaceIntegral = uw.utils.Integral(fn=1., mesh=mesh, integrationType='surface', surfaceIndexSet=mesh.specialSets["AllWalls_VertexSet"])
-    >>> np.isclose( 4., surfaceIntegral.evaluate(), rtol=1e-8)
-    array([ True], dtype=bool)
+    >>> np.allclose( 4., surfaceIntegral.evaluate(), rtol=1e-8)
+    True
 
     """
     _objectsDict = { "_integral": "Fn_Integrate" }
@@ -74,7 +82,7 @@ class Integral(_stgermain.StgCompoundComponent):
 
         self._maskFn = None
 
-        self._fn = uw.function.Function._CheckIsFnOrConvertOrThrow(fn)
+        self._fn = uw.function.Function.convert(fn)
 
         if integrationType and integrationSwarm:
             raise RuntimeError("Either an 'integrationType' or an 'integrationSwarm' may be provided, but not both.\n"

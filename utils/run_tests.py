@@ -34,23 +34,55 @@ except:
     print("'runipy' does not appear to be available. All jupyter notebooks will be skipped.")
 
 
+def get_files(args,recursive):
+    """
+    Returns a list of files from a list of files/directories. 
+    Where recursive is true, directories are recursed and any files
+    within added to the returned files list.
+
+    Parameters
+    ----------
+        args: list
+            The files & directories
+        recursive: bool
+            if true, directories will be recursed for files
+
+    Returns
+    -------
+        list:  The files
+    """
+
+    files=[]
+    
+    for arg in args:
+        if not recursive:
+            if os.path.isfile(arg):
+                files.append(arg)
+        else:
+            for dirname, dirnames, filenames in os.walk(arg):
+                # add files to list
+                if '.ipynb_checkpoints' in dirname:
+                    continue
+                if 'development' in dirname:
+                    print('Skipping {}'.format(os.path.join(dirname, '')))
+                    continue
+                for file in filenames:
+                    files.append(os.path.join(dirname, file))
+
+    return files
+
+
+
 def convert_ipynb_to_py(fname):
     """
     Converts a given ipython notebook file into a python files
     using the script `ipynb_to_py.sh`
     """
 
-    try:
-        # create error files for reporting
-        outName = "./convert_"+os.path.basename(fname)+".out"
-        outFile = open(outName, "w")
+    # create error files for reporting
+    outName = "./convert_"+os.path.basename(fname)+".out"
+    with open(outName, "w") as outFile:
         subprocess.check_call(['sh', 'ipynb_to_py.sh', fname], stdout=outFile, stderr=outFile )
-    except subprocess.CalledProcessError:
-        print "Error: failed to convert "+fname+" to a .py script"
-        return False  # report test failed
-    finally:
-        outFile.close()
-
     os.remove(outName)
     return fname.replace('.ipynb', '.py')   # return new the python file
 
@@ -103,8 +135,10 @@ if __name__ == '__main__':
 
     # use the argparse module to read cmd line
     parser = argparse.ArgumentParser()
-    parser.add_argument("--nprocs", help="number of processors to use", type=int, default=1)
-    parser.add_argument("--mpirun", help="mpi command")
+    parser.add_argument("--nprocs", help="Number of processors to use.", type=int, default=1)
+    parser.add_argument("--mpirun", help="MPI command to use.")
+    parser.add_argument("--recursive", help="Recurse directories for files.", type=bool, default=False)
+    parser.add_argument("--replace_outputs", help="Runs ipynb models replacing output cells.", type=bool, default=False)
     parser.add_argument("files", nargs="+", help="the input file list")
     args = parser.parse_args()
 
@@ -122,10 +156,6 @@ if __name__ == '__main__':
         if args.mpirun == None:
             parser.print_help()
             raise ValueError("'NPROCS' is >1, you must specify an executable to 'MPIRUN'")
-        try:
-            subprocess.check_call([args.mpirun, '-h'], stdout=DEVNULL, stderr=DEVNULL)
-        except:
-            raise ValueError("Given 'mpirun'(" + args.mpirun + ") command does not appear to be valid.")
 
     # initialise test counters
     nfails=0
@@ -144,27 +174,39 @@ if __name__ == '__main__':
     logFile = open(dir+logFileName, "w")
 
     # loop though tests given as input, ie args.files
-    for fname in args.files:
+    for fname in get_files(args.files, recursive=args.recursive):
 
         # if file is not ipynb or py skip it
         is_ipynb = fname.endswith(".ipynb")
         if not (is_ipynb or fname.endswith(".py")):
+            continue
+        
+        # if replacing outputs, only run ipynb models
+        if args.replace_outputs and fname.endswith(".py"):
             continue
 
         # build executable command
         exe = ['python']
 
         if is_ipynb and nprocs==1 and can_runipy:
-            exe = ['runipy']   # use runipy instead
+            exe = ['runipy']      # use runipy instead
         elif is_ipynb:
             # convert ipynb to py and move to 'testResults'
-            print("* converting test {} to .py".format(fname));
+            print("Converting test {} to .py".format(fname));
             logFile.write("\nconverting "+fname+" to a python script");
 
-            fname = convert_ipynb_to_py(fname) # convert
-            if fname == None:
-                raise RuntimeError("Unexpected error in converting ipynb to py")
+            try:
+                fname = convert_ipynb_to_py(fname) # convert
+            except subprocess.CalledProcessError:
+                print "Error: unable to convert. Skipping."
+                continue
+
             cleanup=True
+
+        if args.replace_outputs:
+            if nprocs!=1:
+                raise RuntimeError("Can only replace outputs when running in serial.")
+            exe = ['runipy','-o']   # use runipy with -o arg
 
         # if parallel build mpi command
         if nprocs>1:
@@ -202,3 +244,5 @@ if __name__ == '__main__':
         sys.exit(0)
     else:
         sys.exit(1)
+
+

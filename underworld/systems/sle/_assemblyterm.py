@@ -43,7 +43,7 @@ class AssemblyTerm(_stgermain.StgCompoundComponent):
     def fn(self, value):
         if not self._set_fn_function:
             raise RuntimeError("You cannot set a function for this assembly term.")
-        _fn = uw.function.Function._CheckIsFnOrConvertOrThrow(value)
+        _fn = uw.function._function.Function.convert(value)
         if not isinstance( _fn, uw.function.Function):
             raise ValueError( "Provided 'fn' must be of, or convertible to, 'Function' class." )
         self._fn = _fn
@@ -243,7 +243,7 @@ class ConstitutiveMatrixTerm(MatrixAssemblyTerm):
 
     @fn_visc1.setter
     def fn_visc1(self, value):
-        _fn = uw.function.Function._CheckIsFnOrConvertOrThrow(value)
+        _fn = uw.function.Function.convert(value)
         if not isinstance( _fn, uw.function.Function):
             raise ValueError( "Provided 'fn' must be of or convertible to 'Function' class." )
         self._fn_visc1 = _fn
@@ -255,7 +255,7 @@ class ConstitutiveMatrixTerm(MatrixAssemblyTerm):
 
     @fn_visc2.setter
     def fn_visc2(self, value):
-        _fn = uw.function.Function._CheckIsFnOrConvertOrThrow(value)
+        _fn = uw.function.Function.convert(value)
         if not isinstance( _fn, uw.function.Function):
             raise ValueError( "Provided 'fn' must be of or convertible to 'Function' class." )
         self._fn_visc2 = _fn
@@ -267,7 +267,7 @@ class ConstitutiveMatrixTerm(MatrixAssemblyTerm):
 
     @fn_director.setter
     def fn_director(self, value):
-        _fn = uw.function.Function._CheckIsFnOrConvertOrThrow(value)
+        _fn = uw.function.Function.convert(value)
         if not isinstance( _fn, uw.function.Function):
             raise ValueError( "Provided 'fn' must be of or convertible to 'Function' class." )
         self._fn_director = _fn
@@ -370,12 +370,12 @@ class AdvDiffResidualVectorTerm(VectorAssemblyTerm):
             raise TypeError( "Provided 'velocityField' must be of 'MeshVariable' class." )
         self._velocityField = velocityField
 
-        self._diffFn = uw.function.Function._CheckIsFnOrConvertOrThrow(diffusivity)
+        self._diffFn = uw.function.Function.convert(diffusivity)
         if not isinstance( self._diffFn, uw.function.Function ):
             raise TypeError( "Provided 'diffusivity' must be of the type, or convertible to, 'Function' class ")
 
         # if sourceTerm is None make it 0.0 fn object
-        self._sourceFn = uw.function.Function._CheckIsFnOrConvertOrThrow(sourceTerm)
+        self._sourceFn = uw.function.Function.convert(sourceTerm)
         if self._sourceFn == None:
             self._sourceFn = uw.function.misc.constant(0.0)
 
@@ -393,12 +393,3 @@ class AdvDiffResidualVectorTerm(VectorAssemblyTerm):
         # lets override parent _setup definition because we use 2 function objects
         libUnderworld.Underworld._SUPGVectorTerm_NA__Fn_SetDiffusivityFn( self._cself, self._diffFn._fncself )
         libUnderworld.Underworld._SUPGVectorTerm_NA__Fn_SetSourceFn( self._cself, self._sourceFn._fncself )
-
-class MassMatrixTerm(VectorAssemblyTerm):
-    _objectsDict = { "_assemblyterm": None }
-
-    def __new__(self, *args, **kwargs):
-        raise RuntimeError("The class MassMatrixTerm has been removed and replaced by MatrixAssemblyTerm_NA__NB__Fn")
-
-    def __init__( self, mesh, **kwargs ):
-        pass

@@ -66,7 +66,7 @@ class stress_limiting_viscosity(_Function):
     >>> fn_minmax_inv = fn.view.min_max(fn.tensor.second_invariant(fn_stress))
     >>> ignore = fn_minmax_inv.evaluate(mesh)
     >>> import numpy as np
-    >>> np.isclose(fn_minmax_inv.max_global(), 1.0, rtol=1e-05)
+    >>> np.allclose(fn_minmax_inv.max_global(), 1.0, rtol=1e-05)
     True
 
     Now lets set the limited viscosity. Note that the system is now non-linear.
@@ -78,7 +78,7 @@ class stress_limiting_viscosity(_Function):
     >>> fn_stress = 2.*fn_visc_limited*uw.function.tensor.symmetric( velVar.fn_gradient )
     >>> fn_minmax_inv = fn.view.min_max(fn.tensor.second_invariant(fn_stress))
     >>> ignore = fn_minmax_inv.evaluate(mesh)
-    >>> np.isclose(fn_minmax_inv.max_global(), 0.5, rtol=1e-05)
+    >>> np.allclose(fn_minmax_inv.max_global(), 0.5, rtol=1e-05)
     True
 
 
@@ -86,17 +86,17 @@ class stress_limiting_viscosity(_Function):
     
     def __init__(self, fn_stress, fn_stresslimit, fn_inputviscosity, *args, **kwargs):
 
-        _fn_stress = _Function._CheckIsFnOrConvertOrThrow(fn_stress)
+        _fn_stress = _Function.convert(fn_stress)
         if _fn_stress == None:
             raise ValueError( "Provided 'fn_stress' must a 'Function' or convertible type.")
         self._fn_stress = _fn_stress
         
-        _fn_stresslimit = _Function._CheckIsFnOrConvertOrThrow(fn_stresslimit)
+        _fn_stresslimit = _Function.convert(fn_stresslimit)
         if _fn_stresslimit == None:
             raise ValueError( "Provided 'fn_stresslimit' must a 'Function' or convertible type.")
         self._fn_stresslimit = _fn_stresslimit
         
-        _fn_inputviscosity = _Function._CheckIsFnOrConvertOrThrow(fn_inputviscosity)
+        _fn_inputviscosity = _Function.convert(fn_inputviscosity)
         if _fn_inputviscosity == None:
             raise ValueError( "Provided 'fn_inputviscosity' must a 'Function' or convertible type.")
         self._fn_inputviscosity = _fn_inputviscosity

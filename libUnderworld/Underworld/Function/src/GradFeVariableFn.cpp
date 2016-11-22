@@ -45,35 +45,35 @@ Fn::GradFeVariableFn::func Fn::GradFeVariableFn::getFunction( IOsptr sample_inpu
     int numComponents = fevar->fieldComponentCount;
 
     FunctionIO::IOType iotype;
-    std::shared_ptr<IO_double> _output;
     if (fevar->dim == 1) {
         iotype = FunctionIO::Vector;
     } else
         iotype = FunctionIO::Tensor;
     
-    _output = std::make_shared<IO_double>(numComponents*fevar->dim, iotype);
+    std::shared_ptr<IO_double> _output_sp = std::make_shared<IO_double>(numComponents*fevar->dim, iotype);
+    IO_double* _output = _output_sp.get();
 
     // if input is FEMCoordinate, eject appropriate lambda
-    std::shared_ptr<const FEMCoordinate> femCoord = std::dynamic_pointer_cast<const FEMCoordinate>(sample_input);
+    const FEMCoordinate* femCoord = dynamic_cast<const FEMCoordinate*>(sample_input);
     if ( femCoord ){
         if( femCoord->mesh() == (void*) (fevar->feMesh->parentMesh ) )
-            return [_output,fevar](IOsptr input)->IOsptr {
-                std::shared_ptr<const FEMCoordinate> femCoord = debug_dynamic_cast<const FEMCoordinate>(input);
+            return [_output,_output_sp,fevar](IOsptr input)->IOsptr {
+                const FEMCoordinate* femCoord = debug_dynamic_cast<const FEMCoordinate*>(input);
                 
                 FeVariable_InterpolateDerivativesToElLocalCoord( fevar, femCoord->index(), femCoord->localCoord()->data(), _output->data() );
 
-                return debug_dynamic_cast<const FunctionIO>(_output);
+                return debug_dynamic_cast<const FunctionIO*>(_output);
             };
     };
 
     // if input is MeshCoordinate, eject appropriate lambda
-    std::shared_ptr<const MeshCoordinate> meshCoord = std::dynamic_pointer_cast<const MeshCoordinate>(sample_input);
+    const MeshCoordinate* meshCoord = dynamic_cast<const MeshCoordinate*>(sample_input);
     if ( meshCoord ){
         if( meshCoord->object() == (void*) (fevar->feMesh) )  // in this case, we need the identical mesh
         {
-            std::shared_ptr<IArrayClass> inc = std::make_shared<IArrayClass>();
-            return [_output,fevar,inc](IOsptr input)->IOsptr {
-                std::shared_ptr<const MeshCoordinate> meshCoord = debug_dynamic_cast<const MeshCoordinate>(input);
+            IArrayClass* inc = new IArrayClass();
+            return [_output,_output_sp,fevar,inc](IOsptr input)->IOsptr {
+                const MeshCoordinate* meshCoord = debug_dynamic_cast<const MeshCoordinate*>(input);
                 unsigned index = meshCoord->index();
                 // from OperatorFeVariable.c
                 /* Find the elements around the node and point to them via the nbrElList. */
@@ -88,13 +88,13 @@ Fn::GradFeVariableFn::func Fn::GradFeVariableFn::getFunction( IOsptr sample_inpu
                 /* Get value at node for this element. */
                 FeVariable_InterpolateDerivativesToElLocalCoord( fevar, nbrElList[nbrElCount-1], elLocalCoord, _output->data() );
 
-                return debug_dynamic_cast<const FunctionIO>(_output);
+                return debug_dynamic_cast<const FunctionIO*>(_output);
             };
         }
     }
     
     // if neither of the above worked, try plain old global coord
-    std::shared_ptr<const IO_double> iodouble = std::dynamic_pointer_cast<const IO_double>(sample_input);
+    const IO_double* iodouble = dynamic_cast<const IO_double*>(sample_input);
     if ( iodouble ){
         if ( iodouble->size() != fevar->dim )
         {
@@ -103,8 +103,8 @@ Fn::GradFeVariableFn::func Fn::GradFeVariableFn::getFunction( IOsptr sample_inpu
             streamguy << "does not appear to match mesh variable dimensionality (" << fevar->dim << ").";
             throw std::runtime_error(streamguy.str());
         }
-        return [_output,fevar](IOsptr input)->IOsptr {
-            std::shared_ptr<const IO_double> iodouble = debug_dynamic_cast<const IO_double>(input);            
+        return [_output,_output_sp,fevar](IOsptr input)->IOsptr {
+            const IO_double* iodouble = debug_dynamic_cast<const IO_double*>(input);            
 
             InterpolationResult retval = FeVariable_InterpolateDerivativesAt( (void*)fevar, (double*)iodouble->data(), (double*) _output->data() );
             
@@ -119,7 +119,7 @@ Fn::GradFeVariableFn::func Fn::GradFeVariableFn::getFunction( IOsptr sample_inpu
             }
 
 
-            return debug_dynamic_cast<const FunctionIO>(_output);
+            return debug_dynamic_cast<const FunctionIO*>(_output);
         };
     }
     

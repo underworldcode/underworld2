@@ -300,5 +300,9 @@
 
 	void Swarm_AddVariable( Swarm* self, SwarmVariable* swarmVar );
 
+    /** This function simply returns a variable wrapping the shadow particle swarm variable data */
+    /** No new memory will be allocated. */
+    Variable* Swarm_GetShadowVariable( void* _swarm, Variable* variable );
+
 #endif /* __StgDomain_Swarm_SwarmClass_h__ */
 

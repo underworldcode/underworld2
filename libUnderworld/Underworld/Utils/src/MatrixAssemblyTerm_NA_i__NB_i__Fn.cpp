@@ -47,10 +47,10 @@ void MatrixAssemblyTerm_NA_i__NB_i__Fn_SetFn( void* _self, Fn::Function* fn ){
     IntegrationPointsSwarm* swarm = (IntegrationPointsSwarm*)self->integrationSwarm;
     std::shared_ptr<ParticleInCellCoordinate> localCoord = std::make_shared<ParticleInCellCoordinate>( swarm->localCoordVariable );
     cppdata->input = std::make_shared<FEMCoordinate>((void*)swarm->mesh, localCoord);
-    cppdata->func = fn->getFunction(cppdata->input);
+    cppdata->func = fn->getFunction(cppdata->input.get());
 
     // check output conforms
-    std::shared_ptr<const IO_double> iodub = std::dynamic_pointer_cast<const IO_double>(cppdata->func(cppdata->input));
+    const IO_double* iodub = dynamic_cast<const IO_double*>(cppdata->func(cppdata->input.get()));
     if( !iodub )
         throw std::invalid_argument("MatrixAssemblyTerm routine expects functions to return 'double' type values.");
     if( iodub->size() != 1 )
@@ -163,14 +163,14 @@ void _MatrixAssemblyTerm_NA_i__NB_i__Fn_AssembleElement(
 
    MatrixAssemblyTerm_NA_i__NB_i__Fn_cppdata* cppdata = (MatrixAssemblyTerm_NA_i__NB_i__Fn_cppdata*)self->cppdata;
 
-   debug_dynamic_cast<ParticleInCellCoordinate>(cppdata->input->localCoord())->index() = lElement_I;  // set the elementId as the owning cell for the particleCoord
+   debug_dynamic_cast<ParticleInCellCoordinate*>(cppdata->input->localCoord())->index() = lElement_I;  // set the elementId as the owning cell for the particleCoord
    cppdata->input->index() = lElement_I;  // set the elementId for the fem coordinate
 
    cell_I = CellLayout_MapElementIdToCellId( swarm->cellLayout, lElement_I );
    cellParticleCount = swarm->cellParticleCountTbl[ cell_I ];
 
    for( cParticle_I = 0 ; cParticle_I < cellParticleCount ; cParticle_I++ ) {
-      debug_dynamic_cast<ParticleInCellCoordinate>(cppdata->input->localCoord())->particle_cellId(cParticle_I);  // set the particleCoord cellId
+      debug_dynamic_cast<ParticleInCellCoordinate*>(cppdata->input->localCoord())->particle_cellId(cParticle_I);  // set the particleCoord cellId
       currIntegrationPoint = (IntegrationPoint*)Swarm_ParticleInCellAt( swarm, cell_I, cParticle_I );
 
       xi = currIntegrationPoint->xi;
@@ -182,7 +182,7 @@ void _MatrixAssemblyTerm_NA_i__NB_i__Fn_AssembleElement(
          xi, dim, &detJac, GNx );
 
       /* evaluate function */
-      std::shared_ptr<const IO_double> funcout = debug_dynamic_cast<const IO_double>(cppdata->func(cppdata->input));
+      const IO_double* funcout = debug_dynamic_cast<const IO_double*>(cppdata->func(cppdata->input.get()));
       F = funcout->at();
 
       for( A=0; A<nodesPerEl; A++ )

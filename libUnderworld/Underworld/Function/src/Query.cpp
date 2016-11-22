@@ -35,17 +35,17 @@ PyObject* Fn::Query::query( IOIterator& iterator )
     
     int numtype=-1;
     int sizeitem = io->_dataSize;
-    if(         std::dynamic_pointer_cast<const IO_char>(io) ){
+    if(         dynamic_cast<const IO_char*>(io) ){
         numtype = NPY_BYTE;
-    } else if ( std::dynamic_pointer_cast<const IO_short>(io) ){
+    } else if ( dynamic_cast<const IO_short*>(io) ){
         numtype = NPY_SHORT;
-    } else if ( std::dynamic_pointer_cast<const IO_int>(io) ){
+    } else if ( dynamic_cast<const IO_int*>(io) ){
         numtype = NPY_INT;
-    } else if ( std::dynamic_pointer_cast<const IO_float>(io) ){
+    } else if ( dynamic_cast<const IO_float*>(io) ){
         numtype = NPY_FLOAT;
-    } else if ( std::dynamic_pointer_cast<const IO_double>(io) ){
+    } else if ( dynamic_cast<const IO_double*>(io) ){
         numtype = NPY_DOUBLE;
-    } else if ( std::dynamic_pointer_cast<const IO_bool>(io) ){
+    } else if ( dynamic_cast<const IO_bool*>(io) ){
         numtype = NPY_BOOL;
     } else
         throw std::invalid_argument("Query function does not appear to produce a valid output.");
