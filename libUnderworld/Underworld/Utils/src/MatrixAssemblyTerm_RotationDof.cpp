@@ -54,10 +54,10 @@ void MatrixAssemblyTerm_RotationDof_SetRadialFn( void* _self, Fn::Function* fn )
     FeMesh* mesh = (FeMesh*)self->geometryMesh;
 
     cppdata->input = std::make_shared<MeshCoordinate>((void*)mesh );
-    cppdata->radialfunc = fn->getFunction(cppdata->input);
+    cppdata->radialfunc = fn->getFunction(cppdata->input.get());
 
     // check output conforms
-    std::shared_ptr<const IO_double> iodub = std::dynamic_pointer_cast<const IO_double>(cppdata->radialfunc(cppdata->input));
+    const IO_double *iodub = dynamic_cast<const IO_double*>(cppdata->radialfunc(cppdata->input.get()));
     /* TODO: Check this is a vector of doubles */
     if( !iodub )
         printf( "Hello" );
@@ -78,10 +78,10 @@ void MatrixAssemblyTerm_RotationDof_SetNormalFn( void* _self, Fn::Function* fn )
     FeMesh* mesh = (FeMesh*)self->geometryMesh;
 
     cppdata->input = std::make_shared<MeshCoordinate>((void*)mesh );
-    cppdata->normalfunc = fn->getFunction(cppdata->input);
+    cppdata->normalfunc = fn->getFunction(cppdata->input.get());
 
     // check output conforms
-    std::shared_ptr<const IO_double> iodub = std::dynamic_pointer_cast<const IO_double>(cppdata->normalfunc(cppdata->input));
+    const IO_double *iodub = dynamic_cast<const IO_double*>(cppdata->normalfunc(cppdata->input.get()));
     /* TODO: Check this is a vector of doubles */
     if( !iodub )
         printf( "Hello" );
@@ -212,7 +212,7 @@ void _MatrixAssemblyTerm_RotationDof_AssembleElement(
      col_i = n_i*dim;
 
      // get the 'radial' units vector for the vertex
-     std::shared_ptr<const IO_double> radial_fnout = debug_dynamic_cast<const IO_double>(cppdata->radialfunc(cppdata->input));
+     const IO_double* radial_fnout = debug_dynamic_cast<const IO_double*>(cppdata->radialfunc(cppdata->input.get()));
      radialVec = radial_fnout->data();
 
      // if vertex is ~0 mag we assume it is not to be rotated
@@ -226,7 +226,7 @@ void _MatrixAssemblyTerm_RotationDof_AssembleElement(
      }
 
      // get the normal unit vector
-     std::shared_ptr<const IO_double> normal_fnout = debug_dynamic_cast<const IO_double>(cppdata->normalfunc(cppdata->input));
+     const IO_double* normal_fnout = debug_dynamic_cast<const IO_double*>(cppdata->normalfunc(cppdata->input.get()));
      normalVec = normal_fnout->data();
 
      StGermain_VectorCrossProduct(crossproduct, (double*)radialVec, (double*)normalVec);
