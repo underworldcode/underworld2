@@ -164,7 +164,7 @@ class Store(_stgermain.StgCompoundComponent):
             db = self._db.path
         #Use a single LavaVu instance per db(store) to save resources
         if not self.viewer:
-            self.viewer = lavavu.Viewer(reuse=True, cache=False, binary=self._lvbin, database=db, timestep=self.step, *args, **kwargs)
+            self.viewer = lavavu.Viewer(reuse=True, cache=False, binpath=self._lvpath, database=db, timestep=self.step, *args, **kwargs)
         else:
             self.viewer.setup(cache=False, database=db, timestep=self.step, *args, **kwargs)
         return self.viewer
@@ -362,7 +362,7 @@ class Figure(dict):
     figsize: tuple, default=(640,480)
         Image resolution provided as a tuple.
     boundingBox: tuple, default=None
-        Tuple of coordiante tuples defining figure bounding box.
+        Tuple of coordinate tuples defining figure bounding box.
         For example ( (0.1,0.1), (0.9,0.9) )
     facecolour: str, default="white"
         Background colour for figure.
@@ -407,6 +407,7 @@ class Figure(dict):
 
     """
     _viewerProc = None
+    _iview = None
 
     def __init__(self, store=None, name=None, figsize=(640,480), boundingBox=None, facecolour="white",
                  edgecolour="black", title="", axis=False, quality=1, properties=None, *args, **kwargs):
@@ -696,11 +697,11 @@ class Figure(dict):
         #Open viewer instance if doesn't exist
         global lavavu
         if lavavu and uw.rank() == 0:
-            if not self.db.viewer:
-                #print "Re-running with " + fname
-                self.db.lvrun(db=fname)
-            self.db.viewer.window()
-            return self.db.viewer
+            #Saves existing instance on this figure, if another is opened will use the same backend
+            if not self._iview:
+                self._iview = self.db.lvrun(db=fname)
+            self._iview.window()
+            return self._iview
 
     def open_viewer(self, args=[], background=True):
         """ Open the external viewer.
