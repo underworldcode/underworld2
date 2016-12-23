@@ -766,9 +766,9 @@ class Figure(dict):
                     pass
 
     def clear(self):
-        """    Clears all the figure's drawing objects and colour maps.
-        """
-        del self._drawingObjects[:]
+        # DEPRECATE
+        raise RuntimeError("This method is now deprecated.\n" \
+                           "To obtain an empty figure just create a new one")
 
     def __add__(self,drawing_object):
         # DEPRECATE
