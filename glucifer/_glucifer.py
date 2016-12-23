@@ -164,13 +164,12 @@ class Store(_stgermain.StgCompoundComponent):
             db = self._db.path
         #Use a single LavaVu instance per db(store) to save resources
         if not self.viewer:
-            self.viewer = lavavu.Viewer(reuse=True, cache=False, binpath=self._lvpath, database=db, timestep=self.step, *args, **kwargs)
+            self.viewer = lavavu.Viewer(cache=False, binpath=self._lvpath, database=db, timestep=self.step, *args, **kwargs)
         else:
             self.viewer.setup(cache=False, database=db, timestep=self.step, *args, **kwargs)
+        #self.viewer.init()
+
         return self.viewer
-        #lavavu.viewer = lavavu.Viewer(reuse=True, cache=False, binary=self._lvbin, database=db, timestep=self.step, *args, **kwargs)
-        #lavavu.viewer = lavavu.Viewer(reuse=False, cache=False, binary=self._lvbin, database=db, timestep=self.step, *args, **kwargs)
-        #return lavavu.viewer
 
     def _generate(self, figname, objects, props):
         #First merge object list with active
@@ -566,7 +565,7 @@ class Figure(dict):
                     lv.web(True)
                 else:
                     # -1 selects last figure/state in list
-                    lv = self.db.lvrun(figure=-1, quality=self.quality, writeimage=True, res=self["resolution"], script=self._script)
+                    lv = self.db.lvrun(figure=-1, quality=self.quality, writeimage=True, resolution=self["resolution"], script=self._script)
             except RuntimeError,e:
                 print "LavaVu error: " + str(e)
                 import traceback
@@ -689,19 +688,15 @@ class Figure(dict):
     def viewer(self):
         """ Open the inline viewer.
         """
-        fname = self.db._db.path
-        #Create db if doesn't exist
-        if not fname:
-            self._generate_DB()
-            fname = self.db._db.path
-        #Open viewer instance if doesn't exist
+        #Open viewer instance
         global lavavu
         if lavavu and uw.rank() == 0:
-            #Saves existing instance on this figure, if another is opened will use the same backend
-            if not self._iview:
-                self._iview = self.db.lvrun(db=fname)
-            self._iview.window()
-            return self._iview
+            #Generate db if doesn't exist
+            if not self.db._db.path:
+                self._generate_DB()
+            v = self.db.lvrun()
+            v.window()
+            return v
 
     def open_viewer(self, args=[], background=True):
         """ Open the external viewer.
