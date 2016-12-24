@@ -257,6 +257,7 @@ class Store(_stgermain.StgCompoundComponent):
                 #No objects passed in with figure, simply plot them all
                 for obj in state["objects"]:
                     obj["visible"] = True
+
             export = dict()
             #Global properties passed from figure
             state["properties"].update(props)
@@ -358,7 +359,7 @@ class Figure(dict):
         to collect their data into a single file
     name: str, default=None
         Name of this figure, optional, used for revisualisation of stored figures
-    figsize: tuple, default=(640,480)
+    resolution: tuple, default=(640,480)
         Image resolution provided as a tuple.
     boundingBox: tuple, default=None
         Tuple of coordinate tuples defining figure bounding box.
@@ -406,10 +407,8 @@ class Figure(dict):
 
     """
     _viewerProc = None
-    _iview = None
-
-    def __init__(self, store=None, name=None, figsize=(640,480), boundingBox=None, facecolour="white",
-                 edgecolour="black", title="", axis=False, quality=1, properties=None, *args, **kwargs):
+    def __init__(self, store=None, name=None, figsize=None, boundingBox=None, facecolour="white",
+                 edgecolour="black", title="", axis=False, quality=1, *args, **kwargs):
 
         #Create a default database just for this figure if none provided
         if store and isinstance(store, Store):
@@ -419,6 +418,8 @@ class Figure(dict):
 
         if name and not isinstance(name,str):
             raise TypeError("'name' object passed in must be of python type 'str'")
+        elif "name" in kwargs:
+            name = kwargs["name"]
         self.name = name
 
         if boundingBox and not isinstance(boundingBox,tuple):
@@ -431,9 +432,6 @@ class Figure(dict):
         if not isinstance(edgecolour,str):
             raise TypeError("'edgecolour' object passed in must be of python type 'str'")
 
-        if not isinstance(title,str):
-            raise TypeError("'title' object passed in must be of python type 'str'")
-
         if not isinstance(axis,bool):
             raise TypeError("'axis' object passed in must be of python type 'bool'")
 
@@ -442,8 +440,13 @@ class Figure(dict):
         self.quality=quality
 
         #Setup default properties
-        self.update({"title" : title, "axis" : axis, "axislength" : 0.2, "antialias" : True, "background" : facecolour,
+        self.update({"resolution" : (640, 480), "title" : str(title), "axis" : axis, "axislength" : 0.2, "antialias" : True, "background" : facecolour,
             "margin" : 34, "border" : (1 if edgecolour else 0), "bordercolour" : edgecolour, "rulers" : False, "zoomstep" : 0})
+
+        #User-defined props in kwargs
+        self.update(kwargs)
+        dict((k.lower(), v) for k, v in self.iteritems())
+
         if boundingBox:
             #Add 3rd dimension if missing
             if len(boundingBox[0]) < 3 or len(boundingBox[1]) < 3:
@@ -451,20 +454,17 @@ class Figure(dict):
             self["min"] = boundingBox[0]
             self["max"] = boundingBox[1]
 
-        if not isinstance(figsize,tuple):
-            raise TypeError("'figsize' object passed in must be of python type 'tuple'")
-        self["resolution"] = figsize
+        #Legacy parameter
+        if figsize and not isinstance(figsize,tuple):
+            raise TypeError("'resolution' object passed in must be of python type 'tuple'")
+        elif figsize:
+            self["resolution"] = figsize
         
-        if properties and not isinstance(properties,dict):
-            raise TypeError("'properties' object passed in must be of python type 'dict'")
-        if properties:
-            self.update(properties)
-
         self.draw = objects.Drawing()
         self._drawingObjects = []
         self._script = []
 
-        super(Figure, self).__init__(*args, **kwargs)
+        super(Figure, self).__init__(*args)
 
     def __del__(self):
         self.close_viewer()
@@ -477,12 +477,6 @@ class Figure(dict):
         #Update the properties values (merge)
         #values of any existing keys are replaced
         self.update(newProps)
-
-    @property
-    def figsize(self):
-        """    figsize (tuple(int,int)): size of window in pixels, default: (640,480)
-        """
-        return self["resolution"]
 
     @property
     def facecolour(self):
@@ -869,12 +863,12 @@ class Viewer(dict):
             return #No data
         for state in states:
             figname = str(state["figure"])
-            fig = Figure(self._db, name=figname, properties=state["properties"])
+            fig = Figure(self._db, name=figname, **state["properties"])
             self[figname] = fig
             #Append objects, just create generic Drawing type to hold properties
             for obj in state["objects"]:
                 if obj["visible"]:
-                    fig.append(objects.Drawing(name=obj["name"], properties=obj))
+                    fig.append(objects.Drawing(**obj))
 
         #Timestep info
         self.steps = self._db.timesteps
