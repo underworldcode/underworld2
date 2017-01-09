@@ -169,13 +169,12 @@ class Store(_stgermain.StgCompoundComponent):
             db = self._db.path
         #Use a single LavaVu instance per db(store) to save resources
         if not self.viewer:
-            self.viewer = lavavu.Viewer(reuse=True, cache=False, binary=self._lvbin, database=db, timestep=self.step, *args, **kwargs)
+            self.viewer = lavavu.Viewer(cache=False, binpath=self._lvpath, database=db, timestep=self.step, *args, **kwargs)
         else:
             self.viewer.setup(cache=False, database=db, timestep=self.step, *args, **kwargs)
+        #self.viewer.init()
+
         return self.viewer
-        #lavavu.viewer = lavavu.Viewer(reuse=True, cache=False, binary=self._lvbin, database=db, timestep=self.step, *args, **kwargs)
-        #lavavu.viewer = lavavu.Viewer(reuse=False, cache=False, binary=self._lvbin, database=db, timestep=self.step, *args, **kwargs)
-        #return lavavu.viewer
 
     def _generate(self, figname, objects, props):
         #First merge object list with active
@@ -263,6 +262,7 @@ class Store(_stgermain.StgCompoundComponent):
                 #No objects passed in with figure, simply plot them all
                 for obj in state["objects"]:
                     obj["visible"] = True
+
             export = dict()
             #Global properties passed from figure
             state["properties"].update(props)
@@ -364,7 +364,7 @@ class Figure(dict):
         to collect their data into a single file.
     name: str
         Name of this figure, optional, used for revisualisation of stored figures.
-    figsize: tuple
+    resolution: tuple
         Image resolution provided as a tuple.
     boundingBox: tuple
         Tuple of coordiante tuples defining figure bounding box.
@@ -418,9 +418,8 @@ class Figure(dict):
 
     """
     _viewerProc = None
-
-    def __init__(self, store=None, name=None, figsize=(640,480), boundingBox=None, facecolour="white",
-                 edgecolour="black", title="", axis=False, quality=1, properties=None, *args, **kwargs):
+    def __init__(self, store=None, name=None, figsize=None, boundingBox=None, facecolour="white",
+                 edgecolour="black", title="", axis=False, quality=1, *args, **kwargs):
 
         #Create a default database just for this figure if none provided
         if store and isinstance(store, Store):
@@ -430,6 +429,8 @@ class Figure(dict):
 
         if name and not isinstance(name,str):
             raise TypeError("'name' object passed in must be of python type 'str'")
+        elif "name" in kwargs:
+            name = kwargs["name"]
         self.name = name
 
         if boundingBox and not isinstance(boundingBox,tuple):
@@ -442,9 +443,6 @@ class Figure(dict):
         if not isinstance(edgecolour,str):
             raise TypeError("'edgecolour' object passed in must be of python type 'str'")
 
-        if not isinstance(title,str):
-            raise TypeError("'title' object passed in must be of python type 'str'")
-
         if not isinstance(axis,bool):
             raise TypeError("'axis' object passed in must be of python type 'bool'")
 
@@ -453,8 +451,13 @@ class Figure(dict):
         self.quality=quality
 
         #Setup default properties
-        self.update({"title" : title, "axis" : axis, "axislength" : 0.2, "antialias" : True, "background" : facecolour,
+        self.update({"resolution" : (640, 480), "title" : str(title), "axis" : axis, "axislength" : 0.2, "antialias" : True, "background" : facecolour,
             "margin" : 34, "border" : (1 if edgecolour else 0), "bordercolour" : edgecolour, "rulers" : False, "zoomstep" : 0})
+
+        #User-defined props in kwargs
+        self.update(kwargs)
+        dict((k.lower(), v) for k, v in self.iteritems())
+
         if boundingBox:
             #Add 3rd dimension if missing
             if len(boundingBox[0]) < 3 or len(boundingBox[1]) < 3:
@@ -462,20 +465,17 @@ class Figure(dict):
             self["min"] = boundingBox[0]
             self["max"] = boundingBox[1]
 
-        if not isinstance(figsize,tuple):
-            raise TypeError("'figsize' object passed in must be of python type 'tuple'")
-        self["resolution"] = figsize
+        #Legacy parameter
+        if figsize and not isinstance(figsize,tuple):
+            raise TypeError("'resolution' object passed in must be of python type 'tuple'")
+        elif figsize:
+            self["resolution"] = figsize
         
-        if properties and not isinstance(properties,dict):
-            raise TypeError("'properties' object passed in must be of python type 'dict'")
-        if properties:
-            self.update(properties)
-
         self.draw = objects.Drawing()
         self._drawingObjects = []
         self._script = []
 
-        super(Figure, self).__init__(*args, **kwargs)
+        super(Figure, self).__init__(*args)
 
     def __del__(self):
         self.close_viewer()
@@ -490,8 +490,8 @@ class Figure(dict):
         self.update(newProps)
 
     @property
-    def figsize(self):
-        """    figsize (tuple(int,int)): size of window in pixels.
+    def resolution(self):
+        """    resolution (tuple(int,int)): size of window in pixels.
         """
         return self["resolution"]
 
@@ -576,7 +576,7 @@ class Figure(dict):
                     lv.web(True)
                 else:
                     # -1 selects last figure/state in list
-                    lv = self.db.lvrun(figure=-1, quality=self.quality, writeimage=True, res=self["resolution"], script=self._script)
+                    lv = self.db.lvrun(figure=-1, quality=self.quality, writeimage=True, resolution=self["resolution"], script=self._script)
             except RuntimeError,e:
                 print "LavaVu error: " + str(e)
                 import traceback
@@ -699,19 +699,15 @@ class Figure(dict):
     def viewer(self):
         """ Open the inline viewer.
         """
-        fname = self.db._db.path
-        #Create db if doesn't exist
-        if not fname:
-            self._generate_DB()
-            fname = self.db._db.path
-        #Open viewer instance if doesn't exist
+        #Open viewer instance
         global lavavu
         if lavavu and uw.rank() == 0:
-            if not self.db.viewer:
-                #print "Re-running with " + fname
-                self.db.lvrun(db=fname)
-            self.db.viewer.window()
-            return self.db.viewer
+            #Generate db if doesn't exist
+            if not self.db._db.path:
+                self._generate_DB()
+            v = self.db.lvrun()
+            v.window()
+            return v
 
     def open_viewer(self, args=[], background=True):
         """ Open the external viewer.
@@ -781,9 +777,9 @@ class Figure(dict):
                     pass
 
     def clear(self):
-        """    Clears all the figure's drawing objects and colour maps.
-        """
-        del self._drawingObjects[:]
+        # DEPRECATE
+        raise RuntimeError("This method is now deprecated.\n" \
+                           "To obtain an empty figure just create a new one")
 
     def __add__(self,drawing_object):
         # DEPRECATE
@@ -889,12 +885,12 @@ class Viewer(dict):
             return #No data
         for state in states:
             figname = str(state["figure"])
-            fig = Figure(self._db, name=figname, properties=state["properties"])
+            fig = Figure(self._db, name=figname, **state["properties"])
             self[figname] = fig
             #Append objects, just create generic Drawing type to hold properties
             for obj in state["objects"]:
                 if obj["visible"]:
-                    fig.append(objects.Drawing(name=obj["name"], properties=obj))
+                    fig.append(objects.Drawing(**obj))
 
         #Timestep info
         self.steps = self._db.timesteps

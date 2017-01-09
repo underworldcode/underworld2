@@ -75,14 +75,9 @@ class ColourMap(_stgermain.StgCompoundComponent):
     _objectsDict = { "_cm": "lucColourMap" }
     
     #Default is a cool-warm map with low variance in luminosity/lightness
-    def __init__(self, colours="#288FD0 #50B6B8 #989878 #C68838 #FF7520", valueRange=None, logScale=False, discrete=False, properties=None, **kwargs):
-
-        if not hasattr(self, 'properties'):
+    def __init__(self, colours="#288FD0 #50B6B8 #989878 #C68838 #FF7520", valueRange=None, logScale=False, discrete=False, **kwargs):
+        if not hasattr(self, "properties"):
             self.properties = {}
-        if properties and not isinstance(properties,dict):
-            raise TypeError("'properties' object passed in must be of python type 'dict'")
-        if properties:
-            self.properties.update(properties)
 
         if colours == None:
             colours = colourMaps["diverge"]
@@ -92,6 +87,10 @@ class ColourMap(_stgermain.StgCompoundComponent):
             self.properties.update({"colours" : ' '.join(colours)})
         else:
             self.properties.update({"colours" : colours})
+
+        #User-defined props in kwargs
+        self.properties.update(kwargs)
+        dict((k.lower(), v) for k, v in self.properties.iteritems())
 
         if valueRange != None:
             # is valueRange correctly defined, ie list of length 2 made of numbers
@@ -155,10 +154,8 @@ class Drawing(_stgermain.StgCompoundComponent):
     colourMap: glucifer.objects.ColourMap
         A ColourMap object for the object to use.
         This should not be specified if 'colours' is specified.
-    properties: str
-        Extra properties to apply to the drawing object.
     opacity: float
-        Opacity of object. If provided, must take values from 0. to 1. 
+        Opacity of object. If provided, must take values from 0. to 1.
     colourBar: bool
         Bool to determine if a colour bar should be rendered.
     valueRange: tuple, list
@@ -173,9 +170,12 @@ class Drawing(_stgermain.StgCompoundComponent):
     _selfObjectName = "_dr"
     _objectsDict = { "_dr": "lucDrawingObject" } # child should replace _dr with own derived type
     
-    def __init__(self, name=None, colours=None, colourMap=None, properties=None, opacity=None, colourBar=False,
+    def __init__(self, name=None, colours=None, colourMap=None, colourBar=False,
                        valueRange=None, logScale=False, discrete=False,
                        *args, **kwargs):
+
+        if not hasattr(self, "properties"):
+            self.properties = {}
 
         if colours and colourMap:
             raise RuntimeError("You should specify 'colours' or a 'colourMap', but not both.")
@@ -186,20 +186,10 @@ class Drawing(_stgermain.StgCompoundComponent):
         else:
             self._colourMap = ColourMap(valueRange=valueRange, logScale=logScale)
 
-        if not hasattr(self, 'properties'):
-            self.properties = {}
-        if properties and not isinstance(properties,dict):
-            raise TypeError("'properties' object passed in must be of python type 'dict'")
-        if properties:
-            self.properties.update(properties)
+        #User-defined props in kwargs
+        self.properties.update(kwargs)
+        dict((k.lower(), v) for k, v in self.properties.iteritems())
 
-        if opacity != None:
-            if not isinstance(opacity,(int,float)):
-                raise TypeError("'opacity' object passed in must be of python type 'int' or 'float'")
-            if float(opacity) > 1. or float(opacity) < -1.:
-                raise ValueError("'opacity' object must takes values from 0. to 1.")
-            self.properties.update({"opacity" : opacity})
-        
         if not isinstance(colourBar, bool):
             raise TypeError("'colourBar' parameter must be of 'bool' type.")
         self._colourBar = None
@@ -207,13 +197,13 @@ class Drawing(_stgermain.StgCompoundComponent):
             #Create the associated colour bar
             self._colourBar = ColourBar(colourMap=self._colourMap)
 
-        if name and isinstance(name, str):
-            self.properties.update({"name" : name})
+        if name:
+            self.properties["name"] = str(name)
 
         self.resetDrawing()
 
         # build parent
-        super(Drawing,self).__init__(*args, **kwargs)
+        super(Drawing,self).__init__(*args)
 
     def _add_to_stg_dict(self,componentDictionary):
         
@@ -334,17 +324,10 @@ class ColourBar(Drawing):
 
     def __init__(self, colourMap, *args, **kwargs):
         #Default properties
-        self.properties = {"colourbar" : 1, "height" : None, "lengthfactor" : 0.8, 
-                "margin" : 20, "border" : 1, "precision" : 2, "scientific" : False, "font" : "small", 
-                "ticks" : 0, "printticks" : True, "printunits" : False, "scalevalue" : 1.0,
-                "font" : "small", "fontscale" : 0.4} #tick0-tick10 : val
+        self.properties = {"colourbar" : 1}
     
         # build parent
         super(ColourBar,self).__init__(colourMap=colourMap, *args, **kwargs)
-
-        #Always show at least 2 tick marks on a log scale
-        if self._colourMap._logScale and self.properties["ticks"] < 2:
-            self.properties["ticks"] = 2
 
 class CrossSection(Drawing):
     """  
@@ -368,7 +351,7 @@ class CrossSection(Drawing):
     _objectsDict = { "_dr": "lucCrossSection" }
 
     def __init__(self, mesh, fn, crossSection="", resolution=100,
-                       colours=None, colourMap=None, properties=None, opacity=None, colourBar=True,
+                       colours=None, colourMap=None, colourBar=True,
                        valueRange=None, logScale=False, discrete=False, offsetEdges=None,
                        *args, **kwargs):
 
@@ -390,7 +373,7 @@ class CrossSection(Drawing):
         self._resolution = resolution
 
         # build parent
-        super(CrossSection,self).__init__(colours=colours, colourMap=colourMap, properties=properties, opacity=opacity, colourBar=colourBar,
+        super(CrossSection,self).__init__(colours=colours, colourMap=colourMap, colourBar=colourBar,
                        valueRange=valueRange, logScale=logScale, discrete=discrete, *args, **kwargs)
 
     def _setup(self):
@@ -437,7 +420,7 @@ class Surface(CrossSection):
                       "_dr2" : "lucScalarFieldOnMesh" }
 
     def __init__(self, mesh, fn, drawSides="xyzXYZ",
-                       colours=None, colourMap=None, properties=None, opacity=None, colourBar=True,
+                       colours=None, colourMap=None, colourBar=True,
                        valueRange=None, logScale=False, discrete=False,
                        *args, **kwargs):
 
@@ -458,7 +441,7 @@ class Surface(CrossSection):
         
         # build parent
         super(Surface,self).__init__( mesh=mesh, fn=fn,
-                        colours=colours, colourMap=colourMap, properties=properties, opacity=opacity, colourBar=colourBar,
+                        colours=colours, colourMap=colourMap, colourBar=colourBar,
                         valueRange=valueRange, logScale=logScale, discrete=discrete, *args, **kwargs)
 
 
@@ -513,8 +496,8 @@ class Points(Drawing):
     """
     _objectsDict = { "_dr": "lucSwarmViewer" }
 
-    def __init__(self, swarm, fn_colour=None, fn_mask=None, fn_size=None, pointSize=1.0, pointType=1, colourVariable=None,
-                       colours=None, colourMap=None, properties=None, opacity=None, colourBar=True,
+    def __init__(self, swarm, fn_colour=None, fn_mask=None, fn_size=None, colourVariable=None,
+                       colours=None, colourMap=None, colourBar=True,
                        valueRange=None, logScale=False, discrete=False,
                        *args, **kwargs):
 
@@ -535,18 +518,9 @@ class Points(Drawing):
         if fn_size != None:
            self._fn_size = _underworld.function.Function.convert(fn_size)
 
-        if not isinstance(pointSize,(float,int)):
-            raise TypeError("'pointSize' object passed in must be of python type 'float' or 'int'")
-
-        if not isinstance(pointType,(int)):
-            raise TypeError("'pointType' object passed in must be of python type 'int'")
-
-        #Default properties
-        self.properties = {"pointsize" : pointSize, "pointtype" : pointType}
-
         # build parent
         super(Points,self).__init__(
-                        colours=colours, colourMap=colourMap, properties=properties, opacity=opacity, colourBar=colourBar,
+                        colours=colours, colourMap=colourMap, colourBar=colourBar,
                         valueRange=valueRange, logScale=logScale, discrete=discrete, *args, **kwargs)
 
     def _add_to_stg_dict(self,componentDictionary):
@@ -639,29 +613,13 @@ class VectorArrows(_GridSampler3D):
     """
     _objectsDict = { "_dr": "lucVectorArrows" }
 
-    def __init__(self, mesh, fn, arrowHead=0.3, scaling=0.3, glyphs=3,
+    def __init__(self, mesh, fn,
                        resolutionI=None, resolutionJ=None, resolutionK=None, 
-                       properties=None, opacity=None,
                        *args, **kwargs):
-
-        if arrowHead:
-            if not isinstance(arrowHead,(float,int)):
-                raise TypeError("'arrowHead' object passed in must be of python type 'int' or 'float'")
-            if arrowHead < 0 or arrowHead > 1:
-                raise ValueError("'arrowHead' can only take values between zero and one. Value provided is " + str(arrowHead)+".")
-        if scaling:
-            if not isinstance(scaling,(float,int)):
-                raise TypeError("'scaling' object passed in must be of python type 'int' or 'float'")
-        if glyphs:
-            if not isinstance(glyphs,(int)):
-                raise TypeError("'glyphs' object passed in must be of python type 'int'")
-
-        #Default properties
-        self.properties = {"arrowHead" : arrowHead, "scaling" : scaling, "glyphs" : glyphs}
 
         # build parent
         super(VectorArrows,self).__init__( mesh=mesh, fn=fn, resolutionI=resolutionI, resolutionJ=resolutionJ, resolutionK=resolutionK,
-                        colours=None, colourMap=None, properties=properties, opacity=opacity, colourBar=False, *args, **kwargs)
+                        colours=None, colourMap=None, colourBar=False, *args, **kwargs)
 
     def _add_to_stg_dict(self,componentDictionary):
         # lets build up component dictionary
@@ -696,14 +654,14 @@ class Volume(_GridSampler3D):
     _objectsDict = { "_dr": "lucFieldSampler" }
 
     def __init__(self, mesh, fn, resolutionI=None, resolutionJ=None, resolutionK=None,
-                       colours=None, colourMap=None, properties=None, opacity=None, colourBar=True,
+                       colours=None, colourMap=None, colourBar=True,
                        valueRange=None, logScale=False, discrete=False,
                        *args, **kwargs):
         # build parent
         if mesh.dim == 2:
             raise ValueError("Volume rendered requires a three dimensional mesh.")
         super(Volume,self).__init__( mesh=mesh, fn=fn, resolutionI=resolutionI, resolutionJ=resolutionJ, resolutionK=resolutionK,
-                        colours=colours, colourMap=colourMap, properties=properties, opacity=opacity, colourBar=colourBar,
+                        colours=colours, colourMap=colourMap, colourBar=colourBar,
                         valueRange=valueRange, logScale=logScale, discrete=discrete, *args, **kwargs)
 
     def _add_to_stg_dict(self,componentDictionary):
@@ -731,7 +689,7 @@ class Mesh(Drawing):
     """
     _objectsDict = { "_dr": "lucMeshViewer" }
 
-    def __init__( self, mesh, nodeNumbers=False, segmentsPerEdge=1, properties={"linesmooth" : False}, opacity=None, *args, **kwargs ):
+    def __init__( self, mesh, nodeNumbers=False, segmentsPerEdge=1, *args, **kwargs ):
 
         if not isinstance(mesh,_uwmesh.FeMesh):
             raise TypeError("'mesh' object passed in must be of type 'FeMesh'")
@@ -746,12 +704,12 @@ class Mesh(Drawing):
         self._segmentsPerEdge = segmentsPerEdge
 
         #Default properties
-        self.properties = {"lit" : False, "font" : "small", "fontscale" : 0.5,
+        self.properties = {"linesmooth" : False, "lit" : False, "font" : "small", "fontscale" : 0.5,
                            "pointsize" : 5 if self._nodeNumbers else 1, 
                            "pointtype" : 2 if self._nodeNumbers else 4}
         
         # build parent
-        super(Mesh,self).__init__( colours=None, colourMap=None, properties=properties, opacity=opacity, colourBar=False, *args, **kwargs )
+        super(Mesh,self).__init__( colours=None, colourMap=None, colourBar=False, *args, **kwargs )
 
     def _add_to_stg_dict(self,componentDictionary):
         # lets build up component dictionary
