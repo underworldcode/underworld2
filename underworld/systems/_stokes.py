@@ -23,6 +23,29 @@ class Stokes(_stgermain.StgCompoundComponent):
     The underlying element types are determined by the supporting
     mesh used for the 'velocityField' and 'pressureField' parameters.
 
+    The strong form of the given boundary value problem, for :math:`f`,
+    :math:`q` and :math:`h` given, is
+    
+    .. math::
+        \\begin{align}
+        \\sigma_{ij,j} + f_i =& \\: 0  & \\text{ in }  \\Omega \\\\
+        p + \lambda u_{k,k} =& \\: 0  & \\text{ in }  \\Omega \\\\
+        u_i =& \\: q_i & \\text{ on }  \\Gamma_{q_i} \\\\
+        \\sigma_{ij}n_j =& \\: h_i & \\text{ on }  \\Gamma_{h_i} \\\\
+        \\end{align}
+
+    where,
+    :math:`f_i` is a source term, :math:`q_i` is the Dirichlet condition, and
+    :math:`h_i` is a Neumann condition. The problem boundary, :math:`\\Gamma`,
+    admits the decompositions :math:`\\Gamma=\\Gamma_{q_i}\\cup\\Gamma_{h_i}` where
+    :math:`\\emptyset=\\Gamma_{q_i}\\cap\\Gamma_{h_i}`. The equivalent weak form is:
+
+    .. math::
+        \\int_{\Omega} w_{(i,j)} \\sigma_{ij} \\, d \\Omega = \\int_{\\Omega} w_i \\, f_i \\, d\\Omega + \sum_{j=1}^{n_{sd}} \\int_{\\Gamma_{h_j}} w_i \\, h_i \\,  d \\Gamma
+    
+    where we must find :math:`u` which satisfies the above for all :math:`w` 
+    in some variational space.
+
     Parameters
     ----------
     velocityField : underworld.mesh.MeshVariable
@@ -32,24 +55,26 @@ class Stokes(_stgermain.StgCompoundComponent):
     fn_viscosity : underworld.function.Function
         Function which reports a viscosity value.
         Function must return scalar float values.
-    fn_bodyforce : underworld.function.Function, default=None.
+    fn_bodyforce : underworld.function.Function
+        Default = None
         Function which reports a body force for the system.
         Function must return float values of identical dimensionality
         to the provided velocity variable.
-    fn_lambda : underworld.function.Function, default=None.
+    fn_lambda : underworld.function.Function
         Function which defines a non solenoidal velocity field via the relationship
         div(velocityField) = fn_lambda * pressurefield
         If fn_lambda is <= 1e-8 it's effect is considered negligable and
-        div(velocityField) = 0 is enofrced as the constaint equation.
+        div(velocityField) = 0 is enforced as the constaint equation.
         This method is incompatible with the 'penalty' stokes solver, ensure
         the 'penalty' of 0, is used when fn_lambda is used. By default this is the case.
-    voronoi_swarm : uw.swarm.Swarm, optional
-        If a voronoi_swarm is provided, voronoi type integration is utilised to
-        integrate across elements. The provided swarm is used as the basis for
-        the voronoi integration. If no swarm is provided, Gauss integration
+    voronoi_swarm : underworld.swarm.Swarm
+        If a voronoi_swarm is provided, voronoi type numerical integration is 
+        utilised. The provided swarm is used as the basis for the voronoi 
+        integration. If no voronoi_swarm is provided, Gauss integration
         is used.
-    conditions : uw.conditions.DirichletCondition object (or list of), default=None
-        Conditions to be placed on the system.
+    conditions : underworld.conditions.SystemCondition
+        Numerical conditions to impose on the system. This should be supplied as 
+        the condition itself, or a list object containing the conditions.
 
     Notes
     -----
@@ -60,7 +85,7 @@ class Stokes(_stgermain.StgCompoundComponent):
     _objectsDict = {  "_system" : "Stokes_SLE" }
     _selfObjectName = "_system"
 
-    def __init__(self, velocityField, pressureField, fn_viscosity=None, fn_bodyforce=None, fn_lambda=None, voronoi_swarm=None, conditions=[],
+    def __init__(self, velocityField, pressureField, fn_viscosity, fn_bodyforce=None, fn_lambda=None, voronoi_swarm=None, conditions=[],
                 _removeBCs=True, _fn_viscosity2=None, _fn_director=None, _fn_stresshistory=None, swarm=None, **kwargs):
 
         # DEPRECATE. JM 09/16
@@ -82,8 +107,6 @@ class Stokes(_stgermain.StgCompoundComponent):
             raise ValueError( "Provided 'pressureField' must be a scalar field (ie pressureField.nodeDofCount==1)." )
         self._pressureField = pressureField
 
-        if not fn_viscosity:
-            raise ValueError("You must specify a viscosity function via the 'fn_viscosity' parameter.")
         _fn_viscosity  = uw.function.Function.convert(fn_viscosity)
         if not isinstance( _fn_viscosity, uw.function.Function):
             raise TypeError( "Provided 'fn_viscosity' must be of or convertible to 'Function' class." )
@@ -133,7 +156,7 @@ class Stokes(_stgermain.StgCompoundComponent):
             conditions = conditionslist
         for cond in conditions:
             # set the bcs on here
-            if not isinstance( cond, uw.conditions._SystemCondition ):
+            if not isinstance( cond, uw.conditions.SystemCondition ):
                 raise TypeError( "Provided 'conditions' must be 'SystemCondition' objects." )
             elif type(cond) == uw.conditions.DirichletCondition:
                 if cond.variable == self._velocityField:
@@ -193,7 +216,7 @@ class Stokes(_stgermain.StgCompoundComponent):
                 #NOTE many NeumannConditions can be used but the _sufaceFluxTerm only records the last
                 self._surfaceFluxTerm = sle.VectorSurfaceAssemblyTerm_NA__Fn__ni(
                                                                 assembledObject    = self._fvector,
-                                                                surfaceGaussPoints = 2, # increase to resolve stress bc fluctuations
+                                                                surfaceGaussPoints = 3, # increase to resolve stress bc fluctuations
                                                                 nbc                = cond )
         if fn_lambda != None:
             # some logic for constructing the lower-right [2,2] matrix in the stokes system

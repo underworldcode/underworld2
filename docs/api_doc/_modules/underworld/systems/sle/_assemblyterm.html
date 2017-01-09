@@ -1,0 +1,539 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>underworld.systems.sle._assemblyterm &mdash; underworld2  documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="underworld2  documentation" href="../../../../index.html"/>
+        <link rel="up" title="underworld" href="../../../underworld.html"/> 
+
+  
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> underworld2
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../underworld.html">underworld module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../glucifer.html">glucifer module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../../index.html">underworld2</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../../underworld.html">underworld</a> &raquo;</li>
+      
+    <li>underworld.systems.sle._assemblyterm</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for underworld.systems.sle._assemblyterm</h1><div class="highlight"><pre>
+<span></span><span class="c1">##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##  This file forms part of the Underworld geophysics modelling application.         ##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##  For full license and copyright information, please refer to the LICENSE.md file  ##</span>
+<span class="c1">##  located at the project root, or contact the authors.                             ##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##</span>
+<span class="kn">import</span> <span class="nn">underworld</span> <span class="k">as</span> <span class="nn">uw</span>
+<span class="kn">import</span> <span class="nn">underworld._stgermain</span> <span class="k">as</span> <span class="nn">_stgermain</span>
+<span class="kn">import</span> <span class="nn">underworld.mesh</span> <span class="k">as</span> <span class="nn">mesh</span>
+<span class="kn">import</span> <span class="nn">libUnderworld.libUnderworldPy.Function</span> <span class="k">as</span> <span class="nn">_cfn</span>
+<span class="kn">import</span> <span class="nn">_assembledvector</span>
+<span class="kn">import</span> <span class="nn">_assembledmatrix</span>
+<span class="kn">import</span> <span class="nn">libUnderworld</span>
+
+<div class="viewcode-block" id="AssemblyTerm"><a class="viewcode-back" href="../../../../underworld.systems.sle.html#underworld.systems.sle.AssemblyTerm">[docs]</a><span class="k">class</span> <span class="nc">AssemblyTerm</span><span class="p">(</span><span class="n">_stgermain</span><span class="o">.</span><span class="n">StgCompoundComponent</span><span class="p">):</span>
+    <span class="n">_objectsDict</span> <span class="o">=</span> <span class="p">{</span> <span class="s2">&quot;_assemblyterm&quot;</span><span class="p">:</span> <span class="kc">None</span> <span class="p">}</span>
+    <span class="n">_selfObjectName</span> <span class="o">=</span> <span class="s2">&quot;_assemblyterm&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">integrationSwarm</span><span class="p">,</span> <span class="n">extraInfo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AssemblyTerm</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">integrationSwarm</span><span class="p">,</span> <span class="n">uw</span><span class="o">.</span><span class="n">swarm</span><span class="o">.</span><span class="n">IntegrationSwarm</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;integrationSwarm&#39; object passed in must be of type &#39;IntegrationSwarm&#39;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_integrationSwarm</span> <span class="o">=</span> <span class="n">integrationSwarm</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_extraInfo</span> <span class="o">=</span> <span class="n">extraInfo</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_fn_function</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">_add_to_stg_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">componentDictionary</span><span class="p">):</span>
+        <span class="c1"># call parents method</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AssemblyTerm</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_add_to_stg_dict</span><span class="p">(</span><span class="n">componentDictionary</span><span class="p">)</span>
+        <span class="n">componentDictionary</span><span class="p">[</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">name</span> <span class="p">][</span>    <span class="s2">&quot;Swarm&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_integrationSwarm</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">componentDictionary</span><span class="p">[</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">name</span> <span class="p">][</span><span class="s2">&quot;ExtraInfo&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extraInfo</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">fn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fn</span>
+
+    <span class="nd">@fn</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">fn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_fn_function</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;You cannot set a function for this assembly term.&quot;</span><span class="p">)</span>
+        <span class="n">_fn</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="n">_function</span><span class="o">.</span><span class="n">Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">_fn</span><span class="p">,</span> <span class="n">uw</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="n">Function</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span> <span class="s2">&quot;Provided &#39;fn&#39; must be of, or convertible to, &#39;Function&#39; class.&quot;</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn</span> <span class="o">=</span> <span class="n">_fn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_fn_function</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fn</span><span class="o">.</span><span class="n">_fncself</span> <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># lets setup fn tings.. note that this uses the &#39;property&#39; above</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_fn_function</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fn</span></div>
+
+<div class="viewcode-block" id="VectorAssemblyTerm"><a class="viewcode-back" href="../../../../underworld.systems.sle.html#underworld.systems.sle.VectorAssemblyTerm">[docs]</a><span class="k">class</span> <span class="nc">VectorAssemblyTerm</span><span class="p">(</span><span class="n">AssemblyTerm</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">assembledObject</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">VectorAssemblyTerm</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">assembledObject</span><span class="p">,</span> <span class="n">_assembledvector</span><span class="o">.</span><span class="n">AssembledVector</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;assembledObject&#39; passed in must be of type &#39;AssembledVector&#39;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_assembledObject</span> <span class="o">=</span> <span class="n">assembledObject</span>
+
+    <span class="k">def</span> <span class="nf">_add_to_stg_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">componentDictionary</span><span class="p">):</span>
+        <span class="c1"># call parents method</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">VectorAssemblyTerm</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_add_to_stg_dict</span><span class="p">(</span><span class="n">componentDictionary</span><span class="p">)</span>
+        <span class="n">componentDictionary</span><span class="p">[</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">name</span> <span class="p">][</span><span class="s2">&quot;ForceVector&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_assembledObject</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">name</span></div>
+
+
+<div class="viewcode-block" id="MatrixAssemblyTerm"><a class="viewcode-back" href="../../../../underworld.systems.sle.html#underworld.systems.sle.MatrixAssemblyTerm">[docs]</a><span class="k">class</span> <span class="nc">MatrixAssemblyTerm</span><span class="p">(</span><span class="n">AssemblyTerm</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">assembledObject</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">MatrixAssemblyTerm</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">assembledObject</span><span class="p">,</span> <span class="p">(</span><span class="n">_assembledmatrix</span><span class="o">.</span><span class="n">AssembledMatrix</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="kc">None</span><span class="p">))):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;assembledObject&#39; passed in must be of type &#39;AssembledMatrix&#39;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_assembledObject</span> <span class="o">=</span> <span class="n">assembledObject</span>
+
+    <span class="k">def</span> <span class="nf">_add_to_stg_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">componentDictionary</span><span class="p">):</span>
+        <span class="c1"># call parents method</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">MatrixAssemblyTerm</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_add_to_stg_dict</span><span class="p">(</span><span class="n">componentDictionary</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_assembledObject</span><span class="p">:</span>
+            <span class="n">componentDictionary</span><span class="p">[</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">name</span> <span class="p">][</span><span class="s2">&quot;StiffnessMatrix&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_assembledObject</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">name</span></div>
+
+
+<div class="viewcode-block" id="VectorSurfaceAssemblyTerm_NA__Fn__ni"><a class="viewcode-back" href="../../../../underworld.systems.sle.html#underworld.systems.sle.VectorSurfaceAssemblyTerm_NA__Fn__ni">[docs]</a><span class="k">class</span> <span class="nc">VectorSurfaceAssemblyTerm_NA__Fn__ni</span><span class="p">(</span><span class="n">VectorAssemblyTerm</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Build an assembly term for a surface integral.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    nbc : underworld.conditions.NeumannCondition</span>
+<span class="sd">        See uw.conditions.NeumannCondition for details</span>
+<span class="sd">    integrationSwarm  : underworld.swarm.GaussBorderIntegrationSwarm</span>
+<span class="sd">        Optional integration swarm to be used for numerical integration.</span>
+<span class="sd">    surfaceGaussPoints : int</span>
+<span class="sd">        The number of quadrature points per element face to use in surface </span>
+<span class="sd">        integration. Will be used to create a GaussBorderIntegrationSwarm in </span>
+<span class="sd">        the case the &#39;swarm&#39; input is &#39;None&#39;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_objectsDict</span> <span class="o">=</span> <span class="p">{</span> <span class="s2">&quot;_assemblyterm&quot;</span><span class="p">:</span> <span class="s2">&quot;VectorSurfaceAssemblyTerm_NA__Fn__ni&quot;</span> <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbc</span><span class="p">,</span> <span class="n">integrationSwarm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">surfaceGaussPoints</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">mesh</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nbc</span><span class="p">,</span> <span class="n">uw</span><span class="o">.</span><span class="n">conditions</span><span class="o">.</span><span class="n">NeumannCondition</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span> <span class="s2">&quot;Provided &#39;nbc&#39; must be a NeumannCondition class.&quot;</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nbc</span> <span class="o">=</span> <span class="n">nbc</span>
+        <span class="n">mesh</span> <span class="o">=</span> <span class="n">nbc</span><span class="o">.</span><span class="n">variable</span><span class="o">.</span><span class="n">mesh</span>
+
+        <span class="k">if</span> <span class="n">integrationSwarm</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">integrationSwarm</span><span class="p">,</span> <span class="n">uw</span><span class="o">.</span><span class="n">swarm</span><span class="o">.</span><span class="n">GaussBorderIntegrationSwarm</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Provided &#39;borderSwarm&#39; must be of type uw.swarm.GaussBorderIntegrationSwarm&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span> <span class="c1"># no swarm provide, so we build one</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">surfaceGaussPoints</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span> <span class="s2">&quot;Provided &#39;surfaceGaussPoints&#39; must be a positive integer&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">surfaceGaussPoints</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span> <span class="s2">&quot;Provided &#39;surfaceGaussPoints&#39; must be a positive integer&quot;</span><span class="p">)</span>
+            <span class="n">integrationSwarm</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">swarm</span><span class="o">.</span><span class="n">GaussBorderIntegrationSwarm</span><span class="p">(</span> <span class="n">mesh</span><span class="o">=</span><span class="n">mesh</span><span class="p">,</span>
+                                                                         <span class="n">particleCount</span><span class="o">=</span><span class="n">surfaceGaussPoints</span> <span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">VectorSurfaceAssemblyTerm_NA__Fn__ni</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span> <span class="n">integrationSwarm</span><span class="o">=</span><span class="n">integrationSwarm</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span> <span class="p">)</span>
+
+        <span class="c1"># pass the NeumannConditions to the SurfaceAssemblyTerm so it knows which nodes to assemble the flux contribution</span>
+        <span class="n">libUnderworld</span><span class="o">.</span><span class="n">Underworld</span><span class="o">.</span><span class="n">_VectorSurfaceAssemblyTerm_SetBNodes</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="p">,</span> <span class="n">nbc</span><span class="o">.</span><span class="n">_cself</span> <span class="p">)</span>
+
+        <span class="c1">##### Now construct the additional rhs force like term. Ingredients required for a surface integral</span>
+        <span class="c1"># 1) a gauss border swarm</span>
+        <span class="c1"># 2) a mask function to only evaluate the flux only on nodes specified in the nbc.indexSets</span>
+        <span class="c1">#####</span>
+
+        <span class="n">deltaMeshVariable</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">MeshVariable</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">deltaMeshVariable</span><span class="o">.</span><span class="n">data</span><span class="p">[:]</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="c1"># set a value 1.0 on provided vertices</span>
+        <span class="n">deltaMeshVariable</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">nbc</span><span class="o">.</span><span class="n">indexSet</span><span class="o">.</span><span class="n">data</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="c1"># note we use this condition to only capture border swarm particles</span>
+        <span class="c1"># on the surface itself. for those directly adjacent, the deltaMeshVariable will evaluate</span>
+        <span class="c1"># to non-zero (but less than 1.), so we need to remove those from the integration as well.</span>
+        <span class="n">maskFn</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="n">branching</span><span class="o">.</span><span class="n">conditional</span><span class="p">(</span>
+                                          <span class="p">[</span>  <span class="p">(</span> <span class="n">deltaMeshVariable</span> <span class="o">&gt;</span> <span class="mf">0.999</span><span class="p">,</span> <span class="mf">1.</span> <span class="p">),</span>
+                                             <span class="p">(</span>                      <span class="kc">True</span><span class="p">,</span> <span class="mf">0.</span> <span class="p">)</span>   <span class="p">]</span> <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn</span> <span class="o">=</span> <span class="n">maskFn</span> <span class="o">*</span> <span class="n">nbc</span><span class="o">.</span><span class="n">flux</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_fn_function</span> <span class="o">=</span> <span class="n">libUnderworld</span><span class="o">.</span><span class="n">Underworld</span><span class="o">.</span><span class="n">_VectorSurfaceAssemblyTerm_NA__Fn__ni_SetFn</span>
+
+        <span class="k">if</span> <span class="n">mesh</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">uw</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">FeMesh_Cartesian</span> <span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span> <span class="s2">&quot;The provided mesh must be of FeMesh_Cartesian class.&quot;</span><span class="p">)</span>
+            <span class="c1"># set directly</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">geometryMesh</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">_cself</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span> <span class="o">=</span> <span class="n">mesh</span>
+
+    <span class="k">def</span> <span class="nf">_add_to_stg_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">componentDictionary</span><span class="p">):</span>
+        <span class="c1"># call parents method</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">VectorSurfaceAssemblyTerm_NA__Fn__ni</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_add_to_stg_dict</span><span class="p">(</span><span class="n">componentDictionary</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="VectorAssemblyTerm_VEP__Fn"><a class="viewcode-back" href="../../../../underworld.systems.sle.html#underworld.systems.sle.VectorAssemblyTerm_VEP__Fn">[docs]</a><span class="k">class</span> <span class="nc">VectorAssemblyTerm_VEP__Fn</span><span class="p">(</span><span class="n">VectorAssemblyTerm</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Document!!  ... this is the viscoelastic force term assebler.  WIP.  use at own risk.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_objectsDict</span> <span class="o">=</span> <span class="p">{</span> <span class="s2">&quot;_assemblyterm&quot;</span><span class="p">:</span> <span class="s2">&quot;VectorAssemblyTerm_VEP&quot;</span> <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="n">mesh</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># build parent</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">VectorAssemblyTerm_VEP__Fn</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_fn_function</span> <span class="o">=</span> <span class="n">libUnderworld</span><span class="o">.</span><span class="n">Underworld</span><span class="o">.</span><span class="n">_VectorAssemblyTerm_VEP_SetFneForce</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn</span> <span class="o">=</span> <span class="n">fn</span>
+
+        <span class="k">if</span> <span class="n">mesh</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">uw</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">FeMesh_Cartesian</span> <span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span> <span class="s2">&quot;The provided mesh must be of FeMesh_Cartesian class.&quot;</span><span class="p">)</span>
+            <span class="c1"># set directly</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">geometryMesh</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">_cself</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span> <span class="o">=</span> <span class="n">mesh</span>
+
+    <span class="k">def</span> <span class="nf">_add_to_stg_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">componentDictionary</span><span class="p">):</span>
+        <span class="c1"># call parents method</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">VectorAssemblyTerm_VEP__Fn</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_add_to_stg_dict</span><span class="p">(</span><span class="n">componentDictionary</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="VectorAssemblyTerm_NA__Fn"><a class="viewcode-back" href="../../../../underworld.systems.sle.html#underworld.systems.sle.VectorAssemblyTerm_NA__Fn">[docs]</a><span class="k">class</span> <span class="nc">VectorAssemblyTerm_NA__Fn</span><span class="p">(</span><span class="n">VectorAssemblyTerm</span><span class="p">):</span>
+    <span class="n">_objectsDict</span> <span class="o">=</span> <span class="p">{</span> <span class="s2">&quot;_assemblyterm&quot;</span><span class="p">:</span> <span class="s2">&quot;VectorAssemblyTerm_NA__Fn&quot;</span> <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="n">mesh</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># build parent</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">VectorAssemblyTerm_NA__Fn</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_fn_function</span> <span class="o">=</span> <span class="n">libUnderworld</span><span class="o">.</span><span class="n">Underworld</span><span class="o">.</span><span class="n">_VectorAssemblyTerm_NA__Fn_SetFn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn</span> <span class="o">=</span> <span class="n">fn</span>
+
+        <span class="k">if</span> <span class="n">mesh</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">uw</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">FeMesh_Cartesian</span> <span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span> <span class="s2">&quot;The provided mesh must be of FeMesh_Cartesian class.&quot;</span><span class="p">)</span>
+            <span class="c1"># set directly</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">geometryMesh</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">_cself</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span> <span class="o">=</span> <span class="n">mesh</span>
+
+
+    <span class="k">def</span> <span class="nf">_add_to_stg_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">componentDictionary</span><span class="p">):</span>
+        <span class="c1"># call parents method</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">VectorAssemblyTerm_NA__Fn</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_add_to_stg_dict</span><span class="p">(</span><span class="n">componentDictionary</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GradientStiffnessMatrixTerm"><a class="viewcode-back" href="../../../../underworld.systems.sle.html#underworld.systems.sle.GradientStiffnessMatrixTerm">[docs]</a><span class="k">class</span> <span class="nc">GradientStiffnessMatrixTerm</span><span class="p">(</span><span class="n">MatrixAssemblyTerm</span><span class="p">):</span>
+    <span class="n">_objectsDict</span> <span class="o">=</span> <span class="p">{</span> <span class="s2">&quot;_assemblyterm&quot;</span><span class="p">:</span> <span class="s2">&quot;GradientStiffnessMatrixTerm&quot;</span> <span class="p">}</span>
+    <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="PreconditionerMatrixTerm"><a class="viewcode-back" href="../../../../underworld.systems.sle.html#underworld.systems.sle.PreconditionerMatrixTerm">[docs]</a><span class="k">class</span> <span class="nc">PreconditionerMatrixTerm</span><span class="p">(</span><span class="n">MatrixAssemblyTerm</span><span class="p">):</span>
+    <span class="n">_objectsDict</span> <span class="o">=</span> <span class="p">{</span> <span class="s2">&quot;_assemblyterm&quot;</span><span class="p">:</span> <span class="s2">&quot;UzawaPreconditionerTerm&quot;</span> <span class="p">}</span>
+    <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="ConstitutiveMatrixTerm"><a class="viewcode-back" href="../../../../underworld.systems.sle.html#underworld.systems.sle.ConstitutiveMatrixTerm">[docs]</a><span class="k">class</span> <span class="nc">ConstitutiveMatrixTerm</span><span class="p">(</span><span class="n">MatrixAssemblyTerm</span><span class="p">):</span>
+    <span class="n">_objectsDict</span> <span class="o">=</span> <span class="p">{</span> <span class="s2">&quot;_assemblyterm&quot;</span><span class="p">:</span> <span class="s2">&quot;ConstitutiveMatrixCartesian&quot;</span> <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn_visc1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fn_visc2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fn_director</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># build parent</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ConstitutiveMatrixTerm</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1"># disable these, because this guy requires multiple functions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_fn_function</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">fn_visc1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;You must provide a viscosity for the ConstitutiveMatrixTerm&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn_visc1</span>    <span class="o">=</span> <span class="n">fn_visc1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn_visc2</span>    <span class="o">=</span> <span class="n">fn_visc2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn_director</span> <span class="o">=</span> <span class="n">fn_director</span>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">fn_visc1</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fn_visc1</span>
+
+    <span class="nd">@fn_visc1</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">fn_visc1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">_fn</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="n">Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">_fn</span><span class="p">,</span> <span class="n">uw</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="n">Function</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span> <span class="s2">&quot;Provided &#39;fn&#39; must be of or convertible to &#39;Function&#39; class.&quot;</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn_visc1</span> <span class="o">=</span> <span class="n">_fn</span>
+        <span class="n">libUnderworld</span><span class="o">.</span><span class="n">Underworld</span><span class="o">.</span><span class="n">_ConstitutiveMatrixCartesian_Set_Fn_Visc1</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fn_visc1</span><span class="o">.</span><span class="n">_fncself</span> <span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">fn_visc2</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fn_visc2</span>
+
+    <span class="nd">@fn_visc2</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">fn_visc2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">_fn</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="n">Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">_fn</span><span class="p">,</span> <span class="n">uw</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="n">Function</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span> <span class="s2">&quot;Provided &#39;fn&#39; must be of or convertible to &#39;Function&#39; class.&quot;</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn_visc2</span> <span class="o">=</span> <span class="n">_fn</span>
+        <span class="n">libUnderworld</span><span class="o">.</span><span class="n">Underworld</span><span class="o">.</span><span class="n">_ConstitutiveMatrixCartesian_Set_Fn_Visc2</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fn_visc2</span><span class="o">.</span><span class="n">_fncself</span> <span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">fn_director</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fn_director</span>
+
+    <span class="nd">@fn_director</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">fn_director</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">_fn</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="n">Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">_fn</span><span class="p">,</span> <span class="n">uw</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="n">Function</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span> <span class="s2">&quot;Provided &#39;fn&#39; must be of or convertible to &#39;Function&#39; class.&quot;</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn_director</span> <span class="o">=</span> <span class="n">_fn</span>
+        <span class="n">libUnderworld</span><span class="o">.</span><span class="n">Underworld</span><span class="o">.</span><span class="n">_ConstitutiveMatrixCartesian_Set_Fn_Director</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fn_director</span><span class="o">.</span><span class="n">_fncself</span> <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># lets setup fn tings.. note that this uses the &#39;property&#39; above</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fn_visc1</span>    <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fn_visc1</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fn_visc2</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fn_visc2</span>    <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fn_visc2</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fn_director</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fn_director</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fn_director</span>
+
+
+    <span class="k">def</span> <span class="nf">_add_to_stg_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">componentDictionary</span><span class="p">):</span>
+        <span class="c1"># call parents method</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ConstitutiveMatrixTerm</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_add_to_stg_dict</span><span class="p">(</span><span class="n">componentDictionary</span><span class="p">)</span>
+
+        <span class="n">componentDictionary</span><span class="p">[</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">name</span> <span class="p">][</span><span class="s2">&quot;dim&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_integrationSwarm</span><span class="o">.</span><span class="n">_mesh</span><span class="o">.</span><span class="n">dim</span></div>
+
+<div class="viewcode-block" id="MatrixAssemblyTerm_NA_i__NB_i__Fn"><a class="viewcode-back" href="../../../../underworld.systems.sle.html#underworld.systems.sle.MatrixAssemblyTerm_NA_i__NB_i__Fn">[docs]</a><span class="k">class</span> <span class="nc">MatrixAssemblyTerm_NA_i__NB_i__Fn</span><span class="p">(</span><span class="n">MatrixAssemblyTerm</span><span class="p">):</span>
+    <span class="n">_objectsDict</span> <span class="o">=</span> <span class="p">{</span> <span class="s2">&quot;_assemblyterm&quot;</span><span class="p">:</span> <span class="s2">&quot;MatrixAssemblyTerm_NA_i__NB_i__Fn&quot;</span> <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># build parent</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">MatrixAssemblyTerm_NA_i__NB_i__Fn</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_fn_function</span> <span class="o">=</span> <span class="n">libUnderworld</span><span class="o">.</span><span class="n">Underworld</span><span class="o">.</span><span class="n">MatrixAssemblyTerm_NA_i__NB_i__Fn_SetFn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn</span> <span class="o">=</span> <span class="n">fn</span>
+
+
+    <span class="k">def</span> <span class="nf">_add_to_stg_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">componentDictionary</span><span class="p">):</span>
+        <span class="c1"># call parents method</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">MatrixAssemblyTerm_NA_i__NB_i__Fn</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_add_to_stg_dict</span><span class="p">(</span><span class="n">componentDictionary</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MatrixAssemblyTerm_NA__NB__Fn"><a class="viewcode-back" href="../../../../underworld.systems.sle.html#underworld.systems.sle.MatrixAssemblyTerm_NA__NB__Fn">[docs]</a><span class="k">class</span> <span class="nc">MatrixAssemblyTerm_NA__NB__Fn</span><span class="p">(</span><span class="n">MatrixAssemblyTerm</span><span class="p">):</span>
+    <span class="n">_objectsDict</span> <span class="o">=</span> <span class="p">{</span> <span class="s2">&quot;_assemblyterm&quot;</span><span class="p">:</span> <span class="s2">&quot;MatrixAssemblyTerm_NA__NB__Fn&quot;</span> <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="n">mesh</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># build parent</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">MatrixAssemblyTerm_NA__NB__Fn</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_fn_function</span> <span class="o">=</span> <span class="n">libUnderworld</span><span class="o">.</span><span class="n">Underworld</span><span class="o">.</span><span class="n">MatrixAssemblyTerm_NA__NB__Fn_SetFn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn</span> <span class="o">=</span> <span class="n">fn</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">uw</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">FeMesh_Cartesian</span> <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span> <span class="s2">&quot;The provided mesh must be of FeMesh_Cartesian class.&quot;</span><span class="p">)</span>
+        <span class="c1"># set mesh directly</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">geometryMesh</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">_cself</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_geometryMesh</span> <span class="o">=</span> <span class="n">mesh</span>
+
+    <span class="k">def</span> <span class="nf">_add_to_stg_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">componentDictionary</span><span class="p">):</span>
+        <span class="c1"># call parents method</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">MatrixAssemblyTerm_NA__NB__Fn</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_add_to_stg_dict</span><span class="p">(</span><span class="n">componentDictionary</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LumpedMassMatrixVectorTerm"><a class="viewcode-back" href="../../../../underworld.systems.sle.html#underworld.systems.sle.LumpedMassMatrixVectorTerm">[docs]</a><span class="k">class</span> <span class="nc">LumpedMassMatrixVectorTerm</span><span class="p">(</span><span class="n">VectorAssemblyTerm</span><span class="p">):</span>
+    <span class="n">_objectsDict</span> <span class="o">=</span> <span class="p">{</span> <span class="s2">&quot;_assemblyterm&quot;</span><span class="p">:</span> <span class="s2">&quot;LumpedMassMatrixForceTerm&quot;</span> <span class="p">}</span>
+    <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="AdvDiffResidualVectorTerm"><a class="viewcode-back" href="../../../../underworld.systems.sle.html#underworld.systems.sle.AdvDiffResidualVectorTerm">[docs]</a><span class="k">class</span> <span class="nc">AdvDiffResidualVectorTerm</span><span class="p">(</span><span class="n">VectorAssemblyTerm</span><span class="p">):</span>
+    <span class="n">_objectsDict</span> <span class="o">=</span> <span class="p">{</span> <span class="s2">&quot;_assemblyterm&quot;</span><span class="p">:</span> <span class="s2">&quot;AdvDiffResidualForceTerm&quot;</span> <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">velocityField</span><span class="p">,</span> <span class="n">diffusivity</span><span class="p">,</span> <span class="n">sourceTerm</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span> <span class="p">):</span>
+        <span class="c1"># build parent</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AdvDiffResidualVectorTerm</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">velocityField</span><span class="p">,</span> <span class="n">uw</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">MeshVariable</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span> <span class="s2">&quot;Provided &#39;velocityField&#39; must be of &#39;MeshVariable&#39; class.&quot;</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_velocityField</span> <span class="o">=</span> <span class="n">velocityField</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_diffFn</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="n">Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">diffusivity</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_diffFn</span><span class="p">,</span> <span class="n">uw</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="n">Function</span> <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span> <span class="s2">&quot;Provided &#39;diffusivity&#39; must be of the type, or convertible to, &#39;Function&#39; class &quot;</span><span class="p">)</span>
+
+        <span class="c1"># if sourceTerm is None make it 0.0 fn object</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sourceFn</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="n">Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">sourceTerm</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sourceFn</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sourceFn</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="n">misc</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_fn_function</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">_add_to_stg_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">componentDictionary</span><span class="p">):</span>
+        <span class="c1"># call parents method</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AdvDiffResidualVectorTerm</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_add_to_stg_dict</span><span class="p">(</span><span class="n">componentDictionary</span><span class="p">)</span>
+
+        <span class="n">componentDictionary</span><span class="p">[</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">name</span> <span class="p">][</span>     <span class="s2">&quot;VelocityField&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_velocityField</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">componentDictionary</span><span class="p">[</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">name</span> <span class="p">][</span>  <span class="s2">&quot;UpwindXiFunction&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;DoublyAsymptoticAssumption&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># lets override parent _setup definition because we use 2 function objects</span>
+        <span class="n">libUnderworld</span><span class="o">.</span><span class="n">Underworld</span><span class="o">.</span><span class="n">_SUPGVectorTerm_NA__Fn_SetDiffusivityFn</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_diffFn</span><span class="o">.</span><span class="n">_fncself</span> <span class="p">)</span>
+        <span class="n">libUnderworld</span><span class="o">.</span><span class="n">Underworld</span><span class="o">.</span><span class="n">_SUPGVectorTerm_NA__Fn_SetSourceFn</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sourceFn</span><span class="o">.</span><span class="n">_fncself</span> <span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Melbourne University, Monash University..
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../../',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

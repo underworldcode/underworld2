@@ -16,9 +16,9 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
     This class provides functionality for projecting data
     from any underworld function onto a provided mesh variable.
 
-    For the variable :math:`\bf{U} =  \bf{u}_a N_a` and function :math:`F`,
-    we wish to determine appropriate values for :math:`\bf{u}_a` such
-    that :math:`\bf{U} \simeq F`.
+    For the variable :math:`\\bf{U} =  \\bf{u}_a N_a` and function :math:`F`,
+    we wish to determine appropriate values for :math:`\\bf{u}_a` such
+    that :math:`\\bf{U} \\simeq F`.
 
     Two projection methods are supported; weighted averages and weighted
     residuals. Generally speaking, weighted averages provide robust low
@@ -26,13 +26,15 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
     spurious results for _difficult_ functions :math:`F`.
 
     The weighted average method is defined as:
+    
     .. math::
-         \bf{u}_a = \frac{\int_{\Omega} \bf{F} N_a \partial\Omega }{\int_{\Omega} N_a \partial\Omega }
+         \\bf{u}_a = \\frac{\\int_{\\Omega} \\bf{F} N_a \\partial\\Omega }{\\int_{\\Omega} N_a \\partial\\Omega }
 
     The weighted residual method constructs an SLE which is then solved to
     determine the unknowns:
+    
     .. math::
-         \bf{u}_a\int_{\Omega} N_a N_b \partial\Omega = \int_{\Omega} \bf{F} N_b \partial\Omega
+         \\bf{u}_a\\int_{\\Omega} N_a N_b \\partial\\Omega = \\int_{\\Omega} \\bf{F} N_b \\partial\\Omega
 
     Parameters
     ----------

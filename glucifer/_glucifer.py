@@ -55,33 +55,38 @@ class Store(_stgermain.StgCompoundComponent):
 
     Parameters
     ----------
-    filename: str, default=None
+    filename: str
         Filename to use for a disk database, default is in memory only unless saved.
-    split: bool, default=False
+    split: bool
         Set to true to write a separate database file for each timestep visualised
-    view: bool, default=False
+    view: bool
         Set to true and pass filename if loading a saved database for revisualisation
             
     Example
     -------
         
     Create a database:
+    
     >>> import glucifer
     >>> store = glucifer.Store()
 
     Optionally provide a filename so you don't need to call save later (no extension)
+    
     >>> store = glucifer.Store('myvis')
 
     Pass to figures when creating them
     (Providing a name allows you to revisualise the figure from the name)
+    
     >>> fig = glucifer.Figure(store, name="myfigure")
     
     When figures are rendered with show() or save(imgname), they are saved to storage
     If you don't need to render an image but still want to store the figure to view later,
     just call save() without a filename
+    
     >>> fig.save()
     
     Save the database (only necessary if no filename provided when created)
+    
     >>> dbfile = store.save("myvis")
 
     """
@@ -354,53 +359,59 @@ class Figure(dict):
 
     Parameters
     ----------
-    store: Store, default=None
+    store: glucifer.Store
         Database to collect visualisation data, this may be shared among figures
-        to collect their data into a single file
-    name: str, default=None
-        Name of this figure, optional, used for revisualisation of stored figures
-    figsize: tuple, default=(640,480)
+        to collect their data into a single file.
+    name: str
+        Name of this figure, optional, used for revisualisation of stored figures.
+    figsize: tuple
         Image resolution provided as a tuple.
-    boundingBox: tuple, default=None
+    boundingBox: tuple
         Tuple of coordiante tuples defining figure bounding box.
         For example ( (0.1,0.1), (0.9,0.9) )
-    facecolour: str, default="white"
+    facecolour: str
         Background colour for figure.
-    edgecolour: str, default="black"
+    edgecolour: str
         Edge colour for figure.
-    title: str, default=None
+    title: str
         Figure title.
-    axis: bool, default=False
+    axis: bool
         Bool to determine if figure axis should be drawn.
-    quality: unsigned, default=1
+    quality: unsigned
         Antialiasing oversampling quality. For a value of 2, the image will be
         rendered at twice the resolution, and then downsampled. Setting
         this to 1 disables antialiasing, values higher than 3 are not recommended..
-    properties: str, default=None
+    properties: str
         Further properties to set on the figure.
             
     Example
     -------
         
     Create a figure:
+    
     >>> import glucifer
     >>> fig = glucifer.Figure()
 
     We need a mesh
+    
     >>> import underworld as uw
     >>> mesh = uw.mesh.FeMesh_Cartesian()
 
     Add drawing objects:
+    
     >>> fig.append( glucifer.objects.Surface( mesh, 1.) )
 
     Draw image (note, in a Jupyter notebook, this will render the image within the notebook).
+    
     >>> fig.show()
     <IPython.core.display.HTML object>
     
     Save the image
+    
     >>> imgfile = fig.save("test_image")
 
     Clean up:
+    
     >>> if imgfile: 
     ...     import os; 
     ...     os.remove( imgfile )
@@ -480,31 +491,31 @@ class Figure(dict):
 
     @property
     def figsize(self):
-        """    figsize (tuple(int,int)): size of window in pixels, default: (640,480)
+        """    figsize (tuple(int,int)): size of window in pixels.
         """
         return self["resolution"]
 
     @property
     def facecolour(self):
-        """    facecolour : colour of face background, default: white
+        """    facecolour : colour of face background.
         """
         return self["background"]
 
     @property
     def edgecolour(self):
-        """    edgecolour : colour of figure border, default: white
+        """    edgecolour : colour of figure border.
         """
         return self["bordercolour"]
 
     @property
     def title(self):
-        """    title : a title for the image, default: None
+        """    title : a title for the image.
         """
         return self["title"]
 
     @property
     def axis(self):
-        """    axis : Axis enabled if true.  Default False.
+        """    axis : Axis enabled if true.
         """
         return self["axis"]
 
@@ -528,14 +539,14 @@ class Figure(dict):
     def properties(self, value):
         self._setProperties(value)
 
-    def show(self, type="image"):
+    def show(self, type="Image"):
         """    
         Shows the generated image inline within an ipython notebook.
         
         Parameters
         ----------
         type: str
-            Type of visualisation to display ('Image' or 'WebGL'). Default is 'Image'.
+            Type of visualisation to display ('Image' or 'WebGL').
         
         If IPython is installed, displays the result image or WebGL content inline
 
@@ -786,7 +797,7 @@ class Figure(dict):
         
         Parameters
         ----------
-        drawingObject: objects.Drawing
+        drawingObject: glucifer.objects.Drawing
             The drawing object to add to the figure
                 
         
@@ -817,30 +828,35 @@ class Viewer(dict):
 
     Parameters
     ----------
-    filename: str, default=None
+    filename: str
         Filename of database used to previously store the visualisation figures
             
     Example
     -------
         
     Create a reader using an existing database:
+    
     >>> import glucifer
     >>> saved = glucifer.Viewer('vis.gldb')
 
     Iterate over the figures, print their names and plot them
+    
     >>> for fig in saved:
     >>>     print(fig.name)
 
     Get first figure and display
+    
     >>> fig = saved.next()
     >>> fig.show()
 
     Get a figure by name and display
     (A chosen name can be provided when creating the figures to make this easier)
+    
     >>> fig = saved["myfig"]
     >>> fig.show()
 
     Display all figures at each timestep
+    
     >>> for step in saved.steps:
     >>>    saved.step = step
     >>>    for name in saved:

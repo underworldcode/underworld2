@@ -14,29 +14,25 @@ class SolutionVector(_stgermain.StgCompoundComponent):
     The SolutionVector manages the numerical solution vectors used by Underworld's equation systems.
     Interface between meshVariables and systems.
 
-    Notes
-    -----
-    low level stuff that should be reworked post alpha
+    Parameters
+    ----------
+    meshVariable: underworld.mesh.MeshVariable
+        MeshVariable object for which this SLE vector corresponds.
+    eqNumber:     underworld.systems.sle.EqNumber
+        Equation numbering object corresponding to this vector.
+    
+    Example
+    -------
+    >>> linearMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.) )
+    >>> tField = uw.mesh.MeshVariable( linearMesh, 1 )
+    >>> eqNum = uw.systems.sle.EqNumber( tField )
+    >>> sVector = uw.systems.sle.SolutionVector(tField, eqNum )
+
     """
     _objectsDict = { "_vector": "SolutionVector" }
     _selfObjectName = "_vector"
 
     def __init__(self, meshVariable, eqNumber, **kwargs):
-        """
-        Parameters:
-        -----------
-            meshVariable (MeshVariable)
-            eqNumber     (EqNumber)
-
-        See property docstrings for further information on each argument.
-
-        >>> linearMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.) )
-        >>> tField = uw.mesh.MeshVariable( linearMesh, 1 )
-        >>> eqNum = uw.systems.sle.EqNumber( tField )
-        >>> sVector = uw.systems.sle.SolutionVector(tField, eqNum )
-        """
-
-        # import ipdb; ipdb.set_trace()
         if not isinstance(meshVariable, uw.mesh.MeshVariable):
             raise TypeError("'meshVariable' object passed in must be of type 'MeshVariable'")
         self._meshVariable = meshVariable
@@ -56,16 +52,10 @@ class SolutionVector(_stgermain.StgCompoundComponent):
 
     @property
     def meshVariable(self):
-        """
-        meshVariable (MeshVariable): MeshVariable object for which this SLE vector corresponds.
-        """
         return self._meshVariable
 
     @property
     def eqNumber(self):
-        """
-        eqNumber (EqNumber): EqNumber object corresponding to this vector.
-        """
         return self._eqNumber
 
     def _add_to_stg_dict(self,componentDictionary):

@@ -1,0 +1,396 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>underworld.function.misc &mdash; underworld2  documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="underworld2  documentation" href="../../../index.html"/>
+        <link rel="up" title="underworld" href="../../underworld.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> underworld2
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../underworld.html">underworld module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../glucifer.html">glucifer module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">underworld2</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../underworld.html">underworld</a> &raquo;</li>
+      
+    <li>underworld.function.misc</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for underworld.function.misc</h1><div class="highlight"><pre>
+<span></span><span class="c1">##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##  This file forms part of the Underworld geophysics modelling application.         ##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##  For full license and copyright information, please refer to the LICENSE.md file  ##</span>
+<span class="c1">##  located at the project root, or contact the authors.                             ##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Miscellaneous functions.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">libUnderworld.libUnderworldPy.Function</span> <span class="k">as</span> <span class="nn">_cfn</span>
+<span class="kn">from</span> <span class="nn">_function</span> <span class="k">import</span> <span class="n">Function</span> <span class="k">as</span> <span class="n">_Function</span>
+
+<div class="viewcode-block" id="constant"><a class="viewcode-back" href="../../../underworld.function.misc.html#underworld.function.misc.constant">[docs]</a><span class="k">class</span> <span class="nc">constant</span><span class="p">(</span><span class="n">_Function</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;  </span>
+<span class="sd">    This function returns a constant value.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    value: int,float,bool. (iterables permitted)</span>
+<span class="sd">        The value the function should return. Note that iterable objects</span>
+<span class="sd">        which contain valid types are permitted, but must be homogeneous</span>
+<span class="sd">        in their type.</span>
+<span class="sd">        </span>
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    &gt;&gt;&gt; import underworld as uw</span>
+<span class="sd">    &gt;&gt;&gt; import underworld.function as fn</span>
+<span class="sd">    &gt;&gt;&gt; fn_const = fn.misc.constant( 3 )</span>
+<span class="sd">    &gt;&gt;&gt; fn_const.evaluate(0.) # eval anywhere for constant</span>
+<span class="sd">    array([[3]], dtype=int32)</span>
+<span class="sd">    &gt;&gt;&gt; fn_const = fn.misc.constant( (3,2,1) )</span>
+<span class="sd">    &gt;&gt;&gt; fn_const.evaluate(0.) # eval anywhere for constant</span>
+<span class="sd">    array([[3, 2, 1]], dtype=int32)</span>
+<span class="sd">    &gt;&gt;&gt; fn_const = fn.misc.constant( 3. )</span>
+<span class="sd">    &gt;&gt;&gt; fn_const.evaluate(0.) # eval anywhere for constant</span>
+<span class="sd">    array([[ 3.]])</span>
+<span class="sd">    &gt;&gt;&gt; fn_const = fn.misc.constant( (3.,2.,1.) )</span>
+<span class="sd">    &gt;&gt;&gt; fn_const.evaluate(0.) # eval anywhere for constant</span>
+<span class="sd">    array([[ 3.,  2.,  1.]])</span>
+<span class="sd">    &gt;&gt;&gt; fn_const = fn.misc.constant( True )</span>
+<span class="sd">    &gt;&gt;&gt; fn_const.evaluate(0.) # eval anywhere for constant</span>
+<span class="sd">    array([[ True]], dtype=bool)</span>
+<span class="sd">    &gt;&gt;&gt; fn_const = fn.misc.constant( (True,False,True) )</span>
+<span class="sd">    &gt;&gt;&gt; fn_const.evaluate(0.) # eval anywhere for constant</span>
+<span class="sd">    array([[ True, False,  True]], dtype=bool)</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        
+        <span class="c1"># lets try and convert</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ioguy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_GetIOForPyInput</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fncself</span> <span class="o">=</span> <span class="n">_cfn</span><span class="o">.</span><span class="n">Constant</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ioguy</span><span class="p">)</span>
+        <span class="c1"># build parent</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">constant</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">argument_fns</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;    value: constant value this function returns</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value</span>
+    <span class="nd">@value</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">value</span><span class="p">):</span>
+        <span class="n">newioguy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_GetIOForPyInput</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">newioguy</span><span class="p">,</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ioguy</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;value&#39; object passed in must be of identical type to that used in construction of this function.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">newioguy</span><span class="o">.</span><span class="n">size</span><span class="p">()</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ioguy</span><span class="o">.</span><span class="n">size</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;value&#39; object passed in must be of identical size to that used in construction of this function.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ioguy</span> <span class="o">=</span> <span class="n">newioguy</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fncself</span><span class="o">.</span><span class="n">set_value</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ioguy</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_GetIOForPyInput</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span><span class="nb">float</span><span class="p">,</span><span class="nb">bool</span><span class="p">)</span> <span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span><span class="nb">bool</span><span class="p">):</span>
+                <span class="n">ioguy</span> <span class="o">=</span> <span class="n">_cfn</span><span class="o">.</span><span class="n">IO_bool</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                <span class="n">ioguy</span> <span class="o">=</span> <span class="n">_cfn</span><span class="o">.</span><span class="n">IO_int</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span><span class="nb">float</span><span class="p">):</span>
+                <span class="n">ioguy</span> <span class="o">=</span> <span class="n">_cfn</span><span class="o">.</span><span class="n">IO_double</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Failure during object creation. Please contact developers.&quot;</span><span class="p">)</span>
+            <span class="c1"># now set val</span>
+            <span class="n">ioguy</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">value</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">iterator</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;value&#39; object provided to Constant Function constructor does not appear to be valid. &quot;</span>
+                                <span class="o">+</span><span class="s2">&quot;Only python types &#39;int&#39;, &#39;float&#39; and &#39;bool&#39; are acceptable, or iterable objects &quot;</span>
+                                <span class="o">+</span><span class="s2">&quot;homogeneous in these types.&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># iterable</span>
+                <span class="n">tupleGuy</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">iterator</span><span class="p">)</span>
+                <span class="n">lenTupleGuy</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tupleGuy</span><span class="p">)</span>
+                <span class="n">firstFella</span> <span class="o">=</span> <span class="n">tupleGuy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">firstFella</span><span class="p">,</span><span class="nb">bool</span><span class="p">):</span>
+                    <span class="n">ioguy</span> <span class="o">=</span> <span class="n">_cfn</span><span class="o">.</span><span class="n">IO_bool</span><span class="p">(</span><span class="n">lenTupleGuy</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">firstFella</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                    <span class="n">ioguy</span> <span class="o">=</span> <span class="n">_cfn</span><span class="o">.</span><span class="n">IO_int</span><span class="p">(</span><span class="n">lenTupleGuy</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">firstFella</span><span class="p">,</span><span class="nb">float</span><span class="p">):</span>
+                    <span class="n">ioguy</span> <span class="o">=</span> <span class="n">_cfn</span><span class="o">.</span><span class="n">IO_double</span><span class="p">(</span><span class="n">lenTupleGuy</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;value&#39; object provided to Constant Function appears to be an iterable, but &quot;</span>
+                                    <span class="o">+</span><span class="s2">&quot;does not appear to contain objects of python type &#39;int&#39;, &#39;float&#39; or &#39;bool&#39;.&quot;</span><span class="p">)</span>
+                <span class="c1"># right, now load in ze data</span>
+                <span class="n">ii</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">tupleGuy</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span><span class="nb">type</span><span class="p">(</span><span class="n">firstFella</span><span class="p">)):</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;value&#39; object provided to Constant Function appears to be an iterable, but &quot;</span>
+                                        <span class="o">+</span><span class="s2">&quot;does not appear to be homogeneous in type. Objects in iterable must all be &quot;</span>
+                                        <span class="o">+</span><span class="s2">&quot;of python type &#39;int&#39;, all of type &#39;float&#39;, or all of type &#39;bool&#39;.&quot;</span><span class="p">)</span>
+                    <span class="n">ioguy</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">val</span><span class="p">,</span><span class="n">ii</span><span class="p">)</span>
+                    <span class="n">ii</span><span class="o">+=</span><span class="mi">1</span><span class="p">;</span>
+        <span class="k">return</span> <span class="n">ioguy</span></div>
+
+<div class="viewcode-block" id="max"><a class="viewcode-back" href="../../../underworld.function.misc.html#underworld.function.misc.max">[docs]</a><span class="k">class</span> <span class="nc">max</span><span class="p">(</span><span class="n">_Function</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">    max function.  Returns the maximum of the results returned from </span>
+<span class="sd">    its two argument function.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fn1: underworld.function.Function</span>
+<span class="sd">        First argument function. Function must return a float type.</span>
+<span class="sd">    fn1: underworld.function.Function</span>
+<span class="sd">        Second argument function. Function must return a float type.</span>
+<span class="sd">        </span>
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    &gt;&gt;&gt; import underworld as uw</span>
+<span class="sd">    &gt;&gt;&gt; import underworld.function as fn</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; testpoints = np.array(([[ 0.0], [0.2], [0.4], [0.6], [0.8], [1.01], [1.2], [1.4], [1.6], [1.8], [2.0],]))</span>
+<span class="sd">    </span>
+<span class="sd">    Create which return identical results via different paths:</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; fn_x = fn.input()[0]</span>
+<span class="sd">    &gt;&gt;&gt; fn_x_minus_one = fn_x - 1.</span>
+<span class="sd">    &gt;&gt;&gt; fn_one_minus_x = 1. - fn_x</span>
+<span class="sd">    </span>
+<span class="sd">    Here we use &#39;max&#39; and &#39;min&#39; functions:</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; fn_max = fn.misc.max(fn_one_minus_x,fn_x_minus_one)</span>
+<span class="sd">    &gt;&gt;&gt; fn_min = fn.misc.min(fn_one_minus_x,fn_x_minus_one)</span>
+<span class="sd">    </span>
+<span class="sd">    Here we use the conditional functions:</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; fn_conditional_max = fn.branching.conditional( ( ( fn_x &lt;= 1., fn_one_minus_x ), ( fn_x &gt; 1., fn_x_minus_one ) ))</span>
+<span class="sd">    &gt;&gt;&gt; fn_conditional_min = fn.branching.conditional( ( ( fn_x &gt;= 1., fn_one_minus_x ), ( fn_x &lt; 1., fn_x_minus_one ) ))</span>
+<span class="sd">    </span>
+<span class="sd">    They should return identical results:</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; np.allclose(fn_max.evaluate(testpoints),fn_conditional_max.evaluate(testpoints))</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; np.allclose(fn_min.evaluate(testpoints),fn_conditional_min.evaluate(testpoints))</span>
+<span class="sd">    True</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn1</span><span class="p">,</span> <span class="n">fn2</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">fn1fn</span> <span class="o">=</span> <span class="n">_Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span> <span class="n">fn1</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">fn1fn</span><span class="p">,</span> <span class="n">_Function</span> <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Functions must be of type (or convertible to) &#39;Function&#39;.&quot;</span><span class="p">)</span>
+        <span class="n">fn2fn</span> <span class="o">=</span> <span class="n">_Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span> <span class="n">fn2</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">fn2fn</span><span class="p">,</span> <span class="n">_Function</span> <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Functions must be of type (or convertible to) &#39;Function&#39;.&quot;</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn1</span> <span class="o">=</span> <span class="n">fn1fn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn2</span> <span class="o">=</span> <span class="n">fn2fn</span>
+        <span class="c1"># ok finally lets create the fn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fncself</span> <span class="o">=</span> <span class="n">_cfn</span><span class="o">.</span><span class="n">Max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fn1</span><span class="o">.</span><span class="n">_fncself</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fn2</span><span class="o">.</span><span class="n">_fncself</span> <span class="p">)</span>
+        <span class="c1"># build parent</span>
+        <span class="nb">super</span><span class="p">(</span><span class="nb">max</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">argument_fns</span><span class="o">=</span><span class="p">[</span><span class="n">fn1fn</span><span class="p">,</span><span class="n">fn2fn</span><span class="p">],</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="min"><a class="viewcode-back" href="../../../underworld.function.misc.html#underworld.function.misc.min">[docs]</a><span class="k">class</span> <span class="nc">min</span><span class="p">(</span><span class="n">_Function</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">    min function.  Returns the minimum of the results returned from</span>
+<span class="sd">    its two argument function.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fn1: underworld.function.Function</span>
+<span class="sd">        First argument function. Function must return a float type.</span>
+<span class="sd">    fn1: underworld.function.Function</span>
+<span class="sd">        Second argument function. Function must return a float type.</span>
+<span class="sd">        </span>
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    See the example provided for &#39;max&#39; function.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn1</span><span class="p">,</span> <span class="n">fn2</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">fn1fn</span> <span class="o">=</span> <span class="n">_Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span> <span class="n">fn1</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">fn1fn</span><span class="p">,</span> <span class="n">_Function</span> <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Functions must be of type (or convertible to) &#39;Function&#39;.&quot;</span><span class="p">)</span>
+        <span class="n">fn2fn</span> <span class="o">=</span> <span class="n">_Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span> <span class="n">fn2</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">fn2fn</span><span class="p">,</span> <span class="n">_Function</span> <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Functions must be of type (or convertible to) &#39;Function&#39;.&quot;</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn1</span> <span class="o">=</span> <span class="n">fn1fn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn2</span> <span class="o">=</span> <span class="n">fn2fn</span>
+        <span class="c1"># ok finally lets create the fn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fncself</span> <span class="o">=</span> <span class="n">_cfn</span><span class="o">.</span><span class="n">Min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fn1</span><span class="o">.</span><span class="n">_fncself</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fn2</span><span class="o">.</span><span class="n">_fncself</span> <span class="p">)</span>
+        <span class="c1"># build parent</span>
+        <span class="nb">super</span><span class="p">(</span><span class="nb">min</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">argument_fns</span><span class="o">=</span><span class="p">[</span><span class="n">fn1fn</span><span class="p">,</span><span class="n">fn2fn</span><span class="p">],</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Melbourne University, Monash University..
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

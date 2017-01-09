@@ -68,7 +68,9 @@ class CustomException(_Function):
     must pass it two functions: the first function is the pass through function,
     the second function is the required condition. You may also pass in a optional
     third function whose output will be printed if the condition evaluates to False.
+
     A CustomException function will perform the following logic:
+    
         1. Evaluate the condition function.
         2. If it evaluates to False, an exception is thrown and the simulation
            is halted. If a print function is provided, it will be evaluated 

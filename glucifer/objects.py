@@ -55,17 +55,17 @@ class ColourMap(_stgermain.StgCompoundComponent):
     
     Parameters
     ----------
-    colours: str, list.  default="#288FD0 #50B6B8 #989878 #C68838 #FF7520"
+    colours: str, list
         List of colours to use for drawing object colour map. Provided as a string
         or as a list of strings. Example, "red blue", or ["red", "blue"]
         This should not be specified if 'colourMap' is specified.
-    valueRange: tuple,list. default=None.
+    valueRange: tuple, list
         User defined value range to apply to colour map. Provided as a 
         tuple of floats  (minValue, maxValue). If none is provided, the
         value range will be determined automatically.
-    logScale: bool. default=False.
+    logScale: bool
         Bool to determine if the colourMap should use a logarithmic scale.
-    discrete: bool.  default=False.
+    discrete: bool
         Bool to determine if a discrete colour map should be used.
         Discrete colour maps do not interpolate between colours and instead
         use nearest neighbour for colouring.
@@ -75,7 +75,7 @@ class ColourMap(_stgermain.StgCompoundComponent):
     _objectsDict = { "_cm": "lucColourMap" }
     
     #Default is a cool-warm map with low variance in luminosity/lightness
-    def __init__(self, colours=None, valueRange=None, logScale=False, discrete=False, properties=None, **kwargs):
+    def __init__(self, colours="#288FD0 #50B6B8 #989878 #C68838 #FF7520", valueRange=None, logScale=False, discrete=False, properties=None, **kwargs):
 
         if not hasattr(self, 'properties'):
             self.properties = {}
@@ -146,27 +146,26 @@ class Drawing(_stgermain.StgCompoundComponent):
     This is the base class for all drawing objects but can also be instantiated 
     as is for direct/custom drawing.
     
-    Note that the defaults here are often overridden by the child objects. Please
-    inspect child constructor (__init__) itself to determine exact default settings.
+    Note that the defaults here are often overridden by the child objects.
     
     Parameters
     ----------
     colours: str, list.
         See ColourMap class docstring for further information
-    colourMap: ColourMap. default=None
+    colourMap: glucifer.objects.ColourMap
         A ColourMap object for the object to use.
         This should not be specified if 'colours' is specified.
-    properties: str.  default=None
+    properties: str
         Extra properties to apply to the drawing object.
-    opacity: float. default=None.
+    opacity: float
         Opacity of object. If provided, must take values from 0. to 1. 
-    colourBar: bool. default=False
+    colourBar: bool
         Bool to determine if a colour bar should be rendered.
-    valueRange: tuple,list. default=None.
+    valueRange: tuple, list
         See ColourMap class docstring for further information
-    logScale: bool. default=False.
+    logScale: bool
         See ColourMap class docstring for further information
-    discrete: bool.  default=False.
+    discrete: bool
         See ColourMap class docstring for further information
 
         
@@ -329,7 +328,7 @@ class ColourBar(Drawing):
     
     Parameters
     ----------
-    colourMap: ColourMap
+    colourMap: glucifer.objects.ColourMap
         Colour map for which the colour bar will be drawn.
     """
 
@@ -356,13 +355,13 @@ class CrossSection(Drawing):
     
     Parameters
     ---------
-    mesh : uw.mesh.Mesh
+    mesh : underworld.mesh.FeMesh
         Mesh over which cross section is rendered.
-    fn : uw.function.Function
+    fn : underworld.function.Function
         Function used to determine values to render.
-    crossSection : str, default=""
+    crossSection : str
         Cross Section definition, eg. z=0.
-    resolution : unsigned, default=100
+    resolution : unsigned
         Surface rendered sampling resolution.
         
     """
@@ -425,39 +424,31 @@ class Surface(CrossSection):
     
     Parameters
     ---------
-    mesh : uw.mesh.Mesh
+    mesh : underworld.mesh.FeMesh
         Mesh over which cross section is rendered.
-    fn : uw.function.Function
+    fn : underworld.function.Function
         Function used to determine values to render.
-    drawSides : str, default="xyzXYZ"
+    drawSides : str
         Sides (x,y,z,X,Y,Z) for which the surface should be drawn.  
-    drawOnMesh : bool, default=False.
-        Note that this option is current disabled.
-        Bool to determine whether the surface rendering should explicitly
-        use the mesh object to generate the rendered surface. This may 
-        result in better quality rendering for deformed mesh, and may 
-        also be faster.
     """
     
     # let's just build both objects because we aint sure yet which one we want to use yet
     _objectsDict = {  "_dr"  : "lucScalarField",
                       "_dr2" : "lucScalarFieldOnMesh" }
 
-    def __init__(self, mesh, fn, drawSides="xyzXYZ", drawOnMesh=False,
+    def __init__(self, mesh, fn, drawSides="xyzXYZ",
                        colours=None, colourMap=None, properties=None, opacity=None, colourBar=True,
                        valueRange=None, logScale=False, discrete=False,
                        *args, **kwargs):
 
-        if drawOnMesh:
-            raise RuntimeError("The 'drawOnMesh' option is currently disabled.")
         if not isinstance(drawSides,str):
             raise ValueError("'drawSides' parameter must be of python type 'str'")
         self._drawSides = drawSides
 
         # if we wish to draw on mesh, switch live object
-        if not isinstance(drawOnMesh, bool):
-            raise TypeError("'drawOnMesh parameter must be of type 'bool'.")
-        self._drawOnMesh = drawOnMesh
+#        if not isinstance(drawOnMesh, bool):
+#            raise TypeError("'drawOnMesh parameter must be of type 'bool'.")
+#        self._drawOnMesh = drawOnMesh
 
 
         #Default properties
@@ -484,17 +475,17 @@ class Surface(CrossSection):
         componentDictionary[self._dr2.name][     "Mesh"] = self._mesh._cself.name
 
     def _setup(self):
-        if self._drawOnMesh:
-            self._drOrig = self._dr
-            self._dr     = self._dr2
-            self._cself  = self._dr2
+#        if self._drawOnMesh:
+#            self._drOrig = self._dr
+#            self._dr     = self._dr2
+#            self._cself  = self._dr2
         _libUnderworld.gLucifer._lucCrossSection_SetFn( self._cself, self._fn._fncself )
 
     def __del__(self):
         # lets unwind the kludge from _setup to avoid any double deletions or memory leaks.
-        if self._drawOnMesh:
-            self._dr    = self._drOrig
-            self._cself = self._drOrig
+#        if self._drawOnMesh:
+#            self._dr    = self._drOrig
+#            self._cself = self._drOrig
         super(Surface,self).__del__()
 
 
@@ -506,15 +497,15 @@ class Points(Drawing):
     
     Parameters
     ---------
-    swarm : uw.swarm.Swarm
+    swarm : underworld.swarm.Swarm
         Swarm which provides locations for point rendering.
-    fn_colour : uw.function.Function
+    fn_colour : underworld.function.Function
         Function used to determine colour to render particle.
         This function should return float/double values.
-    fn_mask : uw.function.Function
+    fn_mask : underworld.function.Function
         Function used to determine if a particle should be rendered. 
         This function should return bool values. 
-    fn_size : uw.function.Function
+    fn_size : underworld.function.Function
         Function used to determine size to render particle.
         This function should return float/double values.
         
@@ -584,24 +575,16 @@ class _GridSampler3D(CrossSection):
     """
     _objectsDict = { "_dr": None } #Abstract class, Set by child
 
-    def __init__(self, resolutionI=None, resolutionJ=None, resolutionK=None, *args, **kwargs):
-
-        # set defaults here
-        if resolutionI == None:
-            resolutionI = 16
-        if resolutionJ == None:
-            resolutionJ = 16
-        if resolutionK == None:
-            resolutionK = 16
+    def __init__(self, resolutionI=16, resolutionJ=16, resolutionK=16, *args, **kwargs):
 
         if resolutionI:
-            if not isinstance(resolutionI,(int)):
+            if not isinstance(resolutionI,int):
                 raise TypeError("'resolutionI' object passed in must be of python type 'int'")
         if resolutionJ:
-            if not isinstance(resolutionJ,(int)):
+            if not isinstance(resolutionJ,int):
                 raise TypeError("'resolutionJ' object passed in must be of python type 'int'")
         if resolutionK:
-            if not isinstance(resolutionK,(int)):
+            if not isinstance(resolutionK,int):
                 raise TypeError("'resolutionK' object passed in must be of python type 'int'")
 
         self._resolutionI = resolutionI
@@ -632,9 +615,9 @@ class VectorArrows(_GridSampler3D):
     
     Parameters
     ---------
-    mesh : uw.mesh.Mesh
+    mesh : underworld.mesh.FeMesh
         Mesh over which vector arrows are rendered.
-    fn : uw.function.Function
+    fn : underworld.function.Function
         Function used to determine vectors to render. 
         Function should return a vector of floats/doubles of appropriate
         dimensionality.
@@ -646,11 +629,11 @@ class VectorArrows(_GridSampler3D):
     glyphs : int
         Type of glyph to render for vector arrow.
         0: Line, 1 or more: 3d arrow, higher number => better quality.
-    resolutionI : unsigned, default=16.
+    resolutionI : unsigned
         Number of samples in the I direction.
-    resolutionJ : unsigned, default=16.
+    resolutionJ : unsigned
         Number of samples in the J direction.
-    resolutionK : unsigned, default=16.
+    resolutionK : unsigned
         Number of samples in the K direction.
 
     """
@@ -696,17 +679,17 @@ class Volume(_GridSampler3D):
     
     Parameters
     ---------
-    mesh : uw.mesh.Mesh
+    mesh : underworld.mesh.FeMesh
         Mesh over which object is rendered.
-    fn : uw.function.Function
+    fn : underworld.function.Function
         Function used to determine colour values.
         Function should return a vector of floats/doubles of appropriate
         dimensionality.
-    resolutionI : unsigned, default=16.
+    resolutionI : unsigned
         Number of samples in the I direction.
-    resolutionJ : unsigned, default=16.
+    resolutionJ : unsigned
         Number of samples in the J direction.
-    resolutionK : unsigned, default=16.
+    resolutionK : unsigned
         Number of samples in the K direction.
 
     """
@@ -737,11 +720,11 @@ class Mesh(Drawing):
     
     Parameters
     ----------
-    mesh : uw.mesh.Mesh
+    mesh : underworld.mesh.FeMesh
         Mesh to render.
-    nodeNumbers : bool. default=False
+    nodeNumbers : bool
         Bool to determine whether global node numbers should be rendered. 
-    segmentsPerEdge : unsigned. default=1
+    segmentsPerEdge : unsigned
         Number of segments to render per cell/element edge. For higher 
         order mesh, more segments are useful to render mesh curvature correctly.
 

@@ -1,0 +1,558 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>glucifer.objects module &mdash; underworld2  documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="underworld2  documentation" href="index.html"/>
+        <link rel="up" title="glucifer module" href="glucifer.html"/>
+        <link rel="prev" title="glucifer module" href="glucifer.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> underworld2
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="underworld.html">underworld module</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="glucifer.html">glucifer module</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="glucifer.html#module-summary">Module Summary</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="glucifer.html#submodules">submodules:</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">glucifer.objects module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="glucifer.html#classes">classes:</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="glucifer.html#module-details">Module Details</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">underworld2</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="glucifer.html">glucifer module</a> &raquo;</li>
+      
+    <li>glucifer.objects module</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/glucifer.objects.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="glucifer-objects-module">
+<h1>glucifer.objects module<a class="headerlink" href="#glucifer-objects-module" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-summary">
+<h2>Module Summary<a class="headerlink" href="#module-summary" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="classes">
+<h3>classes:<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#glucifer.objects.ColourBar" title="glucifer.objects.ColourBar"><code class="xref py py-obj docutils literal"><span class="pre">glucifer.objects.ColourBar</span></code></a></td>
+<td>The ColourBar drawing object draws a colour bar for the provided colour map.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#glucifer.objects.VectorArrows" title="glucifer.objects.VectorArrows"><code class="xref py py-obj docutils literal"><span class="pre">glucifer.objects.VectorArrows</span></code></a></td>
+<td>This drawing object class draws vector arrows corresponding to the provided vector field.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#glucifer.objects.Points" title="glucifer.objects.Points"><code class="xref py py-obj docutils literal"><span class="pre">glucifer.objects.Points</span></code></a></td>
+<td>This drawing object class draws a swarm of points.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#glucifer.objects.Surface" title="glucifer.objects.Surface"><code class="xref py py-obj docutils literal"><span class="pre">glucifer.objects.Surface</span></code></a></td>
+<td>This drawing object class draws a surface using the provided scalar field.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#glucifer.objects.Volume" title="glucifer.objects.Volume"><code class="xref py py-obj docutils literal"><span class="pre">glucifer.objects.Volume</span></code></a></td>
+<td>This drawing object class draws a volume using the provided scalar field.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#glucifer.objects.Mesh" title="glucifer.objects.Mesh"><code class="xref py py-obj docutils literal"><span class="pre">glucifer.objects.Mesh</span></code></a></td>
+<td>This drawing object class draws a mesh.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#glucifer.objects.ColourMap" title="glucifer.objects.ColourMap"><code class="xref py py-obj docutils literal"><span class="pre">glucifer.objects.ColourMap</span></code></a></td>
+<td>The ColourMap class provides functionality for mapping colours to numerical values.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#glucifer.objects.CrossSection" title="glucifer.objects.CrossSection"><code class="xref py py-obj docutils literal"><span class="pre">glucifer.objects.CrossSection</span></code></a></td>
+<td>This drawing object class defines a cross-section plane, derived classes</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#glucifer.objects.Drawing" title="glucifer.objects.Drawing"><code class="xref py py-obj docutils literal"><span class="pre">glucifer.objects.Drawing</span></code></a></td>
+<td>This is the base class for all drawing objects but can also be instantiated as is for direct/custom drawing.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="module-details">
+<h2>Module Details<a class="headerlink" href="#module-details" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id1">
+<h3>classes:<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="glucifer.objects.ColourBar">
+<em class="property">class </em><code class="descclassname">glucifer.objects.</code><code class="descname">ColourBar</code><span class="sig-paren">(</span><em>colourMap</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/glucifer/objects.html#ColourBar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#glucifer.objects.ColourBar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#glucifer.objects.Drawing" title="glucifer.objects.Drawing"><code class="xref py py-class docutils literal"><span class="pre">glucifer.objects.Drawing</span></code></a></p>
+<p>The ColourBar drawing object draws a colour bar for the provided colour map.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>colourMap</strong> (<a class="reference internal" href="#glucifer.objects.ColourMap" title="glucifer.objects.ColourMap"><em>glucifer.objects.ColourMap</em></a>) &#8211; Colour map for which the colour bar will be drawn.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="glucifer.objects.VectorArrows">
+<em class="property">class </em><code class="descclassname">glucifer.objects.</code><code class="descname">VectorArrows</code><span class="sig-paren">(</span><em>mesh</em>, <em>fn</em>, <em>arrowHead=0.3</em>, <em>scaling=0.3</em>, <em>glyphs=3</em>, <em>resolutionI=None</em>, <em>resolutionJ=None</em>, <em>resolutionK=None</em>, <em>properties=None</em>, <em>opacity=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/glucifer/objects.html#VectorArrows"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#glucifer.objects.VectorArrows" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">glucifer.objects._GridSampler3D</span></code></p>
+<p>This drawing object class draws vector arrows corresponding to the provided vector field.</p>
+<p>See parent class for further parameter details. Also see property docstrings.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>mesh</strong> (<a class="reference internal" href="underworld.mesh.html#underworld.mesh.FeMesh" title="underworld.mesh.FeMesh"><em>underworld.mesh.FeMesh</em></a>) &#8211; Mesh over which vector arrows are rendered.</li>
+<li><strong>fn</strong> (<a class="reference internal" href="underworld.function.html#underworld.function.Function" title="underworld.function.Function"><em>underworld.function.Function</em></a>) &#8211; Function used to determine vectors to render.
+Function should return a vector of floats/doubles of appropriate
+dimensionality.</li>
+<li><strong>arrowHead</strong> (<em>float</em>) &#8211; The size of the head of the arrow compared with the arrow length.
+Must be in [0.,1.].</li>
+<li><strong>scaling</strong> (<em>float</em>) &#8211; Scaling for entire arrow.</li>
+<li><strong>glyphs</strong> (<em>int</em>) &#8211; Type of glyph to render for vector arrow.
+0: Line, 1 or more: 3d arrow, higher number =&gt; better quality.</li>
+<li><strong>resolutionI</strong> (<em>unsigned</em>) &#8211; Number of samples in the I direction.</li>
+<li><strong>resolutionJ</strong> (<em>unsigned</em>) &#8211; Number of samples in the J direction.</li>
+<li><strong>resolutionK</strong> (<em>unsigned</em>) &#8211; Number of samples in the K direction.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="glucifer.objects.Points">
+<em class="property">class </em><code class="descclassname">glucifer.objects.</code><code class="descname">Points</code><span class="sig-paren">(</span><em>swarm</em>, <em>fn_colour=None</em>, <em>fn_mask=None</em>, <em>fn_size=None</em>, <em>pointSize=1.0</em>, <em>pointType=1</em>, <em>colourVariable=None</em>, <em>colours=None</em>, <em>colourMap=None</em>, <em>properties=None</em>, <em>opacity=None</em>, <em>colourBar=True</em>, <em>valueRange=None</em>, <em>logScale=False</em>, <em>discrete=False</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/glucifer/objects.html#Points"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#glucifer.objects.Points" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#glucifer.objects.Drawing" title="glucifer.objects.Drawing"><code class="xref py py-class docutils literal"><span class="pre">glucifer.objects.Drawing</span></code></a></p>
+<p>This drawing object class draws a swarm of points.</p>
+<p>See parent class for further parameter details. Also see property docstrings.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>swarm</strong> (<a class="reference internal" href="underworld.swarm.html#underworld.swarm.Swarm" title="underworld.swarm.Swarm"><em>underworld.swarm.Swarm</em></a>) &#8211; Swarm which provides locations for point rendering.</li>
+<li><strong>fn_colour</strong> (<a class="reference internal" href="underworld.function.html#underworld.function.Function" title="underworld.function.Function"><em>underworld.function.Function</em></a>) &#8211; Function used to determine colour to render particle.
+This function should return float/double values.</li>
+<li><strong>fn_mask</strong> (<a class="reference internal" href="underworld.function.html#underworld.function.Function" title="underworld.function.Function"><em>underworld.function.Function</em></a>) &#8211; Function used to determine if a particle should be rendered.
+This function should return bool values.</li>
+<li><strong>fn_size</strong> (<a class="reference internal" href="underworld.function.html#underworld.function.Function" title="underworld.function.Function"><em>underworld.function.Function</em></a>) &#8211; Function used to determine size to render particle.
+This function should return float/double values.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="glucifer.objects.Surface">
+<em class="property">class </em><code class="descclassname">glucifer.objects.</code><code class="descname">Surface</code><span class="sig-paren">(</span><em>mesh</em>, <em>fn</em>, <em>drawSides='xyzXYZ'</em>, <em>colours=None</em>, <em>colourMap=None</em>, <em>properties=None</em>, <em>opacity=None</em>, <em>colourBar=True</em>, <em>valueRange=None</em>, <em>logScale=False</em>, <em>discrete=False</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/glucifer/objects.html#Surface"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#glucifer.objects.Surface" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#glucifer.objects.CrossSection" title="glucifer.objects.CrossSection"><code class="xref py py-class docutils literal"><span class="pre">glucifer.objects.CrossSection</span></code></a></p>
+<p>This drawing object class draws a surface using the provided scalar field.</p>
+<p>See parent class for further parameter details. Also see property docstrings.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>mesh</strong> (<a class="reference internal" href="underworld.mesh.html#underworld.mesh.FeMesh" title="underworld.mesh.FeMesh"><em>underworld.mesh.FeMesh</em></a>) &#8211; Mesh over which cross section is rendered.</li>
+<li><strong>fn</strong> (<a class="reference internal" href="underworld.function.html#underworld.function.Function" title="underworld.function.Function"><em>underworld.function.Function</em></a>) &#8211; Function used to determine values to render.</li>
+<li><strong>drawSides</strong> (<em>str</em>) &#8211; Sides (x,y,z,X,Y,Z) for which the surface should be drawn.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="glucifer.objects.Volume">
+<em class="property">class </em><code class="descclassname">glucifer.objects.</code><code class="descname">Volume</code><span class="sig-paren">(</span><em>mesh</em>, <em>fn</em>, <em>resolutionI=None</em>, <em>resolutionJ=None</em>, <em>resolutionK=None</em>, <em>colours=None</em>, <em>colourMap=None</em>, <em>properties=None</em>, <em>opacity=None</em>, <em>colourBar=True</em>, <em>valueRange=None</em>, <em>logScale=False</em>, <em>discrete=False</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/glucifer/objects.html#Volume"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#glucifer.objects.Volume" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">glucifer.objects._GridSampler3D</span></code></p>
+<p>This drawing object class draws a volume using the provided scalar field.</p>
+<p>See parent class for further parameter details. Also see property docstrings.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>mesh</strong> (<a class="reference internal" href="underworld.mesh.html#underworld.mesh.FeMesh" title="underworld.mesh.FeMesh"><em>underworld.mesh.FeMesh</em></a>) &#8211; Mesh over which object is rendered.</li>
+<li><strong>fn</strong> (<a class="reference internal" href="underworld.function.html#underworld.function.Function" title="underworld.function.Function"><em>underworld.function.Function</em></a>) &#8211; Function used to determine colour values.
+Function should return a vector of floats/doubles of appropriate
+dimensionality.</li>
+<li><strong>resolutionI</strong> (<em>unsigned</em>) &#8211; Number of samples in the I direction.</li>
+<li><strong>resolutionJ</strong> (<em>unsigned</em>) &#8211; Number of samples in the J direction.</li>
+<li><strong>resolutionK</strong> (<em>unsigned</em>) &#8211; Number of samples in the K direction.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="glucifer.objects.Mesh">
+<em class="property">class </em><code class="descclassname">glucifer.objects.</code><code class="descname">Mesh</code><span class="sig-paren">(</span><em>mesh</em>, <em>nodeNumbers=False</em>, <em>segmentsPerEdge=1</em>, <em>properties={'linesmooth': False}</em>, <em>opacity=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/glucifer/objects.html#Mesh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#glucifer.objects.Mesh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#glucifer.objects.Drawing" title="glucifer.objects.Drawing"><code class="xref py py-class docutils literal"><span class="pre">glucifer.objects.Drawing</span></code></a></p>
+<p>This drawing object class draws a mesh.</p>
+<p>See parent class for further parameter details. Also see property docstrings.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>mesh</strong> (<a class="reference internal" href="underworld.mesh.html#underworld.mesh.FeMesh" title="underworld.mesh.FeMesh"><em>underworld.mesh.FeMesh</em></a>) &#8211; Mesh to render.</li>
+<li><strong>nodeNumbers</strong> (<em>bool</em>) &#8211; Bool to determine whether global node numbers should be rendered.</li>
+<li><strong>segmentsPerEdge</strong> (<em>unsigned</em>) &#8211; Number of segments to render per cell/element edge. For higher
+order mesh, more segments are useful to render mesh curvature correctly.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="glucifer.objects.ColourMap">
+<em class="property">class </em><code class="descclassname">glucifer.objects.</code><code class="descname">ColourMap</code><span class="sig-paren">(</span><em>colours='#288FD0 #50B6B8 #989878 #C68838 #FF7520'</em>, <em>valueRange=None</em>, <em>logScale=False</em>, <em>discrete=False</em>, <em>properties=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/glucifer/objects.html#ColourMap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#glucifer.objects.ColourMap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">underworld._stgermain.StgCompoundComponent</span></code></p>
+<p>The ColourMap class provides functionality for mapping colours to numerical
+values.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>colours</strong> (<em>str, list</em>) &#8211; List of colours to use for drawing object colour map. Provided as a string
+or as a list of strings. Example, &#8220;red blue&#8221;, or [&#8220;red&#8221;, &#8220;blue&#8221;]
+This should not be specified if &#8216;colourMap&#8217; is specified.</li>
+<li><strong>valueRange</strong> (<em>tuple, list</em>) &#8211; User defined value range to apply to colour map. Provided as a
+tuple of floats  (minValue, maxValue). If none is provided, the
+value range will be determined automatically.</li>
+<li><strong>logScale</strong> (<em>bool</em>) &#8211; Bool to determine if the colourMap should use a logarithmic scale.</li>
+<li><strong>discrete</strong> (<em>bool</em>) &#8211; Bool to determine if a discrete colour map should be used.
+Discrete colour maps do not interpolate between colours and instead
+use nearest neighbour for colouring.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="glucifer.objects.CrossSection">
+<em class="property">class </em><code class="descclassname">glucifer.objects.</code><code class="descname">CrossSection</code><span class="sig-paren">(</span><em>mesh</em>, <em>fn</em>, <em>crossSection=''</em>, <em>resolution=100</em>, <em>colours=None</em>, <em>colourMap=None</em>, <em>properties=None</em>, <em>opacity=None</em>, <em>colourBar=True</em>, <em>valueRange=None</em>, <em>logScale=False</em>, <em>discrete=False</em>, <em>offsetEdges=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/glucifer/objects.html#CrossSection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#glucifer.objects.CrossSection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#glucifer.objects.Drawing" title="glucifer.objects.Drawing"><code class="xref py py-class docutils literal"><span class="pre">glucifer.objects.Drawing</span></code></a></p>
+<p>This drawing object class defines a cross-section plane, derived classes
+plot data over this cross section</p>
+<p>See parent class for further parameter details. Also see property docstrings.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>mesh</strong> (<a class="reference internal" href="underworld.mesh.html#underworld.mesh.FeMesh" title="underworld.mesh.FeMesh"><em>underworld.mesh.FeMesh</em></a>) &#8211; Mesh over which cross section is rendered.</li>
+<li><strong>fn</strong> (<a class="reference internal" href="underworld.function.html#underworld.function.Function" title="underworld.function.Function"><em>underworld.function.Function</em></a>) &#8211; Function used to determine values to render.</li>
+<li><strong>crossSection</strong> (<em>str</em>) &#8211; Cross Section definition, eg. z=0.</li>
+<li><strong>resolution</strong> (<em>unsigned</em>) &#8211; Surface rendered sampling resolution.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="glucifer.objects.CrossSection.crossSection">
+<code class="descname">crossSection</code><a class="headerlink" href="#glucifer.objects.CrossSection.crossSection" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>crossSection (str)</em> &#8211; Cross Section definition, eg;: z=0.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="glucifer.objects.Drawing">
+<em class="property">class </em><code class="descclassname">glucifer.objects.</code><code class="descname">Drawing</code><span class="sig-paren">(</span><em>name=None</em>, <em>colours=None</em>, <em>colourMap=None</em>, <em>properties=None</em>, <em>opacity=None</em>, <em>colourBar=False</em>, <em>valueRange=None</em>, <em>logScale=False</em>, <em>discrete=False</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/glucifer/objects.html#Drawing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#glucifer.objects.Drawing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">underworld._stgermain.StgCompoundComponent</span></code></p>
+<p>This is the base class for all drawing objects but can also be instantiated
+as is for direct/custom drawing.</p>
+<p>Note that the defaults here are often overridden by the child objects.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>colours</strong> (<em>str, list.</em>) &#8211; See ColourMap class docstring for further information</li>
+<li><strong>colourMap</strong> (<a class="reference internal" href="#glucifer.objects.ColourMap" title="glucifer.objects.ColourMap"><em>glucifer.objects.ColourMap</em></a>) &#8211; A ColourMap object for the object to use.
+This should not be specified if &#8216;colours&#8217; is specified.</li>
+<li><strong>properties</strong> (<em>str</em>) &#8211; Extra properties to apply to the drawing object.</li>
+<li><strong>opacity</strong> (<em>float</em>) &#8211; Opacity of object. If provided, must take values from 0. to 1.</li>
+<li><strong>colourBar</strong> (<em>bool</em>) &#8211; Bool to determine if a colour bar should be rendered.</li>
+<li><strong>valueRange</strong> (<em>tuple, list</em>) &#8211; See ColourMap class docstring for further information</li>
+<li><strong>logScale</strong> (<em>bool</em>) &#8211; See ColourMap class docstring for further information</li>
+<li><strong>discrete</strong> (<em>bool</em>) &#8211; See ColourMap class docstring for further information</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="glucifer.objects.Drawing.colourBar">
+<code class="descname">colourBar</code><a class="headerlink" href="#glucifer.objects.Drawing.colourBar" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>colourBar (dict)</em> &#8211; return colour bar of drawing object, create if
+doesn&#8217;t yet exist.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="glucifer.objects.Drawing.label">
+<code class="descname">label</code><span class="sig-paren">(</span><em>text</em>, <em>pos=(0.0</em>, <em>0.0</em>, <em>0.0)</em>, <em>font='sans'</em>, <em>scaling=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/glucifer/objects.html#Drawing.label"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#glucifer.objects.Drawing.label" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes a label string</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>text</strong> (<em>str</em>) &#8211; label text.</li>
+<li><strong>pos</strong> (<em>tuple</em>) &#8211; X,Y,Z position to place the label.</li>
+<li><strong>font</strong> (<em>str</em>) &#8211; label font (small/fixed/sans/serif/vector).</li>
+<li><strong>scaling</strong> (<em>float</em>) &#8211; label font scaling (for &#8220;vector&#8221; font only).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="glucifer.objects.Drawing.line">
+<code class="descname">line</code><span class="sig-paren">(</span><em>start=(0.0</em>, <em>0.0</em>, <em>0.0)</em>, <em>end=(0.0</em>, <em>0.0</em>, <em>0.0)</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/glucifer/objects.html#Drawing.line"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#glucifer.objects.Drawing.line" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draws a line</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>start</strong> (<em>tuple</em>) &#8211; X,Y,Z position to start line</li>
+<li><strong>end</strong> (<em>tuple</em>) &#8211; X,Y,Z position to end line</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="glucifer.objects.Drawing.point">
+<code class="descname">point</code><span class="sig-paren">(</span><em>pos=(0.0</em>, <em>0.0</em>, <em>0.0)</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/glucifer/objects.html#Drawing.point"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#glucifer.objects.Drawing.point" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draws a point</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>pos</strong> (<em>tuple</em>) &#8211; X,Y,Z position to place the point</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="glucifer.objects.Drawing.vector">
+<code class="descname">vector</code><span class="sig-paren">(</span><em>position=(0.0</em>, <em>0.0</em>, <em>0.0)</em>, <em>vector=(0.0</em>, <em>0.0</em>, <em>0.0)</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/glucifer/objects.html#Drawing.vector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#glucifer.objects.Drawing.vector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draws a vector</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>position</strong> (<em>tuple</em>) &#8211; X,Y,Z position to centre vector on</li>
+<li><strong>vector</strong> (<em>tuple</em>) &#8211; X,Y,Z vector value</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="glucifer.html" class="btn btn-neutral" title="glucifer module" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Melbourne University, Monash University..
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

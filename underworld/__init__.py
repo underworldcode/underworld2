@@ -68,30 +68,30 @@ _sys.setdlopenflags( _oldflags )
 
 # lets go right ahead and init now.  user can re-init if necessary.
 import _stgermain
-_data =  libUnderworld.StGermain_Tools.StgInit( [] )
+_data =  libUnderworld.StGermain_Tools.StgInit( _sys.argv )
 
 _stgermain.LoadModules( {"import":["StgDomain","StgFEM","PICellerator","Underworld","gLucifer","Solvers"]} )
 
 def rank():
     """
-    Returns the rank of the current processors.
+    Returns the rank of the current process.
 
     Returns
     -------
-        unsigned
-            Rank of current processor.
+    unsigned
+        Rank of current process.
     """
     return _data.rank
 
 
 def nProcs():
     """
-    Returns the number of processors being utilised by the simulation.
+    Returns the number of processes being utilised by the simulation.
 
     Returns
     -------
-        unsigned
-            Number of processors.
+    unsigned
+        Number of processors.
     """
     return _data.nProcs
 
@@ -106,10 +106,10 @@ def barrier():
 def matplotlib_inline():
     """
     This function simply enables Jupyter Notebook inlined matplotlib results.
-    This is the same functionality provided by the Jupyter Notebook 
-    *%matplotlib inline* magic. Using this method is preferable as it 
-    allows notebooks to be converted to Python scripts which do not rely 
-    on ipython.
+    This function should be called at the start of your notebooks as a 
+    replacement for the Jupyter Notebook *%matplotlib inline* magic. It provides
+    the same functionality, however it allows notebooks to be converted to
+    python without having to explicitly remove these calls.
     """
     try :
         if(__IPYTHON__) :

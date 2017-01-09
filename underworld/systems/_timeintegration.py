@@ -18,9 +18,10 @@ class TimeIntegration(_stgermain.StgCompoundComponent):
     midpoint information varying in space - using only the present timestep solution.
     The order of the integration used can be 1,2,4
 
-    References
+    Parameters
     ----------
-    .. [1] https://en.wikipedia.org/wiki/Runge-Kutta_methods
+    order: int {1,2,4}
+        Defines the numerical order 'in space' of the Runge Kutta like integration scheme.
 
     """
     _objectsDict = {     "_system" : "TimeIntegrator",
@@ -28,14 +29,6 @@ class TimeIntegration(_stgermain.StgCompoundComponent):
     _selfObjectName = "_system"
 
     def __init__(self, order, **kwargs):
-        """
-        Parameters
-        ----------
-        order: int {1,2,4}
-            Defines the numerical order 'in space' of the Runge Kutta like integration algorithm.
-
-        """
-
         if not isinstance( order, int):
             raise ValueError( "Provided 'order' must be of 'int' class." )
         self._order = order
@@ -83,30 +76,21 @@ class TimeIntegration(_stgermain.StgCompoundComponent):
 
 class SwarmAdvector(TimeIntegration):
     """
-    Class that performs advecting a swarm in time.
+    Objects of this class advect a swarm through time using
+    the provided velocity field.
+
+    Parameters
+    ----------
+    velocityField : underworld.mesh.MeshVariable
+        The MeshVariable field used for evaluating the velocity field that advects the swarm particles
+
+    swarm : underworld.swarm.Swarm
+        Particle swarm that will be advected by the given velocity field
+
     """
     _objectsDict = { "_integrand" : "SwarmAdvector" }
 
     def __init__(self, velocityField, swarm, order=2, **kwargs):
-        """
-        Defines a swarmAdvector instance. This object integrates a swarm through time using
-        the associated velocityField.
-
-        Parameters
-        ----------
-        velocityField : MeshVariable
-            The MeshVariable field used for evaluating the velocity field that advects the swarm particles
-
-        swarm : Swarm
-            Particle swarm that will be advected by the given velocity field
-
-
-        Also see
-        --------
-        Parent class: TimeIntegration
-
-        """
-
         if not isinstance( velocityField, uw.mesh.MeshVariable):
             raise ValueError( "Provided 'velocityField' must be of 'MeshVariable' class." )
         self._velocityField = velocityField
@@ -136,12 +120,15 @@ class SwarmAdvector(TimeIntegration):
         ----------
         dt: double
             The timestep to use in the intergration
-        update_owners: bool, default=True
+        update_owners: bool
             If this is set to False, particle ownership (which element owns a 
             particular particle) is not updated after advection. This is often 
             necessary when both the mesh and particles are advecting 
             simutaneously.
 
+        Example
+        -------
+        
         >>> import underworld as uw
         >>> import numpy as np
         >>> import numpy.testing as npt

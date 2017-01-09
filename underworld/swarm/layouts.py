@@ -12,21 +12,23 @@ the domain.
 '''
 import underworld._stgermain as _stgermain
 import _swarm
+import abc as _abc
 
-class _ParticleLayout(_stgermain.StgCompoundComponent):
+class ParticleLayoutAbstract(_stgermain.StgCompoundComponent):
     """
     Abstract class. Children classes are responsible for populating 
     swarms with particles, generally across the entire domain.
 
     Parameters
     ----------
-    swarm : uw.swarm.Swarm
+    swarm : underworld.swarm.Swarm
         The swarm this layout will act upon
     
     """
     _objectsDict = {  "_layout": None }
     _selfObjectName = "_layout"
 
+    __metaclass__ = _abc.ABCMeta
     def __init__(self, swarm, **kwargs ):
 
 
@@ -35,30 +37,36 @@ class _ParticleLayout(_stgermain.StgCompoundComponent):
         self._swarm = swarm
 
         # build parent
-        super(_ParticleLayout,self).__init__(**kwargs)
+        super(ParticleLayoutAbstract,self).__init__(**kwargs)
 
     @property
     def swarm(self):
-        """    
-        swarm (Swarm): swarm this layout will act to fill with particlces.
+        """
+        Returns
+        -------
+        underworld.swarm.Swarm
+            Swarm this layout will act to fill with particlces.
         """
         return self._swarm
     
 
 
-class PerCellGaussLayout(_ParticleLayout):
+class PerCellGaussLayout(ParticleLayoutAbstract):
     """
     This layout populates the domain with particles located at gauss locations 
     within each element of the swarm's associated finite element mesh.
 
     Parameters
     ----------
-    swarm : uw.swarm.Swarm
+    swarm : underworld.swarm.Swarm
         The swarm this layout will act upon
     gaussPointCount : int
         Per cell, the number of gauss points in each dimensional direction.
         Must take an int value between 1 and 5 inclusive.
     
+
+    Example
+    -------
     >>> import underworld as uw
     >>> # choose mesh to coincide with global element
     >>> mesh = uw.mesh.FeMesh_Cartesian('Q1/dQ0', (1,1), (-1.,-1.), (1.,1.))
@@ -91,14 +99,6 @@ class PerCellGaussLayout(_ParticleLayout):
         # build parent
         super(PerCellGaussLayout,self).__init__(swarm=swarm, **kwargs)
 
-    @property
-    def gaussPointCount(self):
-        """    
-        gaussPointCount (int): Number of gauss points in each direction.
-        """
-        return self._gaussPointCount
-
-
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method
 
@@ -106,10 +106,10 @@ class PerCellGaussLayout(_ParticleLayout):
         
         componentDictionary[ self._layout.name ][           "dim"] = self.swarm.mesh.dim
         componentDictionary[ self._layout.name ][        "FeMesh"] = self.swarm.mesh._cself.name
-        componentDictionary[ self._layout.name ]["gaussParticles"] = self.gaussPointCount
+        componentDictionary[ self._layout.name ]["gaussParticles"] = self._gaussPointCount
 
 
-class GlobalSpaceFillerLayout(_ParticleLayout):
+class GlobalSpaceFillerLayout(ParticleLayoutAbstract):
     """
     This layout fills the domain with particles in a quasi-random pattern. It utilises
     sobol sequences to generate global particle locations which are more uniform than that
@@ -118,11 +118,14 @@ class GlobalSpaceFillerLayout(_ParticleLayout):
 
     Parameters
     ----------
-    swarm : uw.swarm.Swarm
+    swarm : underworld.swarm.Swarm
         The swarm this layout will act upon
     particlesPerCell : float
         The average number of particles per element that this layout will generate.
-    
+
+
+    Example
+    -------
     >>> import underworld as uw
     >>> mesh = uw.mesh.FeMesh_Cartesian('Q1/dQ0', (1,1), (0.,0.), (1.,1.))
     >>> swarm = uw.swarm.Swarm(mesh)
@@ -149,13 +152,6 @@ class GlobalSpaceFillerLayout(_ParticleLayout):
         # build parent
         super(GlobalSpaceFillerLayout,self).__init__(swarm=swarm, **kwargs)
 
-    @property
-    def particlesPerCell(self):
-        """    
-        particlesPerCell (float): The average number of particles per cell.
-        """
-        return self._particlesPerCell
-
 
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method
@@ -163,17 +159,17 @@ class GlobalSpaceFillerLayout(_ParticleLayout):
         super(GlobalSpaceFillerLayout,self)._add_to_stg_dict(componentDictionary)
         
         componentDictionary[ self._layout.name ][                           "dim"] = self.swarm.mesh.dim
-        componentDictionary[ self._layout.name ]["averageInitialParticlesPerCell"] = self.particlesPerCell
+        componentDictionary[ self._layout.name ]["averageInitialParticlesPerCell"] = self._particlesPerCell
 
 
-class _PerCellMeshParticleLayout(_ParticleLayout):
+class _PerCellMeshParticleLayout(ParticleLayoutAbstract):
     """
     This layout fills the domain with particles on a per cell basis. It should not
     be directly invoked with instead one of its child classes being used.
     
     Parameters
     ----------
-    swarm : uw.swarm.Swarm
+    swarm : underworld.swarm.Swarm
         The swarm this layout will act upon
     particlesPerCell : int
         The number of particles per element/cell that this layout will generate.
@@ -191,20 +187,12 @@ class _PerCellMeshParticleLayout(_ParticleLayout):
         # build parent
         super(_PerCellMeshParticleLayout,self).__init__(swarm=swarm, **kwargs)
 
-    @property
-    def particlesPerCell(self):
-        """    
-        particlesPerCell (float): The number of particles per cell.
-        """
-        return self._particlesPerCell
-
-
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method
 
         super(_PerCellMeshParticleLayout,self)._add_to_stg_dict(componentDictionary)
         
-        componentDictionary[ self._layout.name ]["cellParticleCount"] = self.particlesPerCell
+        componentDictionary[ self._layout.name ]["cellParticleCount"] = self._particlesPerCell
         componentDictionary[ self._layout.name ][           "FeMesh"] = self.swarm.mesh._cself.name
         componentDictionary[ self._layout.name ][         "filltype"] = self._filltype
 
@@ -218,11 +206,14 @@ class PerCellSpaceFillerLayout(_PerCellMeshParticleLayout):
 
     Parameters
     ----------
-    swarm : uw.swarm.Swarm
+    swarm : underworld.swarm.Swarm
         The swarm this layout will act upon
     particlesPerCell : int
         The number of particles per element that this layout will generate.
     
+    
+    Example
+    -------
     >>> import underworld as uw
     >>> mesh = uw.mesh.FeMesh_Cartesian('Q1/dQ0', (1,1), (0.,0.), (1.,1.))
     >>> swarm = uw.swarm.Swarm(mesh)
@@ -253,14 +244,16 @@ class PerCellRandomLayout(_PerCellMeshParticleLayout):
 
     Parameters
     ----------
-    swarm : uw.swarm.Swarm
+    swarm : underworld.swarm.Swarm
         The swarm this layout will act upon
     particlesPerCell : int
         The number of particles per element that this layout will generate.
     seed : int
         Seed for random generator. Default is 13.
-    
 
+
+    Example
+    -------
     >>> import underworld as uw
     >>> mesh = uw.mesh.FeMesh_Cartesian('Q1/dQ0', (1,1), (0.,0.), (1.,1.))
     >>> swarm = uw.swarm.Swarm(mesh)

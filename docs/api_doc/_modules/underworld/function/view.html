@@ -1,0 +1,351 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>underworld.function.view &mdash; underworld2  documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="underworld2  documentation" href="../../../index.html"/>
+        <link rel="up" title="underworld" href="../../underworld.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> underworld2
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../underworld.html">underworld module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../glucifer.html">glucifer module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">underworld2</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../underworld.html">underworld</a> &raquo;</li>
+      
+    <li>underworld.function.view</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for underworld.function.view</h1><div class="highlight"><pre>
+<span></span><span class="c1">##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##  This file forms part of the Underworld geophysics modelling application.         ##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##  For full license and copyright information, please refer to the LICENSE.md file  ##</span>
+<span class="c1">##  located at the project root, or contact the authors.                             ##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module includes functions which provide views into the results of</span>
+<span class="sd">function queries.  These functions never modify query data. </span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">libUnderworld.libUnderworldPy.Function</span> <span class="k">as</span> <span class="nn">_cfn</span>
+<span class="kn">from</span> <span class="nn">_function</span> <span class="k">import</span> <span class="n">Function</span> <span class="k">as</span> <span class="n">_Function</span>
+
+<div class="viewcode-block" id="min_max"><a class="viewcode-back" href="../../../underworld.function.view.html#underworld.function.view.min_max">[docs]</a><span class="k">class</span> <span class="nc">min_max</span><span class="p">(</span><span class="n">_Function</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">    This function records the min &amp; max result from a queried function.</span>
+<span class="sd">    </span>
+<span class="sd">    Note that this function simply records maximum and minimum values</span>
+<span class="sd">    encountered as it evaluated. Until it is evaluated at least once,</span>
+<span class="sd">    the values returned via one of its methods (&#39;min_local&#39;,</span>
+<span class="sd">    &#39;min_global&#39;, etc ) will be the initialisation values and bear no </span>
+<span class="sd">    relation to the min or max of the subject function.</span>
+<span class="sd">    </span>
+<span class="sd">    For vector input types, this function will report on the magnitude</span>
+<span class="sd">    of the vector.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fn: underworld.function.Function</span>
+<span class="sd">        The subject function. Function must return a float type.</span>
+<span class="sd">        </span>
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    Create a simple function which returns two times its input:</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; import underworld as uw</span>
+<span class="sd">    &gt;&gt;&gt; import underworld.function as fn</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; fn_simple = fn.input()[0]*2.</span>
+<span class="sd">    </span>
+<span class="sd">    Let&#39;s wrap it with a min_max function:</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; fn_minmax_simple = fn.view.min_max(fn_simple)</span>
+<span class="sd">    </span>
+<span class="sd">    Now do an evaluation:</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; fn_minmax_simple.evaluate(5.)</span>
+<span class="sd">    array([[ 10.]])</span>
+<span class="sd">    </span>
+<span class="sd">    Since there&#39;s only been one evaluation, min and max </span>
+<span class="sd">    values should be identical:</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; fn_minmax_simple.min_global()</span>
+<span class="sd">    10.0</span>
+<span class="sd">    &gt;&gt;&gt; fn_minmax_simple.max_global()</span>
+<span class="sd">    10.0</span>
+<span class="sd">    </span>
+<span class="sd">    Do another evaluation:</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; fn_minmax_simple.evaluate(-3.)</span>
+<span class="sd">    array([[-6.]])</span>
+<span class="sd">    </span>
+<span class="sd">    Now check min and max again:</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; fn_minmax_simple.min_global()</span>
+<span class="sd">    -6.0</span>
+<span class="sd">    &gt;&gt;&gt; fn_minmax_simple.max_global()</span>
+<span class="sd">    10.0</span>
+<span class="sd">    </span>
+<span class="sd">    Note that if we only evaluate the subject function,</span>
+<span class="sd">    no min/max values are recorded:</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; fn_simple.evaluate(3000.)</span>
+<span class="sd">    array([[ 6000.]])</span>
+<span class="sd">    &gt;&gt;&gt; fn_minmax_simple.max_global()</span>
+<span class="sd">    10.0</span>
+<span class="sd">    </span>
+<span class="sd">    Also note that for vector valued subject function, only</span>
+<span class="sd">    a magnitude is considered:</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; import math</span>
+<span class="sd">    &gt;&gt;&gt; fn_vec = fn.view.min_max(fn.input())</span>
+<span class="sd">    &gt;&gt;&gt; fn_vec.evaluate( ( 1., 1.) )</span>
+<span class="sd">    array([[ 1.,  1.]])</span>
+<span class="sd">    &gt;&gt;&gt; np.allclose(fn_vec.min_global(), math.sqrt(2.))</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; np.allclose(fn_vec.max_global(), math.sqrt(2.))</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; fn_vec.evaluate( ( -1., 0.) )</span>
+<span class="sd">    array([[-1.,  0.]])</span>
+<span class="sd">    &gt;&gt;&gt; np.allclose(fn_vec.min_global(), 1. )</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; np.allclose(fn_vec.max_global(), math.sqrt(2.))</span>
+<span class="sd">    True</span>
+<span class="sd">    </span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="n">_fn</span> <span class="o">=</span> <span class="n">_Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">_fn</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span> <span class="s2">&quot;provided &#39;fn&#39; must a &#39;Function&#39; or convertible.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn</span> <span class="o">=</span> <span class="n">_fn</span>
+
+        <span class="c1"># create instance</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fncself</span> <span class="o">=</span> <span class="n">_cfn</span><span class="o">.</span><span class="n">MinMax</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fn</span><span class="o">.</span><span class="n">_fncself</span> <span class="p">)</span>
+
+        <span class="c1"># build parent</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">min_max</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">argument_fns</span><span class="o">=</span><span class="p">[</span><span class="n">fn</span><span class="p">,],</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="min_max.min_local"><a class="viewcode-back" href="../../../underworld.function.view.html#underworld.function.view.min_max.min_local">[docs]</a>    <span class="k">def</span> <span class="nf">min_local</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the minimum value encountered locally on the current process.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        double: minimum value</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fncself</span><span class="o">.</span><span class="n">getMin</span><span class="p">()</span></div>
+<div class="viewcode-block" id="min_max.max_local"><a class="viewcode-back" href="../../../underworld.function.view.html#underworld.function.view.min_max.max_local">[docs]</a>    <span class="k">def</span> <span class="nf">max_local</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the max value encountered locally on the current process.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        double: maximum value</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fncself</span><span class="o">.</span><span class="n">getMax</span><span class="p">()</span></div>
+<div class="viewcode-block" id="min_max.min_global"><a class="viewcode-back" href="../../../underworld.function.view.html#underworld.function.view.min_max.min_global">[docs]</a>    <span class="k">def</span> <span class="nf">min_global</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the minimum value encountered across all processes.</span>
+<span class="sd">        </span>
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        This method must be called by collectively all processes.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        double: minimum value</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fncself</span><span class="o">.</span><span class="n">getMinGlobal</span><span class="p">()</span></div>
+<div class="viewcode-block" id="min_max.max_global"><a class="viewcode-back" href="../../../underworld.function.view.html#underworld.function.view.min_max.max_global">[docs]</a>    <span class="k">def</span> <span class="nf">max_global</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the maximum value encountered across all processes.</span>
+<span class="sd">        </span>
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        This method must be called by collectively all processes.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        double: maximum value</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fncself</span><span class="o">.</span><span class="n">getMaxGlobal</span><span class="p">()</span></div>
+<div class="viewcode-block" id="min_max.reset"><a class="viewcode-back" href="../../../underworld.function.view.html#underworld.function.view.min_max.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Resets the minimum and maximum values.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fncself</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Melbourne University, Monash University..
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

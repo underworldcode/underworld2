@@ -1,0 +1,421 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>underworld.systems._thermal &mdash; underworld2  documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="underworld2  documentation" href="../../../index.html"/>
+        <link rel="up" title="underworld" href="../../underworld.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> underworld2
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../underworld.html">underworld module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../glucifer.html">glucifer module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">underworld2</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../underworld.html">underworld</a> &raquo;</li>
+      
+    <li>underworld.systems._thermal</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for underworld.systems._thermal</h1><div class="highlight"><pre>
+<span></span><span class="c1">##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##  This file forms part of the Underworld geophysics modelling application.         ##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##  For full license and copyright information, please refer to the LICENSE.md file  ##</span>
+<span class="c1">##  located at the project root, or contact the authors.                             ##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##</span>
+<span class="kn">import</span> <span class="nn">underworld</span> <span class="k">as</span> <span class="nn">uw</span>
+<span class="kn">import</span> <span class="nn">underworld._stgermain</span> <span class="k">as</span> <span class="nn">_stgermain</span>
+<span class="kn">import</span> <span class="nn">sle</span>
+<span class="kn">import</span> <span class="nn">libUnderworld</span>
+
+<div class="viewcode-block" id="SteadyStateHeat"><a class="viewcode-back" href="../../../underworld.systems.html#underworld.systems.SteadyStateHeat">[docs]</a><span class="k">class</span> <span class="nc">SteadyStateHeat</span><span class="p">(</span><span class="n">_stgermain</span><span class="o">.</span><span class="n">StgCompoundComponent</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class provides functionality for a discrete representation</span>
+<span class="sd">    of the steady state heat equation.</span>
+
+<span class="sd">    The class uses a standard Galerkin finite element method to</span>
+<span class="sd">    construct a system of linear equations which may then be solved</span>
+<span class="sd">    using an object of the underworld.system.Solver class.</span>
+
+<span class="sd">    The underlying element types are determined by the supporting</span>
+<span class="sd">    mesh used for the &#39;temperatureField&#39;.</span>
+
+<span class="sd">    The strong form of the given boundary value problem, for :math:`f`,</span>
+<span class="sd">    :math:`q` and :math:`h` given, is</span>
+<span class="sd">    </span>
+<span class="sd">    .. math::</span>
+<span class="sd">        \\begin{align}</span>
+<span class="sd">        q_i =&amp; - \\kappa \\, u_{,i}  &amp; \\\\</span>
+<span class="sd">        q_{i,i} =&amp; \\: f  &amp; \\text{ in }  \\Omega \\\\</span>
+<span class="sd">        u =&amp; \\: q &amp; \\text{ on }  \\Gamma_q \\\\</span>
+<span class="sd">        -q_i n_i =&amp; \\: h &amp; \\text{ on }  \\Gamma_h \\\\</span>
+<span class="sd">        \\end{align}</span>
+
+<span class="sd">    where, :math:`\\kappa` is the diffusivity, :math:`u` is the temperature,</span>
+<span class="sd">    :math:`f` is a source term, :math:`q` is the Dirichlet condition, and</span>
+<span class="sd">    :math:`h` is a Neumann condition. The problem boundary, :math:`\\Gamma`, </span>
+<span class="sd">    admits the decomposition :math:`\\Gamma=\\Gamma_q\\cup\\Gamma_h` where</span>
+<span class="sd">    :math:`\\emptyset=\\Gamma_q\\cap\\Gamma_h`. The equivalent weak form is:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        -\\int_{\\Omega} w_{,i} \\, q_i \\, d \\Omega = \\int_{\\Omega} w \\, f \\, d\\Omega + \\int_{\\Gamma_h} w \\, h \\,  d \\Gamma</span>
+<span class="sd">    </span>
+<span class="sd">    where we must find :math:`u` which satisfies the above for all :math:`w` </span>
+<span class="sd">    in some variational space.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    temperatureField : underworld.mesh.MeshVariable</span>
+<span class="sd">        The solution field for temperature.</span>
+<span class="sd">    fn_diffusivity : underworld.function.Function</span>
+<span class="sd">        The function that defines the diffusivity across the domain.</span>
+<span class="sd">    fn_heating : underworld.function.Function</span>
+<span class="sd">        A function that defines the heating across the domain. Optional.</span>
+<span class="sd">    voronoi_swarm : underworld.swarm.Swarm</span>
+<span class="sd">        If a voronoi_swarm is provided, voronoi type numerical integration is </span>
+<span class="sd">        utilised. The provided swarm is used as the basis for the voronoi </span>
+<span class="sd">        integration. If no voronoi_swarm is provided, Gauss integration</span>
+<span class="sd">        is used.</span>
+<span class="sd">    conditions : underworld.conditions.SystemCondition</span>
+<span class="sd">        Numerical conditions to impose on the system. This should be supplied as </span>
+<span class="sd">        the condition itself, or a list object containing the conditions.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Constructor must be called collectively by all processes.</span>
+
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    Setup a basic thermal system:</span>
+
+<span class="sd">    &gt;&gt;&gt; linearMesh = uw.mesh.FeMesh_Cartesian( elementType=&#39;Q1/dQ0&#39;, elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.) )</span>
+<span class="sd">    &gt;&gt;&gt; tField = uw.mesh.MeshVariable( linearMesh, 1 )</span>
+<span class="sd">    &gt;&gt;&gt; topNodes = linearMesh.specialSets[&quot;MaxJ_VertexSet&quot;]</span>
+<span class="sd">    &gt;&gt;&gt; bottomNodes = linearMesh.specialSets[&quot;MinJ_VertexSet&quot;]</span>
+<span class="sd">    &gt;&gt;&gt; tbcs = uw.conditions.DirichletCondition(tField, topNodes + bottomNodes)</span>
+<span class="sd">    &gt;&gt;&gt; tField.data[topNodes.data] = 0.0</span>
+<span class="sd">    &gt;&gt;&gt; tField.data[bottomNodes.data] = 1.0</span>
+<span class="sd">    &gt;&gt;&gt; tSystem = uw.systems.SteadyStateHeat(temperatureField=tField, fn_diffusivity=1.0, conditions=[tbcs])</span>
+
+<span class="sd">    Example with non diffusivity:</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; k = tField + 1.0</span>
+<span class="sd">    &gt;&gt;&gt; tSystem = uw.systems.SteadyStateHeat(temperatureField=tField, fn_diffusivity=k, conditions=[tbcs])</span>
+<span class="sd">    &gt;&gt;&gt; solver = uw.systems.Solver(tSystem)</span>
+<span class="sd">    &gt;&gt;&gt; solver.solve()</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: Nonlinearity detected.</span>
+<span class="sd">    Diffusivity function depends on the temperature field provided to the system.</span>
+<span class="sd">    Please set the &#39;nonLinearIterate&#39; solve parameter to &#39;True&#39; or &#39;False&#39; to continue.</span>
+<span class="sd">    &gt;&gt;&gt; solver.solve(nonLinearIterate=True)</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_objectsDict</span> <span class="o">=</span> <span class="p">{</span>  <span class="s2">&quot;_system&quot;</span> <span class="p">:</span> <span class="s2">&quot;SystemLinearEquations&quot;</span> <span class="p">}</span>
+    <span class="n">_selfObjectName</span> <span class="o">=</span> <span class="s2">&quot;_system&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">temperatureField</span><span class="p">,</span> <span class="n">fn_diffusivity</span><span class="p">,</span> <span class="n">fn_heating</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">voronoi_swarm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="p">[],</span> <span class="n">_removeBCs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">swarm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># DEPRECATE. JM 09/16</span>
+        <span class="k">if</span> <span class="n">swarm</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">warnings</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;&#39;swarm&#39; paramater has been renamed to &#39;voronoi_swarm&#39;. Please update your models. &quot;</span><span class="o">+</span>
+                          <span class="s2">&quot;&#39;swarm&#39; parameter will be removed in the next release.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">voronoi_swarm</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Please provide only a &#39;voronoi_swarm&#39;. &#39;swarm&#39; is deprecated.&quot;</span><span class="p">)</span>
+            <span class="n">voronoi_swarm</span> <span class="o">=</span> <span class="n">swarm</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">temperatureField</span><span class="p">,</span> <span class="n">uw</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">MeshVariable</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span> <span class="s2">&quot;Provided &#39;temperatureField&#39; must be of &#39;MeshVariable&#39; class.&quot;</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_temperatureField</span> <span class="o">=</span> <span class="n">temperatureField</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">_fn_diffusivity</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="n">Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">fn_diffusivity</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">uw</span><span class="o">.</span><span class="n">_prepend_message_to_exception</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="s2">&quot;Exception encountered. Note that provided &#39;fn_diffusivity&#39; must be of or convertible to &#39;Function&#39; class.</span><span class="se">\n</span><span class="s2">Encountered exception message:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">_fn_heating</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="n">Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">fn_heating</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">uw</span><span class="o">.</span><span class="n">_prepend_message_to_exception</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="s2">&quot;Exception encountered. Note that provided &#39;fn_heating&#39; must be of or convertible to &#39;Function&#39; class.</span><span class="se">\n</span><span class="s2">Encountered exception message:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">voronoi_swarm</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">swarm</span><span class="p">,</span> <span class="n">uw</span><span class="o">.</span><span class="n">swarm</span><span class="o">.</span><span class="n">Swarm</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span> <span class="s2">&quot;Provided &#39;swarm&#39; must be of &#39;Swarm&#39; class.&quot;</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_swarm</span> <span class="o">=</span> <span class="n">voronoi_swarm</span>
+        <span class="k">if</span> <span class="n">voronoi_swarm</span> <span class="ow">and</span> <span class="n">temperatureField</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">elementType</span><span class="o">==</span><span class="s1">&#39;Q2&#39;</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">warnings</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Voronoi integration may yield unsatisfactory results for Q2 element types.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">_removeBCs</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span> <span class="s2">&quot;Provided &#39;_removeBCs&#39; must be of type bool.&quot;</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_removeBCs</span> <span class="o">=</span> <span class="n">_removeBCs</span>
+
+        <span class="c1"># error check dcs &#39;dirichlet conditions&#39; and ncs &#39;neumann cond.&#39; FeMesh_IndexSets</span>
+        <span class="n">nbc</span>  <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">mesh</span> <span class="o">=</span> <span class="n">temperatureField</span><span class="o">.</span><span class="n">mesh</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">conditions</span><span class="p">,(</span><span class="nb">list</span><span class="p">,</span><span class="nb">tuple</span><span class="p">)):</span>
+            <span class="n">conditionslist</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">conditionslist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">conditions</span><span class="p">)</span>
+            <span class="n">conditions</span> <span class="o">=</span> <span class="n">conditionslist</span>
+        <span class="k">for</span> <span class="n">cond</span> <span class="ow">in</span> <span class="n">conditions</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">cond</span><span class="p">,</span> <span class="n">uw</span><span class="o">.</span><span class="n">conditions</span><span class="o">.</span><span class="n">SystemCondition</span> <span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span> <span class="s2">&quot;Provided &#39;conditions&#39; must be a list &#39;SystemCondition&#39; objects.&quot;</span> <span class="p">)</span>
+            <span class="c1"># set the bcs on here</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span> <span class="n">cond</span> <span class="p">)</span> <span class="o">==</span> <span class="n">uw</span><span class="o">.</span><span class="n">conditions</span><span class="o">.</span><span class="n">DirichletCondition</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">cond</span><span class="o">.</span><span class="n">variable</span> <span class="o">==</span> <span class="n">temperatureField</span><span class="p">:</span>
+                    <span class="n">libUnderworld</span><span class="o">.</span><span class="n">StgFEM</span><span class="o">.</span><span class="n">FeVariable_SetBC</span><span class="p">(</span> <span class="n">temperatureField</span><span class="o">.</span><span class="n">_cself</span><span class="p">,</span> <span class="n">cond</span><span class="o">.</span><span class="n">_cself</span> <span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span> <span class="n">cond</span> <span class="p">)</span> <span class="o">==</span> <span class="n">uw</span><span class="o">.</span><span class="n">conditions</span><span class="o">.</span><span class="n">NeumannCondition</span><span class="p">:</span>
+                <span class="n">nbc</span><span class="o">=</span><span class="n">cond</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Can&#39;t decide on input condition&quot;</span><span class="p">)</span>
+
+        <span class="c1"># build the equation numbering for the temperature field discretisation</span>
+        <span class="n">tEqNums</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tEqNums</span> <span class="o">=</span> <span class="n">sle</span><span class="o">.</span><span class="n">EqNumber</span><span class="p">(</span> <span class="n">temperatureField</span><span class="p">,</span> <span class="n">removeBCs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_removeBCs</span> <span class="p">)</span>
+
+        <span class="c1"># create solutions vector</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_solutionVector</span> <span class="o">=</span> <span class="n">sle</span><span class="o">.</span><span class="n">SolutionVector</span><span class="p">(</span><span class="n">temperatureField</span><span class="p">,</span> <span class="n">tEqNums</span> <span class="p">)</span>
+        <span class="n">libUnderworld</span><span class="o">.</span><span class="n">StgFEM</span><span class="o">.</span><span class="n">SolutionVector_LoadCurrentFeVariableValuesOntoVector</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutionVector</span><span class="o">.</span><span class="n">_cself</span> <span class="p">)</span>
+
+        <span class="c1"># create force vectors</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fvector</span> <span class="o">=</span> <span class="n">sle</span><span class="o">.</span><span class="n">AssembledVector</span><span class="p">(</span><span class="n">temperatureField</span><span class="p">,</span> <span class="n">tEqNums</span> <span class="p">)</span>
+
+        <span class="c1"># and matrices</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_kmatrix</span> <span class="o">=</span> <span class="n">sle</span><span class="o">.</span><span class="n">AssembledMatrix</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutionVector</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutionVector</span><span class="p">,</span> <span class="n">rhs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_fvector</span> <span class="p">)</span>
+
+        <span class="c1"># we will use voronoi if that has been requested by the user, else use</span>
+        <span class="c1"># gauss integration.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_swarm</span><span class="p">:</span>
+            <span class="n">intswarm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_swarm</span><span class="o">.</span><span class="n">_voronoi_swarm</span>
+            <span class="c1"># need to ensure voronoi is populated now, as assembly terms will call</span>
+            <span class="c1"># initial test functions which may require a valid voronoi swarm</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_swarm</span><span class="o">.</span><span class="n">_voronoi_swarm</span><span class="o">.</span><span class="n">repopulate</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">intswarm</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">swarm</span><span class="o">.</span><span class="n">GaussIntegrationSwarm</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span>
+
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_kMatTerm</span> <span class="o">=</span> <span class="n">sle</span><span class="o">.</span><span class="n">MatrixAssemblyTerm_NA_i__NB_i__Fn</span><span class="p">(</span>  <span class="n">integrationSwarm</span><span class="o">=</span><span class="n">intswarm</span><span class="p">,</span>
+                                                                 <span class="n">assembledObject</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_kmatrix</span><span class="p">,</span>
+                                                                 <span class="n">fn</span><span class="o">=</span><span class="n">_fn_diffusivity</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_forceVecTerm</span> <span class="o">=</span> <span class="n">sle</span><span class="o">.</span><span class="n">VectorAssemblyTerm_NA__Fn</span><span class="p">(</span>   <span class="n">integrationSwarm</span><span class="o">=</span><span class="n">intswarm</span><span class="p">,</span>
+                                                              <span class="n">assembledObject</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_fvector</span><span class="p">,</span>
+                                                              <span class="n">fn</span><span class="o">=</span><span class="n">fn_heating</span><span class="p">)</span>
+        <span class="c1"># search for neumann conditions</span>
+        <span class="k">for</span> <span class="n">cond</span> <span class="ow">in</span> <span class="n">conditions</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">cond</span><span class="p">,</span> <span class="n">uw</span><span class="o">.</span><span class="n">conditions</span><span class="o">.</span><span class="n">NeumannCondition</span> <span class="p">):</span>
+                <span class="c1">#NOTE many NeumannConditions can be used but the _sufaceFluxTerm only records the last</span>
+
+                <span class="c1">### -VE flux because of Energy_SLE_Solver ###</span>
+                <span class="n">negativeCond</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">conditions</span><span class="o">.</span><span class="n">NeumannCondition</span><span class="p">(</span> <span class="n">flux</span><span class="o">=-</span><span class="mf">1.0</span><span class="o">*</span><span class="n">cond</span><span class="o">.</span><span class="n">flux</span><span class="p">,</span>
+                                                               <span class="n">variable</span><span class="o">=</span><span class="n">cond</span><span class="o">.</span><span class="n">variable</span><span class="p">,</span>
+                                                               <span class="n">nodeIndexSet</span><span class="o">=</span><span class="n">cond</span><span class="o">.</span><span class="n">indexSet</span> <span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">_surfaceFluxTerm</span> <span class="o">=</span> <span class="n">sle</span><span class="o">.</span><span class="n">VectorSurfaceAssemblyTerm_NA__Fn__ni</span><span class="p">(</span>
+                                                                <span class="n">assembledObject</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fvector</span><span class="p">,</span>
+                                                                <span class="n">surfaceGaussPoints</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+                                                                <span class="n">nbc</span>         <span class="o">=</span> <span class="n">negativeCond</span> <span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SteadyStateHeat</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">uw</span><span class="o">.</span><span class="n">libUnderworld</span><span class="o">.</span><span class="n">StGermain</span><span class="o">.</span><span class="n">Stg_ObjectList_Append</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">stiffnessMatrices</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kmatrix</span><span class="o">.</span><span class="n">_cself</span> <span class="p">)</span>
+        <span class="n">uw</span><span class="o">.</span><span class="n">libUnderworld</span><span class="o">.</span><span class="n">StGermain</span><span class="o">.</span><span class="n">Stg_ObjectList_Append</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">forceVectors</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fvector</span><span class="o">.</span><span class="n">_cself</span> <span class="p">)</span>
+        <span class="n">uw</span><span class="o">.</span><span class="n">libUnderworld</span><span class="o">.</span><span class="n">StGermain</span><span class="o">.</span><span class="n">Stg_ObjectList_Append</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">solutionVectors</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutionVector</span><span class="o">.</span><span class="n">_cself</span> <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_add_to_stg_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">componentDictionary</span><span class="p">):</span>
+        <span class="c1"># call parents method</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SteadyStateHeat</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_add_to_stg_dict</span><span class="p">(</span><span class="n">componentDictionary</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">fn_diffusivity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The diffusivity function. You may change this function directly via this</span>
+<span class="sd">        property.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kMatTerm</span><span class="o">.</span><span class="n">fn</span>
+    <span class="nd">@fn_diffusivity</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">fn_diffusivity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_kMatTerm</span><span class="o">.</span><span class="n">fn</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">fn_heating</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The heating function. You may change this function directly via this</span>
+<span class="sd">        property.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_forceVecTerm</span><span class="o">.</span><span class="n">fn</span>
+    <span class="nd">@fn_heating</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">fn_heating</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_forceVecTerm</span><span class="o">.</span><span class="n">fn</span> <span class="o">=</span> <span class="n">value</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Melbourne University, Monash University..
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

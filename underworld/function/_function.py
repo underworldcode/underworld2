@@ -54,9 +54,8 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
     * Allow discrete objects to be used in combination with continuous objects.
     * Handle the evaluation of discrete objects in the most efficient manner.
     * Perform all heavy calculations at the C-level for efficiency.
-    * Provide an interface for users to evaluate functions directly within python,
-      utilising numpy arrays for input/output.
-
+    * Provide an interface for users to evaluate functions directly within python, 
+    utilising numpy arrays for input/output.
     """
     __metaclass__ = ABCMeta
     def __init__(self, argument_fns, **kwargs):
@@ -70,17 +69,19 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
         if argument_fns:
             for argfn in argument_fns:
                 if argfn:
-                    # add to current functions set
-                    self._underlyingDataItems.update(argfn._underlyingDataItems)
+                    # add to current functions set.. note that we convert incase passed in
+                    # function needs to be converted.
+                    self._underlyingDataItems.update(self.convert(argfn)._underlyingDataItems)
 
         super(Function,self).__init__(**kwargs)
 
     @staticmethod
     def convert(obj):
         """
-        This method will simply check if the provided object is of Function type
-        or None type. If it is, it is simply returned. Otherwise, conversion
-        to a function is attempted. 
+        This method will attempt to convert the provided input into an equivalent
+        underworld function. If the provided input is already of Function type,
+        it is immediately returned. Likewise, if the input is of None type, it is
+        also returned.
         
         Parameters
         ----------
@@ -329,8 +330,7 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
         True
 
         """
-        import math
-        import _math as fnmath
+        from . import math as fnmath
         return fnmath.pow( self, other )
 
     def __lt__(self,other):
@@ -689,7 +689,7 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
 
         Parameters
         ----------
-        inputData: float, list, tuple, ndarray, FunctionInput.
+        inputData: float, list, tuple, ndarray, underworld.function.FunctionInput
             The input to the function. The form of this input must be appropriate
             for the function being evaluated, or an exception will be thrown.
             Note that if no input is provided, function will be evaluated at `0.`
@@ -704,8 +704,8 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
 
         Examples
         --------
-        >>> import math
-        >>> import _math as fnmath
+        >>> from . import _systemmath as math
+        >>> import underworld.function.math as fnmath
         >>> sinfn = fnmath.sin()
         
         Single evaluation:
@@ -715,8 +715,8 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
         
         Multiple evaluations
         
-        >>> intup = (0.,math.pi/4.,2.*math.pi)
-        >>> np.allclose( sinfn.evaluate(intup), [[ 0., 0.5*math.sqrt(2.), 0.]]  )
+        >>> input = (0.,math.pi/4.,2.*math.pi)
+        >>> np.allclose( sinfn.evaluate(input), [[ 0., 0.5*math.sqrt(2.), 0.]]  )
         True
         
         
@@ -1098,13 +1098,14 @@ class at(Function):
 
 class input(Function):
     """
-    This class generates a function which simply passes through its input.
-    It is often useful when construct functions where the input itself needs
-    to be manipulated directly, such as to extract a particular component.
+    This class generates a function which simply passes through its input. It
+    is the identity function. It is often useful when construct functions where 
+    the input itself needs to be accessed, such as to extract a particular 
+    component.
     
-    This function class is most often used when you wish to extract a particular
-    coordinate component for manipulation. For this reason, we also provide an
-    alias to this class called 'coord'.
+    For example, you may wish to use this function when you wish to extract a 
+    particular coordinate component for manipulation. For this reason, we also 
+    provide an alias to this class called 'coord'.
 
     Returns
     -------
@@ -1113,6 +1114,7 @@ class input(Function):
     Examples
     --------
     Here we see the input function simply passing through its input.
+    
     >>> infunc = input()
     >>> np.allclose( infunc.evaluate( (1.,2.,3.) ), [ 1., 2., 3.] )
     True

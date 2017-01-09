@@ -1,0 +1,454 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>underworld.swarm._swarmabstract &mdash; underworld2  documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="underworld2  documentation" href="../../../index.html"/>
+        <link rel="up" title="underworld" href="../../underworld.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> underworld2
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../underworld.html">underworld module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../glucifer.html">glucifer module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">underworld2</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../underworld.html">underworld</a> &raquo;</li>
+      
+    <li>underworld.swarm._swarmabstract</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for underworld.swarm._swarmabstract</h1><div class="highlight"><pre>
+<span></span><span class="c1">##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##  This file forms part of the Underworld geophysics modelling application.         ##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##  For full license and copyright information, please refer to the LICENSE.md file  ##</span>
+<span class="c1">##  located at the project root, or contact the authors.                             ##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##</span>
+<span class="kn">import</span> <span class="nn">underworld</span> <span class="k">as</span> <span class="nn">uw</span>
+<span class="kn">import</span> <span class="nn">underworld._stgermain</span> <span class="k">as</span> <span class="nn">_stgermain</span>
+<span class="kn">import</span> <span class="nn">weakref</span>
+<span class="kn">import</span> <span class="nn">libUnderworld</span>
+<span class="kn">import</span> <span class="nn">_swarmvariable</span> <span class="k">as</span> <span class="nn">svar</span>
+<span class="kn">import</span> <span class="nn">abc</span>
+
+<div class="viewcode-block" id="SwarmAbstract"><a class="viewcode-back" href="../../../underworld.swarm.html#underworld.swarm.SwarmAbstract">[docs]</a><span class="k">class</span> <span class="nc">SwarmAbstract</span><span class="p">(</span><span class="n">_stgermain</span><span class="o">.</span><span class="n">StgCompoundComponent</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The SwarmAbstract class supports particle like data structures. Each instance of </span>
+<span class="sd">    this class will store a set of unique particles. In this context, particles</span>
+<span class="sd">    are data structures which store a location variable, along with any other</span>
+<span class="sd">    variables the user requests.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    mesh : underworld.mesh.FeMesh</span>
+<span class="sd">        The FeMesh the swarm is supported by. See Swarm.mesh property docstring</span>
+<span class="sd">        for further information.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_objectsDict</span> <span class="o">=</span> <span class="p">{</span>            <span class="s2">&quot;_swarm&quot;</span> <span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                           <span class="s2">&quot;_cellLayout&quot;</span> <span class="p">:</span> <span class="kc">None</span>
+                    <span class="p">}</span>
+
+    <span class="n">_selfObjectName</span> <span class="o">=</span> <span class="s2">&quot;_swarm&quot;</span>
+
+    <span class="n">_supportedDataTypes</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;char&quot;</span><span class="p">,</span><span class="s2">&quot;short&quot;</span><span class="p">,</span><span class="s2">&quot;int&quot;</span><span class="p">,</span><span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="s2">&quot;double&quot;</span><span class="p">]</span>
+
+    <span class="n">__metaclass__</span> <span class="o">=</span> <span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mesh</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">uw</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">FeMesh</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;mesh&#39; object passed in must be of type &#39;FeMesh&#39;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span> <span class="o">=</span> <span class="n">mesh</span>
+
+        <span class="c1"># lets init these guy</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_variables</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_livingArrays</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">WeakValueDictionary</span><span class="p">()</span>
+        
+        <span class="c1"># add a state identifier... this is incremented whenever the swarm is modified.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stateId</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># add a lock to prevent changes to swarm state.. or rather to signify</span>
+        <span class="c1"># that the state shouldn&#39;t have change (though it may well have)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_locked</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># build parent</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SwarmAbstract</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">mesh</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;    </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        underworld.mesh.FeMesh</span>
+<span class="sd">            Supporting FeMesh for this Swarm. All swarms are required to be</span>
+<span class="sd">            supported by mesh (or similar) objects, which provide the data structures</span>
+<span class="sd">            necessary for efficient particle locating/tracking, as well as the necessary</span>
+<span class="sd">            mechanism for the swarm parallel decomposition.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span>
+
+    <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># add coord swarm variable now (if available)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">owningCellVariable</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_owningCell</span> <span class="o">=</span> <span class="n">svar</span><span class="o">.</span><span class="n">SwarmVariable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;int&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">_cself</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">owningCellVariable</span><span class="p">,</span> <span class="n">writeable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">globalIdVariable</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_globalId</span> <span class="o">=</span> <span class="n">svar</span><span class="o">.</span><span class="n">SwarmVariable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;int&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">_cself</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">globalIdVariable</span><span class="p">,</span> <span class="n">writeable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">variables</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            List of swarm variables associated with this swarm.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_variables</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">particleLocalCount</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            Number of swarm particles within the current processes local space.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">particleLocalCount</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">owningCell</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        underworld.swarm.SwarmVariable</span>
+<span class="sd">            Swarm variable recording the owning cell of the swarm particles. </span>
+<span class="sd">            This will usually correspond to the owning element local id.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_owningCell</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">globalId</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        underworld.swarm.SwarmVariable</span>
+<span class="sd">            Swarm variable recording a particle global identifier. Not yet </span>
+<span class="sd">            implemented.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Sorry, this function is not yet implemented.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_globalId</span>
+
+    <span class="k">def</span> <span class="nf">_add_to_stg_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">componentDictionary</span><span class="p">):</span>
+        <span class="c1"># call parents method</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">SwarmAbstract</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_add_to_stg_dict</span><span class="p">(</span><span class="n">componentDictionary</span><span class="p">)</span>
+        <span class="n">componentDictionary</span><span class="p">[</span> <span class="bp">self</span><span class="o">.</span><span class="n">_swarm</span><span class="o">.</span><span class="n">name</span> <span class="p">][</span>                 <span class="s2">&quot;dim&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="o">.</span><span class="n">generator</span><span class="o">.</span><span class="n">dim</span>
+        <span class="n">componentDictionary</span><span class="p">[</span> <span class="bp">self</span><span class="o">.</span><span class="n">_swarm</span><span class="o">.</span><span class="n">name</span> <span class="p">][</span>          <span class="s2">&quot;CellLayout&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cellLayout</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">componentDictionary</span><span class="p">[</span> <span class="bp">self</span><span class="o">.</span><span class="n">_swarm</span><span class="o">.</span><span class="n">name</span> <span class="p">][</span>      <span class="s2">&quot;createGlobalId&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">componentDictionary</span><span class="p">[</span> <span class="bp">self</span><span class="o">.</span><span class="n">_swarm</span><span class="o">.</span><span class="n">name</span> <span class="p">][</span>              <span class="s2">&quot;FeMesh&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">name</span>
+
+        <span class="n">componentDictionary</span><span class="p">[</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cellLayout</span><span class="o">.</span><span class="n">name</span> <span class="p">][</span><span class="s2">&quot;Mesh&quot;</span><span class="p">]</span>            <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">name</span>
+
+<div class="viewcode-block" id="SwarmAbstract.add_variable"><a class="viewcode-back" href="../../../underworld.swarm.html#underworld.swarm.SwarmAbstract.add_variable">[docs]</a>    <span class="k">def</span> <span class="nf">add_variable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataType</span><span class="p">,</span> <span class="n">count</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Add a variable to each particle in this swarm. Variables can be added</span>
+<span class="sd">        at any point. Removal of variables is however not currently supported.</span>
+<span class="sd">        See help(SwarmVariable) for further information.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        dataType: str</span>
+<span class="sd">            The data type for the variable. Available types are  &quot;char&quot;, </span>
+<span class="sd">            &quot;short&quot;, &quot;int&quot;, &quot;float&quot; or &quot;double&quot;.</span>
+<span class="sd">        count: unsigned</span>
+<span class="sd">            The number of values to be stored for each particle.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        underworld.swarm.SwarmVariable</span>
+<span class="sd">            The newly created swarm variable.</span>
+<span class="sd">        </span>
+<span class="sd">        Example</span>
+<span class="sd">        -------</span>
+<span class="sd">        &gt;&gt;&gt; # first we need a mesh</span>
+<span class="sd">        &gt;&gt;&gt; mesh = uw.mesh.FeMesh_Cartesian( elementType=&#39;Q1/dQ0&#39;, elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )</span>
+<span class="sd">        &gt;&gt;&gt; # create swarm</span>
+<span class="sd">        &gt;&gt;&gt; swarm = uw.swarm.Swarm(mesh)</span>
+<span class="sd">        &gt;&gt;&gt; # add a variable</span>
+<span class="sd">        &gt;&gt;&gt; svar = swarm.add_variable(&quot;char&quot;,1)</span>
+<span class="sd">        &gt;&gt;&gt; # add another</span>
+<span class="sd">        &gt;&gt;&gt; svar = swarm.add_variable(&quot;double&quot;,3)</span>
+<span class="sd">        &gt;&gt;&gt; # add some particles</span>
+<span class="sd">        &gt;&gt;&gt; swarm.populate_using_layout(uw.swarm.layouts.PerCellGaussLayout(swarm,2))</span>
+<span class="sd">        &gt;&gt;&gt; # add another variable</span>
+<span class="sd">        &gt;&gt;&gt; svar = swarm.add_variable(&quot;double&quot;,5)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">svar</span><span class="o">.</span><span class="n">SwarmVariable</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">dataType</span><span class="p">,</span> <span class="n">count</span> <span class="p">)</span></div>
+
+<div class="viewcode-block" id="SwarmAbstract.populate_using_layout"><a class="viewcode-back" href="../../../underworld.swarm.html#underworld.swarm.SwarmAbstract.populate_using_layout">[docs]</a>    <span class="k">def</span> <span class="nf">populate_using_layout</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">layout</span> <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        This method uses the provided layout to populate the swarm with particles.</span>
+<span class="sd">        Usually layouts add particles across the entire domain. Available</span>
+<span class="sd">        layouts may be found in the swarm.layouts module.</span>
+<span class="sd">        Note that Layouts can only currently be used on empty swarms.</span>
+<span class="sd">        Also note that all numpy arrays associated with swarm variables must </span>
+<span class="sd">        be deleted before a layout can be applied.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        layout: underworld.swarm.layouts.ParticleLayoutAbstract</span>
+<span class="sd">            The layout which determines where particles are created and added.</span>
+
+<span class="sd">        Example</span>
+<span class="sd">        -------</span>
+<span class="sd">        &gt;&gt;&gt; # first we need a mesh</span>
+<span class="sd">        &gt;&gt;&gt; mesh = uw.mesh.FeMesh_Cartesian( elementType=&#39;Q1/dQ0&#39;, elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )</span>
+<span class="sd">        &gt;&gt;&gt; # create swarm</span>
+<span class="sd">        &gt;&gt;&gt; swarm = uw.swarm.Swarm(mesh)</span>
+<span class="sd">        &gt;&gt;&gt; # add populate</span>
+<span class="sd">        &gt;&gt;&gt; swarm.populate_using_layout(uw.swarm.layouts.PerCellGaussLayout(swarm,2))</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">particleLocalCount</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Swarm appears to already have particles. </span><span class="se">\n</span><span class="s2">Layouts can only be used with empty swarms.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">layout</span><span class="p">,</span> <span class="n">uw</span><span class="o">.</span><span class="n">swarm</span><span class="o">.</span><span class="n">layouts</span><span class="o">.</span><span class="n">ParticleLayoutAbstract</span> <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Provided layout does not appear to be a subclass of ParticleLayout&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span> <span class="o">==</span> <span class="n">layout</span><span class="o">.</span><span class="n">swarm</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The swarm associated with the layout appears to be a different swarm from self.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_livingArrays</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            There appears to be </span><span class="si">{}</span><span class="s2"> swarm variable numpy array objects still in</span>
+<span class="s2">            existance. Adding particles to a swarm results in the modification</span>
+<span class="s2">            of existing swarm variable memory layouts and locations, and therefore</span>
+<span class="s2">            existing numpy array views of swarm variables will cease to be valid. Potential</span>
+<span class="s2">            modification of these invalid numpy arrays is dangerous, and therefore they must</span>
+<span class="s2">            be removed before particles can be added.  The python &#39;del&#39; command may be useful,</span>
+<span class="s2">            though be aware that an object cannot be destroyed while another object retains a</span>
+<span class="s2">            reference to it. Once you have added the required particles, you can easily</span>
+<span class="s2">            regenerate the numpy views of other variables again using the &#39;data&#39; property.&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_livingArrays</span><span class="p">)))</span>
+
+
+        <span class="n">libUnderworld</span><span class="o">.</span><span class="n">StgDomain</span><span class="o">.</span><span class="n">ParticleLayout_SetInitialCounts</span><span class="p">(</span> <span class="n">layout</span><span class="o">.</span><span class="n">_cself</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span> <span class="p">)</span>
+        <span class="n">libUnderworld</span><span class="o">.</span><span class="n">StgDomain</span><span class="o">.</span><span class="n">_Swarm_BuildParticles</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="p">,</span> <span class="kc">None</span> <span class="p">)</span>
+        <span class="n">libUnderworld</span><span class="o">.</span><span class="n">StgDomain</span><span class="o">.</span><span class="n">ParticleLayout_InitialiseParticles</span><span class="p">(</span> <span class="n">layout</span><span class="o">.</span><span class="n">_cself</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span> <span class="p">)</span>
+        <span class="n">libUnderworld</span><span class="o">.</span><span class="n">StgDomain</span><span class="o">.</span><span class="n">_Swarm_InitialiseParticles</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="p">,</span> <span class="kc">None</span> <span class="p">)</span></div>
+        
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">particleCoordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        underworld.swarm.SwarmVariable</span>
+<span class="sd">            Swarm variable recording the coordinates of the swarm particles.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_particleCoordinates</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">stateId</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            Swarm state identifier. This is incremented whenever the swarm is</span>
+<span class="sd">            modified.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stateId</span>
+
+    <span class="k">def</span> <span class="nf">_toggle_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Increment swarm state id, and updates swarm variable arrays.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stateId</span><span class="o">+=</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_clear_variable_arrays</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_locked</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                Swarm is in a locked state and yet it appears an attempt has been</span>
+<span class="s2">                made to modify it (via change in particle population or the addition</span>
+<span class="s2">                of variables. This is not allowed and your current swarm state may </span>
+<span class="s2">                now be invalid. &quot;&quot;&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_clear_variable_arrays</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        As the underlying memory may change when swarm population changes, </span>
+<span class="sd">        or when a new variable is added, the Numpy views to this memory</span>
+<span class="sd">        must be removed as they are potentially no longer valid.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_variables</span><span class="p">:</span>
+            <span class="n">var</span><span class="o">.</span><span class="n">_clear_array</span><span class="p">()</span></div>
+
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Melbourne University, Monash University..
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

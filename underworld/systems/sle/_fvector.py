@@ -15,19 +15,16 @@ from libUnderworld import *
 
 class ForceVector(_stgermain.StgCompoundComponent):
     """
+    Parameters
+    ----------
+    meshVariable : underworld.mesh.MeshVariable
+        MeshVariable object for which this SLE vector corresponds.
+    
     """
     _objectsDict = { "_vector": "ForceVector" }
     _selfObjectName = "_vector"
 
     def __init__(self, meshVariable, **kwargs):
-        """
-        Parameters
-        ----------
-            meshVariable : MeshVariable
-
-        See property docstrings for further information on each argument.
-        
-        """
         
         if not isinstance(meshVariable, mesh.MeshVariable):
             raise TypeError("'meshVariable' object passed in must be of type 'MeshVariable'")
@@ -39,9 +36,6 @@ class ForceVector(_stgermain.StgCompoundComponent):
 
     @property
     def meshVariable(self):
-        """    
-        meshVariable (MeshVariable): MeshVariable object for which this SLE vector corresponds.
-        """
         return self._meshVariable
 
     def _add_to_stg_dict(self,componentDictionary):
@@ -51,8 +45,6 @@ class ForceVector(_stgermain.StgCompoundComponent):
         componentDictionary[ self._vector.name ]["FeVariable"] = self._meshVariable._cself.name
 
     def AddTerm(assemblyTerm):
-        """
-        """
         # make a call to underlying c-function 'ForceVector_AddTerm'
         _stgermain.StgFEM.ForceVector_AddTerm(self._cself, assemblyTerm._cself)
 

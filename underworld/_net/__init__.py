@@ -32,13 +32,13 @@ def PostGAEvent( category, action, label=None, value=None ):
     Parameters
     ----------
     category: str
-        Textual name for event category
+        Textual name for event category.
     action: str
-        Textual name for event action
-    label: str (optional)
-        Optional label for event
-    value: non-negative integer (optional)
-        Optional value for event
+        Textual name for event action.
+    label: str
+        Optional label for event.
+    value: non-negative integer
+        Optional value for event.
         
 
     """

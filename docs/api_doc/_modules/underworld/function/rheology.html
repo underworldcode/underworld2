@@ -1,0 +1,312 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>underworld.function.rheology &mdash; underworld2  documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="underworld2  documentation" href="../../../index.html"/>
+        <link rel="up" title="underworld" href="../../underworld.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> underworld2
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../underworld.html">underworld module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../glucifer.html">glucifer module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">underworld2</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../underworld.html">underworld</a> &raquo;</li>
+      
+    <li>underworld.function.rheology</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for underworld.function.rheology</h1><div class="highlight"><pre>
+<span></span><span class="c1">##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##  This file forms part of the Underworld geophysics modelling application.         ##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##  For full license and copyright information, please refer to the LICENSE.md file  ##</span>
+<span class="c1">##  located at the project root, or contact the authors.                             ##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module contains functions relating to rheological operations.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">libUnderworld.libUnderworldPy.Function</span> <span class="k">as</span> <span class="nn">_cfn</span>
+<span class="kn">from</span> <span class="nn">_function</span> <span class="k">import</span> <span class="n">Function</span> <span class="k">as</span> <span class="n">_Function</span>
+<span class="kn">import</span> <span class="nn">tensor</span> <span class="k">as</span> <span class="nn">_tensor</span>
+<span class="kn">import</span> <span class="nn">branching</span> <span class="k">as</span> <span class="nn">_branching</span>
+
+<div class="viewcode-block" id="stress_limiting_viscosity"><a class="viewcode-back" href="../../../underworld.function.rheology.html#underworld.function.rheology.stress_limiting_viscosity">[docs]</a><span class="k">class</span> <span class="nc">stress_limiting_viscosity</span><span class="p">(</span><span class="n">_Function</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a viscosity value which effectively limits the maximum fluid</span>
+<span class="sd">    stress. Where the stress invariant (as calculated using the provided</span>
+<span class="sd">    fn_stress) is greater than the stress limit (as provided by the</span>
+<span class="sd">    fn_stresslimit), the returned viscosity will affect a fluid stress</span>
+<span class="sd">    at the stress limit. Otherwise, fn_inputviscosity is passed through.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fn_stress: underworld.function.Function (or convertible).</span>
+<span class="sd">        Function which returns the current stress in the fluid.</span>
+<span class="sd">        Function should return a symmetric tensor of floating point values.</span>
+<span class="sd">    fn_stresslimit: underworld.function.Function (or convertible).  </span>
+<span class="sd">        Function which defines the stress limit.</span>
+<span class="sd">        Function should return a scalar floating point value.</span>
+<span class="sd">    fn_inputviscosity: underworld.function.Function (or convertible).</span>
+<span class="sd">        Function which defines the non-yielded viscosity value.</span>
+<span class="sd">        Function should return a scalar floating point value.</span>
+
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    Lets setup a simple shear type configuration but with a viscosity</span>
+<span class="sd">    that increase vertically:</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; import underworld as uw</span>
+<span class="sd">    &gt;&gt;&gt; import underworld.function as fn</span>
+<span class="sd">    &gt;&gt;&gt; mesh = uw.mesh.FeMesh_Cartesian(elementRes=(16,16), periodic=(True,False))</span>
+<span class="sd">    &gt;&gt;&gt; velVar = uw.mesh.MeshVariable(mesh,2)</span>
+<span class="sd">    &gt;&gt;&gt; pressVar = uw.mesh.MeshVariable(mesh.subMesh,1)</span>
+
+<span class="sd">    Simple shear boundary conditions:</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; bot_nodes = mesh.specialSets[&quot;MinJ_VertexSet&quot;]</span>
+<span class="sd">    &gt;&gt;&gt; top_nodes = mesh.specialSets[&quot;MaxJ_VertexSet&quot;]</span>
+<span class="sd">    &gt;&gt;&gt; bc = uw.conditions.DirichletCondition(velVar, (top_nodes+bot_nodes,top_nodes+bot_nodes))</span>
+<span class="sd">    &gt;&gt;&gt; velVar.data[bot_nodes.data] = (-0.5,0.)</span>
+<span class="sd">    &gt;&gt;&gt; velVar.data[top_nodes.data] = ( 0.5,0.)</span>
+
+<span class="sd">    Vertically increasing exponential viscosity:</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; fn_visc = 1.</span>
+<span class="sd">    &gt;&gt;&gt; stokesSys = uw.systems.Stokes(velVar,pressVar,fn_visc,conditions=[bc,])</span>
+
+<span class="sd">    Solve:</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; solver = uw.systems.Solver(stokesSys)</span>
+<span class="sd">    &gt;&gt;&gt; solver.solve()</span>
+
+<span class="sd">    Use the min_max function to determine a maximum stress:</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; fn_stress =  2.*fn_visc*uw.function.tensor.symmetric( velVar.fn_gradient )</span>
+<span class="sd">    &gt;&gt;&gt; fn_minmax_inv = fn.view.min_max(fn.tensor.second_invariant(fn_stress))</span>
+<span class="sd">    &gt;&gt;&gt; ignore = fn_minmax_inv.evaluate(mesh)</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; np.allclose(fn_minmax_inv.max_global(), 1.0, rtol=1e-05)</span>
+<span class="sd">    True</span>
+
+<span class="sd">    Now lets set the limited viscosity. Note that the system is now non-linear.</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; fn_visc_limited = fn.rheology.stress_limiting_viscosity(fn_stress,0.5,fn_visc)</span>
+<span class="sd">    &gt;&gt;&gt; stokesSys.fn_viscosity = fn_visc_limited</span>
+<span class="sd">    &gt;&gt;&gt; solver.solve(nonLinearIterate=True)</span>
+
+<span class="sd">    Now check the stress:</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; fn_stress = 2.*fn_visc_limited*uw.function.tensor.symmetric( velVar.fn_gradient )</span>
+<span class="sd">    &gt;&gt;&gt; fn_minmax_inv = fn.view.min_max(fn.tensor.second_invariant(fn_stress))</span>
+<span class="sd">    &gt;&gt;&gt; ignore = fn_minmax_inv.evaluate(mesh)</span>
+<span class="sd">    &gt;&gt;&gt; np.allclose(fn_minmax_inv.max_global(), 0.5, rtol=1e-05)</span>
+<span class="sd">    True</span>
+
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn_stress</span><span class="p">,</span> <span class="n">fn_stresslimit</span><span class="p">,</span> <span class="n">fn_inputviscosity</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="n">_fn_stress</span> <span class="o">=</span> <span class="n">_Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">fn_stress</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">_fn_stress</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span> <span class="s2">&quot;Provided &#39;fn_stress&#39; must a &#39;Function&#39; or convertible type.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn_stress</span> <span class="o">=</span> <span class="n">_fn_stress</span>
+        
+        <span class="n">_fn_stresslimit</span> <span class="o">=</span> <span class="n">_Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">fn_stresslimit</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">_fn_stresslimit</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span> <span class="s2">&quot;Provided &#39;fn_stresslimit&#39; must a &#39;Function&#39; or convertible type.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn_stresslimit</span> <span class="o">=</span> <span class="n">_fn_stresslimit</span>
+        
+        <span class="n">_fn_inputviscosity</span> <span class="o">=</span> <span class="n">_Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">fn_inputviscosity</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">_fn_inputviscosity</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span> <span class="s2">&quot;Provided &#39;fn_inputviscosity&#39; must a &#39;Function&#39; or convertible type.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn_inputviscosity</span> <span class="o">=</span> <span class="n">_fn_inputviscosity</span>
+
+        <span class="c1"># grab second inv of stress</span>
+        <span class="n">secondInvFn</span> <span class="o">=</span> <span class="n">_tensor</span><span class="o">.</span><span class="n">second_invariant</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fn_stress</span><span class="p">)</span>
+
+        <span class="c1"># create conditional</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_conditional</span> <span class="o">=</span> <span class="n">_branching</span><span class="o">.</span><span class="n">conditional</span><span class="p">(</span> <span class="p">[</span> <span class="p">(</span> <span class="n">secondInvFn</span> <span class="o">&gt;</span> <span class="n">_fn_stresslimit</span> <span class="p">,</span> <span class="n">fn_inputviscosity</span><span class="o">*</span><span class="n">_fn_stresslimit</span><span class="o">/</span><span class="n">secondInvFn</span> <span class="p">),</span>    <span class="c1"># if over limit, reduce viscosity</span>
+                                                      <span class="p">(</span> <span class="kc">True</span>                          <span class="p">,</span> <span class="n">fn_inputviscosity</span>                             <span class="p">)</span> <span class="p">]</span> <span class="p">)</span> <span class="c1"># else return viscosity</span>
+
+        <span class="c1"># this function is not based on a c function itself, so instead point the c pointer to the conditionals.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fncself</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_conditional</span><span class="o">.</span><span class="n">_fncself</span>
+        
+        <span class="c1"># build parent</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">stress_limiting_viscosity</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">argument_fns</span><span class="o">=</span><span class="p">[</span><span class="n">_fn_stress</span><span class="p">,</span><span class="n">_fn_stresslimit</span><span class="p">,</span><span class="n">_fn_inputviscosity</span><span class="p">],</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+        
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Melbourne University, Monash University..
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

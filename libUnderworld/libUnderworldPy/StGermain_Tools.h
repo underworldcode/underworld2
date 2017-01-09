@@ -20,8 +20,8 @@ typedef struct StgData
    int rank;
    int nProcs;
    Dictionary* dictionary;
-   int* argcCpy;
-   char*** argvCpy;
+   int argcCpy;
+   char** argvCpy;
 } StgData;
 
 StgData* StgInit( int argc, char* argv[] ) ;

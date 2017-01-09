@@ -1,0 +1,1335 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>underworld.function._function &mdash; underworld2  documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="underworld2  documentation" href="../../../index.html"/>
+        <link rel="up" title="underworld" href="../../underworld.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> underworld2
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../underworld.html">underworld module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../glucifer.html">glucifer module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">underworld2</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../underworld.html">underworld</a> &raquo;</li>
+      
+    <li>underworld.function._function</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for underworld.function._function</h1><div class="highlight"><pre>
+<span></span><span class="c1">##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##  This file forms part of the Underworld geophysics modelling application.         ##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##  For full license and copyright information, please refer to the LICENSE.md file  ##</span>
+<span class="c1">##  located at the project root, or contact the authors.                             ##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Base module for the Function class. The Function class provides generic</span>
+<span class="sd">function construction capabilities.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">underworld</span>
+<span class="kn">import</span> <span class="nn">libUnderworld.libUnderworldPy.Function</span> <span class="k">as</span> <span class="nn">_cfn</span>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="k">import</span> <span class="n">ABCMeta</span><span class="p">,</span><span class="n">abstractmethod</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">weakref</span>
+<span class="kn">import</span> <span class="nn">underworld</span> <span class="k">as</span> <span class="nn">uw</span>
+
+<span class="n">ScalarType</span> <span class="o">=</span> <span class="n">_cfn</span><span class="o">.</span><span class="n">FunctionIO</span><span class="o">.</span><span class="n">Scalar</span>
+<span class="n">VectorType</span> <span class="o">=</span> <span class="n">_cfn</span><span class="o">.</span><span class="n">FunctionIO</span><span class="o">.</span><span class="n">Vector</span>
+<span class="n">SymmetricTensorType</span> <span class="o">=</span> <span class="n">_cfn</span><span class="o">.</span><span class="n">FunctionIO</span><span class="o">.</span><span class="n">SymmetricTensor</span>
+<span class="n">TensorType</span> <span class="o">=</span> <span class="n">_cfn</span><span class="o">.</span><span class="n">FunctionIO</span><span class="o">.</span><span class="n">Tensor</span>
+<span class="n">ArrayType</span>  <span class="o">=</span> <span class="n">_cfn</span><span class="o">.</span><span class="n">FunctionIO</span><span class="o">.</span><span class="n">Array</span>
+
+<span class="n">types</span> <span class="o">=</span> <span class="p">{</span>          <span class="s1">&#39;scalar&#39;</span> <span class="p">:</span> <span class="n">ScalarType</span><span class="p">,</span>
+                   <span class="s1">&#39;vector&#39;</span> <span class="p">:</span> <span class="n">VectorType</span><span class="p">,</span>
+          <span class="s1">&#39;symmetrictensor&#39;</span> <span class="p">:</span> <span class="n">SymmetricTensorType</span><span class="p">,</span>
+                   <span class="s1">&#39;tensor&#39;</span> <span class="p">:</span> <span class="n">TensorType</span><span class="p">,</span>
+                    <span class="s1">&#39;array&#39;</span> <span class="p">:</span> <span class="n">ArrayType</span>   <span class="p">}</span>
+
+<div class="viewcode-block" id="FunctionInput"><a class="viewcode-back" href="../../../underworld.function.html#underworld.function.FunctionInput">[docs]</a><span class="k">class</span> <span class="nc">FunctionInput</span><span class="p">(</span><span class="n">underworld</span><span class="o">.</span><span class="n">_stgermain</span><span class="o">.</span><span class="n">LeftOverParamsChecker</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Objects that inherit from this class are able to act as inputs</span>
+<span class="sd">    to function evaluation from python.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">__metaclass__</span> <span class="o">=</span> <span class="n">ABCMeta</span>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">_get_iterator</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; All children should define this method which returns the</span>
+<span class="sd">        c iterator object &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="Function"><a class="viewcode-back" href="../../../underworld.function.html#underworld.function.Function">[docs]</a><span class="k">class</span> <span class="nc">Function</span><span class="p">(</span><span class="n">underworld</span><span class="o">.</span><span class="n">_stgermain</span><span class="o">.</span><span class="n">LeftOverParamsChecker</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Objects which inherit from this class provide user definable functions</span>
+<span class="sd">    within Underworld.</span>
+
+<span class="sd">    Functions aim to achieve a number of goals:</span>
+<span class="sd">    * Provide a natural interface for mathematical behaviour description within python.</span>
+<span class="sd">    * Provide a high level interface to Underworld discrete objects.</span>
+<span class="sd">    * Allow discrete objects to be used in combination with continuous objects.</span>
+<span class="sd">    * Handle the evaluation of discrete objects in the most efficient manner.</span>
+<span class="sd">    * Perform all heavy calculations at the C-level for efficiency.</span>
+<span class="sd">    * Provide an interface for users to evaluate functions directly within python, </span>
+<span class="sd">    utilising numpy arrays for input/output.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">__metaclass__</span> <span class="o">=</span> <span class="n">ABCMeta</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">argument_fns</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="c1"># all of these guys must define a _fncself, as this will be expected by objects that receive functions.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_fncself&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Failure during object creation. Object with class </span><span class="se">\n</span><span class="s2">&#39;</span><span class="si">{}</span><span class="s2">&#39;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span> \
+                             <span class="o">+</span> <span class="s2">&quot;does not appear to have set a value for &#39;_fncself&#39;. Please contact developers.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_underlyingDataItems</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">WeakSet</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">argument_fns</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">argfn</span> <span class="ow">in</span> <span class="n">argument_fns</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">argfn</span><span class="p">:</span>
+                    <span class="c1"># add to current functions set.. note that we convert incase passed in</span>
+                    <span class="c1"># function needs to be converted.</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_underlyingDataItems</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">argfn</span><span class="p">)</span><span class="o">.</span><span class="n">_underlyingDataItems</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">Function</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="Function.convert"><a class="viewcode-back" href="../../../underworld.function.html#underworld.function.Function.convert">[docs]</a>    <span class="k">def</span> <span class="nf">convert</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method will attempt to convert the provided input into an equivalent</span>
+<span class="sd">        underworld function. If the provided input is already of Function type,</span>
+<span class="sd">        it is immediately returned. Likewise, if the input is of None type, it is</span>
+<span class="sd">        also returned.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        obj: fn_like</span>
+<span class="sd">            The object to be converted. Note that if obj is of type None or</span>
+<span class="sd">            Function, it is simply returned immediately.</span>
+<span class="sd">            Where obj is of type int/float/double, a Constant type function </span>
+<span class="sd">            is returned which evaluates to the provided object&#39;s value.</span>
+<span class="sd">            Where obj is of type list/tuple, a function will be returned</span>
+<span class="sd">            which evaluates to a vector of the provided list/tuple&#39;s values </span>
+<span class="sd">            (where possible).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Fn.Function or None.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; import underworld as uw</span>
+<span class="sd">        &gt;&gt;&gt; import underworld.function as fn</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; fn_const = fn.Function.convert( 3 )</span>
+<span class="sd">        &gt;&gt;&gt; fn_const.evaluate(0.) # eval anywhere for constant</span>
+<span class="sd">        array([[3]], dtype=int32)</span>
+
+<span class="sd">        &gt;&gt;&gt; fn_const == fn.Function.convert( fn_const )</span>
+<span class="sd">        True</span>
+
+<span class="sd">        &gt;&gt;&gt; fn.Function.convert( None )</span>
+
+<span class="sd">        &gt;&gt;&gt; fn1 = fn.input()</span>
+<span class="sd">        &gt;&gt;&gt; fn2 = 10.*fn.input()</span>
+<span class="sd">        &gt;&gt;&gt; fn3 = 100.*fn.input()</span>
+<span class="sd">        &gt;&gt;&gt; vec = (fn1,fn2,fn3)</span>
+<span class="sd">        &gt;&gt;&gt; fn_vec = fn.Function.convert(vec)</span>
+<span class="sd">        &gt;&gt;&gt; fn_vec.evaluate([3.])</span>
+<span class="sd">        array([[   3.,   30.,  300.]])</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="n">Function</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="kc">None</span><span class="p">))</span> <span class="p">):</span>
+            <span class="k">return</span> <span class="n">obj</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">misc</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># first try convert directly to const type object</span>
+                <span class="k">return</span> <span class="n">misc</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="c1"># ok, that failed, let&#39;s now try convert to vector of function type object</span>
+                <span class="c1"># first check that it is of type tuple or list</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span><span class="nb">list</span><span class="p">)):</span>
+                    <span class="c1"># now check that it contains things that are convertible. recurse.</span>
+                    <span class="n">objlist</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">:</span>
+                        <span class="n">objlist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="n">Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="p">)</span>
+                    <span class="c1"># create identity matrix for basis vectors</span>
+                    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+                    <span class="n">basisvecs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">obj</span><span class="p">))</span>
+                    <span class="c1"># convert these to uw functions</span>
+                    <span class="n">basisfns</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="k">for</span> <span class="n">vec</span> <span class="ow">in</span> <span class="n">basisvecs</span><span class="p">:</span>
+                        <span class="n">basisfns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="n">Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">vec</span><span class="p">)</span> <span class="p">)</span>
+                    <span class="c1"># now return final object summed</span>
+                    <span class="n">vecfn</span> <span class="o">=</span> <span class="n">basisfns</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">objlist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">obj</span><span class="p">)):</span>
+                        <span class="n">vecfn</span> <span class="o">=</span> <span class="n">vecfn</span> <span class="o">+</span> <span class="n">basisfns</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">*</span><span class="n">objlist</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+                    <span class="k">return</span> <span class="n">vecfn</span>
+                
+                <span class="kn">import</span> <span class="nn">underworld</span> <span class="k">as</span> <span class="nn">uw</span>
+                <span class="k">raise</span> <span class="n">uw</span><span class="o">.</span><span class="n">_prepend_message_to_exception</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="s2">&quot;An exception was raised while try to convert an &quot;</span>
+                                                         <span class="o">+</span><span class="s2">&quot;object to an Underworld2 function. Usually this &quot;</span>
+                                                         <span class="o">+</span><span class="s2">&quot;occurs because you didn&#39;t pass in the correct &quot;</span>
+                                                         <span class="o">+</span><span class="s2">&quot;object. Please check your function arguments! &quot;</span>
+                                                         <span class="o">+</span><span class="s2">&quot;Note that only python types &#39;int&#39;, &#39;float&#39; or &quot;</span>
+                                                         <span class="o">+</span><span class="s2">&quot;&#39;bool&#39; (and iterables of these types) are convertible &quot;</span>
+                                                         <span class="o">+</span><span class="s2">&quot;to functions.</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+                                                         <span class="o">+</span><span class="s2">&quot;Original encountered exception message:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Function.__add__"><a class="viewcode-back" href="../../../underworld.function.html#underworld.function.Function.__add__">[docs]</a>    <span class="k">def</span> <span class="nf">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Operator overloading for &#39;+&#39; operation:</span>
+
+<span class="sd">        Fn3 = Fn1 + Fn2</span>
+
+<span class="sd">        Creates a new function Fn3 which performs additions of Fn1 and Fn2.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        fn.add: Add function</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; import misc</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; three = misc.constant(3.)</span>
+<span class="sd">        &gt;&gt;&gt; four  = misc.constant(4.)</span>
+<span class="sd">        &gt;&gt;&gt; np.allclose( (three + four).evaluate(0.), [[ 7.]]  )  # note we can evaluate anywhere because it&#39;s a constant</span>
+<span class="sd">        True</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">add</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">other</span> <span class="p">)</span></div>
+
+    <span class="n">__radd__</span><span class="o">=</span><span class="n">__add__</span>
+
+<div class="viewcode-block" id="Function.__sub__"><a class="viewcode-back" href="../../../underworld.function.html#underworld.function.Function.__sub__">[docs]</a>    <span class="k">def</span> <span class="nf">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Operator overloading for &#39;-&#39; operation:</span>
+
+<span class="sd">        Fn3 = Fn1 - Fn2</span>
+
+<span class="sd">        Creates a new function Fn3 which performs subtraction of Fn2 from Fn1.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        fn.subtract: Subtract function</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; import misc</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; three = misc.constant(3.)</span>
+<span class="sd">        &gt;&gt;&gt; four  = misc.constant(4.)</span>
+<span class="sd">        &gt;&gt;&gt; np.allclose( (three - four).evaluate(0.), [[ -1.]]  )  # note we can evaluate anywhere because it&#39;s a constant</span>
+<span class="sd">        True</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">subtract</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">other</span> <span class="p">)</span></div>
+
+<div class="viewcode-block" id="Function.__rsub__"><a class="viewcode-back" href="../../../underworld.function.html#underworld.function.Function.__rsub__">[docs]</a>    <span class="k">def</span> <span class="nf">__rsub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Operator overloading for &#39;-&#39; operation.  Right hand version.</span>
+
+<span class="sd">        Fn3 = Fn1 - Fn2</span>
+
+<span class="sd">        Creates a new function Fn3 which performs subtraction of Fn2 from Fn1.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        fn.subtract: RHS subtract function</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; import misc</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; four  = misc.constant(4.)</span>
+<span class="sd">        &gt;&gt;&gt; np.allclose( (5. - four).evaluate(0.), [[ 1.]]  )  # note we can evaluate anywhere because it&#39;s a constant</span>
+<span class="sd">        True</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">subtract</span><span class="p">(</span> <span class="n">other</span><span class="p">,</span> <span class="bp">self</span> <span class="p">)</span></div>
+
+<div class="viewcode-block" id="Function.__neg__"><a class="viewcode-back" href="../../../underworld.function.html#underworld.function.Function.__neg__">[docs]</a>    <span class="k">def</span>  <span class="nf">__neg__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Operator overloading for unary &#39;-&#39;.</span>
+
+<span class="sd">        FnNeg = -Fn</span>
+
+<span class="sd">        Creates a new function FnNeg which is the negative of Fn.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        fn.multiply: Negative function</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; import misc</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; four = misc.constant(4.)</span>
+<span class="sd">        &gt;&gt;&gt; np.allclose( (-four).evaluate(0.), [[ -4.]]  )  # note we can evaluate anywhere because it&#39;s a constant</span>
+<span class="sd">        True</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">multiply</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Function.__mul__"><a class="viewcode-back" href="../../../underworld.function.html#underworld.function.Function.__mul__">[docs]</a>    <span class="k">def</span> <span class="nf">__mul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Operator overloading for &#39;*&#39; operation:</span>
+
+<span class="sd">        Fn3 = Fn1 * Fn2</span>
+
+<span class="sd">        Creates a new function Fn3 which returns the product of Fn1 and Fn2.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        fn.multiply: Multiply function</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; import misc</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; three = misc.constant(3.)</span>
+<span class="sd">        &gt;&gt;&gt; four  = misc.constant(4.)</span>
+<span class="sd">        &gt;&gt;&gt; np.allclose( (three*four).evaluate(0.), [[ 12.]]  )  # note we can evaluate anywhere because it&#39;s a constant</span>
+<span class="sd">        True</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">multiply</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">other</span> <span class="p">)</span></div>
+    <span class="n">__rmul__</span> <span class="o">=</span> <span class="n">__mul__</span>
+
+<div class="viewcode-block" id="Function.__div__"><a class="viewcode-back" href="../../../underworld.function.html#underworld.function.Function.__div__">[docs]</a>    <span class="k">def</span> <span class="nf">__div__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Operator overloading for &#39;/&#39; operation:</span>
+
+<span class="sd">        Fn3 = Fn1 / Fn2</span>
+
+<span class="sd">        Creates a new function Fn3 which returns the quotient of Fn1 and Fn2.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        fn.divide: Divide function</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; import misc</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; two  = misc.constant(2.)</span>
+<span class="sd">        &gt;&gt;&gt; four = misc.constant(4.)</span>
+<span class="sd">        &gt;&gt;&gt; np.allclose( (four/two).evaluate(0.), [[ 2.]]  )  # note we can evaluate anywhere because it&#39;s a constant</span>
+<span class="sd">        True</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">divide</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">other</span> <span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__rdiv__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">divide</span><span class="p">(</span> <span class="n">other</span><span class="p">,</span> <span class="bp">self</span> <span class="p">)</span>
+
+<div class="viewcode-block" id="Function.__pow__"><a class="viewcode-back" href="../../../underworld.function.html#underworld.function.Function.__pow__">[docs]</a>    <span class="k">def</span> <span class="nf">__pow__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Operator overloading for &#39;**&#39; operation:</span>
+
+<span class="sd">        Fn3 = Fn1 ** Fn2</span>
+
+<span class="sd">        Creates a new function Fn3 which returns Fn1 to the power of Fn2.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        fn.math.pow: Power function</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; import misc</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; two  = misc.constant(2.)</span>
+<span class="sd">        &gt;&gt;&gt; four = misc.constant(4.)</span>
+<span class="sd">        &gt;&gt;&gt; np.allclose( (two**four).evaluate(0.), [[ 16.]]  )  # note we can evaluate anywhere because it&#39;s a constant</span>
+<span class="sd">        True</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">math</span> <span class="k">as</span> <span class="n">fnmath</span>
+        <span class="k">return</span> <span class="n">fnmath</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">other</span> <span class="p">)</span></div>
+
+<div class="viewcode-block" id="Function.__lt__"><a class="viewcode-back" href="../../../underworld.function.html#underworld.function.Function.__lt__">[docs]</a>    <span class="k">def</span> <span class="nf">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Operator overloading for &#39;&lt;&#39; operation:</span>
+
+<span class="sd">        Fn3 = Fn1 &lt; Fn2</span>
+
+<span class="sd">        Creates a new function Fn3 which returns a bool result for the relation.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        fn.less: Less than function</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; import misc</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; two  = misc.constant(2.)</span>
+<span class="sd">        &gt;&gt;&gt; four = misc.constant(4.)</span>
+<span class="sd">        &gt;&gt;&gt; (two &lt; four).evaluate()</span>
+<span class="sd">        array([[ True]], dtype=bool)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">less</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">other</span> <span class="p">)</span></div>
+
+<div class="viewcode-block" id="Function.__le__"><a class="viewcode-back" href="../../../underworld.function.html#underworld.function.Function.__le__">[docs]</a>    <span class="k">def</span> <span class="nf">__le__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Operator overloading for &#39;&lt;=&#39; operation:</span>
+
+<span class="sd">        Fn3 = Fn1 &lt;= Fn2</span>
+
+<span class="sd">        Creates a new function Fn3 which returns a bool result for the relation.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        fn.less_equal: Less than or equal to function</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; import misc</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; two  = misc.constant(2.)</span>
+<span class="sd">        &gt;&gt;&gt; (two &lt;= two).evaluate()</span>
+<span class="sd">        array([[ True]], dtype=bool)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">less_equal</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">other</span> <span class="p">)</span></div>
+
+<div class="viewcode-block" id="Function.__gt__"><a class="viewcode-back" href="../../../underworld.function.html#underworld.function.Function.__gt__">[docs]</a>    <span class="k">def</span> <span class="nf">__gt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Operator overloading for &#39;&gt;&#39; operation:</span>
+
+<span class="sd">        Fn3 = Fn1 &gt; Fn2</span>
+
+<span class="sd">        Creates a new function Fn3 which returns a bool result for the relation.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        fn.greater: Greater than function</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; import misc</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; two  = misc.constant(2.)</span>
+<span class="sd">        &gt;&gt;&gt; four = misc.constant(4.)</span>
+<span class="sd">        &gt;&gt;&gt; (two &gt; four).evaluate()</span>
+<span class="sd">        array([[False]], dtype=bool)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">greater</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">other</span> <span class="p">)</span></div>
+
+<div class="viewcode-block" id="Function.__ge__"><a class="viewcode-back" href="../../../underworld.function.html#underworld.function.Function.__ge__">[docs]</a>    <span class="k">def</span> <span class="nf">__ge__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Operator overloading for &#39;&gt;=&#39; operation:</span>
+
+<span class="sd">        Fn3 = Fn1 &gt;= Fn2</span>
+
+<span class="sd">        Creates a new function Fn3 which returns a bool result for the relation.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        fn.greater_equal: Greater than or equal to function</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; import misc</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; two  = misc.constant(2.)</span>
+<span class="sd">        &gt;&gt;&gt; (two &gt;= two).evaluate()</span>
+<span class="sd">        array([[ True]], dtype=bool)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">greater_equal</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">other</span> <span class="p">)</span></div>
+
+<div class="viewcode-block" id="Function.__and__"><a class="viewcode-back" href="../../../underworld.function.html#underworld.function.Function.__and__">[docs]</a>    <span class="k">def</span> <span class="nf">__and__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Operator overloading for &#39;&amp;&#39; operation:</span>
+
+<span class="sd">        Fn3 = Fn1 &amp; Fn2</span>
+
+<span class="sd">        Creates a new function Fn3 which returns a bool result for the operation.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        fn.logical_and: AND function</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; import misc</span>
+<span class="sd">        &gt;&gt;&gt; trueFn  = misc.constant(True)</span>
+<span class="sd">        &gt;&gt;&gt; falseFn = misc.constant(False)</span>
+<span class="sd">        &gt;&gt;&gt; (trueFn &amp; falseFn).evaluate()</span>
+<span class="sd">        array([[False]], dtype=bool)</span>
+<span class="sd">        </span>
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        The &#39;&amp;&#39; operator in python is usually used for bitwise &#39;and&#39; operations, with the </span>
+<span class="sd">        &#39;and&#39; operator used for boolean type operators. It is not possible to overload the</span>
+<span class="sd">        &#39;and&#39; operator in python, so instead the bitwise equivalent has been utilised.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">logical_and</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">other</span> <span class="p">)</span></div>
+
+<div class="viewcode-block" id="Function.__or__"><a class="viewcode-back" href="../../../underworld.function.html#underworld.function.Function.__or__">[docs]</a>    <span class="k">def</span> <span class="nf">__or__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Operator overloading for &#39;|&#39; operation:</span>
+
+<span class="sd">        Fn3 = Fn1 | Fn2</span>
+
+<span class="sd">        Creates a new function Fn3 which returns a bool result for the operation.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        fn.logical_or: OR function</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; import misc</span>
+<span class="sd">        &gt;&gt;&gt; trueFn  = misc.constant(True)</span>
+<span class="sd">        &gt;&gt;&gt; falseFn = misc.constant(False)</span>
+<span class="sd">        &gt;&gt;&gt; (trueFn | falseFn).evaluate()</span>
+<span class="sd">        array([[ True]], dtype=bool)</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        The &#39;|&#39; operator in python is usually used for bitwise &#39;or&#39; operations, </span>
+<span class="sd">        with the &#39;or&#39; operator used for boolean type operators. It is not possible </span>
+<span class="sd">        to overload the &#39;or&#39; operator in python, so instead the bitwise equivalent </span>
+<span class="sd">        has been utilised.</span>
+
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">logical_or</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">other</span> <span class="p">)</span></div>
+
+<div class="viewcode-block" id="Function.__xor__"><a class="viewcode-back" href="../../../underworld.function.html#underworld.function.Function.__xor__">[docs]</a>    <span class="k">def</span> <span class="nf">__xor__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Operator overloading for &#39;^&#39; operation:</span>
+
+<span class="sd">        Fn3 = Fn1 ^ Fn2</span>
+
+<span class="sd">        Creates a new function Fn3 which returns a bool result for the operation.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        fn.logical_xor: XOR function</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; import misc</span>
+<span class="sd">        &gt;&gt;&gt; trueFn  = misc.constant(True)</span>
+<span class="sd">        &gt;&gt;&gt; falseFn = misc.constant(False)</span>
+<span class="sd">        &gt;&gt;&gt; (trueFn ^ falseFn).evaluate()</span>
+<span class="sd">        array([[ True]], dtype=bool)</span>
+<span class="sd">        &gt;&gt;&gt; (trueFn ^ trueFn).evaluate()</span>
+<span class="sd">        array([[False]], dtype=bool)</span>
+<span class="sd">        &gt;&gt;&gt; (falseFn ^ falseFn).evaluate()</span>
+<span class="sd">        array([[False]], dtype=bool)</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        The &#39;^&#39; operator in python is usually used for bitwise &#39;xor&#39; operations, </span>
+<span class="sd">        however here we always use the logical version, with the operation </span>
+<span class="sd">        inputs cast to their bool equivalents before the operation.  </span>
+
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">logical_xor</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">other</span> <span class="p">)</span></div>
+
+<div class="viewcode-block" id="Function.__getitem__"><a class="viewcode-back" href="../../../underworld.function.html#underworld.function.Function.__getitem__">[docs]</a>    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">index</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Operator overloading for &#39;[]&#39; operation:</span>
+
+<span class="sd">        FnComponent = Fn[0]</span>
+
+<span class="sd">        Creates a new function FnComponent which returns the required component of Fn.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        fn.at: component function</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; import misc</span>
+<span class="sd">        &gt;&gt;&gt; fn  = misc.constant((2.,3.,4.))</span>
+<span class="sd">        &gt;&gt;&gt; np.allclose( fn[1].evaluate(0.), [[ 3.]]  )  # note we can evaluate anywhere because it&#39;s a constant</span>
+<span class="sd">        True</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">at</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">index</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Function.evaluate_global"><a class="viewcode-back" href="../../../underworld.function.html#underworld.function.Function.evaluate_global">[docs]</a>    <span class="k">def</span> <span class="nf">evaluate_global</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputData</span><span class="p">,</span> <span class="n">inputType</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method attempts to evalute inputData across all processes, and </span>
+<span class="sd">        then consolide the results on the root processor. This is most useful</span>
+<span class="sd">        where you wish to evalute your functions using global coordinates </span>
+<span class="sd">        which may span processes in a parallel simulation.</span>
+<span class="sd">        </span>
+<span class="sd">        Note that this method does not currently support &#39;FunctionInput&#39; class</span>
+<span class="sd">        input data.</span>
+<span class="sd">        </span>
+<span class="sd">        Due to the communications required for this method, a significant </span>
+<span class="sd">        performance overhead may be encountered. The standard `evaluate` method </span>
+<span class="sd">        should be used instead wherever possible.</span>
+
+<span class="sd">        Please see `evaluate` method for parameter details.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        This method must be called collectively by all processes.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Only the root process gets the final results array. All other processes</span>
+<span class="sd">        are returned None.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">mpi4py</span> <span class="k">import</span> <span class="n">MPI</span>
+        <span class="n">comm</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span>
+        <span class="n">rank</span> <span class="o">=</span> <span class="n">comm</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span>
+        <span class="n">nprocs</span> <span class="o">=</span> <span class="n">comm</span><span class="o">.</span><span class="n">Get_size</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inputData</span><span class="p">,</span> <span class="n">FunctionInput</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;This &#39;inputData&#39; type is not currently supported for global function evaluation.&quot;</span><span class="p">)</span>
+        <span class="c1"># go through the inputData and fill elements where the data is available</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inputData</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="n">inputData</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evaluate_data_convert_to_ndarray</span><span class="p">(</span><span class="n">inputData</span><span class="p">)</span>
+        <span class="n">arrayLength</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">inputData</span><span class="p">)</span>
+        <span class="n">local</span> <span class="o">=</span>  <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">arrayLength</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+        <span class="n">local_output</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">arrayLength</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># get result</span>
+                <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">inputData</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span> <span class="n">inputType</span><span class="p">)</span>
+                <span class="c1"># flag as result found</span>
+                <span class="n">local</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>  <span class="o">=</span> <span class="kc">True</span>
+                <span class="c1"># if not created, create</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">local_output</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+                    <span class="n">local_output</span> <span class="o">=</span>  <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span> <span class="p">(</span><span class="n">arrayLength</span><span class="p">,</span> <span class="n">output</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">output</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+                <span class="n">local_output</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">output</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="c1"># ValueError is only raised for outside domain, which suggests that the</span>
+                <span class="c1"># evaluation probably occurred on another process.</span>
+                <span class="k">pass</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="c1"># if a different error was raise, we should reraise</span>
+                <span class="k">raise</span>
+
+        <span class="c1"># distill results down to local only</span>
+        <span class="n">local_result_count</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">local</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">local_result_count</span><span class="p">:</span>
+            <span class="n">local_output_distilled</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span> <span class="p">(</span><span class="n">local_result_count</span><span class="p">,</span> <span class="n">local_output</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">local_output</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+            <span class="n">array_positions</span>        <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">local_result_count</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+            <span class="n">j</span><span class="o">=</span><span class="mi">0</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">val</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">local</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">val</span><span class="p">:</span>
+                    <span class="n">array_positions</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">i</span>
+                    <span class="n">local_output_distilled</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">local_output</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                    <span class="n">j</span><span class="o">+=</span><span class="mi">1</span>
+
+        <span class="c1"># data sending</span>
+        <span class="n">total_output</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">rank</span><span class="o">!=</span><span class="mi">0</span><span class="p">):</span>
+            <span class="c1"># send count</span>
+            <span class="n">comm</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">local_result_count</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">local_result_count</span><span class="p">:</span>
+                <span class="c1"># next send position array</span>
+                <span class="n">comm</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">array_positions</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                <span class="c1"># finally send actual data</span>
+                <span class="n">comm</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">local_output_distilled</span><span class="p">,</span>    <span class="n">dest</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># have output already from rank=0 proc; and lots of empties to fill in from others</span>
+            <span class="c1"># some data IS available two multiple processors - e.g. edges</span>
+            <span class="k">for</span> <span class="n">iProc</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">nprocs</span><span class="p">):</span>
+                <span class="n">incoming_count</span> <span class="o">=</span> <span class="n">comm</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">iProc</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">incoming_count</span><span class="p">:</span>
+                    <span class="n">incoming_positions</span> <span class="o">=</span> <span class="n">comm</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">iProc</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="n">incoming_data</span>      <span class="o">=</span> <span class="n">comm</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">iProc</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+                    <span class="c1"># create array if not done already</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">total_output</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+                        <span class="n">total_output</span> <span class="o">=</span>  <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span> <span class="p">(</span><span class="n">arrayLength</span><span class="p">,</span> <span class="n">incoming_data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">incoming_data</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+                    <span class="n">total_output</span><span class="p">[</span><span class="n">incoming_positions</span><span class="p">]</span> <span class="o">=</span> <span class="n">incoming_data</span>
+
+        <span class="c1"># finally copy our local results into the output</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">rank</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="n">local_result_count</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">total_output</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+                <span class="n">total_output</span> <span class="o">=</span>  <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span> <span class="p">(</span><span class="n">arrayLength</span><span class="p">,</span><span class="n">local_output_distilled</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">local_output_distilled</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+            <span class="n">total_output</span><span class="p">[</span><span class="n">array_positions</span><span class="p">]</span> <span class="o">=</span> <span class="n">local_output_distilled</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">rank</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">total_output</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span><span class="o">==</span><span class="kc">False</span><span class="p">):</span>
+            <span class="c1"># if total_output is still non-existent, no results were found</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;No results were found anywhere in the domain for provided input.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">total_output</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># all other procs return None</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_evaluate_data_convert_to_ndarray</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">inputData</span> <span class="p">):</span>
+        <span class="c1"># convert single values to tuples if necessary</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">inputData</span><span class="p">,</span> <span class="nb">float</span> <span class="p">):</span>
+            <span class="n">inputData</span> <span class="o">=</span> <span class="p">(</span><span class="n">inputData</span><span class="p">,)</span>
+        <span class="c1"># convert to ndarray</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">inputData</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span><span class="nb">tuple</span><span class="p">)</span> <span class="p">):</span>
+            <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">inputData</span><span class="p">)]</span> <span class="p">)</span>
+            <span class="n">ii</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">guy</span> <span class="ow">in</span> <span class="n">inputData</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">guy</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Iterable inputs must only contain python &#39;float&#39; objects.&quot;</span><span class="p">)</span>
+                <span class="n">arr</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">guy</span>
+                <span class="n">ii</span> <span class="o">+=</span><span class="mi">1</span>
+            <span class="k">return</span> <span class="n">arr</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Input provided for function evaluation does not appear to be supported.&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Function.evaluate"><a class="viewcode-back" href="../../../underworld.function.html#underworld.function.Function.evaluate">[docs]</a>    <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">inputData</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">inputType</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method performs evaluate of a function at the given input(s).</span>
+
+<span class="sd">        It accepts floats, lists, tuples, numpy arrays, or any object which is of</span>
+<span class="sd">        class `FunctionInput`. lists/tuples must contain floats only.</span>
+<span class="sd">        </span>
+<span class="sd">        `FunctionInput` class objects are shortcuts to their underlying data, often</span>
+<span class="sd">        with performance advantages, and sometimes they are the only valid input </span>
+<span class="sd">        type (such as using `Swarm` objects as an inputs to `SwarmVariable` </span>
+<span class="sd">        evaluation). Objects of class `FeMesh`, `Swarm`, `FeMesh_IndexSet` and</span>
+<span class="sd">        `VoronoiIntegrationSwarm` are also of class `FunctionInput`. See the </span>
+<span class="sd">        Function section of the user guide for more information.</span>
+
+<span class="sd">        Results are returned as numpy array.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        inputData: float, list, tuple, ndarray, underworld.function.FunctionInput</span>
+<span class="sd">            The input to the function. The form of this input must be appropriate</span>
+<span class="sd">            for the function being evaluated, or an exception will be thrown.</span>
+<span class="sd">            Note that if no input is provided, function will be evaluated at `0.`</span>
+<span class="sd">        inputType: str</span>
+<span class="sd">            Specifies the type the provided data represents. Acceptable </span>
+<span class="sd">            values are &#39;scalar&#39;, &#39;vector&#39;, &#39;symmetrictensor&#39;, &#39;tensor&#39;,</span>
+<span class="sd">            &#39;array&#39;.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        ndarray: array of results</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; from . import _systemmath as math</span>
+<span class="sd">        &gt;&gt;&gt; import underworld.function.math as fnmath</span>
+<span class="sd">        &gt;&gt;&gt; sinfn = fnmath.sin()</span>
+<span class="sd">        </span>
+<span class="sd">        Single evaluation:</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; np.allclose( sinfn.evaluate(math.pi/4.), [[ 0.5*math.sqrt(2.)]]  )</span>
+<span class="sd">        True</span>
+<span class="sd">        </span>
+<span class="sd">        Multiple evaluations</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; input = (0.,math.pi/4.,2.*math.pi)</span>
+<span class="sd">        &gt;&gt;&gt; np.allclose( sinfn.evaluate(input), [[ 0., 0.5*math.sqrt(2.), 0.]]  )</span>
+<span class="sd">        True</span>
+<span class="sd">        </span>
+<span class="sd">        </span>
+<span class="sd">        Single MeshVariable evaluations</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; mesh = uw.mesh.FeMesh_Cartesian()</span>
+<span class="sd">        &gt;&gt;&gt; var = uw.mesh.MeshVariable(mesh,1)</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; var.data[:,0] = np.linspace(0,1,len(var.data))</span>
+<span class="sd">        &gt;&gt;&gt; result = var.evaluate( (0.2,0.5 ) )</span>
+<span class="sd">        &gt;&gt;&gt; np.allclose( result, np.array([[ 0.45]]) )</span>
+<span class="sd">        True</span>
+<span class="sd">        </span>
+<span class="sd">        Numpy input MeshVariable evaluation</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; # evaluate at a set of locations.. provide these as a numpy array.</span>
+<span class="sd">        &gt;&gt;&gt; count = 10</span>
+<span class="sd">        &gt;&gt;&gt; # create an empty array</span>
+<span class="sd">        &gt;&gt;&gt; locations = np.zeros( (count,2))</span>
+<span class="sd">        &gt;&gt;&gt; # specify evaluation coodinates</span>
+<span class="sd">        &gt;&gt;&gt; locations[:,0] = 0.5</span>
+<span class="sd">        &gt;&gt;&gt; locations[:,1] = np.linspace(0.,1.,count)</span>
+<span class="sd">        &gt;&gt;&gt; # evaluate</span>
+<span class="sd">        &gt;&gt;&gt; result = var.evaluate(locations)</span>
+<span class="sd">        &gt;&gt;&gt; np.allclose( result, np.array([[ 0.08333333], \</span>
+<span class="sd">                                          [ 0.17592593], \</span>
+<span class="sd">                                          [ 0.26851852], \</span>
+<span class="sd">                                          [ 0.36111111], \</span>
+<span class="sd">                                          [ 0.4537037 ], \</span>
+<span class="sd">                                          [ 0.5462963 ], \</span>
+<span class="sd">                                          [ 0.63888889], \</span>
+<span class="sd">                                          [ 0.73148148], \</span>
+<span class="sd">                                          [ 0.82407407], \</span>
+<span class="sd">                                          [ 0.91666667]])  )</span>
+<span class="sd">        True</span>
+<span class="sd">        </span>
+<span class="sd">        Using the mesh object as a FunctionInput</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; np.allclose( var.evaluate(mesh), var.evaluate(mesh.data))</span>
+<span class="sd">        True</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">inputData</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">inputData</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="k">if</span> <span class="n">inputType</span> <span class="o">!=</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">inputType</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">types</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Provided input type does not appear to be valid.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inputData</span><span class="p">,</span> <span class="n">FunctionInput</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">inputType</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;inputType&#39; specification not supported for this input class.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">_cfn</span><span class="o">.</span><span class="n">Query</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fncself</span><span class="p">)</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">inputData</span><span class="o">.</span><span class="n">_get_iterator</span><span class="p">())</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inputData</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">inputType</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">inputType</span> <span class="o">==</span> <span class="n">ScalarType</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">inputData</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;You have specified ScalarType input, but your input size is </span><span class="si">{}</span><span class="s2">.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inputData</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> \
+                                        <span class="o">+</span><span class="s2">&quot;ScalarType inputs must be of size 1.&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">inputType</span> <span class="o">==</span> <span class="n">VectorType</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">inputData</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">):</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;You have specified VectorType input, but your input size is </span><span class="si">{}</span><span class="s2">.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inputData</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> \
+                                        <span class="o">+</span><span class="s2">&quot;VectorType inputs must be of size 2 or 3 (for 2d or 3d).&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">inputType</span> <span class="o">==</span> <span class="n">SymmetricTensorType</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">inputData</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">6</span><span class="p">):</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;You have specified SymmetricTensorType input, but your input size is </span><span class="si">{}</span><span class="s2">.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inputData</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> \
+                                        <span class="o">+</span><span class="s2">&quot;SymmetricTensorType inputs must be of size 3 or 6 (for 2d or 3d).&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">inputType</span> <span class="o">==</span> <span class="n">TensorType</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">inputData</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="mi">9</span><span class="p">):</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;You have specified TensorType input, but your input size is </span><span class="si">{}</span><span class="s2">.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inputData</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> \
+                                        <span class="o">+</span><span class="s2">&quot;TensorType inputs must be of size 4 or 9 (for 2d or 3d).&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">inputType</span> <span class="o">=</span> <span class="n">ArrayType</span>
+            <span class="k">return</span> <span class="n">_cfn</span><span class="o">.</span><span class="n">Query</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fncself</span><span class="p">)</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">_cfn</span><span class="o">.</span><span class="n">NumpyInput</span><span class="p">(</span><span class="n">inputData</span><span class="p">,</span><span class="n">inputType</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># try convert and recurse</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evaluate_data_convert_to_ndarray</span><span class="p">(</span><span class="n">inputData</span><span class="p">),</span> <span class="n">inputType</span> <span class="p">)</span></div></div>
+
+<span class="k">class</span> <span class="nc">add</span><span class="p">(</span><span class="n">Function</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class implements the addition of two functions.</span>
+<span class="sd">    It is invoked by the overload methods __add__ and __radd__.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn1</span><span class="p">,</span> <span class="n">fn2</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">fn1fn</span> <span class="o">=</span> <span class="n">Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span> <span class="n">fn1</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">fn1fn</span><span class="p">,</span> <span class="n">Function</span> <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Functions must be of type (or convertible to) &#39;Function&#39;.&quot;</span><span class="p">)</span>
+        <span class="n">fn2fn</span> <span class="o">=</span> <span class="n">Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span> <span class="n">fn2</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">fn2fn</span><span class="p">,</span> <span class="n">Function</span> <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Functions must be of type (or convertible to) &#39;Function&#39;.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn1</span> <span class="o">=</span> <span class="n">fn1fn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn2</span> <span class="o">=</span> <span class="n">fn2fn</span>
+        <span class="c1"># ok finally lets create the fn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fncself</span> <span class="o">=</span> <span class="n">_cfn</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fn1</span><span class="o">.</span><span class="n">_fncself</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fn2</span><span class="o">.</span><span class="n">_fncself</span> <span class="p">)</span>
+        <span class="c1"># build parent</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">add</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">argument_fns</span><span class="o">=</span><span class="p">[</span><span class="n">fn1fn</span><span class="p">,</span><span class="n">fn2fn</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">subtract</span><span class="p">(</span><span class="n">Function</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class implements the difference of two functions.</span>
+<span class="sd">    It is invoked by the overload methods __sub__ and __rsub__.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_Fn</span><span class="p">,</span> <span class="n">y_Fn</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">fn1fn</span> <span class="o">=</span> <span class="n">Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span> <span class="n">x_Fn</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">fn1fn</span><span class="p">,</span> <span class="n">Function</span> <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Functions must be of type (or convertible to) &#39;Function&#39;.&quot;</span><span class="p">)</span>
+        <span class="n">fn2fn</span> <span class="o">=</span> <span class="n">Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span> <span class="n">y_Fn</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">fn2fn</span><span class="p">,</span> <span class="n">Function</span> <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Functions must be of type (or convertible to) &#39;Function&#39;.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn1</span> <span class="o">=</span> <span class="n">fn1fn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn2</span> <span class="o">=</span> <span class="n">fn2fn</span>
+        <span class="c1"># ok finally lets create the fn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fncself</span> <span class="o">=</span> <span class="n">_cfn</span><span class="o">.</span><span class="n">Subtract</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fn1</span><span class="o">.</span><span class="n">_fncself</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fn2</span><span class="o">.</span><span class="n">_fncself</span> <span class="p">)</span>
+        <span class="c1"># build parent</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">subtract</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">argument_fns</span><span class="o">=</span><span class="p">[</span><span class="n">fn1fn</span><span class="p">,</span><span class="n">fn2fn</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">multiply</span><span class="p">(</span><span class="n">Function</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class implements the product of two functions</span>
+<span class="sd">    It is invoked by the overload method __mul__.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn1</span><span class="p">,</span> <span class="n">fn2</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">fn1fn</span> <span class="o">=</span> <span class="n">Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span> <span class="n">fn1</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">fn1fn</span><span class="p">,</span> <span class="n">Function</span> <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Functions must be of type (or convertible to) &#39;Function&#39;.&quot;</span><span class="p">)</span>
+        <span class="n">fn2fn</span> <span class="o">=</span> <span class="n">Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span> <span class="n">fn2</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">fn2fn</span><span class="p">,</span> <span class="n">Function</span> <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Functions must be of type (or convertible to) &#39;Function&#39;.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn1</span> <span class="o">=</span> <span class="n">fn1fn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn2</span> <span class="o">=</span> <span class="n">fn2fn</span>
+        <span class="c1"># ok finally lets create the fn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fncself</span> <span class="o">=</span> <span class="n">_cfn</span><span class="o">.</span><span class="n">Multiply</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fn1</span><span class="o">.</span><span class="n">_fncself</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fn2</span><span class="o">.</span><span class="n">_fncself</span> <span class="p">)</span>
+        <span class="c1"># build parent</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">multiply</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">argument_fns</span><span class="o">=</span><span class="p">[</span><span class="n">fn1fn</span><span class="p">,</span><span class="n">fn2fn</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">divide</span><span class="p">(</span><span class="n">Function</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class implements the quotient of two functions</span>
+<span class="sd">    It is invoked by the overload methods __div__ and __rdiv__.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn1</span><span class="p">,</span> <span class="n">fn2</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">fn1fn</span> <span class="o">=</span> <span class="n">Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span> <span class="n">fn1</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">fn1fn</span><span class="p">,</span> <span class="n">Function</span> <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Functions must be of type (or convertible to) &#39;Function&#39;.&quot;</span><span class="p">)</span>
+        <span class="n">fn2fn</span> <span class="o">=</span> <span class="n">Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span> <span class="n">fn2</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">fn2fn</span><span class="p">,</span> <span class="n">Function</span> <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Functions must be of type (or convertible to) &#39;Function&#39;.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn1</span> <span class="o">=</span> <span class="n">fn1fn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn2</span> <span class="o">=</span> <span class="n">fn2fn</span>
+        <span class="c1"># ok finally lets create the fn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fncself</span> <span class="o">=</span> <span class="n">_cfn</span><span class="o">.</span><span class="n">Divide</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fn1</span><span class="o">.</span><span class="n">_fncself</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fn2</span><span class="o">.</span><span class="n">_fncself</span> <span class="p">)</span>
+        <span class="c1"># build parent</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">divide</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">argument_fns</span><span class="o">=</span><span class="p">[</span><span class="n">fn1fn</span><span class="p">,</span><span class="n">fn2fn</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">less</span><span class="p">(</span><span class="n">Function</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class implements the &#39;less than&#39; relational operation.</span>
+<span class="sd">    It is invoked by the overload method __lt__.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn1</span><span class="p">,</span> <span class="n">fn2</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">fn1fn</span> <span class="o">=</span> <span class="n">Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span> <span class="n">fn1</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">fn1fn</span><span class="p">,</span> <span class="n">Function</span> <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Functions must be of type (or convertible to) &#39;Function&#39;.&quot;</span><span class="p">)</span>
+        <span class="n">fn2fn</span> <span class="o">=</span> <span class="n">Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span> <span class="n">fn2</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">fn2fn</span><span class="p">,</span> <span class="n">Function</span> <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Functions must be of type (or convertible to) &#39;Function&#39;.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn1</span> <span class="o">=</span> <span class="n">fn1fn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn2</span> <span class="o">=</span> <span class="n">fn2fn</span>
+        <span class="c1"># ok finally lets create the fn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fncself</span> <span class="o">=</span> <span class="n">_cfn</span><span class="o">.</span><span class="n">Relational_less</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fn1</span><span class="o">.</span><span class="n">_fncself</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fn2</span><span class="o">.</span><span class="n">_fncself</span> <span class="p">)</span>
+        <span class="c1"># build parent</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">less</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">argument_fns</span><span class="o">=</span><span class="p">[</span><span class="n">fn1fn</span><span class="p">,</span><span class="n">fn2fn</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">less_equal</span><span class="p">(</span><span class="n">Function</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class implements the &#39;less than or equal to&#39; relational operation.</span>
+<span class="sd">    It is invoked by the overload method __le__.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn1</span><span class="p">,</span> <span class="n">fn2</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">fn1fn</span> <span class="o">=</span> <span class="n">Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span> <span class="n">fn1</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">fn1fn</span><span class="p">,</span> <span class="n">Function</span> <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Functions must be of type (or convertible to) &#39;Function&#39;.&quot;</span><span class="p">)</span>
+        <span class="n">fn2fn</span> <span class="o">=</span> <span class="n">Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span> <span class="n">fn2</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">fn2fn</span><span class="p">,</span> <span class="n">Function</span> <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Functions must be of type (or convertible to) &#39;Function&#39;.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn1</span> <span class="o">=</span> <span class="n">fn1fn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn2</span> <span class="o">=</span> <span class="n">fn2fn</span>
+        <span class="c1"># ok finally lets create the fn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fncself</span> <span class="o">=</span> <span class="n">_cfn</span><span class="o">.</span><span class="n">Relational_less_equal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fn1</span><span class="o">.</span><span class="n">_fncself</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fn2</span><span class="o">.</span><span class="n">_fncself</span> <span class="p">)</span>
+        <span class="c1"># build parent</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">less_equal</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">argument_fns</span><span class="o">=</span><span class="p">[</span><span class="n">fn1fn</span><span class="p">,</span><span class="n">fn2fn</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">greater</span><span class="p">(</span><span class="n">Function</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class implements the &#39;greater than&#39; relational operation.</span>
+<span class="sd">    It is invoked by the overload method __gt__.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn1</span><span class="p">,</span> <span class="n">fn2</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">fn1fn</span> <span class="o">=</span> <span class="n">Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span> <span class="n">fn1</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">fn1fn</span><span class="p">,</span> <span class="n">Function</span> <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Functions must be of type (or convertible to) &#39;Function&#39;.&quot;</span><span class="p">)</span>
+        <span class="n">fn2fn</span> <span class="o">=</span> <span class="n">Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span> <span class="n">fn2</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">fn2fn</span><span class="p">,</span> <span class="n">Function</span> <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Functions must be of type (or convertible to) &#39;Function&#39;.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn1</span> <span class="o">=</span> <span class="n">fn1fn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn2</span> <span class="o">=</span> <span class="n">fn2fn</span>
+        <span class="c1"># ok finally lets create the fn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fncself</span> <span class="o">=</span> <span class="n">_cfn</span><span class="o">.</span><span class="n">Relational_greater</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fn1</span><span class="o">.</span><span class="n">_fncself</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fn2</span><span class="o">.</span><span class="n">_fncself</span> <span class="p">)</span>
+        <span class="c1"># build parent</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">greater</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">argument_fns</span><span class="o">=</span><span class="p">[</span><span class="n">fn1fn</span><span class="p">,</span><span class="n">fn2fn</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">greater_equal</span><span class="p">(</span><span class="n">Function</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class implements the &#39;greater than or equal to&#39; relational operation.</span>
+<span class="sd">    It is invoked by the overload method __ge__.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn1</span><span class="p">,</span> <span class="n">fn2</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">fn1fn</span> <span class="o">=</span> <span class="n">Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span> <span class="n">fn1</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">fn1fn</span><span class="p">,</span> <span class="n">Function</span> <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Functions must be of type (or convertible to) &#39;Function&#39;.&quot;</span><span class="p">)</span>
+        <span class="n">fn2fn</span> <span class="o">=</span> <span class="n">Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span> <span class="n">fn2</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">fn2fn</span><span class="p">,</span> <span class="n">Function</span> <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Functions must be of type (or convertible to) &#39;Function&#39;.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn1</span> <span class="o">=</span> <span class="n">fn1fn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn2</span> <span class="o">=</span> <span class="n">fn2fn</span>
+        <span class="c1"># ok finally lets create the fn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fncself</span> <span class="o">=</span> <span class="n">_cfn</span><span class="o">.</span><span class="n">Relational_greater_equal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fn1</span><span class="o">.</span><span class="n">_fncself</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fn2</span><span class="o">.</span><span class="n">_fncself</span> <span class="p">)</span>
+        <span class="c1"># build parent</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">greater_equal</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">argument_fns</span><span class="o">=</span><span class="p">[</span><span class="n">fn1fn</span><span class="p">,</span><span class="n">fn2fn</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<span class="c1">#class equal_to(Function):</span>
+<span class="c1">#    &quot;&quot;&quot;</span>
+<span class="c1">#    Disabled for now.  Probably not useful for float comparison.</span>
+<span class="c1">#    This class implements an equality of the two operands.</span>
+<span class="c1">#</span>
+<span class="c1">#    Fn3 = equal_to(Fn1,Fn2)</span>
+<span class="c1">#</span>
+<span class="c1">#    Creates a new function Fn3 which returns a bool result for the relation.</span>
+<span class="c1">#</span>
+<span class="c1">#    Returns</span>
+<span class="c1">#    -------</span>
+<span class="c1">#    fn.equal_to: equal_to function</span>
+<span class="c1">#</span>
+<span class="c1">#    &quot;&quot;&quot;</span>
+<span class="c1">#</span>
+<span class="c1">#    def __init__(self, fn1, fn2, **kwargs):</span>
+<span class="c1">#        fn1fn = Function.convert( fn1 )</span>
+<span class="c1">#        if not isinstance( fn1fn, Function ):</span>
+<span class="c1">#            raise TypeError(&quot;Functions must be of type (or convertible to) &#39;Function&#39;.&quot;)</span>
+<span class="c1">#        fn2fn = Function.convert( fn2 )</span>
+<span class="c1">#        if not isinstance( fn2fn, Function ):</span>
+<span class="c1">#            raise TypeError(&quot;Functions must be of type (or convertible to) &#39;Function&#39;.&quot;)</span>
+<span class="c1">#</span>
+<span class="c1">#        self._fn1 = fn1fn</span>
+<span class="c1">#        self._fn2 = fn2fn</span>
+<span class="c1">#        # ok finally lets create the fn</span>
+<span class="c1">#        self._fncself = _cfn.Relational_equal_to(self._fn1._fncself, self._fn2._fncself )</span>
+<span class="c1">#        # build parent</span>
+<span class="c1">#        super(equal_to,self).__init__(argument_fns=[fn1fn,fn2fn], **kwargs)</span>
+
+<span class="c1">#class not_equal_to(Function):</span>
+<span class="c1">#    &quot;&quot;&quot;</span>
+<span class="c1">#    Disabled for now.  Probably not useful for float comparison.</span>
+<span class="c1">#    This class implements an inequality test of the two operands.</span>
+<span class="c1">#</span>
+<span class="c1">#    Fn3 = not_equal_to(Fn1,Fn2)</span>
+<span class="c1">#</span>
+<span class="c1">#    Creates a new function Fn3 which returns a bool result for the relation.</span>
+<span class="c1">#</span>
+<span class="c1">#    Returns</span>
+<span class="c1">#    -------</span>
+<span class="c1">#    fn.not_equal_to: not_equal_to function</span>
+<span class="c1">#</span>
+<span class="c1">#    &quot;&quot;&quot;</span>
+<span class="c1">#    def __init__(self, fn1, fn2, **kwargs):</span>
+<span class="c1">#        fn1fn = Function.convert( fn1 )</span>
+<span class="c1">#        if not isinstance( fn1fn, Function ):</span>
+<span class="c1">#            raise TypeError(&quot;Functions must be of type (or convertible to) &#39;Function&#39;.&quot;)</span>
+<span class="c1">#        fn2fn = Function.convert( fn2 )</span>
+<span class="c1">#        if not isinstance( fn2fn, Function ):</span>
+<span class="c1">#            raise TypeError(&quot;Functions must be of type (or convertible to) &#39;Function&#39;.&quot;)</span>
+<span class="c1">#</span>
+<span class="c1">#        self._fn1 = fn1fn</span>
+<span class="c1">#        self._fn2 = fn2fn</span>
+<span class="c1">#        # ok finally lets create the fn</span>
+<span class="c1">#        self._fncself = _cfn.Relational_not_equal_to(self._fn1._fncself, self._fn2._fncself )</span>
+<span class="c1">#        # build parent</span>
+<span class="c1">#        super(not_equal_to,self).__init__(argument_fns=[fn1fn,fn2fn], **kwargs)</span>
+
+<span class="k">class</span> <span class="nc">logical_and</span><span class="p">(</span><span class="n">Function</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class implements the AND relational operation.</span>
+<span class="sd">    It is invoked by the overload method __and__.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn1</span><span class="p">,</span> <span class="n">fn2</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">fn1fn</span> <span class="o">=</span> <span class="n">Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span> <span class="n">fn1</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">fn1fn</span><span class="p">,</span> <span class="n">Function</span> <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Functions must be of type (or convertible to) &#39;Function&#39;.&quot;</span><span class="p">)</span>
+        <span class="n">fn2fn</span> <span class="o">=</span> <span class="n">Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span> <span class="n">fn2</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">fn2fn</span><span class="p">,</span> <span class="n">Function</span> <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Functions must be of type (or convertible to) &#39;Function&#39;.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn1</span> <span class="o">=</span> <span class="n">fn1fn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn2</span> <span class="o">=</span> <span class="n">fn2fn</span>
+        <span class="c1"># ok finally lets create the fn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fncself</span> <span class="o">=</span> <span class="n">_cfn</span><span class="o">.</span><span class="n">Relational_logical_and</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fn1</span><span class="o">.</span><span class="n">_fncself</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fn2</span><span class="o">.</span><span class="n">_fncself</span> <span class="p">)</span>
+        <span class="c1"># build parent</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">logical_and</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">argument_fns</span><span class="o">=</span><span class="p">[</span><span class="n">fn1fn</span><span class="p">,</span><span class="n">fn2fn</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">logical_or</span><span class="p">(</span><span class="n">Function</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class implements the OR logical operation.</span>
+<span class="sd">    It is invoked by the overload method __or__.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn1</span><span class="p">,</span> <span class="n">fn2</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">fn1fn</span> <span class="o">=</span> <span class="n">Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span> <span class="n">fn1</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">fn1fn</span><span class="p">,</span> <span class="n">Function</span> <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Functions must be of type (or convertible to) &#39;Function&#39;.&quot;</span><span class="p">)</span>
+        <span class="n">fn2fn</span> <span class="o">=</span> <span class="n">Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span> <span class="n">fn2</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">fn2fn</span><span class="p">,</span> <span class="n">Function</span> <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Functions must be of type (or convertible to) &#39;Function&#39;.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn1</span> <span class="o">=</span> <span class="n">fn1fn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn2</span> <span class="o">=</span> <span class="n">fn2fn</span>
+        <span class="c1"># ok finally lets create the fn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fncself</span> <span class="o">=</span> <span class="n">_cfn</span><span class="o">.</span><span class="n">Relational_logical_or</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fn1</span><span class="o">.</span><span class="n">_fncself</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fn2</span><span class="o">.</span><span class="n">_fncself</span> <span class="p">)</span>
+        <span class="c1"># build parent</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">logical_or</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">argument_fns</span><span class="o">=</span><span class="p">[</span><span class="n">fn1fn</span><span class="p">,</span><span class="n">fn2fn</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">logical_xor</span><span class="p">(</span><span class="n">Function</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class implements the XOR logical operation.</span>
+<span class="sd">    It is invoked by the overload method __xor__.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn1</span><span class="p">,</span> <span class="n">fn2</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">fn1fn</span> <span class="o">=</span> <span class="n">Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span> <span class="n">fn1</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">fn1fn</span><span class="p">,</span> <span class="n">Function</span> <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Functions must be of type (or convertible to) &#39;Function&#39;.&quot;</span><span class="p">)</span>
+        <span class="n">fn2fn</span> <span class="o">=</span> <span class="n">Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span> <span class="n">fn2</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">fn2fn</span><span class="p">,</span> <span class="n">Function</span> <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Functions must be of type (or convertible to) &#39;Function&#39;.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn1</span> <span class="o">=</span> <span class="n">fn1fn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn2</span> <span class="o">=</span> <span class="n">fn2fn</span>
+        <span class="c1"># ok finally lets create the fn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fncself</span> <span class="o">=</span> <span class="n">_cfn</span><span class="o">.</span><span class="n">Relational_logical_xor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fn1</span><span class="o">.</span><span class="n">_fncself</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fn2</span><span class="o">.</span><span class="n">_fncself</span> <span class="p">)</span>
+        <span class="c1"># build parent</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">logical_xor</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">argument_fns</span><span class="o">=</span><span class="p">[</span><span class="n">fn1fn</span><span class="p">,</span><span class="n">fn2fn</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+
+<span class="k">class</span> <span class="nc">at</span><span class="p">(</span><span class="n">Function</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class implements extraction the nth component of a function.</span>
+<span class="sd">    It is invoked by the overload method __getitem__.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="n">_fn</span> <span class="o">=</span> <span class="n">Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">_fn</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span> <span class="s2">&quot;provided &#39;fn&#39; must a &#39;Function&#39; or convertible.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn</span> <span class="o">=</span> <span class="n">_fn</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">n</span><span class="p">,</span> <span class="nb">int</span> <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;n&#39; argument is expected to be of type &#39;int&#39;.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;n&#39; argument must be a non-negative integer.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># create instance</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fncself</span> <span class="o">=</span> <span class="n">_cfn</span><span class="o">.</span><span class="n">At</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fn</span><span class="o">.</span><span class="n">_fncself</span><span class="p">,</span> <span class="n">n</span> <span class="p">)</span>
+
+        <span class="c1"># build parent</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">at</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">argument_fns</span><span class="o">=</span><span class="p">[</span><span class="n">fn</span><span class="p">,],</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span>  <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="input"><a class="viewcode-back" href="../../../underworld.function.shape.html#underworld.function.input">[docs]</a><span class="k">class</span> <span class="nc">input</span><span class="p">(</span><span class="n">Function</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class generates a function which simply passes through its input. It</span>
+<span class="sd">    is the identity function. It is often useful when construct functions where </span>
+<span class="sd">    the input itself needs to be accessed, such as to extract a particular </span>
+<span class="sd">    component.</span>
+<span class="sd">    </span>
+<span class="sd">    For example, you may wish to use this function when you wish to extract a </span>
+<span class="sd">    particular coordinate component for manipulation. For this reason, we also </span>
+<span class="sd">    provide an alias to this class called &#39;coord&#39;.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    fn.input: the input function</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Here we see the input function simply passing through its input.</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; infunc = input()</span>
+<span class="sd">    &gt;&gt;&gt; np.allclose( infunc.evaluate( (1.,2.,3.) ), [ 1., 2., 3.] )</span>
+<span class="sd">    True</span>
+
+<span class="sd">    Often this behaviour is useful when we want to construct a function</span>
+<span class="sd">    which operates on only a particular coordinate, such as a depth</span>
+<span class="sd">    dependent density. We may wish to extract the z coordinate (in</span>
+<span class="sd">    2d):</span>
+
+<span class="sd">    &gt;&gt;&gt; zcoord = input()[1]</span>
+<span class="sd">    &gt;&gt;&gt; baseDensity = 1.</span>
+<span class="sd">    &gt;&gt;&gt; density = baseDensity - 0.01*zcoord</span>
+<span class="sd">    &gt;&gt;&gt; testCoord1 = (0.1,0.4)</span>
+<span class="sd">    &gt;&gt;&gt; testCoord2 = (0.9,0.4)</span>
+<span class="sd">    &gt;&gt;&gt; np.allclose( density.evaluate( testCoord1 ), density.evaluate( testCoord2 ) )</span>
+<span class="sd">    True</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="c1"># create instance</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fncself</span> <span class="o">=</span> <span class="n">_cfn</span><span class="o">.</span><span class="n">Input</span><span class="p">()</span>
+
+        <span class="c1"># build parent</span>
+        <span class="nb">super</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">argument_fns</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<span class="n">coord</span> <span class="o">=</span> <span class="nb">input</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Melbourne University, Monash University..
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,680 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>underworld.container module &mdash; underworld2  documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="underworld2  documentation" href="index.html"/>
+        <link rel="up" title="underworld module" href="underworld.html"/>
+        <link rel="next" title="underworld.utils module" href="underworld.utils.html"/>
+        <link rel="prev" title="underworld.function.view module" href="underworld.function.view.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> underworld2
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="underworld.html">underworld module</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="underworld.html#module-summary">Module Summary</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="underworld.html#submodules">submodules:</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="underworld.function.html">underworld.function module</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">underworld.container module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="underworld.utils.html">underworld.utils module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="underworld.swarm.html">underworld.swarm module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="underworld.mesh.html">underworld.mesh module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="underworld.systems.html">underworld.systems module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="underworld.conditions.html">underworld.conditions module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="underworld.html#functions">functions:</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="underworld.html#module-details">Module Details</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="glucifer.html">glucifer module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">underworld2</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="underworld.html">underworld module</a> &raquo;</li>
+      
+    <li>underworld.container module</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/underworld.container.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="underworld-container-module">
+<h1>underworld.container module<a class="headerlink" href="#underworld-container-module" title="Permalink to this headline">¶</a></h1>
+<p>Implementation relating to container objects.</p>
+<div class="section" id="module-summary">
+<h2>Module Summary<a class="headerlink" href="#module-summary" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="classes">
+<h3>classes:<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#underworld.container.IndexSet" title="underworld.container.IndexSet"><code class="xref py py-obj docutils literal"><span class="pre">underworld.container.IndexSet</span></code></a></td>
+<td>The IndexSet class provides a set type container for integer values.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#underworld.container.ObjectifiedIndexSet" title="underworld.container.ObjectifiedIndexSet"><code class="xref py py-obj docutils literal"><span class="pre">underworld.container.ObjectifiedIndexSet</span></code></a></td>
+<td>This class simply adds an object to IndexSet data.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="module-details">
+<h2>Module Details<a class="headerlink" href="#module-details" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id1">
+<h3>classes:<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="underworld.container.IndexSet">
+<em class="property">class </em><code class="descclassname">underworld.container.</code><code class="descname">IndexSet</code><span class="sig-paren">(</span><em>size</em>, <em>fromObject=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/container/_indexset.html#IndexSet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.container.IndexSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>The IndexSet class provides a set type container for integer values.
+The underlying implementation is designed for memory efficiency.
+Index insertion and removal is a constant time operation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>size</strong> (<em>int</em>) &#8211; The size of the IndexSet. Note that the size corresponds to the maximum index
+value (plus 1) the set is required to hold, <em>NOT</em> the number of elements in
+the set. See IndexSet.size docstring for more information.</li>
+<li><strong>fromObject</strong> (<em>iterable, array_like, IndexSet. Optional.</em>) &#8211; If provided, an IndexSet will be constructed using provided object&#8217;s data.
+See &#8216;add&#8217; method for more details on acceptable objects.
+If not provided, empty set is generated.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<p>You can add items via the constructor:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">someSet</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">IndexSet</span><span class="p">(</span> <span class="mi">15</span><span class="p">,</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">14</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet</span>
+<span class="go">IndexSet([ 2,  3, 14])</span>
+</pre></div>
+</div>
+<p>Alternatively, create an empty set and add items as necessary:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">someSet</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">IndexSet</span><span class="p">(</span> <span class="mi">15</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet</span>
+<span class="go">IndexSet([])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet</span>
+<span class="go">IndexSet([3])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet</span><span class="o">.</span><span class="n">add</span><span class="p">(</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">11</span><span class="p">]</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet</span>
+<span class="go">IndexSet([ 2,  3, 11])</span>
+</pre></div>
+</div>
+<p>Python operators are overloaded for convenience. Check class method details
+for full details.</p>
+<dl class="method">
+<dt id="underworld.container.IndexSet.AND">
+<code class="descname">AND</code><span class="sig-paren">(</span><em>indices</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/container/_indexset.html#IndexSet.AND"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.container.IndexSet.AND" title="Permalink to this definition">¶</a></dt>
+<dd><p>Logical AND operation performed with provided IndexSet.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>indices</strong> (<a class="reference internal" href="#underworld.container.IndexSet" title="underworld.container.IndexSet"><em>IndexSet</em></a>) &#8211; IndexSet for which AND operation is performed. Note that provided set must be of type IndexSet.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">someSet1</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">IndexSet</span><span class="p">(</span> <span class="mi">15</span><span class="p">,</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">10</span><span class="p">]</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet2</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">IndexSet</span><span class="p">(</span> <span class="mi">15</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">12</span><span class="p">]</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet1</span><span class="o">.</span><span class="n">AND</span><span class="p">(</span><span class="n">someSet2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet1</span>
+<span class="go">IndexSet([9])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="underworld.container.IndexSet.__add__">
+<code class="descname">__add__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/container/_indexset.html#IndexSet.__add__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.container.IndexSet.__add__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Operator overloading for <code class="code python docutils literal"><span class="name"><span class="pre">C</span></span> <span class="operator"><span class="pre">=</span></span> <span class="name"><span class="pre">A</span></span> <span class="operator"><span class="pre">+</span></span> <span class="name"><span class="pre">B</span></span></code></p>
+<p>Creates a new set C, then adds indices from A and B.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><strong>indexSet</strong> &#8211; The new set (C).</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="#underworld.container.IndexSet" title="underworld.container.IndexSet">IndexSet</a></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">someSet1</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">IndexSet</span><span class="p">(</span> <span class="mi">15</span><span class="p">,</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">10</span><span class="p">]</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet2</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">IndexSet</span><span class="p">(</span> <span class="mi">15</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">12</span><span class="p">]</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet1</span> <span class="o">+</span> <span class="n">someSet2</span>
+<span class="go">IndexSet([ 1,  3,  9, 10, 12])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="underworld.container.IndexSet.__and__">
+<code class="descname">__and__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/container/_indexset.html#IndexSet.__and__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.container.IndexSet.__and__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Operator overloading for <code class="code python docutils literal"><span class="name"><span class="pre">C</span></span> <span class="operator"><span class="pre">=</span></span> <span class="name"><span class="pre">A</span></span> <span class="operator"><span class="pre">&amp;</span></span> <span class="name"><span class="pre">B</span></span></code></p>
+<p>Creates a new set C, then adds indices from A, and performs
+AND logic with B.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><strong>indexSet</strong> &#8211; The new set (C).</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="#underworld.container.IndexSet" title="underworld.container.IndexSet">IndexSet</a></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">someSet1</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">IndexSet</span><span class="p">(</span> <span class="mi">15</span><span class="p">,</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">10</span><span class="p">]</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet2</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">IndexSet</span><span class="p">(</span> <span class="mi">15</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">12</span><span class="p">]</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet1</span> <span class="o">&amp;</span> <span class="n">someSet2</span>
+<span class="go">IndexSet([9])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="underworld.container.IndexSet.__contains__">
+<code class="descname">__contains__</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/container/_indexset.html#IndexSet.__contains__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.container.IndexSet.__contains__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if item is in IndexSet.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>index</strong> (<em>unsigned int</em>) &#8211; Check if index is in IndexSet.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>inSet</strong> &#8211; True if item is in set, False otherwise.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">someSet</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">IndexSet</span><span class="p">(</span> <span class="mi">15</span><span class="p">,</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">10</span><span class="p">]</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="mi">3</span> <span class="ow">in</span> <span class="n">someSet</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="underworld.container.IndexSet.__deepcopy__">
+<code class="descname">__deepcopy__</code><span class="sig-paren">(</span><em>memo</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/container/_indexset.html#IndexSet.__deepcopy__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.container.IndexSet.__deepcopy__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Custom deepcopy routine required because python won&#8217;t know how to copy
+memory owned by stgermain.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="underworld.container.IndexSet.__iadd__">
+<code class="descname">__iadd__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/container/_indexset.html#IndexSet.__iadd__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.container.IndexSet.__iadd__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Operator overloading for <code class="code python docutils literal"><span class="name"><span class="pre">A</span></span> <span class="operator"><span class="pre">+=</span></span> <span class="name"><span class="pre">B</span></span></code></p>
+<p>Adds indices from A and B.</p>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">someSet1</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">IndexSet</span><span class="p">(</span> <span class="mi">15</span><span class="p">,</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">10</span><span class="p">]</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet2</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">IndexSet</span><span class="p">(</span> <span class="mi">15</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">12</span><span class="p">]</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet1</span> <span class="o">+=</span> <span class="n">someSet2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet1</span>
+<span class="go">IndexSet([ 1,  3,  9, 10, 12])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="underworld.container.IndexSet.__iand__">
+<code class="descname">__iand__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/container/_indexset.html#IndexSet.__iand__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.container.IndexSet.__iand__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Operator overloading for <code class="code python docutils literal"><span class="name"><span class="pre">A</span></span> <span class="operator"><span class="pre">&amp;=</span></span> <span class="name"><span class="pre">B</span></span></code></p>
+<p>Performs logical AND operation with A and B. Results are stored
+in A.</p>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">someSet1</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">IndexSet</span><span class="p">(</span> <span class="mi">15</span><span class="p">,</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">10</span><span class="p">]</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet2</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">IndexSet</span><span class="p">(</span> <span class="mi">15</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">12</span><span class="p">]</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet1</span> <span class="o">&amp;=</span> <span class="n">someSet2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet1</span>
+<span class="go">IndexSet([9])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="underworld.container.IndexSet.__ior__">
+<code class="descname">__ior__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/container/_indexset.html#IndexSet.__ior__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.container.IndexSet.__ior__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Operator overloading for <code class="code python docutils literal"><span class="name"><span class="pre">A</span></span> <span class="operator"><span class="pre">|=</span></span> <span class="name"><span class="pre">B</span></span></code></p>
+<p>Performs logical OR operation with A and B. Results are stored in A.</p>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">someSet1</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">IndexSet</span><span class="p">(</span> <span class="mi">15</span><span class="p">,</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">10</span><span class="p">]</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet2</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">IndexSet</span><span class="p">(</span> <span class="mi">15</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">12</span><span class="p">]</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet1</span> <span class="o">|=</span> <span class="n">someSet2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet1</span>
+<span class="go">IndexSet([ 1,  3,  9, 10, 12])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="underworld.container.IndexSet.__isub__">
+<code class="descname">__isub__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/container/_indexset.html#IndexSet.__isub__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.container.IndexSet.__isub__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Operator overloading for <code class="code python docutils literal"><span class="name"><span class="pre">A</span></span> <span class="operator"><span class="pre">-=</span></span> <span class="name"><span class="pre">B</span></span></code></p>
+<p>Removes from A indices in B.</p>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">someSet1</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">IndexSet</span><span class="p">(</span> <span class="mi">15</span><span class="p">,</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">10</span><span class="p">]</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet2</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">IndexSet</span><span class="p">(</span> <span class="mi">15</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">12</span><span class="p">]</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet1</span> <span class="o">-=</span> <span class="n">someSet2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet1</span>
+<span class="go">IndexSet([ 3, 10])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="underworld.container.IndexSet.__or__">
+<code class="descname">__or__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/container/_indexset.html#IndexSet.__or__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.container.IndexSet.__or__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Operator overloading for <code class="code python docutils literal"><span class="name"><span class="pre">C</span></span> <span class="operator"><span class="pre">=</span></span> <span class="name"><span class="pre">A</span></span> <span class="operator"><span class="pre">|</span></span> <span class="name"><span class="pre">B</span></span></code></p>
+<p>Creates a new set C, then adds indices from A, and performs OR
+logic with B.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><strong>indexSet</strong> &#8211; The new set (C).</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="#underworld.container.IndexSet" title="underworld.container.IndexSet">IndexSet</a></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">someSet1</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">IndexSet</span><span class="p">(</span> <span class="mi">15</span><span class="p">,</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">10</span><span class="p">]</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet2</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">IndexSet</span><span class="p">(</span> <span class="mi">15</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">12</span><span class="p">]</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet1</span> <span class="o">|</span> <span class="n">someSet2</span>
+<span class="go">IndexSet([ 1,  3,  9, 10, 12])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="underworld.container.IndexSet.__sub__">
+<code class="descname">__sub__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/container/_indexset.html#IndexSet.__sub__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.container.IndexSet.__sub__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Operator overloading for <code class="code python docutils literal"><span class="name"><span class="pre">C</span></span> <span class="operator"><span class="pre">=</span></span> <span class="name"><span class="pre">A</span></span> <span class="operator"><span class="pre">-</span></span> <span class="name"><span class="pre">B</span></span></code></p>
+<p>Creates a new set C, then adds indices from A, and removes those
+from B.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><strong>indexSet</strong> &#8211; The new set (C).</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="#underworld.container.IndexSet" title="underworld.container.IndexSet">IndexSet</a></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">someSet1</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">IndexSet</span><span class="p">(</span> <span class="mi">15</span><span class="p">,</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">10</span><span class="p">]</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet2</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">IndexSet</span><span class="p">(</span> <span class="mi">15</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">12</span><span class="p">]</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet1</span> <span class="o">-</span> <span class="n">someSet2</span>
+<span class="go">IndexSet([ 3, 10])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="underworld.container.IndexSet.add">
+<code class="descname">add</code><span class="sig-paren">(</span><em>indices</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/container/_indexset.html#IndexSet.add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.container.IndexSet.add" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add item(s) to IndexSet.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>indices</strong> (<em>unsigned int, ndarray, IndexSet, iterable object.</em>) &#8211; Index or indices to be added to the IndexSet. Ensure value(s) are integer
+and non-negative. An iterable object may also be provided, with numpy arrays
+and IndexSets being significantly more efficient.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<p>Create an empty set and add items as necessary:
+&gt;&gt;&gt; someSet = uw.container.IndexSet( 15 )
+&gt;&gt;&gt; someSet.add(3)
+&gt;&gt;&gt; someSet
+IndexSet([3])
+&gt;&gt;&gt; 3 in someSet
+True
+&gt;&gt;&gt; someSet.add([5,3,7,8])
+&gt;&gt;&gt; someSet
+IndexSet([3, 5, 7, 8])
+&gt;&gt;&gt; someSet.add(np.array([10,11,3]))
+&gt;&gt;&gt; someSet
+IndexSet([ 3,  5,  7,  8, 10, 11])</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="underworld.container.IndexSet.addAll">
+<code class="descname">addAll</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/container/_indexset.html#IndexSet.addAll"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.container.IndexSet.addAll" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set all indices of set to added.</p>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">someSet</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">IndexSet</span><span class="p">(</span> <span class="mi">5</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet</span>
+<span class="go">IndexSet([])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet</span><span class="o">.</span><span class="n">addAll</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet</span>
+<span class="go">IndexSet([0, 1, 2, 3, 4])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="underworld.container.IndexSet.clear">
+<code class="descname">clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/container/_indexset.html#IndexSet.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.container.IndexSet.clear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clear set.  ie, set all indices to not included.</p>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">someSet</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">IndexSet</span><span class="p">(</span> <span class="mi">5</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">]</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet</span>
+<span class="go">IndexSet([1, 2, 3])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet</span>
+<span class="go">IndexSet([])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="underworld.container.IndexSet.count">
+<code class="descname">count</code><a class="headerlink" href="#underworld.container.IndexSet.count" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><strong>int</strong> &#8211; Returns the total number of members this set contains.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">member count</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">someSet</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">IndexSet</span><span class="p">(</span> <span class="mi">15</span><span class="p">,</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">10</span><span class="p">]</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet</span><span class="o">.</span><span class="n">count</span>
+<span class="go">3</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="underworld.container.IndexSet.data">
+<code class="descname">data</code><a class="headerlink" href="#underworld.container.IndexSet.data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the set members as a numpy array.</p>
+<p>Note that only a numpy copy of the set is returned, and modifying this
+array is disabled (and would have no effect).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Array containing IndexSet members.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">numpy.ndarray (uint32)</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">someSet</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">IndexSet</span><span class="p">(</span> <span class="mi">15</span><span class="p">,</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">10</span><span class="p">]</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet</span><span class="o">.</span><span class="n">data</span>
+<span class="go">array([ 3,  9, 10], dtype=uint32)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="underworld.container.IndexSet.invert">
+<code class="descname">invert</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/container/_indexset.html#IndexSet.invert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.container.IndexSet.invert" title="Permalink to this definition">¶</a></dt>
+<dd><p>Inverts the index set in place.</p>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">someSet</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">IndexSet</span><span class="p">(</span> <span class="mi">15</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">13</span><span class="p">]</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet</span><span class="o">.</span><span class="n">invert</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet</span>
+<span class="go">IndexSet([ 0,  2,  4,  6,  8, 10, 12, 14])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="underworld.container.IndexSet.remove">
+<code class="descname">remove</code><span class="sig-paren">(</span><em>indices</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/container/_indexset.html#IndexSet.remove"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.container.IndexSet.remove" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove item(s) from IndexSet.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>indices</strong> (<em>unsigned int, ndarray, iterable object</em>) &#8211; Index or indices to be removed from the IndexSet. Ensure value(s) are integer
+and non-negative. An iterable object may also be provided, with numpy arrays
+being significantly more efficient. Note that the &#8216;remove&#8217; method can not
+be provided with an IndexSet object, as the &#8216;add&#8217; object can.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">someSet</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">IndexSet</span><span class="p">(</span> <span class="mi">15</span><span class="p">,</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">10</span><span class="p">]</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet</span>
+<span class="go">IndexSet([ 3,  9, 10])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="mi">3</span> <span class="ow">in</span> <span class="n">someSet</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet</span>
+<span class="go">IndexSet([ 9, 10])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet</span><span class="o">.</span><span class="n">remove</span><span class="p">([</span><span class="mi">9</span><span class="p">,</span><span class="mi">10</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someSet</span>
+<span class="go">IndexSet([])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="underworld.container.IndexSet.size">
+<code class="descname">size</code><a class="headerlink" href="#underworld.container.IndexSet.size" title="Permalink to this definition">¶</a></dt>
+<dd><p>The size of the IndexSet. Note that the size corresponds to the maximum index
+value (plus 1) the set is required to hold, <em>NOT</em> the number of elements in
+the set. So for example, a size of 16, would result in an IndexSet which can
+retain values between 0 and 15 (inclusive). Note also that the the IndexSet
+will require ( size/8 + 1 ) bytes of memory storage.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="underworld.container.ObjectifiedIndexSet">
+<em class="property">class </em><code class="descclassname">underworld.container.</code><code class="descname">ObjectifiedIndexSet</code><span class="sig-paren">(</span><em>object=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/container/_indexset.html#ObjectifiedIndexSet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.container.ObjectifiedIndexSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">underworld.container._indexset.IndexSet</span></code></p>
+<p>This class simply adds an object to IndexSet data. Usually this object will be
+the object for which the IndexSet data relates to.. For example, we can attach a
+Mesh object to an IndexSet containing mesh vertices.</p>
+<dl class="attribute">
+<dt id="underworld.container.ObjectifiedIndexSet.object">
+<code class="descname">object</code><a class="headerlink" href="#underworld.container.ObjectifiedIndexSet.object" title="Permalink to this definition">¶</a></dt>
+<dd><p>Object for which IndexSet data relates.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="underworld.utils.html" class="btn btn-neutral float-right" title="underworld.utils module" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="underworld.function.view.html" class="btn btn-neutral" title="underworld.function.view module" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Melbourne University, Monash University..
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -23,11 +23,28 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
     The underlying element types are determined by the supporting
     mesh used for the 'temperatureField'.
 
+    The strong form of the given boundary value problem, for :math:`f`,
+    :math:`q` and :math:`h` given, is
+    
     .. math::
-         \nabla { ( k \nabla \phi } ) + h = 0
+        \\begin{align}
+        q_i =& - \\kappa \\, u_{,i}  & \\\\
+        q_{i,i} =& \\: f  & \\text{ in }  \\Omega \\\\
+        u =& \\: q & \\text{ on }  \\Gamma_q \\\\
+        -q_i n_i =& \\: h & \\text{ on }  \\Gamma_h \\\\
+        \\end{align}
 
-    where, k is the diffusivity, \phi is the temperature, h is
-    a source term.
+    where, :math:`\\kappa` is the diffusivity, :math:`u` is the temperature,
+    :math:`f` is a source term, :math:`q` is the Dirichlet condition, and
+    :math:`h` is a Neumann condition. The problem boundary, :math:`\\Gamma`, 
+    admits the decomposition :math:`\\Gamma=\\Gamma_q\\cup\\Gamma_h` where
+    :math:`\\emptyset=\\Gamma_q\\cap\\Gamma_h`. The equivalent weak form is:
+
+    .. math::
+        -\\int_{\\Omega} w_{,i} \\, q_i \\, d \\Omega = \\int_{\\Omega} w \\, f \\, d\\Omega + \\int_{\\Gamma_h} w \\, h \\,  d \\Gamma
+    
+    where we must find :math:`u` which satisfies the above for all :math:`w` 
+    in some variational space.
 
     Parameters
     ----------
@@ -35,15 +52,16 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
         The solution field for temperature.
     fn_diffusivity : underworld.function.Function
         The function that defines the diffusivity across the domain.
-    fn_heating : underworld.function.Function, default=0.
-        The heating function that defines the heating across the domain.
-    voronoi_swarm : uw.swarm.Swarm, optional.
-        If a voronoi_swarm is provided, voronoi type integration is utilised to
-        integrate across elements. The provided swarm is used as the basis for
-        the voronoi integration. If no swarm is provided, Gauss integration
+    fn_heating : underworld.function.Function
+        A function that defines the heating across the domain. Optional.
+    voronoi_swarm : underworld.swarm.Swarm
+        If a voronoi_swarm is provided, voronoi type numerical integration is 
+        utilised. The provided swarm is used as the basis for the voronoi 
+        integration. If no voronoi_swarm is provided, Gauss integration
         is used.
-    conditions : uw.conditions._SystemCondition (or list of), default = []
-        Numerical conditions to impose on the system.
+    conditions : underworld.conditions.SystemCondition
+        Numerical conditions to impose on the system. This should be supplied as 
+        the condition itself, or a list object containing the conditions.
 
     Notes
     -----
@@ -62,8 +80,8 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
     >>> tField.data[bottomNodes.data] = 1.0
     >>> tSystem = uw.systems.SteadyStateHeat(temperatureField=tField, fn_diffusivity=1.0, conditions=[tbcs])
 
-    Example - of nonlinear diffusivity
-    ----------------------------------
+    Example with non diffusivity:
+    
     >>> k = tField + 1.0
     >>> tSystem = uw.systems.SteadyStateHeat(temperatureField=tField, fn_diffusivity=k, conditions=[tbcs])
     >>> solver = uw.systems.Solver(tSystem)
@@ -73,12 +91,14 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
     RuntimeError: Nonlinearity detected.
     Diffusivity function depends on the temperature field provided to the system.
     Please set the 'nonLinearIterate' solve parameter to 'True' or 'False' to continue.
+    >>> solver.solve(nonLinearIterate=True)
+    
     """
 
     _objectsDict = {  "_system" : "SystemLinearEquations" }
     _selfObjectName = "_system"
 
-    def __init__(self, temperatureField, fn_diffusivity=None, fn_heating=0., voronoi_swarm=None, conditions=[], _removeBCs=True, swarm=None, **kwargs):
+    def __init__(self, temperatureField, fn_diffusivity, fn_heating=0., voronoi_swarm=None, conditions=[], _removeBCs=True, swarm=None, **kwargs):
         # DEPRECATE. JM 09/16
         if swarm:
             import warnings
@@ -92,8 +112,6 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
             raise TypeError( "Provided 'temperatureField' must be of 'MeshVariable' class." )
         self._temperatureField = temperatureField
 
-        if not fn_diffusivity:
-            raise ValueError("You must specify a diffusivity function via the 'fn_diffusivity' parameter.")
         try:
             _fn_diffusivity = uw.function.Function.convert(fn_diffusivity)
         except Exception as e:
@@ -124,8 +142,8 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
             conditionslist.append(conditions)
             conditions = conditionslist
         for cond in conditions:
-            if not isinstance( cond, uw.conditions._SystemCondition ):
-                raise TypeError( "Provided 'conditions' must be a list '_SystemCondition' objects." )
+            if not isinstance( cond, uw.conditions.SystemCondition ):
+                raise TypeError( "Provided 'conditions' must be a list 'SystemCondition' objects." )
             # set the bcs on here
             if type( cond ) == uw.conditions.DirichletCondition:
                 if cond.variable == temperatureField:

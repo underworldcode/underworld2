@@ -24,19 +24,19 @@ class map(_Function):
     is evaluated first, with the outcome determining which function should
     finally be evaluated to return a value.
     
-    For a set of value functions :math:`\{f_{v_0},f_{v_1},\ldots,f_{v_n}\}`,
-    corresponding keys :math:`\{k_0,k_1,\ldots,k_n\}', and key function
+    For a set of value functions :math:`\\{f_{v_0},f_{v_1},\\ldots,f_{v_n}\\}`,
+    corresponding keys :math:`\\{k_0,k_1,\\ldots,k_n\\}`, and key function
     :math:`f_{k}`, we have:
     
     .. math::
-         f(\mathbf{r})=
-            \begin{cases}
-            f_{v_0}(\mathbf{r}),   & \text{if } f_{k}(\mathbf{r}) = k_0\\
-            f_{v_1}(\mathbf{r}),   & \text{if } f_{k}(\mathbf{r}) = k_1\\
-            ... \\
-            f_{v_n}(\mathbf{r}),   & \text{if } f_{k}(\mathbf{r}) = k_n\\
-            f_{d}  (\mathbf{r}),   & \text{otherwise}
-            \end{cases}
+         f(\\mathbf{r})=
+            \\begin{cases}
+            f_{v_0}(\\mathbf{r}),   & \\text{if } f_{k}(\\mathbf{r}) = k_0\\\\
+            f_{v_1}(\\mathbf{r}),   & \\text{if } f_{k}(\\mathbf{r}) = k_1\\\\
+            ... \\\\
+            f_{v_n}(\\mathbf{r}),   & \\text{if } f_{k}(\\mathbf{r}) = k_n\\\\
+            f_{d}  (\\mathbf{r}),   & \\text{otherwise}
+            \\end{cases}
             
     As stated, the keys must be unsigned integers. The key function need not
     return an unsigned integer, but whatever value it returns **will** be cast
@@ -156,23 +156,23 @@ class conditional(_Function):
     If none of the provided clauses return a 'True' result, an exception is 
     raised.
 
-    For a set of condition functions :math:`\{f_{c_0},f_{c_1},\ldots,f_{c_n}\}`,
-    corresponding resultant functions :math:`\{f_{r_0},f_{r_1},\ldots,f_{r_n}\}`,
-    we have
+    For a set of condition functions { fc_0, fc_1, ... ,fc_n }, and
+    corresponding resultant functions { fr_0, fr_1, ... ,fr_n },
+    we have for a provided input f_in:
     
-    ```
-    if   :math:`\{f_{c_0}` :
-        return :math:`\{f_{r_0}`
-    elif :math:`\{f_{c_1}` :
-        return :math:`\{f_{r_1}`
-    ...
-    elif :math:`\{f_{c_n}` :
-        return :math:`\{f_{r_n}`
-    else :
-        raise RuntimeError("Reached end of conditional statement. At least one 
-                            of the clause conditions must evaluate to 'True'." );
+    .. code-block:: python
+    
+        if   fc_0(f_in) :
+            return fr_0(f_in)
+        elif fc_1(f_in) :
+            return fr_1(f_in)
+        ...
+        elif fc_n(f_in) :
+            return fr_n(f_in)
+        else :
+            raise RuntimeError("Reached end of conditional statement. At least one 
+                                of the clause conditions must evaluate to 'True'." );
         
-    ```
     
     Parameters
     ----------

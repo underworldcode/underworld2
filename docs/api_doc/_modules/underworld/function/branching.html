@@ -1,0 +1,418 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>underworld.function.branching &mdash; underworld2  documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="underworld2  documentation" href="../../../index.html"/>
+        <link rel="up" title="underworld" href="../../underworld.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> underworld2
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../underworld.html">underworld module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../glucifer.html">glucifer module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">underworld2</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../underworld.html">underworld</a> &raquo;</li>
+      
+    <li>underworld.function.branching</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for underworld.function.branching</h1><div class="highlight"><pre>
+<span></span><span class="c1">##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##  This file forms part of the Underworld geophysics modelling application.         ##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##  For full license and copyright information, please refer to the LICENSE.md file  ##</span>
+<span class="c1">##  located at the project root, or contact the authors.                             ##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">The branching module provides functions which provide branching behaviour. </span>
+<span class="sd">Typically, these functions will select other user provided functions when </span>
+<span class="sd">certain conditions are met (with the condition also described by a function!).</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">libUnderworld.libUnderworldPy.Function</span> <span class="k">as</span> <span class="nn">_cfn</span>
+<span class="kn">from</span> <span class="nn">_function</span> <span class="k">import</span> <span class="n">Function</span> <span class="k">as</span> <span class="n">_Function</span>
+
+
+<div class="viewcode-block" id="map"><a class="viewcode-back" href="../../../underworld.function.branching.html#underworld.function.branching.map">[docs]</a><span class="k">class</span> <span class="nc">map</span><span class="p">(</span><span class="n">_Function</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This function performs a map to other functions. The user provides a python </span>
+<span class="sd">    dictionary which maps unsigned integers keys to underworld functions. The </span>
+<span class="sd">    user must also provide a key function. At evaluation time, the key function</span>
+<span class="sd">    is evaluated first, with the outcome determining which function should</span>
+<span class="sd">    finally be evaluated to return a value.</span>
+<span class="sd">    </span>
+<span class="sd">    For a set of value functions :math:`\\{f_{v_0},f_{v_1},\\ldots,f_{v_n}\\}`,</span>
+<span class="sd">    corresponding keys :math:`\\{k_0,k_1,\\ldots,k_n\\}`, and key function</span>
+<span class="sd">    :math:`f_{k}`, we have:</span>
+<span class="sd">    </span>
+<span class="sd">    .. math::</span>
+<span class="sd">         f(\\mathbf{r})=</span>
+<span class="sd">            \\begin{cases}</span>
+<span class="sd">            f_{v_0}(\\mathbf{r}),   &amp; \\text{if } f_{k}(\\mathbf{r}) = k_0\\\\</span>
+<span class="sd">            f_{v_1}(\\mathbf{r}),   &amp; \\text{if } f_{k}(\\mathbf{r}) = k_1\\\\</span>
+<span class="sd">            ... \\\\</span>
+<span class="sd">            f_{v_n}(\\mathbf{r}),   &amp; \\text{if } f_{k}(\\mathbf{r}) = k_n\\\\</span>
+<span class="sd">            f_{d}  (\\mathbf{r}),   &amp; \\text{otherwise}</span>
+<span class="sd">            \\end{cases}</span>
+<span class="sd">            </span>
+<span class="sd">    As stated, the keys must be unsigned integers. The key function need not</span>
+<span class="sd">    return an unsigned integer, but whatever value it returns **will** be cast</span>
+<span class="sd">    to an unsigned integer so caution is advised.</span>
+<span class="sd">    </span>
+<span class="sd">    The default function is optional, but if none is provided, and the key </span>
+<span class="sd">    function evaluates to a value which is not within the user provide set of </span>
+<span class="sd">    keys, an exception will be thrown.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fn_key:  underworld.function.Function (or convertible)</span>
+<span class="sd">        Function which returns integer key values. This function will be evaluated </span>
+<span class="sd">        first to determine which function from the mapping is to be used. </span>
+<span class="sd">    mapping: dict(Function)</span>
+<span class="sd">        Python dictionary providing a mapping from unsigned integer &#39;key&#39; values to</span>
+<span class="sd">        underworld &#39;value&#39; functions. Note that the provided &#39;value&#39; functions must</span>
+<span class="sd">        return values of type &#39;double&#39;.</span>
+<span class="sd">    fn_default: underworld.function.Function (or convertible) (optional)</span>
+<span class="sd">        Default function to be utilised when the key (returned by fn_key function)</span>
+<span class="sd">        does not correspond to any key value in the mapping dictionary.</span>
+<span class="sd">    </span>
+<span class="sd">    </span>
+<span class="sd">    The following example sets different function behaviour inside and outside</span>
+<span class="sd">    of a unit sphere. The unit sphere is represented by particles which </span>
+<span class="sd">    record a swarm variable to determine if they are or not inside the sphere.</span>
+
+
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    Setup mesh, swarm, swarmvariable &amp; populate</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; import underworld as uw</span>
+<span class="sd">    &gt;&gt;&gt; import underworld.function as fn</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; mesh = uw.mesh.FeMesh_Cartesian(elementRes=(8,8),minCoord=(-1.0, -1.0), maxCoord=(1.0, 1.0))</span>
+<span class="sd">    &gt;&gt;&gt; swarm = uw.swarm.Swarm(mesh)</span>
+<span class="sd">    &gt;&gt;&gt; svar = swarm.add_variable(&quot;int&quot;,1)</span>
+<span class="sd">    &gt;&gt;&gt; swarm.populate_using_layout(uw.swarm.layouts.GlobalSpaceFillerLayout(swarm,20))</span>
+
+<span class="sd">    For all particles in unit circle, set svar to 1</span>
+
+<span class="sd">    &gt;&gt;&gt; svar.data[:] = 0</span>
+<span class="sd">    &gt;&gt;&gt; for index, position in enumerate(swarm.particleCoordinates.data):</span>
+<span class="sd">    ...     if position[0]**2 + position[1]**2 &lt; 1.:</span>
+<span class="sd">    ...         svar.data[index] = 1</span>
+<span class="sd">    </span>
+<span class="sd">    Create a function which reports the value &#39;1.&#39; inside the sphere, and</span>
+<span class="sd">    &#39;0.&#39; otherwise. Note that while we have only used constant value functions </span>
+<span class="sd">    here, you can use any object of the class Function.</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; fn_map = fn.branching.map(fn_key=svar, mapping={0: 0., 1:1.})</span>
+<span class="sd">    &gt;&gt;&gt; np.allclose(np.pi, uw.utils.Integral(fn_map,mesh).evaluate(),rtol=2e-2)</span>
+<span class="sd">    True</span>
+<span class="sd">    </span>
+<span class="sd">    Alternatively, we could utilise the default function to achieve the same </span>
+<span class="sd">    result.</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; fn_map = fn.branching.map(fn_key=svar, mapping={1: 1.}, fn_default=0.)</span>
+<span class="sd">    &gt;&gt;&gt; np.allclose(np.pi, uw.utils.Integral(fn_map,mesh).evaluate(),rtol=2e-2)</span>
+<span class="sd">    True</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fn_default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                    
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">mapping</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;You must specify a mapping via the &#39;mapping&#39; parameter.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mapping</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;mapping&#39; object passed in must be of python type &#39;dict&#39;&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">fn_key</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;You must specify a key function via the &#39;fn_key&#39; parameter.&quot;</span><span class="p">)</span>
+        <span class="n">fn_key</span> <span class="o">=</span> <span class="n">_Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">fn_key</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">fn_default</span> <span class="o">=</span> <span class="n">_Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">fn_default</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fn_default</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">fn_defaultCself</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fn_defaultCself</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fn_default</span><span class="o">.</span><span class="n">_fncself</span>
+        <span class="c1"># create instance</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fncself</span> <span class="o">=</span> <span class="n">_cfn</span><span class="o">.</span><span class="n">Map</span><span class="p">(</span> <span class="n">fn_key</span><span class="o">.</span><span class="n">_fncself</span><span class="p">,</span> <span class="n">fn_defaultCself</span> <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fn_key</span>  <span class="o">=</span> <span class="n">fn_key</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mapping</span> <span class="o">=</span> <span class="n">mapping</span>
+
+        <span class="c1"># build parent</span>
+        <span class="nb">super</span><span class="p">(</span><span class="nb">map</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">argument_fns</span><span class="o">=</span><span class="p">[</span><span class="n">fn_key</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">fn_default</span><span class="p">],</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_map</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">mapping</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="n">key</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Key &#39;</span><span class="si">{}</span><span class="s2">&#39; not valid. Mapping keys must be unsigned integers.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
+            <span class="n">funcVal</span> <span class="o">=</span> <span class="n">_Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">funcVal</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;None&#39; is not valid for mapped functions.&quot;</span><span class="p">)</span>
+            
+            <span class="bp">self</span><span class="o">.</span><span class="n">_underlyingDataItems</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">funcVal</span><span class="o">.</span><span class="n">_underlyingDataItems</span><span class="p">)</span> <span class="c1"># update dictionary</span>
+            <span class="c1"># insert mapping and keep handles in py dict</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_map</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">funcVal</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fncself</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span> <span class="n">key</span><span class="p">,</span> <span class="n">funcVal</span><span class="o">.</span><span class="n">_fncself</span> <span class="p">)</span></div>
+
+<div class="viewcode-block" id="conditional"><a class="viewcode-back" href="../../../underworld.function.branching.html#underworld.function.branching.conditional">[docs]</a><span class="k">class</span> <span class="nc">conditional</span><span class="p">(</span><span class="n">_Function</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This function provides &#39;if/elif&#39; type conditional behaviour.</span>
+<span class="sd">    </span>
+<span class="sd">    The user provides a list of tuples, with each tuple being of the </span>
+<span class="sd">    form (fn_condition, fn_resultant). Effectively, each tuple provides a clause</span>
+<span class="sd">    within the if/elif statement. </span>
+<span class="sd">    </span>
+<span class="sd">    When evaluated, the function traverses the clauses, stopping at the first </span>
+<span class="sd">    fn_condition which returns &#39;true&#39;. It then executes the corresponding </span>
+<span class="sd">    fn_resultant and returns the results.</span>
+<span class="sd">    </span>
+<span class="sd">    If none of the provided clauses return a &#39;True&#39; result, an exception is </span>
+<span class="sd">    raised.</span>
+
+<span class="sd">    For a set of condition functions { fc_0, fc_1, ... ,fc_n }, and</span>
+<span class="sd">    corresponding resultant functions { fr_0, fr_1, ... ,fr_n },</span>
+<span class="sd">    we have for a provided input f_in:</span>
+<span class="sd">    </span>
+<span class="sd">    .. code-block:: python</span>
+<span class="sd">    </span>
+<span class="sd">        if   fc_0(f_in) :</span>
+<span class="sd">            return fr_0(f_in)</span>
+<span class="sd">        elif fc_1(f_in) :</span>
+<span class="sd">            return fr_1(f_in)</span>
+<span class="sd">        ...</span>
+<span class="sd">        elif fc_n(f_in) :</span>
+<span class="sd">            return fr_n(f_in)</span>
+<span class="sd">        else :</span>
+<span class="sd">            raise RuntimeError(&quot;Reached end of conditional statement. At least one </span>
+<span class="sd">                                of the clause conditions must evaluate to &#39;True&#39;.&quot; );</span>
+<span class="sd">        </span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    clauses: list</span>
+<span class="sd">        list of tuples, with each tuple being of the form (fn_condition, fn_resultant).</span>
+<span class="sd">    </span>
+<span class="sd">    </span>
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    The following example uses functions to represent a unit circle. Here a </span>
+<span class="sd">    conditional function report back the value &#39;1.&#39; inside the sphere (as per</span>
+<span class="sd">    the first condition), and &#39;0.&#39; otherwise.</span>
+
+<span class="sd">    &gt;&gt;&gt; import underworld as uw</span>
+<span class="sd">    &gt;&gt;&gt; import underworld.function as fn</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; mesh = uw.mesh.FeMesh_Cartesian(elementRes=(16,16),minCoord=(-1.0, -1.0), maxCoord=(1.0, 1.0))</span>
+<span class="sd">    &gt;&gt;&gt; circleFn = fn.coord()[0]**2 + fn.coord()[1]**2</span>
+<span class="sd">    &gt;&gt;&gt; fn_conditional = fn.branching.conditional( [ (circleFn &lt; 1., 1. ), \</span>
+<span class="sd">                                                     (         True, 0. ) ] )</span>
+<span class="sd">    &gt;&gt;&gt; np.allclose(np.pi, uw.utils.Integral(fn_conditional,mesh).evaluate(),rtol=1e-2)</span>
+<span class="sd">    True</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">clauses</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># error check mapping</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">clauses</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span><span class="nb">tuple</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;clauses&#39; object passed in must be of python type &#39;list&#39; or &#39;tuple&#39;&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_clauses</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">funcSet</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">clause</span> <span class="ow">in</span> <span class="n">clauses</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">clause</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span><span class="nb">tuple</span><span class="p">)):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Clauses within the clause list must be of python type &#39;list&#39; or &#39;tuple&#39;&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">clause</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Clauses tuples must be of length 2.&quot;</span><span class="p">)</span>
+            <span class="n">conditionFn</span> <span class="o">=</span> <span class="n">_Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">clause</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">funcSet</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">conditionFn</span><span class="p">)</span>
+            <span class="n">resultantFn</span>    <span class="o">=</span> <span class="n">_Function</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">clause</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">funcSet</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">resultantFn</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_clauses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="p">(</span><span class="n">conditionFn</span><span class="p">,</span><span class="n">resultantFn</span><span class="p">)</span> <span class="p">)</span>
+        
+        <span class="c1"># build parent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fncself</span> <span class="o">=</span> <span class="n">_cfn</span><span class="o">.</span><span class="n">Conditional</span><span class="p">()</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">conditional</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">argument_fns</span><span class="o">=</span><span class="n">funcSet</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1"># insert clause into c object now</span>
+        <span class="k">for</span> <span class="n">clause</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_clauses</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fncself</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span> <span class="n">clause</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">_fncself</span><span class="p">,</span> <span class="n">clause</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">_fncself</span> <span class="p">)</span></div>
+
+
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Melbourne University, Monash University..
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

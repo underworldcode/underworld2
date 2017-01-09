@@ -1,0 +1,1109 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>glucifer._glucifer &mdash; underworld2  documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="underworld2  documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> underworld2
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../underworld.html">underworld module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../glucifer.html">glucifer module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">underworld2</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+    <li>glucifer._glucifer</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for glucifer._glucifer</h1><div class="highlight"><pre>
+<span></span><span class="c1">##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##  This file forms part of the Underworld geophysics modelling application.         ##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##  For full license and copyright information, please refer to the LICENSE.md file  ##</span>
+<span class="c1">##  located at the project root, or contact the authors.                             ##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##</span>
+
+
+<span class="kn">import</span> <span class="nn">underworld</span> <span class="k">as</span> <span class="nn">uw</span>
+<span class="kn">import</span> <span class="nn">errno</span>
+<span class="kn">import</span> <span class="nn">underworld._stgermain</span> <span class="k">as</span> <span class="nn">_stgermain</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">urllib2</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">base64</span> <span class="k">import</span> <span class="n">b64encode</span>
+<span class="kn">import</span> <span class="nn">libUnderworld</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">from</span> <span class="nn">subprocess</span> <span class="k">import</span> <span class="n">Popen</span><span class="p">,</span> <span class="n">PIPE</span><span class="p">,</span> <span class="n">STDOUT</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">objects</span>
+<span class="kn">import</span> <span class="nn">libUnderworld</span> <span class="k">as</span> <span class="nn">_libUnderworld</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="c1">#Attempt to import lavavu module</span>
+<span class="n">lavavu</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">libUnderworld.libUnderworldPy.lavavu</span> <span class="k">as</span> <span class="nn">lavavu</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">lavavu</span><span class="o">.</span><span class="n">__file__</span><span class="p">))</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="nb">print</span> <span class="s2">&quot;LavaVu module not found! disabling inline visualisation&quot;</span>
+
+<span class="c1"># lets create somewhere to dump data for this session</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">tmpdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;TMPDIR&#39;</span><span class="p">]</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="n">tmpdir</span> <span class="o">=</span> <span class="s2">&quot;/tmp&quot;</span>
+<span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span><span class="s2">&quot;glucifer&quot;</span><span class="p">)</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">exception</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">exception</span><span class="o">.</span><span class="n">errno</span> <span class="o">!=</span> <span class="n">errno</span><span class="o">.</span><span class="n">EEXIST</span><span class="p">:</span>
+        <span class="k">raise</span>
+
+<div class="viewcode-block" id="Store"><a class="viewcode-back" href="../../glucifer.html#glucifer.Store">[docs]</a><span class="k">class</span> <span class="nc">Store</span><span class="p">(</span><span class="n">_stgermain</span><span class="o">.</span><span class="n">StgCompoundComponent</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;  </span>
+<span class="sd">    The Store class provides a database which stores gLucifer drawing objects</span>
+<span class="sd">    as they are rendered in figures. It also provides associated routines for saving</span>
+<span class="sd">    and reloading this database to external files</span>
+<span class="sd">    </span>
+<span class="sd">    In addition to parameter specification below, see property docstrings for</span>
+<span class="sd">    further information.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filename: str</span>
+<span class="sd">        Filename to use for a disk database, default is in memory only unless saved.</span>
+<span class="sd">    split: bool</span>
+<span class="sd">        Set to true to write a separate database file for each timestep visualised</span>
+<span class="sd">    view: bool</span>
+<span class="sd">        Set to true and pass filename if loading a saved database for revisualisation</span>
+<span class="sd">            </span>
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">        </span>
+<span class="sd">    Create a database:</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; import glucifer</span>
+<span class="sd">    &gt;&gt;&gt; store = glucifer.Store()</span>
+
+<span class="sd">    Optionally provide a filename so you don&#39;t need to call save later (no extension)</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; store = glucifer.Store(&#39;myvis&#39;)</span>
+
+<span class="sd">    Pass to figures when creating them</span>
+<span class="sd">    (Providing a name allows you to revisualise the figure from the name)</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; fig = glucifer.Figure(store, name=&quot;myfigure&quot;)</span>
+<span class="sd">    </span>
+<span class="sd">    When figures are rendered with show() or save(imgname), they are saved to storage</span>
+<span class="sd">    If you don&#39;t need to render an image but still want to store the figure to view later,</span>
+<span class="sd">    just call save() without a filename</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; fig.save()</span>
+<span class="sd">    </span>
+<span class="sd">    Save the database (only necessary if no filename provided when created)</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; dbfile = store.save(&quot;myvis&quot;)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_objectsDict</span> <span class="o">=</span> <span class="p">{</span> <span class="s2">&quot;_db&quot;</span><span class="p">:</span><span class="s2">&quot;lucDatabase&quot;</span> <span class="p">}</span>
+    <span class="n">_selfObjectName</span> <span class="o">=</span> <span class="s2">&quot;_db&quot;</span>
+    <span class="n">viewer</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">step</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">filename</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">filename</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.gldb&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">filename</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.db&#39;</span><span class="p">):</span>
+            <span class="n">filename</span> <span class="o">+=</span> <span class="s2">&quot;.gldb&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="n">filename</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_objects</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_viewonly</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1">#Don&#39;t split on timestep unless filename provided</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">:</span> <span class="n">split</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_split</span> <span class="o">=</span> <span class="n">split</span>
+
+        <span class="c1">#Open an existing db?</span>
+        <span class="k">if</span> <span class="n">view</span> <span class="ow">and</span> <span class="n">filename</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_viewonly</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">Store</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_add_to_stg_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">componentDictionary</span><span class="p">):</span>
+        <span class="c1"># lets build up component dictionary</span>
+        <span class="c1"># append random string to provided name to ensure unique component names</span>
+        <span class="c1"># call parents method</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Store</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_add_to_stg_dict</span><span class="p">(</span><span class="n">componentDictionary</span><span class="p">)</span>
+
+        <span class="c1">#Extension needs to added by lucDatabase when generating per timestep files</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filename</span>
+        <span class="k">if</span> <span class="n">filename</span><span class="p">:</span>
+            <span class="c1">#Need base name, strip extensions if provided</span>
+            <span class="k">if</span> <span class="n">filename</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.gldb&#39;</span><span class="p">):</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="n">filename</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">5</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">filename</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.db&#39;</span><span class="p">):</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="n">filename</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span>
+
+        <span class="n">componentDictionary</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span> <span class="p">{</span>
+                            <span class="s2">&quot;filename&quot;</span>          <span class="p">:</span><span class="n">filename</span><span class="p">,</span>
+                            <span class="s2">&quot;splitTransactions&quot;</span> <span class="p">:</span><span class="kc">True</span><span class="p">,</span>
+                            <span class="s2">&quot;singleFile&quot;</span>        <span class="p">:</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_split</span><span class="p">,</span>
+                            <span class="s2">&quot;viewonly&quot;</span>          <span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">_viewonly</span>
+        <span class="p">}</span> <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Detect if viewer was built by finding executable...</span>
+        <span class="c1"># (even though no longer needed as using libLavaVu </span>
+        <span class="c1">#  will keep this for now as is useful to know if the executable was built</span>
+        <span class="c1">#  and to pass it as first command line arg or if needed to get html path)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lvpath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">bin_path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lvbin</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">bin_path</span><span class="p">,</span> <span class="s2">&quot;LavaVu&quot;</span><span class="p">)</span>
+        <span class="k">global</span> <span class="n">lavavu</span>
+        <span class="k">if</span> <span class="n">lavavu</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_lvbin</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;LavaVu rendering engine does not appear to exist. Perhaps it was not compiled.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                  <span class="s2">&quot;Please check your configuration, or contact developers.&quot;</span><span class="p">)</span>
+            <span class="n">lavavu</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="Store.save"><a class="viewcode-back" href="../../glucifer.html#glucifer.Store.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">filename</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;  </span>
+<span class="sd">        Saves the database to the provided filename.</span>
+<span class="sd">            </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        filename :str</span>
+<span class="sd">            Filename to save file to.  May include an absolute or relative path.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">uw</span><span class="o">.</span><span class="n">rank</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Provided parameter &#39;filename&#39; must be of type &#39;str&#39;. &quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">filename</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.gldb&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">filename</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.db&#39;</span><span class="p">):</span>
+                <span class="n">filename</span> <span class="o">+=</span> <span class="s1">&#39;.gldb&#39;</span>
+            <span class="n">libUnderworld</span><span class="o">.</span><span class="n">gLucifer</span><span class="o">.</span><span class="n">lucDatabase_BackupDbFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">filename</span></div>
+
+    <span class="k">def</span> <span class="nf">lvrun</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">db</span><span class="p">:</span>
+            <span class="n">db</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">path</span>
+        <span class="c1">#Use a single LavaVu instance per db(store) to save resources</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">viewer</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">viewer</span> <span class="o">=</span> <span class="n">lavavu</span><span class="o">.</span><span class="n">Viewer</span><span class="p">(</span><span class="n">reuse</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">binary</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_lvbin</span><span class="p">,</span> <span class="n">database</span><span class="o">=</span><span class="n">db</span><span class="p">,</span> <span class="n">timestep</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">viewer</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="n">cache</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">database</span><span class="o">=</span><span class="n">db</span><span class="p">,</span> <span class="n">timestep</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">viewer</span>
+        <span class="c1">#lavavu.viewer = lavavu.Viewer(reuse=True, cache=False, binary=self._lvbin, database=db, timestep=self.step, *args, **kwargs)</span>
+        <span class="c1">#lavavu.viewer = lavavu.Viewer(reuse=False, cache=False, binary=self._lvbin, database=db, timestep=self.step, *args, **kwargs)</span>
+        <span class="c1">#return lavavu.viewer</span>
+
+    <span class="k">def</span> <span class="nf">_generate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">figname</span><span class="p">,</span> <span class="n">objects</span><span class="p">,</span> <span class="n">props</span><span class="p">):</span>
+        <span class="c1">#First merge object list with active</span>
+        <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">objects</span><span class="p">:</span>
+            <span class="c1">#Add nested colourbar objects</span>
+            <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">_colourBar</span><span class="p">:</span>
+                <span class="n">objects</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">_colourBar</span><span class="p">)</span>
+                <span class="n">obj</span><span class="o">.</span><span class="n">_colourBar</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="n">obj</span> <span class="c1">#Save parent ref</span>
+
+            <span class="c1">#Set default parent flag</span>
+            <span class="n">obj</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="kc">None</span>
+
+            <span class="c1">#Add to stored object list if not present</span>
+            <span class="k">if</span> <span class="n">obj</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_objects</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_objects</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+
+        <span class="c1">#Set default names on objects where omitted by user</span>
+        <span class="c1">#Needs to be updated every time as indices may have changed</span>
+        <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_objects</span><span class="p">)):</span>
+            <span class="c1">#Default name + idx if no user set name</span>
+            <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_objects</span><span class="p">[</span><span class="n">o</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="s2">&quot;name&quot;</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">properties</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;colourbar&quot;</span><span class="p">):</span>
+                   <span class="n">obj</span><span class="o">.</span><span class="n">properties</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;ColourBar_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">o</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                   <span class="n">obj</span><span class="o">.</span><span class="n">properties</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">_dr</span><span class="o">.</span><span class="n">type</span><span class="p">[</span><span class="mi">3</span><span class="p">:]</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">o</span><span class="p">)</span>
+
+        <span class="c1">#Get name of first object for figure if none providedc</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">figname</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">objects</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="n">figname</span> <span class="o">=</span> <span class="n">objects</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">properties</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_viewonly</span><span class="p">:</span>
+            <span class="c1">#Set the write step</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">timeStep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span>
+
+            <span class="c1">#Delete all drawing objects in register</span>
+            <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">drawingObject_Register</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">count</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+                <span class="n">libUnderworld</span><span class="o">.</span><span class="n">StGermain</span><span class="o">.</span><span class="n">_Stg_ObjectList_RemoveByIndex</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">drawingObject_Register</span><span class="o">.</span><span class="n">objects</span><span class="p">,</span><span class="n">ii</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">libUnderworld</span><span class="o">.</span><span class="n">StGermain</span><span class="o">.</span><span class="n">KEEP</span><span class="p">)</span>
+
+            <span class="c1">#Add drawing objects to register and output any custom data on them</span>
+            <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_objects</span><span class="p">:</span>
+                <span class="c1">#Hide objects not in this figure (also check parent for colour bars)</span>
+                <span class="n">obj</span><span class="o">.</span><span class="n">properties</span><span class="p">[</span><span class="s2">&quot;visible&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">obj</span> <span class="ow">in</span> <span class="n">objects</span> <span class="ow">or</span> <span class="n">obj</span><span class="o">.</span><span class="n">parent</span> <span class="ow">and</span> <span class="n">obj</span><span class="o">.</span><span class="n">parent</span> <span class="ow">in</span> <span class="n">objects</span><span class="p">)</span>
+
+                <span class="c1">#Ensure properties updated before object written to db</span>
+                <span class="n">_libUnderworld</span><span class="o">.</span><span class="n">gLucifer</span><span class="o">.</span><span class="n">lucDrawingObject_SetProperties</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">_dr</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">_getProperties</span><span class="p">());</span>
+                <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">_colourMap</span><span class="p">:</span>
+                    <span class="n">_libUnderworld</span><span class="o">.</span><span class="n">gLucifer</span><span class="o">.</span><span class="n">lucColourMap_SetProperties</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">_colourMap</span><span class="o">.</span><span class="n">_cm</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">_colourMap</span><span class="o">.</span><span class="n">_getProperties</span><span class="p">());</span>
+
+                <span class="c1">#Add the object to the drawing object register for the database</span>
+                <span class="n">libUnderworld</span><span class="o">.</span><span class="n">StGermain</span><span class="o">.</span><span class="n">Stg_ObjectList_Append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">drawingObject_Register</span><span class="o">.</span><span class="n">objects</span><span class="p">,</span><span class="n">obj</span><span class="o">.</span><span class="n">_cself</span><span class="p">)</span>
+
+            <span class="c1"># go ahead and fill db</span>
+            <span class="n">libUnderworld</span><span class="o">.</span><span class="n">gLucifer</span><span class="o">.</span><span class="n">_lucDatabase_Execute</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="p">,</span><span class="kc">None</span><span class="p">)</span>
+
+            <span class="c1">#Output any custom geometry on objects</span>
+            <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_objects</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_plotObject</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+
+            <span class="c1">#Write visualisation state as json data</span>
+            <span class="n">libUnderworld</span><span class="o">.</span><span class="n">gLucifer</span><span class="o">.</span><span class="n">lucDatabase_WriteState</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="p">,</span> <span class="n">figname</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_state</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_objects</span><span class="p">,</span> <span class="n">props</span><span class="p">))</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1">#Open db, get state and update it to match active figure</span>
+            <span class="n">states</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_state</span><span class="p">()</span>
+            <span class="c1">#Find state matching figure by name</span>
+            <span class="n">found</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">states</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">state</span><span class="p">[</span><span class="s2">&quot;figure&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">figname</span><span class="p">:</span>
+                    <span class="n">found</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">break</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">found</span><span class="p">:</span>
+                <span class="n">state</span> <span class="o">=</span> <span class="n">states</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">objects</span><span class="p">):</span>
+                <span class="c1">#For each obj in db, lookup in local list by name, replace properties if found</span>
+                <span class="c1">#if not found locally, objects in db are hidden from view</span>
+                <span class="k">for</span> <span class="n">dbobj</span> <span class="ow">in</span> <span class="n">state</span><span class="p">[</span><span class="s2">&quot;objects&quot;</span><span class="p">]:</span>
+                    <span class="n">dbobj</span><span class="p">[</span><span class="s2">&quot;visible&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+                    <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">objects</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">dbobj</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">obj</span><span class="o">.</span><span class="n">properties</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]:</span>
+                            <span class="c1">#Merge/replace</span>
+                            <span class="n">dbobj</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">properties</span><span class="p">)</span>
+                            <span class="n">dbobj</span><span class="p">[</span><span class="s2">&quot;visible&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1">#No objects passed in with figure, simply plot them all</span>
+                <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">state</span><span class="p">[</span><span class="s2">&quot;objects&quot;</span><span class="p">]:</span>
+                    <span class="n">obj</span><span class="p">[</span><span class="s2">&quot;visible&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">export</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+            <span class="c1">#Global properties passed from figure</span>
+            <span class="n">state</span><span class="p">[</span><span class="s2">&quot;properties&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">props</span><span class="p">)</span>
+            <span class="c1">#View properties passed from figure</span>
+            <span class="c1">#state[&quot;views&quot;][0].update(viewprops)</span>
+            <span class="n">state</span><span class="p">[</span><span class="s2">&quot;views&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">props</span><span class="p">)</span>
+            <span class="c1">#Write updated visualisation state as json data</span>
+            <span class="n">libUnderworld</span><span class="o">.</span><span class="n">gLucifer</span><span class="o">.</span><span class="n">lucDatabase_WriteState</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="p">,</span> <span class="n">figname</span><span class="p">,</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_get_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">objects</span><span class="p">,</span> <span class="n">props</span><span class="p">):</span>
+        <span class="c1">#Get current state as string for export</span>
+        <span class="n">export</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="c1">#Global properties passed from figure</span>
+        <span class="n">export</span><span class="p">[</span><span class="s2">&quot;properties&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">props</span>
+        <span class="c1">#View properties passed from figure</span>
+        <span class="n">export</span><span class="p">[</span><span class="s2">&quot;views&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">props</span><span class="p">]</span> <span class="c1">#[viewprops]</span>
+        <span class="c1">#Objects passed from figure</span>
+        <span class="n">objlist</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">objects</span><span class="p">:</span>
+            <span class="n">objlist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">properties</span><span class="p">)</span>
+
+        <span class="n">export</span><span class="p">[</span><span class="s2">&quot;objects&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">objlist</span>
+        <span class="c1">#TODO: ColourMap properties</span>
+
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">export</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_read_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1">#Read state from database</span>
+        <span class="k">global</span> <span class="n">lavavu</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">lavavu</span> <span class="ow">or</span> <span class="n">uw</span><span class="o">.</span><span class="n">rank</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">db</span><span class="p">:</span>
+            <span class="n">libUnderworld</span><span class="o">.</span><span class="n">gLucifer</span><span class="o">.</span><span class="n">lucDatabase_OpenDatabase</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">lv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lvrun</span><span class="p">()</span>
+            <span class="c1">#Get state, includes the list of objects in the loaded database</span>
+            <span class="n">statestr</span> <span class="o">=</span> <span class="n">lv</span><span class="o">.</span><span class="n">getFigures</span><span class="p">()</span>
+            <span class="c1">#Also save the step data</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">timesteps</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">lv</span><span class="o">.</span><span class="n">getTimeSteps</span><span class="p">())</span>
+            <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">statestr</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">,</span><span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="s2">&quot;LavaVu error: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="kn">import</span> <span class="nn">traceback</span>
+            <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
+            <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">_plotObject</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">drawingObject</span><span class="p">):</span>
+        <span class="c1">#General purpose plotting using db output</span>
+        <span class="c1">#Plot all custom data drawn on provided object</span>
+        <span class="n">farr</span> <span class="o">=</span> <span class="n">libUnderworld</span><span class="o">.</span><span class="n">gLucifer</span><span class="o">.</span><span class="n">new_farray</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">pos</span> <span class="ow">in</span> <span class="n">drawingObject</span><span class="o">.</span><span class="n">vertices</span><span class="p">:</span>
+            <span class="c1">#Write vertex position</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">pos</span><span class="p">:</span>
+                <span class="n">libUnderworld</span><span class="o">.</span><span class="n">gLucifer</span><span class="o">.</span><span class="n">farray_setitem</span><span class="p">(</span><span class="n">farr</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">item</span><span class="p">)</span>  <span class="c1"># Set values</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">libUnderworld</span><span class="o">.</span><span class="n">gLucifer</span><span class="o">.</span><span class="n">lucDatabase_AddVertices</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">drawingObject</span><span class="o">.</span><span class="n">geomType</span><span class="p">,</span> <span class="n">farr</span><span class="p">)</span>
+
+        <span class="c1">#Write vectors</span>
+        <span class="k">for</span> <span class="n">vec</span> <span class="ow">in</span> <span class="n">drawingObject</span><span class="o">.</span><span class="n">vectors</span><span class="p">:</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">vec</span><span class="p">:</span>
+                <span class="n">libUnderworld</span><span class="o">.</span><span class="n">gLucifer</span><span class="o">.</span><span class="n">farray_setitem</span><span class="p">(</span><span class="n">farr</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">item</span><span class="p">)</span>  <span class="c1"># Set values</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">libUnderworld</span><span class="o">.</span><span class="n">gLucifer</span><span class="o">.</span><span class="n">lucDatabase_AddVectors</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">drawingObject</span><span class="o">.</span><span class="n">geomType</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">farr</span><span class="p">)</span>
+
+        <span class="c1">#Write values</span>
+        <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">drawingObject</span><span class="o">.</span><span class="n">scalars</span><span class="p">:</span>
+            <span class="n">libUnderworld</span><span class="o">.</span><span class="n">gLucifer</span><span class="o">.</span><span class="n">farray_setitem</span><span class="p">(</span><span class="n">farr</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="n">value</span><span class="p">)</span>  <span class="c1"># Set values</span>
+            <span class="n">libUnderworld</span><span class="o">.</span><span class="n">gLucifer</span><span class="o">.</span><span class="n">lucDatabase_AddValue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">drawingObject</span><span class="o">.</span><span class="n">geomType</span><span class="p">,</span> <span class="n">farr</span><span class="p">)</span>
+
+        <span class="n">libUnderworld</span><span class="o">.</span><span class="n">gLucifer</span><span class="o">.</span><span class="n">delete_farray</span><span class="p">(</span><span class="n">farr</span><span class="p">)</span>
+
+        <span class="c1">#Write labels</span>
+        <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">drawingObject</span><span class="o">.</span><span class="n">labels</span><span class="p">:</span>
+            <span class="n">libUnderworld</span><span class="o">.</span><span class="n">gLucifer</span><span class="o">.</span><span class="n">lucDatabase_AddLabel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="p">,</span> <span class="n">drawingObject</span><span class="o">.</span><span class="n">geomType</span><span class="p">,</span> <span class="n">label</span><span class="p">);</span>
+
+        <span class="c1">#Write the custom geometry to the database</span>
+        <span class="n">libUnderworld</span><span class="o">.</span><span class="n">gLucifer</span><span class="o">.</span><span class="n">lucDatabase_OutputGeometry</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="p">,</span> <span class="n">drawingObject</span><span class="o">.</span><span class="n">_dr</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Store.empty"><a class="viewcode-back" href="../../glucifer.html#glucifer.Store.empty">[docs]</a>    <span class="k">def</span> <span class="nf">empty</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;    Empties all the cached drawing objects</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_objects</span> <span class="o">=</span> <span class="p">[]</span></div></div>
+
+<div class="viewcode-block" id="Figure"><a class="viewcode-back" href="../../glucifer.html#glucifer.Figure">[docs]</a><span class="k">class</span> <span class="nc">Figure</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;  </span>
+<span class="sd">    The Figure class provides a window within which gLucifer drawing objects</span>
+<span class="sd">    may be rendered. It also provides associated routines for image generation</span>
+<span class="sd">    and visualisation.</span>
+<span class="sd">    </span>
+<span class="sd">    In addition to parameter specification below, see property docstrings for</span>
+<span class="sd">    further information.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    store: glucifer.Store</span>
+<span class="sd">        Database to collect visualisation data, this may be shared among figures</span>
+<span class="sd">        to collect their data into a single file.</span>
+<span class="sd">    name: str</span>
+<span class="sd">        Name of this figure, optional, used for revisualisation of stored figures.</span>
+<span class="sd">    figsize: tuple</span>
+<span class="sd">        Image resolution provided as a tuple.</span>
+<span class="sd">    boundingBox: tuple</span>
+<span class="sd">        Tuple of coordiante tuples defining figure bounding box.</span>
+<span class="sd">        For example ( (0.1,0.1), (0.9,0.9) )</span>
+<span class="sd">    facecolour: str</span>
+<span class="sd">        Background colour for figure.</span>
+<span class="sd">    edgecolour: str</span>
+<span class="sd">        Edge colour for figure.</span>
+<span class="sd">    title: str</span>
+<span class="sd">        Figure title.</span>
+<span class="sd">    axis: bool</span>
+<span class="sd">        Bool to determine if figure axis should be drawn.</span>
+<span class="sd">    quality: unsigned</span>
+<span class="sd">        Antialiasing oversampling quality. For a value of 2, the image will be</span>
+<span class="sd">        rendered at twice the resolution, and then downsampled. Setting</span>
+<span class="sd">        this to 1 disables antialiasing, values higher than 3 are not recommended..</span>
+<span class="sd">    properties: str</span>
+<span class="sd">        Further properties to set on the figure.</span>
+<span class="sd">            </span>
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">        </span>
+<span class="sd">    Create a figure:</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; import glucifer</span>
+<span class="sd">    &gt;&gt;&gt; fig = glucifer.Figure()</span>
+
+<span class="sd">    We need a mesh</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; import underworld as uw</span>
+<span class="sd">    &gt;&gt;&gt; mesh = uw.mesh.FeMesh_Cartesian()</span>
+
+<span class="sd">    Add drawing objects:</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; fig.append( glucifer.objects.Surface( mesh, 1.) )</span>
+
+<span class="sd">    Draw image (note, in a Jupyter notebook, this will render the image within the notebook).</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; fig.show()</span>
+<span class="sd">    &lt;IPython.core.display.HTML object&gt;</span>
+<span class="sd">    </span>
+<span class="sd">    Save the image</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; imgfile = fig.save(&quot;test_image&quot;)</span>
+
+<span class="sd">    Clean up:</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; if imgfile: </span>
+<span class="sd">    ...     import os; </span>
+<span class="sd">    ...     os.remove( imgfile )</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_viewerProc</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">store</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">640</span><span class="p">,</span><span class="mi">480</span><span class="p">),</span> <span class="n">boundingBox</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">facecolour</span><span class="o">=</span><span class="s2">&quot;white&quot;</span><span class="p">,</span>
+                 <span class="n">edgecolour</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">quality</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="c1">#Create a default database just for this figure if none provided</span>
+        <span class="k">if</span> <span class="n">store</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">Store</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="n">store</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="n">Store</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="nb">str</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;name&#39; object passed in must be of python type &#39;str&#39;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+
+        <span class="k">if</span> <span class="n">boundingBox</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">boundingBox</span><span class="p">,</span><span class="nb">tuple</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;boundingBox&#39; object passed in must be of type &#39;tuple&#39;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">boundingBox</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">boundingBox</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="nb">tuple</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;boundingBox[0]&#39; object passed in must be of type &#39;tuple&#39;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">boundingBox</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">boundingBox</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="nb">tuple</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;boundingBox[1]&#39; object passed in must be of type &#39;tuple&#39;&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">edgecolour</span><span class="p">,</span><span class="nb">str</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;edgecolour&#39; object passed in must be of python type &#39;str&#39;&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">title</span><span class="p">,</span><span class="nb">str</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;title&#39; object passed in must be of python type &#39;str&#39;&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span><span class="nb">bool</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;axis&#39; object passed in must be of python type &#39;bool&#39;&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">quality</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">quality</span><span class="p">,(</span><span class="nb">int</span><span class="p">,</span><span class="nb">float</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;quality&#39; object passed in must be of python type &#39;float&#39; or &#39;int&#39;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quality</span><span class="o">=</span><span class="n">quality</span>
+
+        <span class="c1">#Setup default properties</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;title&quot;</span> <span class="p">:</span> <span class="n">title</span><span class="p">,</span> <span class="s2">&quot;axis&quot;</span> <span class="p">:</span> <span class="n">axis</span><span class="p">,</span> <span class="s2">&quot;axislength&quot;</span> <span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span> <span class="s2">&quot;antialias&quot;</span> <span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;background&quot;</span> <span class="p">:</span> <span class="n">facecolour</span><span class="p">,</span>
+            <span class="s2">&quot;margin&quot;</span> <span class="p">:</span> <span class="mi">34</span><span class="p">,</span> <span class="s2">&quot;border&quot;</span> <span class="p">:</span> <span class="p">(</span><span class="mi">1</span> <span class="k">if</span> <span class="n">edgecolour</span> <span class="k">else</span> <span class="mi">0</span><span class="p">),</span> <span class="s2">&quot;bordercolour&quot;</span> <span class="p">:</span> <span class="n">edgecolour</span><span class="p">,</span> <span class="s2">&quot;rulers&quot;</span> <span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;zoomstep&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">})</span>
+        <span class="k">if</span> <span class="n">boundingBox</span><span class="p">:</span>
+            <span class="c1">#Add 3rd dimension if missing</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">boundingBox</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mi">3</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">boundingBox</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="n">boundingBox</span> <span class="o">=</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">boundingBox</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">boundingBox</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+            <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;min&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">boundingBox</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;max&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">boundingBox</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">figsize</span><span class="p">,</span><span class="nb">tuple</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;figsize&#39; object passed in must be of python type &#39;tuple&#39;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;resolution&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">figsize</span>
+        
+        <span class="k">if</span> <span class="n">properties</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">properties</span><span class="p">,</span><span class="nb">dict</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;properties&#39; object passed in must be of python type &#39;dict&#39;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">properties</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">properties</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw</span> <span class="o">=</span> <span class="n">objects</span><span class="o">.</span><span class="n">Drawing</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_drawingObjects</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_script</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">Figure</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">close_viewer</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_getProperties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1">#Convert properties to string</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iteritems</span><span class="p">()]);</span>
+
+    <span class="k">def</span> <span class="nf">_setProperties</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newProps</span><span class="p">):</span>
+        <span class="c1">#Update the properties values (merge)</span>
+        <span class="c1">#values of any existing keys are replaced</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">newProps</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">figsize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;    figsize (tuple(int,int)): size of window in pixels.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;resolution&quot;</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">facecolour</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;    facecolour : colour of face background.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;background&quot;</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">edgecolour</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;    edgecolour : colour of figure border.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;bordercolour&quot;</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">title</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;    title : a title for the image.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;title&quot;</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">axis</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;    axis : Axis enabled if true.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;axis&quot;</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">objects</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;    objects : list of objects to be drawn within the figure.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_drawingObjects</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">properties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;    </span>
+<span class="sd">        properties (dict): visual properties of viewport, passed to LavaVu to control </span>
+<span class="sd">        rendering output of figure.</span>
+<span class="sd">        </span>
+<span class="sd">        When using the property setter, new properties are set, overwriting any duplicate </span>
+<span class="sd">        keys but keeping existing values otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span>
+    <span class="nd">@properties</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">properties</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_setProperties</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Figure.show"><a class="viewcode-back" href="../../glucifer.html#glucifer.Figure.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;Image&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;    </span>
+<span class="sd">        Shows the generated image inline within an ipython notebook.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        type: str</span>
+<span class="sd">            Type of visualisation to display (&#39;Image&#39; or &#39;WebGL&#39;).</span>
+<span class="sd">        </span>
+<span class="sd">        If IPython is installed, displays the result image or WebGL content inline</span>
+
+<span class="sd">        If IPython is not installed, this method will call the default image/web </span>
+<span class="sd">        output routines to save the result with a default filename in the current directory</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_generate_DB</span><span class="p">()</span>
+        <span class="k">global</span> <span class="n">lavavu</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">lavavu</span> <span class="ow">or</span> <span class="n">uw</span><span class="o">.</span><span class="n">rank</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">__IPYTHON__</span><span class="p">:</span>
+                <span class="kn">from</span> <span class="nn">IPython.display</span> <span class="k">import</span> <span class="n">display</span><span class="p">,</span><span class="n">Image</span><span class="p">,</span><span class="n">HTML</span>
+                <span class="k">if</span> <span class="nb">type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;webgl&quot;</span><span class="p">:</span>
+                    <span class="n">display</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_generate_HTML</span><span class="p">())</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1">#Return inline image result</span>
+                    <span class="n">filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_image</span><span class="p">()</span>
+                    <span class="n">display</span><span class="p">(</span><span class="n">HTML</span><span class="p">(</span><span class="s2">&quot;&lt;img src=&#39;</span><span class="si">%s</span><span class="s2">&#39;&gt;&quot;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">NameError</span><span class="p">,</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="c1">#Not in IPython, call default image save routines (autogenerated filenames)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;webgl&quot;</span><span class="p">:</span>
+                    <span class="n">lv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">lvrun</span><span class="p">()</span>
+                    <span class="n">lv</span><span class="o">.</span><span class="n">web</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># -1 selects last figure/state in list</span>
+                    <span class="n">lv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">lvrun</span><span class="p">(</span><span class="n">figure</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">quality</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">quality</span><span class="p">,</span> <span class="n">writeimage</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">res</span><span class="o">=</span><span class="bp">self</span><span class="p">[</span><span class="s2">&quot;resolution&quot;</span><span class="p">],</span> <span class="n">script</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_script</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">,</span><span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span> <span class="s2">&quot;LavaVu error: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="kn">import</span> <span class="nn">traceback</span>
+                <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
+                <span class="k">pass</span>
+            <span class="k">pass</span>
+        <span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="s2">&quot;Error creating image: &quot;</span>
+            <span class="nb">print</span> <span class="n">e</span>
+            <span class="k">pass</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">raise</span></div>
+
+    <span class="k">def</span> <span class="nf">save_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)):</span>
+        <span class="c1"># For back compatibility</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">save_database</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">regen</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">regen</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_generate_DB</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Figure.save"><a class="viewcode-back" href="../../glucifer.html#glucifer.Figure.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)):</span>
+        <span class="sd">&quot;&quot;&quot;  </span>
+<span class="sd">        Saves the generated image to the provided filename or the figure to the database.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        filename :str</span>
+<span class="sd">            Filename to save file to.  May include an absolute or relative path.</span>
+<span class="sd">            size (tuple(int,int)): size of image in pixels, defaults to original figsize setting</span>
+<span class="sd">            If omitted, simply saves the figure data without generating an image</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        filename: str</span>
+<span class="sd">            The final filename (including extension) used to save the image will be returned. Note</span>
+<span class="sd">            that only the root process will return this filename. All other processes will not return</span>
+<span class="sd">            anything.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_generate_DB</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">filename</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Provided parameter &#39;filename&#39; must be of type &#39;str&#39;. &quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">size</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">size</span><span class="p">,</span><span class="nb">tuple</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;size&#39; object passed in must be of python type &#39;tuple&#39;&quot;</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_image</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_generate_DB</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">objects</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_drawingObjects</span><span class="p">[:]</span>
+        <span class="c1">#Only add default object if used</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="o">.</span><span class="n">vertices</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">objects</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">_generate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">objects</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_generate_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)):</span>
+        <span class="k">global</span> <span class="n">lavavu</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">lavavu</span> <span class="ow">or</span> <span class="n">uw</span><span class="o">.</span><span class="n">rank</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1">#Render with viewer</span>
+            <span class="n">lv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">lvrun</span><span class="p">(</span><span class="n">quality</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">quality</span><span class="p">,</span> <span class="n">script</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_script</span><span class="p">)</span>
+            <span class="n">imagestr</span> <span class="o">=</span> <span class="n">lv</span><span class="o">.</span><span class="n">image</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="c1">#Return the generated filename</span>
+            <span class="k">return</span> <span class="n">imagestr</span>
+        <span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">,</span><span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="s2">&quot;LavaVu error: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="kn">import</span> <span class="nn">traceback</span>
+            <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
+            <span class="k">pass</span>
+        <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_generate_HTML</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">global</span> <span class="n">lavavu</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">lavavu</span> <span class="ow">or</span> <span class="n">uw</span><span class="o">.</span><span class="n">rank</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1">#Export encoded json string</span>
+            <span class="n">lv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">lvrun</span><span class="p">(</span><span class="n">script</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_script</span><span class="p">)</span>
+            <span class="c1">#Create link to web content directory</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="s2">&quot;html&quot;</span><span class="p">):</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">symlink</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">_lvpath</span><span class="p">,</span> <span class="s1">&#39;html&#39;</span><span class="p">),</span> <span class="s1">&#39;html&#39;</span><span class="p">)</span>
+            <span class="n">jsonstr</span> <span class="o">=</span> <span class="n">lv</span><span class="o">.</span><span class="n">web</span><span class="p">()</span>
+            <span class="c1">#Write files to disk first, can be passed directly on url but is slow for large datasets</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;input_&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;.json&quot;</span>
+            <span class="n">text_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;html/&quot;</span> <span class="o">+</span> <span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+            <span class="n">text_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">jsonstr</span><span class="p">);</span>
+            <span class="n">text_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="kn">from</span> <span class="nn">IPython.display</span> <span class="k">import</span> <span class="n">IFrame</span>
+            <span class="k">return</span> <span class="n">IFrame</span><span class="p">(</span><span class="s2">&quot;html/index.html#&quot;</span> <span class="o">+</span> <span class="n">filename</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="bp">self</span><span class="p">[</span><span class="s2">&quot;resolution&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">height</span><span class="o">=</span><span class="bp">self</span><span class="p">[</span><span class="s2">&quot;resolution&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+            <span class="c1">#import base64</span>
+            <span class="c1">#return IFrame(&quot;html/index.html#&quot; + base64.b64encode(jsonstr), width=self[&quot;resolution&quot;][0], height=self[&quot;resolution&quot;][1])</span>
+        <span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">,</span><span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="s2">&quot;LavaVu error: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="kn">import</span> <span class="nn">traceback</span>
+            <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
+            <span class="k">pass</span>
+        <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+
+<div class="viewcode-block" id="Figure.script"><a class="viewcode-back" href="../../glucifer.html#glucifer.Figure.script">[docs]</a>    <span class="k">def</span> <span class="nf">script</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Append to or get contents of the saved script.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        cmd: str</span>
+<span class="sd">            Command to add to script.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">cmd</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_script</span> <span class="o">+=</span> <span class="n">cmd</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_script</span> <span class="o">+=</span> <span class="p">[</span><span class="n">cmd</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_script</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1">#Returns contents as newline separated string</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_script</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Figure.viewer"><a class="viewcode-back" href="../../glucifer.html#glucifer.Figure.viewer">[docs]</a>    <span class="k">def</span> <span class="nf">viewer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Open the inline viewer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">fname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">path</span>
+        <span class="c1">#Create db if doesn&#39;t exist</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">fname</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_generate_DB</span><span class="p">()</span>
+            <span class="n">fname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">path</span>
+        <span class="c1">#Open viewer instance if doesn&#39;t exist</span>
+        <span class="k">global</span> <span class="n">lavavu</span>
+        <span class="k">if</span> <span class="n">lavavu</span> <span class="ow">and</span> <span class="n">uw</span><span class="o">.</span><span class="n">rank</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">viewer</span><span class="p">:</span>
+                <span class="c1">#print &quot;Re-running with &quot; + fname</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">lvrun</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="n">fname</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">viewer</span><span class="o">.</span><span class="n">window</span><span class="p">()</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">viewer</span></div>
+
+<div class="viewcode-block" id="Figure.open_viewer"><a class="viewcode-back" href="../../glucifer.html#glucifer.Figure.open_viewer">[docs]</a>    <span class="k">def</span> <span class="nf">open_viewer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[],</span> <span class="n">background</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Open the external viewer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">fname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">filename</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">fname</span><span class="p">:</span>
+            <span class="n">fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span><span class="s2">&quot;gluciferDB&quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">_id</span><span class="o">+</span><span class="s2">&quot;.gldb&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">save_database</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+        <span class="c1">#Already open?</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_viewerProc</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_viewerProc</span><span class="o">.</span><span class="n">poll</span><span class="p">()</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="k">global</span> <span class="n">lavavu</span>
+        <span class="k">if</span> <span class="n">lavavu</span> <span class="ow">and</span> <span class="n">uw</span><span class="o">.</span><span class="n">rank</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1">#Open viewer with local web server for interactive/iterative use</span>
+            <span class="k">if</span> <span class="n">background</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_viewerProc</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">_lvbin</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">step</span><span class="p">),</span> <span class="s2">&quot;-p9999&quot;</span><span class="p">,</span> <span class="s2">&quot;-q90&quot;</span><span class="p">,</span> <span class="n">fname</span><span class="p">]</span> <span class="o">+</span> <span class="n">args</span><span class="p">,</span>
+                                                    <span class="n">stdout</span><span class="o">=</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stdin</span><span class="o">=</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">STDOUT</span><span class="p">)</span>
+                <span class="kn">from</span> <span class="nn">IPython.display</span> <span class="k">import</span> <span class="n">HTML</span>
+                <span class="k">return</span> <span class="n">HTML</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;&lt;a href=&#39;#&#39; onclick=&#39;window.open(&quot;http://&quot; + location.hostname + &quot;:9999&quot;);&#39;&gt;Open Viewer Interface&lt;/a&gt;&#39;&#39;&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">lv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">lvrun</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="n">fname</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">9999</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Figure.close_viewer"><a class="viewcode-back" href="../../glucifer.html#glucifer.Figure.close_viewer">[docs]</a>    <span class="k">def</span> <span class="nf">close_viewer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Close the viewer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#poll() returns None if the process is alive</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_viewerProc</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_viewerProc</span><span class="o">.</span><span class="n">poll</span><span class="p">()</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+           <span class="bp">self</span><span class="o">.</span><span class="n">send_command</span><span class="p">(</span><span class="s2">&quot;quit&quot;</span><span class="p">)</span>
+           <span class="bp">self</span><span class="o">.</span><span class="n">_viewerProc</span><span class="o">.</span><span class="n">kill</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_viewerProc</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="Figure.run_script"><a class="viewcode-back" href="../../glucifer.html#glucifer.Figure.run_script">[docs]</a>    <span class="k">def</span> <span class="nf">run_script</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Run the saved script on an open viewer instance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">open_viewer</span><span class="p">()</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;http://localhost:9999/command=&quot;</span> <span class="o">+</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">quote</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_script</span><span class="p">))</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">url</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span></div>
+        <span class="c1">#print response</span>
+  
+<div class="viewcode-block" id="Figure.send_command"><a class="viewcode-back" href="../../glucifer.html#glucifer.Figure.send_command">[docs]</a>    <span class="k">def</span> <span class="nf">send_command</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">,</span> <span class="n">retry</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Run command on an open viewer instance.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        cmd: str</span>
+<span class="sd">            Command to send to open viewer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">global</span> <span class="n">lavavu</span>
+        <span class="k">if</span> <span class="n">lavavu</span> <span class="ow">and</span> <span class="n">uw</span><span class="o">.</span><span class="n">rank</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">open_viewer</span><span class="p">()</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;http://localhost:9999/command=&quot;</span> <span class="o">+</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">quote</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1">#print url</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">url</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+                <span class="c1">#print response</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="nb">print</span> <span class="s2">&quot;Send command &#39;&quot;</span> <span class="o">+</span> <span class="n">cmd</span> <span class="o">+</span> <span class="s2">&quot;&#39; failed, no response&quot;</span>
+                <span class="k">if</span> <span class="n">retry</span><span class="p">:</span>
+                    <span class="c1">#Wait a few seconds so server has time to start then try again</span>
+                    <span class="nb">print</span> <span class="s2">&quot;... retrying in 1s ...&quot;</span>
+                    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">send_command</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">print</span> <span class="s2">&quot;... failed, skipping ...&quot;</span>
+                    <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="Figure.clear"><a class="viewcode-back" href="../../glucifer.html#glucifer.Figure.clear">[docs]</a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;    Clears all the figure&#39;s drawing objects and colour maps.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_drawingObjects</span><span class="p">[:]</span></div>
+
+    <span class="k">def</span> <span class="nf">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">drawing_object</span><span class="p">):</span>
+        <span class="c1"># DEPRECATE</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;This method is now deprecated.</span><span class="se">\n</span><span class="s2">&quot;</span> \
+                           <span class="s2">&quot;To add drawing objects to figures, use the append() method:</span><span class="se">\n</span><span class="s2">&quot;</span> \
+                           <span class="s2">&quot;    someFigure.append(someDrawingObject)&quot;</span><span class="p">)</span>
+    
+<div class="viewcode-block" id="Figure.append"><a class="viewcode-back" href="../../glucifer.html#glucifer.Figure.append">[docs]</a>    <span class="k">def</span> <span class="nf">append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">drawingObject</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a drawing object to the figure. </span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        drawingObject: glucifer.objects.Drawing</span>
+<span class="sd">            The drawing object to add to the figure</span>
+<span class="sd">                </span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">drawingObject</span><span class="p">,</span> <span class="n">objects</span><span class="o">.</span><span class="n">Drawing</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Object your are trying to add to figure does not appear to be of type &#39;Drawing&#39;.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_drawingObjects</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="n">drawingObject</span> <span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;    </span>
+<span class="sd">        step (int): current timestep</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">step</span>
+
+    <span class="nd">@step</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="c1">#Sets new step on db</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">step</span> <span class="o">=</span> <span class="n">value</span></div>
+
+<div class="viewcode-block" id="Viewer"><a class="viewcode-back" href="../../glucifer.html#glucifer.Viewer">[docs]</a><span class="k">class</span> <span class="nc">Viewer</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;  </span>
+<span class="sd">    The Viewer class provides an interface to load stored figures and revisualise them</span>
+<span class="sd">    </span>
+<span class="sd">    In addition to parameter specification below, see property docstrings for</span>
+<span class="sd">    further information.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filename: str</span>
+<span class="sd">        Filename of database used to previously store the visualisation figures</span>
+<span class="sd">            </span>
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">        </span>
+<span class="sd">    Create a reader using an existing database:</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; import glucifer</span>
+<span class="sd">    &gt;&gt;&gt; saved = glucifer.Viewer(&#39;vis.gldb&#39;)</span>
+
+<span class="sd">    Iterate over the figures, print their names and plot them</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; for fig in saved:</span>
+<span class="sd">    &gt;&gt;&gt;     print(fig.name)</span>
+
+<span class="sd">    Get first figure and display</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; fig = saved.next()</span>
+<span class="sd">    &gt;&gt;&gt; fig.show()</span>
+
+<span class="sd">    Get a figure by name and display</span>
+<span class="sd">    (A chosen name can be provided when creating the figures to make this easier)</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; fig = saved[&quot;myfig&quot;]</span>
+<span class="sd">    &gt;&gt;&gt; fig.show()</span>
+
+<span class="sd">    Display all figures at each timestep</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; for step in saved.steps:</span>
+<span class="sd">    &gt;&gt;&gt;    saved.step = step</span>
+<span class="sd">    &gt;&gt;&gt;    for name in saved:</span>
+<span class="sd">    &gt;&gt;&gt;        fig = saved[name]</span>
+<span class="sd">    &gt;&gt;&gt;        fig.quality = 3</span>
+<span class="sd">    &gt;&gt;&gt;        fig[&quot;title&quot;] = &quot;Timestep ##&quot;</span>
+<span class="sd">    &gt;&gt;&gt;        fig.show()</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_index</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span><span class="nb">str</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;filename&#39; object passed in must be of python type &#39;str&#39;&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_db</span> <span class="o">=</span> <span class="n">Store</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">steps</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">Viewer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">global</span> <span class="n">lavavu</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">lavavu</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;LavaVu build is required to use Viewer&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="c1">#Load existing figures and save names</span>
+        <span class="n">states</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">_read_state</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">states</span><span class="p">:</span>
+            <span class="k">return</span> <span class="c1">#No data</span>
+        <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">states</span><span class="p">:</span>
+            <span class="n">figname</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="s2">&quot;figure&quot;</span><span class="p">])</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">Figure</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">figname</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="n">state</span><span class="p">[</span><span class="s2">&quot;properties&quot;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="p">[</span><span class="n">figname</span><span class="p">]</span> <span class="o">=</span> <span class="n">fig</span>
+            <span class="c1">#Append objects, just create generic Drawing type to hold properties</span>
+            <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">state</span><span class="p">[</span><span class="s2">&quot;objects&quot;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">obj</span><span class="p">[</span><span class="s2">&quot;visible&quot;</span><span class="p">]:</span>
+                    <span class="n">fig</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">objects</span><span class="o">.</span><span class="n">Drawing</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">obj</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">],</span> <span class="n">properties</span><span class="o">=</span><span class="n">obj</span><span class="p">))</span>
+
+        <span class="c1">#Timestep info</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">steps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">timesteps</span>
+
+    <span class="k">def</span> <span class="nf">next</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1">#Return next available figure and increment index</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_index</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_index</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="p">)[</span><span class="bp">self</span><span class="o">.</span><span class="n">_index</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_index</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;    </span>
+<span class="sd">        step (int): current timestep</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">step</span>
+
+    <span class="nd">@step</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="c1">#Sets new step on db</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">step</span> <span class="o">=</span> <span class="n">value</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Melbourne University, Monash University..
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,810 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>underworld.container._indexset &mdash; underworld2  documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="underworld2  documentation" href="../../../index.html"/>
+        <link rel="up" title="underworld" href="../../underworld.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> underworld2
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../underworld.html">underworld module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../glucifer.html">glucifer module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">underworld2</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../underworld.html">underworld</a> &raquo;</li>
+      
+    <li>underworld.container._indexset</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for underworld.container._indexset</h1><div class="highlight"><pre>
+<span></span><span class="c1">##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##  This file forms part of the Underworld geophysics modelling application.         ##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##  For full license and copyright information, please refer to the LICENSE.md file  ##</span>
+<span class="c1">##  located at the project root, or contact the authors.                             ##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module contains the IndexSet class and related functions.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">underworld</span> <span class="k">as</span> <span class="nn">uw</span>
+<span class="kn">import</span> <span class="nn">underworld._stgermain</span> <span class="k">as</span> <span class="nn">_stgermain</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">libUnderworld</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">numbers</span>
+
+<div class="viewcode-block" id="IndexSet"><a class="viewcode-back" href="../../../underworld.container.html#underworld.container.IndexSet">[docs]</a><span class="k">class</span> <span class="nc">IndexSet</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The IndexSet class provides a set type container for integer values.</span>
+<span class="sd">    The underlying implementation is designed for memory efficiency. </span>
+<span class="sd">    Index insertion and removal is a constant time operation.</span>
+<span class="sd">    </span>
+<span class="sd">    .. The following is just for rendering the docstrings with Sphinx.</span>
+<span class="sd">    .. role:: python(code)</span>
+<span class="sd">       :language: python</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    </span>
+<span class="sd">    size : int</span>
+<span class="sd">        The size of the IndexSet. Note that the size corresponds to the maximum index</span>
+<span class="sd">        value (plus 1) the set is required to hold, *NOT* the number of elements in</span>
+<span class="sd">        the set. See IndexSet.size docstring for more information.</span>
+<span class="sd">    fromObject : iterable, array_like, IndexSet. Optional.</span>
+<span class="sd">        If provided, an IndexSet will be constructed using provided object&#39;s data. </span>
+<span class="sd">        See &#39;add&#39; method for more details on acceptable objects.</span>
+<span class="sd">        If not provided, empty set is generated.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    You can add items via the constructor:</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; someSet = uw.container.IndexSet( 15, [3,14,2] )</span>
+<span class="sd">    &gt;&gt;&gt; someSet</span>
+<span class="sd">    IndexSet([ 2,  3, 14])</span>
+<span class="sd">    </span>
+<span class="sd">    Alternatively, create an empty set and add items as necessary:</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; someSet = uw.container.IndexSet( 15 )</span>
+<span class="sd">    &gt;&gt;&gt; someSet</span>
+<span class="sd">    IndexSet([])</span>
+<span class="sd">    &gt;&gt;&gt; someSet.add(3)</span>
+<span class="sd">    &gt;&gt;&gt; someSet</span>
+<span class="sd">    IndexSet([3])</span>
+<span class="sd">    &gt;&gt;&gt; someSet.add( [2,11] )</span>
+<span class="sd">    &gt;&gt;&gt; someSet</span>
+<span class="sd">    IndexSet([ 2,  3, 11])</span>
+<span class="sd">    </span>
+<span class="sd">    Python operators are overloaded for convenience. Check class method details</span>
+<span class="sd">    for full details.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">fromObject</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">size</span><span class="p">,</span><span class="nb">int</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The &#39;size&#39; parameter must be of type int.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">size</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The &#39;size&#39; parameter must be positive.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_size</span> <span class="o">=</span> <span class="n">size</span>
+        
+        <span class="c1"># ok, let&#39;s do a cheeky, and if the object passed in is a native stg guy,</span>
+        <span class="c1"># we&#39;ll take ownership        </span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fromObject</span><span class="p">,</span><span class="n">libUnderworld</span><span class="o">.</span><span class="n">StGermain</span><span class="o">.</span><span class="n">IndexSet</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span> <span class="o">=</span> <span class="n">fromObject</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_size</span> <span class="o">=</span> <span class="n">fromObject</span><span class="o">.</span><span class="n">size</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># lets create our IndexSet object</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span> <span class="o">=</span> <span class="n">libUnderworld</span><span class="o">.</span><span class="n">StGermain</span><span class="o">.</span><span class="n">IndexSet_New</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">fromObject</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">fromObject</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># delete stg class</span>
+        <span class="n">libUnderworld</span><span class="o">.</span><span class="n">StGermain</span><span class="o">.</span><span class="n">Stg_Class_Delete</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="p">)</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The size of the IndexSet. Note that the size corresponds to the maximum index</span>
+<span class="sd">        value (plus 1) the set is required to hold, *NOT* the number of elements in </span>
+<span class="sd">        the set. So for example, a size of 16, would result in an IndexSet which can </span>
+<span class="sd">        retain values between 0 and 15 (inclusive). Note also that the the IndexSet</span>
+<span class="sd">        will require ( size/8 + 1 ) bytes of memory storage.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_size</span>
+
+<div class="viewcode-block" id="IndexSet.add"><a class="viewcode-back" href="../../../underworld.container.html#underworld.container.IndexSet.add">[docs]</a>    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add item(s) to IndexSet.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        indices: unsigned int, ndarray, IndexSet, iterable object.</span>
+<span class="sd">            Index or indices to be added to the IndexSet. Ensure value(s) are integer </span>
+<span class="sd">            and non-negative. An iterable object may also be provided, with numpy arrays</span>
+<span class="sd">            and IndexSets being significantly more efficient.</span>
+<span class="sd">            </span>
+<span class="sd">        </span>
+<span class="sd">        Example</span>
+<span class="sd">        -------</span>
+<span class="sd">        Create an empty set and add items as necessary:</span>
+<span class="sd">        &gt;&gt;&gt; someSet = uw.container.IndexSet( 15 )</span>
+<span class="sd">        &gt;&gt;&gt; someSet.add(3)</span>
+<span class="sd">        &gt;&gt;&gt; someSet</span>
+<span class="sd">        IndexSet([3])</span>
+<span class="sd">        &gt;&gt;&gt; 3 in someSet</span>
+<span class="sd">        True</span>
+<span class="sd">        &gt;&gt;&gt; someSet.add([5,3,7,8])</span>
+<span class="sd">        &gt;&gt;&gt; someSet</span>
+<span class="sd">        IndexSet([3, 5, 7, 8])</span>
+<span class="sd">        &gt;&gt;&gt; someSet.add(np.array([10,11,3]))</span>
+<span class="sd">        &gt;&gt;&gt; someSet</span>
+<span class="sd">        IndexSet([ 3,  5,  7,  8, 10, 11])</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_addremove</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span><span class="kc">True</span><span class="p">);</span></div>
+        
+<div class="viewcode-block" id="IndexSet.remove"><a class="viewcode-back" href="../../../underworld.container.html#underworld.container.IndexSet.remove">[docs]</a>    <span class="k">def</span> <span class="nf">remove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Remove item(s) from IndexSet.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        indices: unsigned int, ndarray, iterable object</span>
+<span class="sd">            Index or indices to be removed from the IndexSet. Ensure value(s) are integer</span>
+<span class="sd">            and non-negative. An iterable object may also be provided, with numpy arrays</span>
+<span class="sd">            being significantly more efficient. Note that the &#39;remove&#39; method can not </span>
+<span class="sd">            be provided with an IndexSet object, as the &#39;add&#39; object can.</span>
+
+<span class="sd">        Example</span>
+<span class="sd">        -------</span>
+<span class="sd">        &gt;&gt;&gt; someSet = uw.container.IndexSet( 15, [3,9,10] )</span>
+<span class="sd">        &gt;&gt;&gt; someSet</span>
+<span class="sd">        IndexSet([ 3,  9, 10])</span>
+<span class="sd">        &gt;&gt;&gt; someSet.remove(3)</span>
+<span class="sd">        &gt;&gt;&gt; 3 in someSet</span>
+<span class="sd">        False</span>
+<span class="sd">        &gt;&gt;&gt; someSet</span>
+<span class="sd">        IndexSet([ 9, 10])</span>
+<span class="sd">        &gt;&gt;&gt; someSet.remove([9,10])</span>
+<span class="sd">        &gt;&gt;&gt; someSet</span>
+<span class="sd">        IndexSet([])</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_addremove</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span><span class="kc">False</span><span class="p">);</span></div>
+    
+        
+    <span class="k">def</span> <span class="nf">_addremove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">isadding</span><span class="p">):</span>
+        <span class="c1"># note we use numbers.Integral here which also catches numpy int types</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">numbers</span><span class="o">.</span><span class="n">Integral</span><span class="p">):</span>
+            <span class="n">indices</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">indices</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="ow">or</span> <span class="n">indices</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Provided index must be non-negative and &quot;</span><span class="o">+</span>
+                                  <span class="s2">&quot;less than IndexSet maximum (</span><span class="si">{}</span><span class="s2">).&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">isadding</span><span class="p">:</span>
+                <span class="n">libUnderworld</span><span class="o">.</span><span class="n">StGermain</span><span class="o">.</span><span class="n">IndexSet_Add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="p">,</span><span class="n">indices</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">libUnderworld</span><span class="o">.</span><span class="n">StGermain</span><span class="o">.</span><span class="n">IndexSet_Remove</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="p">,</span><span class="n">indices</span><span class="p">)</span>
+            
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>  <span class="c1"># if numpy, add the quick way</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_AddOrRemoveWithNumpyArray</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">isadding</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">IndexSet</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_checkCompatWith</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">isadding</span><span class="p">:</span>
+                <span class="n">libUnderworld</span><span class="o">.</span><span class="n">StGermain</span><span class="o">.</span><span class="n">IndexSet_Merge_OR</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="p">,</span><span class="n">indices</span><span class="o">.</span><span class="n">_cself</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># ok, there&#39;s no explict stg IndexSet remove routine.. lets convert to numpy and recurse</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span> <span class="n">indices</span><span class="o">.</span><span class="n">data</span> <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>    <span class="c1"># other iterable, first convert to numpy, then add</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">iterator</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;The object passed in does not appear to be iterable or other compatible type.&quot;</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;An unknown error occurred relating to the object passed in.&quot;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_AddOrRemoveWithNumpyArray</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">fromiter</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">),</span> <span class="n">isadding</span> <span class="p">)</span>
+
+<div class="viewcode-block" id="IndexSet.AND"><a class="viewcode-back" href="../../../underworld.container.html#underworld.container.IndexSet.AND">[docs]</a>    <span class="k">def</span> <span class="nf">AND</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Logical AND operation performed with provided IndexSet.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        indices: IndexSet</span>
+<span class="sd">            IndexSet for which AND operation is performed. Note that provided set must be of type IndexSet.</span>
+<span class="sd">            </span>
+<span class="sd">        Example</span>
+<span class="sd">        -------</span>
+<span class="sd">        &gt;&gt;&gt; someSet1 = uw.container.IndexSet( 15, [3,9,10] )</span>
+<span class="sd">        &gt;&gt;&gt; someSet2 = uw.container.IndexSet( 15, [1,9,12] )</span>
+<span class="sd">        &gt;&gt;&gt; someSet1.AND(someSet2)</span>
+<span class="sd">        &gt;&gt;&gt; someSet1</span>
+<span class="sd">        IndexSet([9])</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_checkCompatWith</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span>
+        <span class="n">libUnderworld</span><span class="o">.</span><span class="n">StGermain</span><span class="o">.</span><span class="n">IndexSet_Merge_AND</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="p">,</span><span class="n">indices</span><span class="o">.</span><span class="n">_cself</span><span class="p">)</span></div>
+    
+    
+<div class="viewcode-block" id="IndexSet.__contains__"><a class="viewcode-back" href="../../../underworld.container.html#underworld.container.IndexSet.__contains__">[docs]</a>    <span class="k">def</span> <span class="nf">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check if item is in IndexSet.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        index: unsigned int</span>
+<span class="sd">            Check if index is in IndexSet.</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        inSet: bool</span>
+<span class="sd">            True if item is in set, False otherwise.</span>
+
+<span class="sd">        Example</span>
+<span class="sd">        -------</span>
+<span class="sd">        &gt;&gt;&gt; someSet = uw.container.IndexSet( 15, [3,9,10] )</span>
+<span class="sd">        &gt;&gt;&gt; 3 in someSet</span>
+<span class="sd">        True</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">libUnderworld</span><span class="o">.</span><span class="n">StGermain</span><span class="o">.</span><span class="n">IndexSet_IsMember</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="p">,</span><span class="n">index</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_AddOrRemoveWithNumpyArray</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">ndarray</span><span class="p">,</span><span class="n">adding</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add values from a numpy array to a set</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        ndarray: numpyp.ndarray (uint32, int32, uint64, int64)</span>
+<span class="sd">            Array from which to add values. Must contain only non-negative integers.</span>
+<span class="sd">        adding: bool</span>
+<span class="sd">            If True, we are adding to the set. Else we are removing.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ndarray</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Object must be of &#39;ndarray&#39; type&quot;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># nothing to do, so return</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="n">ndarray</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Provided object contains a value (</span><span class="si">{}</span><span class="s2">) greater than &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ndarray</span><span class="o">.</span><span class="n">max</span><span class="p">())</span><span class="o">+</span><span class="s2">&quot;the IndexSet maximum (</span><span class="si">{}</span><span class="s2">).&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">ndarray</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Provided object contains a value (</span><span class="si">{}</span><span class="s2">) less than zero.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ndarray</span><span class="o">.</span><span class="n">min</span><span class="p">()))</span>
+
+        <span class="c1"># lets simply try using the lowest type and working our way up</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">AddOrRemoveWithNumpyUInt</span><span class="p">(</span><span class="n">ndarray</span><span class="p">,</span><span class="n">adding</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">AddOrRemoveWithNumpyInt</span><span class="p">(</span><span class="n">ndarray</span><span class="p">,</span><span class="n">adding</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">AddOrRemoveWithNumpyULong</span><span class="p">(</span><span class="n">ndarray</span><span class="p">,</span><span class="n">adding</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">AddOrRemoveWithNumpyLong</span><span class="p">(</span><span class="n">ndarray</span><span class="p">,</span><span class="n">adding</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Incompatible array type (</span><span class="si">{}</span><span class="s2">) provided. Must be of integer type.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ndarray</span><span class="o">.</span><span class="n">dtype</span><span class="p">))</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the set members as a numpy array.</span>
+<span class="sd">        </span>
+<span class="sd">        Note that only a numpy copy of the set is returned, and modifying this</span>
+<span class="sd">        array is disabled (and would have no effect).</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        numpy.ndarray (uint32)</span>
+<span class="sd">            Array containing IndexSet members.</span>
+<span class="sd">            </span>
+<span class="sd">        Example</span>
+<span class="sd">        -------</span>
+<span class="sd">        &gt;&gt;&gt; someSet = uw.container.IndexSet( 15, [3,9,10] )</span>
+<span class="sd">        &gt;&gt;&gt; someSet.data</span>
+<span class="sd">        array([ 3,  9, 10], dtype=uint32)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># get member count</span>
+        <span class="n">memberCount</span> <span class="o">=</span> <span class="n">libUnderworld</span><span class="o">.</span><span class="n">StGermain</span><span class="o">.</span><span class="n">IndexSet_UpdateMembersCount</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="p">)</span>
+        <span class="c1"># create un-initialised array of required size</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">(</span><span class="n">memberCount</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;uint32&#39;</span><span class="p">)</span>
+        <span class="c1"># pass into routine to set values</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">GetAsNumpyArray</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
+        <span class="n">arr</span><span class="o">.</span><span class="n">flags</span><span class="o">.</span><span class="n">writeable</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="n">arr</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int: member count</span>
+<span class="sd">            Returns the total number of members this set contains.</span>
+<span class="sd">        </span>
+<span class="sd">        Example</span>
+<span class="sd">        -------</span>
+<span class="sd">        &gt;&gt;&gt; someSet = uw.container.IndexSet( 15, [3,9,10] )</span>
+<span class="sd">        &gt;&gt;&gt; someSet.count</span>
+<span class="sd">        3</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># get member count</span>
+        <span class="k">return</span> <span class="n">libUnderworld</span><span class="o">.</span><span class="n">StGermain</span><span class="o">.</span><span class="n">IndexSet_UpdateMembersCount</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="p">)</span>
+    
+<div class="viewcode-block" id="IndexSet.invert"><a class="viewcode-back" href="../../../underworld.container.html#underworld.container.IndexSet.invert">[docs]</a>    <span class="k">def</span> <span class="nf">invert</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Inverts the index set in place.</span>
+<span class="sd">        </span>
+<span class="sd">        Example</span>
+<span class="sd">        -------</span>
+<span class="sd">        &gt;&gt;&gt; someSet = uw.container.IndexSet( 15, [1,3,5,7,9,11,13] )</span>
+<span class="sd">        &gt;&gt;&gt; someSet.invert()</span>
+<span class="sd">        &gt;&gt;&gt; someSet</span>
+<span class="sd">        IndexSet([ 0,  2,  4,  6,  8, 10, 12, 14])</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">libUnderworld</span><span class="o">.</span><span class="n">StGermain</span><span class="o">.</span><span class="n">IndexSet_Invert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="IndexSet.addAll"><a class="viewcode-back" href="../../../underworld.container.html#underworld.container.IndexSet.addAll">[docs]</a>    <span class="k">def</span> <span class="nf">addAll</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set all indices of set to added.</span>
+
+<span class="sd">        Example</span>
+<span class="sd">        -------</span>
+<span class="sd">        &gt;&gt;&gt; someSet = uw.container.IndexSet( 5 )</span>
+<span class="sd">        &gt;&gt;&gt; someSet</span>
+<span class="sd">        IndexSet([])</span>
+<span class="sd">        &gt;&gt;&gt; someSet.addAll()</span>
+<span class="sd">        &gt;&gt;&gt; someSet</span>
+<span class="sd">        IndexSet([0, 1, 2, 3, 4])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">libUnderworld</span><span class="o">.</span><span class="n">StGermain</span><span class="o">.</span><span class="n">IndexSet_AddAll</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="IndexSet.clear"><a class="viewcode-back" href="../../../underworld.container.html#underworld.container.IndexSet.clear">[docs]</a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Clear set.  ie, set all indices to not included.</span>
+
+<span class="sd">        Example</span>
+<span class="sd">        -------</span>
+<span class="sd">        &gt;&gt;&gt; someSet = uw.container.IndexSet( 5, [1,2,3] )</span>
+<span class="sd">        &gt;&gt;&gt; someSet</span>
+<span class="sd">        IndexSet([1, 2, 3])</span>
+<span class="sd">        &gt;&gt;&gt; someSet.clear()</span>
+<span class="sd">        &gt;&gt;&gt; someSet</span>
+<span class="sd">        IndexSet([])</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">libUnderworld</span><span class="o">.</span><span class="n">StGermain</span><span class="o">.</span><span class="n">IndexSet_RemoveAll</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;array&quot;</span><span class="p">,</span><span class="s2">&quot;IndexSet&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;, dtype=uint32&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+<div class="viewcode-block" id="IndexSet.__add__"><a class="viewcode-back" href="../../../underworld.container.html#underworld.container.IndexSet.__add__">[docs]</a>    <span class="k">def</span> <span class="nf">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Operator overloading for :python:`C = A + B`</span>
+<span class="sd">        </span>
+<span class="sd">        Creates a new set C, then adds indices from A and B.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        indexSet: IndexSet</span>
+<span class="sd">            The new set (C).</span>
+
+<span class="sd">        Example</span>
+<span class="sd">        -------</span>
+<span class="sd">        &gt;&gt;&gt; someSet1 = uw.container.IndexSet( 15, [3,9,10] )</span>
+<span class="sd">        &gt;&gt;&gt; someSet2 = uw.container.IndexSet( 15, [1,9,12] )</span>
+<span class="sd">        &gt;&gt;&gt; someSet1 + someSet2</span>
+<span class="sd">        IndexSet([ 1,  3,  9, 10, 12])</span>
+
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">other</span><span class="p">,</span> <span class="n">IndexSet</span> <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Indices provided must be of type &#39;IndexSet&#39;.&quot;</span><span class="p">)</span>
+
+        <span class="nb">set</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="nb">set</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">set</span></div>
+
+<div class="viewcode-block" id="IndexSet.__iadd__"><a class="viewcode-back" href="../../../underworld.container.html#underworld.container.IndexSet.__iadd__">[docs]</a>    <span class="k">def</span> <span class="nf">__iadd__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Operator overloading for :python:`A += B`</span>
+<span class="sd">        </span>
+<span class="sd">        Adds indices from A and B.</span>
+
+<span class="sd">        Example</span>
+<span class="sd">        -------</span>
+<span class="sd">        &gt;&gt;&gt; someSet1 = uw.container.IndexSet( 15, [3,9,10] )</span>
+<span class="sd">        &gt;&gt;&gt; someSet2 = uw.container.IndexSet( 15, [1,9,12] )</span>
+<span class="sd">        &gt;&gt;&gt; someSet1 += someSet2</span>
+<span class="sd">        &gt;&gt;&gt; someSet1</span>
+<span class="sd">        IndexSet([ 1,  3,  9, 10, 12])</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="IndexSet.__sub__"><a class="viewcode-back" href="../../../underworld.container.html#underworld.container.IndexSet.__sub__">[docs]</a>    <span class="k">def</span> <span class="nf">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Operator overloading for :python:`C = A - B`</span>
+<span class="sd">        </span>
+<span class="sd">        Creates a new set C, then adds indices from A, and removes those</span>
+<span class="sd">        from B.</span>
+
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        indexSet: IndexSet</span>
+<span class="sd">            The new set (C).</span>
+
+<span class="sd">        Example</span>
+<span class="sd">        -------</span>
+<span class="sd">        &gt;&gt;&gt; someSet1 = uw.container.IndexSet( 15, [3,9,10] )</span>
+<span class="sd">        &gt;&gt;&gt; someSet2 = uw.container.IndexSet( 15, [1,9,12] )</span>
+<span class="sd">        &gt;&gt;&gt; someSet1 - someSet2</span>
+<span class="sd">        IndexSet([ 3, 10])</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">other</span><span class="p">,</span> <span class="n">IndexSet</span> <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Indices provided must be of type &#39;IndexSet&#39;.&quot;</span><span class="p">)</span>
+
+        <span class="nb">set</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="nb">set</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">set</span></div>
+
+<div class="viewcode-block" id="IndexSet.__isub__"><a class="viewcode-back" href="../../../underworld.container.html#underworld.container.IndexSet.__isub__">[docs]</a>    <span class="k">def</span> <span class="nf">__isub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Operator overloading for :python:`A -= B`</span>
+<span class="sd">        </span>
+<span class="sd">        Removes from A indices in B.</span>
+<span class="sd">        </span>
+<span class="sd">        Example</span>
+<span class="sd">        -------</span>
+<span class="sd">        &gt;&gt;&gt; someSet1 = uw.container.IndexSet( 15, [3,9,10] )</span>
+<span class="sd">        &gt;&gt;&gt; someSet2 = uw.container.IndexSet( 15, [1,9,12] )</span>
+<span class="sd">        &gt;&gt;&gt; someSet1 -= someSet2</span>
+<span class="sd">        &gt;&gt;&gt; someSet1</span>
+<span class="sd">        IndexSet([ 3, 10])</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="IndexSet.__and__"><a class="viewcode-back" href="../../../underworld.container.html#underworld.container.IndexSet.__and__">[docs]</a>    <span class="k">def</span> <span class="nf">__and__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Operator overloading for :python:`C = A &amp; B`</span>
+<span class="sd">        </span>
+<span class="sd">        Creates a new set C, then adds indices from A, and performs</span>
+<span class="sd">        AND logic with B.</span>
+
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        indexSet: IndexSet</span>
+<span class="sd">            The new set (C).</span>
+
+<span class="sd">        Example</span>
+<span class="sd">        -------</span>
+<span class="sd">        &gt;&gt;&gt; someSet1 = uw.container.IndexSet( 15, [3,9,10] )</span>
+<span class="sd">        &gt;&gt;&gt; someSet2 = uw.container.IndexSet( 15, [1,9,12] )</span>
+<span class="sd">        &gt;&gt;&gt; someSet1 &amp; someSet2</span>
+<span class="sd">        IndexSet([9])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">other</span><span class="p">,</span> <span class="n">IndexSet</span> <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Indices provided must be of type &#39;IndexSet&#39;.&quot;</span><span class="p">)</span>
+
+        <span class="nb">set</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="nb">set</span><span class="o">.</span><span class="n">AND</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">set</span></div>
+
+<div class="viewcode-block" id="IndexSet.__iand__"><a class="viewcode-back" href="../../../underworld.container.html#underworld.container.IndexSet.__iand__">[docs]</a>    <span class="k">def</span> <span class="nf">__iand__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Operator overloading for :python:`A &amp;= B`</span>
+<span class="sd">        </span>
+<span class="sd">        Performs logical AND operation with A and B. Results are stored</span>
+<span class="sd">        in A.</span>
+<span class="sd">        </span>
+<span class="sd">        Example</span>
+<span class="sd">        -------</span>
+<span class="sd">        &gt;&gt;&gt; someSet1 = uw.container.IndexSet( 15, [3,9,10] )</span>
+<span class="sd">        &gt;&gt;&gt; someSet2 = uw.container.IndexSet( 15, [1,9,12] )</span>
+<span class="sd">        &gt;&gt;&gt; someSet1 &amp;= someSet2</span>
+<span class="sd">        &gt;&gt;&gt; someSet1</span>
+<span class="sd">        IndexSet([9])</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AND</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="IndexSet.__or__"><a class="viewcode-back" href="../../../underworld.container.html#underworld.container.IndexSet.__or__">[docs]</a>    <span class="k">def</span> <span class="nf">__or__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Operator overloading for :python:`C = A | B`</span>
+<span class="sd">        </span>
+<span class="sd">        Creates a new set C, then adds indices from A, and performs OR </span>
+<span class="sd">        logic with B.</span>
+
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        indexSet: IndexSet</span>
+<span class="sd">            The new set (C).</span>
+
+<span class="sd">        Example</span>
+<span class="sd">        -------</span>
+<span class="sd">        &gt;&gt;&gt; someSet1 = uw.container.IndexSet( 15, [3,9,10] )</span>
+<span class="sd">        &gt;&gt;&gt; someSet2 = uw.container.IndexSet( 15, [1,9,12] )</span>
+<span class="sd">        &gt;&gt;&gt; someSet1 | someSet2</span>
+<span class="sd">        IndexSet([ 1,  3,  9, 10, 12])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">other</span><span class="p">,</span> <span class="n">IndexSet</span> <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Indices provided must be of type &#39;IndexSet&#39;.&quot;</span><span class="p">)</span>
+
+        <span class="nb">set</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="nb">set</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">set</span></div>
+
+<div class="viewcode-block" id="IndexSet.__ior__"><a class="viewcode-back" href="../../../underworld.container.html#underworld.container.IndexSet.__ior__">[docs]</a>    <span class="k">def</span> <span class="nf">__ior__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Operator overloading for :python:`A |= B`</span>
+<span class="sd">        </span>
+<span class="sd">        Performs logical OR operation with A and B. Results are stored in A.</span>
+<span class="sd">        </span>
+<span class="sd">        Example</span>
+<span class="sd">        -------</span>
+<span class="sd">        &gt;&gt;&gt; someSet1 = uw.container.IndexSet( 15, [3,9,10] )</span>
+<span class="sd">        &gt;&gt;&gt; someSet2 = uw.container.IndexSet( 15, [1,9,12] )</span>
+<span class="sd">        &gt;&gt;&gt; someSet1 |= someSet2</span>
+<span class="sd">        &gt;&gt;&gt; someSet1</span>
+<span class="sd">        IndexSet([ 1,  3,  9, 10, 12])</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="IndexSet.__deepcopy__"><a class="viewcode-back" href="../../../underworld.container.html#underworld.container.IndexSet.__deepcopy__">[docs]</a>    <span class="k">def</span> <span class="nf">__deepcopy__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memo</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Custom deepcopy routine required because python won&#39;t know how to copy</span>
+<span class="sd">        memory owned by stgermain. </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">newguy</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>  <span class="c1"># this should copy all python attributes</span>
+        <span class="n">newguy</span><span class="o">.</span><span class="n">_cself</span> <span class="o">=</span> <span class="n">libUnderworld</span><span class="o">.</span><span class="n">StGermain</span><span class="o">.</span><span class="n">IndexSet_Duplicate</span><span class="p">(</span> <span class="n">newguy</span><span class="o">.</span><span class="n">_cself</span> <span class="p">)</span>  <span class="c1"># creates new stg guy, and overwrites py _cself attribute</span>
+        <span class="k">return</span> <span class="n">newguy</span></div>
+
+    <span class="k">def</span> <span class="nf">_checkCompatWith</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Checks that these IndexSets are compatible. This should be overwritten by child classes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;This operation is illegal. These objects do not appear to be of identical type.&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ObjectifiedIndexSet"><a class="viewcode-back" href="../../../underworld.container.html#underworld.container.ObjectifiedIndexSet">[docs]</a><span class="k">class</span> <span class="nc">ObjectifiedIndexSet</span><span class="p">(</span><span class="n">IndexSet</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class simply adds an object to IndexSet data. Usually this object will be</span>
+<span class="sd">    the object for which the IndexSet data relates to.. For example, we can attach a </span>
+<span class="sd">    Mesh object to an IndexSet containing mesh vertices.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">object</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Class initialiser</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        object : any, default=None</span>
+<span class="sd">            Object to tether to data</span>
+
+<span class="sd">        See parent classes for further parameters.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        objectifiedIndexSet : ObjectifiedIndexSet</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_object</span> <span class="o">=</span> <span class="nb">object</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">ObjectifiedIndexSet</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">object</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Object for which IndexSet data relates.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_object</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;array&quot;</span><span class="p">,</span><span class="s2">&quot;ObjectifiedIndexSet&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;, dtype=uint32&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_checkCompatWith</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Checks that these IndexSets are compatible.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># check parent first</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ObjectifiedIndexSet</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_checkCompatWith</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">object</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">object</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;This operation is illegal. The associated objects for these IndexSets do not appear to be of identical type.&quot;</span><span class="p">)</span></div>
+
+        
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Melbourne University, Monash University..
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

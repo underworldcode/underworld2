@@ -1,0 +1,477 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>underworld.swarm.layouts &mdash; underworld2  documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="underworld2  documentation" href="../../../index.html"/>
+        <link rel="up" title="underworld" href="../../underworld.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> underworld2
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../underworld.html">underworld module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../glucifer.html">glucifer module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">underworld2</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../underworld.html">underworld</a> &raquo;</li>
+      
+    <li>underworld.swarm.layouts</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for underworld.swarm.layouts</h1><div class="highlight"><pre>
+<span></span><span class="c1">##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##  This file forms part of the Underworld geophysics modelling application.         ##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##  For full license and copyright information, please refer to the LICENSE.md file  ##</span>
+<span class="c1">##  located at the project root, or contact the authors.                             ##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">This module contains classes for populating swarms with particles across</span>
+<span class="sd">the domain.</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="kn">import</span> <span class="nn">underworld._stgermain</span> <span class="k">as</span> <span class="nn">_stgermain</span>
+<span class="kn">import</span> <span class="nn">_swarm</span>
+<span class="kn">import</span> <span class="nn">abc</span> <span class="k">as</span> <span class="nn">_abc</span>
+
+<div class="viewcode-block" id="ParticleLayoutAbstract"><a class="viewcode-back" href="../../../underworld.swarm.layouts.html#underworld.swarm.layouts.ParticleLayoutAbstract">[docs]</a><span class="k">class</span> <span class="nc">ParticleLayoutAbstract</span><span class="p">(</span><span class="n">_stgermain</span><span class="o">.</span><span class="n">StgCompoundComponent</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Abstract class. Children classes are responsible for populating </span>
+<span class="sd">    swarms with particles, generally across the entire domain.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    swarm : underworld.swarm.Swarm</span>
+<span class="sd">        The swarm this layout will act upon</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_objectsDict</span> <span class="o">=</span> <span class="p">{</span>  <span class="s2">&quot;_layout&quot;</span><span class="p">:</span> <span class="kc">None</span> <span class="p">}</span>
+    <span class="n">_selfObjectName</span> <span class="o">=</span> <span class="s2">&quot;_layout&quot;</span>
+
+    <span class="n">__metaclass__</span> <span class="o">=</span> <span class="n">_abc</span><span class="o">.</span><span class="n">ABCMeta</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">swarm</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span> <span class="p">):</span>
+
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">swarm</span><span class="p">,</span> <span class="n">_swarm</span><span class="o">.</span><span class="n">Swarm</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;swarm&#39; object passed in must be of type &#39;Swarm&#39;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_swarm</span> <span class="o">=</span> <span class="n">swarm</span>
+
+        <span class="c1"># build parent</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ParticleLayoutAbstract</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">swarm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        underworld.swarm.Swarm</span>
+<span class="sd">            Swarm this layout will act to fill with particlces.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_swarm</span></div>
+    
+
+
+<div class="viewcode-block" id="PerCellGaussLayout"><a class="viewcode-back" href="../../../underworld.swarm.layouts.html#underworld.swarm.layouts.PerCellGaussLayout">[docs]</a><span class="k">class</span> <span class="nc">PerCellGaussLayout</span><span class="p">(</span><span class="n">ParticleLayoutAbstract</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This layout populates the domain with particles located at gauss locations </span>
+<span class="sd">    within each element of the swarm&#39;s associated finite element mesh.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    swarm : underworld.swarm.Swarm</span>
+<span class="sd">        The swarm this layout will act upon</span>
+<span class="sd">    gaussPointCount : int</span>
+<span class="sd">        Per cell, the number of gauss points in each dimensional direction.</span>
+<span class="sd">        Must take an int value between 1 and 5 inclusive.</span>
+<span class="sd">    </span>
+
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    &gt;&gt;&gt; import underworld as uw</span>
+<span class="sd">    &gt;&gt;&gt; # choose mesh to coincide with global element</span>
+<span class="sd">    &gt;&gt;&gt; mesh = uw.mesh.FeMesh_Cartesian(&#39;Q1/dQ0&#39;, (1,1), (-1.,-1.), (1.,1.))</span>
+<span class="sd">    &gt;&gt;&gt; swarm = uw.swarm.Swarm(mesh)</span>
+<span class="sd">    &gt;&gt;&gt; layout = uw.swarm.layouts.PerCellGaussLayout(swarm,gaussPointCount=2)</span>
+<span class="sd">    &gt;&gt;&gt; swarm.populate_using_layout(layout)</span>
+<span class="sd">    &gt;&gt;&gt; swarm.particleLocalCount</span>
+<span class="sd">    4</span>
+<span class="sd">    &gt;&gt;&gt; swarm.particleCoordinates.data</span>
+<span class="sd">    array([[-0.57735027, -0.57735027],</span>
+<span class="sd">           [ 0.57735027, -0.57735027],</span>
+<span class="sd">           [-0.57735027,  0.57735027],</span>
+<span class="sd">           [ 0.57735027,  0.57735027]])</span>
+<span class="sd">    &gt;&gt;&gt; import math</span>
+<span class="sd">    &gt;&gt;&gt; # lets check one of these gauss points</span>
+<span class="sd">    &gt;&gt;&gt; ( swarm.particleCoordinates.data[3][0] - math.sqrt(1./3.) ) &lt; 1.e-10</span>
+<span class="sd">    True</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_objectsDict</span> <span class="o">=</span> <span class="p">{</span>  <span class="s2">&quot;_layout&quot;</span><span class="p">:</span> <span class="s2">&quot;IrregularMeshGaussLayout&quot;</span> <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">swarm</span><span class="p">,</span> <span class="n">gaussPointCount</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span> <span class="p">):</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">gaussPointCount</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;gaussPointCount&#39; object passed in must be of type &#39;int&#39;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">gaussPointCount</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;gaussPointCount&#39; object passed in must take a value between </span><span class="se">\n</span><span class="s2"> between 1 and 5 inclusive.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_gaussPointCount</span> <span class="o">=</span> <span class="n">gaussPointCount</span>
+
+        <span class="c1"># build parent</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">PerCellGaussLayout</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">swarm</span><span class="o">=</span><span class="n">swarm</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_add_to_stg_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">componentDictionary</span><span class="p">):</span>
+        <span class="c1"># call parents method</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">PerCellGaussLayout</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_add_to_stg_dict</span><span class="p">(</span><span class="n">componentDictionary</span><span class="p">)</span>
+        
+        <span class="n">componentDictionary</span><span class="p">[</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layout</span><span class="o">.</span><span class="n">name</span> <span class="p">][</span>           <span class="s2">&quot;dim&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">swarm</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">dim</span>
+        <span class="n">componentDictionary</span><span class="p">[</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layout</span><span class="o">.</span><span class="n">name</span> <span class="p">][</span>        <span class="s2">&quot;FeMesh&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">swarm</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">componentDictionary</span><span class="p">[</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layout</span><span class="o">.</span><span class="n">name</span> <span class="p">][</span><span class="s2">&quot;gaussParticles&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gaussPointCount</span></div>
+
+
+<div class="viewcode-block" id="GlobalSpaceFillerLayout"><a class="viewcode-back" href="../../../underworld.swarm.layouts.html#underworld.swarm.layouts.GlobalSpaceFillerLayout">[docs]</a><span class="k">class</span> <span class="nc">GlobalSpaceFillerLayout</span><span class="p">(</span><span class="n">ParticleLayoutAbstract</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This layout fills the domain with particles in a quasi-random pattern. It utilises</span>
+<span class="sd">    sobol sequences to generate global particle locations which are more uniform than that</span>
+<span class="sd">    achieved by a purely random generator. This layout is mostly useful where populating </span>
+<span class="sd">    particles across a rectangular domain.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    swarm : underworld.swarm.Swarm</span>
+<span class="sd">        The swarm this layout will act upon</span>
+<span class="sd">    particlesPerCell : float</span>
+<span class="sd">        The average number of particles per element that this layout will generate.</span>
+
+
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    &gt;&gt;&gt; import underworld as uw</span>
+<span class="sd">    &gt;&gt;&gt; mesh = uw.mesh.FeMesh_Cartesian(&#39;Q1/dQ0&#39;, (1,1), (0.,0.), (1.,1.))</span>
+<span class="sd">    &gt;&gt;&gt; swarm = uw.swarm.Swarm(mesh)</span>
+<span class="sd">    &gt;&gt;&gt; layout = uw.swarm.layouts.GlobalSpaceFillerLayout(swarm,particlesPerCell=4)</span>
+<span class="sd">    &gt;&gt;&gt; swarm.populate_using_layout(layout)</span>
+<span class="sd">    &gt;&gt;&gt; swarm.particleLocalCount</span>
+<span class="sd">    4</span>
+<span class="sd">    &gt;&gt;&gt; swarm.particleCoordinates.data</span>
+<span class="sd">    array([[ 0.5  ,  0.5  ],</span>
+<span class="sd">           [ 0.25 ,  0.75 ],</span>
+<span class="sd">           [ 0.75 ,  0.25 ],</span>
+<span class="sd">           [ 0.375,  0.625]])</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_objectsDict</span> <span class="o">=</span> <span class="p">{</span>  <span class="s2">&quot;_layout&quot;</span><span class="p">:</span> <span class="s2">&quot;SpaceFillerParticleLayout&quot;</span> <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">swarm</span><span class="p">,</span> <span class="n">particlesPerCell</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span> <span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">particlesPerCell</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span><span class="nb">float</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;particlesPerCell&#39; object passed in must be of type &#39;float&#39; or &#39;int&#39;.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">particlesPerCell</span><span class="o">&lt;=</span><span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;particlesPerCell&#39; object passed in must take a value greater than zero.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_particlesPerCell</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">particlesPerCell</span><span class="p">)</span>
+
+        <span class="c1"># build parent</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">GlobalSpaceFillerLayout</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">swarm</span><span class="o">=</span><span class="n">swarm</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">_add_to_stg_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">componentDictionary</span><span class="p">):</span>
+        <span class="c1"># call parents method</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">GlobalSpaceFillerLayout</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_add_to_stg_dict</span><span class="p">(</span><span class="n">componentDictionary</span><span class="p">)</span>
+        
+        <span class="n">componentDictionary</span><span class="p">[</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layout</span><span class="o">.</span><span class="n">name</span> <span class="p">][</span>                           <span class="s2">&quot;dim&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">swarm</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">dim</span>
+        <span class="n">componentDictionary</span><span class="p">[</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layout</span><span class="o">.</span><span class="n">name</span> <span class="p">][</span><span class="s2">&quot;averageInitialParticlesPerCell&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_particlesPerCell</span></div>
+
+
+<span class="k">class</span> <span class="nc">_PerCellMeshParticleLayout</span><span class="p">(</span><span class="n">ParticleLayoutAbstract</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This layout fills the domain with particles on a per cell basis. It should not</span>
+<span class="sd">    be directly invoked with instead one of its child classes being used.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    swarm : underworld.swarm.Swarm</span>
+<span class="sd">        The swarm this layout will act upon</span>
+<span class="sd">    particlesPerCell : int</span>
+<span class="sd">        The number of particles per element/cell that this layout will generate.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_objectsDict</span> <span class="o">=</span> <span class="p">{</span>  <span class="s2">&quot;_layout&quot;</span><span class="p">:</span> <span class="s2">&quot;MeshParticleLayout&quot;</span> <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">swarm</span><span class="p">,</span> <span class="n">particlesPerCell</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span> <span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">particlesPerCell</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;particlesPerCell&#39; object passed in must be of type &#39;int&#39;.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">particlesPerCell</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;particlesPerCell&#39; object passed in must take a value greater than zero.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_particlesPerCell</span> <span class="o">=</span> <span class="n">particlesPerCell</span>
+
+        <span class="c1"># build parent</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">_PerCellMeshParticleLayout</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">swarm</span><span class="o">=</span><span class="n">swarm</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_add_to_stg_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">componentDictionary</span><span class="p">):</span>
+        <span class="c1"># call parents method</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">_PerCellMeshParticleLayout</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_add_to_stg_dict</span><span class="p">(</span><span class="n">componentDictionary</span><span class="p">)</span>
+        
+        <span class="n">componentDictionary</span><span class="p">[</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layout</span><span class="o">.</span><span class="n">name</span> <span class="p">][</span><span class="s2">&quot;cellParticleCount&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_particlesPerCell</span>
+        <span class="n">componentDictionary</span><span class="p">[</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layout</span><span class="o">.</span><span class="n">name</span> <span class="p">][</span>           <span class="s2">&quot;FeMesh&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">swarm</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">componentDictionary</span><span class="p">[</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layout</span><span class="o">.</span><span class="n">name</span> <span class="p">][</span>         <span class="s2">&quot;filltype&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filltype</span>
+
+
+
+<div class="viewcode-block" id="PerCellSpaceFillerLayout"><a class="viewcode-back" href="../../../underworld.swarm.layouts.html#underworld.swarm.layouts.PerCellSpaceFillerLayout">[docs]</a><span class="k">class</span> <span class="nc">PerCellSpaceFillerLayout</span><span class="p">(</span><span class="n">_PerCellMeshParticleLayout</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This layout fills the domain with particles in a quasi-random pattern. It utilises</span>
+<span class="sd">    sobol sequences to generate per element particle locations which are more uniform than that</span>
+<span class="sd">    achieved by a purely random generator.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    swarm : underworld.swarm.Swarm</span>
+<span class="sd">        The swarm this layout will act upon</span>
+<span class="sd">    particlesPerCell : int</span>
+<span class="sd">        The number of particles per element that this layout will generate.</span>
+<span class="sd">    </span>
+<span class="sd">    </span>
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    &gt;&gt;&gt; import underworld as uw</span>
+<span class="sd">    &gt;&gt;&gt; mesh = uw.mesh.FeMesh_Cartesian(&#39;Q1/dQ0&#39;, (1,1), (0.,0.), (1.,1.))</span>
+<span class="sd">    &gt;&gt;&gt; swarm = uw.swarm.Swarm(mesh)</span>
+<span class="sd">    &gt;&gt;&gt; layout = uw.swarm.layouts.PerCellSpaceFillerLayout(swarm,particlesPerCell=4)</span>
+<span class="sd">    &gt;&gt;&gt; swarm.populate_using_layout(layout)</span>
+<span class="sd">    &gt;&gt;&gt; swarm.particleLocalCount</span>
+<span class="sd">    4</span>
+<span class="sd">    &gt;&gt;&gt; swarm.particleCoordinates.data</span>
+<span class="sd">    array([[ 0.5  ,  0.5  ],</span>
+<span class="sd">           [ 0.25 ,  0.75 ],</span>
+<span class="sd">           [ 0.75 ,  0.25 ],</span>
+<span class="sd">           [ 0.375,  0.625]])</span>
+
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">swarm</span><span class="p">,</span> <span class="n">particlesPerCell</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span> <span class="p">):</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_filltype</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># this sets sobol</span>
+
+        <span class="c1"># build parent</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">PerCellSpaceFillerLayout</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">swarm</span><span class="o">=</span><span class="n">swarm</span><span class="p">,</span> <span class="n">particlesPerCell</span><span class="o">=</span><span class="n">particlesPerCell</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PerCellRandomLayout"><a class="viewcode-back" href="../../../underworld.swarm.layouts.html#underworld.swarm.layouts.PerCellRandomLayout">[docs]</a><span class="k">class</span> <span class="nc">PerCellRandomLayout</span><span class="p">(</span><span class="n">_PerCellMeshParticleLayout</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This layout fills the domain with particles in a random (per element) pattern.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    swarm : underworld.swarm.Swarm</span>
+<span class="sd">        The swarm this layout will act upon</span>
+<span class="sd">    particlesPerCell : int</span>
+<span class="sd">        The number of particles per element that this layout will generate.</span>
+<span class="sd">    seed : int</span>
+<span class="sd">        Seed for random generator. Default is 13.</span>
+
+
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    &gt;&gt;&gt; import underworld as uw</span>
+<span class="sd">    &gt;&gt;&gt; mesh = uw.mesh.FeMesh_Cartesian(&#39;Q1/dQ0&#39;, (1,1), (0.,0.), (1.,1.))</span>
+<span class="sd">    &gt;&gt;&gt; swarm = uw.swarm.Swarm(mesh)</span>
+<span class="sd">    &gt;&gt;&gt; layout = uw.swarm.layouts.PerCellRandomLayout(swarm,particlesPerCell=4)</span>
+<span class="sd">    &gt;&gt;&gt; swarm.populate_using_layout(layout)</span>
+<span class="sd">    &gt;&gt;&gt; swarm.particleLocalCount</span>
+<span class="sd">    4</span>
+<span class="sd">    &gt;&gt;&gt; swarm.particleCoordinates.data</span>
+<span class="sd">    array([[ 0.24261743,  0.67115852],</span>
+<span class="sd">           [ 0.16116546,  0.70790335],</span>
+<span class="sd">           [ 0.73160516,  0.08792286],</span>
+<span class="sd">           [ 0.71953113,  0.15966135]])</span>
+<span class="sd">           </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">swarm</span><span class="p">,</span> <span class="n">particlesPerCell</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">13</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span> <span class="p">):</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_filltype</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># this sets random</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_seed</span> <span class="o">=</span> <span class="n">seed</span>
+
+        <span class="c1"># build parent</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">PerCellRandomLayout</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">swarm</span><span class="o">=</span><span class="n">swarm</span><span class="p">,</span> <span class="n">particlesPerCell</span><span class="o">=</span><span class="n">particlesPerCell</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">_add_to_stg_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">componentDictionary</span><span class="p">):</span>
+        <span class="c1"># call parents method</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">PerCellRandomLayout</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_add_to_stg_dict</span><span class="p">(</span><span class="n">componentDictionary</span><span class="p">)</span>
+        
+        <span class="n">componentDictionary</span><span class="p">[</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layout</span><span class="o">.</span><span class="n">name</span> <span class="p">][</span><span class="s2">&quot;seed&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seed</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Melbourne University, Monash University..
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

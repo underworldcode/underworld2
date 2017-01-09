@@ -1,0 +1,615 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>underworld.systems module &mdash; underworld2  documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="underworld2  documentation" href="index.html"/>
+        <link rel="up" title="underworld module" href="underworld.html"/>
+        <link rel="next" title="underworld.systems.sle module" href="underworld.systems.sle.html"/>
+        <link rel="prev" title="underworld.mesh module" href="underworld.mesh.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> underworld2
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="underworld.html">underworld module</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="underworld.html#module-summary">Module Summary</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="underworld.html#submodules">submodules:</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="underworld.function.html">underworld.function module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="underworld.container.html">underworld.container module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="underworld.utils.html">underworld.utils module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="underworld.swarm.html">underworld.swarm module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="underworld.mesh.html">underworld.mesh module</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">underworld.systems module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="underworld.conditions.html">underworld.conditions module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="underworld.html#functions">functions:</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="underworld.html#module-details">Module Details</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="glucifer.html">glucifer module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">underworld2</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="underworld.html">underworld module</a> &raquo;</li>
+      
+    <li>underworld.systems module</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/underworld.systems.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="underworld-systems-module">
+<h1>underworld.systems module<a class="headerlink" href="#underworld-systems-module" title="Permalink to this headline">¶</a></h1>
+<p>This module contains routines relating to differential system.</p>
+<div class="section" id="module-summary">
+<h2>Module Summary<a class="headerlink" href="#module-summary" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="submodules">
+<h3>submodules:<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h3>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="underworld.systems.sle.html">underworld.systems.sle module</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="functions">
+<h3>functions:<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#underworld.systems.Solver" title="underworld.systems.Solver"><code class="xref py py-obj docutils literal"><span class="pre">underworld.systems.Solver</span></code></a></td>
+<td>This method simply returns a necessary solver for the provided system.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="classes">
+<h3>classes:<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#underworld.systems.AdvectionDiffusion" title="underworld.systems.AdvectionDiffusion"><code class="xref py py-obj docutils literal"><span class="pre">underworld.systems.AdvectionDiffusion</span></code></a></td>
+<td>This class provides functionality for a discrete representation of an advection-diffusion equation.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#underworld.systems.Stokes" title="underworld.systems.Stokes"><code class="xref py py-obj docutils literal"><span class="pre">underworld.systems.Stokes</span></code></a></td>
+<td>This class provides functionality for a discrete representation of the incompressible Stokes equation.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#underworld.systems.SteadyStateHeat" title="underworld.systems.SteadyStateHeat"><code class="xref py py-obj docutils literal"><span class="pre">underworld.systems.SteadyStateHeat</span></code></a></td>
+<td>This class provides functionality for a discrete representation of the steady state heat equation.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#underworld.systems.TimeIntegration" title="underworld.systems.TimeIntegration"><code class="xref py py-obj docutils literal"><span class="pre">underworld.systems.TimeIntegration</span></code></a></td>
+<td>Abstract class for integrating numerical objects (fields, swarms, etc.) in time.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#underworld.systems.SwarmAdvector" title="underworld.systems.SwarmAdvector"><code class="xref py py-obj docutils literal"><span class="pre">underworld.systems.SwarmAdvector</span></code></a></td>
+<td>Objects of this class advect a swarm through time using the provided velocity field.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="module-details">
+<h2>Module Details<a class="headerlink" href="#module-details" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id1">
+<h3>functions:<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<dl class="function">
+<dt id="underworld.systems.Solver">
+<code class="descclassname">underworld.systems.</code><code class="descname">Solver</code><span class="sig-paren">(</span><em>eqs</em>, <em>type='BSSCR'</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/systems/_solver.html#Solver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.systems.Solver" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method simply returns a necessary solver for the provided system.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="id2">
+<h3>classes:<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="underworld.systems.AdvectionDiffusion">
+<em class="property">class </em><code class="descclassname">underworld.systems.</code><code class="descname">AdvectionDiffusion</code><span class="sig-paren">(</span><em>phiField</em>, <em>phiDotField</em>, <em>velocityField</em>, <em>fn_diffusivity</em>, <em>fn_sourceTerm=None</em>, <em>conditions=[]</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/systems/_advectiondiffusion.html#AdvectionDiffusion"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.systems.AdvectionDiffusion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">underworld._stgermain.StgCompoundComponent</span></code></p>
+<p>This class provides functionality for a discrete representation
+of an advection-diffusion equation.</p>
+<p>The class uses the Streamline Upwind Petrov Galerkin SUPG method
+to integrate through time.</p>
+<div class="math">
+\[\frac{\partial\phi}{\partial t}  + {\bf u } \cdot \nabla \phi= \nabla { ( k  \nabla \phi } )\]</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>phiField</strong> (<a class="reference internal" href="underworld.mesh.html#underworld.mesh.MeshVariable" title="underworld.mesh.MeshVariable"><em>underworld.mesh.MeshVariable</em></a>) &#8211; The concentration field, typically the temperature field</li>
+<li><strong>phiDotField</strong> (<a class="reference internal" href="underworld.mesh.html#underworld.mesh.MeshVariable" title="underworld.mesh.MeshVariable"><em>underworld.mesh.MeshVariable</em></a>) &#8211; A MeshVariable that defines the initial time derivative of the phiField.
+Typically 0 at the beginning of a model, e.g. phiDotField.data[:]=0
+When using a phiField loaded from disk one should also load the phiDotField to ensure
+the solving method has the time derivative information for a smooth restart.
+No dirichlet conditions are required for this field as the phiField degrees of freedom
+map exactly to this field&#8217;s dirichlet conditions, the value of which ought to be 0
+for constant values of phi.</li>
+<li><strong>velocityField</strong> (<a class="reference internal" href="underworld.mesh.html#underworld.mesh.MeshVariable" title="underworld.mesh.MeshVariable"><em>underworld.mesh.MeshVariable</em></a>) &#8211; The velocity field.</li>
+<li><strong>fn_diffusivity</strong> (<a class="reference internal" href="underworld.function.html#underworld.function.Function" title="underworld.function.Function"><em>underworld.function.Function</em></a>) &#8211; Function that defines diffusivity</li>
+<li><strong>conditions</strong> (<a class="reference internal" href="underworld.conditions.html#underworld.conditions.SystemCondition" title="underworld.conditions.SystemCondition"><em>underworld.conditions.SystemCondition</em></a>) &#8211; Numerical conditions to impose on the system. This should be supplied as
+the condition itself, or a list object containing the conditions.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>Constructor must be called by collectively all processes.</p>
+<dl class="method">
+<dt id="underworld.systems.AdvectionDiffusion.get_max_dt">
+<code class="descname">get_max_dt</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/systems/_advectiondiffusion.html#AdvectionDiffusion.get_max_dt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.systems.AdvectionDiffusion.get_max_dt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a numerically stable timestep size for the current system.
+Note that as a default, this method returns a value one quarter the
+size of the Courant timestep.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The timestep size.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="underworld.systems.AdvectionDiffusion.integrate">
+<code class="descname">integrate</code><span class="sig-paren">(</span><em>dt</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/systems/_advectiondiffusion.html#AdvectionDiffusion.integrate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.systems.AdvectionDiffusion.integrate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Integrates the advection diffusion system through time, dt
+Must be called collectively by all processes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dt</strong> (<em>float</em>) &#8211; The timestep interval to use</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="underworld.systems.Stokes">
+<em class="property">class </em><code class="descclassname">underworld.systems.</code><code class="descname">Stokes</code><span class="sig-paren">(</span><em>velocityField</em>, <em>pressureField</em>, <em>fn_viscosity</em>, <em>fn_bodyforce=None</em>, <em>fn_lambda=None</em>, <em>voronoi_swarm=None</em>, <em>conditions=[]</em>, <em>_removeBCs=True</em>, <em>_fn_viscosity2=None</em>, <em>_fn_director=None</em>, <em>_fn_stresshistory=None</em>, <em>swarm=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/systems/_stokes.html#Stokes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.systems.Stokes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">underworld._stgermain.StgCompoundComponent</span></code></p>
+<p>This class provides functionality for a discrete representation
+of the incompressible Stokes equation.</p>
+<p>Specifically, the class uses a mixed finite element method to
+construct a system of linear equations which may then be solved
+using an object of the underworld.system.Solver class.</p>
+<p>The underlying element types are determined by the supporting
+mesh used for the &#8216;velocityField&#8217; and &#8216;pressureField&#8217; parameters.</p>
+<p>The strong form of the given boundary value problem, for <span class="math">\(f\)</span>,
+<span class="math">\(q\)</span> and <span class="math">\(h\)</span> given, is</p>
+<div class="math">
+\[\begin{split}\begin{align}
+\sigma_{ij,j} + f_i =&amp; \: 0  &amp; \text{ in }  \Omega \\
+p + \lambda u_{k,k} =&amp; \: 0  &amp; \text{ in }  \Omega \\
+u_i =&amp; \: q_i &amp; \text{ on }  \Gamma_{q_i} \\
+\sigma_{ij}n_j =&amp; \: h_i &amp; \text{ on }  \Gamma_{h_i} \\
+\end{align}\end{split}\]</div>
+<p>where,
+<span class="math">\(f_i\)</span> is a source term, <span class="math">\(q_i\)</span> is the Dirichlet condition, and
+<span class="math">\(h_i\)</span> is a Neumann condition. The problem boundary, <span class="math">\(\Gamma\)</span>,
+admits the decompositions <span class="math">\(\Gamma=\Gamma_{q_i}\cup\Gamma_{h_i}\)</span> where
+<span class="math">\(\emptyset=\Gamma_{q_i}\cap\Gamma_{h_i}\)</span>. The equivalent weak form is:</p>
+<div class="math">
+\[\int_{\Omega} w_{(i,j)} \sigma_{ij} \, d \Omega = \int_{\Omega} w_i \, f_i \, d\Omega + \sum_{j=1}^{n_{sd}} \int_{\Gamma_{h_j}} w_i \, h_i \,  d \Gamma\]</div>
+<p>where we must find <span class="math">\(u\)</span> which satisfies the above for all <span class="math">\(w\)</span>
+in some variational space.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>velocityField</strong> (<a class="reference internal" href="underworld.mesh.html#underworld.mesh.MeshVariable" title="underworld.mesh.MeshVariable"><em>underworld.mesh.MeshVariable</em></a>) &#8211; Variable used to record system velocity.</li>
+<li><strong>pressureField</strong> (<a class="reference internal" href="underworld.mesh.html#underworld.mesh.MeshVariable" title="underworld.mesh.MeshVariable"><em>underworld.mesh.MeshVariable</em></a>) &#8211; Variable used to record system pressure.</li>
+<li><strong>fn_viscosity</strong> (<a class="reference internal" href="underworld.function.html#underworld.function.Function" title="underworld.function.Function"><em>underworld.function.Function</em></a>) &#8211; Function which reports a viscosity value.
+Function must return scalar float values.</li>
+<li><strong>fn_bodyforce</strong> (<a class="reference internal" href="underworld.function.html#underworld.function.Function" title="underworld.function.Function"><em>underworld.function.Function</em></a>) &#8211; Default = None
+Function which reports a body force for the system.
+Function must return float values of identical dimensionality
+to the provided velocity variable.</li>
+<li><strong>fn_lambda</strong> (<a class="reference internal" href="underworld.function.html#underworld.function.Function" title="underworld.function.Function"><em>underworld.function.Function</em></a>) &#8211; Function which defines a non solenoidal velocity field via the relationship
+div(velocityField) = fn_lambda * pressurefield
+If fn_lambda is &lt;= 1e-8 it&#8217;s effect is considered negligable and
+div(velocityField) = 0 is enforced as the constaint equation.
+This method is incompatible with the &#8216;penalty&#8217; stokes solver, ensure
+the &#8216;penalty&#8217; of 0, is used when fn_lambda is used. By default this is the case.</li>
+<li><strong>voronoi_swarm</strong> (<a class="reference internal" href="underworld.swarm.html#underworld.swarm.Swarm" title="underworld.swarm.Swarm"><em>underworld.swarm.Swarm</em></a>) &#8211; If a voronoi_swarm is provided, voronoi type numerical integration is
+utilised. The provided swarm is used as the basis for the voronoi
+integration. If no voronoi_swarm is provided, Gauss integration
+is used.</li>
+<li><strong>conditions</strong> (<a class="reference internal" href="underworld.conditions.html#underworld.conditions.SystemCondition" title="underworld.conditions.SystemCondition"><em>underworld.conditions.SystemCondition</em></a>) &#8211; Numerical conditions to impose on the system. This should be supplied as
+the condition itself, or a list object containing the conditions.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>Constructor must be called by collectively all processes.</p>
+<dl class="attribute">
+<dt id="underworld.systems.Stokes.fn_bodyforce">
+<code class="descname">fn_bodyforce</code><a class="headerlink" href="#underworld.systems.Stokes.fn_bodyforce" title="Permalink to this definition">¶</a></dt>
+<dd><p>The body force function. You may change this function directly via this
+property.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="underworld.systems.Stokes.fn_viscosity">
+<code class="descname">fn_viscosity</code><a class="headerlink" href="#underworld.systems.Stokes.fn_viscosity" title="Permalink to this definition">¶</a></dt>
+<dd><p>The viscosity function. You may change this function directly via this
+property.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="underworld.systems.SteadyStateHeat">
+<em class="property">class </em><code class="descclassname">underworld.systems.</code><code class="descname">SteadyStateHeat</code><span class="sig-paren">(</span><em>temperatureField</em>, <em>fn_diffusivity</em>, <em>fn_heating=0.0</em>, <em>voronoi_swarm=None</em>, <em>conditions=[]</em>, <em>_removeBCs=True</em>, <em>swarm=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/systems/_thermal.html#SteadyStateHeat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.systems.SteadyStateHeat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">underworld._stgermain.StgCompoundComponent</span></code></p>
+<p>This class provides functionality for a discrete representation
+of the steady state heat equation.</p>
+<p>The class uses a standard Galerkin finite element method to
+construct a system of linear equations which may then be solved
+using an object of the underworld.system.Solver class.</p>
+<p>The underlying element types are determined by the supporting
+mesh used for the &#8216;temperatureField&#8217;.</p>
+<p>The strong form of the given boundary value problem, for <span class="math">\(f\)</span>,
+<span class="math">\(q\)</span> and <span class="math">\(h\)</span> given, is</p>
+<div class="math">
+\[\begin{split}\begin{align}
+q_i =&amp; - \kappa \, u_{,i}  &amp; \\
+q_{i,i} =&amp; \: f  &amp; \text{ in }  \Omega \\
+u =&amp; \: q &amp; \text{ on }  \Gamma_q \\
+-q_i n_i =&amp; \: h &amp; \text{ on }  \Gamma_h \\
+\end{align}\end{split}\]</div>
+<p>where, <span class="math">\(\kappa\)</span> is the diffusivity, <span class="math">\(u\)</span> is the temperature,
+<span class="math">\(f\)</span> is a source term, <span class="math">\(q\)</span> is the Dirichlet condition, and
+<span class="math">\(h\)</span> is a Neumann condition. The problem boundary, <span class="math">\(\Gamma\)</span>,
+admits the decomposition <span class="math">\(\Gamma=\Gamma_q\cup\Gamma_h\)</span> where
+<span class="math">\(\emptyset=\Gamma_q\cap\Gamma_h\)</span>. The equivalent weak form is:</p>
+<div class="math">
+\[-\int_{\Omega} w_{,i} \, q_i \, d \Omega = \int_{\Omega} w \, f \, d\Omega + \int_{\Gamma_h} w \, h \,  d \Gamma\]</div>
+<p>where we must find <span class="math">\(u\)</span> which satisfies the above for all <span class="math">\(w\)</span>
+in some variational space.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>temperatureField</strong> (<a class="reference internal" href="underworld.mesh.html#underworld.mesh.MeshVariable" title="underworld.mesh.MeshVariable"><em>underworld.mesh.MeshVariable</em></a>) &#8211; The solution field for temperature.</li>
+<li><strong>fn_diffusivity</strong> (<a class="reference internal" href="underworld.function.html#underworld.function.Function" title="underworld.function.Function"><em>underworld.function.Function</em></a>) &#8211; The function that defines the diffusivity across the domain.</li>
+<li><strong>fn_heating</strong> (<a class="reference internal" href="underworld.function.html#underworld.function.Function" title="underworld.function.Function"><em>underworld.function.Function</em></a>) &#8211; A function that defines the heating across the domain. Optional.</li>
+<li><strong>voronoi_swarm</strong> (<a class="reference internal" href="underworld.swarm.html#underworld.swarm.Swarm" title="underworld.swarm.Swarm"><em>underworld.swarm.Swarm</em></a>) &#8211; If a voronoi_swarm is provided, voronoi type numerical integration is
+utilised. The provided swarm is used as the basis for the voronoi
+integration. If no voronoi_swarm is provided, Gauss integration
+is used.</li>
+<li><strong>conditions</strong> (<a class="reference internal" href="underworld.conditions.html#underworld.conditions.SystemCondition" title="underworld.conditions.SystemCondition"><em>underworld.conditions.SystemCondition</em></a>) &#8211; Numerical conditions to impose on the system. This should be supplied as
+the condition itself, or a list object containing the conditions.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>Constructor must be called collectively by all processes.</p>
+<p class="rubric">Example</p>
+<p>Setup a basic thermal system:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">linearMesh</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">FeMesh_Cartesian</span><span class="p">(</span> <span class="n">elementType</span><span class="o">=</span><span class="s1">&#39;Q1/dQ0&#39;</span><span class="p">,</span> <span class="n">elementRes</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span> <span class="n">minCoord</span><span class="o">=</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="n">maxCoord</span><span class="o">=</span><span class="p">(</span><span class="mf">1.</span><span class="p">,</span><span class="mf">1.</span><span class="p">)</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tField</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">MeshVariable</span><span class="p">(</span> <span class="n">linearMesh</span><span class="p">,</span> <span class="mi">1</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">topNodes</span> <span class="o">=</span> <span class="n">linearMesh</span><span class="o">.</span><span class="n">specialSets</span><span class="p">[</span><span class="s2">&quot;MaxJ_VertexSet&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bottomNodes</span> <span class="o">=</span> <span class="n">linearMesh</span><span class="o">.</span><span class="n">specialSets</span><span class="p">[</span><span class="s2">&quot;MinJ_VertexSet&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tbcs</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">conditions</span><span class="o">.</span><span class="n">DirichletCondition</span><span class="p">(</span><span class="n">tField</span><span class="p">,</span> <span class="n">topNodes</span> <span class="o">+</span> <span class="n">bottomNodes</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tField</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">topNodes</span><span class="o">.</span><span class="n">data</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tField</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">bottomNodes</span><span class="o">.</span><span class="n">data</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tSystem</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">systems</span><span class="o">.</span><span class="n">SteadyStateHeat</span><span class="p">(</span><span class="n">temperatureField</span><span class="o">=</span><span class="n">tField</span><span class="p">,</span> <span class="n">fn_diffusivity</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="p">[</span><span class="n">tbcs</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Example with non diffusivity:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">k</span> <span class="o">=</span> <span class="n">tField</span> <span class="o">+</span> <span class="mf">1.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tSystem</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">systems</span><span class="o">.</span><span class="n">SteadyStateHeat</span><span class="p">(</span><span class="n">temperatureField</span><span class="o">=</span><span class="n">tField</span><span class="p">,</span> <span class="n">fn_diffusivity</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="p">[</span><span class="n">tbcs</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">solver</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">systems</span><span class="o">.</span><span class="n">Solver</span><span class="p">(</span><span class="n">tSystem</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">solver</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">Nonlinearity detected.</span>
+<span class="go">Diffusivity function depends on the temperature field provided to the system.</span>
+<span class="go">Please set the &#39;nonLinearIterate&#39; solve parameter to &#39;True&#39; or &#39;False&#39; to continue.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">solver</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">nonLinearIterate</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="attribute">
+<dt id="underworld.systems.SteadyStateHeat.fn_diffusivity">
+<code class="descname">fn_diffusivity</code><a class="headerlink" href="#underworld.systems.SteadyStateHeat.fn_diffusivity" title="Permalink to this definition">¶</a></dt>
+<dd><p>The diffusivity function. You may change this function directly via this
+property.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="underworld.systems.SteadyStateHeat.fn_heating">
+<code class="descname">fn_heating</code><a class="headerlink" href="#underworld.systems.SteadyStateHeat.fn_heating" title="Permalink to this definition">¶</a></dt>
+<dd><p>The heating function. You may change this function directly via this
+property.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="underworld.systems.TimeIntegration">
+<em class="property">class </em><code class="descclassname">underworld.systems.</code><code class="descname">TimeIntegration</code><span class="sig-paren">(</span><em>order</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/systems/_timeintegration.html#TimeIntegration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.systems.TimeIntegration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">underworld._stgermain.StgCompoundComponent</span></code></p>
+<p>Abstract class for integrating numerical objects (fields, swarms, etc.) in time.</p>
+<p>The integration algorithm is a modified Runge Kutta method that only evaluates
+midpoint information varying in space - using only the present timestep solution.
+The order of the integration used can be 1,2,4</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>order</strong> (<em>int {1,2,4}</em>) &#8211; Defines the numerical order &#8216;in space&#8217; of the Runge Kutta like integration scheme.</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="underworld.systems.TimeIntegration.dt">
+<code class="descname">dt</code><a class="headerlink" href="#underworld.systems.TimeIntegration.dt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Time integrator timestep size.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="underworld.systems.TimeIntegration.time">
+<code class="descname">time</code><a class="headerlink" href="#underworld.systems.TimeIntegration.time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Time integrator time value.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="underworld.systems.SwarmAdvector">
+<em class="property">class </em><code class="descclassname">underworld.systems.</code><code class="descname">SwarmAdvector</code><span class="sig-paren">(</span><em>velocityField</em>, <em>swarm</em>, <em>order=2</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/systems/_timeintegration.html#SwarmAdvector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.systems.SwarmAdvector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">underworld.systems._timeintegration.TimeIntegration</span></code></p>
+<p>Objects of this class advect a swarm through time using
+the provided velocity field.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>velocityField</strong> (<a class="reference internal" href="underworld.mesh.html#underworld.mesh.MeshVariable" title="underworld.mesh.MeshVariable"><em>underworld.mesh.MeshVariable</em></a>) &#8211; The MeshVariable field used for evaluating the velocity field that advects the swarm particles</li>
+<li><strong>swarm</strong> (<a class="reference internal" href="underworld.swarm.html#underworld.swarm.Swarm" title="underworld.swarm.Swarm"><em>underworld.swarm.Swarm</em></a>) &#8211; Particle swarm that will be advected by the given velocity field</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="underworld.systems.SwarmAdvector.integrate">
+<code class="descname">integrate</code><span class="sig-paren">(</span><em>dt</em>, <em>update_owners=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/systems/_timeintegration.html#SwarmAdvector.integrate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.systems.SwarmAdvector.integrate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Integrate the associated swarm in time, by dt, using the velocityfield that is associated with this class</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>dt</strong> (<em>double</em>) &#8211; The timestep to use in the intergration</li>
+<li><strong>update_owners</strong> (<em>bool</em>) &#8211; If this is set to False, particle ownership (which element owns a
+particular particle) is not updated after advection. This is often
+necessary when both the mesh and particles are advecting
+simutaneously.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">underworld</span> <span class="k">as</span> <span class="nn">uw</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy.testing</span> <span class="k">as</span> <span class="nn">npt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">underworld</span> <span class="k">import</span> <span class="n">function</span> <span class="k">as</span> <span class="n">fn</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">elementMesh</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">FeMesh_Cartesian</span><span class="p">(</span><span class="n">elementType</span><span class="o">=</span><span class="s2">&quot;Q1/dQ0&quot;</span><span class="p">,</span> <span class="n">elementRes</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span><span class="mi">9</span><span class="p">),</span> <span class="n">minCoord</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mf">1.</span><span class="p">,</span><span class="o">-</span><span class="mf">1.</span><span class="p">),</span> <span class="n">maxCoord</span><span class="o">=</span><span class="p">(</span><span class="mf">1.</span><span class="p">,</span><span class="mf">1.</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">velocityField</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">MeshVariable</span><span class="p">(</span> <span class="n">mesh</span><span class="o">=</span><span class="n">elementMesh</span><span class="p">,</span> <span class="n">nodeDofCount</span><span class="o">=</span><span class="n">dim</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">swarm</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">swarm</span><span class="o">.</span><span class="n">Swarm</span><span class="p">(</span><span class="n">mesh</span><span class="o">=</span><span class="n">elementMesh</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">particle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">particle</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.2</span><span class="p">,</span><span class="o">-</span><span class="mf">0.2</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">swarm</span><span class="o">.</span><span class="n">add_particles_with_coordinates</span><span class="p">(</span><span class="n">particle</span><span class="p">)</span>
+<span class="go">array([0], dtype=int32)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">velocityField</span><span class="o">.</span><span class="n">data</span><span class="p">[:]</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">swarmAdvector</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">systems</span><span class="o">.</span><span class="n">SwarmAdvector</span><span class="p">(</span><span class="n">velocityField</span><span class="o">=</span><span class="n">velocityField</span><span class="p">,</span> <span class="n">swarm</span><span class="o">=</span><span class="n">swarm</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dt</span><span class="o">=</span><span class="mf">1.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">swarmAdvector</span><span class="o">.</span><span class="n">integrate</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">npt</span><span class="o">.</span><span class="n">assert_allclose</span><span class="p">(</span><span class="n">swarm</span><span class="o">.</span><span class="n">particleCoordinates</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.2</span><span class="p">,</span><span class="mf">0.8</span><span class="p">],</span> <span class="n">rtol</span><span class="o">=</span><span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">8</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="underworld.systems.sle.html" class="btn btn-neutral float-right" title="underworld.systems.sle module" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="underworld.mesh.html" class="btn btn-neutral" title="underworld.mesh module" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Melbourne University, Monash University..
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -42,11 +42,11 @@ def _meshCheck(func):
 @_meshCheck
 def MaxI_VertexSet( mesh ):
     """
-    Returns the set of local indices which are within the global 3d index set (MaxI,*,*).
+    Returns the set of local indices which are within the global 3d index set (MaxI,\*,\*).
     Here MaxI is the global mesh maximum index in the I direction.
     
-    Parameter
-    ---------
+    Parameters
+    ----------
     mesh : FeMesh
         Mesh from which the IndexSet set is required.
     
@@ -65,11 +65,11 @@ def MaxI_VertexSet( mesh ):
 @_meshCheck
 def MinI_VertexSet( mesh ):
     """
-    Returns the set of local indices which are within the global 3d index set (MinI,*,*).
+    Returns the set of local indices which are within the global 3d index set (MinI,\*,\*).
     Here MinI is the global mesh minimum index in the I direction.
     
-    Parameter
-    ---------
+    Parameters
+    ----------
     mesh : FeMesh
         Mesh from which the IndexSet set is required.
     
@@ -87,11 +87,11 @@ def MinI_VertexSet( mesh ):
 @_meshCheck
 def MaxJ_VertexSet( mesh ):
     """
-    Returns the set of local indices which are within the global 3d index set (*,MaxJ,*).
+    Returns the set of local indices which are within the global 3d index set (\*,MaxJ,\*).
     Here MaxJ is the global mesh maximum index in the J direction.
     
-    Parameter
-    ---------
+    Parameters
+    ----------
     mesh : FeMesh
         Mesh from which the IndexSet set is required.
     
@@ -109,11 +109,11 @@ def MaxJ_VertexSet( mesh ):
 @_meshCheck
 def MinJ_VertexSet( mesh ):
     """
-    Returns the set of local indices which are within the global 3d index set (*,MinJ,*).
+    Returns the set of local indices which are within the global 3d index set (\*,MinJ,\*).
     Here MinJ is the global mesh minimum index in the J direction.
     
-    Parameter
-    ---------
+    Parameters
+    ----------
     mesh : FeMesh
         Mesh from which the IndexSet set is required.
     
@@ -132,11 +132,11 @@ def MinJ_VertexSet( mesh ):
 @_meshCheck
 def MaxK_VertexSet( mesh ):
     """
-    Returns the set of local indices which are within the global 3d index set (*,*,MaxK).
+    Returns the set of local indices which are within the global 3d index set (\*,\*,MaxK).
     Here MaxK is the global mesh maximum index in the K direction.
     
-    Parameter
-    ---------
+    Parameters
+    ----------
     mesh : FeMesh
         Mesh from which the IndexSet set is required.
     
@@ -158,11 +158,11 @@ def MaxK_VertexSet( mesh ):
 @_meshCheck
 def MinK_VertexSet( mesh ):
     """
-    Returns the set of local indices which are within the global 3d index set (*,*,MinK).
+    Returns the set of local indices which are within the global 3d index set (\*,\*,MinK).
     Here MinK is the global mesh minimum index in the K direction.
     
-    Parameter
-    ---------
+    Parameters
+    ----------
     mesh : FeMesh
         Mesh from which the IndexSet set is required.
     
@@ -182,8 +182,8 @@ def AllWalls( mesh ):
     """
     Returns the set of local indices which fall along the outer wall of the domain.
     
-    Parameter
-    ---------
+    Parameters
+    ----------
     mesh : FeMesh
         Mesh from which the IndexSet set is required.
     

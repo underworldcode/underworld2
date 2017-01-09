@@ -13,12 +13,24 @@ This module contains conditions used for applying constraints on model dynamics.
 import underworld as uw
 import underworld._stgermain as _stgermain
 import libUnderworld
+import abc
 
-class _SystemCondition(_stgermain.StgCompoundComponent):
+class SystemCondition(_stgermain.StgCompoundComponent):
+    __metaclass__ = abc.ABCMeta
     def _add_to_stg_dict(self,componentDict):
         pass
+    @property
+    def indexSet(self):
+        """ See class constructor for details. """
+        return self._indexSet
 
-class DirichletCondition(_SystemCondition):
+    @property
+    def variable(self):
+        """ See class constructor for details. """
+        return self._variable
+
+
+class DirichletCondition(SystemCondition):
     """
     The DirichletCondition class provides the required functionality to imposed Dirichlet
     conditions on your differential equation system.
@@ -29,7 +41,7 @@ class DirichletCondition(_SystemCondition):
 
     Parameters
     ----------
-    variable : uw.mesh.MeshVariable
+    variable : underworld.mesh.MeshVariable
         This is the variable for which the Direchlet condition applies.
     indexSetsPerDof : list, tuple, IndexSet
         The index set(s) which flag nodes/DOFs as Dirichlet conditions.
@@ -42,7 +54,7 @@ class DirichletCondition(_SystemCondition):
     Note that it is necessary for the user to set the required value on the variable, possibly
     via the numpy interface.
 
-    Constructor must be called by collectively all processes.
+    Constructor must be called collectively all processes.
 
     Example
     -------
@@ -60,12 +72,12 @@ class DirichletCondition(_SystemCondition):
     _objectsDict = { "_pyvc": "PythonVC" }
     _selfObjectName = "_pyvc"
 
-    def __init__(self, variable, indexSetsPerDof=None):
+    def __init__(self, variable, indexSetsPerDof):
         if not isinstance( variable, uw.mesh.MeshVariable ):
             raise TypeError("Provided variable must be of class 'MeshVariable'.")
         self._variable = variable
 
-        if isinstance( indexSetsPerDof, uw.container.IndexSet):
+        if isinstance( indexSetsPerDof, uw.container.IndexSet ):
             indexSets = ( indexSetsPerDof, )
         elif isinstance( indexSetsPerDof, (list,tuple)):
             indexSets = indexSetsPerDof
@@ -92,22 +104,7 @@ class DirichletCondition(_SystemCondition):
 
         super(DirichletCondition,self).__init__()
 
-    @property
-    def indexSets(self):
-        """
-        Tuple or list of IndexSet objects. One set for each degree of freedom of the associated
-        variable. These sets flag which nodes/DOFs are to be considered Dirichlet.
-        """
-        return self._indexSets
-
-    @property
-    def variable(self):
-        """
-        Variable for which this condition applies.
-        """
-        return self._variable
-
-class NeumannCondition(_SystemCondition):
+class NeumannCondition(SystemCondition):
     """
     This class defines Neumann conditions for a differential equation.
     Neumann conditions specifiy a field's flux along a boundary.
@@ -117,17 +114,18 @@ class NeumannCondition(_SystemCondition):
 
     Parameters
     ----------
-    flux : uw.Function
-        See uw.Function for details
+    flux : underworld.function.Function
+        Function which determines flux values.
+    variable : underworld.mesh.MeshVariable
+        This is the variable for which the Direchlet condition applies.
+    nodeIndexSet : underworld.container.IndexSet
+        The index set for which boundary flux values will be applied.
 
     """
     _objectsDict = { "_pyvc": "PythonVC" }
     _selfObjectName = "_pyvc"
 
-    def __init__(self, flux, variable=None, nodeIndexSet=None, **kwargs ):
-
-        if nodeIndexSet == None:
-            raise ValueError("No 'nodeIndexSet' provided to apply Neumann conditions")
+    def __init__(self, flux, variable, nodeIndexSet, **kwargs ):
 
         _flux = uw.function.Function.convert(flux)
         if not isinstance( _flux, uw.function.Function):
@@ -157,22 +155,6 @@ class NeumannCondition(_SystemCondition):
 
     @property
     def flux(self):
-        """
-        Gradient Field for which this condition applies.
-        """
+        """ See class constructor for details. """
         return self._flux
 
-    @property
-    def indexSet(self):
-        """
-        Node IndexSet objects. Represents the nodes, of the given variable's mesh,
-        that will be flagged to have this Neumann condition.
-        """
-        return self._indexSet
-
-    @property
-    def variable(self):
-        """
-        Variable for which this condition applies.
-        """
-        return self._variable

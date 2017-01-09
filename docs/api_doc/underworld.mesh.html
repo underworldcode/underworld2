@@ -1,0 +1,1107 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>underworld.mesh module &mdash; underworld2  documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="underworld2  documentation" href="index.html"/>
+        <link rel="up" title="underworld module" href="underworld.html"/>
+        <link rel="next" title="underworld.systems module" href="underworld.systems.html"/>
+        <link rel="prev" title="underworld.swarm.layouts module" href="underworld.swarm.layouts.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> underworld2
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="underworld.html">underworld module</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="underworld.html#module-summary">Module Summary</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="underworld.html#submodules">submodules:</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="underworld.function.html">underworld.function module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="underworld.container.html">underworld.container module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="underworld.utils.html">underworld.utils module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="underworld.swarm.html">underworld.swarm module</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">underworld.mesh module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="underworld.systems.html">underworld.systems module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="underworld.conditions.html">underworld.conditions module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="underworld.html#functions">functions:</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="underworld.html#module-details">Module Details</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="glucifer.html">glucifer module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">underworld2</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="underworld.html">underworld module</a> &raquo;</li>
+      
+    <li>underworld.mesh module</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/underworld.mesh.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="underworld-mesh-module">
+<h1>underworld.mesh module<a class="headerlink" href="#underworld-mesh-module" title="Permalink to this headline">¶</a></h1>
+<blockquote>
+<div>Implementation relating to meshing.</div></blockquote>
+<div class="section" id="module-summary">
+<h2>Module Summary<a class="headerlink" href="#module-summary" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="classes">
+<h3>classes:<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#underworld.mesh.FeMesh_IndexSet" title="underworld.mesh.FeMesh_IndexSet"><code class="xref py py-obj docutils literal"><span class="pre">underworld.mesh.FeMesh_IndexSet</span></code></a></td>
+<td>This class ties the FeMesh instance to an index set, and stores other metadata relevant to the set.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#underworld.mesh.FeMesh" title="underworld.mesh.FeMesh"><code class="xref py py-obj docutils literal"><span class="pre">underworld.mesh.FeMesh</span></code></a></td>
+<td>The FeMesh class provides the geometry and topology of a finite element discretised domain.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#underworld.mesh.FeMesh_Cartesian" title="underworld.mesh.FeMesh_Cartesian"><code class="xref py py-obj docutils literal"><span class="pre">underworld.mesh.FeMesh_Cartesian</span></code></a></td>
+<td>This class generates a finite element mesh which is topologically cartesian and geometrically regular.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#underworld.mesh.MeshVariable" title="underworld.mesh.MeshVariable"><code class="xref py py-obj docutils literal"><span class="pre">underworld.mesh.MeshVariable</span></code></a></td>
+<td>The MeshVariable class generates a variable supported by a finite element mesh.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="module-details">
+<h2>Module Details<a class="headerlink" href="#module-details" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id1">
+<h3>classes:<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="underworld.mesh.FeMesh_IndexSet">
+<em class="property">class </em><code class="descclassname">underworld.mesh.</code><code class="descname">FeMesh_IndexSet</code><span class="sig-paren">(</span><em>object</em>, <em>topologicalIndex=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/mesh/_mesh.html#FeMesh_IndexSet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.mesh.FeMesh_IndexSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">underworld.container._indexset.ObjectifiedIndexSet</span></code>, <code class="xref py py-class docutils literal"><span class="pre">underworld.function._function.FunctionInput</span></code></p>
+<p>This class ties the FeMesh instance to an index set, and stores other
+metadata relevant to the set.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>topologicalIndex</strong> (<em>int</em>) &#8211; Mesh topological index for which the IndexSet relates. See
+docstring for further info.</li>
+<li><strong>object</strong> (<a class="reference internal" href="#underworld.mesh.FeMesh" title="underworld.mesh.FeMesh"><em>underworld.mesh.FeMesh</em></a>) &#8211; The FeMesh instance from which the IndexSet was extracted.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">amesh</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">FeMesh_Cartesian</span><span class="p">(</span> <span class="n">elementType</span><span class="o">=</span><span class="s1">&#39;Q1/dQ0&#39;</span><span class="p">,</span> <span class="n">elementRes</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span> <span class="n">minCoord</span><span class="o">=</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="n">maxCoord</span><span class="o">=</span><span class="p">(</span><span class="mf">1.</span><span class="p">,</span><span class="mf">1.</span><span class="p">)</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">iset</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">libUnderworld</span><span class="o">.</span><span class="n">StgDomain</span><span class="o">.</span><span class="n">RegularMeshUtils_CreateGlobalMaxISet</span><span class="p">(</span> <span class="n">amesh</span><span class="o">.</span><span class="n">_mesh</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">uw</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">FeMesh_IndexSet</span><span class="p">(</span> <span class="n">amesh</span><span class="p">,</span> <span class="n">topologicalIndex</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">amesh</span><span class="o">.</span><span class="n">nodesGlobal</span><span class="p">,</span> <span class="n">fromObject</span><span class="o">=</span><span class="n">iset</span> <span class="p">)</span>
+<span class="go">FeMesh_IndexSet([ 4,  9, 14, 19, 24])</span>
+</pre></div>
+</div>
+<dl class="attribute">
+<dt id="underworld.mesh.FeMesh_IndexSet.topologicalIndex">
+<code class="descname">topologicalIndex</code><a class="headerlink" href="#underworld.mesh.FeMesh_IndexSet.topologicalIndex" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="docutils">
+<dt>The topological index for the indices. The mapping is:</dt>
+<dd>0 - vertex
+1 - edge
+2 - face
+3 - volume</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="underworld.mesh.FeMesh">
+<em class="property">class </em><code class="descclassname">underworld.mesh.</code><code class="descname">FeMesh</code><span class="sig-paren">(</span><em>elementType</em>, <em>generator=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/mesh/_mesh.html#FeMesh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.mesh.FeMesh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">underworld._stgermain.StgCompoundComponent</span></code>, <code class="xref py py-class docutils literal"><span class="pre">underworld.function._function.FunctionInput</span></code></p>
+<p>The FeMesh class provides the geometry and topology of a finite
+element discretised domain. The FeMesh is implicitly parallel. Some aspects
+may be local or global, but this is generally handled automatically.</p>
+<p>A number of element types are supported.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>elementType</strong> (<em>str</em>) &#8211; Element type for FeMesh.  See FeMesh.elementType docstring for further info.</li>
+<li><strong>generator</strong> (<em>underworld.mesh.MeshGenerator</em>) &#8211; Generator object which builds the FeMesh. See FeMesh.generator docstring for
+further info.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="underworld.mesh.FeMesh.add_post_deform_function">
+<code class="descname">add_post_deform_function</code><span class="sig-paren">(</span><em>function</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/mesh/_mesh.html#FeMesh.add_post_deform_function"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.mesh.FeMesh.add_post_deform_function" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a function function to be executed after mesh deformation
+is applied.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>function</strong> (<em>FunctionType</em>) &#8211; Python (not underworld) function to be executed. Closures should be
+used where parameters are required.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="underworld.mesh.FeMesh.add_pre_deform_function">
+<code class="descname">add_pre_deform_function</code><span class="sig-paren">(</span><em>function</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/mesh/_mesh.html#FeMesh.add_pre_deform_function"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.mesh.FeMesh.add_pre_deform_function" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a function function to be executed before mesh deformation
+is applied.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>function</strong> (<em>FunctionType</em>) &#8211; Python (not underworld) function to be executed. Closures should be
+used where parameters are required.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="underworld.mesh.FeMesh.data">
+<code class="descname">data</code><a class="headerlink" href="#underworld.mesh.FeMesh.data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Numpy proxy array proxy to underlying object vertex data. Note that the
+returned array is a proxy for all the <em>local</em> vertices, and it is
+provided as 1d list.</p>
+<p>As these arrays are simply proxys to the underlying memory structures,
+no data copying is required.</p>
+<p>Note that this property returns a read-only numpy array as default. If
+you wish to modify mesh vertex locations, you are required to use the
+deform_mesh context manager.</p>
+<p>If you are modifying the mesh, remember to modify any submesh associated
+with it accordingly.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The data proxy array.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">numpy.ndarray</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">underworld</span> <span class="k">as</span> <span class="nn">uw</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someMesh</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">FeMesh_Cartesian</span><span class="p">(</span> <span class="n">elementType</span><span class="o">=</span><span class="s1">&#39;Q1&#39;</span><span class="p">,</span> <span class="n">elementRes</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span> <span class="n">minCoord</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mf">1.</span><span class="p">,</span><span class="o">-</span><span class="mf">1.</span><span class="p">),</span> <span class="n">maxCoord</span><span class="o">=</span><span class="p">(</span><span class="mf">1.</span><span class="p">,</span><span class="mf">1.</span><span class="p">)</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someMesh</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(9, 2)</span>
+</pre></div>
+</div>
+<p>You can retrieve individual vertex locations</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">someMesh</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="go">array([ 0., -1.])</span>
+</pre></div>
+</div>
+<p>You can modify these locations directly, but take care not to tangle the mesh!
+Mesh modifications must occur within the deform_mesh context manager.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">someMesh</span><span class="o">.</span><span class="n">deform_mesh</span><span class="p">():</span>
+<span class="gp">... </span>   <span class="n">someMesh</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">,</span><span class="o">-</span><span class="mf">1.1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someMesh</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="go">array([ 0.1, -1.1])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="underworld.mesh.FeMesh.data_elementNodes">
+<code class="descname">data_elementNodes</code><a class="headerlink" href="#underworld.mesh.FeMesh.data_elementNodes" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Array specifying the nodes (global node id) for a given element (local element id).</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">numpy.ndarray</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="underworld.mesh.FeMesh.data_elgId">
+<code class="descname">data_elgId</code><a class="headerlink" href="#underworld.mesh.FeMesh.data_elgId" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Array specifying global element ids.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">numpy.ndarray</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="underworld.mesh.FeMesh.data_nodegId">
+<code class="descname">data_nodegId</code><a class="headerlink" href="#underworld.mesh.FeMesh.data_nodegId" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Array specifying global node ids.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">numpy.ndarray</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="underworld.mesh.FeMesh.deform_mesh">
+<code class="descname">deform_mesh</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwds</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/mesh/_mesh.html#FeMesh.deform_mesh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.mesh.FeMesh.deform_mesh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Any mesh deformation must occur within this python context manager. Note
+that certain algorithms may be switched to their irregular mesh equivalents
+(if not already set this way). This may have performance implications.</p>
+<p>Any submesh will also be appropriately updated on return from the context
+manager, as will various mesh metrics.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>remainsRegular</strong> (<em>bool, default=False</em>) &#8211; The general assumption is that the deformed mesh will no longer be regular
+(orthonormal), and more general but less efficient algorithms will be
+selected via this context manager. To over-ride this behaviour, set
+this parameter to True.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">underworld</span> <span class="k">as</span> <span class="nn">uw</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someMesh</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">FeMesh_Cartesian</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">someMesh</span><span class="o">.</span><span class="n">deform_mesh</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">someMesh</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someMesh</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="go">array([ 0.1,  0.1])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="underworld.mesh.FeMesh.elementType">
+<code class="descname">elementType</code><a class="headerlink" href="#underworld.mesh.FeMesh.elementType" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Element type for FeMesh. Supported types are &#8220;Q2&#8221;, &#8220;Q1&#8221;, &#8220;dPc1&#8221; and &#8220;dQ0&#8221;.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="underworld.mesh.FeMesh.elementsGlobal">
+<code class="descname">elementsGlobal</code><a class="headerlink" href="#underworld.mesh.FeMesh.elementsGlobal" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Returns the number of global elements on the mesh</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">someMesh</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">FeMesh_Cartesian</span><span class="p">(</span> <span class="n">elementType</span><span class="o">=</span><span class="s1">&#39;Q1&#39;</span><span class="p">,</span> <span class="n">elementRes</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span> <span class="n">minCoord</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mf">1.</span><span class="p">,</span><span class="o">-</span><span class="mf">1.</span><span class="p">),</span> <span class="n">maxCoord</span><span class="o">=</span><span class="p">(</span><span class="mf">1.</span><span class="p">,</span><span class="mf">1.</span><span class="p">)</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someMesh</span><span class="o">.</span><span class="n">elementsGlobal</span>
+<span class="go">4</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="underworld.mesh.FeMesh.elementsLocal">
+<code class="descname">elementsLocal</code><a class="headerlink" href="#underworld.mesh.FeMesh.elementsLocal" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Returns the number of local elements on the mesh</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">someMesh</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">FeMesh_Cartesian</span><span class="p">(</span> <span class="n">elementType</span><span class="o">=</span><span class="s1">&#39;Q1&#39;</span><span class="p">,</span> <span class="n">elementRes</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span> <span class="n">minCoord</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mf">1.</span><span class="p">,</span><span class="o">-</span><span class="mf">1.</span><span class="p">),</span> <span class="n">maxCoord</span><span class="o">=</span><span class="p">(</span><span class="mf">1.</span><span class="p">,</span><span class="mf">1.</span><span class="p">)</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someMesh</span><span class="o">.</span><span class="n">elementsLocal</span>
+<span class="go">4</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="underworld.mesh.FeMesh.generator">
+<code class="descname">generator</code><a class="headerlink" href="#underworld.mesh.FeMesh.generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Getter/Setter for the mesh MeshGenerator object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Object which builds the mesh. Note that the mesh itself may be a
+generator, in which case this property will return the mesh object iself.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">underworld.mesh.MeshGenerator</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="underworld.mesh.FeMesh.load">
+<code class="descname">load</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/mesh/_mesh.html#FeMesh.load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.mesh.FeMesh.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the mesh from disk.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filename</strong> (<em>str</em>) &#8211; The filename for the saved file. Relative or absolute paths may be
+used, but all directories must exist.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>This method must be called collectively by all processes.</p>
+<p>If the file data array is the same length as the current mesh
+global size, it is assumed the file contains compatible data. Note that
+this may not be the case where for example where you have saved using a
+2*8 resolution mesh, then loaded using an 8*2 resolution mesh.</p>
+<p>Provided files must be in hdf5 format, and use the correct schema.</p>
+<p class="rubric">Example</p>
+<p>Refer to example provided for &#8216;save&#8217; method.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="underworld.mesh.FeMesh.nodesGlobal">
+<code class="descname">nodesGlobal</code><a class="headerlink" href="#underworld.mesh.FeMesh.nodesGlobal" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Returns the number of global nodes on the mesh</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">someMesh</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">FeMesh_Cartesian</span><span class="p">(</span> <span class="n">elementType</span><span class="o">=</span><span class="s1">&#39;Q1&#39;</span><span class="p">,</span> <span class="n">elementRes</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span> <span class="n">minCoord</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mf">1.</span><span class="p">,</span><span class="o">-</span><span class="mf">1.</span><span class="p">),</span> <span class="n">maxCoord</span><span class="o">=</span><span class="p">(</span><span class="mf">1.</span><span class="p">,</span><span class="mf">1.</span><span class="p">)</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someMesh</span><span class="o">.</span><span class="n">nodesGlobal</span>
+<span class="go">9</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="underworld.mesh.FeMesh.nodesLocal">
+<code class="descname">nodesLocal</code><a class="headerlink" href="#underworld.mesh.FeMesh.nodesLocal" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Returns the number of local nodes on the mesh.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="underworld.mesh.FeMesh.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/mesh/_mesh.html#FeMesh.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.mesh.FeMesh.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset the mesh.</p>
+<p>Templated mesh (such as the DQ0 mesh) will be reset according
+to the current state of their geometryMesh.</p>
+<p>Other mesh (such as the Q1 &amp; Q2) will be reset to their
+post-construction state.</p>
+<p class="rubric">Notes</p>
+<p>This method must be called collectively by all processes.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="underworld.mesh.FeMesh.save">
+<code class="descname">save</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/mesh/_mesh.html#FeMesh.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.mesh.FeMesh.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save the mesh to disk</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filename</strong> (<em>string</em>) &#8211; The name of the output file.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Data object relating to saved file. This only needs to be retained
+if you wish to create XDMF files and can be ignored otherwise.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="underworld.utils.html#underworld.utils.SavedFileData" title="underworld.utils.SavedFileData">underworld.utils.SavedFileData</a></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>This method must be called collectively by all processes.</p>
+<p class="rubric">Example</p>
+<p>First create the mesh:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mesh</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">FeMesh_Cartesian</span><span class="p">(</span> <span class="n">elementType</span><span class="o">=</span><span class="s1">&#39;Q1/dQ0&#39;</span><span class="p">,</span> <span class="n">elementRes</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span><span class="mi">16</span><span class="p">),</span> <span class="n">minCoord</span><span class="o">=</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="n">maxCoord</span><span class="o">=</span><span class="p">(</span><span class="mf">1.</span><span class="p">,</span><span class="mf">1.</span><span class="p">)</span> <span class="p">)</span>
+</pre></div>
+</div>
+<p>Save to a file (note that the &#8216;ignoreMe&#8217; object isn&#8217;t really required):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ignoreMe</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;saved_mesh.h5&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now let&#8217;s try and reload. First create new mesh (note the different spatial size):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">clone_mesh</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">FeMesh_Cartesian</span><span class="p">(</span> <span class="n">elementType</span><span class="o">=</span><span class="s1">&#39;Q1/dQ0&#39;</span><span class="p">,</span> <span class="n">elementRes</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span><span class="mi">16</span><span class="p">),</span> <span class="n">minCoord</span><span class="o">=</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="n">maxCoord</span><span class="o">=</span><span class="p">(</span><span class="mf">1.5</span><span class="p">,</span><span class="mf">1.5</span><span class="p">)</span> <span class="p">)</span>
+</pre></div>
+</div>
+<p>Confirm clone mesh is different from original mesh:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">data</span><span class="p">,</span><span class="n">clone_mesh</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<p>Now reload using saved file:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">clone_mesh</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;saved_mesh.h5&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now check for equality:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">data</span><span class="p">,</span><span class="n">clone_mesh</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># clean up:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">uw</span><span class="o">.</span><span class="n">rank</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="kn">import</span> <span class="nn">os</span><span class="p">;</span>
+<span class="gp">... </span>    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span> <span class="s2">&quot;saved_mesh.h5&quot;</span> <span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="underworld.mesh.FeMesh.specialSets">
+<code class="descname">specialSets</code><a class="headerlink" href="#underworld.mesh.FeMesh.specialSets" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">This dictionary stores a set of special data sets relating to mesh objects.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">underworld</span> <span class="k">as</span> <span class="nn">uw</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someMesh</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">FeMesh_Cartesian</span><span class="p">(</span> <span class="n">elementType</span><span class="o">=</span><span class="s1">&#39;Q1&#39;</span><span class="p">,</span> <span class="n">elementRes</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span> <span class="n">minCoord</span><span class="o">=</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="n">maxCoord</span><span class="o">=</span><span class="p">(</span><span class="mf">1.</span><span class="p">,</span><span class="mf">1.</span><span class="p">)</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someMesh</span><span class="o">.</span><span class="n">specialSets</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+<span class="go">[&#39;MaxI_VertexSet&#39;, &#39;MinI_VertexSet&#39;, &#39;AllWalls_VertexSet&#39;, &#39;MinJ_VertexSet&#39;, &#39;MaxJ_VertexSet&#39;, &#39;Empty&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someMesh</span><span class="o">.</span><span class="n">specialSets</span><span class="p">[</span><span class="s2">&quot;MinJ_VertexSet&quot;</span><span class="p">]</span>
+<span class="go">FeMesh_IndexSet([0, 1, 2])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="underworld.mesh.FeMesh_Cartesian">
+<em class="property">class </em><code class="descclassname">underworld.mesh.</code><code class="descname">FeMesh_Cartesian</code><span class="sig-paren">(</span><em>elementType='Q1/dQ0'</em>, <em>elementRes=(4</em>, <em>4)</em>, <em>minCoord=(0.0</em>, <em>0.0)</em>, <em>maxCoord=(1.0</em>, <em>1.0)</em>, <em>periodic=None</em>, <em>partitioned=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/mesh/_mesh.html#FeMesh_Cartesian"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.mesh.FeMesh_Cartesian" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">underworld.mesh._mesh.FeMesh</span></code>, <code class="xref py py-class docutils literal"><span class="pre">underworld.mesh._mesh.CartesianMeshGenerator</span></code></p>
+<p>This class generates a finite element mesh which is topologically cartesian
+and geometrically regular. It is possible to directly build a dual mesh by
+passing a pair of element types to the constructor.</p>
+<p>Refer to parent classes for parameters beyond those below.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>elementType</strong> (<em>str</em>) &#8211; Mesh element type. Note that this class allows the user to
+(optionally) provide a pair of elementTypes for which a dual
+mesh will be created.
+The submesh is accessible through the &#8216;subMesh&#8217; property. The
+primary mesh itself is the object returned by this constructor.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<p>To create a linear mesh:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">underworld</span> <span class="k">as</span> <span class="nn">uw</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someMesh</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">FeMesh_Cartesian</span><span class="p">(</span> <span class="n">elementType</span><span class="o">=</span><span class="s1">&#39;Q1&#39;</span><span class="p">,</span> <span class="n">elementRes</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span><span class="mi">16</span><span class="p">),</span> <span class="n">minCoord</span><span class="o">=</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="n">maxCoord</span><span class="o">=</span><span class="p">(</span><span class="mf">1.</span><span class="p">,</span><span class="mf">1.</span><span class="p">)</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someMesh</span><span class="o">.</span><span class="n">dim</span>
+<span class="go">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someMesh</span><span class="o">.</span><span class="n">elementRes</span>
+<span class="go">(16, 16)</span>
+</pre></div>
+</div>
+<p>Alternatively, you can create a linear/constant dual mesh</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">someDualMesh</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">FeMesh_Cartesian</span><span class="p">(</span> <span class="n">elementType</span><span class="o">=</span><span class="s1">&#39;Q1/dQ0&#39;</span><span class="p">,</span> <span class="n">elementRes</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span><span class="mi">16</span><span class="p">),</span> <span class="n">minCoord</span><span class="o">=</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="n">maxCoord</span><span class="o">=</span><span class="p">(</span><span class="mf">1.</span><span class="p">,</span><span class="mf">1.</span><span class="p">)</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">someDualMesh</span><span class="o">.</span><span class="n">elementType</span>
+<span class="go">&#39;Q1&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subMesh</span> <span class="o">=</span> <span class="n">someDualMesh</span><span class="o">.</span><span class="n">subMesh</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subMesh</span><span class="o">.</span><span class="n">elementType</span>
+<span class="go">&#39;DQ0&#39;</span>
+</pre></div>
+</div>
+<p>To set / read vertex coords, use the numpy interface via the &#8216;data&#8217; property.</p>
+<dl class="attribute">
+<dt id="underworld.mesh.FeMesh_Cartesian.subMesh">
+<code class="descname">subMesh</code><a class="headerlink" href="#underworld.mesh.FeMesh_Cartesian.subMesh" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Returns the submesh where the object is a dual mesh, or None otherwise.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="#underworld.mesh.FeMesh" title="underworld.mesh.FeMesh">underworld.mesh.FeMesh</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="underworld.mesh.MeshVariable">
+<em class="property">class </em><code class="descclassname">underworld.mesh.</code><code class="descname">MeshVariable</code><span class="sig-paren">(</span><em>mesh</em>, <em>nodeDofCount</em>, <em>dataType='double'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/mesh/_meshvariable.html#MeshVariable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.mesh.MeshVariable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">underworld._stgermain.StgCompoundComponent</span></code>, <code class="xref py py-class docutils literal"><span class="pre">underworld.function._function.Function</span></code>, <code class="xref py py-class docutils literal"><span class="pre">underworld._stgermain.Save</span></code>, <code class="xref py py-class docutils literal"><span class="pre">underworld._stgermain.Load</span></code></p>
+<p>The MeshVariable class generates a variable supported by a finite element mesh.</p>
+<p>To set / read nodal values, use the numpy interface via the &#8216;data&#8217; property.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>mesh</strong> (<a class="reference internal" href="#underworld.mesh.FeMesh" title="underworld.mesh.FeMesh"><em>underworld.mesh.FeMesh</em></a>) &#8211; The supporting mesh for the variable.</li>
+<li><strong>dataType</strong> (<em>string, default=&quot;double&quot;</em>) &#8211; The data type for the variable.
+Note that only &#8216;double&#8217; type variables are currently
+supported</li>
+<li><strong>nodeDofCount</strong> (<em>int</em>) &#8211; Number of degrees of freedom per node the variable should have.</li>
+<li><strong>property docstrings for further information.</strong> (<em>See</em>) &#8211; </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<p>For example, to create a scalar meshVariable:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">linearMesh</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">FeMesh_Cartesian</span><span class="p">(</span> <span class="n">elementType</span><span class="o">=</span><span class="s1">&#39;Q1/dQ0&#39;</span><span class="p">,</span> <span class="n">elementRes</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span><span class="mi">16</span><span class="p">),</span> <span class="n">minCoord</span><span class="o">=</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="n">maxCoord</span><span class="o">=</span><span class="p">(</span><span class="mf">1.</span><span class="p">,</span><span class="mf">1.</span><span class="p">)</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scalarFeVar</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">MeshVariable</span><span class="p">(</span> <span class="n">mesh</span><span class="o">=</span><span class="n">linearMesh</span><span class="p">,</span> <span class="n">nodeDofCount</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dataType</span><span class="o">=</span><span class="s2">&quot;double&quot;</span> <span class="p">)</span>
+</pre></div>
+</div>
+<p>or a vector meshvariable can be created:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">vectorFeVar</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">MeshVariable</span><span class="p">(</span> <span class="n">mesh</span><span class="o">=</span><span class="n">linearMesh</span><span class="p">,</span> <span class="n">nodeDofCount</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">dataType</span><span class="o">=</span><span class="s2">&quot;double&quot;</span> <span class="p">)</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="underworld.mesh.MeshVariable.copy">
+<code class="descname">copy</code><span class="sig-paren">(</span><em>deepcopy=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/mesh/_meshvariable.html#MeshVariable.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.mesh.MeshVariable.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method returns a copy of the meshvariable.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>deepcopy</strong> (<em>bool (default False)</em>) &#8211; If True, the variable&#8217;s data is also copied into
+new variable.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The mesh variable copy.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="#underworld.mesh.MeshVariable" title="underworld.mesh.MeshVariable">underworld.mesh.MeshVariable</a></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mesh</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">FeMesh_Cartesian</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">var</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">MeshVariable</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">math</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">var</span><span class="o">.</span><span class="n">data</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mf">1.</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">varCopy</span> <span class="o">=</span> <span class="n">var</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">varCopy</span><span class="o">.</span><span class="n">mesh</span> <span class="o">==</span> <span class="n">var</span><span class="o">.</span><span class="n">mesh</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">varCopy</span><span class="o">.</span><span class="n">nodeDofCount</span> <span class="o">==</span> <span class="n">var</span><span class="o">.</span><span class="n">nodeDofCount</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">data</span><span class="p">,</span><span class="n">varCopy</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">varCopy2</span> <span class="o">=</span> <span class="n">var</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">deepcopy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">data</span><span class="p">,</span><span class="n">varCopy2</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="underworld.mesh.MeshVariable.data">
+<code class="descname">data</code><a class="headerlink" href="#underworld.mesh.MeshVariable.data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Numpy proxy array to underlying variable data.
+Note that the returned array is a proxy for all the <em>local</em> nodal
+data, and is provided as 1d list. It is possible to change the
+shape of this numpy array to reflect the cartesian topology (where
+appropriate), though again only the local portion of the decomposed
+domain will be available, and the shape will not necessarily be
+identical on all processors.</p>
+<p>As these arrays are simply proxys to the underlying memory structures,
+no data copying is required.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The proxy array.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">numpy.ndarray</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">linearMesh</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">FeMesh_Cartesian</span><span class="p">(</span> <span class="n">elementType</span><span class="o">=</span><span class="s1">&#39;Q1/dQ0&#39;</span><span class="p">,</span> <span class="n">elementRes</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span><span class="mi">16</span><span class="p">),</span> <span class="n">minCoord</span><span class="o">=</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="n">maxCoord</span><span class="o">=</span><span class="p">(</span><span class="mf">1.</span><span class="p">,</span><span class="mf">1.</span><span class="p">)</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scalarFeVar</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">MeshVariable</span><span class="p">(</span> <span class="n">mesh</span><span class="o">=</span><span class="n">linearMesh</span><span class="p">,</span> <span class="n">nodeDofCount</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dataType</span><span class="o">=</span><span class="s2">&quot;double&quot;</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scalarFeVar</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(289, 1)</span>
+</pre></div>
+</div>
+<p>You can retrieve individual nodal values</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">scalarFeVar</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">100</span><span class="p">]</span>
+<span class="go">array([ 0.])</span>
+</pre></div>
+</div>
+<p>Likewise you can modify nodal values</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">scalarFeVar</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">100</span><span class="p">]</span> <span class="o">=</span> <span class="mf">15.333</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scalarFeVar</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">100</span><span class="p">]</span>
+<span class="go">array([ 15.333])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="underworld.mesh.MeshVariable.dataType">
+<code class="descname">dataType</code><a class="headerlink" href="#underworld.mesh.MeshVariable.dataType" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Data type for variable.  Supported types are &#8216;double&#8217;.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="underworld.mesh.MeshVariable.fn_gradient">
+<code class="descname">fn_gradient</code><a class="headerlink" href="#underworld.mesh.MeshVariable.fn_gradient" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a Function for the gradient field of this meshvariable.</p>
+<p>Note that for a scalar variable <cite>T</cite>, the gradient function returns
+an array of the form:</p>
+<div class="math">
+\[[ \frac{\partial T}{\partial x}, \frac{\partial T}{\partial y}, \frac{\partial T}{\partial z} ]\]</div>
+<p>and for a vector variable <cite>v</cite>:</p>
+<div class="math">
+\[[ \frac{\partial v_x}{\partial x}, \frac{\partial v_x}{\partial y}, \frac{\partial v_x}{\partial z},
+  \frac{\partial v_y}{\partial x}, \frac{\partial v_y}{\partial y}, \frac{\partial v_y}{\partial z},
+  \frac{\partial v_z}{\partial x}, \frac{\partial v_z}{\partial y}, \frac{\partial v_z}{\partial z} ]\]</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The gradient function.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="underworld.function.html#underworld.function.Function" title="underworld.function.Function">underworld.function.Function</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="underworld.mesh.MeshVariable.load">
+<code class="descname">load</code><span class="sig-paren">(</span><em>filename</em>, <em>interpolate=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/mesh/_meshvariable.html#MeshVariable.load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.mesh.MeshVariable.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the MeshVariable from disk.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>filename</strong> (<em>str</em>) &#8211; The filename for the saved file. Relative or absolute paths may be
+used, but all directories must exist.</li>
+<li><strong>interpolate</strong> (<em>bool (default False)</em>) &#8211; Set to True to interpolate a file containing different resolution data.
+Note that a temporary MeshVariable with the file data will be build
+on <strong>each</strong> processor. Also note that the temporary MeshVariable
+can only be built if its corresponding mesh file is available.
+Also note that the supporting mesh mush be regular.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>This method must be called collectively by all processes.</p>
+<p>If the file data array is the same length as the current variable
+global size, it is assumed the file contains compatible data. Note that
+this may not be the case where for example where you have saved using a
+2*8 resolution mesh, then loaded using an 8*2 resolution mesh.</p>
+<p>Provided files must be in hdf5 format, and use the correct schema.</p>
+<p class="rubric">Example</p>
+<p>Refer to example provided for &#8216;save&#8217; method.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="underworld.mesh.MeshVariable.mesh">
+<code class="descname">mesh</code><a class="headerlink" href="#underworld.mesh.MeshVariable.mesh" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Supporting FeMesh for this MeshVariable.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="#underworld.mesh.FeMesh" title="underworld.mesh.FeMesh">underworld.mesh.FeMesh</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="underworld.mesh.MeshVariable.nodeDofCount">
+<code class="descname">nodeDofCount</code><a class="headerlink" href="#underworld.mesh.MeshVariable.nodeDofCount" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Degrees of freedom on each mesh node that this variable provides.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="underworld.mesh.MeshVariable.save">
+<code class="descname">save</code><span class="sig-paren">(</span><em>filename</em>, <em>meshFilename=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/mesh/_meshvariable.html#MeshVariable.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.mesh.MeshVariable.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save the MeshVariable to disk.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>filename</strong> (<em>string</em>) &#8211; The name of the output file. Relative or absolute paths may be
+used, but all directories must exist.</li>
+<li><strong>meshFilename</strong> (<em>string, optional</em>) &#8211; If provided, a link to the created mesh file is created within the
+mesh variable file.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>This method must be called collectively by all processes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Data object relating to saved file. This only needs to be retained
+if you wish to create XDMF files and can be ignored otherwise.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="underworld.utils.html#underworld.utils.SavedFileData" title="underworld.utils.SavedFileData">underworld.utils.SavedFileData</a></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<p>First create the mesh add a variable:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mesh</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">FeMesh_Cartesian</span><span class="p">(</span> <span class="n">elementType</span><span class="o">=</span><span class="s1">&#39;Q1/dQ0&#39;</span><span class="p">,</span> <span class="n">elementRes</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span><span class="mi">16</span><span class="p">),</span> <span class="n">minCoord</span><span class="o">=</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="n">maxCoord</span><span class="o">=</span><span class="p">(</span><span class="mf">1.</span><span class="p">,</span><span class="mf">1.</span><span class="p">)</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">var</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">MeshVariable</span><span class="p">(</span> <span class="n">mesh</span><span class="o">=</span><span class="n">mesh</span><span class="p">,</span> <span class="n">nodeDofCount</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dataType</span><span class="o">=</span><span class="s2">&quot;double&quot;</span> <span class="p">)</span>
+</pre></div>
+</div>
+<p>Write something to variable</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">var</span><span class="o">.</span><span class="n">data</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Save to a file (note that the &#8216;ignoreMe&#8217; object isn&#8217;t really required):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ignoreMe</span> <span class="o">=</span> <span class="n">var</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;saved_mesh_variable.h5&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now let&#8217;s try and reload.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">clone_var</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">MeshVariable</span><span class="p">(</span> <span class="n">mesh</span><span class="o">=</span><span class="n">mesh</span><span class="p">,</span> <span class="n">nodeDofCount</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dataType</span><span class="o">=</span><span class="s2">&quot;double&quot;</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">clone_var</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;saved_mesh_variable.h5&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now check for equality:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">data</span><span class="p">,</span><span class="n">clone_var</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># clean up:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">uw</span><span class="o">.</span><span class="n">rank</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="kn">import</span> <span class="nn">os</span><span class="p">;</span>
+<span class="gp">... </span>    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span> <span class="s2">&quot;saved_mesh_variable.h5&quot;</span> <span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="underworld.mesh.MeshVariable.syncronise">
+<code class="descname">syncronise</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/mesh/_meshvariable.html#MeshVariable.syncronise"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.mesh.MeshVariable.syncronise" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method is often necessary when Underworld is operating in parallel.</p>
+<p>It will syncronise the mesh variable so that it is consistent
+with it&#8217;s parallel neighbours. Specifically, the shadow space of each
+process obtains the required data from neighbouring processes.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="underworld.mesh.MeshVariable.xdmf">
+<code class="descname">xdmf</code><span class="sig-paren">(</span><em>filename</em>, <em>fieldSavedData</em>, <em>varname</em>, <em>meshSavedData</em>, <em>meshname</em>, <em>modeltime=0.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/mesh/_meshvariable.html#MeshVariable.xdmf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.mesh.MeshVariable.xdmf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates an xdmf file, filename, associating the fieldSavedData file on
+the meshSavedData file</p>
+<p class="rubric">Notes</p>
+<p>xdmf contain 2 files: an .xml and a .h5 file. See <a class="reference external" href="http://www.xdmf.org/index.php/Main_Page">http://www.xdmf.org/index.php/Main_Page</a>
+This method only needs to be called by the master process, all other
+processes return quiely.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>filename</strong> (<em>str</em>) &#8211; The output path to write the xdmf file. Relative or absolute paths may be
+used, but all directories must exist.</li>
+<li><strong>varname</strong> (<em>str</em>) &#8211; The xdmf name to give the field</li>
+<li><strong>meshSavedData</strong> (<em>underworld.utils.SaveFileData</em>) &#8211; Handler returned for saving a mesh. underworld.mesh.save(xxx)</li>
+<li><strong>meshname</strong> (<em>str</em>) &#8211; The xdmf name to give the mesh</li>
+<li><strong>fieldSavedData</strong> (<em>underworld.SavedFileData</em>) &#8211; Handler returned from saving a field. underworld.mesh.save(xxx)</li>
+<li><strong>modeltime</strong> (<em>float (default 0.0)</em>) &#8211; The time recorded in the xdmf output file</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<p>First create the mesh add a variable:
+&gt;&gt;&gt; mesh = uw.mesh.FeMesh_Cartesian( elementType=&#8217;Q1/dQ0&#8217;, elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
+&gt;&gt;&gt; var = uw.mesh.MeshVariable( mesh=mesh, nodeDofCount=1, dataType=&#8221;double&#8221; )</p>
+<p>Write something to variable</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">var</span><span class="o">.</span><span class="n">data</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Save mesh and var to a file:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">meshDat</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;saved_mesh.h5&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">varDat</span> <span class="o">=</span> <span class="n">var</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;saved_mesh_variable.h5&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now let&#8217;s create the xdmf file</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">var</span><span class="o">.</span><span class="n">xdmf</span><span class="p">(</span><span class="s2">&quot;TESTxdmf&quot;</span><span class="p">,</span> <span class="n">varDat</span><span class="p">,</span> <span class="s2">&quot;var1&quot;</span><span class="p">,</span> <span class="n">meshDat</span><span class="p">,</span> <span class="s2">&quot;meshie&quot;</span> <span class="p">)</span>
+</pre></div>
+</div>
+<p>Does file exist?</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">uw</span><span class="o">.</span><span class="n">rank</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="s2">&quot;TESTxdmf.xdmf&quot;</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>Clean up:
+&gt;&gt;&gt; if uw.rank() == 0:
+...     import os;
+...     os.remove( &#8220;saved_mesh_variable.h5&#8221; )
+...     os.remove( &#8220;saved_mesh.h5&#8221; )
+...     os.remove( &#8220;TESTxdmf.xdmf&#8221; )</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="underworld.systems.html" class="btn btn-neutral float-right" title="underworld.systems module" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="underworld.swarm.layouts.html" class="btn btn-neutral" title="underworld.swarm.layouts module" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Melbourne University, Monash University..
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

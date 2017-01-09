@@ -83,45 +83,39 @@ class MatrixAssemblyTerm(AssemblyTerm):
 
 class VectorSurfaceAssemblyTerm_NA__Fn__ni(VectorAssemblyTerm):
     """
-    Assembly term for a Neumann condition
+    Build an assembly term for a surface integral.
 
     Parameters
     ----------
-    nbc : uw.conditions.NeumannCondition
+    nbc : underworld.conditions.NeumannCondition
         See uw.conditions.NeumannCondition for details
-    swarm  : uw.swarm.GaussBorderIntegrationSwarm, default = None
-        Optional input to define the quadrature points (GaussBorderIntegrationSwarm) used to evaluate this integral.
-    surfaceGaussPoints : int, default 2
-        The number of quadrature points per element face to use in surface integration.
-        Will be used to create a GaussBorderIntegrationSwarm in the case the 'swarm' input is 'None'.
+    integrationSwarm  : underworld.swarm.GaussBorderIntegrationSwarm
+        Optional integration swarm to be used for numerical integration.
+    surfaceGaussPoints : int
+        The number of quadrature points per element face to use in surface 
+        integration. Will be used to create a GaussBorderIntegrationSwarm in 
+        the case the 'swarm' input is 'None'.
     """
     _objectsDict = { "_assemblyterm": "VectorSurfaceAssemblyTerm_NA__Fn__ni" }
 
-    def __init__(self, nbc, surfaceGaussPoints=2, mesh=None, **kwargs):
-        """
-        Build an assembly term for a surface integral
-        Will create it's own integration swarm, no need to hand one in
-        """
+    def __init__(self, nbc, integrationSwarm=None, surfaceGaussPoints=2, mesh=None, **kwargs):
         if not isinstance(nbc, uw.conditions.NeumannCondition):
             raise ValueError( "Provided 'nbc' must be a NeumannCondition class." )
         self._nbc = nbc
         mesh = nbc.variable.mesh
 
-        # is integrationSwarm passed in?
-        swarm = kwargs.get('integrationSwarm')
-        if swarm != None:
-            if not isinstance( swarm, uw.swarm.GaussBorderIntegrationSwarm):
+        if integrationSwarm != None:
+            if not isinstance( integrationSwarm, uw.swarm.GaussBorderIntegrationSwarm):
                 raise ValueError("Provided 'borderSwarm' must be of type uw.swarm.GaussBorderIntegrationSwarm")
         else: # no swarm provide, so we build one
-            #print "Building surface 'integrationSwarm' for VectorSurfaceAssemblyTerm_NA__Fn__ni using "+str(surfaceGaussPoints)+" surface gauss points"
             if not isinstance(surfaceGaussPoints, int):
                 raise TypeError( "Provided 'surfaceGaussPoints' must be a positive integer")
             if surfaceGaussPoints < 1:
                 raise ValueError( "Provided 'surfaceGaussPoints' must be a positive integer")
-            kwargs['integrationSwarm'] = uw.swarm.GaussBorderIntegrationSwarm( mesh=mesh,
+            integrationSwarm = uw.swarm.GaussBorderIntegrationSwarm( mesh=mesh,
                                                                          particleCount=surfaceGaussPoints )
 
-        super(VectorSurfaceAssemblyTerm_NA__Fn__ni,self).__init__( **kwargs)
+        super(VectorSurfaceAssemblyTerm_NA__Fn__ni,self).__init__( integrationSwarm=integrationSwarm, **kwargs )
 
         # pass the NeumannConditions to the SurfaceAssemblyTerm so it knows which nodes to assemble the flux contribution
         libUnderworld.Underworld._VectorSurfaceAssemblyTerm_SetBNodes( self._cself, nbc._cself )
@@ -163,8 +157,6 @@ class VectorAssemblyTerm_VEP__Fn(VectorAssemblyTerm):
     _objectsDict = { "_assemblyterm": "VectorAssemblyTerm_VEP" }
 
     def __init__(self, fn, mesh=None, **kwargs):
-        """
-        """
         # build parent
         super(VectorAssemblyTerm_VEP__Fn,self).__init__(**kwargs)
 
@@ -184,13 +176,9 @@ class VectorAssemblyTerm_VEP__Fn(VectorAssemblyTerm):
 
 
 class VectorAssemblyTerm_NA__Fn(VectorAssemblyTerm):
-    """
-    """
     _objectsDict = { "_assemblyterm": "VectorAssemblyTerm_NA__Fn" }
 
     def __init__(self, fn, mesh=None, **kwargs):
-        """
-        """
         # build parent
         super(VectorAssemblyTerm_NA__Fn,self).__init__(**kwargs)
 
@@ -221,8 +209,6 @@ class ConstitutiveMatrixTerm(MatrixAssemblyTerm):
     _objectsDict = { "_assemblyterm": "ConstitutiveMatrixCartesian" }
 
     def __init__(self, fn_visc1=None, fn_visc2=None, fn_director=None, **kwargs):
-        """
-        """
         # build parent
         super(ConstitutiveMatrixTerm,self).__init__(**kwargs)
 
@@ -292,8 +278,6 @@ class MatrixAssemblyTerm_NA_i__NB_i__Fn(MatrixAssemblyTerm):
     _objectsDict = { "_assemblyterm": "MatrixAssemblyTerm_NA_i__NB_i__Fn" }
 
     def __init__(self, fn, **kwargs):
-        """
-        """
         # build parent
         super(MatrixAssemblyTerm_NA_i__NB_i__Fn,self).__init__(**kwargs)
 
@@ -309,8 +293,6 @@ class MatrixAssemblyTerm_NA__NB__Fn(MatrixAssemblyTerm):
     _objectsDict = { "_assemblyterm": "MatrixAssemblyTerm_NA__NB__Fn" }
 
     def __init__(self, fn, mesh, **kwargs):
-        """
-        """
         # build parent
         super(MatrixAssemblyTerm_NA__NB__Fn,self).__init__(**kwargs)
 

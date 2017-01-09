@@ -1,0 +1,385 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>underworld &mdash; underworld2  documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="underworld2  documentation" href="../index.html"/>
+        <link rel="up" title="Module code" href="index.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> underworld2
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../underworld.html">underworld module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../glucifer.html">glucifer module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">underworld2</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">Module code</a> &raquo;</li>
+      
+    <li>underworld</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for underworld</h1><div class="highlight"><pre>
+<span></span><span class="c1">##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##  This file forms part of the Underworld geophysics modelling application.         ##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##  For full license and copyright information, please refer to the LICENSE.md file  ##</span>
+<span class="c1">##  located at the project root, or contact the authors.                             ##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Underworld2 is a python-friendly version of the Underworld geodynamics</span>
+<span class="sd">code which provides a programmable and flexible front end to all the</span>
+<span class="sd">functionality of the code running in a parallel HPC environment. This</span>
+<span class="sd">gives signficant advantages to the user, with access to the power of</span>
+<span class="sd">python libraries for setup of complex problems, analysis at runtime,</span>
+<span class="sd">problem steering, and coupling of multiple problems.</span>
+
+<span class="sd">Underworld2 is integrated with the literate programming environment of</span>
+<span class="sd">the jupyter notebook system for tutorials and as a teaching tool for</span>
+<span class="sd">solid Earth geoscience.</span>
+
+<span class="sd">Underworld is an open-source, particle-in-cell finite element code</span>
+<span class="sd">tuned for large-scale geodynamics simulations. The numerical algorithms</span>
+<span class="sd">allow the tracking of history information through the high-strain</span>
+<span class="sd">deformation associated with fluid flow (for example, transport of the</span>
+<span class="sd">stress tensor in a viscoelastic, convecting medium, or the advection of</span>
+<span class="sd">fine-scale damage parameters by the large-scale flow). The finite</span>
+<span class="sd">element mesh can be static or dynamic, but it is not contrained to move</span>
+<span class="sd">in lock-step with the evolving geometry of the fluid. This hybrid approach</span>
+<span class="sd">is very well suited to complex fluids which is how the solid Earth behaves</span>
+<span class="sd">on a geological timescale.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">__version__</span> <span class="o">=</span> <span class="s2">&quot;2.2.0-dev&quot;</span>
+
+<span class="c1"># ok, first need to change default python dlopen flags to global</span>
+<span class="c1"># this is because when python imports the module, the shared libraries are loaded as RTLD_LOCAL</span>
+<span class="c1"># and then when MPI_Init is called, OpenMPI tries to dlopen its plugin, they are unable to</span>
+<span class="c1"># link to the openmpi libraries as they are private</span>
+<span class="kn">import</span> <span class="nn">sys</span> <span class="k">as</span> <span class="nn">_sys</span>
+<span class="kn">import</span> <span class="nn">ctypes</span> <span class="k">as</span> <span class="nn">_ctypes</span>
+<span class="n">_oldflags</span> <span class="o">=</span> <span class="n">_sys</span><span class="o">.</span><span class="n">getdlopenflags</span><span class="p">()</span>
+<span class="n">_sys</span><span class="o">.</span><span class="n">setdlopenflags</span><span class="p">(</span> <span class="n">_oldflags</span> <span class="o">|</span> <span class="n">_ctypes</span><span class="o">.</span><span class="n">RTLD_GLOBAL</span> <span class="p">)</span>
+
+<span class="c1"># lets also set sys.path such that the project parent directory takes</span>
+<span class="c1"># precedence</span>
+<span class="kn">import</span> <span class="nn">os</span> <span class="k">as</span> <span class="nn">_os</span>
+<span class="n">_sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">_os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">_os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="s2">&quot;..&quot;</span><span class="p">)))</span>
+
+
+<span class="kn">import</span> <span class="nn">libUnderworld</span>
+<span class="kn">import</span> <span class="nn">container</span>
+<span class="kn">import</span> <span class="nn">mesh</span>
+<span class="kn">import</span> <span class="nn">conditions</span>
+<span class="kn">import</span> <span class="nn">function</span>
+<span class="kn">import</span> <span class="nn">swarm</span>
+<span class="kn">import</span> <span class="nn">systems</span>
+<span class="kn">import</span> <span class="nn">utils</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">._uwid</span> <span class="k">import</span> <span class="n">uwid</span> <span class="k">as</span> <span class="n">_id</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">uuid</span> <span class="k">as</span> <span class="nn">_uuid</span>
+    <span class="n">_id</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">_uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span>
+<span class="kn">import</span> <span class="nn">_net</span>
+
+<span class="c1"># ok, now set this back to the original value</span>
+<span class="n">_sys</span><span class="o">.</span><span class="n">setdlopenflags</span><span class="p">(</span> <span class="n">_oldflags</span> <span class="p">)</span>
+
+<span class="c1"># lets go right ahead and init now.  user can re-init if necessary.</span>
+<span class="kn">import</span> <span class="nn">_stgermain</span>
+<span class="n">_data</span> <span class="o">=</span>  <span class="n">libUnderworld</span><span class="o">.</span><span class="n">StGermain_Tools</span><span class="o">.</span><span class="n">StgInit</span><span class="p">(</span> <span class="n">_sys</span><span class="o">.</span><span class="n">argv</span> <span class="p">)</span>
+
+<span class="n">_stgermain</span><span class="o">.</span><span class="n">LoadModules</span><span class="p">(</span> <span class="p">{</span><span class="s2">&quot;import&quot;</span><span class="p">:[</span><span class="s2">&quot;StgDomain&quot;</span><span class="p">,</span><span class="s2">&quot;StgFEM&quot;</span><span class="p">,</span><span class="s2">&quot;PICellerator&quot;</span><span class="p">,</span><span class="s2">&quot;Underworld&quot;</span><span class="p">,</span><span class="s2">&quot;gLucifer&quot;</span><span class="p">,</span><span class="s2">&quot;Solvers&quot;</span><span class="p">]}</span> <span class="p">)</span>
+
+<div class="viewcode-block" id="rank"><a class="viewcode-back" href="../underworld.html#underworld.rank">[docs]</a><span class="k">def</span> <span class="nf">rank</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the rank of the current process.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    unsigned</span>
+<span class="sd">        Rank of current process.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_data</span><span class="o">.</span><span class="n">rank</span></div>
+
+
+<div class="viewcode-block" id="nProcs"><a class="viewcode-back" href="../underworld.html#underworld.nProcs">[docs]</a><span class="k">def</span> <span class="nf">nProcs</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the number of processes being utilised by the simulation.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    unsigned</span>
+<span class="sd">        Number of processors.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_data</span><span class="o">.</span><span class="n">nProcs</span></div>
+
+<div class="viewcode-block" id="barrier"><a class="viewcode-back" href="../underworld.html#underworld.barrier">[docs]</a><span class="k">def</span> <span class="nf">barrier</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates an MPI barrier. All processes wait here for others to catch up.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">mpi4py</span> <span class="k">import</span> <span class="n">MPI</span>
+    <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">Barrier</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="matplotlib_inline"><a class="viewcode-back" href="../underworld.html#underworld.matplotlib_inline">[docs]</a><span class="k">def</span> <span class="nf">matplotlib_inline</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This function simply enables Jupyter Notebook inlined matplotlib results.</span>
+<span class="sd">    This function should be called at the start of your notebooks as a </span>
+<span class="sd">    replacement for the Jupyter Notebook *%matplotlib inline* magic. It provides</span>
+<span class="sd">    the same functionality, however it allows notebooks to be converted to</span>
+<span class="sd">    python without having to explicitly remove these calls.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span> <span class="p">:</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">__IPYTHON__</span><span class="p">)</span> <span class="p">:</span>
+            <span class="n">get_ipython</span><span class="p">()</span><span class="o">.</span><span class="n">magic</span><span class="p">(</span><span class="s1">u&#39;matplotlib inline&#39;</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">pass</span></div>
+
+<span class="c1"># lets handle exceptions differently in parallel to ensure we call</span>
+<span class="k">if</span> <span class="n">nProcs</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="n">origexcepthook</span> <span class="o">=</span> <span class="n">_sys</span><span class="o">.</span><span class="n">excepthook</span>
+    <span class="k">def</span> <span class="nf">uw_uncaught_exception_handler</span><span class="p">(</span><span class="n">exctype</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">tb</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">###########################################################################################&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;###########################################################################################&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;An uncaught exception was encountered on processor </span><span class="si">{}</span><span class="s1">.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">rank</span><span class="p">()))</span>
+        <span class="c1"># pass through to original handler</span>
+        <span class="n">origexcepthook</span><span class="p">(</span><span class="n">exctype</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">tb</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;###########################################################################################&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;###########################################################################################&#39;</span><span class="p">)</span>
+        <span class="n">libUnderworld</span><span class="o">.</span><span class="n">StGermain_Tools</span><span class="o">.</span><span class="n">StgAbort</span><span class="p">(</span> <span class="n">_data</span> <span class="p">)</span>
+    <span class="n">_sys</span><span class="o">.</span><span class="n">excepthook</span> <span class="o">=</span> <span class="n">uw_uncaught_exception_handler</span>
+
+<span class="k">def</span> <span class="nf">_prepend_message_to_exception</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This function simply adds a message to an encountered exception.</span>
+<span class="sd">    Currently it is not python 3 friendly.  Check here</span>
+<span class="sd">    http://stackoverflow.com/questions/6062576/adding-information-to-a-python-exception</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">raise</span> <span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">),</span> <span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)(</span><span class="n">message</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">e</span><span class="o">.</span><span class="n">message</span><span class="p">),</span> <span class="n">_sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span>
+
+<span class="k">class</span> <span class="nc">_del_uw_class</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This simple class simply facilitates calling StgFinalise on uw exit</span>
+<span class="sd">    Previous implementations used the &#39;atexit&#39; module, but this called finalise</span>
+<span class="sd">    *before* python garbage collection which as problematic as objects were being</span>
+<span class="sd">    deleted after StgFinalise was called.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">delfunc</span><span class="p">,</span> <span class="n">deldata</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delfunc</span> <span class="o">=</span> <span class="n">delfunc</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">deldata</span> <span class="o">=</span> <span class="n">deldata</span>
+    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delfunc</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">deldata</span><span class="p">)</span>
+
+<span class="n">_delclassinstance</span> <span class="o">=</span> <span class="n">_del_uw_class</span><span class="p">(</span><span class="n">libUnderworld</span><span class="o">.</span><span class="n">StGermain_Tools</span><span class="o">.</span><span class="n">StgFinalise</span><span class="p">,</span> <span class="n">_data</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">_in_doctest</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns true if running inside a doctest.</span>
+
+<span class="sd">    http://stackoverflow.com/questions/8116118/how-to-determine-whether-code-is-running-in-a-doctest</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">_sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="s1">&#39;__main__&#39;</span><span class="p">],</span> <span class="s1">&#39;_SpoofOut&#39;</span><span class="p">)</span>
+
+<span class="c1"># lets shoot off some usage metrics</span>
+<span class="c1"># send metrics *only* if we are rank=0, and if we are not running inside a doctest.</span>
+<span class="k">if</span> <span class="p">(</span><span class="n">rank</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">_in_doctest</span><span class="p">():</span>
+    <span class="k">def</span> <span class="nf">_sendData</span><span class="p">():</span>
+        <span class="kn">import</span> <span class="nn">os</span>
+        <span class="c1"># disable collection of data if requested</span>
+        <span class="k">if</span> <span class="s2">&quot;UW_NO_USAGE_METRICS&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
+            <span class="c1"># get platform info</span>
+            <span class="kn">import</span> <span class="nn">platform</span>
+            <span class="n">label</span>  <span class="o">=</span>        <span class="n">platform</span><span class="o">.</span><span class="n">system</span><span class="p">()</span>
+            <span class="n">label</span> <span class="o">+=</span> <span class="s2">&quot;__&quot;</span> <span class="o">+</span> <span class="n">platform</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
+            <span class="c1"># check if docker</span>
+            <span class="kn">import</span> <span class="nn">os.path</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="s2">&quot;/.dockerinit&quot;</span><span class="p">)):</span>
+                <span class="n">label</span> <span class="o">+=</span> <span class="s2">&quot;__docker&quot;</span>
+
+            <span class="c1"># send info async</span>
+            <span class="kn">import</span> <span class="nn">threading</span>
+            <span class="n">thread</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span> <span class="n">target</span><span class="o">=</span><span class="n">_net</span><span class="o">.</span><span class="n">PostGAEvent</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span> <span class="s2">&quot;runtime&quot;</span><span class="p">,</span> <span class="s2">&quot;import&quot;</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">nProcs</span><span class="p">()</span> <span class="p">)</span> <span class="p">)</span>
+            <span class="n">thread</span><span class="o">.</span><span class="n">daemon</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">_sendData</span><span class="p">()</span>
+    <span class="k">except</span><span class="p">:</span> <span class="c1"># continue quietly if something above failed</span>
+        <span class="k">pass</span>
+
+<span class="c1"># lets also enable deprecation warnings</span>
+<span class="c1">#import warnings as _warnings</span>
+<span class="c1">#_warnings.simplefilter(&#39;always&#39;, DeprecationWarning)</span>
+
+<span class="c1"># enable the following to force exceptions on warnings</span>
+<span class="c1">#_warnings.simplefilter(&#39;error&#39;)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Melbourne University, Monash University..
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

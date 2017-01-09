@@ -23,7 +23,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
 
     Parameters
     ----------
-    mesh : uw.mesh.FeMesh
+    mesh : underworld.mesh.FeMesh
         The supporting mesh for the variable.
     dataType : string, default="double"
         The data type for the variable.
@@ -86,27 +86,36 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
     @property
     def dataType(self):
         """
-        dataType (str): Data type for variable.  Supported types are 'double'.
+        Returns
+        -------
+        str
+            Data type for variable.  Supported types are 'double'.
         """
         return self._dataType
     @property
     def nodeDofCount(self):
         """
-        nodeDofCount (int): Degrees of freedom on each mesh node that this variable provides.
+        Returns
+        -------
+        int
+            Degrees of freedom on each mesh node that this variable provides.
         """
         return self._nodeDofCount
 
     @property
     def mesh(self):
         """
-        mesh (FeMesh): Supporting FeMesh for this MeshVariable.
+        Returns
+        -------
+        underworld.mesh.FeMesh
+            Supporting FeMesh for this MeshVariable.
         """
         return self._mesh
 
     @property
     def data(self):
         """
-        data (np.array):  Numpy proxy array to underlying variable data.
+        Numpy proxy array to underlying variable data.
         Note that the returned array is a proxy for all the *local* nodal
         data, and is provided as 1d list. It is possible to change the
         shape of this numpy array to reflect the cartesian topology (where
@@ -114,8 +123,14 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         domain will be available, and the shape will not necessarily be
         identical on all processors.
 
+
         As these arrays are simply proxys to the underlying memory structures,
         no data copying is required.
+
+        Returns
+        -------
+        numpy.ndarray
+            The proxy array.
 
         Example
         -------
@@ -166,20 +181,28 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
     @property
     def fn_gradient(self):
         """
-        fn_gradient (Function): Returns a Function for the gradient field
-        of this meshvariable.
+        Returns a Function for the gradient field of this meshvariable.
 
         Note that for a scalar variable `T`, the gradient function returns
         an array of the form:
 
         .. math::
-             [ \frac{\partial T}{\partial x}, \frac{\partial T}{\partial y}, \frac{\partial T}{\partial z} ]
+        
+             [ \\frac{\\partial T}{\\partial x}, \\frac{\\partial T}{\\partial y}, \\frac{\\partial T}{\\partial z} ]
 
         and for a vector variable `v`:
+        
         .. math::
-            [ \frac{\partial v_x}{\partial x}, \frac{\partial v_x}{\partial y}, \frac{\partial v_x}{\partial z},
-              \frac{\partial v_y}{\partial x}, \frac{\partial v_y}{\partial y}, \frac{\partial v_y}{\partial z},
-              \frac{\partial v_z}{\partial x}, \frac{\partial v_z}{\partial y}, \frac{\partial v_z}{\partial z} ]
+        
+            [ \\frac{\\partial v_x}{\\partial x}, \\frac{\\partial v_x}{\\partial y}, \\frac{\\partial v_x}{\\partial z},
+              \\frac{\\partial v_y}{\\partial x}, \\frac{\\partial v_y}{\\partial y}, \\frac{\\partial v_y}{\\partial z},
+              \\frac{\\partial v_z}{\\partial x}, \\frac{\\partial v_z}{\\partial y}, \\frac{\\partial v_z}{\\partial z} ]
+
+        Returns
+        -------
+        underworld.function.Function
+            The gradient function.
+
         """
 
         if not self._fn_gradient:
@@ -217,7 +240,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
             used, but all directories must exist.
         varname : str
             The xdmf name to give the field
-        meshSavedData : underworld.SaveFileData
+        meshSavedData : underworld.utils.SaveFileData
             Handler returned for saving a mesh. underworld.mesh.save(xxx)
         meshname : str
             The xdmf name to give the mesh
@@ -319,7 +342,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
 
         Returns
         -------
-        SavedFileData
+        underworld.utils.SavedFileData
             Data object relating to saved file. This only needs to be retained
             if you wish to create XDMF files and can be ignored otherwise.
 
@@ -349,7 +372,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         >>> np.allclose(var.data,clone_var.data)
         True
 
-        Clean up:
+        >>> # clean up:
         >>> if uw.rank() == 0:
         ...     import os;
         ...     os.remove( "saved_mesh_variable.h5" )
@@ -505,6 +528,11 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         deepcopy: bool (default False)
             If True, the variable's data is also copied into
             new variable.
+            
+        Returns
+        -------
+        underworld.mesh.MeshVariable
+            The mesh variable copy.
 
         Example
         -------

@@ -18,37 +18,37 @@ class PopulationControl(_stgermain.LeftOverParamsChecker):
 
     Parameters
     ----------
-    swarm : uw.swarm.Swarm
+    swarm : underworld.swarm.Swarm
         The swarm for which population control should occur.
 
-    deleteThreshold : default 0.006
+    deleteThreshold : float
         Particle volume fraction threshold below which particle is deleted.
         i.e if (particleVolume/elementVolume)<deleteThreshold, then the
         particle is deleted.
 
-    splitThreshold : default 0.25
+    splitThreshold : float
         Particle volume fraction threshold above which particle is split.
         i.e if (particleVolume/elementVolume)>splitThreshold, then the
         particle is split.
 
-    maxDeletions : int, default 0
+    maxDeletions : int
         maximum number of particle deletions per cell
 
-    maxSplits : int, default 3
+    maxSplits : int
         maximum number of particles splits per cell
 
-    aggressive : bool, default False
+    aggressive : bool
         When enabled, this option will invoke aggressive population control
         in elements where particle counts drop below some threshold.
 
-    aggressiveThreshold : default 0.8
+    aggressiveThreshold : float
         lower cell particle population threshold beyond which aggressive 
         population control occurs.
         i.e if (cellParticleCount/particlesPerCell)<aggressiveThreshold, then 
         aggressive pop control will occur.
         Note that this option is only valid if 'aggressive' is enabled.
     
-    particlesPerCell:
+    particlesPerCell: int
         This is the desired number of particles each element should contain.
         Note that this option is only valid if 'aggressive' is enabled.
 

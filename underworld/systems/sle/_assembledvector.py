@@ -13,33 +13,21 @@ from _svector import SolutionVector
 
 class AssembledVector(SolutionVector):
     """
+    Vector object, generally assembled as a result of the FEM
+    framework.
+    
+    See parent class for parameters.
+
     """
     _objectsDict = { "_vector": "ForceVector" }
     _selfObjectName = "_vector"
 
 
     def __init__(self, meshVariable, eqNum, **kwargs):
-        """
-        Class initialiser.
-
-        Parameter
-        ---------
-        See parent class 'underworld.systems.sle.SolutionVector'
-
-        Returns
-        -------
-        AssembledVector: The constructed AssembledVector object.
-
-        """
-
         super(AssembledVector,self).__init__(meshVariable, eqNum, **kwargs)
-
 
     @property
     def meshVariable(self):
-        """
-        meshVariable (MeshVariable): MeshVariable object for which this SLE vector corresponds.
-        """
         return self._meshVariable
 
     @property

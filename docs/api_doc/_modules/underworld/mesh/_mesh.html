@@ -1,0 +1,1432 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>underworld.mesh._mesh &mdash; underworld2  documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="underworld2  documentation" href="../../../index.html"/>
+        <link rel="up" title="underworld" href="../../underworld.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> underworld2
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../underworld.html">underworld module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../glucifer.html">glucifer module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">underworld2</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../underworld.html">underworld</a> &raquo;</li>
+      
+    <li>underworld.mesh._mesh</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for underworld.mesh._mesh</h1><div class="highlight"><pre>
+<span></span><span class="c1">##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##  This file forms part of the Underworld geophysics modelling application.         ##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##  For full license and copyright information, please refer to the LICENSE.md file  ##</span>
+<span class="c1">##  located at the project root, or contact the authors.                             ##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##</span>
+<span class="c1">#</span>
+<span class="c1">#</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module contains FeMesh classes, and associated implementation.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">underworld</span> <span class="k">as</span> <span class="nn">uw</span>
+<span class="kn">import</span> <span class="nn">underworld._stgermain</span> <span class="k">as</span> <span class="nn">_stgermain</span>
+<span class="kn">import</span> <span class="nn">weakref</span>
+<span class="kn">import</span> <span class="nn">libUnderworld</span>
+<span class="kn">import</span> <span class="nn">_specialSets_Cartesian</span>
+<span class="kn">import</span> <span class="nn">underworld.function</span> <span class="k">as</span> <span class="nn">function</span>
+<span class="kn">import</span> <span class="nn">contextlib</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">abc</span>
+<span class="kn">import</span> <span class="nn">h5py</span>
+<span class="kn">from</span> <span class="nn">mpi4py</span> <span class="k">import</span> <span class="n">MPI</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+<div class="viewcode-block" id="FeMesh"><a class="viewcode-back" href="../../../underworld.mesh.html#underworld.mesh.FeMesh">[docs]</a><span class="k">class</span> <span class="nc">FeMesh</span><span class="p">(</span><span class="n">_stgermain</span><span class="o">.</span><span class="n">StgCompoundComponent</span><span class="p">,</span> <span class="n">function</span><span class="o">.</span><span class="n">FunctionInput</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The FeMesh class provides the geometry and topology of a finite</span>
+<span class="sd">    element discretised domain. The FeMesh is implicitly parallel. Some aspects</span>
+<span class="sd">    may be local or global, but this is generally handled automatically.</span>
+
+<span class="sd">    A number of element types are supported.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    elementType : str</span>
+<span class="sd">        Element type for FeMesh.  See FeMesh.elementType docstring for further info.</span>
+<span class="sd">    generator : underworld.mesh.MeshGenerator</span>
+<span class="sd">        Generator object which builds the FeMesh. See FeMesh.generator docstring for</span>
+<span class="sd">        further info.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_objectsDict</span> <span class="o">=</span> <span class="p">{</span> <span class="s2">&quot;_mesh&quot;</span><span class="p">:</span> <span class="s2">&quot;FeMesh&quot;</span> <span class="p">}</span>
+    <span class="n">_selfObjectName</span> <span class="o">=</span> <span class="s2">&quot;_mesh&quot;</span>
+
+    <span class="n">_supportedElementTypes</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Q2&quot;</span><span class="p">,</span><span class="s2">&quot;Q1&quot;</span><span class="p">,</span><span class="s2">&quot;DQ1&quot;</span><span class="p">,</span><span class="s2">&quot;DPC1&quot;</span><span class="p">,</span><span class="s2">&quot;DQ0&quot;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elementType</span><span class="p">,</span> <span class="n">generator</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elementType</span><span class="p">,</span><span class="nb">str</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;elementType&#39; object passed in must be of type &#39;str&#39;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">elementType</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_supportedElementTypes</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;elementType&#39; provided (</span><span class="si">{}</span><span class="s2">) does not appear to be supported.</span><span class="se">\n</span><span class="s2"> </span><span class="se">\</span>
+<span class="s2">                               Supported types are </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">elementType</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span><span class="bp">self</span><span class="o">.</span><span class="n">_supportedElementTypes</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_elementType</span> <span class="o">=</span> <span class="n">elementType</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">generator</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">MeshGenerator</span><span class="p">):</span>
+                <span class="n">generator</span> <span class="o">=</span> <span class="bp">self</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No generator provided for mesh.</span><span class="se">\n</span><span class="s2"> </span><span class="se">\</span>
+<span class="s2">                                  You must provide a generator, or the mesh itself </span><span class="se">\</span>
+<span class="s2">                                  must be of the MeshGenerator class.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generator</span> <span class="o">=</span> <span class="n">generator</span>
+
+        <span class="c1"># these lists should be populated with closure functions</span>
+        <span class="c1"># which are executed before and/or after mesh deformations</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pre_deform_functions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_post_deform_functions</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_arr</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># build parent</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">FeMesh</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># add the empty set</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">specialSets</span><span class="p">[</span><span class="s2">&quot;Empty&quot;</span><span class="p">]</span>  <span class="o">=</span> <span class="k">lambda</span> <span class="n">selfobject</span><span class="p">:</span> <span class="n">uw</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">FeMesh_IndexSet</span><span class="p">(</span> <span class="nb">object</span>           <span class="o">=</span> <span class="n">selfobject</span><span class="p">,</span>
+                                                                                 <span class="n">topologicalIndex</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+                                                                                 <span class="n">size</span>             <span class="o">=</span> <span class="n">libUnderworld</span><span class="o">.</span><span class="n">StgDomain</span><span class="o">.</span><span class="n">Mesh_GetDomainSize</span><span class="p">(</span> <span class="n">selfobject</span><span class="o">.</span><span class="n">_mesh</span><span class="p">,</span> <span class="n">libUnderworld</span><span class="o">.</span><span class="n">StgDomain</span><span class="o">.</span><span class="n">MT_VERTEX</span> <span class="p">))</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">elementType</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            Element type for FeMesh. Supported types are &quot;Q2&quot;, &quot;Q1&quot;, &quot;dPc1&quot; and &quot;dQ0&quot;.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_elementType</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">generator</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Getter/Setter for the mesh MeshGenerator object.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        underworld.mesh.MeshGenerator</span>
+<span class="sd">            Object which builds the mesh. Note that the mesh itself may be a </span>
+<span class="sd">            generator, in which case this property will return the mesh object iself.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_generator</span><span class="p">,</span> <span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generator</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generator</span>
+    <span class="nd">@generator</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">generator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">generator</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">generator</span><span class="p">,</span><span class="n">MeshGenerator</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;generator&#39; object passed in must be of type &#39;MeshGenerator&#39;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span> <span class="ow">is</span> <span class="n">generator</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_generator</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="n">generator</span><span class="p">)</span>  <span class="c1"># only keep weekref here (where appropriate) to prevent circular dependency</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_generator</span> <span class="o">=</span> <span class="n">generator</span>
+        <span class="n">libUnderworld</span><span class="o">.</span><span class="n">StgDomain</span><span class="o">.</span><span class="n">Mesh_SetGenerator</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="p">,</span> <span class="n">generator</span><span class="o">.</span><span class="n">_gen</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">data_elementNodes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        numpy.ndarray</span>
+<span class="sd">            Array specifying the nodes (global node id) for a given element (local element id).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">uw</span><span class="o">.</span><span class="n">libUnderworld</span><span class="o">.</span><span class="n">StgDomain</span><span class="o">.</span><span class="n">Mesh_GenerateENMapVar</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="p">)</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">libUnderworld</span><span class="o">.</span><span class="n">StGermain</span><span class="o">.</span><span class="n">Variable_getAsNumpyArray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">enMapVar</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span> <span class="nb">len</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">elementsLocal</span> <span class="o">!=</span> <span class="mi">0</span> <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Unsupported element to node mapping for save routine&quot;</span><span class="o">+</span>
+                    <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">There doesn&#39;t appear to be elements with a consistent number of nodes&quot;</span><span class="p">)</span>
+
+        <span class="c1"># we ASSUME a constant number of nodes for each element</span>
+        <span class="c1"># and we reshape the arr accordingly</span>
+        <span class="n">nodesPerElement</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">elementsLocal</span>
+        <span class="k">return</span> <span class="n">arr</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elementsLocal</span><span class="p">,</span> <span class="n">nodesPerElement</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">data_elgId</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        numpy.ndarray</span>
+<span class="sd">            Array specifying global element ids.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">uw</span><span class="o">.</span><span class="n">libUnderworld</span><span class="o">.</span><span class="n">StgDomain</span><span class="o">.</span><span class="n">Mesh_GenerateElGlobalIdVar</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="p">)</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">libUnderworld</span><span class="o">.</span><span class="n">StGermain</span><span class="o">.</span><span class="n">Variable_getAsNumpyArray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">eGlobalIdsVar</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">arr</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">data_nodegId</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        numpy.ndarray</span>
+<span class="sd">            Array specifying global node ids.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">uw</span><span class="o">.</span><span class="n">libUnderworld</span><span class="o">.</span><span class="n">StgDomain</span><span class="o">.</span><span class="n">Mesh_GenerateNodeGlobalIdVar</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="p">)</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">libUnderworld</span><span class="o">.</span><span class="n">StGermain</span><span class="o">.</span><span class="n">Variable_getAsNumpyArray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">vGlobalIdsVar</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">arr</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Numpy proxy array proxy to underlying object vertex data. Note that the </span>
+<span class="sd">        returned array is a proxy for all the *local* vertices, and it is </span>
+<span class="sd">        provided as 1d list.</span>
+
+<span class="sd">        As these arrays are simply proxys to the underlying memory structures,</span>
+<span class="sd">        no data copying is required.</span>
+
+<span class="sd">        Note that this property returns a read-only numpy array as default. If</span>
+<span class="sd">        you wish to modify mesh vertex locations, you are required to use the</span>
+<span class="sd">        deform_mesh context manager.</span>
+
+<span class="sd">        If you are modifying the mesh, remember to modify any submesh associated </span>
+<span class="sd">        with it accordingly.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        numpy.ndarray</span>
+<span class="sd">            The data proxy array.</span>
+
+<span class="sd">        Example</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        &gt;&gt;&gt; import underworld as uw</span>
+<span class="sd">        &gt;&gt;&gt; someMesh = uw.mesh.FeMesh_Cartesian( elementType=&#39;Q1&#39;, elementRes=(2,2), minCoord=(-1.,-1.), maxCoord=(1.,1.) )</span>
+<span class="sd">        &gt;&gt;&gt; someMesh.data.shape</span>
+<span class="sd">        (9, 2)</span>
+
+<span class="sd">        You can retrieve individual vertex locations</span>
+
+<span class="sd">        &gt;&gt;&gt; someMesh.data[1]</span>
+<span class="sd">        array([ 0., -1.])</span>
+
+<span class="sd">        You can modify these locations directly, but take care not to tangle the mesh!</span>
+<span class="sd">        Mesh modifications must occur within the deform_mesh context manager.</span>
+
+<span class="sd">        &gt;&gt;&gt; with someMesh.deform_mesh():</span>
+<span class="sd">        ...    someMesh.data[1] = [0.1,-1.1]</span>
+<span class="sd">        &gt;&gt;&gt; someMesh.data[1]</span>
+<span class="sd">        array([ 0.1, -1.1])</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_arr</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_arr</span> <span class="o">=</span> <span class="n">uw</span><span class="o">.</span><span class="n">libUnderworld</span><span class="o">.</span><span class="n">StGermain</span><span class="o">.</span><span class="n">Variable_getAsNumpyArray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">verticesVariable</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_arr</span><span class="o">.</span><span class="n">flags</span><span class="o">.</span><span class="n">writeable</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_arr</span>
+
+    <span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
+<div class="viewcode-block" id="FeMesh.deform_mesh"><a class="viewcode-back" href="../../../underworld.mesh.html#underworld.mesh.FeMesh.deform_mesh">[docs]</a>    <span class="k">def</span> <span class="nf">deform_mesh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">remainsRegular</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Any mesh deformation must occur within this python context manager. Note</span>
+<span class="sd">        that certain algorithms may be switched to their irregular mesh equivalents</span>
+<span class="sd">        (if not already set this way). This may have performance implications.</span>
+
+<span class="sd">        Any submesh will also be appropriately updated on return from the context</span>
+<span class="sd">        manager, as will various mesh metrics.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        remainsRegular : bool, default=False</span>
+<span class="sd">            The general assumption is that the deformed mesh will no longer be regular</span>
+<span class="sd">            (orthonormal), and more general but less efficient algorithms will be</span>
+<span class="sd">            selected via this context manager. To over-ride this behaviour, set</span>
+<span class="sd">            this parameter to True.</span>
+
+
+<span class="sd">        Example</span>
+<span class="sd">        -------</span>
+<span class="sd">        &gt;&gt;&gt; import underworld as uw</span>
+<span class="sd">        &gt;&gt;&gt; someMesh = uw.mesh.FeMesh_Cartesian()</span>
+<span class="sd">        &gt;&gt;&gt; with someMesh.deform_mesh():</span>
+<span class="sd">        ...     someMesh.data[0] = [0.1,0.1]</span>
+<span class="sd">        &gt;&gt;&gt; someMesh.data[0]</span>
+<span class="sd">        array([ 0.1,  0.1])</span>
+
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># set the general mesh algorithm now</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">remainsRegular</span><span class="p">:</span>
+<span class="c1">#            if uw.rank() == 0: print(&quot;Switching to irregular mesh algorithms.&quot;)</span>
+            <span class="n">uw</span><span class="o">.</span><span class="n">libUnderworld</span><span class="o">.</span><span class="n">StgDomain</span><span class="o">.</span><span class="n">Mesh_SetAlgorithms</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="p">,</span> <span class="kc">None</span> <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">isRegular</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># execute any pre deform functions</span>
+        <span class="k">for</span> <span class="n">function</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pre_deform_functions</span><span class="p">:</span>
+            <span class="n">function</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">flags</span><span class="o">.</span><span class="n">writeable</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">yield</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">uw</span><span class="o">.</span><span class="n">_prepend_message_to_exception</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="s2">&quot;An exception was raised during mesh deformation. &quot;</span>
+                                                     <span class="o">+</span><span class="s2">&quot;Your mesh may only be partially deformed. &quot;</span>
+                                                     <span class="o">+</span><span class="s2">&quot;You can reset your mesh using the &#39;reset&#39; method. &quot;</span>
+                                                     <span class="o">+</span><span class="s2">&quot;Note that any submesh should not be modified directly, &quot;</span>
+                                                     <span class="o">+</span><span class="s2">&quot;but will instead be updated automatically on return from &quot;</span>
+                                                     <span class="o">+</span><span class="s2">&quot;the &#39;deform_mesh&#39; context manager. </span><span class="se">\n</span><span class="s2">Encountered exception message:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">flags</span><span class="o">.</span><span class="n">writeable</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="c1"># call deformupdate, which updates various mesh metrics</span>
+<span class="c1">#            if uw.rank() == 0: print(&quot;Updating mesh metrics.&quot;)</span>
+            <span class="n">uw</span><span class="o">.</span><span class="n">libUnderworld</span><span class="o">.</span><span class="n">StgDomain</span><span class="o">.</span><span class="n">Mesh_DeformationUpdate</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span> <span class="p">)</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;subMesh&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">subMesh</span><span class="p">:</span>
+                <span class="c1"># remesh the submesh based on the new primary</span>
+<span class="c1">#                if uw.rank() == 0: print(&quot;Updating submesh for primary mesh changes.&quot;)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">subMesh</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+            <span class="c1"># execute any post deform functions</span>
+            <span class="k">for</span> <span class="n">function</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_post_deform_functions</span><span class="p">:</span>
+                <span class="n">function</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="FeMesh.add_pre_deform_function"><a class="viewcode-back" href="../../../underworld.mesh.html#underworld.mesh.FeMesh.add_pre_deform_function">[docs]</a>    <span class="k">def</span> <span class="nf">add_pre_deform_function</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">function</span> <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds a function function to be executed before mesh deformation</span>
+<span class="sd">        is applied.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        function : FunctionType</span>
+<span class="sd">            Python (not underworld) function to be executed. Closures should be </span>
+<span class="sd">            used where parameters are required.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pre_deform_functions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="n">function</span> <span class="p">)</span></div>
+
+<div class="viewcode-block" id="FeMesh.add_post_deform_function"><a class="viewcode-back" href="../../../underworld.mesh.html#underworld.mesh.FeMesh.add_post_deform_function">[docs]</a>    <span class="k">def</span> <span class="nf">add_post_deform_function</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">function</span> <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds a function function to be executed after mesh deformation</span>
+<span class="sd">        is applied.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        function : FunctionType</span>
+<span class="sd">            Python (not underworld) function to be executed. Closures should be </span>
+<span class="sd">            used where parameters are required.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_post_deform_functions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="n">function</span> <span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nodesLocal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            Returns the number of local nodes on the mesh.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">libUnderworld</span><span class="o">.</span><span class="n">StgDomain</span><span class="o">.</span><span class="n">Mesh_GetLocalSize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nodesGlobal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            Returns the number of global nodes on the mesh</span>
+
+<span class="sd">        Example</span>
+<span class="sd">        -------</span>
+<span class="sd">        &gt;&gt;&gt; someMesh = uw.mesh.FeMesh_Cartesian( elementType=&#39;Q1&#39;, elementRes=(2,2), minCoord=(-1.,-1.), maxCoord=(1.,1.) )</span>
+<span class="sd">        &gt;&gt;&gt; someMesh.nodesGlobal</span>
+<span class="sd">        9</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">libUnderworld</span><span class="o">.</span><span class="n">StgDomain</span><span class="o">.</span><span class="n">Mesh_GetGlobalSize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">elementsLocal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            Returns the number of local elements on the mesh</span>
+
+<span class="sd">        Example</span>
+<span class="sd">        -------</span>
+<span class="sd">        &gt;&gt;&gt; someMesh = uw.mesh.FeMesh_Cartesian( elementType=&#39;Q1&#39;, elementRes=(2,2), minCoord=(-1.,-1.), maxCoord=(1.,1.) )</span>
+<span class="sd">        &gt;&gt;&gt; someMesh.elementsLocal</span>
+<span class="sd">        4</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">libUnderworld</span><span class="o">.</span><span class="n">StgDomain</span><span class="o">.</span><span class="n">Mesh_GetLocalSize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">elementsGlobal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            Returns the number of global elements on the mesh</span>
+
+<span class="sd">        Example</span>
+<span class="sd">        -------</span>
+<span class="sd">        &gt;&gt;&gt; someMesh = uw.mesh.FeMesh_Cartesian( elementType=&#39;Q1&#39;, elementRes=(2,2), minCoord=(-1.,-1.), maxCoord=(1.,1.) )</span>
+<span class="sd">        &gt;&gt;&gt; someMesh.elementsGlobal</span>
+<span class="sd">        4</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">libUnderworld</span><span class="o">.</span><span class="n">StgDomain</span><span class="o">.</span><span class="n">Mesh_GetGlobalSize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">)</span>
+
+<div class="viewcode-block" id="FeMesh.reset"><a class="viewcode-back" href="../../../underworld.mesh.html#underworld.mesh.FeMesh.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reset the mesh.</span>
+
+<span class="sd">        Templated mesh (such as the DQ0 mesh) will be reset according</span>
+<span class="sd">        to the current state of their geometryMesh.</span>
+
+<span class="sd">        Other mesh (such as the Q1 &amp; Q2) will be reset to their</span>
+<span class="sd">        post-construction state.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        This method must be called collectively by all processes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generator</span><span class="o">.</span><span class="n">_reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="c1"># if we have a submesh, reset it as well</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;subMesh&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">subMesh</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">subMesh</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">specialSets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            This dictionary stores a set of special data sets relating to mesh objects.</span>
+
+<span class="sd">        Example</span>
+<span class="sd">        -------</span>
+<span class="sd">        &gt;&gt;&gt; import underworld as uw</span>
+<span class="sd">        &gt;&gt;&gt; someMesh = uw.mesh.FeMesh_Cartesian( elementType=&#39;Q1&#39;, elementRes=(2,2), minCoord=(0.,0.), maxCoord=(1.,1.) )</span>
+<span class="sd">        &gt;&gt;&gt; someMesh.specialSets.keys()</span>
+<span class="sd">        [&#39;MaxI_VertexSet&#39;, &#39;MinI_VertexSet&#39;, &#39;AllWalls_VertexSet&#39;, &#39;MinJ_VertexSet&#39;, &#39;MaxJ_VertexSet&#39;, &#39;Empty&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; someMesh.specialSets[&quot;MinJ_VertexSet&quot;]</span>
+<span class="sd">        FeMesh_IndexSet([0, 1, 2])</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_specialSets&quot;</span><span class="p">):</span>
+            <span class="k">class</span> <span class="nc">_SpecialSetsDict</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                This special dictionary simply calls the function with the mesh object</span>
+<span class="sd">                before returning it.</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mesh</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span>
+
+                    <span class="c1"># call parents method</span>
+                    <span class="nb">super</span><span class="p">(</span><span class="n">_SpecialSetsDict</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+                <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">index</span><span class="p">):</span>
+                    <span class="c1"># get item using regular dict</span>
+                    <span class="n">item</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">_SpecialSetsDict</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__getitem__</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+                    <span class="c1"># now call using mesh and return</span>
+                    <span class="k">return</span> <span class="n">item</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_specialSets</span> <span class="o">=</span> <span class="n">_SpecialSetsDict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_specialSets</span>
+
+    <span class="k">def</span> <span class="nf">_add_to_stg_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">componentDictionary</span><span class="p">):</span>
+        <span class="c1"># call parents method</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">FeMesh</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_add_to_stg_dict</span><span class="p">(</span><span class="n">componentDictionary</span><span class="p">)</span>
+
+        <span class="n">componentDictionary</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="o">.</span><span class="n">name</span><span class="p">][</span><span class="s2">&quot;elementType&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_elementType</span>
+
+    <span class="k">def</span> <span class="nf">_get_iterator</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># lets create the full index set</span>
+        <span class="n">iset</span> <span class="o">=</span> <span class="n">FeMesh_IndexSet</span><span class="p">(</span>      <span class="nb">object</span>           <span class="o">=</span> <span class="bp">self</span><span class="p">,</span>
+                                     <span class="n">topologicalIndex</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+                                     <span class="n">size</span>             <span class="o">=</span> <span class="n">libUnderworld</span><span class="o">.</span><span class="n">StgDomain</span><span class="o">.</span><span class="n">Mesh_GetDomainSize</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="p">,</span> <span class="n">libUnderworld</span><span class="o">.</span><span class="n">StgDomain</span><span class="o">.</span><span class="n">MT_VERTEX</span> <span class="p">)</span> <span class="p">)</span>
+        <span class="n">iset</span><span class="o">.</span><span class="n">addAll</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">iset</span><span class="o">.</span><span class="n">_get_iterator</span><span class="p">()</span>
+
+<div class="viewcode-block" id="FeMesh.save"><a class="viewcode-back" href="../../../underworld.mesh.html#underworld.mesh.FeMesh.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">filename</span> <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Save the mesh to disk</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        filename : string</span>
+<span class="sd">            The name of the output file.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        underworld.utils.SavedFileData</span>
+<span class="sd">            Data object relating to saved file. This only needs to be retained</span>
+<span class="sd">            if you wish to create XDMF files and can be ignored otherwise.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        This method must be called collectively by all processes.</span>
+
+<span class="sd">        Example</span>
+<span class="sd">        -------</span>
+<span class="sd">        First create the mesh:</span>
+
+<span class="sd">        &gt;&gt;&gt; mesh = uw.mesh.FeMesh_Cartesian( elementType=&#39;Q1/dQ0&#39;, elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )</span>
+
+<span class="sd">        Save to a file (note that the &#39;ignoreMe&#39; object isn&#39;t really required):</span>
+
+<span class="sd">        &gt;&gt;&gt; ignoreMe = mesh.save(&quot;saved_mesh.h5&quot;)</span>
+
+<span class="sd">        Now let&#39;s try and reload. First create new mesh (note the different spatial size):</span>
+
+<span class="sd">        &gt;&gt;&gt; clone_mesh = uw.mesh.FeMesh_Cartesian( elementType=&#39;Q1/dQ0&#39;, elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.5,1.5) )</span>
+
+<span class="sd">        Confirm clone mesh is different from original mesh:</span>
+
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; np.allclose(mesh.data,clone_mesh.data)</span>
+<span class="sd">        False</span>
+
+<span class="sd">        Now reload using saved file:</span>
+
+<span class="sd">        &gt;&gt;&gt; clone_mesh.load(&quot;saved_mesh.h5&quot;)</span>
+
+<span class="sd">        Now check for equality:</span>
+
+<span class="sd">        &gt;&gt;&gt; np.allclose(mesh.data,clone_mesh.data)</span>
+<span class="sd">        True</span>
+
+<span class="sd">        &gt;&gt;&gt; # clean up:</span>
+<span class="sd">        &gt;&gt;&gt; if uw.rank() == 0:</span>
+<span class="sd">        ...     import os;</span>
+<span class="sd">        ...     os.remove( &quot;saved_mesh.h5&quot; )</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">generator</span><span class="p">,</span> <span class="s1">&#39;geometryMesh&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Cannot save this mesh as it&#39;s a subMesh. &quot;</span>
+                                <span class="o">+</span> <span class="s2">&quot;Most likely you only need to save its geometryMesh&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;filename&#39;, must be of type &#39;str&#39;&quot;</span><span class="p">)</span>
+
+        <span class="n">h5f</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">driver</span><span class="o">=</span><span class="s1">&#39;mpio&#39;</span><span class="p">,</span> <span class="n">comm</span><span class="o">=</span><span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="p">)</span>
+
+        <span class="c1"># save attributes and simple data - MUST be parallel as driver is mpio</span>
+        <span class="n">h5f</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;dimensions&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span>
+        <span class="n">h5f</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;mesh resolution&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">elementRes</span>
+        <span class="n">h5f</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;max&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxCoord</span>
+        <span class="n">h5f</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;min&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">minCoord</span>
+        <span class="n">h5f</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;regular&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">isRegular</span>
+
+        <span class="c1"># write the vertices</span>
+        <span class="n">globalShape</span> <span class="o">=</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodesGlobal</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="p">)</span>
+        <span class="n">dset</span> <span class="o">=</span> <span class="n">h5f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s2">&quot;vertices&quot;</span><span class="p">,</span>
+                                  <span class="n">shape</span><span class="o">=</span><span class="n">globalShape</span><span class="p">,</span>
+                                  <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+
+        <span class="n">local</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodesLocal</span>
+        <span class="c1"># write to the dset using the global node ids</span>
+        <span class="n">dset</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">data_nodegId</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">local</span><span class="p">],:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">local</span><span class="p">]</span>
+
+        <span class="c1"># write the element node connectivity</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_elementNodes</span>
+        <span class="n">globalShape</span> <span class="o">=</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">elementsGlobal</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_elementNodes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="p">)</span>
+        <span class="n">dset</span> <span class="o">=</span> <span class="n">h5f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s2">&quot;en_map&quot;</span><span class="p">,</span>
+                                  <span class="n">shape</span><span class="o">=</span><span class="n">globalShape</span><span class="p">,</span>
+                                  <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data_elementNodes</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_elgId</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_elementNodes</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Error in mesh.data_elementNodes - required for h5save&quot;</span><span class="p">)</span>
+
+        <span class="n">local</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_elgId</span><span class="p">)</span>
+        <span class="c1"># write to the dset using the global node ids</span>
+        <span class="n">dset</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">data_elgId</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">local</span><span class="p">],:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_elementNodes</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">local</span><span class="p">]</span>
+
+        <span class="n">h5f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="c1"># return our file handle</span>
+        <span class="k">return</span> <span class="n">uw</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">SavedFileData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FeMesh.load"><a class="viewcode-back" href="../../../underworld.mesh.html#underworld.mesh.FeMesh.load">[docs]</a>    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span> <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load the mesh from disk.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        filename: str</span>
+<span class="sd">            The filename for the saved file. Relative or absolute paths may be</span>
+<span class="sd">            used, but all directories must exist.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        This method must be called collectively by all processes.</span>
+
+<span class="sd">        If the file data array is the same length as the current mesh</span>
+<span class="sd">        global size, it is assumed the file contains compatible data. Note that</span>
+<span class="sd">        this may not be the case where for example where you have saved using a</span>
+<span class="sd">        2*8 resolution mesh, then loaded using an 8*2 resolution mesh.</span>
+
+<span class="sd">        Provided files must be in hdf5 format, and use the correct schema.</span>
+
+<span class="sd">        Example</span>
+<span class="sd">        -------</span>
+<span class="sd">        Refer to example provided for &#39;save&#39; method.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Expected filename to be provided as a string&quot;</span><span class="p">)</span>
+
+        <span class="c1"># get field and mesh information</span>
+        <span class="n">h5f</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span> <span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="n">driver</span><span class="o">=</span><span class="s1">&#39;mpio&#39;</span><span class="p">,</span> <span class="n">comm</span><span class="o">=</span><span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span> <span class="p">);</span>
+
+        <span class="c1"># get resolution of old mesh</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">h5f</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;mesh resolution&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">res</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Can&#39;t read the &#39;mesh resolution&#39; for the field hdf5 file,&quot;</span><span class="o">+</span>
+                   <span class="s2">&quot; was it created correctly?&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">elementRes</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Provided file mesh resolution does not appear to correspond to</span><span class="se">\n</span><span class="s2">&quot;</span>\
+                               <span class="s2">&quot;resolution of mesh object.&quot;</span><span class="p">)</span>
+
+        <span class="n">dset</span> <span class="o">=</span> <span class="n">h5f</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;vertices&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">dset</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Can&#39;t find the &#39;vertices&#39; dataset in hdf5 file &#39;</span><span class="si">{0}</span><span class="s2">&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span> <span class="p">)</span>
+
+        <span class="n">dof</span> <span class="o">=</span> <span class="n">dset</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">dof</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Can&#39;t load hdf5 &#39;</span><span class="si">{0}</span><span class="s2">&#39;, incompatible data shape&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">filename</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dset</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodesGlobal</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Provided data file appears to be for a different resolution mesh.&quot;</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">deform_mesh</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">nodesLocal</span><span class="p">]</span> <span class="o">=</span> <span class="n">dset</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">data_nodegId</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">nodesLocal</span><span class="p">],:]</span>
+
+        <span class="c1"># note that deform_mesh always sets the mesh to irregular.</span>
+        <span class="c1"># reset this according to what the saved file has.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">isRegular</span> <span class="o">=</span> <span class="n">h5f</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;regular&#39;</span><span class="p">]</span>
+
+        <span class="n">h5f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div></div>
+
+
+<span class="k">class</span> <span class="nc">MeshGenerator</span><span class="p">(</span><span class="n">_stgermain</span><span class="o">.</span><span class="n">StgCompoundComponent</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Abstract base class for all mesh generators.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameter</span>
+<span class="sd">    ---------</span>
+<span class="sd">    partitioned: bool</span>
+<span class="sd">        If false, the mesh is not partitioned across entire processor pool. Instead</span>
+<span class="sd">        mesh is entirely owned by processor which generated it.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_objectsDict</span> <span class="o">=</span> <span class="p">{</span> <span class="s2">&quot;_gen&quot;</span><span class="p">:</span> <span class="kc">None</span> <span class="p">}</span>
+    <span class="n">_selfObjectName</span> <span class="o">=</span> <span class="s2">&quot;_gen&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">partitioned</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">partitioned</span><span class="p">,</span><span class="nb">bool</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;partitioned&#39; parameter must be of type &#39;bool&#39;.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_partitioned</span> <span class="o">=</span> <span class="n">partitioned</span>
+        <span class="c1"># build parent</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">MeshGenerator</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">dim</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            FeMesh dimensionality. </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dim</span>
+
+    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span> <span class="nf">_reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">mesh</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Abstract class which handles mesh resetting.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">_add_to_stg_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">componentDictionary</span><span class="p">):</span>
+        <span class="c1"># call parents method</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">MeshGenerator</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_add_to_stg_dict</span><span class="p">(</span><span class="n">componentDictionary</span><span class="p">)</span>
+
+        <span class="n">componentDictionary</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_gen</span><span class="o">.</span><span class="n">name</span><span class="p">][</span><span class="s2">&quot;partitioned&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_partitioned</span>
+
+<span class="k">class</span> <span class="nc">CartesianMeshGenerator</span><span class="p">(</span><span class="n">MeshGenerator</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Abstract base class for all cartesian mesh generators.</span>
+<span class="sd">    Generators of this class provide algorithms to build meshes which are</span>
+<span class="sd">    logically and geometrically Cartesian.</span>
+
+<span class="sd">    Parameter</span>
+<span class="sd">    ---------</span>
+<span class="sd">    elementRes: list,tuple</span>
+<span class="sd">        List or tuple of ints specifying mesh resolution. See CartesianMeshGenerator.elementRes</span>
+<span class="sd">        docstring for further information.</span>
+<span class="sd">    minCoord:  list, tuple</span>
+<span class="sd">        List or tuple of floats specifying minimum mesh location. See CartesianMeshGenerator.minCoord</span>
+<span class="sd">        docstring for further information.</span>
+<span class="sd">    maxCoord: list, tuple</span>
+<span class="sd">        List or tuple of floats specifying maximum mesh location. See CartesianMeshGenerator.maxCoord</span>
+<span class="sd">        docstring for further information.</span>
+<span class="sd">    periodic: list, tuple</span>
+<span class="sd">        List or tuple of bools, specifying mesh periodicity in each direction.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elementRes</span><span class="p">,</span> <span class="n">minCoord</span><span class="p">,</span> <span class="n">maxCoord</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elementRes</span><span class="p">,(</span><span class="nb">list</span><span class="p">,</span><span class="nb">tuple</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;elementRes&#39; object passed in must be of type &#39;list&#39; or &#39;tuple&#39;&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">elementRes</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,(</span><span class="nb">int</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span><span class="n">item</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;elementRes&#39; list must only contain positive integers.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">elementRes</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;For &#39;elementRes&#39;, you must provide a tuple of length 2 or 3 (for respectively a 2d or 3d mesh).&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_elementRes</span> <span class="o">=</span> <span class="n">elementRes</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">minCoord</span><span class="p">,(</span><span class="nb">list</span><span class="p">,</span><span class="nb">tuple</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;minCoord&#39; object passed in must be of type &#39;list&#39; or &#39;tuple&#39;&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">minCoord</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,(</span><span class="nb">int</span><span class="p">,</span><span class="nb">float</span><span class="p">)):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;minCoord&#39; object passed in must only contain objects of type &#39;int&#39; or &#39;float&#39;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">minCoord</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">elementRes</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;minCoord&#39; tuple length (</span><span class="si">{}</span><span class="s2">) must be the same as that of &#39;elementRes&#39; (</span><span class="si">{}</span><span class="s2">).&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">minCoord</span><span class="p">),</span><span class="nb">len</span><span class="p">(</span><span class="n">elementRes</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_minCoord</span> <span class="o">=</span> <span class="n">minCoord</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">maxCoord</span><span class="p">,(</span><span class="nb">list</span><span class="p">,</span><span class="nb">tuple</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;maxCoord&#39; object passed in must be of type &#39;list&#39; or &#39;tuple&#39;&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">maxCoord</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,(</span><span class="nb">int</span><span class="p">,</span><span class="nb">float</span><span class="p">)):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;maxCoord&#39; object passed in must only contain objects of type &#39;int&#39; or &#39;float&#39;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">maxCoord</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">elementRes</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;maxCoord&#39; tuple length (</span><span class="si">{}</span><span class="s2">) must be the same as that of &#39;elementRes&#39; (</span><span class="si">{}</span><span class="s2">).&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">maxCoord</span><span class="p">),</span><span class="nb">len</span><span class="p">(</span><span class="n">elementRes</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_maxCoord</span> <span class="o">=</span> <span class="n">maxCoord</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">elementRes</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">periodic</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">periodic</span><span class="p">,(</span><span class="nb">list</span><span class="p">,</span><span class="nb">tuple</span><span class="p">)):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;periodic&#39; object passed in must be of type &#39;list&#39; or &#39;tuple&#39; in CartesianMeshGenerator&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">periodic</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,(</span><span class="nb">bool</span><span class="p">)):</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;periodic&#39; list must only contain booleans.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">periodic</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">elementRes</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;periodic&#39; tuple length (</span><span class="si">{}</span><span class="s2">) must be the same as that of &#39;elementRes&#39; (</span><span class="si">{}</span><span class="s2">).&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">periodic</span><span class="p">),</span><span class="nb">len</span><span class="p">(</span><span class="n">elementRes</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_periodic</span> <span class="o">=</span> <span class="n">periodic</span>
+
+        <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">minCoord</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">maxCoord</span><span class="p">[</span><span class="n">ii</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;minCoord[</span><span class="si">{}</span><span class="s2">]&#39; must be less than &#39;maxCoord[</span><span class="si">{}</span><span class="s2">]&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ii</span><span class="p">,</span><span class="n">ii</span><span class="p">))</span>
+
+        <span class="c1"># build parent</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">CartesianMeshGenerator</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">elementRes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list, tuple</span>
+<span class="sd">            Element count to generate in I, J &amp; K directions. Must be provided </span>
+<span class="sd">            as a tuple of integers.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_elementRes</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">minCoord</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list, tuple</span>
+<span class="sd">            Minimum coordinate position for cartesian mesh.</span>
+<span class="sd">            Values correspond to minimums in each direction (I,J,K) of the mesh.</span>
+<span class="sd">            Note, this is the value used for initialisation, but mesh may be </span>
+<span class="sd">            advecting.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_minCoord</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">periodic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list, tuple</span>
+<span class="sd">            List of bools specifying mesh periodicity in each direction.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_periodic</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">maxCoord</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list, tuple</span>
+<span class="sd">            Maximum coordinate position for cartesian mesh.</span>
+<span class="sd">            Values correspond to maximums in each direction (I,J,K) of the mesh.</span>
+<span class="sd">            Note, this is the value used for initialisation, but mesh may be </span>
+<span class="sd">            advecting.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_maxCoord</span>
+
+    <span class="k">def</span> <span class="nf">_add_to_stg_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">componentDictionary</span><span class="p">):</span>
+        <span class="c1"># call parents method</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">CartesianMeshGenerator</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_add_to_stg_dict</span><span class="p">(</span><span class="n">componentDictionary</span><span class="p">)</span>
+
+        <span class="n">componentDictionary</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_gen</span><span class="o">.</span><span class="n">name</span><span class="p">][</span>      <span class="s2">&quot;size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_elementRes</span>
+        <span class="n">componentDictionary</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_gen</span><span class="o">.</span><span class="n">name</span><span class="p">][</span>  <span class="s2">&quot;minCoord&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_minCoord</span>
+        <span class="n">componentDictionary</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_gen</span><span class="o">.</span><span class="n">name</span><span class="p">][</span>  <span class="s2">&quot;maxCoord&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_maxCoord</span>
+        <span class="n">componentDictionary</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_gen</span><span class="o">.</span><span class="n">name</span><span class="p">][</span>       <span class="s2">&quot;dim&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dim</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">periodic</span><span class="p">:</span>
+            <span class="n">componentDictionary</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_gen</span><span class="o">.</span><span class="n">name</span><span class="p">][</span><span class="s2">&quot;periodic_x&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_periodic</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">componentDictionary</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_gen</span><span class="o">.</span><span class="n">name</span><span class="p">][</span><span class="s2">&quot;periodic_y&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_periodic</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="n">componentDictionary</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_gen</span><span class="o">.</span><span class="n">name</span><span class="p">][</span><span class="s2">&quot;periodic_z&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_periodic</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">mesh</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reset method for mesh generated using the cartesian generator. This method</span>
+<span class="sd">        will reset the mesh to regular cartesian geometry.</span>
+
+<span class="sd">        &gt;&gt;&gt; import underworld as uw</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; mesh = uw.mesh.FeMesh_Cartesian(elementType=&#39;Q1&#39;)</span>
+
+<span class="sd">        Grab copy of original state:</span>
+<span class="sd">        &gt;&gt;&gt; vertexCopy = mesh.data.copy()</span>
+
+<span class="sd">        Deform mesh:</span>
+<span class="sd">        &gt;&gt;&gt; with mesh.deform_mesh():</span>
+<span class="sd">        ...     mesh.data[:] += 0.1*np.sin(mesh.data[:])</span>
+
+<span class="sd">        Confirm mesh is different:</span>
+<span class="sd">        &gt;&gt;&gt; np.allclose(mesh.data,vertexCopy)</span>
+<span class="sd">        False</span>
+
+<span class="sd">        Now reset mesh and test again:</span>
+<span class="sd">        &gt;&gt;&gt; mesh.reset()</span>
+<span class="sd">        &gt;&gt;&gt; np.allclose(mesh.data,vertexCopy)</span>
+<span class="sd">        True</span>
+
+<span class="sd">        Lets do the same for the Q2 mesh:</span>
+<span class="sd">        &gt;&gt;&gt; mesh = uw.mesh.FeMesh_Cartesian(elementType=&#39;Q2&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; vertexCopy = mesh.data.copy()</span>
+<span class="sd">        &gt;&gt;&gt; with mesh.deform_mesh():</span>
+<span class="sd">        ...     mesh.data[:] += 0.1*np.sin(mesh.data[:])</span>
+<span class="sd">        &gt;&gt;&gt; np.allclose(mesh.data,vertexCopy)</span>
+<span class="sd">        False</span>
+<span class="sd">        &gt;&gt;&gt; mesh.reset()</span>
+<span class="sd">        &gt;&gt;&gt; np.allclose(mesh.data,vertexCopy)</span>
+<span class="sd">        True</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">uw</span><span class="o">.</span><span class="n">libUnderworld</span><span class="o">.</span><span class="n">StgDomain</span><span class="o">.</span><span class="n">CartesianGenerator_GenGeom</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gen</span><span class="p">,</span> <span class="n">mesh</span><span class="o">.</span><span class="n">_cself</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">mesh</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">isRegular</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="c1"># set algos back to regular</span>
+        <span class="n">uw</span><span class="o">.</span><span class="n">libUnderworld</span><span class="o">.</span><span class="n">StgDomain</span><span class="o">.</span><span class="n">Mesh_SetAlgorithms</span><span class="p">(</span> <span class="n">mesh</span><span class="o">.</span><span class="n">_cself</span><span class="p">,</span>
+                                                       <span class="n">uw</span><span class="o">.</span><span class="n">libUnderworld</span><span class="o">.</span><span class="n">StgDomain</span><span class="o">.</span><span class="n">Mesh_RegularAlgorithms_New</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="kc">None</span><span class="p">)</span> <span class="p">)</span>
+        <span class="n">uw</span><span class="o">.</span><span class="n">libUnderworld</span><span class="o">.</span><span class="n">StgDomain</span><span class="o">.</span><span class="n">Mesh_DeformationUpdate</span><span class="p">(</span> <span class="n">mesh</span><span class="o">.</span><span class="n">_cself</span> <span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">QuadraticCartesianGenerator</span><span class="p">(</span><span class="n">CartesianMeshGenerator</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class provides the algorithms to generate a &#39;Q2&#39; (ie quadratic) mesh.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_objectsDict</span> <span class="o">=</span> <span class="p">{</span> <span class="s2">&quot;_gen&quot;</span><span class="p">:</span> <span class="s2">&quot;C2Generator&quot;</span> <span class="p">}</span>
+
+<span class="k">class</span> <span class="nc">LinearCartesianGenerator</span><span class="p">(</span><span class="n">CartesianMeshGenerator</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class provides the algorithms to generate a &#39;Q1&#39; (ie linear) mesh.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_objectsDict</span> <span class="o">=</span> <span class="p">{</span> <span class="s2">&quot;_gen&quot;</span><span class="p">:</span> <span class="s2">&quot;CartesianGenerator&quot;</span> <span class="p">}</span>
+
+
+<span class="k">class</span> <span class="nc">TemplatedMeshGenerator</span><span class="p">(</span><span class="n">MeshGenerator</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Abstract Class. Children of this class provide algorithms to generate a</span>
+<span class="sd">    mesh by stenciling nodes on the cells of the provided geometry mesh.</span>
+
+<span class="sd">    Parameter:</span>
+<span class="sd">    ----------</span>
+<span class="sd">    geometryMesh: underworld.mesh.FeMesh</span>
+<span class="sd">        The geometry mesh.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">geometryMesh</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">geometryMesh</span><span class="p">,(</span><span class="n">FeMesh</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;geometryMesh&#39; object passed in must be of type &#39;FeMesh&#39;&quot;</span><span class="p">)</span>
+        <span class="c1"># note we keep a weakref to avoid circular dependencies</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_geometryMeshWeakref</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="n">geometryMesh</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">geometryMesh</span><span class="o">.</span><span class="n">dim</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">TemplatedMeshGenerator</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">geometryMesh</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        underworld.mesh.FeMesh</span>
+<span class="sd">            This is the FeMesh from which the TemplatedMeshGenerator obtains </span>
+<span class="sd">            the cells to template nodes upon. Note that this class only retains </span>
+<span class="sd">            a weakref to the geometryMesh, and therefore this property may return </span>
+<span class="sd">            None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_geometryMeshWeakref</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_add_to_stg_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">componentDictionary</span><span class="p">):</span>
+        <span class="c1"># call parents method</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">TemplatedMeshGenerator</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_add_to_stg_dict</span><span class="p">(</span><span class="n">componentDictionary</span><span class="p">)</span>
+        <span class="n">componentDictionary</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_gen</span><span class="o">.</span><span class="n">name</span><span class="p">][</span><span class="s2">&quot;elementMesh&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">geometryMesh</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">name</span>
+
+<span class="k">class</span> <span class="nc">LinearInnerGenerator</span><span class="p">(</span><span class="n">TemplatedMeshGenerator</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class provides the algorithms to generate a &#39;dPc1&#39; mesh.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_objectsDict</span> <span class="o">=</span> <span class="p">{</span> <span class="s2">&quot;_gen&quot;</span><span class="p">:</span> <span class="s2">&quot;Inner2DGenerator&quot;</span> <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">_reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">mesh</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reset method for mesh generated using the dPc1 generator. This method</span>
+<span class="sd">        will reset the mesh according to its geometryMesh&#39;s current state.</span>
+
+<span class="sd">        &gt;&gt;&gt; import underworld as uw</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; mesh = uw.mesh.FeMesh_Cartesian(elementType=&#39;Q2/dPc1&#39;)</span>
+
+<span class="sd">        Grab copy of original state:</span>
+<span class="sd">        &gt;&gt;&gt; vertexCopy = mesh.subMesh.data.copy()</span>
+
+<span class="sd">        Deform mesh.  Remember, we always modify the parent mesh:</span>
+<span class="sd">        &gt;&gt;&gt; with mesh.deform_mesh():</span>
+<span class="sd">        ...     mesh.data[:] += 0.1*np.sin(mesh.data[:])</span>
+
+<span class="sd">        Confirm subMesh has been deformed:</span>
+<span class="sd">        &gt;&gt;&gt; np.allclose(mesh.subMesh.data,vertexCopy)</span>
+<span class="sd">        False</span>
+
+<span class="sd">        Now reset mesh and test again:</span>
+<span class="sd">        &gt;&gt;&gt; mesh.reset()</span>
+<span class="sd">        &gt;&gt;&gt; np.allclose(mesh.subMesh.data,vertexCopy)</span>
+<span class="sd">        True</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">uw</span><span class="o">.</span><span class="n">libUnderworld</span><span class="o">.</span><span class="n">StgFEM</span><span class="o">.</span><span class="n">Inner2DGenerator_BuildGeometry</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gen</span><span class="p">,</span> <span class="n">mesh</span><span class="o">.</span><span class="n">_cself</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">dQ1Generator</span><span class="p">(</span><span class="n">TemplatedMeshGenerator</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class provides the algorithms to generate a &#39;dQ1&#39; mesh.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_objectsDict</span> <span class="o">=</span> <span class="p">{</span> <span class="s2">&quot;_gen&quot;</span><span class="p">:</span> <span class="s2">&quot;dQ1Generator&quot;</span> <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">_reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">mesh</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reset method for mesh generated using the dQ1 generator. This method</span>
+<span class="sd">        will reset the mesh according to its geometryMesh&#39;s current state.</span>
+
+<span class="sd">        &gt;&gt;&gt; import underworld as uw</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; mesh = uw.mesh.FeMesh_Cartesian(elementType=&#39;Q2/dQ1&#39;)</span>
+
+<span class="sd">        Grab copy of original state:</span>
+<span class="sd">        &gt;&gt;&gt; vertexCopy = mesh.subMesh.data.copy()</span>
+
+<span class="sd">        Deform mesh.  Remember, we always modify the parent mesh:</span>
+<span class="sd">        &gt;&gt;&gt; with mesh.deform_mesh():</span>
+<span class="sd">        ...     mesh.data[:] += 0.1*np.sin(mesh.data[:])</span>
+
+<span class="sd">        Confirm subMesh has been deformed:</span>
+<span class="sd">        &gt;&gt;&gt; np.allclose(mesh.subMesh.data,vertexCopy)</span>
+<span class="sd">        False</span>
+
+<span class="sd">        Now reset mesh and test again:</span>
+<span class="sd">        &gt;&gt;&gt; mesh.reset()</span>
+<span class="sd">        &gt;&gt;&gt; np.allclose(mesh.subMesh.data,vertexCopy)</span>
+<span class="sd">        True</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">uw</span><span class="o">.</span><span class="n">libUnderworld</span><span class="o">.</span><span class="n">StgFEM</span><span class="o">.</span><span class="n">dQ1Generator_BuildGeometry</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gen</span><span class="p">,</span> <span class="n">mesh</span><span class="o">.</span><span class="n">_cself</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">ConstantGenerator</span><span class="p">(</span><span class="n">TemplatedMeshGenerator</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class provides the algorithms to generate a &#39;dQ0&#39; mesh.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_objectsDict</span> <span class="o">=</span> <span class="p">{</span> <span class="s2">&quot;_gen&quot;</span><span class="p">:</span> <span class="s2">&quot;C0Generator&quot;</span> <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">_reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">mesh</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reset method for mesh generated using the dQ1 generator. This method</span>
+<span class="sd">        will reset the mesh according to its geometryMesh&#39;s current state.</span>
+
+<span class="sd">        &gt;&gt;&gt; import underworld as uw</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; mesh = uw.mesh.FeMesh_Cartesian(elementType=&#39;Q1/dQ0&#39;)</span>
+
+<span class="sd">        Grab copy of original state:</span>
+<span class="sd">        &gt;&gt;&gt; vertexCopy = mesh.subMesh.data.copy()</span>
+
+<span class="sd">        Deform mesh.  Remember, we always modify the parent mesh:</span>
+<span class="sd">        &gt;&gt;&gt; with mesh.deform_mesh():</span>
+<span class="sd">        ...     mesh.data[:] += 0.1*np.sin(mesh.data[:])</span>
+
+<span class="sd">        Confirm subMesh has been deformed:</span>
+<span class="sd">        &gt;&gt;&gt; np.allclose(mesh.subMesh.data,vertexCopy)</span>
+<span class="sd">        False</span>
+
+<span class="sd">        Now reset mesh and test again:</span>
+<span class="sd">        &gt;&gt;&gt; mesh.reset()</span>
+<span class="sd">        &gt;&gt;&gt; np.allclose(mesh.subMesh.data,vertexCopy)</span>
+<span class="sd">        True</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">uw</span><span class="o">.</span><span class="n">libUnderworld</span><span class="o">.</span><span class="n">StgFEM</span><span class="o">.</span><span class="n">C0Generator_BuildGeometry</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gen</span><span class="p">,</span> <span class="n">mesh</span><span class="o">.</span><span class="n">_cself</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="FeMesh_Cartesian"><a class="viewcode-back" href="../../../underworld.mesh.html#underworld.mesh.FeMesh_Cartesian">[docs]</a><span class="k">class</span> <span class="nc">FeMesh_Cartesian</span><span class="p">(</span><span class="n">FeMesh</span><span class="p">,</span> <span class="n">CartesianMeshGenerator</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class generates a finite element mesh which is topologically cartesian</span>
+<span class="sd">    and geometrically regular. It is possible to directly build a dual mesh by</span>
+<span class="sd">    passing a pair of element types to the constructor.</span>
+
+<span class="sd">    Refer to parent classes for parameters beyond those below.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    elementType: str</span>
+<span class="sd">        Mesh element type. Note that this class allows the user to</span>
+<span class="sd">        (optionally) provide a pair of elementTypes for which a dual</span>
+<span class="sd">        mesh will be created.</span>
+<span class="sd">        The submesh is accessible through the &#39;subMesh&#39; property. The</span>
+<span class="sd">        primary mesh itself is the object returned by this constructor.</span>
+
+
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    To create a linear mesh:</span>
+
+<span class="sd">    &gt;&gt;&gt; import underworld as uw</span>
+<span class="sd">    &gt;&gt;&gt; someMesh = uw.mesh.FeMesh_Cartesian( elementType=&#39;Q1&#39;, elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )</span>
+<span class="sd">    &gt;&gt;&gt; someMesh.dim</span>
+<span class="sd">    2</span>
+<span class="sd">    &gt;&gt;&gt; someMesh.elementRes</span>
+<span class="sd">    (16, 16)</span>
+
+<span class="sd">    Alternatively, you can create a linear/constant dual mesh</span>
+
+<span class="sd">    &gt;&gt;&gt; someDualMesh = uw.mesh.FeMesh_Cartesian( elementType=&#39;Q1/dQ0&#39;, elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )</span>
+<span class="sd">    &gt;&gt;&gt; someDualMesh.elementType</span>
+<span class="sd">    &#39;Q1&#39;</span>
+<span class="sd">    &gt;&gt;&gt; subMesh = someDualMesh.subMesh</span>
+<span class="sd">    &gt;&gt;&gt; subMesh.elementType</span>
+<span class="sd">    &#39;DQ0&#39;</span>
+
+<span class="sd">    To set / read vertex coords, use the numpy interface via the &#39;data&#39; property.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_meshGenerator</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">&quot;C2Generator&quot;</span><span class="p">,</span> <span class="s2">&quot;CartesianGenerator&quot;</span> <span class="p">]</span>
+    <span class="n">_objectsDict</span> <span class="o">=</span> <span class="p">{</span> <span class="s2">&quot;_gen&quot;</span><span class="p">:</span> <span class="kc">None</span> <span class="p">}</span>  <span class="c1"># this is set programmatically in __new__</span>
+
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">elementType</span><span class="o">=</span><span class="s2">&quot;Q1/dQ0&quot;</span><span class="p">,</span> <span class="n">elementRes</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span> <span class="n">minCoord</span><span class="o">=</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="n">maxCoord</span><span class="o">=</span><span class="p">(</span><span class="mf">1.</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">partitioned</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># This class requires a custom __new__ so that we can decide which</span>
+        <span class="c1"># type of generator is required dynamically</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elementType</span><span class="p">,(</span><span class="nb">str</span><span class="p">,</span><span class="nb">tuple</span><span class="p">,</span><span class="nb">list</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;elementType&#39; object passed in must be of type &#39;str&#39;, &#39;list&#39; or &#39;tuple&#39;&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elementType</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="c1"># convert to tuple to make things easier</span>
+            <span class="kn">import</span> <span class="nn">re</span>
+            <span class="n">elementType</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,|-|/&quot;</span><span class="p">,</span><span class="n">elementType</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">elementType</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;A maximum of two mesh types are currently supported.&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">elType</span> <span class="ow">in</span> <span class="n">elementType</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elType</span><span class="p">,</span><span class="nb">str</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Items in provided &#39;elementType&#39; object must be of type &#39;str&#39;&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">elType</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cls</span><span class="o">.</span><span class="n">_supportedElementTypes</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;elementType&#39; provided (</span><span class="si">{}</span><span class="s2">) does not appear to be supported. </span><span class="se">\n</span><span class="s2"> </span><span class="se">\</span>
+<span class="s2">                                  Supported types are </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">elType</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span><span class="n">cls</span><span class="o">.</span><span class="n">_supportedElementTypes</span><span class="p">))</span>
+
+        <span class="c1"># Only supporting 2 &#39;main&#39; element types here</span>
+        <span class="k">if</span> <span class="n">elementType</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cls</span><span class="o">.</span><span class="n">_supportedElementTypes</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Primary elementType must be of type &#39;</span><span class="si">{}</span><span class="s2">&#39; or &#39;</span><span class="si">{}</span><span class="s2">&#39;.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cls</span><span class="o">.</span><span class="n">_supportedElementTypes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">cls</span><span class="o">.</span><span class="n">_supportedElementTypes</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">elementType</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="c1"># all element types after first one can be in a sub-mesh.</span>
+            <span class="k">if</span> <span class="n">elementType</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cls</span><span class="o">.</span><span class="n">_supportedElementTypes</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+                <span class="n">st</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">cls</span><span class="o">.</span><span class="n">_supportedElementTypes</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Secondary elementType must be one of type &#39;</span><span class="si">{}</span><span class="s2">&#39;.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">st</span><span class="p">)</span> <span class="p">)</span>
+
+        <span class="n">overruleDict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c1"># Only supporting 2 &#39;main&#39; elements types here</span>
+        <span class="k">if</span> <span class="n">elementType</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="n">cls</span><span class="o">.</span><span class="n">_supportedElementTypes</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">overruleDict</span><span class="p">[</span><span class="s2">&quot;_gen&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cls</span><span class="o">.</span><span class="n">_meshGenerator</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">elementType</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="n">cls</span><span class="o">.</span><span class="n">_supportedElementTypes</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">overruleDict</span><span class="p">[</span><span class="s2">&quot;_gen&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cls</span><span class="o">.</span><span class="n">_meshGenerator</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">FeMesh_Cartesian</span><span class="p">,</span><span class="n">cls</span><span class="p">)</span><span class="o">.</span><span class="n">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">objectsDictOverrule</span><span class="o">=</span><span class="n">overruleDict</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elementType</span><span class="o">=</span><span class="s2">&quot;Q1/dQ0&quot;</span><span class="p">,</span> <span class="n">elementRes</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span> <span class="n">minCoord</span><span class="o">=</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="n">maxCoord</span><span class="o">=</span><span class="p">(</span><span class="mf">1.</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">partitioned</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elementType</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="c1"># convert to tuple to make things easier</span>
+            <span class="kn">import</span> <span class="nn">re</span>
+            <span class="n">elementType</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,|-|/&quot;</span><span class="p">,</span><span class="n">elementType</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_elementTypes</span> <span class="o">=</span> <span class="n">elementType</span>
+        <span class="c1"># ok, lets go ahead and build primary mesh (ie, self)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">FeMesh_Cartesian</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">elementType</span><span class="o">=</span><span class="n">elementType</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">elementRes</span><span class="o">=</span><span class="n">elementRes</span><span class="p">,</span> <span class="n">minCoord</span><span class="o">=</span><span class="n">minCoord</span><span class="p">,</span> <span class="n">maxCoord</span><span class="o">=</span><span class="n">maxCoord</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">,</span> <span class="n">partitioned</span><span class="o">=</span><span class="n">partitioned</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1"># lets add the special sets</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">specialSets</span><span class="p">[</span><span class="s2">&quot;MaxI_VertexSet&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_specialSets_Cartesian</span><span class="o">.</span><span class="n">MaxI_VertexSet</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">specialSets</span><span class="p">[</span><span class="s2">&quot;MinI_VertexSet&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_specialSets_Cartesian</span><span class="o">.</span><span class="n">MinI_VertexSet</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">specialSets</span><span class="p">[</span><span class="s2">&quot;MaxJ_VertexSet&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_specialSets_Cartesian</span><span class="o">.</span><span class="n">MaxJ_VertexSet</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">specialSets</span><span class="p">[</span><span class="s2">&quot;MinJ_VertexSet&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_specialSets_Cartesian</span><span class="o">.</span><span class="n">MinJ_VertexSet</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="o">==</span><span class="mi">3</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">specialSets</span><span class="p">[</span><span class="s2">&quot;MaxK_VertexSet&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_specialSets_Cartesian</span><span class="o">.</span><span class="n">MaxK_VertexSet</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">specialSets</span><span class="p">[</span><span class="s2">&quot;MinK_VertexSet&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_specialSets_Cartesian</span><span class="o">.</span><span class="n">MinK_VertexSet</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">specialSets</span><span class="p">[</span><span class="s2">&quot;AllWalls_VertexSet&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_specialSets_Cartesian</span><span class="o">.</span><span class="n">AllWalls</span>
+
+    <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># build the sub-mesh now</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_secondaryMesh</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_elementTypes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">if</span>  <span class="bp">self</span><span class="o">.</span><span class="n">_elementTypes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_supportedElementTypes</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="n">genSecondary</span> <span class="o">=</span> <span class="n">LinearCartesianGenerator</span><span class="p">(</span><span class="n">elementRes</span><span class="o">=</span><span class="n">elementRes</span><span class="p">,</span> <span class="n">minCoord</span><span class="o">=</span><span class="n">minCoord</span><span class="p">,</span> <span class="n">maxCoord</span><span class="o">=</span><span class="n">maxCoord</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_elementTypes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_supportedElementTypes</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span>
+                <span class="n">genSecondary</span> <span class="o">=</span> <span class="n">dQ1Generator</span><span class="p">(</span> <span class="n">geometryMesh</span><span class="o">=</span><span class="bp">self</span> <span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_elementTypes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_supportedElementTypes</span><span class="p">[</span><span class="mi">3</span><span class="p">]:</span>
+                <span class="n">genSecondary</span> <span class="o">=</span> <span class="n">LinearInnerGenerator</span><span class="p">(</span> <span class="n">geometryMesh</span><span class="o">=</span><span class="bp">self</span> <span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_elementTypes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_supportedElementTypes</span><span class="p">[</span><span class="mi">4</span><span class="p">]:</span>
+                <span class="n">genSecondary</span> <span class="o">=</span> <span class="n">ConstantGenerator</span><span class="p">(</span> <span class="n">geometryMesh</span><span class="o">=</span><span class="bp">self</span> <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">st</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_supportedElementTypes</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The secondary mesh must be of type &#39;</span><span class="si">{}</span><span class="s2">&#39;: &#39;</span><span class="si">{}</span><span class="s2">&#39; was passed in. Tested against &#39;</span><span class="si">{}</span><span class="s2">&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">st</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_elementTypes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_supportedElementTypes</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_secondaryMesh</span> <span class="o">=</span> <span class="n">FeMesh</span><span class="p">(</span> <span class="n">elementType</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_elementTypes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">generator</span><span class="o">=</span><span class="n">genSecondary</span> <span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">subMesh</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        underworld.mesh.FeMesh</span>
+<span class="sd">            Returns the submesh where the object is a dual mesh, or None otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_secondaryMesh</span></div>
+
+
+<div class="viewcode-block" id="FeMesh_IndexSet"><a class="viewcode-back" href="../../../underworld.mesh.html#underworld.mesh.FeMesh_IndexSet">[docs]</a><span class="k">class</span> <span class="nc">FeMesh_IndexSet</span><span class="p">(</span><span class="n">uw</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">ObjectifiedIndexSet</span><span class="p">,</span> <span class="n">function</span><span class="o">.</span><span class="n">FunctionInput</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class ties the FeMesh instance to an index set, and stores other </span>
+<span class="sd">    metadata relevant to the set.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    topologicalIndex: int</span>
+<span class="sd">        Mesh topological index for which the IndexSet relates. See</span>
+<span class="sd">        docstring for further info.</span>
+<span class="sd">    object: underworld.mesh.FeMesh</span>
+<span class="sd">        The FeMesh instance from which the IndexSet was extracted.</span>
+<span class="sd">    </span>
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    &gt;&gt;&gt; amesh = uw.mesh.FeMesh_Cartesian( elementType=&#39;Q1/dQ0&#39;, elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.) )</span>
+<span class="sd">    &gt;&gt;&gt; iset = uw.libUnderworld.StgDomain.RegularMeshUtils_CreateGlobalMaxISet( amesh._mesh )</span>
+<span class="sd">    &gt;&gt;&gt; uw.mesh.FeMesh_IndexSet( amesh, topologicalIndex=0, size=amesh.nodesGlobal, fromObject=iset )</span>
+<span class="sd">    FeMesh_IndexSet([ 4,  9, 14, 19, 24])</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">object</span><span class="p">,</span> <span class="n">topologicalIndex</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">topologicalIndex</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Topological index must be within [0,3].&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">object</span><span class="p">,</span> <span class="n">FeMesh</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;object&#39; parameter must be of (sub)type &#39;FeMesh&#39;.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_toplogicalIndex</span> <span class="o">=</span> <span class="n">topologicalIndex</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">FeMesh_IndexSet</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="nb">object</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">topologicalIndex</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            The topological index for the indices. The mapping is:</span>
+<span class="sd">                0 - vertex</span>
+<span class="sd">                1 - edge</span>
+<span class="sd">                2 - face</span>
+<span class="sd">                3 - volume</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_toplogicalIndex</span>
+
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;array&quot;</span><span class="p">,</span><span class="s2">&quot;FeMesh_IndexSet&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;, dtype=uint32&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_checkCompatWith</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Checks that these have identical topo</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># check parent first</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">FeMesh_IndexSet</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_checkCompatWith</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">topologicalIndex</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">topologicalIndex</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;This operation is illegal. The topologicalIndex for these sets do not correspond.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">object</span><span class="o">.</span><span class="n">_cself</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">object</span><span class="o">.</span><span class="n">_cself</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;This operation is illegal. The meshes associated with these IndexSets appear to be different.&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwards</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Note that if you accessed this IndexSet via a specialSet dictionary,</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">+</span>
+                           <span class="s2">&quot;the interface has changed, and you should no longer call the object.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">+</span>
+                           <span class="s2">&quot;This is now handled internally. Simpy use the objects directly.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">+</span>
+                           <span class="s2">&quot;Ie, remove the &#39;()&#39;.&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_get_iterator</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">libUnderworld</span><span class="o">.</span><span class="n">Function</span><span class="o">.</span><span class="n">MeshIndexSet</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">object</span><span class="o">.</span><span class="n">_cself</span><span class="p">)</span></div>
+
+<span class="k">class</span> <span class="nc">_FeMesh_Regional</span><span class="p">(</span><span class="n">FeMesh_Cartesian</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Regional mesh class.</span>
+
+<span class="sd">    MinI_VertexSet / MaxI_VertexSet -&gt; longitudinal walls : [min/max] = [west/east]</span>
+<span class="sd">    MinJ_VertexSet / MaxJ_VertexSet -&gt; latitudinal walls  : [min/max] = [south/north]</span>
+<span class="sd">    MinK_VertexSet / MaxK_VertexSet -&gt; radial walls       : [min/max] = [inner/outer]</span>
+
+<span class="sd">    Refer to parent classes for parameters beyond those below.</span>
+
+<span class="sd">    Parameter</span>
+<span class="sd">    ---------</span>
+<span class="sd">    elementRes : tuple</span>
+<span class="sd">        Tuple determining number of elements (longitudinally, latitudinally, radially).</span>
+<span class="sd">    radius : tuple</span>
+<span class="sd">        Tuple determining the (inner radius, outer radius).</span>
+<span class="sd">    longExtent : float</span>
+<span class="sd">        The angular extent of the domain between great circles of longitude.</span>
+<span class="sd">    latExtent : float</span>
+<span class="sd">        The angular extent of the domain between great circles of latitude.</span>
+
+
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; (radMin, radMax) = (4.0,8.0)</span>
+<span class="sd">    &gt;&gt;&gt; mesh = uw.mesh._FeMesh_Regional( elementRes=(20,20,14), radius=(radMin, radMax) )</span>
+<span class="sd">    &gt;&gt;&gt; integral = uw.utils.Integral( 1.0, mesh).evaluate()[0]</span>
+<span class="sd">    &gt;&gt;&gt; exact = 4/3.0*np.pi*(radMax**3 - radMin**2) / 6.0</span>
+<span class="sd">    &gt;&gt;&gt; np.fabs(integral-exact)/exact &lt; 1e-1</span>
+<span class="sd">    True</span>
+
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">_FeMesh_Regional</span><span class="p">,</span><span class="n">cls</span><span class="p">)</span><span class="o">.</span><span class="n">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elementRes</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span><span class="mi">16</span><span class="p">,</span><span class="mi">10</span><span class="p">),</span> <span class="n">radius</span><span class="o">=</span><span class="p">(</span><span class="mf">3.0</span><span class="p">,</span><span class="mf">6.0</span><span class="p">),</span> <span class="n">latExtent</span><span class="o">=</span><span class="mf">90.0</span><span class="p">,</span> <span class="n">longExtent</span><span class="o">=</span><span class="mf">90.0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">latExtent</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span><span class="nb">int</span><span class="p">)</span> <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Provided &#39;latExtent&#39; must be a float or integer&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_latExtent</span> <span class="o">=</span> <span class="n">latExtent</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">longExtent</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span><span class="nb">int</span><span class="p">)</span> <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Provided &#39;longExtent&#39; must be a float or integer&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_longExtent</span> <span class="o">=</span> <span class="n">longExtent</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">radius</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span><span class="nb">list</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Provided &#39;radius&#39; must be a tuple/list of 2 floats&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">radius</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Provided &#39;radius&#39; must be a tuple/list of 2 floats&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">radius</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">el</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span><span class="nb">int</span><span class="p">))</span> <span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Provided &#39;radius&#39; must be a tuple/list of 2 floats&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_radius</span> <span class="o">=</span> <span class="n">radius</span>
+
+        <span class="n">lat_half</span> <span class="o">=</span> <span class="n">latExtent</span><span class="o">/</span><span class="mf">2.0</span>
+        <span class="n">long_half</span> <span class="o">=</span> <span class="n">longExtent</span><span class="o">/</span><span class="mf">2.0</span>
+
+        <span class="c1"># call parent cartesian mesh</span>
+        <span class="c1"># build 3D mesh centred on (0.0,0.0,0.0) - in _setup() we deform the mesh</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">_FeMesh_Regional</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">elementType</span><span class="o">=</span><span class="s2">&quot;Q1/dQ0&quot;</span><span class="p">,</span> <span class="n">elementRes</span><span class="o">=</span><span class="n">elementRes</span><span class="p">,</span>
+                    <span class="n">minCoord</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="n">long_half</span><span class="p">,</span><span class="o">-</span><span class="n">lat_half</span><span class="p">,</span><span class="n">radius</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">maxCoord</span><span class="o">=</span><span class="p">(</span><span class="n">long_half</span><span class="p">,</span><span class="n">lat_half</span><span class="p">,</span><span class="n">radius</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">deform_mesh</span><span class="p">():</span>
+            <span class="c1"># perform Cubed-sphere projection on coordinates</span>
+            <span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="mf">180.0</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="mf">180.0</span><span class="p">))</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[:,</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span> <span class="n">x</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">y</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span><span class="o">*</span><span class="n">x</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span><span class="o">*</span><span class="n">y</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[:,</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span>
+            <span class="c1">#</span>
+            <span class="c1"># for index, coord in enumerate(mesh.data):</span>
+            <span class="c1">#     # perform Cubed-sphere projection on coordinates</span>
+            <span class="c1">#     (x,y,r) = (np.tan(np.pi*coord[0]/180.0), np.tan(np.pi*coord[1]/180.0), 1)</span>
+            <span class="c1">#     d = coord[2]/np.sqrt( x**2 + y**2 + 1)</span>
+            <span class="c1">#     mesh.data[index] = ( d*x, d*y, d)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Melbourne University, Monash University..
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,347 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>underworld.systems._timeintegration &mdash; underworld2  documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="underworld2  documentation" href="../../../index.html"/>
+        <link rel="up" title="underworld" href="../../underworld.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> underworld2
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../underworld.html">underworld module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../glucifer.html">glucifer module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">underworld2</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../underworld.html">underworld</a> &raquo;</li>
+      
+    <li>underworld.systems._timeintegration</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for underworld.systems._timeintegration</h1><div class="highlight"><pre>
+<span></span><span class="c1">##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##  This file forms part of the Underworld geophysics modelling application.         ##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##  For full license and copyright information, please refer to the LICENSE.md file  ##</span>
+<span class="c1">##  located at the project root, or contact the authors.                             ##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##</span>
+<span class="kn">import</span> <span class="nn">underworld</span> <span class="k">as</span> <span class="nn">uw</span>
+<span class="kn">import</span> <span class="nn">underworld._stgermain</span> <span class="k">as</span> <span class="nn">_stgermain</span>
+<span class="kn">import</span> <span class="nn">libUnderworld</span>
+
+<div class="viewcode-block" id="TimeIntegration"><a class="viewcode-back" href="../../../underworld.systems.html#underworld.systems.TimeIntegration">[docs]</a><span class="k">class</span> <span class="nc">TimeIntegration</span><span class="p">(</span><span class="n">_stgermain</span><span class="o">.</span><span class="n">StgCompoundComponent</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Abstract class for integrating numerical objects (fields, swarms, etc.) in time.</span>
+
+<span class="sd">    The integration algorithm is a modified Runge Kutta method that only evaluates</span>
+<span class="sd">    midpoint information varying in space - using only the present timestep solution.</span>
+<span class="sd">    The order of the integration used can be 1,2,4</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    order: int {1,2,4}</span>
+<span class="sd">        Defines the numerical order &#39;in space&#39; of the Runge Kutta like integration scheme.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_objectsDict</span> <span class="o">=</span> <span class="p">{</span>     <span class="s2">&quot;_system&quot;</span> <span class="p">:</span> <span class="s2">&quot;TimeIntegrator&quot;</span><span class="p">,</span>
+                      <span class="s2">&quot;_integrand&quot;</span> <span class="p">:</span> <span class="kc">None</span> <span class="p">}</span>
+    <span class="n">_selfObjectName</span> <span class="o">=</span> <span class="s2">&quot;_system&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">order</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span> <span class="s2">&quot;Provided &#39;order&#39; must be of &#39;int&#39; class.&quot;</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_order</span> <span class="o">=</span> <span class="n">order</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_order</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span> <span class="s2">&quot;Provided &#39;order&#39; must take value 1, 2 or 4.&quot;</span> <span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">TimeIntegration</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_add_to_stg_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">componentDictionary</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">TimeIntegration</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_add_to_stg_dict</span><span class="p">(</span><span class="n">componentDictionary</span><span class="p">)</span>
+
+        <span class="n">componentDictionary</span><span class="p">[</span>     <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">name</span> <span class="p">][</span>         <span class="s2">&quot;order&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_order</span>
+        <span class="c1"># set self as the integrand&#39;s integrator</span>
+        <span class="n">componentDictionary</span><span class="p">[</span> <span class="bp">self</span><span class="o">.</span><span class="n">_integrand</span><span class="o">.</span><span class="n">name</span> <span class="p">][</span><span class="s2">&quot;TimeIntegrator&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">name</span>
+
+    <span class="k">def</span> <span class="nf">integrate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">dt</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dt</span> <span class="o">=</span> <span class="n">dt</span>
+        <span class="n">libUnderworld</span><span class="o">.</span><span class="n">StgDomain</span><span class="o">.</span><span class="n">_TimeIntegrator_Execute</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_max_dt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># child should override</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Child class should override this method. Please contact developers.&quot;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">dt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Time integrator timestep size.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">dt</span>
+    <span class="nd">@dt</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">dt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">dt</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Time integrator time value.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">time</span>
+    <span class="nd">@time</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">time</span> <span class="o">=</span> <span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="SwarmAdvector"><a class="viewcode-back" href="../../../underworld.systems.html#underworld.systems.SwarmAdvector">[docs]</a><span class="k">class</span> <span class="nc">SwarmAdvector</span><span class="p">(</span><span class="n">TimeIntegration</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Objects of this class advect a swarm through time using</span>
+<span class="sd">    the provided velocity field.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    velocityField : underworld.mesh.MeshVariable</span>
+<span class="sd">        The MeshVariable field used for evaluating the velocity field that advects the swarm particles</span>
+
+<span class="sd">    swarm : underworld.swarm.Swarm</span>
+<span class="sd">        Particle swarm that will be advected by the given velocity field</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_objectsDict</span> <span class="o">=</span> <span class="p">{</span> <span class="s2">&quot;_integrand&quot;</span> <span class="p">:</span> <span class="s2">&quot;SwarmAdvector&quot;</span> <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">velocityField</span><span class="p">,</span> <span class="n">swarm</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">velocityField</span><span class="p">,</span> <span class="n">uw</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">MeshVariable</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span> <span class="s2">&quot;Provided &#39;velocityField&#39; must be of &#39;MeshVariable&#39; class.&quot;</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_velocityField</span> <span class="o">=</span> <span class="n">velocityField</span>
+
+        <span class="k">if</span> <span class="n">swarm</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">swarm</span><span class="p">,</span> <span class="n">uw</span><span class="o">.</span><span class="n">swarm</span><span class="o">.</span><span class="n">Swarm</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span> <span class="s2">&quot;Provided &#39;swarm&#39; must be of &#39;Swarm&#39; class.&quot;</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_swarm</span> <span class="o">=</span> <span class="n">swarm</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">SwarmAdvector</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="n">order</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">_add_to_stg_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">componentDictionary</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SwarmAdvector</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_add_to_stg_dict</span><span class="p">(</span><span class="n">componentDictionary</span><span class="p">)</span>
+
+        <span class="n">componentDictionary</span><span class="p">[</span> <span class="bp">self</span><span class="o">.</span><span class="n">_integrand</span><span class="o">.</span><span class="n">name</span> <span class="p">][</span><span class="s2">&quot;VelocityField&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_velocityField</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">componentDictionary</span><span class="p">[</span> <span class="bp">self</span><span class="o">.</span><span class="n">_integrand</span><span class="o">.</span><span class="n">name</span> <span class="p">][</span>        <span class="s2">&quot;Swarm&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_swarm</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">componentDictionary</span><span class="p">[</span> <span class="bp">self</span><span class="o">.</span><span class="n">_integrand</span><span class="o">.</span><span class="n">name</span> <span class="p">][</span><span class="s2">&quot;allowFallbackToFirstOrder&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="nf">get_max_dt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">libUnderworld</span><span class="o">.</span><span class="n">PICellerator</span><span class="o">.</span><span class="n">SwarmAdvector_MaxDt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_integrand</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SwarmAdvector.integrate"><a class="viewcode-back" href="../../../underworld.systems.html#underworld.systems.SwarmAdvector.integrate">[docs]</a>    <span class="k">def</span> <span class="nf">integrate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">update_owners</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Integrate the associated swarm in time, by dt, using the velocityfield that is associated with this class</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        dt: double</span>
+<span class="sd">            The timestep to use in the intergration</span>
+<span class="sd">        update_owners: bool</span>
+<span class="sd">            If this is set to False, particle ownership (which element owns a </span>
+<span class="sd">            particular particle) is not updated after advection. This is often </span>
+<span class="sd">            necessary when both the mesh and particles are advecting </span>
+<span class="sd">            simutaneously.</span>
+
+<span class="sd">        Example</span>
+<span class="sd">        -------</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; import underworld as uw</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; import numpy.testing as npt</span>
+<span class="sd">        &gt;&gt;&gt; from underworld import function as fn</span>
+<span class="sd">        &gt;&gt;&gt; dim=2;</span>
+<span class="sd">        &gt;&gt;&gt; elementMesh = uw.mesh.FeMesh_Cartesian(elementType=&quot;Q1/dQ0&quot;, elementRes=(9,9), minCoord=(-1.,-1.), maxCoord=(1.,1.))</span>
+<span class="sd">        &gt;&gt;&gt; velocityField = uw.mesh.MeshVariable( mesh=elementMesh, nodeDofCount=dim )</span>
+<span class="sd">        &gt;&gt;&gt; swarm = uw.swarm.Swarm(mesh=elementMesh)</span>
+<span class="sd">        &gt;&gt;&gt; particle = np.zeros((1,2))</span>
+<span class="sd">        &gt;&gt;&gt; particle[0] = [0.2,-0.2]</span>
+<span class="sd">        &gt;&gt;&gt; swarm.add_particles_with_coordinates(particle)</span>
+<span class="sd">        array([0], dtype=int32)</span>
+<span class="sd">        &gt;&gt;&gt; velocityField.data[:]=[1.0,1.0]</span>
+<span class="sd">        &gt;&gt;&gt; swarmAdvector = uw.systems.SwarmAdvector(velocityField=velocityField, swarm=swarm, order=2)</span>
+<span class="sd">        &gt;&gt;&gt; dt=1.0</span>
+<span class="sd">        &gt;&gt;&gt; swarmAdvector.integrate(dt)</span>
+<span class="sd">        &gt;&gt;&gt; npt.assert_allclose(swarm.particleCoordinates.data[0], [1.2,0.8], rtol=1e-8, verbose=True)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">libUnderworld</span><span class="o">.</span><span class="n">StgFEM</span><span class="o">.</span><span class="n">_FeVariable_SyncShadowValues</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_integrand</span><span class="o">.</span><span class="n">velocityField</span> <span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SwarmAdvector</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">integrate</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
+        <span class="c1"># this check isn&#39;t necessary, but good. possibly get rid.</span>
+        <span class="n">libUnderworld</span><span class="o">.</span><span class="n">StgDomain</span><span class="o">.</span><span class="n">Swarm_CheckCoordsAreFinite</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_integrand</span><span class="o">.</span><span class="n">swarm</span> <span class="p">);</span>
+        <span class="c1"># Move particles across processors because they&#39;ve just been advected</span>
+        <span class="k">if</span> <span class="n">update_owners</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_swarm</span><span class="o">.</span><span class="n">update_particle_owners</span><span class="p">()</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Melbourne University, Monash University..
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

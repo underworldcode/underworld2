@@ -102,7 +102,7 @@ void _VectorSurfaceAssemblyTerm_NA__Fn__ni_SetFn( void* _self, Fn::Function* fn 
     if( iodub->size() != dphi_dx_size ) {
         std::stringstream ss;
         ss << "Assembly term expects function to return array of size " << dphi_dx_size << ".\n";
-        ss << "Provied function returns array of size " << iodub->size() << ".";
+        ss << "Provided function returns array of size " << iodub->size() << ".";
         throw std::invalid_argument( ss.str() );
     }
 }

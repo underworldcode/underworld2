@@ -1,0 +1,345 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>underworld.function.exception module &mdash; underworld2  documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="underworld2  documentation" href="index.html"/>
+        <link rel="up" title="underworld.function module" href="underworld.function.html"/>
+        <link rel="next" title="underworld.function.tensor module" href="underworld.function.tensor.html"/>
+        <link rel="prev" title="underworld.function.branching module" href="underworld.function.branching.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> underworld2
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="underworld.html">underworld module</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="underworld.html#module-summary">Module Summary</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="underworld.html#submodules">submodules:</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="underworld.function.html">underworld.function module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="underworld.container.html">underworld.container module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="underworld.utils.html">underworld.utils module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="underworld.swarm.html">underworld.swarm module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="underworld.mesh.html">underworld.mesh module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="underworld.systems.html">underworld.systems module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="underworld.conditions.html">underworld.conditions module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="underworld.html#functions">functions:</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="underworld.html#module-details">Module Details</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="glucifer.html">glucifer module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">underworld2</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="underworld.html">underworld module</a> &raquo;</li>
+      
+          <li><a href="underworld.function.html">underworld.function module</a> &raquo;</li>
+      
+    <li>underworld.function.exception module</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/underworld.function.exception.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="underworld-function-exception-module">
+<h1>underworld.function.exception module<a class="headerlink" href="#underworld-function-exception-module" title="Permalink to this headline">¶</a></h1>
+<p>This module provides functions which raise an exception when given conditions
+are encountered during function evaluations. Exception functions never modify
+query data.</p>
+<div class="section" id="module-summary">
+<h2>Module Summary<a class="headerlink" href="#module-summary" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="classes">
+<h3>classes:<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#underworld.function.exception.CustomException" title="underworld.function.exception.CustomException"><code class="xref py py-obj docutils literal"><span class="pre">underworld.function.exception.CustomException</span></code></a></td>
+<td>This function allows you to set custom exceptions within your model.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#underworld.function.exception.SafeMaths" title="underworld.function.exception.SafeMaths"><code class="xref py py-obj docutils literal"><span class="pre">underworld.function.exception.SafeMaths</span></code></a></td>
+<td>This function checks if any of the following have been encountered during</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="module-details">
+<h2>Module Details<a class="headerlink" href="#module-details" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id1">
+<h3>classes:<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="underworld.function.exception.CustomException">
+<em class="property">class </em><code class="descclassname">underworld.function.exception.</code><code class="descname">CustomException</code><span class="sig-paren">(</span><em>fn_input</em>, <em>fn_condition</em>, <em>fn_print=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/function/exception.html#CustomException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.function.exception.CustomException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">underworld.function._function.Function</span></code></p>
+<p>This function allows you to set custom exceptions within your model. You
+must pass it two functions: the first function is the pass through function,
+the second function is the required condition. You may also pass in a optional
+third function whose output will be printed if the condition evaluates to False.</p>
+<p>A CustomException function will perform the following logic:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>Evaluate the condition function.</li>
+<li>If it evaluates to False, an exception is thrown and the simulation
+is halted. If a print function is provided, it will be evaluated
+and its results will be included in the exception message.</li>
+<li>If it evaluates to True, the pass through function is evaluated
+with the result then being return.</li>
+</ol>
+</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>fn_passthrough</strong> (<em>underworld.Function</em>) &#8211; The pass through function</li>
+<li><strong>fn_condition</strong> (<em>underworld.Function</em>) &#8211; The condition function</li>
+<li><strong>fn_print</strong> (<em>underworld.Function (optional)</em>) &#8211; The print function</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">underworld</span> <span class="k">as</span> <span class="nn">uw</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">underworld.function</span> <span class="k">as</span> <span class="nn">fn</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">one</span> <span class="o">=</span> <span class="n">fn</span><span class="o">.</span><span class="n">misc</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="mf">1.</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">passing_one</span> <span class="o">=</span> <span class="n">fn</span><span class="o">.</span><span class="n">exception</span><span class="o">.</span><span class="n">CustomException</span><span class="p">(</span> <span class="n">one</span><span class="p">,</span> <span class="p">(</span><span class="n">one</span> <span class="o">&lt;</span> <span class="mf">2.</span><span class="p">)</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">passing_one</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="mf">0.</span><span class="p">)</span> <span class="c1"># constant function, so eval anywhere</span>
+<span class="go">array([[ 1.]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">failing_one</span> <span class="o">=</span> <span class="n">fn</span><span class="o">.</span><span class="n">exception</span><span class="o">.</span><span class="n">CustomException</span><span class="p">(</span> <span class="n">one</span><span class="p">,</span> <span class="p">(</span><span class="n">one</span> <span class="o">&gt;</span> <span class="mf">2.</span><span class="p">)</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">failing_one</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="mf">0.</span><span class="p">)</span> <span class="c1"># constant function, so eval anywhere</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">CustomException condition function has evaluated to False for current input!</span>
+</pre></div>
+</div>
+<p>Now with printing</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">failing_one_by_five</span> <span class="o">=</span> <span class="n">fn</span><span class="o">.</span><span class="n">exception</span><span class="o">.</span><span class="n">CustomException</span><span class="p">(</span> <span class="n">one</span><span class="p">,</span> <span class="p">(</span><span class="n">one</span><span class="o">*</span><span class="mf">5.</span> <span class="o">&gt;</span> <span class="mf">20.</span><span class="p">),</span> <span class="n">one</span><span class="o">*</span><span class="mf">5.</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">failing_one_by_five</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="mf">0.</span><span class="p">)</span> <span class="c1"># constant function, so eval anywhere</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">CustomException condition function has evaluated to False for current input!</span>
+<span class="go">Print function returns the following values (cast to double precision):</span>
+<span class="go">    ( 5 )</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="underworld.function.exception.SafeMaths">
+<em class="property">class </em><code class="descclassname">underworld.function.exception.</code><code class="descname">SafeMaths</code><span class="sig-paren">(</span><em>fn</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/function/exception.html#SafeMaths"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.function.exception.SafeMaths" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">underworld.function._function.Function</span></code></p>
+<p>This function checks if any of the following have been encountered during
+the evaluation of its subject function:</p>
+<ul class="simple">
+<li>Divide by zero</li>
+<li>Invalid domain was used for evaluation</li>
+<li>Value overflow errors</li>
+<li>Value underflow errors</li>
+</ul>
+<p>If any of the above are encountered, and exception is thrown immediately.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fn</strong> (<em>underworld.Function</em>) &#8211; The function that is subject to the testing.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">underworld</span> <span class="k">as</span> <span class="nn">uw</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">underworld.function</span> <span class="k">as</span> <span class="nn">fn</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">one</span> <span class="o">=</span> <span class="n">fn</span><span class="o">.</span><span class="n">misc</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="mf">1.</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">zero</span>  <span class="o">=</span> <span class="n">fn</span><span class="o">.</span><span class="n">misc</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="mf">0.</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fn_dividebyzero</span> <span class="o">=</span> <span class="n">one</span><span class="o">/</span><span class="n">zero</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">safedividebyzero</span> <span class="o">=</span> <span class="n">fn</span><span class="o">.</span><span class="n">exception</span><span class="o">.</span><span class="n">SafeMaths</span><span class="p">(</span><span class="n">fn_dividebyzero</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">safedividebyzero</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="mf">0.</span><span class="p">)</span>  <span class="c1"># constant function, so eval anywhere</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">Divide by zero encountered while evaluating function.</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="underworld.function.tensor.html" class="btn btn-neutral float-right" title="underworld.function.tensor module" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="underworld.function.branching.html" class="btn btn-neutral" title="underworld.function.branching module" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Melbourne University, Monash University..
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

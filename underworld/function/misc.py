@@ -23,29 +23,25 @@ class constant(_Function):
         which contain valid types are permitted, but must be homogeneous
         in their type.
         
+    Example
+    -------
     >>> import underworld as uw
     >>> import underworld.function as fn
-    
     >>> fn_const = fn.misc.constant( 3 )
     >>> fn_const.evaluate(0.) # eval anywhere for constant
     array([[3]], dtype=int32)
-
     >>> fn_const = fn.misc.constant( (3,2,1) )
     >>> fn_const.evaluate(0.) # eval anywhere for constant
     array([[3, 2, 1]], dtype=int32)
-
     >>> fn_const = fn.misc.constant( 3. )
     >>> fn_const.evaluate(0.) # eval anywhere for constant
     array([[ 3.]])
-
     >>> fn_const = fn.misc.constant( (3.,2.,1.) )
     >>> fn_const.evaluate(0.) # eval anywhere for constant
     array([[ 3.,  2.,  1.]])
-    
     >>> fn_const = fn.misc.constant( True )
     >>> fn_const.evaluate(0.) # eval anywhere for constant
     array([[ True]], dtype=bool)
-
     >>> fn_const = fn.misc.constant( (True,False,True) )
     >>> fn_const.evaluate(0.) # eval anywhere for constant
     array([[ True, False,  True]], dtype=bool)
@@ -139,19 +135,23 @@ class max(_Function):
     >>> testpoints = np.array(([[ 0.0], [0.2], [0.4], [0.6], [0.8], [1.01], [1.2], [1.4], [1.6], [1.8], [2.0],]))
     
     Create which return identical results via different paths:
+    
     >>> fn_x = fn.input()[0]
     >>> fn_x_minus_one = fn_x - 1.
     >>> fn_one_minus_x = 1. - fn_x
     
     Here we use 'max' and 'min' functions:
+    
     >>> fn_max = fn.misc.max(fn_one_minus_x,fn_x_minus_one)
     >>> fn_min = fn.misc.min(fn_one_minus_x,fn_x_minus_one)
     
     Here we use the conditional functions:
+    
     >>> fn_conditional_max = fn.branching.conditional( ( ( fn_x <= 1., fn_one_minus_x ), ( fn_x > 1., fn_x_minus_one ) ))
     >>> fn_conditional_min = fn.branching.conditional( ( ( fn_x >= 1., fn_one_minus_x ), ( fn_x < 1., fn_x_minus_one ) ))
     
-    They should return identical results.
+    They should return identical results:
+    
     >>> np.allclose(fn_max.evaluate(testpoints),fn_conditional_max.evaluate(testpoints))
     True
     >>> np.allclose(fn_min.evaluate(testpoints),fn_conditional_min.evaluate(testpoints))

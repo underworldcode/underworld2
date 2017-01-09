@@ -1,0 +1,595 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>underworld.function.analytic &mdash; underworld2  documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="underworld2  documentation" href="../../../index.html"/>
+        <link rel="up" title="underworld" href="../../underworld.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> underworld2
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../underworld.html">underworld module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../glucifer.html">glucifer module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">underworld2</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../underworld.html">underworld</a> &raquo;</li>
+      
+    <li>underworld.function.analytic</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for underworld.function.analytic</h1><div class="highlight"><pre>
+<span></span><span class="c1">##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##  This file forms part of the Underworld geophysics modelling application.         ##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##  For full license and copyright information, please refer to the LICENSE.md file  ##</span>
+<span class="c1">##  located at the project root, or contact the authors.                             ##</span>
+<span class="c1">##                                                                                   ##</span>
+<span class="c1">##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module provides analytic solution functions to the Stokes</span>
+<span class="sd">flow equations.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">libUnderworld.libUnderworldPy.Function</span> <span class="k">as</span> <span class="nn">_cfn</span>
+<span class="kn">from</span> <span class="nn">_function</span> <span class="k">import</span> <span class="n">Function</span> <span class="k">as</span> <span class="n">_Function</span>
+
+
+<span class="k">class</span> <span class="nc">_Sol_Function</span><span class="p">(</span><span class="n">_Function</span><span class="p">):</span>
+   <span class="c1"># This class simply wraps cpp Function class pointers</span>
+   <span class="c1"># in our hand rolled python Function class wrapper.</span>
+   <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cFunctionFn</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fncself</span> <span class="o">=</span> <span class="n">cFunctionFn</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">_Sol_Function</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">argument_fns</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">_SolBase</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="c1"># This function returns the various fields for</span>
+    <span class="c1"># analytic solutions. Note that this object itself is not a</span>
+    <span class="c1"># function object, but it instead provides the required</span>
+    <span class="c1"># Function objects via its member properties.</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">csol</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_csol</span> <span class="o">=</span> <span class="n">csol</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">_SolBase</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">fn_velocity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">_Sol_Function</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_csol</span><span class="o">.</span><span class="n">velocityFn</span> <span class="p">)</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">fn_pressure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">_Sol_Function</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_csol</span><span class="o">.</span><span class="n">pressureFn</span> <span class="p">)</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">fn_stress</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">_Sol_Function</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_csol</span><span class="o">.</span><span class="n">stressFn</span> <span class="p">)</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">fn_strainRate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">_Sol_Function</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_csol</span><span class="o">.</span><span class="n">strainRateFn</span> <span class="p">)</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">fn_viscosity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">_Sol_Function</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_csol</span><span class="o">.</span><span class="n">viscosityFn</span> <span class="p">)</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">fn_bodyforce</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">_Sol_Function</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_csol</span><span class="o">.</span><span class="n">bodyForceFn</span> <span class="p">)</span>
+
+
+<div class="viewcode-block" id="SolCx"><a class="viewcode-back" href="../../../underworld.function.analytic.html#underworld.function.analytic.SolCx">[docs]</a><span class="k">class</span> <span class="nc">SolCx</span><span class="p">(</span><span class="n">_SolBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The boundary conditions are free-slip everywhere on a unit domain.</span>
+<span class="sd">    There is a viscosity jump in the x direction at :math:`x=xc`.</span>
+<span class="sd">    The flow is driven by the following density perturbation:</span>
+<span class="sd">    </span>
+<span class="sd">    .. math::</span>
+<span class="sd">        \\rho = \\sin (nz \\pi z) \\cos (nx \\pi x)</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    viscosityA : float</span>
+<span class="sd">        Viscosty of region A.</span>
+<span class="sd">    viscosityB : float</span>
+<span class="sd">        Viscosty of region B.</span>
+<span class="sd">    xc : float</span>
+<span class="sd">        Location for viscosity jump.</span>
+<span class="sd">    nx : unsigned</span>
+<span class="sd">        Wavenumber in x axis.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">viscosityA</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">viscosityB</span><span class="o">=</span><span class="mf">2.</span><span class="p">,</span> <span class="n">xc</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span> <span class="n">nx</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">viscosityA</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">or</span> <span class="n">viscosityA</span><span class="o">&lt;=</span><span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;viscosityA&#39; must be a positive float.&quot;</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">viscosityB</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">or</span> <span class="n">viscosityB</span><span class="o">&lt;=</span><span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;viscosityB&#39; must be a positive float.&quot;</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">xc</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;xc&#39; parameter must be of type &#39;float&#39;.&quot;</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;nx&#39; parameter must be of type &#39;int&#39;.&quot;</span> <span class="p">)</span>
+
+        <span class="c1"># note the way we need to use the swig generated constructor is somewhat</span>
+        <span class="c1"># ass about.. swig doesn&#39;t play particularly nice with CRTP, but there</span>
+        <span class="c1"># might be a better way.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ckeep</span> <span class="o">=</span> <span class="n">_cfn</span><span class="o">.</span><span class="n">SolCx</span><span class="p">(</span><span class="n">viscosityA</span><span class="p">,</span><span class="n">viscosityB</span><span class="p">,</span><span class="n">xc</span><span class="p">,</span><span class="n">nx</span><span class="p">)</span>
+        <span class="c1"># the second parameter to SolCxCRTP is the dimensionality</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SolCx</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">_cfn</span><span class="o">.</span><span class="n">SolCxCRTP</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ckeep</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<span class="c1">#    @property</span>
+<span class="c1">#    def viscosityA(self):</span>
+<span class="c1">#        return self._csol.viscosityA</span>
+<span class="c1">#    @viscosityA.setter</span>
+<span class="c1">#    def viscosityA(self, value):</span>
+<span class="c1">#        if not isinstance(value, float) or value&lt;=0:</span>
+<span class="c1">#            raise TypeError(&quot;&#39;viscosityA&#39; must be a positive float.&quot; )</span>
+<span class="c1">#        self._csol.viscosityA = value</span>
+<span class="c1">#    @property</span>
+<span class="c1">#    def viscosityB(self):</span>
+<span class="c1">#        return self._csol.viscosityB</span>
+<span class="c1">#    @viscosityB.setter</span>
+<span class="c1">#    def viscosityB(self, value):</span>
+<span class="c1">#        if not isinstance(value, float) or value&lt;=0:</span>
+<span class="c1">#            raise TypeError(&quot;&#39;viscosityB&#39; must be a positive float.&quot; )</span>
+<span class="c1">#        self._csol.viscosityB = value</span>
+<span class="c1">#    @property</span>
+<span class="c1">#    def xc(self):</span>
+<span class="c1">#        return self._csol.xc</span>
+<span class="c1">#    @xc.setter</span>
+<span class="c1">#    def xc(self, value):</span>
+<span class="c1">#        if not isinstance(value, float) or value&lt;0. or value&gt;1.:</span>
+<span class="c1">#            raise TypeError(&quot;&#39;xc&#39; parameter must be of type &#39;float&#39; in [0,1].&quot; )</span>
+<span class="c1">#        self._csol.xc = value</span>
+<span class="c1">#    @property</span>
+<span class="c1">#    def nx(self):</span>
+<span class="c1">#        return self._csol.nx</span>
+<span class="c1">#    @nx.setter</span>
+<span class="c1">#    def nx(self, value):</span>
+<span class="c1">#        if not isinstance(value, int) or value&lt;=0:</span>
+<span class="c1">#            raise TypeError(&quot;&#39;nx&#39; parameter must be a positive int.&quot; )</span>
+<span class="c1">#        self._csol.nx = value</span>
+
+
+<div class="viewcode-block" id="SolKx"><a class="viewcode-back" href="../../../underworld.function.analytic.html#underworld.function.analytic.SolKx">[docs]</a><span class="k">class</span> <span class="nc">SolKx</span><span class="p">(</span><span class="n">_SolBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The boundary conditions are free-slip everywhere on a unit domain. The </span>
+<span class="sd">    viscosity varies exponentially in the x direction and is given by</span>
+<span class="sd">    :math:`\\eta = \\exp (2 B x)`. The flow is driven by the following density </span>
+<span class="sd">    perturbation:</span>
+<span class="sd">    </span>
+<span class="sd">    .. math::</span>
+<span class="sd">        \\rho = -\\sigma \\sin (nz \\pi z) \\cos (nx \\pi x).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    sigma : float</span>
+<span class="sd">        Density perturbation amplitude.</span>
+<span class="sd">    nx : float</span>
+<span class="sd">        Wavenumber in x axis.</span>
+<span class="sd">    nz : unsigned</span>
+<span class="sd">        Wavenumber in  axis.</span>
+<span class="sd">    B : float</span>
+<span class="sd">        Viscosity parameter</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">nx</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">nz</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">B</span><span class="o">=</span><span class="mf">1.1512925465</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sigma</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;sigma&#39; must be a float.&quot;</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;nx&#39; must be a float.&quot;</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nz</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;nz&#39; parameter must be an int.&quot;</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;B&#39; parameter must be of type &#39;float&#39;.&quot;</span> <span class="p">)</span>
+        <span class="c1"># check SolCx for some details</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ckeep</span> <span class="o">=</span> <span class="n">_cfn</span><span class="o">.</span><span class="n">SolKx</span><span class="p">(</span><span class="n">sigma</span><span class="p">,</span><span class="n">nx</span><span class="p">,</span><span class="n">nz</span><span class="p">,</span><span class="n">B</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SolKx</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">_cfn</span><span class="o">.</span><span class="n">SolKxCRTP</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ckeep</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<span class="c1">#    @property</span>
+<span class="c1">#    def sigma(self):</span>
+<span class="c1">#        return self._csol.sigma</span>
+<span class="c1">#    @sigma.setter</span>
+<span class="c1">#    def sigma(self, value):</span>
+<span class="c1">#        if not isinstance(value, float):</span>
+<span class="c1">#            raise TypeError(&quot;&#39;sigma&#39; must be a float.&quot; )</span>
+<span class="c1">#        self._csol.sigma = value</span>
+<span class="c1">#    @property</span>
+<span class="c1">#    def nx(self):</span>
+<span class="c1">#        return self._csol.nx</span>
+<span class="c1">#    @nx.setter</span>
+<span class="c1">#    def nx(self, value):</span>
+<span class="c1">#        if not isinstance(value, int):</span>
+<span class="c1">#            raise TypeError(&quot;&#39;nx&#39; must be an int.&quot; )</span>
+<span class="c1">#        self._csol.nx = value</span>
+<span class="c1">#    @property</span>
+<span class="c1">#    def nz(self):</span>
+<span class="c1">#        return self._csol.nz</span>
+<span class="c1">#    @nz.setter</span>
+<span class="c1">#    def nz(self, value):</span>
+<span class="c1">#        if not isinstance(value, float):</span>
+<span class="c1">#            raise TypeError(&quot;&#39;nz&#39; parameter must be a float.&quot; )</span>
+<span class="c1">#        self._csol.nz = value</span>
+<span class="c1">#    @property</span>
+<span class="c1">#    def B(self):</span>
+<span class="c1">#        return self._csol.B</span>
+<span class="c1">#    @B.setter</span>
+<span class="c1">#    def B(self, value):</span>
+<span class="c1">#        if not isinstance(value, float) or value&lt;=0:</span>
+<span class="c1">#            raise TypeError(&quot;&#39;B&#39; parameter must be a positive float.&quot; )</span>
+<span class="c1">#        self._csol.B = value</span>
+
+
+<div class="viewcode-block" id="SolKz"><a class="viewcode-back" href="../../../underworld.function.analytic.html#underworld.function.analytic.SolKz">[docs]</a><span class="k">class</span> <span class="nc">SolKz</span><span class="p">(</span><span class="n">_SolBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The boundary conditions are free-slip everywhere on a unit domain. The </span>
+<span class="sd">    viscosity varies exponentially in the z direction and is given by </span>
+<span class="sd">    :math:`\\eta = \\exp (2 B z)`. The flow is driven by the following</span>
+<span class="sd">    density perturbation:</span>
+<span class="sd">    </span>
+<span class="sd">    .. math::</span>
+<span class="sd">        \\rho = -\\sigma \\sin (nz \\pi z) \\cos (nx \\pi x).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    sigma : float</span>
+<span class="sd">        Density perturbation amplitude.</span>
+<span class="sd">    nx : float</span>
+<span class="sd">        Wavenumber in x axis.</span>
+<span class="sd">    nz : unsigned</span>
+<span class="sd">        Wavenumber in  axis.</span>
+<span class="sd">    B : float</span>
+<span class="sd">        Viscosity parameter</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">nx</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">nz</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">B</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sigma</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">or</span> <span class="n">sigma</span><span class="o">!=</span><span class="mf">1.</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;sigma&#39; can be any float as long as it&#39;s 1.&quot;</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;nx&#39; must be an int.&quot;</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nz</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;nz&#39; parameter must be of type &#39;float&#39;.&quot;</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;B&#39; parameter must be of type &#39;float&#39;.&quot;</span> <span class="p">)</span>
+        <span class="c1"># check SolKz for some details</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ckeep</span> <span class="o">=</span> <span class="n">_cfn</span><span class="o">.</span><span class="n">SolKz</span><span class="p">(</span><span class="n">sigma</span><span class="p">,</span><span class="n">nx</span><span class="p">,</span><span class="n">nz</span><span class="p">,</span><span class="n">B</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SolKz</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">_cfn</span><span class="o">.</span><span class="n">SolKzCRTP</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ckeep</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<span class="c1">#    @property</span>
+<span class="c1">#    def sigma(self):</span>
+<span class="c1">#        return self._csol.sigma</span>
+<span class="c1">#    @sigma.setter</span>
+<span class="c1">#    def sigma(self, value):</span>
+<span class="c1">#        if not isinstance(value, float):</span>
+<span class="c1">#            raise TypeError(&quot;&#39;sigma&#39; must be a float.&quot; )</span>
+<span class="c1">#        self._csol.sigma = value</span>
+<span class="c1">#    @property</span>
+<span class="c1">#    def nx(self):</span>
+<span class="c1">#        return self._csol.nx</span>
+<span class="c1">#    @nx.setter</span>
+<span class="c1">#    def nx(self, value):</span>
+<span class="c1">#        if not isinstance(value, int):</span>
+<span class="c1">#            raise TypeError(&quot;&#39;nx&#39; must be an int.&quot; )</span>
+<span class="c1">#        self._csol.nx = value</span>
+<span class="c1">#    @property</span>
+<span class="c1">#    def nz(self):</span>
+<span class="c1">#        return self._csol.nz</span>
+<span class="c1">#    @nz.setter</span>
+<span class="c1">#    def nz(self, value):</span>
+<span class="c1">#        if not isinstance(value, float):</span>
+<span class="c1">#            raise TypeError(&quot;&#39;nz&#39; parameter must be a float.&quot; )</span>
+<span class="c1">#        self._csol.nz = value</span>
+<span class="c1">#    @property</span>
+<span class="c1">#    def B(self):</span>
+<span class="c1">#        return self._csol.B</span>
+<span class="c1">#    @B.setter</span>
+<span class="c1">#    def B(self, value):</span>
+<span class="c1">#        if not isinstance(value, float) or value&lt;=0:</span>
+<span class="c1">#            raise TypeError(&quot;&#39;B&#39; parameter must be a positive float.&quot; )</span>
+<span class="c1">#        self._csol.B = value</span>
+
+
+<div class="viewcode-block" id="SolM"><a class="viewcode-back" href="../../../underworld.function.analytic.html#underworld.function.analytic.SolM">[docs]</a><span class="k">class</span> <span class="nc">SolM</span><span class="p">(</span><span class="n">_SolBase</span><span class="p">):</span>
+<span class="c1">#    &quot;&quot;&quot;</span>
+<span class="c1">#    SolM inanis et vacua est,</span>
+<span class="c1">#    SolM est illusio,</span>
+<span class="c1">#    SolM non potest suggero vos sustentationem mentis</span>
+<span class="c1">#</span>
+<span class="c1">#    MV (Caesar Dandenonensis)</span>
+<span class="c1">#    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">eta0</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">m</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">eta0</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">or</span> <span class="n">eta0</span> <span class="o">&lt;=</span> <span class="mf">0.</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;eta0&#39; can be any positive float.&quot;</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;m&#39; must be an int.&quot;</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;n&#39; must be an int.&quot;</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;r&#39; parameter must be a &#39;float&#39; and != &#39;m&#39;.&quot;</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">m</span><span class="p">)</span><span class="o">-</span><span class="n">r</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">5</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;r&#39; must be different than &#39;m&#39;.&quot;</span> <span class="p">)</span>
+        <span class="c1"># check SolM for some details</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ckeep</span> <span class="o">=</span> <span class="n">_cfn</span><span class="o">.</span><span class="n">SolM</span><span class="p">(</span><span class="n">eta0</span><span class="p">,</span><span class="n">m</span><span class="p">,</span><span class="n">n</span><span class="p">,</span><span class="n">r</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SolM</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">_cfn</span><span class="o">.</span><span class="n">SolMCRTP</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ckeep</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<span class="c1">#    @property</span>
+<span class="c1">#    def eta0(self):</span>
+<span class="c1">#        return self._csol.eta0</span>
+<span class="c1">#    @eta0.setter</span>
+<span class="c1">#    def eta0(self, value):</span>
+<span class="c1">#        if not isinstance(value, float):</span>
+<span class="c1">#            raise TypeError(&quot;&#39;eta0&#39; must be a float.&quot; )</span>
+<span class="c1">#        self._csol.eta0 = value</span>
+<span class="c1">#    @property</span>
+<span class="c1">#    def m(self):</span>
+<span class="c1">#        return self._csol.m</span>
+<span class="c1">#    @m.setter</span>
+<span class="c1">#    def m(self, value):</span>
+<span class="c1">#        if not isinstance(value, int):</span>
+<span class="c1">#            raise TypeError(&quot;&#39;m&#39; must be an int.&quot; )</span>
+<span class="c1">#        self._csol.m = value</span>
+<span class="c1">#</span>
+<span class="c1">#    @property</span>
+<span class="c1">#    def n(self):</span>
+<span class="c1">#        return self._csol.n</span>
+<span class="c1">#    @n.setter</span>
+<span class="c1">#    def n(self, value):</span>
+<span class="c1">#        if not isinstance(value, int):</span>
+<span class="c1">#            raise TypeError(&quot;&#39;n&#39; must be an int.&quot; )</span>
+<span class="c1">#        self._csol.n = value</span>
+<span class="c1">#</span>
+<span class="c1">#    @property</span>
+<span class="c1">#    def r(self):</span>
+<span class="c1">#        return self._csol.r</span>
+<span class="c1">#    @r.setter</span>
+<span class="c1">#    def r(self, value):</span>
+<span class="c1">#        if not isinstance(value, float):</span>
+<span class="c1">#            raise TypeError(&quot;&#39;r&#39; parameter must be a float.&quot; )</span>
+<span class="c1">#        self._csol.r = value</span>
+
+
+<div class="viewcode-block" id="SolNL"><a class="viewcode-back" href="../../../underworld.function.analytic.html#underworld.function.analytic.SolNL">[docs]</a><span class="k">class</span> <span class="nc">SolNL</span><span class="p">(</span><span class="n">_SolBase</span><span class="p">):</span>
+<span class="c1">#    &quot;&quot;&quot;</span>
+<span class="c1">#    SolNL inanis et vacua est,</span>
+<span class="c1">#    SolNL est illusio,</span>
+<span class="c1">#    SolNL non potest suggero vos sustentationem mentis</span>
+<span class="c1">#</span>
+<span class="c1">#    MV (Caesar Dandenonensis)</span>
+<span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">eta0</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">eta0</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">or</span> <span class="n">eta0</span> <span class="o">&lt;=</span> <span class="mf">0.</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;eta0&#39; can be any positive float.&quot;</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;n&#39; must be an int.&quot;</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;r&#39; parameter must be a &#39;float&#39; and != &#39;m&#39;.&quot;</span> <span class="p">)</span>
+        <span class="c1"># check SolNL for some details</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ckeep</span> <span class="o">=</span> <span class="n">_cfn</span><span class="o">.</span><span class="n">SolNL</span><span class="p">(</span><span class="n">eta0</span><span class="p">,</span><span class="n">n</span><span class="p">,</span><span class="n">r</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SolNL</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">_cfn</span><span class="o">.</span><span class="n">SolNLCRTP</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ckeep</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<span class="c1">#    @property</span>
+<span class="c1">#    def eta0(self):</span>
+<span class="c1">#        return self._csol.eta0</span>
+<span class="c1">#    @eta0.setter</span>
+<span class="c1">#    def eta0(self, value):</span>
+<span class="c1">#        if not isinstance(value, float):</span>
+<span class="c1">#            raise TypeError(&quot;&#39;eta0&#39; must be a float.&quot; )</span>
+<span class="c1">#        self._csol.eta0 = value</span>
+<span class="c1">#</span>
+<span class="c1">#    @property</span>
+<span class="c1">#    def n(self):</span>
+<span class="c1">#        return self._csol.n</span>
+<span class="c1">#    @n.setter</span>
+<span class="c1">#    def n(self, value):</span>
+<span class="c1">#        if not isinstance(value, int):</span>
+<span class="c1">#            raise TypeError(&quot;&#39;n&#39; must be an int.&quot; )</span>
+<span class="c1">#        self._csol.n = value</span>
+<span class="c1">#</span>
+<span class="c1">#    @property</span>
+<span class="c1">#    def r(self):</span>
+<span class="c1">#        return self._csol.r</span>
+<span class="c1">#    @r.setter</span>
+<span class="c1">#    def r(self, value):</span>
+<span class="c1">#        if not isinstance(value, float):</span>
+<span class="c1">#            raise TypeError(&quot;&#39;r&#39; parameter must be a float.&quot; )</span>
+<span class="c1">#        self._csol.r = value</span>
+
+
+<div class="viewcode-block" id="SolDB2d"><a class="viewcode-back" href="../../../underworld.function.analytic.html#underworld.function.analytic.SolDB2d">[docs]</a><span class="k">class</span> <span class="nc">SolDB2d</span><span class="p">(</span><span class="n">_SolBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    SolDB2d and solDB3d from:</span>
+<span class="sd">    </span>
+<span class="sd">    Dohrmann, C.R., Bochev, P.B., A stabilized finite element method for the</span>
+<span class="sd">    Stokes problem based on polynomial pressure projections, </span>
+<span class="sd">    Int. J. Numer. Meth. Fluids 46, 183-201 (2004).</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ckeep</span> <span class="o">=</span> <span class="n">_cfn</span><span class="o">.</span><span class="n">SolDB2d</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SolDB2d</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">_cfn</span><span class="o">.</span><span class="n">SolDB2dCRTP</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ckeep</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SolDB3d"><a class="viewcode-back" href="../../../underworld.function.analytic.html#underworld.function.analytic.SolDB3d">[docs]</a><span class="k">class</span> <span class="nc">SolDB3d</span><span class="p">(</span><span class="n">_SolBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    SolDB2d and solDB3d from:</span>
+
+<span class="sd">    Dohrmann, C.R., Bochev, P.B., A stabilized finite element method for the</span>
+<span class="sd">    Stokes problem based on polynomial pressure projections, </span>
+<span class="sd">    Int. J. Numer. Meth. Fluids 46, 183-201 (2004).</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Beta</span><span class="o">=</span><span class="mf">4.</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ckeep</span> <span class="o">=</span> <span class="n">_cfn</span><span class="o">.</span><span class="n">SolDB3d</span><span class="p">(</span><span class="n">Beta</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SolDB3d</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">_cfn</span><span class="o">.</span><span class="n">SolDB3dCRTP</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ckeep</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+<span class="c1">#    @property</span>
+<span class="c1">#    def Beta(self):</span>
+<span class="c1">#        return self._csol.Beta</span>
+<span class="c1">#    @Beta.setter</span>
+<span class="c1">#    def Beta(self, value):</span>
+<span class="c1">#        if not isinstance(value, float):</span>
+<span class="c1">#            raise TypeError(&quot;&#39;Beta&#39; parameter must be a float.&quot; )</span>
+<span class="c1">#        self._csol.Beta = value</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Melbourne University, Monash University..
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

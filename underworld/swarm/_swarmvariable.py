@@ -36,19 +36,19 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
 
     Parameters
     ----------
-    swarm : uw.swarm.Swarm
+    swarm : underworld.swarm.Swarm
         The swarm of particles for which we wish to add the variable
     dataType: str
         The data type for the variable. Available types are  "char",
         "short", "int", "float" or "double".
     count: unsigned
         The number of values to be stored for each particle.
-    writeable: bool, default=True
+    writeable: bool
         Signifies if the variable should be writeable.
     """
     _supportedDataTypes = ["char", "short", "int", "float", "double"]
 
-    def __init__(self, swarm=None, dataType=None, count=None, writeable=True, **kwargs):
+    def __init__(self, swarm, dataType, count, writeable=True, **kwargs):
 
         if not isinstance(swarm, sab.SwarmAbstract):
             raise TypeError("'swarm' object passed in must be of type 'Swarm'")
@@ -125,7 +125,10 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
     @property
     def swarm(self):
         """
-        swarm (Swarm): The swarm this variable belongs to.
+        Returns
+        -------
+        underworld.swarm.Swarm
+            The swarm this variable belongs to.
         """
         # note that we only return a weakref to the swarm, hence the trailing parenthesis
         return self._swarm()
@@ -133,15 +136,21 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
     @property
     def dataType(self):
         """
-        dataType (str): Data type for variable.  Supported types are 'char',
-        'short', 'int', 'float' and 'double'.
+        Returns
+        -------
+        str
+            Data type for variable.  Supported types are 'char', 'short', 'int', 
+            'float' and 'double'.
         """
         return self._dataType
 
     @property
     def count(self):
         """
-        count (int): Number of data items for this variable stored on each particle.
+        Returns
+        -------
+        int
+            Number of data items for this variable stored on each particle.
         """
         return self._count
 
@@ -149,12 +158,13 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
     @property
     def data(self):
         """
-        data (np.array):  Numpy proxy array to underlying variable data.
-        Note that the returned array is a proxy for all the *local* particle
-        data.
-
-        As numpy arrays are simply proxys to the underlying memory structures.
-        no data copying is required.
+        Returns
+        -------
+        numpy.ndarray
+            Numpy proxy array to underlying variable data. Note that the 
+            returned array is a proxy for all the *local* particle data. As 
+            numpy arrays are simply proxys to the underlying memory structures,
+            no data copying is required.
 
         Example
         -------
@@ -200,8 +210,10 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
     @property
     def data_shadow(self):
         """
-        data_shadow (np.array):  Numpy proxy array to underlying variable shadow
-        data.
+        Returns
+        -------
+        numpy.ndarray
+            Numpy proxy array to underlying variable shadow data.
 
         Example
         -------
@@ -310,13 +322,13 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         filename : str
             The filename for the saved file. Relative or absolute paths may be
             used, but all directories must exist.
-        swarmFilepath : str (optional)
+        swarmFilepath : str
             Path to the save swarm file. If provided, a softlink is created within
             the swarm variable file to the swarm file.
 
         Returns
         -------
-        SavedFileData
+        underworld.utils.SavedFileData
             Data object relating to saved file. This only needs to be retained
             if you wish to create XDMF files and can be ignored otherwise.
 
@@ -357,7 +369,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         >>> np.allclose(svar.data,clone_svar.data)
         True
 
-        Clean up:
+        >>> # clean up:
         >>> if uw.rank() == 0:
         ...     import os;
         ...     os.remove( "saved_swarm.h5" )
@@ -434,17 +446,17 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
             The xdmf name to give the swarmVariable
         swarmname : str
             The xdmf name to give the swarm
-        swarmSavedData : underworld.SaveFileData
+        swarmSavedData : underworld.utils.SaveFileData
             Handler returned for saving a swarm. underworld.swarm.Swarm.save(xxx)
-        varSavedData : underworld.SavedFileData
+        varSavedData : underworld.utils.SavedFileData
             Handler returned from saving a SwarmVariable. underworld.swarm.SwarmVariable.save(xxx)
         modeltime : float (default 0.0)
             The time recorded in the xdmf output file
 
-        Example TODO
+        Example
         -------
-
         First create the swarm and add a variable:
+        
         >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
         >>> swarm = uw.swarm.Swarm( mesh=mesh )
         >>> swarmLayout = uw.swarm.layouts.PerCellGaussLayout(swarm,2)
@@ -471,7 +483,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         >>> if uw.rank() == 0: os.path.isfile("TESTxdmf.xdmf")
         True
 
-        Clean up:
+        >>> # clean up:
         >>> if uw.rank() == 0:
         ...     import os;
         ...     os.remove( "saved_swarm.h5" )

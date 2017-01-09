@@ -1,0 +1,857 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>underworld.function.math module &mdash; underworld2  documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="underworld2  documentation" href="index.html"/>
+        <link rel="up" title="underworld.function module" href="underworld.function.html"/>
+        <link rel="next" title="underworld.function.view module" href="underworld.function.view.html"/>
+        <link rel="prev" title="underworld.function.rheology module" href="underworld.function.rheology.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> underworld2
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="underworld.html">underworld module</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="underworld.html#module-summary">Module Summary</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="underworld.html#submodules">submodules:</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="underworld.function.html">underworld.function module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="underworld.container.html">underworld.container module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="underworld.utils.html">underworld.utils module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="underworld.swarm.html">underworld.swarm module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="underworld.mesh.html">underworld.mesh module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="underworld.systems.html">underworld.systems module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="underworld.conditions.html">underworld.conditions module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="underworld.html#functions">functions:</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="underworld.html#module-details">Module Details</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="glucifer.html">glucifer module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">underworld2</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="underworld.html">underworld module</a> &raquo;</li>
+      
+          <li><a href="underworld.function.html">underworld.function module</a> &raquo;</li>
+      
+    <li>underworld.function.math module</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/underworld.function.math.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="underworld-function-math-module">
+<h1>underworld.function.math module<a class="headerlink" href="#underworld-function-math-module" title="Permalink to this headline">¶</a></h1>
+<p>This module provides math functions.  All functions take functions (or
+convertibles) as arguments. These functions effectively wrap to the
+c++ standard template library equivalent.  For example,
+the &#8216;exp&#8217; class generates a function with uses std::exp(double).</p>
+<p>All functions operate on and return &#8216;double&#8217; type data (or
+&#8216;float&#8217; from python).</p>
+<div class="section" id="module-summary">
+<h2>Module Summary<a class="headerlink" href="#module-summary" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="classes">
+<h3>classes:<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#underworld.function.math.pow" title="underworld.function.math.pow"><code class="xref py py-obj docutils literal"><span class="pre">underworld.function.math.pow</span></code></a></td>
+<td>Power function.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#underworld.function.math.cosh" title="underworld.function.math.cosh"><code class="xref py py-obj docutils literal"><span class="pre">underworld.function.math.cosh</span></code></a></td>
+<td>Computes the hyperbolic cosine of its argument function.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#underworld.function.math.acosh" title="underworld.function.math.acosh"><code class="xref py py-obj docutils literal"><span class="pre">underworld.function.math.acosh</span></code></a></td>
+<td>Computes the inverse hyperbolic cosine of its argument function.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#underworld.function.math.tan" title="underworld.function.math.tan"><code class="xref py py-obj docutils literal"><span class="pre">underworld.function.math.tan</span></code></a></td>
+<td>Computes the tangent of its argument function (measured in radians).</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#underworld.function.math.asin" title="underworld.function.math.asin"><code class="xref py py-obj docutils literal"><span class="pre">underworld.function.math.asin</span></code></a></td>
+<td>Computes the principal value of the arc sine of x, expressed in radians.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#underworld.function.math.log" title="underworld.function.math.log"><code class="xref py py-obj docutils literal"><span class="pre">underworld.function.math.log</span></code></a></td>
+<td>Computes the natural logarithm of its argument function.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#underworld.function.math.atanh" title="underworld.function.math.atanh"><code class="xref py py-obj docutils literal"><span class="pre">underworld.function.math.atanh</span></code></a></td>
+<td>Computes the inverse hyperbolic tangent of its argument function.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#underworld.function.math.sqrt" title="underworld.function.math.sqrt"><code class="xref py py-obj docutils literal"><span class="pre">underworld.function.math.sqrt</span></code></a></td>
+<td>Computes the square root of its argument function.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#underworld.function.math.abs" title="underworld.function.math.abs"><code class="xref py py-obj docutils literal"><span class="pre">underworld.function.math.abs</span></code></a></td>
+<td>Computes the absolute value of its argument function.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#underworld.function.math.log10" title="underworld.function.math.log10"><code class="xref py py-obj docutils literal"><span class="pre">underworld.function.math.log10</span></code></a></td>
+<td>Computes the base 10 logarithm of its argument function.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#underworld.function.math.sin" title="underworld.function.math.sin"><code class="xref py py-obj docutils literal"><span class="pre">underworld.function.math.sin</span></code></a></td>
+<td>Computes the sine of its argument function (measured in radians).</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#underworld.function.math.asinh" title="underworld.function.math.asinh"><code class="xref py py-obj docutils literal"><span class="pre">underworld.function.math.asinh</span></code></a></td>
+<td>Computes the inverse hyperbolic sine of its argument function.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#underworld.function.math.log2" title="underworld.function.math.log2"><code class="xref py py-obj docutils literal"><span class="pre">underworld.function.math.log2</span></code></a></td>
+<td>Computes the base 2 logarithm of its argument function.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#underworld.function.math.atan" title="underworld.function.math.atan"><code class="xref py py-obj docutils literal"><span class="pre">underworld.function.math.atan</span></code></a></td>
+<td>Computes the principal value of the arc tangent of x, expressed in radians.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#underworld.function.math.sinh" title="underworld.function.math.sinh"><code class="xref py py-obj docutils literal"><span class="pre">underworld.function.math.sinh</span></code></a></td>
+<td>Computes the hyperbolic sine of its argument function.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#underworld.function.math.cos" title="underworld.function.math.cos"><code class="xref py py-obj docutils literal"><span class="pre">underworld.function.math.cos</span></code></a></td>
+<td>Computes the cosine of its argument function (measured in radians).</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#underworld.function.math.tanh" title="underworld.function.math.tanh"><code class="xref py py-obj docutils literal"><span class="pre">underworld.function.math.tanh</span></code></a></td>
+<td>Computes the hyperbolic tangent of its argument function.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#underworld.function.math.erf" title="underworld.function.math.erf"><code class="xref py py-obj docutils literal"><span class="pre">underworld.function.math.erf</span></code></a></td>
+<td>Computes the error function of its argument function.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#underworld.function.math.erfc" title="underworld.function.math.erfc"><code class="xref py py-obj docutils literal"><span class="pre">underworld.function.math.erfc</span></code></a></td>
+<td>Computes the complementary error function of its argument function.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#underworld.function.math.exp" title="underworld.function.math.exp"><code class="xref py py-obj docutils literal"><span class="pre">underworld.function.math.exp</span></code></a></td>
+<td>Computes the exponent of its argument function.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#underworld.function.math.acos" title="underworld.function.math.acos"><code class="xref py py-obj docutils literal"><span class="pre">underworld.function.math.acos</span></code></a></td>
+<td>Computes the principal value of the arc cosine of x, expressed in radians.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#underworld.function.math.dot" title="underworld.function.math.dot"><code class="xref py py-obj docutils literal"><span class="pre">underworld.function.math.dot</span></code></a></td>
+<td>Dot product function.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="module-details">
+<h2>Module Details<a class="headerlink" href="#module-details" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id1">
+<h3>classes:<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="underworld.function.math.pow">
+<em class="property">class </em><code class="descclassname">underworld.function.math.</code><code class="descname">pow</code><span class="sig-paren">(</span><em>fn1</em>, <em>fn2</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/function/math.html#pow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.function.math.pow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">underworld.function._function.Function</span></code></p>
+<p>Power function.  Raises fn1 to the power of fn2.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>fn1</strong> (<em>underworld.function.Function (or convertible).</em>) &#8211; The base function.</li>
+<li><strong>fn2</strong> (<em>underworld.function.Function (or convertible).</em>) &#8211; The power function.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">_systemmath</span> <span class="k">as</span> <span class="n">math</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">func</span> <span class="o">=</span> <span class="nb">pow</span><span class="p">(</span><span class="n">_uw</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="n">input</span><span class="p">(),</span><span class="mf">3.</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span> <span class="n">func</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="mf">2.</span><span class="p">),</span> <span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mf">2.</span><span class="p">,</span><span class="mf">3.</span><span class="p">)</span> <span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="underworld.function.math.cosh">
+<em class="property">class </em><code class="descclassname">underworld.function.math.</code><code class="descname">cosh</code><span class="sig-paren">(</span><em>fn=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/function/math.html#cosh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.function.math.cosh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">underworld.function._function.Function</span></code></p>
+<p>Computes the hyperbolic cosine of its argument function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fn</strong> (<em>underworld.function.Function (or convertible).  Default: None</em>) &#8211; The argument function. Default is None, in which case
+the input is processed directly.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">_systemmath</span> <span class="k">as</span> <span class="n">math</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">func</span> <span class="o">=</span> <span class="n">cosh</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span> <span class="n">func</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="mf">0.1234</span><span class="p">),</span> <span class="n">math</span><span class="o">.</span><span class="n">cosh</span><span class="p">(</span><span class="mf">0.1234</span><span class="p">)</span> <span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="underworld.function.math.acosh">
+<em class="property">class </em><code class="descclassname">underworld.function.math.</code><code class="descname">acosh</code><span class="sig-paren">(</span><em>fn=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/function/math.html#acosh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.function.math.acosh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">underworld.function._function.Function</span></code></p>
+<p>Computes the inverse hyperbolic cosine of its argument function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fn</strong> (<em>underworld.function.Function (or convertible).  Default: None</em>) &#8211; The argument function. Default is None, in which case
+the input is processed directly.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">_systemmath</span> <span class="k">as</span> <span class="n">math</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">func</span> <span class="o">=</span> <span class="n">acosh</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span> <span class="n">func</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="mf">5.1234</span><span class="p">),</span> <span class="n">math</span><span class="o">.</span><span class="n">acosh</span><span class="p">(</span><span class="mf">5.1234</span><span class="p">)</span> <span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="underworld.function.math.tan">
+<em class="property">class </em><code class="descclassname">underworld.function.math.</code><code class="descname">tan</code><span class="sig-paren">(</span><em>fn=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/function/math.html#tan"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.function.math.tan" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">underworld.function._function.Function</span></code></p>
+<p>Computes the tangent of its argument function
+(measured in radians).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fn</strong> (<em>underworld.function.Function (or convertible).  Default: None</em>) &#8211; The argument function. Default is None, in which case
+the input is processed directly.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">_systemmath</span> <span class="k">as</span> <span class="n">math</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">func</span> <span class="o">=</span> <span class="n">tan</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span> <span class="n">func</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="mf">0.1234</span><span class="p">),</span> <span class="n">math</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="mf">0.1234</span><span class="p">)</span> <span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="underworld.function.math.asin">
+<em class="property">class </em><code class="descclassname">underworld.function.math.</code><code class="descname">asin</code><span class="sig-paren">(</span><em>fn=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/function/math.html#asin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.function.math.asin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">underworld.function._function.Function</span></code></p>
+<p>Computes the principal value of the arc sine of x, expressed in radians.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fn</strong> (<em>underworld.function.Function (or convertible).  Default: None</em>) &#8211; The argument function. Default is None, in which case
+the input is processed directly.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">_systemmath</span> <span class="k">as</span> <span class="n">math</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">func</span> <span class="o">=</span> <span class="n">asin</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span> <span class="n">func</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="mf">0.1234</span><span class="p">),</span> <span class="n">math</span><span class="o">.</span><span class="n">asin</span><span class="p">(</span><span class="mf">0.1234</span><span class="p">)</span> <span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="underworld.function.math.log">
+<em class="property">class </em><code class="descclassname">underworld.function.math.</code><code class="descname">log</code><span class="sig-paren">(</span><em>fn=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/function/math.html#log"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.function.math.log" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">underworld.function._function.Function</span></code></p>
+<p>Computes the natural logarithm of its argument function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fn</strong> (<em>underworld.function.Function (or convertible).  Default: None</em>) &#8211; The argument function. Default is None, in which case
+the input is processed directly.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">_systemmath</span> <span class="k">as</span> <span class="n">math</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">func</span> <span class="o">=</span> <span class="n">log</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span> <span class="n">func</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="mf">0.1234</span><span class="p">),</span> <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">0.1234</span><span class="p">)</span> <span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="underworld.function.math.atanh">
+<em class="property">class </em><code class="descclassname">underworld.function.math.</code><code class="descname">atanh</code><span class="sig-paren">(</span><em>fn=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/function/math.html#atanh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.function.math.atanh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">underworld.function._function.Function</span></code></p>
+<p>Computes the inverse hyperbolic tangent of its argument function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fn</strong> (<em>underworld.function.Function (or convertible).  Default: None</em>) &#8211; The argument function. Default is None, in which case
+the input is processed directly.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">_systemmath</span> <span class="k">as</span> <span class="n">math</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">func</span> <span class="o">=</span> <span class="n">atanh</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span> <span class="n">func</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="mf">0.1234</span><span class="p">),</span> <span class="n">math</span><span class="o">.</span><span class="n">atanh</span><span class="p">(</span><span class="mf">0.1234</span><span class="p">)</span> <span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="underworld.function.math.sqrt">
+<em class="property">class </em><code class="descclassname">underworld.function.math.</code><code class="descname">sqrt</code><span class="sig-paren">(</span><em>fn=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/function/math.html#sqrt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.function.math.sqrt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">underworld.function._function.Function</span></code></p>
+<p>Computes the square root of its argument function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fn</strong> (<em>underworld.function.Function (or convertible).  Default: None</em>) &#8211; The argument function. Default is None, in which case
+the input is processed directly.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">_systemmath</span> <span class="k">as</span> <span class="n">math</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">func</span> <span class="o">=</span> <span class="n">sqrt</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span> <span class="n">func</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="mf">0.1234</span><span class="p">),</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">0.1234</span><span class="p">)</span> <span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="underworld.function.math.abs">
+<em class="property">class </em><code class="descclassname">underworld.function.math.</code><code class="descname">abs</code><span class="sig-paren">(</span><em>fn=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/function/math.html#abs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.function.math.abs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">underworld.function._function.Function</span></code></p>
+<p>Computes the absolute value of its argument function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fn</strong> (<em>underworld.function.Function (or convertible).  Default: None</em>) &#8211; The argument function. Default is None, in which case
+the input is processed directly.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">_systemmath</span> <span class="k">as</span> <span class="n">math</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">func</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span> <span class="n">func</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="o">-</span><span class="mf">0.1234</span><span class="p">),</span> <span class="n">math</span><span class="o">.</span><span class="n">fabs</span><span class="p">(</span><span class="mf">0.1234</span><span class="p">)</span> <span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="underworld.function.math.log10">
+<em class="property">class </em><code class="descclassname">underworld.function.math.</code><code class="descname">log10</code><span class="sig-paren">(</span><em>fn=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/function/math.html#log10"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.function.math.log10" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">underworld.function._function.Function</span></code></p>
+<p>Computes the base 10 logarithm of its argument function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fn</strong> (<em>underworld.function.Function (or convertible).  Default: None</em>) &#8211; The argument function. Default is None, in which case
+the input is processed directly.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">_systemmath</span> <span class="k">as</span> <span class="n">math</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">func</span> <span class="o">=</span> <span class="n">log10</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span> <span class="n">func</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="mf">0.1234</span><span class="p">),</span> <span class="n">math</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="mf">0.1234</span><span class="p">)</span> <span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="underworld.function.math.sin">
+<em class="property">class </em><code class="descclassname">underworld.function.math.</code><code class="descname">sin</code><span class="sig-paren">(</span><em>fn=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/function/math.html#sin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.function.math.sin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">underworld.function._function.Function</span></code></p>
+<p>Computes the sine of its argument function
+(measured in radians).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fn</strong> (<em>underworld.function.Function (or convertible).  Default: None</em>) &#8211; The argument function. Default is None, in which case
+the input is processed directly.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">_systemmath</span> <span class="k">as</span> <span class="n">math</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">func</span> <span class="o">=</span> <span class="n">sin</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span> <span class="n">func</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="mf">0.1234</span><span class="p">),</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mf">0.1234</span><span class="p">)</span> <span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="underworld.function.math.asinh">
+<em class="property">class </em><code class="descclassname">underworld.function.math.</code><code class="descname">asinh</code><span class="sig-paren">(</span><em>fn=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/function/math.html#asinh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.function.math.asinh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">underworld.function._function.Function</span></code></p>
+<p>Computes the inverse hyperbolic sine of its argument function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fn</strong> (<em>underworld.function.Function (or convertible).  Default: None</em>) &#8211; The argument function. Default is None, in which case
+the input is processed directly.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">_systemmath</span> <span class="k">as</span> <span class="n">math</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">func</span> <span class="o">=</span> <span class="n">asinh</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span> <span class="n">func</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="mf">5.1234</span><span class="p">),</span> <span class="n">math</span><span class="o">.</span><span class="n">asinh</span><span class="p">(</span><span class="mf">5.1234</span><span class="p">)</span> <span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="underworld.function.math.log2">
+<em class="property">class </em><code class="descclassname">underworld.function.math.</code><code class="descname">log2</code><span class="sig-paren">(</span><em>fn=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/function/math.html#log2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.function.math.log2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">underworld.function._function.Function</span></code></p>
+<p>Computes the base 2 logarithm of its argument function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fn</strong> (<em>underworld.function.Function (or convertible).  Default: None</em>) &#8211; The argument function. Default is None, in which case
+the input is processed directly.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">_systemmath</span> <span class="k">as</span> <span class="n">math</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">func</span> <span class="o">=</span> <span class="n">log2</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span> <span class="n">func</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="mf">0.1234</span><span class="p">),</span> <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">0.1234</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span> <span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="underworld.function.math.atan">
+<em class="property">class </em><code class="descclassname">underworld.function.math.</code><code class="descname">atan</code><span class="sig-paren">(</span><em>fn=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/function/math.html#atan"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.function.math.atan" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">underworld.function._function.Function</span></code></p>
+<p>Computes the principal value of the arc tangent of x, expressed in radians.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fn</strong> (<em>underworld.function.Function (or convertible).  Default: None</em>) &#8211; The argument function. Default is None, in which case
+the input is processed directly.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">_systemmath</span> <span class="k">as</span> <span class="n">math</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">func</span> <span class="o">=</span> <span class="n">atan</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span> <span class="n">func</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="mf">0.1234</span><span class="p">),</span> <span class="n">math</span><span class="o">.</span><span class="n">atan</span><span class="p">(</span><span class="mf">0.1234</span><span class="p">)</span> <span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="underworld.function.math.sinh">
+<em class="property">class </em><code class="descclassname">underworld.function.math.</code><code class="descname">sinh</code><span class="sig-paren">(</span><em>fn=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/function/math.html#sinh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.function.math.sinh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">underworld.function._function.Function</span></code></p>
+<p>Computes the hyperbolic sine of its argument function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fn</strong> (<em>underworld.function.Function (or convertible).  Default: None</em>) &#8211; The argument function. Default is None, in which case
+the input is processed directly.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">_systemmath</span> <span class="k">as</span> <span class="n">math</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">func</span> <span class="o">=</span> <span class="n">sinh</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span> <span class="n">func</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="mf">0.1234</span><span class="p">),</span> <span class="n">math</span><span class="o">.</span><span class="n">sinh</span><span class="p">(</span><span class="mf">0.1234</span><span class="p">)</span> <span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="underworld.function.math.cos">
+<em class="property">class </em><code class="descclassname">underworld.function.math.</code><code class="descname">cos</code><span class="sig-paren">(</span><em>fn=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/function/math.html#cos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.function.math.cos" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">underworld.function._function.Function</span></code></p>
+<p>Computes the cosine of its argument function
+(measured in radians).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fn</strong> (<em>underworld.function.Function (or convertible).  Default: None</em>) &#8211; The argument function. Default is None, in which case
+the input is processed directly.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">_systemmath</span> <span class="k">as</span> <span class="n">math</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">func</span> <span class="o">=</span> <span class="n">cos</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span> <span class="n">func</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="mf">0.1234</span><span class="p">),</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="mf">0.1234</span><span class="p">)</span> <span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="underworld.function.math.tanh">
+<em class="property">class </em><code class="descclassname">underworld.function.math.</code><code class="descname">tanh</code><span class="sig-paren">(</span><em>fn=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/function/math.html#tanh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.function.math.tanh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">underworld.function._function.Function</span></code></p>
+<p>Computes the hyperbolic tangent of its argument function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fn</strong> (<em>underworld.function.Function (or convertible).  Default: None</em>) &#8211; The argument function. Default is None, in which case
+the input is processed directly.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">_systemmath</span> <span class="k">as</span> <span class="n">math</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">func</span> <span class="o">=</span> <span class="n">tanh</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span> <span class="n">func</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="mf">0.1234</span><span class="p">),</span> <span class="n">math</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="mf">0.1234</span><span class="p">)</span> <span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="underworld.function.math.erf">
+<em class="property">class </em><code class="descclassname">underworld.function.math.</code><code class="descname">erf</code><span class="sig-paren">(</span><em>fn=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/function/math.html#erf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.function.math.erf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">underworld.function._function.Function</span></code></p>
+<p>Computes the error function of its argument function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fn</strong> (<em>underworld.function.Function (or convertible).  Default: None</em>) &#8211; The argument function. Default is None, in which case
+the input is processed directly.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">_systemmath</span> <span class="k">as</span> <span class="n">math</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">func</span> <span class="o">=</span> <span class="n">erf</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span> <span class="n">func</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="mf">0.1234</span><span class="p">),</span> <span class="n">math</span><span class="o">.</span><span class="n">erf</span><span class="p">(</span><span class="mf">0.1234</span><span class="p">)</span> <span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="underworld.function.math.erfc">
+<em class="property">class </em><code class="descclassname">underworld.function.math.</code><code class="descname">erfc</code><span class="sig-paren">(</span><em>fn=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/function/math.html#erfc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.function.math.erfc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">underworld.function._function.Function</span></code></p>
+<p>Computes the complementary error function of its argument function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fn</strong> (<em>underworld.function.Function (or convertible).  Default: None</em>) &#8211; The argument function. Default is None, in which case
+the input is processed directly.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">_systemmath</span> <span class="k">as</span> <span class="n">math</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">func</span> <span class="o">=</span> <span class="n">erfc</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span> <span class="n">func</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="mf">0.1234</span><span class="p">),</span> <span class="n">math</span><span class="o">.</span><span class="n">erfc</span><span class="p">(</span><span class="mf">0.1234</span><span class="p">)</span> <span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="underworld.function.math.exp">
+<em class="property">class </em><code class="descclassname">underworld.function.math.</code><code class="descname">exp</code><span class="sig-paren">(</span><em>fn=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/function/math.html#exp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.function.math.exp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">underworld.function._function.Function</span></code></p>
+<p>Computes the exponent of its argument function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fn</strong> (<em>underworld.function.Function (or convertible).  Default: None</em>) &#8211; The argument function. Default is None, in which case
+the input is processed directly.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">_systemmath</span> <span class="k">as</span> <span class="n">math</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">func</span> <span class="o">=</span> <span class="n">exp</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span> <span class="n">func</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="mf">0.1234</span><span class="p">),</span> <span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mf">0.1234</span><span class="p">)</span> <span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="underworld.function.math.acos">
+<em class="property">class </em><code class="descclassname">underworld.function.math.</code><code class="descname">acos</code><span class="sig-paren">(</span><em>fn=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/function/math.html#acos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.function.math.acos" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">underworld.function._function.Function</span></code></p>
+<p>Computes the principal value of the arc cosine of x, expressed in radians.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fn</strong> (<em>underworld.function.Function (or convertible).  Default: None</em>) &#8211; The argument function. Default is None, in which case
+the input is processed directly.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">_systemmath</span> <span class="k">as</span> <span class="n">math</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">func</span> <span class="o">=</span> <span class="n">acos</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span> <span class="n">func</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="mf">0.1234</span><span class="p">),</span> <span class="n">math</span><span class="o">.</span><span class="n">acos</span><span class="p">(</span><span class="mf">0.1234</span><span class="p">)</span> <span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="underworld.function.math.dot">
+<em class="property">class </em><code class="descclassname">underworld.function.math.</code><code class="descname">dot</code><span class="sig-paren">(</span><em>fn1</em>, <em>fn2</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/function/math.html#dot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.function.math.dot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">underworld.function._function.Function</span></code></p>
+<p>Dot product function. Returns fn1.fn2. Argument functions must return values
+of identical size.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>fn1</strong> (<em>underworld.function.Function (or convertible).</em>) &#8211; Argument function 1.</li>
+<li><strong>fn2</strong> (<em>underworld.function.Function (or convertible).</em>) &#8211; Argument function 2.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">_systemmath</span> <span class="k">as</span> <span class="n">math</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input1</span> <span class="o">=</span> <span class="p">(</span><span class="mf">2.</span><span class="p">,</span><span class="mf">3.</span><span class="p">,</span><span class="mf">4.</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input2</span> <span class="o">=</span> <span class="p">(</span><span class="mf">5.</span><span class="p">,</span><span class="mf">6.</span><span class="p">,</span><span class="mf">7.</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">func</span> <span class="o">=</span> <span class="n">dot</span><span class="p">(</span> <span class="n">input1</span><span class="p">,</span> <span class="n">input2</span> <span class="p">)</span>
+</pre></div>
+</div>
+<p>The function is constant, so evaluate anywhere:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span> <span class="n">func</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="mf">0.</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">input1</span><span class="p">,</span><span class="n">input2</span><span class="p">)</span> <span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="underworld.function.view.html" class="btn btn-neutral float-right" title="underworld.function.view module" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="underworld.function.rheology.html" class="btn btn-neutral" title="underworld.function.rheology module" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Melbourne University, Monash University..
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
