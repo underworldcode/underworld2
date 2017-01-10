@@ -10,6 +10,7 @@
 
 #include <mpi.h>
 #include <petsc.h>
+#include <float.h>
 #include "CrossSection.h"
 
 #include <Underworld/Function/FunctionIO.hpp>
