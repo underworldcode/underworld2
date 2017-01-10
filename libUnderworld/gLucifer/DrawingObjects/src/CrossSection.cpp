@@ -480,9 +480,9 @@ void lucCrossSection_SampleField(void* drawingObject, Bool reverse)
          if (pos[I_AXIS] + TOL > localMin[I_AXIS] && pos[I_AXIS] - TOL < localMax[I_AXIS] &&
              pos[J_AXIS] + TOL > localMin[J_AXIS] && pos[J_AXIS] - TOL < localMax[J_AXIS] &&
             (fieldVariable->dim < 3 || (pos[K_AXIS] + TOL > localMin[K_AXIS] && pos[K_AXIS] - TOL < localMax[K_AXIS])))*/
-         if (pos[I_AXIS] >= localMin[I_AXIS] && pos[I_AXIS] <= localMax[I_AXIS] &&
-             pos[J_AXIS] >= localMin[J_AXIS] && pos[J_AXIS] <= localMax[J_AXIS] &&
-            (self->dim < 3 || (pos[K_AXIS] >= localMin[K_AXIS] && pos[K_AXIS] <= localMax[K_AXIS])))
+         if (pos[I_AXIS] > localMin[I_AXIS]-FLT_EPSILON && pos[I_AXIS] < localMax[I_AXIS]+FLT_EPSILON &&
+             pos[J_AXIS] > localMin[J_AXIS]-FLT_EPSILON && pos[J_AXIS] < localMax[J_AXIS]+FLT_EPSILON &&
+            (self->dim < 3 || (pos[K_AXIS] > localMin[K_AXIS]-FLT_EPSILON && pos[K_AXIS] < localMax[K_AXIS]+FLT_EPSILON)))
          {
             const FunctionIO* output = debug_dynamic_cast<const FunctionIO*>(cppdata->func(globalCoord.get()));
 
