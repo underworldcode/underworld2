@@ -74,8 +74,7 @@ class ColourMap(_stgermain.StgCompoundComponent):
     _selfObjectName = "_cm"
     _objectsDict = { "_cm": "lucColourMap" }
     
-    #Default is a cool-warm map with low variance in luminosity/lightness
-    def __init__(self, colours="#288FD0 #50B6B8 #989878 #C68838 #FF7520", valueRange=None, logScale=False, discrete=False, **kwargs):
+    def __init__(self, colours=None, valueRange=None, logScale=False, discrete=False, **kwargs):
         if not hasattr(self, "properties"):
             self.properties = {}
 
