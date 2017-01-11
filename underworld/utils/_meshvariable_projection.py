@@ -101,6 +101,8 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
     _selfObjectName = "_system"
 
     def __init__(self, meshVariable=None, fn=None, voronoi_swarm=None, type=0, swarm=None, **kwargs):
+        import pdb
+        pdb.set_trace()
         # DEPRECATE. JM 09/16
         if swarm:
             import warnings
@@ -124,7 +126,7 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
         except Exception as e:
             raise uw._prepend_message_to_exception(e, "Exception encountered. Note that provided 'fn' must be of or convertible to 'Function' class.\nEncountered exception message:\n")
 
-        if voronoi_swarm and not isinstance(swarm, uw.swarm.Swarm):
+        if voronoi_swarm and not isinstance(voronoi_swarm, uw.swarm.Swarm):
             raise TypeError( "Provided 'swarm' must be of 'Swarm' class." )
         self._swarm = voronoi_swarm
         if voronoi_swarm and meshVariable.mesh.elementType=='Q2':

@@ -122,7 +122,7 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
         except Exception as e:
             raise uw._prepend_message_to_exception(e, "Exception encountered. Note that provided 'fn_heating' must be of or convertible to 'Function' class.\nEncountered exception message:\n")
 
-        if voronoi_swarm and not isinstance(swarm, uw.swarm.Swarm):
+        if voronoi_swarm and not isinstance(voronoi_swarm, uw.swarm.Swarm):
             raise TypeError( "Provided 'swarm' must be of 'Swarm' class." )
         self._swarm = voronoi_swarm
         if voronoi_swarm and temperatureField.mesh.elementType=='Q2':
