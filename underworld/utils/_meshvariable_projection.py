@@ -101,8 +101,6 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
     _selfObjectName = "_system"
 
     def __init__(self, meshVariable=None, fn=None, voronoi_swarm=None, type=0, swarm=None, **kwargs):
-        import pdb
-        pdb.set_trace()
         # DEPRECATE. JM 09/16
         if swarm:
             import warnings
