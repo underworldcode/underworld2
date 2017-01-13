@@ -543,6 +543,13 @@ class Points(Drawing):
 
 class _GridSampler3D(CrossSection):
     """  This drawing object class samples a regular grid in 3D.
+
+    resolutionI : unsigned
+        Number of samples in the I direction.
+    resolutionJ : unsigned
+        Number of samples in the J direction.
+    resolutionK : unsigned
+        Number of samples in the K direction.
     """
     _objectsDict = { "_dr": None } #Abstract class, Set by child
 
@@ -611,7 +618,7 @@ class VectorArrows(_GridSampler3D):
     _objectsDict = { "_dr": "lucVectorArrows" }
 
     def __init__(self, mesh, fn,
-                       resolutionI=None, resolutionJ=None, resolutionK=None, 
+                       resolutionI=16, resolutionJ=16, resolutionK=16, 
                        *args, **kwargs):
 
         # build parent
@@ -650,7 +657,8 @@ class Volume(_GridSampler3D):
     """
     _objectsDict = { "_dr": "lucFieldSampler" }
 
-    def __init__(self, mesh, fn, resolutionI=None, resolutionJ=None, resolutionK=None,
+    def __init__(self, mesh, fn, 
+                       resolutionI=64, resolutionJ=64, resolutionK=64, 
                        colours=None, colourMap=None, colourBar=True,
                        valueRange=None, logScale=False, discrete=False,
                        *args, **kwargs):

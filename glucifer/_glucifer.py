@@ -367,7 +367,7 @@ class Figure(dict):
     resolution: tuple
         Image resolution provided as a tuple.
     boundingBox: tuple
-        Tuple of coordiante tuples defining figure bounding box.
+        Tuple of coordinate tuples defining figure bounding box.
         For example ( (0.1,0.1), (0.9,0.9) )
     facecolour: str
         Background colour for figure.
