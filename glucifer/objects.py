@@ -74,12 +74,10 @@ class ColourMap(_stgermain.StgCompoundComponent):
     _selfObjectName = "_cm"
     _objectsDict = { "_cm": "lucColourMap" }
     
-    def __init__(self, colours=None, valueRange=None, logScale=False, discrete=False, **kwargs):
+    def __init__(self, colours=colourMaps["diverge"], valueRange=None, logScale=False, discrete=False, **kwargs):
         if not hasattr(self, "properties"):
             self.properties = {}
 
-        if colours == None:
-            colours = colourMaps["diverge"]
         if not isinstance(colours,(str,list)):
             raise TypeError("'colours' object passed in must be of python type 'str' or 'list'")
         if isinstance(colours,(list)):
