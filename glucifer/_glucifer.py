@@ -451,8 +451,11 @@ class Figure(dict):
         self.quality=quality
 
         #Setup default properties
-        self.update({"resolution" : (640, 480), "title" : str(title), "axis" : axis, "axislength" : 0.2, "antialias" : True, "background" : facecolour,
-            "margin" : 34, "border" : (1 if edgecolour else 0), "bordercolour" : edgecolour, "rulers" : False, "zoomstep" : 0})
+        self.update({"resolution" : (640, 480), "title" : str(title), 
+            "axis" : axis, "axislength" : 0.2, "antialias" : True, 
+            "background" : facecolour, "margin" : 34, 
+            "border" : (1 if edgecolour else 0), "bordercolour" : edgecolour, 
+            "rulers" : False, "zoomstep" : 0})
 
         #User-defined props in kwargs
         self.update(kwargs)
