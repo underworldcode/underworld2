@@ -202,9 +202,6 @@ class Store(_stgermain.StgCompoundComponent):
                 else:
                    obj.properties["name"] = obj._dr.type[3:] + '_' + str(o)
 
-        #Get name of first object for figure if none providedc
-        if not figname and len(objects) > 0: figname = objects[0].properties["name"]
-
         if not self._viewonly:
             #Set the write step
             self._db.timeStep = self.step
@@ -418,6 +415,8 @@ class Figure(dict):
 
     """
     _viewerProc = None
+    _id = 1
+
     def __init__(self, store=None, name=None, figsize=None, boundingBox=None, facecolour="white",
                  edgecolour="black", title="", axis=False, quality=1, *args, **kwargs):
 
@@ -431,6 +430,9 @@ class Figure(dict):
             raise TypeError("'name' object passed in must be of python type 'str'")
         elif "name" in kwargs:
             name = kwargs["name"]
+        else:
+            name = "Figure_" + str(Figure._id)
+            Figure._id += 1
         self.name = name
 
         if boundingBox and not isinstance(boundingBox,tuple):
