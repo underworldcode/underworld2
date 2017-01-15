@@ -4,6 +4,12 @@ import importlib
 import imp
 path = os.path.abspath('./image_tests/')
 
+#Check if the viewer is working
+import glucifer
+if not glucifer.lavavu:
+    print "Image tests skipped, Viewer disabled"
+    exit()
+
 for d in os.listdir(path):
     testd = os.path.join(path,d)
     if not os.path.isdir(testd): continue

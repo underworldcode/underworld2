@@ -7,11 +7,6 @@ from underworld import function as fn
 import glucifer
 import os
 
-#Check if the viewer is working
-if not glucifer.lavavu:
-    print "Image tests skipped, Viewer disabled"
-    exit()
-
 # Setup parameters for Rayleigh Taylor Benchmark
 # -----
 # Set simulation parameters. The box length is chosen for direct comparison to the benchmark values.
