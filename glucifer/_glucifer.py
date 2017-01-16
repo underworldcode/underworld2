@@ -426,8 +426,9 @@ class Figure(dict):
         else:
             self.db = Store()
 
-        if name and not isinstance(name,str):
-            raise TypeError("'name' object passed in must be of python type 'str'")
+        if name:
+            if not isinstance(name,str):
+                raise TypeError("'name' object passed in must be of python type 'str'")
         elif "name" in kwargs:
             name = kwargs["name"]
         else:
