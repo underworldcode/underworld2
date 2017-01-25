@@ -136,6 +136,22 @@ PetscErrorCode Stg_PetscViewerDestroy(PetscViewer *viewer);
 PetscErrorCode Stg_MatLoad(PetscViewer viewer, const MatType outtype,Mat *newmat);
 PetscErrorCode Stg_VecLoad(PetscViewer viewer, const VecType outtype,Vec *newvec);
 
+#define Stg_PetscOptions PetscOptions
+#if ( (PETSC_VERSION_MAJOR >= 3) && (PETSC_VERSION_MINOR >= 7 ) )
+    #undef PetscOptionsGetTruth  /** this is just to squelch noise compiler **/
+  	#define PetscOptionsGetTruth(arg1, arg2, arg3, arg4) PetscOptionsGetBool(NULL, arg1, arg2, arg3, arg4)
+    #undef Stg_PetscOptions
+    #define Stg_PetscOptions PetscOptionItems
+    #define PetscOptionsGetString(arg1, arg2, arg3, arg4, arg5) PetscOptionsGetString(NULL, arg1, arg2, arg3, arg4, arg5)
+    #define PetscOptionsGetInt(arg1, arg2, arg3, arg4) PetscOptionsGetInt(NULL, arg1, arg2, arg3, arg4)
+    #define PetscOptionsHasName(arg1, arg2, arg3) PetscOptionsHasName(NULL, arg1, arg2, arg3)
+    #define PetscOptionsInsertString(arg1) PetscOptionsInsertString(NULL, arg1)
+    #define PetscOptionsClear() PetscOptionsClear(NULL)
+    #define PetscOptionsClearValue(arg1) PetscOptionsClearValue(NULL, arg1)
+    #define PetscOptionsSetValue(arg1,arg2) PetscOptionsSetValue(NULL, arg1, arg2)
+    #define PetscOptionsView(arg1) PetscOptionsView(NULL, arg1)
+    #define PetscOptionsInsertFile(arg1,arg2,arg3) PetscOptionsInsertFile(arg1, NULL, arg2, arg3)
+#endif
 
 #endif /* __StgDomain_Utils_PETScCompatibility_h__ */
 

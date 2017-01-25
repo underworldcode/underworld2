@@ -16,6 +16,15 @@
 #include <petscsys.h>
 #include <petscviewer.h>
 #include <petscvec.h>
+
+extern "C" {
+#include <StGermain/StGermain.h>
+#include <StgDomain/StgDomain.h>
+#include <StgFEM/StgFEM.h>
+#include <PICellerator/PICellerator.h>
+#include <Underworld/Underworld.h>
+}
+
 %}
 
 

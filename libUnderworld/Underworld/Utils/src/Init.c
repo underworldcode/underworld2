@@ -23,11 +23,6 @@
 Bool Underworld_Utils_Init( int* argc, char** argv[] ) {
     Stg_ComponentRegister* componentRegister = Stg_ComponentRegister_Get_ComponentRegister();
 
-    Journal_Printf( Journal_Register( DebugStream_Type, (Name)"Context"  ), "In: %s\n", __func__ );
-
-    Stg_ComponentRegister_Add( componentRegister, UnderworldContext_Type, (Name)"0", _UnderworldContext_DefaultNew  );
-    RegisterParent( UnderworldContext_Type, PICelleratorContext_Type );
-
     Stg_ComponentRegister_Add( componentRegister, VectorAssemblyTerm_NA__Fn_Type, (Name)"0", _VectorAssemblyTerm_NA__Fn_DefaultNew  );
     RegisterParent( VectorAssemblyTerm_NA__Fn_Type, ForceTerm_Type );
 

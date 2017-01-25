@@ -12,7 +12,6 @@
 #define __Underworld_Utils_Utils_h__
 
    #include "types.h"
-   #include "UnderworldContext.h"
 
    #include "VectorAssemblyTerm_NA__Fn.h"
    #include "VectorSurfaceAssemblyTerm_NA__Fn__ni.h"

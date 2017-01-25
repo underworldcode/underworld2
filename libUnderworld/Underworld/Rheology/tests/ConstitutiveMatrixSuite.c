@@ -18,10 +18,10 @@
 #include "Underworld/Underworld.h"
 
 /* silly stgermain, I must define this */
-#define CURR_MODULE_NAME "UnderworldContext.c"
+#define CURR_MODULE_NAME "SOMENAME"
 
 typedef struct {
-   UnderworldContext* context;
+   PICelleratorContext* context;
 } ConstitutiveMatrixSuiteData;
 
 void ConstitutiveMatrixSuite_Setup( ConstitutiveMatrixSuiteData* data ) { 
@@ -32,7 +32,7 @@ void ConstitutiveMatrixSuite_Setup( ConstitutiveMatrixSuiteData* data ) {
 
    pcu_filename_input( "testConstitutiveMatrix_Cartesian2D.xml", xml_input );
    cf = stgMainInitFromXML( xml_input, MPI_COMM_WORLD, NULL );
-   data->context = (UnderworldContext*)LiveComponentRegister_Get( cf->LCRegister, (Name)"context"  );
+   data->context = (PICelleratorContext*)LiveComponentRegister_Get( cf->LCRegister, (Name)"context"  );
 }
 
 void ConstitutiveMatrixSuite_Teardown( ConstitutiveMatrixSuiteData* data ) {
@@ -100,7 +100,7 @@ void testConstitutiveMatrix( FiniteElementContext* context ) {
 
 
 void ConstitutiveMatrixSuite_CartesianMatrix2D( ConstitutiveMatrixSuiteData* data ) {
-   UnderworldContext*    context;
+   PICelleratorContext*    context;
    Stg_ComponentFactory* cf;
    char                  expected_file[PCU_PATH_MAX], output_file[PCU_PATH_MAX];
    char                  rFile[PCU_PATH_MAX];
