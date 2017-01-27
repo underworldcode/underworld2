@@ -20,7 +20,7 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
     to integrate through time.
 
     .. math::
-        \\frac{\\partial\\phi}{\\partial t}  + {\\bf u } \\cdot \\nabla \\phi= \\nabla { ( k  \\nabla \\phi } )
+        \\frac{\\partial\\phi}{\\partial t}  + {\\bf u } \\cdot \\nabla \\phi= \\nabla { ( k  \\nabla \\phi ) } + H
 
 
     Parameters
@@ -38,9 +38,11 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
     velocityField : underworld.mesh.MeshVariable
         The velocity field.
     fn_diffusivity : underworld.function.Function
-        Function that defines diffusivity
+        A function that defines the diffusivity within the domain.
+    fn_sourceTerm : underworld.function.Function
+        A function that defines the heating within the domain. Optional.
     conditions : underworld.conditions.SystemCondition
-        Numerical conditions to impose on the system. This should be supplied as 
+        Numerical conditions to impose on the system. This should be supplied as
         the condition itself, or a list object containing the conditions.
 
     Notes
