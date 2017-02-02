@@ -40,7 +40,7 @@ for f in files:
     outName = notebook + "/convert.out"
     with open(outName, "w") as outFile:
         #Notebooks must be converted to py before running or images will be generated inline and not saved to disk
-        subprocess.check_call(['jupyter', 'nbconvert', '--to', 'script', fname, '--output', os.path.join(notebook, notebook)], 
+        subprocess.check_call(['jupyter', 'nbconvert', '--to', 'script', fname, '--output', os.path.join(wd,notebook, notebook)],
                 stdout=outFile, stderr=outFile )
         #Change to working dir for test
         os.chdir(notebook)
