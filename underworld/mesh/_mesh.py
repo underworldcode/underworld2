@@ -94,11 +94,11 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
     def generator(self):
         """
         Getter/Setter for the mesh MeshGenerator object.
-        
+
         Returns
         -------
         underworld.mesh.MeshGenerator
-            Object which builds the mesh. Note that the mesh itself may be a 
+            Object which builds the mesh. Note that the mesh itself may be a
             generator, in which case this property will return the mesh object iself.
         """
         if isinstance(self._generator, weakref.ref):
@@ -161,8 +161,8 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
     @property
     def data(self):
         """
-        Numpy proxy array proxy to underlying object vertex data. Note that the 
-        returned array is a proxy for all the *local* vertices, and it is 
+        Numpy proxy array proxy to underlying object vertex data. Note that the
+        returned array is a proxy for all the *local* vertices, and it is
         provided as 1d list.
 
         As these arrays are simply proxys to the underlying memory structures,
@@ -172,7 +172,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         you wish to modify mesh vertex locations, you are required to use the
         deform_mesh context manager.
 
-        If you are modifying the mesh, remember to modify any submesh associated 
+        If you are modifying the mesh, remember to modify any submesh associated
         with it accordingly.
 
         Returns
@@ -279,7 +279,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         Parameters
         ----------
         function : FunctionType
-            Python (not underworld) function to be executed. Closures should be 
+            Python (not underworld) function to be executed. Closures should be
             used where parameters are required.
 
         """
@@ -293,7 +293,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         Parameters
         ----------
         function : FunctionType
-            Python (not underworld) function to be executed. Closures should be 
+            Python (not underworld) function to be executed. Closures should be
             used where parameters are required.
 
         """
@@ -483,6 +483,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         ...     os.remove( "saved_mesh.h5" )
 
         """
+        
         if hasattr(self.generator, 'geometryMesh'):
             raise RuntimeError("Cannot save this mesh as it's a subMesh. "
                                 + "Most likely you only need to save its geometryMesh")
@@ -497,6 +498,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         h5f.attrs['max'] = self.maxCoord
         h5f.attrs['min'] = self.minCoord
         h5f.attrs['regular'] = self._cself.isRegular
+        h5f.attrs['elementType'] = self.elementType
 
         # write the vertices
         globalShape = ( self.nodesGlobal, self.data.shape[1] )
@@ -593,7 +595,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
 class MeshGenerator(_stgermain.StgCompoundComponent):
     """
     Abstract base class for all mesh generators.
-    
+
     Parameter
     ---------
     partitioned: bool
@@ -613,11 +615,11 @@ class MeshGenerator(_stgermain.StgCompoundComponent):
 
     @property
     def dim(self):
-        """ 
+        """
         Returns
         -------
         int
-            FeMesh dimensionality. 
+            FeMesh dimensionality.
         """
         return self._dim
 
@@ -709,7 +711,7 @@ class CartesianMeshGenerator(MeshGenerator):
         Returns
         -------
         list, tuple
-            Element count to generate in I, J & K directions. Must be provided 
+            Element count to generate in I, J & K directions. Must be provided
             as a tuple of integers.
         """
         return self._elementRes
@@ -721,7 +723,7 @@ class CartesianMeshGenerator(MeshGenerator):
         list, tuple
             Minimum coordinate position for cartesian mesh.
             Values correspond to minimums in each direction (I,J,K) of the mesh.
-            Note, this is the value used for initialisation, but mesh may be 
+            Note, this is the value used for initialisation, but mesh may be
             advecting.
         """
         return self._minCoord
@@ -742,7 +744,7 @@ class CartesianMeshGenerator(MeshGenerator):
         list, tuple
             Maximum coordinate position for cartesian mesh.
             Values correspond to maximums in each direction (I,J,K) of the mesh.
-            Note, this is the value used for initialisation, but mesh may be 
+            Note, this is the value used for initialisation, but mesh may be
             advecting.
         """
         return self._maxCoord
@@ -845,9 +847,9 @@ class TemplatedMeshGenerator(MeshGenerator):
         Returns
         -------
         underworld.mesh.FeMesh
-            This is the FeMesh from which the TemplatedMeshGenerator obtains 
-            the cells to template nodes upon. Note that this class only retains 
-            a weakref to the geometryMesh, and therefore this property may return 
+            This is the FeMesh from which the TemplatedMeshGenerator obtains
+            the cells to template nodes upon. Note that this class only retains
+            a weakref to the geometryMesh, and therefore this property may return
             None.
         """
         return self._geometryMeshWeakref()
@@ -1096,7 +1098,7 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
 
 class FeMesh_IndexSet(uw.container.ObjectifiedIndexSet, function.FunctionInput):
     """
-    This class ties the FeMesh instance to an index set, and stores other 
+    This class ties the FeMesh instance to an index set, and stores other
     metadata relevant to the set.
 
     Parameters
@@ -1106,7 +1108,7 @@ class FeMesh_IndexSet(uw.container.ObjectifiedIndexSet, function.FunctionInput):
         docstring for further info.
     object: underworld.mesh.FeMesh
         The FeMesh instance from which the IndexSet was extracted.
-    
+
     Example
     -------
 
@@ -1187,7 +1189,7 @@ class _FeMesh_Regional(FeMesh_Cartesian):
 
     Example
     -------
-    
+
     >>> (radMin, radMax) = (4.0,8.0)
     >>> mesh = uw.mesh._FeMesh_Regional( elementRes=(20,20,14), radius=(radMin, radMax) )
     >>> integral = uw.utils.Integral( 1.0, mesh).evaluate()[0]

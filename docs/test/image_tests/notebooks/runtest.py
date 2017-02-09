@@ -56,7 +56,7 @@ for f in files:
     else:
         #Check the image results
         if uw.rank() == 0:
-            lv.testimages()
+            lv.testimages(tolerance=1e-3)
 
     #Restore working dir
     os.chdir(wd)
