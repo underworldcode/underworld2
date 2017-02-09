@@ -396,6 +396,72 @@ class CrossSection(Drawing):
         """
         return self._crossSection
 
+class SurfaceOnMesh(CrossSection):
+    """  
+    This drawing object class draws a surface using the provided scalar field. 
+    This object differs from the `Surface` class in that it samples the mesh
+    nodes directly, as opposed to sampling across a regular grid. This class
+    should be used in particular where a mesh has been deformed.
+
+    See parent class for further parameter details. Also see property docstrings.
+
+    Notes
+    -----
+    The interface to this object will be revised in future versions.
+    
+    Parameters
+    ---------
+    mesh : underworld.mesh.FeMesh
+        Mesh over which cross section is rendered.
+    fn : underworld.function.Function
+        Function used to determine values to render.
+    drawSides : str
+        Sides (x,y,z,X,Y,Z) for which the surface should be drawn. 
+        For example, "xyzXYZ" would render the provided function across
+        all surfaces of the domain in 3D. In 2D, this object always renders
+        across the entire domain.
+    """
+    
+    # let's just build both objects because we aint sure yet which one we want to use yet
+    _objectsDict = {  "_dr"  : "lucScalarFieldOnMesh" }
+
+    def __init__(self, mesh, fn, drawSides="xyzXYZ",
+                       colours=None, colourMap=None, colourBar=True,
+                       valueRange=None, logScale=False, discrete=False,
+                       *args, **kwargs):
+
+        if not isinstance(drawSides,str):
+            raise ValueError("'drawSides' parameter must be of python type 'str'")
+        self._drawSides = drawSides
+
+        #Default properties
+        self.properties = {"cullface" : True}
+        # TODO: disable lighting if 2D (how to get dims?)
+        #self.properties["lit"] = False
+        
+        # build parent
+        super(SurfaceOnMesh,self).__init__( mesh=mesh, fn=fn,
+                        colours=colours, colourMap=colourMap, colourBar=colourBar,
+                        valueRange=valueRange, logScale=logScale, discrete=discrete, *args, **kwargs)
+
+
+    def _add_to_stg_dict(self,componentDictionary):
+        # lets build up component dictionary
+        # append random string to provided name to ensure unique component names
+        # call parents method
+        
+        super(SurfaceOnMesh,self)._add_to_stg_dict(componentDictionary)
+
+        componentDictionary[self._dr.name]["drawSides"] = self._drawSides
+        componentDictionary[self._dr.name][     "Mesh"] = self._mesh._cself.name
+
+    def _setup(self):
+        _libUnderworld.gLucifer._lucMeshCrossSection_SetFn( self._cself, self._fn._fncself )
+
+    def __del__(self):
+        super(SurfaceOnMesh,self).__del__()
+
+
 class Surface(CrossSection):
     """  
     This drawing object class draws a surface using the provided scalar field.
@@ -409,12 +475,14 @@ class Surface(CrossSection):
     fn : underworld.function.Function
         Function used to determine values to render.
     drawSides : str
-        Sides (x,y,z,X,Y,Z) for which the surface should be drawn.  
+        Sides (x,y,z,X,Y,Z) for which the surface should be drawn. 
+        For example, "xyzXYZ" would render the provided function across
+        all surfaces of the domain in 3D. In 2D, this object always renders
+        across the entire domain.
     """
     
     # let's just build both objects because we aint sure yet which one we want to use yet
-    _objectsDict = {  "_dr"  : "lucScalarField",
-                      "_dr2" : "lucScalarFieldOnMesh" }
+    _objectsDict = {  "_dr"  : "lucScalarField" }
 
     def __init__(self, mesh, fn, drawSides="xyzXYZ",
                        colours=None, colourMap=None, colourBar=True,
@@ -424,12 +492,6 @@ class Surface(CrossSection):
         if not isinstance(drawSides,str):
             raise ValueError("'drawSides' parameter must be of python type 'str'")
         self._drawSides = drawSides
-
-        # if we wish to draw on mesh, switch live object
-#        if not isinstance(drawOnMesh, bool):
-#            raise TypeError("'drawOnMesh parameter must be of type 'bool'.")
-#        self._drawOnMesh = drawOnMesh
-
 
         #Default properties
         self.properties = {"cullface" : True}
@@ -451,21 +513,11 @@ class Surface(CrossSection):
 
         componentDictionary[self._dr.name]["drawSides"] = self._drawSides
         componentDictionary[self._dr.name][     "Mesh"] = self._mesh._cself.name
-        componentDictionary[self._dr2.name]["drawSides"] = self._drawSides
-        componentDictionary[self._dr2.name][     "Mesh"] = self._mesh._cself.name
 
     def _setup(self):
-#        if self._drawOnMesh:
-#            self._drOrig = self._dr
-#            self._dr     = self._dr2
-#            self._cself  = self._dr2
         _libUnderworld.gLucifer._lucCrossSection_SetFn( self._cself, self._fn._fncself )
 
     def __del__(self):
-        # lets unwind the kludge from _setup to avoid any double deletions or memory leaks.
-#        if self._drawOnMesh:
-#            self._dr    = self._drOrig
-#            self._cself = self._drOrig
         super(Surface,self).__del__()
 
 
@@ -498,9 +550,6 @@ class Points(Drawing):
                        valueRange=None, logScale=False, discrete=False,
                        *args, **kwargs):
 
-        #DEPRECATE
-        if colourVariable != None:
-            raise RuntimeError("'colourVariable' parameter is deprecated. Use the fn_colour parameter instead.")
         if not isinstance(swarm,_swarmMod.Swarm):
             raise TypeError("'swarm' object passed in must be of type 'Swarm'")
         self._swarm = swarm
