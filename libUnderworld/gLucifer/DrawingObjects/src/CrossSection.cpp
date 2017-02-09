@@ -33,7 +33,8 @@ void _lucCrossSection_SetFn( void* _self, Fn::Function* fn ){
     
     // record fn to struct
     lucCrossSection_cppdata* cppdata = (lucCrossSection_cppdata*) self->cppdata;
-    // record fn, and also throw in a min/max guy
+    // record fn, and also wrap with a MinMax function so that we can record
+    // the min & max encountered values for the colourbar.
     cppdata->fn = std::make_shared<Fn::MinMax>(fn);
     
     // setup fn
@@ -41,6 +42,7 @@ void _lucCrossSection_SetFn( void* _self, Fn::Function* fn ){
     std::shared_ptr<IO_double> globalCoord = std::make_shared<IO_double>( self->dim, FunctionIO::Vector );
     // grab first node for sample node
     memcpy( globalCoord->data(), Mesh_GetVertex( self->mesh, 0 ), self->dim*sizeof(double) );
+    // get the function.. note that we use 'get' to extract the raw pointer from the smart pointer.
     cppdata->func = cppdata->fn->getFunction(globalCoord.get());
     
     const FunctionIO* io = dynamic_cast<const FunctionIO*>(cppdata->func(globalCoord.get()));
@@ -63,7 +65,6 @@ void _lucCrossSection_SetFn( void* _self, Fn::Function* fn ){
     {
         throw std::invalid_argument("Provided function must return a vector result.");
     }
-    
     
 }
 
