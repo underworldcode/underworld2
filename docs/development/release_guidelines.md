@@ -26,6 +26,7 @@ Documentation review
 * Review ``doc/`` for style, relevance and updates.
 * Review ``doc/development/broken``, contents to be kept at a minimum.
 * Review ``doc/development/unsupported``, contents to be kept at a minimum.
+* Update api html documentation.  See development/api_doc_generator/README.md
 
 Testing
 =======
