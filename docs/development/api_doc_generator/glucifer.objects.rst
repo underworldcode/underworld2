@@ -9,6 +9,7 @@ classes:
     :nosignatures:
 
     glucifer.objects.ColourBar
+    glucifer.objects.SurfaceOnMesh
     glucifer.objects.VectorArrows
     glucifer.objects.Points
     glucifer.objects.Surface
@@ -23,6 +24,9 @@ Module Details
 classes:
 ~~~~~~~~
 .. autoclass:: glucifer.objects.ColourBar
+    :members:
+    :show-inheritance:
+.. autoclass:: glucifer.objects.SurfaceOnMesh
     :members:
     :show-inheritance:
 .. autoclass:: glucifer.objects.VectorArrows

@@ -30,6 +30,9 @@
   
 
   
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
     <link rel="top" title="underworld2  documentation" href="index.html"/>
         <link rel="up" title="underworld module" href="underworld.html"/>
         <link rel="next" title="underworld.swarm.layouts module" href="underworld.swarm.layouts.html"/>
@@ -134,7 +137,7 @@
       <li class="wy-breadcrumbs-aside">
         
           
-            <a href="_sources/underworld.swarm.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/underworld.swarm.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -505,7 +508,7 @@ used, but all directories must exist.</li>
 <li><strong>swarmname</strong> (<em>str</em>) &#8211; The xdmf name to give the swarm</li>
 <li><strong>swarmSavedData</strong> (<em>underworld.utils.SaveFileData</em>) &#8211; Handler returned for saving a swarm. underworld.swarm.Swarm.save(xxx)</li>
 <li><strong>varSavedData</strong> (<a class="reference internal" href="underworld.utils.html#underworld.utils.SavedFileData" title="underworld.utils.SavedFileData"><em>underworld.utils.SavedFileData</em></a>) &#8211; Handler returned from saving a SwarmVariable. underworld.swarm.SwarmVariable.save(xxx)</li>
-<li><strong>modeltime</strong> (<em>float (default 0.0)</em>) &#8211; The time recorded in the xdmf output file</li>
+<li><strong>modeltime</strong> (<em>float</em><em> (</em><em>default 0.0</em><em>)</em><em></em>) &#8211; The time recorded in the xdmf output file</li>
 </ul>
 </td>
 </tr>
@@ -565,7 +568,7 @@ points.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>mesh</strong> (<a class="reference internal" href="underworld.mesh.html#underworld.mesh.FeMesh" title="underworld.mesh.FeMesh"><em>underworld.mesh.FeMesh</em></a>) &#8211; The FeMesh the swarm is supported by. See Swarm.mesh property docstring
 for further information.</li>
-<li><strong>particleCount</strong> (<em>unsigned. Default is 3, unless Q2 mesh which takes default 5.</em>) &#8211; Number of gauss particles in each direction.  Must take value in [1,5].</li>
+<li><strong>particleCount</strong> (<em>unsigned. Default is 3</em><em>, </em><em>unless Q2 mesh which takes default 5.</em>) &#8211; Number of gauss particles in each direction.  Must take value in [1,5].</li>
 </ul>
 </td>
 </tr>
@@ -758,7 +761,7 @@ internal objects are updated when particle locations are modified.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>update_owners</strong> (<em>bool, default=True</em>) &#8211; If this is set to False, particle ownership (which element owns a
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>update_owners</strong> (<em>bool</em><em>, </em><em>default=True</em>) &#8211; If this is set to False, particle ownership (which element owns a
 particular particle) is not updated at the conclusion of the context
 manager. This is often necessary when both the mesh and particles
 are advecting simutaneously.</td>
@@ -983,17 +986,15 @@ conclusion of a deform_swarm() block.</p>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">underworld.swarm._swarmabstract.SwarmAbstract</span></code></p>
 <p>Abstract class definition for IntegrationSwarms.</p>
 <p>All IntegrationSwarms have the following SwarmVariables from this class:</p>
-<ol class="arabic">
+<ol class="arabic simple">
 <li><dl class="first docutils">
-<dt>localCoordVariable</dt>
- <span class="classifier-delimiter">:</span> <span class="classifier">double (number of particle, dimensions)</span><dd><p class="first last">For local element coordinates of the particle</p>
-</dd>
+<dt>localCoordVariable <span class="classifier-delimiter">:</span> <span class="classifier">double (number of particle, dimensions)</span></dt>
+<dd>For local element coordinates of the particle</dd>
 </dl>
 </li>
 <li><dl class="first docutils">
-<dt>weightVariable</dt>
- <span class="classifier-delimiter">:</span> <span class="classifier">double (number of particles)</span><dd><p class="first last">For the integration weight of each particle</p>
-</dd>
+<dt>weightVariable <span class="classifier-delimiter">:</span> <span class="classifier">double (number of particles)</span></dt>
+<dd>For the integration weight of each particle</dd>
 </dl>
 </li>
 </ol>

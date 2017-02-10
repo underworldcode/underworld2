@@ -30,6 +30,9 @@
   
 
   
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
     <link rel="top" title="underworld2  documentation" href="index.html"/>
         <link rel="up" title="underworld module" href="underworld.html"/>
         <link rel="next" title="underworld.swarm module" href="underworld.swarm.html"/>
@@ -134,7 +137,7 @@
       <li class="wy-breadcrumbs-aside">
         
           
-            <a href="_sources/underworld.utils.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/underworld.utils.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -215,7 +218,7 @@
 <li><strong>surfaceIndexSet</strong> (<em>uw.mesh.FeMesh_IndexSet</em>) &#8211; Must be provided where integrationType is &#8220;surface&#8221;.
 This IndexSet determines which surface is to be integrated over.
 Note that surface integration over interior nodes is not currently supported.</li>
-<li><strong>integrationSwarm</strong> (<em>uw.swarm.IntegrationSwarm (optional)</em>) &#8211; User provided integration swarm.</li>
+<li><strong>integrationSwarm</strong> (<em>uw.swarm.IntegrationSwarm</em><em> (</em><em>optional</em><em>)</em><em></em>) &#8211; User provided integration swarm.</li>
 </ul>
 </td>
 </tr>
@@ -291,11 +294,11 @@ determine the unknowns:</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>meshVariable</strong> (<a class="reference internal" href="underworld.mesh.html#underworld.mesh.MeshVariable" title="underworld.mesh.MeshVariable"><em>underworld.mesh.MeshVariable</em></a>) &#8211; The variable you wish to project the function onto.</li>
 <li><strong>fn</strong> (<a class="reference internal" href="underworld.function.html#underworld.function.Function" title="underworld.function.Function"><em>underworld.function.Function</em></a>) &#8211; The function you wish to project.</li>
-<li><strong>voronoi_swarm</strong> (<em>uw.swarm.Swarm, optional</em>) &#8211; If a voronoi_swarm is provided, voronoi type integration is utilised to
+<li><strong>voronoi_swarm</strong> (<em>uw.swarm.Swarm</em><em>, </em><em>optional</em>) &#8211; If a voronoi_swarm is provided, voronoi type integration is utilised to
 integrate across elements. The provided swarm is used as the basis for
 the voronoi integration. If no swarm is provided, Gauss integration
 is used.</li>
-<li><strong>type</strong> (<em>int, default=0</em>) &#8211; Projection type.  0:&#8217;weighted average&#8217;, 1:&#8217;weighted residual&#8217;</li>
+<li><strong>type</strong> (<em>int</em><em>, </em><em>default=0</em>) &#8211; Projection type.  0:&#8217;weighted average&#8217;, 1:&#8217;weighted residual&#8217;</li>
 </ul>
 </td>
 </tr>

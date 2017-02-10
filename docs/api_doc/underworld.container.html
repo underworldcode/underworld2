@@ -30,6 +30,9 @@
   
 
   
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
     <link rel="top" title="underworld2  documentation" href="index.html"/>
         <link rel="up" title="underworld module" href="underworld.html"/>
         <link rel="next" title="underworld.utils module" href="underworld.utils.html"/>
@@ -134,7 +137,7 @@
       <li class="wy-breadcrumbs-aside">
         
           
-            <a href="_sources/underworld.container.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/underworld.container.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -186,7 +189,7 @@ Index insertion and removal is a constant time operation.</p>
 <li><strong>size</strong> (<em>int</em>) &#8211; The size of the IndexSet. Note that the size corresponds to the maximum index
 value (plus 1) the set is required to hold, <em>NOT</em> the number of elements in
 the set. See IndexSet.size docstring for more information.</li>
-<li><strong>fromObject</strong> (<em>iterable, array_like, IndexSet. Optional.</em>) &#8211; If provided, an IndexSet will be constructed using provided object&#8217;s data.
+<li><strong>fromObject</strong> (<em>iterable</em><em>, </em><em>array_like</em><em>, </em><em>IndexSet. Optional.</em>) &#8211; If provided, an IndexSet will be constructed using provided object&#8217;s data.
 See &#8216;add&#8217; method for more details on acceptable objects.
 If not provided, empty set is generated.</li>
 </ul>
@@ -436,7 +439,7 @@ from B.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>indices</strong> (<em>unsigned int, ndarray, IndexSet, iterable object.</em>) &#8211; Index or indices to be added to the IndexSet. Ensure value(s) are integer
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>indices</strong> (<em>unsigned int</em><em>, </em><em>ndarray</em><em>, </em><a class="reference internal" href="#underworld.container.IndexSet" title="underworld.container.IndexSet"><em>IndexSet</em></a><em>, </em><em>iterable object.</em>) &#8211; Index or indices to be added to the IndexSet. Ensure value(s) are integer
 and non-negative. An iterable object may also be provided, with numpy arrays
 and IndexSets being significantly more efficient.</td>
 </tr>
@@ -554,7 +557,7 @@ array is disabled (and would have no effect).</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>indices</strong> (<em>unsigned int, ndarray, iterable object</em>) &#8211; Index or indices to be removed from the IndexSet. Ensure value(s) are integer
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>indices</strong> (<em>unsigned int</em><em>, </em><em>ndarray</em><em>, </em><em>iterable object</em>) &#8211; Index or indices to be removed from the IndexSet. Ensure value(s) are integer
 and non-negative. An iterable object may also be provided, with numpy arrays
 being significantly more efficient. Note that the &#8216;remove&#8217; method can not
 be provided with an IndexSet object, as the &#8216;add&#8217; object can.</td>
@@ -596,6 +599,30 @@ will require ( size/8 + 1 ) bytes of memory storage.</p>
 <p>This class simply adds an object to IndexSet data. Usually this object will be
 the object for which the IndexSet data relates to.. For example, we can attach a
 Mesh object to an IndexSet containing mesh vertices.</p>
+<dl class="method">
+<dt id="underworld.container.ObjectifiedIndexSet.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>object=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/container/_indexset.html#ObjectifiedIndexSet.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.container.ObjectifiedIndexSet.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class initialiser</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>object</strong> (<em>any</em><em>, </em><em>default=None</em>) &#8211; Object to tether to data</li>
+<li><strong>parent classes for further parameters.</strong> (<em>See</em>) &#8211; </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>objectifiedIndexSet</strong></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#underworld.container.ObjectifiedIndexSet" title="underworld.container.ObjectifiedIndexSet">ObjectifiedIndexSet</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="underworld.container.ObjectifiedIndexSet.object">
 <code class="descname">object</code><a class="headerlink" href="#underworld.container.ObjectifiedIndexSet.object" title="Permalink to this definition">¶</a></dt>

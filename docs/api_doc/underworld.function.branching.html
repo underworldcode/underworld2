@@ -30,6 +30,9 @@
   
 
   
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
     <link rel="top" title="underworld2  documentation" href="index.html"/>
         <link rel="up" title="underworld.function module" href="underworld.function.html"/>
         <link rel="next" title="underworld.function.exception module" href="underworld.function.exception.html"/>
@@ -136,7 +139,7 @@
       <li class="wy-breadcrumbs-aside">
         
           
-            <a href="_sources/underworld.function.branching.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/underworld.function.branching.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -207,12 +210,12 @@ keys, an exception will be thrown.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>fn_key</strong> (<em>underworld.function.Function (or convertible)</em>) &#8211; Function which returns integer key values. This function will be evaluated
+<li><strong>fn_key</strong> (<a class="reference internal" href="underworld.function.html#underworld.function.Function" title="underworld.function.Function"><em>underworld.function.Function</em></a><em> (or </em><em>convertible</em><em>)</em><em></em>) &#8211; Function which returns integer key values. This function will be evaluated
 first to determine which function from the mapping is to be used.</li>
-<li><strong>mapping</strong> (<em>dict(Function)</em>) &#8211; Python dictionary providing a mapping from unsigned integer &#8216;key&#8217; values to
+<li><strong>mapping</strong> (<em>dict</em><em>(</em><a class="reference internal" href="underworld.function.html#underworld.function.Function" title="underworld.function.Function"><em>Function</em></a><em>)</em><em></em>) &#8211; Python dictionary providing a mapping from unsigned integer &#8216;key&#8217; values to
 underworld &#8216;value&#8217; functions. Note that the provided &#8216;value&#8217; functions must
 return values of type &#8216;double&#8217;.</li>
-<li><strong>fn_default</strong> (<em>underworld.function.Function (or convertible) (optional)</em>) &#8211; Default function to be utilised when the key (returned by fn_key function)
+<li><strong>fn_default</strong> (<a class="reference internal" href="underworld.function.html#underworld.function.Function" title="underworld.function.Function"><em>underworld.function.Function</em></a><em> (or </em><em>convertible</em><em>) </em><em></em><em>(</em><em>optional</em><em>)</em><em></em>) &#8211; Default function to be utilised when the key (returned by fn_key function)
 does not correspond to any key value in the mapping dictionary.</li>
 </ul>
 </td>

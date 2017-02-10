@@ -30,6 +30,9 @@
   
 
   
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
     <link rel="top" title="underworld2  documentation" href="../../../index.html"/>
         <link rel="up" title="underworld" href="../../underworld.html"/> 
 
@@ -222,11 +225,11 @@
     <span class="k">def</span> <span class="nf">generator</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Getter/Setter for the mesh MeshGenerator object.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        underworld.mesh.MeshGenerator</span>
-<span class="sd">            Object which builds the mesh. Note that the mesh itself may be a </span>
+<span class="sd">            Object which builds the mesh. Note that the mesh itself may be a</span>
 <span class="sd">            generator, in which case this property will return the mesh object iself.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_generator</span><span class="p">,</span> <span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">):</span>
@@ -289,8 +292,8 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Numpy proxy array proxy to underlying object vertex data. Note that the </span>
-<span class="sd">        returned array is a proxy for all the *local* vertices, and it is </span>
+<span class="sd">        Numpy proxy array proxy to underlying object vertex data. Note that the</span>
+<span class="sd">        returned array is a proxy for all the *local* vertices, and it is</span>
 <span class="sd">        provided as 1d list.</span>
 
 <span class="sd">        As these arrays are simply proxys to the underlying memory structures,</span>
@@ -300,7 +303,7 @@
 <span class="sd">        you wish to modify mesh vertex locations, you are required to use the</span>
 <span class="sd">        deform_mesh context manager.</span>
 
-<span class="sd">        If you are modifying the mesh, remember to modify any submesh associated </span>
+<span class="sd">        If you are modifying the mesh, remember to modify any submesh associated</span>
 <span class="sd">        with it accordingly.</span>
 
 <span class="sd">        Returns</span>
@@ -407,7 +410,7 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        function : FunctionType</span>
-<span class="sd">            Python (not underworld) function to be executed. Closures should be </span>
+<span class="sd">            Python (not underworld) function to be executed. Closures should be</span>
 <span class="sd">            used where parameters are required.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -421,7 +424,7 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        function : FunctionType</span>
-<span class="sd">            Python (not underworld) function to be executed. Closures should be </span>
+<span class="sd">            Python (not underworld) function to be executed. Closures should be</span>
 <span class="sd">            used where parameters are required.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -611,6 +614,7 @@
 <span class="sd">        ...     os.remove( &quot;saved_mesh.h5&quot; )</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
+        
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">generator</span><span class="p">,</span> <span class="s1">&#39;geometryMesh&#39;</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Cannot save this mesh as it&#39;s a subMesh. &quot;</span>
                                 <span class="o">+</span> <span class="s2">&quot;Most likely you only need to save its geometryMesh&quot;</span><span class="p">)</span>
@@ -625,6 +629,7 @@
         <span class="n">h5f</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;max&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxCoord</span>
         <span class="n">h5f</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;min&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">minCoord</span>
         <span class="n">h5f</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;regular&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cself</span><span class="o">.</span><span class="n">isRegular</span>
+        <span class="n">h5f</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;elementType&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">elementType</span>
 
         <span class="c1"># write the vertices</span>
         <span class="n">globalShape</span> <span class="o">=</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodesGlobal</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="p">)</span>
@@ -721,7 +726,7 @@
 <span class="k">class</span> <span class="nc">MeshGenerator</span><span class="p">(</span><span class="n">_stgermain</span><span class="o">.</span><span class="n">StgCompoundComponent</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Abstract base class for all mesh generators.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameter</span>
 <span class="sd">    ---------</span>
 <span class="sd">    partitioned: bool</span>
@@ -741,11 +746,11 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">dim</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; </span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        int</span>
-<span class="sd">            FeMesh dimensionality. </span>
+<span class="sd">            FeMesh dimensionality.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dim</span>
 
@@ -837,7 +842,7 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        list, tuple</span>
-<span class="sd">            Element count to generate in I, J &amp; K directions. Must be provided </span>
+<span class="sd">            Element count to generate in I, J &amp; K directions. Must be provided</span>
 <span class="sd">            as a tuple of integers.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_elementRes</span>
@@ -849,7 +854,7 @@
 <span class="sd">        list, tuple</span>
 <span class="sd">            Minimum coordinate position for cartesian mesh.</span>
 <span class="sd">            Values correspond to minimums in each direction (I,J,K) of the mesh.</span>
-<span class="sd">            Note, this is the value used for initialisation, but mesh may be </span>
+<span class="sd">            Note, this is the value used for initialisation, but mesh may be</span>
 <span class="sd">            advecting.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_minCoord</span>
@@ -870,7 +875,7 @@
 <span class="sd">        list, tuple</span>
 <span class="sd">            Maximum coordinate position for cartesian mesh.</span>
 <span class="sd">            Values correspond to maximums in each direction (I,J,K) of the mesh.</span>
-<span class="sd">            Note, this is the value used for initialisation, but mesh may be </span>
+<span class="sd">            Note, this is the value used for initialisation, but mesh may be</span>
 <span class="sd">            advecting.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_maxCoord</span>
@@ -973,9 +978,9 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        underworld.mesh.FeMesh</span>
-<span class="sd">            This is the FeMesh from which the TemplatedMeshGenerator obtains </span>
-<span class="sd">            the cells to template nodes upon. Note that this class only retains </span>
-<span class="sd">            a weakref to the geometryMesh, and therefore this property may return </span>
+<span class="sd">            This is the FeMesh from which the TemplatedMeshGenerator obtains</span>
+<span class="sd">            the cells to template nodes upon. Note that this class only retains</span>
+<span class="sd">            a weakref to the geometryMesh, and therefore this property may return</span>
 <span class="sd">            None.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_geometryMeshWeakref</span><span class="p">()</span>
@@ -1224,7 +1229,7 @@
 
 <div class="viewcode-block" id="FeMesh_IndexSet"><a class="viewcode-back" href="../../../underworld.mesh.html#underworld.mesh.FeMesh_IndexSet">[docs]</a><span class="k">class</span> <span class="nc">FeMesh_IndexSet</span><span class="p">(</span><span class="n">uw</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">ObjectifiedIndexSet</span><span class="p">,</span> <span class="n">function</span><span class="o">.</span><span class="n">FunctionInput</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    This class ties the FeMesh instance to an index set, and stores other </span>
+<span class="sd">    This class ties the FeMesh instance to an index set, and stores other</span>
 <span class="sd">    metadata relevant to the set.</span>
 
 <span class="sd">    Parameters</span>
@@ -1234,7 +1239,7 @@
 <span class="sd">        docstring for further info.</span>
 <span class="sd">    object: underworld.mesh.FeMesh</span>
 <span class="sd">        The FeMesh instance from which the IndexSet was extracted.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Example</span>
 <span class="sd">    -------</span>
 
@@ -1315,7 +1320,7 @@
 
 <span class="sd">    Example</span>
 <span class="sd">    -------</span>
-<span class="sd">    </span>
+
 <span class="sd">    &gt;&gt;&gt; (radMin, radMax) = (4.0,8.0)</span>
 <span class="sd">    &gt;&gt;&gt; mesh = uw.mesh._FeMesh_Regional( elementRes=(20,20,14), radius=(radMin, radMax) )</span>
 <span class="sd">    &gt;&gt;&gt; integral = uw.utils.Integral( 1.0, mesh).evaluate()[0]</span>

@@ -30,6 +30,9 @@
   
 
   
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
     <link rel="top" title="underworld2  documentation" href="index.html"/>
         <link rel="up" title="underworld module" href="underworld.html"/>
         <link rel="next" title="underworld.systems module" href="underworld.systems.html"/>
@@ -134,7 +137,7 @@
       <li class="wy-breadcrumbs-aside">
         
           
-            <a href="_sources/underworld.mesh.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/underworld.mesh.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -383,7 +386,7 @@ manager, as will various mesh metrics.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>remainsRegular</strong> (<em>bool, default=False</em>) &#8211; The general assumption is that the deformed mesh will no longer be regular
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>remainsRegular</strong> (<em>bool</em><em>, </em><em>default=False</em>) &#8211; The general assumption is that the deformed mesh will no longer be regular
 (orthonormal), and more general but less efficient algorithms will be
 selected via this context manager. To over-ride this behaviour, set
 this parameter to True.</td>
@@ -697,7 +700,7 @@ primary mesh itself is the object returned by this constructor.</td>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>mesh</strong> (<a class="reference internal" href="#underworld.mesh.FeMesh" title="underworld.mesh.FeMesh"><em>underworld.mesh.FeMesh</em></a>) &#8211; The supporting mesh for the variable.</li>
-<li><strong>dataType</strong> (<em>string, default=&quot;double&quot;</em>) &#8211; The data type for the variable.
+<li><strong>dataType</strong> (<em>string</em><em>, </em><em>default=&quot;double&quot;</em>) &#8211; The data type for the variable.
 Note that only &#8216;double&#8217; type variables are currently
 supported</li>
 <li><strong>nodeDofCount</strong> (<em>int</em>) &#8211; Number of degrees of freedom per node the variable should have.</li>
@@ -725,7 +728,7 @@ supported</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>deepcopy</strong> (<em>bool (default False)</em>) &#8211; If True, the variable&#8217;s data is also copied into
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>deepcopy</strong> (<em>bool</em><em> (</em><em>default False</em><em>)</em><em></em>) &#8211; If True, the variable&#8217;s data is also copied into
 new variable.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The mesh variable copy.</td>
@@ -847,7 +850,7 @@ an array of the form:</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>filename</strong> (<em>str</em>) &#8211; The filename for the saved file. Relative or absolute paths may be
 used, but all directories must exist.</li>
-<li><strong>interpolate</strong> (<em>bool (default False)</em>) &#8211; Set to True to interpolate a file containing different resolution data.
+<li><strong>interpolate</strong> (<em>bool</em><em> (</em><em>default False</em><em>)</em><em></em>) &#8211; Set to True to interpolate a file containing different resolution data.
 Note that a temporary MeshVariable with the file data will be build
 on <strong>each</strong> processor. Also note that the temporary MeshVariable
 can only be built if its corresponding mesh file is available.
@@ -900,7 +903,7 @@ this may not be the case where for example where you have saved using a
 
 <dl class="method">
 <dt id="underworld.mesh.MeshVariable.save">
-<code class="descname">save</code><span class="sig-paren">(</span><em>filename</em>, <em>meshFilename=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/mesh/_meshvariable.html#MeshVariable.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.mesh.MeshVariable.save" title="Permalink to this definition">¶</a></dt>
+<code class="descname">save</code><span class="sig-paren">(</span><em>filename</em>, <em>meshHandle=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/underworld/mesh/_meshvariable.html#MeshVariable.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#underworld.mesh.MeshVariable.save" title="Permalink to this definition">¶</a></dt>
 <dd><p>Save the MeshVariable to disk.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -909,8 +912,9 @@ this may not be the case where for example where you have saved using a
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>filename</strong> (<em>string</em>) &#8211; The name of the output file. Relative or absolute paths may be
 used, but all directories must exist.</li>
-<li><strong>meshFilename</strong> (<em>string, optional</em>) &#8211; If provided, a link to the created mesh file is created within the
-mesh variable file.</li>
+<li><strong>meshHandle</strong> (<em>uw.utils.SavedFileData</em><em> , </em><em>optional</em>) &#8211; The saved mesh file handle. If provided, a link is created within the
+mesh variable file to this saved mesh file. Important for checkpoint when
+the mesh deforms.</li>
 </ul>
 </td>
 </tr>
@@ -991,7 +995,7 @@ used, but all directories must exist.</li>
 <li><strong>meshSavedData</strong> (<em>underworld.utils.SaveFileData</em>) &#8211; Handler returned for saving a mesh. underworld.mesh.save(xxx)</li>
 <li><strong>meshname</strong> (<em>str</em>) &#8211; The xdmf name to give the mesh</li>
 <li><strong>fieldSavedData</strong> (<em>underworld.SavedFileData</em>) &#8211; Handler returned from saving a field. underworld.mesh.save(xxx)</li>
-<li><strong>modeltime</strong> (<em>float (default 0.0)</em>) &#8211; The time recorded in the xdmf output file</li>
+<li><strong>modeltime</strong> (<em>float</em><em> (</em><em>default 0.0</em><em>)</em><em></em>) &#8211; The time recorded in the xdmf output file</li>
 </ul>
 </td>
 </tr>

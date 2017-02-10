@@ -30,6 +30,9 @@
   
 
   
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
     <link rel="top" title="underworld2  documentation" href="index.html"/>
         <link rel="up" title="underworld module" href="underworld.html"/>
         <link rel="next" title="underworld.systems.sle module" href="underworld.systems.sle.html"/>
@@ -134,7 +137,7 @@
       <li class="wy-breadcrumbs-aside">
         
           
-            <a href="_sources/underworld.systems.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/underworld.systems.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -220,7 +223,7 @@ of an advection-diffusion equation.</p>
 <p>The class uses the Streamline Upwind Petrov Galerkin SUPG method
 to integrate through time.</p>
 <div class="math">
-\[\frac{\partial\phi}{\partial t}  + {\bf u } \cdot \nabla \phi= \nabla { ( k  \nabla \phi } )\]</div>
+\[\frac{\partial\phi}{\partial t}  + {\bf u } \cdot \nabla \phi= \nabla { ( k  \nabla \phi ) } + H\]</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -235,7 +238,8 @@ No dirichlet conditions are required for this field as the phiField degrees of f
 map exactly to this field&#8217;s dirichlet conditions, the value of which ought to be 0
 for constant values of phi.</li>
 <li><strong>velocityField</strong> (<a class="reference internal" href="underworld.mesh.html#underworld.mesh.MeshVariable" title="underworld.mesh.MeshVariable"><em>underworld.mesh.MeshVariable</em></a>) &#8211; The velocity field.</li>
-<li><strong>fn_diffusivity</strong> (<a class="reference internal" href="underworld.function.html#underworld.function.Function" title="underworld.function.Function"><em>underworld.function.Function</em></a>) &#8211; Function that defines diffusivity</li>
+<li><strong>fn_diffusivity</strong> (<a class="reference internal" href="underworld.function.html#underworld.function.Function" title="underworld.function.Function"><em>underworld.function.Function</em></a>) &#8211; A function that defines the diffusivity within the domain.</li>
+<li><strong>fn_sourceTerm</strong> (<a class="reference internal" href="underworld.function.html#underworld.function.Function" title="underworld.function.Function"><em>underworld.function.Function</em></a>) &#8211; A function that defines the heating within the domain. Optional.</li>
 <li><strong>conditions</strong> (<a class="reference internal" href="underworld.conditions.html#underworld.conditions.SystemCondition" title="underworld.conditions.SystemCondition"><em>underworld.conditions.SystemCondition</em></a>) &#8211; Numerical conditions to impose on the system. This should be supplied as
 the condition itself, or a list object containing the conditions.</li>
 </ul>
@@ -460,7 +464,7 @@ The order of the integration used can be 1,2,4</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>order</strong> (<em>int {1,2,4}</em>) &#8211; Defines the numerical order &#8216;in space&#8217; of the Runge Kutta like integration scheme.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>order</strong> (<em>int {1</em><em>,</em><em>2</em><em>,</em><em>4}</em>) &#8211; Defines the numerical order &#8216;in space&#8217; of the Runge Kutta like integration scheme.</td>
 </tr>
 </tbody>
 </table>

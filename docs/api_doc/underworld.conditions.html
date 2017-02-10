@@ -30,6 +30,9 @@
   
 
   
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
     <link rel="top" title="underworld2  documentation" href="index.html"/>
         <link rel="up" title="underworld module" href="underworld.html"/>
         <link rel="next" title="glucifer module" href="glucifer.html"/>
@@ -134,7 +137,7 @@
       <li class="wy-breadcrumbs-aside">
         
           
-            <a href="_sources/underworld.conditions.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/underworld.conditions.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -218,7 +221,7 @@ untouched by the system.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>variable</strong> (<a class="reference internal" href="underworld.mesh.html#underworld.mesh.MeshVariable" title="underworld.mesh.MeshVariable"><em>underworld.mesh.MeshVariable</em></a>) &#8211; This is the variable for which the Direchlet condition applies.</li>
-<li><strong>indexSetsPerDof</strong> (<em>list, tuple, IndexSet</em>) &#8211; The index set(s) which flag nodes/DOFs as Dirichlet conditions.
+<li><strong>indexSetsPerDof</strong> (<em>list</em><em>, </em><em>tuple</em><em>, </em><a class="reference internal" href="underworld.container.html#underworld.container.IndexSet" title="underworld.container.IndexSet"><em>IndexSet</em></a>) &#8211; The index set(s) which flag nodes/DOFs as Dirichlet conditions.
 Note that the user must provide an index set for each degree of
 freedom of the variable.  So for a vector variable of rank 2 (say Vx &amp; Vy),
 two index sets must be provided (say VxDofSet, VyDofSet).</li>
