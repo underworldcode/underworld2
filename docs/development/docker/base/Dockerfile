@@ -42,6 +42,10 @@ RUN apt-get update -qq && \
         pillow \
         pyvirtualdisplay \
         ipyparallel \
+        pint \
+        sphinx \
+        sphinx_rtd_theme \
+        sphinxcontrib-napoleon \
         scipy && \
     pip install 'ipython==4.2.0' --force-reinstall && \
     pip install six --upgrade

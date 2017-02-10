@@ -27,7 +27,11 @@ RUN git clone --branch "development" --single-branch https://github.com/underwor
     mkdir /workspace                                                 && \
     rsync -av /root/underworld2/docs/examples /workspace             && \
     rsync -av /root/underworld2/docs/user_guide /workspace           && \
-    rsync -av /root/underworld2/docs/publications /workspace 
+    rsync -av /root/underworld2/docs/publications /workspace         && \
+    cd ../../docs/development/api_doc_generator/                     && \
+    python generate_api_documentation.py                             && \
+    make html
+
 
 # expose notebook port
 EXPOSE 8888
