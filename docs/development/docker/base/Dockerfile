@@ -33,6 +33,7 @@ RUN apt-get update -qq && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*  && \
     pip install \
+        packaging \
         numpy \
         jupyter \
         plotly \
