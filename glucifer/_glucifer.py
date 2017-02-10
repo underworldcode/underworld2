@@ -451,7 +451,7 @@ class Figure(dict):
 
         if quality and not isinstance(quality,(int,float)):
             raise TypeError("'quality' object passed in must be of python type 'float' or 'int'")
-        self.quality=quality
+        self["quality"]=quality
 
         #Setup default properties
         self.update({"resolution" : (640, 480), "title" : str(title), 
@@ -650,7 +650,7 @@ class Figure(dict):
             return
         try:
             #Render with viewer
-            lv = self.db.lvrun(quality=self.quality, script=self._script)
+            lv = self.db.lvrun(quality=self["quality"], script=self._script)
             imagestr = lv.image(filename, size[0], size[1])
             #Return the generated filename
             return imagestr
