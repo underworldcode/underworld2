@@ -98,15 +98,7 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
     _objectsDict = {  "_system" : "SystemLinearEquations" }
     _selfObjectName = "_system"
 
-    def __init__(self, temperatureField, fn_diffusivity, fn_heating=0., voronoi_swarm=None, conditions=[], _removeBCs=True, swarm=None, **kwargs):
-        # DEPRECATE. JM 09/16
-        if swarm:
-            import warnings
-            warnings.warn("'swarm' paramater has been renamed to 'voronoi_swarm'. Please update your models. "+
-                          "'swarm' parameter will be removed in the next release.")
-            if voronoi_swarm:
-                raise ValueError("Please provide only a 'voronoi_swarm'. 'swarm' is deprecated.")
-            voronoi_swarm = swarm
+    def __init__(self, temperatureField, fn_diffusivity, fn_heating=0., voronoi_swarm=None, conditions=[], _removeBCs=True, **kwargs):
 
         if not isinstance( temperatureField, uw.mesh.MeshVariable):
             raise TypeError( "Provided 'temperatureField' must be of 'MeshVariable' class." )

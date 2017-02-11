@@ -100,16 +100,7 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
     _objectsDict = {  "_system" : "SystemLinearEquations" }
     _selfObjectName = "_system"
 
-    def __init__(self, meshVariable=None, fn=None, voronoi_swarm=None, type=0, swarm=None, **kwargs):
-        # DEPRECATE. JM 09/16
-        if swarm:
-            import warnings
-            warnings.warn("'swarm' paramater has been renamed to 'voronoi_swarm'. Please update your models. "+
-                          "'swarm' parameter will be removed in the next release.")
-            if voronoi_swarm:
-                raise ValueError("Please provide only a 'voronoi_swarm'. 'swarm' is deprecated.")
-            
-            voronoi_swarm = swarm
+    def __init__(self, meshVariable=None, fn=None, voronoi_swarm=None, type=0, **kwargs):
 
         if not meshVariable:
             raise ValueError("You must specify a mesh variable via the 'meshVariable' parameter.")

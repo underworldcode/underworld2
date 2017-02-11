@@ -918,6 +918,10 @@
                                         <span class="o">+</span><span class="s2">&quot;TensorType inputs must be of size 4 or 9 (for 2d or 3d).&quot;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">inputType</span> <span class="o">=</span> <span class="n">ArrayType</span>
+            <span class="c1"># lets check if this array owns its data.. process directly if it does, otherwise take a copy..</span>
+            <span class="c1"># this is to avoid a bug in the way we parse non-trivial numpy arrays.  will fix in future.  #152</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">inputData</span><span class="o">.</span><span class="n">base</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="n">inputData</span> <span class="o">=</span> <span class="n">inputData</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
             <span class="k">return</span> <span class="n">_cfn</span><span class="o">.</span><span class="n">Query</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fncself</span><span class="p">)</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">_cfn</span><span class="o">.</span><span class="n">NumpyInput</span><span class="p">(</span><span class="n">inputData</span><span class="p">,</span><span class="n">inputType</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># try convert and recurse</span>

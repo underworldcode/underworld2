@@ -20,6 +20,8 @@ Documentation:
 * HTML api documentation.
 * Big docstring updates.
 
+Deprecated:
+* 'swarm' parameter now removed in favour of 'voronoi_swarm' parameter.
 
 Release 2.1.2b  [2016-10-31]
 ----------------------------
