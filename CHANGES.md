@@ -1,6 +1,26 @@
 CHANGES: Underworld2
 =======================
 
+Release 2.2.0b  [2016-02-11]
+----------------------------
+Enhancements:
+* Improved function evaluation efficiency.
+* Handle numpy int types in index sets correctly.
+* Webgl figure saving.
+* General visualisation enhancements.
+* Better testing for visualisation.
+* petsc 3.7 compatibility
+
+New Features:
+* ParticleFound function. Allows for 'sparse' swarm operations.
+* Figure copying functionality
+* SurfaceOnMesh visualisation object
+
+Documentation:
+* HTML api documentation.
+* Big docstring updates.
+
+
 Release 2.1.2b  [2016-10-31]
 ----------------------------
 * Bug fix for the stokes system's psuedo incompressibility

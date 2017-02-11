@@ -116,6 +116,22 @@ once the following criterion are met:
    1. Any new functionality is sufficiently tested (via doctest or other means).
    2. Any new functionality is sufficiently documented.
    3. All tests pass.
+   
+To help with producing an update change list, and also with reporting, please use 
+one or more of the following tags within your changeset comments:
+
+#NEWFEATURE : Any new API features
+#NEWDOCUMENTATION : Any new documentation, including new models, docstrings, etc.
+#APICHANGE : Any interface changes to existing API. 
+#BUGFIX : Any bug fixes
+#BUGFIXCRITICAL : Any very important bug fixes. 
+#ENHANCEMENT: Other enhancements. 
+#DEPRECATION: Deprecated functionality.
+
+These tags should be used for any note-worthy changes, but are not necessary for 
+any trivial changes. Also, where changes relate to github issues, reference the 
+issue number. Github will automatically provide a reference back to the changeset
+in the issue.
 
 
 Bug reporting
