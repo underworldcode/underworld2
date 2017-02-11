@@ -787,6 +787,10 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
                                         +"TensorType inputs must be of size 4 or 9 (for 2d or 3d).")
             else:
                 inputType = ArrayType
+            # lets check if this array owns its data.. process directly if it does, otherwise take a copy..
+            # this is to avoid a bug in the way we parse non-trivial numpy arrays.  will fix in future.  #152
+            if not (inputData.base is None):
+                inputData = inputData.copy()
             return _cfn.Query(self._fncself).query(_cfn.NumpyInput(inputData,inputType))
         else:
             # try convert and recurse
