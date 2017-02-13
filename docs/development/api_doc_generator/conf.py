@@ -445,3 +445,33 @@ epub_exclude_files = ['search.html']
 # If false, no index is generated.
 #
 # epub_use_index = True
+
+# setup mock classes so no building is required
+import sys
+from mock import Mock as MagicMock
+
+class Mock(MagicMock):
+    @classmethod
+    def __getattr__(cls, name):
+            return MagicMock()
+
+MOCK_MODULES = ['numpy',  '_StGermain', '_StgDomain', '_PICellerator', '_StgFEM', '_Solvers',
+                '_Underworld', 'h5py', '_Function', '_gLucifer', '_c_arrays', '_c_pointers',
+                '_StGermain_Tools', '_petsc', 'mpi4py']
+sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+
+# disable metrics.. this is not really needed actually due to mocked classes, but
+# just to be safe.
+import os
+os.environ["UW_NO_USAGE_METRICS"] = "1"
+
+
+# generate rst files
+import sys
+# add current directory for `generate_api_documentation`
+sys.path.append(os.path.dirname(__name__))
+# add top project directory as well
+sys.path.append(os.path.join(os.path.dirname(__name__),'../../..'))
+import generate_api_documentation
+
+
