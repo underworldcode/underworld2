@@ -248,17 +248,17 @@
 
 <span class="c1"># lets handle exceptions differently in parallel to ensure we call</span>
 <span class="k">if</span> <span class="n">nProcs</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-    <span class="n">origexcepthook</span> <span class="o">=</span> <span class="n">_sys</span><span class="o">.</span><span class="n">excepthook</span>
-    <span class="k">def</span> <span class="nf">uw_uncaught_exception_handler</span><span class="p">(</span><span class="n">exctype</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">tb</span><span class="p">):</span>
+    <span class="n">_origexcepthook</span> <span class="o">=</span> <span class="n">_sys</span><span class="o">.</span><span class="n">excepthook</span>
+    <span class="k">def</span> <span class="nf">_uw_uncaught_exception_handler</span><span class="p">(</span><span class="n">exctype</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">tb</span><span class="p">):</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">###########################################################################################&#39;</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;###########################################################################################&#39;</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;An uncaught exception was encountered on processor </span><span class="si">{}</span><span class="s1">.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">rank</span><span class="p">()))</span>
         <span class="c1"># pass through to original handler</span>
-        <span class="n">origexcepthook</span><span class="p">(</span><span class="n">exctype</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">tb</span><span class="p">)</span>
+        <span class="n">_origexcepthook</span><span class="p">(</span><span class="n">exctype</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">tb</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;###########################################################################################&#39;</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;###########################################################################################&#39;</span><span class="p">)</span>
         <span class="n">libUnderworld</span><span class="o">.</span><span class="n">StGermain_Tools</span><span class="o">.</span><span class="n">StgAbort</span><span class="p">(</span> <span class="n">_data</span> <span class="p">)</span>
-    <span class="n">_sys</span><span class="o">.</span><span class="n">excepthook</span> <span class="o">=</span> <span class="n">uw_uncaught_exception_handler</span>
+    <span class="n">_sys</span><span class="o">.</span><span class="n">excepthook</span> <span class="o">=</span> <span class="n">_uw_uncaught_exception_handler</span>
 
 <span class="k">def</span> <span class="nf">_prepend_message_to_exception</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -279,7 +279,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">delfunc</span> <span class="o">=</span> <span class="n">delfunc</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">deldata</span> <span class="o">=</span> <span class="n">deldata</span>
     <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">delfunc</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">deldata</span><span class="p">)</span>
+        <span class="c1"># put this in a try loop to avoid errors during sphinx documentation generation</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">delfunc</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">deldata</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span>
 
 <span class="n">_delclassinstance</span> <span class="o">=</span> <span class="n">_del_uw_class</span><span class="p">(</span><span class="n">libUnderworld</span><span class="o">.</span><span class="n">StGermain_Tools</span><span class="o">.</span><span class="n">StgFinalise</span><span class="p">,</span> <span class="n">_data</span><span class="p">)</span>
 

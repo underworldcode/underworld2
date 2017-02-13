@@ -1025,12 +1025,14 @@ used, but all directories must exist.</li>
 <span class="go">True</span>
 </pre></div>
 </div>
-<p>Clean up:
-&gt;&gt;&gt; if uw.rank() == 0:
-...     import os;
-...     os.remove( &#8220;saved_mesh_variable.h5&#8221; )
-...     os.remove( &#8220;saved_mesh.h5&#8221; )
-...     os.remove( &#8220;TESTxdmf.xdmf&#8221; )</p>
+<p>Clean up:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">uw</span><span class="o">.</span><span class="n">rank</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="kn">import</span> <span class="nn">os</span><span class="p">;</span>
+<span class="gp">... </span>    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span> <span class="s2">&quot;saved_mesh_variable.h5&quot;</span> <span class="p">)</span>
+<span class="gp">... </span>    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span> <span class="s2">&quot;saved_mesh.h5&quot;</span> <span class="p">)</span>
+<span class="gp">... </span>    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span> <span class="s2">&quot;TESTxdmf.xdmf&quot;</span> <span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </dd></dl>

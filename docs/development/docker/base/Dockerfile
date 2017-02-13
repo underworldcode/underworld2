@@ -48,6 +48,7 @@ RUN apt-get update -qq && \
         sphinx \
         sphinx_rtd_theme \
         sphinxcontrib-napoleon \
+        mock \
         scipy && \
     pip install 'ipython==4.2.0' --force-reinstall && \
     pip install six --upgrade
