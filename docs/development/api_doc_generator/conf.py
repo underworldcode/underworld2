@@ -457,7 +457,9 @@ class Mock(MagicMock):
 
 MOCK_MODULES = ['numpy',  '_StGermain', '_StgDomain', '_PICellerator', '_StgFEM', '_Solvers',
                 '_Underworld', 'h5py', '_Function', '_gLucifer', '_c_arrays', '_c_pointers',
-                '_StGermain_Tools', '_petsc', 'mpi4py']
+                '_StGermain_Tools', '_petsc', 'mpi4py', 'StGermain', 'StgDomain', 'StgFEM',
+                'PICellerator', 'Underworld', 'Solvers', 'gLucifer', 'c_arrays', 'c_pointers',
+                'StGermain_Tools', 'Function', 'petsc', 'libUnderworld.libUnderworldPy.Function' ]
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 # disable metrics.. this is not really needed actually due to mocked classes, but
