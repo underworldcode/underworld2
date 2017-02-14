@@ -25,13 +25,13 @@ class stress_limiting_viscosity(_Function):
     
     Parameters
     ----------
-    fn_stress: underworld.function.Function (or convertible).
+    fn_stress: underworld.function.Function
         Function which returns the current stress in the fluid.
         Function should return a symmetric tensor of floating point values.
-    fn_stresslimit: underworld.function.Function (or convertible).  
+    fn_stresslimit: underworld.function.Function
         Function which defines the stress limit.
         Function should return a scalar floating point value.
-    fn_inputviscosity: underworld.function.Function (or convertible).
+    fn_inputviscosity: underworld.function.Function
         Function which defines the non-yielded viscosity value.
         Function should return a scalar floating point value.
 
