@@ -1,6 +1,11 @@
 CHANGES: Underworld2
 =======================
 
+Release 2.2.1b  [2016-02-14]
+----------------------------
+Documentation
+* Updates to make api documentation available via read the docs: http://underworld2.readthedocs.io/
+
 Release 2.2.0b  [2016-02-11]
 ----------------------------
 Enhancements:
