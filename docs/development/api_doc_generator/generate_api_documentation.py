@@ -107,13 +107,7 @@ def doc_module(module, modname):
             doc_module(getattr(module,key), modname+"."+key)
 
 
-
 import underworld
 doc_module(underworld, 'underworld')
 import glucifer
 doc_module(glucifer, 'glucifer')
-
-print("\nDone! Now run `make html` to generate pages.")
-
-
-

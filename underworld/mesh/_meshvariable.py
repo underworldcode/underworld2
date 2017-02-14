@@ -276,6 +276,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         True
 
         Clean up:
+        
         >>> if uw.rank() == 0:
         ...     import os;
         ...     os.remove( "saved_mesh_variable.h5" )

@@ -119,17 +119,17 @@ def matplotlib_inline():
 
 # lets handle exceptions differently in parallel to ensure we call
 if nProcs() > 1:
-    origexcepthook = _sys.excepthook
-    def uw_uncaught_exception_handler(exctype, value, tb):
+    _origexcepthook = _sys.excepthook
+    def _uw_uncaught_exception_handler(exctype, value, tb):
         print('\n###########################################################################################')
         print('###########################################################################################')
         print('An uncaught exception was encountered on processor {}.'.format(rank()))
         # pass through to original handler
-        origexcepthook(exctype, value, tb)
+        _origexcepthook(exctype, value, tb)
         print('###########################################################################################')
         print('###########################################################################################')
         libUnderworld.StGermain_Tools.StgAbort( _data )
-    _sys.excepthook = uw_uncaught_exception_handler
+    _sys.excepthook = _uw_uncaught_exception_handler
 
 def _prepend_message_to_exception(e, message):
     """
@@ -150,7 +150,11 @@ class _del_uw_class:
         self.delfunc = delfunc
         self.deldata = deldata
     def __del__(self):
-        self.delfunc(self.deldata)
+        # put this in a try loop to avoid errors during sphinx documentation generation
+        try:
+            self.delfunc(self.deldata)
+        except:
+            pass
 
 _delclassinstance = _del_uw_class(libUnderworld.StGermain_Tools.StgFinalise, _data)
 
