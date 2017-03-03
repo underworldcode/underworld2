@@ -128,6 +128,12 @@ class Stokes(_stgermain.StgCompoundComponent):
             if not isinstance(fn_lambda, uw.function.Function):
                 raise ValueError("Provided 'fn_lambda' must be of, or convertible to, the 'Function' class.")
 
+        if fn_source != None:
+            _fn_cforce = uw.function.Function.convert(fn_source)
+            if not isinstance(_fn_cforce, uw.function.Function):
+                raise ValueError("Provided 'fn_source' must be of, or convertible to, the 'Function' class.")
+
+
         if not fn_bodyforce:
             if velocityField.mesh.dim == 2:
                 fn_bodyforce = (0.,0.)
@@ -135,9 +141,6 @@ class Stokes(_stgermain.StgCompoundComponent):
                 fn_bodyforce = (0.,0.,0.)
         _fn_bodyforce = uw.function.Function.convert(fn_bodyforce)
 
-        if not fn_source:
-                fn_source = 0.0
-        _fn_cforce = uw.function.Function.convert(fn_source)
 
         if voronoi_swarm and not isinstance(voronoi_swarm, uw.swarm.Swarm):
             raise TypeError( "Provided 'voronoi_swarm' must be of 'Swarm' class." )
@@ -182,6 +185,7 @@ class Stokes(_stgermain.StgCompoundComponent):
         self._kmatrix = sle.AssembledMatrix( self._velocitySol, self._velocitySol, rhs=self._fvector )
         self._gmatrix = sle.AssembledMatrix( self._velocitySol, self._pressureSol, rhs=self._fvector, rhs_T=self._hvector )
         self._preconditioner = sle.AssembledMatrix( self._pressureSol, self._pressureSol, rhs=self._hvector )
+
         if fn_lambda != None:
             self._mmatrix = sle.AssembledMatrix( self._pressureSol, self._pressureSol, rhs=self._hvector )
 
@@ -195,6 +199,7 @@ class Stokes(_stgermain.StgCompoundComponent):
         # for the following terms, we will use voronoi if that has been requested
         # by the user, else use gauss again.
         intswarm = gaussSwarm
+
         if self._swarm:
             intswarm = self._swarm._voronoi_swarm
             # need to ensure voronoi is populated now, as assembly terms will call
@@ -211,10 +216,10 @@ class Stokes(_stgermain.StgCompoundComponent):
                                                                 assembledObject=self._fvector,
                                                                 fn=_fn_bodyforce)
 
-
-        self._cforceVecTerm   = sle.VectorAssemblyTerm_NA__Fn(  integrationSwarm=intswarm,
-                                                                assembledObject=self._hvector,
-                                                                fn=_fn_cforce)
+        if fn_source:
+            self._cforceVecTerm   = sle.VectorAssemblyTerm_NA__Fn(  integrationSwarm=intswarm,
+                                                                    assembledObject=self._hvector,
+                                                                    fn=_fn_cforce)
 
 
         for cond in self._conditions:
@@ -286,13 +291,13 @@ class Stokes(_stgermain.StgCompoundComponent):
     def fn_bodyforce(self, value):
         self._forceVecTerm.fn = value
 
-    @property
-    def fn_source(self):
-        """
-        The volumetric source term function. You may change this function directly via this
-        property.
-        """
-        return self._cforceVecTerm.fn
-    @fn_source.setter
-    def fn_source(self, value):
-        self._cforceVecTerm.fn = value
+    # @property
+    # def fn_source(self):
+    #     """
+    #     The volumetric source term function. You may change this function directly via this
+    #     property.
+    #     """
+    #     return self._cforceVecTerm.fn
+    # @fn_source.setter
+    # def fn_source(self, value):
+    #     self._cforceVecTerm.fn = value
