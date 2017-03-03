@@ -25,7 +25,7 @@ class Stokes(_stgermain.StgCompoundComponent):
 
     The strong form of the given boundary value problem, for :math:`f`,
     :math:`q` and :math:`h` given, is
-    
+
     .. math::
         \\begin{align}
         \\sigma_{ij,j} + f_i =& \\: 0  & \\text{ in }  \\Omega \\\\
@@ -42,8 +42,8 @@ class Stokes(_stgermain.StgCompoundComponent):
 
     .. math::
         \\int_{\Omega} w_{(i,j)} \\sigma_{ij} \\, d \\Omega = \\int_{\\Omega} w_i \\, f_i \\, d\\Omega + \sum_{j=1}^{n_{sd}} \\int_{\\Gamma_{h_j}} w_i \\, h_i \\,  d \\Gamma
-    
-    where we must find :math:`u` which satisfies the above for all :math:`w` 
+
+    where we must find :math:`u` which satisfies the above for all :math:`w`
     in some variational space.
 
     Parameters
@@ -61,19 +61,20 @@ class Stokes(_stgermain.StgCompoundComponent):
         Function must return float values of identical dimensionality
         to the provided velocity variable.
     fn_lambda : underworld.function.Function
+    fn_source : underworld.function.Function
         Function which defines a non solenoidal velocity field via the relationship
-        div(velocityField) = fn_lambda * pressurefield
+        div(velocityField) = fn_lambda * pressurefield + fn_source
         If fn_lambda is <= 1e-8 it's effect is considered negligable and
         div(velocityField) = 0 is enforced as the constaint equation.
         This method is incompatible with the 'penalty' stokes solver, ensure
         the 'penalty' of 0, is used when fn_lambda is used. By default this is the case.
     voronoi_swarm : underworld.swarm.Swarm
-        If a voronoi_swarm is provided, voronoi type numerical integration is 
-        utilised. The provided swarm is used as the basis for the voronoi 
+        If a voronoi_swarm is provided, voronoi type numerical integration is
+        utilised. The provided swarm is used as the basis for the voronoi
         integration. If no voronoi_swarm is provided, Gauss integration
         is used.
     conditions : underworld.conditions.SystemCondition
-        Numerical conditions to impose on the system. This should be supplied as 
+        Numerical conditions to impose on the system. This should be supplied as
         the condition itself, or a list object containing the conditions.
 
     Notes
@@ -85,7 +86,8 @@ class Stokes(_stgermain.StgCompoundComponent):
     _objectsDict = {  "_system" : "Stokes_SLE" }
     _selfObjectName = "_system"
 
-    def __init__(self, velocityField, pressureField, fn_viscosity, fn_bodyforce=None, fn_lambda=None, voronoi_swarm=None, conditions=[],
+    def __init__(self, velocityField, pressureField, fn_viscosity, fn_bodyforce=None, fn_lambda=None,
+                 fn_source=None, voronoi_swarm=None, conditions=[],
                 _removeBCs=True, _fn_viscosity2=None, _fn_director=None, _fn_stresshistory=None, **kwargs):
 
         if not isinstance( velocityField, uw.mesh.MeshVariable):
@@ -132,6 +134,10 @@ class Stokes(_stgermain.StgCompoundComponent):
             else:
                 fn_bodyforce = (0.,0.,0.)
         _fn_bodyforce = uw.function.Function.convert(fn_bodyforce)
+
+        if not fn_source:
+                fn_source = 0.0
+        _fn_cforce = uw.function.Function.convert(fn_source)
 
         if voronoi_swarm and not isinstance(voronoi_swarm, uw.swarm.Swarm):
             raise TypeError( "Provided 'voronoi_swarm' must be of 'Swarm' class." )
@@ -200,9 +206,17 @@ class Stokes(_stgermain.StgCompoundComponent):
                                                             fn_visc1         = _fn_viscosity,
                                                             fn_visc2         = _fn_viscosity2,
                                                             fn_director      = _fn_director)
+
         self._forceVecTerm   = sle.VectorAssemblyTerm_NA__Fn(   integrationSwarm=intswarm,
                                                                 assembledObject=self._fvector,
                                                                 fn=_fn_bodyforce)
+
+
+        self._cforceVecTerm   = sle.VectorAssemblyTerm_NA__Fn(  integrationSwarm=intswarm,
+                                                                assembledObject=self._hvector,
+                                                                fn=_fn_cforce)
+
+
         for cond in self._conditions:
             if isinstance( cond, uw.conditions.NeumannCondition ):
                 #NOTE many NeumannConditions can be used but the _sufaceFluxTerm only records the last
@@ -271,3 +285,14 @@ class Stokes(_stgermain.StgCompoundComponent):
     @fn_bodyforce.setter
     def fn_bodyforce(self, value):
         self._forceVecTerm.fn = value
+
+    @property
+    def fn_source(self):
+        """
+        The volumetric source term function. You may change this function directly via this
+        property.
+        """
+        return self._cforceVecTerm.fn
+    @fn_source.setter
+    def fn_source(self, value):
+        self._cforceVecTerm.fn = value
