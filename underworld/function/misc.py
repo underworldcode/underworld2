@@ -18,7 +18,7 @@ class constant(_Function):
     
     Parameters
     ----------
-    value: int,float,bool. (iterables permitted)
+    value: int,float,bool, iterable
         The value the function should return. Note that iterable objects
         which contain valid types are permitted, but must be homogeneous
         in their type.
@@ -117,14 +117,13 @@ class constant(_Function):
 
 class max(_Function):
     """ 
-    max function.  Returns the maximum of the results returned from 
-    its two argument function.
+    Returns the maximum of the results returned from its two argument function.
     
     Parameters
     ----------
     fn1: underworld.function.Function
         First argument function. Function must return a float type.
-    fn1: underworld.function.Function
+    fn2: underworld.function.Function
         Second argument function. Function must return a float type.
         
     Example
@@ -174,14 +173,13 @@ class max(_Function):
 
 class min(_Function):
     """ 
-    min function.  Returns the minimum of the results returned from
-    its two argument function.
+    Returns the minimum of the results returned from its two argument function.
     
     Parameters
     ----------
     fn1: underworld.function.Function
         First argument function. Function must return a float type.
-    fn1: underworld.function.Function
+    fn2: underworld.function.Function
         Second argument function. Function must return a float type.
         
     Example
