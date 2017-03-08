@@ -60,7 +60,7 @@ Fn::TensorFunc::func Fn::TensorFunc::getFunction( IOsptr sample_input )
     if ( _partFunc == get_symmetric ) {
         if (iotype!=FunctionIO::Tensor)
             throw std::invalid_argument("TensorFunc expects Tensor input for 'get_symmetric' function.");
-        unsigned outsize = (dim = 2) ? 3 : 6;
+        unsigned outsize = (dim==2) ? 3 : 6;
         std::shared_ptr<IO_double> _output_sp = std::make_shared<IO_double>(outsize,FunctionIO::SymmetricTensor);
         IO_double* _output = _output_sp.get();
         return [_output,_output_sp,_func,dim](IOsptr input)->IOsptr {

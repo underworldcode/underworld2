@@ -16,6 +16,8 @@ export PETSC_DIR=/projects/m18/opt/petsc-3.6.3
 export PYTHONPATH=/projects/m18/opt:$PYTHONPATH
 export PATH=/projects/m18/opt/swig-3.0.10/bin:$PATH
 
+cd libUnderworld
+
 ./configure.py --python-dir=$PYTHON_ROOT --with-debugging=0 --with-graphics=0
 ./compile.py
 
