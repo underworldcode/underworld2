@@ -149,7 +149,7 @@
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    value: int,float,bool. (iterables permitted)</span>
+<span class="sd">    value: int,float,bool, iterable</span>
 <span class="sd">        The value the function should return. Note that iterable objects</span>
 <span class="sd">        which contain valid types are permitted, but must be homogeneous</span>
 <span class="sd">        in their type.</span>
@@ -248,14 +248,13 @@
 
 <div class="viewcode-block" id="max"><a class="viewcode-back" href="../../../underworld.function.misc.html#underworld.function.misc.max">[docs]</a><span class="k">class</span> <span class="nc">max</span><span class="p">(</span><span class="n">_Function</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; </span>
-<span class="sd">    max function.  Returns the maximum of the results returned from </span>
-<span class="sd">    its two argument function.</span>
+<span class="sd">    Returns the maximum of the results returned from its two argument function.</span>
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    fn1: underworld.function.Function</span>
 <span class="sd">        First argument function. Function must return a float type.</span>
-<span class="sd">    fn1: underworld.function.Function</span>
+<span class="sd">    fn2: underworld.function.Function</span>
 <span class="sd">        Second argument function. Function must return a float type.</span>
 <span class="sd">        </span>
 <span class="sd">    Example</span>
@@ -305,14 +304,13 @@
 
 <div class="viewcode-block" id="min"><a class="viewcode-back" href="../../../underworld.function.misc.html#underworld.function.misc.min">[docs]</a><span class="k">class</span> <span class="nc">min</span><span class="p">(</span><span class="n">_Function</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; </span>
-<span class="sd">    min function.  Returns the minimum of the results returned from</span>
-<span class="sd">    its two argument function.</span>
+<span class="sd">    Returns the minimum of the results returned from its two argument function.</span>
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    fn1: underworld.function.Function</span>
 <span class="sd">        First argument function. Function must return a float type.</span>
-<span class="sd">    fn1: underworld.function.Function</span>
+<span class="sd">    fn2: underworld.function.Function</span>
 <span class="sd">        Second argument function. Function must return a float type.</span>
 <span class="sd">        </span>
 <span class="sd">    Example</span>
