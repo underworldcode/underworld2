@@ -506,7 +506,7 @@ void lucCrossSection_SampleField(void* drawingObject, Bool reverse)
       }
    }
    /* Show each proc as it finishes */
-   printf(" (%d)", self->rank);
+   Journal_Printf(lucInfo, " (%d)", self->rank);
    fflush(stdout);
    MPI_Barrier(self->comm); /* Sync here, then time will show accurately how long sampling took on ALL procs */
    Journal_Printf(lucInfo, " -- %f sec.\n", MPI_Wtime() - time);
