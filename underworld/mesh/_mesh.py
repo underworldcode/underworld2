@@ -87,7 +87,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         Returns
         -------
         str
-            Element type for FeMesh. Supported types are "Q2", "Q1", "dPc1" and "dQ0".
+            Element type for FeMesh. Supported types are "Q2", "Q1", "dQ1", "dPc1" and "dQ0".
         """
         return self._elementType
     @property
@@ -483,7 +483,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         ...     os.remove( "saved_mesh.h5" )
 
         """
-        
+
         if hasattr(self.generator, 'geometryMesh'):
             raise RuntimeError("Cannot save this mesh as it's a subMesh. "
                                 + "Most likely you only need to save its geometryMesh")
@@ -619,7 +619,7 @@ class MeshGenerator(_stgermain.StgCompoundComponent):
         Returns
         -------
         int
-            FeMesh dimensionality.
+            The mesh dimensionality.
         """
         return self._dim
 
