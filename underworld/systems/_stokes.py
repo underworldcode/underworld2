@@ -29,14 +29,23 @@ class Stokes(_stgermain.StgCompoundComponent):
     .. math::
         \\begin{align}
         \\sigma_{ij,j} + f_i =& \\: 0  & \\text{ in }  \\Omega \\\\
-        p + \lambda u_{k,k} =& \\: 0  & \\text{ in }  \\Omega \\\\
+        u_{k,k} + \\frac{p}{\\lambda} =& \\: H  & \\text{ in }  \\Omega \\\\
         u_i =& \\: q_i & \\text{ on }  \\Gamma_{q_i} \\\\
         \\sigma_{ij}n_j =& \\: h_i & \\text{ on }  \\Gamma_{h_i} \\\\
         \\end{align}
 
     where,
-    :math:`f_i` is a source term, :math:`q_i` is the Dirichlet condition, and
-    :math:`h_i` is a Neumann condition. The problem boundary, :math:`\\Gamma`,
+    
+    * :math:`\\sigma_{i,j}` is the stress tensor
+    * :math:`u_i` is the velocity,
+    * :math:`p`   is the pressure,
+    * :math:`f_i` is a body force,
+    * :math:`\\lambda` is a bulk viscosity,
+    * :math:`H` is the compressible equation source term,
+    * :math:`q_i` are the velocity boundary conditions (DirichletCondition)
+    * :math:`h_i` are the traction boundary conditions (NeumannCondition).
+
+    The problem boundary, :math:`\\Gamma`,
     admits the decompositions :math:`\\Gamma=\\Gamma_{q_i}\\cup\\Gamma_{h_i}` where
     :math:`\\emptyset=\\Gamma_{q_i}\\cap\\Gamma_{h_i}`. The equivalent weak form is:
 
@@ -55,18 +64,21 @@ class Stokes(_stgermain.StgCompoundComponent):
     fn_viscosity : underworld.function.Function
         Function which reports a viscosity value.
         Function must return scalar float values.
-    fn_bodyforce : underworld.function.Function
-        Default = None
+    fn_bodyforce : underworld.function.Function, Default = None
         Function which reports a body force for the system.
         Function must return float values of identical dimensionality
         to the provided velocity variable.
-    fn_lambda : underworld.function.Function
-    fn_source : underworld.function.Function
+    fn_lambda : Removed use, fn_one_on_lambda instead
+    fn_one_on_lambda: underworld.function.Function, Default = None
         Function which defines a non solenoidal velocity field via the relationship
-        div(velocityField) = fn_lambda * pressurefield + fn_source
-        If fn_lambda is <= 1e-8 it's effect is considered negligable and
-        div(velocityField) = 0 is enforced as the constaint equation.
-        This method is incompatible with the 'penalty' stokes solver, ensure
+        div(velocityField) = -fn_one_on_lambda * pressurefield + fn_source
+        When this is left as None a incompressible formulation of the stokes equation is formed, ie, div(velocityField) = 0. 
+        fn_one_on_lambda is incompatible with the 'penalty' stokes solver, ensure a
+        'penalty' equal to 0 is used when fn_one_on_lambda is used. By default this is the case.
+    fn_source : underworld.function.Function, Default = None
+        Function which defines a non solenoidal velocity field via the relationship
+        div(velocityField) = -fn_one_on_lambda * pressurefield + fn_source.
+        fn_source incompatible with the 'penalty' stokes solver, ensure
         the 'penalty' of 0, is used when fn_lambda is used. By default this is the case.
     voronoi_swarm : underworld.swarm.Swarm
         If a voronoi_swarm is provided, voronoi type numerical integration is
@@ -86,9 +98,14 @@ class Stokes(_stgermain.StgCompoundComponent):
     _objectsDict = {  "_system" : "Stokes_SLE" }
     _selfObjectName = "_system"
 
-    def __init__(self, velocityField, pressureField, fn_viscosity, fn_bodyforce=None, fn_lambda=None,
-                 fn_source=None, voronoi_swarm=None, conditions=[],
+
+    def __init__(self, velocityField, pressureField, fn_viscosity, fn_bodyforce=None, fn_one_on_lambda=None,
+                 fn_lambda=None, fn_source=None, voronoi_swarm=None, conditions=[],
                 _removeBCs=True, _fn_viscosity2=None, _fn_director=None, _fn_stresshistory=None, **kwargs):
+
+        # DEPRECATION ERROR
+        if fn_lambda != None:
+            raise TypeError( "The parameter 'fn_lambda' has been deprecated. It has been replaced by 'fn_one_on_lambda', a simpler input parameter." )
 
         if not isinstance( velocityField, uw.mesh.MeshVariable):
             raise TypeError( "Provided 'velocityField' must be of 'MeshVariable' class." )
@@ -123,16 +140,39 @@ class Stokes(_stgermain.StgCompoundComponent):
             if not isinstance( _fn_stresshistory, uw.function.Function):
                 raise TypeError( "Provided '_fn_stresshistory' must be of or convertible to 'Function' class." )
 
-        if fn_lambda != None:
-            fn_lambda = uw.function.Function.convert(fn_lambda)
-            if not isinstance(fn_lambda, uw.function.Function):
-                raise ValueError("Provided 'fn_lambda' must be of, or convertible to, the 'Function' class.")
+        if fn_one_on_lambda != None:
+            self.fn_one_on_lambda = uw.function.Function.convert(fn_one_on_lambda)
+            if not isinstance(self.fn_one_on_lambda, uw.function.Function):
+                raise ValueError("Provided 'fn_one_on_lambda' must be of, or convertible to, the 'Function' class.")
+                
+            # define getter and setter decorators for fn_one_on_lambda - will be conditionally available to users
+            @property
+            def fn_one_on_lambda(self):
+                """
+                A bulk viscosity parameter
+                """
+                return self._fn_one_on_lambda
+    
+            @fn_one_on_lambda.setter
+            def fn_one_on_labmda(self, newFn):
+                self._fn_one_on_lambda = newFn
 
         if fn_source != None:
-            _fn_cforce = uw.function.Function.convert(fn_source)
-            if not isinstance(_fn_cforce, uw.function.Function):
+            self.fn_source = uw.function.Function.convert(fn_source)
+            if not isinstance(self.fn_source, uw.function.Function):
                 raise ValueError("Provided 'fn_source' must be of, or convertible to, the 'Function' class.")
-
+            
+            # define decorators for fn_source
+            @property
+            def fn_source(self):
+                """
+                The volumetric source term function. You may change this function directly via this
+                property.
+                """
+                return self._fn_source
+            @fn_source.setter
+            def fn_source(self, value):
+                self._fn_source = value
 
         if not fn_bodyforce:
             if velocityField.mesh.dim == 2:
@@ -186,9 +226,6 @@ class Stokes(_stgermain.StgCompoundComponent):
         self._gmatrix = sle.AssembledMatrix( self._velocitySol, self._pressureSol, rhs=self._fvector, rhs_T=self._hvector )
         self._preconditioner = sle.AssembledMatrix( self._pressureSol, self._pressureSol, rhs=self._hvector )
 
-        if fn_lambda != None:
-            self._mmatrix = sle.AssembledMatrix( self._pressureSol, self._pressureSol, rhs=self._hvector )
-
         # create assembly terms which always use gauss integration
         gaussSwarm = uw.swarm.GaussIntegrationSwarm(self._velocityField.mesh)
         self._gradStiffMatTerm = sle.GradientStiffnessMatrixTerm(   integrationSwarm=gaussSwarm,
@@ -219,7 +256,7 @@ class Stokes(_stgermain.StgCompoundComponent):
         if fn_source:
             self._cforceVecTerm   = sle.VectorAssemblyTerm_NA__Fn(  integrationSwarm=intswarm,
                                                                     assembledObject=self._hvector,
-                                                                    fn=_fn_cforce)
+                                                                    fn=self.fn_source)
 
 
         for cond in self._conditions:
@@ -229,22 +266,15 @@ class Stokes(_stgermain.StgCompoundComponent):
                                                                 assembledObject    = self._fvector,
                                                                 surfaceGaussPoints = 3, # increase to resolve stress bc fluctuations
                                                                 nbc                = cond )
-        if fn_lambda != None:
-            # some logic for constructing the lower-right [2,2] matrix in the stokes system
-            # [M] = [Na * 1.0/fn_lambda * Nb], where in our formulation Na and Nb are the pressure shape functions.
-            # see 4.3.21 of Hughes, Linear static and dynamic finite element analysis
-
-            # If fn_lambda is negligable, ie <1.0e-8, then we set the entry to 0.0, ie, incompressible
-            # otherwise we provide 1.0/lambda to [M]
-
-            logicFn = uw.function.branching.conditional(
-                                                      [  ( fn_lambda > 1.0e-8, 1.0/fn_lambda ),
-                                                      (                  True,     0.        )   ] )
-
+        if fn_one_on_lambda != None:
+            # add matrix and associated assembly term for compressible stokes formulation
+            # a mass matrix goes into the lower right block of the stokes system coeff matrix
+            self._mmatrix = sle.AssembledMatrix( self._pressureSol, self._pressureSol, rhs=self._hvector )
+            # -1. as per Hughes, The Finite Element Method, 1987, Table 4.3.1, [M]
             self._compressibleTerm = sle.MatrixAssemblyTerm_NA__NB__Fn(  integrationSwarm=intswarm,
                                                                          assembledObject=self._mmatrix,
                                                                          mesh=self._velocityField.mesh,
-                                                                         fn=logicFn )
+                                                                         fn=-1.*self.fn_one_on_lambda )
 
         if _fn_stresshistory != None:
             self._vepTerm    = sle.VectorAssemblyTerm_VEP__Fn(  integrationSwarm=intswarm,
@@ -290,14 +320,3 @@ class Stokes(_stgermain.StgCompoundComponent):
     @fn_bodyforce.setter
     def fn_bodyforce(self, value):
         self._forceVecTerm.fn = value
-
-    # @property
-    # def fn_source(self):
-    #     """
-    #     The volumetric source term function. You may change this function directly via this
-    #     property.
-    #     """
-    #     return self._cforceVecTerm.fn
-    # @fn_source.setter
-    # def fn_source(self, value):
-    #     self._cforceVecTerm.fn = value
