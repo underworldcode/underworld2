@@ -69,8 +69,8 @@ class constant(_Function):
         if newioguy.size() != self._ioguy.size():
             raise TypeError("'value' object passed in must be of identical size to that used in construction of this function.")
         self._ioguy = newioguy
-        self._value = value
         self._fncself.set_value(self._ioguy)
+        self._value = value
 
     def _GetIOForPyInput(self, value):
         if isinstance(value, (int,float,bool) ):
