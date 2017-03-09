@@ -28,6 +28,8 @@ Bool lucBase_Init()
 
    /* Set up streams */
    lucInfo  = Journal_Register( Info_Type, (Name)"lucInfo"  );
+   /* let's disable lucInfo */
+   lucInfo->_enable = (Bool) 0;
    lucDebug = Journal_Register( Debug_Type, (Name)"lucDebug"  );
    lucError = Journal_Register( Error_Type, (Name)"lucError" );
 

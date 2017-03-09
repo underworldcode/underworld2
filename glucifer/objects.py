@@ -55,17 +55,17 @@ class ColourMap(_stgermain.StgCompoundComponent):
     
     Parameters
     ----------
-    colours: str, list.  default="#288FD0 #50B6B8 #989878 #C68838 #FF7520"
+    colours: str, list
         List of colours to use for drawing object colour map. Provided as a string
         or as a list of strings. Example, "red blue", or ["red", "blue"]
         This should not be specified if 'colourMap' is specified.
-    valueRange: tuple,list. default=None.
+    valueRange: tuple, list
         User defined value range to apply to colour map. Provided as a 
         tuple of floats  (minValue, maxValue). If none is provided, the
         value range will be determined automatically.
-    logScale: bool. default=False.
+    logScale: bool
         Bool to determine if the colourMap should use a logarithmic scale.
-    discrete: bool.  default=False.
+    discrete: bool
         Bool to determine if a discrete colour map should be used.
         Discrete colour maps do not interpolate between colours and instead
         use nearest neighbour for colouring.
@@ -74,24 +74,20 @@ class ColourMap(_stgermain.StgCompoundComponent):
     _selfObjectName = "_cm"
     _objectsDict = { "_cm": "lucColourMap" }
     
-    #Default is a cool-warm map with low variance in luminosity/lightness
-    def __init__(self, colours=None, valueRange=None, logScale=False, discrete=False, properties=None, **kwargs):
-
-        if not hasattr(self, 'properties'):
+    def __init__(self, colours=colourMaps["diverge"], valueRange=None, logScale=False, discrete=False, **kwargs):
+        if not hasattr(self, "properties"):
             self.properties = {}
-        if properties and not isinstance(properties,dict):
-            raise TypeError("'properties' object passed in must be of python type 'dict'")
-        if properties:
-            self.properties.update(properties)
 
-        if colours == None:
-            colours = colourMaps["diverge"]
         if not isinstance(colours,(str,list)):
             raise TypeError("'colours' object passed in must be of python type 'str' or 'list'")
         if isinstance(colours,(list)):
             self.properties.update({"colours" : ' '.join(colours)})
         else:
             self.properties.update({"colours" : colours})
+
+        #User-defined props in kwargs
+        self.properties.update(kwargs)
+        dict((k.lower(), v) for k, v in self.properties.iteritems())
 
         if valueRange != None:
             # is valueRange correctly defined, ie list of length 2 made of numbers
@@ -146,27 +142,24 @@ class Drawing(_stgermain.StgCompoundComponent):
     This is the base class for all drawing objects but can also be instantiated 
     as is for direct/custom drawing.
     
-    Note that the defaults here are often overridden by the child objects. Please
-    inspect child constructor (__init__) itself to determine exact default settings.
+    Note that the defaults here are often overridden by the child objects.
     
     Parameters
     ----------
     colours: str, list.
         See ColourMap class docstring for further information
-    colourMap: ColourMap. default=None
+    colourMap: glucifer.objects.ColourMap
         A ColourMap object for the object to use.
         This should not be specified if 'colours' is specified.
-    properties: str.  default=None
-        Extra properties to apply to the drawing object.
-    opacity: float. default=None.
-        Opacity of object. If provided, must take values from 0. to 1. 
-    colourBar: bool. default=False
+    opacity: float
+        Opacity of object. If provided, must take values from 0. to 1.
+    colourBar: bool
         Bool to determine if a colour bar should be rendered.
-    valueRange: tuple,list. default=None.
+    valueRange: tuple, list
         See ColourMap class docstring for further information
-    logScale: bool. default=False.
+    logScale: bool
         See ColourMap class docstring for further information
-    discrete: bool.  default=False.
+    discrete: bool
         See ColourMap class docstring for further information
 
         
@@ -174,9 +167,12 @@ class Drawing(_stgermain.StgCompoundComponent):
     _selfObjectName = "_dr"
     _objectsDict = { "_dr": "lucDrawingObject" } # child should replace _dr with own derived type
     
-    def __init__(self, name=None, colours=None, colourMap=None, properties=None, opacity=None, colourBar=False,
+    def __init__(self, name=None, colours=None, colourMap=None, colourBar=False,
                        valueRange=None, logScale=False, discrete=False,
                        *args, **kwargs):
+
+        if not hasattr(self, "properties"):
+            self.properties = {}
 
         if colours and colourMap:
             raise RuntimeError("You should specify 'colours' or a 'colourMap', but not both.")
@@ -187,20 +183,10 @@ class Drawing(_stgermain.StgCompoundComponent):
         else:
             self._colourMap = ColourMap(valueRange=valueRange, logScale=logScale)
 
-        if not hasattr(self, 'properties'):
-            self.properties = {}
-        if properties and not isinstance(properties,dict):
-            raise TypeError("'properties' object passed in must be of python type 'dict'")
-        if properties:
-            self.properties.update(properties)
+        #User-defined props in kwargs
+        self.properties.update(kwargs)
+        dict((k.lower(), v) for k, v in self.properties.iteritems())
 
-        if opacity != None:
-            if not isinstance(opacity,(int,float)):
-                raise TypeError("'opacity' object passed in must be of python type 'int' or 'float'")
-            if float(opacity) > 1. or float(opacity) < -1.:
-                raise ValueError("'opacity' object must takes values from 0. to 1.")
-            self.properties.update({"opacity" : opacity})
-        
         if not isinstance(colourBar, bool):
             raise TypeError("'colourBar' parameter must be of 'bool' type.")
         self._colourBar = None
@@ -208,13 +194,13 @@ class Drawing(_stgermain.StgCompoundComponent):
             #Create the associated colour bar
             self._colourBar = ColourBar(colourMap=self._colourMap)
 
-        if name and isinstance(name, str):
-            self.properties.update({"name" : name})
+        if name:
+            self.properties["name"] = str(name)
 
         self.resetDrawing()
 
         # build parent
-        super(Drawing,self).__init__(*args, **kwargs)
+        super(Drawing,self).__init__(*args)
 
     def _add_to_stg_dict(self,componentDictionary):
         
@@ -329,23 +315,16 @@ class ColourBar(Drawing):
     
     Parameters
     ----------
-    colourMap: ColourMap
+    colourMap: glucifer.objects.ColourMap
         Colour map for which the colour bar will be drawn.
     """
 
     def __init__(self, colourMap, *args, **kwargs):
         #Default properties
-        self.properties = {"colourbar" : 1, "height" : None, "lengthfactor" : 0.8, 
-                "margin" : 20, "border" : 1, "precision" : 2, "scientific" : False, "font" : "small", 
-                "ticks" : 0, "printticks" : True, "printunits" : False, "scalevalue" : 1.0,
-                "font" : "small", "fontscale" : 0.4} #tick0-tick10 : val
+        self.properties = {"colourbar" : 1}
     
         # build parent
         super(ColourBar,self).__init__(colourMap=colourMap, *args, **kwargs)
-
-        #Always show at least 2 tick marks on a log scale
-        if self._colourMap._logScale and self.properties["ticks"] < 2:
-            self.properties["ticks"] = 2
 
 class CrossSection(Drawing):
     """  
@@ -356,20 +335,20 @@ class CrossSection(Drawing):
     
     Parameters
     ---------
-    mesh : uw.mesh.Mesh
+    mesh : underworld.mesh.FeMesh
         Mesh over which cross section is rendered.
-    fn : uw.function.Function
+    fn : underworld.function.Function
         Function used to determine values to render.
-    crossSection : str, default=""
+    crossSection : str
         Cross Section definition, eg. z=0.
-    resolution : unsigned, default=100
+    resolution : unsigned
         Surface rendered sampling resolution.
         
     """
     _objectsDict = { "_dr": "lucCrossSection" }
 
     def __init__(self, mesh, fn, crossSection="", resolution=100,
-                       colours=None, colourMap=None, properties=None, opacity=None, colourBar=True,
+                       colours=None, colourMap=None, colourBar=True,
                        valueRange=None, logScale=False, discrete=False, offsetEdges=None,
                        *args, **kwargs):
 
@@ -391,7 +370,7 @@ class CrossSection(Drawing):
         self._resolution = resolution
 
         # build parent
-        super(CrossSection,self).__init__(colours=colours, colourMap=colourMap, properties=properties, opacity=opacity, colourBar=colourBar,
+        super(CrossSection,self).__init__(colours=colours, colourMap=colourMap, colourBar=colourBar,
                        valueRange=valueRange, logScale=logScale, discrete=discrete, *args, **kwargs)
 
     def _setup(self):
@@ -417,6 +396,72 @@ class CrossSection(Drawing):
         """
         return self._crossSection
 
+class SurfaceOnMesh(CrossSection):
+    """  
+    This drawing object class draws a surface using the provided scalar field. 
+    This object differs from the `Surface` class in that it samples the mesh
+    nodes directly, as opposed to sampling across a regular grid. This class
+    should be used in particular where a mesh has been deformed.
+
+    See parent class for further parameter details. Also see property docstrings.
+
+    Notes
+    -----
+    The interface to this object will be revised in future versions.
+    
+    Parameters
+    ---------
+    mesh : underworld.mesh.FeMesh
+        Mesh over which cross section is rendered.
+    fn : underworld.function.Function
+        Function used to determine values to render.
+    drawSides : str
+        Sides (x,y,z,X,Y,Z) for which the surface should be drawn. 
+        For example, "xyzXYZ" would render the provided function across
+        all surfaces of the domain in 3D. In 2D, this object always renders
+        across the entire domain.
+    """
+    
+    # let's just build both objects because we aint sure yet which one we want to use yet
+    _objectsDict = {  "_dr"  : "lucScalarFieldOnMesh" }
+
+    def __init__(self, mesh, fn, drawSides="xyzXYZ",
+                       colours=None, colourMap=None, colourBar=True,
+                       valueRange=None, logScale=False, discrete=False,
+                       *args, **kwargs):
+
+        if not isinstance(drawSides,str):
+            raise ValueError("'drawSides' parameter must be of python type 'str'")
+        self._drawSides = drawSides
+
+        #Default properties
+        self.properties = {"cullface" : True}
+        # TODO: disable lighting if 2D (how to get dims?)
+        #self.properties["lit"] = False
+        
+        # build parent
+        super(SurfaceOnMesh,self).__init__( mesh=mesh, fn=fn,
+                        colours=colours, colourMap=colourMap, colourBar=colourBar,
+                        valueRange=valueRange, logScale=logScale, discrete=discrete, *args, **kwargs)
+
+
+    def _add_to_stg_dict(self,componentDictionary):
+        # lets build up component dictionary
+        # append random string to provided name to ensure unique component names
+        # call parents method
+        
+        super(SurfaceOnMesh,self)._add_to_stg_dict(componentDictionary)
+
+        componentDictionary[self._dr.name]["drawSides"] = self._drawSides
+        componentDictionary[self._dr.name][     "Mesh"] = self._mesh._cself.name
+
+    def _setup(self):
+        _libUnderworld.gLucifer._lucMeshCrossSection_SetFn( self._cself, self._fn._fncself )
+
+    def __del__(self):
+        super(SurfaceOnMesh,self).__del__()
+
+
 class Surface(CrossSection):
     """  
     This drawing object class draws a surface using the provided scalar field.
@@ -425,40 +470,28 @@ class Surface(CrossSection):
     
     Parameters
     ---------
-    mesh : uw.mesh.Mesh
+    mesh : underworld.mesh.FeMesh
         Mesh over which cross section is rendered.
-    fn : uw.function.Function
+    fn : underworld.function.Function
         Function used to determine values to render.
-    drawSides : str, default="xyzXYZ"
-        Sides (x,y,z,X,Y,Z) for which the surface should be drawn.  
-    drawOnMesh : bool, default=False.
-        Note that this option is current disabled.
-        Bool to determine whether the surface rendering should explicitly
-        use the mesh object to generate the rendered surface. This may 
-        result in better quality rendering for deformed mesh, and may 
-        also be faster.
+    drawSides : str
+        Sides (x,y,z,X,Y,Z) for which the surface should be drawn. 
+        For example, "xyzXYZ" would render the provided function across
+        all surfaces of the domain in 3D. In 2D, this object always renders
+        across the entire domain.
     """
     
     # let's just build both objects because we aint sure yet which one we want to use yet
-    _objectsDict = {  "_dr"  : "lucScalarField",
-                      "_dr2" : "lucScalarFieldOnMesh" }
+    _objectsDict = {  "_dr"  : "lucScalarField" }
 
-    def __init__(self, mesh, fn, drawSides="xyzXYZ", drawOnMesh=False,
-                       colours=None, colourMap=None, properties=None, opacity=None, colourBar=True,
+    def __init__(self, mesh, fn, drawSides="xyzXYZ",
+                       colours=None, colourMap=None, colourBar=True,
                        valueRange=None, logScale=False, discrete=False,
                        *args, **kwargs):
 
-        if drawOnMesh:
-            raise RuntimeError("The 'drawOnMesh' option is currently disabled.")
         if not isinstance(drawSides,str):
             raise ValueError("'drawSides' parameter must be of python type 'str'")
         self._drawSides = drawSides
-
-        # if we wish to draw on mesh, switch live object
-        if not isinstance(drawOnMesh, bool):
-            raise TypeError("'drawOnMesh parameter must be of type 'bool'.")
-        self._drawOnMesh = drawOnMesh
-
 
         #Default properties
         self.properties = {"cullface" : True}
@@ -467,7 +500,7 @@ class Surface(CrossSection):
         
         # build parent
         super(Surface,self).__init__( mesh=mesh, fn=fn,
-                        colours=colours, colourMap=colourMap, properties=properties, opacity=opacity, colourBar=colourBar,
+                        colours=colours, colourMap=colourMap, colourBar=colourBar,
                         valueRange=valueRange, logScale=logScale, discrete=discrete, *args, **kwargs)
 
 
@@ -480,21 +513,11 @@ class Surface(CrossSection):
 
         componentDictionary[self._dr.name]["drawSides"] = self._drawSides
         componentDictionary[self._dr.name][     "Mesh"] = self._mesh._cself.name
-        componentDictionary[self._dr2.name]["drawSides"] = self._drawSides
-        componentDictionary[self._dr2.name][     "Mesh"] = self._mesh._cself.name
 
     def _setup(self):
-        if self._drawOnMesh:
-            self._drOrig = self._dr
-            self._dr     = self._dr2
-            self._cself  = self._dr2
         _libUnderworld.gLucifer._lucCrossSection_SetFn( self._cself, self._fn._fncself )
 
     def __del__(self):
-        # lets unwind the kludge from _setup to avoid any double deletions or memory leaks.
-        if self._drawOnMesh:
-            self._dr    = self._drOrig
-            self._cself = self._drOrig
         super(Surface,self).__del__()
 
 
@@ -506,15 +529,15 @@ class Points(Drawing):
     
     Parameters
     ---------
-    swarm : uw.swarm.Swarm
+    swarm : underworld.swarm.Swarm
         Swarm which provides locations for point rendering.
-    fn_colour : uw.function.Function
+    fn_colour : underworld.function.Function
         Function used to determine colour to render particle.
         This function should return float/double values.
-    fn_mask : uw.function.Function
+    fn_mask : underworld.function.Function
         Function used to determine if a particle should be rendered. 
         This function should return bool values. 
-    fn_size : uw.function.Function
+    fn_size : underworld.function.Function
         Function used to determine size to render particle.
         This function should return float/double values.
         
@@ -522,14 +545,11 @@ class Points(Drawing):
     """
     _objectsDict = { "_dr": "lucSwarmViewer" }
 
-    def __init__(self, swarm, fn_colour=None, fn_mask=None, fn_size=None, pointSize=1.0, pointType=1, colourVariable=None,
-                       colours=None, colourMap=None, properties=None, opacity=None, colourBar=True,
+    def __init__(self, swarm, fn_colour=None, fn_mask=None, fn_size=None, colourVariable=None,
+                       colours=None, colourMap=None, colourBar=True,
                        valueRange=None, logScale=False, discrete=False,
                        *args, **kwargs):
 
-        #DEPRECATE
-        if colourVariable != None:
-            raise RuntimeError("'colourVariable' parameter is deprecated. Use the fn_colour parameter instead.")
         if not isinstance(swarm,_swarmMod.Swarm):
             raise TypeError("'swarm' object passed in must be of type 'Swarm'")
         self._swarm = swarm
@@ -544,18 +564,9 @@ class Points(Drawing):
         if fn_size != None:
            self._fn_size = _underworld.function.Function.convert(fn_size)
 
-        if not isinstance(pointSize,(float,int)):
-            raise TypeError("'pointSize' object passed in must be of python type 'float' or 'int'")
-
-        if not isinstance(pointType,(int)):
-            raise TypeError("'pointType' object passed in must be of python type 'int'")
-
-        #Default properties
-        self.properties = {"pointsize" : pointSize, "pointtype" : pointType}
-
         # build parent
         super(Points,self).__init__(
-                        colours=colours, colourMap=colourMap, properties=properties, opacity=opacity, colourBar=colourBar,
+                        colours=colours, colourMap=colourMap, colourBar=colourBar,
                         valueRange=valueRange, logScale=logScale, discrete=discrete, *args, **kwargs)
 
     def _add_to_stg_dict(self,componentDictionary):
@@ -581,27 +592,26 @@ class Points(Drawing):
 
 class _GridSampler3D(CrossSection):
     """  This drawing object class samples a regular grid in 3D.
+
+    resolutionI : unsigned
+        Number of samples in the I direction.
+    resolutionJ : unsigned
+        Number of samples in the J direction.
+    resolutionK : unsigned
+        Number of samples in the K direction.
     """
     _objectsDict = { "_dr": None } #Abstract class, Set by child
 
-    def __init__(self, resolutionI=None, resolutionJ=None, resolutionK=None, *args, **kwargs):
-
-        # set defaults here
-        if resolutionI == None:
-            resolutionI = 16
-        if resolutionJ == None:
-            resolutionJ = 16
-        if resolutionK == None:
-            resolutionK = 16
+    def __init__(self, resolutionI=16, resolutionJ=16, resolutionK=16, *args, **kwargs):
 
         if resolutionI:
-            if not isinstance(resolutionI,(int)):
+            if not isinstance(resolutionI,int):
                 raise TypeError("'resolutionI' object passed in must be of python type 'int'")
         if resolutionJ:
-            if not isinstance(resolutionJ,(int)):
+            if not isinstance(resolutionJ,int):
                 raise TypeError("'resolutionJ' object passed in must be of python type 'int'")
         if resolutionK:
-            if not isinstance(resolutionK,(int)):
+            if not isinstance(resolutionK,int):
                 raise TypeError("'resolutionK' object passed in must be of python type 'int'")
 
         self._resolutionI = resolutionI
@@ -632,9 +642,9 @@ class VectorArrows(_GridSampler3D):
     
     Parameters
     ---------
-    mesh : uw.mesh.Mesh
+    mesh : underworld.mesh.FeMesh
         Mesh over which vector arrows are rendered.
-    fn : uw.function.Function
+    fn : underworld.function.Function
         Function used to determine vectors to render. 
         Function should return a vector of floats/doubles of appropriate
         dimensionality.
@@ -646,39 +656,23 @@ class VectorArrows(_GridSampler3D):
     glyphs : int
         Type of glyph to render for vector arrow.
         0: Line, 1 or more: 3d arrow, higher number => better quality.
-    resolutionI : unsigned, default=16.
+    resolutionI : unsigned
         Number of samples in the I direction.
-    resolutionJ : unsigned, default=16.
+    resolutionJ : unsigned
         Number of samples in the J direction.
-    resolutionK : unsigned, default=16.
+    resolutionK : unsigned
         Number of samples in the K direction.
 
     """
     _objectsDict = { "_dr": "lucVectorArrows" }
 
-    def __init__(self, mesh, fn, arrowHead=0.3, scaling=0.3, glyphs=3,
-                       resolutionI=None, resolutionJ=None, resolutionK=None, 
-                       properties=None, opacity=None,
+    def __init__(self, mesh, fn,
+                       resolutionI=16, resolutionJ=16, resolutionK=16, 
                        *args, **kwargs):
-
-        if arrowHead:
-            if not isinstance(arrowHead,(float,int)):
-                raise TypeError("'arrowHead' object passed in must be of python type 'int' or 'float'")
-            if arrowHead < 0 or arrowHead > 1:
-                raise ValueError("'arrowHead' can only take values between zero and one. Value provided is " + str(arrowHead)+".")
-        if scaling:
-            if not isinstance(scaling,(float,int)):
-                raise TypeError("'scaling' object passed in must be of python type 'int' or 'float'")
-        if glyphs:
-            if not isinstance(glyphs,(int)):
-                raise TypeError("'glyphs' object passed in must be of python type 'int'")
-
-        #Default properties
-        self.properties = {"arrowHead" : arrowHead, "scaling" : scaling, "glyphs" : glyphs}
 
         # build parent
         super(VectorArrows,self).__init__( mesh=mesh, fn=fn, resolutionI=resolutionI, resolutionJ=resolutionJ, resolutionK=resolutionK,
-                        colours=None, colourMap=None, properties=properties, opacity=opacity, colourBar=False, *args, **kwargs)
+                        colours=None, colourMap=None, colourBar=False, *args, **kwargs)
 
     def _add_to_stg_dict(self,componentDictionary):
         # lets build up component dictionary
@@ -696,31 +690,32 @@ class Volume(_GridSampler3D):
     
     Parameters
     ---------
-    mesh : uw.mesh.Mesh
+    mesh : underworld.mesh.FeMesh
         Mesh over which object is rendered.
-    fn : uw.function.Function
+    fn : underworld.function.Function
         Function used to determine colour values.
         Function should return a vector of floats/doubles of appropriate
         dimensionality.
-    resolutionI : unsigned, default=16.
+    resolutionI : unsigned
         Number of samples in the I direction.
-    resolutionJ : unsigned, default=16.
+    resolutionJ : unsigned
         Number of samples in the J direction.
-    resolutionK : unsigned, default=16.
+    resolutionK : unsigned
         Number of samples in the K direction.
 
     """
     _objectsDict = { "_dr": "lucFieldSampler" }
 
-    def __init__(self, mesh, fn, resolutionI=None, resolutionJ=None, resolutionK=None,
-                       colours=None, colourMap=None, properties=None, opacity=None, colourBar=True,
+    def __init__(self, mesh, fn, 
+                       resolutionI=64, resolutionJ=64, resolutionK=64, 
+                       colours=None, colourMap=None, colourBar=True,
                        valueRange=None, logScale=False, discrete=False,
                        *args, **kwargs):
         # build parent
         if mesh.dim == 2:
             raise ValueError("Volume rendered requires a three dimensional mesh.")
         super(Volume,self).__init__( mesh=mesh, fn=fn, resolutionI=resolutionI, resolutionJ=resolutionJ, resolutionK=resolutionK,
-                        colours=colours, colourMap=colourMap, properties=properties, opacity=opacity, colourBar=colourBar,
+                        colours=colours, colourMap=colourMap, colourBar=colourBar,
                         valueRange=valueRange, logScale=logScale, discrete=discrete, *args, **kwargs)
 
     def _add_to_stg_dict(self,componentDictionary):
@@ -737,18 +732,18 @@ class Mesh(Drawing):
     
     Parameters
     ----------
-    mesh : uw.mesh.Mesh
+    mesh : underworld.mesh.FeMesh
         Mesh to render.
-    nodeNumbers : bool. default=False
+    nodeNumbers : bool
         Bool to determine whether global node numbers should be rendered. 
-    segmentsPerEdge : unsigned. default=1
+    segmentsPerEdge : unsigned
         Number of segments to render per cell/element edge. For higher 
         order mesh, more segments are useful to render mesh curvature correctly.
 
     """
     _objectsDict = { "_dr": "lucMeshViewer" }
 
-    def __init__( self, mesh, nodeNumbers=False, segmentsPerEdge=1, properties={"linesmooth" : False}, opacity=None, *args, **kwargs ):
+    def __init__( self, mesh, nodeNumbers=False, segmentsPerEdge=1, *args, **kwargs ):
 
         if not isinstance(mesh,_uwmesh.FeMesh):
             raise TypeError("'mesh' object passed in must be of type 'FeMesh'")
@@ -763,12 +758,12 @@ class Mesh(Drawing):
         self._segmentsPerEdge = segmentsPerEdge
 
         #Default properties
-        self.properties = {"lit" : False, "font" : "small", "fontscale" : 0.5,
+        self.properties = {"linesmooth" : False, "lit" : False, "font" : "small", "fontscale" : 0.5,
                            "pointsize" : 5 if self._nodeNumbers else 1, 
                            "pointtype" : 2 if self._nodeNumbers else 4}
         
         # build parent
-        super(Mesh,self).__init__( colours=None, colourMap=None, properties=properties, opacity=opacity, colourBar=False, *args, **kwargs )
+        super(Mesh,self).__init__( colours=None, colourMap=None, colourBar=False, *args, **kwargs )
 
     def _add_to_stg_dict(self,componentDictionary):
         # lets build up component dictionary

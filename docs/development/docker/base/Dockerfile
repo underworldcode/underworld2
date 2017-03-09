@@ -33,6 +33,8 @@ RUN apt-get update -qq && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*  && \
     pip install \
+        packaging \
+        appdirs \
         numpy \
         jupyter \
         plotly \
@@ -42,6 +44,11 @@ RUN apt-get update -qq && \
         pillow \
         pyvirtualdisplay \
         ipyparallel \
+        pint \
+        sphinx \
+        sphinx_rtd_theme \
+        sphinxcontrib-napoleon \
+        mock \
         scipy && \
     pip install 'ipython==4.2.0' --force-reinstall && \
     pip install six --upgrade

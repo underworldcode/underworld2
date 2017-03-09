@@ -44,10 +44,6 @@ Bool StGermain_Init( int* argc, char** argv[] ) {
    /* Init the StGermain Utils folder */
    StGermainUtils_Init( argc, argv );
 
-   /* Write out the copyright message */
-   
-   
-
    Stream_Flush( Journal_Register( InfoStream_Type, "Context" ) );
    Stream_SetPrintingRank( Journal_Register( InfoStream_Type, "Context" ), tmp );
    

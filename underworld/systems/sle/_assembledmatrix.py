@@ -13,19 +13,21 @@ import libUnderworld
 
 class AssembledMatrix(_stgermain.StgCompoundComponent):
     """
+    Matrix object, generally assembled as a result of the FEM
+    framework.
+    
+    Parameters
+    ----------
+    meshVariableRow: underworld.mesh.MeshVariable
+        MeshVariable object for matrix row.
+    meshVariableCol: underworld.mesh.MeshVariable
+        MeshVariable object for matrix column.
+        
     """
     _objectsDict = { "_matrix": "StiffnessMatrix" }
     _selfObjectName = "_matrix"
 
     def __init__(self, rowVector, colVector, rhs=None, rhs_T=None, assembleOnNodes=False, **kwargs):
-        """
-        Args:
-            meshVariableRow (MeshVariable)
-            meshVariableCol (MeshVariable)
-
-        See property docstrings for further information on each argument.
-
-        """
         if not isinstance(rowVector, uw.systems.sle.SolutionVector):
             raise TypeError("'rowVector' object passed in must be of type 'SolutionVector'")
 
@@ -56,15 +58,9 @@ class AssembledMatrix(_stgermain.StgCompoundComponent):
 
     @property
     def meshVariableRow(self):
-        """
-        meshVariableRow (MeshVariable): MeshVariable object for matrix row.
-        """
         return self._meshVariableRow
     @property
     def meshVariableCol(self):
-        """
-        meshVariableCol (MeshVariable): MeshVariable object for matrix xol.
-        """
         return self._meshVariableCol
 
     def _add_to_stg_dict(self,componentDictionary):

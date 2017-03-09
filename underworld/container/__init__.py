@@ -7,8 +7,8 @@
 ##                                                                                   ##
 ##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
 
-"""
-   Implementation relating to container objects.
+""" 
+Implementation relating to container objects. 
 
 """
 

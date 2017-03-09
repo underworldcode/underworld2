@@ -21,6 +21,8 @@ http://www.underworldcode.org/pages/Blog/
 
 If you need to compile Underworld2 (in particular for HPC usage), please refer to COMPILE.md
 
+API documentation is available at http://underworld2.readthedocs.io/
+
 
 Underworld Docker Usage
 ------------

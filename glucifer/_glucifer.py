@@ -55,33 +55,38 @@ class Store(_stgermain.StgCompoundComponent):
 
     Parameters
     ----------
-    filename: str, default=None
+    filename: str
         Filename to use for a disk database, default is in memory only unless saved.
-    split: bool, default=False
+    split: bool
         Set to true to write a separate database file for each timestep visualised
-    view: bool, default=False
+    view: bool
         Set to true and pass filename if loading a saved database for revisualisation
             
     Example
     -------
         
     Create a database:
+    
     >>> import glucifer
     >>> store = glucifer.Store()
 
     Optionally provide a filename so you don't need to call save later (no extension)
+    
     >>> store = glucifer.Store('myvis')
 
     Pass to figures when creating them
     (Providing a name allows you to revisualise the figure from the name)
+    
     >>> fig = glucifer.Figure(store, name="myfigure")
     
     When figures are rendered with show() or save(imgname), they are saved to storage
     If you don't need to render an image but still want to store the figure to view later,
     just call save() without a filename
+    
     >>> fig.save()
     
     Save the database (only necessary if no filename provided when created)
+    
     >>> dbfile = store.save("myvis")
 
     """
@@ -164,13 +169,12 @@ class Store(_stgermain.StgCompoundComponent):
             db = self._db.path
         #Use a single LavaVu instance per db(store) to save resources
         if not self.viewer:
-            self.viewer = lavavu.Viewer(reuse=True, cache=False, binary=self._lvbin, database=db, timestep=self.step, *args, **kwargs)
+            self.viewer = lavavu.Viewer(cache=False, binpath=self._lvpath, database=db, timestep=self.step, *args, **kwargs)
         else:
             self.viewer.setup(cache=False, database=db, timestep=self.step, *args, **kwargs)
+        #self.viewer.init()
+
         return self.viewer
-        #lavavu.viewer = lavavu.Viewer(reuse=True, cache=False, binary=self._lvbin, database=db, timestep=self.step, *args, **kwargs)
-        #lavavu.viewer = lavavu.Viewer(reuse=False, cache=False, binary=self._lvbin, database=db, timestep=self.step, *args, **kwargs)
-        #return lavavu.viewer
 
     def _generate(self, figname, objects, props):
         #First merge object list with active
@@ -197,9 +201,6 @@ class Store(_stgermain.StgCompoundComponent):
                    obj.properties["name"] = 'ColourBar_' + str(o)
                 else:
                    obj.properties["name"] = obj._dr.type[3:] + '_' + str(o)
-
-        #Get name of first object for figure if none providedc
-        if not figname and len(objects) > 0: figname = objects[0].properties["name"]
 
         if not self._viewonly:
             #Set the write step
@@ -258,6 +259,7 @@ class Store(_stgermain.StgCompoundComponent):
                 #No objects passed in with figure, simply plot them all
                 for obj in state["objects"]:
                     obj["visible"] = True
+
             export = dict()
             #Global properties passed from figure
             state["properties"].update(props)
@@ -354,62 +356,69 @@ class Figure(dict):
 
     Parameters
     ----------
-    store: Store, default=None
+    store: glucifer.Store
         Database to collect visualisation data, this may be shared among figures
-        to collect their data into a single file
-    name: str, default=None
-        Name of this figure, optional, used for revisualisation of stored figures
-    figsize: tuple, default=(640,480)
+        to collect their data into a single file.
+    name: str
+        Name of this figure, optional, used for revisualisation of stored figures.
+    resolution: tuple
         Image resolution provided as a tuple.
-    boundingBox: tuple, default=None
-        Tuple of coordiante tuples defining figure bounding box.
+    boundingBox: tuple
+        Tuple of coordinate tuples defining figure bounding box.
         For example ( (0.1,0.1), (0.9,0.9) )
-    facecolour: str, default="white"
+    facecolour: str
         Background colour for figure.
-    edgecolour: str, default="black"
+    edgecolour: str
         Edge colour for figure.
-    title: str, default=None
+    title: str
         Figure title.
-    axis: bool, default=False
+    axis: bool
         Bool to determine if figure axis should be drawn.
-    quality: unsigned, default=1
+    quality: unsigned
         Antialiasing oversampling quality. For a value of 2, the image will be
         rendered at twice the resolution, and then downsampled. Setting
         this to 1 disables antialiasing, values higher than 3 are not recommended..
-    properties: str, default=None
+    properties: str
         Further properties to set on the figure.
             
     Example
     -------
         
     Create a figure:
+    
     >>> import glucifer
     >>> fig = glucifer.Figure()
 
     We need a mesh
+    
     >>> import underworld as uw
     >>> mesh = uw.mesh.FeMesh_Cartesian()
 
     Add drawing objects:
+    
     >>> fig.append( glucifer.objects.Surface( mesh, 1.) )
 
     Draw image (note, in a Jupyter notebook, this will render the image within the notebook).
+    
     >>> fig.show()
     <IPython.core.display.HTML object>
     
     Save the image
+    
     >>> imgfile = fig.save("test_image")
 
     Clean up:
+    
     >>> if imgfile: 
     ...     import os; 
     ...     os.remove( imgfile )
 
     """
     _viewerProc = None
+    _id = 1
 
-    def __init__(self, store=None, name=None, figsize=(640,480), boundingBox=None, facecolour="white",
-                 edgecolour="black", title="", axis=False, quality=1, properties=None, *args, **kwargs):
+    def __init__(self, store=None, name=None, figsize=None, boundingBox=None, facecolour="white",
+                 edgecolour="black", title="", axis=False, quality=1, *args, **kwargs):
 
         #Create a default database just for this figure if none provided
         if store and isinstance(store, Store):
@@ -417,8 +426,14 @@ class Figure(dict):
         else:
             self.db = Store()
 
-        if name and not isinstance(name,str):
-            raise TypeError("'name' object passed in must be of python type 'str'")
+        if name:
+            if not isinstance(name,str):
+                raise TypeError("'name' object passed in must be of python type 'str'")
+        elif "name" in kwargs:
+            name = kwargs["name"]
+        else:
+            name = "Figure_" + str(Figure._id)
+            Figure._id += 1
         self.name = name
 
         if boundingBox and not isinstance(boundingBox,tuple):
@@ -431,19 +446,24 @@ class Figure(dict):
         if not isinstance(edgecolour,str):
             raise TypeError("'edgecolour' object passed in must be of python type 'str'")
 
-        if not isinstance(title,str):
-            raise TypeError("'title' object passed in must be of python type 'str'")
-
         if not isinstance(axis,bool):
             raise TypeError("'axis' object passed in must be of python type 'bool'")
 
         if quality and not isinstance(quality,(int,float)):
             raise TypeError("'quality' object passed in must be of python type 'float' or 'int'")
-        self.quality=quality
+        self["quality"]=quality
 
         #Setup default properties
-        self.update({"title" : title, "axis" : axis, "axislength" : 0.2, "antialias" : True, "background" : facecolour,
-            "margin" : 34, "border" : (1 if edgecolour else 0), "bordercolour" : edgecolour, "rulers" : False, "zoomstep" : 0})
+        self.update({"resolution" : (640, 480), "title" : str(title), 
+            "axis" : axis, "axislength" : 0.2, "antialias" : True, 
+            "background" : facecolour, "margin" : 34, 
+            "border" : (1 if edgecolour else 0), "bordercolour" : edgecolour, 
+            "rulers" : False, "zoomstep" : 0})
+
+        #User-defined props in kwargs
+        self.update(kwargs)
+        dict((k.lower(), v) for k, v in self.iteritems())
+
         if boundingBox:
             #Add 3rd dimension if missing
             if len(boundingBox[0]) < 3 or len(boundingBox[1]) < 3:
@@ -451,20 +471,17 @@ class Figure(dict):
             self["min"] = boundingBox[0]
             self["max"] = boundingBox[1]
 
-        if not isinstance(figsize,tuple):
-            raise TypeError("'figsize' object passed in must be of python type 'tuple'")
-        self["resolution"] = figsize
+        #Legacy parameter
+        if figsize and not isinstance(figsize,tuple):
+            raise TypeError("'resolution' object passed in must be of python type 'tuple'")
+        elif figsize:
+            self["resolution"] = figsize
         
-        if properties and not isinstance(properties,dict):
-            raise TypeError("'properties' object passed in must be of python type 'dict'")
-        if properties:
-            self.update(properties)
-
         self.draw = objects.Drawing()
         self._drawingObjects = []
         self._script = []
 
-        super(Figure, self).__init__(*args, **kwargs)
+        super(Figure, self).__init__(*args)
 
     def __del__(self):
         self.close_viewer()
@@ -479,32 +496,32 @@ class Figure(dict):
         self.update(newProps)
 
     @property
-    def figsize(self):
-        """    figsize (tuple(int,int)): size of window in pixels, default: (640,480)
+    def resolution(self):
+        """    resolution (tuple(int,int)): size of window in pixels.
         """
         return self["resolution"]
 
     @property
     def facecolour(self):
-        """    facecolour : colour of face background, default: white
+        """    facecolour : colour of face background.
         """
         return self["background"]
 
     @property
     def edgecolour(self):
-        """    edgecolour : colour of figure border, default: white
+        """    edgecolour : colour of figure border.
         """
         return self["bordercolour"]
 
     @property
     def title(self):
-        """    title : a title for the image, default: None
+        """    title : a title for the image.
         """
         return self["title"]
 
     @property
     def axis(self):
-        """    axis : Axis enabled if true.  Default False.
+        """    axis : Axis enabled if true.
         """
         return self["axis"]
 
@@ -528,14 +545,14 @@ class Figure(dict):
     def properties(self, value):
         self._setProperties(value)
 
-    def show(self, type="image"):
+    def show(self, type="Image"):
         """    
         Shows the generated image inline within an ipython notebook.
         
         Parameters
         ----------
         type: str
-            Type of visualisation to display ('Image' or 'WebGL'). Default is 'Image'.
+            Type of visualisation to display ('Image' or 'WebGL').
         
         If IPython is installed, displays the result image or WebGL content inline
 
@@ -557,20 +574,13 @@ class Figure(dict):
                     #Return inline image result
                     filename = self._generate_image()
                     display(HTML("<img src='%s'>" % filename))
+            else:
+                #Fallback to export image
+                self.save(filename=self.name, type=type)
+
         except NameError, ImportError:
-            #Not in IPython, call default image save routines (autogenerated filenames)
-            try:
-                if type.lower() == "webgl":
-                    lv = self.db.lvrun()
-                    lv.web(True)
-                else:
-                    # -1 selects last figure/state in list
-                    lv = self.db.lvrun(figure=-1, quality=self.quality, writeimage=True, res=self["resolution"], script=self._script)
-            except RuntimeError,e:
-                print "LavaVu error: " + str(e)
-                import traceback
-                traceback.print_exc()
-                pass
+            #Fallback to export image
+            self.save(filename=self.name, type=type)
             pass
         except RuntimeError, e:
             print "Error creating image: "
@@ -588,7 +598,7 @@ class Figure(dict):
             self._generate_DB()
         return self.db.save(filename)
 
-    def save(self, filename=None, size=(0,0)):
+    def save(self, filename=None, size=(0,0), type="Image"):
         """  
         Saves the generated image to the provided filename or the figure to the database.
         
@@ -598,6 +608,8 @@ class Figure(dict):
             Filename to save file to.  May include an absolute or relative path.
             size (tuple(int,int)): size of image in pixels, defaults to original figsize setting
             If omitted, simply saves the figure data without generating an image
+        type: str
+            Type of visualisation to save ('Image' or 'WebGL').
             
         Returns
         -------
@@ -613,7 +625,17 @@ class Figure(dict):
             if size and not isinstance(size,tuple):
                 raise TypeError("'size' object passed in must be of python type 'tuple'")
 
-            return self._generate_image(filename, size)
+            try:
+                if type.lower() == "webgl":
+                    lv = self.db.lvrun()
+                    return lv.web(True)
+                else:
+                    return self._generate_image(filename, size)
+            except RuntimeError,e:
+                print "LavaVu error: " + str(e)
+                import traceback
+                traceback.print_exc()
+                pass
 
     def _generate_DB(self):
         objects = self._drawingObjects[:]
@@ -628,7 +650,7 @@ class Figure(dict):
             return
         try:
             #Render with viewer
-            lv = self.db.lvrun(quality=self.quality, script=self._script)
+            lv = self.db.lvrun(quality=self["quality"], script=self._script)
             imagestr = lv.image(filename, size[0], size[1])
             #Return the generated filename
             return imagestr
@@ -688,19 +710,15 @@ class Figure(dict):
     def viewer(self):
         """ Open the inline viewer.
         """
-        fname = self.db._db.path
-        #Create db if doesn't exist
-        if not fname:
-            self._generate_DB()
-            fname = self.db._db.path
-        #Open viewer instance if doesn't exist
+        #Open viewer instance
         global lavavu
         if lavavu and uw.rank() == 0:
-            if not self.db.viewer:
-                #print "Re-running with " + fname
-                self.db.lvrun(db=fname)
-            self.db.viewer.window()
-            return self.db.viewer
+            #Generate db if doesn't exist
+            if not self.db._db.path:
+                self._generate_DB()
+            v = self.db.lvrun()
+            v.window()
+            return v
 
     def open_viewer(self, args=[], background=True):
         """ Open the external viewer.
@@ -770,9 +788,9 @@ class Figure(dict):
                     pass
 
     def clear(self):
-        """    Clears all the figure's drawing objects and colour maps.
-        """
-        del self._drawingObjects[:]
+        # DEPRECATE
+        raise RuntimeError("This method is now deprecated.\n" \
+                           "To obtain an empty figure just create a new one")
 
     def __add__(self,drawing_object):
         # DEPRECATE
@@ -786,7 +804,7 @@ class Figure(dict):
         
         Parameters
         ----------
-        drawingObject: objects.Drawing
+        drawingObject: glucifer.objects.Drawing
             The drawing object to add to the figure
                 
         
@@ -817,30 +835,35 @@ class Viewer(dict):
 
     Parameters
     ----------
-    filename: str, default=None
+    filename: str
         Filename of database used to previously store the visualisation figures
             
     Example
     -------
         
     Create a reader using an existing database:
+    
     >>> import glucifer
     >>> saved = glucifer.Viewer('vis.gldb')
 
     Iterate over the figures, print their names and plot them
+    
     >>> for fig in saved:
     >>>     print(fig.name)
 
     Get first figure and display
+    
     >>> fig = saved.next()
     >>> fig.show()
 
     Get a figure by name and display
     (A chosen name can be provided when creating the figures to make this easier)
+    
     >>> fig = saved["myfig"]
     >>> fig.show()
 
     Display all figures at each timestep
+    
     >>> for step in saved.steps:
     >>>    saved.step = step
     >>>    for name in saved:
@@ -873,12 +896,12 @@ class Viewer(dict):
             return #No data
         for state in states:
             figname = str(state["figure"])
-            fig = Figure(self._db, name=figname, properties=state["properties"])
+            fig = Figure(self._db, name=figname, **state["properties"])
             self[figname] = fig
             #Append objects, just create generic Drawing type to hold properties
             for obj in state["objects"]:
                 if obj["visible"]:
-                    fig.append(objects.Drawing(name=obj["name"], properties=obj))
+                    fig.append(objects.Drawing(**obj))
 
         #Timestep info
         self.steps = self._db.timesteps

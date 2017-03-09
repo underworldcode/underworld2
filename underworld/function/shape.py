@@ -46,14 +46,17 @@ class Polygon(_Function):
     -------
     In this example we will create a triangle shape and test some 
     points.
+    
     >>> import underworld as uw
     >>> import numpy as np
     
     Create the array to define the triangle, and the function
+    
     >>> vertex_array = np.array( [(0.0,0.0),(0.5,1.0),(1.0,0.0)] )
     >>> polyfn = uw.function.shape.Polygon(vertex_array)
     
     Create some test points, and do a test evaluation
+    
     >>> test_array = np.array( [(0.0,0.9),(0.5,0.5),(0.9,0.2)] )
     >>> polyfn.evaluate(test_array)
     array([[False],

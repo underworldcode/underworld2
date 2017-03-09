@@ -25,10 +25,7 @@ class Solver(_stgermain.StgCompoundComponent):
     @staticmethod
     def factory(eqs,type="BSSCR", *args, **kwargs):
         """
-        This method simply returns a necessary solver for the provided system. 
-        For information on the specific solvers:
-            Stokes: See within the _bsscr module.
-            Thermal: See within the _energy_solver module.
+        This method simply returns a necessary solver for the provided system.
         """
         if isinstance(eqs, uw.systems.Stokes):
             return _bsscr.StokesSolver(eqs, *args, **kwargs)

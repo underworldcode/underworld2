@@ -7,10 +7,31 @@
 **                                                                                  **
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 
-#include "CrossSection.h"
-
 #ifndef __lucMeshCrossSection_h__
 #define __lucMeshCrossSection_h__
+
+#include "CrossSection.h"
+
+#ifdef __cplusplus
+
+extern "C++" {
+
+#include <Underworld/Function/Function.hpp>
+
+void _lucMeshCrossSection_SetFn( void* _self, Fn::Function* fn );
+
+}
+
+extern "C" {
+#endif
+
+#include <StGermain/StGermain.h>
+#include <StgDomain/StgDomain.h>
+#include <StgFEM/StgFEM.h>
+
+#include <gLucifer/Base/Base.h>
+
+#include "types.h"
 
 /** Textual name of this class - This is a global pointer which is used for times when you need to refer to class and not a particular instance of a class */
 extern const Type lucMeshCrossSection_Type;
@@ -59,5 +80,10 @@ void _lucMeshCrossSection_Draw( void* drawingObject, lucDatabase* database, void
 
 void lucMeshCrossSection_Sample(void* drawingObject, Bool reverse);
 
+#ifdef __cplusplus
+}
 #endif
+
+#endif
+
 

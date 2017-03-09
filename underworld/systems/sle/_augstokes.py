@@ -9,8 +9,6 @@
 import underworld as uw
 import underworld._stgermain as _stgermain
 """
-from underworld._vector import *
-from underworld._matrix import *
 """
 
 class AugStokes(_stgermain.StgCompoundComponent):
@@ -29,12 +27,6 @@ class AugStokes(_stgermain.StgCompoundComponent):
     _supportedDataTypes = ["char","short","int","float", "double"]
 
     def __init__(self, velocityMeshVariable, pressureMeshVariable, temperatureMeshVariable=None, pic=True, bodyforces=[], **kwargs):
-        """
-        Args:
-            
-        See property docstrings for further information on each argument.
-        
-        """
         # build parent
         super(MeshVariable,self).__init__(**kwargs)
         

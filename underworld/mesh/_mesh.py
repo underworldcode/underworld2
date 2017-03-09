@@ -34,6 +34,15 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
     may be local or global, but this is generally handled automatically.
 
     A number of element types are supported.
+
+    Parameters
+    ----------
+    elementType : str
+        Element type for FeMesh.  See FeMesh.elementType docstring for further info.
+    generator : underworld.mesh.MeshGenerator
+        Generator object which builds the FeMesh. See FeMesh.generator docstring for
+        further info.
+
     """
     _objectsDict = { "_mesh": "FeMesh" }
     _selfObjectName = "_mesh"
@@ -41,24 +50,6 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
     _supportedElementTypes = ["Q2","Q1","DQ1","DPC1","DQ0"]
 
     def __init__(self, elementType, generator=None, **kwargs):
-        """
-        Class initialiser.
-
-        Parameter
-        ---------
-        elementType : str
-            Element type for FeMesh.  See FeMesh.elementType docstring for further info.
-        generator : MeshGenerator, default=None
-            Generator object which builds the FeMesh.  See FeMesh.generator docstring for
-            further info.
-
-        Returns
-        -------
-        mesh : FeMesh
-            Constructed FeMesh object.
-
-        """
-
         if not isinstance(elementType,str):
             raise TypeError("'elementType' object passed in must be of type 'str'")
         if elementType.upper() not in self._supportedElementTypes:
@@ -93,16 +84,22 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
     @property
     def elementType(self):
         """
-        elementType (str): Element type for FeMesh.
-        Supported types are "Q2", "Q1", "dPc1" and "dQ0".
+        Returns
+        -------
+        str
+            Element type for FeMesh. Supported types are "Q2", "Q1", "dQ1", "dPc1" and "dQ0".
         """
         return self._elementType
     @property
     def generator(self):
         """
-        generator (MeshGenertor): Object which builds the mesh. Note that the mesh
-        itself may be a generator, in which case this property will return the mesh
-        object iself.
+        Getter/Setter for the mesh MeshGenerator object.
+
+        Returns
+        -------
+        underworld.mesh.MeshGenerator
+            Object which builds the mesh. Note that the mesh itself may be a
+            generator, in which case this property will return the mesh object iself.
         """
         if isinstance(self._generator, weakref.ref):
             return self._generator()
@@ -110,14 +107,6 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
             return self._generator
     @generator.setter
     def generator(self,generator):
-        """
-        Associates the passed in generator with this mesh object
-
-        Parameters:
-        -----------
-        generator : MeshGenerator
-            generator to use
-        """
         if not isinstance(generator,MeshGenerator):
             raise TypeError("'generator' object passed in must be of type 'MeshGenerator'")
         if self is generator:
@@ -129,7 +118,10 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
     @property
     def data_elementNodes(self):
         """
-        (np.array): Array specifying the nodes (global node id) for a given element (local element id).
+        Returns
+        -------
+        numpy.ndarray
+            Array specifying the nodes (global node id) for a given element (local element id).
         """
         uw.libUnderworld.StgDomain.Mesh_GenerateENMapVar(self._cself)
         arr = uw.libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.enMapVar)
@@ -145,7 +137,10 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
     @property
     def data_elgId(self):
         """
-        (np.array): Array specifying global element ids
+        Returns
+        -------
+        numpy.ndarray
+            Array specifying global element ids.
         """
         uw.libUnderworld.StgDomain.Mesh_GenerateElGlobalIdVar(self._cself)
         arr = uw.libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.eGlobalIdsVar)
@@ -154,7 +149,10 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
     @property
     def data_nodegId(self):
         """
-        (np.array): Array specifying global node ids
+        Returns
+        -------
+        numpy.ndarray
+            Array specifying global node ids.
         """
         uw.libUnderworld.StgDomain.Mesh_GenerateNodeGlobalIdVar(self._cself)
         arr = uw.libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.vGlobalIdsVar)
@@ -163,9 +161,9 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
     @property
     def data(self):
         """
-        data (np.array):  Numpy proxy array proxy to underlying object
-        vertex data. Note that the returned array is a proxy for all the *local*
-        vertices, and it is provided as 1d list.
+        Numpy proxy array proxy to underlying object vertex data. Note that the
+        returned array is a proxy for all the *local* vertices, and it is
+        provided as 1d list.
 
         As these arrays are simply proxys to the underlying memory structures,
         no data copying is required.
@@ -174,8 +172,13 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         you wish to modify mesh vertex locations, you are required to use the
         deform_mesh context manager.
 
-        If you are modifying the mesh, remember to modify any submesh associated with
-        it accordingly.
+        If you are modifying the mesh, remember to modify any submesh associated
+        with it accordingly.
+
+        Returns
+        -------
+        numpy.ndarray
+            The data proxy array.
 
         Example
         -------
@@ -275,9 +278,9 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
 
         Parameters
         ----------
-        function : function
-            Function to be executed. Closures should be used
-            where parameters are required.
+        function : FunctionType
+            Python (not underworld) function to be executed. Closures should be
+            used where parameters are required.
 
         """
         self._pre_deform_functions.append( function )
@@ -289,9 +292,9 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
 
         Parameters
         ----------
-        function : function
-            Function to be executed. Closures should be used
-            where parameters are required.
+        function : FunctionType
+            Python (not underworld) function to be executed. Closures should be
+            used where parameters are required.
 
         """
         self._post_deform_functions.append( function )
@@ -299,14 +302,20 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
     @property
     def nodesLocal(self):
         """
-        Returns the number of local nodes on the mesh
+        Returns
+        -------
+        int
+            Returns the number of local nodes on the mesh.
         """
         return libUnderworld.StgDomain.Mesh_GetLocalSize(self._cself, 0)
 
     @property
     def nodesGlobal(self):
         """
-        Returns the number of global nodes on the mesh
+        Returns
+        -------
+        int
+            Returns the number of global nodes on the mesh
 
         Example
         -------
@@ -319,7 +328,10 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
     @property
     def elementsLocal(self):
         """
-        Returns the number of local elements on the mesh
+        Returns
+        -------
+        int
+            Returns the number of local elements on the mesh
 
         Example
         -------
@@ -332,7 +344,10 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
     @property
     def elementsGlobal(self):
         """
-        Returns the number of global elements on the mesh
+        Returns
+        -------
+        int
+            Returns the number of global elements on the mesh
 
         Example
         -------
@@ -365,7 +380,10 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
     @property
     def specialSets(self):
         """
-        This dictionary stores a set of special data sets relating to mesh objects.
+        Returns
+        -------
+        dict
+            This dictionary stores a set of special data sets relating to mesh objects.
 
         Example
         -------
@@ -422,7 +440,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
 
         Returns
         -------
-        SavedFileData
+        underworld.utils.SavedFileData
             Data object relating to saved file. This only needs to be retained
             if you wish to create XDMF files and can be ignored otherwise.
 
@@ -459,12 +477,13 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         >>> np.allclose(mesh.data,clone_mesh.data)
         True
 
-        Clean up:
+        >>> # clean up:
         >>> if uw.rank() == 0:
         ...     import os;
         ...     os.remove( "saved_mesh.h5" )
 
         """
+
         if hasattr(self.generator, 'geometryMesh'):
             raise RuntimeError("Cannot save this mesh as it's a subMesh. "
                                 + "Most likely you only need to save its geometryMesh")
@@ -479,6 +498,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         h5f.attrs['max'] = self.maxCoord
         h5f.attrs['min'] = self.minCoord
         h5f.attrs['regular'] = self._cself.isRegular
+        h5f.attrs['elementType'] = self.elementType
 
         # write the vertices
         globalShape = ( self.nodesGlobal, self.data.shape[1] )
@@ -515,9 +535,9 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
 
         Parameters
         ----------
-            filename: str
-                The filename for the saved file. Relative or absolute paths may be
-                used, but all directories must exist.
+        filename: str
+            The filename for the saved file. Relative or absolute paths may be
+            used, but all directories must exist.
 
         Notes
         -----
@@ -575,26 +595,18 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
 class MeshGenerator(_stgermain.StgCompoundComponent):
     """
     Abstract base class for all mesh generators.
+
+    Parameter
+    ---------
+    partitioned: bool
+        If false, the mesh is not partitioned across entire processor pool. Instead
+        mesh is entirely owned by processor which generated it.
+
     """
     _objectsDict = { "_gen": None }
     _selfObjectName = "_gen"
 
     def __init__(self, partitioned=True, **kwargs):
-        """
-        Class initialiser.
-
-        Parameter
-        ---------
-        partitioned: bool
-            If false, the mesh is not partitioned across entire processor pool. Instead
-            mesh is entirely owned by processor which generated it.
-
-        Returns
-        ------
-        mesh: MeshGenerator
-
-
-        """
         if not isinstance(partitioned,bool):
             raise TypeError("'partitioned' parameter must be of type 'bool'.")
         self._partitioned = partitioned
@@ -603,14 +615,18 @@ class MeshGenerator(_stgermain.StgCompoundComponent):
 
     @property
     def dim(self):
-        """ dim (int): FeMesh dimensionality. """
+        """
+        Returns
+        -------
+        int
+            The mesh dimensionality.
+        """
         return self._dim
 
     @abc.abstractmethod
     def _reset(self,mesh):
         """
         Abstract class which handles mesh resetting.
-
         """
         pass
 
@@ -625,31 +641,23 @@ class CartesianMeshGenerator(MeshGenerator):
     Abstract base class for all cartesian mesh generators.
     Generators of this class provide algorithms to build meshes which are
     logically and geometrically Cartesian.
+
+    Parameter
+    ---------
+    elementRes: list,tuple
+        List or tuple of ints specifying mesh resolution. See CartesianMeshGenerator.elementRes
+        docstring for further information.
+    minCoord:  list, tuple
+        List or tuple of floats specifying minimum mesh location. See CartesianMeshGenerator.minCoord
+        docstring for further information.
+    maxCoord: list, tuple
+        List or tuple of floats specifying maximum mesh location. See CartesianMeshGenerator.maxCoord
+        docstring for further information.
+    periodic: list, tuple
+        List or tuple of bools, specifying mesh periodicity in each direction.
+
     """
     def __init__(self, elementRes, minCoord, maxCoord, periodic=None, **kwargs):
-        """
-        Class initialiser.
-
-        Parameter
-        ---------
-        elementRes: list,tuple
-            List or tuple of ints specifying mesh resolution. See CartesianMeshGenerator.elementRes
-            docstring for further information.
-        minCoord:  list, tuple
-            List or tuple of floats specifying minimum mesh location. See CartesianMeshGenerator.minCoord
-            docstring for further information.
-        maxCoord: list, tuple
-            List or tuple of floats specifying maximum mesh location. See CartesianMeshGenerator.maxCoord
-            docstring for further information.
-        periodic: list, tuple
-            List or tuple of bools, specifying mesh periodicity in each direction.
-
-        Returns
-        ------
-        mesh: CartesianMeshGenerator
-
-
-        """
 
         if not isinstance(elementRes,(list,tuple)):
             raise TypeError("'elementRes' object passed in must be of type 'list' or 'tuple'")
@@ -700,30 +708,44 @@ class CartesianMeshGenerator(MeshGenerator):
     @property
     def elementRes(self):
         """
-        elementRes (list, tuple): Element count to generate in I, J & K
-        directions. Must be provided as a tuple of integers.
+        Returns
+        -------
+        list, tuple
+            Element count to generate in I, J & K directions. Must be provided
+            as a tuple of integers.
         """
         return self._elementRes
     @property
     def minCoord(self):
         """
-        minCoord (list, tuple): Minimum coordinate position for cartesian mesh.
-        Values correspond to minimums in each direction (I,J,K) of the mesh.
-        Note, this is the value used for initialisation, but mesh may be advecting.
+        Returns
+        -------
+        list, tuple
+            Minimum coordinate position for cartesian mesh.
+            Values correspond to minimums in each direction (I,J,K) of the mesh.
+            Note, this is the value used for initialisation, but mesh may be
+            advecting.
         """
         return self._minCoord
     @property
     def periodic(self):
         """
-        periodic (list,tuple): List of bools specifying mesh periodicity in each direction.
+        Returns
+        -------
+        list, tuple
+            List of bools specifying mesh periodicity in each direction.
         """
         return self._periodic
     @property
     def maxCoord(self):
         """
-        maxCoord (list, tuple): Maximum coordinate position for cartesian mesh.
-        Values correspond to maximums in each direction (I,J,K) of the mesh.
-        Note, this is the value used for initialisation, but mesh may be advecting.
+        Returns
+        -------
+        list, tuple
+            Maximum coordinate position for cartesian mesh.
+            Values correspond to maximums in each direction (I,J,K) of the mesh.
+            Note, this is the value used for initialisation, but mesh may be
+            advecting.
         """
         return self._maxCoord
 
@@ -803,13 +825,13 @@ class TemplatedMeshGenerator(MeshGenerator):
     """
     Abstract Class. Children of this class provide algorithms to generate a
     mesh by stenciling nodes on the cells of the provided geometry mesh.
+
+    Parameter:
+    ----------
+    geometryMesh: underworld.mesh.FeMesh
+        The geometry mesh.
     """
     def __init__(self, geometryMesh, **kwargs):
-        """
-        Parameter:
-        ----------
-            geometryMesh (FeMesh)
-        """
         if not isinstance(geometryMesh,(FeMesh)):
             raise TypeError("'geometryMesh' object passed in must be of type 'FeMesh'")
         # note we keep a weakref to avoid circular dependencies
@@ -822,10 +844,13 @@ class TemplatedMeshGenerator(MeshGenerator):
     @property
     def geometryMesh(self):
         """
-        geometryMesh (FeMesh): This is the FeMesh from which the
-        TemplatedMeshGenerator obtains the cells to template nodes upon.
-        Note that this class only retains a weakref to the geometryMesh, and
-        therefore this property may return None.
+        Returns
+        -------
+        underworld.mesh.FeMesh
+            This is the FeMesh from which the TemplatedMeshGenerator obtains
+            the cells to template nodes upon. Note that this class only retains
+            a weakref to the geometryMesh, and therefore this property may return
+            None.
         """
         return self._geometryMeshWeakref()
 
@@ -941,7 +966,22 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
     and geometrically regular. It is possible to directly build a dual mesh by
     passing a pair of element types to the constructor.
 
-    For example, to create a linear mesh:
+    Refer to parent classes for parameters beyond those below.
+
+    Parameters
+    ----------
+    elementType: str
+        Mesh element type. Note that this class allows the user to
+        (optionally) provide a pair of elementTypes for which a dual
+        mesh will be created.
+        The submesh is accessible through the 'subMesh' property. The
+        primary mesh itself is the object returned by this constructor.
+
+
+
+    Examples
+    --------
+    To create a linear mesh:
 
     >>> import underworld as uw
     >>> someMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
@@ -962,6 +1002,7 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
     To set / read vertex coords, use the numpy interface via the 'data' property.
 
     """
+
     _meshGenerator = [ "C2Generator", "CartesianGenerator" ]
     _objectsDict = { "_gen": None }  # this is set programmatically in __new__
 
@@ -1006,25 +1047,6 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
 
 
     def __init__(self, elementType="Q1/dQ0", elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.), periodic=None, partitioned=True, **kwargs):
-        """
-        Class initialiser.
-
-        Parameters
-        ----------
-            elementType: str
-                Mesh element type. Note that this class allows the user to
-                (optionally) provide a pair of elementTypes for which a dual
-                mesh will be created.
-                The submesh is accessible through the 'subMesh' property. The
-                primary mesh itself is the object returned by this constructor.
-
-            Refer to parent classes for further information on parameters.
-
-        Returns
-        ------
-        mesh: FeMesh_Cartesian
-
-        """
 
         if isinstance(elementType, str):
             # convert to tuple to make things easier
@@ -1066,39 +1088,37 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
     @property
     def subMesh(self):
         """
-        Returns the submesh where the object is a dual mesh, or None otherwise.
+        Returns
+        -------
+        underworld.mesh.FeMesh
+            Returns the submesh where the object is a dual mesh, or None otherwise.
         """
         return self._secondaryMesh
 
 
 class FeMesh_IndexSet(uw.container.ObjectifiedIndexSet, function.FunctionInput):
     """
-    This class ties the FeMesh instance to an index set, and stores other metadata relevant to the set.
+    This class ties the FeMesh instance to an index set, and stores other
+    metadata relevant to the set.
+
+    Parameters
+    ----------
+    topologicalIndex: int
+        Mesh topological index for which the IndexSet relates. See
+        docstring for further info.
+    object: underworld.mesh.FeMesh
+        The FeMesh instance from which the IndexSet was extracted.
+
+    Example
+    -------
+
+    >>> amesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.) )
+    >>> iset = uw.libUnderworld.StgDomain.RegularMeshUtils_CreateGlobalMaxISet( amesh._mesh )
+    >>> uw.mesh.FeMesh_IndexSet( amesh, topologicalIndex=0, size=amesh.nodesGlobal, fromObject=iset )
+    FeMesh_IndexSet([ 4,  9, 14, 19, 24])
+
     """
     def __init__(self, object, topologicalIndex=None, *args, **kwargs):
-        """
-        Class initialiser.
-
-        Parameter
-        ---------
-            topologicalIndex: int
-                Mesh topological index for which the IndexSet relates. See FeMesh_IndexSet.topologicalIndex
-                docstring for further info.
-            object: FeMesh
-                The FeMesh instance from which the IndexSet was extracted.
-
-            See parent classes for further required/optional parameters.
-
-        Returns
-        ------
-        meshIndices: FeMesh_IndexSet
-
-        >>> amesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.) )
-        >>> iset = uw.libUnderworld.StgDomain.RegularMeshUtils_CreateGlobalMaxISet( amesh._mesh )
-        >>> uw.mesh.FeMesh_IndexSet( amesh, topologicalIndex=0, size=amesh.nodesGlobal, fromObject=iset )
-        FeMesh_IndexSet([ 4,  9, 14, 19, 24])
-
-        """
         if topologicalIndex not in (0,1,2,3):
             raise ValueError("Topological index must be within [0,3].")
         if not isinstance(object, FeMesh):
@@ -1110,11 +1130,14 @@ class FeMesh_IndexSet(uw.container.ObjectifiedIndexSet, function.FunctionInput):
     @property
     def topologicalIndex(self):
         """
-        The topological index for the indices. The mapping is:
-            0 - vertex
-            1 - edge
-            2 - face
-            3 - volume
+        Returns
+        -------
+        int
+            The topological index for the indices. The mapping is:
+                0 - vertex
+                1 - edge
+                2 - face
+                3 - volume
         """
         return self._toplogicalIndex
 
@@ -1149,39 +1172,42 @@ class _FeMesh_Regional(FeMesh_Cartesian):
     def __init__(self, elementRes=(16,16,10), radius=(3.0,6.0), latExtent=90.0, longExtent=90.0, centroid=[0.0,0.0,0.0], **kwargs):
         """
         Class initialiser for Cubed-sphere sixth, centered on the 'centroid'.
-
-        MinI_VertexSet / MaxI_VertexSet -> longitudinal walls : [min/max] = [west/east]
-        MinJ_VertexSet / MaxJ_VertexSet -> latitudinal walls  : [min/max] = [south/north]
-        MinK_VertexSet / MaxK_VertexSet -> radial walls       : [min/max] = [inner/outer]
-
-        Parameter
-        ---------
-            elementRes : 3-tuple
-                1st element - Number of elements across the longitudinal extent of the domain
-                2nd element - Number of elements across the latitudinal extent of the domain
-                3rd element - Number of elements across the radial length of the domain
-
-            radius : 2-tuple, default (3.0,6.0)
-                The radial position of the inner and outer surfaces respectively.
-                (inner radius, outer radius)
-
-            longExtent : float, default 90.0
-                The angular extent of the domain between great circles of longitude
-
-            latExtent : float, default 90.0
-                The angular extent of the domain between great circles of latitude
-
-            See parent classes for further required/optional parameters.
-
-        >>> (radMin, radMax) = (4.0,8.0)
-        >>> mesh = uw.mesh._FeMesh_Regional( elementRes=(20,20,14), radius=(radMin, radMax) )
-        >>> integral = uw.utils.Integral( 1.0, mesh).evaluate()[0]
-        >>> exact = 4/3.0*np.pi*(radMax**3 - radMin**2) / 6.0
-        >>> np.fabs(integral-exact)/exact < 1e-1
-        True
-
-
         """
+
+    MinI_VertexSet / MaxI_VertexSet -> longitudinal walls : [min/max] = [west/east]
+    MinJ_VertexSet / MaxJ_VertexSet -> latitudinal walls  : [min/max] = [south/north]
+    MinK_VertexSet / MaxK_VertexSet -> radial walls       : [min/max] = [inner/outer]
+
+    Refer to parent classes for parameters beyond those below.
+
+    Parameter
+    ---------
+    elementRes : tuple
+        Tuple determining number of elements (longitudinally, latitudinally, radially).
+    radius : tuple
+        Tuple determining the (inner radius, outer radius).
+    longExtent : float
+        The angular extent of the domain between great circles of longitude.
+    latExtent : float
+        The angular extent of the domain between great circles of latitude.
+
+
+    Example
+    -------
+
+    >>> (radMin, radMax) = (4.0,8.0)
+    >>> mesh = uw.mesh._FeMesh_Regional( elementRes=(20,20,14), radius=(radMin, radMax) )
+    >>> integral = uw.utils.Integral( 1.0, mesh).evaluate()[0]
+    >>> exact = 4/3.0*np.pi*(radMax**3 - radMin**2) / 6.0
+    >>> np.fabs(integral-exact)/exact < 1e-1
+    True
+
+
+    """
+    def __new__(cls, **kwargs):
+        return super(_FeMesh_Regional,cls).__new__(cls, **kwargs)
+
+    def __init__(self, elementRes=(16,16,10), radius=(3.0,6.0), latExtent=90.0, longExtent=90.0, **kwargs):
 
         if not isinstance( latExtent, (float,int) ):
             raise TypeError("Provided 'latExtent' must be a float or integer")

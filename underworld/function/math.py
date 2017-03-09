@@ -32,7 +32,7 @@ class cos(_Function):
 
     Example
     -------
-    >>> import math
+    >>> from . import _systemmath as math
     >>> import numpy as np
     >>> func = cos()
     >>> np.allclose( func.evaluate(0.1234), math.cos(0.1234) )
@@ -66,7 +66,7 @@ class sin(_Function):
 
     Example
     -------
-    >>> import math
+    >>> from . import _systemmath as math
     >>> import numpy as np
     >>> func = sin()
     >>> np.allclose( func.evaluate(0.1234), math.sin(0.1234) )
@@ -100,7 +100,7 @@ class tan(_Function):
 
     Example
     -------
-    >>> import math
+    >>> from . import _systemmath as math
     >>> import numpy as np
     >>> func = tan()
     >>> np.allclose( func.evaluate(0.1234), math.tan(0.1234) )
@@ -133,7 +133,7 @@ class acos(_Function):
 
     Example
     -------
-    >>> import math
+    >>> from . import _systemmath as math
     >>> import numpy as np
     >>> func = acos()
     >>> np.allclose( func.evaluate(0.1234), math.acos(0.1234) )
@@ -166,7 +166,7 @@ class asin(_Function):
 
     Example
     -------
-    >>> import math
+    >>> from . import _systemmath as math
     >>> import numpy as np
     >>> func = asin()
     >>> np.allclose( func.evaluate(0.1234), math.asin(0.1234) )
@@ -199,7 +199,7 @@ class atan(_Function):
 
     Example
     -------
-    >>> import math
+    >>> from . import _systemmath as math
     >>> import numpy as np
     >>> func = atan()
     >>> np.allclose( func.evaluate(0.1234), math.atan(0.1234) )
@@ -232,7 +232,7 @@ class cosh(_Function):
 
     Example
     -------
-    >>> import math
+    >>> from . import _systemmath as math
     >>> import numpy as np
     >>> func = cosh()
     >>> np.allclose( func.evaluate(0.1234), math.cosh(0.1234) )
@@ -265,7 +265,7 @@ class sinh(_Function):
 
     Example
     -------
-    >>> import math
+    >>> from . import _systemmath as math
     >>> import numpy as np
     >>> func = sinh()
     >>> np.allclose( func.evaluate(0.1234), math.sinh(0.1234) )
@@ -298,7 +298,7 @@ class tanh(_Function):
 
     Example
     -------
-    >>> import math
+    >>> from . import _systemmath as math
     >>> import numpy as np
     >>> func = tanh()
     >>> np.allclose( func.evaluate(0.1234), math.tanh(0.1234) )
@@ -331,7 +331,7 @@ class acosh(_Function):
 
     Example
     -------
-    >>> import math
+    >>> from . import _systemmath as math
     >>> import numpy as np
     >>> func = acosh()
     >>> np.allclose( func.evaluate(5.1234), math.acosh(5.1234) )
@@ -364,7 +364,7 @@ class asinh(_Function):
 
     Example
     -------
-    >>> import math
+    >>> from . import _systemmath as math
     >>> import numpy as np
     >>> func = asinh()
     >>> np.allclose( func.evaluate(5.1234), math.asinh(5.1234) )
@@ -397,7 +397,7 @@ class atanh(_Function):
 
     Example
     -------
-    >>> import math
+    >>> from . import _systemmath as math
     >>> import numpy as np
     >>> func = atanh()
     >>> np.allclose( func.evaluate(0.1234), math.atanh(0.1234) )
@@ -430,7 +430,7 @@ class exp(_Function):
 
     Example
     -------
-    >>> import math
+    >>> from . import _systemmath as math
     >>> import numpy as np
     >>> func = exp()
     >>> np.allclose( func.evaluate(0.1234), math.exp(0.1234) )
@@ -463,7 +463,7 @@ class log(_Function):
 
     Example
     -------
-    >>> import math
+    >>> from . import _systemmath as math
     >>> import numpy as np
     >>> func = log()
     >>> np.allclose( func.evaluate(0.1234), math.log(0.1234) )
@@ -496,7 +496,7 @@ class log2(_Function):
 
     Example
     -------
-    >>> import math
+    >>> from . import _systemmath as math
     >>> import numpy as np
     >>> func = log2()
     >>> np.allclose( func.evaluate(0.1234), math.log(0.1234,2) )
@@ -529,7 +529,7 @@ class log10(_Function):
 
     Example
     -------
-    >>> import math
+    >>> from . import _systemmath as math
     >>> import numpy as np
     >>> func = log10()
     >>> np.allclose( func.evaluate(0.1234), math.log10(0.1234) )
@@ -562,7 +562,7 @@ class sqrt(_Function):
 
     Example
     -------
-    >>> import math
+    >>> from . import _systemmath as math
     >>> import numpy as np
     >>> func = sqrt()
     >>> np.allclose( func.evaluate(0.1234), math.sqrt(0.1234) )
@@ -595,7 +595,7 @@ class erf(_Function):
 
     Example
     -------
-    >>> import math
+    >>> from . import _systemmath as math
     >>> import numpy as np
     >>> func = erf()
     >>> np.allclose( func.evaluate(0.1234), math.erf(0.1234) )
@@ -628,7 +628,7 @@ class erfc(_Function):
 
     Example
     -------
-    >>> import math
+    >>> from . import _systemmath as math
     >>> import numpy as np
     >>> func = erfc()
     >>> np.allclose( func.evaluate(0.1234), math.erfc(0.1234) )
@@ -661,7 +661,7 @@ class abs(_Function):
 
     Example
     -------
-    >>> import math
+    >>> from . import _systemmath as math
     >>> import numpy as np
     >>> func = abs()
     >>> np.allclose( func.evaluate(-0.1234), math.fabs(0.1234) )
@@ -688,14 +688,14 @@ class pow(_Function):
 
     Parameters
     ----------
-    fn1: Function (or convertible).
+    fn1: underworld.function.Function (or convertible).
          The base function.
-    fn2: Function (or convertible).
+    fn2: underworld.function.Function (or convertible).
          The power function.
 
     Example
     -------
-    >>> import math
+    >>> from . import _systemmath as math
     >>> import numpy as np
     >>> func = pow(_uw.function.input(),3.)
     >>> np.allclose( func.evaluate(2.), math.pow(2.,3.) )
@@ -727,18 +727,21 @@ class dot(_Function):
 
     Parameters
     ----------
-    fn1,fn2: Function (or convertible).
-        The argument functions.
+    fn1: underworld.function.Function (or convertible).
+         Argument function 1.
+    fn2: underworld.function.Function (or convertible).
+         Argument function 2.
 
     Example
     -------
-    >>> import math
+    >>> from . import _systemmath as math
     >>> import numpy as np
     >>> input1 = (2.,3.,4.)
     >>> input2 = (5.,6.,7.)
     >>> func = dot( input1, input2 )
 
     The function is constant, so evaluate anywhere:
+    
     >>> np.allclose( func.evaluate(0.), np.dot(input1,input2) )
     True
 

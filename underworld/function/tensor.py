@@ -13,23 +13,25 @@ All Underworld2 functions return 1d array type objects. For tensor objects,
 the following convention is used:
 
 Full tensors:
+
 2D:
     .. math::
-        \left[ 	a_{00},	a_{01}, \\
-                a_{10},	a_{11}  \right]
+        \\left[ 	a_{00},	a_{01}, \\\\
+                    a_{10},	a_{11}  \\right]
 3D:
     .. math::
-        \left[ 	a_{00},	a_{01},	a_{02}, \\
-                a_{10},	a_{11},	a_{12}, \\
-                a_{20}, a_{21}, a_{22}  \right]
+        \\left[ 	a_{00},	a_{01},	a_{02}, \\\\
+                    a_{10},	a_{11},	a_{12}, \\\\
+                    a_{20}, a_{21}, a_{22}  \\right]
                 
 Symmetric tensors:
+
 2D:
     .. math::
-        \left[ 	a_{00},	a_{11}, a_{01}  \right]
+        \\left[ 	a_{00},	a_{11}, a_{01}  \\right]
 3D:
     .. math::
-        \left[ 	a_{00},	a_{11},	a_{22}, a_{01},	a_{02},	a_{12}  \right]
+        \\left[ 	a_{00},	a_{11},	a_{22}, a_{01},	a_{02},	a_{12}  \\right]
 
 """
 
@@ -43,7 +45,7 @@ class symmetric(_Function):
     objects of type SymmetricTensorType.
     
     .. math::
-         v_{ij} = 0.5 * ( u_{ij} + u_{ji} )
+         v_{ij} = \\tfrac{1}{2} ( u_{ij} + u_{ji} )
          
     Parameters
     ----------
@@ -71,7 +73,7 @@ class antisymmetric(_Function):
     type TensorType.
 
     .. math::
-         v_{ij} = 0.5 * ( u_{ij} - u_{ji} )
+         v_{ij} = \\tfrac{1}{2} ( u_{ij} - u_{ji} )
          
     Parameters
     ----------
@@ -99,7 +101,7 @@ class second_invariant(_Function):
     objects of type ScalarType.
 
     .. math::
-         u = \sqrt{ 0.5 u_{ij} u_{ij} } */
+         u = \\sqrt{ \\tfrac{1}{2} u_{ij} u_{ij} }
          
     Parameters
     ----------
@@ -127,7 +129,7 @@ class deviatoric(_Function):
     type SymmetricTensorType.
 
     .. math::
-         \tau_{ij} = \sigma_{ij} - \frac{\sigma_{kk}}{\delta_{ll}}\delta_{ij}
+         \\tau_{ij} = \\sigma_{ij} - \\frac{\\sigma_{kk}}{\\delta_{ll}}\\delta_{ij}
          
     Parameters
     ----------

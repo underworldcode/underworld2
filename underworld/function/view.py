@@ -35,30 +35,36 @@ class min_max(_Function):
     Example
     -------
     Create a simple function which returns two times its input:
+    
     >>> import underworld as uw
     >>> import underworld.function as fn
     >>> import numpy as np
     >>> fn_simple = fn.input()[0]*2.
     
-    Let's wrap it with a min_max function
+    Let's wrap it with a min_max function:
+    
     >>> fn_minmax_simple = fn.view.min_max(fn_simple)
     
     Now do an evaluation:
+    
     >>> fn_minmax_simple.evaluate(5.)
     array([[ 10.]])
     
     Since there's only been one evaluation, min and max 
-    values should be identical
+    values should be identical:
+    
     >>> fn_minmax_simple.min_global()
     10.0
     >>> fn_minmax_simple.max_global()
     10.0
     
-    Do another evaluation
+    Do another evaluation:
+    
     >>> fn_minmax_simple.evaluate(-3.)
     array([[-6.]])
     
-    Now check min and max again
+    Now check min and max again:
+    
     >>> fn_minmax_simple.min_global()
     -6.0
     >>> fn_minmax_simple.max_global()
@@ -66,6 +72,7 @@ class min_max(_Function):
     
     Note that if we only evaluate the subject function,
     no min/max values are recorded:
+    
     >>> fn_simple.evaluate(3000.)
     array([[ 6000.]])
     >>> fn_minmax_simple.max_global()
@@ -73,7 +80,8 @@ class min_max(_Function):
     
     Also note that for vector valued subject function, only
     a magnitude is considered:
-    >>> import math
+    
+    >>> from . import _systemmath as math
     >>> fn_vec = fn.view.min_max(fn.input())
     >>> fn_vec.evaluate( ( 1., 1.) )
     array([[ 1.,  1.]])

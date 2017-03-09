@@ -7,21 +7,61 @@
 **                                                                                  **
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 
-
 #include <mpi.h>
-#include <StGermain/StGermain.h>
-#include <StgDomain/StgDomain.h>
-#include <StgFEM/StgFEM.h>
-
-#include <gLucifer/Base/Base.h>
-
-
-#include "types.h"
-#include "CrossSection.h"
+#include <petsc.h>
+#include <float.h>
 #include "MeshCrossSection.h"
+
+#include <Underworld/Function/FunctionIO.hpp>
+#include <Underworld/Function/Function.hpp>
+#include <Underworld/Function/MeshCoordinate.hpp>
+extern "C" {
+#include <ctype.h>
+#include "ScalarFieldOnMeshCrossSection.h"
+}
 
 /* Textual name of this class - This is a global pointer which is used for times when you need to refer to class and not a particular instance of a class */
 const Type lucMeshCrossSection_Type = "lucMeshCrossSection";
+
+
+void _lucMeshCrossSection_SetFn( void* _self, Fn::Function* fn ){
+    lucMeshCrossSection*  self = (lucMeshCrossSection*)_self;
+    
+    // record fn to struct
+    lucCrossSection_cppdata* cppdata = (lucCrossSection_cppdata*) self->cppdata;
+    // record fn, and also wrap with a MinMax function so that we can record
+    // the min & max encountered values for the colourbar.
+    cppdata->fn = std::make_shared<Fn::MinMax>(fn);
+    
+    // setup fn
+    self->dim = Mesh_GetDimSize( self->mesh );
+    std::shared_ptr<MeshCoordinate> meshCoord = std::make_shared<MeshCoordinate>( self->mesh );
+    // set first coord
+    meshCoord->index() = 0;
+    // get the function.. note that we use 'get' to extract the raw pointer from the smart pointer.
+    cppdata->func = cppdata->fn->getFunction(meshCoord.get());
+    
+    const FunctionIO* io = dynamic_cast<const FunctionIO*>(cppdata->func(meshCoord.get()));
+    if( !io )
+        throw std::invalid_argument("Provided function does not appear to return a valid result.");
+    self->fieldComponentCount = io->size();
+    self->fieldDim = self->fieldComponentCount;
+
+    if( ( Stg_Class_IsInstance( self, lucScalarFieldOnMeshCrossSection_Type ) )
+        && self->fieldComponentCount != 1 )
+    {
+        throw std::invalid_argument("Provided function must return a scalar result.");
+    }
+//
+//    if( ( Stg_Class_IsInstance( self, lucVectorArrowCrossSection_Type )       ||
+//          Stg_Class_IsInstance( self, lucVectorArrowMeshCrossSection_Type )      )
+//             && self->fieldComponentCount != self->dim )
+//    {
+//        throw std::invalid_argument("Provided function must return a vector result.");
+//    }
+    
+}
+
 
 /* Private Constructor: This will accept all the virtual functions for this class as arguments. */
 lucMeshCrossSection* _lucMeshCrossSection_New(  LUCMESHCROSSSECTION_DEFARGS  )
@@ -103,7 +143,6 @@ void _lucMeshCrossSection_Build( void* drawingObject, void* data )
                         "Error - in %s(): provided Mesh \"%s\" doesn't have a Vertex Grid.\n"
                         "Try visualising with lucScalarField instead.\n", __func__, self->mesh->name );
 
-   self->fieldDim = self->fieldComponentCount;
 }
 
 void _lucMeshCrossSection_Initialise( void* drawingObject, void* data ) {}
@@ -118,9 +157,6 @@ void _lucMeshCrossSection_Draw( void* drawingObject, lucDatabase* database, void
 void lucMeshCrossSection_Sample( void* drawingObject, Bool reverse)
 {
    lucMeshCrossSection* self          = (lucMeshCrossSection*)drawingObject;
-   FeVariable*          fieldVariable = (FeVariable*) NULL;  // JM need to fix this guy
-      assert(fieldVariable);
-   Mesh*                mesh          = (Mesh*) fieldVariable->feMesh;
    Grid*                vertGrid;
    Node_LocalIndex      crossSection_I;
    IJK                  node_ijk;
@@ -128,11 +164,18 @@ void lucMeshCrossSection_Sample( void* drawingObject, Bool reverse)
    Node_DomainIndex     node_dI;
    int                  i,j, d, sizes[3] = {1,1,1};
    Coord                globalMin, globalMax, min, max;
+   Mesh*                mesh  = (Mesh*) self->mesh;
 
-      int localcount = 0;
+
+   int localcount = 0;
+
+   std::shared_ptr<MeshCoordinate> meshCoord = std::make_shared<MeshCoordinate>( self->mesh );
+   lucCrossSection_cppdata* cppdata = (lucCrossSection_cppdata*) self->cppdata;
+   // reset max/min
+   cppdata->fn->reset();
 
    vertGrid = *(Grid**)ExtensionManager_Get( mesh->info, mesh, self->vertexGridHandle );
-   for (d=0; d<fieldVariable->dim; d++) sizes[d] = vertGrid->sizes[d];
+   for (d=0; d<self->dim; d++) sizes[d] = vertGrid->sizes[d];
    self->dims[0] = sizes[ self->axis ];
    self->dims[1] = sizes[ self->axis1 ];
    self->dims[2] = sizes[ self->axis2 ];
@@ -141,9 +184,6 @@ void lucMeshCrossSection_Sample( void* drawingObject, Bool reverse)
 
    Mesh_GetLocalCoordRange(self->mesh, min, max );
    Mesh_GetGlobalCoordRange(self->mesh, globalMin, globalMax );
-
-   Journal_Printf( lucDebug, "%s called on field %s, with axis of cross section as %d, crossSection_I as %d (dims %d,%d,%d) field dim %d\n",
-                    __func__, fieldVariable->name, self->axis, crossSection_I, self->dims[0], self->dims[1], self->dims[2], self->fieldDim);
 
    /* Get mesh cross section self->vertices and values */
    self->resolutionA = self->dims[1];
@@ -175,16 +215,18 @@ void lucMeshCrossSection_Sample( void* drawingObject, Bool reverse)
          if (Mesh_GlobalToDomain( mesh, MT_VERTEX, node_gI, &node_dI ) && node_dI < lSize)
          {  
             /* Found on this processor */
-            double value[self->fieldDim];
-            FeVariable_GetValueAtNode( fieldVariable, node_dI, value );
+            // set index on the FunctionIO object
+            meshCoord->index() = node_dI;
+
+            const FunctionIO* io = dynamic_cast<const FunctionIO*>(cppdata->func(meshCoord.get()));
+
             double* pos = Mesh_GetVertex( mesh, node_dI );
-            /*fprintf(stderr, "[%d] (%d,%d) Node %d %f,%f,%f value %f\n", self->rank, i, j, node_gI, pos[0], pos[1], pos[2], value);*/
          
-            for (d=0; d<fieldVariable->dim; d++)
+            for (d=0; d<self->dim; d++)
                self->vertices[i][j][d] = pos[d];
 
-            for (d=0; d<self->fieldDim; d++)
-               self->values[i][j][d] = (float)value[d];
+            for (d=0; d<self->fieldComponentCount; d++)
+               self->values[i][j][d] = io->at<float>(d);
 
             localcount++;
          }

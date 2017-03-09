@@ -8,8 +8,8 @@
 ##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
 
 """
-   Implementation relating to imposed conditions.
+Implementation relating to system conditions.
 
 """
 
-from _dirichletCondition import NeumannCondition, DirichletCondition, _SystemCondition
+from _conditions import NeumannCondition, DirichletCondition, SystemCondition

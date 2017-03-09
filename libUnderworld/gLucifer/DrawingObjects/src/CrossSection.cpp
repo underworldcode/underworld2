@@ -10,6 +10,7 @@
 
 #include <mpi.h>
 #include <petsc.h>
+#include <float.h>
 #include "CrossSection.h"
 
 #include <Underworld/Function/FunctionIO.hpp>
@@ -32,7 +33,8 @@ void _lucCrossSection_SetFn( void* _self, Fn::Function* fn ){
     
     // record fn to struct
     lucCrossSection_cppdata* cppdata = (lucCrossSection_cppdata*) self->cppdata;
-    // record fn, and also throw in a min/max guy
+    // record fn, and also wrap with a MinMax function so that we can record
+    // the min & max encountered values for the colourbar.
     cppdata->fn = std::make_shared<Fn::MinMax>(fn);
     
     // setup fn
@@ -40,6 +42,7 @@ void _lucCrossSection_SetFn( void* _self, Fn::Function* fn ){
     std::shared_ptr<IO_double> globalCoord = std::make_shared<IO_double>( self->dim, FunctionIO::Vector );
     // grab first node for sample node
     memcpy( globalCoord->data(), Mesh_GetVertex( self->mesh, 0 ), self->dim*sizeof(double) );
+    // get the function.. note that we use 'get' to extract the raw pointer from the smart pointer.
     cppdata->func = cppdata->fn->getFunction(globalCoord.get());
     
     const FunctionIO* io = dynamic_cast<const FunctionIO*>(cppdata->func(globalCoord.get()));
@@ -62,7 +65,6 @@ void _lucCrossSection_SetFn( void* _self, Fn::Function* fn ){
     {
         throw std::invalid_argument("Provided function must return a vector result.");
     }
-    
     
 }
 
@@ -480,9 +482,9 @@ void lucCrossSection_SampleField(void* drawingObject, Bool reverse)
          if (pos[I_AXIS] + TOL > localMin[I_AXIS] && pos[I_AXIS] - TOL < localMax[I_AXIS] &&
              pos[J_AXIS] + TOL > localMin[J_AXIS] && pos[J_AXIS] - TOL < localMax[J_AXIS] &&
             (fieldVariable->dim < 3 || (pos[K_AXIS] + TOL > localMin[K_AXIS] && pos[K_AXIS] - TOL < localMax[K_AXIS])))*/
-         if (pos[I_AXIS] >= localMin[I_AXIS] && pos[I_AXIS] <= localMax[I_AXIS] &&
-             pos[J_AXIS] >= localMin[J_AXIS] && pos[J_AXIS] <= localMax[J_AXIS] &&
-            (self->dim < 3 || (pos[K_AXIS] >= localMin[K_AXIS] && pos[K_AXIS] <= localMax[K_AXIS])))
+         if (pos[I_AXIS] > localMin[I_AXIS]-FLT_EPSILON && pos[I_AXIS] < localMax[I_AXIS]+FLT_EPSILON &&
+             pos[J_AXIS] > localMin[J_AXIS]-FLT_EPSILON && pos[J_AXIS] < localMax[J_AXIS]+FLT_EPSILON &&
+            (self->dim < 3 || (pos[K_AXIS] > localMin[K_AXIS]-FLT_EPSILON && pos[K_AXIS] < localMax[K_AXIS]+FLT_EPSILON)))
          {
             const FunctionIO* output = debug_dynamic_cast<const FunctionIO*>(cppdata->func(globalCoord.get()));
 
@@ -504,7 +506,7 @@ void lucCrossSection_SampleField(void* drawingObject, Bool reverse)
       }
    }
    /* Show each proc as it finishes */
-   printf(" (%d)", self->rank);
+   Journal_Printf(lucInfo, " (%d)", self->rank);
    fflush(stdout);
    MPI_Barrier(self->comm); /* Sync here, then time will show accurately how long sampling took on ALL procs */
    Journal_Printf(lucInfo, " -- %f sec.\n", MPI_Wtime() - time);

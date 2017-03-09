@@ -1,6 +1,38 @@
 CHANGES: Underworld2
 =======================
 
+Release 2.2.2b  [2016-03-08]
+----------------------------
+Bug fixes:
+* Critical bug fixed where retrieving symmetric tensor in 3d returned 2d result.
+
+Release 2.2.1b  [2016-02-14]
+----------------------------
+Documentation
+* Updates to make api documentation available via read the docs: http://underworld2.readthedocs.io/
+
+Release 2.2.0b  [2016-02-11]
+----------------------------
+Enhancements:
+* Improved function evaluation efficiency.
+* Handle numpy int types in index sets correctly.
+* Webgl figure saving.
+* General visualisation enhancements.
+* Better testing for visualisation.
+* petsc 3.7 compatibility
+
+New Features:
+* ParticleFound function. Allows for 'sparse' swarm operations.
+* Figure copying functionality
+* SurfaceOnMesh visualisation object
+
+Documentation:
+* HTML api documentation.
+* Big docstring updates.
+
+Deprecated:
+* 'swarm' parameter now removed in favour of 'voronoi_swarm' parameter.
+
 Release 2.1.2b  [2016-10-31]
 ----------------------------
 * Bug fix for the stokes system's psuedo incompressibility

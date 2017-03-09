@@ -28,29 +28,27 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
 
     Parameters
     ----------
-    mesh : uw.mesh.FeMesh
+    mesh : underworld.mesh.FeMesh
         The FeMesh the swarm is supported by. See Swarm.mesh property docstring
         for further information.
     particleEscape : bool
         If set to true, particles are deleted when they leave the domain. This
         may occur during particle advection, or when the mesh is deformed.
 
-    For example, to create the swarm with some variables:
 
-    First we need a mesh:
+    Example
+    -------
+    Create a swarm with some variables:
+    
+    >>> # First we need a mesh:
     >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
-
-    Create empty swarm:
+    >>> # Create empty swarm:
     >>> swarm = uw.swarm.Swarm(mesh)
-
-    Add a variable:
+    >>> # Add a variable:
     >>> svar = swarm.add_variable("char",1)
-
-    Add another:
+    >>> # Add another:
     >>> svar = swarm.add_variable("double",3)
-
-    Can also use a layout to fill with particles
-
+    >>> # Now use a layout to fill with particles
     >>> swarm.particleLocalCount
     0
     >>> layout = uw.swarm.layouts.PerCellGaussLayout(swarm,2)
@@ -150,18 +148,20 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
 
         Parameters
         ----------
-        coordinatesArray : np.ndarray
+        coordinatesArray : numpy.ndarray
             The numpy array containing the coordinate of the new particles. Array is
             expected to take shape n*dim, where n is the number of new particles, and
             dim is the dimensionality of the swarm's supporting mesh.
 
         Returns
-        ----------
-        particleLocalIndex : np.ndarray
+        -------
+        numpy.ndarray
             Array containing the local index of the added particles. Rejected particles
             are denoted with an index of -1.
 
 
+        Example
+        -------
         >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.) )
         >>> swarm = uw.swarm.Swarm(mesh)
         >>> import numpy as np
@@ -231,7 +231,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
 
         Returns
         -------
-        SavedFileData
+        underworld.utils.SavedFileData
             Data object relating to saved file. This only needs to be retained
             if you wish to create XDMF files and can be ignored otherwise.
 
@@ -262,7 +262,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         >>> np.allclose(swarm.particleCoordinates.data,clone_swarm.particleCoordinates.data)
         True
 
-        Clean up:
+        >>> # clean up:
         >>> if uw.rank() == 0:
         ...     import os;
         ...     os.remove( "saved_swarm.h5" )
@@ -361,10 +361,16 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         """
         This function returns True where a particle is able to be found using 
         the provided input to function evaluation.
+        
+        Returns
+        -------
+        underworld.function.Function
+            The function object.
 
         Example
         -------
         Setup some things:
+        
         >>> import numpy as np
         >>> mesh = uw.mesh.FeMesh_Cartesian(elementRes=(32,32))
         >>> swarm = uw.swarm.Swarm(mesh, particleEscape=True)
@@ -373,22 +379,26 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         
         Now, evaluate the fn_particle_found function on the swarm.. all 
         should be true
+        
         >>> fn_pf = swarm.fn_particle_found()
         >>> fn_pf.evaluate(swarm).all()
         True
         
         Evalute at arbitrary coord... should return False
+        
         >>> fn_pf.evaluate( (0.3,0.9) )
         array([[False]], dtype=bool)
         
         Now, lets get rid of all particles outside of a circle, and look
         to obtain pi/4.  First eject particles:
+        
         >>> with swarm.deform_swarm():
         ...    for ind,coord in enumerate(swarm.particleCoordinates.data):
         ...        if np.dot(coord,coord)>1.:
         ...            swarm.particleCoordinates.data[ind] = (99999.,99999.)
         
         Now integrate and test
+        
         >>> incirc = uw.function.branching.conditional( ( (fn_pf,1.),(True,0.)  ) )
         >>> np.isclose(uw.utils.Integral(incirc, mesh).evaluate(),np.pi/4.,rtol=2e-2)
         array([ True], dtype=bool)
@@ -415,7 +425,10 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
     @property
     def particleGlobalCount(self):
         """
-        Returns the global number (across all processors) of particles in the swarm
+        Returns
+        -------
+        int
+            The global number (across all processes) of particles in the swarm.
         """
 
         # setup mpi basic vars
@@ -471,6 +484,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         ValueError: assignment destination is read-only
         
         Within the deform_swarm() context manager, modification is allowed:
+        
         >>> with swarm.deform_swarm():
         ...     swarm.particleCoordinates.data[0] = [0.2,0.2]
         >>> swarm.particleCoordinates.data[0]

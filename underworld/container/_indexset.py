@@ -7,7 +7,7 @@
 ##                                                                                   ##
 ##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
 """
-   This module contains the IndexSet class and related functions.
+This module contains the IndexSet class and related functions.
 
 """
 import underworld as uw
@@ -22,9 +22,14 @@ class IndexSet(object):
     The IndexSet class provides a set type container for integer values.
     The underlying implementation is designed for memory efficiency. 
     Index insertion and removal is a constant time operation.
+    
+    .. The following is just for rendering the docstrings with Sphinx.
+    .. role:: python(code)
+       :language: python
 
     Parameters
     ----------
+    
     size : int
         The size of the IndexSet. Note that the size corresponds to the maximum index
         value (plus 1) the set is required to hold, *NOT* the number of elements in
@@ -37,11 +42,13 @@ class IndexSet(object):
     Examples
     --------
     You can add items via the constructor:
+    
     >>> someSet = uw.container.IndexSet( 15, [3,14,2] )
     >>> someSet
     IndexSet([ 2,  3, 14])
     
     Alternatively, create an empty set and add items as necessary:
+    
     >>> someSet = uw.container.IndexSet( 15 )
     >>> someSet
     IndexSet([])
@@ -52,7 +59,8 @@ class IndexSet(object):
     >>> someSet
     IndexSet([ 2,  3, 11])
     
-    Python +, +=, -, -=, & and &= operators are overloaded for convenience.
+    Python operators are overloaded for convenience. Check class method details
+    for full details.
     
     """
 
@@ -365,9 +373,7 @@ class IndexSet(object):
 
     def __add__(self,other):
         """
-        Operator overloading for '+' operation:
-
-        C = A + B
+        Operator overloading for :python:`C = A + B`
         
         Creates a new set C, then adds indices from A and B.
         
@@ -394,9 +400,7 @@ class IndexSet(object):
 
     def __iadd__(self,other):
         """
-        Operator overloading for '+=' operation:
-
-        A += B
+        Operator overloading for :python:`A += B`
         
         Adds indices from A and B.
 
@@ -414,11 +418,10 @@ class IndexSet(object):
 
     def __sub__(self,other):
         """
-        Operator overloading for '-' operation:
-
-        C = A - B
+        Operator overloading for :python:`C = A - B`
         
-        Creates a new set C, then adds indices from A, and removes those from B.
+        Creates a new set C, then adds indices from A, and removes those
+        from B.
 
         
         Returns
@@ -443,9 +446,7 @@ class IndexSet(object):
 
     def __isub__(self,other):
         """
-        Operator overloading for '-=' operation:
-
-        A -= B
+        Operator overloading for :python:`A -= B`
         
         Removes from A indices in B.
         
@@ -464,11 +465,10 @@ class IndexSet(object):
 
     def __and__(self,other):
         """
-        Operator overloading for '&' operation:
-
-        C = A & B
+        Operator overloading for :python:`C = A & B`
         
-        Creates a new set C, then adds indices from A, and performs AND logic with B.
+        Creates a new set C, then adds indices from A, and performs
+        AND logic with B.
 
         
         Returns
@@ -492,11 +492,10 @@ class IndexSet(object):
 
     def __iand__(self,other):
         """
-        Operator overloading for '&=' operation:
-
-        A &= B
+        Operator overloading for :python:`A &= B`
         
-        Performs logical AND operation with A and B. Results are stored in A.
+        Performs logical AND operation with A and B. Results are stored
+        in A.
         
         Example
         -------
@@ -512,11 +511,10 @@ class IndexSet(object):
 
     def __or__(self,other):
         """
-        Operator overloading for '|' operation:
-
-        C = A | B
+        Operator overloading for :python:`C = A | B`
         
-        Creates a new set C, then adds indices from A, and performs OR logic with B.
+        Creates a new set C, then adds indices from A, and performs OR 
+        logic with B.
 
         
         Returns
@@ -540,9 +538,7 @@ class IndexSet(object):
 
     def __ior__(self,other):
         """
-        Operator overloading for '|=' operation:
-
-        A |= B
+        Operator overloading for :python:`A |= B`
         
         Performs logical OR operation with A and B. Results are stored in A.
         

@@ -178,8 +178,7 @@ void Stg_ComponentFactory_CreateComponents( Stg_ComponentFactory *self ) {
 
          if( strcmp( componentType, "DomainContext" ) && 
              strcmp( componentType, "FiniteElementContext" ) &&
-             strcmp( componentType, "PICelleratorContext" ) &&
-             strcmp( componentType, "UnderworldContext" ) )
+             strcmp( componentType, "PICelleratorContext" ) )
             continue;
 
          if( LiveComponentRegister_Get( self->LCRegister, componentName ) != NULL ) {
@@ -211,8 +210,7 @@ void Stg_ComponentFactory_CreateComponents( Stg_ComponentFactory *self ) {
 
          if( !strcmp( componentType, "DomainContext" ) ||
              !strcmp( componentType, "FiniteElementContext" ) ||
-             !strcmp( componentType, "PICelleratorContext" ) ||
-             !strcmp( componentType, "UnderworldContext" ) )
+             !strcmp( componentType, "PICelleratorContext" ) )
             continue;
 
          if( LiveComponentRegister_Get( self->LCRegister, componentName ) != NULL ) {

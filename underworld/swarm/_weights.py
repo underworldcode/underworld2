@@ -15,7 +15,7 @@ class DVC(_stgermain.StgCompoundComponent):
 
     Parameters
     ----------
-    resolutionX, resolutionY, resolutionZ : int, default 15
+    resolutionX, resolutionY, resolutionZ : int
         The resolution of the grid used for the discrete voronoi algorithm.
 
     """

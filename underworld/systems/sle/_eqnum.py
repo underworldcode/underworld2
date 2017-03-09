@@ -13,21 +13,21 @@ class EqNumber(_stgermain.StgClass):
     """
     The SolutionVector manages the numerical solution vectors used by Underworld's equation systems.
     Interface between meshVariables and systems.
+
+    Parameters
+    ----------
+    meshVariable : uw.mesh.MeshVariable
+        MeshVariable object for which this equation numbering corresponds.
+
+    Example
+    -------
+    >>> linearMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.) )
+    >>> tField = uw.mesh.MeshVariable( linearMesh, 1 )
+    >>> teqNum = uw.systems.sle.EqNumber( tField )
+
     """
 
     def __init__(self, meshVariable, removeBCs=True, **kwargs):
-        """
-        Parameters:
-        -----------
-            meshVariable (MeshVariable)
-
-        See property docstrings for further information on each argument.
-
-        >>> linearMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.) )
-        >>> tField = uw.mesh.MeshVariable( linearMesh, 1 )
-        >>> teqNum = uw.systems.sle.EqNumber( tField )
-        """
-
         if not isinstance(meshVariable, uw.mesh.MeshVariable):
             raise TypeError("'meshVariable' object passed in must be of type 'MeshVariable'")
         self._meshVariable = meshVariable
@@ -40,7 +40,4 @@ class EqNumber(_stgermain.StgClass):
 
     @property
     def meshVariable(self):
-        """
-        meshVariable (MeshVariable): MeshVariable object for which this SLE vector corresponds.
-        """
         return self._meshVariable

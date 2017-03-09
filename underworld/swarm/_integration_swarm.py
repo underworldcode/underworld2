@@ -20,12 +20,11 @@ class IntegrationSwarm(_swarmabstract.SwarmAbstract):
     """
     Abstract class definition for IntegrationSwarms.
 
-    Note
-    ----
-    All IntegrationSwarms have the following SwarmVariables from this class.
-    1) localCoordVariable : double (number of particle, dimensions)
+    All IntegrationSwarms have the following SwarmVariables from this class:
+    
+    1. localCoordVariable : double (number of particle, dimensions)
         For local element coordinates of the particle
-    2) weightVariable : double (number of particles)
+    2. weightVariable : double (number of particles)
         For the integration weight of each particle
 
     """
@@ -62,7 +61,7 @@ class VoronoiIntegrationSwarm(IntegrationSwarm,function.FunctionInput):
 
     Parameters
     ----------
-    swarm : uw.swarm.Swarm
+    swarm : underworld.swarm.Swarm
         The PIC integration swarm maps to this user provided swarm.
 
     Example
@@ -122,7 +121,7 @@ class VoronoiIntegrationSwarm(IntegrationSwarm,function.FunctionInput):
 
         Parameters
         ----------
-        weights_calculator: uw.swarm.Weights, default=Weights
+        weights_calculator: underworld.swarm.Weights
             The weights calculator for the Voronoi swarm. If none is provided,
             a default DVCWeights calculator is used.
 
@@ -160,7 +159,7 @@ class GaussIntegrationSwarm(IntegrationSwarm):
 
     Parameters
     ----------
-    mesh : uw.mesh.FeMesh
+    mesh : underworld.mesh.FeMesh
         The FeMesh the swarm is supported by. See Swarm.mesh property docstring
         for further information.
     particleCount : unsigned. Default is 3, unless Q2 mesh which takes default 5. 

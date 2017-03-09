@@ -20,7 +20,7 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
     to integrate through time.
 
     .. math::
-        \frac{\partial\phi}{\partial t}  + {\bf u } \cdot \nabla \phi= \nabla { ( k  \nabla \phi } )
+        \\frac{\\partial\\phi}{\\partial t}  + {\\bf u } \\cdot \\nabla \\phi= \\nabla { ( k  \\nabla \\phi ) } + H
 
 
     Parameters
@@ -37,10 +37,13 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
         for constant values of phi.
     velocityField : underworld.mesh.MeshVariable
         The velocity field.
-    fn_diffusivity : uw.function.Function
-        Function that defines diffusivity
-    conditions : uw.conditions._SystemCondition (or list of), default = []
-        Numerical conditions to impose on the system.
+    fn_diffusivity : underworld.function.Function
+        A function that defines the diffusivity within the domain.
+    fn_sourceTerm : underworld.function.Function
+        A function that defines the heating within the domain. Optional.
+    conditions : underworld.conditions.SystemCondition
+        Numerical conditions to impose on the system. This should be supplied as
+        the condition itself, or a list object containing the conditions.
 
     Notes
     -----
@@ -81,7 +84,7 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
         # check input 'conditions' list is valid
         nbc = None
         for cond in conditions:
-            if not isinstance( cond, uw.conditions._SystemCondition ):
+            if not isinstance( cond, uw.conditions.SystemCondition ):
                 raise TypeError( "Provided 'conditions' must be a list 'SystemCondition' objects." )
             # set the bcs on here
             if type(cond) == uw.conditions.NeumannCondition:

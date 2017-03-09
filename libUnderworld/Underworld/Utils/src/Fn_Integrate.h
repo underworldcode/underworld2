@@ -49,7 +49,7 @@ extern "C" {
       /* General info */ \
       __Stg_Component \
       \
-      UnderworldContext*  context; \
+      PICelleratorContext*    context; \
       \
       IntegrationPointsSwarm* integrationSwarm; \
       Stream*                 errorStream; \

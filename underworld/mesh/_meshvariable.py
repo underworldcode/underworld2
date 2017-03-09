@@ -23,7 +23,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
 
     Parameters
     ----------
-    mesh : uw.mesh.FeMesh
+    mesh : underworld.mesh.FeMesh
         The supporting mesh for the variable.
     dataType : string, default="double"
         The data type for the variable.
@@ -86,27 +86,36 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
     @property
     def dataType(self):
         """
-        dataType (str): Data type for variable.  Supported types are 'double'.
+        Returns
+        -------
+        str
+            Data type for variable.  Supported types are 'double'.
         """
         return self._dataType
     @property
     def nodeDofCount(self):
         """
-        nodeDofCount (int): Degrees of freedom on each mesh node that this variable provides.
+        Returns
+        -------
+        int
+            Degrees of freedom on each mesh node that this variable provides.
         """
         return self._nodeDofCount
 
     @property
     def mesh(self):
         """
-        mesh (FeMesh): Supporting FeMesh for this MeshVariable.
+        Returns
+        -------
+        underworld.mesh.FeMesh
+            Supporting FeMesh for this MeshVariable.
         """
         return self._mesh
 
     @property
     def data(self):
         """
-        data (np.array):  Numpy proxy array to underlying variable data.
+        Numpy proxy array to underlying variable data.
         Note that the returned array is a proxy for all the *local* nodal
         data, and is provided as 1d list. It is possible to change the
         shape of this numpy array to reflect the cartesian topology (where
@@ -114,8 +123,14 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         domain will be available, and the shape will not necessarily be
         identical on all processors.
 
+
         As these arrays are simply proxys to the underlying memory structures,
         no data copying is required.
+
+        Returns
+        -------
+        numpy.ndarray
+            The proxy array.
 
         Example
         -------
@@ -166,20 +181,28 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
     @property
     def fn_gradient(self):
         """
-        fn_gradient (Function): Returns a Function for the gradient field
-        of this meshvariable.
+        Returns a Function for the gradient field of this meshvariable.
 
         Note that for a scalar variable `T`, the gradient function returns
         an array of the form:
 
         .. math::
-             [ \frac{\partial T}{\partial x}, \frac{\partial T}{\partial y}, \frac{\partial T}{\partial z} ]
+
+             [ \\frac{\\partial T}{\\partial x}, \\frac{\\partial T}{\\partial y}, \\frac{\\partial T}{\\partial z} ]
 
         and for a vector variable `v`:
+
         .. math::
-            [ \frac{\partial v_x}{\partial x}, \frac{\partial v_x}{\partial y}, \frac{\partial v_x}{\partial z},
-              \frac{\partial v_y}{\partial x}, \frac{\partial v_y}{\partial y}, \frac{\partial v_y}{\partial z},
-              \frac{\partial v_z}{\partial x}, \frac{\partial v_z}{\partial y}, \frac{\partial v_z}{\partial z} ]
+
+            [ \\frac{\\partial v_x}{\\partial x}, \\frac{\\partial v_x}{\\partial y}, \\frac{\\partial v_x}{\\partial z},
+              \\frac{\\partial v_y}{\\partial x}, \\frac{\\partial v_y}{\\partial y}, \\frac{\\partial v_y}{\\partial z},
+              \\frac{\\partial v_z}{\\partial x}, \\frac{\\partial v_z}{\\partial y}, \\frac{\\partial v_z}{\\partial z} ]
+
+        Returns
+        -------
+        underworld.function.Function
+            The gradient function.
+
         """
 
         if not self._fn_gradient:
@@ -217,7 +240,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
             used, but all directories must exist.
         varname : str
             The xdmf name to give the field
-        meshSavedData : underworld.SaveFileData
+        meshSavedData : underworld.utils.SaveFileData
             Handler returned for saving a mesh. underworld.mesh.save(xxx)
         meshname : str
             The xdmf name to give the mesh
@@ -253,6 +276,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         True
 
         Clean up:
+        
         >>> if uw.rank() == 0:
         ...     import os;
         ...     os.remove( "saved_mesh_variable.h5" )
@@ -300,7 +324,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
             xdmfFH.write(string)
             xdmfFH.close()
 
-    def save( self, filename, meshFilename=None ):
+    def save( self, filename, meshHandle=None ):
         """
         Save the MeshVariable to disk.
 
@@ -309,9 +333,10 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         filename : string
             The name of the output file. Relative or absolute paths may be
             used, but all directories must exist.
-        meshFilename : string, optional
-            If provided, a link to the created mesh file is created within the
-            mesh variable file.
+        meshHandle :uw.utils.SavedFileData , optional
+            The saved mesh file handle. If provided, a link is created within the
+            mesh variable file to this saved mesh file. Important for checkpoint when
+            the mesh deforms.
 
         Notes
         -----
@@ -319,7 +344,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
 
         Returns
         -------
-        SavedFileData
+        underworld.utils.SavedFileData
             Data object relating to saved file. This only needs to be retained
             if you wish to create XDMF files and can be ignored otherwise.
 
@@ -349,7 +374,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         >>> np.allclose(var.data,clone_var.data)
         True
 
-        Clean up:
+        >>> # clean up:
         >>> if uw.rank() == 0:
         ...     import os;
         ...     os.remove( "saved_mesh_variable.h5" )
@@ -381,7 +406,19 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         if hasattr( mesh.generator, "geometryMesh"):
             mesh = mesh.generator.geometryMesh
 
-        if meshFilename:
+        if meshHandle:
+            if not isinstance(meshHandle, (str, uw.utils.SavedFileData)):
+                raise TypeError("Expected 'meshHandle' to be of type 'uw.utils.SavedFileData'")
+
+            if isinstance(meshHandle, str):
+                # DEPRECATION check
+                import warnings
+                warnings.warn("'meshHandle' paramater should be of type uw.utils.SaveFileData. Please update your models. "+
+                              "Accepting 'meshHandle' as a string parameter will be removed in the next release.")
+                meshFilename = meshHandle
+            else:
+                meshFilename = meshHandle.filename
+
             if not os.path.exists(meshFilename):
                 raise ValueError("You are trying to link against the mesh file '{}'\n\
                                   that does not appear to exist. If you need to link \n\
@@ -457,8 +494,9 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
 
             # first get file field's mesh
             if h5f.get('mesh') == None:
-                raise RuntimeError("The hdf5 field to be loaded must have an associated "+
-                        "'mesh' hdf5 file, was it created correctly?")
+                raise RuntimeError("The hdf5 field to be loaded with interpolation must have an associated "+
+                        "'mesh' hdf5 file. Resave the field with its associated mesh."+
+                        "i.e. myField.save(\"filename.h5\", meshFilename)" )
             # get resolution of old mesh
             res = h5f['mesh'].attrs.get('mesh resolution')
             if res is None:
@@ -479,13 +517,30 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
             if regular and regular!=True:
                 raise RuntimeError("Saved mesh file appears to correspond to a irregular mesh.\n"\
                                    "Interpolating from irregular mesh not currently supported." )
+
+            elType = h5f['mesh'].attrs.get('elementType')
+            # for backwards compatiblity, the 'elementType' attribute was added Feb2017
+            if elType == None:
+                elType = 'Q1'
+
             # build the NON-PARALLEL field and mesh
-            inputMesh = uw.mesh.FeMesh_Cartesian( elementType = ("Q1/dQ0"),
+            inputMesh = uw.mesh.FeMesh_Cartesian( elementType = (elType+"/DQ0"), # only geometryMesh can be saved
                                           elementRes  = tuple(res),
                                           minCoord    = tuple(inputMin),
                                           maxCoord    = tuple(inputMax),
                                           partitioned=False)
-            inputField = uw.mesh.MeshVariable( mesh=inputMesh, nodeDofCount=dof )
+
+            # load data onto MeshVariable
+            if len(dset) == inputMesh.nodesGlobal:
+                inputField = uw.mesh.MeshVariable( mesh=inputMesh, nodeDofCount=dof )
+            elif  dset.shape[0] == inputMesh.subMesh.nodesGlobal:
+                # load as a subMesh
+                # assume the dset field belongs to the subMesh
+                inputField = uw.mesh.MeshVariable( mesh=inputMesh.subMesh, nodeDofCount=dof )
+            else:
+                # raise error
+                raise RuntimeError("The saved mesh file can't be read onto the interpolation grid.\n" \
+                                   "Note: only subMesh variable with elementType 'DQ0' can be used presently used")
 
             # copy hdf5 numpy array onto serial inputField
             inputField.data[:] = dset[:]
@@ -505,6 +560,11 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         deepcopy: bool (default False)
             If True, the variable's data is also copied into
             new variable.
+
+        Returns
+        -------
+        underworld.mesh.MeshVariable
+            The mesh variable copy.
 
         Example
         -------
@@ -539,9 +599,9 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
     def syncronise(self):
         """
         This method is often necessary when Underworld is operating in parallel.
-        
+
         It will syncronise the mesh variable so that it is consistent
-        with it's parallel neighbours. Specifically, the shadow space of each 
+        with it's parallel neighbours. Specifically, the shadow space of each
         process obtains the required data from neighbouring processes.
         """
         uw.libUnderworld.StgFEM._FeVariable_SyncShadowValues( self._cself )

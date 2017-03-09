@@ -11,8 +11,6 @@
 #ifndef __Underworld_Utils_types_h__
 #define __Underworld_Utils_types_h__
 
-   typedef struct UnderworldContext		UnderworldContext;
-
    typedef struct VectorAssemblyTerm_NA__Fn VectorAssemblyTerm_NA__Fn;
    typedef struct VectorSurfaceAssemblyTerm_NA__Fn__ni VectorSurfaceAssemblyTerm_NA__Fn__ni;
    typedef struct VectorAssemblyTerm_VEP VectorAssemblyTerm_VEP;

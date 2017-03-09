@@ -288,7 +288,7 @@ PetscErrorCode KSPSetFromOptions_BSSCR(KSP ksp)
     PetscFunctionReturn(0);
 }
 #else
-PetscErrorCode KSPSetFromOptions_BSSCR(PetscOptions *PetscOptionsObject, KSP ksp)
+PetscErrorCode KSPSetFromOptions_BSSCR(Stg_PetscOptions *PetscOptionsObject, KSP ksp)
 {
 
     PetscTruth  flg;

@@ -34,18 +34,17 @@ class OptionsMG(Options):
     """
     Set Multigrid PETSc options
 
-    active = <True,False>           : activates Multigrid
-    levels = <n>                    : Multigrid grid levels
+    active = <True,False>                             : activates Multigrid
+    levels = <n>                                      : Multigrid grid levels
     pc_mg_type <additive,multiplicative,full,kaskade> : multiplicative is default
-    pc_mg_cycle_type <v,w>          : v or w
-    pc_mg_multiplicative_cycles <n> : Sets the number of cycles to use for each preconditioner
-                                      step of multigrid
-    mg_levels_ksp_type <minres>     : Krylov method
-    mg_levels_ksp_max_its <n>       : Maximum iterations for Krylov method
-    mg_levels_ksp_convergence_test <default, skip>  :
-    mg_levels_pc_type <sor>         : Preconditioner type
-    pc_mg_smoothup <n>              : Number of smoothing steps after interpolation
-    pc_mg_smoothdown <n>            : Number of smoothing steps before applying restriction operator
+    pc_mg_cycle_type <v,w>                            : v or w
+    pc_mg_multiplicative_cycles <n>                   : Sets the number of cycles to use for each preconditioner step of multigrid
+    mg_levels_ksp_type <minres>                       : Krylov method
+    mg_levels_ksp_max_its <n>                         : Maximum iterations for Krylov method
+    mg_levels_ksp_convergence_test <default, skip>    :
+    mg_levels_pc_type <sor>                           : Preconditioner type
+    pc_mg_smoothup <n>                                : Number of smoothing steps after interpolation
+    pc_mg_smoothdown <n>                              : Number of smoothing steps before applying restriction operator
     """
 
     def reset(self):
@@ -141,7 +140,7 @@ class OptionsMGA(Options):
 
 class OptionsMain(Options):
     """
-    penalty = 0                  : Penalty number for Augmented Lagrangian
+    penalty = 0                                       : Penalty number for Augmented Lagrangian
     Q22_pc_type = <"uw","uwscale", "gkgdiag", "bfbt"> : Schur preconditioner operators
     force_correction = <True,False>                   : Correct force term for Augmented Lagrangian
     rescale_equations = <True,False>                  : Use scaling on matrices
@@ -226,32 +225,34 @@ class StokesSolver(_stgermain.StgCompoundComponent):
     """
     The Block Stokes Schur Complement Solver:
     This solves the saddle-point system
-
-    [ K  G][u] = [f]
-    [ G' C][p]   [h]
+    
+    .. math::
+        \\begin{bmatrix} K & G \\\\ G^T & C \\end{bmatrix} \\begin{bmatrix} u \\\\ p \\end{bmatrix} = \\begin{bmatrix}f \\\\ h \\end{bmatrix}
 
     via a Schur complement method.
 
     We first solve:
-      a: S*p= G'*Ki*f - h,
+    
+    .. math::
+        S p= G^T  K^{-1} f - h,
+       :label: a
 
-    where S = G'*Ki*G-C and Ki = inverse of K.
+    where :math:`S = G^T K^{-1} G-C`
 
-    Then we backsolve for the velocity
-      b: K*u = f - G*p.
+    Then we backsolve for the velocity:
+    
+    .. math::
+        K u = f - G p.
+       :label: b
 
-    The effect of the inverse of K in (a) is obtained via a KSPSolve in PETSc.
+    The effect of :math:`K^{-1}` in :eq:`a` is obtained via a KSPSolve in PETSc.
     This has the prefix 'A11' (often called the 'inner' solve)
 
-    The solve in (a) for the pressure has prefix 'scr'.
+    The solve in :eq:`a` for the pressure has prefix 'scr'.
 
-    Assuming the returned solver is called 'solver':
-
-    It is possible to configure these solves individually via the
-      solver.options.A11
-    and
-      solver.options.scr
-    dictionaries.
+    Assuming the returned solver is called 'solver', it is possible to configure 
+    these solves individually via the `solver.options.A11` and 
+    `solver.options.scr` dictionaries.
 
     Try uw.help(solver.options.A11) for some details.
 

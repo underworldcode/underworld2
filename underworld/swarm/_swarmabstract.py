@@ -11,6 +11,7 @@ import underworld._stgermain as _stgermain
 import weakref
 import libUnderworld
 import _swarmvariable as svar
+import abc
 
 class SwarmAbstract(_stgermain.StgCompoundComponent):
     """
@@ -21,7 +22,7 @@ class SwarmAbstract(_stgermain.StgCompoundComponent):
 
     Parameters
     ----------
-    mesh : uw.mesh.FeMesh
+    mesh : underworld.mesh.FeMesh
         The FeMesh the swarm is supported by. See Swarm.mesh property docstring
         for further information.
 
@@ -29,12 +30,12 @@ class SwarmAbstract(_stgermain.StgCompoundComponent):
     _objectsDict = {            "_swarm" : None,
                            "_cellLayout" : None
                     }
-#                       "_particleLayout" : None
 
     _selfObjectName = "_swarm"
 
     _supportedDataTypes = ["char","short","int","float", "double"]
 
+    __metaclass__ = abc.ABCMeta
     def __init__(self, mesh, **kwargs):
 
         if not isinstance(mesh, uw.mesh.FeMesh):
@@ -58,7 +59,10 @@ class SwarmAbstract(_stgermain.StgCompoundComponent):
     @property
     def mesh(self):
         """    
-        mesh (FeMesh): Supporting FeMesh for this Swarm. All swarms are required to be
+        Returns
+        -------
+        underworld.mesh.FeMesh
+            Supporting FeMesh for this Swarm. All swarms are required to be
             supported by mesh (or similar) objects, which provide the data structures
             necessary for efficient particle locating/tracking, as well as the necessary
             mechanism for the swarm parallel decomposition.
@@ -74,32 +78,45 @@ class SwarmAbstract(_stgermain.StgCompoundComponent):
     
     @property
     def variables(self):
-        """    
-        variables (list): List of swarm variables associated with this swarm.
+        """
+        Returns
+        -------
+        list
+            List of swarm variables associated with this swarm.
         """
         return self._variables
 
     @property
     def particleLocalCount(self):
-        """    
-        particleLocalCount (int): Number of swarm particles stored on this processor.
+        """
+        Returns
+        -------
+        int
+            Number of swarm particles within the current processes local space.
         """
         return self._cself.particleLocalCount
 
     @property
     def owningCell(self):
         """
-        owningCell (SwarmVariable): Swarm variable recording the owning cell of the
-        swarm particles. This will usually correspond to the owning element local id.
+        Returns
+        -------
+        underworld.swarm.SwarmVariable
+            Swarm variable recording the owning cell of the swarm particles. 
+            This will usually correspond to the owning element local id.
         """
         return self._owningCell
 
     @property
     def globalId(self):
         """
-        globalId (SwarmVariable): Swarm variable recording a global integer identifier
-        for the swarm particle.
+        Returns
+        -------
+        underworld.swarm.SwarmVariable
+            Swarm variable recording a particle global identifier. Not yet 
+            implemented.
         """
+        raise RuntimeError("Sorry, this function is not yet implemented.")
         return self._globalId
 
     def _add_to_stg_dict(self,componentDictionary):
@@ -129,9 +146,11 @@ class SwarmAbstract(_stgermain.StgCompoundComponent):
         
         Returns
         -------
-        variable: SwarmVariable
+        underworld.swarm.SwarmVariable
             The newly created swarm variable.
-            
+        
+        Example
+        -------
         >>> # first we need a mesh
         >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
         >>> # create swarm
@@ -159,9 +178,11 @@ class SwarmAbstract(_stgermain.StgCompoundComponent):
         
         Parameters
         ----------
-        layout: ParticleLayout
+        layout: underworld.swarm.layouts.ParticleLayoutAbstract
             The layout which determines where particles are created and added.
 
+        Example
+        -------
         >>> # first we need a mesh
         >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
         >>> # create swarm
@@ -172,7 +193,7 @@ class SwarmAbstract(_stgermain.StgCompoundComponent):
         """
         if self.particleLocalCount > 0:
             raise RuntimeError("Swarm appears to already have particles. \nLayouts can only be used with empty swarms.")
-        if not isinstance( layout, uw.swarm.layouts._ParticleLayout ):
+        if not isinstance( layout, uw.swarm.layouts.ParticleLayoutAbstract ):
             raise TypeError("Provided layout does not appear to be a subclass of ParticleLayout")
 
         if not (self == layout.swarm):
@@ -200,16 +221,21 @@ class SwarmAbstract(_stgermain.StgCompoundComponent):
     @property
     def particleCoordinates(self):
         """
-        particleCoordinates (SwarmVariable): Swarm variable recording the coordinates of the 
-        swarm particles.
+        Returns
+        -------
+        underworld.swarm.SwarmVariable
+            Swarm variable recording the coordinates of the swarm particles.
         """
         return self._particleCoordinates
 
     @property
     def stateId(self):
         """
-        Swarm state identifier. This is incremented whenever the swarm is 
-        modified.
+        Returns
+        -------
+        int
+            Swarm state identifier. This is incremented whenever the swarm is
+            modified.
         """
         return self._stateId
 

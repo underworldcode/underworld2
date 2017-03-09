@@ -25,20 +25,20 @@ class stress_limiting_viscosity(_Function):
     
     Parameters
     ----------
-    fn_stress: underworld.function.Function (or convertible).
+    fn_stress: underworld.function.Function
         Function which returns the current stress in the fluid.
         Function should return a symmetric tensor of floating point values.
-    fn_stresslimit: underworld.function.Function (or convertible).  
+    fn_stresslimit: underworld.function.Function
         Function which defines the stress limit.
         Function should return a scalar floating point value.
-    fn_inputviscosity: underworld.function.Function (or convertible).
+    fn_inputviscosity: underworld.function.Function
         Function which defines the non-yielded viscosity value.
         Function should return a scalar floating point value.
 
     Example
     -------
     Lets setup a simple shear type configuration but with a viscosity
-    that increase vertically
+    that increase vertically:
     
     >>> import underworld as uw
     >>> import underworld.function as fn
@@ -47,6 +47,7 @@ class stress_limiting_viscosity(_Function):
     >>> pressVar = uw.mesh.MeshVariable(mesh.subMesh,1)
 
     Simple shear boundary conditions:
+    
     >>> bot_nodes = mesh.specialSets["MinJ_VertexSet"]
     >>> top_nodes = mesh.specialSets["MaxJ_VertexSet"]
     >>> bc = uw.conditions.DirichletCondition(velVar, (top_nodes+bot_nodes,top_nodes+bot_nodes))
@@ -54,14 +55,17 @@ class stress_limiting_viscosity(_Function):
     >>> velVar.data[top_nodes.data] = ( 0.5,0.)
 
     Vertically increasing exponential viscosity:
+    
     >>> fn_visc = 1.
     >>> stokesSys = uw.systems.Stokes(velVar,pressVar,fn_visc,conditions=[bc,])
 
     Solve:
+    
     >>> solver = uw.systems.Solver(stokesSys)
     >>> solver.solve()
 
-    Use the min_max function to determine a maximum stress
+    Use the min_max function to determine a maximum stress:
+    
     >>> fn_stress =  2.*fn_visc*uw.function.tensor.symmetric( velVar.fn_gradient )
     >>> fn_minmax_inv = fn.view.min_max(fn.tensor.second_invariant(fn_stress))
     >>> ignore = fn_minmax_inv.evaluate(mesh)
@@ -70,11 +74,13 @@ class stress_limiting_viscosity(_Function):
     True
 
     Now lets set the limited viscosity. Note that the system is now non-linear.
+    
     >>> fn_visc_limited = fn.rheology.stress_limiting_viscosity(fn_stress,0.5,fn_visc)
     >>> stokesSys.fn_viscosity = fn_visc_limited
     >>> solver.solve(nonLinearIterate=True)
 
-    Now check the stress.
+    Now check the stress:
+    
     >>> fn_stress = 2.*fn_visc_limited*uw.function.tensor.symmetric( velVar.fn_gradient )
     >>> fn_minmax_inv = fn.view.min_max(fn.tensor.second_invariant(fn_stress))
     >>> ignore = fn_minmax_inv.evaluate(mesh)
