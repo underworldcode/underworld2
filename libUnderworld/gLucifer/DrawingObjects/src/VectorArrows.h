@@ -17,10 +17,12 @@ extern const Type lucVectorArrows_Type;
 /** Class contents - this is defined as a macro so that sub-classes of this class can use this macro at the start of the definition of their struct */
 #define __lucVectorArrows \
 		/* Macro defining parent goes here - This means you can cast this class as its parent */ \
-		__lucVectorArrowCrossSection \
+		__lucCrossSection \
 		/* Virtual functions go here */ \
 		/* Other info */\
       IJK                     resolution;   \
+		  double                  maximum;                \
+		  Bool                    dynamicRange;           \
  
 struct lucVectorArrows
 {
@@ -34,10 +36,10 @@ struct lucVectorArrows
 #endif
 
 #define LUCVECTORARROWS_DEFARGS \
-                LUCVECTORARROWCROSSSECTION_DEFARGS
+                LUCCROSSSECTION_DEFARGS
 
 #define LUCVECTORARROWS_PASSARGS \
-                LUCVECTORARROWCROSSSECTION_PASSARGS
+                LUCCROSSSECTION_PASSARGS
 
 lucVectorArrows* _lucVectorArrows_New(  LUCVECTORARROWS_DEFARGS  );
 
@@ -48,7 +50,14 @@ void _lucVectorArrows_Print( void* drawingObject, Stream* stream ) ;
 void* _lucVectorArrows_DefaultNew( Name name ) ;
 void _lucVectorArrows_AssignFromXML( void* drawingObject, Stg_ComponentFactory* cf, void* data );
 
+void _lucVectorArrows_Build( void* drawingObject, void* data ) ;
+void _lucVectorArrows_Initialise( void* drawingObject, void* data ) ;
+void _lucVectorArrows_Execute( void* drawingObject, void* data );
+void _lucVectorArrows_Destroy( void* drawingObject, void* data ) ;
+
 void _lucVectorArrows_Draw( void* drawingObject, lucDatabase* database, void* _context );
 
+void _lucVectorArrows_DrawCrossSection( void* drawingObject, lucDatabase* database);
+void _lucVectorArrows_DrawMeshCrossSection( void* drawingObject, lucDatabase* database );
 #endif
 

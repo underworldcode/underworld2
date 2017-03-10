@@ -51,6 +51,7 @@ extern const Type lucCrossSection_Type;
       Index                defaultResolution;   \
       Index                resolutionA;         \
       Index                resolutionB;         \
+      Bool                 onMesh;              \
       XYZ                  normal;              \
       XYZ                  coord1;              \
       XYZ                  coord2;              \
@@ -69,7 +70,10 @@ extern const Type lucCrossSection_Type;
       Coord                max;                 \
       unsigned             fieldComponentCount; \
       void*                cppdata;             \
-      unsigned             dim;
+      unsigned             dim;                 \
+      ExtensionInfo_Index  vertexGridHandle; \
+      int                  dims[3];          \
+      int                  fieldDim;         \
  
 struct lucCrossSection
 {
@@ -110,6 +114,7 @@ lucCrossSection* lucCrossSection_Slice(void* crossSection, double val, Bool inte
 
 void lucCrossSection_AllocateSampleData(void* drawingObject, int dims);
 void lucCrossSection_SampleField(void* drawingObject, Bool reverse);
+void lucCrossSection_SampleMesh( void* drawingObject, Bool reverse);
 void lucCrossSection_FreeSampleData(void* drawingObject);
 
 #ifdef __cplusplus

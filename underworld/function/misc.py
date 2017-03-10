@@ -70,6 +70,7 @@ class constant(_Function):
             raise TypeError("'value' object passed in must be of identical size to that used in construction of this function.")
         self._ioguy = newioguy
         self._fncself.set_value(self._ioguy)
+        self._value = value
 
     def _GetIOForPyInput(self, value):
         if isinstance(value, (int,float,bool) ):
