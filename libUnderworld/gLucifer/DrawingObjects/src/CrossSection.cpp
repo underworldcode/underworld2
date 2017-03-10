@@ -666,10 +666,7 @@ void lucCrossSection_SampleMesh( void* drawingObject, Bool reverse)
                self->vertices[i][j][d] = pos[d];
 
             for (d=0; d<self->fieldComponentCount; d++)
-            {
                self->values[i][j][d] = io->at<float>(d);
-               std::cout << self->values[i][j][d] << std::endl;
-            }
 
             localcount++;
          }
