@@ -109,10 +109,8 @@ void _lucContourCrossSection_AssignFromXML( void* drawingObject, Stg_ComponentFa
 
 void _lucContourCrossSection_Build( void* drawingObject, void* data ) 
 {
-   lucScalarFieldCrossSection*     self        = (lucScalarFieldCrossSection*)drawingObject;
-
    /* Build field variable in parent */
-   _lucCrossSection_Build(self, data);
+   _lucCrossSection_Build(drawingObject, data);
 }
 
 void _lucContourCrossSection_Initialise( void* drawingObject, void* data ) {}
