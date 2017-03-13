@@ -1290,34 +1290,29 @@ class _FeMesh_Regional(FeMesh_Cartesian):
         return vec
 
 class _FeMesh_Annulus(FeMesh_Cartesian):
+    
     def __new__(cls, **kwargs):
         return super(_FeMesh_Annulus,cls).__new__(cls, **kwargs)
 
-    def __init__(self, elementRes=(10,16), radius=(3.0,6.0), angularExtent=[0.0,360.0], centroid=[0.0,0.0], periodic=[True, False], **kwargs):
+    def __init__(self, elementRes=(10,16), radius=(3.0,6.0), angularExtent=[0.0,360.0], centroid=[0.0,0.0], periodic=[False, True], **kwargs):
         """
         Class initialiser for Annulus mesh, centered on the 'centroid'.
 
-        TODO - Fix documentation 
-        MinI_VertexSet / MaxI_VertexSet -> longitudinal walls : [min/max] = [west/east]
-        MinJ_VertexSet / MaxJ_VertexSet -> latitudinal walls  : [min/max] = [south/north]
-        MinK_VertexSet / MaxK_VertexSet -> radial walls       : [min/max] = [inner/outer]
+        TODO - Fix documentation
+        MinI_VertexSet / MaxI_VertexSet -> radial walls       : [min/max] = [inner/outer]
 
         Parameter
         ---------
             elementRes : 3-tuple
-                1st element - Number of elements across the longitudinal extent of the domain
-                2nd element - Number of elements across the latitudinal extent of the domain
-                3rd element - Number of elements across the radial length of the domain
-
+                1st element - Number of elements across the radial length of the domain
+                2nd element - Number of elements along the circumfrance
+                
             radius : 2-tuple, default (3.0,6.0)
                 The radial position of the inner and outer surfaces respectively.
                 (inner radius, outer radius)
 
-            angularExtent : float, default 90.0
-                The angular extent of the domain between great circles of longitude
-
-            latExtent : float, default 90.0
-                The angular extent of the domain between great circles of latitude
+            angularExtent : 2-tuple, default (0.0,360.0)
+                The angular extent of the domain
 
             See parent classes for further required/optional parameters.
 
@@ -1327,7 +1322,6 @@ class _FeMesh_Annulus(FeMesh_Cartesian):
         >>> exact = np.pi*(radMax**2 - radMin**2)/2.
         >>> np.fabs(integral-exact)/exact < 1e-1
         True
-
 
         """
 
@@ -1354,14 +1348,34 @@ class _FeMesh_Annulus(FeMesh_Cartesian):
                     minCoord=(radius[0],angularExtent[0]), maxCoord=(radius[1],angularExtent[1]), periodic=periodic, **kwargs)
 
         self._centroid = centroid
+        
+    @property
+    def radius(self):
+        """
+        Returns:
+        Annulus min/max radius
+        """
+        return self._radius
 
+    def _getRadiusFn(self):
+        # returns the radial position
+        pos = function.coord()
+        centre = self._centroid
+        r_vec = pos - centre
+        mag = function.math.sqrt(function.math.dot( r_vec, r_vec ))
+        r_vec = r_vec / mag
+        return r_vec
+        
     def _setup(self):
         with self.deform_mesh():
             # basic polar coordinate -> cartesian map, i.e. r,t -> x,y
             r = self.data[:,0]
             t = self.data[:,1] * np.pi/180.0
             
-            (self.data[:,0], self.data[:,1]) = r * np.cos(t), r * np.sin(t)
+            offset_x = self._centroid[0]
+            offset_y = self._centroid[1]
+            
+            (self.data[:,0], self.data[:,1]) = offset_x + r*np.cos(t), offset_y + r*np.sin(t) 
 
         self.bndMeshVariable = uw.mesh.MeshVariable(self, 1)
         self.bndMeshVariable.data[:] = 0.
@@ -1373,3 +1387,6 @@ class _FeMesh_Annulus(FeMesh_Cartesian):
         self._boundaryNodeFn = uw.function.branching.conditional(
                                           [  ( self.bndMeshVariable > 0.999, 1. ),
                                              (                    True, 0. )   ] )
+                                             
+        self._surface_radialFn  = self._boundaryNodeFn * self._getRadiusFn()
+        # self._surface_tangentFn = self._boundaryNodeFn * self._getNSFn()
