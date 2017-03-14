@@ -63,6 +63,10 @@ Creating the release
 * Create the release from within Github. We will mark as pre-production
   while still in beta. 
 * Also, create corresponding tags for the docker images:
+** NOTE: dockerhub no longer appears to publish the digest ID in the 'build 
+   details' tab.  But the digest isn't really need if you only need the 
+   most recent 'development' (dev) or 'master' (latest) image, as you 
+   can simply pull these directy, and then determine the image ID as below. 
 ** Once a new master/latest branch `underworld2` docker image is created on 
    dockerhub, find its digest ID. To do this, go to the `Build Details` tab
    on the Dockerhub page for `underworld2`, click on the `latest` tagged 

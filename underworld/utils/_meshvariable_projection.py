@@ -95,6 +95,16 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
     >>> np.allclose(U_submesh.data, mesh.subMesh.data)
     True
 
+    Create swarm, then project particle owning elements onto mesh
+
+    >>> U_submesh = uw.mesh.MeshVariable( mesh.subMesh, 1 )
+    >>> swarm = uw.swarm.Swarm(mesh)
+    >>> swarm.populate_using_layout(uw.swarm.layouts.GlobalSpaceFillerLayout(swarm,4))
+    >>> projector = uw.utils.MeshVariable_Projection( U_submesh, swarm.owningCell, type=1 )
+    >>> projector.solve()
+    >>> np.allclose(U_submesh.data, mesh.data_elgId)
+    True
+
 
     """
     _objectsDict = {  "_system" : "SystemLinearEquations" }
@@ -132,6 +142,10 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
         # create force vectors
         self._fvector = sle.AssembledVector(meshVariable, eqNum)
 
+        # determine the required geometry mesh.  for submesh, use the parent mesh.
+        geometryMesh = self._meshVariable.mesh
+        if hasattr(self._meshVariable.mesh.generator, 'geometryMesh'):
+            geometryMesh = self._meshVariable.mesh.generator.geometryMesh
 
         # we will use voronoi if that has been requested by the user, else use
         # gauss integration.
@@ -141,12 +155,7 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
             # initial test functions which may require a valid voronoi swarm
             self._swarm._voronoi_swarm.repopulate()
         else:
-            intswarm = uw.swarm.GaussIntegrationSwarm(self._meshVariable.mesh)
-
-        # determine the required geometry mesh.  for submesh, use the parent mesh.
-        geometryMesh = self._meshVariable.mesh
-        if hasattr(self._meshVariable.mesh.generator, 'geometryMesh'):
-            geometryMesh = self._meshVariable.mesh.generator.geometryMesh
+            intswarm = uw.swarm.GaussIntegrationSwarm(geometryMesh)
 
         self._fn = _fn
 
