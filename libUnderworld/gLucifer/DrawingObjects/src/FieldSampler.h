@@ -22,7 +22,6 @@ extern const Type lucFieldSampler_Type;
       /* Virtual functions go here */ \
       /* Other info */\
       IJK                           resolution;       \
-      Index                         total;            \
 
 struct lucFieldSampler
 {
@@ -55,7 +54,6 @@ void _lucFieldSampler_Execute( void* drawingObject, void* data );
 void _lucFieldSampler_Destroy( void* drawingObject, void* data ) ;
 
 /* Drawing Object Implementations */
-void _lucFieldSampler_Setup( void* drawingObject, lucDatabase* database, void* _context );
 void _lucFieldSampler_Draw( void* drawingObject, lucDatabase* database, void* _context ) ;
 #endif
 
