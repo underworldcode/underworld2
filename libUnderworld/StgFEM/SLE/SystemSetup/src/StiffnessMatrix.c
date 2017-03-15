@@ -178,10 +178,7 @@ void _StiffnessMatrix_Init(
     self->stiffnessMatrixTermList = Stg_ObjectList_New();
 
     /* Set default function for Global Stiffness Matrix Assembly */
-    if ( self->assembleOnNodes )
-      self->_assemblyFunction = __StiffnessMatrix_NewAssembleNodeWise;
-    else
-      self->_assemblyFunction = __StiffnessMatrix_NewAssemble;
+    self->_assemblyFunction = __StiffnessMatrix_NewAssemble;
 
     self->elStiffMat = NULL;
     self->bcVals = NULL;
@@ -713,10 +710,18 @@ void __StiffnessMatrix_NewAssemble( void* stiffnessMatrix, void* _sle, void* _co
         }
 
         /* Add to stiffness matrix. */
-        MatSetValues( matrix,
-                      nRowDofs, (int*)rowEqNum->locationMatrix[e_i][0],
-                      nColDofs, (int*)colEqNum->locationMatrix[e_i][0],
-                      elStiffMat[0], ADD_VALUES );
+        if( self->assembleOnNodes ) {
+          MatSetValues( matrix,
+                        nRowDofs, (int*)rowEqNum->locationMatrix[e_i][0],
+                        nColDofs, (int*)colEqNum->locationMatrix[e_i][0],
+                        elStiffMat[0], INSERT_VALUES );
+        } else {
+          MatSetValues( matrix,
+                        nRowDofs, (int*)rowEqNum->locationMatrix[e_i][0],
+                        nColDofs, (int*)colEqNum->locationMatrix[e_i][0],
+                        elStiffMat[0], ADD_VALUES );
+
+        }
     }
 
     FreeArray( elStiffMat );

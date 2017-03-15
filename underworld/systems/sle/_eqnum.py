@@ -11,20 +11,29 @@ import underworld._stgermain as _stgermain
 
 class EqNumber(_stgermain.StgClass):
     """
-    The SolutionVector manages the numerical solution vectors used by Underworld's equation systems.
-    Interface between meshVariables and systems.
+    Orders how a MeshVariable's degrees of freedom are aranged withing numerical
+    matrices and vectors. We call this equation ordering.
+    An EqNumber is required when building a
+    uw.sle.AssembledMatrix, uw.sle.SolutionVector or uw.sle.AssembledVector
+    """
 
-    Parameters
-    ----------
-    meshVariable : uw.mesh.MeshVariable
-        MeshVariable object for which this equation numbering corresponds.
+    def __init__(self, meshVariable, removeBCs=True, **kwargs):
+        """
+        Parameters:
+        -----------
+        meshVariable : MeshVariable
+            The MeshVariable used to create an equation odering.
+
+        removeBCs : Bool, optional
+            Determines if the MeshVariable's boundary conditions are included in the ordering.
+            Hence it effects the size of the matrix or vector and the algorithm used to handle boundary conditions.
 
     Example
     -------
     >>> linearMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.) )
     >>> tField = uw.mesh.MeshVariable( linearMesh, 1 )
     >>> teqNum = uw.systems.sle.EqNumber( tField )
-
+    
     """
 
     def __init__(self, meshVariable, removeBCs=True, **kwargs):

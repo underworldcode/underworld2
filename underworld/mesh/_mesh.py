@@ -1085,6 +1085,17 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
 
             self._secondaryMesh = FeMesh( elementType=self._elementTypes[1].upper(), generator=genSecondary )
 
+        self.bndMeshVariable = uw.mesh.MeshVariable(self, 1)
+        self.bndMeshVariable.data[:] = 0.
+        # set a value 1.0 on provided vertices
+        self.bndMeshVariable.data[self.specialSets["AllWalls_VertexSet"].data] = 1.0
+        # note we use this condition to only capture border swarm particles
+        # on the surface itself. for those directly adjacent, the deltaMeshVariable will evaluate
+        # to non-zero (but less than 1.), so we need to remove those from the integration as well.
+        self._boundaryNodeFn = uw.function.branching.conditional(
+                                          [  ( self.bndMeshVariable > 0.999, 1. ),
+                                             (                    True, 0. )   ] )
+
     @property
     def subMesh(self):
         """
@@ -1228,7 +1239,7 @@ class _FeMesh_Regional(FeMesh_Cartesian):
 
         # build 3D mesh cartesian mesh centred on (0.0,0.0,0.0) - in _setup() we deform the mesh
         super(_FeMesh_Regional,self).__init__(elementType="Q1/dQ0", elementRes=elementRes,
-                    minCoord=(-long_half,-lat_half,radius[0]), maxCoord=(long_half,lat_half,radius[1]), periodic=None, **kwargs)
+                    minCoord=(radius[0],-long_half,-lat_half), maxCoord=(radius[1],long_half,lat_half), periodic=None, **kwargs)
 
         self._centroid = centroid
 
@@ -1236,22 +1247,25 @@ class _FeMesh_Regional(FeMesh_Cartesian):
 
         with self.deform_mesh():
             # perform Cubed-sphere projection on coordinates
-            (x,y) = (np.tan(np.pi*self.data[:,0]/180.0), np.tan(np.pi*self.data[:,1]/180.0))
-            d = self.data[:,2] / np.sqrt( x**2 + y**2 + 1)
+            # fac = np.pi/180.0
+            old = self.data
+            (x,y) = (np.tan(self.data[:,1]*np.pi/180.0), np.tan(self.data[:,2]*np.pi/180.0))
+            d = self.data[:,0] / np.sqrt( x**2 + y**2 + 1)
             self.data[:,0] = self._centroid[0] + d*x
             self.data[:,1] = self._centroid[1] + d*y
             self.data[:,2] = self._centroid[2] + d
 
-        bndMeshVariable = uw.mesh.MeshVariable(self, 1)
-        bndMeshVariable.data[:] = 0.
-        # set a value 1.0 on provided vertices
-        bndMeshVariable.data[self.specialSets["AllWalls_VertexSet"].data] = 1.0
-        # note we use this condition to only capture border swarm particles
-        # on the surface itself. for those directly adjacent, the deltaMeshVariable will evaluate
-        # to non-zero (but less than 1.), so we need to remove those from the integration as well.
-        self._boundaryNodeFn = uw.function.branching.conditional(
-                                          [  ( bndMeshVariable > 0.999, 1. ),
-                                             (                    True, 0. )   ] )
+        # ASSUME the parent class builds the _boundaryNodeFn
+        # self.bndMeshVariable = uw.mesh.MeshVariable(self, 1)
+        # self.bndMeshVariable.data[:] = 0.
+        # # set a value 1.0 on provided vertices
+        # self.bndMeshVariable.data[self.specialSets["AllWalls_VertexSet"].data] = 1.0
+        # # note we use this condition to only capture border swarm particles
+        # # on the surface itself. for those directly adjacent, the deltaMeshVariable will evaluate
+        # # to non-zero (but less than 1.), so we need to remove those from the integration as well.
+        # self._boundaryNodeFn = uw.function.branching.conditional(
+        #                                   [  ( self.bndMeshVariable > 0.999, 1. ),
+        #                                      (                    True, 0. )   ] )
 
         self._rFn  = self._boundaryNodeFn * self._getRadiusFn()
         self._nsFn = self._boundaryNodeFn * self._getNSFn()
@@ -1275,18 +1289,42 @@ class _FeMesh_Regional(FeMesh_Cartesian):
         r_vec = r_vec / mag
         return r_vec
 
+    # def _getEWFn(self):
+    #     pos = function.coord() - self._centroid
+    #     if function.math.abs(pos[0]) < 1e-12:
+    #         xi = 0.0 # maybe i can just return the vector??? Is it the right type
+    #     else:
+    #         xi = function.math.atan(pos[2]/pos[0])
+    #     # vec = [ cos(xi), 0.0, -sin(xi) ]
+    #     vec = function.math.sin(xi) * (-1., 0., 0. )
+    #     vec = vec + function.math.cos(xi) * (0.0,0.0,1.)
+    #     return vec
+    #
+    # def _getNSFn(self):
+    #     pos = function.coord() - self._centroid
+    #     if function.math.abs(pos[1]) < 1e-12:
+    #         xi = 0.0 # maybe i can just return the vector??? Is it the right type
+    #     else:
+    #         xi = function.math.atan(pos[2]/pos[1])
+    #     # vec = [ 0.0, cos(xi), -sin(xi) ]
+    #     vec = function.math.sin(xi)* (0., -1., 0. )
+    #     vec = vec + function.math.cos(xi) * (0.0,0.0,1.)
+    #     return vec
+
     def _getEWFn(self):
         pos = function.coord() - self._centroid
         xi = function.math.atan(pos[0]/pos[2])
-        vec = function.math.cos(xi)* (1., 0., 0. )
-        vec = vec - function.math.sin(xi) * (0.0,0.0,1.)
+        # vec = [ cos(xi), 0.0, -sin(xi) ]
+        vec = function.math.cos(xi) * (0., 1., 0. )
+        vec = vec + function.math.sin(xi) * (0.0,0.0,-1.)
         return vec
 
     def _getNSFn(self):
         pos = function.coord() - self._centroid
         xi = function.math.atan(pos[1]/pos[2])
-        vec = function.math.cos(xi)* (0., 1., 0. )
-        vec = vec - function.math.sin(xi) * (0.0,0.0,1.)
+        # vec = [ 0.0, cos(xi), -sin(xi) ]
+        vec = function.math.cos(xi)* (1., 0., 0. )
+        vec = vec + function.math.sin(xi) * (0.0,0.0,-1.)
         return vec
 
 class _FeMesh_Annulus(FeMesh_Cartesian):
@@ -1365,6 +1403,16 @@ class _FeMesh_Annulus(FeMesh_Cartesian):
         mag = function.math.sqrt(function.math.dot( r_vec, r_vec ))
         r_vec = r_vec / mag
         return r_vec
+    
+    def _getTangentFn(self):
+        # returns the radial position
+        pos = function.coord()
+        centre = self._centroid
+        r_vec = pos - centre
+        theta = (-1.0*r_vec[1], r_vec[0])
+        mag = function.math.sqrt(function.math.dot( theta, theta ))
+        theta = theta / mag
+        return theta
         
     def _setup(self):
         with self.deform_mesh():
@@ -1388,5 +1436,6 @@ class _FeMesh_Annulus(FeMesh_Cartesian):
                                           [  ( self.bndMeshVariable > 0.999, 1. ),
                                              (                    True, 0. )   ] )
                                              
-        self._surface_radialFn  = self._boundaryNodeFn * self._getRadiusFn()
+        self._radialFn  = self._boundaryNodeFn * self._getRadiusFn()
+        self._tangentFn  = self._boundaryNodeFn * self._getTangentFn()
         # self._surface_tangentFn = self._boundaryNodeFn * self._getNSFn()

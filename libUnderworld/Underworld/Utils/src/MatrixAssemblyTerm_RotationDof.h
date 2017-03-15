@@ -72,7 +72,7 @@
 
 	void _MatrixAssemblyTerm_RotationDof_Delete( void* matrixTerm );
 
-  void AXequalsY( StiffnessMatrix* Amat, SolutionVector* x, SolutionVector* y);
+  void AXequalsY( StiffnessMatrix* Amat, SolutionVector* x, SolutionVector* y, Bool transpose );
 
 	void _MatrixAssemblyTerm_RotationDof_Print( void* matrixTerm, Stream* stream );
 

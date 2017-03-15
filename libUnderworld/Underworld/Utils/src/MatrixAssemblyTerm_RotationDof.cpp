@@ -158,7 +158,7 @@ void _MatrixAssemblyTerm_RotationDof_Destroy( void* matrixTerm, void* data ) {
 }
 
 
-void AXequalsY( StiffnessMatrix* a, SolutionVector* x, SolutionVector* y) {
+void AXequalsY( StiffnessMatrix* a, SolutionVector* x, SolutionVector* y, Bool transpose ) {
   Mat Amat;
   Vec X, Y;
   PetscInt m,n,vecSize;
@@ -173,11 +173,15 @@ void AXequalsY( StiffnessMatrix* a, SolutionVector* x, SolutionVector* y) {
   VecGetArray(X,&ptr);
   VecRestoreArray(X, &ptr);
 
-  MatMult(Amat,X,Y);
+  if (transpose)
+    MatMultTranspose(Amat,X,Y);
+  else
+    MatMult(Amat,X,Y);
 
   SolutionVector_UpdateSolutionOntoNodes( y );
   FeVariable_SyncShadowValues( y->feVariable );
 }
+
 void _MatrixAssemblyTerm_RotationDof_AssembleElement(
    void*                                              matrixTerm,
    StiffnessMatrix*                                   stiffnessMatrix,
@@ -228,11 +232,23 @@ void _MatrixAssemblyTerm_RotationDof_AssembleElement(
      // get the normal unit vector
      const IO_double* normal_fnout = debug_dynamic_cast<const IO_double*>(cppdata->normalfunc(cppdata->input.get()));
      normalVec = normal_fnout->data();
+     
+     // maybe a conditional here isn't the most efficient if we build this whole matrix a lot
+     if (dim == 2) {
+       
+       elStiffMat[row_i  ][col_i  ] = radialVec[0];  elStiffMat[row_i  ][col_i+1] = normalVec[0];
+       elStiffMat[row_i+1][col_i  ] = radialVec[1];  elStiffMat[row_i+1][col_i+1] = normalVec[1];
+       
+    } else {
+       StGermain_VectorCrossProduct(crossproduct, (double*)radialVec, (double*)normalVec);
 
-     StGermain_VectorCrossProduct(crossproduct, (double*)radialVec, (double*)normalVec);
+      //  elStiffMat[row_i  ][col_i  ] = 1.;  elStiffMat[row_i  ][col_i+1] = 0;  elStiffMat[row_i  ][col_i+2] = 0.0;
+      //  elStiffMat[row_i+1][col_i  ] = 0.;  elStiffMat[row_i+1][col_i+1] = 1;  elStiffMat[row_i+1][col_i+2] = 0.;
+      //  elStiffMat[row_i+2][col_i  ] = 0.;  elStiffMat[row_i+2][col_i+1] = 0;  elStiffMat[row_i+2][col_i+2] = 1.;
 
-     elStiffMat[row_i  ][col_i  ] = radialVec[0];  elStiffMat[row_i  ][col_i+1] = normalVec[0];  elStiffMat[row_i  ][col_i+2] = crossproduct[0];
-     elStiffMat[row_i+1][col_i  ] = radialVec[1];  elStiffMat[row_i+1][col_i+1] = normalVec[1];  elStiffMat[row_i+1][col_i+2] = crossproduct[1];
-     elStiffMat[row_i+2][col_i  ] = radialVec[2];  elStiffMat[row_i+2][col_i+1] = normalVec[2];  elStiffMat[row_i+2][col_i+2] = crossproduct[2];
+       elStiffMat[row_i  ][col_i  ] = radialVec[0];  elStiffMat[row_i  ][col_i+1] = normalVec[0];  elStiffMat[row_i  ][col_i+2] = crossproduct[0];
+       elStiffMat[row_i+1][col_i  ] = radialVec[1];  elStiffMat[row_i+1][col_i+1] = normalVec[1];  elStiffMat[row_i+1][col_i+2] = crossproduct[1];
+       elStiffMat[row_i+2][col_i  ] = radialVec[2];  elStiffMat[row_i+2][col_i+1] = normalVec[2];  elStiffMat[row_i+2][col_i+2] = crossproduct[2];
+     }
    }
 }
