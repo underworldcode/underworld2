@@ -12,6 +12,7 @@
 #include <petsc.h>
 #include <float.h>
 #include "CrossSection.h"
+#include <iostream>
 
 #include <Underworld/Function/FunctionIO.hpp>
 #include <Underworld/Function/Function.hpp>
