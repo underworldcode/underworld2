@@ -306,18 +306,6 @@ void _lucCrossSection_Destroy( void* drawingObject, void* data ) {}
 void _lucCrossSection_Setup( void* drawingObject, lucDatabase* database, void* _context )
 {
    lucCrossSection* self = (lucCrossSection*)drawingObject;
-   if (self->onMesh)
-   {
-      Mesh*                mesh  = (Mesh*) self->mesh;
-      Grid*                vertGrid;
-      vertGrid = *(Grid**)ExtensionManager_Get( mesh->info, mesh, self->vertexGridHandle );
-      int sizes[3] = {1,1,1};
-      for (int d=0; d<self->dim; d++)
-        sizes[d] = vertGrid->sizes[d];
-      self->dims[0] = sizes[ self->axis ];
-      self->dims[1] = sizes[ self->axis1 ];
-      self->dims[2] = sizes[ self->axis2 ];
-   }
 
    /* Use provided setup function to correctly set axis etc */
    lucCrossSection_Set(self, self->value, self->axis, self->interpolate);
@@ -431,6 +419,21 @@ lucCrossSection* lucCrossSection_Set(void* crossSection, double val, Axis axis, 
 
    /* Create normal to plane */
    StGermain_NormalToPlane( self->normal, self->coord1, self->coord2, self->coord3);
+
+
+   if (self->onMesh)
+   {
+      //Update grid dims after changing axis order
+      Mesh*                mesh  = (Mesh*) self->mesh;
+      Grid*                vertGrid;
+      vertGrid = *(Grid**)ExtensionManager_Get( mesh->info, mesh, self->vertexGridHandle );
+      int sizes[3] = {1,1,1};
+      for (int d=0; d<self->dim; d++)
+        sizes[d] = vertGrid->sizes[d];
+      self->dims[0] = sizes[ self->axis ];
+      self->dims[1] = sizes[ self->axis1 ];
+      self->dims[2] = sizes[ self->axis2 ];
+   }
 
    return self;
 }
