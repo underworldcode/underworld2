@@ -474,13 +474,11 @@ void lucCrossSection_AllocateSampleData(void* drawingObject, int dims)
    if (!self->values) 
       self->values = Memory_Alloc_3DArray( float, self->resolutionA, self->resolutionB, dims, "vertex values");
 
-   if (dims > self->fieldComponentCount)
-   {
-      for ( aIndex = 0 ; aIndex < self->resolutionA ; aIndex++ )
-         for ( bIndex = 0 ; bIndex < self->resolutionB ; bIndex++ )
-            for (d=self->fieldComponentCount; d<dims; d++)
-               self->values[aIndex][bIndex][d] = 0;
-   }
+   //Flag empty values with Infinity
+   for ( aIndex = 0 ; aIndex < self->resolutionA ; aIndex++ )
+      for ( bIndex = 0 ; bIndex < self->resolutionB ; bIndex++ )
+         for (d=0; d<dims; d++)
+            self->values[aIndex][bIndex][d] = HUGE_VAL;
 }
 
 void lucCrossSection_SampleField(void* drawingObject, Bool reverse)
@@ -522,27 +520,25 @@ void lucCrossSection_SampleField(void* drawingObject, Bool reverse)
 
          /* Check cross section is within local space, 
           * if outside then skip to avoid wasting time attempting to sample */
-         /* This scales horrendously when mesh is irregular as we search for points that are not on the processor */
-         /* A local coord sampling routine, such as implemented for isosurfaces would help with this problem */
-         /*double TOL = 0.00000001; //((max[self->axis1] - min[self->axis1] + max[self->axis2] - min[self->axis2])/2.0) * 0.000001;
-         if (pos[I_AXIS] + TOL > localMin[I_AXIS] && pos[I_AXIS] - TOL < localMax[I_AXIS] &&
-             pos[J_AXIS] + TOL > localMin[J_AXIS] && pos[J_AXIS] - TOL < localMax[J_AXIS] &&
-            (fieldVariable->dim < 3 || (pos[K_AXIS] + TOL > localMin[K_AXIS] && pos[K_AXIS] - TOL < localMax[K_AXIS])))*/
+         /* Avoid by using onMesh sampling when mesh is irregular as searching for points that are not on the processor is costly */
          if (pos[I_AXIS] > localMin[I_AXIS]-FLT_EPSILON && pos[I_AXIS] < localMax[I_AXIS]+FLT_EPSILON &&
              pos[J_AXIS] > localMin[J_AXIS]-FLT_EPSILON && pos[J_AXIS] < localMax[J_AXIS]+FLT_EPSILON &&
-            (self->dim < 3 || (pos[K_AXIS] > localMin[K_AXIS]-FLT_EPSILON && pos[K_AXIS] < localMax[K_AXIS]+FLT_EPSILON)))
+             (self->dim < 3 || (pos[K_AXIS] > localMin[K_AXIS]-FLT_EPSILON && pos[K_AXIS] < localMax[K_AXIS]+FLT_EPSILON)))
          {
-            const FunctionIO* output = debug_dynamic_cast<const FunctionIO*>(cppdata->func(globalCoord.get()));
-
-            /* Value found locally, save */
-            for (d=0; d<dims; d++)
-               self->values[aIndex][bIndex][d] = output->at<float>(d);
-         }
-         else
-         {
-            /* Flag not found */
-            for (d=0; d<dims; d++)
-               self->values[aIndex][bIndex][d] = HUGE_VAL;
+            try
+            {
+               const FunctionIO* output = debug_dynamic_cast<const FunctionIO*>(cppdata->func(globalCoord.get()));
+ 
+               /* Value found locally, save */
+               for (d=0; d<dims; d++)
+                  self->values[aIndex][bIndex][d] = output->at<float>(d);
+            }
+            catch (std::exception& e)
+            {
+               //Not found
+               std::cerr << e.what() << std::endl;
+               /* Flag not found */
+            }
          }
 
          /* Copy vertex data */
@@ -612,7 +608,6 @@ void lucCrossSection_SampleMesh( void* drawingObject, Bool reverse)
    int                  i,j, d;
    Coord                globalMin, globalMax, min, max;
    Mesh*                mesh  = (Mesh*) self->mesh;
-
 
    int localcount = 0;
 

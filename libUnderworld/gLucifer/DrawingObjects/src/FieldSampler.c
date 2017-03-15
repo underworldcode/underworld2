@@ -71,7 +71,7 @@ void* _lucFieldSampler_DefaultNew( Name name )
    Stg_Component_InitialiseFunction*                         _initialise = _lucFieldSampler_Initialise;
    Stg_Component_ExecuteFunction*                               _execute = _lucFieldSampler_Execute;
    Stg_Component_DestroyFunction*                               _destroy = _lucFieldSampler_Destroy;
-   lucDrawingObject_SetupFunction*                                _setup = _lucFieldSampler_Setup;
+   lucDrawingObject_SetupFunction*                                _setup = _lucCrossSection_Setup;
    lucDrawingObject_DrawFunction*                                  _draw = _lucFieldSampler_Draw;
    lucDrawingObject_CleanUpFunction*                            _cleanUp = lucDrawingObject_CleanUp;
 
@@ -90,7 +90,7 @@ void _lucFieldSampler_AssignFromXML( void* drawingObject, Stg_ComponentFactory* 
    /* Construct Parent */
    _lucCrossSection_AssignFromXML( self, cf, data );
 
-   defaultRes = Stg_ComponentFactory_GetUnsignedInt( cf, self->name, (Dictionary_Entry_Key)"resolution", 0);
+   defaultRes = Stg_ComponentFactory_GetUnsignedInt( cf, self->name, (Dictionary_Entry_Key)"resolution", 32);
    resolution[ I_AXIS ] = Stg_ComponentFactory_GetUnsignedInt( cf, self->name, (Dictionary_Entry_Key)"resolutionX", defaultRes);
    resolution[ J_AXIS ] = Stg_ComponentFactory_GetUnsignedInt( cf, self->name, (Dictionary_Entry_Key)"resolutionY", defaultRes);
    resolution[ K_AXIS ] = Stg_ComponentFactory_GetUnsignedInt( cf, self->name, (Dictionary_Entry_Key)"resolutionZ", defaultRes);
@@ -107,28 +107,10 @@ void _lucFieldSampler_Build( void* drawingObject, void* data )
 void _lucFieldSampler_Initialise( void* drawingObject, void* data ) 
 {
    _lucCrossSection_Initialise(drawingObject, data);
-
-
 }
 
 void _lucFieldSampler_Execute( void* drawingObject, void* data ) {}
 void _lucFieldSampler_Destroy( void* drawingObject, void* data ) {}
-
-void _lucFieldSampler_Setup( void* drawingObject, lucDatabase* database, void* _context )
-{
-   _lucCrossSection_Setup(drawingObject, database, _context);
-
-   lucFieldSampler*  self = (lucFieldSampler*)drawingObject;
-
-   if (self->dim == 2) self->resolution[K_AXIS] = 0;
-
-   /* Calculate number of samples */
-   if (self->onMesh)
-      self->total = self->dims[I_AXIS] * self->dims[J_AXIS] * self->dims[K_AXIS];
-   else
-      self->total = self->resolution[I_AXIS] * self->resolution[J_AXIS] * self->resolution[K_AXIS];
-   
-}
 
 void lucFieldSampler_DrawSlice(void* drawingObject, lucDatabase* database)
 {
@@ -184,8 +166,7 @@ void _lucFieldSampler_Draw( void* drawingObject, lucDatabase* database, void* _c
 {
    lucFieldSampler* self = (lucFieldSampler*)drawingObject;
    Dimension_Index dim   = self->dim;
-
-   /*printf("(%s) (ONMESH %d) (ISSET %d) Resolution %d,%d,%d (el x/y/z %d,%d,%d)\n", self->name, self->onMesh, self->isSet, self->resolution[0], self->resolution[1], self->resolution[2], self->dims[I_AXIS], self->dims[J_AXIS], self->dims[K_AXIS]);*/
+   if (dim == 2) self->resolution[K_AXIS] = 0;
 
    if (!self->onMesh)
    {
