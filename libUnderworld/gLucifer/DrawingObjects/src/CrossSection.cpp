@@ -434,6 +434,7 @@ lucCrossSection* lucCrossSection_Set(void* crossSection, double val, Axis axis, 
       self->dims[0] = sizes[ self->axis ];
       self->dims[1] = sizes[ self->axis1 ];
       self->dims[2] = sizes[ self->axis2 ];
+      //printf("------ DIMS ------ %d,%d,%d\n", self->dims[0], self->dims[1], self->dims[2]);
    }
 
    return self;
@@ -475,11 +476,12 @@ void lucCrossSection_AllocateSampleData(void* drawingObject, int dims)
    if (!self->values) 
       self->values = Memory_Alloc_3DArray( float, self->resolutionA, self->resolutionB, dims, "vertex values");
 
-   //Flag empty values with Infinity
+   //Flag empty values with Infinity, 
+   //clear components of higher dimension values outside dim range (eg: 2d vectors are stored as 3d, z needs to be zero)
    for ( aIndex = 0 ; aIndex < self->resolutionA ; aIndex++ )
       for ( bIndex = 0 ; bIndex < self->resolutionB ; bIndex++ )
          for (d=0; d<dims; d++)
-            self->values[aIndex][bIndex][d] = HUGE_VAL;
+            self->values[aIndex][bIndex][d] = (d >= self->fieldComponentCount ? 0.0 : HUGE_VAL);
 }
 
 void lucCrossSection_SampleField(void* drawingObject, Bool reverse)
