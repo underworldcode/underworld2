@@ -1180,7 +1180,7 @@ class _FeMesh_Regional(FeMesh_Cartesian):
     def __new__(cls, **kwargs):
         return super(_FeMesh_Regional,cls).__new__(cls, **kwargs)
 
-    def __init__(self, elementRes=(16,16,10), radius=(3.0,6.0), latExtent=90.0, longExtent=90.0, centroid=[0.0,0.0,0.0], **kwargs):
+    def __init__(self, elementRes=(16,16,10), radialLengths=(3.0,6.0), latExtent=90.0, longExtent=90.0, centroid=[0.0,0.0,0.0], **kwargs):
         """
         Class initialiser for Cubed-sphere sixth, centered on the 'centroid'.
 
@@ -1195,8 +1195,8 @@ class _FeMesh_Regional(FeMesh_Cartesian):
         ---------
         elementRes : tuple
             Tuple determining number of elements (longitudinally, latitudinally, radially).
-        radius : tuple
-            Tuple determining the (inner radius, outer radius).
+        radialLengths : tuple
+            Tuple determining the (inner radialLengths, outer radialLengths).
         longExtent : float
             The angular extent of the domain between great circles of longitude.
         latExtent : float
@@ -1207,7 +1207,7 @@ class _FeMesh_Regional(FeMesh_Cartesian):
         -------
 
         >>> (radMin, radMax) = (4.0,8.0)
-        >>> mesh = uw.mesh._FeMesh_Regional( elementRes=(20,20,14), radius=(radMin, radMax) )
+        >>> mesh = uw.mesh._FeMesh_Regional( elementRes=(20,20,14), radialLengths=(radMin, radMax) )
         >>> integral = uw.utils.Integral( 1.0, mesh).evaluate()[0]
         >>> exact = 4/3.0*np.pi*(radMax**3 - radMin**2) / 6.0
         >>> np.fabs(integral-exact)/exact < 1e-1
@@ -1217,7 +1217,7 @@ class _FeMesh_Regional(FeMesh_Cartesian):
     def __new__(cls, **kwargs):
         return super(_FeMesh_Regional,cls).__new__(cls, **kwargs)
 
-    def __init__(self, elementRes=(16,16,10), radius=(3.0,6.0), latExtent=90.0, longExtent=90.0, **kwargs):
+    def __init__(self, elementRes=(16,16,10), radial=(3.0,6.0), latExtent=90.0, longExtent=90.0, **kwargs):
 
         if not isinstance( latExtent, (float,int) ):
             raise TypeError("Provided 'latExtent' must be a float or integer")
@@ -1225,21 +1225,21 @@ class _FeMesh_Regional(FeMesh_Cartesian):
         if not isinstance( longExtent, (float,int) ):
             raise TypeError("Provided 'longExtent' must be a float or integer")
         self._longExtent = longExtent
-        if not isinstance( radius, (tuple,list)):
-            raise TypeError("Provided 'radius' must be a tuple/list of 2 floats")
-        if len(radius) != 2:
-            raise ValueError("Provided 'radius' must be a tuple/list of 2 floats")
-        for el in radius:
+        if not isinstance( radialLengths, (tuple,list)):
+            raise TypeError("Provided 'radialLengths' must be a tuple/list of 2 floats")
+        if len(radialLengths) != 2:
+            raise ValueError("Provided 'radialLengths' must be a tuple/list of 2 floats")
+        for el in radialLengths:
             if not isinstance( el, (float,int)) :
-                raise TypeError("Provided 'radius' must be a tuple/list of 2 floats")
-        self._radius = radius
+                raise TypeError("Provided 'radialLengths' must be a tuple/list of 2 floats")
+        self._radialLengths = radialLengths
 
         lat_half = latExtent/2.0
         long_half = longExtent/2.0
 
         # build 3D mesh cartesian mesh centred on (0.0,0.0,0.0) - in _setup() we deform the mesh
         super(_FeMesh_Regional,self).__init__(elementType="Q1/dQ0", elementRes=elementRes,
-                    minCoord=(radius[0],-long_half,-lat_half), maxCoord=(radius[1],long_half,lat_half), periodic=None, **kwargs)
+                    minCoord=(radialLengths[0],-long_half,-lat_half), maxCoord=(radialLengths[1],long_half,lat_half), periodic=None, **kwargs)
 
         self._centroid = centroid
 
@@ -1267,7 +1267,7 @@ class _FeMesh_Regional(FeMesh_Cartesian):
         #                                   [  ( self.bndMeshVariable > 0.999, 1. ),
         #                                      (                    True, 0. )   ] )
 
-        self._rFn  = self._boundaryNodeFn * self._getRadiusFn()
+        self._rFn  = self._boundaryNodeFn * self.fn_uvec_radial()
         self._nsFn = self._boundaryNodeFn * self._getNSFn()
         self._ewFn = self._boundaryNodeFn * self._getEWFn()
 
@@ -1280,7 +1280,7 @@ class _FeMesh_Regional(FeMesh_Cartesian):
         self._normal = uw.function.branching.conditional([ (nsWallField > 0.5, self._nsFn ),
                                                            (             True, self._ewFn) ] )
 
-    def _getRadiusFn(self):
+    def fn_uvec_radial(self):
 
         pos = function.coord()
         centre = self._centroid
@@ -1332,7 +1332,7 @@ class _FeMesh_Annulus(FeMesh_Cartesian):
     def __new__(cls, **kwargs):
         return super(_FeMesh_Annulus,cls).__new__(cls, **kwargs)
 
-    def __init__(self, elementRes=(10,16), radius=(3.0,6.0), angularExtent=[0.0,360.0], centroid=[0.0,0.0], periodic=[False, True], **kwargs):
+    def __init__(self, elementRes=(10,16), radialLengths=(3.0,6.0), angularExtent=[0.0,360.0], centroid=[0.0,0.0], periodic=[False, True], **kwargs):
         """
         Class initialiser for Annulus mesh, centered on the 'centroid'.
 
@@ -1345,9 +1345,9 @@ class _FeMesh_Annulus(FeMesh_Cartesian):
                 1st element - Number of elements across the radial length of the domain
                 2nd element - Number of elements along the circumfrance
                 
-            radius : 2-tuple, default (3.0,6.0)
+            radialLengths : 2-tuple, default (3.0,6.0)
                 The radial position of the inner and outer surfaces respectively.
-                (inner radius, outer radius)
+                (inner radialLengths, outer radialLengths)
 
             angularExtent : 2-tuple, default (0.0,360.0)
                 The angular extent of the domain
@@ -1355,7 +1355,7 @@ class _FeMesh_Annulus(FeMesh_Cartesian):
             See parent classes for further required/optional parameters.
 
         >>> (radMin, radMax) = (4.0,8.0)
-        >>> mesh = uw.mesh._FeMesh_Annulus( elementRes=(14, 36), radius=(radMin, radMax), angularExtent=[0.0,180.0] )
+        >>> mesh = uw.mesh._FeMesh_Annulus( elementRes=(14, 36), radialLengths=(radMin, radMax), angularExtent=[0.0,180.0] )
         >>> integral = uw.utils.Integral( 1.0, mesh).evaluate()[0]
         >>> exact = np.pi*(radMax**2 - radMin**2)/2.
         >>> np.fabs(integral-exact)/exact < 1e-1
@@ -1372,30 +1372,30 @@ class _FeMesh_Annulus(FeMesh_Cartesian):
                 raise TypeError("Provided 'angularExtent' must be a tuple/list of 2 floats")
         self._angularExtent = angularExtent
         
-        if not isinstance( radius, (tuple,list)):
-            raise TypeError("Provided 'radius' must be a tuple/list of 2 floats")
-        if len(radius) != 2:
-            raise ValueError("Provided 'radius' must be a tuple/list of 2 floats")
-        for el in radius:
+        if not isinstance( radialLengths, (tuple,list)):
+            raise TypeError("Provided 'radialLengths' must be a tuple/list of 2 floats")
+        if len(radialLengths) != 2:
+            raise ValueError("Provided 'radialLengths' must be a tuple/list of 2 floats")
+        for el in radialLengths:
             if not isinstance( el, (float,int)) :
-                raise TypeError("Provided 'radius' must be a tuple/list of 2 floats")
-        self._radius = radius
+                raise TypeError("Provided 'radialLengths' must be a tuple/list of 2 floats")
+        self._radialLengths = radialLengths
 
         # build 3D mesh cartesian mesh centred on (0.0,0.0,0.0) - in _setup() we deform the mesh
         super(_FeMesh_Annulus,self).__init__(elementType="Q1/dQ0", elementRes=elementRes,
-                    minCoord=(radius[0],angularExtent[0]), maxCoord=(radius[1],angularExtent[1]), periodic=periodic, **kwargs)
+                    minCoord=(radialLengths[0],angularExtent[0]), maxCoord=(radialLengths[1],angularExtent[1]), periodic=periodic, **kwargs)
 
         self._centroid = centroid
         
     @property
-    def radius(self):
+    def radialLengths(self):
         """
         Returns:
         Annulus min/max radius
         """
-        return self._radius
+        return self._radialLengths
 
-    def _getRadiusFn(self):
+    def fn_uvec_radial(self):
         # returns the radial position
         pos = function.coord()
         centre = self._centroid
@@ -1436,6 +1436,6 @@ class _FeMesh_Annulus(FeMesh_Cartesian):
                                           [  ( self.bndMeshVariable > 0.999, 1. ),
                                              (                    True, 0. )   ] )
                                              
-        self._radialFn  = self._boundaryNodeFn * self._getRadiusFn()
+        self._radialFn  = self._boundaryNodeFn * self.fn_uvec_radial()
         self._tangentFn  = self._boundaryNodeFn * self._getTangentFn()
         # self._surface_tangentFn = self._boundaryNodeFn * self._getNSFn()
