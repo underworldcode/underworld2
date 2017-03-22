@@ -100,7 +100,7 @@ class Stokes(_stgermain.StgCompoundComponent):
 
     def __init__(self, velocityField, pressureField, fn_viscosity, fn_bodyforce=None, fn_one_on_lambda=None,
                  fn_lambda=None, fn_source=None, voronoi_swarm=None, conditions=[],
-                _removeBCs=True, _fn_viscosity2=None, _fn_director=None,  _rMatrix=None, _fn_stresshistory=None, **kwargs):
+                _removeBCs=True, _fn_viscosity2=None, _fn_director=None, _fn_stresshistory=None, **kwargs):
 
         # DEPRECATION ERROR
         if fn_lambda != None:
@@ -172,13 +172,6 @@ class Stokes(_stgermain.StgCompoundComponent):
             @fn_source.setter
             def fn_source(self, value):
                 self._fn_source = value
-
-        if _rMatrix:
-            if not isinstance( _rMatrix, uw.systems.sle.AssembledMatrix):
-                raise TypeError( "Provided '_rMatrix' must be of or convertible to 'AssembledMatrix' class." )
-            self._rMatrix = _rMatrix;
-            # hack that should work
-            self._cself.rMat = _rMatrix._cself
 
         if not fn_bodyforce:
             if velocityField.mesh.dim == 2:
@@ -326,3 +319,11 @@ class Stokes(_stgermain.StgCompoundComponent):
     @fn_bodyforce.setter
     def fn_bodyforce(self, value):
         self._forceVecTerm.fn = value
+    
+    def addRotationMatrix(self, rMat):
+        if rMat:
+            if not isinstance( rMat, uw.systems.sle.AssembledMatrix):
+                raise TypeError( "Provided 'rMat' must be of or convertible to 'AssembledMatrix' class." )
+            self.rMat = rMat;
+            # hack that should work
+            self._cself.rMat = rMat._cself
