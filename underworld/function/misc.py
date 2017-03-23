@@ -75,11 +75,11 @@ class constant(_Function):
     def _GetIOForPyInput(self, value):
         if isinstance(value, (int,float,bool) ):
             if isinstance(value,bool):
-                ioguy = _cfn.IO_bool(1,0)
+                ioguy = _cfn.IO_bool(1,_cfn.FunctionIO.Scalar)
             elif isinstance(value, int):
-                ioguy = _cfn.IO_int(1,0)
+                ioguy = _cfn.IO_int(1,_cfn.FunctionIO.Scalar)
             elif isinstance(value,float):
-                ioguy = _cfn.IO_double(1,0)
+                ioguy = _cfn.IO_double(1,_cfn.FunctionIO.Scalar)
             else:
                 raise RuntimeError("Failure during object creation. Please contact developers.")
             # now set val
@@ -94,24 +94,32 @@ class constant(_Function):
             else:
                 # iterable
                 tupleGuy = tuple(iterator)
-                lenTupleGuy = len(tupleGuy)
+                try:
+                    lenTupleGuy = len(tupleGuy)
+                except:
+                    raise ValueError("'value' object provided to Constant function appears to be an iterable, but "
+                                    +"does not appear to have a known length.")
+                
+                if lenTupleGuy == 0:
+                    raise ValueError("'value' object provided to Constant function appears to be an iterable, but "
+                                    +"seems to be of zero size. Iterable values must be of non-zero size.")
                 firstFella = tupleGuy[0]
                 if isinstance(firstFella,bool):
-                    ioguy = _cfn.IO_bool(lenTupleGuy,3)
+                    ioguy = _cfn.IO_bool(lenTupleGuy,_cfn.FunctionIO.Array)
                 elif isinstance(firstFella, int):
-                    ioguy = _cfn.IO_int(lenTupleGuy,3)
+                    ioguy = _cfn.IO_int(lenTupleGuy,_cfn.FunctionIO.Array)
                 elif isinstance(firstFella,float):
-                    ioguy = _cfn.IO_double(lenTupleGuy,3)
+                    ioguy = _cfn.IO_double(lenTupleGuy,_cfn.FunctionIO.Array)
                 else:
-                    raise ValueError("'value' object provided to Constant Function appears to be an iterable, but "
+                    raise ValueError("'value' object provided to Constant function appears to be an iterable, but "
                                     +"does not appear to contain objects of python type 'int', 'float' or 'bool'.")
                 # right, now load in ze data
                 ii = 0
                 for val in tupleGuy:
                     if not isinstance(val,type(firstFella)):
-                        raise ValueError("'value' object provided to Constant Function appears to be an iterable, but "
+                        raise ValueError("'value' object provided to Constant function appears to be an iterable, but "
                                         +"does not appear to be homogeneous in type. Objects in iterable must all be "
-                                        +"of python type 'int', all of type 'float', or all of type 'bool'.")
+                                        +"of python type 'int', 'float' or 'bool'.")
                     ioguy.value(val,ii)
                     ii+=1;
         return ioguy
