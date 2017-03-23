@@ -273,7 +273,7 @@ class Stokes(_stgermain.StgCompoundComponent):
             self._compressibleTerm = sle.MatrixAssemblyTerm_NA__NB__Fn(  integrationSwarm=intswarm,
                                                                          assembledObject=self._mmatrix,
                                                                          mesh=self._velocityField.mesh,
-                                                                         fn=-1.*self.fn_one_on_lambda )
+                                                                         fn=-self.fn_one_on_lambda )
 
         if _fn_stresshistory != None:
             self._vepTerm    = sle.VectorAssemblyTerm_VEP__Fn(  integrationSwarm=intswarm,

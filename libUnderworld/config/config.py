@@ -47,7 +47,7 @@ def SetFlags(env):
     if env.get('with_debugging', None):
         env.MergeFlags('-g -DDEBUG -O0')
     else:
-        env.MergeFlags('-O2 -DNDEBUG')
+        env.MergeFlags('-O2 -g -DNDEBUG')
 
     # enable all warnings.
     if env.get('with_warnings', None):    

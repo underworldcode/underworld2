@@ -252,6 +252,8 @@ PyObject* GeneralSwarm_AddParticlesFromCoordArray( void* swarm, Index count, Ind
         }
     }
  
+    free(cellArray);
+    
     /* create numpy array to return */
     npy_intp dims[1] = { count };
     PyObject* pyobj = PyArray_New(&PyArray_Type, 1, dims, NPY_INT, NULL, (void*)partLocalIndex, sizeof(int), 0, NULL);
