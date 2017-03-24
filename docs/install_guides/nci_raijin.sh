@@ -1,6 +1,6 @@
 # This script builds underworld2 on the nci_raijin machine.
 
-git clone http://github.com/underworldcode/underworld2.git your_uw_directory
+git clone https://github.com/underworldcode/underworld2.git your_uw_directory
 cd your_uw_directory
 
 module purge
