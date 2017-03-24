@@ -120,18 +120,28 @@ once the following criterion are met:
 To help with producing an update change list, and also with reporting, please use 
 one or more of the following tags within your changeset comments:
 
-#NEWFEATURE : Any new API features
-#NEWDOCUMENTATION : Any new documentation, including new models, docstrings, etc.
-#APICHANGE : Any interface changes to existing API. 
-#BUGFIX : Any bug fixes
-#BUGFIXCRITICAL : Any very important bug fixes. 
-#ENHANCEMENT: Other enhancements. 
-#DEPRECATION: Deprecated functionality.
+NEWFEATURE : Any new API features
+NEWDOCUMENTATION : Any new documentation, including new models, docstrings, etc.
+APICHANGE : Any interface changes to existing API. 
+BUGFIX : Any bug fixes
+BUGFIXCRITICAL : Any very important bug fixes. 
+ENHANCEMENT: Other enhancements. 
+DEPRECATION: Deprecated functionality.
 
 These tags should be used for any note-worthy changes, but are not necessary for 
 any trivial changes. Also, where changes relate to github issues, reference the 
 issue number. Github will automatically provide a reference back to the changeset
-in the issue.
+in the issue.  
+
+For example:
+
+```text
+BUGFIXCRITICAL
+Fixes #200
+
+...
+
+```
 
 
 Bug reporting

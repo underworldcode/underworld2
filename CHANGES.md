@@ -1,6 +1,11 @@
 CHANGES: Underworld2
 =======================
 
+Release 2.2.2b  [2016-03-08]
+----------------------------
+Bug fixes:
+* Critical bug fixed where retrieving symmetric tensor in 3d returned 2d result.
+
 Release 2.2.1b  [2016-02-14]
 ----------------------------
 Documentation

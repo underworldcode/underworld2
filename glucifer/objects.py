@@ -16,16 +16,13 @@ import libUnderworld as _libUnderworld
 
 #TODO: Drawing Objects to implement
 # IsoSurface, IsoSurfaceCrossSection
-# MeshSurface/MeshSampler (surface/volumes using MeshCrossSection sampler)
 # Contour, ContourCrossSection
 # HistoricalSwarmTrajectory
-# VectorArrowMeshCrossSection?
 #
 # Maybe later...
 # TextureMap
 # SwarmShapes, SwarmRGB, SwarmVectors
 # EigenVectors, EigenVectorCrossSection
-# FeVariableSurface
 
 #Some preset colourmaps
 # aim to reduce banding artifacts by being either 
@@ -343,14 +340,19 @@ class CrossSection(Drawing):
         Cross Section definition, eg. z=0.
     resolution : unsigned
         Surface rendered sampling resolution.
+    onMesh : boolean
+        Sample the mesh nodes directly, as opposed to sampling across a regular grid. This flag
+        should be used in particular where a mesh has been deformed.
         
     """
     _objectsDict = { "_dr": "lucCrossSection" }
 
     def __init__(self, mesh, fn, crossSection="", resolution=100,
                        colours=None, colourMap=None, colourBar=True,
-                       valueRange=None, logScale=False, discrete=False, offsetEdges=None,
+                       valueRange=None, logScale=False, discrete=False, offsetEdges=None, onMesh=False,
                        *args, **kwargs):
+
+        self._onMesh = onMesh
 
         self._fn = _underworld.function.Function.convert(fn)
         
@@ -387,7 +389,8 @@ class CrossSection(Drawing):
         componentDictionary[self._dr.name].update( {
                    "Mesh": self._mesh._cself.name,
                    "crossSection": self._crossSection,
-                   "resolution" : self._resolution
+                   "resolution" : self._resolution,
+                   "onMesh" : self._onMesh
             } )
 
     @property
@@ -395,72 +398,6 @@ class CrossSection(Drawing):
         """    crossSection (str): Cross Section definition, eg;: z=0.
         """
         return self._crossSection
-
-class SurfaceOnMesh(CrossSection):
-    """  
-    This drawing object class draws a surface using the provided scalar field. 
-    This object differs from the `Surface` class in that it samples the mesh
-    nodes directly, as opposed to sampling across a regular grid. This class
-    should be used in particular where a mesh has been deformed.
-
-    See parent class for further parameter details. Also see property docstrings.
-
-    Notes
-    -----
-    The interface to this object will be revised in future versions.
-    
-    Parameters
-    ---------
-    mesh : underworld.mesh.FeMesh
-        Mesh over which cross section is rendered.
-    fn : underworld.function.Function
-        Function used to determine values to render.
-    drawSides : str
-        Sides (x,y,z,X,Y,Z) for which the surface should be drawn. 
-        For example, "xyzXYZ" would render the provided function across
-        all surfaces of the domain in 3D. In 2D, this object always renders
-        across the entire domain.
-    """
-    
-    # let's just build both objects because we aint sure yet which one we want to use yet
-    _objectsDict = {  "_dr"  : "lucScalarFieldOnMesh" }
-
-    def __init__(self, mesh, fn, drawSides="xyzXYZ",
-                       colours=None, colourMap=None, colourBar=True,
-                       valueRange=None, logScale=False, discrete=False,
-                       *args, **kwargs):
-
-        if not isinstance(drawSides,str):
-            raise ValueError("'drawSides' parameter must be of python type 'str'")
-        self._drawSides = drawSides
-
-        #Default properties
-        self.properties = {"cullface" : True}
-        # TODO: disable lighting if 2D (how to get dims?)
-        #self.properties["lit"] = False
-        
-        # build parent
-        super(SurfaceOnMesh,self).__init__( mesh=mesh, fn=fn,
-                        colours=colours, colourMap=colourMap, colourBar=colourBar,
-                        valueRange=valueRange, logScale=logScale, discrete=discrete, *args, **kwargs)
-
-
-    def _add_to_stg_dict(self,componentDictionary):
-        # lets build up component dictionary
-        # append random string to provided name to ensure unique component names
-        # call parents method
-        
-        super(SurfaceOnMesh,self)._add_to_stg_dict(componentDictionary)
-
-        componentDictionary[self._dr.name]["drawSides"] = self._drawSides
-        componentDictionary[self._dr.name][     "Mesh"] = self._mesh._cself.name
-
-    def _setup(self):
-        _libUnderworld.gLucifer._lucMeshCrossSection_SetFn( self._cself, self._fn._fncself )
-
-    def __del__(self):
-        super(SurfaceOnMesh,self).__del__()
-
 
 class Surface(CrossSection):
     """  
@@ -481,7 +418,6 @@ class Surface(CrossSection):
         across the entire domain.
     """
     
-    # let's just build both objects because we aint sure yet which one we want to use yet
     _objectsDict = {  "_dr"  : "lucScalarField" }
 
     def __init__(self, mesh, fn, drawSides="xyzXYZ",
@@ -493,16 +429,14 @@ class Surface(CrossSection):
             raise ValueError("'drawSides' parameter must be of python type 'str'")
         self._drawSides = drawSides
 
-        #Default properties
-        self.properties = {"cullface" : True}
-        # TODO: disable lighting if 2D (how to get dims?)
-        #self.properties["lit"] = False
-        
         # build parent
         super(Surface,self).__init__( mesh=mesh, fn=fn,
                         colours=colours, colourMap=colourMap, colourBar=colourBar,
                         valueRange=valueRange, logScale=logScale, discrete=discrete, *args, **kwargs)
 
+        #Default properties
+        is3d = len(self._crossSection) == 0
+        self.properties.update({"cullface" : is3d, "lit" : is3d})
 
     def _add_to_stg_dict(self,componentDictionary):
         # lets build up component dictionary
@@ -519,7 +453,6 @@ class Surface(CrossSection):
 
     def __del__(self):
         super(Surface,self).__del__()
-
 
 class Points(Drawing):
     """  
@@ -711,6 +644,7 @@ class Volume(_GridSampler3D):
                        colours=None, colourMap=None, colourBar=True,
                        valueRange=None, logScale=False, discrete=False,
                        *args, **kwargs):
+
         # build parent
         if mesh.dim == 2:
             raise ValueError("Volume rendered requires a three dimensional mesh.")

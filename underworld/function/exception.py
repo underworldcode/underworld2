@@ -29,7 +29,7 @@ class SafeMaths(_Function):
     
     Parameters
     ----------
-    fn: underworld.Function
+    fn: underworld.function.Function
         The function that is subject to the testing.
         
     Example
@@ -81,12 +81,12 @@ class CustomException(_Function):
     
     Parameters
     ----------
-    fn_passthrough: underworld.Function
+    fn_passthrough: underworld.function.Function
         The pass through function
-    fn_condition: underworld.Function
+    fn_condition: underworld.function.Function
         The condition function
-    fn_print: underworld.Function (optional)
-        The print function
+    fn_print: underworld.function.Function
+        The print function (optional).
         
     Example
     -------

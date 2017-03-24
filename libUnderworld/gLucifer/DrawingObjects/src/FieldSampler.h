@@ -22,10 +22,6 @@ extern const Type lucFieldSampler_Type;
       /* Virtual functions go here */ \
       /* Other info */\
       IJK                           resolution;       \
-      /* Calculated Values */ \
-      Index                         total;            \
-      Index                         elementRes[3];    \
-      Coord                         cell;             \
 
 struct lucFieldSampler
 {

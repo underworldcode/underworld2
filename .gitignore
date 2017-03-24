@@ -98,5 +98,6 @@ docs/user_guide/deformedMesh.h5
 
 docs/user_guide/surf.gldb
 
+docs/test/image_tests/notebooks/*
 
 docs/test/Pressure_Error.png

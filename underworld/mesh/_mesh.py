@@ -87,7 +87,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         Returns
         -------
         str
-            Element type for FeMesh. Supported types are "Q2", "Q1", "dPc1" and "dQ0".
+            Element type for FeMesh. Supported types are "Q2", "Q1", "dQ1", "dPc1" and "dQ0".
         """
         return self._elementType
     @property
@@ -208,7 +208,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         return self._arr
 
     @contextlib.contextmanager
-    def deform_mesh(self, remainsRegular=False):
+    def deform_mesh(self, isRegular=False, remainsRegular=None):
         """
         Any mesh deformation must occur within this python context manager. Note
         that certain algorithms may be switched to their irregular mesh equivalents
@@ -219,7 +219,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
 
         Parameters
         ----------
-        remainsRegular : bool, default=False
+        isRegular : bool, default=False
             The general assumption is that the deformed mesh will no longer be regular
             (orthonormal), and more general but less efficient algorithms will be
             selected via this context manager. To over-ride this behaviour, set
@@ -234,14 +234,10 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         ...     someMesh.data[0] = [0.1,0.1]
         >>> someMesh.data[0]
         array([ 0.1,  0.1])
-
-
         """
-        # set the general mesh algorithm now
-        if not remainsRegular:
-#            if uw.rank() == 0: print("Switching to irregular mesh algorithms.")
-            uw.libUnderworld.StgDomain.Mesh_SetAlgorithms( self._cself, None )
-            self._cself.isRegular = False
+        
+        if not remainsRegular is None:
+            raise RuntimeError("'remainsRegular' parameter has been renamed to 'isRegular'")
 
         # execute any pre deform functions
         for function in self._pre_deform_functions:
@@ -259,12 +255,16 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
                                                      +"the 'deform_mesh' context manager. \nEncountered exception message:\n")
         finally:
             self.data.flags.writeable = False
-            # call deformupdate, which updates various mesh metrics
-#            if uw.rank() == 0: print("Updating mesh metrics.")
+            if isRegular:
+                self._cself.isRegular = True
+                uw.libUnderworld.StgDomain.Mesh_SetAlgorithms( self._cself,
+                                                               uw.libUnderworld.StgDomain.Mesh_RegularAlgorithms_New("",None) )
+            else:
+                uw.libUnderworld.StgDomain.Mesh_SetAlgorithms( self._cself, None )
+                self._cself.isRegular = False
+            uw.libUnderworld.StgDomain.Mesh_Sync( self._cself )
             uw.libUnderworld.StgDomain.Mesh_DeformationUpdate( self._cself )
             if hasattr(self,"subMesh") and self.subMesh:
-                # remesh the submesh based on the new primary
-#                if uw.rank() == 0: print("Updating submesh for primary mesh changes.")
                 self.subMesh.reset()
 
             # execute any post deform functions
@@ -483,7 +483,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         ...     os.remove( "saved_mesh.h5" )
 
         """
-        
+
         if hasattr(self.generator, 'geometryMesh'):
             raise RuntimeError("Cannot save this mesh as it's a subMesh. "
                                 + "Most likely you only need to save its geometryMesh")
@@ -555,6 +555,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         Refer to example provided for 'save' method.
 
         """
+        self.reset()
         if not isinstance(filename, str):
             raise TypeError("Expected filename to be provided as a string")
 
@@ -582,12 +583,8 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         if len(dset) != self.nodesGlobal:
             raise RuntimeError("Provided data file appears to be for a different resolution mesh.")
 
-        with self.deform_mesh():
+        with self.deform_mesh(isRegular=h5f.attrs['regular']):
             self.data[0:self.nodesLocal] = dset[self.data_nodegId[0:self.nodesLocal],:]
-
-        # note that deform_mesh always sets the mesh to irregular.
-        # reset this according to what the saved file has.
-        self._cself.isRegular = h5f.attrs['regular']
 
         h5f.close()
 
@@ -619,7 +616,7 @@ class MeshGenerator(_stgermain.StgCompoundComponent):
         Returns
         -------
         int
-            FeMesh dimensionality.
+            The mesh dimensionality.
         """
         return self._dim
 
@@ -805,6 +802,7 @@ class CartesianMeshGenerator(MeshGenerator):
         # set algos back to regular
         uw.libUnderworld.StgDomain.Mesh_SetAlgorithms( mesh._cself,
                                                        uw.libUnderworld.StgDomain.Mesh_RegularAlgorithms_New("",None) )
+        uw.libUnderworld.StgDomain.Mesh_Sync( self._cself )
         uw.libUnderworld.StgDomain.Mesh_DeformationUpdate( mesh._cself )
 
 

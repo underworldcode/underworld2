@@ -137,7 +137,6 @@ void _GeneralSwarm_Build( void* swarm, void* data )
    GeneralSwarm*	self = (GeneralSwarm*) swarm;
    int			commHandler_I;
    Bool                    movementCommHandlerFound = False;
-   Stream*                 errorStream = Journal_Register( Error_Type, (Name)self->type  );
    int var_I;
 
    _Swarm_Build( self, data );
@@ -160,7 +159,7 @@ void _GeneralSwarm_Build( void* swarm, void* data )
    }
 
    Journal_Firewall( (Stg_ObjectList_Count(self->commHandlerList) >= 1) && (movementCommHandlerFound == True),
-                     errorStream, "Error: for GeneralSwarm Swarms, at least one ParticleMovementHandler"
+                     NULL, "Error: for GeneralSwarm Swarms, at least one ParticleMovementHandler"
                      " commHandler must be registered. Please rectify this in your XML / code.\n" );
 
    for( var_I = 0 ; var_I < self->nSwarmVars ; var_I++ )
@@ -253,6 +252,8 @@ PyObject* GeneralSwarm_AddParticlesFromCoordArray( void* swarm, Index count, Ind
         }
     }
  
+    free(cellArray);
+    
     /* create numpy array to return */
     npy_intp dims[1] = { count };
     PyObject* pyobj = PyArray_New(&PyArray_Type, 1, dims, NPY_INT, NULL, (void*)partLocalIndex, sizeof(int), 0, NULL);
@@ -374,12 +375,12 @@ unsigned GeneralSwarm_IntegrationPointMap( void* _self, void* _intSwarm, unsigne
 
         Journal_Firewall(
             intSwarm->mesh==(FeMesh*)((ElementCellLayout*)self->cellLayout)->mesh,
-            Journal_Register( Error_Type, (Name)self->type  ),
+            NULL,
             "Error - in %s(): Mapper requires both the MaterialSwarm and\n"
             "the IntegrationSwarm to live on the same mesh.\n"
             "Here the MaterialSwarm %s lives in the mesh %s\n"
             "and the IntegrationSwarm %s lives in the mesh %s.",
-            self->name, ((ElementCellLayout*)self->cellLayout)->mesh->name,
+            __func__, self->name, ((ElementCellLayout*)self->cellLayout)->mesh->name,
             intSwarm->name, intSwarm->mesh->name
         );
         
@@ -397,7 +398,7 @@ unsigned GeneralSwarm_IntegrationPointMap( void* _self, void* _intSwarm, unsigne
         Particle_Index particle_M;
         
         Journal_Firewall( cellPartCount,
-            Journal_Register( Error_Type, (Name)self->type  ),
+            NULL,
             "Error - in %s(): There doesn't appear to be any particles\n"
             "within the current cell (%u).\n",
             self->name, cell_M );

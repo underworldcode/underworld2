@@ -91,7 +91,7 @@ class DirichletCondition(SystemCondition):
 
         if variable.nodeDofCount != len(self._indexSets):
             raise ValueError("Provided variable has a nodeDofCount of {}, however you have ".format(variable.nodeDofCount)+
-                             "provided {} index set(s). You must provide an index set for each degree ".format(len(self.indexSets))+
+                             "provided {} index set(s). You must provide an index set for each degree ".format(len(self._indexSets))+
                              "of freedom of your variable, but no more.")
 
         # ok, lets setup the c array
@@ -157,4 +157,3 @@ class NeumannCondition(SystemCondition):
     def flux(self):
         """ See class constructor for details. """
         return self._flux
-

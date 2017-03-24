@@ -606,7 +606,7 @@ class Figure(dict):
         ----------
         filename :str
             Filename to save file to.  May include an absolute or relative path.
-            size (tuple(int,int)): size of image in pixels, defaults to original figsize setting
+        size (tuple(int,int)): size of image in pixels, defaults to original figsize setting
             If omitted, simply saves the figure data without generating an image
         type: str
             Type of visualisation to save ('Image' or 'WebGL').
