@@ -420,7 +420,7 @@ void lucCrossSection_AllocateSampleData(void* drawingObject, int dims)
    Index          aIndex, bIndex, d;
    if (dims <= 0) dims = self->fieldComponentCount;
 
-   if ((!self->vertices && self->rank == 0) || !self->gatherData || self->onMesh)
+   if ((!self->vertices && self->rank == 0) || !self->gatherData)
       self->vertices = Memory_Alloc_3DArray( float, self->resolutionA, self->resolutionB, 3, "quad vertices");
    else
       self->vertices = NULL;
