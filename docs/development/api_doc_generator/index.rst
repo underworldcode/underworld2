@@ -6,15 +6,16 @@
 Underworld2 API Documentation
 =============================
 
+
+Modules
+~~~~~~~
+
 .. toctree::
     :maxdepth: 1
 
     underworld
     glucifer
 
-
-Index
-~~~~~
 
 :ref:`genindex`
 

@@ -25,12 +25,13 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
     ----------
     mesh : underworld.mesh.FeMesh
         The supporting mesh for the variable.
-    dataType : string, default="double"
+    dataType : strin
         The data type for the variable.
         Note that only 'double' type variables are currently
-        supported
+        supported.
     nodeDofCount : int
         Number of degrees of freedom per node the variable should have.
+
 
     See property docstrings for further information.
 
@@ -246,7 +247,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
             The xdmf name to give the mesh
         fieldSavedData : underworld.SavedFileData
             Handler returned from saving a field. underworld.mesh.save(xxx)
-        modeltime : float (default 0.0)
+        modeltime : float
             The time recorded in the xdmf output file
 
         Example
@@ -440,7 +441,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         filename: str
             The filename for the saved file. Relative or absolute paths may be
             used, but all directories must exist.
-        interpolate: bool (default False)
+        interpolate: bool
             Set to True to interpolate a file containing different resolution data.
             Note that a temporary MeshVariable with the file data will be build
             on **each** processor. Also note that the temporary MeshVariable
@@ -557,7 +558,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
 
         Parameters
         ----------
-        deepcopy: bool (default False)
+        deepcopy: bool
             If True, the variable's data is also copied into
             new variable.
 

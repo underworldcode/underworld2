@@ -219,7 +219,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
 
         Parameters
         ----------
-        isRegular : bool, default=False
+        isRegular : bool
             The general assumption is that the deformed mesh will no longer be regular
             (orthonormal), and more general but less efficient algorithms will be
             selected via this context manager. To over-ride this behaviour, set
@@ -974,7 +974,20 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
         mesh will be created.
         The submesh is accessible through the 'subMesh' property. The
         primary mesh itself is the object returned by this constructor.
-
+    elementRes: list,tuple
+        List or tuple of ints specifying mesh resolution. See CartesianMeshGenerator.elementRes
+        docstring for further information.
+    minCoord:  list, tuple
+        List or tuple of floats specifying minimum mesh location. See CartesianMeshGenerator.minCoord
+        docstring for further information.
+    maxCoord: list, tuple
+        List or tuple of floats specifying maximum mesh location. See CartesianMeshGenerator.maxCoord
+        docstring for further information.
+    periodic: list, tuple
+        List or tuple of bools, specifying mesh periodicity in each direction.
+    partitioned: bool
+        If false, the mesh is not partitioned across entire processor pool. Instead
+        mesh is entirely owned by processor which generated it.
 
 
     Examples
@@ -1101,11 +1114,11 @@ class FeMesh_IndexSet(uw.container.ObjectifiedIndexSet, function.FunctionInput):
 
     Parameters
     ----------
+    object: underworld.mesh.FeMesh
+        The FeMesh instance from which the IndexSet was extracted.
     topologicalIndex: int
         Mesh topological index for which the IndexSet relates. See
         docstring for further info.
-    object: underworld.mesh.FeMesh
-        The FeMesh instance from which the IndexSet was extracted.
 
     Example
     -------
