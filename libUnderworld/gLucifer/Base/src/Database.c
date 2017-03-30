@@ -102,10 +102,10 @@ void _lucDatabase_Init(
    
    if (vfs && strlen(vfs)) self->vfs = StG_Strdup(vfs);
    self->viewonly = viewonly;
-   self->drawingObject_Register = lucDrawingObject_Register_New();
+   self->drawingObjects = NamedObject_Register_New();
 
    for ( object_I = 0 ; object_I < drawingObjectCount ; object_I++ )
-      lucDrawingObject_Register_Add( self->drawingObject_Register, drawingObjectList[ object_I ] );
+      NamedObject_Register_Add( self->drawingObjects, drawingObjectList[ object_I ] );
 
    /* Set minZ = maxZ for 2d models */
 
@@ -226,6 +226,11 @@ void _lucDatabase_Execute( void* database, void* data )
    
    if (self->context && !self->context->vis) return;
 
+   NamedObject_Register* dr = self->drawingObjects;
+   Index objectCount = dr->objects->count;
+   Index object_I;
+   lucDrawingObject* object;
+
    if (self->rank == 0)
    {
       if (!self->db)
@@ -234,20 +239,26 @@ void _lucDatabase_Execute( void* database, void* data )
          lucDatabase_OpenDatabase(self);
       }
 
-      lucDrawingObject_Register* dr = self->drawingObject_Register;
-      Index objectCount = lucDrawingObject_Register_GetCount( dr );
-      Index object_I;
-
       /* Output own object settings */
       for ( object_I = 0 ; object_I < objectCount ; object_I++ )
       {
-         lucDrawingObject* object = lucDrawingObject_Register_GetByIndex( dr, object_I );
+         object = (lucDrawingObject*)NamedObject_Register_GetByIndex( dr, object_I );
          lucDatabase_OutputDrawingObject(self, object);
       }
    }
 
    /* Call setup on drawing objects (if any) !This must be called on all procs! */
-   lucDrawingObject_Register_SetupAll( self->drawingObject_Register, database );
+   for ( object_I = 0 ; object_I < objectCount ; object_I++ )
+   {
+      object = (lucDrawingObject*)NamedObject_Register_GetByIndex( dr, object_I );
+      /* Ensure setup has been called to prepare for rendering (used to set position information) */
+      if ( !object->disabled)
+      {
+         object->_setup( object, self, self->context );
+         object->needsToCleanUp = True;
+         object->needsToDraw = True;
+      }
+   }
 
    if (self->rank == 0)
    {
@@ -300,8 +311,15 @@ void _lucDatabase_Execute( void* database, void* data )
    }
 
    /* If we have global list of drawing objects to output, process them here */
-   lucDrawingObject_Register_DrawAll( self->drawingObject_Register, self);
-   lucDrawingObject_Register_CleanUpAll( self->drawingObject_Register );
+   for ( object_I = 0 ; object_I < objectCount ; object_I++ )
+   {
+      object = (lucDrawingObject*)NamedObject_Register_GetByIndex( dr, object_I );
+      lucDrawingObject_Draw( object, self, self->context );
+      lucDatabase_OutputGeometry(self, object->id);
+
+      if (object->needsToCleanUp )
+         object->_cleanUp( object );
+   }
 }
 
 void _lucDatabase_Destroy( void* database, void* data ) { }
@@ -513,7 +531,6 @@ void lucDatabase_GatherGeometry(lucDatabase* self, lucGeometryType type, lucGeom
       memcpy(block->max, bmax, sizeof(float) * 3);
       if (data_type == lucVertexData)
          MPI_Reduce( &block->width, &width, 1, MPI_INT, MPI_SUM, 0, self->communicator );
-      /* (keep dimcoeff and units from root proc) */
       if (self->rank == 0)
       {
          //Journal_Printf(lucDebug, "Gathered %d values, took %f sec\n", total, MPI_Wtime() - time);
@@ -528,7 +545,7 @@ void lucDatabase_GatherGeometry(lucDatabase* self, lucGeometryType type, lucGeom
             lucGeometryData_Read(block, counts[p] / block->size, &data[offsets[p]]);
          }
          //printf("count %d, \n", block->count);
-         lucGeometryData_Setup(block, min, max, block->dimCoeff, block->units);
+         lucGeometryData_Setup(block, min, max);
       }
    }
 
@@ -628,7 +645,7 @@ void lucDatabase_AddNormal(lucDatabase* self, lucGeometryType type, XYZ norm)
 void lucDatabase_AddVectors(lucDatabase* self, int n, lucGeometryType type, float min, float max, float* data)
 {
    lucGeometryData_Read(self->data[type][lucVectorData], n, data);
-   lucGeometryData_Setup(self->data[type][lucVectorData], min, max, 1.0, "");
+   lucGeometryData_Setup(self->data[type][lucVectorData], min, max);
 }
 
 void lucDatabase_AddValues(lucDatabase* self, int n, lucGeometryType type, lucGeometryDataType data_type, lucColourMap* colourMap, float* data)
@@ -639,7 +656,7 @@ void lucDatabase_AddValues(lucDatabase* self, int n, lucGeometryType type, lucGe
    if (!colourMap) return;
 
    /* Set colour map parameters */
-   lucGeometryData_Setup(self->data[type][data_type], colourMap->minimum, colourMap->maximum, 1., "");
+   lucGeometryData_Setup(self->data[type][data_type], colourMap->minimum, colourMap->maximum);
 }
 
 void lucDatabase_AddVolumeSlice(lucDatabase* self, int width, int height, float* corners, lucColourMap* colourMap, float* data)
@@ -732,9 +749,6 @@ void lucGeometryData_Clear(lucGeometryData* self)
 
    self->min[I_AXIS] = self->min[J_AXIS] = self->min[K_AXIS] = HUGE_VAL;
    self->max[I_AXIS] = self->max[J_AXIS] = self->max[K_AXIS] = -HUGE_VAL;
-
-   self->dimCoeff = 1.0;
-   self->units = NULL;
 }
 
 void lucGeometryData_Delete(lucGeometryData* self)
@@ -761,12 +775,10 @@ void lucGeometryData_Read(lucGeometryData* self, int items, float* data)
    self->count += new;
 }
 
-void lucGeometryData_Setup(lucGeometryData* self, float min, float max, float dimFactor, const char* units)
+void lucGeometryData_Setup(lucGeometryData* self, float min, float max)
 {
    self->minimum = min;
    self->maximum = max;
-   self->dimCoeff = dimFactor;
-   self->units = units;  
 }
 
 void lucDatabase_OpenDatabase(lucDatabase* self)
@@ -929,7 +941,7 @@ int lucDatabase_WriteGeometry(lucDatabase* self, int index, lucGeometryType type
    if (block->min[1] > block->max[1]) block->min[1] = block->max[1] = 0;
    if (block->min[2] > block->max[2]) block->min[2] = block->max[2] = 0;
 
-   snprintf(SQL, MAX_QUERY_LEN, "insert into geometry (object_id, timestep, rank, idx, type, data_type, size, count, width, minimum, maximum, dim_factor, units, minX, minY, minZ, maxX, maxY, maxZ, labels, data) values (%d, %d, %d, %d, %d, %d, %d, %d, %d, %g, %g, %g, '%s', %g, %g, %g, %g, %g, %g, ?, ?)", object_id, self->timeStep, 0, index, type, data_type, block->size, block->count, block->width, block->minimum, block->maximum, block->dimCoeff, block->units ? block->units : "", block->min[0], block->min[1], block->min[2], block->max[0], block->max[1], block->max[2]);
+   snprintf(SQL, MAX_QUERY_LEN, "insert into geometry (object_id, timestep, rank, idx, type, data_type, size, count, width, minimum, maximum, dim_factor, units, minX, minY, minZ, maxX, maxY, maxZ, labels, data) values (%d, %d, %d, %d, %d, %d, %d, %d, %d, %g, %g, %g, '%s', %g, %g, %g, %g, %g, %g, ?, ?)", object_id, self->timeStep, 0, index, type, data_type, block->size, block->count, block->width, block->minimum, block->maximum, 1.0, "", block->min[0], block->min[1], block->min[2], block->max[0], block->max[1], block->max[2]);
 
    /* Prepare statement... */
    if (sqlite3_prepare_v2(db, SQL, -1, &statement, NULL) != SQLITE_OK)

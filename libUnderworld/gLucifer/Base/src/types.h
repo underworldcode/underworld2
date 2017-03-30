@@ -17,7 +17,6 @@ typedef struct lucColourMapping            lucColourMapping;
 
 typedef struct lucDatabase                 lucDatabase;
 
-typedef struct lucDrawingObject_Register   lucDrawingObject_Register;
 typedef struct lucDrawingObject            lucDrawingObject;
 
 /* types for clarity */

@@ -172,7 +172,6 @@ class Store(_stgermain.StgCompoundComponent):
             self.viewer = lavavu.Viewer(cache=False, binpath=self._lvpath, database=db, timestep=self.step, *args, **kwargs)
         else:
             self.viewer.setup(cache=False, database=db, timestep=self.step, *args, **kwargs)
-        #self.viewer.init()
 
         return self.viewer
 
@@ -207,8 +206,8 @@ class Store(_stgermain.StgCompoundComponent):
             self._db.timeStep = self.step
 
             #Delete all drawing objects in register
-            for ii in range(self._db.drawingObject_Register.objects.count,0,-1):
-                libUnderworld.StGermain._Stg_ObjectList_RemoveByIndex(self._db.drawingObject_Register.objects,ii-1, libUnderworld.StGermain.KEEP)
+            for ii in range(self._db.drawingObjects.objects.count,0,-1):
+                libUnderworld.StGermain._Stg_ObjectList_RemoveByIndex(self._db.drawingObjects.objects,ii-1, libUnderworld.StGermain.KEEP)
 
             #Add drawing objects to register and output any custom data on them
             for obj in self._objects:
@@ -221,7 +220,7 @@ class Store(_stgermain.StgCompoundComponent):
                     _libUnderworld.gLucifer.lucColourMap_SetProperties(obj._colourMap._cm, obj._colourMap._getProperties());
 
                 #Add the object to the drawing object register for the database
-                libUnderworld.StGermain.Stg_ObjectList_Append(self._db.drawingObject_Register.objects,obj._cself)
+                libUnderworld.StGermain.Stg_ObjectList_Append(self._db.drawingObjects.objects,obj._cself)
 
             # go ahead and fill db
             libUnderworld.gLucifer._lucDatabase_Execute(self._db,None)
