@@ -40,7 +40,6 @@ extern "C" {
 %include "Base/types.h"
 %include "Base/ColourMap.h"
 %include "Base/DrawingObject.h"
-%include "Base/DrawingObject_Register.h"
 %include "Base/Database.h"
 %include "Base/Finalise.h"
 %include "Base/Init.h"
