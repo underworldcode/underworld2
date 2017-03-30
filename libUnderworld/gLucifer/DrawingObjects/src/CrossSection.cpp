@@ -134,6 +134,9 @@ void _lucCrossSection_Delete( void* drawingObject )
    if (self->cppdata)
        delete (lucCrossSection_cppdata*)self->cppdata;
 
+  if (self->values)
+    lucCrossSection_FreeSampleData(self);
+
    _lucDrawingObject_Delete( self );
 }
 

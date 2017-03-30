@@ -43,6 +43,7 @@ Bool lucDrawingObjects_Init()
    Stg_ComponentRegister_Add( componentRegister, lucEigenvectors_Type, (Name)"0", _lucEigenvectors_DefaultNew  );
    Stg_ComponentRegister_Add( componentRegister, lucSwarmRGBColourViewer_Type, (Name)"0", _lucSwarmRGBColourViewer_DefaultNew  );
    Stg_ComponentRegister_Add( componentRegister, lucMeshViewer_Type, (Name)"0", _lucMeshViewer_DefaultNew  );
+   Stg_ComponentRegister_Add( componentRegister, lucSampler_Type, (Name)"0", _lucSampler_DefaultNew  );
 
 
    /* Register Parents for type checking */
@@ -63,6 +64,7 @@ Bool lucDrawingObjects_Init()
    RegisterParent( lucHistoricalSwarmTrajectory_Type, lucDrawingObject_Type );
    RegisterParent( lucSwarmRGBColourViewer_Type,      lucSwarmViewer_Type );
    RegisterParent( lucMeshViewer_Type,                lucDrawingObject_Type );
+   RegisterParent( lucSampler_Type,                   lucDrawingObject_Type );
 
 
 

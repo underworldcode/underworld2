@@ -30,6 +30,7 @@
 #include "HistoricalSwarmTrajectory.h"
 #include "SwarmRGBColourViewer.h"
 #include "MeshViewer.h"
+#include "Sampler.h"
 
 #include "Init.h"
 #include "Finalise.h"

@@ -28,10 +28,6 @@ typedef struct lucSwarmShapes                    lucSwarmShapes;
 typedef struct lucHistoricalSwarmTrajectory      lucHistoricalSwarmTrajectory;
 typedef struct lucSwarmRGBColourViewer           lucSwarmRGBColourViewer;
 typedef struct lucMeshViewer                     lucMeshViewer;
-
-
-
-
-
+typedef struct lucSampler                        lucSampler;
 
 #endif
