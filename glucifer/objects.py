@@ -13,9 +13,9 @@ import underworld.swarm as _swarmMod
 import underworld.mesh as _uwmesh
 from underworld.function import Function as _Function
 import libUnderworld as _libUnderworld
+import numpy
 
 #TODO: Drawing Objects to implement
-# IsoSurface, IsoSurfaceCrossSection
 # Contour, ContourCrossSection
 # HistoricalSwarmTrajectory
 #
@@ -224,6 +224,36 @@ class Drawing(_stgermain.StgCompoundComponent):
         #Convert properties to string
         return '\n'.join(['%s=%s' % (k,v) for k,v in self.properties.iteritems()]);
 
+    def render(self, viewer):
+        #Place any custom geometry output in this method, called after database creation
+
+        #General purpose plotting via LavaVu
+        #Plot all custom data drawn on provided object
+        obj = viewer.objects[self.properties["name"]]
+        if not obj:
+            print "Object not found: " + self.properties["name"]
+            return
+
+        obj["geometry"] = self.geomType
+
+        output = False
+        if len(self.vertices):
+            obj.vertices(self.vertices)
+            output = True
+        if len(self.vectors):
+            obj.vectors(self.vectors)
+            output = True
+        if len(self.scalars):
+            obj.values(self.scalars)
+            output = True
+        if len(self.labels):
+            obj.label(self.labels)
+            output = True
+
+        #Update the database
+        if output:
+            viewer.app.update(obj.ref, True)
+
     def resetDrawing(self):
         #Clear direct drawing data
         self.vertices = []
@@ -248,7 +278,7 @@ class Drawing(_stgermain.StgCompoundComponent):
         scaling : float
             label font scaling (for "vector" font only).
         """
-        self.geomType = _libUnderworld.gLucifer.lucLabelType
+        self.geomType = "labels"
         self.vertices.append(pos)
         self.labels.append(text)
         self.properties.update({"font" : font, "fontscale" : scaling}) #Merge
@@ -262,7 +292,7 @@ class Drawing(_stgermain.StgCompoundComponent):
         pos : tuple
             X,Y,Z position to place the point
         """
-        self.geomType = _libUnderworld.gLucifer.lucPointType
+        self.geomType = "points"
         self.vertices.append(pos)
 
     def line(self, start=(0.,0.,0.), end=(0.,0.,0.)):
@@ -276,7 +306,7 @@ class Drawing(_stgermain.StgCompoundComponent):
         end : tuple
             X,Y,Z position to end line
         """
-        self.geomType = _libUnderworld.gLucifer.lucLineType
+        self.geomType = "lines"
         self.vertices.append(start)
         self.vertices.append(end)
 
@@ -291,7 +321,7 @@ class Drawing(_stgermain.StgCompoundComponent):
         vector : tuple
             X,Y,Z vector value
         """
-        self.geomType = _libUnderworld.gLucifer.lucVectorType
+        self.geomType = "vectors"
         self.vertices.append(position)
         self.vectors.append(vector)
 
@@ -305,6 +335,23 @@ class Drawing(_stgermain.StgCompoundComponent):
         if not self._colourBar:
             self._colourBar = ColourBar(colourMap=self._colourMap)
         return self._colourBar
+
+    def getdata(self, viewer, typename):
+        #Experimental: grabbing data from a LavaVu object
+        alldata = []
+        obj = viewer.objects[self.properties["name"]]
+        if obj:
+            #Force viewer open to trigger surface optimisation etc
+            viewer.app.resetViews()
+            #Get data elements list
+            dataset = obj.data()
+            for geom in dataset:
+                #Grab a copy of the data
+                data = geom.copy(typename)
+                alldata.append(data)
+
+        return alldata
+
 
 class ColourBar(Drawing):
     """
@@ -647,7 +694,7 @@ class Volume(_GridSampler3D):
 
         # build parent
         if mesh.dim == 2:
-            raise ValueError("Volume rendered requires a three dimensional mesh.")
+            raise ValueError("Volume rendering requires a three dimensional mesh.")
         super(Volume,self).__init__( mesh=mesh, fn=fn, resolutionI=resolutionI, resolutionJ=resolutionJ, resolutionK=resolutionK,
                         colours=colours, colourMap=colourMap, colourBar=colourBar,
                         valueRange=valueRange, logScale=logScale, discrete=discrete, *args, **kwargs)
@@ -657,6 +704,144 @@ class Volume(_GridSampler3D):
         
         # call parents method
         super(Volume,self)._add_to_stg_dict(componentDictionary)
+
+class Sampler(Drawing):
+    """
+    The Sampler class provides functionality for sampling a field at
+    a number of provided vertices.
+    
+    Parameters
+    ----------
+    vertices: list,array
+        List of vertices to sample the field at, either a list or numpy array
+    mesh : underworld.mesh.FeMesh
+        Mesh over which the values are sampled
+    fn : underworld.function.Function
+        Function used to get the sampled values.
+
+    """
+
+    _objectsDict = { "_dr": "lucSampler" }
+    
+    def __init__(self, mesh, fn, *args, **kwargs):
+
+        if not isinstance(mesh,_uwmesh.FeMesh):
+            raise TypeError("'mesh' object passed in must be of type 'FeMesh'")
+        self._mesh = mesh
+
+        self._fn = None
+        if fn != None:
+           self._fn = _underworld.function.Function.convert(fn)
+
+        # build parent
+        super(Sampler,self).__init__(*args, **kwargs)
+
+    def _add_to_stg_dict(self,componentDictionary):
+
+        # call parents method
+        super(Sampler,self)._add_to_stg_dict(componentDictionary)
+
+        componentDictionary[self._dr.name]["Mesh"] = self._mesh._cself.name
+
+    def _setup(self):
+        fnc_ptr = None
+        if self._fn:
+            fn_ptr = self._fn._fncself
+
+        _libUnderworld.gLucifer._lucSampler_SetFn( self._cself, fn_ptr )
+
+    def sample(self, vertices):
+        sz = len(vertices)/3*self._cself.fieldComponentCount
+        values = numpy.zeros(sz, dtype='float32')
+        _libUnderworld.gLucifer.lucSampler_SampleField( self._cself, vertices, values)
+        return values
+
+
+class IsoSurface(Volume):
+    """  
+    This drawing object class draws an isosurface using the provided scalar field.
+    
+    See parent class for further parameter details. Also see property docstrings.
+    
+    Parameters
+    ---------
+    mesh : underworld.mesh.FeMesh
+        Mesh over which object is rendered.
+    fn : underworld.function.Function
+        Function used to determine surface position.
+        Function should return a vector of floats/doubles.
+    fn_colour : underworld.function.Function
+        Function used to determine colour of surface.
+    resolutionI : unsigned
+        Number of samples in the I direction.
+    resolutionJ : unsigned
+        Number of samples in the J direction.
+    resolutionK : unsigned
+        Number of samples in the K direction.
+    isovalues : list of float
+        Isovalues to plot.
+
+    """
+
+    def __init__(self, mesh, fn, fn_colour=None,
+                       resolutionI=64, resolutionJ=64, resolutionK=64, 
+                       colours=None, colourMap=None, colourBar=True,
+                       valueRange=None, logScale=False, discrete=False,
+                       *args, **kwargs):
+
+        # build parent
+        if mesh.dim == 2:
+            raise ValueError("Isosurface requires a three dimensional mesh.")
+
+        self._sampler = None
+        if fn_colour != None:
+           self._sampler = Sampler(mesh, fn_colour, colourMap=colourMap)
+
+        super(IsoSurface,self).__init__( mesh=mesh, fn=fn, resolutionI=resolutionI, resolutionJ=resolutionJ, resolutionK=resolutionK,
+                        colours=colours, colourMap=colourMap, colourBar=colourBar,
+                        valueRange=valueRange, logScale=logScale, discrete=discrete, *args, **kwargs)
+
+    def _add_to_stg_dict(self,componentDictionary):
+        # lets build up component dictionary
+        
+        # call parents method
+        super(IsoSurface,self)._add_to_stg_dict(componentDictionary)
+
+    def _setup(self):
+        if self._sampler:
+            self._sampler._setup()
+
+    def render(self, viewer):
+        # FieldSampler has exported a 3d volume to the database,
+        # now we can use LavaVu to generate isosurface triangles
+        isobj = viewer.objects[self.properties["name"]]
+        if isobj:
+            #Force viewer open to trigger surface optimisation
+            viewer.app.resetViews()
+            
+            #Generate isosurface in same object, convert and delete volume, update db
+            isobj.isosurface(name=None, convert=True, updatedb=True)
+
+            #If coloured by another field, get the vertices, sample and load values
+            if self._sampler:
+                #Get data elements list
+                dataset = isobj.data()
+                for geom in dataset:
+                    #Grab a view of the vertex data
+                    verts = geom.get("vertices")
+                    if len(verts):
+                        #Sample over tri vertices
+                        values = self._sampler.sample(verts)
+                        #Update element with the sampled data values
+                        geom.set("sampledfield", values)
+
+                #Set the colour field name to use
+                isobj["colourby"] = "sampledfield"
+
+                #Write the colour data back to db
+                isobj.update("triangles")
+        else:
+            print "Object not found: " + self.properties["name"]
 
 class Mesh(Drawing):
     """  

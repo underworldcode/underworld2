@@ -225,13 +225,14 @@ class Store(_stgermain.StgCompoundComponent):
             # go ahead and fill db
             libUnderworld.gLucifer._lucDatabase_Execute(self._db,None)
 
-            #Output any custom geometry on objects
-            for obj in self._objects:
-                self._plotObject(obj)
-
             #Write visualisation state as json data
             libUnderworld.gLucifer.lucDatabase_WriteState(self._db, figname, self._get_state(self._objects, props))
 
+            #Output any custom geometry on objects
+            lv = self.lvrun() #Open the viewer
+            for obj in self._objects:
+                #Create/Transform geometry by object
+                obj.render(lv)
         else:
             #Open db, get state and update it to match active figure
             states = self._read_state()
@@ -304,40 +305,6 @@ class Store(_stgermain.StgCompoundComponent):
             import traceback
             traceback.print_exc()
             pass
-
-    def _plotObject(self, drawingObject):
-        #General purpose plotting using db output
-        #Plot all custom data drawn on provided object
-        farr = libUnderworld.gLucifer.new_farray(3)
-        for pos in drawingObject.vertices:
-            #Write vertex position
-            i = 0
-            for item in pos:
-                libUnderworld.gLucifer.farray_setitem(farr,i,item)  # Set values
-                i += 1
-            libUnderworld.gLucifer.lucDatabase_AddVertices(self._db, 1, drawingObject.geomType, farr)
-
-        #Write vectors
-        for vec in drawingObject.vectors:
-            i = 0
-            for item in vec:
-                libUnderworld.gLucifer.farray_setitem(farr,i,item)  # Set values
-                i += 1
-            libUnderworld.gLucifer.lucDatabase_AddVectors(self._db, 1, drawingObject.geomType, 0, 0, farr)
-
-        #Write values
-        for value in drawingObject.scalars:
-            libUnderworld.gLucifer.farray_setitem(farr,0,value)  # Set values
-            libUnderworld.gLucifer.lucDatabase_AddValue(self._db, 1, drawingObject.geomType, farr)
-
-        libUnderworld.gLucifer.delete_farray(farr)
-
-        #Write labels
-        for label in drawingObject.labels:
-            libUnderworld.gLucifer.lucDatabase_AddLabel(self._db, drawingObject.geomType, label);
-
-        #Write the custom geometry to the database
-        libUnderworld.gLucifer.lucDatabase_OutputGeometry(self._db, drawingObject._dr.id)
 
     def empty(self):
         """    Empties all the cached drawing objects
