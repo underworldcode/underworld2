@@ -1350,6 +1350,8 @@ class _FeMesh_Annulus(FeMesh_Cartesian):
             angularExtent : 2-tuple, default (0.0,360.0)
                 The angular extent of the domain
 
+            radialData : Return the mesh node locations in polar form
+
             See parent classes for further required/optional parameters.
 
         >>> (radMin, radMax) = (4.0,8.0)
@@ -1411,6 +1413,13 @@ class _FeMesh_Annulus(FeMesh_Cartesian):
         mag = function.math.sqrt(function.math.dot( theta, theta ))
         theta = theta / mag
         return theta
+
+    @property
+    def radialData(self):
+        # returns data in polar form
+        r = (self.data ** 2).sum(1)
+        theta = np.arctan2(self.data[:,1],self.data[:,0])
+        return np.array([theta,r]).T
         
     def _setup(self):
         with self.deform_mesh():
