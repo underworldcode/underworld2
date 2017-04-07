@@ -313,7 +313,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         h5f.close();
 
 
-    def save( self, filename, swarmFilepath=None ):
+    def save( self, filename ):
         """
         Save the swarm variable to disk.
 
@@ -322,9 +322,9 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         filename : str
             The filename for the saved file. Relative or absolute paths may be
             used, but all directories must exist.
-        swarmFilepath : str
-            Path to the save swarm file. If provided, a softlink is created within
-            the swarm variable file to the swarm file.
+        swarmHandle :uw.utils.SavedFileData , optional
+            The saved swarm file handle. If provided, a reference to the swarm file
+            is made. Currently this doesn't provide any extra functionality.
 
         Returns
         -------
@@ -377,8 +377,6 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
 
         """
 
-        if swarmFilepath:
-            raise RuntimeError("The 'swarmFilepath' option is currently disabled.")
         if not isinstance(filename, str):
             raise TypeError("'filename' parameter must be of type 'str'")
 
@@ -407,20 +405,6 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
 
         if swarm.particleLocalCount > 0: # only add if there are local particles
             dset[offset:offset+swarm.particleLocalCount] = self.data[:]
-
-        # link to the swarm file if it's provided
-        if swarmFilepath and uw.rank()==0:
-            import os
-            if not isinstance(swarmFilepath, str):
-                raise TypeError("'swarmFilepath' parameter must be of type 'str'")
-
-            if not os.path.exists(swarmFilepath):
-                raise RuntimeError("Swarm file '{}' does not appear to exist.".format(swarmFilepath))
-            # path trickery to create external
-            (dirname, swarmfile) = os.path.split(swarmFilepath)
-            if dirname == "":
-                dirname = '.'
-            h5f["swarm"] = h5py.ExternalLink(swarmfile, dirname)
 
         h5f.close()
 
