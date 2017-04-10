@@ -122,6 +122,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         -------
         numpy.ndarray
             Array specifying the nodes (global node id) for a given element (local element id).
+            NOTE: Length is local size. 
         """
         uw.libUnderworld.StgDomain.Mesh_GenerateENMapVar(self._cself)
         arr = uw.libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.enMapVar)
@@ -140,7 +141,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         Returns
         -------
         numpy.ndarray
-            Array specifying global element ids.
+            Array specifying global element ids. Length is domain size, (local+shadow).
         """
         uw.libUnderworld.StgDomain.Mesh_GenerateElGlobalIdVar(self._cself)
         arr = uw.libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.eGlobalIdsVar)
@@ -152,7 +153,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         Returns
         -------
         numpy.ndarray
-            Array specifying global node ids.
+            Array specifying global node ids. Length is domain size, (local+shadow).
         """
         uw.libUnderworld.StgDomain.Mesh_GenerateNodeGlobalIdVar(self._cself)
         arr = uw.libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.vGlobalIdsVar)
@@ -308,6 +309,16 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
             Returns the number of local nodes on the mesh.
         """
         return libUnderworld.StgDomain.Mesh_GetLocalSize(self._cself, 0)
+    
+    @property
+    def nodesDomain(self):
+        """
+        Returns
+        -------
+        int
+            Returns the number of domain (local+shadow) nodes on the mesh.
+        """
+        return libUnderworld.StgDomain.Mesh_GetDomainSize(self._cself, 0)
 
     @property
     def nodesGlobal(self):
@@ -340,6 +351,22 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         4
         """
         return libUnderworld.StgDomain.Mesh_GetLocalSize(self._cself, self.dim)
+        
+    @property
+    def elementsDomain(self):
+        """
+        Returns
+        -------
+        int
+            Returns the number of domain (local+shadow) elements on the mesh
+
+        Example
+        -------
+        >>> someMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1', elementRes=(2,2), minCoord=(-1.,-1.), maxCoord=(1.,1.) )
+        >>> someMesh.elementsDomain
+        4
+        """
+        return libUnderworld.StgDomain.Mesh_GetDomainSize(self._cself, self.dim)
 
     @property
     def elementsGlobal(self):
