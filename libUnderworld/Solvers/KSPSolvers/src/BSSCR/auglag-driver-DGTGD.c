@@ -119,21 +119,21 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
     flg=0;
     PetscOptionsGetString( PETSC_NULL, "-matdumpdir", name, PETSC_MAX_PATH_LEN-1, &flg );
     if(flg){
-        sprintf(str,"%s/",name); sprintf(matname,"K%s",suffix);
-        bsscr_dirwriteMat( K, matname,str, "Writing K matrix in al Solver");
-        sprintf(str,"%s/",name); sprintf(matname,"G%s",suffix);
-        bsscr_dirwriteMat( G, matname,str, "Writing G matrix in al Solver");
-        sprintf(str,"%s/",name); sprintf(matname,"D%s",suffix);
-        bsscr_dirwriteMat( D, matname,str, "Writing D matrix in al Solver");
-        sprintf(str,"%s/",name); sprintf(matname,"f%s",suffix);
-        bsscr_dirwriteVec( f, matname,str, "Writing f vector in al Solver");
-        sprintf(str,"%s/",name); sprintf(matname,"h%s",suffix);
-        bsscr_dirwriteVec( h, matname,str, "Writing h vector in al Solver");
-        sprintf(str,"%s/",name); sprintf(matname,"Shat%s",suffix);
-        bsscr_dirwriteMat( approxS, matname,str, "Writing Shat matrix in al Solver");
+        sprintf(str,"%s/K%s",name, suffix);
+        bsscr_writeMat( K, str, "Writing K matrix in al Solver");
+        sprintf(str,"%s/G%s",name, suffix);
+        bsscr_writeMat( G, str, "Writing G matrix in al Solver");
+        sprintf(str,"%s/D%s",name, suffix);
+        bsscr_writeMat( D, str, "Writing D matrix in al Solver");
+        sprintf(str,"%s/f%s",name, suffix);
+        bsscr_writeVec( f, str, "Writing f vector in al Solver");
+        sprintf(str,"%s/h%s",name, suffix);
+        bsscr_writeVec( h, str, "Writing h vector in al Solver");
+        sprintf(str,"%s/Shat%s",name,suffix);
+        bsscr_writeMat( approxS, str, "Writing Shat matrix in al Solver");
         if(C){
-          sprintf(str,"%s/",name); sprintf(matname,"C%s",suffix);
-          bsscr_dirwriteMat( C, matname,str, "Writing C matrix in al Solver");
+          sprintf(str,"%s/C%s",name,suffix);
+          bsscr_writeMat( C, str, "Writing C matrix in al Solver");
         }
     }
 
@@ -151,8 +151,8 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
         flg=0;
         PetscOptionsGetString( PETSC_NULL, "-matdumpdir", name, PETSC_MAX_PATH_LEN-1, &flg );
         if(flg){
-            sprintf(str,"%s/",name);   sprintf(matname,"K2%s",suffix);
-            bsscr_dirwriteMat( bsscrp_self->K2, matname,str, "Writing K2 matrix in al Solver");
+            sprintf(str,"%s/K2%s",name, suffix);
+            bsscr_writeMat( bsscrp_self->K2, str, "Writing K2 matrix in al Solver");
         }
 
         K2=bsscrp_self->K2;
@@ -326,8 +326,8 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
       Mat Smat, Pmat;
       //MatStructure mstruct;
       Stg_PCGetOperators( pc_S, &Smat, &Pmat, NULL );
-      sprintf(str,"%s/",name); sprintf(matname,"Pmat%s",suffix);
-      bsscr_dirwriteMat( Pmat, matname,str, "Writing Pmat matrix in al Solver");
+      sprintf(str,"%s/Pmat%s",name, suffix);
+      bsscr_writeMat( Pmat, str, "Writing Pmat matrix in al Solver");
     }
 
     uzawastyle=PETSC_FALSE;
@@ -509,12 +509,12 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
 
     PetscOptionsGetString( PETSC_NULL, "-solutiondumpdir", name, PETSC_MAX_PATH_LEN-1, &flg );
     if(flg){
-        sprintf(str,"%s/",name); sprintf(matname,"p%s",suffix);
-        bsscr_dirwriteVec( p, matname,str, "Writing p vector in al Solver");
-        sprintf(str,"%s/",name); sprintf(matname,"u%s",suffix);
-        bsscr_dirwriteVec( u, matname,str, "Writing u vector in al Solver");
-        sprintf(str,"%s/",name); sprintf(matname,"h_hat%s",suffix);
-        bsscr_dirwriteVec( h_hat, matname,str, "Writing h_hat vector in al Solver");
+        sprintf(str,"%s/p%s",name,suffix);
+        bsscr_writeVec( p, str, "Writing p vector in al Solver");
+        sprintf(str,"%s/u%s",name);
+        bsscr_writeVec( u, str, "Writing u vector in al Solver");
+        sprintf(str,"%s/h_hat%s",name,suffix);
+        bsscr_writeVec( h_hat, str, "Writing h_hat vector in al Solver");
 
     }
 
