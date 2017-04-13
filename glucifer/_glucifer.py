@@ -229,10 +229,11 @@ class Store(_stgermain.StgCompoundComponent):
             libUnderworld.gLucifer.lucDatabase_WriteState(self._db, figname, self._get_state(self._objects, props))
 
             #Output any custom geometry on objects
-            lv = self.lvrun() #Open the viewer
-            for obj in self._objects:
-                #Create/Transform geometry by object
-                obj.render(lv)
+            if lavavu and uw.rank() == 0:
+                lv = self.lvrun() #Open the viewer
+                for obj in self._objects:
+                    #Create/Transform geometry by object
+                    obj.render(lv)
         else:
             #Open db, get state and update it to match active figure
             states = self._read_state()

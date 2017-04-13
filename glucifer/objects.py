@@ -229,9 +229,11 @@ class Drawing(_stgermain.StgCompoundComponent):
 
         #General purpose plotting via LavaVu
         #Plot all custom data drawn on provided object
-        obj = viewer.objects[self.properties["name"]]
-        if not obj:
-            print "Object not found: " + self.properties["name"]
+        try:
+            obj = viewer.objects[self.properties["name"]]
+            if not obj: raise KeyError("Object not found")
+        except KeyError,e:
+            print self.properties["name"] + " Object lookup error: " + str(e)
             return
 
         obj["geometry"] = self.geomType
