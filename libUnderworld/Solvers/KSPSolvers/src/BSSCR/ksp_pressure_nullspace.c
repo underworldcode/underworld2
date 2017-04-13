@@ -75,8 +75,8 @@ PetscErrorCode KSPBuildPressure_CB_Nullspace_BSSCR(KSP ksp)
 	VecPointwiseDivide( v, v, R2);
     }
 
-    bsscr_writeVec( t, "t", "Writing t vector");
-    bsscr_writeVec( v, "v", "Writing v vector");
+    // bsscr_writeVec( t, "t", "Writing t vector");
+    // bsscr_writeVec( v, "v", "Writing v vector");
 
     bsscr->t=t;
     bsscr->v=v;
@@ -119,7 +119,7 @@ PetscErrorCode KSPBuildPressure_Const_Nullspace_BSSCR(KSP ksp)
 	VecNestGetSubVec( BA->Rz, 1, &R2 );
 	VecPointwiseDivide( t, t, R2); /* x <- x * 1/R2 */
     }
-    bsscr_writeVec( t, "t", "Writing t vector");
+    // bsscr_writeVec( t, "t", "Writing t vector");
     bsscr->t=t;
 
     PetscFunctionReturn(0);
@@ -176,7 +176,7 @@ PetscErrorCode KSPRemovePressureNullspace_BSSCR(KSP ksp, Vec h_hat)
 	    PetscPrintf( PETSC_COMM_WORLD, "\n\t* Found v NS norm= %g : Dot = %g\n\n", norm, a1);
 	}
     }
-    bsscr_writeVec( h_hat, "h", "Writing h_hat Vector in Solver");
+    // bsscr_writeVec( h_hat, "h", "Writing h_hat Vector in Solver");
     Stg_VecDestroy(&t2);
 
     PetscFunctionReturn(0);
