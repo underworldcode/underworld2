@@ -527,13 +527,12 @@ class Figure(dict):
         output routines to save the result with a default filename in the current directory
 
         """
-
-        self._generate_DB()
-        global lavavu
-        if not lavavu or uw.rank() > 0:
-            return
         try:
             if __IPYTHON__:
+                self._generate_DB()
+                global lavavu
+                if not lavavu or uw.rank() > 0:
+                    return
                 from IPython.display import display,Image,HTML
                 if type.lower() == "webgl":
                     display(self._generate_HTML())
@@ -586,23 +585,25 @@ class Figure(dict):
             anything.
         """
         self._generate_DB()
-        if filename != None:
-            if not isinstance(filename, str):
-                raise TypeError("Provided parameter 'filename' must be of type 'str'. ")
-            if size and not isinstance(size,tuple):
-                raise TypeError("'size' object passed in must be of python type 'tuple'")
+        global lavavu
+        if filename is None or not lavavu or uw.rank() > 0:
+            return
+        if not isinstance(filename, str):
+            raise TypeError("Provided parameter 'filename' must be of type 'str'. ")
+        if size and not isinstance(size,tuple):
+            raise TypeError("'size' object passed in must be of python type 'tuple'")
 
-            try:
-                if type.lower() == "webgl":
-                    lv = self.db.lvrun()
-                    return lv.web(True)
-                else:
-                    return self._generate_image(filename, size)
-            except RuntimeError,e:
-                print "LavaVu error: " + str(e)
-                import traceback
-                traceback.print_exc()
-                pass
+        try:
+            if type.lower() == "webgl":
+                lv = self.db.lvrun()
+                return lv.web(True)
+            else:
+                return self._generate_image(filename, size)
+        except RuntimeError,e:
+            print "LavaVu error: " + str(e)
+            import traceback
+            traceback.print_exc()
+            pass
 
     def _generate_DB(self):
         objects = self._drawingObjects[:]
