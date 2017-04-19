@@ -39,6 +39,9 @@ def nonDimensionalize(dimValue, scaling):
     gravity = nonDimensionalize(9.81 * u.meter / u.second**2, scaling)
     """
     
+    if not isinstance(dimValue, u.Quantity):
+        return dimValue
+    
     dimValue = dimValue.to_base_units()
     
     length = scaling["[length]"]
