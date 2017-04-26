@@ -245,8 +245,8 @@ def lecode_tools_isostasy2D(mesh, swarm, velocityField, densityFn,
     projectorDensity.solve()
     projectorMaterial.solve()
 
-    sep_velocities_nodes, heights = get_sep_velocities(mesh, velocityField)
-    botMeanDensities, botMeanDensities0 = get_average_densities(mesh, DensityVar,
+    sep_velocities_nodes, heights = get_sep_velocities2D(mesh, velocityField)
+    botMeanDensities, botMeanDensities0 = get_average_densities2D(mesh, DensityVar,
                                                                 MaterialVar, reference_mat)
     
     basal_velocities = -1.0 * botMeanDensities * sep_velocities_nodes / botMeanDensities0
@@ -277,8 +277,8 @@ def lecode_tools_isostasy3D(mesh, swarm, velocityField, densityFn,
     projectorDensity.solve()
     projectorMaterial.solve()
     
-    sep_velocities_nodes, heights = get_sep_velocities(mesh, velocityField)
-    botMeanDensities, botMeanDensities0 = get_average_densities(mesh, DensityVar,
+    sep_velocities_nodes, heights = get_sep_velocities3D(mesh, velocityField)
+    botMeanDensities, botMeanDensities0 = get_average_densities3D(mesh, DensityVar,
                                                                 MaterialVar, reference_mat)
     
     basal_velocities = -1.0 * botMeanDensities * sep_velocities_nodes / botMeanDensities0
@@ -305,4 +305,21 @@ def lecode_tools_isostasy(mesh, swarm, velocityField, densityFn,
         lecode_tools_isostasy3D(mesh, swarm, velocityField, densityFn, 
                                 materialIndexField, reference_mat, average)
 
-
+#def get_phi():
+#    
+#    ncol, nrow = mesh.elementRes
+#    
+#    # Create some work arrays.
+#    global_TdotField = np.zeros((nrow+1)*(ncol+1))
+#    local_TdotField = np.zeros((nrow+1)*(ncol+1))
+#    
+#    local_TdotField[mesh.data_nodegId] = temperatureDotField.data
+#    comm.Allreduce(local_TdotField, global_TdotField)
+#    
+#    global_TdotField = global_TdotField.reshape((nrow+1)*(ncol+1))
+#    botMeanTdotField = np.mean(global_TdotField,0)
+#    
+#    botMeanTdotField = (np.roll(botMeanTdotField, -1) + botMeanTdotField + np.roll(botMeanTdotField, 1)) / 3.0
+#    
+#    return botMeanTdotField
+  
