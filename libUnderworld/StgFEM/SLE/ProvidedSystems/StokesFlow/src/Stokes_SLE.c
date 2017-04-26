@@ -200,3 +200,57 @@ void _Stokes_SLE_MG_SelectStiffMats( void* _sle, unsigned* nSMs, StiffnessMatrix
 	*sms = Memory_Alloc_Array( StiffnessMatrix*, 1, "Stokes_SLE" );
 	(*sms)[0] = self->kStiffMat;
 }
+
+double Stokes_MomentumResidual( Stokes_SLE* self ) {
+  
+  /*
+  Calc the residual of the momentum equation
+    res = F - [K]u - [G]p
+  */ 
+  Mat K = self->kStiffMat->matrix;
+  Mat G = self->gStiffMat->matrix;
+  Vec F = self->fForceVec->vector;
+  Vec u = self->uSolnVec->vector;
+  Vec p = self->pSolnVec->vector;
+  
+  Vec                     uStar;
+  PetscReal               r1_norm;
+  
+  VecDuplicate( u, &uStar );
+  MatMult( K, u, uStar );                         // {uStar} = [K]{u}
+  MatMultAdd( G, p, uStar, uStar );               // {uStar} = {uStar} + [G]{p}
+  VecAYPX( uStar, -1.0, F );                      // {uStar} = {F} - {uStar}
+  VecNorm( uStar, NORM_2, &r1_norm );             // r_norm = || {uStar} ||_2
+  Stg_VecDestroy(&uStar );
+  
+  return ( (double)(r1_norm) );
+}
+
+double Stokes_ContinuityResidual( Stokes_SLE* self ) {
+  /*
+  Calc the residual of the momentum equation
+    res = H - [G^T]u - [C]p
+  */
+  Mat G = self->gStiffMat->matrix;
+  Vec H = self->hForceVec->vector;
+  Vec u = self->uSolnVec->vector;
+  Vec p = self->pSolnVec->vector;
+  Mat C = PETSC_NULL;
+  
+  if (self->cStiffMat) C = self->cStiffMat->matrix;
+  
+  Vec                     pStar;
+  PetscReal               r2_norm;
+  
+  VecDuplicate( H, &pStar );
+  MatMultTranspose( G, u, pStar );                // {pStar} = [G]^T{u}
+  if( C != PETSC_NULL ) {   
+    MatMultAdd( C, p, pStar, pStar );	/* {pStar} = {pStar} + [C] {p} */
+  }
+  VecAYPX( pStar, -1.0, H );                      // {pStar} = {H} - {pStar}
+
+  VecNorm( pStar, NORM_2, &r2_norm );             // norm = || {pStar} ||_2
+  Stg_VecDestroy(&pStar );
+
+  return ( (double)(r2_norm) );
+}
