@@ -14,7 +14,7 @@ import libUnderworld
 class Stokes(_stgermain.StgCompoundComponent):
     """
     This class provides functionality for a discrete representation
-    of the incompressible Stokes equation.
+    of the Stokes flow equations.
 
     Specifically, the class uses a mixed finite element method to
     construct a system of linear equations which may then be solved
@@ -320,3 +320,26 @@ class Stokes(_stgermain.StgCompoundComponent):
     @fn_bodyforce.setter
     def fn_bodyforce(self, value):
         self._forceVecTerm.fn = value
+    
+    @property
+    def eqResiduals(self):
+        """
+        Returns the stokes flow equations' residuals from the latest solve. Residual calculations
+        use the matrices and vectors of the discretised problem. 
+        The residuals correspond to the momentum equation and the continuity equation.
+        
+        Return
+        ------
+        (r1, r2) - 2 tuple of doubles
+            r1 is the momentum equation residual
+            r2 is the continuity equation residual
+            
+        Notes
+        -----
+        This method must be called collectively by all processes.
+        """
+        
+        res_mEq = uw.libUnderworld.StgFEM.Stokes_MomentumResidual(self._cself)
+        res_cEq = uw.libUnderworld.StgFEM.Stokes_ContinuityResidual(self._cself)
+        
+        return res_mEq, res_cEq
