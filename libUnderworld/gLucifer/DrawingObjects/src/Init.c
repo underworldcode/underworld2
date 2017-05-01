@@ -31,8 +31,6 @@ Bool lucDrawingObjects_Init()
    Stg_ComponentRegister_Add( componentRegister, lucCrossSection_Type, (Name)"0", _lucCrossSection_DefaultNew );
    Stg_ComponentRegister_Add( componentRegister, lucScalarField_Type, (Name)"0", _lucScalarField_DefaultNew  );
    Stg_ComponentRegister_Add( componentRegister, lucVectorArrows_Type, (Name)"0", _lucVectorArrows_DefaultNew  );
-   Stg_ComponentRegister_Add( componentRegister, lucTextureMap_Type, (Name)"0", _lucTextureMap_DefaultNew  );
-   Stg_ComponentRegister_Add( componentRegister, lucContour_Type, (Name)"0", _lucContour_DefaultNew  );
    Stg_ComponentRegister_Add( componentRegister, lucContourCrossSection_Type, (Name)"0", _lucContourCrossSection_DefaultNew );
    Stg_ComponentRegister_Add( componentRegister, lucSwarmViewer_Type, (Name)"0", _lucSwarmViewer_DefaultNew  );
    Stg_ComponentRegister_Add( componentRegister, lucSwarmVectors_Type, (Name)"0", _lucSwarmVectors_DefaultNew  );
@@ -51,13 +49,11 @@ Bool lucDrawingObjects_Init()
    RegisterParent( lucContourCrossSection_Type,             lucCrossSection_Type );
    RegisterParent( lucIsosurfaceCrossSection_Type,          lucCrossSection_Type );
    RegisterParent( lucEigenvectorsCrossSection_Type,        lucCrossSection_Type );
-   RegisterParent( lucContour_Type,                         lucContourCrossSection_Type );
    RegisterParent( lucScalarField_Type,                     lucCrossSection_Type );
    RegisterParent( lucVectorArrows_Type,                    lucCrossSection_Type );
    RegisterParent( lucEigenvectors_Type,                    lucEigenvectorsCrossSection_Type );
    RegisterParent( lucFieldSampler_Type,                    lucCrossSection_Type );
    RegisterParent( lucIsosurface_Type,                      lucDrawingObject_Type );
-   RegisterParent( lucTextureMap_Type,                      lucDrawingObject_Type );
    RegisterParent( lucSwarmViewer_Type,               lucDrawingObject_Type );
    RegisterParent( lucSwarmVectors_Type,              lucSwarmViewer_Type );
    RegisterParent( lucSwarmShapes_Type,               lucSwarmViewer_Type );

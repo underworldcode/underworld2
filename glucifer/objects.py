@@ -16,11 +16,9 @@ import libUnderworld as _libUnderworld
 import numpy
 
 #TODO: Drawing Objects to implement
-# Contour, ContourCrossSection
 # HistoricalSwarmTrajectory
 #
 # Maybe later...
-# TextureMap
 # SwarmShapes, SwarmRGB, SwarmVectors
 # EigenVectors, EigenVectorCrossSection
 
@@ -55,7 +53,6 @@ class ColourMap(_stgermain.StgCompoundComponent):
     colours: str, list
         List of colours to use for drawing object colour map. Provided as a string
         or as a list of strings. Example, "red blue", or ["red", "blue"]
-        This should not be specified if 'colourMap' is specified.
     valueRange: tuple, list
         User defined value range to apply to colour map. Provided as a 
         tuple of floats  (minValue, maxValue). If none is provided, the
@@ -164,7 +161,7 @@ class Drawing(_stgermain.StgCompoundComponent):
     _selfObjectName = "_dr"
     _objectsDict = { "_dr": "lucDrawingObject" } # child should replace _dr with own derived type
     
-    def __init__(self, name=None, colours=None, colourMap=None, colourBar=False,
+    def __init__(self, name=None, colours=None, colourMap="", colourBar=False,
                        valueRange=None, logScale=False, discrete=False,
                        *args, **kwargs):
 
@@ -177,8 +174,10 @@ class Drawing(_stgermain.StgCompoundComponent):
             self._colourMap = colourMap
         elif colours:
             self._colourMap = ColourMap(colours=colours, valueRange=valueRange, logScale=logScale)
-        else:
+        elif colourBar or not colourMap is None:
             self._colourMap = ColourMap(valueRange=valueRange, logScale=logScale)
+        else:
+            self._colourMap = None
 
         #User-defined props in kwargs
         self.properties.update(kwargs)
@@ -187,7 +186,7 @@ class Drawing(_stgermain.StgCompoundComponent):
         if not isinstance(colourBar, bool):
             raise TypeError("'colourBar' parameter must be of 'bool' type.")
         self._colourBar = None
-        if colourBar:
+        if colourBar and self._colourMap:
             #Create the associated colour bar
             self._colourBar = ColourBar(colourMap=self._colourMap)
 
@@ -207,7 +206,7 @@ class Drawing(_stgermain.StgCompoundComponent):
         # add an empty(ish) drawing object.  children should fill it out.
         componentDictionary[self._dr.name].update( {
             "properties"    :self._getProperties(),
-            "ColourMap"     :self._colourMap._cm.name
+            "ColourMap"     :self._colourMap._cm.name if self._colourMap else None
         } )
 
     #dict methods
@@ -397,7 +396,7 @@ class CrossSection(Drawing):
     _objectsDict = { "_dr": "lucCrossSection" }
 
     def __init__(self, mesh, fn, crossSection="", resolution=100,
-                       colours=None, colourMap=None, colourBar=True,
+                       colours=None, colourMap="", colourBar=True,
                        valueRange=None, logScale=False, discrete=False, offsetEdges=None, onMesh=False,
                        *args, **kwargs):
 
@@ -470,7 +469,7 @@ class Surface(CrossSection):
     _objectsDict = {  "_dr"  : "lucScalarField" }
 
     def __init__(self, mesh, fn, drawSides="xyzXYZ",
-                       colours=None, colourMap=None, colourBar=True,
+                       colours=None, colourMap="", colourBar=True,
                        valueRange=None, logScale=False, discrete=False,
                        *args, **kwargs):
 
@@ -495,13 +494,98 @@ class Surface(CrossSection):
         super(Surface,self)._add_to_stg_dict(componentDictionary)
 
         componentDictionary[self._dr.name]["drawSides"] = self._drawSides
-        componentDictionary[self._dr.name][     "Mesh"] = self._mesh._cself.name
 
     def _setup(self):
         _libUnderworld.gLucifer._lucCrossSection_SetFn( self._cself, self._fn._fncself )
 
     def __del__(self):
         super(Surface,self).__del__()
+
+class Contours(CrossSection):
+    """  
+    This drawing object class draws contour lines in a cross section using the provided scalar field.
+
+    See parent class for further parameter details. Also see property docstrings.
+    
+    Parameters
+    ---------
+    mesh : underworld.mesh.FeMesh
+        Mesh over which cross section is rendered.
+    fn : underworld.function.Function
+        Function used to determine values to render.
+    labelFormat: str
+        Format string (printf style) used to print a contour label, eg: " %g K"
+    unitScaling:
+        Scaling factor to apply to value when printing labels
+    interval: float
+        Interval between contour lines
+    limits: tuple, list
+        User defined minimum and maximum limits for the contours. Provided as a 
+        tuple/list of floats  (minValue, maxValue). If none is provided, the
+        limits will be determined automatically.
+
+    """
+    
+    _objectsDict = {  "_dr"  : "lucContourCrossSection" }
+
+    def __init__(self, mesh, fn, labelFormat="", unitScaling=1.0, interval=0.33, limits=(0.0, 0.0),
+                       colours=None, colourMap="", colourBar=False,
+                       valueRange=None, logScale=False, discrete=False,
+                       *args, **kwargs):
+
+        if not isinstance(labelFormat,str):
+            raise ValueError("'labelFormat' parameter must be of python type 'str'")
+        self._labelFormat = labelFormat
+
+        if not isinstance( unitScaling, (int, float) ):
+            raise TypeError("'unitScaling' must contain a number")
+        self._unitScaling = unitScaling
+
+        if not isinstance( interval, (int, float) ):
+            raise TypeError("'interval' must contain a number")
+        self._interval = interval
+
+        # is limits correctly defined, ie list of length 2 made of numbers
+        if not isinstance( limits, (list,tuple)):
+            raise TypeError("'limits' objected passed in must be of type 'list' or 'tuple'")
+        if len(limits) != 2:
+            raise ValueError("'limits' must have 2 real values")
+        for item in limits:
+            if not isinstance( item, (int, float) ):
+                raise TypeError("'limits' must contain real numbers")
+        if not limits[0] <= limits[1]:
+            raise ValueError("The first number of the limits list must be smaller than the second number")
+        self._limits = limits
+
+        # build parent
+        super(Contours,self).__init__( mesh=mesh, fn=fn,
+                        colours=colours, colourMap=colourMap, colourBar=colourBar,
+                        valueRange=valueRange, logScale=logScale, discrete=discrete, *args, **kwargs)
+
+        #Default properties
+        is3d = len(self._crossSection) == 0
+        self.properties.update({"lit" : False})
+
+    def _add_to_stg_dict(self,componentDictionary):
+        # lets build up component dictionary
+        # append random string to provided name to ensure unique component names
+        # call parents method
+        
+        super(Contours,self)._add_to_stg_dict(componentDictionary)
+
+        componentDictionary[self._dr.name]["unitScaling"] = self._unitScaling
+        componentDictionary[self._dr.name][   "interval"] = self._interval
+        componentDictionary[self._dr.name]["minIsovalue"] = self._limits[0]
+        componentDictionary[self._dr.name]["maxIsovalue"] = self._limits[1]
+
+    def _setup(self):
+        #Override dictionary setting, it seems to left-trim strings
+        self._dr.labelFormat = self._labelFormat
+        _libUnderworld.gLucifer._lucCrossSection_SetFn( self._cself, self._fn._fncself )
+
+    def __del__(self):
+        super(Contours,self).__del__()
+
 
 class Points(Drawing):
     """  
@@ -528,7 +612,7 @@ class Points(Drawing):
     _objectsDict = { "_dr": "lucSwarmViewer" }
 
     def __init__(self, swarm, fn_colour=None, fn_mask=None, fn_size=None, colourVariable=None,
-                       colours=None, colourMap=None, colourBar=True,
+                       colours=None, colourMap="", colourBar=True,
                        valueRange=None, logScale=False, discrete=False,
                        *args, **kwargs):
 
@@ -690,7 +774,7 @@ class Volume(_GridSampler3D):
 
     def __init__(self, mesh, fn, 
                        resolutionI=64, resolutionJ=64, resolutionK=64, 
-                       colours=None, colourMap=None, colourBar=True,
+                       colours=None, colourMap="", colourBar=True,
                        valueRange=None, logScale=False, discrete=False,
                        *args, **kwargs):
 
@@ -787,7 +871,7 @@ class IsoSurface(Volume):
 
     def __init__(self, mesh, fn, fn_colour=None,
                        resolutionI=64, resolutionJ=64, resolutionK=64, 
-                       colours=None, colourMap=None, colourBar=True,
+                       colours=None, colourMap="", colourBar=True,
                        valueRange=None, logScale=False, discrete=False,
                        *args, **kwargs):
 

@@ -26,14 +26,14 @@ typedef struct
 
 /** Class contents - this is defined as a macro so that sub-classes of this class can use this macro at the start of the definition of their struct */
 #define __lucContourCrossSection \
-		/* Macro defining parent goes here - This means you can cast this class as its parent */ \
-		__lucCrossSection \
-		/* Virtual functions go here */ \
-		/* Other info */\
-		Bool                       showValues;             \
-		Bool                       printUnits;             \
-		/* Interval Stuff */ \
-		double                     interval;               \
+      /* Macro defining parent goes here - This means you can cast this class as its parent */ \
+      __lucCrossSection \
+      /* Virtual functions go here */ \
+      /* Other info */\
+      char*                      labelFormat;            \
+      double                     unitScaling;            \
+      /* Interval Stuff */ \
+      double                     interval;               \
       double                     minIsovalue;            \
       double                     maxIsovalue;            \
       int                        coordIndex;             \
