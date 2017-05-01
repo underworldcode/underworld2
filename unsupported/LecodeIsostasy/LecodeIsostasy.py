@@ -208,8 +208,8 @@ def get_average_densities3D(mesh, DensityVar, MaterialVar, reference_mat):
     global_materials = np.zeros((nx+1)*(ny+1)*(nz+1))
 
     # Load the densities and material into the local_densities arrays
-    local_densities[mesh.data_nodegId] = DensityVar.data
-    local_materials[mesh.data_nodegId] = MaterialVar.data
+    local_densities[mesh.data_nodegId] = DensityVar.data[:]
+    local_materials[mesh.data_nodegId] = MaterialVar.data[:]
 
     # Reduce local_densities arrays to global_densities
     comm.Allreduce(local_densities, global_densities)
@@ -219,12 +219,13 @@ def get_average_densities3D(mesh, DensityVar, MaterialVar, reference_mat):
     global_densities = global_densities.reshape(((nz+1),(ny+1),(nx+1)))
     global_materials = global_materials.reshape(((nz+1),(ny+1),(nx+1)))
     # Convert material values to closest integers.
-    global_materials = global_materials.astype("int")
+    global_materials = np.rint(global_materials).astype("int")
 
     # Calculate Mean densities at the bottom
     botMeanDensities = np.mean(global_densities,0)
     # Calculate Mean densities at the bottom (reference_mat only)
-    botMeanDensities0 = np.mean(np.ma.masked_where(global_materials != reference_mat, global_densities), 0)
+    botMeanDensities0 = np.ma.array(global_densities, mask=(global_materials != reference_mat))
+    botMeanDensities0 = botMeanDensities0.mean(axis=0)
     botMeanDensities0 = np.array(botMeanDensities0)   
     
     # return bottom Densities and Densities0
@@ -290,7 +291,7 @@ def lecode_tools_isostasy3D(mesh, swarm, velocityField, densityFn,
     if base:
         bot_ids = base.data[base.data < mesh.nodesLocal]
         node_gids = mesh.data_nodegId[bot_ids].flatten()
-        velocityField.data[bot_ids,1] = basal_velocities[node_gids]
+        velocityField.data[bot_ids,1] = basal_velocities.flatten()[node_gids]
 
     velocityField.syncronise()
 
