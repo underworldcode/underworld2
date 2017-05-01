@@ -208,8 +208,8 @@ def get_average_densities3D(mesh, DensityVar, MaterialVar, reference_mat):
     global_materials = np.zeros((nx+1)*(ny+1)*(nz+1))
 
     # Load the densities and material into the local_densities arrays
-    local_densities[mesh.data_nodegId] = DensityVar.data[:]
-    local_materials[mesh.data_nodegId] = MaterialVar.data[:]
+    local_densities[mesh.data_nodegId[:mesh.nodesLocal]] = DensityVar.data[:mesh.nodesLocal]
+    local_materials[mesh.data_nodegId[:mesh.nodesLocal]] = MaterialVar.data[:mesh.nodesLocal]
 
     # Reduce local_densities arrays to global_densities
     comm.Allreduce(local_densities, global_densities)
