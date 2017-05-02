@@ -193,8 +193,13 @@ def _save_mesh( self, filename, scaling=None, units=None):
     # save attributes and simple data - MUST be parallel as driver is mpio
     h5f.attrs['dimensions'] = self.dim
     h5f.attrs['mesh resolution'] = self.elementRes
-    h5f.attrs['max'] = self.maxCoord
-    h5f.attrs['min'] = self.minCoord
+    if scaling:
+        h5f.attrs['max'] = Dimensionalize(self.maxCoord, scaling, units)
+        h5f.attrs['min'] = Dimensionalize(self.minCoord, scaling, units)
+    else:
+        h5f.attrs['max'] = self.maxCoord
+        h5f.attrs['min'] = self.minCoord
+
     h5f.attrs['regular'] = self._cself.isRegular
     h5f.attrs['elementType'] = self.elementType
 
@@ -207,7 +212,6 @@ def _save_mesh( self, filename, scaling=None, units=None):
     local = self.nodesLocal
     # write to the dset using the local set of global node ids
     if scaling:
-        #from unsupported.scaling import Dimensionalize
         vals = Dimensionalize(self.data[0:local], scaling, units)
     else:
         vals = self.data[0:local]
