@@ -74,3 +74,25 @@ SRT_Olivine_Kirby1987 = {"n": 3.0,
                           "Va":0.0 * u.meter**3 / u.mole,
                           "DefaultSRInvariant": 1.0e-15 / u.second
                          }
+
+SRT_WetQ_GleasonTullis1995 = {"n": 4.0, 
+                          "A": 1.10e-28 * u.pascal**(-4.0) / u.second,
+                          "Q": 223 * u.kilojoule / u.mole,
+                          "Va": 0.0 * u.meter**3 / u.mole,
+                          "DefaultSRInvariant": 1.0e-15 / u.second
+                         }
+
+SRT_DryOl_KaratoWu1990 = {"n": 3.5, 
+                          "A": 2.4168e-15 * u.pascal**(-3.5) / u.second,
+                          "Q": 540 * u.kilojoule / u.mole,
+                          "Va": 25.0e-6 * u.meter**3 / u.mole,
+                          "DefaultSRInvariant": 1.0e-15 / u.second
+                         }
+
+SRT_WetQ_Tullis2002 = {"n": 4.0, 
+                          "A": 1.10e-28 * u.pascal**(-4.0) / u.second,
+                          "Q": 223 * u.kilojoule / u.mole,
+                          "Va": 0.0 * u.meter**3 / u.mole,
+                          "DefaultSRInvariant": 1.0e-15 / u.second
+                         }
+
