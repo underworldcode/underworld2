@@ -42,7 +42,7 @@ class DirichletCondition(SystemCondition):
     Parameters
     ----------
     variable : underworld.mesh.MeshVariable
-        This is the variable for which the Direchlet condition applies.
+        This is the variable for which the Dirichlet condition applies.
     indexSetsPerDof : list, tuple, IndexSet
         The index set(s) which flag nodes/DOFs as Dirichlet conditions.
         Note that the user must provide an index set for each degree of
@@ -117,7 +117,7 @@ class NeumannCondition(SystemCondition):
     flux : underworld.function.Function
         Function which determines flux values.
     variable : underworld.mesh.MeshVariable
-        This is the variable for which the Direchlet condition applies.
+        This is the variable for which the Dirichlet condition applies.
     nodeIndexSet : underworld.container.IndexSet
         The index set for which boundary flux values will be applied.
 
