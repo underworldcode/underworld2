@@ -52,7 +52,7 @@ extern "C" {
 %include "DrawingObjects/MeshViewer.h"
 %include "DrawingObjects/DrawingObjects.h"
 %include "DrawingObjects/Isosurface.h"
-%include "DrawingObjects/IsosurfaceCrossSection.h"
+%include "DrawingObjects/ContourCrossSection.h"
 %include "DrawingObjects/ScalarField.h"
 %include "DrawingObjects/FieldSampler.h"
 %include "DrawingObjects/Sampler.h"

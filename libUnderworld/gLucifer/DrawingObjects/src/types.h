@@ -20,8 +20,6 @@ typedef struct lucIsosurface                     lucIsosurface;
 typedef struct lucVectorArrows                   lucVectorArrows;
 typedef struct lucEigenvectorsCrossSection       lucEigenvectorsCrossSection;
 typedef struct lucEigenvectors                   lucEigenvectors;
-typedef struct lucTextureMap                     lucTextureMap;
-typedef struct lucContour                        lucContour;
 typedef struct lucSwarmViewer                    lucSwarmViewer;
 typedef struct lucSwarmVectors                   lucSwarmVectors;
 typedef struct lucSwarmShapes                    lucSwarmShapes;
