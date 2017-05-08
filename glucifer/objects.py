@@ -910,6 +910,8 @@ class IsoSurface(Volume):
 
             #If coloured by another field, get the vertices, sample and load values
             if self._sampler:
+                #Clear existing values
+                isobj.cleardata()
                 #Get data elements list
                 dataset = isobj.data()
                 for geom in dataset:
@@ -920,9 +922,6 @@ class IsoSurface(Volume):
                         values = self._sampler.sample(verts)
                         #Update element with the sampled data values
                         geom.set("sampledfield", values)
-
-                #Set the colour field name to use
-                isobj["colourby"] = "sampledfield"
 
                 #Write the colour data back to db
                 isobj.update("triangles")
