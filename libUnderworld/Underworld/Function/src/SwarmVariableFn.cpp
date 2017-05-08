@@ -90,7 +90,7 @@ Fn::SwarmVariableFn::func Fn::SwarmVariableFn::getFunction( IOsptr sample_input 
 
             if ( swarmVarLocalIndex == (unsigned)-1 )
             {
-                throw std::runtime_error(  "Error occurred while trying to evaluate swarm variable. "\
+                throw std::domain_error(  "Error occurred while trying to evaluate swarm variable. "\
                                            "This can occur when there are no particles found in a given element. "\
                                            "You may wish to add population control mechanisms. "\
                                            "Please contact developers if this does not appear to be the issue." );
