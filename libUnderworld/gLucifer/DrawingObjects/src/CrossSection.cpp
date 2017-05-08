@@ -231,7 +231,8 @@ void _lucCrossSection_AssignFromXML( void* drawingObject, Stg_ComponentFactory* 
           * Axis is a single character, one of [xyzXYZ] */
 
          /* Parse the input string */
-         if (strlen(crossSectionStr) > 0 && sscanf( crossSectionStr, "%c=%s", &axisChar, crossSectionVal ) == 2 )
+         char tempChar;
+         if (strlen(crossSectionStr) > 0 && sscanf( crossSectionStr, "%c%c%s", &axisChar, &tempChar, crossSectionVal ) == 3 )
          {
             /* Axis X/Y/Z */
             if ( toupper( axisChar ) >= 'X' )
