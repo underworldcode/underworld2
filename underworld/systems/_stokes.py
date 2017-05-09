@@ -35,7 +35,7 @@ class Stokes(_stgermain.StgCompoundComponent):
         \\end{align}
 
     where,
-    
+
     * :math:`\\sigma_{i,j}` is the stress tensor
     * :math:`u_i` is the velocity,
     * :math:`p`   is the pressure,
@@ -72,13 +72,13 @@ class Stokes(_stgermain.StgCompoundComponent):
     fn_one_on_lambda: underworld.function.Function, Default = None
         Function which defines a non solenoidal velocity field via the relationship
         div(velocityField) = -fn_one_on_lambda * pressurefield + fn_source
-        When this is left as None a incompressible formulation of the stokes equation is formed, ie, div(velocityField) = 0. 
+        When this is left as None a incompressible formulation of the stokes equation is formed, ie, div(velocityField) = 0.
         fn_one_on_lambda is incompatible with the 'penalty' stokes solver, ensure a
         'penalty' equal to 0 is used when fn_one_on_lambda is used. By default this is the case.
     fn_source : underworld.function.Function, Default = None
         Function which defines a non solenoidal velocity field via the relationship
         div(velocityField) = -fn_one_on_lambda * pressurefield + fn_source.
-        fn_source incompatible with the 'penalty' stokes solver, ensure
+        fn_one_on_lambda is incompatible with the 'penalty' stokes solver, ensure
         the 'penalty' of 0, is used when fn_lambda is used. By default this is the case.
     voronoi_swarm : underworld.swarm.Swarm
         If a voronoi_swarm is provided, voronoi type numerical integration is
@@ -140,39 +140,17 @@ class Stokes(_stgermain.StgCompoundComponent):
             if not isinstance( _fn_stresshistory, uw.function.Function):
                 raise TypeError( "Provided '_fn_stresshistory' must be of or convertible to 'Function' class." )
 
+
+        self._fn_one_on_lambda = fn_one_on_lambda
         if fn_one_on_lambda != None:
-            self.fn_one_on_lambda = uw.function.Function.convert(fn_one_on_lambda)
-            if not isinstance(self.fn_one_on_lambda, uw.function.Function):
+            self._fn_one_on_lambda = uw.function.Function.convert(fn_one_on_lambda)
+            if not isinstance(self._fn_one_on_lambda, uw.function.Function):
                 raise ValueError("Provided 'fn_one_on_lambda' must be of, or convertible to, the 'Function' class.")
-                
-            # define getter and setter decorators for fn_one_on_lambda - will be conditionally available to users
-            @property
-            def fn_one_on_lambda(self):
-                """
-                A bulk viscosity parameter
-                """
-                return self._fn_one_on_lambda
-    
-            @fn_one_on_lambda.setter
-            def fn_one_on_labmda(self, newFn):
-                self._fn_one_on_lambda = newFn
 
         if fn_source != None:
-            self.fn_source = uw.function.Function.convert(fn_source)
-            if not isinstance(self.fn_source, uw.function.Function):
+            self._fn_source = uw.function.Function.convert(fn_source)
+            if not isinstance(self._fn_source, uw.function.Function):
                 raise ValueError("Provided 'fn_source' must be of, or convertible to, the 'Function' class.")
-            
-            # define decorators for fn_source
-            @property
-            def fn_source(self):
-                """
-                The volumetric source term function. You may change this function directly via this
-                property.
-                """
-                return self._fn_source
-            @fn_source.setter
-            def fn_source(self, value):
-                self._fn_source = value
 
         if not fn_bodyforce:
             if velocityField.mesh.dim == 2:
@@ -266,7 +244,7 @@ class Stokes(_stgermain.StgCompoundComponent):
                                                                 assembledObject    = self._fvector,
                                                                 surfaceGaussPoints = 3, # increase to resolve stress bc fluctuations
                                                                 nbc                = cond )
-        if fn_one_on_lambda != None:
+        if self._fn_one_on_lambda != None:
             # add matrix and associated assembly term for compressible stokes formulation
             # a mass matrix goes into the lower right block of the stokes system coeff matrix
             self._mmatrix = sle.AssembledMatrix( self._pressureSol, self._pressureSol, rhs=self._hvector )
@@ -274,7 +252,7 @@ class Stokes(_stgermain.StgCompoundComponent):
             self._compressibleTerm = sle.MatrixAssemblyTerm_NA__NB__Fn(  integrationSwarm=intswarm,
                                                                          assembledObject=self._mmatrix,
                                                                          mesh=self._velocityField.mesh,
-                                                                         fn=-self.fn_one_on_lambda )
+                                                                         fn=-self._fn_one_on_lambda )
 
         if _fn_stresshistory != None:
             self._vepTerm    = sle.VectorAssemblyTerm_VEP__Fn(  integrationSwarm=intswarm,
@@ -317,29 +295,65 @@ class Stokes(_stgermain.StgCompoundComponent):
         property.
         """
         return self._forceVecTerm.fn
+
     @fn_bodyforce.setter
     def fn_bodyforce(self, value):
         self._forceVecTerm.fn = value
-    
+
+    # define getter and setter decorators for fn_one_on_lambda - will be conditionally available to users
+    @property
+    def fn_one_on_lambda(self):
+        """
+        A bulk viscosity parameter
+        """
+        return self._fn_one_on_lambda
+
+    @fn_one_on_lambda.setter
+    def fn_one_on_lambda(self, newFn):
+        if hasattr(self, '_mmatrix'):
+            self._fn_one_on_lambda = newFn
+        else:
+            import warnings
+            warnings.warn("Cannot add fn_one_on_lambda to existing stokes object. Instead you should build a new object with fn_one_on_lambda defined", RuntimeWarning)
+
+    # define decorators for fn_source
+    @property
+    def fn_source(self):
+        """
+        The volumetric source term function. You may change this function directly via this
+        property.
+        """
+        return self._fn_source
+
+    @fn_source.setter
+    def fn_source(self, value):
+        if hasattr(self, '_hvector'):
+            self._fn_source = value
+        else:
+            import warnings
+            warnings.warn("Cannot add fn_source to existing stokes object. Instead you should build a new object with fn_source defined", RuntimeWarning)
+
+
+
     @property
     def eqResiduals(self):
         """
         Returns the stokes flow equations' residuals from the latest solve. Residual calculations
-        use the matrices and vectors of the discretised problem. 
+        use the matrices and vectors of the discretised problem.
         The residuals correspond to the momentum equation and the continuity equation.
-        
+
         Return
         ------
         (r1, r2) - 2 tuple of doubles
             r1 is the momentum equation residual
             r2 is the continuity equation residual
-            
+
         Notes
         -----
         This method must be called collectively by all processes.
         """
-        
+
         res_mEq = uw.libUnderworld.StgFEM.Stokes_MomentumResidual(self._cself)
         res_cEq = uw.libUnderworld.StgFEM.Stokes_ContinuityResidual(self._cself)
-        
+
         return res_mEq, res_cEq
