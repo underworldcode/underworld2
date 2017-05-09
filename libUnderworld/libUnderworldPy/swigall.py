@@ -39,5 +39,3 @@ for swigfile in swigfiles:
     if subp.wait() != 0 :
         raise RuntimeError("Error generating swig bindings.")
 
-os.system('ln -s ../gLucifer/Viewer/lavavu.py')
-os.system('ln -s ../gLucifer/Viewer/control.py')

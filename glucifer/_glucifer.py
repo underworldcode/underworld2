@@ -27,7 +27,7 @@ import os
 #Attempt to import lavavu module
 lavavu = None
 try:
-    import libUnderworld.libUnderworldPy.lavavu as lavavu
+    import lavavu
     sys.path.append(os.path.dirname(lavavu.__file__))
 except:
     print "LavaVu module not found! disabling inline visualisation"
