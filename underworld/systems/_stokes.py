@@ -69,16 +69,16 @@ class Stokes(_stgermain.StgCompoundComponent):
         Function must return float values of identical dimensionality
         to the provided velocity variable.
     fn_lambda : Removed use, fn_one_on_lambda instead
-    fn_one_on_lambda: underworld.function.Function, Default = None
+    fn_minus_one_on_lambda: underworld.function.Function, Default = None
         Function which defines a non solenoidal velocity field via the relationship
-        div(velocityField) = -fn_one_on_lambda * pressurefield + fn_source
+        div(velocityField) = -fn_minus_one_on_lambda * pressurefield + fn_source
         When this is left as None a incompressible formulation of the stokes equation is formed, ie, div(velocityField) = 0.
-        fn_one_on_lambda is incompatible with the 'penalty' stokes solver, ensure a
-        'penalty' equal to 0 is used when fn_one_on_lambda is used. By default this is the case.
+        fn_minus_one_on_lambda is incompatible with the 'penalty' stokes solver, ensure a
+        'penalty' equal to 0 is used when fn_minus_one_on_lambda is used. By default this is the case.
     fn_source : underworld.function.Function, Default = None
         Function which defines a non solenoidal velocity field via the relationship
-        div(velocityField) = -fn_one_on_lambda * pressurefield + fn_source.
-        fn_one_on_lambda is incompatible with the 'penalty' stokes solver, ensure
+        div(velocityField) = -fn_minus_one_on_lambda * pressurefield + fn_source.
+        fn_minus_one_on_lambda is incompatible with the 'penalty' stokes solver, ensure
         the 'penalty' of 0, is used when fn_lambda is used. By default this is the case.
     voronoi_swarm : underworld.swarm.Swarm
         If a voronoi_swarm is provided, voronoi type numerical integration is
@@ -141,11 +141,10 @@ class Stokes(_stgermain.StgCompoundComponent):
                 raise TypeError( "Provided '_fn_stresshistory' must be of or convertible to 'Function' class." )
 
 
-        self._fn_one_on_lambda = fn_one_on_lambda
         if fn_one_on_lambda != None:
-            self._fn_one_on_lambda = uw.function.Function.convert(fn_one_on_lambda)
-            if not isinstance(self._fn_one_on_lambda, uw.function.Function):
-                raise ValueError("Provided 'fn_one_on_lambda' must be of, or convertible to, the 'Function' class.")
+            self._fn_minus_one_on_lambda = uw.function.Function.convert(-1.0 * fn_one_on_lambda)
+            if not isinstance(self._fn_minus_one_on_lambda, uw.function.Function):
+                raise ValueError("Provided 'fn_minus_one_on_lambda' must be of, or convertible to, the 'Function' class.")
 
         if fn_source != None:
             self._fn_source = uw.function.Function.convert(fn_source)
@@ -244,15 +243,16 @@ class Stokes(_stgermain.StgCompoundComponent):
                                                                 assembledObject    = self._fvector,
                                                                 surfaceGaussPoints = 3, # increase to resolve stress bc fluctuations
                                                                 nbc                = cond )
-        if self._fn_one_on_lambda != None:
+        if self._fn_minus_one_on_lambda != None:
             # add matrix and associated assembly term for compressible stokes formulation
             # a mass matrix goes into the lower right block of the stokes system coeff matrix
             self._mmatrix = sle.AssembledMatrix( self._pressureSol, self._pressureSol, rhs=self._hvector )
             # -1. as per Hughes, The Finite Element Method, 1987, Table 4.3.1, [M]
+
             self._compressibleTerm = sle.MatrixAssemblyTerm_NA__NB__Fn(  integrationSwarm=intswarm,
                                                                          assembledObject=self._mmatrix,
                                                                          mesh=self._velocityField.mesh,
-                                                                         fn=-self._fn_one_on_lambda )
+                                                                         fn=self._fn_minus_one_on_lambda )
 
         if _fn_stresshistory != None:
             self._vepTerm    = sle.VectorAssemblyTerm_VEP__Fn(  integrationSwarm=intswarm,
@@ -300,21 +300,23 @@ class Stokes(_stgermain.StgCompoundComponent):
     def fn_bodyforce(self, value):
         self._forceVecTerm.fn = value
 
-    # define getter and setter decorators for fn_one_on_lambda - will be conditionally available to users
+    # define getter and setter decorators for fn_minus_one_on_lambda - will be conditionally available to users
     @property
     def fn_one_on_lambda(self):
         """
         A bulk viscosity parameter
         """
-        return self._fn_one_on_lambda
+        return self._fn_minus_one_on_lambda
 
     @fn_one_on_lambda.setter
     def fn_one_on_lambda(self, newFn):
-        if hasattr(self, '_mmatrix'):
-            self._fn_one_on_lambda = newFn
+        if hasattr(self, '_compressibleTerm'):
+            self._fn_minus_one_on_lambda = uw.function.Function.convert(-1.0*newFn)
+            self._compressibleTerm._fn = self._fn_minus_one_on_lambda
+            self._compressibleTerm._set_fn_function(self._compressibleTerm._cself, self._fn_minus_one_on_lambda._fncself)
         else:
             import warnings
-            warnings.warn("Cannot add fn_one_on_lambda to existing stokes object. Instead you should build a new object with fn_one_on_lambda defined", RuntimeWarning)
+            warnings.warn("Cannot add fn_minus_one_on_lambda to existing stokes object. Instead you should build a new object with fn_minus_one_on_lambda defined", RuntimeWarning)
 
     # define decorators for fn_source
     @property
@@ -327,8 +329,11 @@ class Stokes(_stgermain.StgCompoundComponent):
 
     @fn_source.setter
     def fn_source(self, value):
-        if hasattr(self, '_hvector'):
-            self._fn_source = value
+        if hasattr(self, '_cforceVecTerm'):
+            self._fn_source = uw.function.Function.convert(value)
+            self._cforceVecTerm._fn = self._fn_source
+            self._cforceVecTerm._set_fn_function(self._cforceVecTerm._cself, self._fn_source._fncself)
+
         else:
             import warnings
             warnings.warn("Cannot add fn_source to existing stokes object. Instead you should build a new object with fn_source defined", RuntimeWarning)
