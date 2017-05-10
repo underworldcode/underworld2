@@ -4,6 +4,7 @@ from Mpi4py import Mpi4py
 from MPI import MPI
 from HDF5 import HDF5
 import subprocess
+from SCons.Script.Main import AddOption
 
 class H5py(Package):
 
@@ -22,16 +23,17 @@ class H5py(Package):
         with open('h5py_build.out','w') as outfile:
             with open('h5py_build.err','w') as errfile:
                 command = "python setup.py configure -m --hdf5 " + self.hdf5.location[0]
-                print command
-                subp = subprocess.Popen(command.split(), stdout=outfile, stderr=errfile)
+                self._logfile.write("\n\nh5py configuration command:\n")
+                self._logfile.write(self.launcher+command)
+                subp = subprocess.Popen((self.launcher+command).split(), stdout=outfile, stderr=errfile)
                 subp.wait()
                 if subp.wait() != 0:
-                    self._logfile.write("Failed configuring h5py :(\nPlease check 'h5py_build.out' and 'h5py_build.err' in libUnderworld/h5py_ext")
+                    self._logfile.write("\nFailed configuring h5py :(\nPlease check 'h5py_build.out' and 'h5py_build.err' in libUnderworld/h5py_ext\n")
                     raise RuntimeError
-                subp = subprocess.Popen('python setup.py clean', shell=True, stdout=outfile, stderr=errfile)
+                subp = subprocess.Popen(self.launcher+'python setup.py clean', shell=True, stdout=outfile, stderr=errfile)
                 subp.wait()
                 if subp.wait() != 0:
-                    self._logfile.write("Failed cleaning h5py :(\nPlease check 'h5py_build.out' and 'h5py_build.err' in libUnderworld/h5py_ext")
+                    self._logfile.write("\nFailed cleaning h5py :(\nPlease check 'h5py_build.out' and 'h5py_build.err' in libUnderworld/h5py_ext\n")
                     raise RuntimeError
                 cmd = 'python setup.py build_ext --include-dirs='
                 # use all header paths the config has thus far added.
@@ -41,19 +43,23 @@ class H5py(Package):
                 cmd2 = ' --build-lib ' + os.path.dirname(self._h5pyp)
                 cmd += cmd2
 
-                subp = subprocess.Popen( 'CC='+cc+' '+cmd, shell=True, stdout=outfile, stderr=errfile)
+                self._logfile.write("\nh5py build command:\n")
+                self._logfile.write('CC='+cc+' '+self.launcher+' '+cmd )
+                subp = subprocess.Popen( 'CC='+cc+' '+self.launcher+' '+cmd, shell=True, stdout=outfile, stderr=errfile)
                 subp.wait()
                 if subp.wait() != 0:
-                    self._logfile.write("Failed building h5py :(\nPlease check 'h5py_build.out' and 'h5py_build.err' in libUnderworld/h5py_ext")
+                    self._logfile.write("\nFailed building h5py :(\nPlease check 'h5py_build.out' and 'h5py_build.err' in libUnderworld/h5py_ext\n")
                     raise RuntimeError
                 # need to run this now to make it importable
-                subp = subprocess.Popen('python setup.py build' + cmd2, shell=True, stdout=outfile, stderr=errfile)
+                self._logfile.write("\nh5py install command:\n")
+                self._logfile.write(self.launcher+'python setup.py build' + cmd2)
+                subp = subprocess.Popen(self.launcher+'python setup.py build' + cmd2, shell=True, stdout=outfile, stderr=errfile)
                 subp.wait()
                 if subp.wait() != 0:
-                    self._logfile.write("Failed building h5py :(\nPlease check 'h5py_build.out' and 'h5py_build.err' in libUnderworld/h5py_ext")
+                    self._logfile.write("\nFailed installing h5py :(\nPlease check 'h5py_build.out' and 'h5py_build.err' in libUnderworld/h5py_ext\n")
                     raise RuntimeError
         os.chdir(self._h5pysrc+'/..')
-        self._logfile.write("h5py build completed successfully.\n")
+        self._logfile.write("\nh5py build completed successfully.\n")
 
     def _importtest(self):
         '''
@@ -64,20 +70,26 @@ class H5py(Package):
         re-importing after (perhaps) we have built our own h5py.
         '''
         # next check for mpi compat
-        self._logfile.write("Checking if h5py is importable and built against mpi.\n")
+        self._logfile.write("\nChecking if h5py is importable and built against mpi.\n")
         self._logfile.flush()
         proj_folder = os.path.realpath(os.path.dirname("../.."))
-        subp = subprocess.Popen('python -c \'import sys\nsys.path.insert(0, \"{}\")\nimport h5py\nif not h5py.get_config().mpi: raise RuntimeError(\"h5py imported, but not compiled against mpi.\")\''.format(proj_folder), shell=True, stdout=self._logfile, stderr=self._logfile)
+        subp = subprocess.Popen(self.launcher+'python -c \'import sys\nsys.path.insert(0, \"{}\")\nimport h5py\nif not h5py.get_config().mpi: raise RuntimeError(\"h5py imported, but not compiled against mpi.\")\''.format(proj_folder), shell=True, stdout=self._logfile, stderr=self._logfile)
         subp.wait()
         if subp.wait() != 0:
-            self._logfile.write("h5py is not importable, or does not appear to be built against mpi.\n")
+            self._logfile.write("\nh5py is not importable, or does not appear to be built against mpi.\n")
             return False
-        self._logfile.write("h5py configuration succeeded.\n")
+        self._logfile.write("\nh5py configuration succeeded.\n")
 
         # if we made it this far, all is probably good
         return True
 
     def check(self, conf, env):
+        self.launcher = self.get_option('launcher')
+        if self.launcher is None:
+            self.launcher = ""
+        else:
+            self.launcher = self.launcher + " "
+
         with open('config.log', 'a') as self._logfile:
             self._logfile.write("\n\nCONFIGURE H5PY\n")
             self._logfile.write("Checking if h5py in built in uw2 already, or provided by system (in that order of preference).\n")
@@ -85,16 +97,7 @@ class H5py(Package):
                 return True
             
             self._logfile.write("\n")
-            self._logfile.write("No functional h5py found, lets try build our own using h5pcc.\n")
-            try:
-                self._buildh5py('h5pcc')
-                if self._importtest():
-                    return True
-            except:
-                pass
-
-            self._logfile.write("\n")
-            self._logfile.write("Still no functional h5py found, lets try build our own using uw2 CC.\n")
+            self._logfile.write("h5py not found. try build local version using uw2 CC.\n")
             try:
                 self._buildh5py(self.env['CC'])
                 if self._importtest():
@@ -102,6 +105,16 @@ class H5py(Package):
             except:
                 pass
                 
+                
+            self._logfile.write("\n")
+            self._logfile.write("h5py not found, try build local version using h5pcc.\n")
+            try:
+                self._buildh5py('h5pcc')
+                if self._importtest():
+                    return True
+            except:
+                pass
+
             return False
 
     def _gen_locations(self):
@@ -110,5 +123,5 @@ class H5py(Package):
         yield ('', [''], [''])
 
     def setup_options(self):
-        # this overwrites the default method so we don't add any options for this package.
-        pass
+        AddOption('--h5py-launcher', dest='launcher', nargs=1, type='string',
+                  action='store', help='Launcher application within which to launch build and test executables.')
