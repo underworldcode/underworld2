@@ -55,34 +55,23 @@ class H5py(Package):
         os.chdir(self._h5pysrc+'/..')
         self._logfile.write("h5py build completed successfully.\n")
 
-
     def _importtest(self):
         '''
-        We run test on h5py here. Not that we first make sure we have project 
-        parent directory in sys.path and that it is in the first place so that 
-        it is preferenced over system packages. Also note that we do this 
+        We run test on h5py here. Not that we first make sure we have project
+        parent directory in sys.path and that it is in the first place so that
+        it is preferenced over system packages. Also note that we do this
         via subprocess to keep our own python environment clean and allow
         re-importing after (perhaps) we have built our own h5py.
         '''
-        self._logfile.write("Attempting to import h5py...\n")
-        proj_folder = os.path.realpath(os.path.dirname("../.."))
-        self._logfile.flush()
-        subp = subprocess.Popen('python -c \'import sys\nsys.path.insert(0, \"{}\")\nimport h5py\''.format(proj_folder), shell=True, stdout=self._logfile, stderr=self._logfile)
-        subp.wait()
-        if subp.wait() != 0:
-            self._logfile.write("h5py import failed.\n")
-            return False
-        self._logfile.write("h5py import succeeded.\n")
-
         # next check for mpi compat
-        self._logfile.write("Checking if h5py is built against mpi.\n")
+        self._logfile.write("Checking if h5py is importable and built against mpi.\n")
         self._logfile.flush()
-        subp = subprocess.Popen('python -c \'import sys\nsys.path.insert(0, \"{}\")\nimport h5py\nif not h5py.get_config().mpi: raise RuntimeError\''.format(proj_folder), shell=True, stdout=self._logfile, stderr=self._logfile)
+        proj_folder = os.path.realpath(os.path.dirname("../.."))
+        subp = subprocess.Popen('python -c \'import sys\nsys.path.insert(0, \"{}\")\nimport h5py\nif not h5py.get_config().mpi: raise RuntimeError(\"h5py imported, but not compiled against mpi.\")\''.format(proj_folder), shell=True, stdout=self._logfile, stderr=self._logfile)
         subp.wait()
         if subp.wait() != 0:
-            self._logfile.write("h5py does not appear to be built against mpi.\n")
+            self._logfile.write("h5py is not importable, or does not appear to be built against mpi.\n")
             return False
-        self._logfile.write("h5py does appear to be built against mpi.\n")
         self._logfile.write("h5py configuration succeeded.\n")
 
         # if we made it this far, all is probably good
