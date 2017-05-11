@@ -141,6 +141,7 @@ class Stokes(_stgermain.StgCompoundComponent):
                 raise TypeError( "Provided '_fn_stresshistory' must be of or convertible to 'Function' class." )
 
 
+        self._fn_minus_one_on_lambda = None
         if fn_one_on_lambda != None:
             self._fn_minus_one_on_lambda = uw.function.Function.convert(-1.0 * fn_one_on_lambda)
             if not isinstance(self._fn_minus_one_on_lambda, uw.function.Function):
