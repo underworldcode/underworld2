@@ -216,8 +216,8 @@ class Store(_stgermain.StgCompoundComponent):
 
                 #Ensure properties updated before object written to db
                 _libUnderworld.gLucifer.lucDrawingObject_SetProperties(obj._dr, obj._getProperties());
-                if obj._colourMap:
-                    _libUnderworld.gLucifer.lucColourMap_SetProperties(obj._colourMap._cm, obj._colourMap._getProperties());
+                if obj.colourMap:
+                    _libUnderworld.gLucifer.lucColourMap_SetProperties(obj.colourMap._cm, obj.colourMap._getProperties());
 
                 #Add the object to the drawing object register for the database
                 libUnderworld.StGermain.Stg_ObjectList_Append(self._db.drawingObjects.objects,obj._cself)

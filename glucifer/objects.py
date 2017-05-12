@@ -330,12 +330,20 @@ class Drawing(_stgermain.StgCompoundComponent):
     @property
     def colourBar(self):
         """    
-        colourBar (dict): return colour bar of drawing object, create if 
+        colourBar (object): return colour bar of drawing object, create if
         doesn't yet exist.
         """
         if not self._colourBar:
             self._colourBar = ColourBar(colourMap=self._colourMap)
         return self._colourBar
+
+    @property
+    def colourMap(self):
+        """
+        colourMap (object): return colour map of drawing object
+        """
+        return self._colourMap
+
 
     def getdata(self, viewer, typename):
         #Experimental: grabbing data from a LavaVu object
