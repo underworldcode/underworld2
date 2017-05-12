@@ -448,6 +448,11 @@ class Figure(dict):
         self._drawingObjects = []
         self._script = []
 
+        #Save types of all Drawing derived classes
+        def all_subclasses(cls):
+            return cls.__subclasses__() + [g for s in cls.__subclasses__() for g in all_subclasses(s)]
+        self._object_types = all_subclasses(objects.Drawing)
+
         super(Figure, self).__init__(*args)
 
     def __del__(self):
@@ -461,6 +466,20 @@ class Figure(dict):
         #Update the properties values (merge)
         #values of any existing keys are replaced
         self.update(newProps)
+
+    #Undefined methods call Drawing() constructors if defined, and append to figure
+    def __getattr__(self, key):
+        #__getattr__ called if no attrib/method found
+        def any_method(*args, **kwargs):
+            #Find if class exists that extends Drawing
+            method = getattr(objects, key)
+            if isinstance(method, type) and method in self._object_types:
+                #Return the new object and add it to the figure
+                newobj = method(*args, **kwargs)
+                self.append(newobj)
+                return newobj
+
+        return any_method
 
     @property
     def resolution(self):
@@ -719,14 +738,6 @@ class Figure(dict):
            self._viewerProc.kill()
         self._viewerProc = None
 
-    def run_script(self):
-        """ Run the saved script on an open viewer instance
-        """
-        self.open_viewer()
-        url = "http://localhost:9999/command=" + urllib2.quote(';'.join(self._script))
-        response = urllib2.urlopen(url).read()
-        #print response
-  
     def send_command(self, cmd, retry=True):
         """ 
         Run command on an open viewer instance.
@@ -893,4 +904,5 @@ class Viewer(dict):
     def step(self, value):
         #Sets new step on db
         self._db.step = value
+
 
