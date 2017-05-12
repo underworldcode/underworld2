@@ -694,6 +694,11 @@ class Figure(dict):
         #Returns contents as newline separated string
         return '\n'.join(self._script)
 
+    def lv(self):
+        """ Return active viewer instance
+        """
+        return self.db.viewer
+
     def viewer(self):
         """ Open the inline viewer.
         """
@@ -727,7 +732,7 @@ class Figure(dict):
                 from IPython.display import HTML
                 return HTML('''<a href='#' onclick='window.open("http://" + location.hostname + ":9999");'>Open Viewer Interface</a>''')
             else:
-                lv = self.db.lvrun(db=fname, port=9999)
+                self.db.lvrun(db=fname, port=9999)
 
     def close_viewer(self):
         """ Close the viewer.
