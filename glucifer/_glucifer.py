@@ -619,7 +619,7 @@ class Figure(dict):
         try:
             #Render with viewer
             lv = self.db.lvrun(quality=self["quality"], script=self._script)
-            imagestr = lv.image(filename, size[0], size[1])
+            imagestr = lv.image(filename, resolution=size)
             #Return the generated filename
             return imagestr
         except RuntimeError,e:
