@@ -9,26 +9,35 @@ import os
 
 from mpi4py import MPI
 
-u = pint.UnitRegistry(autoconvert_offset_to_baseunit = True)
+u = pint.UnitRegistry()
+UnitRegistry = u
 
-def nonDimensionalize(dimValue, scaling):
+
+scaling = {"[time]": 1.0 * u.second,
+           "[length]": 1.0 * u.meter, 
+           "[mass]": 1.0 * u.kilogram, 
+           "[temperature]": 1.0 * u.degK,
+           "[substance]": 1. * u.mole}
+
+
+def nonDimensionalize(dimValue):
     """
     This function uses pint object to perform a dimension analysis and
     return a value scaled according to a set of scaling coefficients:
 
     example:
 
-    import pint
+    import unsupported.scaling as sca
 
-    u = pint.UnitRegistry(autoconvert_offset_to_baseunit = True)
+    u = sca.UnitRegistry
 
     # Characteristic values of the system
-    half_rate = (0.5 * u.centimeter / u.year).to(u.meter / u.second)
+    half_rate = 0.5 * u.centimeter / u.year
     model_height = 600e3 * u.meter
-    refViscosity = (1e24 * u.pascal * u.second).to_base_units()
-    surfaceTemp = (0. * u.degC).to_base_units()
-    baseModelTemp = (1330. * u.degC).to_base_units()
-    baseCrustTemp = (550. * u.degC).to_base_units()
+    refViscosity = 1e24 * u.pascal * u.second
+    surfaceTemp = 0. * u.degK
+    baseModelTemp = 1330. * u.degC
+    baseCrustTemp = 550. * u.degC
     
     KL_meters = model_height
     KT_seconds = KL_meters / half_rate
@@ -36,16 +45,17 @@ def nonDimensionalize(dimValue, scaling):
     Kt_degrees = (baseModelTemp - surfaceTemp)
     K_substance = 1. * u.mole
 
-    scaling = {"[time]": KT_seconds,
-              "[length]": KL_meters, 
-              "[mass]": KM_kilograms, 
-              "[temperature]": Kt_degrees,
-              "[substance]": K_substance}
+    sca.scaling["[time]"] = KT_seconds
+    sca.scaling["[length]"] = KL_meters 
+    sca.scaling["[mass]"] = KM_kilograms 
+    sca.scaling["[temperature]"] = Kt_degrees
+    sca.scaling["[substance]"] -= K_substance
 
     # Get a scaled value:
-    gravity = nonDimensionalize(9.81 * u.meter / u.second**2, scaling)
+    gravity = nonDimensionalize(9.81 * u.meter / u.second**2)
     """
-    
+    global scaling
+
     if not isinstance(dimValue, u.Quantity):
         return dimValue
     
@@ -88,9 +98,10 @@ def nonDimensionalize(dimValue, scaling):
     else:
         raise ValueError('Dimension Error')
 
+def Dimensionalize(Value, units):
+   
+    global scaling
 
-def Dimensionalize(Value, scaling, units):
-    
     unit = (1.0 * units).to_base_units()
     
     length = scaling["[length]"]
@@ -124,10 +135,15 @@ def Dimensionalize(Value, scaling, units):
               temperature**(dtemp)*
               substance**(dsubstance))    
     
-    return (Value * factor).to(units)
+    if (isinstance(Value, uw.mesh._meshvariable.MeshVariable) or 
+       isinstance(Value, uw.swarm._swarmvariable.SwarmVariable)) :
+        tempVar = Value.copy()
+        tempVar.data[...] = (Value.data[...] * factor).to(units)
+        return tempVar
+    else:
+        return (Value * factor).to(units)
 
-
-def _save_mesh( self, filename, scaling=None, units=None):
+def _save_mesh( self, filename, units=None, scaling=False):
     """
     Save the mesh to disk
 
@@ -181,7 +197,6 @@ def _save_mesh( self, filename, scaling=None, units=None):
     ...     os.remove( "saved_mesh.h5" )
 
     """
-
     if hasattr(self.generator, 'geometryMesh'):
         raise RuntimeError("Cannot save this mesh as it's a subMesh. "
                             + "Most likely you only need to save its geometryMesh")
@@ -193,9 +208,13 @@ def _save_mesh( self, filename, scaling=None, units=None):
     # save attributes and simple data - MUST be parallel as driver is mpio
     h5f.attrs['dimensions'] = self.dim
     h5f.attrs['mesh resolution'] = self.elementRes
+
+    if units == None:
+        units = u.meter
+    
     if scaling:
-        h5f.attrs['max'] = Dimensionalize(self.maxCoord, scaling, units)
-        h5f.attrs['min'] = Dimensionalize(self.minCoord, scaling, units)
+        h5f.attrs['max'] = Dimensionalize(self.maxCoord, units)
+        h5f.attrs['min'] = Dimensionalize(self.minCoord, units)
     else:
         h5f.attrs['max'] = self.maxCoord
         h5f.attrs['min'] = self.minCoord
@@ -212,7 +231,7 @@ def _save_mesh( self, filename, scaling=None, units=None):
     local = self.nodesLocal
     # write to the dset using the local set of global node ids
     if scaling:
-        vals = Dimensionalize(self.data[0:local], scaling, units)
+        vals = Dimensionalize(self.data[0:local], units)
     else:
         vals = self.data[0:local]
 
@@ -234,7 +253,8 @@ def _save_mesh( self, filename, scaling=None, units=None):
     # return our file handle
     return uw.utils.SavedFileData(self, filename)
 
-def _save_meshVariable( self, filename, meshHandle=None, scaling=None, units=None):
+def _save_meshVariable( self, filename, meshHandle=None, units=None,
+        scaling=False):
     """
     Save the MeshVariable to disk.
 
@@ -290,6 +310,7 @@ def _save_meshVariable( self, filename, meshHandle=None, scaling=None, units=Non
     ...     os.remove( "saved_mesh_variable.h5" )
 
     """
+
     if not isinstance(filename, str):
         raise TypeError("Expected 'filename' to be provided as a string")
 
@@ -307,8 +328,9 @@ def _save_meshVariable( self, filename, meshHandle=None, scaling=None, units=Non
     local = mesh.nodesLocal
 
     if scaling:
-        from unsupported.scaling import Dimensionalize
-        vals = Dimensionalize(self.data[0:local], scaling, units)
+        if units == None:
+            raise ValueError("units not specified")
+        vals = Dimensionalize(self.data[0:local], units)
     else:
         vals = self.data[0:local]
 
@@ -348,7 +370,7 @@ def _save_meshVariable( self, filename, meshHandle=None, scaling=None, units=Non
     # return our file handle
     return uw.utils.SavedFileData(self, filename)
 
-def _save_swarmVariable( self, filename, scaling=None, units=None):
+def _save_swarmVariable( self, filename, units=None, scaling=False):
     """
     Save the swarm variable to disk.
 
@@ -440,8 +462,9 @@ def _save_swarmVariable( self, filename, scaling=None, units=None):
 
     if swarm.particleLocalCount > 0: # only add if there are local particles
         if scaling:
-            from unsupported.scaling import Dimensionalize
-            vals = Dimensionalize(self.data[:], scaling, units)
+            if units == None:
+                raise ValueError("units not specified")
+            vals = Dimensionalize(self.data[:], units)
         else:
             vals = self.data[:]
 
@@ -451,7 +474,7 @@ def _save_swarmVariable( self, filename, scaling=None, units=None):
 
     return uw.utils.SavedFileData( self, filename )
 
-def _save_swarm(self, filename, scaling=None, units=None):
+def _save_swarm(self, filename, units=None, scaling=False):
     """
     Save the swarm to disk.
 
@@ -505,7 +528,10 @@ def _save_swarm(self, filename, scaling=None, units=None):
         raise TypeError("Expected filename to be provided as a string")
 
     # just save the particle coordinates SwarmVariable
-    self.particleCoordinates.save(filename, scaling=scaling, units=units)
+    if scaling:
+        if units == None:
+            raise ValueError("units not specified")
+    self.particleCoordinates.save(filename, units=units)
 
     return uw.utils.SavedFileData( self, filename )
 
