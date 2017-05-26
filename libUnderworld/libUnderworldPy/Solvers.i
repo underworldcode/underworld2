@@ -36,4 +36,5 @@ extern "C" {
 
 
 %include "KSPSolvers/StokesBlockKSPInterface.h"
+%include "KSPSolvers/BSSCR/writeMatVec.h"
 %include "KSPSolvers/types.h"

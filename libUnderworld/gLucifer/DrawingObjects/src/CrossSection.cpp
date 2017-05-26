@@ -134,6 +134,9 @@ void _lucCrossSection_Delete( void* drawingObject )
    if (self->cppdata)
        delete (lucCrossSection_cppdata*)self->cppdata;
 
+  if (self->values)
+    lucCrossSection_FreeSampleData(self);
+
    _lucDrawingObject_Delete( self );
 }
 
@@ -228,7 +231,8 @@ void _lucCrossSection_AssignFromXML( void* drawingObject, Stg_ComponentFactory* 
           * Axis is a single character, one of [xyzXYZ] */
 
          /* Parse the input string */
-         if (strlen(crossSectionStr) > 0 && sscanf( crossSectionStr, "%c=%s", &axisChar, crossSectionVal ) == 2 )
+         char tempChar;
+         if (strlen(crossSectionStr) > 0 && sscanf( crossSectionStr, "%c%c%s", &axisChar, &tempChar, crossSectionVal ) == 3 )
          {
             /* Axis X/Y/Z */
             if ( toupper( axisChar ) >= 'X' )
@@ -468,7 +472,7 @@ void lucCrossSection_AllocateSampleData(void* drawingObject, int dims)
    Index          aIndex, bIndex, d;
    if (dims <= 0) dims = self->fieldComponentCount;
 
-   if ((!self->vertices && self->rank == 0) || !self->gatherData)
+   if ((!self->vertices && self->rank == 0) || !self->gatherData || self->onMesh)
       self->vertices = Memory_Alloc_3DArray( float, self->resolutionA, self->resolutionB, 3, "quad vertices");
    else
       self->vertices = NULL;

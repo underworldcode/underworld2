@@ -35,14 +35,14 @@ lucContourCrossSection* _lucContourCrossSection_New(  LUCCONTOURCROSSSECTION_DEF
 
 void _lucContourCrossSection_Init(
    lucContourCrossSection*      self,
-   Bool                         showValues,
-   Bool                         printUnits,
+   char*                        labelFormat,
+   double                       unitScaling,
    double                       minIsovalue,
    double                       maxIsovalue,
    double                       interval )
 {
-   self->showValues = showValues;
-   self->printUnits = printUnits;
+   self->labelFormat = StG_Strdup(labelFormat);
+   self->unitScaling = unitScaling;
    self->interval = interval;
    self->minIsovalue = minIsovalue;
    self->maxIsovalue = maxIsovalue;
@@ -96,15 +96,11 @@ void _lucContourCrossSection_AssignFromXML( void* drawingObject, Stg_ComponentFa
 
    _lucContourCrossSection_Init(
       self,
-      Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"showValues", True  ),
-      Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"printUnits", False  ),
+      Stg_ComponentFactory_GetString( cf, self->name, (Dictionary_Entry_Key)"labelFormat", ""  ),
+      Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"unitScaling", 1.0 ),
       Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"minIsovalue", 0 ),
       Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"maxIsovalue", 0 ),
       Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"interval", 0.33 )  ) ;
-
-   /* Drawing settings for this component */
-   //TODO: Set via python properties
-   //self->lit = False;
 }
 
 void _lucContourCrossSection_Build( void* drawingObject, void* data ) 
@@ -128,7 +124,24 @@ void _lucContourCrossSection_Draw( void* drawingObject, lucDatabase* database, v
 
    self->printedIndex = -1;
    self->coordIndex = 0;
-   lucContourCrossSection_DrawCrossSection(self, database);
+
+   if (self->isSet || self->dim == 2 ) 
+   {
+      /* Just draw at given position if provided */
+     if (self->isSet)
+        lucContourCrossSection_DrawCrossSection(self, database);
+     else
+        lucContourCrossSection_DrawCrossSection( lucCrossSection_Set(self, 0.0, K_AXIS, False), database);
+   }
+   else
+   {
+      lucContourCrossSection_DrawCrossSection( lucCrossSection_Set(self, 0.0, I_AXIS, True), database );
+      lucContourCrossSection_DrawCrossSection( lucCrossSection_Set(self, 1.0, I_AXIS, True), database );
+      lucContourCrossSection_DrawCrossSection( lucCrossSection_Set(self, 0.0, J_AXIS, True), database );
+      lucContourCrossSection_DrawCrossSection( lucCrossSection_Set(self, 1.0, J_AXIS, True), database );
+      lucContourCrossSection_DrawCrossSection( lucCrossSection_Set(self, 0.0, K_AXIS, True), database );
+      lucContourCrossSection_DrawCrossSection( lucCrossSection_Set(self, 1.0, K_AXIS, True), database );
+   }
 }
 
 void lucContourCrossSection_DrawCrossSection( void* drawingObject, lucDatabase* database )
@@ -137,16 +150,22 @@ void lucContourCrossSection_DrawCrossSection( void* drawingObject, lucDatabase* 
    double                  minIsovalue = self->minIsovalue;
    double                  maxIsovalue = self->maxIsovalue;
    double                  isovalue;
+   lucColourMap cmap;
+   if (self->colourMap) printf(self->colourMap->name);
+
+   if (!self->colourMap)
+      self->colourMap = &cmap;
+
+   /* Sample the 2d cross-section */
+   lucCrossSection_SampleField(self, False);
 
    /* Custom max, min, use global min/max if equal (defaults to both zero) */
    if (self->minIsovalue == self->maxIsovalue)
    {
-      //minIsovalue = FieldVariable_GetMinGlobalFieldMagnitude(self->fieldVariable);
-      //maxIsovalue = FieldVariable_GetMaxGlobalFieldMagnitude(self->fieldVariable);
+      minIsovalue = self->colourMap->minimum;
+      maxIsovalue = self->colourMap->maximum;
+      if (self->colourMap == &cmap) self->colourMap = NULL;
    }
-
-   /* Sample the 2d cross-section */
-   lucCrossSection_SampleField(self, False);
 
    if (database->rank == 0)
    {
@@ -339,25 +358,15 @@ void lucContourCrossSection_PlotPoint(lucContourCrossSection* self, lucDatabase*
    if (self->colourMap)
       lucDatabase_AddValues(database, 1, lucLineType, lucColourValueData, self->colourMap, &value);
 
-   if (self->showValues && self->coordIndex % 4 == edge) 
+   if (strlen(self->labelFormat) && self->coordIndex % 4 == edge) 
    { 
       if (self->printedIndex < self->coordIndex && (0 == bIndex || 0 == aIndex || bIndex == (self->resolutionB-1) || aIndex == (self->resolutionA-1)))
       {
-         char label[32];
-         double dimCoeff = 1.0; /* coefficient for dimensionalising field */
-         //TODO: Fix scaling/units
-//         /* very hacky to get the scaling component */
-//         Scaling* theScaling = NULL;
-//         if (self->fieldVariable->context) theScaling = self->fieldVariable->context->scaling;
-//         if (self->fieldVariable->o_units && theScaling)
-//            dimCoeff = Scaling_ParseDimCoeff( theScaling, self->fieldVariable->o_units );
-//
+         char label[64];
          /* Add the vertex for the label as a point */
          lucDatabase_AddVertices(database, 1, lucPointType, pos);
          /* Add to the label data */
-         sprintf(label, " %g", isovalue * dimCoeff);
-         //sprintf(label, " %g%s", isovalue * dimCoeff,
-         //         self->printUnits && self->fieldVariable->o_units ? self->fieldVariable->o_units : "");
+         snprintf(label, 63, self->labelFormat, isovalue * self->unitScaling);
          lucDatabase_AddLabel(database, lucPointType, label);
 
          self->printedIndex = self->coordIndex;

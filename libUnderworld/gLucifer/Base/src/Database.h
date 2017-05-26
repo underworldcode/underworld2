@@ -12,11 +12,9 @@
 
 #include <gLucifer/Viewer/ViewerTypes.h>
 #include "sqlite3.h"
-#include "DrawingObject_Register.h"
 
 struct lucColourMap;
 struct lucDrawingObject;
-struct lucDrawingObject_Register;
 
 #include "types.h"
 
@@ -35,8 +33,6 @@ typedef struct
    float maximum;
    float min[3];
    float max[3];
-   float dimCoeff;         /* For scaling */
-   const char* units;      /* Scaling units */
    const char* labels;     /* Label strings */
 } lucGeometryData;
 
@@ -49,7 +45,7 @@ extern const Type lucDatabase_Type;
       /* Other Info */ \
       DomainContext*    context;                            \
       /* Internal */ \
-      lucDrawingObject_Register*    drawingObject_Register; \
+      NamedObject_Register* drawingObjects;                 \
       char*             labels[lucMaxType];                 \
       unsigned int      label_lengths[lucMaxType];          \
       lucGeometryData*  data[lucMaxType][lucMaxDataType];   \
@@ -140,7 +136,7 @@ lucGeometryData* lucGeometryData_New(lucGeometryDataType data_type);
 void lucGeometryData_Clear(lucGeometryData* self);
 void lucGeometryData_Delete(lucGeometryData* self);
 void lucGeometryData_Read(lucGeometryData* self, int items, float* data); //, int width, int height)
-void lucGeometryData_Setup(lucGeometryData* self, float min, float max, float dimFactor, const char* units);
+void lucGeometryData_Setup(lucGeometryData* self, float min, float max);
 
 void lucDatabase_OpenDatabase(lucDatabase* self);
 void lucDatabase_CreateDatabase(lucDatabase* self);

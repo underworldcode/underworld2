@@ -42,8 +42,6 @@ Bool lucBase_Init()
    RegisterParent( lucDatabase_Type,          Stg_Component_Type );
    RegisterParent( lucDrawingObject_Type,     Stg_Component_Type );
 
-   RegisterParent( lucDrawingObject_Register_Type, NamedObject_Register_Type );
-
    return True;
 }
 
