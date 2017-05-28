@@ -34,4 +34,4 @@ aprun -n 1 -N 1 python compile.py
 # Test
 cd ..
 export PYTHONPATH=$PYTHONPATH:$PWD
-aprun -n 1 -N 1 test_basic.sh
+aprun python -c "import underworld"
