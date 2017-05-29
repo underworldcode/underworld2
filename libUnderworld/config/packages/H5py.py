@@ -22,7 +22,7 @@ class H5py(Package):
         os.chdir(self._h5pysrc)
         with open('h5py_build.out','w') as outfile:
             with open('h5py_build.err','w') as errfile:
-                command = "python setup.py configure -m --hdf5 " + self.hdf5.location[0]
+                command = "python setup.py configure -rm --hdf5 " + self.hdf5.location[0]
                 self._logfile.write("\n\nh5py configuration command:\n")
                 self._logfile.write(self.launcher+command)
                 subp = subprocess.Popen((self.launcher+command).split(), stdout=outfile, stderr=errfile)
@@ -35,7 +35,10 @@ class H5py(Package):
                 if subp.wait() != 0:
                     self._logfile.write("\nFailed cleaning h5py :(\nPlease check 'h5py_build.out' and 'h5py_build.err' in libUnderworld/h5py_ext\n")
                     raise RuntimeError
-                cmd = 'python setup.py build_ext --include-dirs='
+                
+                # The following doesn't work on raijin, one only requires 'setup.py build'
+                # but as we use a system h5py it isn't critical JG May2017
+                cmd = 'python setup.py build_ext --include-dirs=' 
                 # use all header paths the config has thus far added.
                 # we really just need the path to mpi.h
                 for header_path in self.env["CPPPATH"]:
@@ -63,24 +66,30 @@ class H5py(Package):
 
     def _importtest(self):
         '''
-        We run test on h5py here. Not that we first make sure we have project
-        parent directory in sys.path and that it is in the first place so that
-        it is preferenced over system packages. Also note that we do this
-        via subprocess to keep our own python environment clean and allow
-        re-importing after (perhaps) we have built our own h5py.
+        We run test on h5py here. Note that we first check if a custom h5py is
+        in the parent directory ie it is preferenced over system packages. 
+	Also note that we do this via subprocess to keep our own python environment 
+	clean and allow re-importing after (perhaps) we have built our own h5py.
         '''
         # next check for mpi compat
         self._logfile.write("\nChecking if h5py is importable and built against mpi.\n")
         self._logfile.flush()
         proj_folder = os.path.realpath(os.path.dirname("../.."))
+
+        # try h5py in the parent directory
         subp = subprocess.Popen(self.launcher+'python -c \'import sys\nsys.path.insert(0, \"{}\")\nimport h5py\nif not h5py.get_config().mpi: raise RuntimeError(\"h5py imported, but not compiled against mpi.\")\''.format(proj_folder), shell=True, stdout=self._logfile, stderr=self._logfile)
         subp.wait()
+
         if subp.wait() != 0:
-            self._logfile.write("\nh5py is not importable, or does not appear to be built against mpi.\n")
-            return False
-        self._logfile.write("\nh5py configuration succeeded.\n")
+            self._logfile.write("\nh5py is not importable from {}, or does not appear to be built against mpi.\n".format(proj_folder))
+            # try h5py in PYTHONPATH
+            subp = subprocess.Popen(self.launcher+'python -c \'import sys\nimport h5py\nif not h5py.get_config().mpi: raise RuntimeError(\"h5py imported, but not compiled against mpi.\")\'', shell=True, stdout=self._logfile, stderr=self._logfile)
+            if subp.wait() != 0:
+                self._logfile.write("\nh5py is not importable from {}, or does not appear to be built against mpi.\n".format(proj_folder))
+                return False
 
         # if we made it this far, all is probably good
+        self._logfile.write("\nh5py configuration succeeded.\n")
         return True
 
     def check(self, conf, env):
