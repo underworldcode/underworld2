@@ -197,6 +197,28 @@ class VectorAssemblyTerm_NA__Fn(VectorAssemblyTerm):
         # call parents method
         super(VectorAssemblyTerm_NA__Fn,self)._add_to_stg_dict(componentDictionary)
 
+class VectorAssemblyTerm_NA_i__Fn_i(VectorAssemblyTerm):
+    _objectsDict = { "_assemblyterm": "VectorAssemblyTerm_NA_i__Fn_i" }
+
+    def __init__(self, fn, mesh=None, **kwargs):
+        # build parent
+        super(VectorAssemblyTerm_NA_i__Fn_i,self).__init__(**kwargs)
+
+        self._set_fn_function = libUnderworld.Underworld._VectorAssemblyTerm_NA_i__Fn_i_SetFn
+        self._fn = fn
+
+        if mesh:
+            if not isinstance( mesh, uw.mesh.FeMesh_Cartesian ):
+                raise TypeError( "The provided mesh must be of FeMesh_Cartesian class.")
+            # set directly
+            self._cself.geometryMesh = mesh._cself
+            self._mesh = mesh
+
+
+    def _add_to_stg_dict(self,componentDictionary):
+        # call parents method
+        super(VectorAssemblyTerm_NA_i__Fn_i,self)._add_to_stg_dict(componentDictionary)
+
 class GradientStiffnessMatrixTerm(MatrixAssemblyTerm):
     _objectsDict = { "_assemblyterm": "GradientStiffnessMatrixTerm" }
     pass
