@@ -531,7 +531,7 @@ def _save_swarm(self, filename, units=None, scaling=False):
     if scaling:
         if units == None:
             raise ValueError("units not specified")
-    self.particleCoordinates.save(filename, units=units)
+    self.particleCoordinates.save(filename, scaling=scaling, units=units)
 
     return uw.utils.SavedFileData( self, filename )
 
