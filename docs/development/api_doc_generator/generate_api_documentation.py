@@ -1,4 +1,4 @@
-ignorelist = ['json', 'os', 'libUnderworld', 'glob', 'lavavu']
+ignorelist = ['json', 'os', 'libUnderworld', 'glob', 'lavavu', 'numpy', 'sys', 'os', 'time', 'control', 'LavaVuPython']
 
 def doc_module(module, modname):
     filename = modname+'.rst'
