@@ -699,17 +699,19 @@ class Figure(dict):
         """
         return self.db.viewer
 
-    def viewer(self):
+    def viewer(self, show=True):
         """ Open the inline viewer.
         """
-        #Open viewer instance
+        #Open/get viewer instance
         global lavavu
         if lavavu and uw.rank() == 0:
             #Generate db if doesn't exist
             if not self.db._db.path:
                 self._generate_DB()
             v = self.db.lvrun()
-            v.window()
+            #Show the inline window,
+            #set show=False to disable this if adding custom controls
+            if show: v.window()
             return v
 
     def open_viewer(self, args=[], background=True):
