@@ -729,7 +729,7 @@ class Figure(dict):
         if lavavu and uw.rank() == 0:
             #Open viewer with local web server for interactive/iterative use
             if background:
-                self._viewerProc = subprocess.Popen([self.db._lvbin, "-" + str(self.db.step), "-p9999", "-q90", fname] + args,
+                self._viewerProc = subprocess.Popen([self.db._lvbin, "-" + str(self.db.step), "-p9999", "-q90", fname] + self._script + args,
                                                     stdout=PIPE, stdin=PIPE, stderr=STDOUT)
                 from IPython.display import HTML
                 return HTML('''<a href='#' onclick='window.open("http://" + location.hostname + ":9999");'>Open Viewer Interface</a>''')
