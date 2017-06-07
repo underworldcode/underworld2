@@ -22,27 +22,6 @@ import numpy
 # SwarmShapes, SwarmRGB, SwarmVectors
 # EigenVectors, EigenVectorCrossSection
 
-#Some preset colourmaps
-# aim to reduce banding artifacts by being either 
-# - isoluminant
-# - smoothly increasing in luminance
-# - diverging in luminance about centre value
-colourMaps = {}
-#Isoluminant blue-orange
-colourMaps["isolum"] = "#288FD0 #50B6B8 #989878 #C68838 #FF7520"
-#Diverging blue-yellow-orange
-colourMaps["diverge"] = "#288FD0 #fbfb9f #FF7520"
-#Isoluminant rainbow blue-green-orange
-colourMaps["rainbow"] = "#5ed3ff #6fd6de #7ed7be #94d69f #b3d287 #d3ca7b #efc079 #ffb180"
-#CubeLaw indigo-blue-green-yellow
-colourMaps["cubelaw"] = "#440088 #831bb9 #578ee9 #3db6b6 #6ce64d #afeb56 #ffff88"
-#CubeLaw indigo-blue-green-orange-yellow
-colourMaps["cubelaw2"] = "#440088 #1b83b9 #6cc35b #ebbf56 #ffff88"
-#CubeLaw heat blue-magenta-yellow)
-colourMaps["smoothheat"] = "#440088 #831bb9 #c66f5d #ebbf56 #ffff88"
-#Paraview cool-warm (diverging)
-colourMaps["coolwarm"] = "#3b4cc0 #7396f5 #b0cbfc #dcdcdc #f6bfa5 #ea7b60 #b50b27"
-
 class ColourMap(_stgermain.StgCompoundComponent):
     """
     The ColourMap class provides functionality for mapping colours to numerical
@@ -68,7 +47,7 @@ class ColourMap(_stgermain.StgCompoundComponent):
     _selfObjectName = "_cm"
     _objectsDict = { "_cm": "lucColourMap" }
     
-    def __init__(self, colours=colourMaps["diverge"], valueRange=None, logScale=False, discrete=False, **kwargs):
+    def __init__(self, colours="diverge", valueRange=None, logScale=False, discrete=False, **kwargs):
         if not hasattr(self, "properties"):
             self.properties = {}
 
@@ -178,6 +157,11 @@ class Drawing(_stgermain.StgCompoundComponent):
             self._colourMap = ColourMap(valueRange=valueRange, logScale=logScale)
         else:
             self._colourMap = None
+
+        if not isinstance(discrete, bool):
+            raise TypeError("'discrete' parameter must be of 'bool' type.")
+        if discrete and self._colourMap:
+            self._colourMap["discrete"] = True
 
         #User-defined props in kwargs
         self.properties.update(kwargs)
@@ -404,8 +388,8 @@ class CrossSection(Drawing):
     _objectsDict = { "_dr": "lucCrossSection" }
 
     def __init__(self, mesh, fn, crossSection="", resolution=100,
-                       colours=None, colourMap="", colourBar=True,
-                       valueRange=None, logScale=False, discrete=False, offsetEdges=None, onMesh=False,
+                       colourBar=True,
+                       offsetEdges=None, onMesh=False,
                        *args, **kwargs):
 
         self._onMesh = onMesh
@@ -428,8 +412,7 @@ class CrossSection(Drawing):
         self._resolution = resolution
 
         # build parent
-        super(CrossSection,self).__init__(colours=colours, colourMap=colourMap, colourBar=colourBar,
-                       valueRange=valueRange, logScale=logScale, discrete=discrete, *args, **kwargs)
+        super(CrossSection,self).__init__(colourBar=colourBar, *args, **kwargs)
 
     def _setup(self):
         _libUnderworld.gLucifer._lucCrossSection_SetFn( self._cself, self._fn._fncself )
@@ -477,8 +460,7 @@ class Surface(CrossSection):
     _objectsDict = {  "_dr"  : "lucScalarField" }
 
     def __init__(self, mesh, fn, drawSides="xyzXYZ",
-                       colours=None, colourMap="", colourBar=True,
-                       valueRange=None, logScale=False, discrete=False,
+                       colourBar=True,
                        *args, **kwargs):
 
         if not isinstance(drawSides,str):
@@ -486,9 +468,7 @@ class Surface(CrossSection):
         self._drawSides = drawSides
 
         # build parent
-        super(Surface,self).__init__( mesh=mesh, fn=fn,
-                        colours=colours, colourMap=colourMap, colourBar=colourBar,
-                        valueRange=valueRange, logScale=logScale, discrete=discrete, *args, **kwargs)
+        super(Surface,self).__init__( mesh=mesh, fn=fn, colourBar=colourBar, *args, **kwargs)
 
         #Default properties
         is3d = len(self._crossSection) == 0
@@ -537,8 +517,6 @@ class Contours(CrossSection):
     _objectsDict = {  "_dr"  : "lucContourCrossSection" }
 
     def __init__(self, mesh, fn, labelFormat="", unitScaling=1.0, interval=0.33, limits=(0.0, 0.0),
-                       colours=None, colourMap="", colourBar=False,
-                       valueRange=None, logScale=False, discrete=False,
                        *args, **kwargs):
 
         if not isinstance(labelFormat,str):
@@ -566,9 +544,7 @@ class Contours(CrossSection):
         self._limits = limits
 
         # build parent
-        super(Contours,self).__init__( mesh=mesh, fn=fn,
-                        colours=colours, colourMap=colourMap, colourBar=colourBar,
-                        valueRange=valueRange, logScale=logScale, discrete=discrete, *args, **kwargs)
+        super(Contours,self).__init__( mesh=mesh, fn=fn, *args, **kwargs)
 
         #Default properties
         is3d = len(self._crossSection) == 0
@@ -620,9 +596,7 @@ class Points(Drawing):
     _objectsDict = { "_dr": "lucSwarmViewer" }
 
     def __init__(self, swarm, fn_colour=None, fn_mask=None, fn_size=None, colourVariable=None,
-                       colours=None, colourMap="", colourBar=True,
-                       valueRange=None, logScale=False, discrete=False,
-                       *args, **kwargs):
+                       colourBar=True, *args, **kwargs):
 
         if not isinstance(swarm,_swarmMod.Swarm):
             raise TypeError("'swarm' object passed in must be of type 'Swarm'")
@@ -639,9 +613,7 @@ class Points(Drawing):
            self._fn_size = _underworld.function.Function.convert(fn_size)
 
         # build parent
-        super(Points,self).__init__(
-                        colours=colours, colourMap=colourMap, colourBar=colourBar,
-                        valueRange=valueRange, logScale=logScale, discrete=discrete, *args, **kwargs)
+        super(Points,self).__init__(colourBar=colourBar, *args, **kwargs)
 
     def _add_to_stg_dict(self,componentDictionary):
         # lets build up component dictionary
@@ -782,16 +754,14 @@ class Volume(_GridSampler3D):
 
     def __init__(self, mesh, fn, 
                        resolutionI=64, resolutionJ=64, resolutionK=64, 
-                       colours=None, colourMap="", colourBar=True,
-                       valueRange=None, logScale=False, discrete=False,
+                       colourBar=True,
                        *args, **kwargs):
 
         # build parent
         if mesh.dim == 2:
             raise ValueError("Volume rendering requires a three dimensional mesh.")
         super(Volume,self).__init__( mesh=mesh, fn=fn, resolutionI=resolutionI, resolutionJ=resolutionJ, resolutionK=resolutionK,
-                        colours=colours, colourMap=colourMap, colourBar=colourBar,
-                        valueRange=valueRange, logScale=logScale, discrete=discrete, *args, **kwargs)
+                                     colourBar=colourBar, *args, **kwargs)
 
     def _add_to_stg_dict(self,componentDictionary):
         # lets build up component dictionary
@@ -879,9 +849,7 @@ class IsoSurface(Volume):
 
     def __init__(self, mesh, fn, fn_colour=None,
                        resolutionI=64, resolutionJ=64, resolutionK=64, 
-                       colours=None, colourMap="", colourBar=True,
-                       valueRange=None, logScale=False, discrete=False,
-                       *args, **kwargs):
+                       colourBar=True, *args, **kwargs):
 
         # build parent
         if mesh.dim == 2:
@@ -892,8 +860,7 @@ class IsoSurface(Volume):
            self._sampler = Sampler(mesh, fn_colour, colourMap=colourMap)
 
         super(IsoSurface,self).__init__( mesh=mesh, fn=fn, resolutionI=resolutionI, resolutionJ=resolutionJ, resolutionK=resolutionK,
-                        colours=colours, colourMap=colourMap, colourBar=colourBar,
-                        valueRange=valueRange, logScale=logScale, discrete=discrete, *args, **kwargs)
+                                         colourBar=colourBar, *args, **kwargs)
 
     def _add_to_stg_dict(self,componentDictionary):
         # lets build up component dictionary
@@ -975,7 +942,7 @@ class Mesh(Drawing):
                            "pointtype" : 2 if self._nodeNumbers else 4}
         
         # build parent
-        super(Mesh,self).__init__( colours=None, colourMap=None, colourBar=False, *args, **kwargs )
+        super(Mesh,self).__init__( colourMap=None, colourBar=False, *args, **kwargs )
 
     def _add_to_stg_dict(self,componentDictionary):
         # lets build up component dictionary
