@@ -136,7 +136,7 @@ class VectorSurfaceAssemblyTerm_NA__Fn__ni(VectorAssemblyTerm):
                                           [  ( deltaMeshVariable > 0.999, 1. ),
                                              (                      True, 0. )   ] )
 
-        self._fn = maskFn * nbc.flux
+        self._fn = maskFn * nbc.fn_flux
         self._set_fn_function = libUnderworld.Underworld._VectorSurfaceAssemblyTerm_NA__Fn__ni_SetFn
 
         if mesh:

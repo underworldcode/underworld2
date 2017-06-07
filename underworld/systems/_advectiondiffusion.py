@@ -146,8 +146,8 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
         for cond in self._conditions:
             if isinstance( cond, uw.conditions.NeumannCondition ):
 
-                ### -VE flux - because of SUPG implementation ###
-                negativeCond = uw.conditions.NeumannCondition( flux=-1.0*cond.flux,
+                ### -VE flux because of the FEM discretisation method of the initial equation
+                negativeCond = uw.conditions.NeumannCondition( fn_flux=-1.0*cond.fn_flux,
                                                                variable=cond.variable,
                                                                nodeIndexSet=cond.indexSet )
 
