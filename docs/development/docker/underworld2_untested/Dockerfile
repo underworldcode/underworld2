@@ -1,10 +1,6 @@
 FROM underworldcode/base:dev
 MAINTAINER https://github.com/underworldcode/
 
-# Install GDAL for some examples
-RUN add-apt-repository -y ppa:ubuntugis/ubuntugis-unstable
-RUN apt update && apt install gdal-bin python-gdal
-
 # set working directory to /root
 WORKDIR /root
 
