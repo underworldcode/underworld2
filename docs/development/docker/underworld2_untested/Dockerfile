@@ -1,5 +1,9 @@
-FROM underworldcode/base:latest
+FROM underworldcode/base:dev
 MAINTAINER https://github.com/underworldcode/
+
+# Install GDAL for some examples
+RUN add-apt-repository -y ppa:ubuntugis/ubuntugis-unstable
+RUN apt update && apt install gdal-bin python-gdal
 
 # set working directory to /root
 WORKDIR /root
@@ -8,7 +12,7 @@ WORKDIR /root
 ENV PYTHONPATH $PYTHONPATH:/root/underworld2
 
 # get underworld, compile, delete some unnecessary files, trust notebooks, copy to workspace
-RUN git clone --branch "master" --single-branch https://github.com/underworldcode/underworld2 && \
+RUN git clone --branch "development" --single-branch https://github.com/underworldcode/underworld2 && \
     cd underworld2/libUnderworld && \
     ./configure.py --with-debugging=0  && \
     ./compile.py                 && \
