@@ -86,8 +86,8 @@ def get_sep_velocities2D(mesh, velocityField):
 def get_sep_velocities3D(mesh, velocityField):
     
     nx, ny, nz = mesh.elementRes
-    GlobalIndices3d = np.arange(mesh.nodesGlobal).reshape(nz+1,ny+1,nx+1)
-    
+    GlobalIndices3d = np.indices((nz+1,ny+1,nx+1))
+
     # Create some work arrays.
     local_top_vy = np.zeros(((ny+1),(nx+1)))
     local_bot_vy = np.zeros(((ny+1),(nx+1)))
@@ -104,6 +104,7 @@ def get_sep_velocities3D(mesh, velocityField):
 
     # If the local domain contains some of the top_ids, proceed:
     if top_ids:
+        print("proc "+str(uw.rank())+" has top ids")
 
         # We must get rid of the shadow nodes
         top_ids = top_ids.data[top_ids.data < mesh.nodesLocal]
@@ -116,9 +117,14 @@ def get_sep_velocities3D(mesh, velocityField):
         heights_nodes = mesh.data[top_ids,1]
 
         # Get an I,J representation of the node coordinates
-        Ipositions = [int(np.where(GlobalIndices3d == i)[2]) for i in top_ids]
-        Jpositions = [int(np.where(GlobalIndices3d == i)[1]) for i in top_ids]
-        Kpositions = [int(np.where(GlobalIndices3d == i)[0]) for i in top_ids]
+
+        # FROM Numpy 1.13> ... more efficient ?
+        #ix = np.isin(GlobalIndices3d, node_gids)
+        #Kpositions, Jposition, Iposition = np.where(ix)
+        ix = np.in1d(np.arange(mesh.nodesGlobal), node_gids)
+        Ipositions = GlobalIndices3d[2].flatten()[ix]
+        Jpositions = GlobalIndices3d[1].flatten()[ix]
+        Kpositions = GlobalIndices3d[0].flatten()[ix]
 
         # Load the top-velocities in the local array with global dimensions.
         k = 0
@@ -141,15 +147,16 @@ def get_sep_velocities3D(mesh, velocityField):
         heights_nodes = mesh.data[bot_ids,1]
 
         # Get an I,J representation of the node coordinates
-        Ipositions = [int(np.where(GlobalIndices3d == i)[2]) for i in bot_ids]
-        Jpositions = [int(np.where(GlobalIndices3d == i)[1]) for i in bot_ids]
-        Kpositions = [int(np.where(GlobalIndices3d == i)[0]) for i in bot_ids]
+        ix = np.in1d(np.arange(mesh.nodesGlobal), node_gids)
+        Ipositions = GlobalIndices3d[2].flatten()[ix]
+        Jpositions = GlobalIndices3d[1].flatten()[ix]
+        Kpositions = GlobalIndices3d[0].flatten()[ix]
 
         # Load the top-velocities in the local array with global dimensions.
         k = 0
         for i, j in zip(Ipositions, Jpositions):
-            local_top_vy[j, i] = topVelocities_nodes[k]
-            local_heights[j, i] += heights_nodes[k]
+            local_bot_vy[j, i] = botVelocities_nodes[k]
+            local_heights[j, i] -= heights_nodes[k]
             k+=1
     
     # reduce local arrays into global_array
