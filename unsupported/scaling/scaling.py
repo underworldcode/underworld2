@@ -8,16 +8,18 @@ import numpy as np
 import os
 
 from mpi4py import MPI
+from ._utils import TransformedDict
 
 u = pint.UnitRegistry()
 UnitRegistry = u
 
+scaling = TransformedDict()
 
-scaling = {"[time]": 1.0 * u.second,
-           "[length]": 1.0 * u.meter, 
-           "[mass]": 1.0 * u.kilogram, 
-           "[temperature]": 1.0 * u.degK,
-           "[substance]": 1. * u.mole}
+scaling["[time]"]   = 1.0 * u.second
+scaling["[length]"] = 1.0 * u.meter 
+scaling["[mass]"] = 1.0 * u.kilogram 
+scaling["[temperature]"] = 1.0 * u.degK
+scaling["[substance]"] =1. * u.mole
 
 
 def nonDimensionalize(dimValue):
