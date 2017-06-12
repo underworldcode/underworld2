@@ -104,7 +104,6 @@ def get_sep_velocities3D(mesh, velocityField):
 
     # If the local domain contains some of the top_ids, proceed:
     if top_ids:
-        print("proc "+str(uw.rank())+" has top ids")
 
         # We must get rid of the shadow nodes
         top_ids = top_ids.data[top_ids.data < mesh.nodesLocal]
