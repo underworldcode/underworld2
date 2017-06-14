@@ -186,10 +186,7 @@ void _VectorAssemblyTerm_NA_i__Fn_i_AssembleElement( void* forceTerm, ForceVecto
       xi       = particle->xi;
 
       /* Calculate Determinant of Jacobian and Shape Functions */
-      if (self->geometryMesh)
-         detJac = ElementType_JacobianDeterminant( FeMesh_GetElementType( self->geometryMesh, lElement_I ), self->geometryMesh, lElement_I, xi, dim );
-      else
-         detJac = ElementType_JacobianDeterminant( elementType, mesh, lElement_I, xi, dim );
+      ElementType_ShapeFunctionsGlobalDerivs( elementType, mesh, lElement_I, xi, dim, &detJac, self->GNx );
 
       /* evaluate function */
       const FunctionIO* funcout = debug_dynamic_cast<const FunctionIO*>(cppdata->func(cppdata->input.get()));
