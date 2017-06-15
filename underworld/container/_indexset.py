@@ -113,6 +113,7 @@ class IndexSet(object):
         Example
         -------
         Create an empty set and add items as necessary:
+        
         >>> someSet = uw.container.IndexSet( 15 )
         >>> someSet.add(3)
         >>> someSet
