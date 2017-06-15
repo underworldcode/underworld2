@@ -857,7 +857,7 @@ class IsoSurface(Volume):
 
         self._sampler = None
         if fn_colour != None:
-           self._sampler = Sampler(mesh, fn_colour, colourMap=colourMap)
+           self._sampler = Sampler(mesh, fn_colour)
 
         super(IsoSurface,self).__init__( mesh=mesh, fn=fn, resolutionI=resolutionI, resolutionJ=resolutionJ, resolutionK=resolutionK,
                                          colourBar=colourBar, *args, **kwargs)

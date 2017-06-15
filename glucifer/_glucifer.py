@@ -297,9 +297,9 @@ class Store(_stgermain.StgCompoundComponent):
         try:
             lv = self.lvrun()
             #Get state, includes the list of objects in the loaded database
-            statestr = lv.getFigures()
+            statestr = lv.app.getFigures()
             #Also save the step data
-            self.timesteps = json.loads(lv.getTimeSteps())
+            self.timesteps = json.loads(lv.app.getTimeSteps())
             return json.loads(statestr)
         except RuntimeError,e:
             print "LavaVu error: " + str(e)
