@@ -271,6 +271,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
 
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
+        nProcs = comm.Get_size()
 
         # open hdf5 file
         h5f = h5py.File(name=filename, mode="r", driver='mpio', comm=MPI.COMM_WORLD)
@@ -278,19 +279,20 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         dset = h5f.get('data')
         if dset == None:
             raise RuntimeError("Can't find 'data' in file '{}'.\n".format(filename))
-        particleGobalCount = self.swarm.particleGlobalCount
-        if dset.shape[0] != particleGobalCount:
-            raise RuntimeError("Cannot load {0}'s data on current swarm. Incompatible numbers of particles in file '{1}'.".format(filename, filename)+
-                    " Particle count: file {0}, this swarm {1}\n".format(dset.shape[0], particleGobalCount))
-        size = len(gIds)
-        if self.data.shape[0] != size:
-            raise RuntimeError("Invalid mapping from file '{0}' to swarm.\n".format(filename) +
-                 "Ensure the swarm corresponds exactly to the file '{0}' by loading the swarm immediately".format(filename) +
-                    "before this 'SwarmVariable' load\n")
+
         if dset.shape[1] != self.data.shape[1]:
             raise RuntimeError("Cannot load file data on current swarm. Data in file '{0}', " \
                                "has {1} components -the particlesCoords has {2} components".format(filename, dset.shape[1], self.particleCoordinates.data.shape[1]))
 
+        particleGobalCount = self.swarm.particleGlobalCount
+        
+        if dset.shape[0] != particleGobalCount:
+            if rank == 0:
+                import warnings
+                warnings.warn("Warning, it appears {} particles were loaded, but this h5 variable has {} data points". format(particleGobalCount, dset.shape[0]), RuntimeWarning)
+
+        size = len(gIds) # number of local2global mapped indices
+            
         chunk = int(1e3)
         (multiples, remainder) = divmod( size, chunk )
 
@@ -395,9 +397,13 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         for i in xrange(rank):
             offset += procCount[i]
 
-        # import pdb; pdb.set_trace()
         # open parallel hdf5 file
         h5f = h5py.File(name=filename, mode="w", driver='mpio', comm=MPI.COMM_WORLD)
+        
+        # attribute of the proc offsets - used for loading from checkpoint
+        h5f.attrs["proc_offset"] = procCount
+        
+        # write the entire local swarm to the appropriate offset position
         globalShape = (particleGlobalCount, self.data.shape[1])
         dset = h5f.create_dataset("data",
                                    shape=globalShape,

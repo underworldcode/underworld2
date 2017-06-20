@@ -314,17 +314,33 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
                                "has {1} components -the particlesCoords has {2} components".format(filename, dset.shape[1], self.particleCoordinates.data.shape[1]))
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
-
+        nProcs = comm.Get_size()
+        
         if rank == 0 and verbose:
             bar = uw.utils._ProgressBar( start=0, end=dset.shape[0]-1, title="loading "+filename)
-
+        
+        # try and read the procCount attribute & assume that if nProcs in .h5 file
+        # is equal to the current no. procs then the particles will be distributed the 
+        # same across the processors. (Danger if different discretisations are used... i think)
+        # else try and load the whole .h5 file.
+        # we set the 'offset' & 'size' variables to achieve the above 
+        
+        offset = 0
+        size = dset.shape[0] # number of particles in h5 file
+        
+        procCount = h5f.attrs.get('proc_offset')
+        if procCount is not None and nProcs == len(procCount):
+            for p_i in xrange(rank):
+                offset += procCount[p_i]
+            size = procCount[rank]
+            
         valid = np.zeros(0, dtype='i') # array for read in
         chunk=int(1e4) # read in this many points at a time
 
-        (multiples, remainder) = divmod( dset.shape[0], chunk )
+        (multiples, remainder) = divmod( size, chunk )
         for ii in xrange(multiples+1):
             # setup the points to begin and end reading in
-            chunkStart = ii*chunk
+            chunkStart = offset + ii*chunk
             if ii == multiples:
                 chunkEnd = chunkStart + remainder
                 if remainder == 0: # in the case remainder is 0

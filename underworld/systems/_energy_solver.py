@@ -34,9 +34,34 @@ class HeatSolver(_stgermain.StgCompoundComponent):
         # call parents method
         super(HeatSolver,self)._add_to_stg_dict(componentDictionary)
 
-    def solve(self, nonLinearIterate=None, nonLinearTolerance=1.0e-2, **kwargs):
-        """ Solve the sle using provided solver.
+    def solve(self, nonLinearIterate=None, nonLinearTolerance=1.0e-2, nonLinearMaxIterations=500, callback_post_solve=None, **kwargs):
+        """ 
+        Solve the HeatEq system
+        
+        Parameters
+        ----------
+        nonLinearIterate: bool
+            True will perform non linear iterations iterations, False (or 0) will not
+        
+        nonLinearTolerance: float, Default=1.0e-2
+            Relative tolerance criterion for the change in the velocity field
+            
+        nonLinearMaxIterations: int, Default=500
+            Maximum number of non linear iteration to perform
+            
+        callback_post_sovle: func, Default=None
+            Optional callback function to be performed at the end of a linear solve iteration.
+            Commonly this will be used to perform operations between non linear iterations, for example,
+            calibrating the solution or removing the system null space.
         """
+
+        # error check callback_post_solve
+        if callback_post_solve is not None:
+            if not callable(callback_post_solve):
+                raise RuntimeError("The 'callback_post_solve' parameter is not 'None' and isn't callable")
+
+        # in this c function we handle callback_post_solve=None
+        uw.libUnderworld.StgFEM.SystemLinearEquations_SetCallback(self._heatSLE._cself, callback_post_solve)
 
         if not isinstance(nonLinearTolerance, float) or nonLinearTolerance < 0.0:
             raise ValueError("'nonLinearTolerance' option must be of type 'float' and greater than 0.0")
@@ -55,6 +80,7 @@ class HeatSolver(_stgermain.StgCompoundComponent):
         if nonLinear and nonLinearIterate:
             libUnderworld.StgFEM.SystemLinearEquations_SetNonLinearTolerance(self._heatSLE._cself, nonLinearTolerance)
             libUnderworld.StgFEM.SystemLinearEquations_SetToNonLinear(self._heatSLE._cself, True )
+            self._heatSLE._cself.nonLinearMaxIterations = nonLinearMaxIterations
         else:
             libUnderworld.StgFEM.SystemLinearEquations_SetToNonLinear(self._heatSLE._cself, False )
 
