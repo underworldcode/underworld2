@@ -222,8 +222,8 @@ void lucScalarField_DrawMeshCrossSection( void* drawingObject, lucDatabase* data
 
    if (self->rank == 0 && database)
    {
-      int count = self->dims[1] * self->dims[2];
-      lucDatabase_AddGridVertices(database, count, self->dims[2], self->vertices[0][0]);
+      int count = self->dims[self->axis1] * self->dims[self->axis2];
+      lucDatabase_AddGridVertices(database, count, self->dims[self->axis2], self->vertices[0][0]);
       lucDatabase_AddValues(database, count, lucGridType, lucColourValueData, self->colourMap, &self->values[0][0][0]);
    }
 
