@@ -238,7 +238,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         self._arrshadow = None
 
 
-    def load( self, filename, verbose=False ):
+    def load( self, filename ):
         """
         Load the swarm variable from disk. This must be called *after* the swarm.load().
 
@@ -247,8 +247,6 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         filename : str
             The filename for the saved file. Relative or absolute paths may be
             used, but all directories must exist.
-        verbose : bool
-            Prints a swarm variable load progress bar.
 
         Notes
         -----
@@ -293,24 +291,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
 
         size = len(gIds) # number of local2global mapped indices
             
-        chunk = int(1e3)
-        (multiples, remainder) = divmod( size, chunk )
-
-        if rank == 0 and verbose:
-            bar = uw.utils._ProgressBar( start=0, end=size-1, title="loading "+filename)
-
-        for ii in xrange(multiples+1):
-            chunkStart = ii*chunk
-            if ii == multiples:
-                chunkEnd = chunkStart + remainder
-                if remainder == 0:
-                    break
-            else:
-                chunkEnd = chunkStart + chunk
-            self.data[chunkStart:chunkEnd] = dset[gIds[chunkStart:chunkEnd],:]
-
-            if rank == 0 and verbose:
-                bar.update(chunkEnd)
+        self.data[:] = dset[gIds,:]
 
         h5f.close();
 
