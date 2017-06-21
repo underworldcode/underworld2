@@ -470,9 +470,11 @@ class Surface(CrossSection):
         # build parent
         super(Surface,self).__init__( mesh=mesh, fn=fn, colourBar=colourBar, *args, **kwargs)
 
-        #Default properties
+        #Merge with default properties
         is3d = len(self._crossSection) == 0
-        self.properties.update({"cullface" : is3d, "lit" : is3d})
+        defaults = {"cullface" : is3d, "lit" : is3d}
+        defaults.update(self.properties)
+        self.properties = defaults
 
     def _add_to_stg_dict(self,componentDictionary):
         # lets build up component dictionary
@@ -547,7 +549,6 @@ class Contours(CrossSection):
         super(Contours,self).__init__( mesh=mesh, fn=fn, *args, **kwargs)
 
         #Default properties
-        is3d = len(self._crossSection) == 0
         self.properties.update({"lit" : False})
 
     def _add_to_stg_dict(self,componentDictionary):

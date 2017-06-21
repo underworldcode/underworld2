@@ -26,11 +26,18 @@ import os
 
 #Attempt to import lavavu module
 lavavu = None
-try:
-    import lavavu
-    sys.path.append(os.path.dirname(lavavu.__file__))
-except:
-    print "LavaVu module not found! disabling inline visualisation"
+if 'lavavu' in sys.modules:
+    #Already imported, use that instance
+    lavavu = sys.modules['lavavu']
+else:
+    try:
+        import lavavu
+    except:
+        print "LavaVu module not found! disabling inline visualisation"
+    #Import into main too so can be accessed there
+    #(necessary for interactive viewer/controls)
+    import __main__
+    __main__.lavavu = lavavu
 
 # lets create somewhere to dump data for this session
 try:
@@ -422,7 +429,7 @@ class Figure(dict):
 
         #Setup default properties
         self.update({"resolution" : (640, 480), "title" : str(title), 
-            "axis" : axis, "axislength" : 0.2, "antialias" : True, 
+            "axis" : axis, "antialias" : True,
             "background" : facecolour, "margin" : 34, 
             "border" : (1 if edgecolour else 0), "bordercolour" : edgecolour, 
             "rulers" : False, "zoomstep" : 0})
@@ -615,7 +622,7 @@ class Figure(dict):
         try:
             if type.lower() == "webgl":
                 lv = self.db.lvrun()
-                return lv.web(True)
+                return lv.app.web(True)
             else:
                 return self._generate_image(filename, size)
         except RuntimeError,e:
@@ -658,7 +665,7 @@ class Figure(dict):
             #Create link to web content directory
             if not os.path.isdir("html"):
                 os.symlink(os.path.join(self.db._lvpath, 'html'), 'html')
-            jsonstr = lv.web()
+            jsonstr = lv.app.web()
             #Write files to disk first, can be passed directly on url but is slow for large datasets
             filename = "input_" + self.db._db.name + ".json"
             text_file = open("html/" + filename, "w")
@@ -694,25 +701,29 @@ class Figure(dict):
         #Returns contents as newline separated string
         return '\n'.join(self._script)
 
-    def lv(self):
-        """ Return active viewer instance
-        """
-        return self.db.viewer
-
-    def viewer(self, show=True):
+    def window(self):
         """ Open the inline viewer.
         """
         #Open/get viewer instance
         global lavavu
         if lavavu and uw.rank() == 0:
+            v = self.viewer()
+            #Show the inline window,
+            v.window()
+            return v
+
+    def viewer(self, **kwargs):
+        """ Return viewer instance.
+        """
+        #Open/get viewer instance
+        global lavavu
+        if lavavu and uw.rank() == 0:
+            if self.db.viewer:
+                return self.db.viewer
             #Generate db if doesn't exist
             if not self.db._db.path:
                 self._generate_DB()
-            v = self.db.lvrun()
-            #Show the inline window,
-            #set show=False to disable this if adding custom controls
-            if show: v.window()
-            return v
+            return self.db.lvrun()
 
     def open_viewer(self, args=[], background=True):
         """ Open the external viewer.
