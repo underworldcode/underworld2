@@ -71,9 +71,9 @@ extern const Type lucCrossSection_Type;
       unsigned             fieldComponentCount; \
       void*                cppdata;             \
       unsigned             dim;                 \
-      ExtensionInfo_Index  vertexGridHandle; \
-      int                  dims[3];          \
-      int                  fieldDim;         \
+      ExtensionInfo_Index  vertexGridHandle;    \
+      int                  dims[3];             \
+      int                  fieldDim;            \
  
 struct lucCrossSection
 {
