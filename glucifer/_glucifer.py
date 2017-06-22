@@ -25,15 +25,15 @@ import sys
 import os
 
 #Attempt to import lavavu module
-lavavu = None
 if 'lavavu' in sys.modules:
-    #Already imported, use that instance
-    lavavu = sys.modules['lavavu']
+    #Already imported, some paths issue causes double import to load separate instances
+    raise RuntimeError("LavaVu module exists, must not be imported before glucifer")
+    #lavavu = sys.modules['lavavu']
 else:
     try:
         import lavavu
-    except:
-        print "LavaVu module not found! disabling inline visualisation"
+    except Exception as e:
+        print e,"LavaVu module not found! disabling inline visualisation"
     #Import into main too so can be accessed there
     #(necessary for interactive viewer/controls)
     import __main__
