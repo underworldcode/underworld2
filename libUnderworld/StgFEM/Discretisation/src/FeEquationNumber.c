@@ -198,6 +198,8 @@ void _FeEquationNumber_Destroy( void* feEquationNumber, void *data ){
 void _FeEquationNumber_Delete( void* feEquationNumber ) {
    FeEquationNumber* self = (FeEquationNumber*) feEquationNumber;
 
+   _FeEquationNumber_Destroy( self, NULL );
+
    Journal_DPrintfL( self->debug, 1, "In %s\n",  __func__ );
    Stream_IndentBranch( StgFEM_Debug );
 
