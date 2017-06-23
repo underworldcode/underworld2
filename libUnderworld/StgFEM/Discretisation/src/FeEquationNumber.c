@@ -198,12 +198,8 @@ void _FeEquationNumber_Destroy( void* feEquationNumber, void *data ){
 void _FeEquationNumber_Delete( void* feEquationNumber ) {
    FeEquationNumber* self = (FeEquationNumber*) feEquationNumber;
 
-   Journal_DPrintfL( self->debug, 1, "In %s\n",  __func__ );
-   Stream_IndentBranch( StgFEM_Debug );
-
-   /* Stg_Class_Delete parent */
-   _Stg_Class_Delete( self );
-   Stream_UnIndentBranch( StgFEM_Debug );
+   // This calls the Destroy() function
+   _Stg_Component_Delete( self );
 }
 
 
@@ -327,12 +323,10 @@ Index FeEquationNumber_CalculateActiveEqCountAtNode(
 void FeEquationNumber_BuildLocationMatrix( void* feEquationNumber ) {
    FeEquationNumber*	self = (FeEquationNumber*)feEquationNumber;
    FeMesh*			feMesh;
-   unsigned		nDims;
    unsigned		nDomainEls;
-   unsigned		nLocalNodes;
    unsigned*		nNodalDofs;
    unsigned		nElNodes;
-   unsigned*		elNodes;
+   int*       elNodes;
    int**			dstArray;
    int***			locMat;
    IArray*			inc;
@@ -351,9 +345,7 @@ void FeEquationNumber_BuildLocationMatrix( void* feEquationNumber ) {
 
    /* Shortcuts. */
    feMesh = self->feMesh;
-   nDims = Mesh_GetDimSize( feMesh );
    nDomainEls = FeMesh_GetElementDomainSize( feMesh );
-   nLocalNodes = FeMesh_GetNodeLocalSize( feMesh );
    nNodalDofs = self->dofLayout->dofCounts;
    dstArray = self->mapNodeDof2Eq;
 
