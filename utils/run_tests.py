@@ -6,7 +6,7 @@ code, which should signify that no uncaught exceptions were encountered.
 
 This script will return a non-zero exit code if any tests fail.
 
-Usage: `run_tests.py --prepend="mpirun -np 2" foo.py [bar.ipynb [...]]`
+Usage: `run_tests.py --prepend="mpirun -np 2" --convert=True foo.py [bar.ipynb [...]]`
 
 
 """

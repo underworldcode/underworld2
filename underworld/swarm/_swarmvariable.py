@@ -290,8 +290,8 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
                 warnings.warn("Warning, it appears {} particles were loaded, but this h5 variable has {} data points". format(particleGobalCount, dset.shape[0]), RuntimeWarning)
 
         size = len(gIds) # number of local2global mapped indices
-            
-        self.data[:] = dset[gIds,:]
+        if size > 0:     # only if there is a non-zero local2global do we load
+            self.data[:] = dset[gIds,:]
 
         h5f.close();
 
