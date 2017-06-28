@@ -236,7 +236,7 @@ class Store(_stgermain.StgCompoundComponent):
             libUnderworld.gLucifer.lucDatabase_WriteState(self._db, figname, self._get_state(self._objects, props))
 
             #Output any custom geometry on objects
-            if lavavu and uw.rank() == 0:
+            if lavavu and uw.rank() == 0 and any(x.geomType is not None for x in self._objects):
                 lv = self.lvrun() #Open the viewer
                 for obj in self._objects:
                     #Create/Transform geometry by object

@@ -862,6 +862,7 @@ class IsoSurface(Volume):
 
         super(IsoSurface,self).__init__( mesh=mesh, fn=fn, resolutionI=resolutionI, resolutionJ=resolutionJ, resolutionK=resolutionK,
                                          colourBar=colourBar, *args, **kwargs)
+        self.geomType = "triangles"
 
     def _add_to_stg_dict(self,componentDictionary):
         # lets build up component dictionary
