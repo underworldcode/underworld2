@@ -918,20 +918,23 @@ int lucDatabase_WriteGeometry(lucDatabase* self, int index, lucGeometryType type
    unsigned char* buffer = (unsigned char*)block->data;
    unsigned long src_len = block->count * sizeof(float);
    unsigned long cmp_len = 0;
+   unsigned char* cmp_buffer = NULL;
    if (self->compressed && src_len > 1000)
    {
       cmp_len = compressBound(src_len);
-      buffer = (mz_uint8*)malloc((size_t)cmp_len);
+      cmp_buffer = (unsigned char*)malloc((size_t)cmp_len);
       Journal_Firewall(buffer != NULL, lucError, "Compress database: Out of memory! %s '%s'.\n", self->type, self->name );
-      Journal_Firewall(compress2(buffer, &cmp_len, (const unsigned char *)block->data, src_len, 1) == Z_OK,
+      Journal_Firewall(compress2((mz_uint8*)cmp_buffer, &cmp_len, (const unsigned char *)block->data, src_len, 1) == Z_OK,
          lucError, "Compress database failed! %s '%s'.\n", self->type, self->name );
       if (cmp_len >= src_len)
       {
-         free(buffer);
          cmp_len = 0;
       }
       else
-        src_len = cmp_len;
+      {
+         src_len = cmp_len;
+         buffer = cmp_buffer;
+      }
    }
 
    if (fabs(block->minimum) == HUGE_VAL) block->minimum = 0;
@@ -974,8 +977,8 @@ int lucDatabase_WriteGeometry(lucDatabase* self, int index, lucGeometryType type
    if (src_len > 0) sqlite3_finalize(statement);
 
    /* Free compression buffer */
-   if (cmp_len > 0)
-      free(buffer);
+   if (cmp_buffer)
+      free(cmp_buffer);
 
    return src_len;
 }
