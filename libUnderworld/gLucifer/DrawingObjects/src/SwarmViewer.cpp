@@ -111,7 +111,7 @@ void _lucSwarmViewer_Init(
    self->swarm               = swarm;
 
    /* Create a default colour component mapping, full range black->white */
-   self->opacityColourMap = opacityColourMap ? opacityColourMap : LUC_DEFAULT_ALPHAMAP;
+   self->opacityColourMap = opacityColourMap;
 
    self->geomType = lucPointType;   /* Draws points by default */
 }
