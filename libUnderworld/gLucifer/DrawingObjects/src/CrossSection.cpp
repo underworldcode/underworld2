@@ -319,7 +319,7 @@ void _lucCrossSection_Setup( void* drawingObject, lucDatabase* database, void* _
       Grid*                vertGrid;
       vertGrid = *(Grid**)ExtensionManager_Get( mesh->info, mesh, self->vertexGridHandle );
       int sizes[3] = {1,1,1};
-      for (int d=0; d<self->dim; d++)
+      for (unsigned int d=0; d<self->dim; d++)
         sizes[d] = vertGrid->sizes[d];
       self->dims[0] = sizes[0];
       self->dims[1] = sizes[1];
@@ -468,7 +468,7 @@ lucCrossSection* lucCrossSection_Slice(void* crossSection, double val, Bool inte
 void lucCrossSection_AllocateSampleData(void* drawingObject, int dims)
 {
    lucCrossSection* self = (lucCrossSection*)drawingObject;
-   Index          aIndex, bIndex, d;
+   Index          aIndex, bIndex;
    if (dims <= 0) dims = self->fieldComponentCount;
 
    if ((!self->vertices && self->rank == 0) || !self->gatherData || self->onMesh)
@@ -483,7 +483,7 @@ void lucCrossSection_AllocateSampleData(void* drawingObject, int dims)
    //clear components of higher dimension values outside dim range (eg: 2d vectors are stored as 3d, z needs to be zero)
    for ( aIndex = 0 ; aIndex < self->resolutionA ; aIndex++ )
       for ( bIndex = 0 ; bIndex < self->resolutionB ; bIndex++ )
-         for (d=0; d<dims; d++)
+         for (unsigned int d=0; d<dims; d++)
             self->values[aIndex][bIndex][d] = (d >= self->fieldComponentCount ? 0.0 : HUGE_VAL);
 }
 
@@ -502,7 +502,8 @@ void lucCrossSection_SampleField(void* drawingObject, Bool reverse)
    // reset max/min
    cppdata->fn->reset();
 
-   lucCrossSection_AllocateSampleData(self, 0);
+   if (!self->vertices)
+     lucCrossSection_AllocateSampleData(self, 0);
 
    /* Get mesh cross section vertices and values */
    double time = MPI_Wtime();
