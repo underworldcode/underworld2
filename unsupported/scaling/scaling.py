@@ -145,6 +145,10 @@ def Dimensionalize(Value, units):
     else:
         return (Value * factor).to(units)
 
+
+
+## Following functions are temporary, far from ideal...
+
 def _save_mesh( self, filename, units=None, scaling=False):
     """
     Save the mesh to disk
@@ -454,9 +458,13 @@ def _save_swarmVariable( self, filename, units=None, scaling=False):
     for i in xrange(rank):
         offset += procCount[i]
 
-    # import pdb; pdb.set_trace()
     # open parallel hdf5 file
     h5f = h5py.File(name=filename, mode="w", driver='mpio', comm=MPI.COMM_WORLD)
+    
+    # attribute of the proc offsets - used for loading from checkpoint
+    h5f.attrs["proc_offset"] = procCount
+    
+    # write the entire local swarm to the appropriate offset position
     globalShape = (particleGlobalCount, self.data.shape[1])
     dset = h5f.create_dataset("data",
                                shape=globalShape,
@@ -728,7 +736,7 @@ def _load_meshVariable(self, filename, interpolate=False, units=None):
     uw.libUnderworld.StgFEM._FeVariable_SyncShadowValues( self._cself )
     h5f.close()
 
-def _load_swarm( self, filename, verbose=False, units=None):
+def _load_swarm( self, filename, try_optimise=True, verbose=False, units=None ):
     """
     Load a swarm from disk. Note that this must be called before any SwarmVariable
     members are loaded.
@@ -738,6 +746,13 @@ def _load_swarm( self, filename, verbose=False, units=None):
     filename : str
         The filename for the saved file. Relative or absolute paths may be
         used.
+    try_optimise : bool, Default=True
+        Will speed up the swarm load time but warning - this algorithm assumes the 
+        previously saved swarm data was made on an identical mesh and mesh partitioning 
+        (number of processors) with respect to the current mesh. If this isn't the case then
+        the reloaded particle ordering will be broken, leading to an invalid swarms.
+        One can disable this optimisation and revert to a brute force algorithm, much slower,
+        by setting this option to False.
     verbose : bool
         Prints a swarm load progress bar.
 
@@ -753,7 +768,7 @@ def _load_swarm( self, filename, verbose=False, units=None):
 
     if not isinstance(filename, str):
         raise TypeError("Expected 'filename' to be provided as a string")
-
+    
     # open hdf5 file
     h5f = h5py.File(name=filename, mode="r", driver='mpio', comm=MPI.COMM_WORLD)
 
@@ -763,20 +778,36 @@ def _load_swarm( self, filename, verbose=False, units=None):
     if dset.shape[1] != self.particleCoordinates.data.shape[1]:
         raise RuntimeError("Cannot load file data on current swarm. Data in file '{0}', " \
                            "has {1} components -the particlesCoords has {2} components".format(filename, dset.shape[1], self.particleCoordinates.data.shape[1]))
-    
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
-
+    nProcs = comm.Get_size()
+    
     if rank == 0 and verbose:
         bar = uw.utils._ProgressBar( start=0, end=dset.shape[0]-1, title="loading "+filename)
-
+    
+    # try and read the procCount attribute & assume that if nProcs in .h5 file
+    # is equal to the current no. procs then the particles will be distributed the 
+    # same across the processors. (Danger if different discretisations are used... i think)
+    # else try and load the whole .h5 file.
+    # we set the 'offset' & 'size' variables to achieve the above 
+    
+    offset = 0
+    totalsize = size = dset.shape[0] # number of particles in h5 file
+    
+    if try_optimise:
+        procCount = h5f.attrs.get('proc_offset')
+        if procCount is not None and nProcs == len(procCount):
+            for p_i in xrange(rank):
+                offset += procCount[p_i]
+            size = procCount[rank]
+        
     valid = np.zeros(0, dtype='i') # array for read in
     chunk=int(1e4) # read in this many points at a time
 
-    (multiples, remainder) = divmod( dset.shape[0], chunk )
+    (multiples, remainder) = divmod( size, chunk )
     for ii in xrange(multiples+1):
         # setup the points to begin and end reading in
-        chunkStart = ii*chunk
+        chunkStart = offset + ii*chunk
         if ii == multiples:
             chunkEnd = chunkStart + remainder
             if remainder == 0: # in the case remainder is 0
@@ -787,8 +818,8 @@ def _load_swarm( self, filename, verbose=False, units=None):
         # add particles to swarm, ztmp is the corresponding local array
         # non-local particles are not added and their ztmp index is -1
         if units:
-            vals = nonDimensionalize(dset[:]*units)
-            ztmp = self.add_particles_with_coordinates(vals[ chunkStart : chunkEnd ])
+            vals = nonDimensionalize(dset[ chunkStart : chunkEnd] * units)
+            ztmp = self.add_particles_with_coordinates(vals)
         else:
             ztmp = self.add_particles_with_coordinates(dset[ chunkStart : chunkEnd ])
 
@@ -814,7 +845,8 @@ def _load_swarm( self, filename, verbose=False, units=None):
     # record which swarm state this corresponds to
     self._checkpointMapsToState = self.stateId
 
-def _load_swarmVariable( self, filename, verbose=False, units=None):
+    
+def _load_swarmVariable( self, filename, units=None):
     """
     Load the swarm variable from disk. This must be called *after* the swarm.load().
 
@@ -823,8 +855,6 @@ def _load_swarmVariable( self, filename, verbose=False, units=None):
     filename : str
         The filename for the saved file. Relative or absolute paths may be
         used, but all directories must exist.
-    verbose : bool
-        Prints a swarm variable load progress bar.
 
     Notes
     -----
@@ -847,6 +877,7 @@ def _load_swarmVariable( self, filename, verbose=False, units=None):
 
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
+    nProcs = comm.Get_size()
 
     # open hdf5 file
     h5f = h5py.File(name=filename, mode="r", driver='mpio', comm=MPI.COMM_WORLD)
@@ -854,39 +885,24 @@ def _load_swarmVariable( self, filename, verbose=False, units=None):
     dset = h5f.get('data')
     if dset == None:
         raise RuntimeError("Can't find 'data' in file '{}'.\n".format(filename))
-    particleGobalCount = self.swarm.particleGlobalCount
-    if dset.shape[0] != particleGobalCount:
-        raise RuntimeError("Cannot load {0}'s data on current swarm. Incompatible numbers of particles in file '{1}'.".format(filename, filename)+
-                " Particle count: file {0}, this swarm {1}\n".format(dset.shape[0], particleGobalCount))
-    size = len(gIds)
-    if self.data.shape[0] != size:
-        raise RuntimeError("Invalid mapping from file '{0}' to swarm.\n".format(filename) +
-             "Ensure the swarm corresponds exactly to the file '{0}' by loading the swarm immediately".format(filename) +
-                "before this 'SwarmVariable' load\n")
+
     if dset.shape[1] != self.data.shape[1]:
         raise RuntimeError("Cannot load file data on current swarm. Data in file '{0}', " \
                            "has {1} components -the particlesCoords has {2} components".format(filename, dset.shape[1], self.particleCoordinates.data.shape[1]))
 
-    chunk = int(1e3)
-    (multiples, remainder) = divmod( size, chunk )
+    particleGobalCount = self.swarm.particleGlobalCount
+    
+    if dset.shape[0] != particleGobalCount:
+        if rank == 0:
+            import warnings
+            warnings.warn("Warning, it appears {} particles were loaded, but this h5 variable has {} data points". format(particleGobalCount, dset.shape[0]), RuntimeWarning)
 
-    if rank == 0 and verbose:
-        bar = uw.utils._ProgressBar( start=0, end=size-1, title="loading "+filename)
-
-    for ii in xrange(multiples+1):
-        chunkStart = ii*chunk
-        if ii == multiples:
-            chunkEnd = chunkStart + remainder
-            if remainder == 0:
-                break
-        else:
-            chunkEnd = chunkStart + chunk
-        self.data[chunkStart:chunkEnd] = dset[gIds[chunkStart:chunkEnd],:]
+    size = len(gIds) # number of local2global mapped indices
+    if size > 0:     # only if there is a non-zero local2global do we load
         if units:
-            self.data[chunkStart:chunkEnd] =  nonDimensionalize(self.data[chunkStart:chunkEnd]*units)
-
-        if rank == 0 and verbose:
-            bar.update(chunkEnd)
+            self.data[:] = nonDimensionalize(dset[gIds,:] * units)
+        else:
+            self.data[:] = dset[gIds,:]
 
     h5f.close();
 
