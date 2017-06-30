@@ -900,7 +900,8 @@ def _load_swarmVariable( self, filename, units=None):
     size = len(gIds) # number of local2global mapped indices
     if size > 0:     # only if there is a non-zero local2global do we load
         if units:
-            self.data[:] = nonDimensionalize(dset[gIds,:] * units)
+            vals = dset[gIds,:]
+            self.data[:] = nonDimensionalize(vals * units)
         else:
             self.data[:] = dset[gIds,:]
 
