@@ -23,9 +23,9 @@ Review issue tracker
 Documentation review 
 ====================
 * Review docstrings udpates.
-* Review ``doc/`` for style, relevance and updates.
-* Review ``doc/development/broken``, contents to be kept at a minimum.
-* Review ``doc/development/unsupported``, contents to be kept at a minimum.
+* Review ``docs/`` for style, relevance and updates.
+* Review ``docs/development/broken``, contents to be kept at a minimum.
+* Review ``docs/development/unsupported``, contents to be kept at a minimum.
 * Update api html documentation.  See development/api_doc_generator/README.md
 
 Testing
@@ -37,7 +37,7 @@ Testing
 Final Science/Production testing
 ================================
 * High resolution production tests on raijin, magnus run to completion with 
-  correct results. These should include models from ``doc/publications``, 
+  correct results. These should include models from ``docs/publications``, 
   record overall condition and walltime with optimised code.  TODO: include 
   detailed list of models, parameters and completion state.
 * Ensure jenkins and docker are working correctly.
