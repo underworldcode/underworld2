@@ -26,7 +26,7 @@ Documentation review
 * Review ``docs/`` for style, relevance and updates.
 * Review ``docs/development/broken``, contents to be kept at a minimum.
 * Review ``docs/development/unsupported``, contents to be kept at a minimum.
-* Update api html documentation.  See development/api_doc_generator/README.md
+* Review docs generated at http://underworld2.readthedocs.io/
 
 Testing
 =======
@@ -88,6 +88,7 @@ $ docker tag 6649e5e26534 underworldcode/underworld2:2.1.1b
 ``` 
 $ docker push underworldcode/underworld2:2.1.1b
 ```
+** Add tagged documentation version at http://underworld2.readthedocs.io/  
 
 Announce new version
 ====================
