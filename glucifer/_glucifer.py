@@ -32,12 +32,12 @@ if 'lavavu' in sys.modules:
 else:
     try:
         import lavavu
+        #Import into main too so can be accessed there
+        #(necessary for interactive viewer/controls)
+        import __main__
+        __main__.lavavu = lavavu
     except Exception as e:
         print e,"LavaVu module not found! disabling inline visualisation"
-    #Import into main too so can be accessed there
-    #(necessary for interactive viewer/controls)
-    import __main__
-    __main__.lavavu = lavavu
 
 # lets create somewhere to dump data for this session
 try:

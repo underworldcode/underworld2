@@ -23,10 +23,10 @@ Review issue tracker
 Documentation review 
 ====================
 * Review docstrings udpates.
-* Review ``doc/`` for style, relevance and updates.
-* Review ``doc/development/broken``, contents to be kept at a minimum.
-* Review ``doc/development/unsupported``, contents to be kept at a minimum.
-* Update api html documentation.  See development/api_doc_generator/README.md
+* Review ``docs/`` for style, relevance and updates.
+* Review ``docs/development/broken``, contents to be kept at a minimum.
+* Review ``docs/development/unsupported``, contents to be kept at a minimum.
+* Review docs generated at http://underworld2.readthedocs.io/
 
 Testing
 =======
@@ -37,7 +37,7 @@ Testing
 Final Science/Production testing
 ================================
 * High resolution production tests on raijin, magnus run to completion with 
-  correct results. These should include models from ``doc/publications``, 
+  correct results. These should include models from ``docs/publications``, 
   record overall condition and walltime with optimised code.  TODO: include 
   detailed list of models, parameters and completion state.
 * Ensure jenkins and docker are working correctly.
@@ -88,6 +88,7 @@ $ docker tag 6649e5e26534 underworldcode/underworld2:2.1.1b
 ``` 
 $ docker push underworldcode/underworld2:2.1.1b
 ```
+** Add tagged documentation version at http://underworld2.readthedocs.io/  
 
 Announce new version
 ====================

@@ -117,17 +117,14 @@ def matplotlib_inline():
     except:
         pass
 
-# lets handle exceptions differently in parallel to ensure we call
-if nProcs() > 1:
+# lets handle exceptions differently in parallel to ensure we call.
+# add isinstance so that this acts correctly for Mocked classes used in sphinx docs generation
+if isinstance(nProcs(), int) and nProcs() > 1:
     _origexcepthook = _sys.excepthook
     def _uw_uncaught_exception_handler(exctype, value, tb):
-        print('\n###########################################################################################')
-        print('###########################################################################################')
         print('An uncaught exception was encountered on processor {}.'.format(rank()))
         # pass through to original handler
         _origexcepthook(exctype, value, tb)
-        print('###########################################################################################')
-        print('###########################################################################################')
         libUnderworld.StGermain_Tools.StgAbort( _data )
     _sys.excepthook = _uw_uncaught_exception_handler
 

@@ -461,25 +461,19 @@ sys.path.append(os.path.dirname(__name__))
 # add top project directory as well
 sys.path.append(os.path.join(os.path.dirname(__name__),'../../..'))
 
+from mock import Mock as MagicMock
+class Mock(MagicMock):
+    @classmethod
+    def __getattr__(cls, name):
+            return MagicMock()
+MOCK_MODULES = ['numpy',  '_StGermain', '_StgDomain', '_PICellerator', '_StgFEM', '_Solvers',
+                '_Underworld', 'h5py', '_Function', '_gLucifer', '_c_arrays', '_c_pointers',
+                '_StGermain_Tools', '_petsc', 'mpi4py', 'StGermain', 'StgDomain', 'StgFEM',
+                'PICellerator', 'Underworld', 'Solvers', 'gLucifer', 'c_arrays', 'c_pointers',
+                'StGermain_Tools', 'Function', 'petsc', 'libUnderworld.libUnderworldPy.StGermain_Tools',
+                'libUnderworld.libUnderworldPy.Function', '_LavaVuPython', 'glucifer.LavaVuPython']
+sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
-# first, try import underworld without mocked class
-try:
-    import underworld
-except:
-    # ok, that didn't work, lets mock the classes and try again
-    from mock import Mock as MagicMock
-    class Mock(MagicMock):
-        @classmethod
-        def __getattr__(cls, name):
-                return MagicMock()
-    MOCK_MODULES = ['numpy',  '_StGermain', '_StgDomain', '_PICellerator', '_StgFEM', '_Solvers',
-                    '_Underworld', 'h5py', '_Function', '_gLucifer', '_c_arrays', '_c_pointers',
-                    '_StGermain_Tools', '_petsc', 'mpi4py', 'StGermain', 'StgDomain', 'StgFEM',
-                    'PICellerator', 'Underworld', 'Solvers', 'gLucifer', 'c_arrays', 'c_pointers',
-                    'StGermain_Tools', 'Function', 'petsc', 'libUnderworld.libUnderworldPy.Function']
-    sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
-
-# now generate required rst files
 import generate_api_documentation
 
 
