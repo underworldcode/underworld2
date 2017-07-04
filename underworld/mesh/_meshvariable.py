@@ -253,6 +253,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         Example
         -------
         First create the mesh add a variable:
+        
         >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
         >>> var = uw.mesh.MeshVariable( mesh=mesh, nodeDofCount=1, dataType="double" )
 

@@ -1,4 +1,4 @@
-ignorelist = ['json', 'os', 'libUnderworld', 'glob', 'lavavu', 'numpy', 'sys', 'os', 'time', 'control', 'LavaVuPython']
+ignorelist = ['json', 'os', 'libUnderworld', 'glob', 'numpy', 'sys', 'os', 'time', 'control', 'LavaVuPython']
 
 def doc_module(module, modname):
     filename = modname+'.rst'
@@ -109,5 +109,10 @@ def doc_module(module, modname):
 
 import underworld
 doc_module(underworld, 'underworld')
+
+# (re)init lavavu submodule
+import subprocess
+subp = subprocess.Popen('git submodule update --init', shell=True)
+subp.wait()
 import glucifer
 doc_module(glucifer, 'glucifer')
