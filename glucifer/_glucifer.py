@@ -455,10 +455,26 @@ class Figure(dict):
         self._drawingObjects = []
         self._script = []
 
-        #Save types of all Drawing derived classes
+        #Types of all Drawing derived classes
         def all_subclasses(cls):
             return cls.__subclasses__() + [g for s in cls.__subclasses__() for g in all_subclasses(s)]
-        self._object_types = all_subclasses(objects.Drawing)
+
+        #Object contructor shortcut methods
+        #(allows constructing an object and adding to a figure directly from the figure object)
+        for constr in all_subclasses(objects.Drawing):
+            key = constr.__name__
+            if key[0] == '_': continue; #Skip internal
+            #Use a closure to define a new method to call constructor and add to objects
+            def addmethod(constr):
+                def method(*args, **kwargs):
+                    obj = constr(*args, **kwargs)
+                    self.append(obj)
+                    return obj
+                return method
+            method = addmethod(constr)
+            #Set docstring
+            method.__doc__ = constr.__doc__
+            self.__setattr__(key, method)
 
         super(Figure, self).__init__(*args)
 
@@ -473,20 +489,6 @@ class Figure(dict):
         #Update the properties values (merge)
         #values of any existing keys are replaced
         self.update(newProps)
-
-    #Undefined methods call Drawing() constructors if defined, and append to figure
-    def __getattr__(self, key):
-        #__getattr__ called if no attrib/method found
-        def any_method(*args, **kwargs):
-            #Find if class exists that extends Drawing
-            method = getattr(objects, key)
-            if isinstance(method, type) and method in self._object_types:
-                #Return the new object and add it to the figure
-                newobj = method(*args, **kwargs)
-                self.append(newobj)
-                return newobj
-
-        return any_method
 
     @property
     def resolution(self):
