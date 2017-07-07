@@ -22,11 +22,13 @@ Review issue tracker
 
 Documentation review 
 ====================
-* Review docstrings udpates.
+* Review docstrings udpates for deprication warnings.
 * Review ``docs/`` for style, relevance and updates.
 * Review ``docs/development/broken``, contents to be kept at a minimum.
 * Review ``docs/development/unsupported``, contents to be kept at a minimum.
 * Review docs generated at http://underworld2.readthedocs.io/
+	- make sure builds are passing
+	- review latest content
 
 Testing
 =======
