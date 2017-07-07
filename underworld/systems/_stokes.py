@@ -24,13 +24,13 @@ class Stokes(_stgermain.StgCompoundComponent):
     mesh used for the 'velocityField' and 'pressureField' parameters.
 
     The strong form of the given boundary value problem, for :math:`f`,
-    :math:`q` and :math:`h` given, is
+    :math:`g` and :math:`h` given, is
 
     .. math::
         \\begin{align}
         \\sigma_{ij,j} + f_i =& \\: 0  & \\text{ in }  \\Omega \\\\
         u_{k,k} + \\frac{p}{\\lambda} =& \\: H  & \\text{ in }  \\Omega \\\\
-        u_i =& \\: q_i & \\text{ on }  \\Gamma_{q_i} \\\\
+        u_i =& \\: g_i & \\text{ on }  \\Gamma_{g_i} \\\\
         \\sigma_{ij}n_j =& \\: h_i & \\text{ on }  \\Gamma_{h_i} \\\\
         \\end{align}
 
@@ -42,12 +42,12 @@ class Stokes(_stgermain.StgCompoundComponent):
     * :math:`f_i` is a body force,
     * :math:`\\lambda` is a bulk viscosity,
     * :math:`H` is the compressible equation source term,
-    * :math:`q_i` are the velocity boundary conditions (DirichletCondition)
+    * :math:`g_i` are the velocity boundary conditions (DirichletCondition)
     * :math:`h_i` are the traction boundary conditions (NeumannCondition).
 
     The problem boundary, :math:`\\Gamma`,
-    admits the decompositions :math:`\\Gamma=\\Gamma_{q_i}\\cup\\Gamma_{h_i}` where
-    :math:`\\emptyset=\\Gamma_{q_i}\\cap\\Gamma_{h_i}`. The equivalent weak form is:
+    admits the decompositions :math:`\\Gamma=\\Gamma_{g_i}\\cup\\Gamma_{h_i}` where
+    :math:`\\emptyset=\\Gamma_{g_i}\\cap\\Gamma_{h_i}`. The equivalent weak form is:
 
     .. math::
         \\int_{\Omega} w_{(i,j)} \\sigma_{ij} \\, d \\Omega = \\int_{\\Omega} w_i \\, f_i \\, d\\Omega + \sum_{j=1}^{n_{sd}} \\int_{\\Gamma_{h_j}} w_i \\, h_i \\,  d \\Gamma
