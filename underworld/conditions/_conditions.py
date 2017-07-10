@@ -128,7 +128,7 @@ class NeumannCondition(SystemCondition):
     def __init__(self, variable, nodeIndexSet, fn_flux=None, flux=None ):
         # import pdb; pdb.set_trace()
         
-        # DEPRECATION check
+        # DEPRECATION check 2017-07-01
         if flux != None:
             import warnings
             warnings.warn("\n### DEPRECATION WARNING The 'flux' parameter in the NeumannCondition\n" +

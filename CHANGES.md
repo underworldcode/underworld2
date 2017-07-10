@@ -1,17 +1,38 @@
 CHANGES: Underworld2
 =======================
 
-Release 2.2.2b  [2016-03-08]
+Release 2.3.0b [2017-07-07]
+----------------------------
+Enhancements:
+* Improved swarm reload times for parallel simulations.
+* Efficiency improvements for large proc count (>128) parallel simulations.
+* Faster algorithms for swarms with deformed mesh.
+* Many updates to visualisation routines. 
+* Compressible Stokes general improvements.
+* New example models and analytic tests.
+* Addressed numerous memory leaks (some minor ones still exist).
+* Improved error handling, documentation & testing.
+
+
+New features:
+* User provided pre-solve callback function.
+* Updated or new vis objects: Isosurfaces, contours, discrete colourmap.
+
+API Changes:
+* Neumann condition change in user provided stress function.
+
+
+Release 2.2.2b  [2017-03-08]
 ----------------------------
 Bug fixes:
 * Critical bug fixed where retrieving symmetric tensor in 3d returned 2d result.
 
-Release 2.2.1b  [2016-02-14]
+Release 2.2.1b  [2017-02-14]
 ----------------------------
 Documentation
 * Updates to make api documentation available via read the docs: http://underworld2.readthedocs.io/
 
-Release 2.2.0b  [2016-02-11]
+Release 2.2.0b  [2017-02-11]
 ----------------------------
 Enhancements:
 * Improved function evaluation efficiency.
