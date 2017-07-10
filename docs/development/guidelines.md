@@ -187,6 +187,34 @@ For further details about Jenkins testing, please refer "Guide to jenkins
 testing" (stored within the private Underworld google documents folder).
 
 
+API DEPRECATIONS
+================
+
+Deprecations can be either hard or soft. Hard deprecations should raise exceptions, 
+while soft deprecations should simply provide a warning. In either case a message should inform
+the user of the change (and the new parameter if appropriate).  
+
+Developers should mark deprecations with a comment such as:
+'# DEPRECATION, remove v2.5.0'
+indicating which version of the code should entirely remove the code. Generally,
+this will be the version after the next release. So, if we are currently working
+towards v2.4.0, when release, v2.4.0 will feature the deprecation warning
+(as the next release will provide the users with a grace period).  
+
+An example in the code for a warning might look like this
+
+```python
+# DEPRECATION, remove v2.5.0
+if flux != None:
+    import warnings
+    warnings.warn("DEPRECATION: The 'flux' parameter in the NeumannCondition " +
+    "class has been replaced with 'fn_flux'. In the coming release 'flux' will be deprecated "+
+    "please update your python code.")
+```
+
+
+
+
 TODO for this document:
 ======================
 * API changes  & deprections
