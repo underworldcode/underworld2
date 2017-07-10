@@ -11,7 +11,7 @@ Development branch - [![Build Status](http://130.56.252.251:32779/buildStatus/ic
 
 Getting Underworld2
 -------------------
-The Underworld2 docker container is the recommended method of installation for Windows, Mac OSX and Linux. It is available through the docker hub:
+The Underworld2 docker container is the recommended method of installation for Windows, Mac OSX and Linux. You will need to install [Docker](https://www.docker.com) on your system. The Underworld docker container is available through the docker hub:
 
 https://hub.docker.com/r/underworldcode/underworld2/
 
@@ -26,16 +26,14 @@ API documentation is available at http://underworld2.readthedocs.io/
 
 Underworld Docker Usage
 ------------
-To access Underworld2 examples, run the following command,
+Most new users may wish to use the Kitematic GUI to download and run Underworld. Simply search for 'underworldcode/underworld2' within Kitematic, and then click 'CREATE' to launch a container. You will eventually wish to modify your container settings (again through Kitematic) to enable local folder volume mapping, which will allow you to access your local drives within your container. 
+
+For Linux users, and those who prefer the command line, the following minimal command should be sufficient to access the Underworld2 Jupyter Notebook examples: 
 
 ```bash
    docker run -p 8888:8888 underworldcode/underworld2
 ```
-and then (Linux users) browse to http://localhost:8888. For Windows/Mac, your docker containers will be run within a VM. To determine the address of this VM, check the output of:
-```bash
-   docker-machine ip default 
-```
-So, for example, you may need to browse to http://192.168.99.100:8888
+
 
 Privacy
 -------
