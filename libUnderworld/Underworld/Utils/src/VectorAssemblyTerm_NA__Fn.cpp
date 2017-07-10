@@ -63,15 +63,13 @@ void _VectorAssemblyTerm_NA__Fn_SetFn( void* _self, Fn::Function* fn ){
     
     // check output conforms
     const FunctionIO* sampleguy = cppdata->func(cppdata->input.get());
-    const IO_double* iodub = dynamic_cast<const IO_double*>(sampleguy);
-    if( !iodub )
-        throw std::invalid_argument( "Assembly term expects functions to return 'double' type values." );
+    const FunctionIO* io = dynamic_cast<const FunctionIO*>(sampleguy);
     if( !self->forceVector )
         throw std::invalid_argument( "Assembly term does not appear to have AssembledVector set." );
-    if( iodub->size() != self->forceVector->feVariable->fieldComponentCount ){
+    if( io->size() != self->forceVector->feVariable->fieldComponentCount ){
         std::stringstream ss;
         ss << "Assembly term expects function to return array of size " << self->forceVector->feVariable->fieldComponentCount << ".\n";
-        ss << "Provided function returns array of size " << iodub->size() << ".";
+        ss << "Provided function returns array of size " << io->size() << ".";
         throw std::invalid_argument( ss.str() );
     }
 }
@@ -193,12 +191,12 @@ void _VectorAssemblyTerm_NA__Fn_AssembleElement( void* forceTerm, ForceVector* f
       ElementType_EvaluateShapeFunctionsAt( elementType, xi, N );
 
       /* evaluate function */
-      const IO_double* funcout = debug_dynamic_cast<const IO_double*>(cppdata->func(cppdata->input.get()));
+      const FunctionIO* funcout = debug_dynamic_cast<const FunctionIO*>(cppdata->func(cppdata->input.get()));
 
       factor = detJac * particle->weight;
       for( A = 0 ; A < nodesPerEl ; A++ )
          for( i = 0 ; i < dofsPerNode ; i++ )
-            elForceVec[A * dofsPerNode + i ] += factor * funcout->at(i) * N[A] ;
+            elForceVec[A * dofsPerNode + i ] += factor * funcout->at<double>(i) * N[A] ;
 
    }
 }

@@ -320,15 +320,49 @@ class StokesSolver(_stgermain.StgCompoundComponent):
     def solve(self, nonLinearIterate=None, nonLinearTolerance=1.0e-2,
               nonLinearKillNonConvergent=False,
               nonLinearMaxIterations=500,
+              callback_post_solve=None,
               print_stats=False, reinitialise=True, **kwargs):
-        """ solve the Stokes system
+        """ 
+        Solve the stokes system
+        
+        Parameters
+        ----------
+        nonLinearIterate: bool
+            True will perform non linear iterations iterations, False (or 0) will not
+        
+        nonLinearTolerance: float, Default=1.0e-2
+            Relative tolerance criterion for the change in the velocity field
+            
+        nonLinearMaxIterations: int, Default=500
+            Maximum number of non linear iteration to perform
+            
+        callback_post_sovle: func, Default=None
+            Optional callback function to be performed at the end of a linear solve iteration.
+            Commonly this will be used to perform operations between non linear iterations, for example,
+            calibrating the pressure solution or removing the system null space.
+            
+        print_stats: bool, Default=False
+            Print out solver iteration and timing counts per solver
+        
+        reinitialise: bool, Default=True,
+            Rebuild the system discretisation storage (location matrix/petsc mats & vecs) and repopulate, if available,
+            the stokes voronio swarm before the system is solved.
         """
+        
         Solvers.SBKSP_SetSolver(self._cself, self._stokesSLE._cself)
         if isinstance(self.options.main.penalty,float) and self.options.main.penalty > 0.0:
             Solvers.SBKSP_SetPenalty(self._cself, self.options.main.penalty)
             if self.options.main.ksp_k2_type == "NULL":
                 self.options.main.ksp_k2_type = "GMG"
 
+        # error check callback_post_solve
+        if callback_post_solve is not None:
+            if not callable(callback_post_solve):
+                raise RuntimeError("The 'callback_post_solve' parameter is not 'None' and isn't callable")
+        
+        # in this c function we handle callback_post_solve=None
+        uw.libUnderworld.StgFEM.SystemLinearEquations_SetCallback(self._stokesSLE._cself, callback_post_solve)
+        
         if not isinstance(nonLinearTolerance, float) or nonLinearTolerance < 0.0:
             raise ValueError("'nonLinearTolerance' option must be of type 'float' and greater than 0.0")
 
@@ -364,7 +398,6 @@ class StokesSolver(_stgermain.StgCompoundComponent):
             self._stokesSLE._swarm._voronoi_swarm.repopulate()
 
         # set up objects on SLE
-
         if reinitialise:
             libUnderworld.StgFEM.SystemLinearEquations_BC_Setup(self._stokesSLE._cself, None)
             libUnderworld.StgFEM.SystemLinearEquations_LM_Setup(self._stokesSLE._cself, None)

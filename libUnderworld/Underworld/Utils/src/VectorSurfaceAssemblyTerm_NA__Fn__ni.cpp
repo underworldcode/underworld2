@@ -26,6 +26,7 @@
 /* Textual name of this class */
 const Type VectorSurfaceAssemblyTerm_NA__Fn__ni_Type = "VectorSurfaceAssemblyTerm_NA__Fn__ni";
 
+
 /* Creation implementation / Virtual constructor */
 VectorSurfaceAssemblyTerm_NA__Fn__ni* _VectorSurfaceAssemblyTerm_NA__Fn__ni_New(  FORCEASSEMBLYTERM_NA__FN_DEFARGS  )
 {
@@ -66,26 +67,7 @@ void _VectorSurfaceAssemblyTerm_NA__Fn__ni_SetFn( void* _self, Fn::Function* fn 
 
     FeMesh* mesh = self->forceVector->feVariable->feMesh;
     IntegrationPointsSwarm* swarm = (IntegrationPointsSwarm*)self->integrationSwarm;
-    int dphi_dx_size;
-
-    /* Work out the input size:
-       if scalar field, assume a gradient vector of size mesh's dim
-       else assume vector field and use a correnponding 2nd order symmetric tensor size
-    */
-    switch ( self->forceVector->feVariable->fieldComponentCount ) {
-        case 1:
-            dphi_dx_size = Mesh_GetDimSize(mesh);
-            break;
-        case 2:
-        case 3:
-            dphi_dx_size = StGermain_nSymmetricTensorVectorComponents(Mesh_GetDimSize(mesh));
-            break;
-        default:
-            std::stringstream ss;
-            ss << "Neumann condition assembly term can only handle MeshVariable's with 1,2 or 3 components.\n";
-            ss << "The input MeshVariable has " << self->forceVector->feVariable->fieldComponentCount << "\n";
-            throw std::invalid_argument( ss.str() );
-    }
+    int expected_nbc_size = self->forceVector->feVariable->fieldComponentCount;
 
     // setup fn
     std::shared_ptr<ParticleInCellCoordinate> localCoord = std::make_shared<ParticleInCellCoordinate>( swarm->localCoordVariable );
@@ -99,9 +81,9 @@ void _VectorSurfaceAssemblyTerm_NA__Fn__ni_SetFn( void* _self, Fn::Function* fn 
         throw std::invalid_argument( "Assembly term expects functions to return 'double' type values." );
     if( !self->forceVector )
         throw std::invalid_argument( "Assembly term does not appear to have AssembledVector set." );
-    if( iodub->size() != dphi_dx_size ) {
+    if( iodub->size() != self->forceVector->feVariable->fieldComponentCount ) {
         std::stringstream ss;
-        ss << "Assembly term expects function to return array of size " << dphi_dx_size << ".\n";
+        ss << "Assembly term expects function to return array of size " << expected_nbc_size << ".\n";
         ss << "Provided function returns array of size " << iodub->size() << ".";
         throw std::invalid_argument( ss.str() );
     }
@@ -186,20 +168,14 @@ void _VectorSurfaceAssemblyTerm_NA__Fn__ni_AssembleElement( void* forceTerm, For
     FeMesh*                    mesh;
     ElementType*               elementType;
     unsigned int               dim, dofsPerNode, ii, n_i, cell_I, A, cParticle_I, cellParticleCount, nodesPerEl;
-    double                     fluxVector[3], jacDet, factor, *xi, *vector, localNormal[3], N[27];
-    int                        nInc, *inc, dphi_dx_size;
+    double                     jacDet, factor, *xi, localNormal[3], N[27];
+    int                        *inc;
     Bool                       assemble;
-    double dphi_dx[6];
+    double                     nbc[3];
 
     dim         = forceVector->dim;
     dofsPerNode = forceVector->feVariable->fieldComponentCount;
-
-    if (dofsPerNode > 1) {
-        dphi_dx_size = StGermain_nSymmetricTensorVectorComponents(dim);
-    } else {
-        dphi_dx_size = dim;
-    }
-
+    
     // get the element's nodes
     mesh = forceVector->feVariable->feMesh;
     elementType = FeMesh_GetElementType( mesh, lElement_I );
@@ -233,41 +209,22 @@ void _VectorSurfaceAssemblyTerm_NA__Fn__ni_AssembleElement( void* forceTerm, For
         particle = (IntegrationPoint*) Swarm_ParticleInCellAt( swarm, cell_I, cParticle_I );
         xi       = particle->xi;
 
-        // get the localNormal
-        /* TODO: generalise the normal evaluation - the following assumes rectangular domain */
-        ElementType_SurfaceNormal( elementType, lElement_I, dim, xi, localNormal );
-
-        /* Calculate Determinant of Jacobian and Shape Functions */
+        /* Calculate Determinant of Shape Functions and Jacobian */
         ElementType_EvaluateShapeFunctionsAt( elementType, xi, N );
+        ElementType_SurfaceNormal( elementType, lElement_I, dim, xi, localNormal );
         jacDet = ElementType_SurfaceJacobianDeterminant( elementType, mesh, lElement_I, xi, dim, localNormal );
 
         /* evaluate function */
         const IO_double* funcout = debug_dynamic_cast<const IO_double*>(cppdata->func(cppdata->input.get()));
-        for( ii=0; ii<dphi_dx_size; ii++ ) {
-            dphi_dx[ii] = funcout->at(ii); // get the gradient solution definition
+        for( ii=0; ii<dofsPerNode; ii++ ) {
+            nbc[ii] = funcout->at(ii);
         }
-
-        memset( fluxVector, 0, sizeof(double)*dim ); // zero the fluxVector
-        if( dofsPerNode == 1 ) { // we can treat dphi_dx as a vector
-            for( ii=0; ii<dim; ii++ )
-                fluxVector[0] += dphi_dx[ii]*localNormal[ii];
-        } else if ( dofsPerNode == 2 || dofsPerNode == 3 ) {
-            // treat dphi_dx as a symmetric tensor
-            int index;
-            for( ii=0; ii<dim; ii++ ) {
-                for( A=0; A<dim; A++ ) {
-                    // get the index of sym tensor to multiply
-                    index = SymmetricTensor_TensorMap( ii, A, dim );
-                    fluxVector[ii] += dphi_dx[index] * localNormal[A];
-                }
-            }
-        }
-
+        
         factor = jacDet * particle->weight;
         for( A = 0 ; A < nodesPerEl ; A++ ) {
             if ( VariableCondition_IsCondition( self->bNodes, inc[A], 0 ) ) {
                 for( ii = 0 ; ii < dofsPerNode ; ii++ )
-                    elForceVec[A*dofsPerNode+ii] += factor*fluxVector[ii]*N[A] ;
+                    elForceVec[A*dofsPerNode+ii] += factor*nbc[ii]*N[A] ;
             }
         }
     }

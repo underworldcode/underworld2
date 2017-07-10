@@ -198,12 +198,8 @@ void _FeEquationNumber_Destroy( void* feEquationNumber, void *data ){
 void _FeEquationNumber_Delete( void* feEquationNumber ) {
    FeEquationNumber* self = (FeEquationNumber*) feEquationNumber;
 
-   Journal_DPrintfL( self->debug, 1, "In %s\n",  __func__ );
-   Stream_IndentBranch( StgFEM_Debug );
-
-   /* Stg_Class_Delete parent */
-   _Stg_Class_Delete( self );
-   Stream_UnIndentBranch( StgFEM_Debug );
+   // This calls the Destroy() function
+   _Stg_Component_Delete( self );
 }
 
 
@@ -327,12 +323,10 @@ Index FeEquationNumber_CalculateActiveEqCountAtNode(
 void FeEquationNumber_BuildLocationMatrix( void* feEquationNumber ) {
    FeEquationNumber*	self = (FeEquationNumber*)feEquationNumber;
    FeMesh*			feMesh;
-   unsigned		nDims;
    unsigned		nDomainEls;
-   unsigned		nLocalNodes;
    unsigned*		nNodalDofs;
    unsigned		nElNodes;
-   unsigned*		elNodes;
+   int*       elNodes;
    int**			dstArray;
    int***			locMat;
    IArray*			inc;
@@ -351,9 +345,7 @@ void FeEquationNumber_BuildLocationMatrix( void* feEquationNumber ) {
 
    /* Shortcuts. */
    feMesh = self->feMesh;
-   nDims = Mesh_GetDimSize( feMesh );
    nDomainEls = FeMesh_GetElementDomainSize( feMesh );
-   nLocalNodes = FeMesh_GetNodeLocalSize( feMesh );
    nNodalDofs = self->dofLayout->dofCounts;
    dstArray = self->mapNodeDof2Eq;
 
@@ -1282,35 +1274,35 @@ int GenerateEquationNumbering(
 	}
 	VecRestoreArray( local_eqnum, &_local_eqnum );
 
-	VecCreate( PETSC_COMM_WORLD, &offset_list );
-	VecSetSizes( offset_list, PETSC_DECIDE, (size+1) );
-	VecSetFromOptions( offset_list );
-	for( i=rank; i<size; i++ ) {
-		VecSetValue( offset_list, i+1, eq_cnt, ADD_VALUES );
-	}
-	VecAssemblyBegin(offset_list);
-	VecAssemblyEnd(offset_list);
-	/*
-	PetscPrintf(PETSC_COMM_WORLD, "offset_list \n");
-	VecView( offset_list, PETSC_VIEWER_STDOUT_WORLD );
-	*/
+    VecCreate( PETSC_COMM_WORLD, &offset_list );
+    VecSetSizes( offset_list, PETSC_DECIDE, size );
+    VecSetFromOptions( offset_list );
+    VecSetValue( offset_list, rank, eq_cnt, INSERT_VALUES );
+    VecAssemblyBegin(offset_list);
+    VecAssemblyEnd(offset_list);
+    /*
+    PetscPrintf(PETSC_COMM_WORLD, "offset_list \n");
+    VecView( offset_list, PETSC_VIEWER_STDOUT_WORLD );
+    */
 
-	VecScatterCreateToAll(offset_list,&vscat_offset,&seq_offset_list);
-	_VecScatterBeginEnd( vscat_offset, offset_list, seq_offset_list, INSERT_VALUES, SCATTER_FORWARD );
+    VecScatterCreateToAll(offset_list,&vscat_offset,&seq_offset_list);
+    _VecScatterBeginEnd( vscat_offset, offset_list, seq_offset_list, INSERT_VALUES, SCATTER_FORWARD );
 
-	{
-		PetscScalar *_seq_offset_list;
+    {
+        PetscScalar *_seq_offset_list;
 
-		VecGetArray( seq_offset_list, &_seq_offset_list );
-		offset = _seq_offset_list[ rank ];
-		VecRestoreArray( seq_offset_list, &_seq_offset_list );
-	}
-	Stg_VecScatterDestroy(&vscat_offset);
-	Stg_VecDestroy(&offset_list);
-	Stg_VecDestroy(&seq_offset_list);
+        VecGetArray( seq_offset_list, &_seq_offset_list );
+        offset = 0;
+        for (i=0; i<rank; i++) {
+            offset+=_seq_offset_list[ i ];
+        }
+        VecRestoreArray( seq_offset_list, &_seq_offset_list );
+    }
+    Stg_VecScatterDestroy(&vscat_offset);
+    Stg_VecDestroy(&offset_list);
+    Stg_VecDestroy(&seq_offset_list);
 
-	/* PetscPrintf( PETSC_COMM_SELF, "[%d]: offset = %d \n", rank, offset ); */
-
+//    PetscPrintf( PETSC_COMM_SELF, "[%d]: offset = %d \n", rank, offset ); 
 
 	VecGetArray( local_eqnum, &_local_eqnum );
 	inc = 0;

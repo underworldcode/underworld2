@@ -120,18 +120,28 @@ once the following criterion are met:
 To help with producing an update change list, and also with reporting, please use 
 one or more of the following tags within your changeset comments:
 
-#NEWFEATURE : Any new API features
-#NEWDOCUMENTATION : Any new documentation, including new models, docstrings, etc.
-#APICHANGE : Any interface changes to existing API. 
-#BUGFIX : Any bug fixes
-#BUGFIXCRITICAL : Any very important bug fixes. 
-#ENHANCEMENT: Other enhancements. 
-#DEPRECATION: Deprecated functionality.
+NEWFEATURE : Any new API features
+NEWDOCUMENTATION : Any new documentation, including new models, docstrings, etc.
+APICHANGE : Any interface changes to existing API. 
+BUGFIX : Any bug fixes
+BUGFIXCRITICAL : Any very important bug fixes. 
+ENHANCEMENT: Other enhancements. 
+DEPRECATION: Deprecated functionality.
 
 These tags should be used for any note-worthy changes, but are not necessary for 
 any trivial changes. Also, where changes relate to github issues, reference the 
 issue number. Github will automatically provide a reference back to the changeset
-in the issue.
+in the issue.  
+
+For example:
+
+```text
+BUGFIXCRITICAL
+Fixes #200
+
+...
+
+```
 
 
 Bug reporting
@@ -175,6 +185,34 @@ http://128.250.120.238:9080
 
 For further details about Jenkins testing, please refer "Guide to jenkins 
 testing" (stored within the private Underworld google documents folder).
+
+
+API DEPRECATIONS
+================
+
+Deprecations can be either hard or soft. Hard deprecations should raise exceptions, 
+while soft deprecations should simply provide a warning. In either case a message should inform
+the user of the change (and the new parameter if appropriate).  
+
+Developers should mark deprecations with a comment such as:
+'# DEPRECATION, remove v2.5.0'
+indicating which version of the code should entirely remove the code. Generally,
+this will be the version after the next release. So, if we are currently working
+towards v2.4.0, when release, v2.4.0 will feature the deprecation warning
+(as the next release will provide the users with a grace period).  
+
+An example in the code for a warning might look like this
+
+```python
+# DEPRECATION, remove v2.5.0
+if flux != None:
+    import warnings
+    warnings.warn("DEPRECATION: The 'flux' parameter in the NeumannCondition " +
+    "class has been replaced with 'fn_flux'. In the coming release 'flux' will be deprecated "+
+    "please update your python code.")
+```
+
+
 
 
 TODO for this document:

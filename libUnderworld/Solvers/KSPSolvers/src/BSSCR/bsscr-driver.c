@@ -254,7 +254,7 @@ PetscErrorCode BSSCR_DRIVER_flex( KSP ksp, Mat stokes_A, Vec stokes_x, Vec stoke
     }
     KSPSolve( ksp_S, h_hat, p );
     sprintf(pafter,"psafter_%d",been_here);
-    bsscr_writeVec( p, pafter, "Writing p Vector in Solver");
+    // bsscr_writeVec( p, pafter, "Writing p Vector in Solver");
     /***************************************/
     if((hnorm < 1e-6) && (hnorm > 1e-20)){
         VecScale(h_hat,hnorm);

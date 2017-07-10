@@ -12,16 +12,16 @@
 #include <petsc.h>
 #include <float.h>
 #include "CrossSection.h"
+#include <iostream>
 
 #include <Underworld/Function/FunctionIO.hpp>
 #include <Underworld/Function/Function.hpp>
+#include <Underworld/Function/MeshCoordinate.hpp>
 extern "C" {
 #include <ctype.h>
-#include "ScalarFieldCrossSection.h"
-#include "ScalarFieldOnMeshCrossSection.h"
+#include "ScalarField.h"
 #include "IsosurfaceCrossSection.h"
-#include "VectorArrowCrossSection.h"
-#include "VectorArrowMeshCrossSection.h"
+#include "VectorArrows.h"
 #include "FieldSampler.h"
 }
 
@@ -39,19 +39,36 @@ void _lucCrossSection_SetFn( void* _self, Fn::Function* fn ){
     
     // setup fn
     self->dim = Mesh_GetDimSize( self->mesh );
-    std::shared_ptr<IO_double> globalCoord = std::make_shared<IO_double>( self->dim, FunctionIO::Vector );
-    // grab first node for sample node
-    memcpy( globalCoord->data(), Mesh_GetVertex( self->mesh, 0 ), self->dim*sizeof(double) );
-    // get the function.. note that we use 'get' to extract the raw pointer from the smart pointer.
-    cppdata->func = cppdata->fn->getFunction(globalCoord.get());
-    
-    const FunctionIO* io = dynamic_cast<const FunctionIO*>(cppdata->func(globalCoord.get()));
-    if( !io )
-        throw std::invalid_argument("Provided function does not appear to return a valid result.");
-    self->fieldComponentCount = io->size();
+    if (self->onMesh)
+    {
+        std::shared_ptr<MeshCoordinate> meshCoord = std::make_shared<MeshCoordinate>( self->mesh );
+        // set first coord
+        meshCoord->index() = 0;
+        // get the function.. note that we use 'get' to extract the raw pointer from the smart pointer.
+        cppdata->func = cppdata->fn->getFunction(meshCoord.get());
+        
+        const FunctionIO* io = dynamic_cast<const FunctionIO*>(cppdata->func(meshCoord.get()));
+        if( !io )
+            throw std::invalid_argument("Provided function does not appear to return a valid result.");
+        self->fieldComponentCount = io->size();
+    }
+    else
+    {
+        std::shared_ptr<IO_double> globalCoord = std::make_shared<IO_double>( self->dim, FunctionIO::Vector );
+        // grab first node for sample node
+        memcpy( globalCoord->data(), Mesh_GetVertex( self->mesh, 0 ), self->dim*sizeof(double) );
+        // get the function.. note that we use 'get' to extract the raw pointer from the smart pointer.
+        cppdata->func = cppdata->fn->getFunction(globalCoord.get());
+        
+        const FunctionIO* io = dynamic_cast<const FunctionIO*>(cppdata->func(globalCoord.get()));
+        if( !io )
+            throw std::invalid_argument("Provided function does not appear to return a valid result.");
+        self->fieldComponentCount = io->size();
+    }
 
-    if( ( Stg_Class_IsInstance( self, lucScalarFieldCrossSection_Type )       ||
-          Stg_Class_IsInstance( self, lucScalarFieldOnMeshCrossSection_Type ) ||
+    self->fieldDim = self->fieldComponentCount;
+
+    if( ( Stg_Class_IsInstance( self, lucScalarField_Type )       ||
           Stg_Class_IsInstance( self, lucFieldSampler_Type ) ||
           Stg_Class_IsInstance( self, lucIsosurfaceCrossSection_Type )          )
         && self->fieldComponentCount != 1 )
@@ -59,8 +76,7 @@ void _lucCrossSection_SetFn( void* _self, Fn::Function* fn ){
         throw std::invalid_argument("Provided function must return a scalar result.");
     }
 
-    if( ( Stg_Class_IsInstance( self, lucVectorArrowCrossSection_Type )       ||
-          Stg_Class_IsInstance( self, lucVectorArrowMeshCrossSection_Type )      )
+    if( ( Stg_Class_IsInstance( self, lucVectorArrows_Type )      )
              && self->fieldComponentCount != self->dim )
     {
         throw std::invalid_argument("Provided function must return a vector result.");
@@ -71,7 +87,7 @@ void _lucCrossSection_SetFn( void* _self, Fn::Function* fn ){
 /* Private Constructor: This will accept all the virtual functions for this class as arguments. */
 lucCrossSection* _lucCrossSection_New(  LUCCROSSSECTION_DEFARGS  )
 {
-   lucCrossSection*					self;
+   lucCrossSection*                    self;
 
    /* Call private constructor of parent - this will set virtual functions of parent and continue up the hierarchy tree. At the beginning of the tree it will allocate memory of the size of object and initialise all the memory to zero. */
    assert( _sizeOfSelf >= sizeof(lucCrossSection) );
@@ -86,6 +102,7 @@ void _lucCrossSection_Init(
    lucCrossSection*        self,
    Index                   resolutionA,
    Index                   resolutionB,
+   Bool                    onMesh,
    XYZ                     coord1,
    XYZ                     coord2,
    XYZ                     coord3,
@@ -97,6 +114,7 @@ void _lucCrossSection_Init(
                      "Error - in %s(): Resolution below 2x2 ==> %d x %d\n", __func__, resolutionA, resolutionB);
    self->resolutionA = resolutionA;
    self->resolutionB = resolutionB;
+   self->onMesh = onMesh;
    memcpy( self->coord1, coord1, sizeof(XYZ) );
    memcpy( self->coord2, coord2, sizeof(XYZ) );
    memcpy( self->coord3, coord3, sizeof(XYZ) );
@@ -115,6 +133,9 @@ void _lucCrossSection_Delete( void* drawingObject )
 
    if (self->cppdata)
        delete (lucCrossSection_cppdata*)self->cppdata;
+
+  if (self->values)
+    lucCrossSection_FreeSampleData(self);
 
    _lucDrawingObject_Delete( self );
 }
@@ -210,7 +231,8 @@ void _lucCrossSection_AssignFromXML( void* drawingObject, Stg_ComponentFactory* 
           * Axis is a single character, one of [xyzXYZ] */
 
          /* Parse the input string */
-         if (strlen(crossSectionStr) > 0 && sscanf( crossSectionStr, "%c=%s", &axisChar, crossSectionVal ) == 2 )
+         char tempChar;
+         if (strlen(crossSectionStr) > 0 && sscanf( crossSectionStr, "%c%c%s", &axisChar, &tempChar, crossSectionVal ) == 3 )
          {
             /* Axis X/Y/Z */
             if ( toupper( axisChar ) >= 'X' )
@@ -248,6 +270,7 @@ void _lucCrossSection_AssignFromXML( void* drawingObject, Stg_ComponentFactory* 
       self,
       Stg_ComponentFactory_GetUnsignedInt( cf, self->name, (Dictionary_Entry_Key)"resolutionA", self->defaultResolution),
       Stg_ComponentFactory_GetUnsignedInt( cf, self->name, (Dictionary_Entry_Key)"resolutionB", self->defaultResolution),
+      Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"onMesh", True  ),
       coord1,
       coord2,
       coord3,
@@ -259,13 +282,26 @@ void _lucCrossSection_AssignFromXML( void* drawingObject, Stg_ComponentFactory* 
 
 void _lucCrossSection_Build( void* drawingObject, void* data )
 {
-   lucCrossSection* self    = (lucCrossSection*)drawingObject;
-
+   lucCrossSection*     self = (lucCrossSection*)drawingObject;
+   /* Build field variable in parent */
    Stg_Component_Build( self->mesh, data, False );
+
+   if (self->onMesh)
+   {
+      /* Store the Vertex Grid */
+      self->vertexGridHandle = self->mesh->vertGridId;
+      if ( self->vertexGridHandle == (ExtensionInfo_Index)-1 )
+
+      Journal_Firewall( self->vertexGridHandle != (ExtensionInfo_Index )-1, lucError,
+                        "Error - in %s(): provided Mesh \"%s\" doesn't have a Vertex Grid.\n"
+                        "Try visualising with lucScalarField instead.\n", __func__, self->mesh->name );
+
+   }
 }
 
 void _lucCrossSection_Initialise( void* drawingObject, void* data ) 
 {
+
 }
 
 void _lucCrossSection_Execute( void* drawingObject, void* data ) {}
@@ -275,6 +311,21 @@ void _lucCrossSection_Destroy( void* drawingObject, void* data ) {}
 void _lucCrossSection_Setup( void* drawingObject, lucDatabase* database, void* _context )
 {
    lucCrossSection* self = (lucCrossSection*)drawingObject;
+
+   if (self->onMesh)
+   {
+      //Get grid dims
+      Mesh*                mesh  = (Mesh*) self->mesh;
+      Grid*                vertGrid;
+      vertGrid = *(Grid**)ExtensionManager_Get( mesh->info, mesh, self->vertexGridHandle );
+      int sizes[3] = {1,1,1};
+      for (unsigned int d=0; d<self->dim; d++)
+        sizes[d] = vertGrid->sizes[d];
+      self->dims[0] = sizes[0];
+      self->dims[1] = sizes[1];
+      self->dims[2] = sizes[2];
+      //printf("------ DIMS ------ %d,%d,%d\n", self->dims[0], self->dims[1], self->dims[2]);
+   }
 
    /* Use provided setup function to correctly set axis etc */
    lucCrossSection_Set(self, self->value, self->axis, self->interpolate);
@@ -417,10 +468,10 @@ lucCrossSection* lucCrossSection_Slice(void* crossSection, double val, Bool inte
 void lucCrossSection_AllocateSampleData(void* drawingObject, int dims)
 {
    lucCrossSection* self = (lucCrossSection*)drawingObject;
-   Index          aIndex, bIndex, d;
+   Index          aIndex, bIndex;
    if (dims <= 0) dims = self->fieldComponentCount;
 
-   if ((!self->vertices && self->rank == 0) || !self->gatherData)
+   if ((!self->vertices && self->rank == 0) || !self->gatherData || self->onMesh)
       self->vertices = Memory_Alloc_3DArray( float, self->resolutionA, self->resolutionB, 3, "quad vertices");
    else
       self->vertices = NULL;
@@ -428,13 +479,12 @@ void lucCrossSection_AllocateSampleData(void* drawingObject, int dims)
    if (!self->values) 
       self->values = Memory_Alloc_3DArray( float, self->resolutionA, self->resolutionB, dims, "vertex values");
 
-   if (dims > self->fieldComponentCount)
-   {
-      for ( aIndex = 0 ; aIndex < self->resolutionA ; aIndex++ )
-         for ( bIndex = 0 ; bIndex < self->resolutionB ; bIndex++ )
-            for (d=self->fieldComponentCount; d<dims; d++)
-               self->values[aIndex][bIndex][d] = 0;
-   }
+   //Flag empty values with Infinity, 
+   //clear components of higher dimension values outside dim range (eg: 2d vectors are stored as 3d, z needs to be zero)
+   for ( aIndex = 0 ; aIndex < self->resolutionA ; aIndex++ )
+      for ( bIndex = 0 ; bIndex < self->resolutionB ; bIndex++ )
+         for (unsigned int d=0; d<dims; d++)
+            self->values[aIndex][bIndex][d] = (d >= self->fieldComponentCount ? 0.0 : HUGE_VAL);
 }
 
 void lucCrossSection_SampleField(void* drawingObject, Bool reverse)
@@ -452,7 +502,8 @@ void lucCrossSection_SampleField(void* drawingObject, Bool reverse)
    // reset max/min
    cppdata->fn->reset();
 
-   lucCrossSection_AllocateSampleData(self, 0);
+   if (!self->vertices)
+     lucCrossSection_AllocateSampleData(self, 0);
 
    /* Get mesh cross section vertices and values */
    double time = MPI_Wtime();
@@ -476,27 +527,25 @@ void lucCrossSection_SampleField(void* drawingObject, Bool reverse)
 
          /* Check cross section is within local space, 
           * if outside then skip to avoid wasting time attempting to sample */
-         /* This scales horrendously when mesh is irregular as we search for points that are not on the processor */
-         /* A local coord sampling routine, such as implemented for isosurfaces would help with this problem */
-         /*double TOL = 0.00000001; //((max[self->axis1] - min[self->axis1] + max[self->axis2] - min[self->axis2])/2.0) * 0.000001;
-         if (pos[I_AXIS] + TOL > localMin[I_AXIS] && pos[I_AXIS] - TOL < localMax[I_AXIS] &&
-             pos[J_AXIS] + TOL > localMin[J_AXIS] && pos[J_AXIS] - TOL < localMax[J_AXIS] &&
-            (fieldVariable->dim < 3 || (pos[K_AXIS] + TOL > localMin[K_AXIS] && pos[K_AXIS] - TOL < localMax[K_AXIS])))*/
+         /* Avoid by using onMesh sampling when mesh is irregular as searching for points that are not on the processor is costly */
          if (pos[I_AXIS] > localMin[I_AXIS]-FLT_EPSILON && pos[I_AXIS] < localMax[I_AXIS]+FLT_EPSILON &&
              pos[J_AXIS] > localMin[J_AXIS]-FLT_EPSILON && pos[J_AXIS] < localMax[J_AXIS]+FLT_EPSILON &&
-            (self->dim < 3 || (pos[K_AXIS] > localMin[K_AXIS]-FLT_EPSILON && pos[K_AXIS] < localMax[K_AXIS]+FLT_EPSILON)))
+             (self->dim < 3 || (pos[K_AXIS] > localMin[K_AXIS]-FLT_EPSILON && pos[K_AXIS] < localMax[K_AXIS]+FLT_EPSILON)))
          {
-            const FunctionIO* output = debug_dynamic_cast<const FunctionIO*>(cppdata->func(globalCoord.get()));
-
-            /* Value found locally, save */
-            for (d=0; d<dims; d++)
-               self->values[aIndex][bIndex][d] = output->at<float>(d);
-         }
-         else
-         {
-            /* Flag not found */
-            for (d=0; d<dims; d++)
-               self->values[aIndex][bIndex][d] = HUGE_VAL;
+            try
+            {
+               const FunctionIO* output = debug_dynamic_cast<const FunctionIO*>(cppdata->func(globalCoord.get()));
+ 
+               /* Value found locally, save */
+               for (d=0; d<dims; d++)
+                  self->values[aIndex][bIndex][d] = output->at<float>(d);
+            }
+            catch (std::exception& e)
+            {
+               //Not found
+               std::cerr << e.what() << std::endl;
+               /* Flag not found */
+            }
          }
 
          /* Copy vertex data */
@@ -506,7 +555,7 @@ void lucCrossSection_SampleField(void* drawingObject, Bool reverse)
       }
    }
    /* Show each proc as it finishes */
-   printf(" (%d)", self->rank);
+   Journal_Printf(lucInfo, " (%d)", self->rank);
    fflush(stdout);
    MPI_Barrier(self->comm); /* Sync here, then time will show accurately how long sampling took on ALL procs */
    Journal_Printf(lucInfo, " -- %f sec.\n", MPI_Wtime() - time);
@@ -553,6 +602,123 @@ void lucCrossSection_SampleField(void* drawingObject, Bool reverse)
       lucColourMap_SetMinMax( self->colourMap, cppdata->fn->getMinGlobal(), cppdata->fn->getMaxGlobal() );
       //Journal_Printf(lucInfo, "ColourMap min/max range set to %f - %f\n", self->colourMap->minimum, self->colourMap->maximum);
    }
+}
+
+void lucCrossSection_SampleMesh( void* drawingObject, Bool reverse)
+{
+   lucCrossSection* self          = (lucCrossSection*)drawingObject;
+   Grid*                vertGrid;
+   Node_LocalIndex      crossSection_I;
+   IJK                  node_ijk;
+   Node_GlobalIndex     node_gI;
+   Node_DomainIndex     node_dI;
+   int                  i,j, d;
+   Coord                globalMin, globalMax, min, max;
+   Mesh*                mesh  = (Mesh*) self->mesh;
+
+   int localcount = 0;
+
+   std::shared_ptr<MeshCoordinate> meshCoord = std::make_shared<MeshCoordinate>( self->mesh );
+   lucCrossSection_cppdata* cppdata = (lucCrossSection_cppdata*) self->cppdata;
+   // reset max/min
+   cppdata->fn->reset();
+
+   vertGrid = *(Grid**)ExtensionManager_Get( mesh->info, mesh, self->vertexGridHandle );
+
+   crossSection_I = lucCrossSection_GetValue(self, 0, self->dims[self->axis]-1);
+
+   Mesh_GetLocalCoordRange(self->mesh, min, max );
+   Mesh_GetGlobalCoordRange(self->mesh, globalMin, globalMax );
+
+   /* Get mesh cross section self->vertices and values */
+   self->resolutionA = self->dims[self->axis1];
+   self->resolutionB = self->dims[self->axis2];
+   lucCrossSection_AllocateSampleData(self, self->fieldDim);
+   int lSize = Mesh_GetLocalSize( mesh, MT_VERTEX );
+   double time = MPI_Wtime();
+   Journal_Printf(lucInfo, "Sampling mesh (%s) %d x %d...  0%", self->name, self->dims[self->axis1], self->dims[self->axis2]);
+   node_ijk[ self->axis ] = crossSection_I;
+   for ( i = 0 ; i < self->dims[self->axis1]; i++ )
+   {
+      int percent = 100 * (i + 1) / self->dims[self->axis1];
+      Journal_Printf(lucInfo, "\b\b\b\b%3d%%", percent);
+      fflush(stdout);
+
+      /* Reverse order if requested */
+      int i0 = i;
+      if (reverse) i0 = self->dims[self->axis1] - i - 1;
+
+      node_ijk[ self->axis1 ] = i0;
+
+      for ( j = 0 ; j < self->dims[self->axis2]; j++ )
+      {
+         self->vertices[i][j][0] = HUGE_VAL;
+         self->vertices[i][j][2] = 0;
+         node_ijk[ self->axis2 ] = j;
+         node_gI = Grid_Project( vertGrid, node_ijk );
+         /* Get coord and value if node is local... */
+         if (Mesh_GlobalToDomain( mesh, MT_VERTEX, node_gI, &node_dI ) && node_dI < lSize)
+         {  
+            /* Found on this processor */
+            // set index on the FunctionIO object
+            meshCoord->index() = node_dI;
+
+            const FunctionIO* io = dynamic_cast<const FunctionIO*>(cppdata->func(meshCoord.get()));
+
+            double* pos = Mesh_GetVertex( mesh, node_dI );
+         
+            for (d=0; d<self->dim; d++)
+               self->vertices[i][j][d] = pos[d];
+
+            for (d=0; d<self->fieldComponentCount; d++)
+               self->values[i][j][d] = io->at<float>(d);
+
+            localcount++;
+         }
+      }
+   }
+   Journal_Printf(lucInfo, " %f sec. ", MPI_Wtime() - time);
+
+   /* Collate */
+   time = MPI_Wtime();
+   for ( i=0 ; i < self->dims[self->axis1]; i++ )
+   {
+      for ( j=0 ; j < self->dims[self->axis2]; j++ )
+      {
+         /* Receive values at root */
+         if (self->rank == 0)
+         {
+            /* Already have value? */
+            if (self->vertices[i][j][0] != HUGE_VAL) {localcount--; continue; }
+
+            /* Recv (pos and value together = (3 + fevar dims)*float) */
+            float data[3 + self->fieldDim];
+            (void)MPI_Recv(data, 3+self->fieldDim, MPI_FLOAT, MPI_ANY_SOURCE, i*self->dims[self->axis2]+j, self->comm, MPI_STATUS_IGNORE);
+            /* Copy */
+            memcpy(self->vertices[i][j], data, 3 * sizeof(float));
+            memcpy(self->values[i][j], &data[3], self->fieldDim * sizeof(float));
+         }
+         else
+         {
+            /* Found on this proc? */
+            if (self->vertices[i][j][0] == HUGE_VAL) continue;
+
+            /* Copy */
+            float data[3 + self->fieldDim];
+            memcpy(data, self->vertices[i][j], 3 * sizeof(float));
+            memcpy(&data[3], self->values[i][j], self->fieldDim * sizeof(float));
+
+            /* Send values to root (pos & value = 4 * float) */
+            MPI_Ssend(data, 3+self->fieldDim, MPI_FLOAT, 0, i*self->dims[self->axis2]+j, self->comm);
+            localcount--;
+         }
+      }
+   }
+   MPI_Barrier(self->comm);    /* Barrier required, prevent subsequent MPI calls from interfering with transfer */
+   Journal_Printf(lucInfo, " Gather in %f sec.\n", MPI_Wtime() - time);
+   Journal_Firewall(localcount == 0, lucError,
+                     "Error - in %s: count of values sampled compared to sent/received by mpi on proc %d does not match (balance = %d)\n",
+                     __func__, self->rank, localcount);
 }
 
 void lucCrossSection_FreeSampleData(void* drawingObject)

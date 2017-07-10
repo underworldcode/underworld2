@@ -13,40 +13,14 @@ import underworld.swarm as _swarmMod
 import underworld.mesh as _uwmesh
 from underworld.function import Function as _Function
 import libUnderworld as _libUnderworld
+import numpy
 
 #TODO: Drawing Objects to implement
-# IsoSurface, IsoSurfaceCrossSection
-# MeshSurface/MeshSampler (surface/volumes using MeshCrossSection sampler)
-# Contour, ContourCrossSection
 # HistoricalSwarmTrajectory
-# VectorArrowMeshCrossSection?
 #
 # Maybe later...
-# TextureMap
 # SwarmShapes, SwarmRGB, SwarmVectors
 # EigenVectors, EigenVectorCrossSection
-# FeVariableSurface
-
-#Some preset colourmaps
-# aim to reduce banding artifacts by being either 
-# - isoluminant
-# - smoothly increasing in luminance
-# - diverging in luminance about centre value
-colourMaps = {}
-#Isoluminant blue-orange
-colourMaps["isolum"] = "#288FD0 #50B6B8 #989878 #C68838 #FF7520"
-#Diverging blue-yellow-orange
-colourMaps["diverge"] = "#288FD0 #fbfb9f #FF7520"
-#Isoluminant rainbow blue-green-orange
-colourMaps["rainbow"] = "#5ed3ff #6fd6de #7ed7be #94d69f #b3d287 #d3ca7b #efc079 #ffb180"
-#CubeLaw indigo-blue-green-yellow
-colourMaps["cubelaw"] = "#440088 #831bb9 #578ee9 #3db6b6 #6ce64d #afeb56 #ffff88"
-#CubeLaw indigo-blue-green-orange-yellow
-colourMaps["cubelaw2"] = "#440088 #1b83b9 #6cc35b #ebbf56 #ffff88"
-#CubeLaw heat blue-magenta-yellow)
-colourMaps["smoothheat"] = "#440088 #831bb9 #c66f5d #ebbf56 #ffff88"
-#Paraview cool-warm (diverging)
-colourMaps["coolwarm"] = "#3b4cc0 #7396f5 #b0cbfc #dcdcdc #f6bfa5 #ea7b60 #b50b27"
 
 class ColourMap(_stgermain.StgCompoundComponent):
     """
@@ -58,7 +32,6 @@ class ColourMap(_stgermain.StgCompoundComponent):
     colours: str, list
         List of colours to use for drawing object colour map. Provided as a string
         or as a list of strings. Example, "red blue", or ["red", "blue"]
-        This should not be specified if 'colourMap' is specified.
     valueRange: tuple, list
         User defined value range to apply to colour map. Provided as a 
         tuple of floats  (minValue, maxValue). If none is provided, the
@@ -74,7 +47,7 @@ class ColourMap(_stgermain.StgCompoundComponent):
     _selfObjectName = "_cm"
     _objectsDict = { "_cm": "lucColourMap" }
     
-    def __init__(self, colours=colourMaps["diverge"], valueRange=None, logScale=False, discrete=False, **kwargs):
+    def __init__(self, colours="diverge", valueRange=None, logScale=False, discrete=False, **kwargs):
         if not hasattr(self, "properties"):
             self.properties = {}
 
@@ -167,7 +140,7 @@ class Drawing(_stgermain.StgCompoundComponent):
     _selfObjectName = "_dr"
     _objectsDict = { "_dr": "lucDrawingObject" } # child should replace _dr with own derived type
     
-    def __init__(self, name=None, colours=None, colourMap=None, colourBar=False,
+    def __init__(self, name=None, colours=None, colourMap="", colourBar=False,
                        valueRange=None, logScale=False, discrete=False,
                        *args, **kwargs):
 
@@ -180,8 +153,15 @@ class Drawing(_stgermain.StgCompoundComponent):
             self._colourMap = colourMap
         elif colours:
             self._colourMap = ColourMap(colours=colours, valueRange=valueRange, logScale=logScale)
-        else:
+        elif colourBar or not colourMap is None:
             self._colourMap = ColourMap(valueRange=valueRange, logScale=logScale)
+        else:
+            self._colourMap = None
+
+        if not isinstance(discrete, bool):
+            raise TypeError("'discrete' parameter must be of 'bool' type.")
+        if discrete and self._colourMap:
+            self._colourMap["discrete"] = True
 
         #User-defined props in kwargs
         self.properties.update(kwargs)
@@ -190,7 +170,7 @@ class Drawing(_stgermain.StgCompoundComponent):
         if not isinstance(colourBar, bool):
             raise TypeError("'colourBar' parameter must be of 'bool' type.")
         self._colourBar = None
-        if colourBar:
+        if colourBar and self._colourMap:
             #Create the associated colour bar
             self._colourBar = ColourBar(colourMap=self._colourMap)
 
@@ -210,7 +190,7 @@ class Drawing(_stgermain.StgCompoundComponent):
         # add an empty(ish) drawing object.  children should fill it out.
         componentDictionary[self._dr.name].update( {
             "properties"    :self._getProperties(),
-            "ColourMap"     :self._colourMap._cm.name
+            "ColourMap"     :self._colourMap._cm.name if self._colourMap else None
         } )
 
     #dict methods
@@ -226,6 +206,38 @@ class Drawing(_stgermain.StgCompoundComponent):
     def _getProperties(self):
         #Convert properties to string
         return '\n'.join(['%s=%s' % (k,v) for k,v in self.properties.iteritems()]);
+
+    def render(self, viewer):
+        #Place any custom geometry output in this method, called after database creation
+
+        #General purpose plotting via LavaVu
+        #Plot all custom data drawn on provided object
+        try:
+            obj = viewer.objects[self.properties["name"]]
+            if not obj: raise KeyError("Object not found")
+        except KeyError,e:
+            print self.properties["name"] + " Object lookup error: " + str(e)
+            return
+
+        obj["geometry"] = self.geomType
+
+        output = False
+        if len(self.vertices):
+            obj.vertices(self.vertices)
+            output = True
+        if len(self.vectors):
+            obj.vectors(self.vectors)
+            output = True
+        if len(self.scalars):
+            obj.values(self.scalars)
+            output = True
+        if len(self.labels):
+            obj.label(self.labels)
+            output = True
+
+        #Update the database
+        if output:
+            viewer.app.update(obj.ref, True)
 
     def resetDrawing(self):
         #Clear direct drawing data
@@ -251,7 +263,7 @@ class Drawing(_stgermain.StgCompoundComponent):
         scaling : float
             label font scaling (for "vector" font only).
         """
-        self.geomType = _libUnderworld.gLucifer.lucLabelType
+        self.geomType = "labels"
         self.vertices.append(pos)
         self.labels.append(text)
         self.properties.update({"font" : font, "fontscale" : scaling}) #Merge
@@ -265,7 +277,7 @@ class Drawing(_stgermain.StgCompoundComponent):
         pos : tuple
             X,Y,Z position to place the point
         """
-        self.geomType = _libUnderworld.gLucifer.lucPointType
+        self.geomType = "points"
         self.vertices.append(pos)
 
     def line(self, start=(0.,0.,0.), end=(0.,0.,0.)):
@@ -279,7 +291,7 @@ class Drawing(_stgermain.StgCompoundComponent):
         end : tuple
             X,Y,Z position to end line
         """
-        self.geomType = _libUnderworld.gLucifer.lucLineType
+        self.geomType = "lines"
         self.vertices.append(start)
         self.vertices.append(end)
 
@@ -294,7 +306,7 @@ class Drawing(_stgermain.StgCompoundComponent):
         vector : tuple
             X,Y,Z vector value
         """
-        self.geomType = _libUnderworld.gLucifer.lucVectorType
+        self.geomType = "vectors"
         self.vertices.append(position)
         self.vectors.append(vector)
 
@@ -302,12 +314,37 @@ class Drawing(_stgermain.StgCompoundComponent):
     @property
     def colourBar(self):
         """    
-        colourBar (dict): return colour bar of drawing object, create if 
+        colourBar (object): return colour bar of drawing object, create if
         doesn't yet exist.
         """
         if not self._colourBar:
             self._colourBar = ColourBar(colourMap=self._colourMap)
         return self._colourBar
+
+    @property
+    def colourMap(self):
+        """
+        colourMap (object): return colour map of drawing object
+        """
+        return self._colourMap
+
+
+    def getdata(self, viewer, typename):
+        #Experimental: grabbing data from a LavaVu object
+        alldata = []
+        obj = viewer.objects[self.properties["name"]]
+        if obj:
+            #Force viewer open to trigger surface optimisation etc
+            viewer.app.resetViews()
+            #Get data elements list
+            dataset = obj.data()
+            for geom in dataset:
+                #Grab a copy of the data
+                data = geom.copy(typename)
+                alldata.append(data)
+
+        return alldata
+
 
 class ColourBar(Drawing):
     """
@@ -343,14 +380,19 @@ class CrossSection(Drawing):
         Cross Section definition, eg. z=0.
     resolution : unsigned
         Surface rendered sampling resolution.
+    onMesh : boolean
+        Sample the mesh nodes directly, as opposed to sampling across a regular grid. This flag
+        should be used in particular where a mesh has been deformed.
         
     """
     _objectsDict = { "_dr": "lucCrossSection" }
 
     def __init__(self, mesh, fn, crossSection="", resolution=100,
-                       colours=None, colourMap=None, colourBar=True,
-                       valueRange=None, logScale=False, discrete=False, offsetEdges=None,
+                       colourBar=True,
+                       offsetEdges=None, onMesh=False,
                        *args, **kwargs):
+
+        self._onMesh = onMesh
 
         self._fn = _underworld.function.Function.convert(fn)
         
@@ -370,8 +412,7 @@ class CrossSection(Drawing):
         self._resolution = resolution
 
         # build parent
-        super(CrossSection,self).__init__(colours=colours, colourMap=colourMap, colourBar=colourBar,
-                       valueRange=valueRange, logScale=logScale, discrete=discrete, *args, **kwargs)
+        super(CrossSection,self).__init__(colourBar=colourBar, *args, **kwargs)
 
     def _setup(self):
         _libUnderworld.gLucifer._lucCrossSection_SetFn( self._cself, self._fn._fncself )
@@ -387,7 +428,8 @@ class CrossSection(Drawing):
         componentDictionary[self._dr.name].update( {
                    "Mesh": self._mesh._cself.name,
                    "crossSection": self._crossSection,
-                   "resolution" : self._resolution
+                   "resolution" : self._resolution,
+                   "onMesh" : self._onMesh
             } )
 
     @property
@@ -395,72 +437,6 @@ class CrossSection(Drawing):
         """    crossSection (str): Cross Section definition, eg;: z=0.
         """
         return self._crossSection
-
-class SurfaceOnMesh(CrossSection):
-    """  
-    This drawing object class draws a surface using the provided scalar field. 
-    This object differs from the `Surface` class in that it samples the mesh
-    nodes directly, as opposed to sampling across a regular grid. This class
-    should be used in particular where a mesh has been deformed.
-
-    See parent class for further parameter details. Also see property docstrings.
-
-    Notes
-    -----
-    The interface to this object will be revised in future versions.
-    
-    Parameters
-    ---------
-    mesh : underworld.mesh.FeMesh
-        Mesh over which cross section is rendered.
-    fn : underworld.function.Function
-        Function used to determine values to render.
-    drawSides : str
-        Sides (x,y,z,X,Y,Z) for which the surface should be drawn. 
-        For example, "xyzXYZ" would render the provided function across
-        all surfaces of the domain in 3D. In 2D, this object always renders
-        across the entire domain.
-    """
-    
-    # let's just build both objects because we aint sure yet which one we want to use yet
-    _objectsDict = {  "_dr"  : "lucScalarFieldOnMesh" }
-
-    def __init__(self, mesh, fn, drawSides="xyzXYZ",
-                       colours=None, colourMap=None, colourBar=True,
-                       valueRange=None, logScale=False, discrete=False,
-                       *args, **kwargs):
-
-        if not isinstance(drawSides,str):
-            raise ValueError("'drawSides' parameter must be of python type 'str'")
-        self._drawSides = drawSides
-
-        #Default properties
-        self.properties = {"cullface" : True}
-        # TODO: disable lighting if 2D (how to get dims?)
-        #self.properties["lit"] = False
-        
-        # build parent
-        super(SurfaceOnMesh,self).__init__( mesh=mesh, fn=fn,
-                        colours=colours, colourMap=colourMap, colourBar=colourBar,
-                        valueRange=valueRange, logScale=logScale, discrete=discrete, *args, **kwargs)
-
-
-    def _add_to_stg_dict(self,componentDictionary):
-        # lets build up component dictionary
-        # append random string to provided name to ensure unique component names
-        # call parents method
-        
-        super(SurfaceOnMesh,self)._add_to_stg_dict(componentDictionary)
-
-        componentDictionary[self._dr.name]["drawSides"] = self._drawSides
-        componentDictionary[self._dr.name][     "Mesh"] = self._mesh._cself.name
-
-    def _setup(self):
-        _libUnderworld.gLucifer._lucMeshCrossSection_SetFn( self._cself, self._fn._fncself )
-
-    def __del__(self):
-        super(SurfaceOnMesh,self).__del__()
-
 
 class Surface(CrossSection):
     """  
@@ -481,28 +457,24 @@ class Surface(CrossSection):
         across the entire domain.
     """
     
-    # let's just build both objects because we aint sure yet which one we want to use yet
     _objectsDict = {  "_dr"  : "lucScalarField" }
 
     def __init__(self, mesh, fn, drawSides="xyzXYZ",
-                       colours=None, colourMap=None, colourBar=True,
-                       valueRange=None, logScale=False, discrete=False,
+                       colourBar=True,
                        *args, **kwargs):
 
         if not isinstance(drawSides,str):
             raise ValueError("'drawSides' parameter must be of python type 'str'")
         self._drawSides = drawSides
 
-        #Default properties
-        self.properties = {"cullface" : True}
-        # TODO: disable lighting if 2D (how to get dims?)
-        #self.properties["lit"] = False
-        
         # build parent
-        super(Surface,self).__init__( mesh=mesh, fn=fn,
-                        colours=colours, colourMap=colourMap, colourBar=colourBar,
-                        valueRange=valueRange, logScale=logScale, discrete=discrete, *args, **kwargs)
+        super(Surface,self).__init__( mesh=mesh, fn=fn, colourBar=colourBar, *args, **kwargs)
 
+        #Merge with default properties
+        is3d = len(self._crossSection) == 0
+        defaults = {"cullface" : is3d, "lit" : is3d}
+        defaults.update(self.properties)
+        self.properties = defaults
 
     def _add_to_stg_dict(self,componentDictionary):
         # lets build up component dictionary
@@ -512,13 +484,92 @@ class Surface(CrossSection):
         super(Surface,self)._add_to_stg_dict(componentDictionary)
 
         componentDictionary[self._dr.name]["drawSides"] = self._drawSides
-        componentDictionary[self._dr.name][     "Mesh"] = self._mesh._cself.name
 
     def _setup(self):
         _libUnderworld.gLucifer._lucCrossSection_SetFn( self._cself, self._fn._fncself )
 
     def __del__(self):
         super(Surface,self).__del__()
+
+class Contours(CrossSection):
+    """  
+    This drawing object class draws contour lines in a cross section using the provided scalar field.
+
+    See parent class for further parameter details. Also see property docstrings.
+    
+    Parameters
+    ---------
+    mesh : underworld.mesh.FeMesh
+        Mesh over which cross section is rendered.
+    fn : underworld.function.Function
+        Function used to determine values to render.
+    labelFormat: str
+        Format string (printf style) used to print a contour label, eg: " %g K"
+    unitScaling:
+        Scaling factor to apply to value when printing labels
+    interval: float
+        Interval between contour lines
+    limits: tuple, list
+        User defined minimum and maximum limits for the contours. Provided as a 
+        tuple/list of floats  (minValue, maxValue). If none is provided, the
+        limits will be determined automatically.
+
+    """
+    
+    _objectsDict = {  "_dr"  : "lucContourCrossSection" }
+
+    def __init__(self, mesh, fn, labelFormat="", unitScaling=1.0, interval=0.33, limits=(0.0, 0.0),
+                       *args, **kwargs):
+
+        if not isinstance(labelFormat,str):
+            raise ValueError("'labelFormat' parameter must be of python type 'str'")
+        self._labelFormat = labelFormat
+
+        if not isinstance( unitScaling, (int, float) ):
+            raise TypeError("'unitScaling' must contain a number")
+        self._unitScaling = unitScaling
+
+        if not isinstance( interval, (int, float) ):
+            raise TypeError("'interval' must contain a number")
+        self._interval = interval
+
+        # is limits correctly defined, ie list of length 2 made of numbers
+        if not isinstance( limits, (list,tuple)):
+            raise TypeError("'limits' objected passed in must be of type 'list' or 'tuple'")
+        if len(limits) != 2:
+            raise ValueError("'limits' must have 2 real values")
+        for item in limits:
+            if not isinstance( item, (int, float) ):
+                raise TypeError("'limits' must contain real numbers")
+        if not limits[0] <= limits[1]:
+            raise ValueError("The first number of the limits list must be smaller than the second number")
+        self._limits = limits
+
+        # build parent
+        super(Contours,self).__init__( mesh=mesh, fn=fn, *args, **kwargs)
+
+        #Default properties
+        self.properties.update({"lit" : False})
+
+    def _add_to_stg_dict(self,componentDictionary):
+        # lets build up component dictionary
+        # append random string to provided name to ensure unique component names
+        # call parents method
+        
+        super(Contours,self)._add_to_stg_dict(componentDictionary)
+
+        componentDictionary[self._dr.name]["unitScaling"] = self._unitScaling
+        componentDictionary[self._dr.name][   "interval"] = self._interval
+        componentDictionary[self._dr.name]["minIsovalue"] = self._limits[0]
+        componentDictionary[self._dr.name]["maxIsovalue"] = self._limits[1]
+
+    def _setup(self):
+        #Override dictionary setting, it seems to left-trim strings
+        self._dr.labelFormat = self._labelFormat
+        _libUnderworld.gLucifer._lucCrossSection_SetFn( self._cself, self._fn._fncself )
+
+    def __del__(self):
+        super(Contours,self).__del__()
 
 
 class Points(Drawing):
@@ -546,9 +597,7 @@ class Points(Drawing):
     _objectsDict = { "_dr": "lucSwarmViewer" }
 
     def __init__(self, swarm, fn_colour=None, fn_mask=None, fn_size=None, colourVariable=None,
-                       colours=None, colourMap=None, colourBar=True,
-                       valueRange=None, logScale=False, discrete=False,
-                       *args, **kwargs):
+                       colourBar=True, *args, **kwargs):
 
         if not isinstance(swarm,_swarmMod.Swarm):
             raise TypeError("'swarm' object passed in must be of type 'Swarm'")
@@ -565,9 +614,7 @@ class Points(Drawing):
            self._fn_size = _underworld.function.Function.convert(fn_size)
 
         # build parent
-        super(Points,self).__init__(
-                        colours=colours, colourMap=colourMap, colourBar=colourBar,
-                        valueRange=valueRange, logScale=logScale, discrete=discrete, *args, **kwargs)
+        super(Points,self).__init__(colourBar=colourBar, *args, **kwargs)
 
     def _add_to_stg_dict(self,componentDictionary):
         # lets build up component dictionary
@@ -708,21 +755,155 @@ class Volume(_GridSampler3D):
 
     def __init__(self, mesh, fn, 
                        resolutionI=64, resolutionJ=64, resolutionK=64, 
-                       colours=None, colourMap=None, colourBar=True,
-                       valueRange=None, logScale=False, discrete=False,
+                       colourBar=True,
                        *args, **kwargs):
+
         # build parent
         if mesh.dim == 2:
-            raise ValueError("Volume rendered requires a three dimensional mesh.")
+            raise ValueError("Volume rendering requires a three dimensional mesh.")
         super(Volume,self).__init__( mesh=mesh, fn=fn, resolutionI=resolutionI, resolutionJ=resolutionJ, resolutionK=resolutionK,
-                        colours=colours, colourMap=colourMap, colourBar=colourBar,
-                        valueRange=valueRange, logScale=logScale, discrete=discrete, *args, **kwargs)
+                                     colourBar=colourBar, *args, **kwargs)
 
     def _add_to_stg_dict(self,componentDictionary):
         # lets build up component dictionary
         
         # call parents method
         super(Volume,self)._add_to_stg_dict(componentDictionary)
+
+class Sampler(Drawing):
+    """
+    The Sampler class provides functionality for sampling a field at
+    a number of provided vertices.
+    
+    Parameters
+    ----------
+    vertices: list,array
+        List of vertices to sample the field at, either a list or numpy array
+    mesh : underworld.mesh.FeMesh
+        Mesh over which the values are sampled
+    fn : underworld.function.Function
+        Function used to get the sampled values.
+
+    """
+
+    _objectsDict = { "_dr": "lucSampler" }
+    
+    def __init__(self, mesh, fn, *args, **kwargs):
+
+        if not isinstance(mesh,_uwmesh.FeMesh):
+            raise TypeError("'mesh' object passed in must be of type 'FeMesh'")
+        self._mesh = mesh
+
+        self._fn = None
+        if fn != None:
+           self._fn = _underworld.function.Function.convert(fn)
+
+        # build parent
+        super(Sampler,self).__init__(*args, **kwargs)
+
+    def _add_to_stg_dict(self,componentDictionary):
+
+        # call parents method
+        super(Sampler,self)._add_to_stg_dict(componentDictionary)
+
+        componentDictionary[self._dr.name]["Mesh"] = self._mesh._cself.name
+
+    def _setup(self):
+        fnc_ptr = None
+        if self._fn:
+            fn_ptr = self._fn._fncself
+
+        _libUnderworld.gLucifer._lucSampler_SetFn( self._cself, fn_ptr )
+
+    def sample(self, vertices):
+        sz = len(vertices)/3*self._cself.fieldComponentCount
+        values = numpy.zeros(sz, dtype='float32')
+        _libUnderworld.gLucifer.lucSampler_SampleField( self._cself, vertices, values)
+        return values
+
+
+class IsoSurface(Volume):
+    """  
+    This drawing object class draws an isosurface using the provided scalar field.
+    
+    See parent class for further parameter details. Also see property docstrings.
+    
+    Parameters
+    ---------
+    mesh : underworld.mesh.FeMesh
+        Mesh over which object is rendered.
+    fn : underworld.function.Function
+        Function used to determine surface position.
+        Function should return a vector of floats/doubles.
+    fn_colour : underworld.function.Function
+        Function used to determine colour of surface.
+    resolutionI : unsigned
+        Number of samples in the I direction.
+    resolutionJ : unsigned
+        Number of samples in the J direction.
+    resolutionK : unsigned
+        Number of samples in the K direction.
+    isovalues : list of float
+        Isovalues to plot.
+
+    """
+
+    def __init__(self, mesh, fn, fn_colour=None,
+                       resolutionI=64, resolutionJ=64, resolutionK=64, 
+                       colourBar=True, *args, **kwargs):
+
+        # build parent
+        if mesh.dim == 2:
+            raise ValueError("Isosurface requires a three dimensional mesh.")
+
+        self._sampler = None
+        if fn_colour != None:
+           self._sampler = Sampler(mesh, fn_colour)
+
+        super(IsoSurface,self).__init__( mesh=mesh, fn=fn, resolutionI=resolutionI, resolutionJ=resolutionJ, resolutionK=resolutionK,
+                                         colourBar=colourBar, *args, **kwargs)
+        self.geomType = "triangles"
+
+    def _add_to_stg_dict(self,componentDictionary):
+        # lets build up component dictionary
+        
+        # call parents method
+        super(IsoSurface,self)._add_to_stg_dict(componentDictionary)
+
+    def _setup(self):
+        if self._sampler:
+            self._sampler._setup()
+
+    def render(self, viewer):
+        # FieldSampler has exported a 3d volume to the database,
+        # now we can use LavaVu to generate isosurface triangles
+        isobj = viewer.objects[self.properties["name"]]
+        if isobj:
+            #Force viewer open to trigger surface optimisation
+            viewer.app.resetViews()
+            
+            #Generate isosurface in same object, convert and delete volume, update db
+            isobj.isosurface(name=None, convert=True, updatedb=True)
+
+            #If coloured by another field, get the vertices, sample and load values
+            if self._sampler:
+                #Clear existing values
+                isobj.cleardata()
+                #Get data elements list
+                dataset = isobj.data()
+                for geom in dataset:
+                    #Grab a view of the vertex data
+                    verts = geom.get("vertices")
+                    if len(verts):
+                        #Sample over tri vertices
+                        values = self._sampler.sample(verts)
+                        #Update element with the sampled data values
+                        geom.set("sampledfield", values)
+
+                #Write the colour data back to db
+                isobj.update("triangles")
+        else:
+            print "Object not found: " + self.properties["name"]
 
 class Mesh(Drawing):
     """  
@@ -763,7 +944,7 @@ class Mesh(Drawing):
                            "pointtype" : 2 if self._nodeNumbers else 4}
         
         # build parent
-        super(Mesh,self).__init__( colours=None, colourMap=None, colourBar=False, *args, **kwargs )
+        super(Mesh,self).__init__( colourMap=None, colourBar=False, *args, **kwargs )
 
     def _add_to_stg_dict(self,componentDictionary):
         # lets build up component dictionary

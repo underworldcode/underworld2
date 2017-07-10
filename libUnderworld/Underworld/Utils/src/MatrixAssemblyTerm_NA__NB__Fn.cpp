@@ -99,12 +99,6 @@ void _MatrixAssemblyTerm_NA__NB__Fn_AssignFromXML( void* matrixTerm, Stg_Compone
     MatrixAssemblyTerm_NA__NB__Fn* self = (MatrixAssemblyTerm_NA__NB__Fn*)matrixTerm;
     /* Construct Parent */
     _StiffnessMatrixTerm_AssignFromXML( self, cf, data );
-   //  self->geometryMesh = Stg_ComponentFactory_ConstructByKey( cf,
-   //                                                      self->name,
-   //                                                      (Dictionary_Entry_Key)"GeometryMesh",
-   //                                                      FeMesh,
-   //                                                      False,
-   //                                                      data );
 }
 
 void _MatrixAssemblyTerm_NA__NB__Fn_Build( void* matrixTerm, void* data ) {
@@ -126,16 +120,6 @@ void _MatrixAssemblyTerm_NA__NB__Fn_Execute( void* matrixTerm, void* data ) {
 
 void _MatrixAssemblyTerm_NA__NB__Fn_Destroy( void* matrixTerm, void* data ) {
     MatrixAssemblyTerm_NA__NB__Fn* self = (MatrixAssemblyTerm_NA__NB__Fn*)matrixTerm;
-    /*
-    if( self->Ni ) {
-      Memory_Free( self->Ni );
-      self->Ni=NULL;
-    }
-    if( self->Mi ) {
-      Memory_Free( self->Mi );
-      self->Mi=NULL;
-    }
-    */
 
    delete (MatrixAssemblyTerm_NA__NB__Fn_cppdata*)self->cppdata;
 
@@ -232,7 +216,7 @@ void _MatrixAssemblyTerm_NA__NB__Fn_AssembleElement(
                   /* note that we use the row dof count here too */
                   row = rowNode_I*dofPerNode_col + colDof_I;
                   col = colNode_I*dofPerNode_col + colDof_I;
-                  elStiffMat[row][col] +=  factor * ( Ni[rowNode_I] * Mi[colNode_I] );
+                  elStiffMat[row][col] += factor * ( Ni[rowNode_I] * Mi[colNode_I] );
             }
          }
       }

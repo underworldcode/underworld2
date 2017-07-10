@@ -54,7 +54,7 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
                       "_solver" : "AdvDiffMulticorrector" }
     _selfObjectName = "_system"
 
-    def __init__(self, phiField, phiDotField, velocityField, fn_diffusivity, fn_sourceTerm=None, conditions=[], **kwargs):
+    def __init__(self, phiField, phiDotField, velocityField, fn_diffusivity, fn_sourceTerm=None, conditions=[], _allow_non_q1=False, **kwargs):
 
         self._diffusivity   = fn_diffusivity
         self._source        = fn_sourceTerm
@@ -64,6 +64,13 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
         if phiField.data.shape[1] != 1:
             raise TypeError( "Provided 'phiField' must be a scalar" )
         self._phiField = phiField
+        if self._phiField.mesh.elementType != 'Q1':
+            import warnings
+            warnings.warn("The 'phiField' is discretised on a {} mesh. This 'uw.system.AdvectionDiffusion' implementation is ".format(self._phiField.mesh.elementType)+
+                          "only stable for a phiField discretised with a Q1 mesh. Either create a Q1 mesh for the 'phiField' or, if you know "+
+                          "what you're doing, override this error with the argument '_allow_non_q1=True' in the constructor", category=RuntimeWarning)
+            if _allow_non_q1 == False:
+                raise ValueError( "Error as provided 'phiField' discretisation is unstable")
 
         if not isinstance( phiDotField, (uw.mesh.MeshVariable, type(None))):
             raise TypeError( "Provided 'phiDotField' must be 'None' or of 'MeshVariable' class." )
@@ -146,8 +153,8 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
         for cond in self._conditions:
             if isinstance( cond, uw.conditions.NeumannCondition ):
 
-                ### -VE flux - because of SUPG implementation ###
-                negativeCond = uw.conditions.NeumannCondition( flux=-1.0*cond.flux,
+                ### -VE flux because of the FEM discretisation method of the initial equation
+                negativeCond = uw.conditions.NeumannCondition( fn_flux=-1.0*cond.fn_flux,
                                                                variable=cond.variable,
                                                                nodeIndexSet=cond.indexSet )
 

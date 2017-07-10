@@ -287,8 +287,18 @@ def _xdmfAttributeschema( varname, variableType, centering, globalcount, dof_cou
         out += "\t\t\t<DataItem Format=\"HDF\" {0} Dimensions=\"{1} {2}\">{3}:/data</DataItem>\n".format(variableType, globalcount, dof_count, datafile )
         out += "\t</Attribute>\n"
     elif dof_count==6:
+        # here we REORDER uw's 3D 2nd-order symmetric tensor to match XDMF's Tensor6 order
+        # In UW our order is   - (00, 11, 22, 01, 02, 12)
+        # In XDMF the order is - (00, 01, 02, 11, 12, 22)
+        
         out = "\t<Attribute Type=\"Tensor6\" Center=\"{0}\" Name=\"{1}\">\n".format(centering, varname)
-        out += "\t\t\t<DataItem Format=\"HDF\" {0} Dimensions=\"{1} {2}\">{3}:/data</DataItem>\n".format(variableType, globalcount, dof_count, datafile )
+        out += "\t<DataItem ItemType=\"Function\"  Dimensions=\"{0} 6\" Function=\"JOIN($0, $3, $4, $1, $5, $2)\">\n".format(globalcount)
+        for d_i in xrange(dof_count):
+            out += "\t\t<DataItem ItemType=\"HyperSlab\" Dimensions=\"{0} 1\" Name=\"x{1}\">\n".format(globalcount, d_i)
+            out += "\t\t\t<DataItem Dimensions=\"3 2\" Format=\"XML\"> 0 {0} 1 1 {1} 1 </DataItem>\n".format(d_i, globalcount)
+            out += "\t\t\t<DataItem Format=\"HDF\" Dimensions=\"{0} 1\">{1}:/data</DataItem>\n".format(globalcount, datafile )
+            out += "\t\t</DataItem>\n"
+        out += "\t</DataItem>\n"
         out += "\t</Attribute>\n"
     elif dof_count==9:
         out = "\t<Attribute Type=\"Tensor\" Center=\"{0}\" Name=\"{1}\">\n".format(centering, varname)
@@ -614,3 +624,19 @@ def _nps_2norm( v, comm=MPI.COMM_WORLD ):
     gnorm_sq = np.sum( comm.allgather(lnorm_sq) )
 
     return np.sqrt(gnorm_sq)
+
+
+def is_kernel():
+    """
+    Function to determine if the script is being run in an ipython or jupyter
+    notebook or in a regular python interpreter. 
+
+    Return true if in ipython or Jupyter notebook, False otherwise.
+    """
+
+    if 'IPython' not in sys.modules:
+    # IPython hasn't been imported, definitely not
+        return False
+    from IPython import get_ipython
+    # check for `kernel` attribute on the IPython instance
+    return getattr(get_ipython(), 'kernel', None) is not None

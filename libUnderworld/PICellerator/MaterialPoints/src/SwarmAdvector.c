@@ -53,24 +53,24 @@ SwarmAdvector* SwarmAdvector_New(
 SwarmAdvector* _SwarmAdvector_New(  SWARMADVECTOR_DEFARGS  )
 {
 	SwarmAdvector* self;
-	
+
 	/* Allocate memory */
 	assert( _sizeOfSelf >= sizeof(SwarmAdvector) );
 	self = (SwarmAdvector*)_TimeIntegrand_New(  TIMEINTEGRAND_PASSARGS  );
-	
+
 	/* General info */
 
 	/* Virtual Info */
-	
+
 	return self;
 }
 
-void _SwarmAdvector_Init( 
+void _SwarmAdvector_Init(
 		SwarmAdvector*                             self,
 		FeVariable*                                velocityField,
 		GeneralSwarm*                       swarm,
 		PeriodicBoundariesManager*                 periodicBCsManager )
-{	
+{
 	self->velocityField = velocityField;
 	self->swarm = swarm;
 
@@ -103,7 +103,7 @@ void _SwarmAdvector_Init(
                     NULL,
                     "Error In func %s: %s expects a materialSwarm with cellLayout of type ElementCellLayout.",
                     __func__, self->type );
-   
+
 	 /* if not regular use quicker algorithm for SwarmAdvection */
 	 if( ((ElementCellLayout*)swarm->cellLayout)->mesh->isRegular == False && self->type == SwarmAdvector_Type ) {
 	    self->_calculateTimeDeriv = _SwarmAdvector_TimeDeriv_Quicker4IrregularMesh;
@@ -126,7 +126,7 @@ void _SwarmAdvector_Delete( void* swarmAdvector ) {
 
 void _SwarmAdvector_Print( void* swarmAdvector, Stream* stream ) {
 	SwarmAdvector* self = (SwarmAdvector*)swarmAdvector;
-	
+
 	/* Print parent */
 	_TimeIntegrand_Print( self, stream );
 }
@@ -135,13 +135,13 @@ void _SwarmAdvector_Print( void* swarmAdvector, Stream* stream ) {
 void* _SwarmAdvector_Copy( void* swarmAdvector, void* dest, Bool deep, Name nameExt, PtrMap* ptrMap ) {
 	SwarmAdvector*	self = (SwarmAdvector*)swarmAdvector;
 	SwarmAdvector*	newSwarmAdvector;
-	
+
 	newSwarmAdvector = (SwarmAdvector*)_TimeIntegrand_Copy( self, dest, deep, nameExt, ptrMap );
 
 	newSwarmAdvector->velocityField = self->velocityField;
 	newSwarmAdvector->swarm         = self->swarm;
 	newSwarmAdvector->periodicBCsManager = self->periodicBCsManager;
-	
+
 	return (void*)newSwarmAdvector;
 }
 
@@ -196,7 +196,7 @@ void _SwarmAdvector_Build( void* swarmAdvector, void* data ) {
    if ( !self->periodicBCsManager && Stg_Class_IsInstance( ((ElementCellLayout*)swarm->cellLayout)->mesh->generator, CartesianGenerator_Type ) ) {
       CartesianGenerator* cartesianGenerator = (CartesianGenerator*) ((ElementCellLayout*)swarm->cellLayout)->mesh->generator;
       if ( cartesianGenerator->periodic[ I_AXIS ] ||
-           cartesianGenerator->periodic[ J_AXIS ] || 
+           cartesianGenerator->periodic[ J_AXIS ] ||
            cartesianGenerator->periodic[ K_AXIS ] ) {
          /* Create a periodicBCsManager if there isn't one already */
          self->periodicBCsManager = PeriodicBoundariesManager_New( "periodicBCsManager", (PICelleratorContext*)self->context, (Mesh*)((ElementCellLayout*)swarm->cellLayout)->mesh, (Swarm*)swarm, NULL );
@@ -212,7 +212,7 @@ void _SwarmAdvector_Build( void* swarmAdvector, void* data ) {
 
 void _SwarmAdvector_Initialise( void* swarmAdvector, void* data ) {
 	SwarmAdvector*	self = (SwarmAdvector*) swarmAdvector;
-	
+
    Stg_Component_Initialise( self->velocityField, data, False );
    Stg_Component_Initialise( self->swarm, data, False );
 	if ( self->periodicBCsManager )
@@ -222,14 +222,14 @@ void _SwarmAdvector_Initialise( void* swarmAdvector, void* data ) {
 
 void _SwarmAdvector_Execute( void* swarmAdvector, void* data ) {
 	SwarmAdvector*	self = (SwarmAdvector*)swarmAdvector;
-	
+
 	_TimeIntegrand_Execute( self, data );
 }
 
 void _SwarmAdvector_Destroy( void* swarmAdvector, void* data ) {
 	SwarmAdvector*	self = (SwarmAdvector*)swarmAdvector;
 
-	_TimeIntegrand_Destroy( self, data );	
+	_TimeIntegrand_Destroy( self, data );
    Stg_Component_Destroy( self->velocityField, data, False );
    Stg_Component_Destroy( self->swarm, data, False );
 	if ( self->periodicBCsManager )
@@ -237,31 +237,56 @@ void _SwarmAdvector_Destroy( void* swarmAdvector, void* data ) {
 }
 
 Bool _SwarmAdvector_TimeDeriv( void* swarmAdvector, Index array_I, double* timeDeriv ) {
-	SwarmAdvector*      self          = (SwarmAdvector*) swarmAdvector;
-	FieldVariable*      velocityField = (FieldVariable*) self->velocityField;
-	double*             coord;
-	InterpolationResult result;
+  SwarmAdvector*      self          = (SwarmAdvector*) swarmAdvector;
+  GeneralSwarm*       swarm         = self->swarm;
+  CellLayout*         layout        = swarm->cellLayout;
+  FeVariable*         velocityField = (FeVariable*) self->velocityField;
+  FeMesh*             mesh          = velocityField->feMesh;
+  double*             coord;
+  InterpolationResult result;
 
-	/* Get Coordinate of Object using Variable */
-	coord = Variable_GetPtrDouble( self->variable, array_I );
+  /* Get Coordinate of Object using Variable */
+  coord = Variable_GetPtrDouble( self->variable, array_I );
 
-	result = FieldVariable_InterpolateValueAt( velocityField, coord, timeDeriv );
+  // if a non regular mesh and ElementCellLayout use the particle and mesh information to optimise search
+  if( !mesh->isRegular &&
+      Stg_Class_IsInstance(layout, ElementCellLayout_Type) )
+  {
+    GlobalParticle*     particle = (GlobalParticle*)Swarm_ParticleAt( swarm, array_I );
+    FeMesh_ElementType* eType;
+    unsigned            cellID;
+    double              xi[3];
 
-	if ( result == OTHER_PROC || result == OUTSIDE_GLOBAL || isinf(timeDeriv[0]) || isinf(timeDeriv[1]) || 
-			( self->swarm->dim == 3 && isinf(timeDeriv[2]) ) ) 
-	{
-		#if 0
-		Journal_Printf( Journal_Register( Error_Type, (Name)self->type  ),
-			"Error in func '%s' for particle with index %u.\n\tPosition (%g, %g, %g)\n\tVelocity here is (%g, %g, %g)."
-			"\n\tInterpolation result is %s.\n",
-			__func__, array_I, coord[0], coord[1], coord[2], 
-			timeDeriv[0], timeDeriv[1], ( self->swarm->dim == 3 ? timeDeriv[2] : 0.0 ),
-			InterpolationResultToStringMap[result]  );
-		#endif	
-		return False;	
-	}
+    // find the cell/element the particle is in
+    cellID = CellLayout_CellOf( layout, particle );
 
-	return True;
+    if( cellID >= CellLayout_CellLocalCount( layout ) ) return False; // if not on local proc report False
+    /*
+       CellLayout_CellOf() will actually evaulate the local coordinate and store it
+       on a temporary valiable (on 'FeMesh_ElementType->local[]'). Below we exploit that
+    */
+
+    // get particle's local coordinate - HACKY but efficient
+    eType = (FeMesh_ElementType*)mesh->elTypes[mesh->elTypeMap[cellID]];
+    FeMesh_ElementTypeGetLocal( eType, xi );
+
+    // do interpoplation
+    FeVariable_InterpolateWithinElement( velocityField, cellID, xi, timeDeriv );
+    return True;
+  }
+  else
+  {
+    // if mesh is regular
+    result = FieldVariable_InterpolateValueAt( velocityField, coord, timeDeriv );
+  }
+
+  if ( result == OTHER_PROC || result == OUTSIDE_GLOBAL || isinf(timeDeriv[0]) || isinf(timeDeriv[1]) ||
+     ( swarm->dim == 3 && isinf(timeDeriv[2]) ) )
+  {
+    return False;
+  }
+
+  return True;
 }
 
 Bool _SwarmAdvector_TimeDeriv_Quicker4IrregularMesh( void* swarmAdvector, Index array_I, double* timeDeriv ) {
@@ -283,17 +308,17 @@ Bool _SwarmAdvector_TimeDeriv_Quicker4IrregularMesh( void* swarmAdvector, Index 
 
    /* below is some funky code to optimise time in retrieving :
       Why? for an irregular mesh the function CellLayout_CellOf() will actually
-      evaulate the local coordinate and store it on a temporary valiable (on 'FeMesh_ElementType->local[]') 
+      evaulate the local coordinate and store it on a temporary valiable (on 'FeMesh_ElementType->local[]')
       we will access below, instead of re-evaluating the GlobaToLocal loop (i.e. Newton-Raphson iteration)
       with a function like FeMesh_CoordGlobalToLocal().
-   
+
       This ASSUMES that the temporary storage isn't modified between CellLayout_CellOf() and here.
    */
 
    // get particle's local coordinate
    eType = (FeMesh_ElementType*)velocityField->feMesh->elTypes[velocityField->feMesh->elTypeMap[cellID]];
    FeMesh_ElementTypeGetLocal( eType, xi );
-   
+
    // do interpolation
    FeVariable_InterpolateWithinElement( velocityField, cellID, xi, timeDeriv );
 
@@ -308,7 +333,7 @@ void _SwarmAdvector_Intermediate( void* swarmAdvector, Index lParticle_I ) {
       Journal_Firewall( (Swarm*)self->swarm == (Swarm*)self->periodicBCsManager->swarm, NULL,
             "Error in %s. The SwarmAdvector %s and periodBCsManager %s don't use the same swarm, erroroneos condition\n",
             self->swarm->name, self->periodicBCsManager->swarm->name );
-             
+
 		// use the polymorphic function not a static one!
 		self->periodicBCsManager->_updateParticle( self->periodicBCsManager, lParticle_I );
 	}
@@ -328,7 +353,7 @@ double SwarmAdvector_MaxDt( void* swarmAdvector ) {
 	FeVariable*             velFeVar      = self->velocityField;
 	double			localDt;
 	double			globalDt;
-	
+
 	velMax = FieldVariable_GetMaxGlobalFieldMagnitude( velFeVar );
 
 	FeVariable_GetMinimumSeparation( velFeVar, &minSeparation, minSeparationEachDim );
@@ -343,7 +368,3 @@ double SwarmAdvector_MaxDt( void* swarmAdvector ) {
 /*-------------------------------------------------------------------------------------------------------------------------
 ** Public Functions
 */
-
-
-
-

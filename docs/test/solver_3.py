@@ -45,6 +45,7 @@ solver.solve()
 stats=solver.get_stats()
 solver.print_stats()
 from libUnderworld import petsc
+petsc.OptionsPrint()
 
 if 5 != stats.pressure_its:
     raise RuntimeError("Test returned wrong number of pressure iterations: should be 3")

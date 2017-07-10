@@ -42,7 +42,7 @@ class DirichletCondition(SystemCondition):
     Parameters
     ----------
     variable : underworld.mesh.MeshVariable
-        This is the variable for which the Direchlet condition applies.
+        This is the variable for which the Dirichlet condition applies.
     indexSetsPerDof : list, tuple, IndexSet
         The index set(s) which flag nodes/DOFs as Dirichlet conditions.
         Note that the user must provide an index set for each degree of
@@ -91,7 +91,7 @@ class DirichletCondition(SystemCondition):
 
         if variable.nodeDofCount != len(self._indexSets):
             raise ValueError("Provided variable has a nodeDofCount of {}, however you have ".format(variable.nodeDofCount)+
-                             "provided {} index set(s). You must provide an index set for each degree ".format(len(self.indexSets))+
+                             "provided {} index set(s). You must provide an index set for each degree ".format(len(self._indexSets))+
                              "of freedom of your variable, but no more.")
 
         # ok, lets setup the c array
@@ -114,10 +114,10 @@ class NeumannCondition(SystemCondition):
 
     Parameters
     ----------
-    flux : underworld.function.Function
+    fn_flux : underworld.function.Function
         Function which determines flux values.
     variable : underworld.mesh.MeshVariable
-        This is the variable for which the Direchlet condition applies.
+        This is the variable for which the Dirichlet condition applies.
     nodeIndexSet : underworld.container.IndexSet
         The index set for which boundary flux values will be applied.
 
@@ -125,12 +125,18 @@ class NeumannCondition(SystemCondition):
     _objectsDict = { "_pyvc": "PythonVC" }
     _selfObjectName = "_pyvc"
 
-    def __init__(self, flux, variable, nodeIndexSet, **kwargs ):
-
-        _flux = uw.function.Function.convert(flux)
-        if not isinstance( _flux, uw.function.Function):
-            raise ValueError( "Provided 'flux' must be of or convertible to 'Function' class." )
-        self._flux = _flux
+    def __init__(self, variable, nodeIndexSet, fn_flux=None, flux=None ):
+        # import pdb; pdb.set_trace()
+        
+        # DEPRECATION check 2017-07-01
+        if flux != None:
+            import warnings
+            warnings.warn("\n### DEPRECATION WARNING The 'flux' parameter in the NeumannCondition\n" +
+            "class has been replaced with 'fn_flux'. In the coming release 'flux' will be DEPRECATED\n"+
+            "please update your python code\n")
+            fn_flux = flux
+        
+        self.fn_flux = fn_flux
 
         if not isinstance( variable, uw.mesh.MeshVariable ):
             raise TypeError("Provided variable must be of class 'MeshVariable'.")
@@ -154,7 +160,13 @@ class NeumannCondition(SystemCondition):
         super(NeumannCondition,self).__init__()
 
     @property
-    def flux(self):
-        """ See class constructor for details. """
-        return self._flux
-
+    def fn_flux(self):
+        """ Get the underworld.Function that defines the flux """
+        return self._fn_flux
+    @fn_flux.setter
+    def fn_flux(self, fn):
+        """ Set the underworld.Function that defines the flux """
+        _fn = uw.function.Function.convert(fn)
+        if not isinstance( _fn, uw.function.Function):
+            raise ValueError( "Provided '_fn' must be of or convertible to 'Function' class." )
+        self._fn_flux = _fn

@@ -252,16 +252,14 @@ if not (GetOption('help') or GetOption('clean')):
             sdl = win = env.ConfigurePackage(packages.SDL, required=False).result
 
         #Configure OpenGL for X11
+        gl = 0
         if x11 or platform.system() != 'Darwin':
-            env.ConfigurePackage(packages.OpenGL, required=False).result
+            gl = env.ConfigurePackage(packages.OpenGL, required=False).result
 
-        # An interactive windowing system is required for viewer
-        if not (glut or x11 or sdl or cgl):
+        # OpenGL library required for viewer
+        if not (gl or cgl):
             print '****  WARNING ****'
-            print 'Need a windowing system for gLucifer Viewer, either'
-            print 'X11, SDL, Glut or CGL. None of these could be found.'
-            print 'The viewer will not be compiled.'
-
+            print 'OpenGL not found, graphics disabled, skipping LavaVu build'
             uw_env['with_graphics'] = 0
 
     # Export the environments

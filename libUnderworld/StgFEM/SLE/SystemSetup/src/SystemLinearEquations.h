@@ -110,7 +110,8 @@
 		double															rtol,ttol,stol,abstol; \
 		Bool																picard_monitor; \
       SLE_FormFunctionFunc*										_sleFormFunction; \
-      Bool                                               runatExecutePhase;
+      Bool                                               runatExecutePhase; \
+    PyObject*            solver_callback;
 
 
 	/** Abstract class to manage the set up, building, initialisation etc of a System of
@@ -219,6 +220,8 @@
 	void SystemLinearEquations_VectorSetup( void* sle, void* data );
 
 	void _SystemLinearEquations_VectorSetup( void* sle, void* data );
+  
+  void SystemLinearEquations_SetCallback( void* self, PyObject* func );
 
 	/* +++ Public Functions / Macros +++ */
 

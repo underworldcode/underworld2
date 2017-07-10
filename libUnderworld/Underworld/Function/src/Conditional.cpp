@@ -18,11 +18,18 @@ void Fn::Conditional::insert( Function* condition, Function* value )
 
 Fn::Conditional::func Fn::Conditional::getFunction( IOsptr sample_input )
 {
+    // are there any clauses?
+    if (_clause.size() == 0)
+        throw std::invalid_argument( "It does not appear that any clauses have been set for the conditional function." );
 
-    std::vector< std::pair<Fn::Function::func,Fn::Function::func> > _funcfuncArray;
-    // ensure correct other funcs
-    unsigned outputSize =-1;
+    unsigned outputSize =(unsigned)-1;
     std::type_index outputType = typeid(NULL);
+    
+    std::vector< std::pair<Fn::Function::func,Fn::Function::func> > _funcfuncArray(_clause.size());
+    // test function returned values...
+    // all the 'condition functions' must return type bool.
+    // all the 'consequent functions' must return types identical to each other.
+
     for (unsigned ii=0; ii<_clause.size(); ii++ )
     {
         // get condition func
@@ -41,48 +48,72 @@ Fn::Conditional::func Fn::Conditional::getFunction( IOsptr sample_input )
             ss << "Condition function appears to return non-scalar result (n=" << boolio->size() << ").\n";
             throw std::invalid_argument( ss.str() );
         }
+        
         // get consequent func
         auto consfunc = _clause.at(ii).second->getFunction( sample_input );
-        // check if returns bool
-        auto io = dynamic_cast<const FunctionIO*>(consfunc( sample_input ));
-        if (outputSize != -1){
-            if (outputSize != (int)io->size()){
-                std::stringstream ss;
-                ss << "Issue with clause " << ii << " of conditional function.\n";
-                ss << "Consequent function appers to return result of size " << io->size() << ".\n";
-                ss << "Previous function returned result of size " << outputSize << ".\n";
-                ss << "All consequent function must return results of identical size.";
-                throw std::invalid_argument( ss.str() );
-            }
-            if (outputType != io->dataType()){
-                std::stringstream ss;
-                ss << "Issue with clause " << ii << " of conditional function.\n";
-                ss << "Consequent function appers to return result of type " << functionio_get_type_name(io->dataType()) << ".\n";
-                ss << "Previous function returned result of type " << functionio_get_type_name(outputType) << ".\n";
-                ss << "All consequent function must return results of identical type.";
-                throw std::invalid_argument( ss.str() );
-            }
+        
+        // add condfunc,consfunc to array
+        _funcfuncArray[ii] =  std::pair<Fn::Function::func,Fn::Function::func>(condfunc,consfunc) ;
+
+        try {
+            auto io = dynamic_cast<const FunctionIO*>(consfunc( sample_input ));
+            outputSize = io->size();
+            outputType = io->dataType();
+        } catch (const std::domain_error& e) {
+            // let's continue the loop on domain errors.  the logic being that
+            // conditionals may be used to evaluate multiple functions, some of
+            // which are not valid across the entire domain, the usual example
+            // being swarms which are not defined everywhere.
+            // functions cannot be evaluated outside their domain, hence
+            // we continue without checking the output size/type. this will
+            // instead be done during the heavy loop.
+            continue;
         }
-        else{
-          outputSize = io->size();
-          outputType = io->dataType();
-        }
-        _funcfuncArray.push_back( std::pair<Fn::Function::func,Fn::Function::func>(condfunc,consfunc) );
     }
 
-    // check that some func has been set!
-    if (outputSize == -1)
-      throw std::invalid_argument( "It does not appear that any clauses have been set for the conditional function." );
-
+    if(outputSize == (unsigned)-1) // at least one of the consequent functions should have evaluated successfully.
+        throw std::invalid_argument("It seems that none of the consequent functions were able to be successfully evaluated during testing.");
+    
+    
+    
     unsigned totalClauses = _funcfuncArray.size();
-    return [_funcfuncArray, totalClauses](IOsptr input)->IOsptr {
-      for (unsigned ii=0; ii<totalClauses; ii++){
-        bool result = (_funcfuncArray[ii].first(input))->at<bool>();
-        if (result){
-          return _funcfuncArray[ii].second(input);
+    std::vector<bool> clauseTested(_clause.size(),false);
+
+    return [_funcfuncArray, totalClauses, clauseTested, outputSize, outputType] (IOsptr input) mutable ->IOsptr
+    {
+        for (unsigned ii=0; ii<totalClauses; ii++)
+        {
+            bool result = (_funcfuncArray[ii].first(input))->at<bool>();
+            if (result)
+            {
+                auto io = _funcfuncArray[ii].second(input);
+                // let's test first if not done already
+                if (!clauseTested[ii])
+                {
+                    clauseTested[ii] = true;
+
+                    if (outputSize != (int)io->size()){
+                        std::stringstream ss;
+                        ss << "Issue with clause " << ii << " of conditional function.\n";
+                        ss << "Consequent function appers to return result of size " << io->size() << ".\n";
+                        ss << "Previous function returned result of size " << outputSize << ".\n";
+                        ss << "All consequent function must return results of identical size.";
+                        throw std::invalid_argument( ss.str() );
+                    }
+                    if (outputType != io->dataType()){
+                        std::stringstream ss;
+                        ss << "Issue with clause " << ii << " of conditional function.\n";
+                        ss << "Consequent function appers to return result of type " << functionio_get_type_name(io->dataType()) << ".\n";
+                        ss << "Previous function returned result of type " << functionio_get_type_name(outputType) << ".\n";
+                        ss << "All consequent function must return results of identical type.";
+                        throw std::invalid_argument( ss.str() );
+                    }
+                }
+
+                return io;
+            }
         }
-      }
-      // something aint right
-      throw std::runtime_error( "Reached end of conditional statement. At least one of the clause conditions must evaluate to 'True'." );
+        // something aint right
+        throw std::runtime_error( "Reached end of conditional statement. At least one of the clause conditions must evaluate to 'True'." );
     };
 }

@@ -65,10 +65,6 @@ for d in dirs:
 
 # Need to install headers from libgLucifer.
 env.Install('include/gLucifer', Glob('libgLucifer/src/*.h'))
-# Install dump scripts
-env.Install('bin', 'dump.sh')
-env.Install('bin', 'html.py')
-env.Install('bin', 'results_template.html')
 
 #
 # Build plugins.

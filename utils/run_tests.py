@@ -6,7 +6,7 @@ code, which should signify that no uncaught exceptions were encountered.
 
 This script will return a non-zero exit code if any tests fail.
 
-Usage: `run_tests.py --nproc=3 --mpirun=mpirun foo.py [bar.ipynb [...]]`
+Usage: `run_tests.py --prepend="mpirun -np 2" --convert=True foo.py [bar.ipynb [...]]`
 
 
 """
@@ -135,10 +135,10 @@ if __name__ == '__main__':
 
     # use the argparse module to read cmd line
     parser = argparse.ArgumentParser()
-    parser.add_argument("--nprocs", help="Number of processors to use.", type=int, default=1)
-    parser.add_argument("--mpirun", help="MPI command to use.")
+    parser.add_argument("--prepend", help="Command to prepend before test executable. Useful for mpi tests.", type=str, default=None)
     parser.add_argument("--recursive", help="Recurse directories for files.", type=bool, default=False)
     parser.add_argument("--replace_outputs", help="Runs ipynb models replacing output cells.", type=bool, default=False)
+    parser.add_argument("--convert", help="If enabled, all ipynb files are converted to py before processing.", type=bool, default=False)
     parser.add_argument("files", nargs="+", help="the input file list")
     args = parser.parse_args()
 
@@ -146,16 +146,6 @@ if __name__ == '__main__':
     if len(args.files) == 0 :
         parser.print_help()
         sys.exit(1)
-
-    if args.nprocs < 1:
-        raise ValueError("Don't be a smart arse")
-    else:
-        nprocs = args.nprocs
-
-    if nprocs > 1: # run in parallel check mpirun executable is valid
-        if args.mpirun == None:
-            parser.print_help()
-            raise ValueError("'NPROCS' is >1, you must specify an executable to 'MPIRUN'")
 
     # initialise test counters
     nfails=0
@@ -188,7 +178,7 @@ if __name__ == '__main__':
         # build executable command
         exe = ['python']
 
-        if is_ipynb and nprocs==1 and can_runipy:
+        if is_ipynb and can_runipy and not args.convert:
             exe = ['runipy']      # use runipy instead
         elif is_ipynb:
             # convert ipynb to py and move to 'testResults'
@@ -204,14 +194,10 @@ if __name__ == '__main__':
             cleanup=True
 
         if args.replace_outputs:
-            if nprocs!=1:
-                raise RuntimeError("Can only replace outputs when running in serial.")
             exe = ['runipy','-o']   # use runipy with -o arg
 
-        # if parallel build mpi command
-        if nprocs>1:
-            exe = [args.mpirun, '-np', str(nprocs), 'python']
-
+        if args.prepend:
+            exe = args.prepend.split() + exe
         # log and run test
         print("Running test {}: {}".format(testnumber+1," ".join(exe)+" "+fname));
         logFile.write("\nRunning "+ " ".join(exe)+" "+fname);

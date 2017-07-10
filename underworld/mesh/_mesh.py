@@ -87,7 +87,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         Returns
         -------
         str
-            Element type for FeMesh. Supported types are "Q2", "Q1", "dPc1" and "dQ0".
+            Element type for FeMesh. Supported types are "Q2", "Q1", "dQ1", "dPc1" and "dQ0".
         """
         return self._elementType
     @property
@@ -122,6 +122,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         -------
         numpy.ndarray
             Array specifying the nodes (global node id) for a given element (local element id).
+            NOTE: Length is local size. 
         """
         uw.libUnderworld.StgDomain.Mesh_GenerateENMapVar(self._cself)
         arr = uw.libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.enMapVar)
@@ -140,7 +141,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         Returns
         -------
         numpy.ndarray
-            Array specifying global element ids.
+            Array specifying global element ids. Length is domain size, (local+shadow).
         """
         uw.libUnderworld.StgDomain.Mesh_GenerateElGlobalIdVar(self._cself)
         arr = uw.libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.eGlobalIdsVar)
@@ -152,7 +153,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         Returns
         -------
         numpy.ndarray
-            Array specifying global node ids.
+            Array specifying global node ids. Length is domain size, (local+shadow).
         """
         uw.libUnderworld.StgDomain.Mesh_GenerateNodeGlobalIdVar(self._cself)
         arr = uw.libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.vGlobalIdsVar)
@@ -208,7 +209,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         return self._arr
 
     @contextlib.contextmanager
-    def deform_mesh(self, remainsRegular=False):
+    def deform_mesh(self, isRegular=False, remainsRegular=None):
         """
         Any mesh deformation must occur within this python context manager. Note
         that certain algorithms may be switched to their irregular mesh equivalents
@@ -219,7 +220,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
 
         Parameters
         ----------
-        remainsRegular : bool, default=False
+        isRegular : bool
             The general assumption is that the deformed mesh will no longer be regular
             (orthonormal), and more general but less efficient algorithms will be
             selected via this context manager. To over-ride this behaviour, set
@@ -234,14 +235,10 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         ...     someMesh.data[0] = [0.1,0.1]
         >>> someMesh.data[0]
         array([ 0.1,  0.1])
-
-
         """
-        # set the general mesh algorithm now
-        if not remainsRegular:
-#            if uw.rank() == 0: print("Switching to irregular mesh algorithms.")
-            uw.libUnderworld.StgDomain.Mesh_SetAlgorithms( self._cself, None )
-            self._cself.isRegular = False
+        
+        if not remainsRegular is None:
+            raise RuntimeError("'remainsRegular' parameter has been renamed to 'isRegular'")
 
         # execute any pre deform functions
         for function in self._pre_deform_functions:
@@ -259,12 +256,16 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
                                                      +"the 'deform_mesh' context manager. \nEncountered exception message:\n")
         finally:
             self.data.flags.writeable = False
-            # call deformupdate, which updates various mesh metrics
-#            if uw.rank() == 0: print("Updating mesh metrics.")
+            if isRegular:
+                self._cself.isRegular = True
+                uw.libUnderworld.StgDomain.Mesh_SetAlgorithms( self._cself,
+                                                               uw.libUnderworld.StgDomain.Mesh_RegularAlgorithms_New("",None) )
+            else:
+                uw.libUnderworld.StgDomain.Mesh_SetAlgorithms( self._cself, None )
+                self._cself.isRegular = False
+            uw.libUnderworld.StgDomain.Mesh_Sync( self._cself )
             uw.libUnderworld.StgDomain.Mesh_DeformationUpdate( self._cself )
             if hasattr(self,"subMesh") and self.subMesh:
-                # remesh the submesh based on the new primary
-#                if uw.rank() == 0: print("Updating submesh for primary mesh changes.")
                 self.subMesh.reset()
 
             # execute any post deform functions
@@ -308,6 +309,16 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
             Returns the number of local nodes on the mesh.
         """
         return libUnderworld.StgDomain.Mesh_GetLocalSize(self._cself, 0)
+    
+    @property
+    def nodesDomain(self):
+        """
+        Returns
+        -------
+        int
+            Returns the number of domain (local+shadow) nodes on the mesh.
+        """
+        return libUnderworld.StgDomain.Mesh_GetDomainSize(self._cself, 0)
 
     @property
     def nodesGlobal(self):
@@ -340,6 +351,22 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         4
         """
         return libUnderworld.StgDomain.Mesh_GetLocalSize(self._cself, self.dim)
+        
+    @property
+    def elementsDomain(self):
+        """
+        Returns
+        -------
+        int
+            Returns the number of domain (local+shadow) elements on the mesh
+
+        Example
+        -------
+        >>> someMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1', elementRes=(2,2), minCoord=(-1.,-1.), maxCoord=(1.,1.) )
+        >>> someMesh.elementsDomain
+        4
+        """
+        return libUnderworld.StgDomain.Mesh_GetDomainSize(self._cself, self.dim)
 
     @property
     def elementsGlobal(self):
@@ -483,7 +510,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         ...     os.remove( "saved_mesh.h5" )
 
         """
-        
+
         if hasattr(self.generator, 'geometryMesh'):
             raise RuntimeError("Cannot save this mesh as it's a subMesh. "
                                 + "Most likely you only need to save its geometryMesh")
@@ -507,21 +534,17 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
                                   dtype=self.data.dtype)
 
         local = self.nodesLocal
-        # write to the dset using the global node ids
+        # write to the dset using the local set of global node ids
         dset[self.data_nodegId[0:local],:] = self.data[0:local]
 
         # write the element node connectivity
-        self.data_elementNodes
         globalShape = ( self.elementsGlobal, self.data_elementNodes.shape[1] )
         dset = h5f.create_dataset("en_map",
                                   shape=globalShape,
                                   dtype=self.data_elementNodes.dtype)
 
-        if len(self.data_elgId) != len(self.data_elementNodes):
-            raise RuntimeError("Error in mesh.data_elementNodes - required for h5save")
-
-        local = len(self.data_elgId)
-        # write to the dset using the global node ids
+        local = self.elementsLocal
+        # write to the dset using the local set of global node ids
         dset[self.data_elgId[0:local],:] = self.data_elementNodes[0:local]
 
         h5f.close()
@@ -555,6 +578,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         Refer to example provided for 'save' method.
 
         """
+        self.reset()
         if not isinstance(filename, str):
             raise TypeError("Expected filename to be provided as a string")
 
@@ -582,12 +606,8 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         if len(dset) != self.nodesGlobal:
             raise RuntimeError("Provided data file appears to be for a different resolution mesh.")
 
-        with self.deform_mesh():
+        with self.deform_mesh(isRegular=h5f.attrs['regular']):
             self.data[0:self.nodesLocal] = dset[self.data_nodegId[0:self.nodesLocal],:]
-
-        # note that deform_mesh always sets the mesh to irregular.
-        # reset this according to what the saved file has.
-        self._cself.isRegular = h5f.attrs['regular']
 
         h5f.close()
 
@@ -619,7 +639,7 @@ class MeshGenerator(_stgermain.StgCompoundComponent):
         Returns
         -------
         int
-            FeMesh dimensionality.
+            The mesh dimensionality.
         """
         return self._dim
 
@@ -805,6 +825,7 @@ class CartesianMeshGenerator(MeshGenerator):
         # set algos back to regular
         uw.libUnderworld.StgDomain.Mesh_SetAlgorithms( mesh._cself,
                                                        uw.libUnderworld.StgDomain.Mesh_RegularAlgorithms_New("",None) )
+        uw.libUnderworld.StgDomain.Mesh_Sync( self._cself )
         uw.libUnderworld.StgDomain.Mesh_DeformationUpdate( mesh._cself )
 
 
@@ -976,7 +997,20 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
         mesh will be created.
         The submesh is accessible through the 'subMesh' property. The
         primary mesh itself is the object returned by this constructor.
-
+    elementRes: list,tuple
+        List or tuple of ints specifying mesh resolution. See CartesianMeshGenerator.elementRes
+        docstring for further information.
+    minCoord:  list, tuple
+        List or tuple of floats specifying minimum mesh location. See CartesianMeshGenerator.minCoord
+        docstring for further information.
+    maxCoord: list, tuple
+        List or tuple of floats specifying maximum mesh location. See CartesianMeshGenerator.maxCoord
+        docstring for further information.
+    periodic: list, tuple
+        List or tuple of bools, specifying mesh periodicity in each direction.
+    partitioned: bool
+        If false, the mesh is not partitioned across entire processor pool. Instead
+        mesh is entirely owned by processor which generated it.
 
 
     Examples
@@ -1103,11 +1137,11 @@ class FeMesh_IndexSet(uw.container.ObjectifiedIndexSet, function.FunctionInput):
 
     Parameters
     ----------
+    object: underworld.mesh.FeMesh
+        The FeMesh instance from which the IndexSet was extracted.
     topologicalIndex: int
         Mesh topological index for which the IndexSet relates. See
         docstring for further info.
-    object: underworld.mesh.FeMesh
-        The FeMesh instance from which the IndexSet was extracted.
 
     Example
     -------

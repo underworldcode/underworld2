@@ -25,12 +25,19 @@ import sys
 import os
 
 #Attempt to import lavavu module
-lavavu = None
-try:
-    import libUnderworld.libUnderworldPy.lavavu as lavavu
-    sys.path.append(os.path.dirname(lavavu.__file__))
-except:
-    print "LavaVu module not found! disabling inline visualisation"
+if 'lavavu' in sys.modules:
+    #Already imported, some paths issue causes double import to load separate instances
+    raise RuntimeError("LavaVu module exists, must not be imported before glucifer")
+    #lavavu = sys.modules['lavavu']
+else:
+    try:
+        import lavavu
+        #Import into main too so can be accessed there
+        #(necessary for interactive viewer/controls)
+        import __main__
+        __main__.lavavu = lavavu
+    except Exception as e:
+        print e,"LavaVu module not found! disabling inline visualisation"
 
 # lets create somewhere to dump data for this session
 try:
@@ -172,7 +179,6 @@ class Store(_stgermain.StgCompoundComponent):
             self.viewer = lavavu.Viewer(cache=False, binpath=self._lvpath, database=db, timestep=self.step, *args, **kwargs)
         else:
             self.viewer.setup(cache=False, database=db, timestep=self.step, *args, **kwargs)
-        #self.viewer.init()
 
         return self.viewer
 
@@ -207,8 +213,8 @@ class Store(_stgermain.StgCompoundComponent):
             self._db.timeStep = self.step
 
             #Delete all drawing objects in register
-            for ii in range(self._db.drawingObject_Register.objects.count,0,-1):
-                libUnderworld.StGermain._Stg_ObjectList_RemoveByIndex(self._db.drawingObject_Register.objects,ii-1, libUnderworld.StGermain.KEEP)
+            for ii in range(self._db.drawingObjects.objects.count,0,-1):
+                libUnderworld.StGermain._Stg_ObjectList_RemoveByIndex(self._db.drawingObjects.objects,ii-1, libUnderworld.StGermain.KEEP)
 
             #Add drawing objects to register and output any custom data on them
             for obj in self._objects:
@@ -217,22 +223,24 @@ class Store(_stgermain.StgCompoundComponent):
 
                 #Ensure properties updated before object written to db
                 _libUnderworld.gLucifer.lucDrawingObject_SetProperties(obj._dr, obj._getProperties());
-                if obj._colourMap:
-                    _libUnderworld.gLucifer.lucColourMap_SetProperties(obj._colourMap._cm, obj._colourMap._getProperties());
+                if obj.colourMap:
+                    _libUnderworld.gLucifer.lucColourMap_SetProperties(obj.colourMap._cm, obj.colourMap._getProperties());
 
                 #Add the object to the drawing object register for the database
-                libUnderworld.StGermain.Stg_ObjectList_Append(self._db.drawingObject_Register.objects,obj._cself)
+                libUnderworld.StGermain.Stg_ObjectList_Append(self._db.drawingObjects.objects,obj._cself)
 
             # go ahead and fill db
             libUnderworld.gLucifer._lucDatabase_Execute(self._db,None)
 
-            #Output any custom geometry on objects
-            for obj in self._objects:
-                self._plotObject(obj)
-
             #Write visualisation state as json data
             libUnderworld.gLucifer.lucDatabase_WriteState(self._db, figname, self._get_state(self._objects, props))
 
+            #Output any custom geometry on objects
+            if lavavu and uw.rank() == 0 and any(x.geomType is not None for x in self._objects):
+                lv = self.lvrun() #Open the viewer
+                for obj in self._objects:
+                    #Create/Transform geometry by object
+                    obj.render(lv)
         else:
             #Open db, get state and update it to match active figure
             states = self._read_state()
@@ -296,49 +304,15 @@ class Store(_stgermain.StgCompoundComponent):
         try:
             lv = self.lvrun()
             #Get state, includes the list of objects in the loaded database
-            statestr = lv.getFigures()
+            statestr = lv.app.getFigures()
             #Also save the step data
-            self.timesteps = json.loads(lv.getTimeSteps())
+            self.timesteps = json.loads(lv.app.getTimeSteps())
             return json.loads(statestr)
         except RuntimeError,e:
             print "LavaVu error: " + str(e)
             import traceback
             traceback.print_exc()
             pass
-
-    def _plotObject(self, drawingObject):
-        #General purpose plotting using db output
-        #Plot all custom data drawn on provided object
-        farr = libUnderworld.gLucifer.new_farray(3)
-        for pos in drawingObject.vertices:
-            #Write vertex position
-            i = 0
-            for item in pos:
-                libUnderworld.gLucifer.farray_setitem(farr,i,item)  # Set values
-                i += 1
-            libUnderworld.gLucifer.lucDatabase_AddVertices(self._db, 1, drawingObject.geomType, farr)
-
-        #Write vectors
-        for vec in drawingObject.vectors:
-            i = 0
-            for item in vec:
-                libUnderworld.gLucifer.farray_setitem(farr,i,item)  # Set values
-                i += 1
-            libUnderworld.gLucifer.lucDatabase_AddVectors(self._db, 1, drawingObject.geomType, 0, 0, farr)
-
-        #Write values
-        for value in drawingObject.scalars:
-            libUnderworld.gLucifer.farray_setitem(farr,0,value)  # Set values
-            libUnderworld.gLucifer.lucDatabase_AddValue(self._db, 1, drawingObject.geomType, farr)
-
-        libUnderworld.gLucifer.delete_farray(farr)
-
-        #Write labels
-        for label in drawingObject.labels:
-            libUnderworld.gLucifer.lucDatabase_AddLabel(self._db, drawingObject.geomType, label);
-
-        #Write the custom geometry to the database
-        libUnderworld.gLucifer.lucDatabase_OutputGeometry(self._db, drawingObject._dr.id)
 
     def empty(self):
         """    Empties all the cached drawing objects
@@ -455,7 +429,7 @@ class Figure(dict):
 
         #Setup default properties
         self.update({"resolution" : (640, 480), "title" : str(title), 
-            "axis" : axis, "axislength" : 0.2, "antialias" : True, 
+            "axis" : axis, "antialias" : True,
             "background" : facecolour, "margin" : 34, 
             "border" : (1 if edgecolour else 0), "bordercolour" : edgecolour, 
             "rulers" : False, "zoomstep" : 0})
@@ -481,6 +455,11 @@ class Figure(dict):
         self._drawingObjects = []
         self._script = []
 
+        #Save types of all Drawing derived classes
+        def all_subclasses(cls):
+            return cls.__subclasses__() + [g for s in cls.__subclasses__() for g in all_subclasses(s)]
+        self._object_types = all_subclasses(objects.Drawing)
+
         super(Figure, self).__init__(*args)
 
     def __del__(self):
@@ -494,6 +473,20 @@ class Figure(dict):
         #Update the properties values (merge)
         #values of any existing keys are replaced
         self.update(newProps)
+
+    #Undefined methods call Drawing() constructors if defined, and append to figure
+    def __getattr__(self, key):
+        #__getattr__ called if no attrib/method found
+        def any_method(*args, **kwargs):
+            #Find if class exists that extends Drawing
+            method = getattr(objects, key)
+            if isinstance(method, type) and method in self._object_types:
+                #Return the new object and add it to the figure
+                newobj = method(*args, **kwargs)
+                self.append(newobj)
+                return newobj
+
+        return any_method
 
     @property
     def resolution(self):
@@ -560,13 +553,12 @@ class Figure(dict):
         output routines to save the result with a default filename in the current directory
 
         """
-
-        self._generate_DB()
-        global lavavu
-        if not lavavu or uw.rank() > 0:
-            return
         try:
             if __IPYTHON__:
+                self._generate_DB()
+                global lavavu
+                if not lavavu or uw.rank() > 0:
+                    return
                 from IPython.display import display,Image,HTML
                 if type.lower() == "webgl":
                     display(self._generate_HTML())
@@ -606,7 +598,7 @@ class Figure(dict):
         ----------
         filename :str
             Filename to save file to.  May include an absolute or relative path.
-            size (tuple(int,int)): size of image in pixels, defaults to original figsize setting
+        size (tuple(int,int)): size of image in pixels, defaults to original figsize setting
             If omitted, simply saves the figure data without generating an image
         type: str
             Type of visualisation to save ('Image' or 'WebGL').
@@ -619,23 +611,25 @@ class Figure(dict):
             anything.
         """
         self._generate_DB()
-        if filename != None:
-            if not isinstance(filename, str):
-                raise TypeError("Provided parameter 'filename' must be of type 'str'. ")
-            if size and not isinstance(size,tuple):
-                raise TypeError("'size' object passed in must be of python type 'tuple'")
+        global lavavu
+        if filename is None or not lavavu or uw.rank() > 0:
+            return
+        if not isinstance(filename, str):
+            raise TypeError("Provided parameter 'filename' must be of type 'str'. ")
+        if size and not isinstance(size,tuple):
+            raise TypeError("'size' object passed in must be of python type 'tuple'")
 
-            try:
-                if type.lower() == "webgl":
-                    lv = self.db.lvrun()
-                    return lv.web(True)
-                else:
-                    return self._generate_image(filename, size)
-            except RuntimeError,e:
-                print "LavaVu error: " + str(e)
-                import traceback
-                traceback.print_exc()
-                pass
+        try:
+            if type.lower() == "webgl":
+                lv = self.db.lvrun()
+                return lv.app.web(True)
+            else:
+                return self._generate_image(filename, size)
+        except RuntimeError,e:
+            print "LavaVu error: " + str(e)
+            import traceback
+            traceback.print_exc()
+            pass
 
     def _generate_DB(self):
         objects = self._drawingObjects[:]
@@ -651,7 +645,7 @@ class Figure(dict):
         try:
             #Render with viewer
             lv = self.db.lvrun(quality=self["quality"], script=self._script)
-            imagestr = lv.image(filename, size[0], size[1])
+            imagestr = lv.image(filename, resolution=size)
             #Return the generated filename
             return imagestr
         except RuntimeError,e:
@@ -671,7 +665,7 @@ class Figure(dict):
             #Create link to web content directory
             if not os.path.isdir("html"):
                 os.symlink(os.path.join(self.db._lvpath, 'html'), 'html')
-            jsonstr = lv.web()
+            jsonstr = lv.app.web()
             #Write files to disk first, can be passed directly on url but is slow for large datasets
             filename = "input_" + self.db._db.name + ".json"
             text_file = open("html/" + filename, "w")
@@ -707,18 +701,29 @@ class Figure(dict):
         #Returns contents as newline separated string
         return '\n'.join(self._script)
 
-    def viewer(self):
+    def window(self):
         """ Open the inline viewer.
         """
-        #Open viewer instance
+        #Open/get viewer instance
         global lavavu
         if lavavu and uw.rank() == 0:
+            v = self.viewer()
+            #Show the inline window,
+            v.window()
+            return v
+
+    def viewer(self, **kwargs):
+        """ Return viewer instance.
+        """
+        #Open/get viewer instance
+        global lavavu
+        if lavavu and uw.rank() == 0:
+            if self.db.viewer:
+                return self.db.viewer
             #Generate db if doesn't exist
             if not self.db._db.path:
                 self._generate_DB()
-            v = self.db.lvrun()
-            v.window()
-            return v
+            return self.db.lvrun()
 
     def open_viewer(self, args=[], background=True):
         """ Open the external viewer.
@@ -735,12 +740,12 @@ class Figure(dict):
         if lavavu and uw.rank() == 0:
             #Open viewer with local web server for interactive/iterative use
             if background:
-                self._viewerProc = subprocess.Popen([self.db._lvbin, "-" + str(self.db.step), "-p9999", "-q90", fname] + args,
+                self._viewerProc = subprocess.Popen([self.db._lvbin, "-" + str(self.db.step), "-p9999", "-q90", fname] + self._script + args,
                                                     stdout=PIPE, stdin=PIPE, stderr=STDOUT)
                 from IPython.display import HTML
                 return HTML('''<a href='#' onclick='window.open("http://" + location.hostname + ":9999");'>Open Viewer Interface</a>''')
             else:
-                lv = self.db.lvrun(db=fname, port=9999)
+                self.db.lvrun(db=fname, port=9999)
 
     def close_viewer(self):
         """ Close the viewer.
@@ -751,14 +756,6 @@ class Figure(dict):
            self._viewerProc.kill()
         self._viewerProc = None
 
-    def run_script(self):
-        """ Run the saved script on an open viewer instance
-        """
-        self.open_viewer()
-        url = "http://localhost:9999/command=" + urllib2.quote(';'.join(self._script))
-        response = urllib2.urlopen(url).read()
-        #print response
-  
     def send_command(self, cmd, retry=True):
         """ 
         Run command on an open viewer instance.
@@ -788,12 +785,12 @@ class Figure(dict):
                     pass
 
     def clear(self):
-        # DEPRECATE
+        # DEPRECATE, remove for v2.4.0
         raise RuntimeError("This method is now deprecated.\n" \
                            "To obtain an empty figure just create a new one")
 
     def __add__(self,drawing_object):
-        # DEPRECATE
+        # DEPRECATE, remove for v2.4.0
         raise RuntimeError("This method is now deprecated.\n" \
                            "To add drawing objects to figures, use the append() method:\n" \
                            "    someFigure.append(someDrawingObject)")
@@ -925,4 +922,5 @@ class Viewer(dict):
     def step(self, value):
         #Sets new step on db
         self._db.step = value
+
 

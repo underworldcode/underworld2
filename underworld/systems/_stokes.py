@@ -14,7 +14,7 @@ import libUnderworld
 class Stokes(_stgermain.StgCompoundComponent):
     """
     This class provides functionality for a discrete representation
-    of the incompressible Stokes equation.
+    of the Stokes flow equations.
 
     Specifically, the class uses a mixed finite element method to
     construct a system of linear equations which may then be solved
@@ -24,26 +24,35 @@ class Stokes(_stgermain.StgCompoundComponent):
     mesh used for the 'velocityField' and 'pressureField' parameters.
 
     The strong form of the given boundary value problem, for :math:`f`,
-    :math:`q` and :math:`h` given, is
-    
+    :math:`g` and :math:`h` given, is
+
     .. math::
         \\begin{align}
         \\sigma_{ij,j} + f_i =& \\: 0  & \\text{ in }  \\Omega \\\\
-        p + \lambda u_{k,k} =& \\: 0  & \\text{ in }  \\Omega \\\\
-        u_i =& \\: q_i & \\text{ on }  \\Gamma_{q_i} \\\\
+        u_{k,k} + \\frac{p}{\\lambda} =& \\: H  & \\text{ in }  \\Omega \\\\
+        u_i =& \\: g_i & \\text{ on }  \\Gamma_{g_i} \\\\
         \\sigma_{ij}n_j =& \\: h_i & \\text{ on }  \\Gamma_{h_i} \\\\
         \\end{align}
 
     where,
-    :math:`f_i` is a source term, :math:`q_i` is the Dirichlet condition, and
-    :math:`h_i` is a Neumann condition. The problem boundary, :math:`\\Gamma`,
-    admits the decompositions :math:`\\Gamma=\\Gamma_{q_i}\\cup\\Gamma_{h_i}` where
-    :math:`\\emptyset=\\Gamma_{q_i}\\cap\\Gamma_{h_i}`. The equivalent weak form is:
+
+    * :math:`\\sigma_{i,j}` is the stress tensor
+    * :math:`u_i` is the velocity,
+    * :math:`p`   is the pressure,
+    * :math:`f_i` is a body force,
+    * :math:`\\lambda` is a bulk viscosity,
+    * :math:`H` is the compressible equation source term,
+    * :math:`g_i` are the velocity boundary conditions (DirichletCondition)
+    * :math:`h_i` are the traction boundary conditions (NeumannCondition).
+
+    The problem boundary, :math:`\\Gamma`,
+    admits the decompositions :math:`\\Gamma=\\Gamma_{g_i}\\cup\\Gamma_{h_i}` where
+    :math:`\\emptyset=\\Gamma_{g_i}\\cap\\Gamma_{h_i}`. The equivalent weak form is:
 
     .. math::
         \\int_{\Omega} w_{(i,j)} \\sigma_{ij} \\, d \\Omega = \\int_{\\Omega} w_i \\, f_i \\, d\\Omega + \sum_{j=1}^{n_{sd}} \\int_{\\Gamma_{h_j}} w_i \\, h_i \\,  d \\Gamma
-    
-    where we must find :math:`u` which satisfies the above for all :math:`w` 
+
+    where we must find :math:`u` which satisfies the above for all :math:`w`
     in some variational space.
 
     Parameters
@@ -55,25 +64,29 @@ class Stokes(_stgermain.StgCompoundComponent):
     fn_viscosity : underworld.function.Function
         Function which reports a viscosity value.
         Function must return scalar float values.
-    fn_bodyforce : underworld.function.Function
-        Default = None
+    fn_bodyforce : underworld.function.Function, Default = None
         Function which reports a body force for the system.
         Function must return float values of identical dimensionality
         to the provided velocity variable.
-    fn_lambda : underworld.function.Function
+    fn_lambda : Removed use, fn_one_on_lambda instead
+    fn_minus_one_on_lambda: underworld.function.Function, Default = None
         Function which defines a non solenoidal velocity field via the relationship
-        div(velocityField) = fn_lambda * pressurefield
-        If fn_lambda is <= 1e-8 it's effect is considered negligable and
-        div(velocityField) = 0 is enforced as the constaint equation.
-        This method is incompatible with the 'penalty' stokes solver, ensure
+        div(velocityField) = -fn_minus_one_on_lambda * pressurefield + fn_source
+        When this is left as None a incompressible formulation of the stokes equation is formed, ie, div(velocityField) = 0.
+        fn_minus_one_on_lambda is incompatible with the 'penalty' stokes solver, ensure a
+        'penalty' equal to 0 is used when fn_minus_one_on_lambda is used. By default this is the case.
+    fn_source : underworld.function.Function, Default = None
+        Function which defines a non solenoidal velocity field via the relationship
+        div(velocityField) = -fn_minus_one_on_lambda * pressurefield + fn_source.
+        fn_minus_one_on_lambda is incompatible with the 'penalty' stokes solver, ensure
         the 'penalty' of 0, is used when fn_lambda is used. By default this is the case.
     voronoi_swarm : underworld.swarm.Swarm
-        If a voronoi_swarm is provided, voronoi type numerical integration is 
-        utilised. The provided swarm is used as the basis for the voronoi 
+        If a voronoi_swarm is provided, voronoi type numerical integration is
+        utilised. The provided swarm is used as the basis for the voronoi
         integration. If no voronoi_swarm is provided, Gauss integration
         is used.
     conditions : underworld.conditions.SystemCondition
-        Numerical conditions to impose on the system. This should be supplied as 
+        Numerical conditions to impose on the system. This should be supplied as
         the condition itself, or a list object containing the conditions.
 
     Notes
@@ -85,8 +98,14 @@ class Stokes(_stgermain.StgCompoundComponent):
     _objectsDict = {  "_system" : "Stokes_SLE" }
     _selfObjectName = "_system"
 
-    def __init__(self, velocityField, pressureField, fn_viscosity, fn_bodyforce=None, fn_lambda=None, voronoi_swarm=None, conditions=[],
+
+    def __init__(self, velocityField, pressureField, fn_viscosity, fn_bodyforce=None, fn_one_on_lambda=None,
+                 fn_lambda=None, fn_source=None, voronoi_swarm=None, conditions=[],
                 _removeBCs=True, _fn_viscosity2=None, _fn_director=None, _fn_stresshistory=None, **kwargs):
+
+        # DEPRECATION ERROR
+        if fn_lambda != None:
+            raise TypeError( "The parameter 'fn_lambda' has been deprecated. It has been replaced by 'fn_one_on_lambda', a simpler input parameter." )
 
         if not isinstance( velocityField, uw.mesh.MeshVariable):
             raise TypeError( "Provided 'velocityField' must be of 'MeshVariable' class." )
@@ -121,10 +140,17 @@ class Stokes(_stgermain.StgCompoundComponent):
             if not isinstance( _fn_stresshistory, uw.function.Function):
                 raise TypeError( "Provided '_fn_stresshistory' must be of or convertible to 'Function' class." )
 
-        if fn_lambda != None:
-            fn_lambda = uw.function.Function.convert(fn_lambda)
-            if not isinstance(fn_lambda, uw.function.Function):
-                raise ValueError("Provided 'fn_lambda' must be of, or convertible to, the 'Function' class.")
+
+        self._fn_minus_one_on_lambda = None
+        if fn_one_on_lambda != None:
+            self._fn_minus_one_on_lambda = uw.function.Function.convert(-1.0 * fn_one_on_lambda)
+            if not isinstance(self._fn_minus_one_on_lambda, uw.function.Function):
+                raise ValueError("Provided 'fn_minus_one_on_lambda' must be of, or convertible to, the 'Function' class.")
+
+        if fn_source != None:
+            self._fn_source = uw.function.Function.convert(fn_source)
+            if not isinstance(self._fn_source, uw.function.Function):
+                raise ValueError("Provided 'fn_source' must be of, or convertible to, the 'Function' class.")
 
         if not fn_bodyforce:
             if velocityField.mesh.dim == 2:
@@ -132,6 +158,7 @@ class Stokes(_stgermain.StgCompoundComponent):
             else:
                 fn_bodyforce = (0.,0.,0.)
         _fn_bodyforce = uw.function.Function.convert(fn_bodyforce)
+
 
         if voronoi_swarm and not isinstance(voronoi_swarm, uw.swarm.Swarm):
             raise TypeError( "Provided 'voronoi_swarm' must be of 'Swarm' class." )
@@ -176,8 +203,6 @@ class Stokes(_stgermain.StgCompoundComponent):
         self._kmatrix = sle.AssembledMatrix( self._velocitySol, self._velocitySol, rhs=self._fvector )
         self._gmatrix = sle.AssembledMatrix( self._velocitySol, self._pressureSol, rhs=self._fvector, rhs_T=self._hvector )
         self._preconditioner = sle.AssembledMatrix( self._pressureSol, self._pressureSol, rhs=self._hvector )
-        if fn_lambda != None:
-            self._mmatrix = sle.AssembledMatrix( self._pressureSol, self._pressureSol, rhs=self._hvector )
 
         # create assembly terms which always use gauss integration
         gaussSwarm = uw.swarm.GaussIntegrationSwarm(self._velocityField.mesh)
@@ -189,6 +214,7 @@ class Stokes(_stgermain.StgCompoundComponent):
         # for the following terms, we will use voronoi if that has been requested
         # by the user, else use gauss again.
         intswarm = gaussSwarm
+
         if self._swarm:
             intswarm = self._swarm._voronoi_swarm
             # need to ensure voronoi is populated now, as assembly terms will call
@@ -200,9 +226,17 @@ class Stokes(_stgermain.StgCompoundComponent):
                                                             fn_visc1         = _fn_viscosity,
                                                             fn_visc2         = _fn_viscosity2,
                                                             fn_director      = _fn_director)
+
         self._forceVecTerm   = sle.VectorAssemblyTerm_NA__Fn(   integrationSwarm=intswarm,
                                                                 assembledObject=self._fvector,
                                                                 fn=_fn_bodyforce)
+
+        if fn_source:
+            self._cforceVecTerm   = sle.VectorAssemblyTerm_NA__Fn(  integrationSwarm=intswarm,
+                                                                    assembledObject=self._hvector,
+                                                                    fn=self.fn_source)
+
+
         for cond in self._conditions:
             if isinstance( cond, uw.conditions.NeumannCondition ):
                 #NOTE many NeumannConditions can be used but the _sufaceFluxTerm only records the last
@@ -210,22 +244,16 @@ class Stokes(_stgermain.StgCompoundComponent):
                                                                 assembledObject    = self._fvector,
                                                                 surfaceGaussPoints = 3, # increase to resolve stress bc fluctuations
                                                                 nbc                = cond )
-        if fn_lambda != None:
-            # some logic for constructing the lower-right [2,2] matrix in the stokes system
-            # [M] = [Na * 1.0/fn_lambda * Nb], where in our formulation Na and Nb are the pressure shape functions.
-            # see 4.3.21 of Hughes, Linear static and dynamic finite element analysis
-
-            # If fn_lambda is negligable, ie <1.0e-8, then we set the entry to 0.0, ie, incompressible
-            # otherwise we provide 1.0/lambda to [M]
-
-            logicFn = uw.function.branching.conditional(
-                                                      [  ( fn_lambda > 1.0e-8, 1.0/fn_lambda ),
-                                                      (                  True,     0.        )   ] )
+        if self._fn_minus_one_on_lambda != None:
+            # add matrix and associated assembly term for compressible stokes formulation
+            # a mass matrix goes into the lower right block of the stokes system coeff matrix
+            self._mmatrix = sle.AssembledMatrix( self._pressureSol, self._pressureSol, rhs=self._hvector )
+            # -1. as per Hughes, The Finite Element Method, 1987, Table 4.3.1, [M]
 
             self._compressibleTerm = sle.MatrixAssemblyTerm_NA__NB__Fn(  integrationSwarm=intswarm,
                                                                          assembledObject=self._mmatrix,
                                                                          mesh=self._velocityField.mesh,
-                                                                         fn=logicFn )
+                                                                         fn=self._fn_minus_one_on_lambda )
 
         if _fn_stresshistory != None:
             self._vepTerm    = sle.VectorAssemblyTerm_VEP__Fn(  integrationSwarm=intswarm,
@@ -268,6 +296,70 @@ class Stokes(_stgermain.StgCompoundComponent):
         property.
         """
         return self._forceVecTerm.fn
+
     @fn_bodyforce.setter
     def fn_bodyforce(self, value):
         self._forceVecTerm.fn = value
+
+    # define getter and setter decorators for fn_minus_one_on_lambda - will be conditionally available to users
+    @property
+    def fn_one_on_lambda(self):
+        """
+        A bulk viscosity parameter
+        """
+        return self._fn_minus_one_on_lambda
+
+    @fn_one_on_lambda.setter
+    def fn_one_on_lambda(self, newFn):
+        if hasattr(self, '_compressibleTerm'):
+            self._fn_minus_one_on_lambda = uw.function.Function.convert(-1.0*newFn)
+            self._compressibleTerm._fn = self._fn_minus_one_on_lambda
+            self._compressibleTerm._set_fn_function(self._compressibleTerm._cself, self._fn_minus_one_on_lambda._fncself)
+        else:
+            import warnings
+            warnings.warn("Cannot add fn_minus_one_on_lambda to existing stokes object. Instead you should build a new object with fn_minus_one_on_lambda defined", RuntimeWarning)
+
+    # define decorators for fn_source
+    @property
+    def fn_source(self):
+        """
+        The volumetric source term function. You may change this function directly via this
+        property.
+        """
+        return self._fn_source
+
+    @fn_source.setter
+    def fn_source(self, value):
+        if hasattr(self, '_cforceVecTerm'):
+            self._fn_source = uw.function.Function.convert(value)
+            self._cforceVecTerm._fn = self._fn_source
+            self._cforceVecTerm._set_fn_function(self._cforceVecTerm._cself, self._fn_source._fncself)
+
+        else:
+            import warnings
+            warnings.warn("Cannot add fn_source to existing stokes object. Instead you should build a new object with fn_source defined", RuntimeWarning)
+
+
+
+    @property
+    def eqResiduals(self):
+        """
+        Returns the stokes flow equations' residuals from the latest solve. Residual calculations
+        use the matrices and vectors of the discretised problem.
+        The residuals correspond to the momentum equation and the continuity equation.
+
+        Return
+        ------
+        (r1, r2) - 2 tuple of doubles
+            r1 is the momentum equation residual
+            r2 is the continuity equation residual
+
+        Notes
+        -----
+        This method must be called collectively by all processes.
+        """
+
+        res_mEq = uw.libUnderworld.StgFEM.Stokes_MomentumResidual(self._cself)
+        res_cEq = uw.libUnderworld.StgFEM.Stokes_ContinuityResidual(self._cself)
+
+        return res_mEq, res_cEq
