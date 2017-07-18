@@ -22,7 +22,7 @@ class HeatSolver(_stgermain.StgCompoundComponent):
     _selfObjectName = "_heatsolver"
 
     def __init__(self, heatSLE, **kwargs):
-        if not isinstance(heatSLE, (uw.systems.SteadyStateHeat, uw.utils.MeshVariable_Projection)) and not isinstance(heatSLE, (uw.systems.SteadyStateDarcyFlow, uw.utils.MeshVariable_Projection)): 
+        if not isinstance(heatSLE, (uw.systems.SteadyStateHeat, uw.utils.MeshVariable_Projection)):
             raise TypeError("Provided system must be of 'SteadyStateHeat' class")
         self._heatSLE=heatSLE
 
@@ -98,9 +98,6 @@ class HeatSolver(_stgermain.StgCompoundComponent):
             libUnderworld.StgFEM.SystemLinearEquations_ExecuteSolver(self._heatSLE._cself, None)
 
         libUnderworld.StgFEM.SystemLinearEquations_UpdateSolutionOntoNodes(self._heatSLE._cself, None)
-
-        if isinstance(self._heatSLE, (uw.systems.SteadyStateDarcyFlow, uw.utils.MeshVariable_Projection)):
-            self._heatSLE.solve_velocityField()
 
     ########################################################################
     ### setup options for solve

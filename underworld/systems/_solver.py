@@ -31,8 +31,6 @@ class Solver(_stgermain.StgCompoundComponent):
             return _bsscr.StokesSolver(eqs, *args, **kwargs)
         elif isinstance(eqs, (uw.systems.SteadyStateHeat, uw.utils.MeshVariable_Projection) ):
             return _energy_solver.HeatSolver(eqs, *args, **kwargs)
-        elif isinstance(eqs, (uw.systems.SteadyStateDarcyFlow, uw.utils.MeshVariable_Projection) ):
-            return _energy_solver.HeatSolver(eqs, *args, **kwargs)
         else:
             raise ValueError("Unable to create solver. Provided system not recognised.")
 
