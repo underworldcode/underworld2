@@ -24,3 +24,8 @@ cd libUnderworld
 ./compile.py -j4
 
 cd .. ; source updatePyPath.sh 
+
+#Run this before using underworld glucifer image output 
+#(creates a virtual display)
+Xvfb :0 -screen 0 1600x1200x16&
+
