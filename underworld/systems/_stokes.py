@@ -180,8 +180,10 @@ class Stokes(_stgermain.StgCompoundComponent):
             elif type(cond) == uw.conditions.DirichletCondition:
                 if cond.variable == self._velocityField:
                     libUnderworld.StgFEM.FeVariable_SetBC( self._velocityField._cself, cond._cself )
-                if cond.variable == self._pressureField:
+                elif cond.variable == self._pressureField:
                     libUnderworld.StgFEM.FeVariable_SetBC( self._pressureField._cself, cond._cself )
+                else:
+                    raise ValueError("Provided condition does not appear to correspond to the system unknowns.")
 
         self._conditions = conditions
 

@@ -20,7 +20,7 @@ extern "C" {
 
 #include "Shape.hpp"
 
-Fn::Polygon::Polygon( Function* fn, double* IN_ARRAY2, int DIM1, int DIM2, char* name )
+Fn::Polygon::Polygon( Function* fn, double* IN_ARRAY2, int DIM1, int DIM2 )
 {
     _fn = fn;
     if(DIM1 < 3)
@@ -42,7 +42,7 @@ Fn::Polygon::Polygon( Function* fn, double* IN_ARRAY2, int DIM1, int DIM2, char*
     XYZ startXYZ = { 0., 0., 0. };
     XYZ endXYZ   = { 0., 0., 0. };
     
-    _stgshape = (void*) PolygonShape_New( (Name) name,
+    _stgshape = (void*) PolygonShape_New( (Name) NULL,
                                    (Dimension_Index)2,
                                                centre, 0., 0., 0.,
                                 (Coord_List)IN_ARRAY2,
