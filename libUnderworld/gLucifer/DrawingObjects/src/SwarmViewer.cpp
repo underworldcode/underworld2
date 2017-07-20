@@ -111,7 +111,7 @@ void _lucSwarmViewer_Init(
    self->swarm               = swarm;
 
    /* Create a default colour component mapping, full range black->white */
-   self->opacityColourMap = opacityColourMap ? opacityColourMap : LUC_DEFAULT_ALPHAMAP;
+   self->opacityColourMap = opacityColourMap;
 
    self->geomType = lucPointType;   /* Draws points by default */
 }
@@ -258,7 +258,7 @@ void _lucSwarmViewer_Draw( void* drawingObject, lucDatabase* database, void* _co
    
    /* Set the value range */
    if (cppdata->fn_colour)
-     lucGeometryData_Setup(database->data[self->geomType][lucColourValueData], cppdata->fn_colour->getMinGlobal(), cppdata->fn_colour->getMaxGlobal(), 1., "");
+     lucGeometryData_Setup(database->data[self->geomType][lucColourValueData], cppdata->fn_colour->getMinGlobal(), cppdata->fn_colour->getMaxGlobal());
 
    /* Dynamic Scale Colour Maps */
    if ( self->colourMap && self->colourMap->minimum == self->colourMap->maximum && cppdata->fn_colour )

@@ -40,8 +40,10 @@ class IntegrationSwarm(_swarmabstract.SwarmAbstract):
     @property
     def particleWeights(self):
         """
-        particleWeights (SwarmVariable): Swarm variable recording the weight of the
-        swarm particles.
+        Returns
+        -------
+        underworld.swarm.SwarmVariable
+            Swarm variable recording the weight of the swarm particles.
         """
         return self._weightsVariable
 

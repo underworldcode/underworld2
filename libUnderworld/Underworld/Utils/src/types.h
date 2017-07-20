@@ -12,6 +12,7 @@
 #define __Underworld_Utils_types_h__
 
    typedef struct VectorAssemblyTerm_NA__Fn VectorAssemblyTerm_NA__Fn;
+   typedef struct VectorAssemblyTerm_NA_i__Fn_i VectorAssemblyTerm_NA_i__Fn_i;
    typedef struct VectorSurfaceAssemblyTerm_NA__Fn__ni VectorSurfaceAssemblyTerm_NA__Fn__ni;
    typedef struct VectorAssemblyTerm_VEP VectorAssemblyTerm_VEP;
    typedef struct MatrixAssemblyTerm_NA_i__NB_i__Fn MatrixAssemblyTerm_NA_i__NB_i__Fn;

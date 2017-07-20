@@ -26,8 +26,11 @@ import _glucifer
 from _glucifer import Store
 from _glucifer import Figure
 from _glucifer import Viewer
-from _glucifer import lavavu
 from . import objects
+try:
+    from _glucifer import lavavu
+except:
+    pass
 
 _display = None
 

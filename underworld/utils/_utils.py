@@ -624,3 +624,19 @@ def _nps_2norm( v, comm=MPI.COMM_WORLD ):
     gnorm_sq = np.sum( comm.allgather(lnorm_sq) )
 
     return np.sqrt(gnorm_sq)
+
+
+def is_kernel():
+    """
+    Function to determine if the script is being run in an ipython or jupyter
+    notebook or in a regular python interpreter. 
+
+    Return true if in ipython or Jupyter notebook, False otherwise.
+    """
+
+    if 'IPython' not in sys.modules:
+    # IPython hasn't been imported, definitely not
+        return False
+    from IPython import get_ipython
+    # check for `kernel` attribute on the IPython instance
+    return getattr(get_ipython(), 'kernel', None) is not None

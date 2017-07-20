@@ -24,21 +24,21 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
     mesh used for the 'temperatureField'.
 
     The strong form of the given boundary value problem, for :math:`f`,
-    :math:`q` and :math:`h` given, is
+    :math:`h` and :math:`h` given, is
     
     .. math::
         \\begin{align}
-        q_i =& - \\kappa \\, u_{,i}  & \\\\
+        q_i =& - \\alpha \\, u_{,i}  & \\\\
         q_{i,i} =& \\: f  & \\text{ in }  \\Omega \\\\
-        u =& \\: q & \\text{ on }  \\Gamma_q \\\\
+        u =& \\: g & \\text{ on }  \\Gamma_g \\\\
         -q_i n_i =& \\: h & \\text{ on }  \\Gamma_h \\\\
         \\end{align}
 
-    where, :math:`\\kappa` is the diffusivity, :math:`u` is the temperature,
-    :math:`f` is a source term, :math:`q` is the Dirichlet condition, and
+    where, :math:`\\alpha` is the diffusivity, :math:`u` is the temperature,
+    :math:`f` is a source term, :math:`g` is the Dirichlet condition, and
     :math:`h` is a Neumann condition. The problem boundary, :math:`\\Gamma`, 
-    admits the decomposition :math:`\\Gamma=\\Gamma_q\\cup\\Gamma_h` where
-    :math:`\\emptyset=\\Gamma_q\\cap\\Gamma_h`. The equivalent weak form is:
+    admits the decomposition :math:`\\Gamma=\\Gamma_g\\cup\\Gamma_h` where
+    :math:`\\emptyset=\\Gamma_g\\cap\\Gamma_h`. The equivalent weak form is:
 
     .. math::
         -\\int_{\\Omega} w_{,i} \\, q_i \\, d \\Omega = \\int_{\\Omega} w \\, f \\, d\\Omega + \\int_{\\Gamma_h} w \\, h \\,  d \\Gamma
@@ -180,8 +180,8 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
             if isinstance( cond, uw.conditions.NeumannCondition ):
                 #NOTE many NeumannConditions can be used but the _sufaceFluxTerm only records the last
 
-                ### -VE flux because of Energy_SLE_Solver ###
-                negativeCond = uw.conditions.NeumannCondition( flux=-1.0*cond.flux,
+                ### -VE flux because of the FEM discretisation method of the initial equation
+                negativeCond = uw.conditions.NeumannCondition( fn_flux=-1.0*cond.fn_flux,
                                                                variable=cond.variable,
                                                                nodeIndexSet=cond.indexSet )
 

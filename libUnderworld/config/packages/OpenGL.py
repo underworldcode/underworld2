@@ -16,8 +16,8 @@ class OpenGL(Package):
 
     def gen_envs(self, loc):
         for env in Package.gen_envs(self, loc):
-            self.headers = ['gl.h', 'glu.h']
+            self.headers = ['gl.h']
 
-            env.PrependUnique(LIBS=['GL', 'GLU'])
+            env.PrependUnique(LIBS=['GL'])
 
             yield env

@@ -14,10 +14,7 @@ dependencies, are not yet well documented, are not guaranteed to work with every
 mesh type, may be limited to special cases (e.g. only 2D, only Cartesian) and
 may never become supported.
 
-  - interfaces: tracking of interfaces defined by point collections
+ - interfaces: tracking of interfaces defined by point collections
 """
 
 __version__ = "0.0"
-
-
-# import interfaces

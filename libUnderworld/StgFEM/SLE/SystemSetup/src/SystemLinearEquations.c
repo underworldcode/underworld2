@@ -11,6 +11,7 @@
 #include <petsc.h>
 #include <petscvec.h>
 #include <petscsnes.h>
+#include <Python.h>
 #include <StGermain/StGermain.h>
 #include <StgDomain/StgDomain.h>
 #include <StgFEM/StgFEM.h>
@@ -94,6 +95,8 @@ SystemLinearEquations* _SystemLinearEquations_New(  SYSTEMLINEAREQUATIONS_DEFARG
 
    /* this guy defaults to true so that we run within the execute phase as default */
    self->runatExecutePhase = True;
+   
+   self->solver_callback = NULL;
 
    return self;
 }
@@ -480,7 +483,7 @@ void SystemLinearEquations_ExecuteSolver( void* sle, void* _context ) {
    wallTime = MPI_Wtime();
    if( self->solver )
       Stg_Component_Execute( self->solver, self, True );
-
+    
    self->curSolveTime = MPI_Wtime() - wallTime;
    Journal_Printf(self->info,"Linear solver (%s), solution time %6.6e (secs)\n",self->executeEPName, self->curSolveTime);
 
@@ -626,10 +629,33 @@ SolutionVector* _SystemLinearEquations_GetSolutionVector( void* sle, Name soluti
    return SystemLinearEquations_GetSolutionVector( self, solutionVectorName );
 }
 
+void SystemLinearEquations_SetCallback( void* sle, PyObject* func) {
+  SystemLinearEquations *self = (SystemLinearEquations*) sle;
+  
+  // Assign the PyObject - 'None' or callable function to solver_callback
+  if (func == Py_None) 
+    self->solver_callback = NULL;
+  else {
+    // check if it's callable
+    if(!PyCallable_Check(func)){
+      PyErr_SetString( PyExc_ValueError, "The callback function can't be called, please check if it's valid");
+    }
+    self->solver_callback = func;
+  }                
+}
+
 void SystemLinearEquations_UpdateSolutionOntoNodes( void* sle, void* _context ) {
    SystemLinearEquations*   self = (SystemLinearEquations*)sle;
 
    self->_updateSolutionOntoNodes( self, _context );
+   
+   // execute the python callback if found
+   if( self->solver_callback ) {
+     if(!PyObject_CallObject(self->solver_callback, NULL )) {
+       // check if callback execution failed
+       PyErr_SetString( PyExc_RuntimeError, "Failed to execute the callback function, please check if it's valid");
+     }
+   }
 }
 
 void _SystemLinearEquations_UpdateSolutionOntoNodes( void* sle, void* _context ) {

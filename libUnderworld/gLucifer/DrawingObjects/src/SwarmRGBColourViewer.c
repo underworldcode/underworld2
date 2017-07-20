@@ -45,9 +45,9 @@ void _lucSwarmRGBColourViewer_Init(
    Name                                colourGreenVariableName,
    Name                                colourBlueVariableName )
 {
-   self->redColourMap = redColourMap ? redColourMap : LUC_DEFAULT_COLOURMAP;
-   self->greenColourMap = greenColourMap ? greenColourMap : LUC_DEFAULT_COLOURMAP;
-   self->blueColourMap = blueColourMap ? blueColourMap : LUC_DEFAULT_COLOURMAP;
+   self->redColourMap = redColourMap;
+   self->greenColourMap = greenColourMap;
+   self->blueColourMap = blueColourMap;
    self->colourRedVariableName = colourRedVariableName;
    self->colourGreenVariableName = colourGreenVariableName;
    self->colourBlueVariableName = colourBlueVariableName;

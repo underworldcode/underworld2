@@ -30,7 +30,7 @@ is very well suited to complex fluids which is how the solid Earth behaves
 on a geological timescale.
 """
 
-__version__ = "2.3.0-dev"
+__version__ = "2.4.0-dev"
 
 # ok, first need to change default python dlopen flags to global
 # this is because when python imports the module, the shared libraries are loaded as RTLD_LOCAL
@@ -117,17 +117,14 @@ def matplotlib_inline():
     except:
         pass
 
-# lets handle exceptions differently in parallel to ensure we call
-if nProcs() > 1:
+# lets handle exceptions differently in parallel to ensure we call.
+# add isinstance so that this acts correctly for Mocked classes used in sphinx docs generation
+if isinstance(nProcs(), int) and nProcs() > 1:
     _origexcepthook = _sys.excepthook
     def _uw_uncaught_exception_handler(exctype, value, tb):
-        print('\n###########################################################################################')
-        print('###########################################################################################')
         print('An uncaught exception was encountered on processor {}.'.format(rank()))
         # pass through to original handler
         _origexcepthook(exctype, value, tb)
-        print('###########################################################################################')
-        print('###########################################################################################')
         libUnderworld.StGermain_Tools.StgAbort( _data )
     _sys.excepthook = _uw_uncaught_exception_handler
 

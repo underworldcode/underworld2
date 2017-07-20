@@ -14,10 +14,6 @@
 
 extern const Type lucColourMap_Type;
 
-//A default colour map, used for mapping colour component values where no map provided
-#define LUC_DEFAULT_COLOURMAP lucColourMap_New("defaultColourMap", "colours=black white")
-#define LUC_DEFAULT_ALPHAMAP lucColourMap_New("defaultAlphaMap", "colours=#000000:0.0 black")
-
 struct lucColour 
 {
    float red;

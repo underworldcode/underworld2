@@ -122,6 +122,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         -------
         numpy.ndarray
             Array specifying the nodes (global node id) for a given element (local element id).
+            NOTE: Length is local size. 
         """
         uw.libUnderworld.StgDomain.Mesh_GenerateENMapVar(self._cself)
         arr = uw.libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.enMapVar)
@@ -140,7 +141,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         Returns
         -------
         numpy.ndarray
-            Array specifying global element ids.
+            Array specifying global element ids. Length is domain size, (local+shadow).
         """
         uw.libUnderworld.StgDomain.Mesh_GenerateElGlobalIdVar(self._cself)
         arr = uw.libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.eGlobalIdsVar)
@@ -152,7 +153,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         Returns
         -------
         numpy.ndarray
-            Array specifying global node ids.
+            Array specifying global node ids. Length is domain size, (local+shadow).
         """
         uw.libUnderworld.StgDomain.Mesh_GenerateNodeGlobalIdVar(self._cself)
         arr = uw.libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.vGlobalIdsVar)
@@ -219,7 +220,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
 
         Parameters
         ----------
-        isRegular : bool, default=False
+        isRegular : bool
             The general assumption is that the deformed mesh will no longer be regular
             (orthonormal), and more general but less efficient algorithms will be
             selected via this context manager. To over-ride this behaviour, set
@@ -308,6 +309,16 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
             Returns the number of local nodes on the mesh.
         """
         return libUnderworld.StgDomain.Mesh_GetLocalSize(self._cself, 0)
+    
+    @property
+    def nodesDomain(self):
+        """
+        Returns
+        -------
+        int
+            Returns the number of domain (local+shadow) nodes on the mesh.
+        """
+        return libUnderworld.StgDomain.Mesh_GetDomainSize(self._cself, 0)
 
     @property
     def nodesGlobal(self):
@@ -340,6 +351,22 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         4
         """
         return libUnderworld.StgDomain.Mesh_GetLocalSize(self._cself, self.dim)
+        
+    @property
+    def elementsDomain(self):
+        """
+        Returns
+        -------
+        int
+            Returns the number of domain (local+shadow) elements on the mesh
+
+        Example
+        -------
+        >>> someMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1', elementRes=(2,2), minCoord=(-1.,-1.), maxCoord=(1.,1.) )
+        >>> someMesh.elementsDomain
+        4
+        """
+        return libUnderworld.StgDomain.Mesh_GetDomainSize(self._cself, self.dim)
 
     @property
     def elementsGlobal(self):
@@ -507,21 +534,17 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
                                   dtype=self.data.dtype)
 
         local = self.nodesLocal
-        # write to the dset using the global node ids
+        # write to the dset using the local set of global node ids
         dset[self.data_nodegId[0:local],:] = self.data[0:local]
 
         # write the element node connectivity
-        self.data_elementNodes
         globalShape = ( self.elementsGlobal, self.data_elementNodes.shape[1] )
         dset = h5f.create_dataset("en_map",
                                   shape=globalShape,
                                   dtype=self.data_elementNodes.dtype)
 
-        if len(self.data_elgId) != len(self.data_elementNodes):
-            raise RuntimeError("Error in mesh.data_elementNodes - required for h5save")
-
-        local = len(self.data_elgId)
-        # write to the dset using the global node ids
+        local = self.elementsLocal
+        # write to the dset using the local set of global node ids
         dset[self.data_elgId[0:local],:] = self.data_elementNodes[0:local]
 
         h5f.close()
@@ -974,7 +997,20 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
         mesh will be created.
         The submesh is accessible through the 'subMesh' property. The
         primary mesh itself is the object returned by this constructor.
-
+    elementRes: list,tuple
+        List or tuple of ints specifying mesh resolution. See CartesianMeshGenerator.elementRes
+        docstring for further information.
+    minCoord:  list, tuple
+        List or tuple of floats specifying minimum mesh location. See CartesianMeshGenerator.minCoord
+        docstring for further information.
+    maxCoord: list, tuple
+        List or tuple of floats specifying maximum mesh location. See CartesianMeshGenerator.maxCoord
+        docstring for further information.
+    periodic: list, tuple
+        List or tuple of bools, specifying mesh periodicity in each direction.
+    partitioned: bool
+        If false, the mesh is not partitioned across entire processor pool. Instead
+        mesh is entirely owned by processor which generated it.
 
 
     Examples
@@ -1112,11 +1148,11 @@ class FeMesh_IndexSet(uw.container.ObjectifiedIndexSet, function.FunctionInput):
 
     Parameters
     ----------
+    object: underworld.mesh.FeMesh
+        The FeMesh instance from which the IndexSet was extracted.
     topologicalIndex: int
         Mesh topological index for which the IndexSet relates. See
         docstring for further info.
-    object: underworld.mesh.FeMesh
-        The FeMesh instance from which the IndexSet was extracted.
 
     Example
     -------

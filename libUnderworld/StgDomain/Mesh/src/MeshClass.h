@@ -37,8 +37,8 @@
 		List*				vars;		\
         /* just record these for various variable */ \
         unsigned            nverts;\
-        unsigned            lVerts;\
-        unsigned            lEls; \
+        unsigned            dVerts;\
+        unsigned            dEls; \
         unsigned            localtotalNodes; \
 								\
 		double				minSep;		\

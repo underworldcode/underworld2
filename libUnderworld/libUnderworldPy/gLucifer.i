@@ -21,6 +21,8 @@
 /* Create some functions for working with "float *" */
 %array_functions(float, farray)
 
+%apply (float* INPLACE_ARRAY1, int DIM1) {(float* vertices, int V), (float* values, int N)};
+
 %{
 /* Includes the header in the wrapper code */
 #include <mpi.h>
@@ -40,7 +42,6 @@ extern "C" {
 %include "Base/types.h"
 %include "Base/ColourMap.h"
 %include "Base/DrawingObject.h"
-%include "Base/DrawingObject_Register.h"
 %include "Base/Database.h"
 %include "Base/Finalise.h"
 %include "Base/Init.h"
@@ -51,9 +52,10 @@ extern "C" {
 %include "DrawingObjects/MeshViewer.h"
 %include "DrawingObjects/DrawingObjects.h"
 %include "DrawingObjects/Isosurface.h"
-%include "DrawingObjects/IsosurfaceCrossSection.h"
+%include "DrawingObjects/ContourCrossSection.h"
 %include "DrawingObjects/ScalarField.h"
 %include "DrawingObjects/FieldSampler.h"
+%include "DrawingObjects/Sampler.h"
 %include "DrawingObjects/types.h"
 %include "libgLucifer/Finalise.h"
 %include "libgLucifer/gLucifer.h"

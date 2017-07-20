@@ -14,6 +14,7 @@
 #include "types.h"
 #include "ksp-register.h"
 #include "StokesBlockKSPInterface.h"
+#include "BSSCR/writeMatVec.h"
 
 #include "Init.h"
 #include "Finalise.h"

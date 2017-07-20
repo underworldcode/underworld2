@@ -89,6 +89,9 @@
 
 	void _Stokes_SLE_AssignFromXML( void* sle, Stg_ComponentFactory* cf, void* data );
 
+  double Stokes_MomentumResidual( Stokes_SLE* self );
+  double Stokes_ContinuityResidual( Stokes_SLE* self );
+
 	void _Stokes_SLE_MG_SelectStiffMats( void* _sle, unsigned* nSMs, StiffnessMatrix*** sms );
 
 #endif

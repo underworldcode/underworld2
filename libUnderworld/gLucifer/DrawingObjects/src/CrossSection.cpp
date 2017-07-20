@@ -134,6 +134,9 @@ void _lucCrossSection_Delete( void* drawingObject )
    if (self->cppdata)
        delete (lucCrossSection_cppdata*)self->cppdata;
 
+  if (self->values)
+    lucCrossSection_FreeSampleData(self);
+
    _lucDrawingObject_Delete( self );
 }
 
@@ -228,7 +231,8 @@ void _lucCrossSection_AssignFromXML( void* drawingObject, Stg_ComponentFactory* 
           * Axis is a single character, one of [xyzXYZ] */
 
          /* Parse the input string */
-         if (strlen(crossSectionStr) > 0 && sscanf( crossSectionStr, "%c=%s", &axisChar, crossSectionVal ) == 2 )
+         char tempChar;
+         if (strlen(crossSectionStr) > 0 && sscanf( crossSectionStr, "%c%c%s", &axisChar, &tempChar, crossSectionVal ) == 3 )
          {
             /* Axis X/Y/Z */
             if ( toupper( axisChar ) >= 'X' )
@@ -307,6 +311,21 @@ void _lucCrossSection_Destroy( void* drawingObject, void* data ) {}
 void _lucCrossSection_Setup( void* drawingObject, lucDatabase* database, void* _context )
 {
    lucCrossSection* self = (lucCrossSection*)drawingObject;
+
+   if (self->onMesh)
+   {
+      //Get grid dims
+      Mesh*                mesh  = (Mesh*) self->mesh;
+      Grid*                vertGrid;
+      vertGrid = *(Grid**)ExtensionManager_Get( mesh->info, mesh, self->vertexGridHandle );
+      int sizes[3] = {1,1,1};
+      for (unsigned int d=0; d<self->dim; d++)
+        sizes[d] = vertGrid->sizes[d];
+      self->dims[0] = sizes[0];
+      self->dims[1] = sizes[1];
+      self->dims[2] = sizes[2];
+      //printf("------ DIMS ------ %d,%d,%d\n", self->dims[0], self->dims[1], self->dims[2]);
+   }
 
    /* Use provided setup function to correctly set axis etc */
    lucCrossSection_Set(self, self->value, self->axis, self->interpolate);
@@ -421,22 +440,6 @@ lucCrossSection* lucCrossSection_Set(void* crossSection, double val, Axis axis, 
    /* Create normal to plane */
    StGermain_NormalToPlane( self->normal, self->coord1, self->coord2, self->coord3);
 
-
-   if (self->onMesh)
-   {
-      //Update grid dims after changing axis order
-      Mesh*                mesh  = (Mesh*) self->mesh;
-      Grid*                vertGrid;
-      vertGrid = *(Grid**)ExtensionManager_Get( mesh->info, mesh, self->vertexGridHandle );
-      int sizes[3] = {1,1,1};
-      for (int d=0; d<self->dim; d++)
-        sizes[d] = vertGrid->sizes[d];
-      self->dims[0] = sizes[ self->axis ];
-      self->dims[1] = sizes[ self->axis1 ];
-      self->dims[2] = sizes[ self->axis2 ];
-      //printf("------ DIMS ------ %d,%d,%d\n", self->dims[0], self->dims[1], self->dims[2]);
-   }
-
    return self;
 }
 
@@ -465,7 +468,7 @@ lucCrossSection* lucCrossSection_Slice(void* crossSection, double val, Bool inte
 void lucCrossSection_AllocateSampleData(void* drawingObject, int dims)
 {
    lucCrossSection* self = (lucCrossSection*)drawingObject;
-   Index          aIndex, bIndex, d;
+   Index          aIndex, bIndex;
    if (dims <= 0) dims = self->fieldComponentCount;
 
    if ((!self->vertices && self->rank == 0) || !self->gatherData || self->onMesh)
@@ -480,7 +483,7 @@ void lucCrossSection_AllocateSampleData(void* drawingObject, int dims)
    //clear components of higher dimension values outside dim range (eg: 2d vectors are stored as 3d, z needs to be zero)
    for ( aIndex = 0 ; aIndex < self->resolutionA ; aIndex++ )
       for ( bIndex = 0 ; bIndex < self->resolutionB ; bIndex++ )
-         for (d=0; d<dims; d++)
+         for (unsigned int d=0; d<dims; d++)
             self->values[aIndex][bIndex][d] = (d >= self->fieldComponentCount ? 0.0 : HUGE_VAL);
 }
 
@@ -499,7 +502,8 @@ void lucCrossSection_SampleField(void* drawingObject, Bool reverse)
    // reset max/min
    cppdata->fn->reset();
 
-   lucCrossSection_AllocateSampleData(self, 0);
+   if (!self->vertices)
+     lucCrossSection_AllocateSampleData(self, 0);
 
    /* Get mesh cross section vertices and values */
    double time = MPI_Wtime();
@@ -621,32 +625,32 @@ void lucCrossSection_SampleMesh( void* drawingObject, Bool reverse)
 
    vertGrid = *(Grid**)ExtensionManager_Get( mesh->info, mesh, self->vertexGridHandle );
 
-   crossSection_I = lucCrossSection_GetValue(self, 0, self->dims[0]-1);
+   crossSection_I = lucCrossSection_GetValue(self, 0, self->dims[self->axis]-1);
 
    Mesh_GetLocalCoordRange(self->mesh, min, max );
    Mesh_GetGlobalCoordRange(self->mesh, globalMin, globalMax );
 
    /* Get mesh cross section self->vertices and values */
-   self->resolutionA = self->dims[1];
-   self->resolutionB = self->dims[2];
+   self->resolutionA = self->dims[self->axis1];
+   self->resolutionB = self->dims[self->axis2];
    lucCrossSection_AllocateSampleData(self, self->fieldDim);
    int lSize = Mesh_GetLocalSize( mesh, MT_VERTEX );
    double time = MPI_Wtime();
-   Journal_Printf(lucInfo, "Sampling mesh (%s) %d x %d...  0%", self->name, self->dims[1], self->dims[2]);
+   Journal_Printf(lucInfo, "Sampling mesh (%s) %d x %d...  0%", self->name, self->dims[self->axis1], self->dims[self->axis2]);
    node_ijk[ self->axis ] = crossSection_I;
-   for ( i = 0 ; i < self->dims[1]; i++ )
+   for ( i = 0 ; i < self->dims[self->axis1]; i++ )
    {
-      int percent = 100 * (i + 1) / self->dims[1];
+      int percent = 100 * (i + 1) / self->dims[self->axis1];
       Journal_Printf(lucInfo, "\b\b\b\b%3d%%", percent);
       fflush(stdout);
 
       /* Reverse order if requested */
       int i0 = i;
-      if (reverse) i0 = self->dims[1] - i - 1;
+      if (reverse) i0 = self->dims[self->axis1] - i - 1;
 
       node_ijk[ self->axis1 ] = i0;
 
-      for ( j = 0 ; j < self->dims[2]; j++ )
+      for ( j = 0 ; j < self->dims[self->axis2]; j++ )
       {
          self->vertices[i][j][0] = HUGE_VAL;
          self->vertices[i][j][2] = 0;
@@ -677,9 +681,9 @@ void lucCrossSection_SampleMesh( void* drawingObject, Bool reverse)
 
    /* Collate */
    time = MPI_Wtime();
-   for ( i=0 ; i < self->dims[1]; i++ )
+   for ( i=0 ; i < self->dims[self->axis1]; i++ )
    {
-      for ( j=0 ; j < self->dims[2]; j++ )
+      for ( j=0 ; j < self->dims[self->axis2]; j++ )
       {
          /* Receive values at root */
          if (self->rank == 0)
@@ -689,7 +693,7 @@ void lucCrossSection_SampleMesh( void* drawingObject, Bool reverse)
 
             /* Recv (pos and value together = (3 + fevar dims)*float) */
             float data[3 + self->fieldDim];
-            (void)MPI_Recv(data, 3+self->fieldDim, MPI_FLOAT, MPI_ANY_SOURCE, i*self->dims[2]+j, self->comm, MPI_STATUS_IGNORE);
+            (void)MPI_Recv(data, 3+self->fieldDim, MPI_FLOAT, MPI_ANY_SOURCE, i*self->dims[self->axis2]+j, self->comm, MPI_STATUS_IGNORE);
             /* Copy */
             memcpy(self->vertices[i][j], data, 3 * sizeof(float));
             memcpy(self->values[i][j], &data[3], self->fieldDim * sizeof(float));
@@ -705,7 +709,7 @@ void lucCrossSection_SampleMesh( void* drawingObject, Bool reverse)
             memcpy(&data[3], self->values[i][j], self->fieldDim * sizeof(float));
 
             /* Send values to root (pos & value = 4 * float) */
-            MPI_Ssend(data, 3+self->fieldDim, MPI_FLOAT, 0, i*self->dims[2]+j, self->comm);
+            MPI_Ssend(data, 3+self->fieldDim, MPI_FLOAT, 0, i*self->dims[self->axis2]+j, self->comm);
             localcount--;
          }
       }

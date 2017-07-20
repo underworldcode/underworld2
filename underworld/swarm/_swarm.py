@@ -277,7 +277,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
 
         return uw.utils.SavedFileData( self, filename )
 
-    def load( self, filename, verbose=False ):
+    def load( self, filename, try_optimise=True, verbose=False ):
         """
         Load a swarm from disk. Note that this must be called before any SwarmVariable
         members are loaded.
@@ -287,6 +287,13 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         filename : str
             The filename for the saved file. Relative or absolute paths may be
             used.
+        try_optimise : bool, Default=True
+            Will speed up the swarm load time but warning - this algorithm assumes the 
+            previously saved swarm data was made on an identical mesh and mesh partitioning 
+            (number of processors) with respect to the current mesh. If this isn't the case then
+            the reloaded particle ordering will be broken, leading to an invalid swarms.
+            One can disable this optimisation and revert to a brute force algorithm, much slower,
+            by setting this option to False.
         verbose : bool
             Prints a swarm load progress bar.
 
@@ -302,7 +309,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
 
         if not isinstance(filename, str):
             raise TypeError("Expected 'filename' to be provided as a string")
-
+        
         # open hdf5 file
         h5f = h5py.File(name=filename, mode="r", driver='mpio', comm=MPI.COMM_WORLD)
 
@@ -314,17 +321,34 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
                                "has {1} components -the particlesCoords has {2} components".format(filename, dset.shape[1], self.particleCoordinates.data.shape[1]))
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
-
+        nProcs = comm.Get_size()
+        
         if rank == 0 and verbose:
             bar = uw.utils._ProgressBar( start=0, end=dset.shape[0]-1, title="loading "+filename)
-
+        
+        # try and read the procCount attribute & assume that if nProcs in .h5 file
+        # is equal to the current no. procs then the particles will be distributed the 
+        # same across the processors. (Danger if different discretisations are used... i think)
+        # else try and load the whole .h5 file.
+        # we set the 'offset' & 'size' variables to achieve the above 
+        
+        offset = 0
+        totalsize = size = dset.shape[0] # number of particles in h5 file
+        
+        if try_optimise:
+            procCount = h5f.attrs.get('proc_offset')
+            if procCount is not None and nProcs == len(procCount):
+                for p_i in xrange(rank):
+                    offset += procCount[p_i]
+                size = procCount[rank]
+            
         valid = np.zeros(0, dtype='i') # array for read in
         chunk=int(1e4) # read in this many points at a time
 
-        (multiples, remainder) = divmod( dset.shape[0], chunk )
+        (multiples, remainder) = divmod( size, chunk )
         for ii in xrange(multiples+1):
             # setup the points to begin and end reading in
-            chunkStart = ii*chunk
+            chunkStart = offset + ii*chunk
             if ii == multiples:
                 chunkEnd = chunkStart + remainder
                 if remainder == 0: # in the case remainder is 0

@@ -633,18 +633,18 @@ Variable* Mesh_GenerateNodeGlobalIdVar( void* mesh ) {
     // if variable already exists return it
     if( self->vGlobalIdsVar ) return self->vGlobalIdsVar;
 
-    // Create the Variable data structure, int[local node count] 
-    self->lVerts = Mesh_GetLocalSize( self, 0 );
-    self->verticesgid = Memory_Alloc_Array( int, self->lVerts, "Mesh::vertsgid" );
+    // Create the Variable data structure, int[domain node count] 
+    self->dVerts = Mesh_GetDomainSize( self, 0 );
+    self->verticesgid = Memory_Alloc_Array( int, self->dVerts, "Mesh::vertsgid" );
     Stg_asprintf( &name, "%s-%s", self->name, "verticesGlobalIds" );
-    self->vGlobalIdsVar = Variable_NewScalar( name, NULL, Variable_DataType_Int, &self->lVerts, NULL, (void**)&self->verticesgid, NULL );
+    self->vGlobalIdsVar = Variable_NewScalar( name, NULL, Variable_DataType_Int, &self->dVerts, NULL, (void**)&self->verticesgid, NULL );
     Stg_Component_Build(self->vGlobalIdsVar, NULL, False);
     Stg_Component_Initialise(self->vGlobalIdsVar, NULL, False);
     free(name);
 
-    // Evaluate the global indices for the local nodes
+    // Evaluate the global indices for the domain nodes
     int ii, gid;
-    for( ii=0; ii<self->lVerts; ii++ ) {
+    for( ii=0; ii<self->dVerts; ii++ ) {
         gid = Mesh_DomainToGlobal( self, MT_VERTEX, ii );
         Variable_SetValue( self->vGlobalIdsVar, ii, (void*)&gid );
     }
@@ -666,18 +666,18 @@ Variable* Mesh_GenerateElGlobalIdVar( void* mesh ) {
     if( self->eGlobalIdsVar ) return self->eGlobalIdsVar;
 
     dim = Mesh_GetDimSize(mesh);
-    // Create the Variable data structure, int[local node count] 
-    self->lEls = Mesh_GetLocalSize( self, dim );
-    self->elgid = Memory_Alloc_Array( int, self->lEls, "Mesh::vertsgid" );
+    // Create the Variable data structure, int[domain element count] 
+    self->dEls = Mesh_GetDomainSize( self, dim );
+    self->elgid = Memory_Alloc_Array( int, self->dEls, "Mesh::vertsgid" );
     Stg_asprintf( &name, "%s-%s", self->name, "verticesGlobalIds" );
-    self->eGlobalIdsVar = Variable_NewScalar( name, NULL, Variable_DataType_Int, &self->lEls, NULL, (void**)&self->elgid, NULL );
+    self->eGlobalIdsVar = Variable_NewScalar( name, NULL, Variable_DataType_Int, &self->dEls, NULL, (void**)&self->elgid, NULL );
     Stg_Component_Build(self->eGlobalIdsVar, NULL, False);
     Stg_Component_Initialise(self->eGlobalIdsVar, NULL, False);
     free(name);
 
-    // Evaluate the global indices for the local nodes
+    // Evaluate the global indices for the domain nodes
     int ii, gid;
-    for( ii=0; ii<self->lEls; ii++ ) {
+    for( ii=0; ii<self->dEls; ii++ ) {
         gid = Mesh_DomainToGlobal( self, dim, ii );
         Variable_SetValue( self->eGlobalIdsVar, ii, (void*)&gid );
     }
@@ -695,12 +695,11 @@ Variable* Mesh_GenerateENMapVar( void* mesh ) {
 
     Mesh* self = (Mesh*)mesh;
     char* name;
-    int n_i, e_i, nNbr, localElements, localtotal;
+    int n_i, e_i, nNbr, localElements, localtotal, *nbr;
     unsigned buffy_tvs;     // buffer for global node indices
-    unsigned dim, *nbr, temp;
+    unsigned dim;
     int *numberNodesPerEl = NULL;
     IArray* inc = NULL;
-    Stream* error = Journal_Register( Error_Type, (Name)self->type );
 
     // if variable already exists return it
     if( self->enMapVar ) return self->enMapVar;
@@ -837,5 +836,3 @@ void Mesh_Destruct( Mesh* self ) {
 	List_Clear( self->vars );
 	*/
 }
-
-
