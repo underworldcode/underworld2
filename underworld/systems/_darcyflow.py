@@ -86,7 +86,7 @@ class SteadyStateDarcyFlow(_stgermain.StgCompoundComponent):
     _objectsDict = {  "_system" : "SystemLinearEquations" }
     _selfObjectName = "_system"
 
-    def __init__(self,  pressureField, fn_diffusivity, fn_bodyforce=0., voronoi_swarm=None, conditions=[], velocityField = None,swarmVarVelocity = None, _removeBCs=True, **kwargs):
+    def __init__(self,  pressureField, fn_diffusivity, fn_bodyforce=None, voronoi_swarm=None, conditions=[], velocityField = None,swarmVarVelocity = None, _removeBCs=True, **kwargs):
 
         if not isinstance( pressureField, uw.mesh.MeshVariable):
             raise TypeError( "Provided 'pressureField' must be of 'MeshVariable' class." )
@@ -97,10 +97,17 @@ class SteadyStateDarcyFlow(_stgermain.StgCompoundComponent):
         except Exception as e:
             raise uw._prepend_message_to_exception(e, "Exception encountered. Note that provided 'fn_diffusivity' must be of or convertible to 'Function' class.\nEncountered exception message:\n")
 
+        if not fn_bodyforce:
+            if pressureField.mesh.dim == 2:
+                fn_bodyforce = (0.,0.)
+            else:
+                fn_bodyforce = (0.,0.,0.)
         try:
             _fn_bodyforce = uw.function.Function.convert(fn_bodyforce)
         except Exception as e:
             raise uw._prepend_message_to_exception(e, "Exception encountered. Note that provided 'fn_bodyforce' must be of or convertible to 'Function' class.\nEncountered exception message:\n")
+
+
 
         if voronoi_swarm and not isinstance(voronoi_swarm, uw.swarm.Swarm):
             raise TypeError( "Provided 'swarm' must be of 'Swarm' class." )
@@ -184,7 +191,7 @@ class SteadyStateDarcyFlow(_stgermain.StgCompoundComponent):
                 #NOTE many NeumannConditions can be used but the _sufaceFluxTerm only records the last
 
                 ### -VE flux because of Energy_SLE_Solver ###
-                negativeCond = uw.conditions.NeumannCondition( flux=-1.0*cond.flux,
+                negativeCond = uw.conditions.NeumannCondition( flux=-1.0*cond.fn_flux,
                                                                variable=cond.variable,
                                                                nodeIndexSet=cond.indexSet )
 
