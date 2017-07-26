@@ -15,10 +15,17 @@ export HDF5_VERSION=1.8.14
 export PETSC_DIR=/projects/Underworld/opt/petsc-3.7.6
 export PYTHONPATH=/projects/Underworld/opt:$PYTHONPATH
 export PATH=/projects/Underworld/opt/swig-3.0.10/bin:$PATH
+export OPENGL_LIB=/projects/Underworld/mesa-17.1.5/build/linux-x86_64/gallium/targets/libgl-xlib/
+export OPENGL_INC=/projects/Underworld/mesa-17.1.5/include/GL
 
 cd libUnderworld
 
-./configure.py --python-dir=$PYTHON_ROOT --with-debugging=0 --with-graphics=0
-./compile.py
+./configure.py --python-dir=$PYTHON_ROOT --with-debugging=0 --opengl-inc-dir=$OPENGL_INC --opengl-lib-dir=$OPENGL_LIB
+./compile.py -j4
 
 cd .. ; source updatePyPath.sh 
+
+#Run this before using underworld glucifer image output 
+#(creates a virtual display)
+Xvfb :0 -screen 0 1600x1200x16&
+

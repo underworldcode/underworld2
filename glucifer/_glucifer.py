@@ -32,12 +32,12 @@ if 'lavavu' in sys.modules:
 else:
     try:
         import lavavu
+        #Import into main too so can be accessed there
+        #(necessary for interactive viewer/controls)
+        import __main__
+        __main__.lavavu = lavavu
     except Exception as e:
         print e,"LavaVu module not found! disabling inline visualisation"
-    #Import into main too so can be accessed there
-    #(necessary for interactive viewer/controls)
-    import __main__
-    __main__.lavavu = lavavu
 
 # lets create somewhere to dump data for this session
 try:
@@ -171,16 +171,21 @@ class Store(_stgermain.StgCompoundComponent):
             libUnderworld.gLucifer.lucDatabase_BackupDbFile(self._db, filename)
             return filename
 
-    def lvrun(self, db=None, *args, **kwargs):
-        if not db:
-            db = self._db.path
+    def lvget(self, db=None, *args, **kwargs):
         #Use a single LavaVu instance per db(store) to save resources
         if not self.viewer:
-            self.viewer = lavavu.Viewer(cache=False, binpath=self._lvpath, database=db, timestep=self.step, *args, **kwargs)
+            self.viewer = self.lvrun(db=db, *args, **kwargs)
         else:
+            if not db:
+                db = self._db.path
             self.viewer.setup(cache=False, database=db, timestep=self.step, *args, **kwargs)
 
         return self.viewer
+
+    def lvrun(self, db=None, *args, **kwargs):
+        if not db:
+            db = self._db.path
+        return lavavu.Viewer(cache=False, binpath=self._lvpath, database=db, timestep=self.step, *args, **kwargs)
 
     def _generate(self, figname, objects, props):
         #First merge object list with active
@@ -237,7 +242,7 @@ class Store(_stgermain.StgCompoundComponent):
 
             #Output any custom geometry on objects
             if lavavu and uw.rank() == 0 and any(x.geomType is not None for x in self._objects):
-                lv = self.lvrun() #Open the viewer
+                lv = self.lvget() #Open the viewer
                 for obj in self._objects:
                     #Create/Transform geometry by object
                     obj.render(lv)
@@ -302,7 +307,7 @@ class Store(_stgermain.StgCompoundComponent):
         if not self._db.db:
             libUnderworld.gLucifer.lucDatabase_OpenDatabase(self._db)
         try:
-            lv = self.lvrun()
+            lv = self.lvget()
             #Get state, includes the list of objects in the loaded database
             statestr = lv.app.getFigures()
             #Also save the step data
@@ -370,7 +375,7 @@ class Figure(dict):
 
     Add drawing objects:
     
-    >>> fig.append( glucifer.objects.Surface( mesh, 1.) )
+    >>> fig.Surface( mesh, 1.)
 
     Draw image (note, in a Jupyter notebook, this will render the image within the notebook).
     
@@ -455,10 +460,26 @@ class Figure(dict):
         self._drawingObjects = []
         self._script = []
 
-        #Save types of all Drawing derived classes
+        #Types of all Drawing derived classes
         def all_subclasses(cls):
             return cls.__subclasses__() + [g for s in cls.__subclasses__() for g in all_subclasses(s)]
-        self._object_types = all_subclasses(objects.Drawing)
+
+        #Object contructor shortcut methods
+        #(allows constructing an object and adding to a figure directly from the figure object)
+        for constr in all_subclasses(objects.Drawing):
+            key = constr.__name__
+            if key[0] == '_': continue; #Skip internal
+            #Use a closure to define a new method to call constructor and add to objects
+            def addmethod(constr):
+                def method(*args, **kwargs):
+                    obj = constr(*args, **kwargs)
+                    self.append(obj)
+                    return obj
+                return method
+            method = addmethod(constr)
+            #Set docstring
+            method.__doc__ = constr.__doc__
+            self.__setattr__(key, method)
 
         super(Figure, self).__init__(*args)
 
@@ -473,20 +494,6 @@ class Figure(dict):
         #Update the properties values (merge)
         #values of any existing keys are replaced
         self.update(newProps)
-
-    #Undefined methods call Drawing() constructors if defined, and append to figure
-    def __getattr__(self, key):
-        #__getattr__ called if no attrib/method found
-        def any_method(*args, **kwargs):
-            #Find if class exists that extends Drawing
-            method = getattr(objects, key)
-            if isinstance(method, type) and method in self._object_types:
-                #Return the new object and add it to the figure
-                newobj = method(*args, **kwargs)
-                self.append(newobj)
-                return newobj
-
-        return any_method
 
     @property
     def resolution(self):
@@ -621,7 +628,7 @@ class Figure(dict):
 
         try:
             if type.lower() == "webgl":
-                lv = self.db.lvrun()
+                lv = self.db.lvget()
                 return lv.app.web(True)
             else:
                 return self._generate_image(filename, size)
@@ -644,7 +651,7 @@ class Figure(dict):
             return
         try:
             #Render with viewer
-            lv = self.db.lvrun(quality=self["quality"], script=self._script)
+            lv = self.db.lvget(quality=self["quality"], script=self._script)
             imagestr = lv.image(filename, resolution=size)
             #Return the generated filename
             return imagestr
@@ -661,7 +668,7 @@ class Figure(dict):
             return
         try:
             #Export encoded json string
-            lv = self.db.lvrun(script=self._script)
+            lv = self.db.lvget(script=self._script)
             #Create link to web content directory
             if not os.path.isdir("html"):
                 os.symlink(os.path.join(self.db._lvpath, 'html'), 'html')
@@ -672,7 +679,7 @@ class Figure(dict):
             text_file.write(jsonstr);
             text_file.close()
             from IPython.display import IFrame
-            return IFrame("html/index.html#" + filename, width=self["resolution"][0], height=self["resolution"][1])
+            return IFrame("html/viewer.html#" + filename, width=self["resolution"][0], height=self["resolution"][1])
             #import base64
             #return IFrame("html/index.html#" + base64.b64encode(jsonstr), width=self["resolution"][0], height=self["resolution"][1])
         except RuntimeError,e:
@@ -701,29 +708,42 @@ class Figure(dict):
         #Returns contents as newline separated string
         return '\n'.join(self._script)
 
-    def window(self):
-        """ Open the inline viewer.
+    def window(self, *args, **kwargs):
+        """ Open an inline viewer.
+
+        This returns a new LavaVu instance to display the figure
+        and opens it as an interactive viewing window.
         """
-        #Open/get viewer instance
+        #Open a new viewer instance and display window
         global lavavu
         if lavavu and uw.rank() == 0:
-            v = self.viewer()
+            v = self.viewer(new=True, *args, **kwargs)
+            #Ensure correct figure selected
+            v.figure(self.name)
             #Show the inline window,
             v.window()
             return v
 
-    def viewer(self, **kwargs):
+    def viewer(self, new=False, *args, **kwargs):
         """ Return viewer instance.
+
+        Parameters
+        ----------
+        new: boolean
+            If True, a new viewer instance will always be returned
+            Otherwise the existing instance will be used if available
         """
         #Open/get viewer instance
         global lavavu
         if lavavu and uw.rank() == 0:
-            if self.db.viewer:
-                return self.db.viewer
             #Generate db if doesn't exist
             if not self.db._db.path:
                 self._generate_DB()
-            return self.db.lvrun()
+            #Get a viewer instance, if new requested always run a new one
+            if new:
+                return self.db.lvrun(*args, **kwargs)
+            else:
+                return self.db.lvget(*args, **kwargs)
 
     def open_viewer(self, args=[], background=True):
         """ Open the external viewer.
@@ -745,7 +765,7 @@ class Figure(dict):
                 from IPython.display import HTML
                 return HTML('''<a href='#' onclick='window.open("http://" + location.hostname + ":9999");'>Open Viewer Interface</a>''')
             else:
-                self.db.lvrun(db=fname, port=9999)
+                self.db.lvget(db=fname, port=9999)
 
     def close_viewer(self):
         """ Close the viewer.
@@ -785,12 +805,12 @@ class Figure(dict):
                     pass
 
     def clear(self):
-        # DEPRECATE
+        # DEPRECATE, remove for v2.4.0
         raise RuntimeError("This method is now deprecated.\n" \
                            "To obtain an empty figure just create a new one")
 
     def __add__(self,drawing_object):
-        # DEPRECATE
+        # DEPRECATE, remove for v2.4.0
         raise RuntimeError("This method is now deprecated.\n" \
                            "To add drawing objects to figures, use the append() method:\n" \
                            "    someFigure.append(someDrawingObject)")

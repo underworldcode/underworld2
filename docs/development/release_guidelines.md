@@ -22,11 +22,15 @@ Review issue tracker
 
 Documentation review 
 ====================
-* Review docstrings udpates.
-* Review ``doc/`` for style, relevance and updates.
-* Review ``doc/development/broken``, contents to be kept at a minimum.
-* Review ``doc/development/unsupported``, contents to be kept at a minimum.
-* Update api html documentation.  See development/api_doc_generator/README.md
+* Review docstrings udpates for deprication warnings.
+* Review ``docs/`` for style, relevance and updates.
+* Review ``docs/development/broken``, contents to be kept at a minimum.
+* Review ``docs/development/unsupported``, contents to be kept at a minimum.
+* Review docs generated at http://underworld2.readthedocs.io/
+	- make sure builds are passing
+	- review latest content
+* Review top level README.md.
+* Review cheatsheet contents.
 
 Testing
 =======
@@ -37,7 +41,7 @@ Testing
 Final Science/Production testing
 ================================
 * High resolution production tests on raijin, magnus run to completion with 
-  correct results. These should include models from ``doc/publications``, 
+  correct results. These should include models from ``docs/publications``, 
   record overall condition and walltime with optimised code.  TODO: include 
   detailed list of models, parameters and completion state.
 * Ensure jenkins and docker are working correctly.
@@ -62,32 +66,27 @@ Creating the release
 ====================
 * Create the release from within Github. We will mark as pre-production
   while still in beta. 
-* Also, create corresponding tags for the docker images:
-** NOTE: dockerhub no longer appears to publish the digest ID in the 'build 
-   details' tab.  But the digest isn't really need if you only need the 
-   most recent 'development' (dev) or 'master' (latest) image, as you 
-   can simply pull these directy, and then determine the image ID as below. 
-** Once a new master/latest branch `underworld2` docker image is created on 
-   dockerhub, find its digest ID. To do this, go to the `Build Details` tab
-   on the Dockerhub page for `underworld2`, click on the `latest` tagged 
-   build just created (it should be marked "Success"!), scroll to the very 
-   bottom and you should find a sha256 ID. 
-** Pull this image locally:
+* Also, once satisfied that docker builds are being created successfully,
+create corresponding tags for the docker images:
+** Pull newly created 'latest' image:
 ```
-$ docker pull underworldcode/underworld2:latest@sha256:cbafa1d665b22445c3318b8567af1e7bfb8d5e49317a420debeba78343e76c8c
+$ docker pull underworldcode/underworld2:latest
 ```
-** Determine the image ID corresponding to this digest
+** Determine the corresponding image ID:
 ```
-$ docker images --digests
+$ docker images
 ```
-** Tag the release locally as required:
+** Tag the release locally:
 ```
 $ docker tag 6649e5e26534 underworldcode/underworld2:2.1.1b
 ```
 ** Push the tagged image
 ``` 
+$ docker login
 $ docker push underworldcode/underworld2:2.1.1b
 ```
+
+* Add tagged documentation version at http://underworld2.readthedocs.io/  
 
 Announce new version
 ====================

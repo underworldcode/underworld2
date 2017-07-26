@@ -10,35 +10,37 @@ import underworld as uw
 import underworld._stgermain as _stgermain
 import sle
 import libUnderworld
+import numpy
 
-class SteadyStateHeat(_stgermain.StgCompoundComponent):
+class SteadyStateDarcyFlow(_stgermain.StgCompoundComponent):
     """
     This class provides functionality for a discrete representation
-    of the steady state heat equation.
+    of the steady state darcy flow equation.
 
     The class uses a standard Galerkin finite element method to
     construct a system of linear equations which may then be solved
     using an object of the underworld.system.Solver class.
 
     The underlying element types are determined by the supporting
-    mesh used for the 'temperatureField'.
+    mesh used for the 'pressureField'.
 
     The strong form of the given boundary value problem, for :math:`f`,
-    :math:`h` and :math:`h` given, is
+    :math:`q` and :math:`h` given, is
     
     .. math::
         \\begin{align}
-        q_i =& - \\alpha \\, u_{,i}  & \\\\
+        q_i =& \\kappa \\, \left( -u_{,i} + S_i \right)   & \\\\
         q_{i,i} =& \\: f  & \\text{ in }  \\Omega \\\\
-        u =& \\: g & \\text{ on }  \\Gamma_g \\\\
+        u =& \\: q & \\text{ on }  \\Gamma_q \\\\
         -q_i n_i =& \\: h & \\text{ on }  \\Gamma_h \\\\
         \\end{align}
 
-    where, :math:`\\alpha` is the diffusivity, :math:`u` is the temperature,
-    :math:`f` is a source term, :math:`g` is the Dirichlet condition, and
+    where, :math:`\\kappa` is the diffusivity, :math:`u` is the pressure,
+    :math:`S` is a flow body-source, for example due to gravity,
+    :math:`f` is a source term, :math:`q` is the Dirichlet condition, and
     :math:`h` is a Neumann condition. The problem boundary, :math:`\\Gamma`, 
-    admits the decomposition :math:`\\Gamma=\\Gamma_g\\cup\\Gamma_h` where
-    :math:`\\emptyset=\\Gamma_g\\cap\\Gamma_h`. The equivalent weak form is:
+    admits the decomposition :math:`\\Gamma=\\Gamma_q\\cup\\Gamma_h` where
+    :math:`\\emptyset=\\Gamma_q\\cap\\Gamma_h`. The equivalent weak form is:
 
     .. math::
         -\\int_{\\Omega} w_{,i} \\, q_i \\, d \\Omega = \\int_{\\Omega} w \\, f \\, d\\Omega + \\int_{\\Gamma_h} w \\, h \\,  d \\Gamma
@@ -48,78 +50,83 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
 
     Parameters
     ----------
-    temperatureField : underworld.mesh.MeshVariable
-        The solution field for temperature.
+    velocityField (optional): underworld.mesh.MeshVariable
+        Solution field for darcy flow velocity.
+    pressureField : underworld.mesh.MeshVariable
+        The solution field for pressure.
     fn_diffusivity : underworld.function.Function
         The function that defines the diffusivity across the domain.
-    fn_heating : underworld.function.Function
-        A function that defines the heating across the domain. Optional.
+    fn_bodyforce (Optional) : underworld.function.Function
+        A function that defines the flow body-force across the domain, for example gravity. Must be a vector.
     voronoi_swarm : underworld.swarm.Swarm
-        If a voronoi_swarm is provided, voronoi type numerical integration is 
+        A swarm with just one particle within each cell should be provided. This avoids the evaluation
+        of the velocity on nodes and inaccuracies arising from diffusivity changes within cells. 
+        If a swarm is provided, voronoi type numerical integration is 
         utilised. The provided swarm is used as the basis for the voronoi 
         integration. If no voronoi_swarm is provided, Gauss integration
         is used.
     conditions : underworld.conditions.SystemCondition
         Numerical conditions to impose on the system. This should be supplied as 
         the condition itself, or a list object containing the conditions.
+    swarmVarVelocity (optional) : undeworld.swarm.SwarmVariable
+        If a swarm variable is provided, the velocity calculated on the swarm will be stored.
+        This is the most representative velocity data object, as the velocity calculation occurs
+        on the swarm, away from mesh nodes.
+
+
 
     Notes
     -----
     Constructor must be called collectively by all processes.
 
-    Example
-    -------
-    Setup a basic thermal system:
 
-    >>> linearMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.) )
-    >>> tField = uw.mesh.MeshVariable( linearMesh, 1 )
-    >>> topNodes = linearMesh.specialSets["MaxJ_VertexSet"]
-    >>> bottomNodes = linearMesh.specialSets["MinJ_VertexSet"]
-    >>> tbcs = uw.conditions.DirichletCondition(tField, topNodes + bottomNodes)
-    >>> tField.data[topNodes.data] = 0.0
-    >>> tField.data[bottomNodes.data] = 1.0
-    >>> tSystem = uw.systems.SteadyStateHeat(temperatureField=tField, fn_diffusivity=1.0, conditions=[tbcs])
-
-    Example with non diffusivity:
-    
-    >>> k = tField + 1.0
-    >>> tSystem = uw.systems.SteadyStateHeat(temperatureField=tField, fn_diffusivity=k, conditions=[tbcs])
-    >>> solver = uw.systems.Solver(tSystem)
-    >>> solver.solve()
-    Traceback (most recent call last):
-    ...
-    RuntimeError: Nonlinearity detected.
-    Diffusivity function depends on the temperature field provided to the system.
-    Please set the 'nonLinearIterate' solve parameter to 'True' or 'False' to continue.
-    >>> solver.solve(nonLinearIterate=True)
     
     """
 
     _objectsDict = {  "_system" : "SystemLinearEquations" }
     _selfObjectName = "_system"
 
-    def __init__(self, temperatureField, fn_diffusivity, fn_heating=0., voronoi_swarm=None, conditions=[], _removeBCs=True, **kwargs):
+    def __init__(self,  pressureField, fn_diffusivity, fn_bodyforce=None, voronoi_swarm=None, conditions=[], velocityField = None,swarmVarVelocity = None, _removeBCs=True, **kwargs):
 
-        if not isinstance( temperatureField, uw.mesh.MeshVariable):
-            raise TypeError( "Provided 'temperatureField' must be of 'MeshVariable' class." )
-        self._temperatureField = temperatureField
+        if not isinstance( pressureField, uw.mesh.MeshVariable):
+            raise TypeError( "Provided 'pressureField' must be of 'MeshVariable' class." )
+        self._pressureField = pressureField
 
         try:
             _fn_diffusivity = uw.function.Function.convert(fn_diffusivity)
         except Exception as e:
             raise uw._prepend_message_to_exception(e, "Exception encountered. Note that provided 'fn_diffusivity' must be of or convertible to 'Function' class.\nEncountered exception message:\n")
 
+        if not fn_bodyforce:
+            if pressureField.mesh.dim == 2:
+                fn_bodyforce = (0.,0.)
+            else:
+                fn_bodyforce = (0.,0.,0.)
         try:
-            _fn_heating = uw.function.Function.convert(fn_heating)
+            _fn_bodyforce = uw.function.Function.convert(fn_bodyforce)
         except Exception as e:
-            raise uw._prepend_message_to_exception(e, "Exception encountered. Note that provided 'fn_heating' must be of or convertible to 'Function' class.\nEncountered exception message:\n")
+            raise uw._prepend_message_to_exception(e, "Exception encountered. Note that provided 'fn_bodyforce' must be of or convertible to 'Function' class.\nEncountered exception message:\n")
+
+
 
         if voronoi_swarm and not isinstance(voronoi_swarm, uw.swarm.Swarm):
             raise TypeError( "Provided 'swarm' must be of 'Swarm' class." )
         self._swarm = voronoi_swarm
-        if voronoi_swarm and temperatureField.mesh.elementType=='Q2':
+        if len(numpy.unique(voronoi_swarm.owningCell.data[:])) != len(voronoi_swarm.owningCell.data[:]):
             import warnings
-            warnings.warn("Voronoi integration may yield unsatisfactory results for Q2 element types.")
+            warnings.warn("It is not advised to fill any cell with more than one particle, as the Q1 shape function cannot capture material interfaces. Use at your own risk.")
+
+        if velocityField and not isinstance( velocityField, uw.mesh.MeshVariable):
+            raise TypeError( "Provided 'velocityField' must be of 'MeshVariable' class." )
+        self._velocityField = velocityField
+
+        if swarmVarVelocity and not isinstance(swarmVarVelocity, uw.swarm.SwarmVariable):
+            raise TypeError("Provided 'swarmVarVelocity' must be of 'SwarmVariable' class.")
+        self._swarmVarVelocity = swarmVarVelocity
+
+        if voronoi_swarm and pressureField.mesh.elementType=='Q2':
+            import warnings
+            warnings.warn("Voronoi integration may yield unsatisfactory results for Q2 element types. Q2 element types can also result in spurious velocity calculations.")
 
         if not isinstance( _removeBCs, bool):
             raise TypeError( "Provided '_removeBCs' must be of type bool." )
@@ -127,7 +134,7 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
 
         # error check dcs 'dirichlet conditions' and ncs 'neumann cond.' FeMesh_IndexSets
         nbc  = None
-        mesh = temperatureField.mesh
+        mesh = pressureField.mesh
 
         if not isinstance(conditions,(list,tuple)):
             conditionslist = []
@@ -138,25 +145,26 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
                 raise TypeError( "Provided 'conditions' must be a list 'SystemCondition' objects." )
             # set the bcs on here
             if type( cond ) == uw.conditions.DirichletCondition:
-                if cond.variable == temperatureField:
-                    libUnderworld.StgFEM.FeVariable_SetBC( temperatureField._cself, cond._cself )
+                if cond.variable == pressureField:
+                    libUnderworld.StgFEM.FeVariable_SetBC( pressureField._cself, cond._cself )
             elif type( cond ) == uw.conditions.NeumannCondition:
                 nbc=cond
             else:
                 raise RuntimeError("Can't decide on input condition")
 
         # build the equation numbering for the temperature field discretisation
-        tEqNums = self._tEqNums = sle.EqNumber( temperatureField, removeBCs=self._removeBCs )
+        tEqNums = self._tEqNums = sle.EqNumber( pressureField, removeBCs=self._removeBCs )
 
         # create solutions vector
-        self._solutionVector = sle.SolutionVector(temperatureField, tEqNums )
+        self._solutionVector = sle.SolutionVector(pressureField, tEqNums )
         libUnderworld.StgFEM.SolutionVector_LoadCurrentFeVariableValuesOntoVector( self._solutionVector._cself )
 
         # create force vectors
-        self._fvector = sle.AssembledVector(temperatureField, tEqNums )
+        self._fvector = sle.AssembledVector(pressureField, tEqNums )
 
         # and matrices
         self._kmatrix = sle.AssembledMatrix( self._solutionVector, self._solutionVector, rhs=self._fvector )
+
 
         # we will use voronoi if that has been requested by the user, else use
         # gauss integration.
@@ -172,16 +180,18 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
         self._kMatTerm = sle.MatrixAssemblyTerm_NA_i__NB_i__Fn(  integrationSwarm=intswarm,
                                                                  assembledObject=self._kmatrix,
                                                                  fn=_fn_diffusivity)
-        self._forceVecTerm = sle.VectorAssemblyTerm_NA__Fn(   integrationSwarm=intswarm,
+
+        self._forceVecTerm = sle.VectorAssemblyTerm_NA_i__Fn_i(   integrationSwarm=intswarm,
                                                               assembledObject=self._fvector,
-                                                              fn=fn_heating)
+                                                              fn=fn_bodyforce*fn_diffusivity)
+
         # search for neumann conditions
         for cond in conditions:
             if isinstance( cond, uw.conditions.NeumannCondition ):
                 #NOTE many NeumannConditions can be used but the _sufaceFluxTerm only records the last
 
-                ### -VE flux because of the FEM discretisation method of the initial equation
-                negativeCond = uw.conditions.NeumannCondition( fn_flux=-1.0*cond.fn_flux,
+                ### -VE flux because of Energy_SLE_Solver ###
+                negativeCond = uw.conditions.NeumannCondition( flux=-1.0*cond.fn_flux,
                                                                variable=cond.variable,
                                                                nodeIndexSet=cond.indexSet )
 
@@ -189,7 +199,7 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
                                                                 assembledObject  = self._fvector,
                                                                 surfaceGaussPoints = 2,
                                                                 nbc         = negativeCond )
-        super(SteadyStateHeat, self).__init__(**kwargs)
+        super(SteadyStateDarcyFlow, self).__init__(**kwargs)
 
     def _setup(self):
         uw.libUnderworld.StGermain.Stg_ObjectList_Append( self._cself.stiffnessMatrices, self._kmatrix._cself )
@@ -198,8 +208,19 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
 
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method
-        super(SteadyStateHeat,self)._add_to_stg_dict(componentDictionary)
+        super(SteadyStateDarcyFlow,self)._add_to_stg_dict(componentDictionary)
 
+    def solve_velocityField(self):
+        fnVel = (-self._pressureField.fn_gradient + self.fn_bodyforce) * self._kMatTerm.fn
+
+        if self._swarmVarVelocity:
+            self._swarmVarVelocity.data[:] = fnVel.evaluate(self._swarm)
+
+        if self._velocityField:
+            velproj = uw.utils.MeshVariable_Projection(self._velocityField,fnVel,self._swarm)
+            velproj.solve()
+
+    
     @property
     def fn_diffusivity(self):
         """
@@ -212,12 +233,13 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
         self._kMatTerm.fn = value
 
     @property
-    def fn_heating(self):
+    def fn_bodyforce(self):
         """
         The heating function. You may change this function directly via this
         property.
         """
-        return self._forceVecTerm.fn
-    @fn_heating.setter
-    def fn_heating(self, value):
-        self._forceVecTerm.fn = value
+        return self._forceVecTerm.fn / self._kMatTerm.fn
+
+    @fn_bodyforce.setter
+    def fn_bodyforce(self, value):
+        self._forceVecTerm.fn = value * self._kMatTerm.fn

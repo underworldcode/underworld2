@@ -15,7 +15,7 @@ whether the queried locations are inside or outside the shape.
 
 import libUnderworld.libUnderworldPy.Function as _cfn
 from _function import Function as _Function
-from _function import input
+from _function import input as _input
 import numpy as _np
 
 class Polygon(_Function):
@@ -69,7 +69,7 @@ class Polygon(_Function):
         if fn:
             self._fn = _Function.convert(fn)
         else:
-            self._fn = input()
+            self._fn = _input()
         
         if not isinstance(vertices, _np.ndarray):
             raise TypeError( "Provided 'vertices' must be a numpy array." )
@@ -86,10 +86,7 @@ class Polygon(_Function):
         threedeearray[:,0:2] = vertices[:,0:2]
 
         # create instance
-        import random
-        import string
-        self._id = "".join(random.choice(string.ascii_uppercase + string.digits) for _ in range(8))
-        self._fncself = _cfn.Polygon( self._fn._fncself, threedeearray, self._id )
+        self._fncself = _cfn.Polygon( self._fn._fncself, threedeearray)
 
         # build parent
         super(Polygon,self).__init__(argument_fns=[fn,], *args, **kwargs)

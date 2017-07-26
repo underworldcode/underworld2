@@ -80,7 +80,7 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
     MGContext mgCtx;
     double mgSetupTime, scrSolveTime, RHSsolveTime, a11SingleSolveTime, penaltyNumber;// hFactor;
     int been_here = bsscrp_self->been_here;
-    Vec uStar = bsscrp_self->uStar;
+//    Vec uStar = bsscrp_self->uStar;
 
     char name[PETSC_MAX_PATH_LEN];
     char matname[PETSC_MAX_PATH_LEN];
@@ -229,8 +229,8 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
     if(useNormInfMonitor)  KSPMonitorSet( ksp_inner, BSSCR_KSPNormInfToNorm2Monitor, PETSC_NULL, PETSC_NULL );
 
     usePreviousGuess = PETSC_FALSE;
-    if(been_here)
-        PetscOptionsGetTruth( PETSC_NULL, "-scr_use_previous_guess", &usePreviousGuess, &found );
+//    if(been_here)
+//        PetscOptionsGetTruth( PETSC_NULL, "-scr_use_previous_guess", &usePreviousGuess, &found );
     /***************************************************************************************************************/
 
 
@@ -264,21 +264,21 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
     /*************************************/
     /*************************************/
 
-    if (!been_here) {
-        VecDuplicate( u, &uStar );
-        VecSet(uStar,0.0);
-    }
-
-    if(usePreviousGuess) {
-        VecCopy( uStar, f_tmp);
-        KSPSetInitialGuessNonzero( ksp_inner, PETSC_TRUE );
-    }
-    else {
+//    if (!been_here) {
+//        VecDuplicate( u, &uStar );
+//        VecSet(uStar,0.0);
+//    }
+//
+//    if(usePreviousGuess) {
+//        VecCopy( uStar, f_tmp);
+//        KSPSetInitialGuessNonzero( ksp_inner, PETSC_TRUE );
+//    }
+//    else {
         KSPSetInitialGuessNonzero( ksp_inner, PETSC_FALSE );
-    }
+//    }
 
     KSPSolve(ksp_inner, f, f_tmp);
-    VecCopy( f_tmp, uStar);
+//    VecCopy( f_tmp, uStar);
 
     KSPGetIterationNumber( ksp_inner, &bsscrp_self->solver->stats.velocity_presolve_its );
     RHSsolveTime =  MPI_Wtime() - RHSsolveTime;
