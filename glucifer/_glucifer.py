@@ -240,6 +240,35 @@ class Store(_stgermain.StgCompoundComponent):
                 #Create/Transform geometry by object
                 obj.render(lv)
 
+        #Parallel custom render output
+        if lavavu and any(hasattr(x, "parallel_render") for x in self._objects):
+            #In case no external file has been written we need to create a temporary
+            #database on root so the other procs can load it
+            tmpdb = None
+            if not self.filename:
+                tmpdb = os.path.join(tmpdir,"tmpDB_"+figname+".gldb")
+                if uw.rank() == 0:
+                    libUnderworld.gLucifer.lucDatabase_BackupDbFile(self._db, tmpdb)
+                else:
+                    self.filename = tmpdb
+            #Wait for temporary db to be written if not already using an external store
+            uw.barrier()
+            #print uw.rank(),self.filename
+            #Open the viewer with db filename
+            lv = self.lvget(self.filename)
+            #Loop through objects and run their parallel_render method if present
+            for obj in self._objects:
+                if hasattr(obj, "parallel_render"):
+                    obj.parallel_render(lv, uw.rank())
+            #Delete the viewer instance on non-root procs
+            uw.barrier()
+            if uw.rank() > 0:
+                lv = None
+                self.viewer = None
+            elif tmpdb is not None:
+                #Remove tmp db
+                os.remove(tmpdb)
+
     def _get_state(self, objects, props):
         #Get current state as string for export
         export = dict()

@@ -881,29 +881,35 @@ class IsoSurface(Volume):
         if isobj:
             #Force viewer open to trigger surface optimisation
             viewer.app.resetViews()
-            
             #Generate isosurface in same object, convert and delete volume, update db
             isobj.isosurface(name=None, convert=True, updatedb=True)
+        else:
+            print "Object not found: " + self.properties["name"]
 
+    def parallel_render(self, viewer, rank):
+        #If this method defined, is run by all procs to process
+        # any render output that must be done in parallel
+        isobj = viewer.objects[self.properties["name"]]
+        if isobj and self._sampler:
             #If coloured by another field, get the vertices, sample and load values
-            if self._sampler:
-                #Clear existing values
-                isobj.cleardata()
-                #Get data elements list
-                dataset = isobj.data()
-                for geom in dataset:
-                    #Grab a view of the vertex data
-                    verts = geom.get("vertices")
-                    if len(verts):
-                        #Sample over tri vertices
-                        values = self._sampler.sample(verts)
+            #Clear existing values
+            isobj.cleardata()
+            #Get data elements list
+            dataset = isobj.data()
+            for geom in dataset:
+                #Grab a view of the vertex data
+                verts = geom.get("vertices")
+                if len(verts):
+                    #Sample over tri vertices
+                    values = self._sampler.sample(verts)
+                    #Update data on root
+                    if rank == 0:
                         #Update element with the sampled data values
                         geom.set("sampledfield", values)
 
-                #Write the colour data back to db
+            #Write the colour data back to db on root
+            if rank == 0:
                 isobj.update("triangles")
-        else:
-            print "Object not found: " + self.properties["name"]
 
 class Mesh(Drawing):
     """  
