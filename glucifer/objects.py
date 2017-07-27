@@ -843,18 +843,26 @@ class IsoSurface(Volume):
         Number of samples in the J direction.
     resolutionK : unsigned
         Number of samples in the K direction.
+    isovalue : float
+        Isovalue to plot.
     isovalues : list of float
-        Isovalues to plot.
+        List of multiple isovalues to plot.
 
     """
 
     def __init__(self, mesh, fn, fn_colour=None,
                        resolutionI=64, resolutionJ=64, resolutionK=64, 
-                       colourBar=True, *args, **kwargs):
+                       colourBar=True, isovalue=None, *args, **kwargs):
 
         # build parent
         if mesh.dim == 2:
             raise ValueError("Isosurface requires a three dimensional mesh.")
+
+        # Validate isovalue(s) params
+        if not "isovalues" in kwargs:
+            if isovalue is None:
+                raise ValueError("Isosurface requires either 'isovalue' value or 'isovalues' list parameter.")
+            kwargs["isovalues"] = [isovalue]
 
         self._sampler = None
         if fn_colour != None:
