@@ -184,7 +184,7 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
     def get_max_dt(self):
         """
         Returns a numerically stable timestep size for the current system.
-        Note that as a default, this method returns a value one quarter the
+        Note that as a default, this method returns a value one half the
         size of the Courant timestep.
 
         Returns
