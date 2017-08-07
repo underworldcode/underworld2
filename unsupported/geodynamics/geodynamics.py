@@ -1,3 +1,4 @@
+import os
 import underworld as uw
 import underworld.function as fn
 from itertools import count
@@ -8,6 +9,7 @@ import unsupported.scaling as sca
 from unsupported.scaling import nonDimensionalize as nd
 from unsupported.lithopress import lithoPressure
 from unsupported.LecodeIsostasy import lecode_tools_isostasy
+from unsupported.geodynamics import utils
 
 
 def smooth_pressure(mesh, pressure):
@@ -23,38 +25,6 @@ def smooth_pressure(mesh, pressure):
     Nodes2Cell.solve()
 
 
-def _nonLinearSolver(Model, step, nl_tol=1e-2, nl_maxIts=20):
-    # a hand written non linear loop for stokes, with pressure correction
-
-    er = 1.0
-    its = 0                      # iteration count
-    v_old = Model.velocity.copy()  # old velocityField
-    residuals = []
-
-    while er > nl_tol and its < nl_maxIts:
-
-        v_old.data[:] = Model.velocity.data[:]
-        Model.solver.solve(nonLinearIterate=False)
-
-        # pressure correction
-        Model._calibrate_pressure()
-        smooth_pressure(Model.mesh, Model.pressure)
-
-        # calculate relative error
-        absErr = uw.utils._nps_2norm(Model.velocity.data - v_old.data)
-        magT = uw.utils._nps_2norm(v_old.data)
-        er = absErr / magT
-        residuals.append(er)
-
-        #if uw.rank() == 0:
-        #    # if not is_kernel():
-        #    print(er)
-
-        its += 1
-
-    del(v_old)
-
-
 u = UnitRegistry = sca.UnitRegistry
 
 
@@ -62,11 +32,8 @@ class Plasticity(object):
 
     def __init__(self, name="User defined", func=None):
         self.name = name
-        if func is not None:
-            self.coefs = func
-        else:
-            dictValues = rheology.PlasticBehaviours.get(self.name)
-            self.coefs = dictValues["coefficients"]
+        dictValues = func
+        self.coefs = dictValues["coefficients"]
 
         self.cohesionFn = rheology.linearCohesionWeakening
         self.frictionFn = rheology.linearFrictionWeakening
@@ -101,10 +68,10 @@ class Viscosity(object):
 
     def __init__(self, name="User defined", func=None):
         self.name = name
-        if func is not None:
+        if not isinstance(func, dict):
             self.fn = fn.misc.constant(nd(func))
         else:
-            dictVals = rheology.ViscousLaws.get(self.name)
+            dictVals = func
             self.coefs = dictVals["coefficients"]
             self._nd_coefs = {key: nd(val) for key, val in
                               self.coefs.iteritems()}
@@ -137,23 +104,32 @@ class Rheology(object):
 class Material(object):
     _ids = count(0)
 
-    def __init__(self, name="Undefined", vertices=None):
+    def __init__(self, name="Undefined", vertices=None, density=None,
+                 diffusivity=None, capacity=None, thermalExpansivity=None,
+                 radiogenicHeatProd=None, top=None, bottom=None, shape=None,
+                 minX=None, maxX=None):
 
         self.name = name
-        self.top = None
-        self.bottom = None
+        self.top = top
+        self.bottom = bottom
 
         if vertices:
             self.shape = uw.function.shape.Polygon(np.array(vertices))
+        elif shape == "layer":
+            if (top is not None and
+                bottom is not None and
+                minX is not None  and 
+                maxX is not None):
+                self.shape = utils.layer(top, bottom, minX, maxX)
         else:
             self.shape = None
         self.index = self._ids.next()
 
-        self._density = 0.
-        self._diffusivity = 0.
-        self._capacity = 0.
-        self._thermalExpansivity = 0.
-        self._radiogenicHeatProd = 0.
+        self._density = density
+        self._diffusivity = diffusivity
+        self._capacity = capacity
+        self._thermalExpansivity = thermalExpansivity
+        self._radiogenicHeatProd = radiogenicHeatProd
         self.meltFraction = 0.
         self.meltFractionLimit = 0.
         self.solidus = None
@@ -215,10 +191,7 @@ class Material(object):
 
     @viscosity.setter
     def viscosity(self, value):
-        if isinstance(value, str):
-            self._viscosity = Viscosity(name=value)
-        else:
-            self._viscosity = Viscosity(func=value)  # For backward compatibility
+        self._viscosity = Viscosity(func=value)  # For backward compatibility
 
     @property
     def plasticity(self):
@@ -226,35 +199,35 @@ class Material(object):
 
     @plasticity.setter
     def plasticity(self, value):
-        if isinstance(value, str):
-            self._plasticity = Plasticity(name=value)
-        else:
-            self._plasticity = Plasticity(func=value)  # For backward compatibility
+        self._plasticity = Plasticity(func=value)  # For backward compatibility
 
 
 class Model(object):
-    def __init__(self, elementType, elementRes,
-                 minCoord, maxCoord, periodic, gravity, swarmLayout=None,
-                 Tref=273.15 * u.degK):
+    def __init__(self, elementRes, minCoord, maxCoord, gravity,
+                 periodic=(False, False), elementType="Q1/dQ0",
+                 swarmLayout=None, Tref=273.15 * u.degK, name="undefined",
+                 outputDir="outputs"):
+
+        self.name = name
+        self.outputDir = outputDir
+        self.checkpointID = 0
 
         self.minViscosity = 1e19 * u.pascal * u.second
         self.maxViscosity = 1e25 * u.pascal * u.second
 
         self.gravity = tuple([nd(val) for val in gravity])
         self.Tref = Tref
-        minCoord = tuple([nd(val) for val in minCoord])
-        maxCoord = tuple([nd(val) for val in maxCoord])
+        self.elementType = elementType
+        self.elementRes = elementRes
+        self.minCoord = minCoord
+        self.maxCoord = maxCoord
+        self.periodic = periodic
 
-        self.mesh = uw.mesh.FeMesh_Cartesian(elementType=elementType,
-                                             elementRes=elementRes,
-                                             minCoord=minCoord,
-                                             maxCoord=maxCoord,
-                                             periodic=periodic)
+        self._set_mesh()
+        
         # Add common fields
         self.pressure = uw.mesh.MeshVariable(mesh=self.mesh.subMesh,
                                              nodeDofCount=1)
-        self._solverPressure = uw.mesh.MeshVariable(mesh=self.mesh.subMesh,
-                                                    nodeDofCount=1)
         self.velocity = uw.mesh.MeshVariable(mesh=self.mesh,
                                              nodeDofCount=self.mesh.dim)
 
@@ -299,13 +272,48 @@ class Model(object):
                                                      count=1)
         self.plasticStrain.data[...] = 0.0
  
-        self._materials = []
+        self.materials = []
         self._defaultMaterial = 0
 
         self.leftWall = self.mesh.specialSets["MinI_VertexSet"]
         self.topWall = self.mesh.specialSets["MaxJ_VertexSet"]
         self.bottomWall = self.mesh.specialSets["MinJ_VertexSet"]
         self.rightWall = self.mesh.specialSets["MaxI_VertexSet"]
+        
+        if self.mesh.dim > 2:
+            self.frontWall = self.mesh.specialSets["MinK_VertexSet"]
+            self.backWall = self.mesh.specialSets["MaxK_VertexSet"]
+
+        self.time = 0.0
+
+        # global variables
+        self.global_thermal_diffusivity = None
+        self.global_thermal_capacity = None
+        self.global_thermal_expansivity = None
+        self.global_radiogenic_heat_production = None
+
+    @property
+    def outputDir(self):
+        return self._outputDir
+
+    @outputDir.setter
+    def outputDir(self, value):
+        if uw.rank() == 0:
+            if not os.path.exists(value):
+                os.makedirs(value)
+        self._outputDir = value
+
+
+    def _set_mesh(self):
+
+        minCoord = tuple([nd(val) for val in self.minCoord])
+        maxCoord = tuple([nd(val) for val in self.maxCoord])
+
+        self.mesh = uw.mesh.FeMesh_Cartesian(elementType=self.elementType,
+                                             elementRes=self.elementRes,
+                                             minCoord=minCoord,
+                                             maxCoord=maxCoord,
+                                             periodic=self.periodic)
 
     def set_temperatureBCs(self, left=None, right=None, top=None, bottom=None,
                            indexSets=[]):
@@ -341,14 +349,14 @@ class Model(object):
 
     def init_advection_diffusion(self):
         DiffusivityMap = {}
-        for material in self._materials:
+        for material in self.materials:
             DiffusivityMap[material.index] = nd(material.diffusivity)
         
         self.DiffusivityFn = fn.branching.map(fn_key=self.material,
                                               mapping=DiffusivityMap)
        
         HeatProdMap = {}
-        for material in self._materials:
+        for material in self.materials:
             HeatProdMap[material.index] = (nd(material.radiogenicHeatProd) /
                                            (nd(material.density) *
                                             nd(material.capacity)))
@@ -370,16 +378,17 @@ class Model(object):
         self._set_density()
         self.buoyancyFn = self.densityFn * self.gravity
 
-        self._set_viscosity()
-
-        stokes = uw.systems.Stokes(velocityField=self.velocity,
-                                   pressureField=self._solverPressure,
-                                   conditions=conditions,
-                                   fn_viscosity=self.viscosityFn,
-                                   fn_bodyforce=self.buoyancyFn)
+        if any([material.viscosity for material in self.materials]): 
+            self._set_viscosity()
+            
+            stokes = uw.systems.Stokes(velocityField=self.velocity,
+                                       pressureField=self.pressure,
+                                       conditions=conditions,
+                                       fn_viscosity=self.viscosityFn,
+                                       fn_bodyforce=self.buoyancyFn)
  
-        self.solver = uw.systems.Solver(stokes)
-        self.solver.set_inner_method("mumps")
+            self.solver = uw.systems.Solver(stokes)
+            self.solver.set_inner_method("mumps")
 
     def set_velocityBCs(self, left=None, right=None, top=None, bottom=None,
                         indexSets=[]):
@@ -416,22 +425,48 @@ class Model(object):
                                       variable=self.velocity,
                                       indexSetsPerDof=indices)
 
-    def add_material(self, vertices, reset=False, name="unknown"):
+    def add_material(self, vertices=None, reset=False, name="unknown",
+                     shape=None, top=None, bottom=None):
 
         if reset:
-            self._materials = []
+            self.materials = []
 
-        vertices = [(nd(x), nd(y)) for x, y in vertices]
-        mat = Material(name, vertices)
+        if vertices:
+            vertices = [(nd(x), nd(y)) for x, y in vertices]
+        mat = Material(name=name, vertices=vertices, 
+                       diffusivity=self.global_thermal_diffusivity,
+                       capacity=self.global_thermal_capacity,
+                       thermalExpansivity=self.global_thermal_expansivity,
+                       radiogenicHeatProd=self.global_radiogenic_heat_production,
+                       shape=shape,
+                       minX=nd(self.minCoord[0]),
+                       maxX=nd(self.maxCoord[0]),
+                       top=nd(top),
+                       bottom=nd(bottom))
         mat.indices = self._get_material_indices(mat)
-        self._materials.append(mat)
+        self.materials.reverse()
+        self.materials.append(mat)
+        self.materials.reverse()
+        self._fill_model()
+        return mat
+
+    def _fill_model(self):
 
         conditions = [(obj.shape, obj.index)
-                      for obj in self._materials if obj.shape is not None]
+                      for obj in self.materials if obj.shape is not None]
 
         conditions.append((True, self._defaultMaterial))
         self.material.data[:] = fn.branching.conditional(conditions).evaluate(self.swarm)
-        return mat
+
+    @property
+    def material_drawing_order(self):
+        return self.material_drawing_order()
+
+    @material_drawing_order.setter
+    def material_drawing_order(self, value):
+        self._material_drawing_order = value
+        self.materials = value
+        self._fill_model()
 
     def _get_material_indices(self, mat):
         indices = []
@@ -445,7 +480,7 @@ class Model(object):
 
     def _set_density(self):
         densityMap = {}
-        for material in self._materials:
+        for material in self.materials:
             if self.temperature:
                 densityMap[material.index] = nd(material.density) * (1.0 -
                                              nd(material.thermalExpansivity)
@@ -466,7 +501,7 @@ class Model(object):
 
         ViscosityMap = {}
         BGViscosityMap = {}
-        for material in self._materials:
+        for material in self.materials:
             backgroundViscosity = material.viscosity._get_effective_viscosity(
                     self.pressure,
                     self.strainRate,
@@ -506,13 +541,13 @@ class Model(object):
 
     def solve_temperature_steady_state(self):
         DiffusivityMap = {}
-        for material in self._materials:
+        for material in self.materials:
             DiffusivityMap[material.index] = nd(material.diffusivity)
         
         self.DiffusivityFn = fn.branching.map(fn_key = self.material, mapping = DiffusivityMap)
        
         HeatProdMap = {}
-        for material in self._materials:
+        for material in self.materials:
             HeatProdMap[material.index] = nd(material.radiogenicHeatProd)/(nd(material.density)*nd(material.capacity))
         
         self.HeatProdFn = fn.branching.map(fn_key = self.material, mapping = HeatProdMap)
@@ -537,42 +572,70 @@ class Model(object):
                                         integrationType='surface',
                                         surfaceIndexSet=self.topWall)
         surfacePressureIntegral = uw.utils.Integral(
-                fn=self._solverPressure,
+                fn=self.pressure,
                 mesh=self.mesh,
                 integrationType='surface',
                 surfaceIndexSet=self.topWall
             )
         (area,) = surfaceArea.evaluate()
         (p0,) = surfacePressureIntegral.evaluate()
-        self.pressure.data[:] = self._solverPressure.data[:] - (p0 / area)
+        self.pressure.data[:] = self.pressure.data[:] - (p0 / area)
 
-    def solve(self, step):
-        _nonLinearSolver(self, step, nl_tol=1e-2, nl_maxIts=40)
+    def solve(self):
+        self.solver.solve(nonLinearIterate=True,
+                          callback_post_solve=self._calibrate_pressure)
         self.solutionExist.value = True
 
-    def run_for(self, endTime=None):
+    def init_model(self, temperature=True, pressure=True):
+        
+        # Init Temperature Field
+        if self.temperature and temperature:
+            self.solve_temperature_steady_state()
+            self.init_advection_diffusion()
+
+        # Init Pressure Field
+        if self.pressure and pressure:
+            self.solve_lithostatic_pressure()
+        
+        self.init_stokes_system()
+
+    def run_for(self, endTime=None, checkpoint=None):
         self.time = 0.
-        step = 0
-        nsteps = 10
+        units = endTime.units
         endTime = self.time + nd(endTime)
-        #checkpointNumber = 0
-        while step < nsteps:
-            self.solve(step)
+        step = 0
 
-            #if step % 1 == 0:
-            #    checkpointNumber += 1
-            #    self.checkpoint()
+        next_checkpoint = None
+        if checkpoint:
+            next_checkpoint = self.time + nd(checkpoint)
 
+        while self.time < endTime:
+            self.solve()
+
+            if self.time == next_checkpoint:
+                self.checkpointID += 1
+                self.checkpoint()
+                next_checkpoint += nd(checkpoint)
+
+            # Whats the longest we can run before reaching the end of the model
+            # or a checkpoint?
+            # Need to generalize that
+            dt = self.advdiffSystem.get_max_dt()
+            
+            if checkpoint:
+                dt = min(dt, next_checkpoint - self.time)
+            
+            self._dt = min(dt, endTime - self.time)
+            
             self.update()
-            print "Step: ", str(step)
 
             step += 1
+            if checkpoint or step % 5 == 0:
+                print "Time: ", str(sca.Dimensionalize(self.time, units))
 
     def update(self):
-        # get_dt
-        # Need to generalize that
-        dt = self.advdiffSystem.get_max_dt()
 
+        dt = self._dt
         # Increment plastic strain
         plasticStrainIncrement = dt * self.isYielding.evaluate(self.swarm)
         #weight = boundary(swarm.particleCoordinates.data[:,0], minX, maxX, 20, 4)
@@ -583,7 +646,7 @@ class Model(object):
         # Solve for temperature
         self.advdiffSystem.integrate(dt)
 
-        # Integrate Swarns in time
+        # Integrate Swarms in time
         self.swarm_advector.integrate(dt, update_owners=True) 
         
         # Do pop control
@@ -600,21 +663,68 @@ class Model(object):
         self.time += dt
 
     def checkpoint(self):
-        return 0
+        self.save_velocity(self.checkpointID)
+        self.save_pressure(self.checkpointID)
+        self.save_temperature(self.checkpointID)
+        self.save_material(self.checkpointID)
 
     def plot_material(self, figsize=(1200, 400), **args):
-        Fig = glucifer.Figure(figsize=(1200, 400))
+        Fig = glucifer.Figure(figsize=(1200, 400), title="Materials")
         Fig.append(glucifer.objects.Points(self.swarm,
                                            fn_colour=self.material,
                                            fn_size=2.0))
+        Fig.show()
         return Fig
- 
-    def plot_viscosity(self, figsize=(1200, 400), **args):
-        Fig = glucifer.Figure(figsize=(1200, 400))
+
+    def save_velocity(self, checkpointID, units=u.centimeter/u.year):
+        mH = self.mesh.save(os.path.join(self.outputDir, "mesh.h5"),
+                            scaling=True, units=u.kilometers)
+        file_prefix = os.path.join(self.outputDir,
+                                   'velocity-%s' % checkpointID)
+        handle = self.velocity.save('%s.h5' % file_prefix, scaling=True,
+                                    units=units)
+        self.velocity.xdmf('%s.xdmf' % file_prefix, handle, 'velocity', mH,
+                           'mesh', modeltime=self.time)
+    
+    def save_pressure(self, checkpointID, units=u.pascal):
+        mH = self.mesh.save(os.path.join(self.outputDir, "mesh.h5"),
+                            scaling=True, units=u.kilometers)
+        file_prefix = os.path.join(self.outputDir,
+                                   'pressure-%s' % checkpointID)
+        handle = self.pressure.save('%s.h5' % file_prefix, scaling=True,
+                                    units=units)
+        self.pressure.xdmf('%s.xdmf' % file_prefix, handle, 'pressure', mH,
+                           'mesh', modeltime=self.time)
+    
+    def save_temperature(self, checkpointID, units=u.degK):
+        mH = self.mesh.save(os.path.join(self.outputDir, "mesh.h5"),
+                            scaling=True, units=u.kilometers)
+        file_prefix = os.path.join(self.outputDir,
+                                   'temperature-%s' % checkpointID)
+        handle = self.temperature.save('%s.h5' % file_prefix, scaling=True,
+                                       units=units)
+        self.temperature.xdmf('%s.xdmf' % file_prefix, handle,
+                              'temperature', mH,
+                              'mesh', modeltime=self.time)
+
+    def save_material(self, checkpointID):
+        sH = self.swarm.save(os.path.join(self.outputDir,
+                                          'swarm-%s.h5' % checkpointID),
+                             units=u.kilometers)
+
+        file_prefix = os.path.join(self.outputDir, 'material-%s' % checkpointID)
+        handle = self.material.save('%s.h5' % file_prefix)
+        self.material.xdmf('%s.xdmf' % file_prefix, handle, 'material', sH,
+                           'swarm', modeltime=self.time)
+
+
+    def plot_viscosity(self, figsize=(1200, 400), units=u.pascal*u.second, **args):
+        Fig = glucifer.Figure(figsize=(1200, 400), title="Viscosity Field")
         Fig.append(glucifer.objects.Points(self.swarm,
                                            fn_colour=self.viscosityFn,
                                            fn_size=2.0,
                                            logScale=True))
+        Fig.show()
         return Fig
 
     def plot_density(self, figsize=(1200, 400), **args):
@@ -622,11 +732,14 @@ class Model(object):
         Fig.append(glucifer.objects.Points(self.swarm,
                                            fn_colour=self.densityFn,
                                            fn_size=2.0))
+        Fig.show()
         return Fig
 
-    def plot_temperature(self, figsize=(1200, 400), **args):
-        Fig = glucifer.Figure(figsize=(1200, 400))
-        Fig.append(glucifer.objects.Surface(self.mesh, self.temperature))
+    def plot_temperature(self, figsize=(1200, 400), units=u.degK, **args):
+        Fig = glucifer.Figure(figsize=(1200, 400), title="Temperature Field")
+        Fig.append(glucifer.objects.Surface(self.mesh, 
+                   sca.Dimensionalize(self.temperature, units)))
+        Fig.show()
         return Fig
 
     def plot_velocity(self, figsize=(1200, 400), **args):
@@ -636,9 +749,12 @@ class Model(object):
                                                  scaling=0.03, arrowHead=10.,
                                                  resolutionI=25, 
                                                  resolutionJ=10)) 
+        Fig.show()
         return Fig
 
-    def plot_pressure(self, figsize=(1200, 400), **args):
-        Fig = glucifer.Figure(figsize=(1200, 400))
-        Fig.append(glucifer.objects.Surface(self.mesh, self.pressure))
+    def plot_pressure(self, figsize=(1200, 400), units=u.pascal, **kwargs):
+        Fig = glucifer.Figure(figsize=(1200, 400), title="Pressure Field")
+        Fig.append(glucifer.objects.Surface(self.mesh,
+                   sca.Dimensionalize(self.pressure, units), **kwargs))
+        Fig.show()
         return Fig
