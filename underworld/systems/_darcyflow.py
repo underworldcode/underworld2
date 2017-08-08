@@ -26,7 +26,7 @@ class SteadyStateDarcyFlow(_stgermain.StgCompoundComponent):
 
     The strong form of the given boundary value problem, for :math:`f`,
     :math:`q` and :math:`h` given, is
-    
+
     .. math::
         \\begin{align}
         q_i =& \\kappa \\, \left( -u_{,i} + S_i \right)   & \\\\
@@ -38,14 +38,14 @@ class SteadyStateDarcyFlow(_stgermain.StgCompoundComponent):
     where, :math:`\\kappa` is the diffusivity, :math:`u` is the pressure,
     :math:`S` is a flow body-source, for example due to gravity,
     :math:`f` is a source term, :math:`q` is the Dirichlet condition, and
-    :math:`h` is a Neumann condition. The problem boundary, :math:`\\Gamma`, 
+    :math:`h` is a Neumann condition. The problem boundary, :math:`\\Gamma`,
     admits the decomposition :math:`\\Gamma=\\Gamma_q\\cup\\Gamma_h` where
     :math:`\\emptyset=\\Gamma_q\\cap\\Gamma_h`. The equivalent weak form is:
 
     .. math::
         -\\int_{\\Omega} w_{,i} \\, q_i \\, d \\Omega = \\int_{\\Omega} w \\, f \\, d\\Omega + \\int_{\\Gamma_h} w \\, h \\,  d \\Gamma
-    
-    where we must find :math:`u` which satisfies the above for all :math:`w` 
+
+    where we must find :math:`u` which satisfies the above for all :math:`w`
     in some variational space.
 
     Parameters
@@ -60,13 +60,13 @@ class SteadyStateDarcyFlow(_stgermain.StgCompoundComponent):
         A function that defines the flow body-force across the domain, for example gravity. Must be a vector.
     voronoi_swarm : underworld.swarm.Swarm
         A swarm with just one particle within each cell should be provided. This avoids the evaluation
-        of the velocity on nodes and inaccuracies arising from diffusivity changes within cells. 
-        If a swarm is provided, voronoi type numerical integration is 
-        utilised. The provided swarm is used as the basis for the voronoi 
+        of the velocity on nodes and inaccuracies arising from diffusivity changes within cells.
+        If a swarm is provided, voronoi type numerical integration is
+        utilised. The provided swarm is used as the basis for the voronoi
         integration. If no voronoi_swarm is provided, Gauss integration
         is used.
     conditions : underworld.conditions.SystemCondition
-        Numerical conditions to impose on the system. This should be supplied as 
+        Numerical conditions to impose on the system. This should be supplied as
         the condition itself, or a list object containing the conditions.
     swarmVarVelocity (optional) : undeworld.swarm.SwarmVariable
         If a swarm variable is provided, the velocity calculated on the swarm will be stored.
@@ -80,7 +80,7 @@ class SteadyStateDarcyFlow(_stgermain.StgCompoundComponent):
     Constructor must be called collectively by all processes.
 
 
-    
+
     """
 
     _objectsDict = {  "_system" : "SystemLinearEquations" }
@@ -191,9 +191,9 @@ class SteadyStateDarcyFlow(_stgermain.StgCompoundComponent):
                 #NOTE many NeumannConditions can be used but the _sufaceFluxTerm only records the last
 
                 ### -VE flux because of Energy_SLE_Solver ###
-                negativeCond = uw.conditions.NeumannCondition( flux=-1.0*cond.fn_flux,
+                negativeCond = uw.conditions.NeumannCondition( fn_flux=-1.0*cond.fn_flux,
                                                                variable=cond.variable,
-                                                               nodeIndexSet=cond.indexSet )
+                                                               indexSetsPerDof=cond.indexSet )
 
                 self._surfaceFluxTerm = sle.VectorSurfaceAssemblyTerm_NA__Fn__ni(
                                                                 assembledObject  = self._fvector,
@@ -220,7 +220,7 @@ class SteadyStateDarcyFlow(_stgermain.StgCompoundComponent):
             velproj = uw.utils.MeshVariable_Projection(self._velocityField,fnVel,self._swarm)
             velproj.solve()
 
-    
+
     @property
     def fn_diffusivity(self):
         """

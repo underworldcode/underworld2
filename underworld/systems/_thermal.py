@@ -25,7 +25,7 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
 
     The strong form of the given boundary value problem, for :math:`f`,
     :math:`h` and :math:`h` given, is
-    
+
     .. math::
         \\begin{align}
         q_i =& - \\alpha \\, u_{,i}  & \\\\
@@ -36,14 +36,14 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
 
     where, :math:`\\alpha` is the diffusivity, :math:`u` is the temperature,
     :math:`f` is a source term, :math:`g` is the Dirichlet condition, and
-    :math:`h` is a Neumann condition. The problem boundary, :math:`\\Gamma`, 
+    :math:`h` is a Neumann condition. The problem boundary, :math:`\\Gamma`,
     admits the decomposition :math:`\\Gamma=\\Gamma_g\\cup\\Gamma_h` where
     :math:`\\emptyset=\\Gamma_g\\cap\\Gamma_h`. The equivalent weak form is:
 
     .. math::
         -\\int_{\\Omega} w_{,i} \\, q_i \\, d \\Omega = \\int_{\\Omega} w \\, f \\, d\\Omega + \\int_{\\Gamma_h} w \\, h \\,  d \\Gamma
-    
-    where we must find :math:`u` which satisfies the above for all :math:`w` 
+
+    where we must find :math:`u` which satisfies the above for all :math:`w`
     in some variational space.
 
     Parameters
@@ -55,12 +55,12 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
     fn_heating : underworld.function.Function
         A function that defines the heating across the domain. Optional.
     voronoi_swarm : underworld.swarm.Swarm
-        If a voronoi_swarm is provided, voronoi type numerical integration is 
-        utilised. The provided swarm is used as the basis for the voronoi 
+        If a voronoi_swarm is provided, voronoi type numerical integration is
+        utilised. The provided swarm is used as the basis for the voronoi
         integration. If no voronoi_swarm is provided, Gauss integration
         is used.
     conditions : underworld.conditions.SystemCondition
-        Numerical conditions to impose on the system. This should be supplied as 
+        Numerical conditions to impose on the system. This should be supplied as
         the condition itself, or a list object containing the conditions.
 
     Notes
@@ -81,7 +81,7 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
     >>> tSystem = uw.systems.SteadyStateHeat(temperatureField=tField, fn_diffusivity=1.0, conditions=[tbcs])
 
     Example with non diffusivity:
-    
+
     >>> k = tField + 1.0
     >>> tSystem = uw.systems.SteadyStateHeat(temperatureField=tField, fn_diffusivity=k, conditions=[tbcs])
     >>> solver = uw.systems.Solver(tSystem)
@@ -92,7 +92,7 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
     Diffusivity function depends on the temperature field provided to the system.
     Please set the 'nonLinearIterate' solve parameter to 'True' or 'False' to continue.
     >>> solver.solve(nonLinearIterate=True)
-    
+
     """
 
     _objectsDict = {  "_system" : "SystemLinearEquations" }
@@ -183,7 +183,7 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
                 ### -VE flux because of the FEM discretisation method of the initial equation
                 negativeCond = uw.conditions.NeumannCondition( fn_flux=-1.0*cond.fn_flux,
                                                                variable=cond.variable,
-                                                               nodeIndexSet=cond.indexSet )
+                                                               indexSetsPerDof=cond.indexSetsPerDof )
 
                 self._surfaceFluxTerm = sle.VectorSurfaceAssemblyTerm_NA__Fn__ni(
                                                                 assembledObject  = self._fvector,

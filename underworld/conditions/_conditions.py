@@ -19,10 +19,41 @@ class SystemCondition(_stgermain.StgCompoundComponent):
     __metaclass__ = abc.ABCMeta
     def _add_to_stg_dict(self,componentDict):
         pass
+
+    def __init__(self, variable, indexSetsPerDof):
+        if not isinstance( variable, uw.mesh.MeshVariable ):
+            raise TypeError("Provided variable must be of class 'MeshVariable'.")
+        self._variable = variable
+
+        if isinstance( indexSetsPerDof, uw.container.IndexSet ):
+            indexSets = ( indexSetsPerDof, )
+        elif isinstance( indexSetsPerDof, (list,tuple)):
+            indexSets = indexSetsPerDof
+        else:
+            raise TypeError("You must provide the required 'indexSetsPerDof' item\n"+
+                             "as a list or tuple of 'IndexSet' items.")
+        for guy in indexSets:
+            if not isinstance( guy, (uw.container.IndexSet,type(None)) ):
+                raise TypeError("Provided list must only contain objects of 'NoneType' or type 'IndexSet'.")
+        self._indexSets = indexSets
+
+        if variable.nodeDofCount != len(self._indexSets):
+            raise ValueError("Provided variable has a nodeDofCount of {}, however you have ".format(variable.nodeDofCount)+
+                             "provided {} index set(s). You must provide an index set for each degree ".format(len(self._indexSets))+
+                             "of freedom of your variable, but no more.")
+
+        # ok, lets setup the c array
+        libUnderworld.StGermain._PythonVC_SetupIndexSetArray(self._cself,len(self._indexSets))
+
+        # now, lets add the indexSet objects
+        for position,set in enumerate(self._indexSets):
+            if set:
+                libUnderworld.StGermain._PythonVC_SetIndexSetAtArrayPosition( self._cself, set._cself, position );
+
     @property
-    def indexSet(self):
+    def indexSetsPerDof(self):
         """ See class constructor for details. """
-        return self._indexSet
+        return self._indexSets
 
     @property
     def variable(self):
@@ -73,36 +104,8 @@ class DirichletCondition(SystemCondition):
     _selfObjectName = "_pyvc"
 
     def __init__(self, variable, indexSetsPerDof):
-        if not isinstance( variable, uw.mesh.MeshVariable ):
-            raise TypeError("Provided variable must be of class 'MeshVariable'.")
-        self._variable = variable
+        super(DirichletCondition,self).__init__(variable, indexSetsPerDof)
 
-        if isinstance( indexSetsPerDof, uw.container.IndexSet ):
-            indexSets = ( indexSetsPerDof, )
-        elif isinstance( indexSetsPerDof, (list,tuple)):
-            indexSets = indexSetsPerDof
-        else:
-            raise TypeError("You must provide the required indexSet as an 'IndexSet' \n"+
-                             "item, or as a list or tuple of 'IndexSet' items.")
-        for guy in indexSets:
-            if not isinstance( guy, (uw.container.IndexSet,type(None)) ):
-                raise TypeError("Provided list must only contain objects of 'NoneType' or type 'IndexSet'.")
-        self._indexSets = indexSets
-
-        if variable.nodeDofCount != len(self._indexSets):
-            raise ValueError("Provided variable has a nodeDofCount of {}, however you have ".format(variable.nodeDofCount)+
-                             "provided {} index set(s). You must provide an index set for each degree ".format(len(self._indexSets))+
-                             "of freedom of your variable, but no more.")
-
-        # ok, lets setup the c array
-        libUnderworld.StGermain._PythonVC_SetupIndexSetArray(self._cself,len(self._indexSets))
-
-        # now, lets add the indexSet objects
-        for position,set in enumerate(self._indexSets):
-            if set:
-                libUnderworld.StGermain._PythonVC_SetIndexSetAtArrayPosition( self._cself, set._cself, position );
-
-        super(DirichletCondition,self).__init__()
 
 class NeumannCondition(SystemCondition):
     """
@@ -117,47 +120,43 @@ class NeumannCondition(SystemCondition):
     fn_flux : underworld.function.Function
         Function which determines flux values.
     variable : underworld.mesh.MeshVariable
-        This is the variable for which the Dirichlet condition applies.
-    nodeIndexSet : underworld.container.IndexSet
-        The index set for which boundary flux values will be applied.
+        The variable that describes the discretisation (mesh & DOFs) for 'indexSetsPerDof'
+    indexSetsPerDof : list, tuple, IndexSet
+        The index set(s) which flag nodes/DOFs as Neumann conditions.
+        Note that the user must provide an index set for each degree of
+        freedom of the variable above.  So for a vector variable of rank 2 (say Vx & Vy),
+        two index sets must be provided (say VxDofSet, VyDofSet).
 
+    Example
+    -------
+    Basic setup and usage of Neumann conditions:
+
+    >>> linearMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.) )
+    >>> velocityField = uw.mesh.MeshVariable( linearMesh, 2 )
+    >>> velocityField.data[:] = [0.,0.]  # set velocity zero everywhere, which will of course include the boundaries.
+    >>> myFunc = (uw.function.coord()[1],0.0)
+    >>> bottomWall = linearMesh.specialSets["MinJ_VertexSet"]
+    >>> tractionBC = uw.conditions.NeumannCondition(variable=velocityField, fn_flux=myFunc, indexSetsPerDof=(None,bottomWall) )
     """
     _objectsDict = { "_pyvc": "PythonVC" }
     _selfObjectName = "_pyvc"
 
-    def __init__(self, variable, nodeIndexSet, fn_flux=None, flux=None ):
-        # import pdb; pdb.set_trace()
-        
-        # DEPRECATION check 2017-07-01
-        if flux != None:
+    # def __init__(self, variable, indexSetsPerDof, fn_flux=None ):
+    def __init__(self, variable, indexSetsPerDof=None, fn_flux=None, nodeIndexSet=None ):
+        if indexSetsPerDof is None and nodeIndexSet is not None:
+            # DEPRECATION, remove v2.5.0
             import warnings
-            warnings.warn("\n### DEPRECATION WARNING The 'flux' parameter in the NeumannCondition\n" +
-            "class has been replaced with 'fn_flux'. In the coming release 'flux' will be DEPRECATED\n"+
-            "please update your python code\n")
-            fn_flux = flux
-        
-        self.fn_flux = fn_flux
-
-        if not isinstance( variable, uw.mesh.MeshVariable ):
-            raise TypeError("Provided variable must be of class 'MeshVariable'.")
-        self._variable = variable
-
-        if isinstance( nodeIndexSet, uw.container.IndexSet):
-            indexSet = nodeIndexSet
-        else:
-            raise TypeError("Provided 'nodeIndexSet' must be of type 'IndexSet', " \
-            "currently it is: ", type(nodeIndexSet)  )
-
-        self._indexSet = indexSet
-
-        # ok, lets setup the c array, only 1 of them
-        libUnderworld.StGermain._PythonVC_SetupIndexSetArray(self._cself,1 )
-
-        # now, lets add the indexSet objects
-        libUnderworld.StGermain._PythonVC_SetIndexSetAtArrayPosition( self._cself, self._indexSet._cself, 0 );
+            warnings.warn("Warning: The 'nodeIndexSet parameter in the NeumannCondition " +
+            "class has been replaced with 'indexSetsPerDof'. 'indexSetPerDof' takes a " +
+            "tuple of index sets, one per degree of freedom of the 'variable'" )
 
         # call parent
-        super(NeumannCondition,self).__init__()
+        super(NeumannCondition,self).__init__(variable, indexSetsPerDof)
+
+        _fn_flux  = uw.function.Function.convert(fn_flux)
+        if not isinstance( _fn_flux, uw.function.Function):
+            raise TypeError( "Provided 'fn_flux' must be of or convertible to 'Function' class." )
+        self.fn_flux=_fn_flux
 
     @property
     def fn_flux(self):
