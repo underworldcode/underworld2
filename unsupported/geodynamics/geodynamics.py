@@ -1,4 +1,5 @@
 import os
+import types
 import underworld as uw
 import underworld.function as fn
 from itertools import count
@@ -92,6 +93,10 @@ class Viscosity(object):
 
 
 class Rheology(object):
+    """ This class is deprecated and only remains for 
+        backward compatibility. It will be removed soon and
+        should not be uses
+    """
     def __init__(self):
         self.viscosity = None
         self.plasticity = None
@@ -211,6 +216,8 @@ class Model(object):
         self.name = name
         self.outputDir = outputDir
         self.checkpointID = 0
+        self._checkpoint = None
+        self.checkpoint = None
 
         self.minViscosity = 1e19 * u.pascal * u.second
         self.maxViscosity = 1e25 * u.pascal * u.second
@@ -291,6 +298,8 @@ class Model(object):
         self.global_thermal_capacity = None
         self.global_thermal_expansivity = None
         self.global_radiogenic_heat_production = None
+
+        self._lecodeRefMaterial = None
 
     @property
     def outputDir(self):
@@ -386,9 +395,10 @@ class Model(object):
                                        conditions=conditions,
                                        fn_viscosity=self.viscosityFn,
                                        fn_bodyforce=self.buoyancyFn)
- 
+
             self.solver = uw.systems.Solver(stokes)
             self.solver.set_inner_method("mumps")
+            self.solver.set_penalty(1e6)
 
     def set_velocityBCs(self, left=None, right=None, top=None, bottom=None,
                         indexSets=[]):
@@ -425,6 +435,10 @@ class Model(object):
                                       variable=self.velocity,
                                       indexSetsPerDof=indices)
 
+    def use_lecode_isostasy(self, material_ref):
+        self._lecodeRefMaterial = material_ref
+
+
     def add_material(self, vertices=None, reset=False, name="unknown",
                      shape=None, top=None, bottom=None):
 
@@ -448,6 +462,7 @@ class Model(object):
         self.materials.append(mat)
         self.materials.reverse()
         self._fill_model()
+
         return mat
 
     def _fill_model(self):
@@ -626,6 +641,7 @@ class Model(object):
                 dt = min(dt, next_checkpoint - self.time)
             
             self._dt = min(dt, endTime - self.time)
+            uw.barrier()
             
             self.update()
 
@@ -658,15 +674,27 @@ class Model(object):
                               self.velocity,
                               self.densityFn,
                               self.material, 
-                              6, average=False)
+                              self._lecodeRefMaterial.index,
+                              average=False)
 
         self.time += dt
 
-    def checkpoint(self):
+    def _default_checkpoint_function(self):
         self.save_velocity(self.checkpointID)
         self.save_pressure(self.checkpointID)
         self.save_temperature(self.checkpointID)
         self.save_material(self.checkpointID)
+
+    @property
+    def checkpoint(self):
+        return self._checkpoint
+
+    @checkpoint.setter
+    def checkpoint(self, func=None):
+        if func:
+            self._checkpoint = types.MethodType(func, self)
+        else:
+            self._checkpoint = self._default_checkpoint_function
 
     def plot_material(self, figsize=(1200, 400), **args):
         Fig = glucifer.Figure(figsize=(1200, 400), title="Materials")
