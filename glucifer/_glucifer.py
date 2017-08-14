@@ -101,21 +101,16 @@ class Store(_stgermain.StgCompoundComponent):
     _selfObjectName = "_db"
     viewer = None
 
-    def __init__(self, filename=None, split=False, view=False, **kwargs):
+    def __init__(self, filename=None, split=False, **kwargs):
 
         self.step = 0
         if filename and not filename.lower().endswith('.gldb') and not filename.lower().endswith('.db'):
             filename += ".gldb"
         self.filename = filename
         self._objects = []
-        self._viewonly = False
         #Don't split on timestep unless filename provided
         if not self.filename: split = False
         self._split = split
-
-        #Open an existing db?
-        if view and filename and os.path.isfile(filename):
-            self._viewonly = True
 
         super(Store,self).__init__(**kwargs)
 
@@ -137,8 +132,7 @@ class Store(_stgermain.StgCompoundComponent):
         componentDictionary[self._db.name].update( {
                             "filename"          :filename,
                             "splitTransactions" :True,
-                            "singleFile"        :not self._split,
-                            "viewonly"          :self._viewonly
+                            "singleFile"        :not self._split
         } )
 
     def _setup(self):
@@ -213,74 +207,67 @@ class Store(_stgermain.StgCompoundComponent):
                 else:
                    obj.properties["name"] = obj._dr.type[3:] + '_' + str(o)
 
-        if not self._viewonly:
-            #Set the write step
-            self._db.timeStep = self.step
+        #Set the write step
+        self._db.timeStep = self.step
 
-            #Delete all drawing objects in register
-            for ii in range(self._db.drawingObjects.objects.count,0,-1):
-                libUnderworld.StGermain._Stg_ObjectList_RemoveByIndex(self._db.drawingObjects.objects,ii-1, libUnderworld.StGermain.KEEP)
+        #Delete all drawing objects in register
+        for ii in range(self._db.drawingObjects.objects.count,0,-1):
+            libUnderworld.StGermain._Stg_ObjectList_RemoveByIndex(self._db.drawingObjects.objects,ii-1, libUnderworld.StGermain.KEEP)
 
-            #Add drawing objects to register and output any custom data on them
+        #Add drawing objects to register and output any custom data on them
+        for obj in self._objects:
+            #Hide objects not in this figure (also check parent for colour bars)
+            obj.properties["visible"] = bool(obj in objects or obj.parent and obj.parent in objects)
+
+            #Ensure properties updated before object written to db
+            _libUnderworld.gLucifer.lucDrawingObject_SetProperties(obj._dr, obj._getProperties());
+            if obj.colourMap:
+                _libUnderworld.gLucifer.lucColourMap_SetProperties(obj.colourMap._cm, obj.colourMap._getProperties());
+
+            #Add the object to the drawing object register for the database
+            libUnderworld.StGermain.Stg_ObjectList_Append(self._db.drawingObjects.objects,obj._cself)
+
+        # go ahead and fill db
+        libUnderworld.gLucifer._lucDatabase_Execute(self._db,None)
+
+        #Write visualisation state as json data
+        libUnderworld.gLucifer.lucDatabase_WriteState(self._db, figname, self._get_state(self._objects, props))
+
+        #Output any custom geometry on objects
+        if lavavu and uw.rank() == 0 and any(x.geomType is not None for x in self._objects):
+            lv = self.lvget() #Open the viewer
             for obj in self._objects:
-                #Hide objects not in this figure (also check parent for colour bars)
-                obj.properties["visible"] = bool(obj in objects or obj.parent and obj.parent in objects)
+                #Create/Transform geometry by object
+                obj.render(lv)
 
-                #Ensure properties updated before object written to db
-                _libUnderworld.gLucifer.lucDrawingObject_SetProperties(obj._dr, obj._getProperties());
-                if obj.colourMap:
-                    _libUnderworld.gLucifer.lucColourMap_SetProperties(obj.colourMap._cm, obj.colourMap._getProperties());
-
-                #Add the object to the drawing object register for the database
-                libUnderworld.StGermain.Stg_ObjectList_Append(self._db.drawingObjects.objects,obj._cself)
-
-            # go ahead and fill db
-            libUnderworld.gLucifer._lucDatabase_Execute(self._db,None)
-
-            #Write visualisation state as json data
-            libUnderworld.gLucifer.lucDatabase_WriteState(self._db, figname, self._get_state(self._objects, props))
-
-            #Output any custom geometry on objects
-            if lavavu and uw.rank() == 0 and any(x.geomType is not None for x in self._objects):
-                lv = self.lvget() #Open the viewer
-                for obj in self._objects:
-                    #Create/Transform geometry by object
-                    obj.render(lv)
-        else:
-            #Open db, get state and update it to match active figure
-            states = self._read_state()
-            #Find state matching figure by name
-            found = False
-            for state in states:
-                if state["figure"] == figname:
-                    found = True
-                    break
-            if not found:
-                state = states[-1]
-
-            if len(objects):
-                #For each obj in db, lookup in local list by name, replace properties if found
-                #if not found locally, objects in db are hidden from view
-                for dbobj in state["objects"]:
-                    dbobj["visible"] = False
-                    for obj in objects:
-                        if dbobj["name"] == obj.properties["name"]:
-                            #Merge/replace
-                            dbobj.update(obj.properties)
-                            dbobj["visible"] = True
-            else:
-                #No objects passed in with figure, simply plot them all
-                for obj in state["objects"]:
-                    obj["visible"] = True
-
-            export = dict()
-            #Global properties passed from figure
-            state["properties"].update(props)
-            #View properties passed from figure
-            #state["views"][0].update(viewprops)
-            state["views"][0].update(props)
-            #Write updated visualisation state as json data
-            libUnderworld.gLucifer.lucDatabase_WriteState(self._db, figname, json.dumps(state, indent=2))
+        #Parallel custom render output
+        if lavavu and any(hasattr(x, "parallel_render") for x in self._objects):
+            #In case no external file has been written we need to create a temporary
+            #database on root so the other procs can load it
+            tmpdb = None
+            if not self.filename:
+                tmpdb = os.path.join(tmpdir,"tmpDB_"+figname+".gldb")
+                if uw.rank() == 0:
+                    libUnderworld.gLucifer.lucDatabase_BackupDbFile(self._db, tmpdb)
+                else:
+                    self.filename = tmpdb
+            #Wait for temporary db to be written if not already using an external store
+            uw.barrier()
+            #print uw.rank(),self.filename
+            #Open the viewer with db filename
+            lv = self.lvget(self.filename)
+            #Loop through objects and run their parallel_render method if present
+            for obj in self._objects:
+                if hasattr(obj, "parallel_render"):
+                    obj.parallel_render(lv, uw.rank())
+            #Delete the viewer instance on non-root procs
+            uw.barrier()
+            if uw.rank() > 0:
+                lv = None
+                self.viewer = None
+            elif tmpdb is not None:
+                #Remove tmp db
+                os.remove(tmpdb)
 
     def _get_state(self, objects, props):
         #Get current state as string for export
@@ -843,12 +830,13 @@ class Figure(dict):
         #Sets new step on db
         self.db.step = value
 
-class Viewer(dict):
+class Viewer(lavavu.Viewer):
     """  
     The Viewer class provides an interface to load stored figures and revisualise them
+    This is a wrapper of the LavaVu Viewer object
     
-    In addition to parameter specification below, see property docstrings for
-    further information.
+    In addition to parameter specification below, see property docstrings and 
+    lavavu.Viewer help for further information.
 
     Parameters
     ----------
@@ -858,89 +846,70 @@ class Viewer(dict):
     Example
     -------
         
-    Create a reader using an existing database:
+    Open an existing database:
     
     >>> import glucifer
     >>> saved = glucifer.Viewer('vis.gldb')
 
-    Iterate over the figures, print their names and plot them
+    Iterate over the figures, print their names
     
-    >>> for fig in saved:
-    >>>     print(fig.name)
-
-    Get first figure and display
-    
-    >>> fig = saved.next()
-    >>> fig.show()
+    >>> for name in saved.figures():
+    >>>     print(name)
 
     Get a figure by name and display
     (A chosen name can be provided when creating the figures to make this easier)
     
-    >>> fig = saved["myfig"]
-    >>> fig.show()
+    >>> figures = saved.figures()
+    >>> saved.figure("myfig")
+    >>> saved.show()
 
     Display all figures at each timestep
     
-    >>> for step in saved.steps:
-    >>>    saved.step = step
-    >>>    for name in saved:
-    >>>        fig = saved[name]
-    >>>        fig.quality = 3
-    >>>        fig["title"] = "Timestep ##"
-    >>>        fig.show()
+    >>> for step in saved.timesteps():
+    >>>    saved.timestep(step)
+    >>>    for name in figures:
+    >>>        saved.figure(name)
+    >>>        saved.show()
 
     """
 
     _index = 0
 
     def __init__(self, filename, *args, **kwargs):
+        self._step = 0
+
         if not isinstance(filename,str):
             raise TypeError("'filename' object passed in must be of python type 'str'")
+        if filename and not filename.lower().endswith('.gldb') and not filename.lower().endswith('.db'):
+            filename += ".gldb"
 
-        self._db = Store(filename, view=True)
-        self.steps = [-1]
+        self.filename = filename
 
-        super(Viewer, self).__init__(*args, **kwargs)
-
-        global lavavu
-        if not lavavu:
-            print("LavaVu build is required to use Viewer")
-            return
+        super(Viewer, self).__init__(database=filename, *args, **kwargs)
 
         #Load existing figures and save names
-        states = self._db._read_state()
-        if not states:
-            return #No data
-        for state in states:
-            figname = str(state["figure"])
-            fig = Figure(self._db, name=figname, **state["properties"])
-            self[figname] = fig
-            #Append objects, just create generic Drawing type to hold properties
-            for obj in state["objects"]:
-                if obj["visible"]:
-                    fig.append(objects.Drawing(**obj))
-
-        #Timestep info
-        self.steps = self._db.timesteps
-
-    def next(self):
-        #Return next available figure and increment index
-        if self._index >= len(self):
-            self._index = 0
-        key = list(self)[self._index]
-        self._index += 1
-        return self[key]
+        steps = self.timesteps()
+        figures = self.figures()
 
     @property
     def step(self):
         """    
         step (int): current timestep
         """
-        return self._db.step
+        return self._step
 
     @step.setter
     def step(self, value):
-        #Sets new step on db
-        self._db.step = value
+        #TODO: need LavaVu access to current timestep from Model class
+        #Sets new step
+        self.timestep(value)
+        self._step = value
 
+    def show(self):
+        self.display()
+
+    def showall(self):
+        for fig in self.figures():
+            self.figure(fig)
+            self.display()
 

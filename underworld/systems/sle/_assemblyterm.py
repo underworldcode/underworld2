@@ -92,17 +92,18 @@ class VectorSurfaceAssemblyTerm_NA__Fn__ni(VectorAssemblyTerm):
     integrationSwarm  : underworld.swarm.GaussBorderIntegrationSwarm
         Optional integration swarm to be used for numerical integration.
     surfaceGaussPoints : int
-        The number of quadrature points per element face to use in surface 
-        integration. Will be used to create a GaussBorderIntegrationSwarm in 
+        The number of quadrature points per element face to use in surface
+        integration. Will be used to create a GaussBorderIntegrationSwarm in
         the case the 'swarm' input is 'None'.
     """
     _objectsDict = { "_assemblyterm": "VectorSurfaceAssemblyTerm_NA__Fn__ni" }
 
-    def __init__(self, nbc, integrationSwarm=None, surfaceGaussPoints=2, mesh=None, **kwargs):
+    def __init__(self, nbc, integrationSwarm=None, surfaceGaussPoints=2, **kwargs):
         if not isinstance(nbc, uw.conditions.NeumannCondition):
             raise ValueError( "Provided 'nbc' must be a NeumannCondition class." )
         self._nbc = nbc
-        mesh = nbc.variable.mesh
+        # use the nbc variable's mesh
+        mesh = self._nbc.variable.mesh
 
         if integrationSwarm != None:
             if not isinstance( integrationSwarm, uw.swarm.GaussBorderIntegrationSwarm):
@@ -113,7 +114,7 @@ class VectorSurfaceAssemblyTerm_NA__Fn__ni(VectorAssemblyTerm):
             if surfaceGaussPoints < 1:
                 raise ValueError( "Provided 'surfaceGaussPoints' must be a positive integer")
             integrationSwarm = uw.swarm.GaussBorderIntegrationSwarm( mesh=mesh,
-                                                                         particleCount=surfaceGaussPoints )
+                                                                     particleCount=surfaceGaussPoints )
 
         super(VectorSurfaceAssemblyTerm_NA__Fn__ni,self).__init__( integrationSwarm=integrationSwarm, **kwargs )
 
@@ -128,7 +129,12 @@ class VectorSurfaceAssemblyTerm_NA__Fn__ni(VectorAssemblyTerm):
         deltaMeshVariable = uw.mesh.MeshVariable(mesh, 1)
         deltaMeshVariable.data[:] = 0.
         # set a value 1.0 on provided vertices
-        deltaMeshVariable.data[nbc.indexSet.data] = 1.0
+        newSet = mesh.specialSets['Empty']
+        for i in range(len(nbc.indexSetsPerDof)):
+            if nbc.indexSetsPerDof[i] is None:
+                continue
+            newSet += nbc.indexSetsPerDof[i]
+        deltaMeshVariable.data[newSet.data] = 1.0
         # note we use this condition to only capture border swarm particles
         # on the surface itself. for those directly adjacent, the deltaMeshVariable will evaluate
         # to non-zero (but less than 1.), so we need to remove those from the integration as well.
@@ -139,12 +145,13 @@ class VectorSurfaceAssemblyTerm_NA__Fn__ni(VectorAssemblyTerm):
         self._fn = maskFn * nbc.fn_flux
         self._set_fn_function = libUnderworld.Underworld._VectorSurfaceAssemblyTerm_NA__Fn__ni_SetFn
 
-        if mesh:
-            if not isinstance( mesh, uw.mesh.FeMesh_Cartesian ):
-                raise TypeError( "The provided mesh must be of FeMesh_Cartesian class.")
-            # set directly
-            self._cself.geometryMesh = mesh._cself
-            self._mesh = mesh
+        #  Questionable code think we can remove
+        # if mesh:
+        #     if not isinstance( mesh, uw.mesh.FeMesh_Cartesian ):
+        #         raise TypeError( "The provided mesh must be of FeMesh_Cartesian class.")
+        #     # set directly
+        #     self._cself.geometryMesh = mesh._cself
+        #     self._mesh = mesh
 
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method

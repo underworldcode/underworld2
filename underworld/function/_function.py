@@ -789,7 +789,8 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
                 inputType = ArrayType
             # lets check if this array owns its data.. process directly if it does, otherwise take a copy..
             # this is to avoid a bug in the way we parse non-trivial numpy arrays.  will fix in future.  #152
-            if not (inputData.base is None):
+            # Note, we also added the check for 'F_CONTIGUOUS' as we also don't handle this correctly it seems. 
+            if (not (inputData.base is None)) or inputData.flags['F_CONTIGUOUS']:
                 inputData = inputData.copy()
             return _cfn.Query(self._fncself).query(_cfn.NumpyInput(inputData,inputType))
         else:

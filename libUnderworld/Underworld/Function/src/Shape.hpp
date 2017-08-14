@@ -17,7 +17,7 @@ namespace Fn {
     class Polygon: public Function
     {
         public:
-            Polygon(Function* _fn, double* IN_ARRAY2, int DIM1, int DIM2, char* name);
+            Polygon(Function* _fn, double* IN_ARRAY2, int DIM1, int DIM2);
             virtual func getFunction( IOsptr sample_input );
             virtual ~Polygon();
         private:
