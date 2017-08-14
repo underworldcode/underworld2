@@ -122,7 +122,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         -------
         numpy.ndarray
             Array specifying the nodes (global node id) for a given element (local element id).
-            NOTE: Length is local size. 
+            NOTE: Length is local size.
         """
         uw.libUnderworld.StgDomain.Mesh_GenerateENMapVar(self._cself)
         arr = uw.libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.enMapVar)
@@ -236,7 +236,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         >>> someMesh.data[0]
         array([ 0.1,  0.1])
         """
-        
+
         if not remainsRegular is None:
             raise RuntimeError("'remainsRegular' parameter has been renamed to 'isRegular'")
 
@@ -309,7 +309,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
             Returns the number of local nodes on the mesh.
         """
         return libUnderworld.StgDomain.Mesh_GetLocalSize(self._cself, 0)
-    
+
     @property
     def nodesDomain(self):
         """
@@ -351,7 +351,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         4
         """
         return libUnderworld.StgDomain.Mesh_GetLocalSize(self._cself, self.dim)
-        
+
     @property
     def elementsDomain(self):
         """
@@ -1247,7 +1247,7 @@ class _FeMesh_Regional(FeMesh_Cartesian):
         >>> np.fabs(integral-exact)/exact < 1e-1
         True
         """
-        
+
     def __new__(cls, **kwargs):
         return super(_FeMesh_Regional,cls).__new__(cls, **kwargs)
 
@@ -1362,7 +1362,7 @@ class _FeMesh_Regional(FeMesh_Cartesian):
         return vec
 
 class _FeMesh_Annulus(FeMesh_Cartesian):
-    
+
     def __new__(cls, **kwargs):
         return super(_FeMesh_Annulus,cls).__new__(cls, **kwargs)
 
@@ -1378,7 +1378,7 @@ class _FeMesh_Annulus(FeMesh_Cartesian):
             elementRes : 3-tuple
                 1st element - Number of elements across the radial length of the domain
                 2nd element - Number of elements along the circumfrance
-                
+
             radialLengths : 2-tuple, default (3.0,6.0)
                 The radial position of the inner and outer surfaces respectively.
                 (inner radialLengths, outer radialLengths)
@@ -1407,7 +1407,7 @@ class _FeMesh_Annulus(FeMesh_Cartesian):
             if not isinstance( el, (float,int)) :
                 raise TypeError("Provided 'angularExtent' must be a tuple/list of 2 floats")
         self._angularExtent = angularExtent
-        
+
         if not isinstance( radialLengths, (tuple,list)):
             raise TypeError("Provided 'radialLengths' must be a tuple/list of 2 floats")
         if len(radialLengths) != 2:
@@ -1422,7 +1422,7 @@ class _FeMesh_Annulus(FeMesh_Cartesian):
                     minCoord=(radialLengths[0],angularExtent[0]), maxCoord=(radialLengths[1],angularExtent[1]), periodic=periodic, **kwargs)
 
         self._centroid = centroid
-        
+
     @property
     def radialLengths(self):
         """
@@ -1439,13 +1439,13 @@ class _FeMesh_Annulus(FeMesh_Cartesian):
         mag = function.math.sqrt(function.math.dot( r_vec, r_vec ))
         r_vec = r_vec / mag
         return r_vec
-    
+
     def _getTangentFn(self):
         # returns the radial position
         pos = function.coord()
         centre = self._centroid
         r_vec = pos - centre
-        theta = (-1.0*r_vec[1], r_vec[0])
+        theta = [-1.0*r_vec[1], r_vec[0]]
         mag = function.math.sqrt(function.math.dot( theta, theta ))
         theta = theta / mag
         return theta
@@ -1456,17 +1456,17 @@ class _FeMesh_Annulus(FeMesh_Cartesian):
         r = (self.data ** 2).sum(1)
         theta = np.arctan2(self.data[:,1],self.data[:,0])
         return np.array([theta,r]).T
-        
+
     def _setup(self):
         with self.deform_mesh():
             # basic polar coordinate -> cartesian map, i.e. r,t -> x,y
             r = self.data[:,0]
             t = self.data[:,1] * np.pi/180.0
-            
+
             offset_x = self._centroid[0]
             offset_y = self._centroid[1]
-            
-            (self.data[:,0], self.data[:,1]) = offset_x + r*np.cos(t), offset_y + r*np.sin(t) 
+
+            (self.data[:,0], self.data[:,1]) = offset_x + r*np.cos(t), offset_y + r*np.sin(t)
 
         self.bndMeshVariable = uw.mesh.MeshVariable(self, 1)
         self.bndMeshVariable.data[:] = 0.
@@ -1478,7 +1478,7 @@ class _FeMesh_Annulus(FeMesh_Cartesian):
         self._boundaryNodeFn = uw.function.branching.conditional(
                                           [  ( self.bndMeshVariable > 0.999, 1. ),
                                              (                    True, 0. )   ] )
-                                             
+
         self._radialFn  = self._boundaryNodeFn * self.fn_uvec_radial()
         self._tangentFn  = self._boundaryNodeFn * self._getTangentFn()
         # self._surface_tangentFn = self._boundaryNodeFn * self._getNSFn()

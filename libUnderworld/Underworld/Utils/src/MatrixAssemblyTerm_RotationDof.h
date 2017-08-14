@@ -20,9 +20,6 @@
 
    struct MatrixAssemblyTerm_RotationDof_cppdata
    {
-       Fn::Function* normalfn;
-       Fn::Function* rfn;
-
        Fn::Function::func radialfunc;
        Fn::Function::func normalfunc;
        std::shared_ptr<MeshCoordinate> input;

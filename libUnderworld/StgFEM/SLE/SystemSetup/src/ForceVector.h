@@ -31,6 +31,10 @@
 		Stg_ObjectList*			forceTermList;  \
 		Stg_Component*				applicationDepExtraInfo; /**< Default is NULL: passed to elForceVec during assembly */\
 		IArray*						inc;  \
+		int     totalDofsThisElement; /* assumes constant dofs per element */ \
+		double* rotMat;                 \
+		double* tmpMat;                 \
+		StiffnessMatrixTerm* rotMatTerm;
 
 
 	struct ForceVector { __ForceVector };
@@ -76,6 +80,7 @@
 
 	void* _ForceVector_Copy( void* forceVector, void* dest, Bool deep, Name nameExt, PtrMap* ptrMap );
 
+	void ForceVector_SetRotationTerm( void* vec, void* rotTerm );
 	/* 'Stg_Component' Virtual Functions */
 	void* _ForceVector_DefaultNew( Name name );
 
