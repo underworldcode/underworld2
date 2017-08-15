@@ -20,13 +20,13 @@
 
    struct MatrixAssemblyTerm_RotationDof_cppdata
    {
-       Fn::Function::func radialfunc;
-       Fn::Function::func normalfunc;
+       Fn::Function::func e1func;
+       Fn::Function::func e2func;
        std::shared_ptr<MeshCoordinate> input;
    };
 
-   void MatrixAssemblyTerm_RotationDof_SetRadialFn( void* _self, Fn::Function* fn );
-   void MatrixAssemblyTerm_RotationDof_SetNormalFn( void* _self, Fn::Function* fn );
+   void MatrixAssemblyTerm_RotationDof_SetE1Fn( void* _self, Fn::Function* fn );
+   void MatrixAssemblyTerm_RotationDof_SetE2Fn( void* _self, Fn::Function* fn );
 
    }
 

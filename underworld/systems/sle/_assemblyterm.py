@@ -145,14 +145,6 @@ class VectorSurfaceAssemblyTerm_NA__Fn__ni(VectorAssemblyTerm):
         self._fn = maskFn * nbc.fn_flux
         self._set_fn_function = libUnderworld.Underworld._VectorSurfaceAssemblyTerm_NA__Fn__ni_SetFn
 
-        #  Questionable code think we can remove
-        # if mesh:
-        #     if not isinstance( mesh, uw.mesh.FeMesh_Cartesian ):
-        #         raise TypeError( "The provided mesh must be of FeMesh_Cartesian class.")
-        #     # set directly
-        #     self._cself.geometryMesh = mesh._cself
-        #     self._mesh = mesh
-
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method
         super(VectorSurfaceAssemblyTerm_NA__Fn__ni,self)._add_to_stg_dict(componentDictionary)
@@ -341,26 +333,25 @@ class MatrixAssemblyTerm_NA__NB__Fn(MatrixAssemblyTerm):
 class  MatrixAssemblyTerm_RotationDof(MatrixAssemblyTerm):
     _objectsDict = { "_assemblyterm": " MatrixAssemblyTerm_RotationDof" }
 
-    def __init__(self, radialFn, normalFn, mesh=None, **kwargs):
+    def __init__(self, fn_e1, fn_e2, mesh=None, **kwargs):
         """
         """
         # build parent
         super(MatrixAssemblyTerm_RotationDof,self).__init__(**kwargs)
 
-        self._set_fn_function = None #libUnderworld.Underworld.MatrixAssemblyTerm_RotationDof_SetFn
-        self._fn = None #fn
+        # we disable these parent attributes
+        self._set_fn_function = None
+        self._fn = None
 
-        self._fn_radial = radialFn
-        self._fn_normal = normalFn
+        self._fn_e1 = fn_e1
+        self._fn_e2 = fn_e2
 
-        # if not isinstance( mesh,  uw.mesh.FeMesh_Cartesian ):
-        #     raise TypeError( "The provided mesh must be of FeMesh_Cartesian class.")
         # set mesh directly
         self._cself.geometryMesh = mesh._cself
         self._geometryMesh = mesh
 
-        uw.libUnderworld.Underworld.MatrixAssemblyTerm_RotationDof_SetRadialFn(self._cself, radialFn._fncself)
-        uw.libUnderworld.Underworld.MatrixAssemblyTerm_RotationDof_SetNormalFn(self._cself, normalFn._fncself)
+        uw.libUnderworld.Underworld.MatrixAssemblyTerm_RotationDof_SetE1Fn(self._cself, fn_e1._fncself)
+        uw.libUnderworld.Underworld.MatrixAssemblyTerm_RotationDof_SetE2Fn(self._cself, fn_e2._fncself)
 
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method

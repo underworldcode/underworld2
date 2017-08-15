@@ -691,7 +691,7 @@ void StiffnessMatrix_AssembleElement(
 
     /* check if we need to PRE MULTIPLY with rotation matrix, [R] -
   only if rowVariable has non axis aligned BCs and the element is on the mesh boundary */
-  if( rowVar->nonAABCs ) // && IndexSet_IsMember( rowVar->feMesh->bndElementSet, element_lI ) )
+  if( rowVar->nonAABCs )
   {
 
      /*	Perform [tmp] = [R]^T * [elStiffMatToAdd]
@@ -731,7 +731,7 @@ void StiffnessMatrix_AssembleElement(
 
   /* check if we need to POST MULTIPLY with rotation matrix -
     only if columnVariable has non axis aligned BCs and the element is on the mesh boundary */
-  if( colVar->nonAABCs )// && IndexSet_IsMember( colVar->feMesh->bndElementSet, element_lI ) )
+  if( colVar->nonAABCs )
   {
      /*
         Perform [tmp] = [elStiffMatToAdd] * [R]

@@ -1301,7 +1301,7 @@ class _FeMesh_Regional(FeMesh_Cartesian):
         #                                   [  ( self.bndMeshVariable > 0.999, 1. ),
         #                                      (                    True, 0. )   ] )
 
-        self._rFn  = self._boundaryNodeFn * self.fn_uvec_radial()
+        self._rFn  = self._boundaryNodeFn * self.fn_unitvec_radial()
         self._nsFn = self._boundaryNodeFn * self._getNSFn()
         self._ewFn = self._boundaryNodeFn * self._getEWFn()
 
@@ -1314,7 +1314,7 @@ class _FeMesh_Regional(FeMesh_Cartesian):
         self._normal = uw.function.branching.conditional([ (nsWallField > 0.5, self._nsFn ),
                                                            (             True, self._ewFn) ] )
 
-    def fn_uvec_radial(self):
+    def fn_unitvec_radial(self):
 
         pos = function.coord()
         centre = self._centroid
@@ -1431,7 +1431,7 @@ class _FeMesh_Annulus(FeMesh_Cartesian):
         """
         return self._radialLengths
 
-    def fn_uvec_radial(self):
+    def fn_unitvec_radial(self):
         # returns the radial position
         pos = function.coord()
         centre = self._centroid
@@ -1440,7 +1440,7 @@ class _FeMesh_Annulus(FeMesh_Cartesian):
         r_vec = r_vec / mag
         return r_vec
 
-    def _getTangentFn(self):
+    def fn_unitvec_tangent(self):
         # returns the radial position
         pos = function.coord()
         centre = self._centroid
@@ -1475,10 +1475,11 @@ class _FeMesh_Annulus(FeMesh_Cartesian):
         # note we use this condition to only capture border swarm particles
         # on the surface itself. for those directly adjacent, the deltaMeshVariable will evaluate
         # to non-zero (but less than 1.), so we need to remove those from the integration as well.
-        self._boundaryNodeFn = uw.function.branching.conditional(
-                                          [  ( self.bndMeshVariable > 0.999, 1. ),
-                                             (                    True, 0. )   ] )
 
-        self._radialFn  = self._boundaryNodeFn * self.fn_uvec_radial()
-        self._tangentFn  = self._boundaryNodeFn * self._getTangentFn()
-        # self._surface_tangentFn = self._boundaryNodeFn * self._getNSFn()
+        self.rot_vec_normal = uw.function.branching.conditional(
+                            [ ( self.bndMeshVariable > 0.9, self.fn_unitvec_radial() ),
+                              (               True, uw.function.misc.constant(1.0)*(1.0,0.0) ) ] )
+
+        self.rot_vec_tangent = uw.function.branching.conditional(
+                            [ ( self.bndMeshVariable > 0.9, self.fn_unitvec_tangent() ),
+                              (               True, uw.function.misc.constant(1.0)*(0.0,1.0) ) ] )

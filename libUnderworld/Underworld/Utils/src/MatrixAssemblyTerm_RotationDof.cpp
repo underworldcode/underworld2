@@ -43,7 +43,7 @@ MatrixAssemblyTerm_RotationDof* _MatrixAssemblyTerm_RotationDof_New(  MatrixAsse
     return self;
 }
 
-void MatrixAssemblyTerm_RotationDof_SetRadialFn( void* _self, Fn::Function* fn ){
+void MatrixAssemblyTerm_RotationDof_SetE1Fn( void* _self, Fn::Function* fn ){
     MatrixAssemblyTerm_RotationDof*  self = (MatrixAssemblyTerm_RotationDof*)_self;
     FeMesh  *mesh = (FeMesh*)self->geometryMesh;
     unsigned dim  = Mesh_GetDimSize(mesh);
@@ -51,10 +51,10 @@ void MatrixAssemblyTerm_RotationDof_SetRadialFn( void* _self, Fn::Function* fn )
     MatrixAssemblyTerm_RotationDof_cppdata* cppdata = (MatrixAssemblyTerm_RotationDof_cppdata*) self->cppdata;
     // record fn to struct
     cppdata->input = std::make_shared<MeshCoordinate>((void*)mesh );
-    cppdata->radialfunc = fn->getFunction(cppdata->input.get());
+    cppdata->e1func = fn->getFunction(cppdata->input.get());
 
     // check output conforms
-    const IO_double *testOutput = dynamic_cast<const IO_double*>(cppdata->radialfunc(cppdata->input.get()));
+    const IO_double *testOutput = dynamic_cast<const IO_double*>(cppdata->e1func(cppdata->input.get()));
     if( !testOutput || testOutput->size() != dim ) {
       std::stringstream ss;
       ss << "Expected 'fn' for " << __func__ << " must be of length " << dim;
@@ -62,7 +62,7 @@ void MatrixAssemblyTerm_RotationDof_SetRadialFn( void* _self, Fn::Function* fn )
     }
 }
 
-void MatrixAssemblyTerm_RotationDof_SetNormalFn( void* _self, Fn::Function* fn ){
+void MatrixAssemblyTerm_RotationDof_SetE2Fn( void* _self, Fn::Function* fn ){
     MatrixAssemblyTerm_RotationDof*  self = (MatrixAssemblyTerm_RotationDof*)_self;
     FeMesh  *mesh = (FeMesh*)self->geometryMesh;
     unsigned dim  = Mesh_GetDimSize(mesh);
@@ -70,10 +70,10 @@ void MatrixAssemblyTerm_RotationDof_SetNormalFn( void* _self, Fn::Function* fn )
     MatrixAssemblyTerm_RotationDof_cppdata* cppdata = (MatrixAssemblyTerm_RotationDof_cppdata*) self->cppdata;
     // record fn to struct
     cppdata->input = std::make_shared<MeshCoordinate>((void*)mesh );
-    cppdata->normalfunc = fn->getFunction(cppdata->input.get());
+    cppdata->e2func = fn->getFunction(cppdata->input.get());
 
     // check output conforms
-    const IO_double *testOutput = dynamic_cast<const IO_double*>(cppdata->normalfunc(cppdata->input.get()));
+    const IO_double *testOutput = dynamic_cast<const IO_double*>(cppdata->e2func(cppdata->input.get()));
     if( !testOutput || testOutput->size() != dim ) {
       std::stringstream ss;
       ss << "Expected 'fn' for " << __func__ << " must be of length " << dim;
@@ -187,10 +187,10 @@ void _MatrixAssemblyTerm_RotationDof_AssembleElement(
    FeMesh*        mesh         = ( self->geometryMesh ? self->geometryMesh : variable_row->feMesh );
    int            dim          = variable_row->dim;
 
-   const double *normalVec, *radialVec;
+   const double *e2Vec, *e1Vec;
    IArray       *inc = self->inc;
-   double       crossproduct[3], mag;
-   int          nNbr, *nbr, n_i, row_i, col_i, xx;
+   double       crossproduct[3];
+   int          nNbr, *nbr, n_i, row_i, col_i;
 
 
    // get this element's nodes, using IArray
@@ -205,36 +205,27 @@ void _MatrixAssemblyTerm_RotationDof_AssembleElement(
      row_i = n_i*dim;
      col_i = n_i*dim;
 
-     // get the 'radial' units vector for the vertex
-     const IO_double* radial_fnout = debug_dynamic_cast<const IO_double*>(cppdata->radialfunc(cppdata->input.get()));
-     radialVec = radial_fnout->data();
+     // get the 'e1' units vector for the vertex
+     const IO_double *e1_fnout = debug_dynamic_cast<const IO_double*>(cppdata->e1func(cppdata->input.get()));
+     e1Vec = e1_fnout->data();
 
-     // if radial vector is ~0 mag we assume it is not to be rotated
-     // and we apply the identity matrix
-     mag = StGermain_VectorMagnitude((double*)radialVec, dim);
-     if( mag < 0.5 ) {
-       for( xx=0; xx<dim; xx++) {
-         elStiffMat[row_i+xx][col_i+xx] = 1.0;
-       }
-     } else {
+     // get the e2 unit vector
+     const IO_double *e2_fnout = debug_dynamic_cast<const IO_double*>(cppdata->e2func(cppdata->input.get()));
+     e2Vec = e2_fnout->data();
 
-       // get the normal unit vector
-       const IO_double* normal_fnout = debug_dynamic_cast<const IO_double*>(cppdata->normalfunc(cppdata->input.get()));
-       normalVec = normal_fnout->data();
+     if (dim == 2) {
 
-       // maybe a conditional here isn't the most efficient if we build this whole matrix a lot
-       if (dim == 2) {
+       elStiffMat[row_i  ][col_i  ] = e1Vec[0];  elStiffMat[row_i  ][col_i+1] = e2Vec[0];
+       elStiffMat[row_i+1][col_i  ] = e1Vec[1];  elStiffMat[row_i+1][col_i+1] = e2Vec[1];
 
-         elStiffMat[row_i  ][col_i  ] = radialVec[0];  elStiffMat[row_i  ][col_i+1] = normalVec[0];
-         elStiffMat[row_i+1][col_i  ] = radialVec[1];  elStiffMat[row_i+1][col_i+1] = normalVec[1];
+    } else {
+       // assume we can always calulate the 3rd basis vector from e2 x e2
+       StGermain_VectorCrossProduct(crossproduct, (double*)e1Vec, (double*)e2Vec);
 
-      } else {
-         StGermain_VectorCrossProduct(crossproduct, (double*)radialVec, (double*)normalVec);
-
-         elStiffMat[row_i  ][col_i  ] = radialVec[0];  elStiffMat[row_i  ][col_i+1] = normalVec[0];  elStiffMat[row_i  ][col_i+2] = crossproduct[0];
-         elStiffMat[row_i+1][col_i  ] = radialVec[1];  elStiffMat[row_i+1][col_i+1] = normalVec[1];  elStiffMat[row_i+1][col_i+2] = crossproduct[1];
-         elStiffMat[row_i+2][col_i  ] = radialVec[2];  elStiffMat[row_i+2][col_i+1] = normalVec[2];  elStiffMat[row_i+2][col_i+2] = crossproduct[2];
-       }
+       elStiffMat[row_i  ][col_i  ] = e1Vec[0];  elStiffMat[row_i  ][col_i+1] = e2Vec[0];  elStiffMat[row_i  ][col_i+2] = crossproduct[0];
+       elStiffMat[row_i+1][col_i  ] = e1Vec[1];  elStiffMat[row_i+1][col_i+1] = e2Vec[1];  elStiffMat[row_i+1][col_i+2] = crossproduct[1];
+       elStiffMat[row_i+2][col_i  ] = e1Vec[2];  elStiffMat[row_i+2][col_i+1] = e2Vec[2];  elStiffMat[row_i+2][col_i+2] = crossproduct[2];
      }
+
    }
 }
