@@ -169,3 +169,60 @@ class NeumannCondition(SystemCondition):
         if not isinstance( _fn, uw.function.Function):
             raise ValueError( "Provided '_fn' must be of or convertible to 'Function' class." )
         self._fn_flux = _fn
+
+class RotatedDirichletCondition(DirichletCondition):
+    """
+    TODO
+    The DirichletCondition class provides the required functionality to imposed Dirichlet
+    conditions on your differential equation system.
+
+    The user is simply required to flag which nodes/DOFs should be considered by the system
+    to be a Dirichlet condition. The values at the Dirichlet nodes/DOFs is then left
+    untouched by the system.
+
+    Parameters
+    ----------
+    variable : underworld.mesh.MeshVariable
+        This is the variable for which the Dirichlet condition applies.
+    indexSetsPerDof : list, tuple, IndexSet
+        The index set(s) which flag nodes/DOFs as Dirichlet conditions.
+        Note that the user must provide an index set for each degree of
+        freedom of the variable.  So for a vector variable of rank 2 (say Vx & Vy),
+        two index sets must be provided (say VxDofSet, VyDofSet).
+
+    Notes
+    -----
+    Note that it is necessary for the user to set the required value on the variable, possibly
+    via the numpy interface.
+
+    Constructor must be called collectively all processes.
+
+    Example
+    -------
+
+
+    """
+    _objectsDict = { "_pyvc": "PythonVC" }
+    _selfObjectName = "_pyvc"
+
+    def __init__(self, variable, indexSetsPerDof, basis_vectors=None):
+        super(RotatedDirichletCondition,self).__init__(variable, indexSetsPerDof)
+
+        if basis_vectors is not None:
+            self.basis_vectors=basis_vectors
+
+        @property
+        def basis_vectors(self):
+            """ Get the basis_vectors """
+            return self._basis_vectors
+        @basis_vectors.setter
+        def basis_vectors(self, basis_vectors):
+            """ Set the basis_vectors, ensure they're valid """
+            if not isinstance(basis_vectors, (list,tuple)):
+                raise TypeError("'basis_vectors' must be of type list or tuple")
+            if len(basis_vectors) != self.variable.nodeDofCount:
+                raise ValueError("'variable' number of components must equal the number of 'basis_vectors'")
+            for vec in basis_vectors:
+                if not isinstance( vec, uw.function.Function):
+                    raise TypeError("'basis_vectors', must consist of 'uw.function.Function' types")
+            self._basis_vectors=basis_vectors

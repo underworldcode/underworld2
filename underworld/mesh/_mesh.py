@@ -1119,16 +1119,11 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
 
             self._secondaryMesh = FeMesh( elementType=self._elementTypes[1].upper(), generator=genSecondary )
 
+        # add a boundary MeshVariable - 1 if nodes is on the boundary(ie 'AllWalls_VertexSet'), 0 if node is internal
         self.bndMeshVariable = uw.mesh.MeshVariable(self, 1)
         self.bndMeshVariable.data[:] = 0.
-        # set a value 1.0 on provided vertices
         self.bndMeshVariable.data[self.specialSets["AllWalls_VertexSet"].data] = 1.0
-        # note we use this condition to only capture border swarm particles
-        # on the surface itself. for those directly adjacent, the deltaMeshVariable will evaluate
-        # to non-zero (but less than 1.), so we need to remove those from the integration as well.
-        self._boundaryNodeFn = uw.function.branching.conditional(
-                                          [  ( self.bndMeshVariable > 0.999, 1. ),
-                                             (                    True, 0. )   ] )
+
 
     @property
     def subMesh(self):
@@ -1420,6 +1415,15 @@ class _FeMesh_Annulus(FeMesh_Cartesian):
         # build 3D mesh cartesian mesh centred on (0.0,0.0,0.0) - in _setup() we deform the mesh
         super(_FeMesh_Annulus,self).__init__(elementType="Q1/dQ0", elementRes=elementRes,
                     minCoord=(radialLengths[0],angularExtent[0]), maxCoord=(radialLengths[1],angularExtent[1]), periodic=periodic, **kwargs)
+
+        # TODO: make annulus specific specialSets
+        # self.specialSets["InnerWall_VertexSet"] = self.specialSets["MinI_VertexSet"]
+        # self.specialSets["OuterWall_VertexSet"] = self.specialSets["MaxI_VertexSet"]
+
+        # self.specialSets["MinI_VertexSet"] = None
+        # self.specialSets["MaxI_VertexSet"] = None
+        # self.specialSets["MinJ_VertexSet"] = None
+        # self.specialSets["MaxJ_VertexSet"] = None
 
         self._centroid = centroid
 

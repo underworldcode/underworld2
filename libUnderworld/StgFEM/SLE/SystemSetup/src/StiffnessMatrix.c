@@ -689,7 +689,10 @@ void StiffnessMatrix_AssembleElement(
         StiffnessMatrixTerm_AssembleElement( stiffnessMatrixTerm, self, element_lI, sle, context, elStiffMatToAdd );
     }
 
-    /* check if we need to PRE MULTIPLY with rotation matrix, [R] -
+  // if no rotation matrix term finish
+  if( !self->rotMatTerm ) return;
+
+  /* check if we need to PRE MULTIPLY with rotation matrix, [R] -
   only if rowVariable has non axis aligned BCs and the element is on the mesh boundary */
   if( rowVar->nonAABCs )
   {

@@ -41,23 +41,24 @@
 	/** Textual name of this class */
 	extern const Type MatrixAssemblyTerm_RotationDof_Type;
 
-	/** MatrixAssemblyTerm_RotationDof class contents */
-	#define __MatrixAssemblyTerm_RotationDof \
-		__StiffnessMatrixTerm     \
-    void*   cppdata;          \
-    IArray* inc;              \
-		FeMesh* geometryMesh;     \
-		int	    max_nElNodes_col; \
-    int     max_nElNodes_row; \
-		double	*Ni;              \
-		double	*Mi;
+/** MatrixAssemblyTerm_RotationDof class contents */
+#define __MatrixAssemblyTerm_RotationDof \
+  __StiffnessMatrixTerm     \
+  void*   cppdata;          \
+  IArray* inc;              \
+  FeMesh* geometryMesh;     \
+  int	    max_nElNodes_col; \
+  int     max_nElNodes_row; \
+  double	*Ni;              \
+  double	*Mi;              \
+  VariableCondition* bNodes;\
 
 	struct MatrixAssemblyTerm_RotationDof { __MatrixAssemblyTerm_RotationDof };
 
 
-	#ifndef ZERO
-   	#define ZERO 0
-	#endif
+#ifndef ZERO
+ 	#define ZERO 0
+#endif
 
 	#define MatrixAssemblyTerm_RotationDof_DEFARGS \
                 STIFFNESSMATRIXTERM_DEFARGS
@@ -70,8 +71,7 @@
 	void _MatrixAssemblyTerm_RotationDof_Delete( void* matrixTerm );
 
   void AXequalsY( StiffnessMatrix* Amat, SolutionVector* x, SolutionVector* y, Bool transpose );
-
-	void _MatrixAssemblyTerm_RotationDof_Print( void* matrixTerm, Stream* stream );
+  void AXequalsX( StiffnessMatrix* Amat, SolutionVector* x, Bool transpose );
 
 	void* _MatrixAssemblyTerm_RotationDof_DefaultNew( Name name );
 

@@ -81,16 +81,19 @@ void MatrixAssemblyTerm_RotationDof_SetE2Fn( void* _self, Fn::Function* fn ){
     }
 }
 
+void _MatrixAssemblyTerm_SetBNodes( void* _self, void* bNodes )
+{
+    MatrixAssemblyTerm_RotationDof* self = (MatrixAssemblyTerm_RotationDof*)_self;
+
+    if(!Stg_Class_IsInstance( bNodes, VariableCondition_Type ))
+        throw std::invalid_argument("Provided 'indexSet' does not appear to be of 'IndexSet' type.");
+    self->bNodes = (VariableCondition*)bNodes;
+}
+
 void _MatrixAssemblyTerm_RotationDof_Delete( void* matrixTerm ) {
     MatrixAssemblyTerm_RotationDof* self = (MatrixAssemblyTerm_RotationDof*)matrixTerm;
 
     _StiffnessMatrixTerm_Delete( self );
-}
-
-void _MatrixAssemblyTerm_RotationDof_Print( void* matrixTerm, Stream* stream ) {
-    MatrixAssemblyTerm_RotationDof* self = (MatrixAssemblyTerm_RotationDof*)matrixTerm;
-    _StiffnessMatrixTerm_Print( self, stream );
-    /* General info */
 }
 
 void* _MatrixAssemblyTerm_RotationDof_DefaultNew( Name name ) {
@@ -98,7 +101,7 @@ void* _MatrixAssemblyTerm_RotationDof_DefaultNew( Name name ) {
     SizeT                                                 _sizeOfSelf = sizeof(MatrixAssemblyTerm_RotationDof);
     Type                                                         type = MatrixAssemblyTerm_RotationDof_Type;
     Stg_Class_DeleteFunction*                                 _delete = _MatrixAssemblyTerm_RotationDof_Delete;
-    Stg_Class_PrintFunction*                                   _print = _MatrixAssemblyTerm_RotationDof_Print;
+    Stg_Class_PrintFunction*                                   _print = NULL;
     Stg_Class_CopyFunction*                                     _copy = NULL;
     Stg_Component_DefaultConstructorFunction*     _defaultConstructor = _MatrixAssemblyTerm_RotationDof_DefaultNew;
     Stg_Component_ConstructFunction*                       _construct = _MatrixAssemblyTerm_RotationDof_AssignFromXML;
@@ -123,8 +126,8 @@ void _MatrixAssemblyTerm_RotationDof_Build( void* matrixTerm, void* data ) {
     MatrixAssemblyTerm_RotationDof* self = (MatrixAssemblyTerm_RotationDof*)matrixTerm;
     _StiffnessMatrixTerm_Build( self, data );
 
-    self->Ni = (double*)malloc(sizeof(double)*4);
-    self->Mi = (double*)malloc(sizeof(double)*4);
+    self->Ni = new double[27];
+    self->Mi = new double[27];
     self->inc = IArray_New( );
 }
 
@@ -142,7 +145,9 @@ void _MatrixAssemblyTerm_RotationDof_Destroy( void* matrixTerm, void* data ) {
 
     Stg_Class_Delete( self->inc );
 
-   delete (MatrixAssemblyTerm_RotationDof_cppdata*)self->cppdata;
+    delete self->Ni;
+    delete self->Mi;
+    delete (MatrixAssemblyTerm_RotationDof_cppdata*)self->cppdata;
 
     _StiffnessMatrixTerm_Destroy( matrixTerm, data );
 }
@@ -172,6 +177,28 @@ void AXequalsY( StiffnessMatrix* a, SolutionVector* x, SolutionVector* y, Bool t
   FeVariable_SyncShadowValues( y->feVariable );
 }
 
+void AXequalsX( StiffnessMatrix* a, SolutionVector* x, Bool transpose ) {
+  Mat Amat;
+  Vec X, Y;
+
+  Amat = a->matrix;
+  X    = x->vector;
+  // create Y, duplicate vector of X
+  VecDuplicate(X, &Y);
+  VecCopy(X,Y);
+
+  if (transpose)
+    MatMultTranspose(Amat,X,Y);
+  else
+    MatMult(Amat,X,Y);
+
+  VecCopy(Y, X);
+  VecDestroy(&Y);
+
+  SolutionVector_UpdateSolutionOntoNodes( x );
+  FeVariable_SyncShadowValues( x->feVariable );
+}
+
 void _MatrixAssemblyTerm_RotationDof_AssembleElement(
    void*                                              matrixTerm,
    StiffnessMatrix*                                   stiffnessMatrix,
@@ -187,6 +214,7 @@ void _MatrixAssemblyTerm_RotationDof_AssembleElement(
    FeMesh*        mesh         = ( self->geometryMesh ? self->geometryMesh : variable_row->feMesh );
    int            dim          = variable_row->dim;
 
+   const IO_double *e1_fnout, *e2_fnout; // the unit vector uw function ptrs
    const double *e2Vec, *e1Vec;
    IArray       *inc = self->inc;
    double       crossproduct[3];
@@ -205,12 +233,13 @@ void _MatrixAssemblyTerm_RotationDof_AssembleElement(
      row_i = n_i*dim;
      col_i = n_i*dim;
 
+     auto rawPtr = cppdata->input.get();
      // get the 'e1' units vector for the vertex
-     const IO_double *e1_fnout = debug_dynamic_cast<const IO_double*>(cppdata->e1func(cppdata->input.get()));
+     e1_fnout = debug_dynamic_cast<const IO_double*>(cppdata->e1func(rawPtr));
      e1Vec = e1_fnout->data();
 
      // get the e2 unit vector
-     const IO_double *e2_fnout = debug_dynamic_cast<const IO_double*>(cppdata->e2func(cppdata->input.get()));
+     e2_fnout = debug_dynamic_cast<const IO_double*>(cppdata->e2func(rawPtr));
      e2Vec = e2_fnout->data();
 
      if (dim == 2) {
