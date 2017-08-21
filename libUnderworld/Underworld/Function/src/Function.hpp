@@ -59,24 +59,6 @@ namespace Fn {
             Function* _fn_condition;
             Function* _fn_print;
     };
-
-    class MinMax: public Function
-    {
-        public:
-            MinMax( Function *fn ): _fn(fn) {reset();};
-            virtual ~MinMax(){};
-            virtual func getFunction( IOsptr sample_input );
-            double getMin();
-            double getMax();
-            double getMinGlobal();
-            double getMaxGlobal();
-            void reset();
-        protected:
-            Function* _fn;
-            double _minVal;
-            double _maxVal;
-            int _size=-1;
-    };
     
 }
 

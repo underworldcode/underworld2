@@ -18,7 +18,7 @@ extern "C" {
 }
 
 Fn::MeshIndexSet::MeshIndexSet( IndexSet* indexSet, void* mesh )
-    : IOIterator(), _indexSet(indexSet), _mesh(mesh), _indexArray(NULL), _position(0)
+    : IOIterator(), _indexSet(indexSet), _mesh(mesh), _indexArray(NULL)
 {
     if(!Stg_Class_IsInstance( mesh, Mesh_Type ))
         throw std::invalid_argument("Provided 'mesh' does not appear to be of 'Mesh' type.");
@@ -40,7 +40,6 @@ void Fn::MeshIndexSet::_setNewIO()
         _io = NULL;
     }
 }
-
 
 void Fn::MeshIndexSet::reset()
 {
@@ -152,7 +151,7 @@ Fn::NumpyInput::~NumpyInput()
 
 
 Fn::SwarmInput::SwarmInput( void* positionVariable )
-    : IOIterator(), _positionVariable(positionVariable), _position(0)
+    : IOIterator(), _positionVariable(positionVariable)
 {
     if(!Stg_Class_IsInstance( positionVariable, SwarmVariable_Type ))
         throw std::invalid_argument("Provided 'positionVariable' does not appear to be of 'SwarmVariable' type.");
@@ -186,7 +185,6 @@ void Fn::SwarmInput::reset()
 
 
 
-
 void* Fn::IntegrationSwarmInput::_CheckIsIntegrationSwarm(void* intSwarm){
     // check is type IntegrationPointsSwarm
     if(!Stg_Class_IsInstance( intSwarm, IntegrationPointsSwarm_Type ))
@@ -199,7 +197,6 @@ void* Fn::IntegrationSwarmInput::_CheckIsIntegrationSwarm(void* intSwarm){
 
 Fn::IntegrationSwarmInput::IntegrationSwarmInput( void* integrationSwarm )
     : IOIterator(),
-      _position(0),
       _intSwarm((IntegrationPointsSwarm*)_CheckIsIntegrationSwarm(integrationSwarm))
 {
     // get number of particles

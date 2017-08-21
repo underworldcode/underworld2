@@ -23,6 +23,7 @@
 #include <functional>
 #include <Underworld/Function/FunctionIO.hpp>
 #include <Underworld/Function/Function.hpp>
+#include <Underworld/Function/MinMax.hpp>
 #include <Underworld/Function/Constant.hpp>
 #include <Underworld/Function/SwarmVariableFn.hpp>
 #include <Underworld/Function/ParticleFound.hpp>

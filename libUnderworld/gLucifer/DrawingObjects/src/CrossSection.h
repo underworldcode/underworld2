@@ -14,6 +14,7 @@
 extern "C++" {
 
 #include <Underworld/Function/Function.hpp>
+#include <Underworld/Function/MinMax.hpp>
 
 struct lucCrossSection_cppdata
 {

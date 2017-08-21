@@ -30,7 +30,11 @@ Fn::SafeMaths::func Fn::SafeMaths::getFunction( IOsptr sample_input )
     return [_func](IOsptr input)->IOsptr {
 
         // clear all errors
-        std::feclearexcept(FE_ALL_EXCEPT);
+        int notsuccess = std::feclearexcept(FE_ALL_EXCEPT);
+        
+        if (notsuccess)
+            throw std::runtime_error("Error in 'SafeMaths'. Please contact developers.");
+        
         // perform func
         IOsptr _output = _func(input);
         // check for errors
@@ -93,94 +97,4 @@ Fn::CustomException::func Fn::CustomException::getFunction( IOsptr sample_input 
 
 }
 
-
-#include <limits>   
-
-Fn::MinMax::func Fn::MinMax::getFunction( IOsptr sample_input )
-{
-    // get function.. nothing to test
-    func _func = _fn->getFunction( sample_input );
-    
-    const FunctionIO* output = _func(sample_input);
-    unsigned fn_out_size = output->size();
-    if (_size < 0) {
-        _size = fn_out_size;
-    } else if ( _size != fn_out_size )
-        throw std::runtime_error("MinMax subject function's return size appears to have changed.\n\
-                                  Please reset MinMax, or create a new one.");
-
-    if ( _size == 1 ) {
-        return [_func,this](IOsptr input)->IOsptr {
-
-            // perform func
-            IOsptr _output = _func(input);
-            
-            // get
-            double val = _output->at<double>();
-            if      ( val < _minVal ) _minVal = val;
-            else if ( val > _maxVal ) _maxVal = val;
-            
-
-            return _output;
-        };
-    } else {
-        return [_func,this](IOsptr input)->IOsptr {
-
-            // perform func
-            IOsptr _output = _func(input);
-            
-            // get
-            double val = 0;
-            for(unsigned ii=0; ii<this->_size; ii++)
-                val += std::pow(_output->at<double>(ii),2);
-            
-            if      ( val < _minVal ) _minVal = val;
-            else if ( val > _maxVal ) _maxVal = val;
-            
-            return _output;
-        };
-    }
-
-}
-
-void Fn::MinMax::reset()
-{
-    _minVal = std::numeric_limits<double>::max();
-    _maxVal = std::numeric_limits<double>::lowest();
-}
-
-double Fn::MinMax::getMin()
-{
-    if (_size > 1)
-        return std::sqrt(_minVal);
-    else
-        return _minVal;
-}
-
-double Fn::MinMax::getMax()
-{
-    if (_size > 1)
-        return std::sqrt(_maxVal);
-    else
-        return _maxVal;
-    
-}
-
-double Fn::MinMax::getMinGlobal()
-{
-    double localVal = getMin();
-    double globalVal;
-    (void)MPI_Allreduce( &localVal,  &globalVal, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD );
-    
-    return globalVal;
-}
-
-double Fn::MinMax::getMaxGlobal()
-{
-    double localVal = getMax();
-    double globalVal;
-    (void)MPI_Allreduce( &localVal,  &globalVal, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD );
-    
-    return globalVal;
-}
 

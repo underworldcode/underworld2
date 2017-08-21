@@ -1,6 +1,16 @@
 CHANGES: Underworld2
 =======================
 
+Release 2.4.0b
+----------------------------
+New Features:
+* New features for `min_max` function.
+
+API Changes:
+* `min_max` function no longer accepts vector functions
+  by default, with instead a fn_norm function having to  
+  be provided by the user.
+
 Release 2.3.0b [2017-07-07]
 ----------------------------
 Enhancements:

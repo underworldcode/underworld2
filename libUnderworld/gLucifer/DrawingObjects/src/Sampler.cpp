@@ -16,6 +16,9 @@
 
 #include <Underworld/Function/FunctionIO.hpp>
 #include <Underworld/Function/Function.hpp>
+#include <Underworld/Function/Binary.hpp>
+#include <Underworld/Function/Unary.hpp>
+#include <Underworld/Function/MinMax.hpp>
 #include <Underworld/Function/MeshCoordinate.hpp>
 extern "C" {
 #include <ctype.h>
@@ -27,42 +30,37 @@ const Type lucSampler_Type = "lucSampler";
 void _lucSampler_SetFn( void* _self, Fn::Function* fn ){
     lucSampler*  self = (lucSampler*)_self;
     
-    // record fn to struct
     lucSampler_cppdata* cppdata = (lucSampler_cppdata*) self->cppdata;
-    // record fn, and also wrap with a MinMax function so that we can record
-    // the min & max encountered values for the colourbar.
-    cppdata->fn = std::make_shared<Fn::MinMax>(fn);
     
-    // setup fn
+    // setup function input
     self->dim = Mesh_GetDimSize( self->mesh );
-
     std::shared_ptr<IO_double> globalCoord = std::make_shared<IO_double>( self->dim, FunctionIO::Vector );
     // grab first node for sample node
     memcpy( globalCoord->data(), Mesh_GetVertex( self->mesh, 0 ), self->dim*sizeof(double) );
-    // get the function.. note that we use 'get' to extract the raw pointer from the smart pointer.
-    cppdata->func = cppdata->fn->getFunction(globalCoord.get());
     
-    const FunctionIO* io = dynamic_cast<const FunctionIO*>(cppdata->func(globalCoord.get()));
+    // get the function.. note that we use 'get' to extract the raw pointer from the smart pointer.
+    // also note that we only get the func here so we can determine the output size.. the final func is
+    // determined below
+    auto func = fn->getFunction(globalCoord.get());
+    const FunctionIO* io = dynamic_cast<const FunctionIO*>(func(globalCoord.get()));
     if( !io )
         throw std::invalid_argument("Provided function does not appear to return a valid result.");
     self->fieldComponentCount = io->size();
-
     self->fieldDim = self->fieldComponentCount;
 
-    /*if( ( Stg_Class_IsInstance( self, lucScalarField_Type )       ||
-          Stg_Class_IsInstance( self, lucFieldSampler_Type ) ||
-          Stg_Class_IsInstance( self, lucIsosurfaceSampler_Type )          )
-        && self->fieldComponentCount != 1 )
-    {
-        throw std::invalid_argument("Provided function must return a scalar result.");
-    }
+    // now add min max so we can record min and max values.
+    // ... if vector, we need to supply a norm function.
+    // create the norm function, but only use it if needed
+    auto dotguy = Fn::Dot(fn,fn);
+    auto sqrtguy = Fn::MathUnary<std::sqrt>(&dotguy);
+    if (io->size() == 1)
+        cppdata->fn = std::make_shared<Fn::MinMax>(fn);
+    else
+        cppdata->fn = std::make_shared<Fn::MinMax>(fn, &sqrtguy);
 
-    if( ( Stg_Class_IsInstance( self, lucVectorArrows_Type )      )
-             && self->fieldComponentCount != self->dim )
-    {
-        throw std::invalid_argument("Provided function must return a vector result.");
-    }*/
-    
+    cppdata->func = cppdata->fn->getFunction(globalCoord.get());
+
+
 }
 
 /* Private Constructor: This will accept all the virtual functions for this class as arguments. */
@@ -253,7 +251,7 @@ void lucSampler_SampleField(void* drawingObject, float* vertices, int V, float* 
    }
    
    // finally, record encountered min/max to colourmap
-   if ( self->colourMap)
+   if ( self->colourMap )
    {
       lucColourMap_SetMinMax( self->colourMap, cppdata->fn->getMinGlobal(), cppdata->fn->getMaxGlobal() );
       //Journal_Printf(lucInfo, "ColourMap min/max range set to %f - %f\n", self->colourMap->minimum, self->colourMap->maximum);
