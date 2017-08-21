@@ -167,7 +167,7 @@ void _VectorSurfaceAssemblyTerm_NA__Fn__ni_AssembleElement( void* forceTerm, For
     IntegrationPoint*          particle;
     FeMesh*                    mesh;
     ElementType*               elementType;
-    unsigned int               dim, dofsPerNode, ii, n_i, cell_I, A, cParticle_I, cellParticleCount, nodesPerEl;
+    unsigned int               dim, dofsPerNode, n_i, d_i, cell_I, cParticle_I, cellParticleCount, nodesPerEl;
     double                     jacDet, factor, *xi, localNormal[3], N[27];
     int                        *inc;
     Bool                       assemble;
@@ -175,25 +175,27 @@ void _VectorSurfaceAssemblyTerm_NA__Fn__ni_AssembleElement( void* forceTerm, For
 
     dim         = forceVector->dim;
     dofsPerNode = forceVector->feVariable->fieldComponentCount;
-    
+
     // get the element's nodes
     mesh = forceVector->feVariable->feMesh;
     elementType = FeMesh_GetElementType( mesh, lElement_I );
     FeMesh_GetElementNodes( mesh, lElement_I, self->inc );
-
-    // test if nodes are in the boundarySet bNodes (passed in from python)
     nodesPerEl = IArray_GetSize( self->inc );
     inc        = IArray_GetPtr( self->inc );
-    assemble   = False;//flag for if we need to assemble this element
-    for( n_i=0 ; n_i<nodesPerEl; n_i++ ) {
+
+    /* test if nodal dofs are in the boundarySet bNodes (passed in from python) */
+    assemble = False;
+    for( n_i=0; n_i<nodesPerEl; n_i++ ) {
+      for( d_i=0; d_i<dofsPerNode; d_i++) {
         // TODO: node sure about local or global numbers here
-        if ( VariableCondition_IsCondition( self->bNodes, inc[n_i], 0 ) ) {
+        if ( VariableCondition_IsCondition( self->bNodes, inc[n_i], d_i ) ) {
             assemble = True;
             break;
         }
+      }
     }
 
-    // not a boundary element - don't calculate
+    // not a valid condition found - don't waste time calculating 0s
     if( assemble == False ) return;
 
     // set up the function input
@@ -205,27 +207,30 @@ void _VectorSurfaceAssemblyTerm_NA__Fn__ni_AssembleElement( void* forceTerm, For
     cellParticleCount = swarm->cellParticleCountTbl[ cell_I ];
 
     for ( cParticle_I = 0 ; cParticle_I < cellParticleCount ; cParticle_I++ ) {
-        debug_dynamic_cast<ParticleInCellCoordinate*>(cppdata->input->localCoord())->particle_cellId(cParticle_I);  // set the particleCoord cellId
-        particle = (IntegrationPoint*) Swarm_ParticleInCellAt( swarm, cell_I, cParticle_I );
-        xi       = particle->xi;
+      debug_dynamic_cast<ParticleInCellCoordinate*>(cppdata->input->localCoord())->particle_cellId(cParticle_I);  // set the particleCoord cellId
+      particle = (IntegrationPoint*) Swarm_ParticleInCellAt( swarm, cell_I, cParticle_I );
+      xi       = particle->xi;
 
-        /* Calculate Determinant of Shape Functions and Jacobian */
-        ElementType_EvaluateShapeFunctionsAt( elementType, xi, N );
-        ElementType_SurfaceNormal( elementType, lElement_I, dim, xi, localNormal );
-        jacDet = ElementType_SurfaceJacobianDeterminant( elementType, mesh, lElement_I, xi, dim, localNormal );
+      /* Calculate Determinant of Shape Functions and Jacobian */
+      ElementType_EvaluateShapeFunctionsAt( elementType, xi, N );
+      ElementType_SurfaceNormal( elementType, lElement_I, dim, xi, localNormal );
+      jacDet = ElementType_SurfaceJacobianDeterminant( elementType, mesh, lElement_I, xi, dim, localNormal );
 
-        /* evaluate function */
-        const IO_double* funcout = debug_dynamic_cast<const IO_double*>(cppdata->func(cppdata->input.get()));
-        for( ii=0; ii<dofsPerNode; ii++ ) {
-            nbc[ii] = funcout->at(ii);
+      /* evaluate function */
+      const IO_double* funcout = debug_dynamic_cast<const IO_double*>(cppdata->func(cppdata->input.get()));
+      for( d_i=0; d_i<dofsPerNode; d_i++ ) { nbc[d_i] = funcout->at(d_i); }
+
+      // integration weight
+      factor = jacDet * particle->weight;
+
+      // loop over all nodes and dofs
+      for( n_i=0; n_i<nodesPerEl; n_i++ ) {
+        for( d_i = 0; d_i<dofsPerNode; d_i++ ) {
+          // check if the dof is a NeumannCondition
+          if ( VariableCondition_IsCondition( self->bNodes, inc[n_i], d_i ) ) {
+            elForceVec[n_i*dofsPerNode+d_i] += factor*nbc[d_i]*N[n_i] ;
+          }
         }
-        
-        factor = jacDet * particle->weight;
-        for( A = 0 ; A < nodesPerEl ; A++ ) {
-            if ( VariableCondition_IsCondition( self->bNodes, inc[A], 0 ) ) {
-                for( ii = 0 ; ii < dofsPerNode ; ii++ )
-                    elForceVec[A*dofsPerNode+ii] += factor*nbc[ii]*N[A] ;
-            }
-        }
+      }
     }
 }

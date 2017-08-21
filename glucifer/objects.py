@@ -153,7 +153,7 @@ class Drawing(_stgermain.StgCompoundComponent):
             self._colourMap = colourMap
         elif colours:
             self._colourMap = ColourMap(colours=colours, valueRange=valueRange, logScale=logScale)
-        elif colourBar or not colourMap is None:
+        elif colourMap is not None:
             self._colourMap = ColourMap(valueRange=valueRange, logScale=logScale)
         else:
             self._colourMap = None
@@ -606,6 +606,8 @@ class Points(Drawing):
         self._fn_colour = None
         if fn_colour != None:
            self._fn_colour = _underworld.function.Function.convert(fn_colour)
+        else:
+           colourBar = False
         self._fn_mask = None
         if fn_mask != None:
            self._fn_mask = _underworld.function.Function.convert(fn_mask)
@@ -843,18 +845,26 @@ class IsoSurface(Volume):
         Number of samples in the J direction.
     resolutionK : unsigned
         Number of samples in the K direction.
+    isovalue : float
+        Isovalue to plot.
     isovalues : list of float
-        Isovalues to plot.
+        List of multiple isovalues to plot.
 
     """
 
     def __init__(self, mesh, fn, fn_colour=None,
                        resolutionI=64, resolutionJ=64, resolutionK=64, 
-                       colourBar=True, *args, **kwargs):
+                       colourBar=True, isovalue=None, *args, **kwargs):
 
         # build parent
         if mesh.dim == 2:
             raise ValueError("Isosurface requires a three dimensional mesh.")
+
+        # Validate isovalue(s) params
+        if not "isovalues" in kwargs:
+            if isovalue is None:
+                raise ValueError("Isosurface requires either 'isovalue' value or 'isovalues' list parameter.")
+            kwargs["isovalues"] = [isovalue]
 
         self._sampler = None
         if fn_colour != None:
@@ -881,29 +891,35 @@ class IsoSurface(Volume):
         if isobj:
             #Force viewer open to trigger surface optimisation
             viewer.app.resetViews()
-            
             #Generate isosurface in same object, convert and delete volume, update db
             isobj.isosurface(name=None, convert=True, updatedb=True)
+        else:
+            print "Object not found: " + self.properties["name"]
 
+    def parallel_render(self, viewer, rank):
+        #If this method defined, is run by all procs to process
+        # any render output that must be done in parallel
+        isobj = viewer.objects[self.properties["name"]]
+        if isobj and self._sampler:
             #If coloured by another field, get the vertices, sample and load values
-            if self._sampler:
-                #Clear existing values
-                isobj.cleardata()
-                #Get data elements list
-                dataset = isobj.data()
-                for geom in dataset:
-                    #Grab a view of the vertex data
-                    verts = geom.get("vertices")
-                    if len(verts):
-                        #Sample over tri vertices
-                        values = self._sampler.sample(verts)
+            #Clear existing values
+            isobj.cleardata()
+            #Get data elements list
+            dataset = isobj.data()
+            for geom in dataset:
+                #Grab a view of the vertex data
+                verts = geom.get("vertices")
+                if len(verts):
+                    #Sample over tri vertices
+                    values = self._sampler.sample(verts)
+                    #Update data on root
+                    if rank == 0:
                         #Update element with the sampled data values
                         geom.set("sampledfield", values)
 
-                #Write the colour data back to db
+            #Write the colour data back to db on root
+            if rank == 0:
                 isobj.update("triangles")
-        else:
-            print "Object not found: " + self.properties["name"]
 
 class Mesh(Drawing):
     """  
