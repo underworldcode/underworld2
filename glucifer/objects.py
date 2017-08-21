@@ -153,7 +153,7 @@ class Drawing(_stgermain.StgCompoundComponent):
             self._colourMap = colourMap
         elif colours:
             self._colourMap = ColourMap(colours=colours, valueRange=valueRange, logScale=logScale)
-        elif colourBar or not colourMap is None:
+        elif colourMap is not None:
             self._colourMap = ColourMap(valueRange=valueRange, logScale=logScale)
         else:
             self._colourMap = None
@@ -606,6 +606,8 @@ class Points(Drawing):
         self._fn_colour = None
         if fn_colour != None:
            self._fn_colour = _underworld.function.Function.convert(fn_colour)
+        else:
+           colourBar = False
         self._fn_mask = None
         if fn_mask != None:
            self._fn_mask = _underworld.function.Function.convert(fn_mask)
