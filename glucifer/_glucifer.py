@@ -23,6 +23,7 @@ from . import objects
 import libUnderworld as _libUnderworld
 import sys
 import os
+from mpi4py import MPI
 
 #Attempt to import lavavu module
 if 'lavavu' in sys.modules:
@@ -183,6 +184,7 @@ class Store(_stgermain.StgCompoundComponent):
 
     def _generate(self, figname, objects, props):
         #First merge object list with active
+        starttime = MPI.Wtime()
         for obj in objects:
             #Add nested colourbar objects
             if obj._colourBar:
@@ -268,6 +270,9 @@ class Store(_stgermain.StgCompoundComponent):
             elif tmpdb is not None:
                 #Remove tmp db
                 os.remove(tmpdb)
+
+        endtime = MPI.Wtime()
+        print "Visualisation export took %10.2fs on proc %d" % (endtime-starttime, uw.rank())
 
     def _get_state(self, objects, props):
         #Get current state as string for export

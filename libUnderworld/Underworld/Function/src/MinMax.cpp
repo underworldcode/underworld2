@@ -13,6 +13,7 @@
 #include <sstream>
 #include <iostream>
 #include <stdexcept>
+#include <cstring>
 
 #include "Function.hpp"
 #include "FunctionIO.hpp"
@@ -87,7 +88,7 @@ Fn::MinMax::func Fn::MinMax::getFunction( IOsptr sample_input )
                 // eval aux function if necessary
                 const FunctionIO* _func_aux_io = _func_auxiliary(input);
                 // copy raw data
-                memcpy(_fn_auxiliary_io_min->dataRaw(), _func_aux_io->dataRaw(), _func_aux_io->size()*_func_aux_io->_dataSize);
+                std::memcpy(_fn_auxiliary_io_min->dataRaw(), _func_aux_io->dataRaw(), _func_aux_io->size()*_func_aux_io->_dataSize);
             }
         }
         else if ( val > _maxVal )
@@ -98,7 +99,7 @@ Fn::MinMax::func Fn::MinMax::getFunction( IOsptr sample_input )
                 // eval aux function if necessary
                 const FunctionIO* _func_aux_io = _func_auxiliary(input);
                 // copy raw data
-                memcpy(_fn_auxiliary_io_max->dataRaw(), _func_aux_io->dataRaw(), _func_aux_io->size()*_func_aux_io->_dataSize);
+                std::memcpy(_fn_auxiliary_io_max->dataRaw(), _func_aux_io->dataRaw(), _func_aux_io->size()*_func_aux_io->_dataSize);
             }
         }
         
@@ -206,7 +207,7 @@ FunctionIO* Fn::MinMax::getMinAuxGlobal()
     // if min occurs on *this* rank, copy data to global object
     int sizetocopy = _fn_auxiliary_io_min->size()*_fn_auxiliary_io_min->_dataSize;
     if ( rank == getMinRank() )
-        memcpy(_fn_auxiliary_io_min_global->dataRaw(), _fn_auxiliary_io_min->dataRaw(), sizetocopy);
+        std::memcpy(_fn_auxiliary_io_min_global->dataRaw(), _fn_auxiliary_io_min->dataRaw(), sizetocopy);
     
     // do broadcast
     int err = MPI_Bcast( _fn_auxiliary_io_min_global->dataRaw(), sizetocopy, MPI_BYTE, getMinRank(), MPI_COMM_WORLD );
@@ -231,7 +232,7 @@ FunctionIO* Fn::MinMax::getMaxAuxGlobal()
     // if max occurs on *this* rank, copy data to global object
     int sizetocopy = _fn_auxiliary_io_min->size()*_fn_auxiliary_io_min->_dataSize;
     if ( rank == getMaxRank() )
-        memcpy(_fn_auxiliary_io_max_global->dataRaw(), _fn_auxiliary_io_max->dataRaw(), _fn_auxiliary_io_max->size()*_fn_auxiliary_io_max->_dataSize);
+        std::memcpy(_fn_auxiliary_io_max_global->dataRaw(), _fn_auxiliary_io_max->dataRaw(), _fn_auxiliary_io_max->size()*_fn_auxiliary_io_max->_dataSize);
     
     // do broadcast
     int err = MPI_Bcast( _fn_auxiliary_io_max_global->dataRaw(), sizetocopy, MPI_BYTE, getMaxRank(), MPI_COMM_WORLD );

@@ -219,17 +219,18 @@ void _lucVectorArrows_DrawMeshCrossSection( void* drawingObject, lucDatabase* da
    lucVectorArrows*  self           = (lucVectorArrows*)drawingObject;
    double            min = 0.0, max = self->maximum;
 
-   if ( True == self->dynamicRange )
-   {
-//      min = FieldVariable_GetMinGlobalFieldMagnitude( vectorVariable );  
-//      max = FieldVariable_GetMaxGlobalFieldMagnitude( vectorVariable );
-   }
-
    /* Force 3d vectors */
    self->fieldDim = 3;
 
    /* Sample the 2d cross-section */
    lucCrossSection_SampleMesh(self, False);
+
+   if ( True == self->dynamicRange )
+   {
+      min = self->valueMin;
+      max = self->valueMax;
+   }
+
 
    if (self->rank == 0 && database)
    {

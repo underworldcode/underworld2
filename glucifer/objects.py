@@ -65,7 +65,7 @@ class ColourMap(_stgermain.StgCompoundComponent):
         if valueRange != None:
             # is valueRange correctly defined, ie list of length 2 made of numbers
             if not isinstance( valueRange, (list,tuple)):
-                raise TypeError("'valueRange' objected passed in must be of type 'list' or 'tuple'")
+                raise TypeError("'valueRange' must be of type 'list' or 'tuple'")
             if len(valueRange) != 2:
                 raise ValueError("'valueRange' must have 2 real values")
             for item in valueRange:
@@ -378,8 +378,8 @@ class CrossSection(Drawing):
         Function used to determine values to render.
     crossSection : str
         Cross Section definition, eg. z=0.
-    resolution : unsigned
-        Surface rendered sampling resolution.
+    resolution : list(unsigned)
+        Surface sampling resolution.
     onMesh : boolean
         Sample the mesh nodes directly, as opposed to sampling across a regular grid. This flag
         should be used in particular where a mesh has been deformed.
@@ -387,7 +387,7 @@ class CrossSection(Drawing):
     """
     _objectsDict = { "_dr": "lucCrossSection" }
 
-    def __init__(self, mesh, fn, crossSection="", resolution=100,
+    def __init__(self, mesh, fn, crossSection="", resolution=[100,100,1],
                        colourBar=True,
                        offsetEdges=None, onMesh=False,
                        *args, **kwargs):
@@ -405,10 +405,16 @@ class CrossSection(Drawing):
         self._crossSection = crossSection
         self._offsetEdges = offsetEdges
         
-        if not isinstance(resolution,int):
-            raise TypeError("'resolution' parameter must be of python type 'int'")
-        if resolution < 1:
-            raise ValueError("'resolution' parameter must be greater than zero")
+        if not isinstance( resolution, (list,tuple)):
+            if isinstance(resolution,int):
+                resolution = [resolution,resolution,1]
+            else:
+                raise TypeError("'resolution' passed in must be of type 'int', 'list' or 'tuple'")
+        for el in resolution:
+            if not isinstance(el,int):
+                raise TypeError("'resolution' elements must be of python type 'int'")
+            if el < 1:
+                raise ValueError("'resolution' elements must be greater than zero")
         self._resolution = resolution
 
         # build parent
@@ -428,7 +434,8 @@ class CrossSection(Drawing):
         componentDictionary[self._dr.name].update( {
                    "Mesh": self._mesh._cself.name,
                    "crossSection": self._crossSection,
-                   "resolution" : self._resolution,
+                   "resolutionA" : self._resolution[0],
+                   "resolutionB" : self._resolution[1],
                    "onMesh" : self._onMesh
             } )
 
@@ -535,7 +542,7 @@ class Contours(CrossSection):
 
         # is limits correctly defined, ie list of length 2 made of numbers
         if not isinstance( limits, (list,tuple)):
-            raise TypeError("'limits' objected passed in must be of type 'list' or 'tuple'")
+            raise TypeError("'limits' must be of type 'list' or 'tuple'")
         if len(limits) != 2:
             raise ValueError("'limits' must have 2 real values")
         for item in limits:
@@ -642,33 +649,40 @@ class Points(Drawing):
 class _GridSampler3D(CrossSection):
     """  This drawing object class samples a regular grid in 3D.
 
+    resolution : list(unsigned)
+        Number of samples in the I,J,K directions.
     resolutionI : unsigned
-        Number of samples in the I direction.
+        DEPRECATED: Number of samples in the I direction.
     resolutionJ : unsigned
-        Number of samples in the J direction.
+        DEPRECATED: Number of samples in the J direction.
     resolutionK : unsigned
-        Number of samples in the K direction.
+        DEPRECATED: Number of samples in the K direction.
     """
     _objectsDict = { "_dr": None } #Abstract class, Set by child
 
-    def __init__(self, resolutionI=16, resolutionJ=16, resolutionK=16, *args, **kwargs):
+    def __init__(self, resolution=[16,16,16], resolutionI=None, resolutionJ=None, resolutionK=None, *args, **kwargs):
 
+        #Convert deprecated parameters
         if resolutionI:
+            print "Parameter 'resolutionI' is deprecated, please use resolution=[I,J,K]"
             if not isinstance(resolutionI,int):
-                raise TypeError("'resolutionI' object passed in must be of python type 'int'")
+                raise TypeError("'resolutionI' must be of python type 'int'")
+            resolution[0] = resolutionI
         if resolutionJ:
+            print "Parameter 'resolutionJ' is deprecated, please use resolution=[I,J,K]"
             if not isinstance(resolutionJ,int):
-                raise TypeError("'resolutionJ' object passed in must be of python type 'int'")
+                raise TypeError("'resolutionJ' must be of python type 'int'")
+            resolution[1] = resolutionJ
         if resolutionK:
+            print "Parameter 'resolutionK' is deprecated, please use resolution=[I,J,K]"
             if not isinstance(resolutionK,int):
-                raise TypeError("'resolutionK' object passed in must be of python type 'int'")
+                raise TypeError("'resolutionK' must be of python type 'int'")
+            resolution[2] = resolutionK
 
-        self._resolutionI = resolutionI
-        self._resolutionJ = resolutionJ
-        self._resolutionK = resolutionK
+        self._resolution = resolution
 
         # build parent
-        super(_GridSampler3D,self).__init__(*args, **kwargs)
+        super(_GridSampler3D,self).__init__(resolution=resolution, *args, **kwargs)
 
     def _add_to_stg_dict(self,componentDictionary):
         # lets build up component dictionary
@@ -677,9 +691,9 @@ class _GridSampler3D(CrossSection):
         super(_GridSampler3D,self)._add_to_stg_dict(componentDictionary)
 
         componentDictionary[self._dr.name].update( {
-            "resolutionX": self._resolutionI,
-            "resolutionY": self._resolutionJ,
-            "resolutionZ": self._resolutionK
+            "resolutionX": self._resolution[0],
+            "resolutionY": self._resolution[1],
+            "resolutionZ": self._resolution[2]
             } )
 
 
@@ -705,23 +719,21 @@ class VectorArrows(_GridSampler3D):
     glyphs : int
         Type of glyph to render for vector arrow.
         0: Line, 1 or more: 3d arrow, higher number => better quality.
-    resolutionI : unsigned
-        Number of samples in the I direction.
-    resolutionJ : unsigned
-        Number of samples in the J direction.
-    resolutionK : unsigned
-        Number of samples in the K direction.
+    resolution : list(unsigned)
+        Number of samples in the I,J,K directions.
+    autoscale : bool
+        Scaling based on field min/max.
 
     """
     _objectsDict = { "_dr": "lucVectorArrows" }
 
-    def __init__(self, mesh, fn,
-                       resolutionI=16, resolutionJ=16, resolutionK=16, 
-                       *args, **kwargs):
+    def __init__(self, mesh, fn, resolution=[16, 16, 16], autoscale=True, *args, **kwargs):
+
+        self._autoscale = autoscale
 
         # build parent
-        super(VectorArrows,self).__init__( mesh=mesh, fn=fn, resolutionI=resolutionI, resolutionJ=resolutionJ, resolutionK=resolutionK,
-                        colours=None, colourMap=None, colourBar=False, *args, **kwargs)
+        super(VectorArrows,self).__init__( mesh=mesh, fn=fn, resolution=resolution,
+                        colours=None, colourMap=None, colourBar=False, autoscale=autoscale, *args, **kwargs)
 
     def _add_to_stg_dict(self,componentDictionary):
         # lets build up component dictionary
@@ -729,7 +741,9 @@ class VectorArrows(_GridSampler3D):
         # call parents method
         super(VectorArrows,self)._add_to_stg_dict(componentDictionary)
 
-        componentDictionary[self._dr.name].update( {} )
+        componentDictionary[self._dr.name].update( {
+            "dynamicRange": self._autoscale
+            } )
 
 class Volume(_GridSampler3D):
     """  
@@ -745,25 +759,21 @@ class Volume(_GridSampler3D):
         Function used to determine colour values.
         Function should return a vector of floats/doubles of appropriate
         dimensionality.
-    resolutionI : unsigned
-        Number of samples in the I direction.
-    resolutionJ : unsigned
-        Number of samples in the J direction.
-    resolutionK : unsigned
-        Number of samples in the K direction.
+    resolution : list(unsigned)
+        Number of samples in the I,J,K directions.
 
     """
     _objectsDict = { "_dr": "lucFieldSampler" }
 
     def __init__(self, mesh, fn, 
-                       resolutionI=64, resolutionJ=64, resolutionK=64, 
+                       resolution=[64,64,64], 
                        colourBar=True,
                        *args, **kwargs):
 
         # build parent
         if mesh.dim == 2:
             raise ValueError("Volume rendering requires a three dimensional mesh.")
-        super(Volume,self).__init__( mesh=mesh, fn=fn, resolutionI=resolutionI, resolutionJ=resolutionJ, resolutionK=resolutionK,
+        super(Volume,self).__init__( mesh=mesh, fn=fn, resolution=resolution,
                                      colourBar=colourBar, *args, **kwargs)
 
     def _add_to_stg_dict(self,componentDictionary):
@@ -839,12 +849,8 @@ class IsoSurface(Volume):
         Function should return a vector of floats/doubles.
     fn_colour : underworld.function.Function
         Function used to determine colour of surface.
-    resolutionI : unsigned
-        Number of samples in the I direction.
-    resolutionJ : unsigned
-        Number of samples in the J direction.
-    resolutionK : unsigned
-        Number of samples in the K direction.
+    resolution : list(unsigned)
+        Number of samples in the I,J,K directions.
     isovalue : float
         Isovalue to plot.
     isovalues : list of float
@@ -852,8 +858,7 @@ class IsoSurface(Volume):
 
     """
 
-    def __init__(self, mesh, fn, fn_colour=None,
-                       resolutionI=64, resolutionJ=64, resolutionK=64, 
+    def __init__(self, mesh, fn, fn_colour=None, resolution=[64,64,64],
                        colourBar=True, isovalue=None, *args, **kwargs):
 
         # build parent
@@ -870,7 +875,7 @@ class IsoSurface(Volume):
         if fn_colour != None:
            self._sampler = Sampler(mesh, fn_colour)
 
-        super(IsoSurface,self).__init__( mesh=mesh, fn=fn, resolutionI=resolutionI, resolutionJ=resolutionJ, resolutionK=resolutionK,
+        super(IsoSurface,self).__init__( mesh=mesh, fn=fn, resolution=resolution,
                                          colourBar=colourBar, *args, **kwargs)
         self.geomType = "triangles"
 
