@@ -121,8 +121,8 @@ void lucFieldSampler_DrawSlice(void* drawingObject, lucDatabase* database)
                        self->max[0], self->max[1], self->max[2]};
 
    /* Sample the 2d cross-section */
-   self->resolutionA = self->resolution[I_AXIS];
-   self->resolutionB = self->resolution[J_AXIS];
+   self->resolutionA = self->resolution[self->axis1];
+   self->resolutionB = self->resolution[self->axis2];
    lucCrossSection_SampleField(self, False);
 
    if (self->rank == 0 && database)
@@ -185,12 +185,7 @@ void _lucFieldSampler_Draw( void* drawingObject, lucDatabase* database, void* _c
    }
    else
    {
-     if (self->isSet) 
-     {
-        /* Just draw at given position if provided */
-        lucFieldSampler_DrawMeshSlice(self, database);
-     }
-     else if (dim == 2)
+     if (dim == 2)
      {
         lucFieldSampler_DrawMeshSlice(lucCrossSection_Slice(self, 0.0, False), database);
      }
