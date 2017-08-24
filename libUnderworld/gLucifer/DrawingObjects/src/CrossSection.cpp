@@ -603,9 +603,11 @@ void lucCrossSection_SampleField(void* drawingObject, Bool reverse)
    }
    
    // finally, record encountered min/max to colourmap
+   self->valueMin = cppdata->fn->getMinGlobal();
+   self->valueMax = cppdata->fn->getMaxGlobal();
    if ( self->colourMap)
    {
-      lucColourMap_SetMinMax( self->colourMap, cppdata->fn->getMinGlobal(), cppdata->fn->getMaxGlobal() );
+      lucColourMap_SetMinMax( self->colourMap, self->valueMin, self->valueMax );
       //Journal_Printf(lucInfo, "ColourMap min/max range set to %f - %f\n", self->colourMap->minimum, self->colourMap->maximum);
    }
 }
@@ -725,6 +727,15 @@ void lucCrossSection_SampleMesh( void* drawingObject, Bool reverse)
    Journal_Firewall(localcount == 0, lucError,
                      "Error - in %s: count of values sampled compared to sent/received by mpi on proc %d does not match (balance = %d)\n",
                      __func__, self->rank, localcount);
+
+   // finally, record encountered min/max to colourmap
+   self->valueMin = cppdata->fn->getMinGlobal();
+   self->valueMax = cppdata->fn->getMaxGlobal();
+   if ( self->colourMap)
+   {
+      lucColourMap_SetMinMax( self->colourMap, self->valueMin, self->valueMax );
+      //Journal_Printf(lucInfo, "ColourMap min/max range set to %f - %f\n", self->colourMap->minimum, self->colourMap->maximum);
+   }
 }
 
 void lucCrossSection_FreeSampleData(void* drawingObject)

@@ -75,6 +75,8 @@ extern const Type lucCrossSection_Type;
       ExtensionInfo_Index  vertexGridHandle;    \
       int                  dims[3];             \
       int                  fieldDim;            \
+      double               valueMin;            \
+      double               valueMax;            \
  
 struct lucCrossSection
 {

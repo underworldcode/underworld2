@@ -721,15 +721,19 @@ class VectorArrows(_GridSampler3D):
         0: Line, 1 or more: 3d arrow, higher number => better quality.
     resolution : list(unsigned)
         Number of samples in the I,J,K directions.
+    autoscale : bool
+        Scaling based on field min/max.
 
     """
     _objectsDict = { "_dr": "lucVectorArrows" }
 
-    def __init__(self, mesh, fn, resolution=[16, 16, 16], *args, **kwargs):
+    def __init__(self, mesh, fn, resolution=[16, 16, 16], autoscale=True, *args, **kwargs):
+
+        self._autoscale = autoscale
 
         # build parent
         super(VectorArrows,self).__init__( mesh=mesh, fn=fn, resolution=resolution,
-                        colours=None, colourMap=None, colourBar=False, *args, **kwargs)
+                        colours=None, colourMap=None, colourBar=False, autoscale=autoscale, *args, **kwargs)
 
     def _add_to_stg_dict(self,componentDictionary):
         # lets build up component dictionary
@@ -737,7 +741,9 @@ class VectorArrows(_GridSampler3D):
         # call parents method
         super(VectorArrows,self)._add_to_stg_dict(componentDictionary)
 
-        componentDictionary[self._dr.name].update( {} )
+        componentDictionary[self._dr.name].update( {
+            "dynamicRange": self._autoscale
+            } )
 
 class Volume(_GridSampler3D):
     """  
