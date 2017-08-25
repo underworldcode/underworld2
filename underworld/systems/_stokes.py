@@ -268,6 +268,23 @@ class Stokes(_stgermain.StgCompoundComponent):
             if isinstance( cond, uw.conditions.RotatedDirichletCondition):
                 self.redefineVelocityDirichletBC(cond.basis_vectors)
 
+        # check all system conditions don't overlap - go component by component of velocity dof
+        for d_i in xrange(velocityField.nodeDofCount):
+            # temporary FeMesh_IndexSet to check duplicates
+            dbc = uw.mesh.FeMesh_IndexSet(mesh, topologicalIndex=0, size=mesh.nodesGlobal)
+            # record the first condition's indices
+            firstCond = self._conditions[0]
+            if firstCond._indexSets[d_i] is not None:
+                dbc.add(firstCond._indexSets[d_i].data)
+
+            # loop over 2nd condition's indexSets
+            for cond in self._conditions[1:]:
+                if cond._indexSets[d_i] is None:
+                    continue # do nothing
+                else:
+                    dbc.AND(cond._indexSets[d_i])
+                    if dbc.count > 0:
+                        raise RuntimeError("Appears duplicate 'conditions' in the uw.system.Stokes().\nDuplicate DOFs for component {0} are: {1}".format(d_i,dbc.data))
 
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method
@@ -289,13 +306,11 @@ class Stokes(_stgermain.StgCompoundComponent):
         Here we build a global rotation matrix and a local assembly term for it for 2 reasons.
         1) The assembly term rotates local element contributions immediately after their local evaluation
            for the stokes system. This supports the Engelman & Sani idea in,
-           THE 1IMPLEMEWI"TTION OF NORMAL AND/OR TANGENTIAL BOUNDARY CONDITIONS IN FINITE
+           THE IMPLEMENTATION OF NORMAL AND/OR TANGENTIAL BOUNDARY CONDITIONS IN FINITE
            ELEMENT CODES FOR INCOMPRESSIBLE FLUID FLOW, 1982
         2) The global rotation matrix allows us to rotate the whole velocity field when we like.
            Advantagous for this development phase whilst we are designing the workflow of rotated BCS.
 
-        Notes:
-        - We make self._asv only because of the code around line 522 in StiffnessMatrix.c
         '''
 
         if len(basis_vectors) != self._velocityField.nodeDofCount:

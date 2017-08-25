@@ -1435,6 +1435,14 @@ class _FeMesh_Annulus(FeMesh_Cartesian):
         """
         return self._radialLengths
 
+    @property
+    def angularExtent(self):
+        """
+        Returns:
+        Annulus min/max angular extents
+        """
+        return self._angularExtent
+
     def fn_unitvec_radial(self):
         # returns the radial position
         pos = function.coord()

@@ -81,15 +81,6 @@ void MatrixAssemblyTerm_RotationDof_SetE2Fn( void* _self, Fn::Function* fn ){
     }
 }
 
-void _MatrixAssemblyTerm_SetBNodes( void* _self, void* bNodes )
-{
-    MatrixAssemblyTerm_RotationDof* self = (MatrixAssemblyTerm_RotationDof*)_self;
-
-    if(!Stg_Class_IsInstance( bNodes, VariableCondition_Type ))
-        throw std::invalid_argument("Provided 'indexSet' does not appear to be of 'IndexSet' type.");
-    self->bNodes = (VariableCondition*)bNodes;
-}
-
 void _MatrixAssemblyTerm_RotationDof_Delete( void* matrixTerm ) {
     MatrixAssemblyTerm_RotationDof* self = (MatrixAssemblyTerm_RotationDof*)matrixTerm;
 
@@ -218,13 +209,13 @@ void _MatrixAssemblyTerm_RotationDof_AssembleElement(
    const double *e2Vec, *e1Vec;
    IArray       *inc = self->inc;
    double       crossproduct[3];
-   int          nNbr, *nbr, n_i, row_i, col_i;
-
+   int          nNbr, *nbr, n_i, row_i, col_i, d_i, dofsPerNode;
 
    // get this element's nodes, using IArray
    Mesh_GetIncidence( mesh, (MeshTopology_Dim)dim, (unsigned)lElement_I, MT_VERTEX, inc );
    nNbr = IArray_GetSize( inc );
    nbr = IArray_GetPtr( inc );
+   dofsPerNode = variable_row->fieldComponentCount;
 
    // loop over element's nodes
    for( n_i=0 ; n_i<nNbr ; n_i++ ){

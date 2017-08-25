@@ -51,7 +51,6 @@
   int     max_nElNodes_row; \
   double	*Ni;              \
   double	*Mi;              \
-  VariableCondition* bNodes;\
 
 	struct MatrixAssemblyTerm_RotationDof { __MatrixAssemblyTerm_RotationDof };
 
