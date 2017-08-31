@@ -1,5 +1,6 @@
 import underworld as uw
 import numpy as np
+from itertools import izip
 from mpi4py import MPI
 
 comm = MPI.COMM_WORLD
@@ -127,7 +128,7 @@ def get_sep_velocities3D(mesh, velocityField):
 
         # Load the top-velocities in the local array with global dimensions.
         k = 0
-        for i, j in zip(Ipositions, Jpositions):
+        for i, j in izip(Ipositions, Jpositions):
             local_top_vy[j, i] = topVelocities_nodes[k]
             local_heights[j, i] += heights_nodes[k]
             k+=1
@@ -153,7 +154,7 @@ def get_sep_velocities3D(mesh, velocityField):
 
         # Load the top-velocities in the local array with global dimensions.
         k = 0
-        for i, j in zip(Ipositions, Jpositions):
+        for i, j in izip(Ipositions, Jpositions):
             local_bot_vy[j, i] = botVelocities_nodes[k]
             local_heights[j, i] -= heights_nodes[k]
             k+=1
