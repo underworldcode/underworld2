@@ -180,12 +180,16 @@ FunctionIO* Fn::MinMax::getMinAux()
 {
     if (!_fn_auxiliary)
         throw std::runtime_error("Operation not valid. Auxiliary function was never set for this MinMax object.");
+    if (!_fn_auxiliary_io_max)
+        throw std::runtime_error("Operation not valid. Auxiliary function was probably never called.");
     return _fn_auxiliary_io_min.get();
 }
 FunctionIO* Fn::MinMax::getMaxAux()
 {
     if (!_fn_auxiliary)
         throw std::runtime_error("Operation not valid. Auxiliary function was never set for this MinMax object.");
+    if (!_fn_auxiliary_io_min)
+        throw std::runtime_error("Operation not valid. Auxiliary function was probably never called.");
     return _fn_auxiliary_io_max.get();
 }
 
