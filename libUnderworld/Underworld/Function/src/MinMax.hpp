@@ -23,8 +23,7 @@ namespace Fn {
         MinMax( Function *fn, Function *fn_norm=NULL, Function *fn_auxiliary=NULL ):
             _fn(fn), _fn_norm(fn_norm), _fn_auxiliary(fn_auxiliary),
             _min_rank(-1), _max_rank(-1),
-            _fn_auxiliary_io_min(NULL), _fn_auxiliary_io_max(NULL),
-            _fn_auxiliary_io_min_global(NULL), _fn_auxiliary_io_max_global(NULL) {reset();};
+            _fn_auxiliary_io_min(NULL), _fn_auxiliary_io_max(NULL) {reset();};
         virtual ~MinMax(){};
         virtual func getFunction( IOsptr sample_input );
         double getMin();
@@ -35,8 +34,6 @@ namespace Fn {
         int getMaxRank(){return _max_rank;};
         FunctionIO* getMinAux();
         FunctionIO* getMaxAux();
-        FunctionIO* getMinAuxGlobal();
-        FunctionIO* getMaxAuxGlobal();
         void reset();
     protected:
         Function* _fn;
@@ -46,8 +43,6 @@ namespace Fn {
         int _max_rank;
         std::shared_ptr<FunctionIO> _fn_auxiliary_io_min;
         std::shared_ptr<FunctionIO> _fn_auxiliary_io_max;
-        std::shared_ptr<FunctionIO> _fn_auxiliary_io_min_global;
-        std::shared_ptr<FunctionIO> _fn_auxiliary_io_max_global;
         double _minVal;
         double _maxVal;
     };

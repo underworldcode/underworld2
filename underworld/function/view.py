@@ -294,7 +294,24 @@ class min_max(_function.Function):
         -------
         FunctionIO: value at global minimum.
         """
-        return self._functionio_for_numpy(self._fncself.getMinAuxGlobal())
+        
+        # first make sure that we have determined the rank with the min
+        self.min_global()
+        
+        import underworld as uw
+        # if we are the rank with the min result, extract result
+        if uw.rank() == self.min_rank():
+            auxout = self.min_local_auxiliary()
+        else:
+            auxout = None
+    
+        from mpi4py import MPI
+        comm = MPI.COMM_WORLD
+
+        # broadcast
+        data = comm.bcast(auxout, root=self.min_rank())
+
+        return data
     def max_global_auxiliary(self):
         """
         Returns the results of the auxiliary function evaluated at the
@@ -309,7 +326,23 @@ class min_max(_function.Function):
         -------
         FunctionIO: value at global maximum.
         """
-        return self._functionio_for_numpy(self._fncself.getMaxAuxGlobal())
+        # first make sure that we have determined the rank with the max
+        self.max_global()
+        
+        import underworld as uw
+        # if we are the rank with the max result, extract result
+        if uw.rank() == self.max_rank():
+            auxout = self.max_local_auxiliary()
+        else:
+            auxout = None
+        
+        from mpi4py import MPI
+        comm = MPI.COMM_WORLD
+        
+        # broadcast
+        data = comm.bcast(auxout, root=self.max_rank())
+        
+        return data
     def min_rank(self):
         """
         Returns the rank where the minimum occurs. Note that this method 

@@ -59,9 +59,6 @@ Fn::MinMax::func Fn::MinMax::getFunction( IOsptr sample_input )
         // we wrap all this in smart pointers for shits and giggles.
         _fn_auxiliary_io_min        = std::shared_ptr<FunctionIO>(dynamic_cast<FunctionIO*>(_func_auxiliary(sample_input)->cloneType()));
         _fn_auxiliary_io_max        = std::shared_ptr<FunctionIO>(dynamic_cast<FunctionIO*>(_func_auxiliary(sample_input)->cloneType()));
-        // also create somewhere for local proc to store global reduced values
-        _fn_auxiliary_io_min_global = std::shared_ptr<FunctionIO>(dynamic_cast<FunctionIO*>(_func_auxiliary(sample_input)->cloneType()));
-        _fn_auxiliary_io_max_global = std::shared_ptr<FunctionIO>(dynamic_cast<FunctionIO*>(_func_auxiliary(sample_input)->cloneType()));
     }
     
     return [_func,_func_norm,_func_auxiliary,this](IOsptr input)->IOsptr {
@@ -116,8 +113,6 @@ void Fn::MinMax::reset()
     _max_rank = -1;
     _fn_auxiliary_io_min        = std::shared_ptr<FunctionIO>(NULL);
     _fn_auxiliary_io_max        = std::shared_ptr<FunctionIO>(NULL);
-    _fn_auxiliary_io_min_global = std::shared_ptr<FunctionIO>(NULL);
-    _fn_auxiliary_io_max_global = std::shared_ptr<FunctionIO>(NULL);
 
 }
 
@@ -192,56 +187,5 @@ FunctionIO* Fn::MinMax::getMaxAux()
     if (!_fn_auxiliary)
         throw std::runtime_error("Operation not valid. Auxiliary function was never set for this MinMax object.");
     return _fn_auxiliary_io_max.get();
-}
-
-FunctionIO* Fn::MinMax::getMinAuxGlobal()
-{
-
-    // first call getMinGlobal to ensure we know where the min resides (rank wise)
-    getMinGlobal();
-    
-    // get our rank
-    int rank;
-    MPI_Comm_rank( MPI_COMM_WORLD, &rank );
-
-    // if min occurs on *this* rank, copy data to global object
-    int sizetocopy = _fn_auxiliary_io_min->size()*_fn_auxiliary_io_min->_dataSize;
-    if ( rank == getMinRank() )
-        std::memcpy(_fn_auxiliary_io_min_global->dataRaw(), _fn_auxiliary_io_min->dataRaw(), sizetocopy);
-    
-    // do broadcast
-    int err = MPI_Bcast( _fn_auxiliary_io_min_global->dataRaw(), sizetocopy, MPI_BYTE, getMinRank(), MPI_COMM_WORLD );
-    
-    if (err != MPI_SUCCESS)
-        throw std::runtime_error("Unknown MPI communication error occurred during MinMax operation. Please contact developers.");
-
-    // return raw (not smart) ptr
-    return _fn_auxiliary_io_min_global.get();
-    
-}
-FunctionIO* Fn::MinMax::getMaxAuxGlobal()
-{
-
-    // first call getMaxGlobal to ensure we know where the max resides (rank wise)
-    getMaxGlobal();
-    
-    // get our rank
-    int rank;
-    MPI_Comm_rank( MPI_COMM_WORLD, &rank );
-    
-    // if max occurs on *this* rank, copy data to global object
-    int sizetocopy = _fn_auxiliary_io_min->size()*_fn_auxiliary_io_min->_dataSize;
-    if ( rank == getMaxRank() )
-        std::memcpy(_fn_auxiliary_io_max_global->dataRaw(), _fn_auxiliary_io_max->dataRaw(), _fn_auxiliary_io_max->size()*_fn_auxiliary_io_max->_dataSize);
-    
-    // do broadcast
-    int err = MPI_Bcast( _fn_auxiliary_io_max_global->dataRaw(), sizetocopy, MPI_BYTE, getMaxRank(), MPI_COMM_WORLD );
-    
-    if (err != MPI_SUCCESS)
-        throw std::runtime_error("Unknown MPI communication error occurred during MinMax operation. Please contact developers.");
-    
-    // return raw (not smart) ptr
-    return _fn_auxiliary_io_max_global.get();
-
 }
 
