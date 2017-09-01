@@ -54,6 +54,7 @@ extern "C" {
 %include "Rheology/ConstitutiveMatrix.h"
 %include "Rheology/ConstitutiveMatrixCartesian.h"
 %include "Rheology/types.h"
+%include "Utils/Exceptions.h"
 %include "Utils/types.h"
 
 %include "Utils/AdvectionDiffusion/AdvectionDiffusionSLE.h"

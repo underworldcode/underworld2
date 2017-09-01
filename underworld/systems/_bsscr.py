@@ -225,14 +225,14 @@ class StokesSolver(_stgermain.StgCompoundComponent):
     """
     The Block Stokes Schur Complement Solver:
     This solves the saddle-point system
-    
+
     .. math::
         \\begin{bmatrix} K & G \\\\ G^T & C \\end{bmatrix} \\begin{bmatrix} u \\\\ p \\end{bmatrix} = \\begin{bmatrix}f \\\\ h \\end{bmatrix}
 
     via a Schur complement method.
 
     We first solve:
-    
+
     .. math::
         S p= G^T  K^{-1} f - h,
        :label: a
@@ -240,7 +240,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
     where :math:`S = G^T K^{-1} G-C`
 
     Then we backsolve for the velocity:
-    
+
     .. math::
         K u = f - G p.
        :label: b
@@ -250,8 +250,8 @@ class StokesSolver(_stgermain.StgCompoundComponent):
 
     The solve in :eq:`a` for the pressure has prefix 'scr'.
 
-    Assuming the returned solver is called 'solver', it is possible to configure 
-    these solves individually via the `solver.options.A11` and 
+    Assuming the returned solver is called 'solver', it is possible to configure
+    these solves individually via the `solver.options.A11` and
     `solver.options.scr` dictionaries.
 
     Try uw.help(solver.options.A11) for some details.
@@ -321,34 +321,37 @@ class StokesSolver(_stgermain.StgCompoundComponent):
               nonLinearKillNonConvergent=False,
               nonLinearMaxIterations=500,
               callback_post_solve=None,
-              print_stats=False, reinitialise=True, **kwargs):
-        """ 
+              print_stats=False, reinitialise=True, fpwarning=True, **kwargs):
+        """
         Solve the stokes system
-        
+
         Parameters
         ----------
         nonLinearIterate: bool
             True will perform non linear iterations iterations, False (or 0) will not
-        
+
         nonLinearTolerance: float, Default=1.0e-2
             Relative tolerance criterion for the change in the velocity field
-            
+
         nonLinearMaxIterations: int, Default=500
             Maximum number of non linear iteration to perform
-            
+
         callback_post_sovle: func, Default=None
             Optional callback function to be performed at the end of a linear solve iteration.
             Commonly this will be used to perform operations between non linear iterations, for example,
             calibrating the pressure solution or removing the system null space.
-            
+
         print_stats: bool, Default=False
             Print out solver iteration and timing counts per solver
-        
+
         reinitialise: bool, Default=True,
             Rebuild the system discretisation storage (location matrix/petsc mats & vecs) and repopulate, if available,
             the stokes voronio swarm before the system is solved.
         """
-        
+
+        # clear the floating-point env registers. Should return 0
+        rubbish = uw.libUnderworld.Underworld.Underworld_feclearexcept()
+
         Solvers.SBKSP_SetSolver(self._cself, self._stokesSLE._cself)
         if isinstance(self.options.main.penalty,float) and self.options.main.penalty > 0.0:
             Solvers.SBKSP_SetPenalty(self._cself, self.options.main.penalty)
@@ -359,10 +362,10 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         if callback_post_solve is not None:
             if not callable(callback_post_solve):
                 raise RuntimeError("The 'callback_post_solve' parameter is not 'None' and isn't callable")
-        
+
         # in this c function we handle callback_post_solve=None
         uw.libUnderworld.StgFEM.SystemLinearEquations_SetCallback(self._stokesSLE._cself, callback_post_solve)
-        
+
         if not isinstance(nonLinearTolerance, float) or nonLinearTolerance < 0.0:
             raise ValueError("'nonLinearTolerance' option must be of type 'float' and greater than 0.0")
 
@@ -429,6 +432,13 @@ class StokesSolver(_stgermain.StgCompoundComponent):
                     print( "Non linear iterations: %3d of 500 " % (self._stokesSLE._cself.nonLinearIteration_I) )
                     print endcol
                     print
+
+        if uw.libUnderworld.Underworld.Underworld_fetestexcept() and fpwarning:
+            import warnings
+            warnings.warn("A floating-point operation error has been detected during the solve. " +
+            " The resultant solution fields are mostly likely erroneous, check them thoroughly. "+
+            " This is likely due to large number variations in the linear algrebra or fragil solver configurations. "
+            " This warning can be supressed with the argument 'fpwarning=False'.")
 
         return
 

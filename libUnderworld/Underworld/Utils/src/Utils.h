@@ -21,6 +21,7 @@
    #include "MatrixAssemblyTerm_NA__NB__Fn.h"
 
    #include "Fn_Integrate.h"
+   #include "Exceptions.h"
 
    #include "Init.h"
    #include "Finalise.h"
