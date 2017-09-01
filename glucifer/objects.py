@@ -232,7 +232,7 @@ class Drawing(_stgermain.StgCompoundComponent):
             obj.values(self.scalars)
             output = True
         if len(self.labels):
-            obj.label(self.labels)
+            obj.labels(self.labels)
             output = True
 
         #Update the database
@@ -712,17 +712,18 @@ class VectorArrows(_GridSampler3D):
         Function should return a vector of floats/doubles of appropriate
         dimensionality.
     arrowHead : float
-         The size of the head of the arrow compared with the arrow length.
-         Must be in [0.,1.].
+         The size of the head of the arrow.
+         If > 1.0 is ratio to arrow radius
+         If in range [0.,1.] is ratio to arrow length
     scaling : float
         Scaling for entire arrow.
+    autoscale : bool
+        Scaling based on field min/max
     glyphs : int
         Type of glyph to render for vector arrow.
         0: Line, 1 or more: 3d arrow, higher number => better quality.
     resolution : list(unsigned)
         Number of samples in the I,J,K directions.
-    autoscale : bool
-        Scaling based on field min/max.
 
     """
     _objectsDict = { "_dr": "lucVectorArrows" }

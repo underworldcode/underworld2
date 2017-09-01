@@ -143,11 +143,9 @@ class Store(_stgermain.StgCompoundComponent):
         #  and to pass it as first command line arg or if needed to get html path)
         self._lvpath = self._db.bin_path
         self._lvbin = os.path.join(self._db.bin_path, "LavaVu")
-        global lavavu
-        if lavavu and not os.path.isfile(self._lvbin):
+        if not os.path.isfile(self._lvbin):
             print("LavaVu rendering engine does not appear to exist. Perhaps it was not compiled.\n"
                   "Please check your configuration, or contact developers.")
-            lavavu = None
 
     def save(self,filename):
         """  
@@ -271,8 +269,9 @@ class Store(_stgermain.StgCompoundComponent):
                 #Remove tmp db
                 os.remove(tmpdb)
 
-        endtime = MPI.Wtime()
-        print "Visualisation export took %10.2fs on proc %d" % (endtime-starttime, uw.rank())
+        if not lavavu.is_ipython():
+            endtime = MPI.Wtime()
+            print "Visualisation export took %10.2fs on proc %d" % (endtime-starttime, uw.rank())
 
     def _get_state(self, objects, props):
         #Get current state as string for export
@@ -293,8 +292,7 @@ class Store(_stgermain.StgCompoundComponent):
 
     def _read_state(self):
         #Read state from database
-        global lavavu
-        if not lavavu or uw.rank() > 0:
+        if uw.rank() > 0:
             return
         if not self._db.db:
             libUnderworld.gLucifer.lucDatabase_OpenDatabase(self._db)
@@ -553,10 +551,9 @@ class Figure(dict):
 
         """
         try:
-            if __IPYTHON__:
+            if lavavu.is_notebook():
                 self._generate_DB()
-                global lavavu
-                if not lavavu or uw.rank() > 0:
+                if uw.rank() > 0:
                     return
                 from IPython.display import display,Image,HTML
                 if type.lower() == "webgl":
@@ -568,11 +565,6 @@ class Figure(dict):
             else:
                 #Fallback to export image
                 self.save(filename=self.name, type=type)
-
-        except NameError, ImportError:
-            #Fallback to export image
-            self.save(filename=self.name, type=type)
-            pass
         except RuntimeError, e:
             print "Error creating image: "
             print e
@@ -610,8 +602,7 @@ class Figure(dict):
             anything.
         """
         self._generate_DB()
-        global lavavu
-        if filename is None or not lavavu or uw.rank() > 0:
+        if filename is None or uw.rank() > 0:
             return
         if not isinstance(filename, str):
             raise TypeError("Provided parameter 'filename' must be of type 'str'. ")
@@ -638,8 +629,7 @@ class Figure(dict):
         self.db._generate(self.name, objects, self)
 
     def _generate_image(self, filename="", size=(0,0)):
-        global lavavu
-        if not lavavu or uw.rank() > 0:
+        if uw.rank() > 0:
             return
         try:
             #Render with viewer
@@ -655,8 +645,7 @@ class Figure(dict):
         return ""
 
     def _generate_HTML(self):
-        global lavavu
-        if not lavavu or uw.rank() > 0:
+        if uw.rank() > 0:
             return
         try:
             #Export encoded json string
@@ -707,8 +696,7 @@ class Figure(dict):
         and opens it as an interactive viewing window.
         """
         #Open a new viewer instance and display window
-        global lavavu
-        if lavavu and uw.rank() == 0:
+        if uw.rank() == 0:
             v = self.viewer(new=True, *args, **kwargs)
             #Ensure correct figure selected
             v.figure(self.name)
@@ -726,8 +714,7 @@ class Figure(dict):
             Otherwise the existing instance will be used if available
         """
         #Open/get viewer instance
-        global lavavu
-        if lavavu and uw.rank() == 0:
+        if uw.rank() == 0:
             #Generate db if doesn't exist
             if not self.db._db.path:
                 self._generate_DB()
@@ -748,8 +735,7 @@ class Figure(dict):
         if self._viewerProc and self._viewerProc.poll() == None:
             return
 
-        global lavavu
-        if lavavu and uw.rank() == 0:
+        if uw.rank() == 0:
             #Open viewer with local web server for interactive/iterative use
             if background:
                 self._viewerProc = subprocess.Popen([self.db._lvbin, "-" + str(self.db.step), "-p9999", "-q90", fname] + self._script + args,
@@ -777,8 +763,7 @@ class Figure(dict):
         cmd: str
             Command to send to open viewer.
         """
-        global lavavu
-        if lavavu and uw.rank() == 0:
+        if uw.rank() == 0:
             self.open_viewer()
             url = "http://localhost:9999/command=" + urllib2.quote(cmd)
             try:
