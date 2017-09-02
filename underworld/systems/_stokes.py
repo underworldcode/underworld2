@@ -312,6 +312,7 @@ class Stokes(_stgermain.StgCompoundComponent):
            Advantagous for this development phase whilst we are designing the workflow of rotated BCS.
 
         '''
+        from underworld import function as fn
 
         if len(basis_vectors) != self._velocityField.nodeDofCount:
             raise ValueError("Inconsistent number of 'basis_vectors' for the velocity field dimensionality")
@@ -351,6 +352,14 @@ class Stokes(_stgermain.StgCompoundComponent):
         uw.libUnderworld.StgFEM.StiffnessMatrix_SetRotationTerm(self._kmatrix._cself, term._cself)
         uw.libUnderworld.StgFEM.StiffnessMatrix_SetRotationTerm(self._gmatrix._cself, term._cself)
         uw.libUnderworld.StgFEM.ForceVector_SetRotationTerm(self._fvector._cself, term._cself)
+
+        # define the null space for the annulus
+        r = fn.math.sqrt(fn.math.pow(fn.coord()[0],2.) + fn.math.pow(fn.coord()[1],2.))
+        tang = r*mesh.fn_unitvec_tangent()
+
+        # build solid body rotation vector
+        self._asv.meshVariable.data[:] = tang.evaluate(mesh) # evaluate
+        uw.libUnderworld.StgFEM.SolutionVector_LoadCurrentFeVariableValuesOntoVector(self._asv._cself) #store
 
     @property
     def fn_viscosity(self):

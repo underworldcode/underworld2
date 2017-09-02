@@ -123,24 +123,27 @@ class VectorSurfaceAssemblyTerm_NA__Fn__ni(VectorAssemblyTerm):
 
         ##### Now construct the additional rhs force like term. Ingredients required for a surface integral
         # 1) a gauss border swarm
-        # 2) a mask function to only evaluate the flux only on nodes specified in the nbc.indexSets
+        # 2) a mask function to evaluate the flux ONLY on nodes specified in the nbc.indexSets
+        #    - we'll use an nbc boolean MeshVariable
         #####
 
-        deltaMeshVariable = uw.mesh.MeshVariable(mesh, 1)
-        deltaMeshVariable.data[:] = 0.
-        # set a value 1.0 on provided vertices
+        # create temporary set of all local nbc dofs
         newSet = mesh.specialSets['Empty']
         for i in range(len(nbc.indexSetsPerDof)):
             if nbc.indexSetsPerDof[i] is None:
                 continue
             newSet += nbc.indexSetsPerDof[i]
-        deltaMeshVariable.data[newSet.data] = 1.0
+
+        # create nbc bool var.
+        self.nbcVariable = uw.mesh.MeshVariable(mesh, 1)
+        self.nbcVariable.data[:] = 0.
+        self.nbcVariable.data[newSet.data] = 1.0
         # note we use this condition to only capture border swarm particles
-        # on the surface itself. for those directly adjacent, the deltaMeshVariable will evaluate
+        # on the surface itself. for those directly adjacent, the self.nbcVariable will evaluate
         # to non-zero (but less than 1.), so we need to remove those from the integration as well.
         maskFn = uw.function.branching.conditional(
-                                          [  ( deltaMeshVariable > 0.999, 1. ),
-                                             (                      True, 0. )   ] )
+                                          [  ( self.nbcVariable > 0.999, 1. ),
+                                             (                     True, 0. )   ] )
 
         self._fn = maskFn * nbc.fn_flux
         self._set_fn_function = libUnderworld.Underworld._VectorSurfaceAssemblyTerm_NA__Fn__ni_SetFn

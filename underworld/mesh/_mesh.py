@@ -1318,28 +1318,6 @@ class _FeMesh_Regional(FeMesh_Cartesian):
         r_vec = r_vec / mag
         return r_vec
 
-    # def _getEWFn(self):
-    #     pos = function.coord() - self._centroid
-    #     if function.math.abs(pos[0]) < 1e-12:
-    #         xi = 0.0 # maybe i can just return the vector??? Is it the right type
-    #     else:
-    #         xi = function.math.atan(pos[2]/pos[0])
-    #     # vec = [ cos(xi), 0.0, -sin(xi) ]
-    #     vec = function.math.sin(xi) * (-1., 0., 0. )
-    #     vec = vec + function.math.cos(xi) * (0.0,0.0,1.)
-    #     return vec
-    #
-    # def _getNSFn(self):
-    #     pos = function.coord() - self._centroid
-    #     if function.math.abs(pos[1]) < 1e-12:
-    #         xi = 0.0 # maybe i can just return the vector??? Is it the right type
-    #     else:
-    #         xi = function.math.atan(pos[2]/pos[1])
-    #     # vec = [ 0.0, cos(xi), -sin(xi) ]
-    #     vec = function.math.sin(xi)* (0., -1., 0. )
-    #     vec = vec + function.math.cos(xi) * (0.0,0.0,1.)
-    #     return vec
-
     def _getEWFn(self):
         pos = function.coord() - self._centroid
         xi = function.math.atan(pos[0]/pos[2])
