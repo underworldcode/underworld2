@@ -877,24 +877,6 @@ class Viewer(lavavu.Viewer):
 
         super(Viewer, self).__init__(database=filename, *args, **kwargs)
 
-        #Load existing figures and save names
-        steps = self.timesteps()
-        figures = self.figures()
-
-    @property
-    def step(self):
-        """    
-        step (int): current timestep
-        """
-        return self._step
-
-    @step.setter
-    def step(self, value):
-        #TODO: need LavaVu access to current timestep from Model class
-        #Sets new step
-        self.timestep(value)
-        self._step = value
-
     def show(self):
         self.display()
 
