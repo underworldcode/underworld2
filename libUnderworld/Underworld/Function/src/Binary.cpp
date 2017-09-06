@@ -41,6 +41,7 @@ Fn::Add::func Fn::Add::getFunction( IOsptr sample_input )
 
     // allocate memory for our output
     auto _output_sp = std::make_shared<IO_double>(doubleio[0]->size(), doubleio[0]->iotype());
+    // get the raw pointer from the shared pointer
     auto _output    = _output_sp.get();
 
     // create and return the lambda

@@ -36,7 +36,8 @@ class FunctionIO
         };
         FunctionIO( IOType iotype ): _iotype(iotype), _dataType(typeid(NULL)){};
         virtual ~FunctionIO(){};
-        virtual FunctionIO *clone() const = 0;
+        virtual FunctionIO *clone()     const = 0;
+        virtual FunctionIO *cloneType() const = 0;
         IOType iotype() const {return _iotype;};
         virtual unsigned   size() const =0;
         virtual void resize(std::size_t vec_size) =0;
@@ -81,7 +82,8 @@ class FunctionIOTyped : public FunctionIO
             _dataType = std::type_index(typeid(T));
 
         };
-        virtual FunctionIOTyped<T,C> *clone() const { return new FunctionIOTyped<T,C>(*this); }
+        virtual FunctionIOTyped<T,C> *clone()     const { return new FunctionIOTyped<T,C>(*this); }
+        virtual FunctionIOTyped<T,C> *cloneType() const { return new FunctionIOTyped<T,C>(*this); }
         virtual ~FunctionIOTyped(){};
         virtual unsigned size() const { return _vector.size(); };
         virtual void resize( std::size_t vec_size ) {
@@ -110,6 +112,7 @@ class FunctionIOTyped : public FunctionIO
         T    value(       std::size_t idx=0) { return at(idx); };  // this guy is for python usage
         virtual       void* dataRaw()       { return static_cast<      void*>( data() ); };
         virtual const void* dataRaw() const { return static_cast<const void*>( data() ); };
+        typedef FunctionIOTyped<T,C> Type;
 
     protected:
         mutable std::vector<C> _vector;

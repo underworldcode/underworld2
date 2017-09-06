@@ -14,6 +14,7 @@
 extern "C++" {
 
 #include <Underworld/Function/Function.hpp>
+#include <Underworld/Function/MinMax.hpp>
 
 struct lucCrossSection_cppdata
 {
@@ -74,6 +75,8 @@ extern const Type lucCrossSection_Type;
       ExtensionInfo_Index  vertexGridHandle;    \
       int                  dims[3];             \
       int                  fieldDim;            \
+      double               valueMin;            \
+      double               valueMax;            \
  
 struct lucCrossSection
 {

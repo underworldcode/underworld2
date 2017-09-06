@@ -16,6 +16,9 @@
 
 #include <Underworld/Function/FunctionIO.hpp>
 #include <Underworld/Function/Function.hpp>
+#include <Underworld/Function/Binary.hpp>
+#include <Underworld/Function/Unary.hpp>
+#include <Underworld/Function/MinMax.hpp>
 #include <Underworld/Function/MeshCoordinate.hpp>
 extern "C" {
 #include <ctype.h>
@@ -33,40 +36,43 @@ void _lucCrossSection_SetFn( void* _self, Fn::Function* fn ){
     
     // record fn to struct
     lucCrossSection_cppdata* cppdata = (lucCrossSection_cppdata*) self->cppdata;
-    // record fn, and also wrap with a MinMax function so that we can record
-    // the min & max encountered values for the colourbar.
-    cppdata->fn = std::make_shared<Fn::MinMax>(fn);
     
     // setup fn
     self->dim = Mesh_GetDimSize( self->mesh );
+    std::shared_ptr<FunctionIO> fIO = NULL;
     if (self->onMesh)
     {
         std::shared_ptr<MeshCoordinate> meshCoord = std::make_shared<MeshCoordinate>( self->mesh );
         // set first coord
         meshCoord->index() = 0;
-        // get the function.. note that we use 'get' to extract the raw pointer from the smart pointer.
-        cppdata->func = cppdata->fn->getFunction(meshCoord.get());
-        
-        const FunctionIO* io = dynamic_cast<const FunctionIO*>(cppdata->func(meshCoord.get()));
-        if( !io )
-            throw std::invalid_argument("Provided function does not appear to return a valid result.");
-        self->fieldComponentCount = io->size();
+        fIO = meshCoord;
     }
     else
     {
         std::shared_ptr<IO_double> globalCoord = std::make_shared<IO_double>( self->dim, FunctionIO::Vector );
         // grab first node for sample node
         memcpy( globalCoord->data(), Mesh_GetVertex( self->mesh, 0 ), self->dim*sizeof(double) );
-        // get the function.. note that we use 'get' to extract the raw pointer from the smart pointer.
-        cppdata->func = cppdata->fn->getFunction(globalCoord.get());
-        
-        const FunctionIO* io = dynamic_cast<const FunctionIO*>(cppdata->func(globalCoord.get()));
-        if( !io )
-            throw std::invalid_argument("Provided function does not appear to return a valid result.");
-        self->fieldComponentCount = io->size();
+        fIO = globalCoord;
     }
 
+    // get the function.. note that we use 'get' to extract the raw pointer from the smart pointer.
+    auto func = fn->getFunction(fIO.get());
+    const FunctionIO* io = dynamic_cast<const FunctionIO*>(func(fIO.get()));
+    if( !io )
+        throw std::invalid_argument("Provided function does not appear to return a valid result.");
+    self->fieldComponentCount = io->size();
     self->fieldDim = self->fieldComponentCount;
+    
+    // now add min max so we can record min and max values.
+    // ... if vector, we need to supply a norm function.
+    // create the norm function, but only use it if needed
+    auto dotguy = Fn::Dot(fn,fn);
+    auto sqrtguy = Fn::MathUnary<std::sqrt>(&dotguy);
+    if (io->size() == 1)
+        cppdata->fn = std::make_shared<Fn::MinMax>(fn);
+    else
+        cppdata->fn = std::make_shared<Fn::MinMax>(fn, &sqrtguy);
+    cppdata->func = cppdata->fn->getFunction(fIO.get());
 
     if( ( Stg_Class_IsInstance( self, lucScalarField_Type )       ||
           Stg_Class_IsInstance( self, lucFieldSampler_Type ) ||
@@ -597,9 +603,11 @@ void lucCrossSection_SampleField(void* drawingObject, Bool reverse)
    }
    
    // finally, record encountered min/max to colourmap
+   self->valueMin = cppdata->fn->getMinGlobal();
+   self->valueMax = cppdata->fn->getMaxGlobal();
    if ( self->colourMap)
    {
-      lucColourMap_SetMinMax( self->colourMap, cppdata->fn->getMinGlobal(), cppdata->fn->getMaxGlobal() );
+      lucColourMap_SetMinMax( self->colourMap, self->valueMin, self->valueMax );
       //Journal_Printf(lucInfo, "ColourMap min/max range set to %f - %f\n", self->colourMap->minimum, self->colourMap->maximum);
    }
 }
@@ -719,6 +727,15 @@ void lucCrossSection_SampleMesh( void* drawingObject, Bool reverse)
    Journal_Firewall(localcount == 0, lucError,
                      "Error - in %s: count of values sampled compared to sent/received by mpi on proc %d does not match (balance = %d)\n",
                      __func__, self->rank, localcount);
+
+   // finally, record encountered min/max to colourmap
+   self->valueMin = cppdata->fn->getMinGlobal();
+   self->valueMax = cppdata->fn->getMaxGlobal();
+   if ( self->colourMap)
+   {
+      lucColourMap_SetMinMax( self->colourMap, self->valueMin, self->valueMax );
+      //Journal_Printf(lucInfo, "ColourMap min/max range set to %f - %f\n", self->colourMap->minimum, self->colourMap->maximum);
+   }
 }
 
 void lucCrossSection_FreeSampleData(void* drawingObject)

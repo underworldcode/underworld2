@@ -23,7 +23,7 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
     Two projection methods are supported; weighted averages and weighted
     residuals. Generally speaking, weighted averages provide robust low
     order results, while weighted residuals give higher accuracy but
-    spurious results for _difficult_ functions :math:`F`.
+    spurious results for *difficult* functions :math:`F`.
 
     The weighted average method is defined as:
     
@@ -42,13 +42,13 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
         The variable you wish to project the function onto.
     fn : underworld.function.Function
         The function you wish to project.
-    voronoi_swarm : uw.swarm.Swarm, optional
-        If a voronoi_swarm is provided, voronoi type integration is utilised to 
-        integrate across elements. The provided swarm is used as the basis for
-        the voronoi integration. If no swarm is provided, Gauss integration 
-        is used.
+    voronoi_swarm : underworld.swarm.Swarm
+        Optional. If a voronoi_swarm is provided, voronoi type integration is 
+        utilised to integrate across elements. The provided swarm is used as the 
+        basis for the voronoi integration. If no swarm is provided, Gauss 
+        integration is used.
     type : int, default=0
-        Projection type.  0:'weighted average', 1:'weighted residual'
+        Projection type.  0:`weighted average`, 1:`weighted residual`
 
     Notes
     -----

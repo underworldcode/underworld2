@@ -26,11 +26,12 @@ class Integral(_stgermain.StgCompoundComponent):
 
     .. math:: F_{i}  =   \int_V \, f_i(\mathbf{x}) \, \mathrm{d} V
 
-    for some function $f_i$ (specified by a `Function` object), over some domain $V$ (specified by an `FeMesh` object), or the surface integral
+    for some function :math:`f_i` (specified by a `Function` object), over some domain 
+    :math:`V` (specified by an `FeMesh` object), or the surface integral
 
     .. math:: F_{i}  =   \oint_{\Gamma} \,  f_i(\mathbf{x})  \,  \mathrm{d}\Gamma
 
-    for some surface $\Gamma$ (specified via an `IndexSet` object on the mesh).
+    for some surface :math:`\\Gamma` (specified via an `IndexSet` object on the mesh).
 
 
     Parameters

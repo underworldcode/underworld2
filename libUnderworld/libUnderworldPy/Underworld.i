@@ -23,6 +23,7 @@
 #include <functional>
 #include <Underworld/Function/FunctionIO.hpp>
 #include <Underworld/Function/Function.hpp>
+#include <Underworld/Function/MinMax.hpp>
 #include <Underworld/Function/Constant.hpp>
 #include <Underworld/Function/SwarmVariableFn.hpp>
 #include <Underworld/Function/ParticleFound.hpp>
@@ -53,6 +54,7 @@ extern "C" {
 %include "Rheology/ConstitutiveMatrix.h"
 %include "Rheology/ConstitutiveMatrixCartesian.h"
 %include "Rheology/types.h"
+%include "Utils/Exceptions.h"
 %include "Utils/types.h"
 
 %include "Utils/AdvectionDiffusion/AdvectionDiffusionSLE.h"

@@ -24,6 +24,7 @@
 #include <typeindex>
 #include <Underworld/Function/FunctionIO.hpp>
 #include <Underworld/Function/Function.hpp>
+#include <Underworld/Function/MinMax.hpp>
 #include <Underworld/Function/Constant.hpp>
 #include <Underworld/Function/SwarmVariableFn.hpp>
 #include <Underworld/Function/ParticleFound.hpp>
@@ -55,6 +56,7 @@ extern "C" {
 
 %include "Function/FunctionIO.hpp"
 %include "Function/Function.hpp"
+%include "Function/MinMax.hpp"
 %include "Function/Unary.hpp"
 %include "Function/Binary.hpp"
 %include "Function/Constant.hpp"

@@ -95,7 +95,7 @@ Fn::Conditional::func Fn::Conditional::getFunction( IOsptr sample_input )
                     if (outputSize != (int)io->size()){
                         std::stringstream ss;
                         ss << "Issue with clause " << ii << " of conditional function.\n";
-                        ss << "Consequent function appers to return result of size " << io->size() << ".\n";
+                        ss << "Consequent function appears to return result of size " << io->size() << ".\n";
                         ss << "Previous function returned result of size " << outputSize << ".\n";
                         ss << "All consequent function must return results of identical size.";
                         throw std::invalid_argument( ss.str() );
@@ -103,7 +103,7 @@ Fn::Conditional::func Fn::Conditional::getFunction( IOsptr sample_input )
                     if (outputType != io->dataType()){
                         std::stringstream ss;
                         ss << "Issue with clause " << ii << " of conditional function.\n";
-                        ss << "Consequent function appers to return result of type " << functionio_get_type_name(io->dataType()) << ".\n";
+                        ss << "Consequent function appears to return result of type " << functionio_get_type_name(io->dataType()) << ".\n";
                         ss << "Previous function returned result of type " << functionio_get_type_name(outputType) << ".\n";
                         ss << "All consequent function must return results of identical type.";
                         throw std::invalid_argument( ss.str() );

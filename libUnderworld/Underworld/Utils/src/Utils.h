@@ -19,9 +19,9 @@
    #include "VectorAssemblyTerm_VEP.h"
    #include "MatrixAssemblyTerm_NA_i__NB_i__Fn.h"
    #include "MatrixAssemblyTerm_NA__NB__Fn.h"
-
    #include "Fn_Integrate.h"
    #include "MatrixAssemblyTerm_RotationDof.h"
+   #include "Exceptions.h"
 
    #include "Init.h"
    #include "Finalise.h"

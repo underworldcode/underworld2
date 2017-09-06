@@ -28,36 +28,59 @@ extern "C" {
 
 namespace Fn {
 
+// Iterator type objects, for traversing some source as inputs to function object.
+// As function objects require FunctionIO inputs, a FunctionIO object is created as
+// a proxy from the source.  So, for example, for MeshIndexSet sources, a MeshCoordinate
+// FunctionIO object is created, and it's value is updated to reflect the current index
+// of the IndexSet as iteration proceeds. 
 class IOIterator
 {
     public:
-        virtual IOIterator& operator++(int) =0;
+        virtual IOIterator& operator++(int){ _position++; _setNewIO(); return *this;};
         Function::IOsptr get(){ return debug_dynamic_cast<const FunctionIO*>(_io.get()); };
-        virtual void reset() =0;
+        virtual void reset(){};
         unsigned size() const{ return _size; };
     protected:
-        IOIterator(): _io(NULL), _size(0) {};
+        IOIterator(unsigned size=0): _io(NULL), _size(size), _position(0) {reset();};
+        virtual void _setNewIO(){};
         std::shared_ptr<FunctionIO> _io;
         virtual ~IOIterator(){};
         unsigned _size;
+        unsigned _position;
+
+    
 };
 
+
+// this iterator class iterates over a single FunctionIO object passed in from python
+class FunctionIOIter: public IOIterator
+{
+public:
+    FunctionIOIter( FunctionIO* fIO ): IOIterator(1), _fIO(fIO) {};
+    virtual void reset(){ _position = 0; _io=std::shared_ptr<FunctionIO>(_fIO->clone()); };
+    virtual void _setNewIO(){ _io = NULL;};
+private:
+    FunctionIO* _fIO;
+    
+};
+
+    
+// this iterator class iterates over mesh index set objects
 class MeshIndexSet: public IOIterator
 {
     public:
         MeshIndexSet( IndexSet* indexSet, void* mesh );
-        virtual IOIterator& operator++(int){ _position++; _setNewIO(); return *this;};
         virtual ~MeshIndexSet(){ if (_indexArray) free(_indexArray); };
         virtual void reset();
     private:
-        void _setNewIO();
+        virtual void  _setNewIO();
         IndexSet* _indexSet;
         void* _mesh;
         Index* _indexArray;
-        unsigned _position;
     
 };
 
+// this iterator class iterates over numpy arrays
 class NumpyInput: public IOIterator
 {
     public:
@@ -79,31 +102,29 @@ class NumpyInput: public IOIterator
         FunctionIO::IOType _inputType;
 };
 
+// this iterator class iterates over swarm particle global coordinates
 class SwarmInput: public IOIterator
 {
     public:
         SwarmInput( void* positionVariable );
-        virtual IOIterator& operator++(int){ _position++; _setNewIO(); return *this;};
         virtual ~SwarmInput(){};
         virtual void reset();
     private:
-        void _setNewIO();
+        virtual void  _setNewIO();
         void* _positionVariable;
-        unsigned _position;
     
 };
 
+// this iterator class iterates over integration swarm coordinates
 class IntegrationSwarmInput: public IOIterator
 {
     public:
         IntegrationSwarmInput( void* _intSwarm );
-        virtual IOIterator& operator++(int){ _position++; _setNewIO(); return *this;};
         virtual ~IntegrationSwarmInput(){};
         virtual void reset();
     private:
         static void* _CheckIsIntegrationSwarm(void* intSwarm);
-        void _setNewIO();
-        unsigned _position;
+        virtual void  _setNewIO();
         IntegrationPointsSwarm* _intSwarm;
         std::shared_ptr<ParticleCoordinate> _localCoord;
 };
