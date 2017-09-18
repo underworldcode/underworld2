@@ -16,7 +16,7 @@
    #include "VectorAssemblyTerm_NA__Fn.h"
    #include "VectorAssemblyTerm_NA_i__Fn_i.h"
    #include "VectorSurfaceAssemblyTerm_NA__Fn__ni.h"
-   #include "VectorAssemblyTerm_VEP.h"
+   #include "VectorAssemblyTerm_NA_j__Fn_ij.h"
    #include "MatrixAssemblyTerm_NA_i__NB_i__Fn.h"
    #include "MatrixAssemblyTerm_NA__NB__Fn.h"
 

@@ -80,6 +80,9 @@ class Stokes(_stgermain.StgCompoundComponent):
         div(velocityField) = -fn_minus_one_on_lambda * pressurefield + fn_source.
         fn_minus_one_on_lambda is incompatible with the 'penalty' stokes solver, ensure
         the 'penalty' of 0, is used when fn_lambda is used. By default this is the case.
+    fn_stresshistory : underworld.function.Function, Default = None
+        Function which defines the stress history term used for viscoelasticity.
+        Function is a vector of size 3 (dim=2) or 6 (dim=3) representing a symetric tensor.
     voronoi_swarm : underworld.swarm.Swarm
         If a voronoi_swarm is provided, voronoi type numerical integration is
         utilised. The provided swarm is used as the basis for the voronoi
@@ -101,12 +104,15 @@ class Stokes(_stgermain.StgCompoundComponent):
 
     def __init__(self, velocityField, pressureField, fn_viscosity, fn_bodyforce=None, fn_one_on_lambda=None,
                  fn_lambda=None, fn_source=None, voronoi_swarm=None, conditions=[],
-                _removeBCs=True, _fn_viscosity2=None, _fn_director=None, _fn_stresshistory=None, **kwargs):
+                _removeBCs=True, _fn_viscosity2=None, _fn_director=None, fn_stresshistory=None, _fn_stresshistory=None, **kwargs):
 
         # DEPRECATION ERROR
         if fn_lambda != None:
             raise TypeError( "The parameter 'fn_lambda' has been deprecated. It has been replaced by 'fn_one_on_lambda', a simpler input parameter." )
 
+        if _fn_stresshistory:
+            raise TypeError( "The parameter '_fn_stresshistory' has been updated to 'fn_stresshistory'." )
+        
         if not isinstance( velocityField, uw.mesh.MeshVariable):
             raise TypeError( "Provided 'velocityField' must be of 'MeshVariable' class." )
         if velocityField.nodeDofCount != velocityField.mesh.dim:
@@ -135,11 +141,10 @@ class Stokes(_stgermain.StgCompoundComponent):
             if not isinstance( _fn_director, uw.function.Function):
                 raise TypeError( "Provided 'fn_director' must be of or convertible to 'Function' class." )
 
-        if _fn_stresshistory:
-            _fn_stresshistory = uw.function.Function.convert(_fn_stresshistory)
-            if not isinstance( _fn_stresshistory, uw.function.Function):
-                raise TypeError( "Provided '_fn_stresshistory' must be of or convertible to 'Function' class." )
-
+        if fn_stresshistory:
+            fn_stresshistory = uw.function.Function.convert(fn_stresshistory)
+            if not isinstance( fn_stresshistory, uw.function.Function):
+                raise TypeError( "Provided 'fn_stresshistory' must be of or convertible to 'Function' class." )
 
         self._fn_minus_one_on_lambda = None
         if fn_one_on_lambda != None:
@@ -257,10 +262,10 @@ class Stokes(_stgermain.StgCompoundComponent):
                                                                          mesh=self._velocityField.mesh,
                                                                          fn=self._fn_minus_one_on_lambda )
 
-        if _fn_stresshistory != None:
-            self._vepTerm    = sle.VectorAssemblyTerm_VEP__Fn(  integrationSwarm=intswarm,
+        if fn_stresshistory != None:
+            self._NA_j__Fn_ijTerm    = sle.VectorAssemblyTerm_NA_j__Fn_ij(  integrationSwarm=intswarm,
         		                                                assembledObject=self._fvector,
-                		                                        fn=_fn_stresshistory )
+                		                                        fn=fn_stresshistory )
 
 
         super(Stokes, self).__init__(**kwargs)
