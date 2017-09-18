@@ -233,6 +233,7 @@ class Model(object):
         self._set_mesh()
         
         # Add common fields
+        self.temperature = None
         self.pressure = uw.mesh.MeshVariable(mesh=self.mesh.subMesh,
                                              nodeDofCount=1)
         self.velocity = uw.mesh.MeshVariable(mesh=self.mesh,
@@ -635,8 +636,11 @@ class Model(object):
             # Whats the longest we can run before reaching the end of the model
             # or a checkpoint?
             # Need to generalize that
-            dt = self.advdiffSystem.get_max_dt()
-            
+            dt = self.swarm_advector.get_max_dt()
+
+            if self.temperature:
+                dt = min(dt, self.advdiffSystem.get_max_dt())
+
             if checkpoint:
                 dt = min(dt, next_checkpoint - self.time)
             
@@ -646,7 +650,7 @@ class Model(object):
             self.update()
 
             step += 1
-            if checkpoint or step % 5 == 0:
+            if checkpoint or step % 1 == 0:
                 print "Time: ", str(sca.Dimensionalize(self.time, units))
 
     def update(self):
@@ -660,7 +664,8 @@ class Model(object):
         self.plasticStrain.data[:] += plasticStrainIncrement
         
         # Solve for temperature
-        self.advdiffSystem.integrate(dt)
+        if self.temperature:
+            self.advdiffSystem.integrate(dt)
 
         # Integrate Swarms in time
         self.swarm_advector.integrate(dt, update_owners=True) 
@@ -669,20 +674,22 @@ class Model(object):
         self.swarm_population_control.repopulate() 
     
         # Apply change in boundary condition
-        lecode_tools_isostasy(self.mesh, 
-                              self.swarm,
-                              self.velocity,
-                              self.densityFn,
-                              self.material, 
-                              self._lecodeRefMaterial.index,
-                              average=False)
+        if self._lecodeRefMaterial:
+            lecode_tools_isostasy(self.mesh, 
+                                  self.swarm,
+                                  self.velocity,
+                                  self.densityFn,
+                                  self.material, 
+                                  self._lecodeRefMaterial.index,
+                                  average=False)
 
         self.time += dt
 
     def _default_checkpoint_function(self):
         self.save_velocity(self.checkpointID)
         self.save_pressure(self.checkpointID)
-        self.save_temperature(self.checkpointID)
+        if self.temperature:
+            self.save_temperature(self.checkpointID)
         self.save_material(self.checkpointID)
 
     @property
