@@ -20,37 +20,37 @@
 #include <Underworld/Function/ParticleInCellCoordinate.hpp>
 #include <Underworld/Function/Function.hpp>
 
-#include "VectorAssemblyTerm_VEP.h"
+#include "VectorAssemblyTerm_NA_j__Fn_ij.h"
 
 /* Textual name of this class */
-const Type VectorAssemblyTerm_VEP_Type = "VectorAssemblyTerm_VEP";
+const Type VectorAssemblyTerm_NA_j__Fn_ij_Type = "VectorAssemblyTerm_NA_j__Fn_ij";
 
 /* Creation implementation / Virtual constructor */
-VectorAssemblyTerm_VEP* _VectorAssemblyTerm_VEP_New(  FORCEASSEMBLYTERM_NA__FN_DEFARGS  )
+VectorAssemblyTerm_NA_j__Fn_ij* _VectorAssemblyTerm_NA_j__Fn_ij_New(  FORCEASSEMBLYTERM_NA__FN_DEFARGS  )
 {
-   VectorAssemblyTerm_VEP* self;
+   VectorAssemblyTerm_NA_j__Fn_ij* self;
 
    /* Allocate memory */
-   assert( _sizeOfSelf >= sizeof(VectorAssemblyTerm_VEP) );
+   assert( _sizeOfSelf >= sizeof(VectorAssemblyTerm_NA_j__Fn_ij) );
    /* The following terms are parameters that have been passed into this function but are being set before being passed onto the parent */
    /* This means that any values of these parameters that are passed into this function are not passed onto the parent function
       and so should be set to ZERO in any children of this class. */
    nameAllocationType = NON_GLOBAL;
 
-   self = (VectorAssemblyTerm_VEP*) _ForceTerm_New(  FORCETERM_PASSARGS  );
+   self = (VectorAssemblyTerm_NA_j__Fn_ij*) _ForceTerm_New(  FORCETERM_PASSARGS  );
 
    /* Virtual info */
-   self->funeForce = (void*) new VectorAssemblyTerm_VEP_cppdata;
+   self->funeForce = (void*) new VectorAssemblyTerm_NA_j__Fn_ij_cppdata;
 
    return self;
 }
 
-void _VectorAssemblyTerm_VEP_SetFneForce( void* _self, Fn::Function* fn ){
-    VectorAssemblyTerm_VEP*  self = (VectorAssemblyTerm_VEP*)_self;
+void _VectorAssemblyTerm_NA_j__Fn_ij_SetFneForce( void* _self, Fn::Function* fn ){
+    VectorAssemblyTerm_NA_j__Fn_ij*  self = (VectorAssemblyTerm_NA_j__Fn_ij*)_self;
     double     dim;
     
     // record fn to struct
-    VectorAssemblyTerm_VEP_cppdata* funeForce = (VectorAssemblyTerm_VEP_cppdata*) self->funeForce;
+    VectorAssemblyTerm_NA_j__Fn_ij_cppdata* funeForce = (VectorAssemblyTerm_NA_j__Fn_ij_cppdata*) self->funeForce;
     funeForce->fn = fn;
     
     FeMesh* mesh = self->forceVector->feVariable->feMesh;
@@ -88,53 +88,53 @@ void _VectorAssemblyTerm_VEP_SetFneForce( void* _self, Fn::Function* fn ){
     }
 }
 
-void _VectorAssemblyTerm_VEP_Delete( void* forceTerm ) {
-   VectorAssemblyTerm_VEP* self = (VectorAssemblyTerm_VEP*)forceTerm;
+void _VectorAssemblyTerm_NA_j__Fn_ij_Delete( void* forceTerm ) {
+   VectorAssemblyTerm_NA_j__Fn_ij* self = (VectorAssemblyTerm_NA_j__Fn_ij*)forceTerm;
 
-    delete (VectorAssemblyTerm_VEP_cppdata*)self->funeForce;
+    delete (VectorAssemblyTerm_NA_j__Fn_ij_cppdata*)self->funeForce;
 
    _ForceTerm_Delete( self );
 }
 
-void _VectorAssemblyTerm_VEP_Print( void* forceTerm, Stream* stream ) {}
+void _VectorAssemblyTerm_NA_j__Fn_ij_Print( void* forceTerm, Stream* stream ) {}
 
-void* _VectorAssemblyTerm_VEP_DefaultNew( Name name ) {
+void* _VectorAssemblyTerm_NA_j__Fn_ij_DefaultNew( Name name ) {
    /* Variables set in this function */
-   SizeT                                              _sizeOfSelf = sizeof(VectorAssemblyTerm_VEP);
-   Type                                                      type = VectorAssemblyTerm_VEP_Type;
-   Stg_Class_DeleteFunction*                              _delete = _VectorAssemblyTerm_VEP_Delete;
-   Stg_Class_PrintFunction*                                _print = _VectorAssemblyTerm_VEP_Print;
+   SizeT                                              _sizeOfSelf = sizeof(VectorAssemblyTerm_NA_j__Fn_ij);
+   Type                                                      type = VectorAssemblyTerm_NA_j__Fn_ij_Type;
+   Stg_Class_DeleteFunction*                              _delete = _VectorAssemblyTerm_NA_j__Fn_ij_Delete;
+   Stg_Class_PrintFunction*                                _print = _VectorAssemblyTerm_NA_j__Fn_ij_Print;
    Stg_Class_CopyFunction*                                  _copy = NULL;
-   Stg_Component_DefaultConstructorFunction*  _defaultConstructor = _VectorAssemblyTerm_VEP_DefaultNew;
-   Stg_Component_ConstructFunction*                    _construct = _VectorAssemblyTerm_VEP_AssignFromXML;
-   Stg_Component_BuildFunction*                            _build = _VectorAssemblyTerm_VEP_Build;
-   Stg_Component_InitialiseFunction*                  _initialise = _VectorAssemblyTerm_VEP_Initialise;
-   Stg_Component_ExecuteFunction*                        _execute = _VectorAssemblyTerm_VEP_Execute;
-   Stg_Component_DestroyFunction*                        _destroy = _VectorAssemblyTerm_VEP_Destroy;
-   ForceTerm_AssembleElementFunction*            _assembleElement = _VectorAssemblyTerm_VEP_AssembleElement;
+   Stg_Component_DefaultConstructorFunction*  _defaultConstructor = _VectorAssemblyTerm_NA_j__Fn_ij_DefaultNew;
+   Stg_Component_ConstructFunction*                    _construct = _VectorAssemblyTerm_NA_j__Fn_ij_AssignFromXML;
+   Stg_Component_BuildFunction*                            _build = _VectorAssemblyTerm_NA_j__Fn_ij_Build;
+   Stg_Component_InitialiseFunction*                  _initialise = _VectorAssemblyTerm_NA_j__Fn_ij_Initialise;
+   Stg_Component_ExecuteFunction*                        _execute = _VectorAssemblyTerm_NA_j__Fn_ij_Execute;
+   Stg_Component_DestroyFunction*                        _destroy = _VectorAssemblyTerm_NA_j__Fn_ij_Destroy;
+   ForceTerm_AssembleElementFunction*            _assembleElement = _VectorAssemblyTerm_NA_j__Fn_ij_AssembleElement;
 
    /* Variables that are set to ZERO are variables that will be set eis by the current _New function or another parent _New function further up the hierachy */
    AllocationType  nameAllocationType = NON_GLOBAL /* default value NON_GLOBAL */;
 
-   return (void*)_VectorAssemblyTerm_VEP_New(  FORCEASSEMBLYTERM_NA__FN_PASSARGS  );
+   return (void*)_VectorAssemblyTerm_NA_j__Fn_ij_New(  FORCEASSEMBLYTERM_NA__FN_PASSARGS  );
 }
 
-void _VectorAssemblyTerm_VEP_AssignFromXML( void* forceTerm, Stg_ComponentFactory* cf, void* data ) {
-   VectorAssemblyTerm_VEP*  self = (VectorAssemblyTerm_VEP*)forceTerm;
+void _VectorAssemblyTerm_NA_j__Fn_ij_AssignFromXML( void* forceTerm, Stg_ComponentFactory* cf, void* data ) {
+   VectorAssemblyTerm_NA_j__Fn_ij*  self = (VectorAssemblyTerm_NA_j__Fn_ij*)forceTerm;
 
    /* Construct Parent */
    _ForceTerm_AssignFromXML( self, cf, data );
 
 }
 
-void _VectorAssemblyTerm_VEP_Build( void* forceTerm, void* data ) {
-   VectorAssemblyTerm_VEP* self = (VectorAssemblyTerm_VEP*)forceTerm;
+void _VectorAssemblyTerm_NA_j__Fn_ij_Build( void* forceTerm, void* data ) {
+   VectorAssemblyTerm_NA_j__Fn_ij* self = (VectorAssemblyTerm_NA_j__Fn_ij*)forceTerm;
 
    _ForceTerm_Build( self, data );
 }
 
-void _VectorAssemblyTerm_VEP_Initialise( void* forceTerm, void* data ) {
-   VectorAssemblyTerm_VEP* self = (VectorAssemblyTerm_VEP*)forceTerm;
+void _VectorAssemblyTerm_NA_j__Fn_ij_Initialise( void* forceTerm, void* data ) {
+   VectorAssemblyTerm_NA_j__Fn_ij* self = (VectorAssemblyTerm_NA_j__Fn_ij*)forceTerm;
    ForceVector* vector = self->forceVector;
    ElementType* elementType;
 
@@ -146,21 +146,21 @@ void _VectorAssemblyTerm_VEP_Initialise( void* forceTerm, void* data ) {
    self->GNx   = Memory_Alloc_2DArray( double, vector->dim, self->maxNodesPerEl, (Name)"GNx" );
 }
 
-void _VectorAssemblyTerm_VEP_Execute( void* forceTerm, void* data ) {
-   VectorAssemblyTerm_VEP* self = (VectorAssemblyTerm_VEP*)forceTerm;
+void _VectorAssemblyTerm_NA_j__Fn_ij_Execute( void* forceTerm, void* data ) {
+   VectorAssemblyTerm_NA_j__Fn_ij* self = (VectorAssemblyTerm_NA_j__Fn_ij*)forceTerm;
 
    _ForceTerm_Execute( self, data );
 }
 
-void _VectorAssemblyTerm_VEP_Destroy( void* forceTerm, void* data ) {
-   VectorAssemblyTerm_VEP* self = (VectorAssemblyTerm_VEP*)forceTerm;
+void _VectorAssemblyTerm_NA_j__Fn_ij_Destroy( void* forceTerm, void* data ) {
+   VectorAssemblyTerm_NA_j__Fn_ij* self = (VectorAssemblyTerm_NA_j__Fn_ij*)forceTerm;
 
    _ForceTerm_Destroy( self, data );
 }
 
 
-void _VectorAssemblyTerm_VEP_AssembleElement( void* forceTerm, ForceVector* forceVector, Element_LocalIndex lElement_I, double* elForceVec ) {
-   VectorAssemblyTerm_VEP* self = Stg_CheckType( forceTerm, VectorAssemblyTerm_VEP );
+void _VectorAssemblyTerm_NA_j__Fn_ij_AssembleElement( void* forceTerm, ForceVector* forceVector, Element_LocalIndex lElement_I, double* elForceVec ) {
+   VectorAssemblyTerm_NA_j__Fn_ij* self = Stg_CheckType( forceTerm, VectorAssemblyTerm_NA_j__Fn_ij );
    IntegrationPointsSwarm*    swarm = (IntegrationPointsSwarm*)self->integrationSwarm;
    Dimension_Index            dim = forceVector->dim;
    IntegrationPoint*          particle;
@@ -176,13 +176,12 @@ void _VectorAssemblyTerm_VEP_AssembleElement( void* forceTerm, ForceVector* forc
    double                     detJac;
    double                     factor;
    double                     **GNx;
-   double                     eta, mu, dt_e, eta_eff;
    const double *             eForce;
  
    /* Since we are integrating over the velocity mesh - we want the velocity mesh here and not the temperature mesh */
    mesh = forceVector->feVariable->feMesh;
 
-   VectorAssemblyTerm_VEP_cppdata* funeForce      = (VectorAssemblyTerm_VEP_cppdata*)self->funeForce;
+   VectorAssemblyTerm_NA_j__Fn_ij_cppdata* funeForce      = (VectorAssemblyTerm_NA_j__Fn_ij_cppdata*)self->funeForce;
     
    debug_dynamic_cast<ParticleInCellCoordinate*>(funeForce->input->localCoord())->index()      = lElement_I;  // set the elementId as the owning cell for the particleCoord
 

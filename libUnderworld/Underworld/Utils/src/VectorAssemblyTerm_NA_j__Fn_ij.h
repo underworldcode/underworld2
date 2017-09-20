@@ -8,8 +8,8 @@
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 
 
-#ifndef __Underworld_Utils_VectorAssemblyTerm_VEP_h__
-#define __Underworld_Utils_VectorAssemblyTerm_VEP_h__
+#ifndef __Underworld_Utils_VectorAssemblyTerm_NA_j__Fn_ij_h__
+#define __Underworld_Utils_VectorAssemblyTerm_NA_j__Fn_ij_h__
 
 #ifdef __cplusplus
 
@@ -18,14 +18,14 @@ extern "C++" {
 #include <Underworld/Function/Function.hpp>
 #include <Underworld/Function/FEMCoordinate.hpp>
 
-struct VectorAssemblyTerm_VEP_cppdata
+struct VectorAssemblyTerm_NA_j__Fn_ij_cppdata
 {
     Fn::Function* fn;
     Fn::Function::func func;
     std::shared_ptr<FEMCoordinate> input;
 };
 
-void _VectorAssemblyTerm_VEP_SetFneForce( void* _self, Fn::Function* fn );
+void _VectorAssemblyTerm_NA_j__Fn_ij_SetFneForce( void* _self, Fn::Function* fn );
 
 }
 
@@ -40,10 +40,10 @@ extern "C" {
 #include "types.h"
 
    /** Textual name of this class */
-   extern const Type VectorAssemblyTerm_VEP_Type;
+   extern const Type VectorAssemblyTerm_NA_j__Fn_ij_Type;
 
-   /** VectorAssemblyTerm_VEP class contents */
-   #define __VectorAssemblyTerm_VEP \
+   /** VectorAssemblyTerm_NA_j__Fn_ij class contents */
+   #define __VectorAssemblyTerm_NA_j__Fn_ij \
       /* General info */ \
       __ForceTerm \
       \
@@ -52,7 +52,7 @@ extern "C" {
       double**    GNx; \
       int         maxNodesPerEl;
 
-   struct VectorAssemblyTerm_VEP { __VectorAssemblyTerm_VEP };
+   struct VectorAssemblyTerm_NA_j__Fn_ij { __VectorAssemblyTerm_NA_j__Fn_ij };
 
 
    #ifndef ZERO
@@ -65,25 +65,25 @@ extern "C" {
    #define FORCEASSEMBLYTERM_NA__FN_PASSARGS \
                 FORCETERM_PASSARGS
 
-   VectorAssemblyTerm_VEP* _VectorAssemblyTerm_VEP_New(  FORCEASSEMBLYTERM_NA__FN_DEFARGS  );
+   VectorAssemblyTerm_NA_j__Fn_ij* _VectorAssemblyTerm_NA_j__Fn_ij_New(  FORCEASSEMBLYTERM_NA__FN_DEFARGS  );
 
-   void _VectorAssemblyTerm_VEP_Delete( void* residual );
+   void _VectorAssemblyTerm_NA_j__Fn_ij_Delete( void* residual );
 
-   void _VectorAssemblyTerm_VEP_Print( void* residual, Stream* stream );
+   void _VectorAssemblyTerm_NA_j__Fn_ij_Print( void* residual, Stream* stream );
 
-   void* _VectorAssemblyTerm_VEP_DefaultNew( Name name );
+   void* _VectorAssemblyTerm_NA_j__Fn_ij_DefaultNew( Name name );
 
-   void _VectorAssemblyTerm_VEP_AssignFromXML( void* residual, Stg_ComponentFactory* cf, void* data );
+   void _VectorAssemblyTerm_NA_j__Fn_ij_AssignFromXML( void* residual, Stg_ComponentFactory* cf, void* data );
 
-   void _VectorAssemblyTerm_VEP_Build( void* residual, void* data );
+   void _VectorAssemblyTerm_NA_j__Fn_ij_Build( void* residual, void* data );
 
-   void _VectorAssemblyTerm_VEP_Initialise( void* residual, void* data );
+   void _VectorAssemblyTerm_NA_j__Fn_ij_Initialise( void* residual, void* data );
 
-   void _VectorAssemblyTerm_VEP_Execute( void* residual, void* data );
+   void _VectorAssemblyTerm_NA_j__Fn_ij_Execute( void* residual, void* data );
 
-   void _VectorAssemblyTerm_VEP_Destroy( void* residual, void* data );
+   void _VectorAssemblyTerm_NA_j__Fn_ij_Destroy( void* residual, void* data );
 
-   void _VectorAssemblyTerm_VEP_AssembleElement( void* forceTerm, ForceVector* forceVector, Element_LocalIndex lElement_I, double* elForceVec );
+   void _VectorAssemblyTerm_NA_j__Fn_ij_AssembleElement( void* forceTerm, ForceVector* forceVector, Element_LocalIndex lElement_I, double* elForceVec );
 
 
 #ifdef __cplusplus

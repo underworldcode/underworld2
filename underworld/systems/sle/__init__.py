@@ -16,5 +16,5 @@ from _assemblyterm import AssemblyTerm, VectorAssemblyTerm, MatrixAssemblyTerm, 
                           VectorAssemblyTerm_NA__Fn, GradientStiffnessMatrixTerm, PreconditionerMatrixTerm, \
                           ConstitutiveMatrixTerm, AdvDiffResidualVectorTerm, LumpedMassMatrixVectorTerm, \
                           MatrixAssemblyTerm_NA_i__NB_i__Fn, VectorSurfaceAssemblyTerm_NA__Fn__ni, \
-                          AdvDiffResidualVectorTerm, VectorAssemblyTerm_VEP__Fn, MatrixAssemblyTerm_NA__NB__Fn, \
+                          AdvDiffResidualVectorTerm, VectorAssemblyTerm_NA_j__Fn_ij, MatrixAssemblyTerm_NA__NB__Fn, \
                           MatrixAssemblyTerm_RotationDof, VectorAssemblyTerm_NA_i__Fn_i

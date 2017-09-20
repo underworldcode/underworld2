@@ -152,17 +152,23 @@ class VectorSurfaceAssemblyTerm_NA__Fn__ni(VectorAssemblyTerm):
         # call parents method
         super(VectorSurfaceAssemblyTerm_NA__Fn__ni,self)._add_to_stg_dict(componentDictionary)
 
-class VectorAssemblyTerm_VEP__Fn(VectorAssemblyTerm):
+class VectorAssemblyTerm_NA_j__Fn_ij(VectorAssemblyTerm):
     """
-    Document!!  ... this is the viscoelastic force term assebler.  WIP.  use at own risk.
+    Build an assembly term for a spatial gradient, used for the viscoelastic force term.
+
+    Parameters
+    ----------
+    fn : underworld.function.Function
+        Function is a vector of size 3 (dim=2) or 6 (dim=3) representing a symetric tensor
+    mesh : uw.mesh.FeMesh_Cartesian
     """
-    _objectsDict = { "_assemblyterm": "VectorAssemblyTerm_VEP" }
+    _objectsDict = { "_assemblyterm": "VectorAssemblyTerm_NA_j__Fn_ij" }
 
     def __init__(self, fn, mesh=None, **kwargs):
         # build parent
-        super(VectorAssemblyTerm_VEP__Fn,self).__init__(**kwargs)
+        super(VectorAssemblyTerm_NA_j__Fn_ij,self).__init__(**kwargs)
 
-        self._set_fn_function = libUnderworld.Underworld._VectorAssemblyTerm_VEP_SetFneForce
+        self._set_fn_function = libUnderworld.Underworld._VectorAssemblyTerm_NA_j__Fn_ij_SetFneForce
         self._fn = fn
 
         if mesh:
@@ -174,7 +180,7 @@ class VectorAssemblyTerm_VEP__Fn(VectorAssemblyTerm):
 
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method
-        super(VectorAssemblyTerm_VEP__Fn,self)._add_to_stg_dict(componentDictionary)
+        super(VectorAssemblyTerm_NA_j__Fn_ij,self)._add_to_stg_dict(componentDictionary)
 
 
 class VectorAssemblyTerm_NA__Fn(VectorAssemblyTerm):

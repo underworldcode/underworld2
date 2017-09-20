@@ -26,7 +26,7 @@ export PETSC_ARCH=arch-linux2-c-opt
 
 # Configure
 cd libUnderworld
-python configure.py --with-debugging=0 --with-graphics=0 --h5py-launch="aprun"
+python configure.py --with-debugging=0 --with-graphics=1 --h5py-launch="aprun"
  
 # Compile
 aprun -n 1 -N 1 python compile.py

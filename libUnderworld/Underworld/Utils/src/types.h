@@ -14,7 +14,7 @@
    typedef struct VectorAssemblyTerm_NA__Fn VectorAssemblyTerm_NA__Fn;
    typedef struct VectorAssemblyTerm_NA_i__Fn_i VectorAssemblyTerm_NA_i__Fn_i;
    typedef struct VectorSurfaceAssemblyTerm_NA__Fn__ni VectorSurfaceAssemblyTerm_NA__Fn__ni;
-   typedef struct VectorAssemblyTerm_VEP VectorAssemblyTerm_VEP;
+   typedef struct VectorAssemblyTerm_NA_j__Fn_ij VectorAssemblyTerm_NA_j__Fn_ij;
    typedef struct MatrixAssemblyTerm_NA_i__NB_i__Fn MatrixAssemblyTerm_NA_i__NB_i__Fn;
    typedef struct MatrixAssemblyTerm_NA__NB__Fn MatrixAssemblyTerm_NA__NB__Fn;
    typedef struct MatrixAssemblyTerm_RotationDof MatrixAssemblyTerm_RotationDof;
