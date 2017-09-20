@@ -1359,7 +1359,8 @@ class _FeMesh_Annulus(FeMesh_Cartesian):
             angularExtent : 2-tuple, default (0.0,360.0)
                 The angular extent of the domain
 
-            radialData : Return the mesh node locations in polar form
+            radialData : Return the mesh node locations in polar form.
+                (radial length, angle in degrees)
 
             See parent classes for further required/optional parameters.
 
@@ -1395,8 +1396,16 @@ class _FeMesh_Annulus(FeMesh_Cartesian):
                     minCoord=(radialLengths[0],angularExtent[0]), maxCoord=(radialLengths[1],angularExtent[1]), periodic=periodic, **kwargs)
 
         # TODO: make annulus specific specialSets
-        # self.specialSets["InnerWall_VertexSet"] = self.specialSets["MinI_VertexSet"]
-        # self.specialSets["OuterWall_VertexSet"] = self.specialSets["MaxI_VertexSet"]
+        self.specialSets["inner"] = _specialSets_Cartesian.MinI_VertexSet
+        # uw.mesh.FeMesh_IndexSet(object=iset.object,
+        #                                 topologicalIndex=iset.topologicalIndex,
+        #                                 size=iset.object.nodesGlobal,
+        #                                 fromObject=iset)
+        self.specialSets["outer"] = _specialSets_Cartesian.MaxI_VertexSet
+        # uw.mesh.FeMesh_IndexSet(object=iset.object,
+        #                                 topologicalIndex=iset.topologicalIndex,
+        #                                 size=iset.object.nodesGlobal,
+        #                                 fromObject=iset)
 
         # self.specialSets["MinI_VertexSet"] = None
         # self.specialSets["MaxI_VertexSet"] = None
@@ -1443,9 +1452,9 @@ class _FeMesh_Annulus(FeMesh_Cartesian):
     @property
     def radialData(self):
         # returns data in polar form
-        r = (self.data ** 2).sum(1)
-        theta = np.arctan2(self.data[:,1],self.data[:,0])
-        return np.array([theta,r]).T
+        r = np.sqrt((self.data ** 2).sum(1))
+        theta = (180/np.pi)*np.arctan2(self.data[:,1],self.data[:,0])
+        return np.array([r,theta]).T
 
     def _setup(self):
         with self.deform_mesh():
