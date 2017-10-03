@@ -1,11 +1,11 @@
 FROM underworldcode/base:latest
 MAINTAINER https://github.com/underworldcode/
 
-# set working directory to /root
-WORKDIR /root
+# set working directory to /opt
+WORKDIR /opt
 
 # setup environment
-ENV PYTHONPATH $PYTHONPATH:/root/underworld2
+ENV PYTHONPATH $PYTHONPATH:/opt/underworld2
 
 # get underworld, compile, delete some unnecessary files, trust notebooks, copy to workspace
 RUN git clone --branch "master" --single-branch https://github.com/underworldcode/underworld2 && \
@@ -23,7 +23,7 @@ RUN git clone --branch "master" --single-branch https://github.com/underworldcod
     rm -fr StgDomain             && \
     rm -fr PICellerator          && \
     rm -fr Solvers               && \
-    find /root/underworld2/docs -name \*.ipynb  -print0 | xargs -0 jupyter trust && \
+    find /opt/underworld2/docs -name \*.ipynb  -print0 | xargs -0 jupyter trust && \
     mkdir /workspace                                                 && \
     cd ../../docs/development/api_doc_generator/                     && \
     sphinx-build . ../../api_doc                                     && \
