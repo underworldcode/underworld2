@@ -28,7 +28,7 @@ RUN apt-get update -qq && \
         python3-pip \
         python3-dev
 RUN pip3 install \
-        jupyterhub \
+        'jupyterhub==0.7.2' \
         jupyterlab
 RUN npm install -g configurable-http-proxy
 
