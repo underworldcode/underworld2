@@ -32,20 +32,11 @@ on a geological timescale.
 
 __version__ = "2.4.0-dev"
 
-# ok, first need to change default python dlopen flags to global
-# this is because when python imports the module, the shared libraries are loaded as RTLD_LOCAL
-# and then when MPI_Init is called, OpenMPI tries to dlopen its plugin, they are unable to
-# link to the openmpi libraries as they are private
-import sys as _sys
-import ctypes as _ctypes
-_oldflags = _sys.getdlopenflags()
-_sys.setdlopenflags( _oldflags | _ctypes.RTLD_GLOBAL )
-
-# lets also set sys.path such that the project parent directory takes
+# lets  set sys.path such that the project parent directory takes
 # precedence
+import sys as _sys
 import os as _os
 _sys.path.insert(0, _os.path.realpath(_os.path.dirname("..")))
-
 
 import libUnderworld
 import container
@@ -62,9 +53,6 @@ except:
     import uuid as _uuid
     _id = str(_uuid.uuid4())
 import _net
-
-# ok, now set this back to the original value
-_sys.setdlopenflags( _oldflags )
 
 # lets go right ahead and init now.  user can re-init if necessary.
 import _stgermain
