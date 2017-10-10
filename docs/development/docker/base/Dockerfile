@@ -30,6 +30,8 @@ RUN apt-get update -qq && \
         xauth \
         python-tk \
         swig && \
+        gdb-minimal && \
+        python2.7-dbg && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*  && \
     pip install \
