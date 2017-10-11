@@ -115,8 +115,6 @@ extern "C" {
 
 	void __AdvDiffResidualForceTerm_UpdateLocalMemory( AdvectionDiffusionSLE* sle );
 
-	void __AdvDiffResidualForceTerm_FreeLocalMemory( AdvectionDiffusionSLE* sle );
-
 	/** Virtual Functions from "Class" Class */
 	void _AdvectionDiffusionSLE_Delete( void* sle );
 
