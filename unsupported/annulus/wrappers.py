@@ -41,7 +41,6 @@ class OutputFile(object):
         if uw.rank() != 0:
             return
 
-        print "Doing del"
         # close the file
         self.oFile.close()
 
@@ -249,11 +248,6 @@ class AnnulusConvection(Model):
         stokesSolver = self.solver['stokes']
         heatSolver   = self.system['heat']
 
-        # initialise running storage
-        ts_t_vol_avg = []
-        ts_Nu_t = []
-        ts_Nu_b = []
-
         # controls for timesteping
         tOld = tField.copy()
         er=1.
@@ -291,10 +285,10 @@ class AnnulusConvection(Model):
             # records metrics
             record_string = "{0}\t{1:.5e}\t{2:.5e}\t{3:.5e}\t{4:.5}\t{5:.5e}\n".format(its, dt, cpu_time, t_vol_arg, Nu_t, Nu_b)
             self.record_log(record_string)
-            #
-            # ts_t_vol_avg.append(t_vol_arg)
-            # ts_Nu_t.append(Nu_t)
-            # ts_Nu_b.append(Nu_b)
+
+        # final checkpoint
+        self.checkpoint(its)
+
 
     def initial_temperature_distribution(self, h5file=None, t_outer=0., t_inner=1., k=4.):
         # setup parameters for temperature distribution
