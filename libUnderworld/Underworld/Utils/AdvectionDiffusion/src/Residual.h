@@ -59,7 +59,7 @@ extern "C" {
         AdvDiffResidualForceTerm_UpwindParamFuncType    upwindParamType; \
         void*    diffFn; \
         void*    sourceFn; \
- 
+
     struct AdvDiffResidualForceTerm {
         __AdvDiffResidualForceTerm
     };
@@ -119,22 +119,23 @@ extern "C" {
 
     double AdvDiffResidualForceTerm_GetMaxDiffusivity( void* residual );
 
-    double AdvDiffResidualForceTerm_UpwindDiffusivity( 
-            AdvDiffResidualForceTerm* self, 
-            AdvectionDiffusionSLE* sle, 
+    double AdvDiffResidualForceTerm_UpwindDiffusivity(
+            AdvDiffResidualForceTerm* self,
+            AdvectionDiffusionSLE* sle,
             void* diffFn,
-            Swarm* swarm, 
-            FeMesh* mesh, 
-            Element_LocalIndex lElement_I, 
+            Swarm* swarm,
+            FeMesh* mesh,
+            Element_LocalIndex lElement_I,
             Dimension_Index dim );
 
     double AdvDiffResidualForceTerm_UpwindXiExact( void* residual, double pecletNumber ) ;
     double AdvDiffResidualForceTerm_UpwindXiDoublyAsymptoticAssumption( void* residual, double pecletNumber ) ;
     double AdvDiffResidualForceTerm_UpwindXiCriticalAssumption( void* residual, double pecletNumber ) ;
+    void _AdvDiffResidualForceTerm_FreeLocalMemory( AdvDiffResidualForceTerm* self );
+    void _AdvDiffResidualForceTerm_Allocate( AdvDiffResidualForceTerm* self, int dim, int max_elementNodeCount );
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif
-

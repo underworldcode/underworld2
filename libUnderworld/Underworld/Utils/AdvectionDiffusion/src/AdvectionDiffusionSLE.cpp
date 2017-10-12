@@ -205,8 +205,6 @@ void _AdvectionDiffusionSLE_AssignFromXML( void* sle, Stg_ComponentFactory* cf, 
 void _AdvectionDiffusionSLE_Destroy( void* sle, void* data ) {
    AdvectionDiffusionSLE* self = (AdvectionDiffusionSLE*) sle;
 
-   __AdvDiffResidualForceTerm_FreeLocalMemory( self );
-
    _SystemLinearEquations_Destroy( self, data );
 }
 
@@ -240,39 +238,8 @@ void __AdvDiffResidualForceTerm_UpdateLocalMemory( AdvectionDiffusionSLE* sle ){
 		}
 	}
 
-   /* logic to see if we need to allocate memory */
-   if( sle->advDiffResidualForceTerm->last_maxNodeCount == 0 ) {
-      /* first time in this function, so allocate */
-      sle->advDiffResidualForceTerm->GNx = Memory_Alloc_2DArray( double, dim, max_elementNodeCount, (Name)"(SUPG): Global Shape Function Derivatives" );
-      sle->advDiffResidualForceTerm->phiGrad = Memory_Alloc_Array(double, dim, "(SUPG): Gradient of the Advected Scalar");
-      sle->advDiffResidualForceTerm->Ni = Memory_Alloc_Array(double, max_elementNodeCount, "(SUPG): Gradient of the Advected Scalar");
-      sle->advDiffResidualForceTerm->SUPGNi = Memory_Alloc_Array(double, max_elementNodeCount, "(SUPG): Upwinded Shape Function");
-      sle->advDiffResidualForceTerm->incarray=IArray_New();
-   } else if (sle->advDiffResidualForceTerm->last_maxNodeCount < max_elementNodeCount) {
-      /* free existing memory and re-allocate */
-      __AdvDiffResidualForceTerm_FreeLocalMemory( sle );
-      sle->advDiffResidualForceTerm->GNx = Memory_Alloc_2DArray( double, dim, max_elementNodeCount, (Name)"(SUPG): Global Shape Function Derivatives" );
-      sle->advDiffResidualForceTerm->phiGrad = Memory_Alloc_Array(double, dim, "(SUPG): Gradient of the Advected Scalar");
-      sle->advDiffResidualForceTerm->Ni = Memory_Alloc_Array(double, max_elementNodeCount, "(SUPG): Gradient of the Advected Scalar");
-      sle->advDiffResidualForceTerm->SUPGNi = Memory_Alloc_Array(double, max_elementNodeCount, "(SUPG): Upwinded Shape Function");
-      sle->advDiffResidualForceTerm->incarray=IArray_New();
-   }
-
-   sle->advDiffResidualForceTerm->last_maxNodeCount = max_elementNodeCount;
+  _AdvDiffResidualForceTerm_Allocate( sle->advDiffResidualForceTerm, dim, max_elementNodeCount );
 }
-
-void __AdvDiffResidualForceTerm_FreeLocalMemory( AdvectionDiffusionSLE* sle ){
-
-   if( sle->advDiffResidualForceTerm == NULL ) return;
-
-	Memory_Free(sle->advDiffResidualForceTerm->GNx);
-	Memory_Free(sle->advDiffResidualForceTerm->phiGrad);
-	Memory_Free(sle->advDiffResidualForceTerm->Ni);
-	Memory_Free(sle->advDiffResidualForceTerm->SUPGNi);
-
-	Stg_Class_Delete(sle->advDiffResidualForceTerm->incarray);
-}
-
 
 /** Virtual Functions from "Stg_Component" Class */
 void _AdvectionDiffusionSLE_Build( void* sle, void* data ) {

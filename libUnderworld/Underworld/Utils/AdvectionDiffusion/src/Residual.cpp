@@ -171,6 +171,30 @@ void _AdvDiffResidualForceTerm_Build( void* residual, void* data )
     Stg_Component_Build( self->velocityField, data, False );
 
 }
+void _AdvDiffResidualForceTerm_Allocate( AdvDiffResidualForceTerm* self, int dim, int max_elementNodeCount ) {
+  if (self->last_maxNodeCount < max_elementNodeCount) {
+    _AdvDiffResidualForceTerm_FreeLocalMemory( self );
+  }
+  self->GNx = Memory_Alloc_2DArray( double, dim, max_elementNodeCount, (Name)"(SUPG): Global Shape Function Derivatives" );
+  self->phiGrad = Memory_Alloc_Array(double, dim, "(SUPG): Gradient of the Advected Scalar");
+  self->Ni = Memory_Alloc_Array(double, max_elementNodeCount, "(SUPG): Gradient of the Advected Scalar");
+  self->SUPGNi = Memory_Alloc_Array(double, max_elementNodeCount, "(SUPG): Upwinded Shape Function");
+  self->incarray=IArray_New();
+
+  self->last_maxNodeCount = max_elementNodeCount;
+}
+void _AdvDiffResidualForceTerm_FreeLocalMemory( AdvDiffResidualForceTerm* self ) {
+
+  if( self->last_maxNodeCount == 0 ) return;
+
+  Memory_Free(self->GNx);
+  Memory_Free(self->phiGrad);
+  Memory_Free(self->Ni);
+  Memory_Free(self->SUPGNi);
+
+  Stg_Class_Delete(self->incarray);
+  self->last_maxNodeCount = 0;
+}
 
 void _AdvDiffResidualForceTerm_Initialise( void* residual, void* data )
 {
@@ -192,7 +216,7 @@ void _AdvDiffResidualForceTerm_Destroy( void* residual, void* data )
 {
     AdvDiffResidualForceTerm* self = (AdvDiffResidualForceTerm*)residual;
 
-    self->last_maxNodeCount = 0;
+    _AdvDiffResidualForceTerm_FreeLocalMemory( self );
     _ForceTerm_Destroy( self, data );
 }
 
@@ -299,7 +323,7 @@ void _AdvDiffResidualForceTerm_AssembleElement( void* forceTerm, ForceVector* fo
         source = funcsource->at();
         assert( !std::isnan(diffusivity) );
         assert( !std::isnan(source) );
-        totalDerivative -= source;  // as per first term in Eq. 3.2.18 
+        totalDerivative -= source;  // as per first term in Eq. 3.2.18
 
         /* Add to element residual */
         factor = particle->weight * detJac;
@@ -320,11 +344,11 @@ void _AdvDiffResidualForceTerm_AssembleElement( void* forceTerm, ForceVector* fo
 
 void _SUPGVectorTerm_NA__Fn_SetDiffusivityFn( void* _self, Fn::Function* fn ){
     AdvDiffResidualForceTerm* self = (AdvDiffResidualForceTerm*)_self;
-    
+
     // record fn to struct
     SUPGVectorTerm_NA__Fn_cppdata* diffFn = (SUPGVectorTerm_NA__Fn_cppdata*) self->diffFn;
     diffFn->fn = fn;
-    
+
     if( !self->forceVector )
         throw std::invalid_argument( "AdvDiffResidualForceTerm does not appear to have 'ForceVector' set. Please contact developers" );
 
@@ -335,7 +359,7 @@ void _SUPGVectorTerm_NA__Fn_SetDiffusivityFn( void* _self, Fn::Function* fn ){
     std::shared_ptr<ParticleInCellCoordinate> localCoord = std::make_shared<ParticleInCellCoordinate>( swarm->localCoordVariable );
     diffFn->input = std::make_shared<FEMCoordinate>((void*)mesh, localCoord);
     diffFn->func = fn->getFunction(diffFn->input.get());
-    
+
     // check output conforms
     const FunctionIO* sampleguy = diffFn->func(diffFn->input.get());
     const IO_double* iodub = dynamic_cast<const IO_double*>(sampleguy);
@@ -352,11 +376,11 @@ void _SUPGVectorTerm_NA__Fn_SetDiffusivityFn( void* _self, Fn::Function* fn ){
 void _SUPGVectorTerm_NA__Fn_SetSourceFn( void* _self, Fn::Function* fn ){
     /* Set the source term 'function' */
     AdvDiffResidualForceTerm* self = (AdvDiffResidualForceTerm*)_self;
-    
+
     // record fn to struct
     SUPGVectorTerm_NA__Fn_cppdata* sourceFn = (SUPGVectorTerm_NA__Fn_cppdata*) self->sourceFn;
     sourceFn->fn = fn;
-    
+
     if( !self->forceVector )
         throw std::invalid_argument( "AdvDiffResidualForceTerm does not appear to have 'ForceVector' set. Please contact developers" );
 
@@ -367,7 +391,7 @@ void _SUPGVectorTerm_NA__Fn_SetSourceFn( void* _self, Fn::Function* fn ){
     std::shared_ptr<ParticleInCellCoordinate> localCoord = std::make_shared<ParticleInCellCoordinate>( swarm->localCoordVariable );
     sourceFn->input = std::make_shared<FEMCoordinate>((void*)mesh, localCoord);
     sourceFn->func = fn->getFunction(sourceFn->input.get());
-    
+
     // check output conforms
     const FunctionIO* sampleguy = sourceFn->func(sourceFn->input.get());
     const IO_double* iodub = dynamic_cast<const IO_double*>(sampleguy);
@@ -401,15 +425,15 @@ double _AdvDiffResidualForceTerm_UpwindParam( void* residual, double pecletNumbe
 }
 
 
-/** AdvectionDiffusion_UpwindDiffusivity - See Brooks, Hughes 1982 Section 3.3 
+/** AdvectionDiffusion_UpwindDiffusivity - See Brooks, Hughes 1982 Section 3.3
  * All equations refer to this paper if not otherwise indicated */
-double AdvDiffResidualForceTerm_UpwindDiffusivity( 
-		AdvDiffResidualForceTerm* self, 
-		AdvectionDiffusionSLE* sle, 
+double AdvDiffResidualForceTerm_UpwindDiffusivity(
+		AdvDiffResidualForceTerm* self,
+		AdvectionDiffusionSLE* sle,
                 void* _cppdata,
-		Swarm* swarm, 
-		FeMesh* mesh, 
-		Element_LocalIndex lElement_I, 
+		Swarm* swarm,
+		FeMesh* mesh,
+		Element_LocalIndex lElement_I,
 		Dimension_Index dim )
 {
 	FeVariable*                velocityField   = self->velocityField;
@@ -425,13 +449,13 @@ double AdvDiffResidualForceTerm_UpwindDiffusivity(
 	Node_LocalIndex            nodeIndex_LeastValues, nodeIndex_GreatestValues;
 	int             *inc;
 	IArray*         incArray;
-	
+
 	Cell_Index                 cell_I;
 	double                     averageDiffusivity;
 	Particle_InCellIndex       cParticle_I;
 	Particle_InCellIndex       particleCount;
 
-	
+
         SUPGVectorTerm_NA__Fn_cppdata* diffFn = (SUPGVectorTerm_NA__Fn_cppdata*)_cppdata;
 	/* Compute the average diffusivity */
 	/* Find Number of Particles in Element */
@@ -448,43 +472,43 @@ double AdvDiffResidualForceTerm_UpwindDiffusivity(
         }
         averageDiffusivity /= (double)particleCount;
 
-	
+
 	if (sle->maxDiffusivity < averageDiffusivity)
 		sle->maxDiffusivity = averageDiffusivity;
-	
+
 	/* Change Diffusivity if it is too small */
-	if ( averageDiffusivity < SUPG_MIN_DIFFUSIVITY ) 
+	if ( averageDiffusivity < SUPG_MIN_DIFFUSIVITY )
 		averageDiffusivity = SUPG_MIN_DIFFUSIVITY;
-	
+
 	/* Calculate Velocity At Middle of Element - See Eq. 3.3.6 */
 	FeVariable_InterpolateFromMeshLocalCoord( velocityField, mesh, lElement_I, xiElementCentre, velocityCentre );
-	
+
 	/* Calculate Length Scales - See Fig 3.4 - ASSUMES BOX MESH TODO - fix */
 	incArray = self->incarray;
 	FeMesh_GetElementNodes( mesh, lElement_I, incArray );
 	inc = IArray_GetPtr( incArray );
-	
+
 	nodeIndex_LeastValues = inc[0];
 	nodeIndex_GreatestValues = (dim == 2) ? inc[3] : (dim == 3) ? inc[7] : inc[1];
 	leastCoord    = Mesh_GetVertex( mesh, nodeIndex_LeastValues );
 	greatestCoord = Mesh_GetVertex( mesh, nodeIndex_GreatestValues );
-	
+
 	upwindDiffusivity = 0.0;
 	for ( dim_I = 0 ; dim_I < dim ; dim_I++ ) {
 		lengthScale = fabs(greatestCoord[ dim_I ] - leastCoord[ dim_I ]);
-		
+
 		/* Calculate Peclet Number (alpha) - See Eq. 3.3.5 */
 		pecletNumber = velocityCentre[ dim_I ] * lengthScale / (2.0 * averageDiffusivity);
-		
+
 		/* Calculate Upwind Local Coordinate - See Eq. 3.3.4 and (2.4.2, 3.3.1 and 3.3.2) */
 		xiUpwind = AdvDiffResidualForceTerm_UpwindParam( self, pecletNumber );
-		
+
 		/* Calculate Upwind Thermal Diffusivity - See Eq. 3.3.3  */
 		upwindDiffusivity += xiUpwind * velocityCentre[ dim_I ] * lengthScale;
 	}
 	upwindDiffusivity *= ISQRT15;         /* See Eq. 3.3.11 */
-	
-	
+
+
 	return upwindDiffusivity;
 }
 
@@ -510,13 +534,13 @@ double AdvDiffResidualForceTerm_GetMaxDiffusivity( void* residual ) {
         cell_I = CellLayout_MapElementIdToCellId( swarm->cellLayout, e_i );
         particleCount = swarm->cellParticleCountTbl[ cell_I ];
 
-        // setup diffFn to run 
+        // setup diffFn to run
         debug_dynamic_cast<ParticleInCellCoordinate*>(diffFn->input->localCoord())->index() = e_i;  // set the elementId as the owning cell for the particleCoord
         diffFn->input->index()   = e_i;
 
         for ( cParticle_I = 0 ; cParticle_I < particleCount ; cParticle_I++ ) {
             debug_dynamic_cast<ParticleInCellCoordinate*>(diffFn->input->localCoord())->particle_cellId(cParticle_I);  // set the particleCoord cellId
-            // evaluate function for diffusivity 
+            // evaluate function for diffusivity
             const IO_double* funcout = debug_dynamic_cast<const IO_double*>(diffFn->func(diffFn->input.get()));
             if ( funcout->at() > maxDiffusivity ) {
                 maxDiffusivity = funcout->at();
@@ -527,7 +551,7 @@ double AdvDiffResidualForceTerm_GetMaxDiffusivity( void* residual ) {
     return maxDiffusivity;
 
 }
-    
+
 
 
 /** AdvectionDiffusion_UpwindXiExact - Brooks, Hughes 1982 equation 2.4.2
@@ -539,19 +563,19 @@ double AdvDiffResidualForceTerm_UpwindXiExact( void* residual, double pecletNumb
 		return -1.0 - 1.0/pecletNumber;
 	else if (pecletNumber > 20.0)
 		return +1.0 - 1.0/pecletNumber;
-		
+
 	return cosh( pecletNumber )/sinh( pecletNumber ) - 1.0/pecletNumber;
 }
 
 /** AdvectionDiffusion_UpwindXiDoublyAsymptoticAssumption - Brooks, Hughes 1982 equation 3.3.1
  * Simplification of \f$ \bar \xi = coth( \alpha ) - \frac{1}{\alpha} \f$ from Brooks, Hughes 1982 equation 2.4.2
  * \f[
-\bar \xi \sim \left\{ \begin{array}{rl} 
+\bar \xi \sim \left\{ \begin{array}{rl}
              -1                 &for \quad \alpha <= -3 \\
              \frac{\alpha}{3}   &for \quad -3 < \alpha <= 3 \\
              +1                 &for \quad \alpha > +3
-             \end{array} \right.  
-           
+             \end{array} \right.
+
 \f]*/
 double AdvDiffResidualForceTerm_UpwindXiDoublyAsymptoticAssumption( void* residual, double pecletNumber ) {
 	if (pecletNumber <= -3.0)
@@ -561,15 +585,15 @@ double AdvDiffResidualForceTerm_UpwindXiDoublyAsymptoticAssumption( void* residu
 	else
 		return 1.0;
 }
-	
+
 /** AdvectionDiffusion_UpwindXiCriticalAssumption - Brooks, Hughes 1982 equation 3.3.2
  * Simplification of \f$ \bar \xi = coth( \alpha ) - \frac{1}{\alpha} \f$ from Brooks, Hughes 1982 equation 2.4.2
  * \f[
   \bar \xi \sim \left\{ \begin{array}{rl}
               -1 - \frac{1}{\alpha}   &for \quad \alpha <= -1 \\
                0                      &for \quad -1 < \alpha <= +1 \\
-              +1 - \frac{1}{\alpha}   &for \quad \alpha > +1          
-              \end{array} \right.              
+              +1 - \frac{1}{\alpha}   &for \quad \alpha > +1
+              \end{array} \right.
 \f]    */
 
 double AdvDiffResidualForceTerm_UpwindXiCriticalAssumption( void* residual, double pecletNumber ) {
