@@ -41,5 +41,9 @@ EXPOSE 9999
 VOLUME /workspace/user_data
 WORKDIR /workspace
 
+# copy this file over so that no password is required
+
+COPY jupyter_notebook_config.json /root/.jupyter/jupyter_notebook_config.json
+
 # launch notebook
 CMD ["jupyter", "notebook", " --no-browser"]
