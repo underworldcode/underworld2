@@ -29,17 +29,21 @@ class SteadyStateDarcyFlow(_stgermain.StgCompoundComponent):
 
     .. math::
         \\begin{align}
-        q_i =& \\kappa \\, \left( -u_{,i} + S_i \right)   & \\\\
+        q_i =& \\kappa \\, ( -u_{,i} + S_i )   &  \\\\
         q_{i,i} =& \\: f  & \\text{ in }  \\Omega \\\\
         u =& \\: q & \\text{ on }  \\Gamma_q \\\\
         -q_i n_i =& \\: h & \\text{ on }  \\Gamma_h \\\\
         \\end{align}
 
-    where, :math:`\\kappa` is the diffusivity, :math:`u` is the pressure,
-    :math:`S` is a flow body-source, for example due to gravity,
-    :math:`f` is a source term, :math:`q` is the Dirichlet condition, and
-    :math:`h` is a Neumann condition. The problem boundary, :math:`\\Gamma`,
-    admits the decomposition :math:`\\Gamma=\\Gamma_q\\cup\\Gamma_h` where
+    where,
+
+    * :math:`\\kappa` is the diffusivity, :math:`u` is the pressure,
+    * :math:`S` is a flow body-source, for example due to gravity,
+    * :math:`f` is a source term, :math:`q` is the Dirichlet condition, and
+    * :math:`h` is a Neumann condition.
+
+    The problem boundary, :math:`\\Gamma`, admits the decomposition
+    :math:`\\Gamma=\\Gamma_q\\cup\\Gamma_h` where
     :math:`\\emptyset=\\Gamma_q\\cap\\Gamma_h`. The equivalent weak form is:
 
     .. math::
@@ -50,17 +54,17 @@ class SteadyStateDarcyFlow(_stgermain.StgCompoundComponent):
 
     Parameters
     ----------
-    velocityField (optional): underworld.mesh.MeshVariable
-        Solution field for darcy flow velocity.
     pressureField : underworld.mesh.MeshVariable
         The solution field for pressure.
     fn_diffusivity : underworld.function.Function
         The function that defines the diffusivity across the domain.
-    fn_bodyforce (Optional) : underworld.function.Function
-        A function that defines the flow body-force across the domain, for example gravity. Must be a vector.
+    fn_bodyforce : underworld.function.Function
+        A function that defines the flow body-force across the domain,
+        for example gravity. Must be a vector. Optional.
     voronoi_swarm : underworld.swarm.Swarm
-        A swarm with just one particle within each cell should be provided. This avoids the evaluation
-        of the velocity on nodes and inaccuracies arising from diffusivity changes within cells.
+        A swarm with just one particle within each cell should be provided.
+        This avoids the evaluation of the velocity on nodes and inaccuracies
+        arising from diffusivity changes within cells.
         If a swarm is provided, voronoi type numerical integration is
         utilised. The provided swarm is used as the basis for the voronoi
         integration. If no voronoi_swarm is provided, Gauss integration
@@ -68,25 +72,23 @@ class SteadyStateDarcyFlow(_stgermain.StgCompoundComponent):
     conditions : underworld.conditions.SystemCondition
         Numerical conditions to impose on the system. This should be supplied as
         the condition itself, or a list object containing the conditions.
-    swarmVarVelocity (optional) : undeworld.swarm.SwarmVariable
+    velocityField : underworld.mesh.MeshVariable
+        Solution field for darcy flow velocity. Optional.
+    swarmVarVelocity : undeworld.swarm.SwarmVariable
         If a swarm variable is provided, the velocity calculated on the swarm will be stored.
         This is the most representative velocity data object, as the velocity calculation occurs
-        on the swarm, away from mesh nodes.
-
-
+        on the swarm, away from mesh nodes. Optional.
 
     Notes
     -----
     Constructor must be called collectively by all processes.
-
-
 
     """
 
     _objectsDict = {  "_system" : "SystemLinearEquations" }
     _selfObjectName = "_system"
 
-    def __init__(self,  pressureField, fn_diffusivity, fn_bodyforce=None, voronoi_swarm=None, conditions=[], velocityField = None,swarmVarVelocity = None, _removeBCs=True, **kwargs):
+    def __init__(self, pressureField, fn_diffusivity, fn_bodyforce=None, voronoi_swarm=None, conditions=[], velocityField=None, swarmVarVelocity=None, _removeBCs=True, **kwargs):
 
         if not isinstance( pressureField, uw.mesh.MeshVariable):
             raise TypeError( "Provided 'pressureField' must be of 'MeshVariable' class." )
@@ -106,8 +108,6 @@ class SteadyStateDarcyFlow(_stgermain.StgCompoundComponent):
             _fn_bodyforce = uw.function.Function.convert(fn_bodyforce)
         except Exception as e:
             raise uw._prepend_message_to_exception(e, "Exception encountered. Note that provided 'fn_bodyforce' must be of or convertible to 'Function' class.\nEncountered exception message:\n")
-
-
 
         if voronoi_swarm and not isinstance(voronoi_swarm, uw.swarm.Swarm):
             raise TypeError( "Provided 'swarm' must be of 'Swarm' class." )
