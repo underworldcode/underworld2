@@ -13,6 +13,7 @@ import libUnderworld
 from libUnderworld import petsc
 from libUnderworld import Solvers
 from _options import Options
+from mpi4py import MPI
 
 class Stats(object):
     pressure_its=0
@@ -321,7 +322,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
               nonLinearKillNonConvergent=False,
               nonLinearMaxIterations=500,
               callback_post_solve=None,
-              print_stats=False, reinitialise=True, fpwarning=True, **kwargs):
+              print_stats=False, reinitialise=True, fpwarning=True, petscwarning=True, **kwargs):
         """
         Solve the stokes system
 
@@ -433,13 +434,37 @@ class StokesSolver(_stgermain.StgCompoundComponent):
                     print endcol
                     print
 
-        if uw.libUnderworld.Underworld.Underworld_fetestexcept() and fpwarning:
+        # check the petsc convergence reasons, see StokesBlockKSPInterface.h
+        if petscwarning and (self._cself.fhat_reason < 0  or \
+            self._cself.outer_reason < 0 or \
+            self._cself.backsolve_reason < 0 ):
             import warnings
-            warnings.warn("A floating-point operation error has been detected during the solve. " +
-            " The resultant solution fields are mostly likely erroneous, check them thoroughly. "+
-            " This is likely due to large number variations in the linear algrebra or fragil solver configurations. "
-            " This warning can be supressed with the argument 'fpwarning=False'.")
 
+            estring = "A petsc error has been detected during the solve.\n" + \
+            "The resultant solution fields are most likely erroneous, check them thoroughly.\n"+ \
+            "This is possibly due to many things, for example solar flares or insufficient boundary conditions.\n"+ \
+            "The resultant KSPConvergedReasons are (f_hat, outer, backsolve) ({},{},{}).".format(
+                self._cself.fhat_reason,self._cself.outer_reason, self._cself.backsolve_reason)
+            if uw.rank() == 0:
+                warnings.warn(estring)
+
+        # check if fp error was detected and 'reduce' result to proc 0
+        import numpy as np
+        lres, gres = np.zeros(1), np.zeros(1)
+
+        lres[:] = uw.libUnderworld.Underworld.Underworld_fetestexcept()
+        comm = MPI.COMM_WORLD
+        comm.Allreduce(lres, gres, op=MPI.SUM)
+
+        if gres[0] > 0 and fpwarning:
+            import warnings
+            estring = "A floating-point operation error has been detected during the solve.\n" + \
+            "The resultant solution fields are most likely erroneous, check them thoroughly.\n"+ \
+            "This is likely due to large number variations in the linear algrebra or fragile solver configurations.\n"+ \
+            "Consider rescaling the fn_viscosity or fn_bodyforce inputs to avoid this problem.\n"+ \
+            "This warning can be supressed with the argument 'fpwarning=False'."
+            if uw.rank() == 0:
+                warnings.warn(estring)
         return
 
     ########################################################################
