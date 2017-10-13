@@ -291,18 +291,17 @@ class Store(_stgermain.StgCompoundComponent):
         return json.dumps(export, indent=2)
 
     def _read_state(self):
-        #Read state from database
+        #Read state from database (DEPRECATED)
         if uw.rank() > 0:
             return
         if not self._db.db:
             libUnderworld.gLucifer.lucDatabase_OpenDatabase(self._db)
         try:
             lv = self.lvget()
-            #Get state, includes the list of objects in the loaded database
-            statestr = lv.app.getFigures()
             #Also save the step data
             self.timesteps = json.loads(lv.app.getTimeSteps())
-            return json.loads(statestr)
+            #Get figures/states
+            return lv.app.figures
         except RuntimeError,e:
             print "LavaVu error: " + str(e)
             import traceback
