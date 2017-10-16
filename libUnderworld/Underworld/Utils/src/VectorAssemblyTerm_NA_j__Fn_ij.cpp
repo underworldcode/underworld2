@@ -216,7 +216,6 @@ void _VectorAssemblyTerm_NA_j__Fn_ij_AssembleElement( void* forceTerm, ForceVect
       const IO_double* funeForceout      = debug_dynamic_cast<const IO_double*>(funeForce->func(funeForce->input.get()));
       
       eForce = funeForceout->data();
-      assert(eForce > 0); 
         	  	
       factor = detJac * particle->weight;
  
