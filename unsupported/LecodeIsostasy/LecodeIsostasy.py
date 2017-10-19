@@ -177,12 +177,18 @@ def get_average_densities2D(mesh, DensityVar, MaterialVar, reference_mat):
     global_materials = np.zeros((nrow+1)*(ncol+1))
 
     # Load the densities and material into the local_densities arrays
-    local_densities[mesh.data_nodegId] = DensityVar.data
-    local_materials[mesh.data_nodegId] = MaterialVar.data
+    # data_nodegId as domain size (local+node) so we need to only take
+    # the local nodes otherwise the reduce operation will results in higher
+    # values where domains overlaps...
+    local_densities[mesh.data_nodegId[:mesh.nodesLocal]] = DensityVar.data
+    local_materials[mesh.data_nodegId[:mesh.nodesLocal]] = MaterialVar.data
 
     # Reduce local_densities arrays to global_densities
     comm.Allreduce(local_densities, global_densities)
     comm.Allreduce(local_materials, global_materials)
+    # It seems that the MPI implementation to not systematically impose a
+    # barrier inside a reduce operation. That is weird but just to be safe:
+    comm.Barrier()
 
     # Reshape the arrays
     global_densities = global_densities.reshape(((nrow+1),(ncol+1)))
