@@ -122,8 +122,17 @@ class LinkageModel(object):
         ]
 
         # --- You don't need to modify any settings below this line ---
-        self.scaleDIM = 1.
-        self.scaleTIME = 1.
+        try:
+            import sys
+            sca = sys.modules["unsupported.scaling"]
+            self.scaleDIM = 1.0 / sca.scaling["[length]"]
+            self.scaleTIME = 1.0 / sca.scaling["[time]"]
+        
+        except KeyError:
+       
+            self.scaleDIM = 1.0
+            self.scaleTIME = 1.0
+        
         self.time_years = 0.  # Simulation time in years. We start at year 0.
         self._model_started = False  # Have we performed one-time initialisation yet?
         self._disp_inserted = False
@@ -461,7 +470,7 @@ class LinkageModel(object):
 
         self.badlands_model.force.injected_disps = disp
 
-    def _update_material_types(self):
+cal   def _update_material_types(self):
         if self.disable_material_changes:
             return
 
