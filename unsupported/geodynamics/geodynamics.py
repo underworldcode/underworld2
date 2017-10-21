@@ -398,7 +398,7 @@ class Model(object):
                                        fn_bodyforce=self.buoyancyFn)
 
             self.solver = uw.systems.Solver(stokes)
-            if uw.nProcs()>1
+            if uw.nProcs()>1:
                 self.solver.set_inner_method("mumps")
             else:
                 self.solver.set_inner_method("lu")
