@@ -799,7 +799,7 @@ class Model(object):
                    sca.Dimensionalize(self.pressure, units), **kwargs))
         Fig.show()
         return Fig
-   def plot_strainRate(self, figsize=(1200, 400), **kwargs):
+    def plot_strainRate(self, figsize=(1200, 400), **kwargs):
         Fig = glucifer.Figure(figsize=(1200, 400), title="Strain Rate")
         Fig.append(glucifer.objects.Points(self.swarm,
                                            fn_colour=self.strainRateVar,
