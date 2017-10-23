@@ -9,7 +9,7 @@
 import sys as _sys
 import os as _os
 import xml.etree.cElementTree as _ET
-import libUnderworld
+from . import libUnderworld
 import abc
 from collections import defaultdict
 
@@ -82,13 +82,12 @@ class StgClass(LeftOverParamsChecker):
     
     def __del__(self):
         if hasattr(self, "_delSelf") and self._delSelf:
-            #print(" deleting: "+self._cself.name+","+self._cself.type)
             libUnderworld.StGermain.Stg_Class_Unlock(self._cself)
             libUnderworld.StGermain.Stg_Class_Delete(self._cself)
 
 class _SetupClass(abc.ABCMeta):
     '''
-    This metaclass allows us to invoke a _setup method after the the __init__ method.
+    This metaclass allows us to invoke a _setup method after the __init__ method.
     Borrowed from:
     http://stackoverflow.com/questions/22261763/in-python-is-it-possible-to-write-a-method-that-will-be-automatically-called-aft
     '''
