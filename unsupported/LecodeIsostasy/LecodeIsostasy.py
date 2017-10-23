@@ -1,10 +1,72 @@
 import underworld as uw
 import numpy as np
 from mpi4py import MPI
+from scipy.interpolate import interp1d, interp2d
 
 comm = MPI.COMM_WORLD
+rank = comm.Get_rank()
 
-def get_sep_velocities2D(mesh, velocityField):
+def get_surface_nodes(mesh, surface):
+    """ Get the closest mesh nodes to a surface 
+        The function returns the global ids by default
+    """
+
+    procCount = comm.allgather(surface.particleLocalCount)
+    particleGlobalCount = np.sum(procCount)
+
+    offset = 0
+    for i in xrange(rank):
+        offset += procCount[i]
+
+    if mesh.dim == 2:
+
+        localSurface = np.zeros((particleGlobalCount, 2), surface.particleCoordinates.data.dtype)
+        globalSurface = np.zeros((particleGlobalCount, 2), surface.particleCoordinates.data.dtype)
+
+        if surface.particleLocalCount > 0:
+            localSurface[offset:offset+surface.particleLocalCount] = surface.particleCoordinates.data[:]
+
+        comm.Allreduce(localSurface, globalSurface)
+        comm.Barrier()
+
+        surface = globalSurface
+        surface.sort(axis=0)
+        
+        
+        # Build linearly interpolated function from surface points
+        f = interp1d(surface[:,0], surface[:,1], bounds_error=False, fill_value="extrapolate")
+        # Get y positions on the surface
+        ypos = f(mesh.data[:,0])
+        dy = np.abs((mesh.maxCoord[1] - mesh.minCoord[1]) / mesh.elementRes[1])
+        localIds = np.arange(mesh.nodesDomain)[np.abs(mesh.data[:,1] - ypos) < (dy / 2.0)]
+        globalIds = mesh.data_nodegId[localIds]
+        return localIds, globalIds
+
+    if mesh.dim == 3:
+        
+        localSurface = np.zeros((particleGlobalCount, 3), surface.particleCoordinates.data.dtype)
+        globalSurface = np.zeros((particleGlobalCount, 3), surface.particleCoordinates.data.dtype)
+
+        if surface.particleLocalCount > 0:
+            localSurface[offset:offset+surface.particleLocalCount] = surface.particleCoordinates.data[:]
+
+        comm.Allreduce(localSurface, globalSurface)
+        comm.Barrier()
+
+        surface = globalSurface
+        # Sort the array
+        surface = surface[np.lexsort(np.transpose(surface)[::-1])]
+
+        f = interp2d(surface[:,0], surface[:,1], surface[:,2])
+        # Get y positions on the surface
+        zpos = f(mesh.data[:,0], mesh.data[:,1])
+        dz = np.abs((mesh.maxCoord[2] - mesh.minCoord[2]) / mesh.elementRes[2])
+        localIds = np.arange(mesh.nodesLocal)[np.abs(mesh.data[:,2] - zpos) < dz / 2.0]
+        globalIds = mesh.data_nodegId[localIds]
+        return localIds, globalIds
+
+
+def get_sep_velocities2D(mesh, velocityField, surface=None):
     
     ncol, nrow = mesh.elementRes
     
@@ -22,8 +84,20 @@ def get_sep_velocities2D(mesh, velocityField):
     top_ids = mesh.specialSets["MaxJ_VertexSet"]
     bot_ids = mesh.specialSets["MinJ_VertexSet"]
 
+    if surface is not None:
+
+        surfLocals, surfGlobals = get_surface_nodes(mesh, surface)
+        if surfLocals.size > 0:
+            # Get an I,J representation of the node coordinates
+            Jpositions = (surfGlobals.astype("float") / (ncol + 1)).astype("int")
+            Ipositions = surfGlobals - Jpositions * (ncol + 1)
+
+            # Load the top-velocities in the local array with global dimensions.
+            local_top_vy[Ipositions.flatten()] = velocityField.data[surfLocals, 1]
+            local_heights[Ipositions.flatten()] += mesh.data[surfLocals][:,1]
+
     # If the local domain contains some of the top_ids, proceed:
-    if top_ids:
+    elif top_ids:
 
         # We must get rid of the shadow nodes
         top_ids = top_ids.data[top_ids.data < mesh.nodesLocal]
@@ -74,16 +148,17 @@ def get_sep_velocities2D(mesh, velocityField):
     comm.Allreduce(local_top_vy, global_top_vy)
     comm.Allreduce(local_bot_vy, global_bot_vy)
     comm.Allreduce(local_heights, global_heights)
-    
+    comm.Barrier()
+
     # 3-nodes mean average
     global_top_vy = (np.roll(global_top_vy, -1) + global_top_vy + np.roll(global_top_vy, 1)) / 3.0
     global_bot_vy = (np.roll(global_bot_vy, -1) + global_bot_vy + np.roll(global_bot_vy, 1)) / 3.0
     global_heights = (np.roll(global_heights, -1) + global_heights + np.roll(global_heights, 1)) / 3.0
-    
+  
     # Calculate and return sep velocities
     return global_top_vy - global_bot_vy, global_heights
 
-def get_sep_velocities3D(mesh, velocityField):
+def get_sep_velocities3D(mesh, velocityField, surface=None):
     
     nx, ny, nz = mesh.elementRes
     GlobalIndices3d = np.indices((nz+1,ny+1,nx+1))
@@ -102,8 +177,25 @@ def get_sep_velocities3D(mesh, velocityField):
     top_ids = mesh.specialSets["MaxK_VertexSet"]
     bot_ids = mesh.specialSets["MinK_VertexSet"]
 
+
+    if surface is not None:
+
+        _, surfaceNodes = get_surface_nodes(mesh, surface)
+        if surfaceNodes.size > 0:
+            ix = np.in1d(np.arange(mesh.nodesGlobal), node_gids)
+            Ipositions = GlobalIndices3d[2].flatten()[ix]
+            Jpositions = GlobalIndices3d[1].flatten()[ix]
+            Kpositions = GlobalIndices3d[0].flatten()[ix]
+
+            # Load the top-velocities in the local array with global dimensions.
+            k = 0
+            for i, j in zip(Ipositions, Jpositions):
+                local_top_vy[j, i] = velocityField.data[surfaceNodes][k]
+                local_heights[j, i] += mesh.data[surfaceNodes,2][k]
+                k+=1
+
     # If the local domain contains some of the top_ids, proceed:
-    if top_ids:
+    elif top_ids:
 
         # We must get rid of the shadow nodes
         top_ids = top_ids.data[top_ids.data < mesh.nodesLocal]
@@ -162,11 +254,13 @@ def get_sep_velocities3D(mesh, velocityField):
     comm.Allreduce(local_top_vy, global_top_vy)
     comm.Allreduce(local_bot_vy, global_bot_vy)
     comm.Allreduce(local_heights, global_heights)
-        
+    comm.Barrier()  
+
     # Calculate and return sep velocities
     return global_top_vy - global_bot_vy, global_heights
 
-def get_average_densities2D(mesh, DensityVar, MaterialVar, reference_mat):
+def get_average_densities2D(mesh, DensityVar, MaterialVar, reference_mat,
+                            maskedMat=[]):
     
     ncol, nrow = mesh.elementRes
     
@@ -197,11 +291,17 @@ def get_average_densities2D(mesh, DensityVar, MaterialVar, reference_mat):
     global_materials = global_materials.astype("int")
 
     # Calculate Mean densities at the bottom
-    botMeanDensities = np.mean(global_densities,0)
+    if maskedMat:
+        mask = np.in1d(global_materials, maskedMat)
+        maskedArray = np.ma.masked_array(global_densities, mask)
+        botMeanDensities = maskedArray.mean(axis=0)
+    else:
+        botMeanDensities = np.mean(global_densities,0)
     
     # Calculate Mean densities at the bottom (reference_mat only)
-    botMeanDensities0 = np.mean(np.ma.masked_where(global_materials != reference_mat, global_densities), 0)
-    botMeanDensities0 = np.array(botMeanDensities0)
+    botMeanDensities0 = np.ma.array(global_densities, mask=(global_materials != reference_mat))
+    botMeanDensities0 = botMeanDensities0.mean(axis=0)
+    botMeanDensities0 = np.array(botMeanDensities0)   
 
     botMeanDensities = (np.roll(botMeanDensities, -1) + botMeanDensities + np.roll(botMeanDensities, 1)) / 3.0
     botMeanDensities0 = (np.roll(botMeanDensities0, -1) + botMeanDensities0 + np.roll(botMeanDensities0, 1)) / 3.0    
@@ -209,7 +309,8 @@ def get_average_densities2D(mesh, DensityVar, MaterialVar, reference_mat):
     # return bottom Densities and Densities0
     return botMeanDensities, botMeanDensities0
 
-def get_average_densities3D(mesh, DensityVar, MaterialVar, reference_mat):
+def get_average_densities3D(mesh, DensityVar, MaterialVar, reference_mat,
+                            maskedMat):
     
     nx, ny, nz = mesh.elementRes
     
@@ -226,6 +327,7 @@ def get_average_densities3D(mesh, DensityVar, MaterialVar, reference_mat):
     # Reduce local_densities arrays to global_densities
     comm.Allreduce(local_densities, global_densities)
     comm.Allreduce(local_materials, global_materials)
+    comm.Barrier()
 
     # Reshape the arrays
     global_densities = global_densities.reshape(((nz+1),(ny+1),(nx+1)))
@@ -234,7 +336,13 @@ def get_average_densities3D(mesh, DensityVar, MaterialVar, reference_mat):
     global_materials = np.rint(global_materials).astype("int")
 
     # Calculate Mean densities at the bottom
-    botMeanDensities = np.mean(global_densities,0)
+    if maskedMat:
+        mask = np.in1d(global_materials, maskedMat)
+        maskedArray = np.ma.masked_array(global_densities, mask)
+        botMeanDensities = maskedArray.mean(axis=0)
+    else:
+        botMeanDensities = np.mean(global_densities,0)
+
     # Calculate Mean densities at the bottom (reference_mat only)
     botMeanDensities0 = np.ma.array(global_densities, mask=(global_materials != reference_mat))
     botMeanDensities0 = botMeanDensities0.mean(axis=0)
@@ -244,7 +352,8 @@ def get_average_densities3D(mesh, DensityVar, MaterialVar, reference_mat):
     return botMeanDensities, botMeanDensities0  
 
 def lecode_tools_isostasy2D(mesh, swarm, velocityField, densityFn,
-        materialIndexField, reference_mat, average=False):
+        materialIndexField, reference_mat, average=False, surface=None,
+        maskedMat=[]):
 
     MaterialIndexFieldFloat = swarm.add_variable( dataType="double", count=1 )
     DensityVar = uw.mesh.MeshVariable(mesh, nodeDofCount=1)
@@ -258,9 +367,12 @@ def lecode_tools_isostasy2D(mesh, swarm, velocityField, densityFn,
     projectorDensity.solve()
     projectorMaterial.solve()
 
-    sep_velocities_nodes, heights = get_sep_velocities2D(mesh, velocityField)
+    sep_velocities_nodes, heights = get_sep_velocities2D(mesh, velocityField,
+                                                         surface=surface)
     botMeanDensities, botMeanDensities0 = get_average_densities2D(mesh, DensityVar,
-                                                                MaterialVar, reference_mat)
+                                                                MaterialVar,
+                                                                reference_mat,
+                                                                maskedMat)
     
     basal_velocities = -1.0 * botMeanDensities * sep_velocities_nodes / botMeanDensities0
     
@@ -276,7 +388,8 @@ def lecode_tools_isostasy2D(mesh, swarm, velocityField, densityFn,
     velocityField.syncronise()
 
 def lecode_tools_isostasy3D(mesh, swarm, velocityField, densityFn,
-        materialIndexField, reference_mat, average=False):
+        materialIndexField, reference_mat, average=False, surface=None,
+        maskedMat=[]):
     
     MaterialIndexFieldFloat = swarm.add_variable( dataType="double", count=1 )
     DensityVar = uw.mesh.MeshVariable(mesh, nodeDofCount=1)
@@ -308,15 +421,25 @@ def lecode_tools_isostasy3D(mesh, swarm, velocityField, densityFn,
     velocityField.syncronise()
 
 def lecode_tools_isostasy(mesh, swarm, velocityField, densityFn,
-        materialIndexField, reference_mat, average=False):
+        materialIndexField, reference_mat, average=False, surface=None,
+        maskedMat=[]):
+    
+    if not mesh._cself.isRegular:
+        raise TypeError("You are using an irregular mesh: \
+                         isostasy module only works with regular meshes")
+
+    if surface is not None and not isinstance(surface, uw.swarm._swarm.Swarm):
+        raise TypeError("'surface' must be a tuple'")
 
     if mesh.dim == 2:
         lecode_tools_isostasy2D(mesh, swarm, velocityField, densityFn, 
-                                materialIndexField, reference_mat, average)
+                                materialIndexField, reference_mat, average,
+                                surface=surface, maskedMat=maskedMat)
 
     if mesh.dim == 3:
         lecode_tools_isostasy3D(mesh, swarm, velocityField, densityFn, 
-                                materialIndexField, reference_mat, average)
+                                materialIndexField, reference_mat, average,
+                                surface=surface, maskedMat=maskedMat)
 
 #def get_phi():
 #    
