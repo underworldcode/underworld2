@@ -9,7 +9,7 @@ from unsupported import rheology
 import unsupported.scaling as sca
 from unsupported.scaling import nonDimensionalize as nd
 from unsupported.lithopress import lithoPressure
-from unsupported.LecodeIsostasy import lecode_tools_isostasy
+from unsupported.LecodeIsostasy import LecodeIsostasy
 from unsupported.geodynamics import utils
 
 
@@ -677,14 +677,14 @@ class Model(object):
         self.swarm_population_control.repopulate() 
     
         # Apply change in boundary condition
-        if self._lecodeRefMaterial:
-            lecode_tools_isostasy(self.mesh, 
-                                  self.swarm,
-                                  self.velocity,
-                                  self.densityFn,
-                                  self.material, 
-                                  self._lecodeRefMaterial.index,
-                                  average=False)
+        #if self._lecodeRefMaterial:
+        #    lecode_tools_isostasy(self.mesh, 
+        #                          self.swarm,
+        #                          self.velocity,
+        #                          self.densityFn,
+        #                          self.material, 
+        #                          self._lecodeRefMaterial.index,
+        #                          average=False)
 
         self.time += dt
 
