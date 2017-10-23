@@ -72,7 +72,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         self._post_deform_functions = []
 
         self._arr = None
-
+        
         # build parent
         super(FeMesh,self).__init__(**kwargs)
 
@@ -81,6 +81,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         self.specialSets["Empty"]  = lambda selfobject: uw.mesh.FeMesh_IndexSet( object           = selfobject,
                                                                                  topologicalIndex = 0,
                                                                                  size             = libUnderworld.StgDomain.Mesh_GetDomainSize( selfobject._mesh, libUnderworld.StgDomain.MT_VERTEX ))
+
     @property
     def elementType(self):
         """
@@ -1100,6 +1101,10 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
             self.specialSets["MaxK_VertexSet"] = _specialSets_Cartesian.MaxK_VertexSet
             self.specialSets["MinK_VertexSet"] = _specialSets_Cartesian.MinK_VertexSet
         self.specialSets["AllWalls_VertexSet"] = _specialSets_Cartesian.AllWalls
+
+        # send some metrics
+        # disable for now.  note, this seems to fire in doctests!  need to fix. 
+#        uw._sendData('init_femesh_cartesian', self.dim, np.prod( self.elementRes ))
 
     def _setup(self):
         # build the sub-mesh now
