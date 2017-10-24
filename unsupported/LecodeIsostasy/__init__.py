@@ -10,5 +10,5 @@ if rank() == 0:
     Questions should be addressed to romain.beucher@unimelb.edu.au \n """
     )
 
-from LecodeIsostasy import lecode_tools_isostasy
+from LecodeIsostasy import LecodeIsostasy
 

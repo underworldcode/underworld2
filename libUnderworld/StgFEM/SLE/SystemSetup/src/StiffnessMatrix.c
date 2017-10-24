@@ -304,16 +304,6 @@ void _StiffnessMatrix_Build( void* stiffnessMatrix, void* data ) {
     self->rowLocalSize = self->rowEqNum->localEqNumsOwnedCount;
     self->colLocalSize = self->colEqNum->localEqNumsOwnedCount;
 
-    if( (self->rowLocalSize == 0) || (self->colLocalSize == 0) ){
-       Stream_SetPrintingRank( self->debug, STREAM_ALL_RANKS );
-       Journal_Firewall( 0, self->debug,
-                         "Error - in %s(): local matrix row or column count is zero.\n"
-                         "This might be occur in the follow situations:\n"
-                         "   * your problem is possibly over decomposed \n"
-                         "   * and/or your simulation resolution is insufficient\n"
-                         "   * and/or your boundary condition configuration results in zero local unknowns.",
-                         __func__ );
-    }
     MPI_Barrier(self->comm);
     /* update the number of non zero entries from the finite element variables */
     StiffnessMatrix_CalcNonZeros( self );

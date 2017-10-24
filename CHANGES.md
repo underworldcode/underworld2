@@ -1,6 +1,11 @@
 CHANGES: Underworld2
 =======================
 
+Release 2.4.1b [2017-10-24]
+----------------------------
+*  Updating release to the correct version of lavavu
+
+
 Release 2.4.0b [2017-10-23]
 ----------------------------
 Documentation:
