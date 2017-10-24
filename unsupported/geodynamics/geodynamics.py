@@ -8,7 +8,7 @@ import glucifer
 from unsupported import rheology
 import unsupported.scaling as sca
 from unsupported.scaling import nonDimensionalize as nd
-from unsupported.lithopress import lithoPressure
+from unsupported.lithopress import LithostaticPressure
 from unsupported.LecodeIsostasy import LecodeIsostasy
 from unsupported.geodynamics import utils
 
@@ -581,9 +581,8 @@ class Model(object):
     def solve_lithostatic_pressure(self):
         self._set_density()
         gravity = np.abs(self.gravity[-1])  # Ugly!!!!!
-        self.pressure.data[:], LPresBot = lithoPressure(self.mesh,
-                                                        self.densityFn, 
-                                                        gravity)
+        lithoPress = LithostaticPressure(self.mesh, self.densityFn, gravity)
+        self.pressure.data[:], LPresBot = lithoPress.solve()
         smooth_pressure(self.mesh, self.pressure)
 
     def _calibrate_pressure(self):
