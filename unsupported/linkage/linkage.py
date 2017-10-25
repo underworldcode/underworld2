@@ -470,7 +470,7 @@ class LinkageModel(object):
 
         self.badlands_model.force.injected_disps = disp
 
-cal   def _update_material_types(self):
+    def _update_material_types(self):
         if self.disable_material_changes:
             return
 
