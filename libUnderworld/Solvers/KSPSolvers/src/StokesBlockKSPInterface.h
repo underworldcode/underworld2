@@ -62,7 +62,8 @@
 		Vec S1,S2;                                               \
         /* file and string for petsc options */                  \
         Name optionsFile;                                        \
-        char * optionsString;
+        char * optionsString;  \
+        int fhat_reason, backsolve_reason, outer_reason; \
 
 	struct StokesBlockKSPInterface { __StokesBlockKSPInterface };
 
@@ -82,9 +83,9 @@
 
 	/** Constructor */
 	void* _StokesBlockKSPInterface_DefaultNew( Name name );
-		
+
 	/** Creation implementation / Virtual constructor */
-	
+
 	#define STOKESBLOCKKSPINTERFACE_DEFARGS \
                 SLE_SOLVER_DEFARGS
 
@@ -99,7 +100,7 @@
 		StiffnessMatrix*   preconditioner,
 		Stokes_SLE *       st_sle,
 		PETScMGSolver *    mg,
-        Name   filename, 
+        Name   filename,
         char * string,
 		StiffnessMatrix*  k2StiffMat,
 		StiffnessMatrix*  mStiffMat,
@@ -109,15 +110,15 @@
 		double            hFactor,
 		StiffnessMatrix*  vmStiffMat,
 		ForceVector*	  vmForceVec  );
-		
+
 
 	/** Stg_Component_Build() implementations: allocates the 2 MatrixSolvers and additional Vectors */
 	void _StokesBlockKSPInterface_Build( void* solver, void* stokesSLE );
-	
+
 	void _StokesBlockKSPInterface_AssignFromXML( void* solver, Stg_ComponentFactory* cf, void* data );
-	
+
 	void _StokesBlockKSPInterface_Initialise( void* solver, void* stokesSLE ) ;
-	
+
         /* void _StokesBlockKSPInterface_Destroy( void* solver, void* data ); */
 
 	void _StokesBlockKSPInterface_SolverSetup( void* stokesSle, void* stokesSLE );
@@ -128,7 +129,7 @@
     int  SBKSP_GetPressureIts(void *solver);
     //void SBKSP_SetMGActive( void* solver, PetscTruth flag );
 
-    void SBKSP_GetStokesOperators( 
+    void SBKSP_GetStokesOperators(
 		Stokes_SLE *stokesSLE,
 		Mat *K,Mat *G,Mat *D,Mat *C,Mat *approxS,
 		Vec *f,Vec *h,Vec *u,Vec *p );

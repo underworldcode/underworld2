@@ -1,15 +1,40 @@
 CHANGES: Underworld2
 =======================
 
-Release 2.4.0b
+Release 2.4.1b [2017-10-24]
 ----------------------------
+*  Updating release to the correct version of lavavu
+
+
+Release 2.4.0b [2017-10-23]
+----------------------------
+Documentation:
+* Darcy flow models.
+* New NCI Raijin build recipe.
+* Many new models and tutorials.
+* Cheatsheet added.
+
+Enhancements:
+* Docker usage no longer requires tokens.
+* KSP convergence status now captured in python interface.
+* `solve()` method now displays warnings for floating point over/underruns.
+* Many general enhancements to visualisation.
+
 New Features:
 * New features for `min_max` function.
+* solHA added.
 
 API Changes:
 * `min_max` function no longer accepts vector functions
   by default, with instead a fn_norm function having to  
   be provided by the user.
+* Neumann condition now takes `indexSetsPerDof` parameter instead of `nodeIndexSet`.
+  
+  Bug fixes:
+  * Catch out fortran ordered numpy arrays when using `evaluate()` method.
+  * Parallel isosurface visualisation fixed.
+  * Corrected sampling for FieldSampler visualisation object.
+  
 
 Release 2.3.0b [2017-07-07]
 ----------------------------

@@ -68,7 +68,8 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
     PetscTruth usePreviousGuess, useNormInfStoppingConditions, useNormInfMonitor, found, forcecorrection;
     PetscTruth change_backsolve, mg_active, get_flops;
     PetscErrorCode ierr;
-    //PetscInt monitor_index;
+    KSPConvergedReason reason;
+
     PetscInt max_it,min_it;
     KSP ksp_inner, ksp_S, ksp_new_inner;
     PC pc_S, pcInner;
@@ -79,10 +80,8 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
     MGContext mgCtx;
     double mgSetupTime, scrSolveTime, RHSsolveTime, a11SingleSolveTime, penaltyNumber;// hFactor;
     int been_here = bsscrp_self->been_here;
-//    Vec uStar = bsscrp_self->uStar;
 
     char name[PETSC_MAX_PATH_LEN];
-    char matname[PETSC_MAX_PATH_LEN];
     char suffix[PETSC_MAX_PATH_LEN];
     char str[PETSC_MAX_PATH_LEN];
     PetscTruth flg, extractMats;
@@ -317,6 +316,7 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
 //    }
 
     KSPSolve(ksp_inner, f, f_tmp);
+    KSPGetConvergedReason( ksp_inner, &reason ); {if (reason < 0) bsscrp_self->solver->fhat_reason=(int)reason; }
 //    VecCopy( f_tmp, uStar);
 
     KSPGetIterationNumber( ksp_inner, &bsscrp_self->solver->stats.velocity_presolve_its );
@@ -385,8 +385,6 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
     KSPSetFromOptions( ksp_S );
     /* Set specific monitor test */
     KSPGetTolerances( ksp_S, PETSC_NULL, PETSC_NULL, PETSC_NULL, &max_it );
-    // Weirdness with petsc 3.2 here...look at it later
-    //BSSCR_KSPLogSetMonitor( ksp_S, max_it, &monitor_index );
 
     if(usePreviousGuess) {   /* Note this should actually look at checkpoint information */
         KSPSetInitialGuessNonzero( ksp_S, PETSC_TRUE ); }
@@ -448,6 +446,7 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
     /*************************************/
     /*************************************/
     KSPSolve( ksp_S, h_hat, p );
+    KSPGetConvergedReason( ksp_S, &reason ); {if (reason < 0) bsscrp_self->solver->outer_reason=(int)reason; }
     /*************************************/
     /*************************************/
 #if ( (PETSC_VERSION_MAJOR >= 3) && (PETSC_VERSION_MINOR >= 6 ) && (PETSC_VERSION_SUBMINOR >= 1 ))
@@ -526,10 +525,12 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
       ksp_inner=ksp_new_inner;
     }
 
+
     if(get_flops) PetscGetFlops(&flopsA);
     /*************************************/
     /*************************************/
     KSPSolve(ksp_inner, t, u);
+    KSPGetConvergedReason(ksp_inner, &reason ); {if (reason < 0) bsscrp_self->solver->backsolve_reason=(int)reason; }
     /*************************************/
     /*************************************/
     KSPGetIterationNumber( ksp_inner, &bsscrp_self->solver->stats.velocity_backsolve_its );
@@ -550,7 +551,7 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
     if(flg){
         sprintf(str,"%s/p%s",name,suffix);
         bsscr_writeVec( p, str, "Writing p vector in al Solver");
-        sprintf(str,"%s/u%s",name);
+        sprintf(str,"%s/u%s",name, suffix);
         bsscr_writeVec( u, str, "Writing u vector in al Solver");
         sprintf(str,"%s/h_hat%s",name,suffix);
         bsscr_writeVec( h_hat, str, "Writing h_hat vector in al Solver");

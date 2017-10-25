@@ -8,8 +8,8 @@ import glucifer
 from unsupported import rheology
 import unsupported.scaling as sca
 from unsupported.scaling import nonDimensionalize as nd
-from unsupported.lithopress import lithoPressure
-from unsupported.LecodeIsostasy import lecode_tools_isostasy
+from unsupported.lithopress import LithostaticPressure
+from unsupported.LecodeIsostasy import LecodeIsostasy
 from unsupported.geodynamics import utils
 
 
@@ -398,7 +398,10 @@ class Model(object):
                                        fn_bodyforce=self.buoyancyFn)
 
             self.solver = uw.systems.Solver(stokes)
-            self.solver.set_inner_method("mumps")
+            if uw.nProcs()>1:
+                self.solver.set_inner_method("mumps")
+            else:
+                self.solver.set_inner_method("lu")
             self.solver.set_penalty(1e6)
 
     def set_velocityBCs(self, left=None, right=None, top=None, bottom=None,
@@ -578,9 +581,8 @@ class Model(object):
     def solve_lithostatic_pressure(self):
         self._set_density()
         gravity = np.abs(self.gravity[-1])  # Ugly!!!!!
-        self.pressure.data[:], LPresBot = lithoPressure(self.mesh,
-                                                        self.densityFn, 
-                                                        gravity)
+        lithoPress = LithostaticPressure(self.mesh, self.densityFn, gravity)
+        self.pressure.data[:], LPresBot = lithoPress.solve()
         smooth_pressure(self.mesh, self.pressure)
 
     def _calibrate_pressure(self):
@@ -674,14 +676,14 @@ class Model(object):
         self.swarm_population_control.repopulate() 
     
         # Apply change in boundary condition
-        if self._lecodeRefMaterial:
-            lecode_tools_isostasy(self.mesh, 
-                                  self.swarm,
-                                  self.velocity,
-                                  self.densityFn,
-                                  self.material, 
-                                  self._lecodeRefMaterial.index,
-                                  average=False)
+        #if self._lecodeRefMaterial:
+        #    lecode_tools_isostasy(self.mesh, 
+        #                          self.swarm,
+        #                          self.velocity,
+        #                          self.densityFn,
+        #                          self.material, 
+        #                          self._lecodeRefMaterial.index,
+        #                          average=False)
 
         self.time += dt
 

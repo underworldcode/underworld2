@@ -25,11 +25,9 @@ RUN git clone --branch "development" --single-branch https://github.com/underwor
     rm -fr Solvers               && \
     find /root/underworld2/docs -name \*.ipynb  -print0 | xargs -0 jupyter trust && \
     mkdir /workspace                                                 && \
-    rsync -av /root/underworld2/docs/examples /workspace             && \
-    rsync -av /root/underworld2/docs/user_guide /workspace           && \
-    rsync -av /root/underworld2/docs/publications /workspace         && \
     cd ../../docs/development/api_doc_generator/                     && \
-    sphinx-build . ../../api_doc
+    sphinx-build . ../../api_doc                                     && \
+    rsync -av /root/underworld2/docs/. /workspace
 
 
 # expose notebook port
@@ -40,6 +38,10 @@ EXPOSE 9999
 # setup space for working in
 VOLUME /workspace/user_data
 WORKDIR /workspace
+
+# copy this file over so that no password is required
+
+COPY jupyter_notebook_config.json /root/.jupyter/jupyter_notebook_config.json
 
 # launch notebook
 CMD ["jupyter", "notebook", " --no-browser"]

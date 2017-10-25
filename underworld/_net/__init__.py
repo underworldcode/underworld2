@@ -65,6 +65,9 @@ def PostGAEvent( category, action, label=None, value=None ):
         if "UW_USER_ID" in os.environ:
             form_fields["uid"] = os.environ["UW_USER_ID"]
             form_fields["cd4"] = os.environ["UW_USER_ID"]
+        
+        if "UW_MACHINE" in os.environ:
+            form_fields["cd6"] = os.environ["UW_MACHINE"]
 
         params = urllib.urlencode(form_fields)
         connection.connect()

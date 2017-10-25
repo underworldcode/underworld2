@@ -149,7 +149,7 @@ def Dimensionalize(Value, units):
 
 ## Following functions are temporary, far from ideal...
 
-def _save_mesh( self, filename, units=None, scaling=False):
+def _save_mesh( self, filename, units=None):
     """
     Save the mesh to disk
 
@@ -203,6 +203,7 @@ def _save_mesh( self, filename, units=None, scaling=False):
     ...     os.remove( "saved_mesh.h5" )
 
     """
+
     if hasattr(self.generator, 'geometryMesh'):
         raise RuntimeError("Cannot save this mesh as it's a subMesh. "
                             + "Most likely you only need to save its geometryMesh")
@@ -211,22 +212,23 @@ def _save_mesh( self, filename, units=None, scaling=False):
 
     h5f = h5py.File(name=filename, mode="w", driver='mpio', comm=MPI.COMM_WORLD)
 
+    fact = 1.0
+    if units:
+        try:
+            import sys
+            sca = sys.modules["unsupported.scaling"]
+            fact = sca.Dimensionalize(1.0, units=units).magnitude
+        except KeyError:
+            print("The scaling module is not loaded, load it and try again or set 'units' to None")
+
     # save attributes and simple data - MUST be parallel as driver is mpio
     h5f.attrs['dimensions'] = self.dim
     h5f.attrs['mesh resolution'] = self.elementRes
-
-    if units == None:
-        units = u.meter
-    
-    if scaling:
-        h5f.attrs['max'] = Dimensionalize(self.maxCoord, units)
-        h5f.attrs['min'] = Dimensionalize(self.minCoord, units)
-    else:
-        h5f.attrs['max'] = self.maxCoord
-        h5f.attrs['min'] = self.minCoord
-
+    h5f.attrs['max'] = tuple([fact*x for x in self.maxCoord])
+    h5f.attrs['min'] = tuple([fact*x for x in self.minCoord])
     h5f.attrs['regular'] = self._cself.isRegular
     h5f.attrs['elementType'] = self.elementType
+    h5f.attrs['units'] = str(units)
 
     # write the vertices
     globalShape = ( self.nodesGlobal, self.data.shape[1] )
@@ -236,15 +238,9 @@ def _save_mesh( self, filename, units=None, scaling=False):
 
     local = self.nodesLocal
     # write to the dset using the local set of global node ids
-    if scaling:
-        vals = Dimensionalize(self.data[0:local], units)
-    else:
-        vals = self.data[0:local]
-
-    dset[self.data_nodegId[0:local],:] = vals
+    dset[self.data_nodegId[0:local],:] = self.data[0:local] * fact
 
     # write the element node connectivity
-    self.data_elementNodes
     globalShape = ( self.elementsGlobal, self.data_elementNodes.shape[1] )
     dset = h5f.create_dataset("en_map",
                               shape=globalShape,
@@ -259,8 +255,7 @@ def _save_mesh( self, filename, units=None, scaling=False):
     # return our file handle
     return uw.utils.SavedFileData(self, filename)
 
-def _save_meshVariable( self, filename, meshHandle=None, units=None,
-        scaling=False):
+def _save_meshVariable( self, filename, meshHandle=None, units=None):
     """
     Save the MeshVariable to disk.
 
@@ -316,7 +311,6 @@ def _save_meshVariable( self, filename, meshHandle=None, units=None,
     ...     os.remove( "saved_mesh_variable.h5" )
 
     """
-
     if not isinstance(filename, str):
         raise TypeError("Expected 'filename' to be provided as a string")
 
@@ -329,18 +323,21 @@ def _save_meshVariable( self, filename, meshHandle=None, units=None,
     dset = h5f.create_dataset("data",
                               shape=globalShape,
                               dtype=self.data.dtype)
+    fact = 1.0
+    if units:
+        try:
+            import sys
+            sca = sys.modules["unsupported.scaling"]
+            fact = sca.Dimensionalize(1.0, units=units).magnitude
+        except KeyError:
+            print("The scaling module is not loaded, load it and try again or set 'units' to None")
+   
+    # Save unit type as attribute
+    h5f.attrs['units'] = str(units)
 
     # write to the dset using the global node ids
     local = mesh.nodesLocal
-
-    if scaling:
-        if units == None:
-            raise ValueError("units not specified")
-        vals = Dimensionalize(self.data[0:local], units)
-    else:
-        vals = self.data[0:local]
-
-    dset[mesh.data_nodegId[0:local],:] = vals
+    dset[mesh.data_nodegId[0:local],:] = self.data[0:local] * fact
 
     # save a hdf5 attribute to the elementType used for this field - maybe useful
     h5f.attrs["elementType"] = np.string_(mesh.elementType)
@@ -376,7 +373,7 @@ def _save_meshVariable( self, filename, meshHandle=None, units=None,
     # return our file handle
     return uw.utils.SavedFileData(self, filename)
 
-def _save_swarmVariable( self, filename, units=None, scaling=False):
+def _save_swarmVariable( self, filename, units=None):
     """
     Save the swarm variable to disk.
 
@@ -469,22 +466,25 @@ def _save_swarmVariable( self, filename, units=None, scaling=False):
     dset = h5f.create_dataset("data",
                                shape=globalShape,
                                dtype=self.data.dtype)
+    fact = 1.0
+    if units:
+        try:
+            import sys
+            sca = sys.modules["unsupported.scaling"]
+            fact = sca.Dimensionalize(1.0, units=units).magnitude
+        except KeyError:
+            print("The scaling module is not loaded, load it and try again or set 'units' to None")
+    
+    h5f.attrs['units'] = str(units)
 
     if swarm.particleLocalCount > 0: # only add if there are local particles
-        if scaling:
-            if units == None:
-                raise ValueError("units not specified")
-            vals = Dimensionalize(self.data[:], units)
-        else:
-            vals = self.data[:]
-
-        dset[offset:offset+swarm.particleLocalCount] = vals
+        dset[offset:offset+swarm.particleLocalCount] = self.data[:] * fact
 
     h5f.close()
 
     return uw.utils.SavedFileData( self, filename )
 
-def _save_swarm(self, filename, units=None, scaling=False):
+def _save_swarm(self, filename, units=None):
     """
     Save the swarm to disk.
 
@@ -538,10 +538,7 @@ def _save_swarm(self, filename, units=None, scaling=False):
         raise TypeError("Expected filename to be provided as a string")
 
     # just save the particle coordinates SwarmVariable
-    if scaling:
-        if units == None:
-            raise ValueError("units not specified")
-    self.particleCoordinates.save(filename, scaling=scaling, units=units)
+    self.particleCoordinates.save(filename, units=units)
 
     return uw.utils.SavedFileData( self, filename )
 
