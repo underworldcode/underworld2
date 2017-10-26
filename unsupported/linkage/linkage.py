@@ -125,8 +125,8 @@ class LinkageModel(object):
         try:
             import sys
             sca = sys.modules["unsupported.scaling"]
-            self.scaleDIM = 1.0 / sca.scaling["[length]"]
-            self.scaleTIME = 1.0 / sca.scaling["[time]"]
+            self.scaleDIM = 1.0 / sca.scaling["[length]"].magnitude
+            self.scaleTIME = 1.0 / sca.scaling["[time]"].magnitude
         
         except KeyError:
        

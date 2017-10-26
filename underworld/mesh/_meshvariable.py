@@ -25,12 +25,12 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
     ----------
     mesh : underworld.mesh.FeMesh
         The supporting mesh for the variable.
-    dataType : strin
+    dataType : string
         The data type for the variable.
         Note that only 'double' type variables are currently
         supported.
     nodeDofCount : int
-        Number of degrees of freedom per node the variable should have.
+        Number of degrees of freedom per node the variable will have.
 
 
     See property docstrings for further information.
