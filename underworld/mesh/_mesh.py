@@ -72,7 +72,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         self._post_deform_functions = []
 
         self._arr = None
-        
+
         # build parent
         super(FeMesh,self).__init__(**kwargs)
 
@@ -123,7 +123,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         -------
         numpy.ndarray
             Array specifying the nodes (global node id) for a given element (local element id).
-            NOTE: Length is local size. 
+            NOTE: Length is local size.
         """
         uw.libUnderworld.StgDomain.Mesh_GenerateENMapVar(self._cself)
         arr = uw.libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.enMapVar)
@@ -237,7 +237,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         >>> someMesh.data[0]
         array([ 0.1,  0.1])
         """
-        
+
         if not remainsRegular is None:
             raise RuntimeError("'remainsRegular' parameter has been renamed to 'isRegular'")
 
@@ -272,6 +272,36 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
             # execute any post deform functions
             for function in self._post_deform_functions:
                 function()
+
+    def add_variable(self, nodeDofCount, dataType='double', **kwargs):
+        """
+        Creates and returns a mesh variable using the discretisation of the given mesh.
+
+        To set / read nodal values, use the numpy interface via the 'data' property.
+
+        Parameters
+        ----------
+        dataType : string
+            The data type for the variable.
+            Note that only 'double' type variables are currently
+            supported.
+        nodeDofCount : int
+            Number of degrees of freedom per node the variable will have
+
+        Returns
+        -------
+        underworld.mesh.MeshVariable
+            The newly created mesh variable.
+
+        Example
+        -------
+        >>> linearMesh  = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
+        >>> scalarFeVar = linearMesh.add_variable( nodeDofCount=1, dataType="double" )
+        >>> q0field     = linearMesh.subMesh.add_variable( 1 )  # adds variable to secondary elementType discretisation
+        """
+
+        var = uw.mesh.MeshVariable(self, nodeDofCount, dataType, **kwargs)
+        return var
 
     def add_pre_deform_function( self, function ):
         """
@@ -310,7 +340,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
             Returns the number of local nodes on the mesh.
         """
         return libUnderworld.StgDomain.Mesh_GetLocalSize(self._cself, 0)
-    
+
     @property
     def nodesDomain(self):
         """
@@ -352,7 +382,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         4
         """
         return libUnderworld.StgDomain.Mesh_GetLocalSize(self._cself, self.dim)
-        
+
     @property
     def elementsDomain(self):
         """
@@ -1103,7 +1133,7 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
         self.specialSets["AllWalls_VertexSet"] = _specialSets_Cartesian.AllWalls
 
         # send some metrics
-        # disable for now.  note, this seems to fire in doctests!  need to fix. 
+        # disable for now.  note, this seems to fire in doctests!  need to fix.
 #        uw._sendData('init_femesh_cartesian', self.dim, np.prod( self.elementRes ))
 
     def _setup(self):
