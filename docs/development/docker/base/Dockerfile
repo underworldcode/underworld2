@@ -29,8 +29,8 @@ RUN apt-get update -qq && \
         less \
         xauth \
         python-tk \
-        swig && \
-        gdb-minimal && \
+        swig \
+        gdb-minimal \
         python2.7-dbg && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
