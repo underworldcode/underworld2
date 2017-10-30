@@ -1,4 +1,5 @@
 FROM underworldcode/underworld2:latest
+MAINTAINER MAINTAINER https://github.com/underworldcode/
 
 # Configure environment for singleuser
 ENV SHELL /bin/bash
