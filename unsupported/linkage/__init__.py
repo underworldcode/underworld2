@@ -12,3 +12,4 @@ if rank() == 0:
     )
 
 from linkage import *
+from linkage2 import *
