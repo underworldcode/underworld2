@@ -29,7 +29,8 @@ RUN apt-get update -qq && \
         python3-dev
 RUN pip3 install \
         'jupyterhub==0.7.2' \
-        jupyterlab
+        jupyterlab \
+        ipyparallel
 RUN npm install -g configurable-http-proxy
 
 # Install Python 2 kernel spec globally to avoid permission problems when NB_UID
@@ -37,14 +38,6 @@ RUN npm install -g configurable-http-proxy
 # environment to find it. Also, activate the python2 environment upon kernel
 # launch.
 RUN python -m ipykernel install
-
-# Add local files as late as possible to avoid cache busting
-COPY start.sh /usr/local/bin/
-COPY start-notebook.sh /usr/local/bin/
-COPY start-singleuser.sh /usr/local/bin/
-COPY underworld-entrypoint.sh /usr/local/bin/
-COPY jupyter_notebook_config.py /etc/jupyter/
-RUN chown -R $NB_USER:users /etc/jupyter/
 
 # Setup ipyparallel for mpi profile for the NBUSER?
 USER $NB_USER
@@ -55,8 +48,24 @@ RUN ipython2 profile create --parallel --profile=mpi && \
 # Trust underworld notebooks
 RUN find /workspace -name \*.ipynb  -print0 | xargs -0 jupyter trust
 
+USER root
+
+# Copy contents of home directory into /workspace so it'll be copied into the
+# user's persistent home directory the first time they start their server.
+RUN rsync -au "$HOME"/.ipython "$HOME"/.jupyter /workspace/
+
 # Reinstate the xvfb entrypoint, required for underworld viz, and use the
 # customised start command to set up the underworld notebooks in the jupyterhub
 # environment.
 ENTRYPOINT ["/usr/local/bin/tini", "--", "underworld-entrypoint.sh"]
 CMD ["start-notebook.sh"]
+
+# Add local files as late as possible to avoid cache busting
+COPY start.sh /usr/local/bin/
+COPY start-notebook.sh /usr/local/bin/
+COPY start-singleuser.sh /usr/local/bin/
+COPY underworld-entrypoint.sh /usr/local/bin/
+COPY jupyter_notebook_config.py /etc/jupyter/
+RUN chown -R $NB_USER:users /etc/jupyter/
+
+USER $NB_USER

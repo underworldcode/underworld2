@@ -17,7 +17,7 @@ then
         # Copy underworld notebooks into user's workspace, making sure not to
         # overwrite any existing copies which the user may have modified and saved
         # on a previous run.
-        cp -a --no-clobber /workspace/* "${NOTEBOOK_DIR}"
+        rsync -au /workspace/ "${NOTEBOOK_DIR}/"
 
     else
         echo Unable to copy notebooks from workspace
