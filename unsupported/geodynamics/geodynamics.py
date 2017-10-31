@@ -276,9 +276,11 @@ class Model(object):
 
         # Add Common Swarm Variables
         self.material = self.swarm.add_variable(dataType="int", count=1)
+        self.strainRateVar = self.swarm.add_variable(dataType="double", count=1)
         self.plasticStrain = self.swarm.add_variable(dataType="double",
                                                      count=1)
         self.plasticStrain.data[...] = 0.0
+	self.strainRateVar.data[:] = 0.0
  
         self.materials = []
         self._defaultMaterial = 0
@@ -658,6 +660,7 @@ class Model(object):
     def update(self):
 
         dt = self._dt
+	self.strainRateVar.data[:] = self.strainRate_2ndInvariant.evaluate(self.swarm)
         # Increment plastic strain
         plasticStrainIncrement = dt * self.isYielding.evaluate(self.swarm)
         #weight = boundary(swarm.particleCoordinates.data[:,0], minX, maxX, 20, 4)
@@ -693,7 +696,7 @@ class Model(object):
         if self.temperature:
             self.save_temperature(self.checkpointID)
         self.save_material(self.checkpointID)
-
+	
     @property
     def checkpoint(self):
         return self._checkpoint
@@ -715,30 +718,30 @@ class Model(object):
 
     def save_velocity(self, checkpointID, units=u.centimeter/u.year):
         mH = self.mesh.save(os.path.join(self.outputDir, "mesh.h5"),
-                            scaling=True, units=u.kilometers)
+                             units=u.kilometers)
         file_prefix = os.path.join(self.outputDir,
                                    'velocity-%s' % checkpointID)
-        handle = self.velocity.save('%s.h5' % file_prefix, scaling=True,
+        handle = self.velocity.save('%s.h5' % file_prefix, 
                                     units=units)
         self.velocity.xdmf('%s.xdmf' % file_prefix, handle, 'velocity', mH,
                            'mesh', modeltime=self.time)
     
     def save_pressure(self, checkpointID, units=u.pascal):
         mH = self.mesh.save(os.path.join(self.outputDir, "mesh.h5"),
-                            scaling=True, units=u.kilometers)
+                             units=u.kilometers)
         file_prefix = os.path.join(self.outputDir,
                                    'pressure-%s' % checkpointID)
-        handle = self.pressure.save('%s.h5' % file_prefix, scaling=True,
+        handle = self.pressure.save('%s.h5' % file_prefix, 
                                     units=units)
         self.pressure.xdmf('%s.xdmf' % file_prefix, handle, 'pressure', mH,
                            'mesh', modeltime=self.time)
     
     def save_temperature(self, checkpointID, units=u.degK):
         mH = self.mesh.save(os.path.join(self.outputDir, "mesh.h5"),
-                            scaling=True, units=u.kilometers)
+                             units=u.kilometers)
         file_prefix = os.path.join(self.outputDir,
                                    'temperature-%s' % checkpointID)
-        handle = self.temperature.save('%s.h5' % file_prefix, scaling=True,
+        handle = self.temperature.save('%s.h5' % file_prefix, 
                                        units=units)
         self.temperature.xdmf('%s.xdmf' % file_prefix, handle,
                               'temperature', mH,
@@ -793,5 +796,13 @@ class Model(object):
         Fig = glucifer.Figure(figsize=(1200, 400), title="Pressure Field")
         Fig.append(glucifer.objects.Surface(self.mesh,
                    sca.Dimensionalize(self.pressure, units), **kwargs))
+        Fig.show()
+        return Fig
+    def plot_strainRate(self, figsize=(1200, 400), **kwargs):
+        Fig = glucifer.Figure(figsize=(1200, 400), title="Strain Rate")
+        Fig.append(glucifer.objects.Points(self.swarm,
+                                           fn_colour=self.strainRateVar,
+                                           fn_size=2.0,
+                                           logScale=True))
         Fig.show()
         return Fig
