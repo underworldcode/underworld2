@@ -94,6 +94,8 @@ class SPM(object):
         # Transfer the initial DEM state to Underworld
         self._update_material_types()
 
+        comm.Barrier()
+
     def solve(self, dt, sigma=0):
           
         if rank == 0 and self.verbose:
@@ -135,7 +137,8 @@ class SPM(object):
 
         # TODO: Improve the performance of this function
         self._update_material_types()
-        
+        comm.Barrier()
+
         if rank == 0 and self.verbose:
             print "Processing surface with Badlands ... Done"
 
