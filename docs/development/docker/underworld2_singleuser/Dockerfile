@@ -61,12 +61,44 @@ RUN rsync -au "$HOME"/.ipython "$HOME"/.jupyter /workspace/
 ENTRYPOINT ["/usr/local/bin/tini", "--", "underworld-entrypoint.sh"]
 CMD ["start-notebook.sh"]
 
-# Add local files as late as possible to avoid cache busting
+# Add local files as late as possible to avoid cache busting. These are the
+# jupyter(hub) startup scripts and config file.
 COPY start.sh /usr/local/bin/
 COPY start-notebook.sh /usr/local/bin/
 COPY start-singleuser.sh /usr/local/bin/
 COPY underworld-entrypoint.sh /usr/local/bin/
 COPY jupyter_notebook_config.py /etc/jupyter/
 RUN chown -R $NB_USER:users /etc/jupyter/
+
+# Include a default landing page for the notebook. See the DEFAULT_LANDING
+# environment variable below for how to enable this option.
+COPY index.html /workspace
+
+# Set the DEFAULT_LANDING environment variable to the notebook URL we want as
+# the landing page a user will see when they first open their server. We can use
+# any notebook URL minus the host and '/user/<username>' parts.
+#
+# Setting the environment variable here hard codes the default value in any
+# image you build. You can override it in a derived Dockerfile, or by passing
+# the desired value to a container at runtime.
+
+# Use '/tree' to replicate the built-in behaviour of the notebook - the
+# directory browser starting in the user's home directory.
+ENV DEFAULT_LANDING /tree
+
+# Start in a specific directory deeper in the user's home directory.
+#ENV DEFAULT_LANDING /tree/tutorials/ConvectionTutorial/Notebooks
+
+# Use the index.html we copied above as the landing page.
+#ENV DEFAULT_LANDING /files/index.html
+
+# Jump directly to a specific notebook.
+#ENV DEFAULT_LANDING /notebooks/examples/1_01_Steady_State_Heat.ipynb
+
+# Open a file in the corresponding notebook viewer
+#ENV DEFAULT_LANDING /view/<filename>
+
+# Open a file in the notebook editor
+#ENV DEFAULT_LANDING /edit/install_guides/nci_raijin.sh
 
 USER $NB_USER

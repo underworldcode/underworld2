@@ -1,5 +1,9 @@
-# Copyright (c) Jupyter Development Team.
+# Copyright (c) CSIRO Data61
 # Distributed under the terms of the Modified BSD License.
+#
+# Derived from
+# https://github.com/jupyter/docker-stacks/blob/master/base-notebook/jupyter_notebook_config.py
+# but adds a default HTML landing page to the notebook.
 
 from jupyter_core.paths import jupyter_data_dir
 import subprocess
@@ -34,3 +38,7 @@ if 'GEN_CERT' in os.environ:
     # Restrict access to the file
     os.chmod(pem_file, stat.S_IRUSR | stat.S_IWUSR)
     c.NotebookApp.certfile = pem_file
+
+# Start with a default landing page if 'DEFAULT_LANDING' is set.
+if 'DEFAULT_LANDING' in os.environ:
+    c.NotebookApp.default_url = os.environ.get('DEFAULT_LANDING')
