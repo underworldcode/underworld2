@@ -232,7 +232,7 @@ class SPM(object):
 
         # convert sediment to air
         eroded_mask = np.logical_and(np.in1d(mi, self.sedimentIndex), ~material_flags)
-        mi[eroded_mask] = self.airIndex
+        mi[eroded_mask] = self.airIndex[0]
     
     def _inject_badlands_displacement(self, time, dt, disp, sigma):
         """
