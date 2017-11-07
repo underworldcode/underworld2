@@ -8,8 +8,8 @@ rank = comm.Get_rank()
 
 class LecodeIsostasy(object):
 
-    def __init__(self, mesh, swarm, velocityField, densityFn,
-                 materialIndexField, reference_mat, average=False, surface=None,
+    def __init__(self, mesh=None, swarm=None, velocityField=None, densityFn=None,
+                 materialIndexField=None, reference_mat=None, average=False, surface=None,
                  maskedMat=[]):
 
         self.mesh = mesh
@@ -21,9 +21,36 @@ class LecodeIsostasy(object):
         self.average = average
         self.surface = surface
         self.maskedMat = maskedMat
+        self.initialized = False
 
+    def solve(self):
+
+        if not self.initialized:
+            self._check_all_defined()
+
+        if self.mesh.dim == 2:
+            self._lecode_tools_isostasy2D()
+
+        if self.mesh.dim == 3:
+            self._lecode_tools_isostasy3D()
+
+    def _check_all_defined(self):
+        if not self.mesh:
+            raise ValueError("Please link a Mesh to the Isostasy solver")
+        if not self.swarm:
+            raise ValueError("Please link a Swarm to the Isostasy solver")
+        if not self.velocityField:
+            raise ValueError("Please link a Velocity Field to the Isostasy solver")
+        if not self.materialIndexField:
+            raise ValueError("Please link a Material Field to the Isostasy solver")
+        if not self.materialIndexField:
+            raise ValueError("Please link a Material Field to the Isostasy solver")
+        if not self.densityFn:
+            raise ValueError("Please link a Density Field to the Isostasy solver")
+        if not self.reference_mat:
+            raise ValueError("Please define a reference Material for the Isostasy solver")
+        
         # Create utilities
-
         self.MaterialIndexFieldFloat = self.swarm.add_variable(dataType="double",  count=1 )
         self.DensityVar = uw.mesh.MeshVariable(self.mesh, nodeDofCount=1)
         self.MaterialVar = uw.mesh.MeshVariable(self.mesh, nodeDofCount=1)
@@ -39,14 +66,8 @@ class LecodeIsostasy(object):
 
         if self.surface is not None and not isinstance(self.surface, uw.swarm._swarm.Swarm):
             raise TypeError("'surface' must be a tuple'")
-
-    def solve(self):
-
-        if self.mesh.dim == 2:
-            self._lecode_tools_isostasy2D()
-
-        if self.mesh.dim == 3:
-            self._lecode_tools_isostasy3D()
+       
+        self.initialized = True
 
     def _lecode_tools_isostasy2D(self):
         
