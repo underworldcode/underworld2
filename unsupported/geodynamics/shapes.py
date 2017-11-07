@@ -3,6 +3,7 @@ import underworld as uw
 import underworld.function as fn
 from unsupported.scaling import nonDimensionalize as nd
 
+
 class Shape(object):
 
     def __init__(self):
@@ -17,6 +18,7 @@ class Shape(object):
         self._init_shape()
         return self._fn.evaluate(obj)
 
+
 class Polygon(Shape):
 
     def __init__(self, vertices):
@@ -25,6 +27,7 @@ class Polygon(Shape):
     def _init_shape(self):
         vertices = [(nd(x), nd(y)) for x, y in self.vertices]
         self._fn = uw.function.shape.Polygon(np.array(vertices))
+
 
 class Layer(Shape):
 
@@ -73,6 +76,7 @@ class Layer(Shape):
     def bottom(self, value):
         self._bottom = value
 
+
 class Disk(Shape):
 
     def __init__(self, center, radius):
@@ -84,6 +88,7 @@ class Disk(Shape):
         radius = nd(self.radius)
         coord = fn.input() - center
         self._fn = fn.math.dot(coord, coord) < radius**2
+
 
 class Annulus(Shape):
     

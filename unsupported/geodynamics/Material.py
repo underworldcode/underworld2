@@ -1,16 +1,5 @@
-import os
-import types
-import underworld as uw
-import underworld.function as fn
 from itertools import count
-import numpy as np
-import glucifer
-from unsupported import rheology
-import unsupported.scaling as sca
-from unsupported.scaling import nonDimensionalize as nd
-from unsupported.lithopress import LithostaticPressure
-from unsupported.LecodeIsostasy import LecodeIsostasy
-import shapes
+
 
 class Material(object):
     _ids = count(0)

@@ -6,6 +6,7 @@ import numpy as np
 
 u = UnitRegistry = sca.UnitRegistry
 
+
 class PressureSmoother(object):
     
     def __init__(self, mesh, pressureField):
@@ -22,6 +23,7 @@ class PressureSmoother(object):
         
         self.Cell2Nodes.solve()
         self.Nodes2Cell.solve() 
+
 
 class ViscosityLimiter(object):
 

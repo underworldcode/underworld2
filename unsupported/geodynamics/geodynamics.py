@@ -1,25 +1,16 @@
-import os
-import types
-import underworld as uw
 import underworld.function as fn
-from itertools import count
 import numpy as np
-import glucifer
 from unsupported import rheology
 import unsupported.scaling as sca
 from unsupported.scaling import nonDimensionalize as nd
-from unsupported.lithopress import LithostaticPressure
-from unsupported.LecodeIsostasy import LecodeIsostasy
-from unsupported.geodynamics import utils
-
 
 u = UnitRegistry = sca.UnitRegistry
 _viscousLaws = rheology.ViscousLaws
-        
-equivalents = {"A":"preExponentialFactor",
-               "n":"stressExponent",
-               "Q":"activationEnergy",
-               "Va":"activationVolume",
+  
+equivalents = {"A": "preExponentialFactor",
+               "n": "stressExponent",
+               "Q": "activationEnergy",
+               "Va": "activationVolume",
                "DefaultSRInvariant": "defaultStrainRateInvariant"}
 
 _plasticLaws = rheology.PlasticBehaviours
@@ -29,7 +20,6 @@ equivalents2 = {"Cohesion": "cohesion",
                 "FrictionCoefSw": "frictionAfterSoftening",
                 "CohesionSw": "cohesionAfterSoftening",
                 "MinimumViscosity": "minimumViscosity"}
-
 
 class Rheology(object):
 
@@ -44,7 +34,6 @@ class Rheology(object):
         self.firstIter = True
         
         return
-
 
 class DruckerPrager(object):
 
@@ -131,6 +120,7 @@ class ConstantViscosity(Rheology):
        
     def _effectiveViscosity(self):
         return fn.misc.constant(nd(self._viscosity))
+
 
 class ViscousCreep(Rheology):
 
@@ -245,4 +235,3 @@ class ViscousCreep(Rheology):
         FirstIterCondition = [(self.firstIter,nd(self.defaultStrainRateInvariant)),
                               (True, self.strainRateInvariantField)]
         return fn.branching.conditional(FirstIterCondition)
-

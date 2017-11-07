@@ -2,20 +2,18 @@ import os
 import types
 import underworld as uw
 import underworld.function as fn
-from itertools import count
 import numpy as np
 import glucifer
-from unsupported import rheology
 import unsupported.scaling as sca
 from unsupported.scaling import nonDimensionalize as nd
 from unsupported.lithopress import LithostaticPressure
 from unsupported.LecodeIsostasy import LecodeIsostasy
-from unsupported.geodynamics import utils
 from utils import PressureSmoother, ViscosityLimiter
 from Material import Material
 import shapes
 
 u = UnitRegistry = sca.UnitRegistry
+
 
 def default_scaling():
     half_rate = 1.8 * u.centimeter / u.year
@@ -31,8 +29,9 @@ def default_scaling():
     
     sca.scaling["[length]"] = KL
     sca.scaling["[time]"] = Kt
-    sca.scaling["[mass]"]= KM
+    sca.scaling["[mass]"] = KM
     sca.scaling["[temperature]"] = KT
+
 
 class Model(Material):
     def __init__(self, elementRes, minCoord, maxCoord, gravity,
