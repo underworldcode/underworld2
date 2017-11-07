@@ -37,7 +37,12 @@ SRT_WOl_Hirth2003      = {"n": 3.5,
                           "A": 1600 * u.megapascal**(-3.5) / u.second,
                           "Q": 520 * u.kilojoule / u.mole,
                           "Va":23e-6 * u.meter**3 / u.mole,
-                          "DefaultSRInvariant": 1.0e-15 / u.second}
+                          "DefaultSRInvariant": 1.0e-15 / u.second,
+                          "WaterFugacityExponent": 1.2,
+                          "GrainSizeExponent": 0.0,
+                          "WaterFugacity": 1000,
+                          "GrainSize": 10000 * u.micrometer
+                          }
 
 SRT_DryQtz_Koch1983    = {"n": 3.0, 
                           "A": 5e-25 * u.pascal**(-3.0) / u.second,
