@@ -18,10 +18,13 @@ class SPM(object):
 
     def __init__(self, mesh, velocityField, swarm, materialField, airIndex,
                  sedimentIndex, XML, resolution, checkpoint_interval,
-                 surfElevation=0., verbose=True):
+                 surfElevation=0., verbose=True, restartStep=None,
+                 restartFolder=None):
         
-        self.SECONDS_PER_YEAR = 31556925.9747 # Tropical year in seconds
+        self.SECONDS_PER_YEAR = 31556925.9747  # Tropical year in seconds
         self.verbose = verbose
+        self.restartStep = restartStep
+        self.restartFolder = restartFolder
 
         # AutoScaling
         self.sca = None
@@ -52,10 +55,22 @@ class SPM(object):
         if rank == 0:
             self.badlands_model = BadlandsModel()
             self.badlands_model.load_xml(self.XML)
+            if self.restartStep:
+                self.badlands_model.input.restart = True
+                self.badlands_model.input.rstep = self.restartStep
+                self.badlands_model.input.rfolder = self.restartFolder
 
         self.minCoord = self.mesh.minCoord
         self.maxCoord = self.mesh.maxCoord
+
         self.time_years = 0.
+        if self.restartStep:
+            # Parse xmf for the last timestep time
+            import xml.etree.ElementTree as etree
+            xmf = self.restartFolder+"/xmf/tin.time"+self.restartStep+".xmf"
+            tree = etree.parse(xmf)
+            root = tree.getroot()
+            self.time_years = float(root[0][0][0].attrib["Value"])
 
         self._tmp = _tempdir
         self._demfile = self._tmp+"/dem.csv"
@@ -72,7 +87,6 @@ class SPM(object):
             # Build Mesh
             self.badlands_model.build_mesh(self._demfile, verbose=False)
         
-
             self.badlands_model.input.disp3d = True  # enable 3D displacements
             self.badlands_model.input.region = 0  # TODO: check what this does
         
