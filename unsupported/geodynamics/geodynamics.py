@@ -21,6 +21,7 @@ equivalents2 = {"Cohesion": "cohesion",
                 "CohesionSw": "cohesionAfterSoftening",
                 "MinimumViscosity": "minimumViscosity"}
 
+
 class Rheology(object):
 
     def __init__(self, pressureField=None, strainRateInvariantField=None,
@@ -34,6 +35,7 @@ class Rheology(object):
         self.firstIter = True
         
         return
+
 
 class DruckerPrager(object):
 
@@ -107,6 +109,7 @@ class DruckerPrager(object):
         self._get_yieldStress(self.plasticStrain, self.pressure)
         self.effViscosity = 0.5 * self.yieldStress / fn.misc.max(eij, eijdef)
         return self.effViscosity
+
 
 class ConstantViscosity(Rheology):
 

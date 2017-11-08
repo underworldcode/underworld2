@@ -10,44 +10,20 @@ from unsupported.lithopress import LithostaticPressure
 from unsupported.LecodeIsostasy import LecodeIsostasy
 from utils import PressureSmoother, ViscosityLimiter
 from Material import Material
+import surfaceProcesses
 import shapes
 
 u = UnitRegistry = sca.UnitRegistry
-
-
-def default_scaling():
-    half_rate = 1.8 * u.centimeter / u.year
-    model_length = 360e3 * u.meter
-    surfaceTemp = 273.15 * u.degK
-    baseModelTemp = 1603.15 * u.degK
-    bodyforce = 3300 * u.kilogram / u.metre**3 * 9.81 * u.meter / u.second**2
-    
-    KL = model_length
-    Kt = KL / half_rate
-    KM = bodyforce * KL**2 * Kt**2
-    KT = (baseModelTemp - surfaceTemp)
-    
-    sca.scaling["[length]"] = KL
-    sca.scaling["[time]"] = Kt
-    sca.scaling["[mass]"] = KM
-    sca.scaling["[temperature]"] = KT
-
 
 class Model(Material):
     def __init__(self, elementRes, minCoord, maxCoord, gravity,
                  periodic=(False, False), elementType="Q1/dQ0",
                  swarmLayout=None, Tref=273.15 * u.degK, name="undefined",
-                 outputDir="outputs", populationControl=True, scaling=None):
+                 outputDir="outputs", populationControl=True, scaling=None,
+                 minViscosity=1e19*u.pascal*u.second,
+                 maxViscosity=1e25*u.pascal*u.second):
 
         super(Model, self).__init__()
-
-#        if scaling:
-#            sca.scaling["[length]"] = scaling["[length]"]
-#            sca.scaling["[time]"] = scaling["[time]"]
-#            sca.scaling["[mass]"]= scaling["[mass]"]
-#            sca.scaling["[temperature]"] = scaling["[temperature]"]
-#        else:
-#            default_scaling()
 
         self.name = name
         self.top = maxCoord[-1]
@@ -58,8 +34,7 @@ class Model(Material):
         self._checkpoint = None
         self.checkpoint = None
 
-        self.viscosityLimiter = ViscosityLimiter(minViscosity = 1e19 * u.pascal * u.second,
-                                                 maxViscosity = 1e25 * u.pascal * u.second)
+        self.viscosityLimiter = ViscosityLimiter(minViscosity, maxViscosity)
 
         self.gravity = tuple([nd(val) for val in gravity])
         self.Tref = Tref
@@ -116,12 +91,22 @@ class Model(Material):
         self.densityFn = None
         self.Isostasy = None
 
-        self._lecodeRefMaterial = None
         self.pressSmoother = PressureSmoother(self.mesh, self.pressureField)
+        self.surfaceProcesses = None
 
     @property
     def outputDir(self):
         return self._outputDir
+
+    @property
+    def surfaceProcesses(self):
+        return self._surfaceProcesses
+
+    @surfaceProcesses.setter
+    def surfaceProcesses(self, value):
+        self._surfaceProcesses = value
+        if isinstance(value, surfaceProcesses.Badlands):
+            self._surfaceProcesses.Model = self
 
     @outputDir.setter
     def outputDir(self, value):
@@ -292,9 +277,6 @@ class Model(Material):
                                       variable=self.velocityField,
                                       indexSetsPerDof=indices)
 
-    def use_lecode_isostasy(self, material_ref):
-        self._lecodeRefMaterial = material_ref
-
     def add_material(self, vertices=None, reset=False, name="unknown",
                      shape=None):
 
@@ -345,11 +327,13 @@ class Model(Material):
         self._fill_model()
 
     def _get_material_indices(self, mat):
-        mask = mat.shape.evaluate(self.mesh.data)[:,0]
-        indices = np.arange(0,self.mesh.nodesDomain)[mask]
-        return uw.mesh.FeMesh_IndexSet(self.mesh, topologicalIndex=0,
+        if mat.shape:
+            mask = mat.shape.evaluate(self.mesh.data)[:,0]
+            indices = np.arange(0,self.mesh.nodesDomain)[mask]
+            return uw.mesh.FeMesh_IndexSet(self.mesh, topologicalIndex=0,
                                        size=self.mesh.nodesGlobal,
                                        fromObject=indices)
+        return
 
     def _set_density(self):
         densityMap = {}
@@ -523,7 +507,10 @@ class Model(Material):
         self.swarm_advector.integrate(dt, update_owners=True) 
         
         # Do pop control
-        self.population_control.repopulate() 
+        self.population_control.repopulate()
+
+        if self.surfaceProcesses:
+            self.surfaceProcesses.solve(dt)
 
         if self.Isostasy:
             self.Isostasy.solve()
