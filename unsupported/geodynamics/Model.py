@@ -65,8 +65,7 @@ class Model(Material):
         self.population_control = populationControl
         self.swarm_advector = uw.systems.SwarmAdvector(swarm=self.swarm,
                                   velocityField=self.velocityField,
-                                  order=self.mesh.dim
-                                  )
+                                  order=2)
 
         # Add Common Swarm Variables
         self.materialField = self.swarm.add_variable(dataType="int", count=1)
@@ -298,6 +297,12 @@ class Model(Material):
         if isinstance(shape, shapes.Layer):
             shape.minX = self.minCoord[0]
             shape.maxX = self.maxCoord[0]
+            mat.top = shape.top
+            mat.bottom = shape.bottom
+
+            if self.mesh.dim == 3:
+                shape.minY = self.minCoord[1]
+                shape.maxY = self.maxCoord[1]
 
         mat.shape              = shape
         mat.indices = self._get_material_indices(mat)
@@ -369,12 +374,13 @@ class Model(Material):
                 YieldHandler = material.plasticity
                 YieldHandler.pressureField = self.pressureField
                 YieldHandler.plasticStrain = self.plasticStrain
-                yieldStress = YieldHandler._get_yieldStress()
+                if self.mesh.dim == 2:
+                    yieldStress = YieldHandler._get_yieldStress2D()
+                if self.mesh.dim == 3:
+                    yieldStress = YieldHandler._get_yieldStress3D()
                 eij = self.strainRate_2ndInvariant
                 eijdef =  nd(self.strainRate_default)
-                if self.mesh.dim == 2:
-                    muEff = 0.5 * yieldStress / fn.misc.max(eij, eijdef)
-
+                muEff = 0.5 * yieldStress / fn.misc.max(eij, eijdef)
                 muEff = self.viscosityLimiter.apply(muEff)
                 ViscosityMap[material.index] = fn.misc.min(muEff, ViscosityMap[material.index])
 

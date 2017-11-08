@@ -31,18 +31,25 @@ class Polygon(Shape):
 
 class Layer(Shape):
 
-    def __init__(self, top, bottom, minX=0., maxX=0.):
+    def __init__(self, top, bottom, minX=0., maxX=0., minY=None, maxY=None):
         self.top = top
         self.bottom = bottom
         self.minX = minX
         self.maxX = maxX
+        self.minY = minY
+        self.maxY = maxY
 
     def _init_shape(self):
-        vertex_array = np.array( [(nd(self.minX), nd(self.bottom)),
-                                  (nd(self.minX), nd(self.top)),
-                                  (nd(self.maxX), nd(self.top)),
-                                  (nd(self.maxX), nd(self.bottom))] )
-        self._fn = uw.function.shape.Polygon(vertex_array)
+        if (self.minY is not None) and (self.maxY is not None):
+            coord = fn.input()
+            self._fn = ((coord[2] <= nd(self.top)) & (coord[2] >= nd(self.bottom)))
+
+        else:
+            vertex_array = np.array( [(nd(self.minX), nd(self.bottom)),
+                                      (nd(self.minX), nd(self.top)),
+                                      (nd(self.maxX), nd(self.top)),
+                                      (nd(self.maxX), nd(self.bottom))] )
+            self._fn = uw.function.shape.Polygon(vertex_array)
 
     @property
     def minX(self):
