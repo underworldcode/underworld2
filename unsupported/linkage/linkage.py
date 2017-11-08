@@ -67,7 +67,7 @@ class SPM(object):
         if self.restartStep:
             # Parse xmf for the last timestep time
             import xml.etree.ElementTree as etree
-            xmf = self.restartFolder+"/xmf/tin.time"+self.restartStep+".xmf"
+            xmf = self.restartFolder+"/xmf/tin.time"+str(self.restartStep)+".xmf"
             tree = etree.parse(xmf)
             root = tree.getroot()
             self.time_years = float(root[0][0][0].attrib["Value"])
