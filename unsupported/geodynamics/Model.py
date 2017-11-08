@@ -75,15 +75,20 @@ class Model(Material):
         self.materials = []
         self._defaultMaterial = 0
 
-        # Create a series of aliases for the boundary sets
-        self.leftWall   = self.mesh.specialSets["MinI_VertexSet"]
-        self.topWall    = self.mesh.specialSets["MaxJ_VertexSet"]
-        self.bottomWall = self.mesh.specialSets["MinJ_VertexSet"]
-        self.rightWall  = self.mesh.specialSets["MaxI_VertexSet"]
+        if self.mesh.dim == 2:
+            # Create a series of aliases for the boundary sets
+            self.leftWall   = self.mesh.specialSets["MinI_VertexSet"]
+            self.topWall    = self.mesh.specialSets["MaxJ_VertexSet"]
+            self.bottomWall = self.mesh.specialSets["MinJ_VertexSet"]
+            self.rightWall  = self.mesh.specialSets["MaxI_VertexSet"]
         
-        if self.mesh.dim > 2:
-            self.frontWall = self.mesh.specialSets["MinK_VertexSet"]
-            self.backWall  = self.mesh.specialSets["MaxK_VertexSet"]
+        if self.mesh.dim == 3:
+            self.leftWall   = self.mesh.specialSets["MinI_VertexSet"]
+            self.rightWall  = self.mesh.specialSets["MaxI_VertexSet"]
+            self.frontWall = self.mesh.specialSets["MinJ_VertexSet"]
+            self.backWall  = self.mesh.specialSets["MaxJ_VertexSet"]
+            self.topWall    = self.mesh.specialSets["MaxK_VertexSet"]
+            self.bottomWall = self.mesh.specialSets["MinK_VertexSet"]
 
         self.time = 0.0 * u.megayears
         self.step = 0
