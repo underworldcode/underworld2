@@ -1,4 +1,4 @@
-from unsupported.scaling import *
+from ..scaling import *
 
 # Solidus
 

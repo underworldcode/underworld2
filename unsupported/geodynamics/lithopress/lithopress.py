@@ -8,7 +8,6 @@ comm = MPI.COMM_WORLD
 size = comm.Get_size()
 rank = comm.Get_rank()
 
-
 class LithostaticPressure(object):
     """Class that calculates the lithostatic pressure field based on 
     material densities.
@@ -21,7 +20,7 @@ class LithostaticPressure(object):
 
     outputs:
 
-    tuple: lithostatic pressure field, pressure field at the bottom of the
+    tuple: lithostatic pressure field, pressure at the bottom of the
     model
     """
 
@@ -186,4 +185,3 @@ class LithostaticPressure(object):
         local_pressure = local_pressure.reshape((local_pressure.size,1))
         
         return local_pressure, bottom
-    

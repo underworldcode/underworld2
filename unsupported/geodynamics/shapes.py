@@ -1,7 +1,7 @@
 import numpy as np
 import underworld as uw
 import underworld.function as fn
-from unsupported.scaling import nonDimensionalize as nd
+from scaling import nonDimensionalize as nd
 
 
 class Shape(object):
@@ -40,16 +40,11 @@ class Layer(Shape):
         self.maxY = maxY
 
     def _init_shape(self):
+        coord = fn.input()
         if (self.minY is not None) and (self.maxY is not None):
-            coord = fn.input()
             self._fn = ((coord[2] <= nd(self.top)) & (coord[2] >= nd(self.bottom)))
-
         else:
-            vertex_array = np.array( [(nd(self.minX), nd(self.bottom)),
-                                      (nd(self.minX), nd(self.top)),
-                                      (nd(self.maxX), nd(self.top)),
-                                      (nd(self.maxX), nd(self.bottom))] )
-            self._fn = uw.function.shape.Polygon(vertex_array)
+            self._fn = ((coord[1] <= nd(self.top)) & (coord[1] >= nd(self.bottom)))
 
     @property
     def minX(self):

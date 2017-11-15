@@ -1,8 +1,8 @@
 import underworld.function as fn
 import numpy as np
-from unsupported import rheology
-import unsupported.scaling as sca
-from unsupported.scaling import nonDimensionalize as nd
+import rheologyDatabase as rheology
+import scaling as sca
+from scaling import nonDimensionalize as nd
 
 u = UnitRegistry = sca.UnitRegistry
 _viscousLaws = rheology.ViscousLaws
@@ -33,6 +33,11 @@ class Rheology(object):
         self.stressLimiter = stressLimiter
         self.firstIter = True
         
+        self.viscosity = None
+        self.plasticity = None
+        self.cohesion = None
+        self.friction = None
+        
         return
 
 class DruckerPrager(object):
@@ -46,7 +51,9 @@ class DruckerPrager(object):
         kwargs = {"cohesion": cohesion,
                  "cohesionAfterSoftening": cohesionAfterSoftening,
                  "frictionCoefficient": frictionCoefficient,
-                 "frictionAfterSoftening": frictionAfterSoftening}
+                 "frictionAfterSoftening": frictionAfterSoftening,
+                 "epsilon1": epsilon1,
+                 "epsilon2": epsilon2}
 
         if predefined:
             if predefined in _plasticLaws.keys():
@@ -61,8 +68,8 @@ class DruckerPrager(object):
             for key, val in kwargs.iteritems():
                 setattr(self, key, val)
         
-        self.cohesionFn = rheology.linearCohesionWeakening
-        self.frictionFn = rheology.linearFrictionWeakening
+        self.cohesionWeakeningFn = rheology.linearCohesionWeakening
+        self.frictionWeakeningFn = rheology.linearFrictionWeakening
     
     def init_from_dict(self, dictionary):
 
@@ -74,19 +81,23 @@ class DruckerPrager(object):
             if key in equivalents2.keys():
                 setattr(self, equivalents2[key], val)
 
-    def _get_friction(self):
+    @property
+    def _friction(self):
         if self.plasticStrain:
-            friction = self.frictionFn(
+            friction = self.frictionWeakeningFn(
                 self.plasticStrain,
                 FrictionCoef=nd(self.frictionCoefficient),
-                FrictionCoefSw=nd(self.frictionAfterSoftening))
+                FrictionCoefSw=nd(self.frictionAfterSoftening),
+                epsilon1=self.epsilon1,
+                epsilon2=self.epsilon2)
         else:
             friction = fn.misc.constant(nd(self.frictionCoefficient))
         return friction
 
-    def _get_cohesion(self):
+    @property
+    def _cohesion(self):
         if self.plasticStrain:
-            cohesion = self.cohesionFn(
+            cohesion = self.cohesionWeakeningFn(
                 self.plasticStrain,
                 Cohesion=nd(self.cohesion),
                 CohesionSw=nd(self.cohesionAfterSoftening))
@@ -95,26 +106,19 @@ class DruckerPrager(object):
         return cohesion
         
     def _get_yieldStress2D(self):
-        f = self._get_friction()
-        C = self._get_cohesion()
+        f = self._friction
+        C = self._cohesion
         P = self.pressureField
         self.yieldStress = (C * fn.math.cos(f) + P * fn.math.sin(f))
         return self.yieldStress
 
     def _get_yieldStress3D(self):
-        f = self._get_friction()
-        C = self._get_cohesion()
+        f = self._friction
+        C = self._cohesion
         P = self.pressureField
         self.yieldStress = 6.0*C*fn.math.cos(f) + 2.0*fn.math.sin(f)*fn.misc.max(P, 0.0) 
         self.yieldStress /= (fn.math.sqrt(3.0) * (3.0 + fn.math.sin(f)))
         return self.yieldStress
-
-    def _get_effective_viscosity(self):
-        eij = self.strainRateInvariantField
-        eijdef = self.strainRate_default
-        self._get_yieldStress(self.plasticStrain, self.pressure)
-        self.effViscosity = 0.5 * self.yieldStress / fn.misc.max(eij, eijdef)
-        return self.effViscosity
 
 class ConstantViscosity(Rheology):
 
@@ -128,7 +132,6 @@ class ConstantViscosity(Rheology):
        
     def _effectiveViscosity(self):
         return fn.misc.constant(nd(self._viscosity))
-
 
 class ViscousCreep(Rheology):
 

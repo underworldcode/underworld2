@@ -9,11 +9,11 @@ class Material(object):
                  radiogenicHeatProd=None, shape=None, viscosity=None,
                  plasticity=None):
 
-        self.name = name
-        self.top = None # Deprecated
-        self.bottom = None # Deprecated
-
         self.index = self._ids.next()
+        
+        self.name = name
+        self.top = None
+        self.bottom = None
 
         self.shape = shape
         self.density = density
@@ -23,10 +23,7 @@ class Material(object):
         self.radiogenicHeatProd = radiogenicHeatProd
         self.meltFraction = 0.
         self.meltFractionLimit = 0.
-        self.solidus = None
-        self.liquidus = None
-        self.latentHeatFusion = 0
-        self.latentSurfaceProcesses = None
+        self.compressibility = None
 
         self.rheology = None  # For backward compatibility
 

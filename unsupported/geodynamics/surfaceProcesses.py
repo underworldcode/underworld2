@@ -1,6 +1,6 @@
-from unsupported.linkage import SPM
+from linkage import SPM
 import underworld.function as fn
-from unsupported.scaling import nonDimensionalize as nd
+from scaling import nonDimensionalize as nd
 
 
 class Badlands(object):
@@ -68,19 +68,25 @@ class FullErosionAboveSeaLevel(object):
         return
 
 
-class FullSedimentationAboveSeaLevel(object):
+class SedimentationThreshold(object):
 
     def __init__(self, swarm=None, materialIndexField=None,
-                 sedimentIndex=None, sealevel=None):
+                 air=None, sediment=None, threshold=None):
 
         self.materialIndexField = materialIndexField
         self.swarm = swarm
-        self.sealevel = sealevel
+        self.threshold = nd(threshold)
 
-        belowSeaLevel = [(((self.materialIndexField in airIndices) & (fn.input()[1] < nd(sealevel))), sedimentIndex[0]),
+        materialMap = {}
+        for material in air:
+            materialMap[material.index] = 1.0
+
+        isAirMaterial = fn.branching.map(fn_key=materialIndexField, mapping=materialMap, fn_default=0.0)
+
+        belowthreshold = [(((isAirMaterial > 0.5) & (fn.input()[1] < nd(threshold))), sediment[0].index),
                          (True, materialIndexField)]
 
-        self._fn = fn.branching.conditional(belowSeaLevel) 
+        self._fn = fn.branching.conditional(belowthreshold) 
 
     def solve(self, dt):
         self._fn.evaluate(self.swarm)

@@ -1,7 +1,7 @@
 import underworld as uw
 import underworld.function as fn
-from unsupported.scaling import nonDimensionalize as nd
-import unsupported.scaling as sca
+from scaling import nonDimensionalize as nd
+import scaling as sca
 import numpy as np
 
 u = UnitRegistry = sca.UnitRegistry
@@ -45,3 +45,27 @@ def layer(top, bottom, minX, maxX):
         return None
     vertex_array = np.array( [(minX, bottom),(minX, top),(maxX, top),(maxX, bottom)] )
     return uw.function.shape.Polygon(vertex_array)
+
+
+class PassiveTracers(object):
+
+    def __init__(self, mesh, velocityField, name=None, vertices=None,
+                 particleEscape=True):
+
+        self.name = name
+        self.particleEscape = particleEscape
+
+        vertices = [nd(x) for x in vertices]
+
+        points = np.zeros((len(vertices[0]), len(vertices)))
+
+        for dim in range(len(vertices)):
+            points[:,dim] = vertices[dim]
+
+        self.swarm = uw.swarm.Swarm(mesh = mesh, particleEscape=particleEscape)
+        self.swarm.add_particles_with_coordinates(points)
+        self.advector = uw.systems.SwarmAdvector(swarm=self.swarm, velocityField=velocityField, order=2)
+
+    def integrate(self, dt, **kwargs ):
+
+        self.advector.integrate(dt, **kwargs)

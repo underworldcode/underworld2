@@ -216,8 +216,9 @@ def _save_mesh( self, filename, units=None):
     if units:
         try:
             import sys
-            sca = sys.modules["unsupported.scaling"]
+            sca = sys.modules["unsupported.geodynamics.scaling"]
             fact = sca.Dimensionalize(1.0, units=units).magnitude
+            h5f.attrs['units'] = str(units)
         except KeyError:
             print("The scaling module is not loaded, load it and try again or set 'units' to None")
 
@@ -228,7 +229,6 @@ def _save_mesh( self, filename, units=None):
     h5f.attrs['min'] = tuple([fact*x for x in self.minCoord])
     h5f.attrs['regular'] = self._cself.isRegular
     h5f.attrs['elementType'] = self.elementType
-    h5f.attrs['units'] = str(units)
 
     # write the vertices
     globalShape = ( self.nodesGlobal, self.data.shape[1] )
@@ -327,13 +327,13 @@ def _save_meshVariable( self, filename, meshHandle=None, units=None):
     if units:
         try:
             import sys
-            sca = sys.modules["unsupported.scaling"]
+            sca = sys.modules["unsupported.geodynamics.scaling"]
             fact = sca.Dimensionalize(1.0, units=units).magnitude
+            # Save unit type as attribute
+            h5f.attrs['units'] = str(units)
         except KeyError:
             print("The scaling module is not loaded, load it and try again or set 'units' to None")
    
-    # Save unit type as attribute
-    h5f.attrs['units'] = str(units)
 
     # write to the dset using the global node ids
     local = mesh.nodesLocal
@@ -470,12 +470,12 @@ def _save_swarmVariable( self, filename, units=None):
     if units:
         try:
             import sys
-            sca = sys.modules["unsupported.scaling"]
+            sca = sys.modules["unsupported.geodynamics.scaling"]
             fact = sca.Dimensionalize(1.0, units=units).magnitude
+            h5f.attrs['units'] = str(units)
         except KeyError:
             print("The scaling module is not loaded, load it and try again or set 'units' to None")
     
-    h5f.attrs['units'] = str(units)
 
     if swarm.particleLocalCount > 0: # only add if there are local particles
         dset[offset:offset+swarm.particleLocalCount] = self.data[:] * fact
@@ -543,7 +543,7 @@ def _save_swarm(self, filename, units=None):
     return uw.utils.SavedFileData( self, filename )
 
 
-def _load_mesh(self, filename, units=None):
+def _load_mesh(self, filename):
     """
     Load the mesh from disk.
 
@@ -586,6 +586,15 @@ def _load_mesh(self, filename, units=None):
         raise RuntimeError("Provided file mesh resolution does not appear to correspond to\n"\
                            "resolution of mesh object.")
 
+    # get units
+    try:
+        units = h5f.attrs["units"]
+    except:
+        units = None
+
+    if units and units != "None":
+        units = u.parse_expression(units)
+
     dset = h5f.get('vertices')
     if dset == None:
         raise RuntimeError("Can't find the 'vertices' dataset in hdf5 file '{0}'".format(filename) )
@@ -608,7 +617,7 @@ def _load_mesh(self, filename, units=None):
 
     h5f.close()
 
-def _load_meshVariable(self, filename, interpolate=False, units=None):
+def _load_meshVariable(self, filename, interpolate=False):
     """
     Load the MeshVariable from disk.
 
@@ -646,7 +655,15 @@ def _load_meshVariable(self, filename, interpolate=False, units=None):
     # get field and mesh information
     h5f = h5py.File( filename, "r", driver='mpio', comm=MPI.COMM_WORLD );
     dset = h5f.get('data')
-
+    
+    # get units
+    try:
+        units = h5f.attrs["units"]
+    except:
+        units = None
+    
+    if units and units != "None":
+        units = u.parse_expression(units)
 
     if dset == None:
         raise RuntimeError("Can't find the 'data' in hdf5 file '{0}'".format(filename) )
@@ -733,7 +750,7 @@ def _load_meshVariable(self, filename, interpolate=False, units=None):
     uw.libUnderworld.StgFEM._FeVariable_SyncShadowValues( self._cself )
     h5f.close()
 
-def _load_swarm( self, filename, try_optimise=True, verbose=False, units=None ):
+def _load_swarm( self, filename, try_optimise=True, verbose=False):
     """
     Load a swarm from disk. Note that this must be called before any SwarmVariable
     members are loaded.
@@ -768,6 +785,15 @@ def _load_swarm( self, filename, try_optimise=True, verbose=False, units=None ):
     
     # open hdf5 file
     h5f = h5py.File(name=filename, mode="r", driver='mpio', comm=MPI.COMM_WORLD)
+    
+    # get units
+    try:
+        units = h5f.attrs["units"]
+    except:
+        units = None
+    
+    if units and units != "None":
+        units = u.parse_expression(units)
 
     dset = h5f.get('data')
     if dset == None:
@@ -841,9 +867,8 @@ def _load_swarm( self, filename, try_optimise=True, verbose=False, units=None ):
     self._local2globalMap = valid
     # record which swarm state this corresponds to
     self._checkpointMapsToState = self.stateId
-
     
-def _load_swarmVariable( self, filename, units=None):
+def _load_swarmVariable( self, filename):
     """
     Load the swarm variable from disk. This must be called *after* the swarm.load().
 
@@ -878,6 +903,15 @@ def _load_swarmVariable( self, filename, units=None):
 
     # open hdf5 file
     h5f = h5py.File(name=filename, mode="r", driver='mpio', comm=MPI.COMM_WORLD)
+    
+    # get units
+    try:
+        units = h5f.attrs["units"]
+    except:
+        units = None
+    
+    if units and units != "None":
+        units = u.parse_expression(units)
 
     dset = h5f.get('data')
     if dset == None:
@@ -907,8 +941,8 @@ def _load_swarmVariable( self, filename, units=None):
 
 uw.mesh.FeMesh.save = _save_mesh
 uw.mesh.MeshVariable.save = _save_meshVariable
-uw.swarm.Swarm.save = _save_swarm
 uw.swarm.SwarmVariable.save = _save_swarmVariable
+uw.swarm.Swarm.save = _save_swarm
 
 uw.mesh.FeMesh.load = _load_mesh
 uw.mesh.MeshVariable.load = _load_meshVariable

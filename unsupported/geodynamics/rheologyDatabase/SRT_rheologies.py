@@ -1,4 +1,4 @@
-from unsupported.scaling import u
+from ..scaling import u
 import underworld.function as fn
 
 

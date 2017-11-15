@@ -1,4 +1,4 @@
-from unsupported.scaling import *
+from ..scaling import *
 import underworld.function as fn
 
 def linearCohesionWeakening(cumulativeTotalStrain, Cohesion, CohesionSw, epsilon1=0.5, epsilon2=1.5, **kwargs):

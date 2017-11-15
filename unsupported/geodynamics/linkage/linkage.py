@@ -30,7 +30,7 @@ class SPM(object):
         self.sca = None
         try:
             import sys
-            sca = sys.modules["unsupported.scaling"]
+            sca = sys.modules["unsupported.geodynamics.scaling"]
             self.sca = sca
             self.scaleDIM = 1.0 / sca.scaling["[length]"].magnitude
             self.scaleTIME = 1.0 / sca.scaling["[time]"].magnitude
@@ -59,7 +59,6 @@ class SPM(object):
                 self.badlands_model.input.restart = True
                 self.badlands_model.input.rstep = self.restartStep
                 self.badlands_model.input.rfolder = self.restartFolder
-                self.badlands_model.outputStep = self.restartStep + 1
 
         self.minCoord = self.mesh.minCoord
         self.maxCoord = self.mesh.maxCoord
