@@ -130,7 +130,7 @@ void _lucDatabase_Init(
    if (pos > 0) 
    {
       binpath[pos] = 0;
-      sprintf(self->bin_path, "%s/bin", binpath);
+      sprintf(self->bin_path, "%s/lavavu", binpath);
    }
    
    if(self->context){
