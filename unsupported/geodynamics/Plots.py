@@ -119,12 +119,20 @@ class Plots(object):
 
     def temperature(self, figsize=(1200, 400), units=u.degK,
                          cullface=False, script=None, show=True, store=None, 
-                         colourScale="coolwarm", quality=3, **args):
+                         colourScale="coolwarm", quality=3, isotherms=[], **args):
         Fig = glucifer.Figure(figsize=figsize, store=store,
                               title="Temperature Field", quality=quality)
         fact = sca.Dimensionalize(1.0, units).magnitude
         Fig.append(glucifer.objects.Surface(self.Model.mesh, self.Model.temperature*fact,
                    cullface=cullface, colours=colourScale))
+
+        for isotherm in isotherms:
+            # Kind of a hack but it works...
+            Fig.append(glucifer.objects.Contours(self.Model.mesh, self.Model.temperature,
+                      interval=nd(1 * isotherm.units),
+                      limits=(nd(isotherm),nd(isotherm+1.0*isotherm.units)),
+                      colourBar=False, colours="black"))
+
         if script:
             Fig.script(script)
 
