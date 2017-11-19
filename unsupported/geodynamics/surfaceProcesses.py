@@ -49,22 +49,28 @@ class Badlands(object):
         return
 
 
-class FullErosionAboveSeaLevel(object):
+class ErosionThreshold(object):
 
     def __init__(self, swarm=None, materialIndexField=None,
-                 airIndices=None, sealevel=None):
+                 air=None, sediment=None, threshold=None):
 
         self.materialIndexField = materialIndexField
         self.swarm = swarm
-        self.sealevel = sealevel
+        self.threshold = nd(threshold)
 
-        aboveSeaLevel = [(((self.materialIndexField not in airIndices) &(fn.input()[1] >  nd(sealevel))), airIndices[0]),
+        materialMap = {}
+        for material in air:
+            materialMap[material.index] = 1.0
+
+        isAirMaterial = fn.branching.map(fn_key=materialIndexField, mapping=materialMap, fn_default=0.0)
+
+        belowthreshold = [(((isAirMaterial < 0.5) & (fn.input()[1] > nd(threshold))), air[0].index),
                          (True, materialIndexField)]
 
-        self._fn = fn.branching.conditional(aboveSeaLevel) 
+        self._fn = fn.branching.conditional(belowthreshold) 
 
     def solve(self, dt):
-        self._fn.evaluate(self.swarm)
+        self.materialIndexField.data[:] = self._fn.evaluate(self.swarm)
         return
 
 
@@ -89,29 +95,34 @@ class SedimentationThreshold(object):
         self._fn = fn.branching.conditional(belowthreshold) 
 
     def solve(self, dt):
-        self._fn.evaluate(self.swarm)
+        self.materialIndexField.data[:] = self._fn.evaluate(self.swarm)
         return
 
 
-class FullErosionAndSedimentationAboveSeaLevel(object):
+class ErosionAndSedimentationThreshold(object):
 
-    def __init__(self, swarm=None, materialIndexField=None, airIndices=None,
-                 sedimentIndex=None, sealevel=None):
+    def __init__(self, swarm=None, materialIndexField=None,
+                 air=None, sediment=None, threshold=None):
 
         self.materialIndexField = materialIndexField
         self.swarm = swarm
-        self.sealevel = sealevel
+        self.threshold = nd(threshold)
 
-        erosion = FullErosionAboveSeaLevel(swarm, materialIndexField,
-                                           airIndices, sealevel)
-        self._fn1 = erosion._fn
+        materialMap = {}
+        for material in air:
+            materialMap[material.index] = 1.0
 
-        sedimentation = FullSedimentationAboveSeaLevel(swarm, materialIndexField,
-                                                       sedimentIndex, sealevel)
-        self._fn2 = sedimentation._fn
+        isAirMaterial = fn.branching.map(fn_key=materialIndexField, mapping=materialMap, fn_default=0.0)
+
+        sedimentation = [(((isAirMaterial > 0.5) & (fn.input()[1] < nd(threshold))), sediment[0].index),
+                         (True, materialIndexField)]
+        erosion = [(((isAirMaterial < 0.5) & (fn.input()[1] > nd(threshold))), sediment[0].index),
+                         (True, materialIndexField)]
+
+        self._fn1 = fn.branching.conditional(belowthreshold) 
+        self._fn2 = fn.branching.conditional(belowthreshold) 
 
     def solve(self, dt):
-        self._fn1.evaluate(self.swarm)
-        self._fn2.evaluate(self.swarm)
+        self.materialIndexField.data[:] = self._fn1.evaluate(self.swarm)
+        self.materialIndexField.data[:] = self._fn2.evaluate(self.swarm)
         return
-
