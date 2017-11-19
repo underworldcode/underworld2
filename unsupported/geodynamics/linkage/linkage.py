@@ -2,6 +2,7 @@ from pyBadlands.model import Model as BadlandsModel
 from scipy.interpolate import griddata, interp1d
 from scipy.ndimage.filters import gaussian_filter
 import numpy as np
+import unsupported.scaling as sca
 
 from tempfile import gettempdir
 from uw_utilities import get_UW_velocities
@@ -27,18 +28,8 @@ class SPM(object):
         self.restartFolder = restartFolder
 
         # AutoScaling
-        self.sca = None
-        try:
-            import sys
-            sca = sys.modules["unsupported.geodynamics.scaling"]
-            self.sca = sca
-            self.scaleDIM = 1.0 / sca.scaling["[length]"].magnitude
-            self.scaleTIME = 1.0 / sca.scaling["[time]"].magnitude
-        
-        except KeyError:
-       
-            self.scaleDIM = 1.0
-            self.scaleTIME = 1.0
+        self.scaleDIM = 1.0 / sca.scaling["[length]"].magnitude
+        self.scaleTIME = 1.0 / sca.scaling["[time]"].magnitude
 
         self.mesh = mesh
         self.velocityField = velocityField
@@ -115,10 +106,7 @@ class SPM(object):
         if rank == 0 and self.verbose:
             print "Processing surface with Badlands"
 
-        if self.sca:
-            dt_years = self.sca.Dimensionalize(dt, self.sca.UnitRegistry.years).magnitude
-        else:
-            dt_years = dt
+        dt_years = sca.Dimensionalize(dt, sca.UnitRegistry.years).magnitude
 
         if rank == 0:
             rg = self.badlands_model.recGrid
