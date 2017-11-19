@@ -15,6 +15,7 @@ from kinematicBCs import VelocityBCs
 from temperatureBCs import TemperatureBCs
 import surfaceProcesses
 import shapes
+import sys
 
 u = UnitRegistry = sca.UnitRegistry
 
@@ -25,7 +26,8 @@ class Model(Material):
                  swarmLayout=None, Tref=273.15 * u.degK, name="undefined",
                  outputDir="outputs", populationControl=True, scaling=None,
                  minViscosity=1e19*u.pascal*u.second,
-                 maxViscosity=1e25*u.pascal*u.second):
+                 maxViscosity=1e25*u.pascal*u.second,
+                 strainRate_default=1e-15 / u.second):
 
         super(Model, self).__init__()
 
@@ -61,11 +63,13 @@ class Model(Material):
         self.temperature = None
         self.pressureField = uw.mesh.MeshVariable(mesh=self.mesh.subMesh, nodeDofCount=1)
         self.velocityField = uw.mesh.MeshVariable(mesh=self.mesh, nodeDofCount=self.mesh.dim)
+        self.tractionField = uw.mesh.MeshVariable(mesh=self.mesh.subMesh, nodeDofCount=1)
+        self.strainRateField = uw.mesh.MeshVariable(mesh=self.mesh, nodeDofCount=1)
         self.pressureField.data[...] = 0.
         self.velocityField.data[...] = 0.
        
         # symmetric component of the gradient of the flow velocityField.
-        self.strainRate_default = 1.0e-15 / u.second
+        self.strainRate_default = strainRate_default
         self.solutionExist = False
         self.strainRate = fn.tensor.symmetric(self.velocityField.fn_gradient)
         self.strainRate_2ndInvariant = fn.tensor.second_invariant(self.strainRate)
@@ -277,6 +281,7 @@ class Model(Material):
 #            )
     
     def set_temperatureBCs(self, left=None, right=None, top=None, bottom=None,
+                           front=None, back=None,
                            indexSets=[], materials=[(None,None)]):
         self.temperature = uw.mesh.MeshVariable(mesh=self.mesh,
                                                     nodeDofCount=1)
@@ -285,8 +290,10 @@ class Model(Material):
         self.temperature.data[...] = nd(self.Tref)
         self._temperatureDot.data[...] = 0.
         
-        self.temperatureBCs = TemperatureBCs(self, left, right, top, bottom, 
-                                             indexSets, materials)
+        self.temperatureBCs = TemperatureBCs(self, left=left, right=right,
+                                             top=top, bottom=bottom, 
+                                             indexSets=indexSets,
+                                             materials=materials)
 
     @property
     def _temperatureBCs(self):
@@ -335,9 +342,12 @@ class Model(Material):
             self.solver = uw.systems.Solver(stokes)
     
     def set_velocityBCs(self, left=None, right=None, top=None, bottom=None,
-                        indexSets=[]):
+                        front=None, back=None, indexSets=[]):
        
-        self.velocityBCs = VelocityBCs(self, left, right, top, bottom, indexSets) 
+        self.velocityBCs = VelocityBCs(self, left=left,
+                                       right=right, top=top,
+                                       bottom=bottom, front=front,
+                                       back=back, indexSets=indexSets) 
     
     @property
     def _velocityBCs(self):
@@ -425,7 +435,6 @@ class Model(Material):
 
         for material in self.materials:
             if material.plasticity:
-                print(material.plasticity._friction)
                 friction[material.index] = material.plasticity._friction
             else:
                 friction[material.index] = 0.
@@ -462,9 +471,10 @@ class Model(Material):
                     yieldStress = YieldHandler._get_yieldStress2D()
                 if self.mesh.dim == 3:
                     yieldStress = YieldHandler._get_yieldStress3D()
-                eij = self.strainRate_2ndInvariant
                 eijdef =  nd(self.strainRate_default)
-                muEff = 0.5 * yieldStress / fn.misc.max(eij, eijdef)
+                eij = fn.branching.conditional([(self.strainRate_2ndInvariant < sys.float_info.epsilon, eijdef),
+                                              (True, self.strainRate_2ndInvariant)])
+                muEff = 0.5 * yieldStress / eij
                 muEff = self.viscosityLimiter.apply(muEff)
                 PlasticityMap[material.index] = muEff
 
@@ -580,6 +590,7 @@ class Model(Material):
             self.solve_lithostatic_pressureField()
         
         self.init_stokes_system()
+        
     
     def run_for(self, endTime=None, checkpoint=None, timeCheckpoints=[]):
         step = self.step
@@ -594,7 +605,9 @@ class Model(Material):
 
         if checkpoint:
             next_checkpoint = time + nd(checkpoint)
-
+        
+        self.init_stokes_system()
+       
         while time < endTime:
             self.solve()
 
@@ -626,7 +639,8 @@ class Model(Material):
             time += self._dt
 
             if checkpoint or step % 1 == 0:
-                print "Time: ", str(self.time.to(units))
+                if uw.rank() == 0:
+                    print "Time: ", str(self.time.to(units))
 
     def update(self):
 
@@ -744,22 +758,61 @@ class Model(Material):
         file_prefix = os.path.join(self.outputDir, 'pressureField-%s' % checkpointID)
         handle = self.pressureField.save('%s.h5' % file_prefix, units=units)
         self.pressureField.xdmf('%s.xdmf' % file_prefix, handle, 'pressureField', mH, 'mesh', modeltime=self.time.magnitude)
-    
+   
     def save_temperature(self, checkpointID, units=u.degK):
         mH = self.mesh.save(os.path.join(self.outputDir, "mesh.h5"), units=u.kilometers)
         file_prefix = os.path.join(self.outputDir, 'temperature-%s' % checkpointID)
         handle = self.temperature.save('%s.h5' % file_prefix, units=units)
         self.temperature.xdmf('%s.xdmf' % file_prefix, handle, 'temperature', mH, 'mesh', modeltime=self.time.magnitude)
+    
+    def save_strainRate(self, checkpointID, units=1.0/u.seconds):
+        mH = self.mesh.save(os.path.join(self.outputDir, "mesh.h5"), units=u.kilometers)
+        self.strainRateField.data[:] = self.strainRate_2ndInvariant.evaluate(self.mesh)
+        file_prefix = os.path.join(self.outputDir, 'strainRate-%s' % checkpointID)
+        handle = self.strainRateField.save('%s.h5' % file_prefix, units=units)            
+        self.strainRateField.xdmf('%s.xdmf' % file_prefix, handle,
+                                          'strainRate', mH, 'mesh',
+                                          modeltime=self.time.magnitude)
 
-    def save_material(self, checkpointID):
-        sH = self.swarm.save(os.path.join(self.outputDir, 'swarm-%s.h5' % checkpointID), units=u.kilometers)
-        file_prefix = os.path.join(self.outputDir, 'material-%s' % checkpointID)
-        handle = self.materialField.save('%s.h5' % file_prefix)
-        self.materialField.xdmf('%s.xdmf' % file_prefix, handle, 'material', sH,
-                           'swarm', modeltime=self.time.magnitude)
+    def save_material(self, checkpointID, onMesh=False):
+        if onMesh:
+            mH = self.mesh.save(os.path.join(self.outputDir, "mesh.h5"), units=u.kilometers)
+            file_prefix = os.path.join(self.outputDir, 'material2-%s' % checkpointID)
+            handle = self.projMaterialField.save('%s.h5' % file_prefix)
+            self.projMaterialField.xdmf('%s.xdmf' % file_prefix, handle, 'material2', mH,
+                                        'mesh', modeltime=self.time.magnitude)
+        else:
+            sH = self.swarm.save(os.path.join(self.outputDir, 'swarm-%s.h5' % checkpointID), units=u.kilometers)
+            file_prefix = os.path.join(self.outputDir, 'material-%s' % checkpointID)
+            handle = self.materialField.save('%s.h5' % file_prefix)
+            self.materialField.xdmf('%s.xdmf' % file_prefix, handle, 'material', sH,
+                               'swarm', modeltime=self.time.magnitude)
 
-    def save_plasticStrain(self, checkpointID):
-        sH = self.swarm.save(os.path.join(self.outputDir, 'swarm-%s.h5' % checkpointID), units=u.kilometers)
-        file_prefix = os.path.join(self.outputDir, 'pstrain-%s' % checkpointID)
-        handle = self.plasticStrain.save('%s.h5' % file_prefix)
-        self.plasticStrain.xdmf('%s.xdmf' % file_prefix, handle, 'pstrain', sH, 'swarm', modeltime=self.time.magnitude)
+    def save_plasticStrain(self, checkpointID, onMesh=False):
+        if onMesh:
+            pass
+        else:
+            sH = self.swarm.save(os.path.join(self.outputDir, 'swarm-%s.h5' % checkpointID), units=u.kilometers)
+            file_prefix = os.path.join(self.outputDir, 'pstrain-%s' % checkpointID)
+            handle = self.plasticStrain.save('%s.h5' % file_prefix)
+            self.plasticStrain.xdmf('%s.xdmf' % file_prefix, handle, 'pstrain', sH, 'swarm', modeltime=self.time.magnitude)
+
+    def save_viscosityField(self, checkpointID, onMesh=False):
+        if onMesh:
+            pass
+        else:
+            sH = self.swarm.save(os.path.join(self.outputDir, 'swarm-%s.h5' % checkpointID), units=u.kilometers)
+            file_prefix = os.path.join(self.outputDir, 'viscosity-%s' % checkpointID)
+            self.viscosityField.data[:] = self.viscosityFn.evaluate(self.swarm)
+            handle = self.viscosityField.save('%s.h5' % file_prefix)
+            self.viscosityField.xdmf('%s.xdmf' % file_prefix, handle, 'viscosity', sH, 'swarm', modeltime=self.time.magnitude)
+    
+    def save_densityField(self, checkpointID, onMesh=False):
+        if onMesh:
+            pass
+        else:
+            sH = self.swarm.save(os.path.join(self.outputDir, 'swarm-%s.h5' % checkpointID), units=u.kilometers)
+            file_prefix = os.path.join(self.outputDir, 'density-%s' % checkpointID)
+            self.densityField.data[:] = self.densityFn.evaluate(self.swarm)
+            handle = self.densityField.save('%s.h5' % file_prefix)
+            self.densityField.xdmf('%s.xdmf' % file_prefix, handle, 'density', sH, 'swarm', modeltime=self.time.magnitude)
