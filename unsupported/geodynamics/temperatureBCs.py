@@ -4,6 +4,7 @@ import underworld as uw
 class TemperatureBCs(object):
 
     def __init__(self, Model, left=None, right=None, top=None, bottom=None,
+                 front=None, back=None,
                  indexSets=[], materials=[(None,None)]):
 
 
@@ -12,6 +13,8 @@ class TemperatureBCs(object):
         self.right = right
         self.top = top
         self.bottom = bottom
+        self.front = front
+        self.back = back
         self.indexSets = indexSets
         self.materials = materials
     
@@ -32,6 +35,12 @@ class TemperatureBCs(object):
         if self.bottom is not None:
             Model.temperature.data[Model.bottomWall.data] = nd(self.bottom)
             indices[0] += Model.bottomWall
+        if self.back is not None and Model.mesh.dim > 2:
+            Model.temperature.data[Model.backWall.data] = nd(self.back)
+            indices[0] += Model.backWall
+        if self.front is not None and Model.mesh.dim > 2:
+            Model.temperature.data[Model.frontWall.data] = nd(self.front)
+            indices[0] += Model.frontWall
 
         for indexSet, temp in self.indexSets:
             Model.temperature.data[indexSet.data] = nd(temp)
