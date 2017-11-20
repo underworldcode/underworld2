@@ -332,6 +332,8 @@ def _save_meshVariable( self, filename, meshHandle=None, units=None):
             import sys
             sca = sys.modules["unsupported.geodynamics.scaling"]
             fact = sca.Dimensionalize(1.0, units=units).magnitude
+            if units == "degC":
+                fact = sca.Dimensionalize(1.0, units=u.degK).magnitude
             # Save unit type as attribute
             h5f.attrs['units'] = str(units)
         except KeyError:
@@ -340,7 +342,10 @@ def _save_meshVariable( self, filename, meshHandle=None, units=None):
 
     # write to the dset using the global node ids
     local = mesh.nodesLocal
-    dset[mesh.data_nodegId[0:local],:] = self.data[0:local] * fact
+    if units == "degC":
+        dset[mesh.data_nodegId[0:local],:] = self.data[0:local] * fact - 273.15
+    else:
+        dset[mesh.data_nodegId[0:local],:] = self.data[0:local] * fact
 
     # save a hdf5 attribute to the elementType used for this field - maybe useful
     h5f.attrs["elementType"] = np.string_(mesh.elementType)
@@ -675,8 +680,6 @@ def _load_meshVariable(self, filename, interpolate=False):
         sca = sys.modules["unsupported.geodynamics.scaling"]
         u = sca.u
         units = u.parse_expression(units)
-        if units.units == "degC":
-            units = u.delta_degC
     else:
         units = None
 
@@ -760,7 +763,11 @@ def _load_meshVariable(self, filename, interpolate=False):
         self.data[:] = inputField.evaluate(self.mesh.data)
     
     if units:
-        self.data[:] = sca.nonDimensionalize(self.data[:]*units) 
+        if units.units == "degC":
+            units = u.degK
+            self.data[:] = sca.nonDimensionalize((self.data[:]+273.15)*units) 
+        else:
+            self.data[:] = sca.nonDimensionalize(self.data[:]*units) 
 
     uw.libUnderworld.StgFEM._FeVariable_SyncShadowValues( self._cself )
     h5f.close()
