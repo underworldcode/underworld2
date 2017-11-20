@@ -58,7 +58,11 @@ def nonDimensionalize(dimValue):
     """
     global scaling
 
-    if not isinstance(dimValue, u.Quantity):
+    try:
+        val = dimValue.unitless
+        if val:
+            return dimValue
+    except AttributeError:
         return dimValue
     
     dimValue = dimValue.to_base_units()
@@ -144,7 +148,6 @@ def Dimensionalize(Value, units):
         return tempVar
     else:
         return (Value * factor).to(units)
-
 
 
 ## Following functions are temporary, far from ideal...
@@ -593,6 +596,9 @@ def _load_mesh(self, filename):
         units = None
 
     if units and units != "None":
+        import sys
+        sca = sys.modules["unsupported.geodynamics.scaling"]
+        u = sca.u
         units = u.parse_expression(units)
     else:
         units = None
@@ -611,10 +617,10 @@ def _load_mesh(self, filename):
     with self.deform_mesh(isRegular=h5f.attrs['regular']):
         if units:
             vals = dset[self.data_nodegId[0:self.nodesLocal],:]
-            vals = nonDimensionalize(vals*units) 
+            test = vals * units
+            vals = sca.nonDimensionalize(test)
         else:
             vals = dset[self.data_nodegId[0:self.nodesLocal],:]   
-
         self.data[0:self.nodesLocal] = vals
 
     h5f.close()
@@ -665,6 +671,9 @@ def _load_meshVariable(self, filename, interpolate=False):
         units = None
     
     if units and units != "None":
+        import sys
+        sca = sys.modules["unsupported.geodynamics.scaling"]
+        u = sca.u
         units = u.parse_expression(units)
     else:
         units = None
@@ -749,7 +758,7 @@ def _load_meshVariable(self, filename, interpolate=False):
         self.data[:] = inputField.evaluate(self.mesh.data)
     
     if units:
-        self.data[:] = nonDimensionalize(self.data[:]*units) 
+        self.data[:] = sca.nonDimensionalize(self.data[:]*units) 
 
     uw.libUnderworld.StgFEM._FeVariable_SyncShadowValues( self._cself )
     h5f.close()
@@ -797,6 +806,9 @@ def _load_swarm( self, filename, try_optimise=True, verbose=False):
         units = None
     
     if units and units != "None":
+        import sys
+        sca = sys.modules["unsupported.geodynamics.scaling"]
+        u = sca.u
         units = u.parse_expression(units)
     else:
         units = None
@@ -847,7 +859,7 @@ def _load_swarm( self, filename, try_optimise=True, verbose=False):
         # add particles to swarm, ztmp is the corresponding local array
         # non-local particles are not added and their ztmp index is -1
         if units:
-            vals = nonDimensionalize(dset[ chunkStart : chunkEnd] * units)
+            vals = sca.nonDimensionalize(dset[ chunkStart : chunkEnd] * units)
             ztmp = self.add_particles_with_coordinates(vals)
         else:
             ztmp = self.add_particles_with_coordinates(dset[ chunkStart : chunkEnd ])
@@ -917,6 +929,9 @@ def _load_swarmVariable( self, filename):
         units = None
     
     if units and units != "None":
+        import sys
+        sca = sys.modules["unsupported.geodynamics.scaling"]
+        u = sca.u
         units = u.parse_expression(units)
     else:
         units = None
@@ -940,7 +955,7 @@ def _load_swarmVariable( self, filename):
     if size > 0:     # only if there is a non-zero local2global do we load
         if units:
             vals = dset[gIds,:]
-            self.data[:] = nonDimensionalize(vals * units)
+            self.data[:] = sca.nonDimensionalize(vals * units)
         else:
             self.data[:] = dset[gIds,:]
 
