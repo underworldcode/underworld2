@@ -594,6 +594,8 @@ def _load_mesh(self, filename):
 
     if units and units != "None":
         units = u.parse_expression(units)
+    else:
+        units = None
 
     dset = h5f.get('vertices')
     if dset == None:
@@ -664,6 +666,8 @@ def _load_meshVariable(self, filename, interpolate=False):
     
     if units and units != "None":
         units = u.parse_expression(units)
+    else:
+        units = None
 
     if dset == None:
         raise RuntimeError("Can't find the 'data' in hdf5 file '{0}'".format(filename) )
@@ -794,6 +798,8 @@ def _load_swarm( self, filename, try_optimise=True, verbose=False):
     
     if units and units != "None":
         units = u.parse_expression(units)
+    else:
+        units = None
 
     dset = h5f.get('data')
     if dset == None:
@@ -912,6 +918,8 @@ def _load_swarmVariable( self, filename):
     
     if units and units != "None":
         units = u.parse_expression(units)
+    else:
+        units = None
 
     dset = h5f.get('data')
     if dset == None:
