@@ -675,6 +675,8 @@ def _load_meshVariable(self, filename, interpolate=False):
         sca = sys.modules["unsupported.geodynamics.scaling"]
         u = sca.u
         units = u.parse_expression(units)
+        if units.units == "degC":
+            units = u.delta_degC
     else:
         units = None
 
