@@ -82,15 +82,6 @@ class Model(Material):
                                   velocityField=self.velocityField,
                                   order=2)
 
-        # Add Common Swarm Variables
-        self.materialField = self.swarm.add_variable(dataType="int", count=1)
-        self.plasticStrain = self.swarm.add_variable(dataType="double", count=1)
-        self.viscosityField = self.swarm.add_variable(dataType="double", count=1)
-        self.densityField = self.swarm.add_variable(dataType="double", count=1)
-        self.plasticStrain.data[...] = 0.0
-        self.viscosityField.data[...] = 0.
-        self.densityField.data[...] = 0.
- 
         self.materials = []
         self._defaultMaterial = 0
 
@@ -119,6 +110,31 @@ class Model(Material):
 
         self.pressSmoother = PressureSmoother(self.mesh, self.pressureField)
         self.surfaceProcesses = None
+        
+        self.nonLinearTolerance = 1.0e-2
+
+        # Passive Tracers
+        self.passiveTracers = []
+
+        # Plots
+        self.plot = Plots(self)
+
+        # Visugrid
+        self._visugrid = None
+        
+        self._initialize()
+
+    def _initialize(self):
+
+        # Add Common Swarm Variables
+        self.materialField = self.swarm.add_variable(dataType="int", count=1)
+        self.plasticStrain = self.swarm.add_variable(dataType="double", count=1)
+        self.viscosityField = self.swarm.add_variable(dataType="double", count=1)
+        self.densityField = self.swarm.add_variable(dataType="double", count=1)
+        self.plasticStrain.data[...] = 0.0
+        self.viscosityField.data[...] = 0.
+        self.densityField.data[...] = 0.
+ 
 
         # Create a bunch of tools to project swarmVariable onto the mesh
         self._projMaterialField  = uw.mesh.MeshVariable( mesh=self.mesh,nodeDofCount=1)
@@ -138,16 +154,6 @@ class Model(Material):
         self._projDensityField = uw.mesh.MeshVariable(mesh=self.mesh, nodeDofCount=1)
         self._densityFieldProjector = uw.utils.MeshVariable_Projection(self._projDensityField, self.densityField, type=0)
 
-        self.nonLinearTolerance = 1.0e-2
-
-        # Passive Tracers
-        self.passiveTracers = []
-
-        # Plots
-        self.plot = Plots(self)
-
-        # Visugrid
-        self._visugrid = None
 
     @property
     def outputDir(self):
@@ -160,13 +166,16 @@ class Model(Material):
             step = max([int(os.path.splitext(file)[0].split("-")[-1]) 
                         for file in os.listdir(restartDir) if "-" in file])
 
+
         self.checkpointID = step
         self.mesh.load(os.path.join(restartDir, "mesh.h5"))
-        #self.swarm.load(os.path.join(restartDir, 'swarm-%s.h5' % step))
-        #self.materialField.load(os.path.join(restartDir, "material-%s.h5" % step))
+        self.swarm = uw.swarm.Swarm(mesh=self.mesh, particleEscape=True)
+        self.swarm.load(os.path.join(restartDir, 'swarm-%s.h5' % step))
+        self._initialize()
+        self.materialField.load(os.path.join(restartDir, "material-%s.h5" % step))
         self.temperature.load(os.path.join(restartDir, 'temperature-%s.h5' % step))
         self.pressureField.load(os.path.join(restartDir, 'pressureField-%s.h5' % step))
-        #self.plasticStrain.load(os.path.join(restartDir, 'pstrain-%s.h5' % step))
+        self.plasticStrain.load(os.path.join(restartDir, 'pstrain-%s.h5' % step))
         self.velocityField.load(os.path.join(restartDir, 'velocityField-%s.h5' % step))
 
     @property
@@ -678,6 +687,7 @@ class Model(Material):
         if self.temperature:
             self.save_temperature(self.checkpointID)
         self.save_material(self.checkpointID)
+        self.save_plasticStrain(self.checkpointID)
 
     def add_passive_tracers(self, name=None, vertices=None, particleEscape=True):
         self.passiveTracers.append(PassiveTracers(self.mesh,
