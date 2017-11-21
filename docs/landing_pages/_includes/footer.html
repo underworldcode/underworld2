@@ -1,0 +1,14 @@
+  <footer>
+    <span class="small"> Contact {{site.owner.name}}:
+		        {% for link in site.owner.contact_list %}
+				<br>
+                &nbsp;&nbsp;
+                <a href="{{ link.url }}" {% if link.url contains 'http' %}target="_blank"{% endif %}>
+                        {{ link.description }}</a>
+
+				{% endfor %}
+ </footer>
+  </div>
+  <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
+  </body>
+</html>
