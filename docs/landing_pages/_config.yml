@@ -1,0 +1,71 @@
+# Site wide configuration
+
+# Title for every page
+
+title: Underworld 
+
+# mathjax: false # Turn off if you really want to !
+
+logo: /files/landing_pages/_site/Content/Logo.png
+logo_size: 200px
+
+# Navigation links for the yellow banner (v. short names are a good idea)
+
+# Note: the links need to work within the 'jupyter notebook' filesystem which
+#       is a little different from the arrangements of the files on disk
+#       /files/X.yyy points to _site/X.yyy
+#       /notebooks/NBk/X.ipynb points to _site/NBk/X.ipynb but assumes the file is a runnable notebook
+#       /edit/dir/X.yyy brings up the file _site/dir/X.yyy in the text editor
+
+
+##
+## Replace the DIY with a navigation/Index page ...
+##
+
+navigation:
+    - url:  /files/landing_pages/_site/Content/Map.html
+      name: INDEX
+
+    - url:  /notebooks/user_guide/
+      name: User Guide
+
+    - url:  /notebooks/examples/
+      name: Examples
+
+    - url: http://underworld2.readthedocs.io/
+      name: Developer Docs
+
+    - url:  /terminals/1
+      name: Terminal
+
+
+# Site owner / contact person
+
+owner:
+  name: "Underworld Team"
+
+  # This list populates the page footer
+  contact_list:
+
+      - url: mailto:help@www.underworldcode.org
+        description: email
+
+      - url: http://www.underworldcode.org
+        description: www.underworldcode.org
+
+      - url: https://twitter.com/underworldcode
+        description: "twitter"
+
+      - url: https://www.facebook.com/underworldcode
+        description: facebook
+
+
+
+include: [".htaccess", "_assets"]
+
+# Things that should not be routinely copied to the live Site
+
+# Note, the notebooks are better symlinked so we have the option to commit edits to the repo and they should not be
+# over-written if something else changes in the system.
+
+exclude: ["lib", "config.rb", "Capfile", "config", "log", "Rakefile", "Rakefile.rb", "tmp", "less", "*.sublime-project", "*.sublime-workspace", "test", "spec", "Gruntfile.js", "package.json", "node_modules", "Gemfile", "Gemfile.lock", "LICENSE", "README.md", ".Procfile", "Dockerfile" ]

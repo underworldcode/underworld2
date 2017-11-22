@@ -1,0 +1,257 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>
+         Underworld  | 
+         How to Write Content 
+    </title>
+    <link rel="stylesheet" href="/files/landing_pages/_site/_assets/stylesheets/styles.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="/files/landing_pages/_site/_assets/javascripts/main.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+    
+        <script type="text/x-mathjax-config">
+            MathJax.Hub.Config({
+                TeX: { equationNumbers: { autoNumber: "AMS" } }
+            });
+        </script>
+        <script type="text/javascript"
+            src="src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+        </script>
+    
+
+  </head>
+  <body>
+
+  <header>
+    <a href="">
+      <h1> Underworld  </h1>
+      <p>  How to Write Content  </p>
+    </a>
+     <img src=/files/landing_pages/_site/Content/Logo.png style="width:200px; position:absolute; top: 5px; right:5px; box-shadow: 2px 2px 3px #666;" > 
+  </header>
+
+
+  <div id="banner">
+  <div class="banner-inner">
+ <!--    <span id="logo">
+            <span class="octicon octicon-mark-github">
+            </span>
+        </span>
+ -->
+   <a href="index.html" class="button fork"><strong>Home</strong></a>
+      <div class="downloads">
+      
+          <!--<span> Links:</span> -->
+          
+          <ul>
+            <li><a href="/files/landing_pages/_site/Content/Map.html" class="button"
+                         >
+                         INDEX </a></li>
+          </ul>
+          
+          <ul>
+            <li><a href="/notebooks/user_guide/" class="button"
+                          target="_self" >
+                         User Guide </a></li>
+          </ul>
+          
+          <ul>
+            <li><a href="/notebooks/examples/" class="button"
+                          target="_self" >
+                         Examples </a></li>
+          </ul>
+          
+          <ul>
+            <li><a href="http://underworld2.readthedocs.io/" class="button"
+                          target="_self" >
+                         Developer Docs </a></li>
+          </ul>
+          
+          <ul>
+            <li><a href="/terminals/1" class="button"
+                          target="_self" >
+                         Terminal </a></li>
+          </ul>
+          
+      
+    </div>
+  </div>
+</div>
+
+
+  <div class="wrapper">
+
+    <nav>
+  <ul></ul>
+</nav>
+
+
+  <section>
+
+    <p><em>The content of the web pages that are used for documentation is built from markdown using <code class="highlighter-rouge">jekyll</code> - a choice we make because it is can be deployed automatically on github webpages. Markdown is also the format used to write content for notebooks. Mathematics is included as latex using simple <code class="highlighter-rouge">mathjax</code> tags but this does require a live internet connection</em></p>
+
+<h1 id="overview">Overview</h1>
+
+<p>Standard <code class="highlighter-rouge">markdown</code> will be converted to <code class="highlighter-rouge">html</code> via <code class="highlighter-rouge">jekyll</code>. Additional formatting occurs through the use of <code class="highlighter-rouge">liquid</code> tags (for example to highlight code). These are parsed at the build stage. If you want to change the formatting of the website then it will be necessary to understand how this works in detail. Otherwise, the following examples should be enough !</p>
+
+<h1 id="some-example-content">Some example content</h1>
+
+<p>The usual <a href="https://daringfireball.net/projects/markdown/basics">markdown formatting styles</a> work: <em>emphasis</em>, <strong>bold</strong> etc.</p>
+
+<p>Lists are simple</p>
+
+<ul>
+  <li>they can include <a href="www.google.com">links</a></li>
+  <li>inline <code class="highlighter-rouge">code</code></li>
+  <li>or even mathematical symbols / equations: \( e^{i\pi} + 1 = 0 \)</li>
+</ul>
+
+<p>Numbered lists</p>
+
+<ol>
+  <li>with <a href="www.google.com">the other sort of links</a></li>
+  <li>or formatted with <code class="highlighter-rouge">html</code> tags <i>like this</i></li>
+</ol>
+
+<p>The source code for the above section is:</p>
+
+<figure class="highlight"><pre><code class="language-markdown" data-lang="markdown">The usual <span class="p">[</span><span class="nv">markdown formatting styles</span><span class="p">](</span><span class="sx">https://daringfireball.net/projects/markdown/basics</span><span class="p">)</span>
+work: _emphasis_, <span class="gs">**bold**</span> etc.
+
+Lists are simple
+<span class="p">
+   *</span> they can include <span class="p">[</span><span class="nv">links</span><span class="p">](</span><span class="sx">www.google.com</span><span class="p">)</span>
+<span class="p">   *</span> inline <span class="sb">`code`</span>
+<span class="p">   *</span> or even mathematical symbols / equations: <span class="se">\\</span>( e^{i<span class="se">\p</span>i} + 1 = 0 <span class="se">\\</span>)
+
+Numbered lists
+<span class="p">
+   1.</span> with <span class="p">[</span><span class="nv">the other sort of links</span><span class="p">][</span><span class="ss">RefLink</span><span class="p">]</span>
+<span class="p">   1.</span> or formatted with <span class="sb">`html`</span> tags <span class="nt">&lt;i&gt;</span>like this<span class="nt">&lt;/i&gt;</span>
+
+<span class="p">[</span><span class="ss">Reflink</span><span class="p">]:</span> <span class="sx">www.google.com</span>  </code></pre></figure>
+
+<h1 id="mathematics">Mathematics</h1>
+
+<p>We can also include mathematics because the <a href="http://mathjax.readthedocs.org/en/latest/">mathjax</a> scripts have already been included in the headers of all the web pages (and are also enabled by default in the notebook markdown cells).</p>
+
+<p>Inline mathematics works by using <code class="highlighter-rouge">\\(</code> and <code class="highlighter-rouge">\\)</code> symbols (the escaped version of what would normally be used in \( \LaTeX \) ). Display equations use <code class="highlighter-rouge">\\[</code> and <code class="highlighter-rouge">\\]</code> but it is also possible to use <code class="highlighter-rouge">\begin{equation}</code> and <code class="highlighter-rouge">\end{equation}</code> (which also allows you to use equation numbers) and other environments.</p>
+
+<p>\[ A = \pi r ^ 2 \]</p>
+
+<p>\begin{equation}
+    A = \pi r ^ 2  \label{eq:area-of-a-circle}
+\end{equation}</p>
+
+<p>The latter form also allows us to create references to any equation (e.g. equation \( \ref{eq:area-of-a-circle} \) ) in the current <em>page</em> context.</p>
+
+<p>The above paragraphs are rendered from:</p>
+
+<figure class="highlight"><pre><code class="language-markdown" data-lang="markdown">Inline mathematics works by using <span class="sb">`\\(`</span> and <span class="sb">`\\)`</span> symbols
+(the escaped version of what would normally be used in <span class="se">\\</span>( <span class="se">\L</span>aTeX <span class="se">\\</span>) ).
+Display equations use <span class="sb">`\\[`</span> and <span class="sb">`\\]`</span> but it is also possible to use
+<span class="sb">`\begin{equation}`</span> and <span class="sb">`\end{equation}`</span> (which also allows you to use equation numbers)
+and other environments.
+
+<span class="se">\\</span><span class="p">[</span><span class="nv"> A = \pi r ^ 2 \\</span><span class="p">]</span>
+
+<span class="se">\b</span>egin{equation}
+    A = <span class="se">\p</span>i r ^ 2  <span class="se">\l</span>abel{eq:area-of-a-circle}
+<span class="se">\e</span>nd{equation}
+
+The latter form also allows us to create references to any equation
+(e.g. equation <span class="se">\\</span>( <span class="se">\r</span>ef{eq:area-of-a-circle} <span class="se">\\</span>) )
+in the current _page_ context.</code></pre></figure>
+
+<p>Mathjax is pretty smart but it does not get to see the web pages until they have been rendered by <code class="highlighter-rouge">jekyll</code> and so sometimes things can go wrong. Equations which contain <code class="highlighter-rouge">_</code> and <code class="highlighter-rouge">*</code> need to use extra whitespace to avoid being interpreted as emphasis marks. Use <code class="highlighter-rouge">\nonumber</code> instead of using the <code class="highlighter-rouge">*</code> form of mathematical environments. Things work surprisingly well but not every time !</p>
+
+<h1 id="code-highlighting">Code highlighting</h1>
+
+<p>The <code class="highlighter-rouge">jekyll</code> system renders code blocks which have been suitably tagged with <code class="highlighter-rouge">liquid</code>
+markup. For example:</p>
+
+<figure class="highlight"><pre><code class="language-liquid" data-lang="liquid">{ % highlight latex % }
+% Navier Stokes equation
+\frac{\partial {\bf u}}{\partial t}  +
+\left( {\bf u}. \nabla  \right) {\bf u}   =
+-\frac{1}{\rho } \nabla p  +  \textbf{F}  + \nu \nabla ^ 2 {\bf u}
+{ % endhighlight % }</code></pre></figure>
+
+<p>produces</p>
+
+<figure class="highlight"><pre><code class="language-latex" data-lang="latex"><span class="c">% Navier Stokes equation</span>
+<span class="k">\frac</span><span class="p">{</span><span class="k">\partial</span> <span class="p">{</span><span class="k">\bf</span> u<span class="p">}}{</span><span class="k">\partial</span> t<span class="p">}</span>  +
+<span class="k">\left</span>( <span class="p">{</span><span class="k">\bf</span> u<span class="p">}</span>. <span class="k">\nabla</span>  <span class="k">\right</span>) <span class="p">{</span><span class="k">\bf</span> u<span class="p">}</span>   =
+-<span class="k">\frac</span><span class="p">{</span>1<span class="p">}{</span><span class="k">\rho</span> <span class="p">}</span> <span class="k">\nabla</span> p  +  <span class="k">\textbf</span><span class="p">{</span>F<span class="p">}</span>  + <span class="k">\nu</span> <span class="k">\nabla</span> <span class="p">^</span> 2 <span class="p">{</span><span class="k">\bf</span> u<span class="p">}</span></code></pre></figure>
+
+<p>aka</p>
+
+<p>\[
+\frac{\partial {\bf u}}{\partial t}  +
+\left( {\bf u}. \nabla  \right) {\bf u}   =
+-\frac{1}{\rho } \nabla p  +  \textbf{F}  + \nu \nabla ^ 2 {\bf u}
+\]</p>
+
+<p>The list of ‘known’ languages (and the tags to use to identify them) are found <a href="https://github.com/jneen/rouge/wiki/List-of-supported-languages-and-lexers">here</a></p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="c"># Import the underworld system</span>
+<span class="kn">import</span> <span class="nn">underworld</span> <span class="k">as</span> <span class="n">uw</span>
+
+<span class="c"># Take a look at the documentation</span>
+<span class="n">help</span><span class="p">(</span><span class="n">uw</span><span class="p">)</span>
+
+<span class="c"># Write some code</span>
+<span class="k">print</span> <span class="s">"Hello Underworld"</span></code></pre></figure>
+
+<h1 id="some-further-reading">Some further reading</h1>
+
+<h3 id="links">Links</h3>
+
+<p><a href="http://daringfireball.net/projects/markdown/">Markdown Website</a><br />
+<a href="http://docs.mathjax.org">Mathjax Website</a><br />
+<a href="http://www.jupyter.org">Jupyter Notebooks</a></p>
+
+
+    </section>
+
+
+  <footer>
+    <span class="small"> Contact Underworld Team:
+		        
+				<br>
+                &nbsp;&nbsp;
+                <a href="mailto:help@www.underworldcode.org" >
+                        email</a>
+
+				
+				<br>
+                &nbsp;&nbsp;
+                <a href="http://www.underworldcode.org" target="_blank">
+                        www.underworldcode.org</a>
+
+				
+				<br>
+                &nbsp;&nbsp;
+                <a href="https://twitter.com/underworldcode" target="_blank">
+                        twitter</a>
+
+				
+				<br>
+                &nbsp;&nbsp;
+                <a href="https://www.facebook.com/underworldcode" target="_blank">
+                        facebook</a>
+
+				
+ </footer>
+  </div>
+  <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
+  </body>
+</html>
+

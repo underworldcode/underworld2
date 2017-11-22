@@ -1,0 +1,174 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>
+         Underworld  | 
+         Introduction 
+    </title>
+    <link rel="stylesheet" href="/files/landing_pages/_site/_assets/stylesheets/styles.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="/files/landing_pages/_site/_assets/javascripts/main.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+    
+        <script type="text/x-mathjax-config">
+            MathJax.Hub.Config({
+                TeX: { equationNumbers: { autoNumber: "AMS" } }
+            });
+        </script>
+        <script type="text/javascript"
+            src="src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+        </script>
+    
+
+  </head>
+  <body>
+
+  <header>
+    <a href="">
+      <h1> Underworld  </h1>
+      <p>  Introduction  </p>
+    </a>
+     <img src=/files/landing_pages/_site/Content/Logo.png style="width:200px; position:absolute; top: 5px; right:5px; box-shadow: 2px 2px 3px #666;" > 
+  </header>
+
+
+  <div id="banner">
+  <div class="banner-inner">
+ <!--    <span id="logo">
+            <span class="octicon octicon-mark-github">
+            </span>
+        </span>
+ -->
+   <a href="index.html" class="button fork"><strong>Home</strong></a>
+      <div class="downloads">
+      
+          <!--<span> Links:</span> -->
+          
+          <ul>
+            <li><a href="/files/landing_pages/_site/Content/Map.html" class="button"
+                         >
+                         INDEX </a></li>
+          </ul>
+          
+          <ul>
+            <li><a href="/notebooks/user_guide/" class="button"
+                          target="_self" >
+                         User Guide </a></li>
+          </ul>
+          
+          <ul>
+            <li><a href="/notebooks/examples/" class="button"
+                          target="_self" >
+                         Examples </a></li>
+          </ul>
+          
+          <ul>
+            <li><a href="http://underworld2.readthedocs.io/" class="button"
+                          target="_self" >
+                         Developer Docs </a></li>
+          </ul>
+          
+          <ul>
+            <li><a href="/terminals/1" class="button"
+                          target="_self" >
+                         Terminal </a></li>
+          </ul>
+          
+      
+    </div>
+  </div>
+</div>
+
+
+  <div class="wrapper">
+
+    <nav>
+  <ul></ul>
+</nav>
+
+
+  <section>
+
+    <p><em>This is a collection of tools to set up a web server in a docker container that mixes static html content and dynamic “literate-programming” content via jupyter notebooks.</em></p>
+
+<h1 id="introduction">Introduction</h1>
+
+<p><a href="www.jupyter.org">Jupyter</a> notebooks blend well-formatted documentation with executable programming content. Notebooks not only provide a development environment for exploring new algorithms and implementation, they are an excellent way to introduce new software concepts through live demonstrations and example code.</p>
+
+<p><a href="www.docker.com">Docker</a> is a mechanism for deploying complex software stacks as lightweight “apps” and managing  software dependencies in a consistent, reproducible manner. Docker guarantees the user experience will be identical to that shipped by the developer and eliminates installation inconsistencies.</p>
+
+<p>These characteristics of Docker allow us to create complex software bundles and focus on the explanation of how they work, demonstrate the in-built algorithms, and provide tutorials that can be reused on new problems. We think this opens many doors for teaching basic computational methods as well as documenting technical software.</p>
+
+<p>Under Windows and Macintosh, you can use the <a href="https://kitematic.com">Kitematic gui</a> to locate, download and run docker images. I’m assuming this is how you are viewing this content as the gui / plug-and-play aspect of docker and kitematic is the whole point !</p>
+
+<h1 id="what-have-we-here-">What have we here ?</h1>
+
+<p>This is a demonstration of how to bundle python software into a Docker image and provide a simple user interface in the form of a static website and live jupyter notebooks.</p>
+
+<p>The web pages are built from a simple script that converts a small collection of markdown files (which is also used in the notebooks to format content) into web pages via templates. These templates make it easier to modify the content without damaging the pieces that interact with the <code class="highlighter-rouge">jupyter notebook</code> server.</p>
+
+<p>It should be possible to navigate freely between the web content and the live notebooks. In case you get lost in the notebooks, you can return to <a href="/">this page</a> from the Jupyter logo.</p>
+
+<p>The links in the Navigation bar will take you to</p>
+
+<ul>
+  <li><a href="/files/landing_pages/_site/Content/index.html">Home</a> - this page</li>
+  <li><a href="/fileslanding_pages/_site/Content/Map.html">Index</a> - a list of pages / facilities</li>
+  <li><a href="/notebooks/Content/Notebooks/StartHere.ipynb">Notebooks</a> - a sample notebook (can be linked to other notebooks)</li>
+  <li><a href="/Content/Notebooks">Jupyter</a> - the file browser and editor</li>
+  <li><a href="/terminals/1">Terminal</a> - a terminal running on the backend machine</li>
+</ul>
+
+<h1 id="what-is-this-for-">What is this for ?</h1>
+
+<p>You can <a href="https://github.com/lmoresi/docker-website-notebooks#fork-destination-box">fork this project on github</a> and use it to build your own docker image. I think you can use this template to make live manuals and courses for interactive content - especially when you need to control the installation and ensure a uniform environment for your users. In the classroom, perhaps, where you only need to install docker itself and then you can be sure your students will all see the same thing !</p>
+
+<p>Another use for this project is as a mechanism for distributing code for review, snapshot a version of your code to distribute as part of a publication, or for the purposes of benchmarking.</p>
+
+<h1 id="getting-help">Getting help</h1>
+
+<p>I can’t promise much help, but you can <a href="mailto:louis.moresi@unimelb.edu.au">contact me by email</a></p>
+
+
+    </section>
+
+
+  <footer>
+    <span class="small"> Contact Underworld Team:
+		        
+				<br>
+                &nbsp;&nbsp;
+                <a href="mailto:help@www.underworldcode.org" >
+                        email</a>
+
+				
+				<br>
+                &nbsp;&nbsp;
+                <a href="http://www.underworldcode.org" target="_blank">
+                        www.underworldcode.org</a>
+
+				
+				<br>
+                &nbsp;&nbsp;
+                <a href="https://twitter.com/underworldcode" target="_blank">
+                        twitter</a>
+
+				
+				<br>
+                &nbsp;&nbsp;
+                <a href="https://www.facebook.com/underworldcode" target="_blank">
+                        facebook</a>
+
+				
+ </footer>
+  </div>
+  <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
+  </body>
+</html>
+

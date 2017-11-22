@@ -1,7 +1,7 @@
 Underworld 2 API Documentation
 ==============================
 
-API documentation is available at: 
+API documentation is available at:
 
 http://underworld2.readthedocs.io/
 

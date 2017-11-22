@@ -1,0 +1,192 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>
+         Underworld  | 
+         Instructions - how to add your own content 
+    </title>
+    <link rel="stylesheet" href="/files/landing_pages/_site/_assets/stylesheets/styles.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="/files/landing_pages/_site/_assets/javascripts/main.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+    
+        <script type="text/x-mathjax-config">
+            MathJax.Hub.Config({
+                TeX: { equationNumbers: { autoNumber: "AMS" } }
+            });
+        </script>
+        <script type="text/javascript"
+            src="src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+        </script>
+    
+
+  </head>
+  <body>
+
+  <header>
+    <a href="">
+      <h1> Underworld  </h1>
+      <p>  Instructions - how to add your own content  </p>
+    </a>
+     <img src=/files/landing_pages/_site/Content/Logo.png style="width:200px; position:absolute; top: 5px; right:5px; box-shadow: 2px 2px 3px #666;" > 
+  </header>
+
+
+  <div id="banner">
+  <div class="banner-inner">
+ <!--    <span id="logo">
+            <span class="octicon octicon-mark-github">
+            </span>
+        </span>
+ -->
+   <a href="index.html" class="button fork"><strong>Home</strong></a>
+      <div class="downloads">
+      
+          <!--<span> Links:</span> -->
+          
+          <ul>
+            <li><a href="/files/landing_pages/_site/Content/Map.html" class="button"
+                         >
+                         INDEX </a></li>
+          </ul>
+          
+          <ul>
+            <li><a href="/notebooks/user_guide/" class="button"
+                          target="_self" >
+                         User Guide </a></li>
+          </ul>
+          
+          <ul>
+            <li><a href="/notebooks/examples/" class="button"
+                          target="_self" >
+                         Examples </a></li>
+          </ul>
+          
+          <ul>
+            <li><a href="http://underworld2.readthedocs.io/" class="button"
+                          target="_self" >
+                         Developer Docs </a></li>
+          </ul>
+          
+          <ul>
+            <li><a href="/terminals/1" class="button"
+                          target="_self" >
+                         Terminal </a></li>
+          </ul>
+          
+      
+    </div>
+  </div>
+</div>
+
+
+  <div class="wrapper">
+
+    <nav>
+  <ul></ul>
+</nav>
+
+
+  <section>
+
+    <p><em>This is the non-trivial part of the instruction manual … using this template to make your content available to other people</em></p>
+
+<h1 id="getting-started">Getting started</h1>
+
+<p>Ultimately you probably want to <a href="https://github.com/lmoresi/docker-website-notebooks">fork this project</a>, build a new docker image with your own software stack, and replace my content with something more relevant. The <a href="https://www.docker.com/products/docker-toolbox">docker website</a> has many tutorials on learning how to become fluent with images / containers and you will have to visit there to grab a copy of the docker binaries.</p>
+
+<p>As a first step, though, you can use the docker VOLUMEs to over-ride my content and also to capture the results of rebuilding the site and editing notebooks.</p>
+
+<p>When the container is running (in kitematic) it looks like this:</p>
+<figure>
+<img src="/files/Content/KitematicRunningThisContent.png" />
+</figure>
+
+<p>Clicking on the preview brings up the web content in the default browser (by default <em>this content</em> !).</p>
+
+<p>The volumes within the container that can be used to exchange data are listed below the preview. You can connect both these to local directories in the settings and use the running container to test / build / debug your content. I will leave you to figure out how to do that from the Kitematic documentation !</p>
+
+<p>You can start by pointing the <code class="highlighter-rouge">/demonstration/Content</code> VOLUME at a local copy of the original content grabbed from github.</p>
+
+<h1 id="background">Background</h1>
+
+<p>We use the <a href="www.jupyter.org">jupyter</a> notebook system as the webserver. This is necessary because we want to mix live content with static content but docker means we don’t really know our IP address or port - we have to make links entirely within the one server. This is not a big deal but does constrain how we structure the website and links.</p>
+
+<p>The site is built using <a href="http://jekyllrb.com">jekyll</a> which combines a pile of markdown files plus stylesheets and produces an elegant, entirely static website. Jekyll is deployed by github to make websites from repositories that they host (and I use this for <a href="http://www.moresi.info">www.moresi.info</a>). The plus side is that you need only think about markdown and not stylesheets but, of course there is a layer of additional logic and more to learn.</p>
+
+<h1 id="my-content-">My Content !</h1>
+
+<p>Jekyll will take any markdown files it finds in the <code class="highlighter-rouge">/demonstration/Content</code> directory and render them into html files in the <code class="highlighter-rouge">/demonstration/_site/Content</code> directory. There must be some metadata provided at the top of these files (as in the examples). There is more data in the <code class="highlighter-rouge">_config.yml</code> file which is used to set paths, choose links for the navigation buttons, choose a logo image etc etc. Learn from the examples and don’t change anything until it is obvious what it does ! Any file or directory that starts with a <code class="highlighter-rouge">_</code> is either special or ignored by jekyll. Once you figure out how to change those files, you won’t need to use this project at all !</p>
+
+<p>There must be an <code class="highlighter-rouge">index.md</code> file which will be the landing page for the website and the target of the <strong>Home</strong> button.
+There can be any number of other pages. If you want to make links to those pages from the notebooks or from the jekyll markdown files, then you need to make those links point to the html version of the file. For example, if you create a file  <code class="highlighter-rouge">/demonstration/Content/MyFiles/test.md</code> then you can write a link to this in markdown as <code class="highlighter-rouge">[my test file](/files/Content/MyFiles/test.html)</code>.</p>
+
+<p>The jupyter notebook server makes a distinction between files which are linked as <code class="highlighter-rouge">/files/Content</code> which are rendered directly by the webserver, and files which are linked <code class="highlighter-rouge">/notebooks/Content</code> which are rendered by the live notebook system. If the file is actually a notebook, then it is obvious why you should link <code class="highlighter-rouge">/notebooks/file.ipynb</code> but if it is an html file, for example, then <code class="highlighter-rouge">files/file.html</code> will show you a preview whereas <code class="highlighter-rouge">/notebooks/file.html</code> will open the source in an editor.</p>
+
+<h2 id="how-to-build-it">How to build it</h2>
+
+<p>The repository contains all the scripts and style information to build a website from the content which it finds in the <code class="highlighter-rouge">Content</code> directory (actually <code class="highlighter-rouge">/demonstration/Content</code>). All the directories with names that start with <code class="highlighter-rouge">_</code> are part of that magic. To build the website run this command in the container’s command line (in Kitematic, the execute button will start a shell for you)</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nv">$ </span>_scripts/docker-site-builder   <span class="c">#_ scripts are executable  </span></code></pre></figure>
+
+<p>You will need to view that site using the jupyter notebooks rather than a standard server or directly from the filesystem as the paths are only valid within that environment.</p>
+
+<h2 id="where-to-put-it">Where to put it</h2>
+
+<p>All of the material that creates the web pages and notebooks should live in the <code class="highlighter-rouge">Content</code> directory.</p>
+
+<p>Paths are mapped from the <code class="highlighter-rouge">Content</code> directory to the <code class="highlighter-rouge">_site</code> directory in an obvious way  (this can be subverted if you add <code class="highlighter-rouge">permalink</code> metadata to a file) which means that links can be written in a predictable manner.</p>
+
+<p>Notebooks live in <code class="highlighter-rouge">Content/Notebooks</code> so that, by default, the navigation bar knows where to find them.</p>
+
+<h1 id="the-dockerfile">The Dockerfile</h1>
+
+<p>The unix environment you are working in depends on the setup of your Docker machine. This is determined from the <code class="highlighter-rouge">Dockerfile</code> in the home directory. The <code class="highlighter-rouge">FROM</code> command at the start of this file is the base image that is downloaded as the starting point. This contains all the dependencies you need to run live demonstrations (including the notebooks server, the jekyll system and so on).</p>
+
+<p>The Dockerfile in this repository builds upon the python installation and adds the web-building tools and the content.</p>
+
+<p>You will need to customise this !</p>
+
+
+    </section>
+
+
+  <footer>
+    <span class="small"> Contact Underworld Team:
+		        
+				<br>
+                &nbsp;&nbsp;
+                <a href="mailto:help@www.underworldcode.org" >
+                        email</a>
+
+				
+				<br>
+                &nbsp;&nbsp;
+                <a href="http://www.underworldcode.org" target="_blank">
+                        www.underworldcode.org</a>
+
+				
+				<br>
+                &nbsp;&nbsp;
+                <a href="https://twitter.com/underworldcode" target="_blank">
+                        twitter</a>
+
+				
+				<br>
+                &nbsp;&nbsp;
+                <a href="https://www.facebook.com/underworldcode" target="_blank">
+                        facebook</a>
+
+				
+ </footer>
+  </div>
+  <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
+  </body>
+</html>
+
