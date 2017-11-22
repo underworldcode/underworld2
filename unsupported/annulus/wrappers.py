@@ -398,7 +398,7 @@ class Swarm(uw.swarm.Swarm):
             dof_count = var.count
             x_0 = "{} {}".format(gc, dof_count)
             lazy = {'NumberType':'Float', 'Precision':'8'}
-            
+
             if dof_count == 1:
                 x_type = 'Scalar'
                 d_attrib = {'Type':x_type, 'Center':'Node', 'Name':name}
@@ -522,16 +522,16 @@ class AnnulusConvection(Model):
     Build a thermo mechanical model with Q1/dQ0 elements in a 2D annulus geometry
     '''
 
-    def __init__(self, elRes=(10,36), radialLengths=(1.22,2.22), withSwarm=None, **kwargs):
+    def __init__(self, elRes=(10,36), radialLengths=(1.22,2.22), swarmVars=None, **kwargs):
 
-        # idea todo:
-        #  withSwarm is a dictionary of variable names and (optional) hdf5 files where the info can be loaded.
-        #  Eg, withSwarm={'plasticStrain':'foo/bar/pStrain.h5', 'pressure':-1}, where None would indicate the user will initialise
+        # swarmVars can be a dictionary of swarm Variables as below, or a path to a previous swarm checkpoint file
+        #  swarmVars is a dictionary of variable names and (optional) hdf5 files where the info can be loaded.
+        #  Eg, withSwarm={'plasticStrain':('double',3), 'materialId':('int',1)}, where None would indicate the user will initialise
 
         super(AnnulusConvection, self).__init__(**kwargs)
 
         # Because we must build the mesh first, before the fields, this wrapper is difficult to seperate into
-        # a straight themo-mechanical wrapper for any geometry
+        # a straight themo-mechanical wrapper for any mesh discretisation
 
         # create the FEM mesh
         self.mesh = annulus = uw.mesh._FeMesh_Annulus(elementRes=elRes,
@@ -601,73 +601,16 @@ class AnnulusConvection(Model):
         self.view.append(glucifer.objects.VectorArrows(mesh=annulus, fn=self.fields['velocity'],
                                                   onMesh=True, name='velocity'))
 
-        # Swarm Definition - optional
-        if isinstance(withSwarm, dict):
-            self.swarm = annulus.Swarm(mesh=self.mesh, particlesPerCell=20, particleEscape=True)
-            self.swarm._createSwarmVar(withSwarm)
+        # Swarm Definition - use wrapper next
+        if swarmVars is not None:
+            if isinstance(swarmVars, dict):
+                self.swarm = Swarm(mesh=self.mesh, particlesPerCell=20, particleEscape=True,
+                                    varDict = swarmVars, outputPath=self.outputPath+'/swarm/' )
+            elif isinstace(swarmVars, str):
+                swarm = annulus.Swarm(mesh=self.mesh,
+                                    loadFile=swarmVars, outputPath=self.output+'/swarm/')
             # create swarm advector class - maybe later on???
             self.swarmadvector = uw.systems.SwarmAdvector(velocityField=self.fields['velocity'], swarm=self.swarm)
-
-
-    # def _createSwarm(self, particlesPerCell=20, particleEscape=True ):
-    #     # builds and returns swarm class
-    #     mesh = self.mesh
-    #
-    #     # create swarm discretisation
-    #     swarm = uw.swarm.Swarm(mesh, particleEscape=particleEscape)
-    #     layout = uw.swarm.layouts.PerCellSpaceFillerLayout(swarm, particlesPerCell=particlesPerCell)
-    #     swarm.populate_using_layout(layout)
-    #
-    #     # create a swarm variable register
-    #     swarm.vars = dict()
-    #     swarm.vars['owningCell'] = swarm.owningCell
-    #     swarm.vars['coordiates'] = swarm.particleCoordinates
-    #
-    #     # assume self.view exists and append swarm viewer
-    #     self.view.append(glucifer.objects.Points(swarm))
-    #
-    #     return swarm
-    #
-    # def _createSwarmVar(self, swarm, varDict):
-    #     if not isinstance(varDict, dict):
-    #         raise ValueError("'varDict' must be of type dict")
-    #
-    #     registeredVars = 0
-    #     # for each entry apply the correct swarmvariable declaration
-    #     for name, value in varDict.items():
-    #         if not isinstance(name, str):
-    #             raise ValueError("Name must be 'str' type")
-    #
-    #         if swarm.vars.get(name) is not None:
-    #             # should implement the options to override in future but for now error
-    #             raise ValueError("Can't create {}. It already exists on the swarm\n".format(name))
-    #
-    #         # if plain swarm variable declaration
-    #         if isinstance(value, (list,tuple)) and len(value) == 2:
-    #             if isinstance(value[1], int) and isinstance(value[0], str):
-    #                 print "nice, creating var of type {} dofCount {}".format(value[0], value[1])
-    #                 swarm.vars[name] = swarm.add_variable(count=value[1], dataType=value[0])
-    #         # if uw.function based
-    #         elif isinstance(value, uw.function.Function):
-    #             print "Read {} as function\n".format(name)
-    #         # if reading from checkpoint file
-    #         elif isinstance(value, str):
-    #             # check if swarm var exists
-    #             if not os.path.exists(value):
-    #                 raise ValueError("Can't find path {}".format(name) )
-    #
-    #             # parse h5 file for data configuration
-    #             import h5py
-    #             from mpi4py import MPI
-    #             sFile = h5py.File(name="swarm.h5", mode='r', driver='mpio', comm=MPI.COMM_WORLD)
-    #             file_data = sFile.get('data')
-    #             shape, dtype = file_data.shape, file_data.dtype
-    #
-    #             # create the correct storage and load variable
-    #             swarm.vars[name] = swarm.add_variable( count=shape[1], dataType=dtype )
-    #             swarm.vars[name].load(filename=value)
-    #         else:
-    #             print "Can't create swarmvar named {}".format(name)
 
 
     def parameter_setup(self, Ra, Di, viscosity_mode=0, benchmark=1, eqn='BA' ):
