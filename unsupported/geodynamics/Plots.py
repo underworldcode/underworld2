@@ -71,7 +71,7 @@ class Plots(object):
             Fig.append(glucifer.objects.Surface(self.Model.mesh,
                                                self.Model.projViscosityField*fact,
                                                cullface=cullface,
-                                               logScale=True, **kwargs))
+                                               logScale=True, onMesh=True, **kwargs))
         else:
             Fig.append(glucifer.objects.Points(self.Model.swarm,
                                                fn_colour=self.Model.viscosityFn*fact,
@@ -107,7 +107,7 @@ class Plots(object):
         if projected:
             Fig.append(glucifer.objects.Surface(self.Model.mesh,
                                                self.Model.projDensityField*fact,
-                                               cullface=cullface, **kwargs))
+                                               cullface=cullface, onMesh=True, **kwargs))
 
         else:
             Fig.append(glucifer.objects.Points(self.Model.swarm,
@@ -187,7 +187,7 @@ class Plots(object):
                                                self.Model.projPlasticStrain,
                                                cullface=cullface,
                                                colours="#FF6600:0.5, #555555:0.25, Blue:0.5",
-                                               name="Strain",
+                                               name="Strain",onMesh=True,
                                                **kwargs))
         else:
             Fig.append(glucifer.objects.Points(self.Model.swarm,
