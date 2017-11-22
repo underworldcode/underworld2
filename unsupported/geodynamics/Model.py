@@ -154,7 +154,6 @@ class Model(Material):
         self._projDensityField = uw.mesh.MeshVariable(mesh=self.mesh, nodeDofCount=1)
         self._densityFieldProjector = uw.utils.MeshVariable_Projection(self._projDensityField, self.densityField, type=0)
 
-
     @property
     def outputDir(self):
         return self._outputDir
@@ -251,53 +250,17 @@ class Model(Material):
                  particlesPerCell=50
             )
 
-#    def set_temperatureBCsCopy(self, left=None, right=None, top=None, bottom=None,
-#                           indexSets=[], materials=[(None,None)]):
-#        self.temperature = uw.mesh.MeshVariable(mesh=self.mesh,
-#                                                    nodeDofCount=1)
-#        self._temperatureDot = uw.mesh.MeshVariable(mesh=self.mesh,
-#                                                    nodeDofCount=1)
-#        self.temperature.data[...] = nd(self.Tref)
-#        self._temperatureDot.data[...] = 0.
-#        
-#        indices = [self.mesh.specialSets["Empty"]]
-#        if left is not None:
-#            self.temperature.data[self.leftWall.data] = nd(left)
-#            indices[0] += self.leftWall
-#        if right is not None:
-#            self.temperature.data[self.rightWall.data] = nd(right)
-#            indices[0] += self.rightWall
-#        if top is not None:
-#            self.temperature.data[self.topWall.data] = nd(top)
-#            indices[0] += self.topWall
-#        if bottom is not None:
-#            self.temperature.data[self.bottomWall.data] = nd(bottom)
-#            indices[0] += self.bottomWall
-#
-#        for indexSet, temp in indexSets:
-#            self.temperature.data[indexSet.data] = nd(temp)
-#            indices[0] += indexSet
-#
-#        for (material, temp) in materials:
-#            if material and nd(temp):
-#                indexSet = self._get_material_indices(material)
-#                self.temperature.data[indexSet.data] = nd(temp)
-#                indices[0] += indexSet
-#
-#        self._temperatureBCs = uw.conditions.DirichletCondition(
-#                variable=self.temperature,
-#                indexSetsPerDof=indices
-#            )
-    
     def set_temperatureBCs(self, left=None, right=None, top=None, bottom=None,
                            front=None, back=None,
                            indexSets=[], materials=[(None,None)]):
-        self.temperature = uw.mesh.MeshVariable(mesh=self.mesh,
+        
+        if not self.temperature:
+            self.temperature = uw.mesh.MeshVariable(mesh=self.mesh,
                                                     nodeDofCount=1)
-        self._temperatureDot = uw.mesh.MeshVariable(mesh=self.mesh,
+            self._temperatureDot = uw.mesh.MeshVariable(mesh=self.mesh,
                                                     nodeDofCount=1)
-        self.temperature.data[...] = nd(self.Tref)
-        self._temperatureDot.data[...] = 0.
+            self.temperature.data[...] = nd(self.Tref)
+            self._temperatureDot.data[...] = 0.
         
         self.temperatureBCs = TemperatureBCs(self, left=left, right=right,
                                              top=top, bottom=bottom, 
@@ -599,7 +562,6 @@ class Model(Material):
             self.solve_lithostatic_pressureField()
         
         self.init_stokes_system()
-        
     
     def run_for(self, endTime=None, checkpoint=None, timeCheckpoints=[]):
         step = self.step
@@ -614,17 +576,14 @@ class Model(Material):
 
         if checkpoint:
             next_checkpoint = time + nd(checkpoint)
+       
+        if self.temperature:
+            self.init_advection_diffusion()
         
         self.init_stokes_system()
        
         while time < endTime:
             self.solve()
-
-            if time == next_checkpoint:
-                self.checkpointID += 1
-                self.checkpoint()
-                self.output_glucifer_figures(self.checkpointID)
-                next_checkpoint += nd(checkpoint)
 
             # Whats the longest we can run before reaching the end of the model
             # or a checkpoint?
@@ -646,6 +605,12 @@ class Model(Material):
             step += 1
             self.time += sca.Dimensionalize(self._dt, units)
             time += self._dt
+            
+            if time == next_checkpoint:
+                self.checkpointID += 1
+                self.checkpoint()
+                self.output_glucifer_figures(self.checkpointID)
+                next_checkpoint += nd(checkpoint)
 
             if checkpoint or step % 1 == 0:
                 if uw.rank() == 0:
