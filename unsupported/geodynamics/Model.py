@@ -22,7 +22,7 @@ u = UnitRegistry = sca.UnitRegistry
 class Model(Material):
     def __init__(self, elementRes, minCoord, maxCoord,
                  gravity=(0.0, -9.81 * u.meter / u.second**2),
-                 periodic=(False, False), elementType="Q1/dQ0",
+                 periodic=None, elementType="Q1/dQ0",
                  swarmLayout=None, Tref=273.15 * u.degK, name="undefined",
                  outputDir="outputs", populationControl=True, scaling=None,
                  minViscosity=1e19*u.pascal*u.second,
@@ -48,7 +48,11 @@ class Model(Material):
         self.elementRes = elementRes
         self.minCoord = minCoord
         self.maxCoord = maxCoord
-        self.periodic = periodic
+
+        if not periodic:
+            self.periodic = tuple([False for val in range(self.mesh.dim)])
+        else:
+            self.periodic = periodic
 
         minCoord = tuple([nd(val) for val in self.minCoord])
         maxCoord = tuple([nd(val) for val in self.maxCoord])
