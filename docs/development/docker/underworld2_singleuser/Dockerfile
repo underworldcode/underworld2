@@ -29,7 +29,7 @@ RUN apt-get update -qq && \
         python3-pip \
         python3-dev
 RUN pip3 install \
-        'jupyterhub==0.7.2' \
+        'jupyterhub==0.8.1' \
         jupyterlab \
         ipyparallel
 RUN npm install -g configurable-http-proxy
