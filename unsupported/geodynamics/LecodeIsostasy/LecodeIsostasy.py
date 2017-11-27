@@ -111,7 +111,7 @@ class LecodeIsostasy(object):
         if base:
             bot_ids = base.data[base.data < self.mesh.nodesLocal]
             node_gids = self.mesh.data_nodegId[bot_ids].flatten()
-            self.velocityField.data[bot_ids,1] = basal_velocities.flatten()[node_gids]
+            self.velocityField.data[bot_ids,-1] = basal_velocities.flatten()[node_gids]
     
         self.velocityField.syncronise()
 
@@ -253,8 +253,8 @@ class LecodeIsostasy(object):
             node_gids = self.mesh.data_nodegId[top_ids]
     
             # Get y-velocities at the top
-            topVelocities_nodes = self.velocityField.data[top_ids,1]
-            heights_nodes = self.mesh.data[top_ids,1]
+            topVelocities_nodes = self.velocityField.data[top_ids,-1]
+            heights_nodes = self.mesh.data[top_ids,-1]
     
             # Get an I,J representation of the node coordinates
     
@@ -283,8 +283,8 @@ class LecodeIsostasy(object):
             node_gids = self.mesh.data_nodegId[bot_ids]
     
             # Get y-velocities at the bottom
-            botVelocities_nodes = self.velocityField.data[bot_ids,1] 
-            heights_nodes = self.mesh.data[bot_ids,1]
+            botVelocities_nodes = self.velocityField.data[bot_ids,-1] 
+            heights_nodes = self.mesh.data[bot_ids,-1]
     
             # Get an I,J representation of the node coordinates
             ix = np.in1d(np.arange(self.mesh.nodesGlobal), node_gids)
