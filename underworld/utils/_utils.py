@@ -83,8 +83,6 @@ class Integral(_stgermain.StgCompoundComponent):
 
         self._maskFn = None
 
-        self._fn = uw.function.Function.convert(fn)
-
         if integrationType and integrationSwarm:
             raise RuntimeError("Either an 'integrationType' or an 'integrationSwarm' may be provided, but not both.\n"
                               +"You may need to set 'integrationType' to None.")
@@ -118,7 +116,7 @@ class Integral(_stgermain.StgCompoundComponent):
                     if not inSet:
                         raise ValueError("Your surfaceIndexSet appears to contain node(s) which do not belong to the mesh boundary. Surface integration across internal nodes is not currently supported.")
                 # create MeshVariable
-                deltaMeshVariable = uw.mesh.MeshVariable(mesh, 1)
+                deltaMeshVariable = mesh.add_variable(1)
                 # init to zero
                 deltaMeshVariable.data[:] = 0.
                 # set to 1 on provided vertices
@@ -130,7 +128,6 @@ class Integral(_stgermain.StgCompoundComponent):
                 self._maskFn = underworld.function.branching.conditional(
                                                   [  ( deltaMeshVariable > 0.999, 1. ),
                                                      (                      True, 0. )   ] )
-                self._fn = self._fn * self._maskFn
                 integrationSwarm = uw.swarm.GaussBorderIntegrationSwarm(mesh)
         else:
             if not isinstance(integrationSwarm, uw.swarm.IntegrationSwarm):
@@ -140,8 +137,11 @@ class Integral(_stgermain.StgCompoundComponent):
         self._cself.integrationSwarm = integrationSwarm._cself
         self._cself.dim = mesh.dim
 
-        # lets setup fn tings
-        libUnderworld.Underworld._Fn_Integrate_SetFn( self._cself, self._fn._fncself)
+        self.fn = fn
+
+        # incorporate the maskFn only for boundary integrals
+        if type(integrationSwarm) == uw.swarm.GaussBorderIntegrationSwarm:
+            self.fn = self.fn * self._maskFn
 
         super(Integral,self).__init__(**kwargs)
 
@@ -167,6 +167,15 @@ class Integral(_stgermain.StgCompoundComponent):
         for ii in range(0,val.size()):
             result.append(val.value(ii))
         return result
+
+    @property
+    def fn(self):
+        return self._fn
+    @fn.setter
+    def fn(self, fn):
+        self._fn = uw.function.Function.convert(fn)
+        # lets setup fn tings
+        libUnderworld.Underworld._Fn_Integrate_SetFn( self._cself, self._fn._fncself)
 
     @property
     def maskFn(self):
