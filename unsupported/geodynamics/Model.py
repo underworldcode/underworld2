@@ -27,7 +27,7 @@ class Model(Material):
                  outputDir="outputs", populationControl=True, scaling=None,
                  minViscosity=1e19*u.pascal*u.second,
                  maxViscosity=1e25*u.pascal*u.second,
-                 strainRate_default=1e-15 / u.second):
+                 strainRate_default=1e-30 / u.second):
 
         super(Model, self).__init__()
 
@@ -67,10 +67,11 @@ class Model(Material):
         self.temperature = None
         self.pressureField = uw.mesh.MeshVariable(mesh=self.mesh.subMesh, nodeDofCount=1)
         self.velocityField = uw.mesh.MeshVariable(mesh=self.mesh, nodeDofCount=self.mesh.dim)
-        self.tractionField = uw.mesh.MeshVariable(mesh=self.mesh.subMesh, nodeDofCount=1)
+        self.tractionField = uw.mesh.MeshVariable(mesh=self.mesh, nodeDofCount=self.mesh.dim)
         self.strainRateField = uw.mesh.MeshVariable(mesh=self.mesh, nodeDofCount=1)
         self.pressureField.data[...] = 0.
         self.velocityField.data[...] = 0.
+        self.tractionField.data[...] = 0.
        
         # symmetric component of the gradient of the flow velocityField.
         self.strainRate_default = strainRate_default
@@ -324,6 +325,7 @@ class Model(Material):
                                        right=right, top=top,
                                        bottom=bottom, front=front,
                                        back=back, indexSets=indexSets) 
+        return self.velocityBCs.get_conditions()
     
     @property
     def _velocityBCs(self):
