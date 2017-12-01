@@ -139,10 +139,6 @@ class Integral(_stgermain.StgCompoundComponent):
 
         self.fn = fn
 
-        # incorporate the maskFn only for boundary integrals
-        if type(integrationSwarm) == uw.swarm.GaussBorderIntegrationSwarm:
-            self.fn = self.fn * self._maskFn
-
         super(Integral,self).__init__(**kwargs)
 
     def _add_to_stg_dict(self,componentDictionary):
@@ -173,7 +169,13 @@ class Integral(_stgermain.StgCompoundComponent):
         return self._fn
     @fn.setter
     def fn(self, fn):
+        
+        # make it a safe function
         self._fn = uw.function.Function.convert(fn)
+        # incorporate the maskFn only for boundary integrals
+        if type(self._integrationSwarm) == uw.swarm.GaussBorderIntegrationSwarm:
+            self._fn = self._fn * self._maskFn
+            
         # lets setup fn tings
         libUnderworld.Underworld._Fn_Integrate_SetFn( self._cself, self._fn._fncself)
 
