@@ -181,7 +181,7 @@ that input notebooks/scripts run to completion without raising an exception.
 Continuous integration is performed via a Jenkins continuous integration system.
 
 Jenkins server address:
-http://128.250.120.238:9080
+http://130.56.252.251:32779/
 
 For further details about Jenkins testing, please refer "Guide to jenkins 
 testing" (stored within the private Underworld google documents folder).
