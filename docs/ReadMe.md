@@ -12,4 +12,4 @@ configured to run only through a jupyter notebook launched from the docs directo
 
 `bundle exec jekyll build && bundle exec compass compile && bundle exec jekyll build`
 
-jupyter notebook --NotebookApp.token='' --NotebookApp.default_url='/files/landing_pages/_site/Content/index.html'
+jupyter notebook --NotebookApp.token='' --NotebookApp.allow_origin='*' --NotebookApp.default_url='/files/landing_pages/_site/Content/index.html'

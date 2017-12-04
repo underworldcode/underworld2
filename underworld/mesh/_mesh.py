@@ -1170,6 +1170,35 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
         """
         return self._secondaryMesh
 
+    def integrate(self, fn):
+        """
+        Perform a domain integral of the given underworld function over this mesh
+
+        Parameters
+        ----------
+        mesh : uw.mesh.FeMesh_Cartesian
+            Domain to perform integral over.
+
+        Examples
+        --------
+
+        >>> mesh = uw.mesh.FeMesh_Cartesian(minCoord=(0.0,0.0), maxCoord=(1.0,2.0))
+        >>> fn_1 = uw.function.misc.constant(2.0)
+        >>> np.allclose( mesh.integrate( fn_1 )[0], 4 )
+        True
+
+        >>> fn_2 = uw.function.misc.constant(2.0) * (0.5, 1.0)
+        >>> np.allclose( mesh.integrate( fn_2 ), [2,4] )
+        True
+
+        """
+        # check if _volume_integral exist, if not then create it
+        if not hasattr(self, "_volume_integral"):
+            # define volume integral class, with dummy fn=1.0
+            self._volume_integral = uw.utils.Integral(mesh=self, fn=1.0)
+
+        self._volume_integral.fn = fn
+        return self._volume_integral.evaluate()
 
 class FeMesh_IndexSet(uw.container.ObjectifiedIndexSet, function.FunctionInput):
     """

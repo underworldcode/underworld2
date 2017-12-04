@@ -22,12 +22,12 @@ u = UnitRegistry = sca.UnitRegistry
 class Model(Material):
     def __init__(self, elementRes, minCoord, maxCoord,
                  gravity=(0.0, -9.81 * u.meter / u.second**2),
-                 periodic=(False, False), elementType="Q1/dQ0",
+                 periodic=None, elementType="Q1/dQ0",
                  swarmLayout=None, Tref=273.15 * u.degK, name="undefined",
                  outputDir="outputs", populationControl=True, scaling=None,
                  minViscosity=1e19*u.pascal*u.second,
                  maxViscosity=1e25*u.pascal*u.second,
-                 strainRate_default=1e-15 / u.second):
+                 strainRate_default=1e-30 / u.second):
 
         super(Model, self).__init__()
 
@@ -48,7 +48,11 @@ class Model(Material):
         self.elementRes = elementRes
         self.minCoord = minCoord
         self.maxCoord = maxCoord
-        self.periodic = periodic
+
+        if not periodic:
+            self.periodic = tuple([False for val in range(self.mesh.dim)])
+        else:
+            self.periodic = periodic
 
         minCoord = tuple([nd(val) for val in self.minCoord])
         maxCoord = tuple([nd(val) for val in self.maxCoord])
@@ -63,10 +67,11 @@ class Model(Material):
         self.temperature = None
         self.pressureField = uw.mesh.MeshVariable(mesh=self.mesh.subMesh, nodeDofCount=1)
         self.velocityField = uw.mesh.MeshVariable(mesh=self.mesh, nodeDofCount=self.mesh.dim)
-        self.tractionField = uw.mesh.MeshVariable(mesh=self.mesh.subMesh, nodeDofCount=1)
+        self.tractionField = uw.mesh.MeshVariable(mesh=self.mesh, nodeDofCount=self.mesh.dim)
         self.strainRateField = uw.mesh.MeshVariable(mesh=self.mesh, nodeDofCount=1)
         self.pressureField.data[...] = 0.
         self.velocityField.data[...] = 0.
+        self.tractionField.data[...] = 0.
        
         # symmetric component of the gradient of the flow velocityField.
         self.strainRate_default = strainRate_default
@@ -153,7 +158,6 @@ class Model(Material):
         
         self._projDensityField = uw.mesh.MeshVariable(mesh=self.mesh, nodeDofCount=1)
         self._densityFieldProjector = uw.utils.MeshVariable_Projection(self._projDensityField, self.densityField, type=0)
-
 
     @property
     def outputDir(self):
@@ -251,53 +255,17 @@ class Model(Material):
                  particlesPerCell=50
             )
 
-#    def set_temperatureBCsCopy(self, left=None, right=None, top=None, bottom=None,
-#                           indexSets=[], materials=[(None,None)]):
-#        self.temperature = uw.mesh.MeshVariable(mesh=self.mesh,
-#                                                    nodeDofCount=1)
-#        self._temperatureDot = uw.mesh.MeshVariable(mesh=self.mesh,
-#                                                    nodeDofCount=1)
-#        self.temperature.data[...] = nd(self.Tref)
-#        self._temperatureDot.data[...] = 0.
-#        
-#        indices = [self.mesh.specialSets["Empty"]]
-#        if left is not None:
-#            self.temperature.data[self.leftWall.data] = nd(left)
-#            indices[0] += self.leftWall
-#        if right is not None:
-#            self.temperature.data[self.rightWall.data] = nd(right)
-#            indices[0] += self.rightWall
-#        if top is not None:
-#            self.temperature.data[self.topWall.data] = nd(top)
-#            indices[0] += self.topWall
-#        if bottom is not None:
-#            self.temperature.data[self.bottomWall.data] = nd(bottom)
-#            indices[0] += self.bottomWall
-#
-#        for indexSet, temp in indexSets:
-#            self.temperature.data[indexSet.data] = nd(temp)
-#            indices[0] += indexSet
-#
-#        for (material, temp) in materials:
-#            if material and nd(temp):
-#                indexSet = self._get_material_indices(material)
-#                self.temperature.data[indexSet.data] = nd(temp)
-#                indices[0] += indexSet
-#
-#        self._temperatureBCs = uw.conditions.DirichletCondition(
-#                variable=self.temperature,
-#                indexSetsPerDof=indices
-#            )
-    
     def set_temperatureBCs(self, left=None, right=None, top=None, bottom=None,
                            front=None, back=None,
                            indexSets=[], materials=[(None,None)]):
-        self.temperature = uw.mesh.MeshVariable(mesh=self.mesh,
+        
+        if not self.temperature:
+            self.temperature = uw.mesh.MeshVariable(mesh=self.mesh,
                                                     nodeDofCount=1)
-        self._temperatureDot = uw.mesh.MeshVariable(mesh=self.mesh,
+            self._temperatureDot = uw.mesh.MeshVariable(mesh=self.mesh,
                                                     nodeDofCount=1)
-        self.temperature.data[...] = nd(self.Tref)
-        self._temperatureDot.data[...] = 0.
+            self.temperature.data[...] = nd(self.Tref)
+            self._temperatureDot.data[...] = 0.
         
         self.temperatureBCs = TemperatureBCs(self, left=left, right=right,
                                              top=top, bottom=bottom, 
@@ -357,6 +325,7 @@ class Model(Material):
                                        right=right, top=top,
                                        bottom=bottom, front=front,
                                        back=back, indexSets=indexSets) 
+        return self.velocityBCs.get_conditions()
     
     @property
     def _velocityBCs(self):
@@ -599,7 +568,6 @@ class Model(Material):
             self.solve_lithostatic_pressureField()
         
         self.init_stokes_system()
-        
     
     def run_for(self, endTime=None, checkpoint=None, timeCheckpoints=[]):
         step = self.step
@@ -614,17 +582,14 @@ class Model(Material):
 
         if checkpoint:
             next_checkpoint = time + nd(checkpoint)
+       
+        if self.temperature:
+            self.init_advection_diffusion()
         
         self.init_stokes_system()
        
         while time < endTime:
             self.solve()
-
-            if time == next_checkpoint:
-                self.checkpointID += 1
-                self.checkpoint()
-                self.output_glucifer_figures(self.checkpointID)
-                next_checkpoint += nd(checkpoint)
 
             # Whats the longest we can run before reaching the end of the model
             # or a checkpoint?
@@ -646,6 +611,12 @@ class Model(Material):
             step += 1
             self.time += sca.Dimensionalize(self._dt, units)
             time += self._dt
+            
+            if time == next_checkpoint:
+                self.checkpointID += 1
+                self.checkpoint()
+                self.output_glucifer_figures(self.checkpointID)
+                next_checkpoint += nd(checkpoint)
 
             if checkpoint or step % 1 == 0:
                 if uw.rank() == 0:

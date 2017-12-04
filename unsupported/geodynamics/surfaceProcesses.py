@@ -1,4 +1,8 @@
-from linkage import SPM
+try:
+    from linkage import SPM
+except:
+    pass
+    
 import underworld.function as fn
 from scaling import nonDimensionalize as nd
 
@@ -35,10 +39,10 @@ class Badlands(object):
         self.velocityField = self._Model.velocityField
         self.swarm = self._Model.swarm
         self.materialField = self._Model.materialField
-        
+
         self._BadlandsModel = SPM(self.mesh, self.velocityField, self.swarm,
                                  self.materialField, self.airIndex, self.sedimentIndex,
-                                 self.XML, nd(self.resolution), 
+                                 self.XML, nd(self.resolution),
                                  nd(self.checkpoint_interval),
                                  nd(self.surfElevation), self.verbose)
         return
@@ -67,7 +71,7 @@ class ErosionThreshold(object):
         belowthreshold = [(((isAirMaterial < 0.5) & (fn.input()[1] > nd(threshold))), air[0].index),
                          (True, materialIndexField)]
 
-        self._fn = fn.branching.conditional(belowthreshold) 
+        self._fn = fn.branching.conditional(belowthreshold)
 
     def solve(self, dt):
         self.materialIndexField.data[:] = self._fn.evaluate(self.swarm)
@@ -92,7 +96,7 @@ class SedimentationThreshold(object):
         belowthreshold = [(((isAirMaterial > 0.5) & (fn.input()[1] < nd(threshold))), sediment[0].index),
                          (True, materialIndexField)]
 
-        self._fn = fn.branching.conditional(belowthreshold) 
+        self._fn = fn.branching.conditional(belowthreshold)
 
     def solve(self, dt):
         self.materialIndexField.data[:] = self._fn.evaluate(self.swarm)
@@ -119,8 +123,8 @@ class ErosionAndSedimentationThreshold(object):
         erosion = [(((isAirMaterial < 0.5) & (fn.input()[1] > nd(threshold))), sediment[0].index),
                          (True, materialIndexField)]
 
-        self._fn1 = fn.branching.conditional(belowthreshold) 
-        self._fn2 = fn.branching.conditional(belowthreshold) 
+        self._fn1 = fn.branching.conditional(belowthreshold)
+        self._fn2 = fn.branching.conditional(belowthreshold)
 
     def solve(self, dt):
         self.materialIndexField.data[:] = self._fn1.evaluate(self.swarm)

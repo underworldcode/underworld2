@@ -26,14 +26,17 @@ navigation:
     - url:  /files/landing_pages/_site/Content/Map.html
       name: INDEX
 
-    - url:  /notebooks/user_guide/
+    - url:  /tree/user_guide/
       name: User Guide
 
-    - url:  /notebooks/examples/
+    - url:  /tree/examples/
       name: Examples
 
-    - url: http://underworld2.readthedocs.io/
-      name: Developer Docs
+    - url: /tree/publications
+      name: Publications
+
+    # - url: http://underworld2.readthedocs.io/
+    #   name: Developer Docs
 
     - url:  /terminals/1
       name: Terminal

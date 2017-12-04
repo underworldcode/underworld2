@@ -57,21 +57,21 @@
           </ul>
           
           <ul>
-            <li><a href="/notebooks/user_guide/" class="button"
+            <li><a href="/tree/user_guide/" class="button"
                           target="_self" >
                          User Guide </a></li>
           </ul>
           
           <ul>
-            <li><a href="/notebooks/examples/" class="button"
+            <li><a href="/tree/examples/" class="button"
                           target="_self" >
                          Examples </a></li>
           </ul>
           
           <ul>
-            <li><a href="http://underworld2.readthedocs.io/" class="button"
+            <li><a href="/tree/publications" class="button"
                           target="_self" >
-                         Developer Docs </a></li>
+                         Publications </a></li>
           </ul>
           
           <ul>
@@ -95,45 +95,37 @@
 
   <section>
 
-    <p><em>This is a collection of tools to set up a web server in a docker container that mixes static html content and dynamic “literate-programming” content via jupyter notebooks.</em></p>
+    <h2 id="introduction">Introduction</h2>
 
-<h1 id="introduction">Introduction</h1>
-
-<p><a href="www.jupyter.org">Jupyter</a> notebooks blend well-formatted documentation with executable programming content. Notebooks not only provide a development environment for exploring new algorithms and implementation, they are an excellent way to introduce new software concepts through live demonstrations and example code.</p>
-
-<p><a href="www.docker.com">Docker</a> is a mechanism for deploying complex software stacks as lightweight “apps” and managing  software dependencies in a consistent, reproducible manner. Docker guarantees the user experience will be identical to that shipped by the developer and eliminates installation inconsistencies.</p>
-
-<p>These characteristics of Docker allow us to create complex software bundles and focus on the explanation of how they work, demonstrate the in-built algorithms, and provide tutorials that can be reused on new problems. We think this opens many doors for teaching basic computational methods as well as documenting technical software.</p>
-
-<p>Under Windows and Macintosh, you can use the <a href="https://kitematic.com">Kitematic gui</a> to locate, download and run docker images. I’m assuming this is how you are viewing this content as the gui / plug-and-play aspect of docker and kitematic is the whole point !</p>
-
-<h1 id="what-have-we-here-">What have we here ?</h1>
-
-<p>This is a demonstration of how to bundle python software into a Docker image and provide a simple user interface in the form of a static website and live jupyter notebooks.</p>
-
-<p>The web pages are built from a simple script that converts a small collection of markdown files (which is also used in the notebooks to format content) into web pages via templates. These templates make it easier to modify the content without damaging the pieces that interact with the <code class="highlighter-rouge">jupyter notebook</code> server.</p>
-
-<p>It should be possible to navigate freely between the web content and the live notebooks. In case you get lost in the notebooks, you can return to <a href="/">this page</a> from the Jupyter logo.</p>
+<p>Welcome to the Underworld online user environment. Behind this webpage is a full installation of the Underworld code that can be accessed via jupyter notebooks.</p>
 
 <p>The links in the Navigation bar will take you to</p>
 
 <ul>
   <li><a href="/files/landing_pages/_site/Content/index.html">Home</a> - this page</li>
-  <li><a href="/fileslanding_pages/_site/Content/Map.html">Index</a> - a list of pages / facilities</li>
-  <li><a href="/notebooks/Content/Notebooks/StartHere.ipynb">Notebooks</a> - a sample notebook (can be linked to other notebooks)</li>
-  <li><a href="/Content/Notebooks">Jupyter</a> - the file browser and editor</li>
-  <li><a href="/terminals/1">Terminal</a> - a terminal running on the backend machine</li>
+  <li><a href="/files/landing_pages/_site/Content/Map.html">Index</a> - a list of pages / facilities</li>
+  <li><a href="/tree/user_guide/">User Guide</a> - Step by step introduction to Underworld</li>
+  <li><a href="/tree/examples/">Examples</a> - Sample notebooks to solve geodynamics problems</li>
+  <li><a href="/tree/publications/">Publications</a> - Reproducing Published results</li>
+  <li><a href="/terminal/1">Terminal</a> - a unix terminal running on the backend machine</li>
 </ul>
 
-<h1 id="what-is-this-for-">What is this for ?</h1>
+<p>You can also use the <code class="highlighter-rouge">Jupyter</code> icon in the notebooks to come back to this page (the notebook will keep running in the background and you can return to it later)</p>
 
-<p>You can <a href="https://github.com/lmoresi/docker-website-notebooks#fork-destination-box">fork this project on github</a> and use it to build your own docker image. I think you can use this template to make live manuals and courses for interactive content - especially when you need to control the installation and ensure a uniform environment for your users. In the classroom, perhaps, where you only need to install docker itself and then you can be sure your students will all see the same thing !</p>
+<h2 id="what-is-underworld-">What is Underworld ?</h2>
 
-<p>Another use for this project is as a mechanism for distributing code for review, snapshot a version of your code to distribute as part of a publication, or for the purposes of benchmarking.</p>
+<p>Underworld2 is an open-source, python-friendly geodynamics code which provides a programmable and flexible front end to all the functionality of the code running in a parallel HPC environment. Underworld2 shares the same C backend as the original Underworld but the user-interface is dynamic <code class="highlighter-rouge">python</code> rather than static xml. This gives significant advantages to the user, with access to the power of python libraries for setup of complex problems, analysis at runtime, problem steering, and coupling of multiple problems. Underworld2 is integrated with the literate programming environment of the jupyter notebook system for tutorials and as a teaching tool for solid Earth geoscience.</p>
 
-<h1 id="getting-help">Getting help</h1>
+<p>Underworld is a particle-in-cell finite element code tuned for large-scale geodynamics simulations. The numerical algorithms allow the tracking of history information through the high-strain deformation associated with fluid flow (for example, transport of the stress tensor in a viscoelastic, convecting medium, or the advection of fine-scale damage parameters by the large-scale flow). The finite element mesh can be static or dynamic, but it is not constrained to move in lock-step with the evolving geometry of the fluid. This hybrid approach is very well suited to complex fluids which is how the solid Earth behaves on a geological timescale.</p>
 
-<p>I can’t promise much help, but you can <a href="mailto:louis.moresi@unimelb.edu.au">contact me by email</a></p>
+<h2 id="a-scalable-code-for-research-and-teaching">A scalable code for research and teaching</h2>
+
+<p>You are reading a live document that includes both running software examples and tutorial materials. You can navigate freely between the web content and the live notebooks. Underworld can be deployed in massively parallel environments but demonstration models and prototypes can be developed interactively in notebooks. Underworld python scripts do not need any modification to run in parallel.</p>
+
+<p>This tutorial environment can be deployed to a laptop or desktop via docker or installed in the cloud (Google, Amazon … ).
+We blend interactive coding with descriptive comments including mathematics in the notebooks.
+We can include static content such as pdf class notes or markdown / html files with mathematics and diagrams.</p>
+
 
 
     </section>

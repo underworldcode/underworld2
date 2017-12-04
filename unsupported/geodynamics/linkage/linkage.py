@@ -1,11 +1,12 @@
+from __future__ import absolute_import
 from pyBadlands.model import Model as BadlandsModel
 from scipy.interpolate import griddata, interp1d
 from scipy.ndimage.filters import gaussian_filter
 import numpy as np
-import unsupported.scaling as sca
+from .. import scaling as sca
 
 from tempfile import gettempdir
-from uw_utilities import get_UW_velocities
+from .uw_utilities import get_UW_velocities
 
 _tempdir = gettempdir()
 
