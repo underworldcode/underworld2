@@ -14,7 +14,6 @@ import stat
 c = get_config()
 c.NotebookApp.ip = '*'
 c.NotebookApp.port = 8888
-c.NotebookApp.open_browser = False
 
 # Generate a self-signed certificate
 if 'GEN_CERT' in os.environ:
@@ -42,3 +41,5 @@ if 'GEN_CERT' in os.environ:
 # Start with a default landing page if 'DEFAULT_LANDING' is set.
 if 'DEFAULT_LANDING' in os.environ:
     c.NotebookApp.default_url = os.environ.get('DEFAULT_LANDING')
+
+c.NotebookApp.allow_origin = '*'

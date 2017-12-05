@@ -1,4 +1,5 @@
-FROM underworldcode/underworld2:latest
+FROM lmoresi/uw2-jupyter-hub-tested:latest
+#FROM underworldcode/underworld2:latest
 MAINTAINER MAINTAINER https://github.com/underworldcode/
 
 # Configure environment for singleuser
@@ -84,13 +85,13 @@ COPY index.html /workspace
 
 # Use '/tree' to replicate the built-in behaviour of the notebook - the
 # directory browser starting in the user's home directory.
-ENV DEFAULT_LANDING /tree
+#ENV DEFAULT_LANDING /tree
 
 # Start in a specific directory deeper in the user's home directory.
 #ENV DEFAULT_LANDING /tree/tutorials/ConvectionTutorial/Notebooks
 
 # Use the index.html we copied above as the landing page.
-#ENV DEFAULT_LANDING /files/index.html
+ENV DEFAULT_LANDING /files/index.html
 
 # Jump directly to a specific notebook.
 #ENV DEFAULT_LANDING /notebooks/examples/1_01_Steady_State_Heat.ipynb

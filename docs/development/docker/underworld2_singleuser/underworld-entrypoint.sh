@@ -19,6 +19,12 @@ then
         # on a previous run.
         rsync -au /workspace/.ipython /workspace/.jupyter /workspace/* "${NOTEBOOK_DIR}/"
 
+        # Fix links in static html files to account for the jupyterhub proxy
+        # serving content on a prefix path.
+        ( shopt -s globstar dotglob
+          sed -i -- "s/\\(href\\|src\\)=\"\\/\\(tree\\|files\\|terminals\\|edit\\)\\([^\"]*\\)\"/\\1=\"${JUPYTERHUB_SERVICE_PREFIX//\//\\\/}\\2\\3\"/g" "${NOTEBOOK_DIR}"/**/*.html
+        )
+
     else
         echo Unable to copy notebooks from workspace
         echo "${NOTEBOOK_DIR}" is not a directory!
