@@ -78,7 +78,8 @@ class VelocityBCs(object):
                 Model.Isostasy.materialIndexField = Model.materialField
                 Model.Isostasy.densityFn = Model.densityFn
                 dirichletIndices[-1] += Model.bottomWall
-            else:    
+            else:
+                Model.Isostasy = None
                 for dim in range(Model.mesh.dim):
                     if self.bottom[dim] is not None:
                         if VelocityBCs.isNeumann(self.bottom[dim]):
@@ -116,12 +117,8 @@ class VelocityBCs(object):
 
         conditions = []            
 
-        dirichletIndices = tuple([val if val.data.size > 0 else None for val in dirichletIndices])
-        
-        if dirichletIndices != (None, None):
-            conditions.append(uw.conditions.DirichletCondition(variable=Model.velocityField,
-                                                               indexSetsPerDof=dirichletIndices))
-
+        conditions.append(uw.conditions.DirichletCondition(variable=Model.velocityField,
+                                                           indexSetsPerDof=dirichletIndices))
 
         neumannIndices = tuple([val if val.data.size > 0 else None for val in neumannIndices])
        
