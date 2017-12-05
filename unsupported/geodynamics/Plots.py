@@ -160,14 +160,16 @@ class Plots(object):
 
     def velocityField(self, figsize=(1200, 400), store=None, show=True,
                       units=u.centimeter/u.year, script=None, cullface=False, 
-                      quality=3, **args):
+                      quality=3, scaling=0.03, arrowHead=10.,
+                      resolution=[25,10,10], **args):
         Fig = glucifer.Figure(figsize=figsize, store=store, quality=quality)
         fact = sca.Dimensionalize(1.0, units).magnitude
         Fig.append(glucifer.objects.Surface(self.Model.mesh,self.Model.velocityField[0]*fact,
                                             cullface=cullface))
         Fig.append(glucifer.objects.VectorArrows(self.Model.mesh, self.Model.velocityField,
-                                                 scaling=0.03, arrowHead=10.,
-                                                 resolution=[25,10,10])) 
+                                                 scaling=scaling,
+                                                 arrowHead=arrowHead,
+                                                 resolution=resolution)) 
         
         if script:
             Fig.script(script)
