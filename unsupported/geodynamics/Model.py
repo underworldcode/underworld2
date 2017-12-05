@@ -50,7 +50,7 @@ class Model(Material):
         self.maxCoord = maxCoord
 
         if not periodic:
-            self.periodic = tuple([False for val in range(self.mesh.dim)])
+            self.periodic = tuple([False for val in range(len(self.elementRes))])
         else:
             self.periodic = periodic
 
@@ -83,9 +83,6 @@ class Model(Material):
         self.swarm = uw.swarm.Swarm(mesh=self.mesh, particleEscape=True)
         self.swarmLayout = swarmLayout
         self.population_control = populationControl
-        self.swarm_advector = uw.systems.SwarmAdvector(swarm=self.swarm,
-                                  velocityField=self.velocityField,
-                                  order=2)
 
         self.materials = []
         self._defaultMaterial = 0
@@ -130,6 +127,10 @@ class Model(Material):
         self._initialize()
 
     def _initialize(self):
+        
+        self.swarm_advector = uw.systems.SwarmAdvector(swarm=self.swarm,
+                                  velocityField=self.velocityField,
+                                  order=2)
 
         # Add Common Swarm Variables
         self.materialField = self.swarm.add_variable(dataType="int", count=1)
@@ -271,6 +272,7 @@ class Model(Material):
                                              top=top, bottom=bottom, 
                                              indexSets=indexSets,
                                              materials=materials)
+        return self.temperatureBCs.get_conditions()
 
     @property
     def _temperatureBCs(self):
@@ -620,7 +622,7 @@ class Model(Material):
 
             if checkpoint or step % 1 == 0:
                 if uw.rank() == 0:
-                    print "Time: ", str(self.time.to(units))
+                    print "Time: ", str(self.time.to(units)), 'dt:',str(sca.Dimensionalize(self._dt, units)) 
 
     def update(self):
 
