@@ -1,11 +1,10 @@
 FROM underworldcode/base:dev
 MAINTAINER https://github.com/underworldcode/
 
-# set working directory to /root
-WORKDIR /root
-
-# setup environment
-ENV PYTHONPATH $PYTHONPATH:/root/underworld2
+# set working directory to /opt, and install underworld files there.
+WORKDIR /opt
+ENV UW2_DIR /opt/underworld2
+ENV PYTHONPATH $PYTHONPATH:$UW2_DIR
 
 # get underworld, compile, delete some unnecessary files, trust notebooks, copy to workspace
 RUN git clone --branch "development" --single-branch https://github.com/underworldcode/underworld2 && \
@@ -23,11 +22,11 @@ RUN git clone --branch "development" --single-branch https://github.com/underwor
     rm -fr StgDomain             && \
     rm -fr PICellerator          && \
     rm -fr Solvers               && \
-    find /root/underworld2/docs -name \*.ipynb  -print0 | xargs -0 jupyter trust && \
+    find $UW2_DIR/docs -name \*.ipynb  -print0 | xargs -0 jupyter trust && \
     mkdir /workspace                                                 && \
     cd ../../docs/development/api_doc_generator/                     && \
     sphinx-build . ../../api_doc                                     && \
-    rsync -av /root/underworld2/docs/. /workspace
+    rsync -av $UW2_DIR/docs/. /workspace
 
 
 # expose notebook port
