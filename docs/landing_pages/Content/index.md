@@ -17,7 +17,7 @@ The links in the Navigation bar will take you to
    * [User Guide](/tree/user_guide/ ) - Step by step introduction to Underworld
    * [Examples](/tree/examples/) - Sample notebooks to solve geodynamics problems
    * [Publications](/tree/publications/) - Reproducing Published results
-   * [Terminal](/terminal/1) - a unix terminal running on the backend machine
+   * [Terminal](/terminals/1) - a unix terminal running on the backend machine
 
  You can also use the `Jupyter` icon in the notebooks to come back to this page (the notebook will keep running in the background and you can return to it later)
 
