@@ -1,4 +1,4 @@
-FROM debian:jessie
+FROM debian:stretch
 MAINTAINER https://github.com/underworldcode/
 
 # install things
@@ -17,7 +17,7 @@ RUN apt-get update -qq && \
         ssh \
         curl \
         libfreetype6-dev \
-        libpng12-dev \
+        libpng-dev \
         libxft-dev \
         xvfb \
         freeglut3 \
@@ -33,17 +33,14 @@ RUN apt-get update -qq && \
         gdb-minimal \
         python2.7-dbg && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
-# Install python dependencies. Note we pin ipython to 5.5.0 to get py2.7
-# compatibility.
-RUN pip install --upgrade pip && \
-    pip install \
-        packaging \
+    rm -rf /var/lib/apt/lists/* && \
+    \
+# Install setuptools and wheel first, needed by plotly
+    pip install setuptools wheel && \
+    pip install packaging \
         appdirs \
         numpy \
-        ipython==5.5.0 \
-        notebook \
+        jupyter \
         plotly \
         mpi4py \
         matplotlib \
@@ -57,10 +54,13 @@ RUN pip install --upgrade pip && \
         sphinxcontrib-napoleon \
         mock \
         scipy && \
+    pip install 'ipython==4.2.0' --force-reinstall && \
     pip install six --upgrade
 
 # ^^^ Note we choose an older version of ipython because it's tooltips work better.
 #     Also, the system six is too old, so we upgrade for the pip version
+
+# Install Tini.. this is required because CMD (below) doesn't play nice with notebooks for some reason: https://github.com/ipython/ipython/issues/7062, https://github.com/jupyter/notebook/issues/334
 RUN curl -L https://github.com/krallin/tini/releases/download/v0.10.0/tini > tini && \
     echo "1361527f39190a7338a0b434bd8c88ff7233ce7b9a4876f3315c22fce7eca1b0 *tini" | sha256sum -c - && \
     mv tini /usr/local/bin/tini && \
