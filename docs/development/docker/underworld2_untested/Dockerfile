@@ -43,4 +43,4 @@ WORKDIR /workspace
 COPY jupyter_notebook_config.json /root/.jupyter/jupyter_notebook_config.json
 
 # launch notebook
-CMD ["jupyter", "notebook", " --no-browser"]
+CMD ["jupyter", "notebook", "--no-browser", "--allow-root"]
