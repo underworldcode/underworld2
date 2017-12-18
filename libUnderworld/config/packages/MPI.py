@@ -14,8 +14,8 @@ class MPI(Package):
             yield ([os.path.join(i, 'openmpi') for i in e[0]], e[1])
 
     def gen_envs(self, loc):
-	# If we've been given an MPI compiler just try that.
-	if os.path.basename(self.env['CC']) in ['mpicc', 'mpicxx']:
+    # If we've been given an MPI compiler just try that.
+        if os.path.basename(self.env['CC']) in ['mpicc', 'mpicxx']:
             yield self.env.Clone()
             return
 

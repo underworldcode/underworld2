@@ -1,6 +1,6 @@
 import platform
 from config import Package
-from OpenGL import OpenGL
+from .OpenGL import OpenGL
 
 class SDL(Package):
 

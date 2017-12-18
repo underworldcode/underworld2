@@ -1,5 +1,5 @@
 import os
-import format
+from . import format
 
 
 class IndentLogger(object):

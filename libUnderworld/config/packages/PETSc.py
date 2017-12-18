@@ -1,6 +1,6 @@
 import os, sys
 from config import Package
-from MPI import MPI
+from .MPI import MPI
 
 class PETSc(Package):
 
@@ -191,14 +191,14 @@ class PETSc(Package):
                                                   'petscksp.h', 'petscsnes.h'], 'c',
                                                  call=call,
                                                  autoadd=0):
-            print '\n\nThe PETSc located in:'
-            print '  %s'%repr(self.location[0])
-            print 'is usable, but could not be linked into a shared library.'
-            print 'This is most likely due to PETSc not being compiled with'
-            print 'position independant code enabled. Either rebuild PETSc'
-            print 'with the configuration option \'--with-pic=1\' if you are'
-            print 'sure you need shared libraries, or reconfigure StGermain'
-            print 'with the \'--lib-type=static\' option.\n'
+            print('\n\nThe PETSc located in:')
+            print('  %s'%repr(self.location[0]))
+            print('is usable, but could not be linked into a shared library.')
+            print('This is most likely due to PETSc not being compiled with')
+            print('position independant code enabled. Either rebuild PETSc')
+            print('with the configuration option \'--with-pic=1\' if you are')
+            print('sure you need shared libraries, or reconfigure StGermain')
+            print('with the \'--lib-type=static\' option.\n')
             sys.exit()
             return False
 

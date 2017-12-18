@@ -1,8 +1,8 @@
 import os, sys
 from config import Package
-from Mpi4py import Mpi4py
-from MPI import MPI
-from HDF5 import HDF5
+from .Mpi4py import Mpi4py
+from .MPI import MPI
+from .HDF5 import HDF5
 import subprocess
 from SCons.Script.Main import AddOption
 

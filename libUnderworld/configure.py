@@ -7,7 +7,7 @@ if subp.wait() != 0:
                        "compile Underworld, you must obtain the project via the 'git clone' command:\n"\
                        "     git clone https://github.com/underworldcode/underworld2.git")
 subp = subprocess.Popen(
-    'config/scons/scons.py --config=force -f SConfigure ' + ' '.join(sys.argv[1:]), shell=True
+    'scons --config=force -f SConfigure ' + ' '.join(sys.argv[1:]), shell=True
 )
 subp.wait()
 

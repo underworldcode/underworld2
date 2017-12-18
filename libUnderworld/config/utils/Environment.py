@@ -1,4 +1,4 @@
-import conv, macro
+from . import conv, macro
 
 class Environment(object):
     """Substitution environment used for storing and expanding arbitrary
