@@ -14,7 +14,7 @@ colours['end']    = '\033[0m'
 
 # If the output is not a terminal, remove the colours.
 if not sys.stdout.isatty():
-   for key, value in colours.iteritems():
+   for key, value in colours.items():
       colours[key] = ''
 
 compile_source_message = '%sCompiling %s==> %s$SOURCE%s' % \
@@ -65,10 +65,10 @@ env.Decider("MD5-timestamp")
 # Load configuration.
 values = {}
 if(not os.path.isfile('config.cfg')):
-   print 'Error: \'config.cfg\' file not found.  The configuration script (configure.py) must be run successfully before you can build (via scons.py).'
+   print('Error: \'config.cfg\' file not found.  The configuration script (configure.py) must be run successfully before you can build (via scons.py).')
    sys.exit()
 
-execfile("config.cfg", globals(), values)
+exec(open("config.cfg").read(), globals(), values)
 env._dict.update(values)
 
 # Set LIBPATH and RPATH for libraries
