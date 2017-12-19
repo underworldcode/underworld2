@@ -38,7 +38,8 @@ else:
         import __main__
         __main__.lavavu = lavavu
     except Exception as e:
-        print e,"LavaVu module not found! disabling inline visualisation"
+        print e,": module not found! disabling inline visualisation"
+        import lavavu_null as lavavu
 
 # lets create somewhere to dump data for this session
 try:
