@@ -1,5 +1,4 @@
-#FROM underworldcode/underworld2_untested:dev
-FROM special
+FROM underworldcode/underworld2_untested:dev
 MAINTAINER https://github.com/underworldcode/
 
 # set working directory to /opt
