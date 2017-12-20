@@ -39,23 +39,23 @@ import os as _os
 _sys.path.insert(0, _os.path.realpath(_os.path.dirname("..")))
 
 import libUnderworld
-import container
-import mesh
-import conditions
-import function
-import swarm
-import systems
-import utils
+import underworld.container
+import underworld.mesh
+import underworld.conditions
+import underworld.function
+import underworld.swarm
+import underworld.systems
+import underworld.utils
 
 try:
     from ._uwid import uwid as _id
 except:
     import uuid as _uuid
     _id = str(_uuid.uuid4())
-import _net
+from . import _net
 
 # lets go right ahead and init now.  user can re-init if necessary.
-import _stgermain
+from . import _stgermain
 _data =  libUnderworld.StGermain_Tools.StgInit( _sys.argv )
 
 _stgermain.LoadModules( {"import":["StgDomain","StgFEM","PICellerator","Underworld","gLucifer","Solvers"]} )
@@ -122,7 +122,9 @@ def _prepend_message_to_exception(e, message):
     Currently it is not python 3 friendly.  Check here
     http://stackoverflow.com/questions/6062576/adding-information-to-a-python-exception
     """
-    raise type(e), type(e)(message + '\n' + e.message), _sys.exc_info()[2]
+#    raise type(e), type(e)(message + '\n' + e.message), _sys.exc_info()[2]
+    raise          type(e)(message + '\n' + e.message).with_traceback(_sys.exc_info()[2])
+
 
 class _del_uw_class:
     """

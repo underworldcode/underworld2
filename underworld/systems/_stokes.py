@@ -8,9 +8,8 @@
 ##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
 import underworld as uw
 import underworld._stgermain as _stgermain
-import sle
+from . import sle
 import libUnderworld
-import math
 
 class Stokes(_stgermain.StgCompoundComponent):
     """
@@ -452,6 +451,6 @@ class Stokes(_stgermain.StgCompoundComponent):
         
         fn_2_integrate = ( 1., self._aObjects['vdotv_fn'] )
         (v2,vol)       = mesh.integrate( fn=fn_2_integrate )
-        
+        import math
         return math.sqrt(v2/vol)
         

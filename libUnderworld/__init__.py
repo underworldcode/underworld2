@@ -1,1 +1,1 @@
-from libUnderworldPy import *
+from .libUnderworldPy import *

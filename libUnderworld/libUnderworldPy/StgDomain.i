@@ -8,7 +8,7 @@
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 /* -*- C -*-  (not really, but good for syntax highlighting) */
 
-%module StgDomain
+%module (package="libUnderworld.libUnderworldPy") StgDomain
 
 %include "exception.i"
 %import "StGermain.i"

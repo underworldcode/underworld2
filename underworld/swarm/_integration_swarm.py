@@ -9,8 +9,8 @@
 import underworld as uw
 import underworld._stgermain as _stgermain
 import libUnderworld
-import _swarmabstract
-import _swarmvariable as svar
+from . import _swarmabstract
+from . import _swarmvariable as svar
 from abc import ABCMeta
 import weakref
 import underworld.function as function

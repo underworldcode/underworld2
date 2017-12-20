@@ -11,7 +11,7 @@ This module provides analytic solution functions to the Stokes
 flow equations.
 """
 import libUnderworld.libUnderworldPy.Function as _cfn
-from _function import Function as _Function
+from ._function import Function as _Function
 
 
 class _Sol_Function(_Function):

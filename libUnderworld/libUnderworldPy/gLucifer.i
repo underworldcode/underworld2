@@ -8,7 +8,7 @@
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 /* -*- C -*-  (not really, but good for syntax highlighting) */
 
-%module gLucifer
+%module (package="libUnderworld.libUnderworldPy") gLucifer
 
 %include "exception.i"
 %import "StGermain.i"

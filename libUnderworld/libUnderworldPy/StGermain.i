@@ -8,7 +8,7 @@
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 /* -*- C -*-  (not really, but good for syntax highlighting) */
 
-%module StGermain
+%module (package="libUnderworld.libUnderworldPy") StGermain
 
 %{
 /* Includes the header in the wrapper code */

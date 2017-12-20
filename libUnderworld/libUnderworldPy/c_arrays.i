@@ -8,7 +8,7 @@
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 /* -*- C -*-  (not really, but good for syntax highlighting) */
 
-%module c_arrays
+%module (package="libUnderworld.libUnderworldPy") c_arrays
 
 /* this guy is an interface to malloc */
 %include "carrays.i"

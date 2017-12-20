@@ -9,8 +9,8 @@
 import underworld._stgermain as _stgermain
 import libUnderworld.libUnderworldPy.Function as _cfn
 import numpy as np
-import _swarmabstract
-import _swarmvariable as svar
+from . import _swarmabstract
+from . import _swarmvariable as svar
 import underworld.function as function
 import libUnderworld
 import underworld as uw

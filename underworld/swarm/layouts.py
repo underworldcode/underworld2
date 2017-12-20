@@ -11,7 +11,7 @@ This module contains classes for populating swarms with particles across
 the domain.
 '''
 import underworld._stgermain as _stgermain
-import _swarm
+from . import _swarm
 import abc as _abc
 
 class ParticleLayoutAbstract(_stgermain.StgCompoundComponent):

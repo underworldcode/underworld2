@@ -31,10 +31,10 @@ swigfiles = [
              ]
 #
 for swigfile in swigfiles:
-    print ""
-    print "executing command:"
-    print swigcommandbase + swigheaders + ' ' + swigfile
-    print ""
+    print("")
+    print("executing command:")
+    print(swigcommandbase + swigheaders + ' ' + swigfile)
+    print("")
     subp = subprocess.Popen(swigcommandbase + swigheaders + ' ' + swigfile, shell=True )
     if subp.wait() != 0 :
         raise RuntimeError("Error generating swig bindings.")

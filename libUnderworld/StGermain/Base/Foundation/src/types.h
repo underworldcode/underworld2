@@ -24,7 +24,9 @@
     */
    #ifndef Bool   
       /** Boolean type in StGermain. */
-      typedef enum Bool { False=0, True=1 } Bool;
+   #if !defined(SWIG_DO_NOT_WRAP)
+   typedef enum Bool { False=0, True=1 } Bool;
+   #endif
    #endif
 
    typedef unsigned char stgByte;

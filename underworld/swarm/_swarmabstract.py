@@ -10,7 +10,7 @@ import underworld as uw
 import underworld._stgermain as _stgermain
 import weakref
 import libUnderworld
-import _swarmvariable as svar
+from . import _swarmvariable as svar
 import abc
 
 class SwarmAbstract(_stgermain.StgCompoundComponent):

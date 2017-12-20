@@ -11,8 +11,8 @@ import underworld._stgermain as _stgermain
 import underworld.mesh as mesh
 import numpy as np
 import libUnderworld
-import _swarmabstract as sab
-import _swarm
+from . import _swarmabstract as sab
+from . import _swarm
 import underworld.function as function
 import libUnderworld.libUnderworldPy.Function as _cfn
 from mpi4py import MPI
