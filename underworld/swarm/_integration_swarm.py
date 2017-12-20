@@ -16,7 +16,7 @@ import weakref
 import underworld.function as function
 
 
-class IntegrationSwarm(_swarmabstract.SwarmAbstract):
+class IntegrationSwarm(_swarmabstract.SwarmAbstract, metaclass = ABCMeta):
     """
     Abstract class definition for IntegrationSwarms.
 
@@ -29,7 +29,6 @@ class IntegrationSwarm(_swarmabstract.SwarmAbstract):
 
     """
     _objectsDict = { "_swarm": "IntegrationPointsSwarm" }
-    __metaclass__ = ABCMeta
 
     def _setup(self):
         if self._cself.localCoordVariable:

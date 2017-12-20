@@ -25,24 +25,22 @@ class LeftOverParamsChecker(object):
             raise RuntimeError("There were left over keyword arguments. kwargs = [{}]\n".format(kwargs)+\
                                "Please check the function/method parameter names.")
 
-class Save(LeftOverParamsChecker):
+class Save(LeftOverParamsChecker, metaclass=abc.ABCMeta):
     """
     Objects that inherit from this class are able to save their
     data to disk at the provided filename.
     """
-    __metaclass__ = abc.ABCMeta
     @abc.abstractmethod
     def save(self, filename):
         """ All children should define this method which returns the 
         c iterator object """
         pass
 
-class Load(LeftOverParamsChecker):
+class Load(LeftOverParamsChecker, metaclass=abc.ABCMeta):
     """
     Objects that inherit from this class are able to load their
     data from disk at the provided filename.
     """
-    __metaclass__ = abc.ABCMeta
     @abc.abstractmethod
     def load(self, filename):
         """ All children should define this method which returns the 
@@ -111,7 +109,7 @@ class _SetupClass(abc.ABCMeta):
         return self
 
 
-class StgCompoundComponent(StgClass):
+class StgCompoundComponent(StgClass, metaclass=_SetupClass):
     """ 
     This class ties multiple StGermain components together into a single python object.
     The life cycle of the objects (construction/build/destruction) are handled automatically.
@@ -120,7 +118,6 @@ class StgCompoundComponent(StgClass):
     from within a C routine.
     
     """
-    __metaclass__ = _SetupClass
     
     def __new__(cls, *args, **kwargs):
         """
@@ -304,7 +301,7 @@ def SetStgDictionaryFromPyDict( pyDict, stgDict ):
     root = _dictToUWElementTree(pyDict)
     xmlString = _ET.tostring(root, encoding = 'utf-8', method = 'xml').decode('utf-8')
     ioHandler = libUnderworld.StGermain.XML_IO_Handler_New()
-    libUnderworld.StGermain.IO_Handler_ReadAllFromBuffer( ioHandler, xmlString, stgDict, None )
+    libUnderworld.StGermain.IO_Handler_ReadAllFromBuffer( ioHandler, xmlString, stgDict, 'None' )
     libUnderworld.StGermain.Stg_Class_Delete( ioHandler )
 
     return

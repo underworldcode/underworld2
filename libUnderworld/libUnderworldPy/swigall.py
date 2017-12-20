@@ -3,7 +3,7 @@ import sys, subprocess, shutil, os, glob
 
 dir = os.path.join( '..', 'build')
 
-swigcommandbase = 'swig -v -Wextra -python -ignoremissing -O -c++ -DSWIG_DO_NOT_WRAP'
+swigcommandbase = 'swig -v -Wextra -python -py3 -ignoremissing -O -c++ -DSWIG_DO_NOT_WRAP'
 swigheaders  =  ' -I'+os.path.join( dir, 'include')
 swigheaders +=  ' -I'+os.path.join( dir, 'include', 'StGermain')
 swigheaders +=  ' -I'+os.path.join( dir, 'include', 'StgDomain')

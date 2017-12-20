@@ -56,6 +56,8 @@ from . import _net
 
 # lets go right ahead and init now.  user can re-init if necessary.
 from . import _stgermain
+#import ipdb
+#ipdb.set_trace()
 _data =  libUnderworld.StGermain_Tools.StgInit( _sys.argv )
 
 _stgermain.LoadModules( {"import":["StgDomain","StgFEM","PICellerator","Underworld","gLucifer","Solvers"]} )

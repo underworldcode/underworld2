@@ -130,10 +130,9 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         if( len(arr) % self.elementsLocal != 0 ):
             raise RuntimeError("Unsupported element to node mapping for save routine"+
                     "\nThere doesn't appear to be elements with a consistent number of nodes")
-
         # we ASSUME a constant number of nodes for each element
         # and we reshape the arr accordingly
-        nodesPerElement = len(arr)/self.elementsLocal
+        nodesPerElement = int(round(len(arr)/self.elementsLocal))
         return arr.reshape(self.elementsLocal, nodesPerElement)
 
     @property
@@ -448,7 +447,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         >>> import underworld as uw
         >>> someMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1', elementRes=(2,2), minCoord=(0.,0.), maxCoord=(1.,1.) )
         >>> someMesh.specialSets.keys()
-        ['MaxI_VertexSet', 'MinI_VertexSet', 'AllWalls_VertexSet', 'MinJ_VertexSet', 'MaxJ_VertexSet', 'Empty']
+        dict_keys(['MaxI_VertexSet', 'MinI_VertexSet', 'MaxJ_VertexSet', 'MinJ_VertexSet', 'AllWalls_VertexSet', 'Empty'])
         >>> someMesh.specialSets["MinJ_VertexSet"]
         FeMesh_IndexSet([0, 1, 2])
 

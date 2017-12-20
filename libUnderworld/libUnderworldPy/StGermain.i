@@ -45,6 +45,10 @@ import_array();
     }
 }
 
+
+%rename(CFalse) False;
+%rename(CTrue) True;
+
 %include "Base/Foundation/types.h"       
 %include "Base/Container/types.h"       
 %include "Base/Automation/types.h"

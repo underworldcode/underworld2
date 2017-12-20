@@ -215,8 +215,8 @@ class Drawing(_stgermain.StgCompoundComponent):
         try:
             obj = viewer.objects[self.properties["name"]]
             if not obj: raise KeyError("Object not found")
-        except KeyError,e:
-            print self.properties["name"] + " Object lookup error: " + str(e)
+        except KeyError as e:
+            print(self.properties["name"] + " Object lookup error: " + str(e))
             return
 
         obj["geometry"] = self.geomType
@@ -664,17 +664,17 @@ class _GridSampler3D(CrossSection):
 
         #Convert deprecated parameters
         if resolutionI:
-            print "Parameter 'resolutionI' is deprecated, please use resolution=[I,J,K]"
+            print("Parameter 'resolutionI' is deprecated, please use resolution=[I,J,K]")
             if not isinstance(resolutionI,int):
                 raise TypeError("'resolutionI' must be of python type 'int'")
             resolution[0] = resolutionI
         if resolutionJ:
-            print "Parameter 'resolutionJ' is deprecated, please use resolution=[I,J,K]"
+            print("Parameter 'resolutionJ' is deprecated, please use resolution=[I,J,K]")
             if not isinstance(resolutionJ,int):
                 raise TypeError("'resolutionJ' must be of python type 'int'")
             resolution[1] = resolutionJ
         if resolutionK:
-            print "Parameter 'resolutionK' is deprecated, please use resolution=[I,J,K]"
+            print("Parameter 'resolutionK' is deprecated, please use resolution=[I,J,K]")
             if not isinstance(resolutionK,int):
                 raise TypeError("'resolutionK' must be of python type 'int'")
             resolution[2] = resolutionK
@@ -900,7 +900,7 @@ class IsoSurface(Volume):
             #Generate isosurface in same object, convert and delete volume, update db
             isobj.isosurface(name=None, convert=True, updatedb=True)
         else:
-            print "Object not found: " + self.properties["name"]
+            print("Object not found: " + self.properties["name"])
 
     def parallel_render(self, viewer, rank):
         #If this method defined, is run by all procs to process

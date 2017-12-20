@@ -338,7 +338,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         if try_optimise:
             procCount = h5f.attrs.get('proc_offset')
             if procCount is not None and nProcs == len(procCount):
-                for p_i in xrange(rank):
+                for p_i in range(rank):
                     offset += procCount[p_i]
                 size = procCount[rank]
             
@@ -346,7 +346,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         chunk=int(1e4) # read in this many points at a time
 
         (multiples, remainder) = divmod( size, chunk )
-        for ii in xrange(multiples+1):
+        for ii in range(multiples+1):
             # setup the points to begin and end reading in
             chunkStart = offset + ii*chunk
             if ii == multiples:

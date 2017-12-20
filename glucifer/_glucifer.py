@@ -12,14 +12,14 @@ import underworld as uw
 import errno
 import underworld._stgermain as _stgermain
 import os
-import urllib2
+import urllib
 import time
 import json
 from base64 import b64encode
 import libUnderworld
 import subprocess
 from subprocess import Popen, PIPE, STDOUT
-from . import objects
+import glucifer.objects as objects
 import libUnderworld as _libUnderworld
 import sys
 import os
@@ -38,7 +38,8 @@ else:
         import __main__
         __main__.lavavu = lavavu
     except Exception as e:
-        print e,"LavaVu module not found! disabling inline visualisation"
+        print("LavaVu module not found! disabling inline visualisation")
+        print(e)
 
 # lets create somewhere to dump data for this session
 try:
@@ -271,7 +272,7 @@ class Store(_stgermain.StgCompoundComponent):
 
         if not lavavu.is_ipython():
             endtime = MPI.Wtime()
-            print "Visualisation export took %10.2fs on proc %d" % (endtime-starttime, uw.rank())
+            print("Visualisation export took %10.2fs on proc %d" % (endtime-starttime, uw.rank()))
 
     def _get_state(self, objects, props):
         #Get current state as string for export
@@ -302,8 +303,8 @@ class Store(_stgermain.StgCompoundComponent):
             self.timesteps = json.loads(lv.app.getTimeSteps())
             #Get figures/states
             return lv.app.figures
-        except RuntimeError,e:
-            print "LavaVu error: " + str(e)
+        except RuntimeError as e:
+            print("LavaVu error: " + str(e))
             import traceback
             traceback.print_exc()
             pass
@@ -564,9 +565,9 @@ class Figure(dict):
             else:
                 #Fallback to export image
                 self.save(filename=self.name, type=type)
-        except RuntimeError, e:
-            print "Error creating image: "
-            print e
+        except RuntimeError as e:
+            print("Error creating image: ")
+            print(e)
             pass
         except:
             raise
@@ -614,8 +615,8 @@ class Figure(dict):
                 return lv.app.web(True)
             else:
                 return self._generate_image(filename, size)
-        except RuntimeError,e:
-            print "LavaVu error: " + str(e)
+        except RuntimeError as e:
+            print("LavaVu error: " + str(e))
             import traceback
             traceback.print_exc()
             pass
@@ -636,8 +637,8 @@ class Figure(dict):
             imagestr = lv.image(filename, resolution=size)
             #Return the generated filename
             return imagestr
-        except RuntimeError,e:
-            print "LavaVu error: " + str(e)
+        except RuntimeError as e:
+            print("LavaVu error: " + str(e))
             import traceback
             traceback.print_exc()
             pass
@@ -662,8 +663,8 @@ class Figure(dict):
             return IFrame("html/viewer.html#" + filename, width=self["resolution"][0], height=self["resolution"][1])
             #import base64
             #return IFrame("html/index.html#" + base64.b64encode(jsonstr), width=self["resolution"][0], height=self["resolution"][1])
-        except RuntimeError,e:
-            print "LavaVu error: " + str(e)
+        except RuntimeError as e:
+            print("LavaVu error: " + str(e))
             import traceback
             traceback.print_exc()
             pass
@@ -764,20 +765,20 @@ class Figure(dict):
         """
         if uw.rank() == 0:
             self.open_viewer()
-            url = "http://localhost:9999/command=" + urllib2.quote(cmd)
+            url = "http://localhost:9999/command=" + urllib.parse.quote(cmd)
             try:
                 #print url
-                response = urllib2.urlopen(url).read()
+                response = urllib2.request.urlopen(url).read()
                 #print response
             except:
-                print "Send command '" + cmd + "' failed, no response"
+                print("Send command '" + cmd + "' failed, no response")
                 if retry:
                     #Wait a few seconds so server has time to start then try again
-                    print "... retrying in 1s ..."
+                    print("... retrying in 1s ...")
                     time.sleep(1)
                     self.send_command(cmd, False)
                 else:
-                    print "... failed, skipping ..."
+                    print("... failed, skipping ...")
                     pass
 
     def clear(self):

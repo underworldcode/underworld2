@@ -375,7 +375,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
 
         # calculate the hdf5 file offset
         offset=0
-        for i in xrange(rank):
+        for i in range(rank):
             offset += procCount[i]
 
         # open parallel hdf5 file
