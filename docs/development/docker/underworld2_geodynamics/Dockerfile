@@ -23,7 +23,7 @@ RUN useradd -m -s /bin/bash -N jovyan
 COPY jupyter_notebook_config.json /home/$NB_USER/.jupyter/jupyter_notebook_config.json
 
 # update all permissions for user
-RUN chown -R $NB_USER:users $NB_WORK $UW2_DIR /home/$NB_USER
+RUN chown -R $NB_USER:users /workspace $UW2_DIR /home/$NB_USER
 
 # CHANGE USER
 USER $NB_USER
