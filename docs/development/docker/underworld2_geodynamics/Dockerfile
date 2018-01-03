@@ -1,6 +1,7 @@
 FROM underworldcode/underworld2_untested:dev
 MAINTAINER romain.beucher@unimelb.edu
 
+USER root
 
 WORKDIR /opt
 RUN git clone https://github.com/rbeucher/UWGeodynamics.git
