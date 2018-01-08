@@ -117,8 +117,14 @@ PetscErrorCode BSSCR_MatListOperations( Mat A, PetscViewer v )
 	
 	PetscViewerASCIIPrintf(v, "------------------------------------------------\n");
 	BSSCR_report_op( ops->axpy, v,            i++, "MatAXPY" );
-	BSSCR_report_op( ops->getsubmatrices, v,  i++, "MatGetSubMatrices" );
-	BSSCR_report_op( ops->increaseoverlap, v, i++, "MatIncreaseOverlap" );
+
+#if( (PETSC_VERSION_MAJOR == 3) &&  (PETSC_VERSION_MINOR > 7) )
+    BSSCR_report_op( ops->createsubmatrices, v,  i++, "MatCreateSubMatrices" );
+#else
+    BSSCR_report_op( ops->getsubmatrices, v,  i++, "MatGetSubMatrices" );
+#endif
+
+    BSSCR_report_op( ops->increaseoverlap, v, i++, "MatIncreaseOverlap" );
 	BSSCR_report_op( ops->getvalues, v,       i++, "MatGetValues" );
 	BSSCR_report_op( ops->copy, v,            i++, "MatCopy" );
 	
@@ -144,7 +150,13 @@ PetscErrorCode BSSCR_MatListOperations( Mat A, PetscViewer v )
 	BSSCR_report_op( ops->setvaluesblocked, v, i++, "MatSetValuesBlocked" );
 	
 	PetscViewerASCIIPrintf(v, "------------------------------------------------\n");
-	BSSCR_report_op( ops->getsubmatrix, v,  i++, "MatGetSubMatrix" );
+
+#if( (PETSC_VERSION_MAJOR == 3) &&  (PETSC_VERSION_MINOR > 7) )
+    BSSCR_report_op( ops->createsubmatrix, v,  i++, "MatCreateSubMatrix" );
+#else
+    BSSCR_report_op( ops->getsubmatrix, v,  i++, "MatGetSubMatrix" );
+#endif
+
 	BSSCR_report_op( ops->destroy, v,       i++, "MatDestroy" );
 	BSSCR_report_op( ops->view, v,          i++, "MatView" );
 	BSSCR_report_op( ops->convertfrom, v,   i++, "MatConvertFrom" );
@@ -159,7 +171,7 @@ PetscErrorCode BSSCR_MatListOperations( Mat A, PetscViewer v )
 	PetscViewerASCIIPrintf(v, "------------------------------------------------\n");
 	BSSCR_report_op( ops->getrowmaxabs, v,    i++, "MatGetRowMaxAbs" );
 	BSSCR_report_op( ops->convert, v,         i++, "MatConvert" );
-	BSSCR_report_op( ops->setcoloring, v,     i++, "MatSetColoring" );
+//    BSSCR_report_op( ops->setcoloring, v,     i++, "MatSetColoring" );  NOT SURE IF THIS IS AVAIL IN 3.8
 
 	BSSCR_report_op( ops->setvaluesadifor, v, i++, "MatSetValuesAdicfor" );
 	

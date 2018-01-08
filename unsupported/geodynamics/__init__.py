@@ -1,17 +1,23 @@
-import rheologyDatabase 
-import scaling
-import shapes
-import utils
-import surfaceProcesses as SPM
-from scaling import UnitRegistry
-from scaling import nonDimensionalize
-from scaling import Dimensionalize
-from LecodeIsostasy import LecodeIsostasy
-from lithopress import LithostaticPressure
-from rheology import Rheology, ConstantViscosity, ViscousCreep, DruckerPrager
-from Material import Material
-from Model import Model
+import warnings
 
-nd = nonDimensionalize
-sca = scaling
-u = UnitRegistry
+warnings.warn(
+"""\n
+The geodynamics module is deprecated.
+Please use UWGeodynamics instead.\n
+You can install the module using:\n
+
+```
+    pip install UWGeodynamics
+```
+
+You can also use the docker image:\n
+
+rbeucher/underworld_geodynamics\n
+
+Finally on github:\n
+
+https://github.com/rbeucher/UWGeodynamics
+
+"""
+)
+
