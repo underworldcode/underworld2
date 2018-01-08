@@ -720,6 +720,43 @@ class pow(_Function):
         # build parent
         super(pow,self).__init__(argument_fns=[fn1fn,fn2fn],**kwargs)
 
+class atan2(_Function):
+    """
+    arctan2 function. Returns the arc tangent of y/x, expressed in radians.
+
+    Parameters
+    ----------
+    fn1: underworld.function.Function (or convertible).
+         The function to compute y values.
+    fn2: underworld.function.Function (or convertible).
+         The function to compute x values.
+
+    Example
+    -------
+    >>> from . import _systemmath as math
+    >>> import numpy as np
+    >>> func = atan2(_uw.function.input(),3.)
+    >>> np.allclose( func.evaluate(3.), np.pi/4 ) # TODO:think it should fail.
+    True
+
+    """
+    def __init__(self, fn1, fn2, **kwargs):
+        # lets convert integer powers to floats
+        fn1fn = _Function.convert( fn1 )
+        if not isinstance( fn1fn, _Function ):
+            raise TypeError("Functions must be of type (or convertible to) 'Function'.")
+        fn2fn = _Function.convert( fn2 )
+        if not isinstance( fn2fn, _Function ):
+            raise TypeError("Functions must be of type (or convertible to) 'Function'.")
+
+        self._fn1 = fn1fn
+        self._fn2 = fn2fn
+        # ok finally lets create the fn
+        self._fncself = _cfn.Atan2(self._fn1._fncself, self._fn2._fncself )
+        # build parent
+        super(atan2,self).__init__(argument_fns=[fn1fn,fn2fn],**kwargs)
+
+
 class dot(_Function):
     """
     Dot product function. Returns fn1.fn2. Argument functions must return values
@@ -760,5 +797,3 @@ class dot(_Function):
         self._fncself = _cfn.Dot(self._fn1._fncself, self._fn2._fncself )
         # build parent
         super(dot,self).__init__(argument_fns=[fn1fn,fn2fn],**kwargs)
-
-
