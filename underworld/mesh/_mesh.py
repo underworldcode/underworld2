@@ -1521,6 +1521,8 @@ class _FeMesh_Annulus(FeMesh_Cartesian):
         return np.array([r,theta]).T
 
     def _setup(self):
+        from underworld import function as fn
+        
         with self.deform_mesh():
             # basic polar coordinate -> cartesian map, i.e. r,t -> x,y
             r = self.data[:,0]
@@ -1546,3 +1548,7 @@ class _FeMesh_Annulus(FeMesh_Cartesian):
         self.rot_vec_tangent = uw.function.branching.conditional(
                             [ ( self.bndMeshVariable > 0.9, self.fn_unitvec_tangent() ),
                               (               True, uw.function.misc.constant(1.0)*(0.0,1.0) ) ] )
+        
+         # define solid body rotation function for the annulus
+        r = fn.math.sqrt(fn.math.pow(fn.coord()[0],2.) + fn.math.pow(fn.coord()[1],2.))
+        self.sbr_fn = r*self.fn_unitvec_tangent() # solid body rotation function

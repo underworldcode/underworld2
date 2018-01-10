@@ -107,8 +107,11 @@ void* _SolutionVector_Copy( void* solutionVector, void* dest, Bool deep, Name na
 }
 
 void SolutionVector_RemoveVectorSpace( SolutionVector* xVec, SolutionVector* nVec ) {
-  /* Remove a vector from another vector.
+  /* 
+     Remove a vector from another vector.
      Assumes vectors are the same size and decomp
+     
+     *Is this a more useful algorithm, or should we just do element-wise subtraction
    */
   PetscScalar a1, a2, mag, a;
   Vec x, n;

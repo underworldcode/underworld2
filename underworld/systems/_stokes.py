@@ -343,47 +343,49 @@ class Stokes(_stgermain.StgCompoundComponent):
         # does rotMatTerm already exist
         if self._kmatrix._cself.rotMatTerm is not None:
             return
-
-        # build copy of velocity MeshVariable - will hold there-ratation vector
-        vcopy = self._vcopy = self._velocityField.copy()
-        vcpEqNum = uw.systems.sle.EqNumber( vcopy, False )
-        self._asv = uw.systems.sle.SolutionVector(vcopy, vcpEqNum) # Aligned Solution Vector
-
-        # must be done after vcopy creation
-        self._velocityField._cself.nonAABCs = 1
-
-        # build re-rotate matrix to applied globally
-        # self._rot = uw.systems.sle.AssembledMatrix( self._asv, self._asv, rhs=None )
-        self._rot = uw.systems.sle.AssembledMatrix( self._velocitySol, self._velocitySol, rhs=None )
-
-        gaussSwarm = self._constitMatTerm._integrationSwarm
+            
         mesh = self._velocityField.mesh
 
-        self._rot._cself.assembleOnNodes = 1 # still important
+        # build 'vns' (the velocity null space) MeshVariable and SolutionVector
+        vnsField = self._vnsField = self._velocityField.copy()
+        vnsEqNum = uw.systems.sle.EqNumber( vnsField, False )
+        self._vnsVec = uw.systems.sle.SolutionVector(vnsField, vnsEqNum) # store on class
+
+        # evaluate vnsField, check compatibility
+        if type(mesh) == uw.mesh._FeMesh_Annulus: # with _FeMesh_Annulus we have the sbr_fn
+            self._vnsVec.meshVariable.data[:] = mesh.sbr_fn.evaluate(mesh)
+        else:
+            raise RuntimeError("Can't redefineVelocityDirichletBC because the velocity null space is unknown for this mesh")
+             
+        uw.libUnderworld.StgFEM.SolutionVector_LoadCurrentFeVariableValuesOntoVector(self._vnsVec._cself) # store in petsc vec
+
+        # must be done after vnsField creation
+        self._velocityField._cself.nonAABCs = 1
+
+        # build a global 're-rotate' matrix
+        # self._rot = uw.systems.sle.AssembledMatrix( self._velocitySol, self._velocitySol, rhs=None )
+        self._rot = uw.systems.sle.AssembledMatrix( self._vnsVec, self._vnsVec, rhs=None )
+        gaussSwarm = self._constitMatTerm._integrationSwarm
+        self._rot._cself.assembleOnNodes = 1 # important doesn't perform FEM integral
+        
         term = self._term = uw.systems.sle.MatrixAssemblyTerm_RotationDof(integrationSwarm=gaussSwarm,
                                                              assembledObject = self._rot,
                                                              fn_e1=basis_vectors[0],
                                                              fn_e2=basis_vectors[1],
                                                              mesh=mesh)
 
-        self._eqNums[self._velocityField]._cself.removeBCs=True
+        # self._eqNums[self._velocityField]._cself.removeBCs=True
+        vnsEqNum._cself.removeBCs = True
         uw.libUnderworld.StgFEM.StiffnessMatrix_Assemble(
             self._rot._cself,
             None, None );
-        self._eqNums[self._velocityField]._cself.removeBCs=False
-        #
-        # # add rotation matrix using the following
+        vnsEqNum._cself.removeBCs = False
+        # self._eqNums[self._velocityField]._cself.removeBCs=False
+
+        # # add rotation matrix element terms using the following
         uw.libUnderworld.StgFEM.StiffnessMatrix_SetRotationTerm(self._kmatrix._cself, term._cself)
         uw.libUnderworld.StgFEM.StiffnessMatrix_SetRotationTerm(self._gmatrix._cself, term._cself)
         uw.libUnderworld.StgFEM.ForceVector_SetRotationTerm(self._fvector._cself, term._cself)
-
-        # define the null space for the annulus
-        r = fn.math.sqrt(fn.math.pow(fn.coord()[0],2.) + fn.math.pow(fn.coord()[1],2.))
-        tang = r*mesh.fn_unitvec_tangent()
-
-        # build solid body rotation vector
-        self._asv.meshVariable.data[:] = tang.evaluate(mesh) # evaluate
-        uw.libUnderworld.StgFEM.SolutionVector_LoadCurrentFeVariableValuesOntoVector(self._asv._cself) #store
 
     @property
     def fn_viscosity(self):
@@ -527,7 +529,7 @@ class Stokes(_stgermain.StgCompoundComponent):
     def _avg_pressure_nullspace_removal(self):
         mesh = self._velocityField.mesh
         fn_2_integrate = [1.0, self._pressureField]
-        (vol, int_pressure)  = mesh.integrate( fn=[1.0, self._pressureField] ) 
+        (vol, int_pressure)  = mesh.integrate( fn=fn_2_integrate ) 
         
         return p0/area
     
@@ -539,6 +541,7 @@ class Stokes(_stgermain.StgCompoundComponent):
         # get the mesh and perform integrals over it
         mesh = self._velocityField.mesh
         
+        # use tuple fn definition
         fn_2_integrate = ( 1., self._aObjects['vdotv_fn'] )
         (v2,vol)       = mesh.integrate( fn=fn_2_integrate )
         

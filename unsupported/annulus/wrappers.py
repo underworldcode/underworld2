@@ -540,10 +540,10 @@ class AnnulusConvection(Model):
 
         # create the fields
         self.fields = dict()
+        
         # stokes fields
         vField = self.fields['velocity']    = uw.mesh.MeshVariable(annulus, nodeDofCount=2)
         self.fields['pressure']             = uw.mesh.MeshVariable(annulus.subMesh, nodeDofCount=1)
-
         # heat equation fields
         tField = self.fields['temperature'] = uw.mesh.MeshVariable(annulus, nodeDofCount=1)
         self.fields['tDot']                 = uw.mesh.MeshVariable(annulus, nodeDofCount=1)
@@ -646,7 +646,7 @@ class AnnulusConvection(Model):
     def postSolve(self):
         stokesSLE = self.system['stokes']
         # remove null space
-        uw.libUnderworld.StgFEM.SolutionVector_RemoveVectorSpace(stokesSLE._velocitySol._cself, stokesSLE._asv._cself)
+        uw.libUnderworld.StgFEM.SolutionVector_RemoveVectorSpace(stokesSLE._velocitySol._cself, stokesSLE._vnsVec._cself)
         # realign solution
         uw.libUnderworld.Underworld.AXequalsX( stokesSLE._rot._cself, stokesSLE._velocitySol._cself, False)
 
@@ -734,7 +734,7 @@ class AnnulusConvection(Model):
 
         if h5file is not None:
             if not isinstance(h5file, str) or not os.path.exists(h5file):
-                raise ValueError("'h5file' must be of type 'str' and reference a valid hdf5 file")
+                raise ValueError("'h5file' path is invalid")
             tField.load(h5file, interpolate=True)
             return
 
