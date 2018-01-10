@@ -188,7 +188,7 @@ if __name__ == '__main__':
             try:
                 fname = convert_ipynb_to_py(fname) # convert
             except subprocess.CalledProcessError:
-                print "Error: unable to convert. Skipping."
+                print("Error: unable to convert. Skipping.")
                 continue
 
             cleanup=True
@@ -222,8 +222,8 @@ if __name__ == '__main__':
     logFile.close()
 
     # Report to stdout
-    print "\n\nTotal: Number of fails " + str(nfails)
-    print list_fails
+    print("\n\nTotal: Number of fails " + str(nfails))
+    print(list_fails)
 
     # Return appropriate error code
     if nfails == 0:

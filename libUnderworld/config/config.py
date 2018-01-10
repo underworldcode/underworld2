@@ -89,7 +89,7 @@ def PrintSummary(env, filename="config.cfg"):
         print('Saved configuration: "' + filename + '"')
         if 'PETSC_FLAGS' in env:
             print('  Flags imported from PETSc:')
-            for key, val in env['PETSC_FLAGS'].iteritems():
+            for key, val in env['PETSC_FLAGS'].items():
                 if val:
                     print('   ' + key + ': ' + repr(val))
         if (filename == "config.cfg"):
