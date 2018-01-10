@@ -519,7 +519,12 @@ def Annulus_loadswarm(mesh, path):
 
 class AnnulusConvection(Model):
     '''
-    Build a thermo mechanical model with Q1/dQ0 elements in a 2D annulus geometry
+    Build a thermo mechanical model with Q1/dQ0 elements in a 2D annulus geometry.
+    To use this model 3 stages must be run:
+      parameter_setup() ... setup the model, parameters and system of equations
+      simulate()        ... run the model
+      
+    The 3 stages have been chosen to allow for user flexibility.
     '''
 
     def __init__(self, elRes=(10,36), radialLengths=(1.22,2.22), swarmVars=None, **kwargs):
@@ -642,6 +647,12 @@ class AnnulusConvection(Model):
             self.fn_source = self.Di / self.Ra * self.viscous_dissipation + self.adiabatic_heating
 
         self.fn_force = tField * Ra * annulus.fn_unitvec_radial()
+        
+        # setups the systems
+        self.model_init()
+        
+        # flag setups as staged
+        self._staged_setup = 1
 
     def postSolve(self):
         stokesSLE = self.system['stokes']
@@ -675,7 +686,9 @@ class AnnulusConvection(Model):
         self.solver['stokes'] = uw.systems.Solver(self.system['stokes'])
 
     def simulate(self, maxtimesteps=10, visualiseEvery=2, checkpointEvery=5, temp_rtol=1e-5):
-
+        if not hasattr(self,'_staged_setup'):
+            raise RuntimeError("Must run 'parameter_setup()' before 'simulate()'")
+            
         vField = self.fields['velocity']
         tField = self.fields['temperature']
         tDot   = self.fields['tDot']
