@@ -6,4 +6,4 @@ set -e
 export PYTHONPATH=$PWD:$PYTHONPATH
 
 cd utils
-./run_tests.py ../docs/examples/1_0* ../docs/test/* ../docs/user_guide/*
+./run_tests.py ../docs/examples/1_*.ipynb ../docs/user_guide/*.ipynb ../docs/test/*
