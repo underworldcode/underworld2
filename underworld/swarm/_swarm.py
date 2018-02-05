@@ -106,10 +106,12 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         # escape routine will be used during swarm advection, but lets also add
         # it to the mesh post deform hook so that when the mesh is deformed,
         # any particles that are found wanting are culled accordingly.
+        import weakref
+        wkref = weakref.ref(self)  # use weakref to avoid circular dependency here
         def _update_owners():
-#                globCount = self.particleGlobalCount
-            self.update_particle_owners()
-#                if uw.rank() == 0: print("Removed {} particles found outside the mesh.".format( globCount - self.particleGlobalCount))
+            selfguy = wkref()
+            if selfguy:  # if for some reason the swarm is gone, this will be none, in which case we're done here.
+                selfguy.update_particle_owners()
         mesh.add_post_deform_function( _update_owners )
 
         # init this to -1 to signify no mapping has occurred
