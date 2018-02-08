@@ -29,7 +29,7 @@ stokesSystem = uw.systems.Stokes(velocityField,pressureField,sol.fn_viscosity,so
 #Run the BSSCR Solver
 solver=uw.systems.Solver(stokesSystem)
 solver.set_inner_method("nomg")
-print solver.options.A11._mg_active
+print(solver.options.A11._mg_active)
 solver.solve()
 stats=solver.get_stats()
 solver.print_stats()

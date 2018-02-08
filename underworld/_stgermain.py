@@ -63,7 +63,7 @@ class StgClass(LeftOverParamsChecker):
     fly by passing the _cself parameter to the constructor.
     
     """
-
+    _live_objects = set()
     def __init__(self, _cself=None, delSelf=True, **kwargs):
         if _cself:
             self._cself = _cself
@@ -74,12 +74,19 @@ class StgClass(LeftOverParamsChecker):
         self._delSelf = delSelf
         if self._delSelf:
             libUnderworld.StGermain.Stg_Class_Lock(self._cself)
-
+        
+        self._live_objects.add(self._cself.name)
+#        print("creating {},{}".format(self._cself.name,self._cself.type))
+#        import ipdb
+#        ipdb.set_trace()
         super(StgClass, self).__init__(**kwargs)
 
     
     def __del__(self):
         if hasattr(self, "_delSelf") and self._delSelf:
+            self._live_objects.remove(self._cself.name)
+#            print("deleting {},{}".format(self._cself.name,self._cself.type))
+#            print("deleting {},{}".format(self._cself.name,self._cself.type))
             libUnderworld.StGermain.Stg_Class_Unlock(self._cself)
             libUnderworld.StGermain.Stg_Class_Delete(self._cself)
 

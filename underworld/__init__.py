@@ -141,11 +141,24 @@ class _del_uw_class:
     def __del__(self):
         # put this in a try loop to avoid errors during sphinx documentation generation
         try:
+#            print("You are now Finalising UW from uwclass.")
+#            print("Objects not deleted thus far:")
+#            pp.pprint(_stgermain.StgClass.guys)
             self.delfunc(self.deldata)
+#            print("You have finished Finalising UW from uwclass.")
         except:
             pass
 
 _delclassinstance = _del_uw_class(libUnderworld.StGermain_Tools.StgFinalise, _data)
+#
+#import atexit
+#@atexit.register
+#def goodbye():
+#    print("You are now Finalising UW.")
+#    print("Objects not deleted thus far:")
+#    pp.pprint(_stgermain.StgClass.guys)
+#    libUnderworld.StGermain_Tools.StgFinalise(_data)
+#    print("You have Finalising UW.")
 
 def _in_doctest():
     """

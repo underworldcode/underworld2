@@ -13,7 +13,7 @@ import underworld.swarm as _swarmMod
 import underworld.mesh as _uwmesh
 from underworld.function import Function as _Function
 import libUnderworld as _libUnderworld
-import numpy
+import numpy as _numpy
 
 #TODO: Drawing Objects to implement
 # HistoricalSwarmTrajectory
@@ -829,8 +829,8 @@ class Sampler(Drawing):
         _libUnderworld.gLucifer._lucSampler_SetFn( self._cself, fn_ptr )
 
     def sample(self, vertices):
-        sz = len(vertices)/3*self._cself.fieldComponentCount
-        values = numpy.zeros(sz, dtype='float32')
+        sz = round(len(vertices)/3*self._cself.fieldComponentCount)
+        values = _numpy.zeros(sz, dtype='float32')
         _libUnderworld.gLucifer.lucSampler_SampleField( self._cself, vertices, values)
         return values
 

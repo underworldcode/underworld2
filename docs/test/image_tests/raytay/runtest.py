@@ -145,7 +145,7 @@ def doOutput():
 
     # print output
     if steps%outputEvery == 0:
-        print 'step = {0:6d}; time = {1:.3e}; v_rms = {2:.3e}'.format(steps,time,vrms)
+        print('step = {0:6d}; time = {1:.3e}; v_rms = {2:.3e}'.format(steps,time,vrms))
             
         # output snapshot of particles to figure.
         outputFilename = "image"+str(steps).zfill(4)

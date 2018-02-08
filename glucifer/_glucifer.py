@@ -24,22 +24,7 @@ import libUnderworld as _libUnderworld
 import sys
 import os
 from mpi4py import MPI
-
-#Attempt to import lavavu module
-if 'lavavu' in sys.modules:
-    #Already imported, some paths issue causes double import to load separate instances
-    raise RuntimeError("LavaVu module exists, must not be imported before glucifer")
-    #lavavu = sys.modules['lavavu']
-else:
-    try:
-        import lavavu
-        #Import into main too so can be accessed there
-        #(necessary for interactive viewer/controls)
-        import __main__
-        __main__.lavavu = lavavu
-    except Exception as e:
-        print("LavaVu module not found! disabling inline visualisation")
-        print(e)
+import lavavu
 
 # lets create somewhere to dump data for this session
 try:
