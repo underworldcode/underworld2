@@ -287,7 +287,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         if dset.shape[0] != particleGobalCount:
             if rank == 0:
                 import warnings
-                warnings.warn("Warning, it appears {} particles were loaded, but this h5 variable has {} data points". format(particleGobalCount, dset.shape[0]), RuntimeWarning)
+                warnings.warn("Warning, it appears {} particles were loaded, but this h5 variable has {} data points. Perhaps you restarting on a new mesh geometry?". format(particleGobalCount, dset.shape[0]), RuntimeWarning)
 
         size = len(gIds) # number of local2global mapped indices
         if size > 0:     # only if there is a non-zero local2global do we load
