@@ -8,7 +8,7 @@ ENV PYTHONPATH $PYTHONPATH:$UW2_DIR
 ENV NB_WORK /workspace
 
 # get underworld, compile, delete some unnecessary files, trust notebooks, copy to workspace
-RUN git clone --branch "development" --single-branch https://github.com/underworldcode/underworld2 && \
+RUN git clone --branch "v2.5" --single-branch https://github.com/underworldcode/underworld2 && \
     cd underworld2/libUnderworld && \
     ./configure.py --with-debugging=0  && \
     ./compile.py                 && \
