@@ -23,10 +23,15 @@ frames (still experimental).
 
 """
 import _glucifer
+import underworld as _uw
 from _glucifer import Store
+_uw._set_init_sig_as_sig(Store)
 from _glucifer import Figure
+_uw._set_init_sig_as_sig(Figure)
 from _glucifer import Viewer
+_uw._set_init_sig_as_sig(Viewer)
 from . import objects
+_uw._set_init_sig_as_sig(objects)
 try:
     from _glucifer import lavavu
 except:

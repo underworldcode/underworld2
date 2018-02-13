@@ -39,13 +39,48 @@ import os as _os
 _sys.path.insert(0, _os.path.realpath(_os.path.dirname("..")))
 
 import libUnderworld
+from . import _stgermain
+
+def _set_init_sig_as_sig(mod):
+    '''
+    This method replaces all constructor signatures with those defined
+    by the class' __init__ method.  This is necessary for StgCompountComponent
+    subclasses (the only type this method applies to) due to the metaclassing
+    which results in the __call__ method's signature (as defined in _SetupClass)
+    being the one inspect.signature() returns (which is *not* what the user
+    should see).
+    '''
+    import inspect
+    # first gather info
+    mods = {}
+    for guy in dir(mod):
+        if guy[0] != "_":  # don't grab private guys
+            obj = getattr(mod,guy)
+            if inspect.ismodule(obj):
+                mods[guy] = obj
+            elif inspect.isclass(obj):
+                if issubclass(obj, _stgermain.StgCompoundComponent):
+                    # replace signature here
+                    obj.__signature__ = inspect.signature(obj.__init__)
+    for key in mods:
+        # recurse into submodules
+        _set_init_sig_as_sig(getattr(mod,key))
+
+
 import underworld.container
+_set_init_sig_as_sig(underworld.container)
 import underworld.mesh
+_set_init_sig_as_sig(underworld.mesh)
 import underworld.conditions
+_set_init_sig_as_sig(underworld.conditions)
 import underworld.function
+_set_init_sig_as_sig(underworld.function)
 import underworld.swarm
+_set_init_sig_as_sig(underworld.swarm)
 import underworld.systems
+_set_init_sig_as_sig(underworld.systems)
 import underworld.utils
+_set_init_sig_as_sig(underworld.utils)
 
 try:
     from ._uwid import uwid as _id
@@ -55,9 +90,6 @@ except:
 from . import _net
 
 # lets go right ahead and init now.  user can re-init if necessary.
-from . import _stgermain
-#import ipdb
-#ipdb.set_trace()
 _data =  libUnderworld.StGermain_Tools.StgInit( _sys.argv )
 
 _stgermain.LoadModules( {"import":["StgDomain","StgFEM","PICellerator","Underworld","gLucifer","Solvers"]} )
