@@ -47,6 +47,14 @@ import swarm
 import systems
 import utils
 
+import numpy as _np
+
+# to allow our legacy doctest formats
+try:
+    _np.set_printoptions(legacy='1.13')
+except:
+    pass
+
 try:
     from ._uwid import uwid as _id
 except:
