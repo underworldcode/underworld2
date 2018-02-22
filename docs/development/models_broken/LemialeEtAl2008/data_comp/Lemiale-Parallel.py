@@ -166,7 +166,7 @@ for index in mesh.specialSets["MaxI_VertexSet"]:
 # In[7]:
 
 swarm         = uw.swarm.Swarm( mesh=mesh )
-swarmLayout   = uw.swarm.layouts.GlobalSpaceFillerLayout( swarm=swarm, particlesPerCell=20 )
+swarmLayout   = uw.swarm.layouts.PerCellSpaceFillerLayout( swarm=swarm, particlesPerCell=20 )
 swarm.populate_using_layout( layout=swarmLayout )
 
 

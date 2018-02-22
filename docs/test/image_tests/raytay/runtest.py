@@ -35,7 +35,7 @@ materialVariable = swarm.add_variable( dataType="int", count=1 )
 vectorVariable = swarm.add_variable( dataType="double", count=2 )
 
 # Create a layout object that will populate the swarm across the whole domain.
-swarmLayout = uw.swarm.layouts.GlobalSpaceFillerLayout( swarm=swarm, particlesPerCell=20 )
+swarmLayout = uw.swarm.layouts.PerCellSpaceFillerLayout( swarm=swarm, particlesPerCell=20 )
 
 # Populate.
 swarm.populate_using_layout( layout=swarmLayout )
