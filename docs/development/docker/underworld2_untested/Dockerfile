@@ -45,7 +45,8 @@ EXPOSE 8888
 EXPOSE 9999
 
 # copy this file over so that no password is required
-COPY jupyter_notebook_config.json /home/$NB_USER/.jupyter/jupyter_notebook_config.json
+# explicit use of jovyan because ENV expansion hasnt been implemented yet - https://github.com/moby/moby/issues/35018
+COPY --chown=jovyan:users jupyter_notebook_config.json /home/$NB_USER/.jupyter/jupyter_notebook_config.json
 
 # setup symlink for terminal convenience 
 RUN ln -s $NB_WORK /home/$NB_USER/
