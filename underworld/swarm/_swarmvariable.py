@@ -288,69 +288,11 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
                 import warnings
                 warnings.warn("Warning, it appears {} particles were loaded, but this h5 variable has {} data points. Perhaps you restarting on a new mesh geometry?". format(particleGobalCount, dset.shape[0]), RuntimeWarning)
 
-        size = len(gIds) # number of local2global mapped indices
-        if size > 0:     # only if there is a non-zero local2global do we load
-            self.data[:] = dset[gIds,:]
-
-        h5f.close();
-
-
-    def load_chunk( self, filename ):
-        """
-        Load the swarm variable from disk. This must be called *after* the swarm.load().
-
-        Parameters
-        ----------
-        filename : str
-            The filename for the saved file. Relative or absolute paths may be
-            used, but all directories must exist.
-
-        Notes
-        -----
-        This method must be called collectively by all processes.
-
-
-        Example
-        -------
-        Refer to example provided for 'save' method.
-
-        """
-
-        if not isinstance(filename, str):
-            raise TypeError("'filename' parameter must be of type 'str'")
-
-        if self.swarm._checkpointMapsToState != self.swarm.stateId:
-            raise RuntimeError("'Swarm' associate with this 'SwarmVariable' does not appear to be in the correct state.\n" \
-                               "Please ensure that you have loaded the swarm prior to loading any swarm variables.")
-        gIds = self.swarm._local2globalMap
-
-        comm = MPI.COMM_WORLD
-        rank = comm.Get_rank()
-        nProcs = comm.Get_size()
-
-        # open hdf5 file
-        h5f = h5py.File(name=filename, mode="r", driver='mpio', comm=MPI.COMM_WORLD)
-
-        dset = h5f.get('data')
-        if dset == None:
-            raise RuntimeError("Can't find 'data' in file '{}'.\n".format(filename))
-
-        if dset.shape[1] != self.data.shape[1]:
-            raise RuntimeError("Cannot load file data on current swarm. Data in file '{0}', " \
-                               "has {1} components -the particlesCoords has {2} components".format(filename, dset.shape[1], self.particleCoordinates.data.shape[1]))
-
-        particleGobalCount = self.swarm.particleGlobalCount
-        
-        if dset.shape[0] != particleGobalCount:
-            if rank == 0:
-                import warnings
-                warnings.warn("Warning, it appears {} particles were loaded, but this h5 variable has {} data points. Perhaps you restarting on a new mesh geometry?". format(particleGobalCount, dset.shape[0]), RuntimeWarning)
-
         # for efficiency, we want to load swarmvariable data in the largest stride chunks possible.
         # we need to determine where required data is contiguous.
         # first construct an array of gradients. the required data is contiguous
         # where the indices into the array are increasing by 1, ie have a gradient of 1.
-        gradIds = np.zeros_like(gIds)        # creates array of zeros of same size & type
+        gradIds = np.zeros_like(gIds)            # creates array of zeros of same size & type
         if len(gIds) > 1:
             gradIds[:-1] = gIds[1:] - gIds[:-1]  # forward difference type gradient
 
