@@ -203,8 +203,8 @@ PetscErrorCode  KSPSolve_BSSCR(KSP ksp)
         }
     }
 
-    /* get sub matrix / vector objects */
-    MatNestGetSubMat( Amat, 0,0, &K );
+    // /* get sub matrix / vector objects */
+    // MatNestGetSubMat( Amat, 0,0, &K );
     /* Underworld preconditioner matrix*/
     ApproxS = PETSC_NULL;
     if( ((StokesBlockKSPInterface*)SLE->solver)->preconditioner ) { /* SLE->solver->st_sle == SLE here, by the way */

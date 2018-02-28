@@ -123,35 +123,30 @@ class VectorSurfaceAssemblyTerm_NA__Fn__ni(VectorAssemblyTerm):
 
         ##### Now construct the additional rhs force like term. Ingredients required for a surface integral
         # 1) a gauss border swarm
-        # 2) a mask function to only evaluate the flux only on nodes specified in the nbc.indexSets
+        # 2) a mask function to evaluate the flux ONLY on nodes specified in the nbc.indexSets
+        #    - we'll use an nbc boolean MeshVariable
         #####
 
-        deltaMeshVariable = uw.mesh.MeshVariable(mesh, 1)
-        deltaMeshVariable.data[:] = 0.
-        # set a value 1.0 on provided vertices
+        # create temporary set of all local nbc dofs
         newSet = mesh.specialSets['Empty']
         for i in range(len(nbc.indexSetsPerDof)):
             if nbc.indexSetsPerDof[i] is None:
                 continue
             newSet += nbc.indexSetsPerDof[i]
-        deltaMeshVariable.data[newSet.data] = 1.0
+
+        # create nbc bool var.
+        self.nbcVariable = uw.mesh.MeshVariable(mesh, 1)
+        self.nbcVariable.data[:] = 0.
+        self.nbcVariable.data[newSet.data] = 1.0
         # note we use this condition to only capture border swarm particles
-        # on the surface itself. for those directly adjacent, the deltaMeshVariable will evaluate
+        # on the surface itself. for those directly adjacent, the self.nbcVariable will evaluate
         # to non-zero (but less than 1.), so we need to remove those from the integration as well.
         maskFn = uw.function.branching.conditional(
-                                          [  ( deltaMeshVariable > 0.999, 1. ),
-                                             (                      True, 0. )   ] )
+                                          [  ( self.nbcVariable > 0.999, 1. ),
+                                             (                     True, 0. )   ] )
 
         self._fn = maskFn * nbc.fn_flux
         self._set_fn_function = libUnderworld.Underworld._VectorSurfaceAssemblyTerm_NA__Fn__ni_SetFn
-
-        #  Questionable code think we can remove
-        # if mesh:
-        #     if not isinstance( mesh, uw.mesh.FeMesh_Cartesian ):
-        #         raise TypeError( "The provided mesh must be of FeMesh_Cartesian class.")
-        #     # set directly
-        #     self._cself.geometryMesh = mesh._cself
-        #     self._mesh = mesh
 
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method
@@ -343,6 +338,33 @@ class MatrixAssemblyTerm_NA__NB__Fn(MatrixAssemblyTerm):
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method
         super(MatrixAssemblyTerm_NA__NB__Fn,self)._add_to_stg_dict(componentDictionary)
+
+class  MatrixAssemblyTerm_RotationDof(MatrixAssemblyTerm):
+    _objectsDict = { "_assemblyterm": " MatrixAssemblyTerm_RotationDof" }
+
+    def __init__(self, fn_e1, fn_e2, mesh=None, **kwargs):
+        """
+        """
+        # build parent
+        super(MatrixAssemblyTerm_RotationDof,self).__init__(**kwargs)
+
+        # we disable these parent attributes
+        self._set_fn_function = None
+        self._fn = None
+
+        self._fn_e1 = fn_e1
+        self._fn_e2 = fn_e2
+
+        # set mesh directly
+        self._cself.geometryMesh = mesh._cself
+        self._geometryMesh = mesh
+
+        uw.libUnderworld.Underworld.MatrixAssemblyTerm_RotationDof_SetE1Fn(self._cself, fn_e1._fncself)
+        uw.libUnderworld.Underworld.MatrixAssemblyTerm_RotationDof_SetE2Fn(self._cself, fn_e2._fncself)
+
+    def _add_to_stg_dict(self,componentDictionary):
+        # call parents method
+        super(MatrixAssemblyTerm_RotationDof,self)._add_to_stg_dict(componentDictionary)
 
 class LumpedMassMatrixVectorTerm(VectorAssemblyTerm):
     _objectsDict = { "_assemblyterm": "LumpedMassMatrixForceTerm" }

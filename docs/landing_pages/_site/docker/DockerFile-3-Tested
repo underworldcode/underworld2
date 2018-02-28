@@ -1,0 +1,10 @@
+FROM lmoresi/uw2-jupyter-hub-untested:1.0
+MAINTAINER Louis Moresi
+
+# set working directory to /opt
+WORKDIR $UW2_DIR/utils
+
+# run tests
+RUN ./run_tests.py ../docs/examples/1_*.ipynb ../docs/user_guide/*.ipynb ../docs/test/*
+
+WORKDIR /workspace

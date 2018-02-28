@@ -25,12 +25,12 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
     ----------
     mesh : underworld.mesh.FeMesh
         The supporting mesh for the variable.
-    dataType : strin
+    dataType : string
         The data type for the variable.
         Note that only 'double' type variables are currently
         supported.
     nodeDofCount : int
-        Number of degrees of freedom per node the variable should have.
+        Number of degrees of freedom per node the variable will have.
 
 
     See property docstrings for further information.
@@ -253,7 +253,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         Example
         -------
         First create the mesh add a variable:
-        
+
         >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
         >>> var = uw.mesh.MeshVariable( mesh=mesh, nodeDofCount=1, dataType="double" )
 
@@ -278,7 +278,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         True
 
         Clean up:
-        
+
         >>> if uw.rank() == 0:
         ...     import os;
         ...     os.remove( "saved_mesh_variable.h5" )
@@ -510,27 +510,44 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
             if inputMax is None:
                 raise RuntimeError("Can't read the 'max' for the field hdf5 file,"+
                        " was it created correctly?")
-
             inputMin = h5f['mesh'].attrs.get('min')
             if inputMin is None:
                 raise RuntimeError("Can't read the 'min' for the field hdf5 file,"+
                        " was it created correctly?")
-            regular = h5f['mesh'].attrs.get('regular')
-            if regular and regular!=True:
-                raise RuntimeError("Saved mesh file appears to correspond to a irregular mesh.\n"\
-                                   "Interpolating from irregular mesh not currently supported." )
 
-            elType = h5f['mesh'].attrs.get('elementType')
-            # for backwards compatiblity, the 'elementType' attribute was added Feb2017
-            if elType == None:
-                elType = 'Q1'
+            # build regular Rectangular mesh
+            if type(self.mesh) is uw.mesh.FeMesh_Cartesian:
+                regular = h5f['mesh'].attrs.get('regular')
+                if regular and regular!=True:
+                    raise RuntimeError("Saved mesh file appears to correspond to a irregular mesh.\n"\
+                                       "Interpolating from irregular mesh not currently supported." )
 
-            # build the NON-PARALLEL field and mesh
-            inputMesh = uw.mesh.FeMesh_Cartesian( elementType = (elType+"/DQ0"), # only geometryMesh can be saved
-                                          elementRes  = tuple(res),
-                                          minCoord    = tuple(inputMin),
-                                          maxCoord    = tuple(inputMax),
-                                          partitioned=False)
+                elType = h5f['mesh'].attrs.get('elementType')
+                # for backwards compatiblity, the 'elementType' attribute was added Feb2017
+                if elType == None:
+                    elType = 'Q1'
+
+                # build the NON-PARALLEL field and mesh
+                inputMesh = uw.mesh.FeMesh_Cartesian( elementType = (elType+"/DQ0"), # only geometryMesh can be saved
+                                              elementRes  = tuple(res),
+                                              minCoord    = tuple(inputMin),
+                                              maxCoord    = tuple(inputMax),
+                                              partitioned=False)
+
+            # build an annulus
+            elif type(self.mesh) is uw.mesh._FeMesh_Annulus:
+                if uw.rank() == 0:
+                    print ("As the fields mesh geometry is an Annulus only the internal nodes will have their values\n"+
+                          "interpolated from the hdf5 file. The use is required to manually initialise the field values\n"+
+                          "on the boundary nodes. ie\n"+
+                          "  field.data[mesh.specialSets[\"boundaryNodes\"].data] = 1.23" )
+                radialLengths = (inputMin[0], inputMax[0])
+                angularExtent = (inputMin[1], inputMax[1])
+
+                inputMesh = uw.mesh._FeMesh_Annulus( elementRes=tuple(res),
+                                                  radialLengths=radialLengths,
+                                                  angularExtent=angularExtent,
+                                                  periodic = [False, True], partitioned=False )
 
             # load data onto MeshVariable
             if len(dset) == inputMesh.nodesGlobal:
@@ -547,8 +564,19 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
             # copy hdf5 numpy array onto serial inputField
             inputField.data[:] = dset[:]
 
-            # interpolate 'inputField' onto the self nodes
-            self.data[:] = inputField.evaluate(self.mesh.data)
+            if type(self.mesh) is uw.mesh.FeMesh_Cartesian:
+                # interpolate 'inputField' onto the self nodes
+                self.data[:] = inputField.evaluate(self.mesh.data)
+            elif type(self.mesh) is uw.mesh._FeMesh_Annulus:
+                # only interpolate on interior nodes, not boundary nodes
+                mesh = self.mesh
+                outer = mesh.specialSets['outer']
+                inner = mesh.specialSets['inner']
+                for node in range(mesh.nodesLocal):
+                    pos = mesh.data[node]
+                    if node not in inner and node not in outer:
+                        self.data[node] = inputField.evaluate(tuple(pos))
+
 
         uw.libUnderworld.StgFEM._FeVariable_SyncShadowValues( self._cself )
         h5f.close()

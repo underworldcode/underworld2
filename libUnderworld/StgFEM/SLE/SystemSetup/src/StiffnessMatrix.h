@@ -66,6 +66,9 @@
 									                  \
 		IArray* rowInc;	                \
 		IArray* colInc;                 \
+		double* rotMat;                 \
+		double* tmpMat;                 \
+		StiffnessMatrixTerm* rotMatTerm;
 
 	struct StiffnessMatrix { __StiffnessMatrix };
 
@@ -145,8 +148,6 @@
 	#define StiffnessMatrix_DeepCopy( self ) \
 		(StiffnessMatrix*)Stg_Class_Copy( self, NULL, True, NULL, NULL )
 
-	void* _StiffnessMatrix_Copy( void* stiffnessMatrix, void* dest, Bool deep, Name nameExt, PtrMap* ptrMap );
-
 	/* Build */
 	void _StiffnessMatrix_Build( void* stiffnessMatrix, void* data );
 
@@ -165,8 +166,6 @@
 	/** Interface to Build stiffness matrix. Calls an entry point, allowing user to specialise exactly what
 	should be assembled at run-time. */
 	void StiffnessMatrix_Assemble( void* stiffnessMatrix, void* _sle, void* _context );
-	void __StiffnessMatrix_NewAssembleNodeWise( void* stiffnessMatrix, void* _sle, void* _context );
-
 	/* +++ Public Functions +++ */
 
 	/* +++ Private Functions +++ */
@@ -193,5 +192,8 @@
 	void StiffnessMatrix_RefreshMatrix( StiffnessMatrix* self );
 
 	void StiffnessMatrix_CalcNonZeros( void* stiffnessMatrix );
+
+	void StiffnessMatrix_SetRotationTerm( void* mat, void* rotTerm );
+	void blasMatrixMult( double A[], double B[], int rowA, int colB, int colA, double *C );
 
 #endif /* __StgFEM_SLE_SystemSetup_StiffnessMatrix_h__ */

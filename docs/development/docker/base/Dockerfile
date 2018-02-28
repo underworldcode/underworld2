@@ -1,4 +1,4 @@
-FROM debian:jessie
+FROM debian@sha256:0a5fcee6f52d5170f557ee2447d7a10a5bdcf715dd7f0250be0b678c556a501b
 MAINTAINER https://github.com/underworldcode/
 
 # install things
@@ -17,7 +17,7 @@ RUN apt-get update -qq && \
         ssh \
         curl \
         libfreetype6-dev \
-        libpng12-dev \
+        libpng-dev \
         libxft-dev \
         xvfb \
         freeglut3 \
@@ -29,13 +29,15 @@ RUN apt-get update -qq && \
         less \
         xauth \
         python-tk \
-        swig && \
-        gdb-minimal && \
+        swig \
+        gdb-minimal \
         python2.7-dbg && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/*  && \
-    pip install \
-        packaging \
+    rm -rf /var/lib/apt/lists/* && \
+    \
+# Install setuptools and wheel first, needed by plotly
+    pip install setuptools wheel && \
+    pip install packaging \
         appdirs \
         numpy \
         jupyter \
@@ -58,16 +60,15 @@ RUN apt-get update -qq && \
 # ^^^ Note we choose an older version of ipython because it's tooltips work better.
 #     Also, the system six is too old, so we upgrade for the pip version
 
-
 # Install Tini.. this is required because CMD (below) doesn't play nice with notebooks for some reason: https://github.com/ipython/ipython/issues/7062, https://github.com/jupyter/notebook/issues/334
-RUN curl -L https://github.com/krallin/tini/releases/download/v0.6.0/tini > tini && \
-    echo "d5ed732199c36a1189320e6c4859f0169e950692f451c03e7854243b95f4234b *tini" | sha256sum -c - && \
+RUN curl -L https://github.com/krallin/tini/releases/download/v0.10.0/tini > tini && \
+    echo "1361527f39190a7338a0b434bd8c88ff7233ce7b9a4876f3315c22fce7eca1b0 *tini" | sha256sum -c - && \
     mv tini /usr/local/bin/tini && \
     chmod +x /usr/local/bin/tini
 
-# script for xvfb-run.  all docker commands will effectively run under this via the entrypoint
-RUN printf "#\041/bin/sh \n rm -f /tmp/.X99-lock && xvfb-run -s '-screen 0 1600x1200x16' \$@" >> /usr/local/bin/xvfbrun.sh && \
-    chmod +x /usr/local/bin/xvfbrun.sh
+# environment variable will internally run xvfb when glucifer is imported,
+#see /opt/underworld2/glucifer/__init__.py
+ENV GLUCIFER_USE_XVFB 1
 
 # Add a notebook profile.
 RUN mkdir -p -m 700 /root/.jupyter/ && \
@@ -87,5 +88,5 @@ EXPOSE 8888
 
 
 # note we also use xvfb which is required for viz
-ENTRYPOINT ["/usr/local/bin/tini", "--", "xvfbrun.sh"]
+ENTRYPOINT ["/usr/local/bin/tini", "--"]
 

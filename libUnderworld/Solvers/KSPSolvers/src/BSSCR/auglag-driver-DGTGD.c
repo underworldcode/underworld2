@@ -87,6 +87,17 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
     PetscTruth flg, extractMats;
     PetscLogDouble flopsA,flopsB;
 
+    // if a rotation matrix exists, but there by python, use it
+    Mat R;
+
+    // all the rotated versions
+    Mat Kr, Gr, Dr;
+    Vec fr;
+
+    if (bsscrp_self->st_sle->rMat != NULL ) {
+      R = bsscrp_self->st_sle->rMat->matrix;
+    } else { R = NULL; }
+
     /***************************************************************************************************************/
     /***************************************************************************************************************/
     //if( bsscrp_self->solver->st_sle->context->loadFromCheckPoint ){
@@ -104,6 +115,35 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
     VecNestGetSubVec( stokes_b, 0, &f );
     VecNestGetSubVec( stokes_b, 1, &h );
 
+
+    if(R != NULL ) {
+      int rows, cols;
+
+      MatGetSize( K, &rows, &cols);
+      printf("K's rows %d and cols %d", rows, cols);
+
+      MatGetSize( G, &rows, &cols);
+      printf("G's rows %d and cols %d", rows, cols);
+
+      MatGetSize( R, &rows, &cols);
+      printf("R's rows %d and cols %d", rows, cols);
+
+      VecGetSize( f, &rows);
+      printf("F's rows %d", rows );
+
+      VecDuplicate(f, &fr);
+      MatMult( R, f, fr );
+
+      MatMatMult( R, G, MAT_INITIAL_MATRIX, PETSC_DEFAULT, &Gr );
+      MatMatTransposeMult( D, R, MAT_INITIAL_MATRIX, PETSC_DEFAULT, &Dr );
+      MatRARt( K, R, MAT_INITIAL_MATRIX, 1.0, &Kr );
+
+      // use rotated versions
+      K = Kr;
+      G = Gr;
+      D = Dr;
+      f = fr;
+    }
     PetscPrintf( PETSC_COMM_WORLD, "AUGMENTED LAGRANGIAN K2 METHOD " );
     PetscPrintf( PETSC_COMM_WORLD, "- Penalty = %f\n\n", bsscrp_self->solver->penaltyNumber );
     sprintf(suffix,"%s","x");
@@ -535,6 +575,14 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
 
     /***************************************************************************************************************/
     /***************************************************************************************************************/
+
+    if (R != NULL ) {
+      MatDestroy( &Kr );
+      MatDestroy( &Gr );
+      MatDestroy( &Dr );
+      VecDestroy( &fr );
+    }
+
     Stg_VecDestroy(&t );
     Stg_KSPDestroy(&ksp_S );
     Stg_VecDestroy(&h_hat );

@@ -671,18 +671,46 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
         else:
             raise TypeError("Input provided for function evaluation does not appear to be supported.")
 
+    # def integrate_fn( self, mesh ):
+    def integrate( self, mesh ):
+        """
+        Perform an integral of this underworld function over the given mesh
+
+        Parameters
+        ----------
+        mesh : uw.mesh.FeMesh_Cartesian
+            Domain to perform integral over.
+
+        Examples
+        --------
+
+        >>> mesh = uw.mesh.FeMesh_Cartesian(minCoord=(0.0,0.0), maxCoord=(1.0,2.0))
+        >>> fn_1 = uw.function.misc.constant(2.0)
+        >>> np.allclose( fn_1.integrate( mesh )[0], 4 )
+        True
+
+        >>> fn_2 = uw.function.misc.constant(2.0) * (0.5, 1.0)
+        >>> np.allclose( fn_2.integrate( mesh ), [2,4] )
+        True
+
+        """
+
+        if not isinstance(mesh, uw.mesh.FeMesh_Cartesian):
+            raise RuntimeError("Error: integrate() is only available on meshes of type 'FeMesh_Cartesian'")
+        return mesh.integrate( fn=self )
+
     def evaluate(self,inputData=None,inputType=None):
         """
         This method performs evaluate of a function at the given input(s).
 
         It accepts floats, lists, tuples, numpy arrays, or any object which is of
         class `FunctionInput`. lists/tuples must contain floats only.
-        
+
         `FunctionInput` class objects are shortcuts to their underlying data, often
-        with performance advantages, and sometimes they are the only valid input 
-        type (such as using `Swarm` objects as an inputs to `SwarmVariable` 
+        with performance advantages, and sometimes they are the only valid input
+        type (such as using `Swarm` objects as an inputs to `SwarmVariable`
         evaluation). Objects of class `FeMesh`, `Swarm`, `FeMesh_IndexSet` and
-        `VoronoiIntegrationSwarm` are also of class `FunctionInput`. See the 
+        `VoronoiIntegrationSwarm` are also of class `FunctionInput`. See the
         Function section of the user guide for more information.
 
         Results are returned as numpy array.

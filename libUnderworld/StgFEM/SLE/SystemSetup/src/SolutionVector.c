@@ -106,7 +106,28 @@ void* _SolutionVector_Copy( void* solutionVector, void* dest, Bool deep, Name na
   return 0;
 }
 
+void SolutionVector_RemoveVectorSpace( SolutionVector* xVec, SolutionVector* nVec ) {
+  /* 
+     Remove a vector from another vector.
+     Assumes vectors are the same size and decomp
+     
+     *Is this a more useful algorithm, or should we just do element-wise subtraction
+   */
+  PetscScalar a1, a2, mag, a;
+  Vec x, n;
 
+  // get PETSC data structures
+  x = xVec->vector;
+  n = nVec->vector;
+
+  VecDot( x, n, &a1);
+  VecDot( n, n, &mag);
+  a = -a1/mag;
+  VecAXPY( x, a, n);
+  VecDot(x,n, &a2);
+  printf("Dot product before/after removal (%g/%g)\n", a1, a2 );
+
+}
 void _SolutionVector_AssignFromXML( void* solutionVector, Stg_ComponentFactory* cf, void* data ) {
 	SolutionVector*			self = (SolutionVector*)solutionVector;
 	FeVariable*				feVariable = NULL;

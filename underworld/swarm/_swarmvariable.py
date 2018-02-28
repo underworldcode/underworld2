@@ -296,7 +296,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         h5f.close();
 
 
-    def save( self, filename ):
+    def save( self, filename, swarmHandle=None ):
         """
         Save the swarm variable to disk.
 
@@ -307,7 +307,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
             used, but all directories must exist.
         swarmHandle :uw.utils.SavedFileData , optional
             The saved swarm file handle. If provided, a reference to the swarm file
-            is made. Currently this doesn't provide any extra functionality.
+            is made.
 
         Returns
         -------
@@ -392,6 +392,21 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
 
         if swarm.particleLocalCount > 0: # only add if there are local particles
             dset[offset:offset+swarm.particleLocalCount] = self.data[:]
+
+        # create an ExternalLink to the swarm - optional because intrinsic SwarmVariables
+        # 'coordinates'  & 'owningCell' are SwarmVariables that don't have a corresponding
+        # swarm file because they are the swarm itself.
+        if swarmHandle is not None:
+            if not isinstance(swarmHandle, (str, uw.utils.SavedFileData)):
+                raise TypeError("Expected 'swarmHandle' to be of type 'uw.utils.SavedFileData'")
+
+            sFilename = swarmHandle.filename
+
+            if not os.path.exists(sFilename):
+                raise ValueError("You are trying to link against the swarm file '{}'\n\
+                                  that does not appear to exist.".format(sFilename))
+            # set reference to mesh (all procs must call following)
+            h5f["swarm"] = h5py.ExternalLink(sFilename, "./")
 
         h5f.close()
 

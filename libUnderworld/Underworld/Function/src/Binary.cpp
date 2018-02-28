@@ -181,6 +181,36 @@ Fn::Divide::func  Fn::Divide::getFunction( IOsptr sample_input )
         };
 }
 
+Fn::Atan2::func Fn::Atan2::getFunction( IOsptr sample_input )
+{
+    const IO_double* doubleio[2];
+    func _func[2];
+    initGetFunction( sample_input, doubleio, _func );
+    
+    bool equalSize = doubleio[0]->size() == doubleio[1]->size();
+    
+    if( !equalSize or (doubleio[0]->size()!=1) )
+        throw std::invalid_argument("atan2 must have scalar objects or equal size.");
+
+    // allocate memory for our output
+    auto _output_sp = std::make_shared<IO_double>(doubleio[0]->size(), doubleio[0]->iotype());
+    // get the raw pointer from the shared pointer
+    auto _output    = _output_sp.get();
+
+    // create and return the lambda
+    unsigned size = doubleio[1]->size();
+    return [_func, _output, _output_sp, size](IOsptr input)->IOsptr {
+        const IO_double* io1 = debug_dynamic_cast<const IO_double*>( _func[0](input) ) ;
+        const IO_double* io2 = debug_dynamic_cast<const IO_double*>( _func[1](input) ) ;
+        
+        // perform sum
+        for (unsigned ii=0; ii<size; ii++) {
+            _output->at(ii) = atan2(io1->at(ii),io2->at(ii));
+        }
+        return debug_dynamic_cast<const FunctionIO*>(_output);
+    };
+}
+
 Fn::Dot::func Fn::Dot::getFunction( IOsptr sample_input )
 {
     const IO_double* doubleio[2];
@@ -289,5 +319,3 @@ Fn::Max::func Fn::Max::getFunction( IOsptr sample_input )
         return debug_dynamic_cast<const FunctionIO*>(_output);
     };
 }
-
-

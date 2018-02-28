@@ -87,6 +87,8 @@
 
 	void SolutionVector_UpdateSolutionOntoNodes( void* solutionVector );
 
+  void SolutionVector_RemoveVectorSpace( SolutionVector *x, SolutionVector *n );
+
 	/** Loads the current value at each dof of the feVariable related to this solution vector onto the vector itself */
 	void SolutionVector_LoadCurrentFeVariableValuesOntoVector( void* solutionVector );
 

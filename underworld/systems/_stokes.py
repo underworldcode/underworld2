@@ -10,6 +10,7 @@ import underworld as uw
 import underworld._stgermain as _stgermain
 import sle
 import libUnderworld
+import math
 
 class Stokes(_stgermain.StgCompoundComponent):
     """
@@ -101,10 +102,10 @@ class Stokes(_stgermain.StgCompoundComponent):
     _objectsDict = {  "_system" : "Stokes_SLE" }
     _selfObjectName = "_system"
 
-
     def __init__(self, velocityField, pressureField, fn_viscosity, fn_bodyforce=None, fn_one_on_lambda=None,
                  fn_lambda=None, fn_source=None, voronoi_swarm=None, conditions=[],
-                _removeBCs=True, _fn_viscosity2=None, _fn_director=None, fn_stresshistory=None, _fn_stresshistory=None, **kwargs):
+                _removeBCs=True, _fn_viscosity2=None, _fn_director=None, fn_stresshistory=None, _fn_stresshistory=None,
+                _fn_v0=None, _fn_p0=None, _callback_post_solve=None, **kwargs):
 
         # DEPRECATION ERROR
         if fn_lambda != None:
@@ -112,7 +113,7 @@ class Stokes(_stgermain.StgCompoundComponent):
 
         if _fn_stresshistory:
             raise TypeError( "The parameter '_fn_stresshistory' has been updated to 'fn_stresshistory'." )
-        
+
         if not isinstance( velocityField, uw.mesh.MeshVariable):
             raise TypeError( "Provided 'velocityField' must be of 'MeshVariable' class." )
         if velocityField.nodeDofCount != velocityField.mesh.dim:
@@ -163,6 +164,15 @@ class Stokes(_stgermain.StgCompoundComponent):
             else:
                 fn_bodyforce = (0.,0.,0.)
         _fn_bodyforce = uw.function.Function.convert(fn_bodyforce)
+        
+        if _fn_p0 is not None:
+            if not isinstance(_fn_p0, uw.function.misc.constant):
+                raise ValueError("Provided '_fn_p0' must be of type 'uw.function.misc.constant'")
+        self._fn_p0 = _fn_p0       
+        if _fn_v0 is not None:
+            if not isinstance(_fn_v0, uw.function.misc.constant):
+                raise ValueError("Provided '_fn_v0' must be of type 'uw.function.misc.constant'")
+        self._fn_v0 = _fn_v0
 
 
         if voronoi_swarm and not isinstance(voronoi_swarm, uw.swarm.Swarm):
@@ -182,7 +192,7 @@ class Stokes(_stgermain.StgCompoundComponent):
             # set the bcs on here
             if not isinstance( cond, uw.conditions.SystemCondition ):
                 raise TypeError( "Provided 'conditions' must be 'SystemCondition' objects." )
-            elif type(cond) == uw.conditions.DirichletCondition:
+            elif isinstance(cond, uw.conditions.DirichletCondition):
                 if cond.variable == self._velocityField:
                     libUnderworld.StgFEM.FeVariable_SetBC( self._velocityField._cself, cond._cself )
                 elif cond.variable == self._pressureField:
@@ -202,6 +212,12 @@ class Stokes(_stgermain.StgCompoundComponent):
         libUnderworld.StgFEM.SolutionVector_LoadCurrentFeVariableValuesOntoVector( self._velocitySol._cself );
         libUnderworld.StgFEM.SolutionVector_LoadCurrentFeVariableValuesOntoVector( self._pressureSol._cself );
 
+        # set callback to default or user defined
+        if _callback_post_solve is None:
+            self.callback_post_solve = self.default_stokes_callback
+        else:
+            self.callback_post_solve = _callback_post_solve
+
         # create force vectors
         self._fvector = sle.AssembledVector(velocityField, self._eqNums[velocityField] )
         self._hvector = sle.AssembledVector(pressureField, self._eqNums[pressureField] )
@@ -212,7 +228,7 @@ class Stokes(_stgermain.StgCompoundComponent):
         self._preconditioner = sle.AssembledMatrix( self._pressureSol, self._pressureSol, rhs=self._hvector )
 
         # create assembly terms which always use gauss integration
-        gaussSwarm = uw.swarm.GaussIntegrationSwarm(self._velocityField.mesh)
+        gaussSwarm = uw.swarm.GaussIntegrationSwarm(mesh)
         self._gradStiffMatTerm = sle.GradientStiffnessMatrixTerm(   integrationSwarm=gaussSwarm,
           assembledObject=self._gmatrix)
         self._preCondMatTerm   = sle.PreconditionerMatrixTerm(  integrationSwarm=gaussSwarm,
@@ -259,17 +275,40 @@ class Stokes(_stgermain.StgCompoundComponent):
 
             self._compressibleTerm = sle.MatrixAssemblyTerm_NA__NB__Fn(  integrationSwarm=intswarm,
                                                                          assembledObject=self._mmatrix,
-                                                                         mesh=self._velocityField.mesh,
+                                                                         mesh=mesh,
                                                                          fn=self._fn_minus_one_on_lambda )
 
         if fn_stresshistory != None:
             self._NA_j__Fn_ijTerm    = sle.VectorAssemblyTerm_NA_j__Fn_ij(  integrationSwarm=intswarm,
         		                                                assembledObject=self._fvector,
                 		                                        fn=fn_stresshistory )
-
-
+        # objects used for analysis, dictionary for organisation
+        self._aObjects = dict()
+        self._aObjects['vdotv_fn'] = uw.function.math.dot( self._velocityField, self._velocityField )
+        
         super(Stokes, self).__init__(**kwargs)
 
+        for cond in self._conditions:
+            if isinstance( cond, uw.conditions.RotatedDirichletCondition):
+                self.redefineVelocityDirichletBC(cond.basis_vectors)
+
+        # # check all system conditions don't overlap - go component by component of velocity dof
+        # for d_i in xrange(velocityField.nodeDofCount):
+        #     # temporary FeMesh_IndexSet to check duplicates
+        #     dbc = uw.mesh.FeMesh_IndexSet(mesh, topologicalIndex=0, size=mesh.nodesGlobal)
+        #     # record the first condition's indices
+        #     firstCond = self._conditions[0]
+        #     if firstCond._indexSets[d_i] is not None:
+        #         dbc.add(firstCond._indexSets[d_i].data)
+        #
+        #     # loop over 2nd condition's indexSets
+        #     for cond in self._conditions[1:]:
+        #         if cond._indexSets[d_i] is None:
+        #             continue # do nothing
+        #         else:
+        #             dbc.AND(cond._indexSets[d_i])
+        #             if dbc.count > 0:
+        #                 raise RuntimeError("Appears duplicate 'conditions' in the uw.system.Stokes().\nDuplicate DOFs for component {0} are: {1}".format(d_i,dbc.data))
 
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method
@@ -284,6 +323,69 @@ class Stokes(_stgermain.StgCompoundComponent):
         componentDictionary[ self._cself.name ][       "PressureVector"] = self._pressureSol._cself.name
         componentDictionary[ self._cself.name ][          "ForceVector"] = self._fvector._cself.name
         componentDictionary[ self._cself.name ]["ContinuityForceVector"] = self._hvector._cself.name
+
+    def redefineVelocityDirichletBC(self, basis_vectors):
+        '''
+        Function to hid the implementation of rotating dirichlet boundary conditions.
+        Here we build a global rotation matrix and a local assembly term for it for 2 reasons.
+        1) The assembly term rotates local element contributions immediately after their local evaluation
+           for the stokes system. This supports the Engelman & Sani idea in,
+           THE IMPLEMENTATION OF NORMAL AND/OR TANGENTIAL BOUNDARY CONDITIONS IN FINITE
+           ELEMENT CODES FOR INCOMPRESSIBLE FLUID FLOW, 1982
+        2) The global rotation matrix allows us to rotate the whole velocity field when we like.
+           Advantagous for this development phase whilst we are designing the workflow of rotated BCS.
+
+        '''
+        from underworld import function as fn
+
+        if len(basis_vectors) != self._velocityField.nodeDofCount:
+            raise ValueError("Inconsistent number of 'basis_vectors' for the velocity field dimensionality")
+        # does rotMatTerm already exist
+        if self._kmatrix._cself.rotMatTerm is not None:
+            return
+            
+        mesh = self._velocityField.mesh
+
+        # build 'vns' (the velocity null space) MeshVariable and SolutionVector
+        vnsField = self._vnsField = self._velocityField.copy()
+        vnsEqNum = uw.systems.sle.EqNumber( vnsField, False )
+        self._vnsVec = uw.systems.sle.SolutionVector(vnsField, vnsEqNum) # store on class
+
+        # evaluate vnsField, check compatibility
+        if type(mesh) == uw.mesh._FeMesh_Annulus: # with _FeMesh_Annulus we have the sbr_fn
+            self._vnsVec.meshVariable.data[:] = mesh.sbr_fn.evaluate(mesh)
+        else:
+            raise RuntimeError("Can't redefineVelocityDirichletBC because the velocity null space is unknown for this mesh")
+             
+        uw.libUnderworld.StgFEM.SolutionVector_LoadCurrentFeVariableValuesOntoVector(self._vnsVec._cself) # store in petsc vec
+
+        # must be done after vnsField creation
+        self._velocityField._cself.nonAABCs = 1
+
+        # build a global 're-rotate' matrix
+        # self._rot = uw.systems.sle.AssembledMatrix( self._velocitySol, self._velocitySol, rhs=None )
+        self._rot = uw.systems.sle.AssembledMatrix( self._vnsVec, self._vnsVec, rhs=None )
+        gaussSwarm = self._constitMatTerm._integrationSwarm
+        self._rot._cself.assembleOnNodes = 1 # important doesn't perform FEM integral
+        
+        term = self._term = uw.systems.sle.MatrixAssemblyTerm_RotationDof(integrationSwarm=gaussSwarm,
+                                                             assembledObject = self._rot,
+                                                             fn_e1=basis_vectors[0],
+                                                             fn_e2=basis_vectors[1],
+                                                             mesh=mesh)
+
+        # self._eqNums[self._velocityField]._cself.removeBCs=True
+        vnsEqNum._cself.removeBCs = True
+        uw.libUnderworld.StgFEM.StiffnessMatrix_Assemble(
+            self._rot._cself,
+            None, None );
+        vnsEqNum._cself.removeBCs = False
+        # self._eqNums[self._velocityField]._cself.removeBCs=False
+
+        # # add rotation matrix element terms using the following
+        uw.libUnderworld.StgFEM.StiffnessMatrix_SetRotationTerm(self._kmatrix._cself, term._cself)
+        uw.libUnderworld.StgFEM.StiffnessMatrix_SetRotationTerm(self._gmatrix._cself, term._cself)
+        uw.libUnderworld.StgFEM.ForceVector_SetRotationTerm(self._fvector._cself, term._cself)
 
     @property
     def fn_viscosity(self):
@@ -307,6 +409,14 @@ class Stokes(_stgermain.StgCompoundComponent):
     @fn_bodyforce.setter
     def fn_bodyforce(self, value):
         self._forceVecTerm.fn = value
+
+    def addRotationMatrix(self, rMat):
+        if rMat:
+            if not isinstance( rMat, uw.systems.sle.AssembledMatrix):
+                raise TypeError( "Provided 'rMat' must be of or convertible to 'AssembledMatrix' class." )
+            self.rMat = rMat;
+            # hack that should work
+            self._cself.rMat = rMat._cself
 
     # define getter and setter decorators for fn_minus_one_on_lambda - will be conditionally available to users
     @property
@@ -346,8 +456,6 @@ class Stokes(_stgermain.StgCompoundComponent):
             import warnings
             warnings.warn("Cannot add fn_source to existing stokes object. Instead you should build a new object with fn_source defined", RuntimeWarning)
 
-
-
     @property
     def eqResiduals(self):
         """
@@ -370,3 +478,72 @@ class Stokes(_stgermain.StgCompoundComponent):
         res_cEq = uw.libUnderworld.StgFEM.Stokes_ContinuityResidual(self._cself)
 
         return res_mEq, res_cEq
+
+    @property
+    def stokes_callback(self):
+        """
+        Return the callback function used by this system
+        """
+        return self._stokes_callback
+
+    @stokes_callback.setter
+    def stokes_callback(self, value):
+        """
+        Setter for stokes_callback, must be a callable python function
+        """
+        if value is not None:
+            if not callable(value):
+                raise RuntimeError("The 'callback_post_solve' parameter is not 'None' and isn't callable")
+        self._stokes_callback = value
+        
+    def default_stokes_callback(self):
+        """
+        The default operation to run immediately after a stokes linear solve
+        """
+        if self._fn_p0 is not None:
+            self._fn_p0.value = self._avgtop_pressure_nullspace_removal()
+            # other possibilities
+            # 1) What many want
+            #   self._pressureField.data[:] -= self._avgtop_pressure_nullspace_removal()
+            # 2) Another algorithm
+            # self._fn_p0.value = self._avg_pressure_nullspace_removal()
+        
+    def _avgtop_pressure_nullspace_removal(self):
+        # construct attribute first time 
+        if not hasattr( self, '_topSurfaceIntegral'):
+            mesh = self._velocityField.mesh
+            top = mesh.specialSets["MaxJ_VertexSet"]
+            self._topSurfaceIntegral = uw.utils.Integral(fn=1.0,mesh=mesh, integrationType='surface', surfaceIndexSet=top)
+        
+        surfInt = self._topSurfaceIntegral
+        
+        # calculate the area of the top surface
+        surfInt.fn=1.
+        (area,) = surfInt.evaluate()
+        # calculate the integrated pressure along the top surface
+        surfInt.fn = self._pressureField
+        (p0,) = surfInt.evaluate()
+        
+        return p0/area
+        
+    def _avg_pressure_nullspace_removal(self):
+        mesh = self._velocityField.mesh
+        fn_2_integrate = [1.0, self._pressureField]
+        (vol, int_pressure)  = mesh.integrate( fn=fn_2_integrate ) 
+        
+        return p0/area
+    
+    def velocity_rms(self):
+        """
+        Calculates RMS velocity as follows
+        .. math:: v_{rms}  =  \sqrt{ \frac{ \int_V (\mathbf{v}.\mathbf{v}) \, \mathrm{d}V } {\int_V \, \mathrm{d}V} }
+        """
+        # get the mesh and perform integrals over it
+        mesh = self._velocityField.mesh
+        
+        # use tuple fn definition
+        fn_2_integrate = ( 1., self._aObjects['vdotv_fn'] )
+        (v2,vol)       = mesh.integrate( fn=fn_2_integrate )
+        
+        return math.sqrt(v2/vol)
+        

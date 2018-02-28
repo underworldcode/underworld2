@@ -12,4 +12,5 @@ Implementation relating to system conditions.
 
 """
 
-from _conditions import NeumannCondition, DirichletCondition, SystemCondition
+from _conditions import NeumannCondition, DirichletCondition, SystemCondition, \
+                        RotatedDirichletCondition

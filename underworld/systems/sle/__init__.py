@@ -17,4 +17,4 @@ from _assemblyterm import AssemblyTerm, VectorAssemblyTerm, MatrixAssemblyTerm, 
                           ConstitutiveMatrixTerm, AdvDiffResidualVectorTerm, LumpedMassMatrixVectorTerm, \
                           MatrixAssemblyTerm_NA_i__NB_i__Fn, VectorSurfaceAssemblyTerm_NA__Fn__ni, \
                           AdvDiffResidualVectorTerm, VectorAssemblyTerm_NA_j__Fn_ij, MatrixAssemblyTerm_NA__NB__Fn, \
-                          VectorAssemblyTerm_NA_i__Fn_i
+                          MatrixAssemblyTerm_RotationDof, VectorAssemblyTerm_NA_i__Fn_i

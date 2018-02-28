@@ -17,6 +17,8 @@
    typedef struct VectorAssemblyTerm_NA_j__Fn_ij VectorAssemblyTerm_NA_j__Fn_ij;
    typedef struct MatrixAssemblyTerm_NA_i__NB_i__Fn MatrixAssemblyTerm_NA_i__NB_i__Fn;
    typedef struct MatrixAssemblyTerm_NA__NB__Fn MatrixAssemblyTerm_NA__NB__Fn;
+   typedef struct MatrixAssemblyTerm_RotationDof MatrixAssemblyTerm_RotationDof;
+
    typedef struct Fn_Integrate          Fn_Integrate;
 
 #endif
