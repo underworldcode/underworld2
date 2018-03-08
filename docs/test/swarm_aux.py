@@ -22,10 +22,9 @@ def swarm_save_load():
     svar2.data[:,0] = (1000.*swarm.particleCoordinates.data[:,0]).astype(int)
 
     # Save to a file:
-
-#    swarm.save("saved_swarm.h5")
-#    svar1.save("saved_swarm_variable1.h5")
-#    svar2.save("saved_swarm_variable2.h5")
+    swarm.save("saved_swarm.h5")
+    svar1.save("saved_swarm_variable1.h5")
+    svar2.save("saved_swarm_variable2.h5")
     
     # Now let's try and reload. First create an empty swarm, and then load:
     clone_swarm = uw.swarm.Swarm(mesh)
@@ -48,7 +47,7 @@ def swarm_save_load():
         raise RuntimeError("Loaded swarm variable2 does not appear to contain correct data.")
 
     # Clean up:
-#    if uw.rank() == 0: import os; os.remove( "saved_swarm.h5" ); os.remove( "saved_swarm_variable1.h5" ); os.remove( "saved_swarm_variable2.h5" );
+    if uw.rank() == 0: import os; os.remove( "saved_swarm.h5" ); os.remove( "saved_swarm_variable1.h5" ); os.remove( "saved_swarm_variable2.h5" );
 
 
 if __name__ == '__main__':
