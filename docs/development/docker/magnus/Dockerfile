@@ -70,12 +70,10 @@ RUN ipcluster nbextension enable && \
     ipython profile create --parallel --profile=mpi && \
     echo "c.IPClusterEngines.engine_launcher_class = 'MPIEngineSetLauncher'" >> /root/.ipython/profile_mpi/ipcluster_config.py
 
-WORKDIR /
+WORKDIR /workspace
 
 # expose notebook port
 EXPOSE 8888
-
-
 
 # note we also use xvfb which is required for viz
 ENTRYPOINT ["/usr/local/bin/tini", "--"]
@@ -91,8 +89,9 @@ RUN cd /tmp && \
     make PETSC_DIR=/tmp/petsc-3.8.3 PETSC_ARCH=arch-linux2-c-opt install && \
     cd /tmp && \
     rm petsc-lite-3.8.3.tar.gz && \
-    rm -fr petsc-3.8.3  && \
-	cd /opt/ && \
+    rm -fr petsc-3.8.3
+
+RUN cd /opt/ && \
     git clone --branch "development" --single-branch https://github.com/underworldcode/underworld2 && \
     cd underworld2/libUnderworld && \
     ./configure.py --with-debugging=0 --petsc-dir=/opt/petsc --hdf5-dir=/opt/petsc && \
