@@ -73,7 +73,7 @@ void _VectorAssemblyTerm_NA_j__Fn_ij_SetFneForce( void* _self, Fn::Function* fn 
     if( dim == 2 ) {
 	    if( iodub->size() != 3 ){  //assuming a 2D symmetric tensor
     	    std::stringstream ss;
-	        ss << "Assembly term expects function to return array of size " << self->forceVector->feVariable->fieldComponentCount << ".\n";
+	        ss << "Assembly term expects function to return array of size " << 3 << ".\n";
     	    ss << "Provided function returns array of size " << iodub->size() << ".";
         	throw std::invalid_argument( ss.str() );
         }
@@ -81,7 +81,7 @@ void _VectorAssemblyTerm_NA_j__Fn_ij_SetFneForce( void* _self, Fn::Function* fn 
     else {
 	    if( iodub->size() != 6 ){  //assuming a DD symmetric tensor
     	    std::stringstream ss;
-	        ss << "Assembly term expects function to return array of size " << self->forceVector->feVariable->fieldComponentCount << ".\n";
+	        ss << "Assembly term expects function to return array of size " << 6 << ".\n";
     	    ss << "Provided function returns array of size " << iodub->size() << ".";
         	throw std::invalid_argument( ss.str() );
         }

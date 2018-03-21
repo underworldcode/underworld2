@@ -1186,13 +1186,11 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
         True
 
         """
-        # check if _volume_integral exist, if not then create it
-        if not hasattr(self, "_volume_integral"):
-            # define volume integral class, with dummy fn=1.0
-            self._volume_integral = uw.utils.Integral(mesh=self, fn=1.0)
-
-        self._volume_integral.fn = fn
-        return self._volume_integral.evaluate()
+        # julian, i've dumbed this down for now as i'm not sure how to handle the
+        # circular dependency.  i think the performance hit will be generally
+        # negligible
+        _volume_integral = uw.utils.Integral(mesh=self, fn=fn)
+        return _volume_integral.evaluate()
 
 class FeMesh_IndexSet(uw.container.ObjectifiedIndexSet, function.FunctionInput):
     """
