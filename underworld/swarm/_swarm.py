@@ -562,7 +562,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
     def update_particle_owners(self):
         """
         This routine will update particles owners after particles have been
-        moved. This is both in terms of the cell/element the the
+        moved. This is both in terms of the cell/element that the
         particle resides within, and also in terms of the parallel processor
         decomposition (particles belonging on other processors will be sent across).
         

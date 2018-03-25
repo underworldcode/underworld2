@@ -86,5 +86,5 @@
 
    /** Solve:- calculate the new values for all solution vectors in the system. */
    void SemiLagrangianIntegrator_Solve( void* slIntegrator, FeVariable* variableField, FeVariable* variableFieldPrime );
+   void SemiLagrangianIntegrator_SolveNew( FeVariable* variableField, double dt, FeVariable* velocityField, FeVariable* varStarField  );
 #endif
-

@@ -11,6 +11,57 @@ import underworld._stgermain as _stgermain
 import underworld.systems.sle as sle
 import libUnderworld
 
+
+class SolveLinearSystem(_stgermain.StgCompoundComponent):
+    """
+    To solve for x in the equation Ax=b
+    """
+    _objectsDict = {  "_system" : "SystemLinearEquations" }
+    _selfObjectName = "_system"
+        
+    def __init__(self, AMat, bVec, xVec, **kwargs):
+
+        if not xVec:
+            raise ValueError("You must specify a 'xVec' parameter.")
+        if not AMat:
+            raise ValueError("You must specify a 'AMat' parameter.")
+        if not bVec:
+            raise ValueError("You must specify a 'bVec' parameter.")
+            
+        if not isinstance( xVec, uw.systems.sle.SolutionVector):
+            raise TypeError( "Provided 'xVec' must be of 'SolutionVector' class." )
+        self._solutionVector = xVec
+        if not isinstance( bVec, uw.systems.sle.SolutionVector):
+            raise TypeError( "Provided 'bVec' must be of 'SolutionVector' class." )
+        self._fvector = bVec
+        if not isinstance( AMat, uw.systems.sle.AssembledMatrix):
+            raise TypeError( "Provided 'AMat' must be of 'AssembledMatrix' class." )
+        self._kmatrix = AMat
+        
+        self._solver = None
+        self._swarm  = None
+        
+        super(SolveLinearSystem, self).__init__(**kwargs)
+
+    def _setup(self):
+        uw.libUnderworld.StGermain.Stg_ObjectList_Append( self._cself.forceVectors, self._fvector._cself )
+        uw.libUnderworld.StGermain.Stg_ObjectList_Append( self._cself.stiffnessMatrices, self._kmatrix._cself )
+        uw.libUnderworld.StGermain.Stg_ObjectList_Append( self._cself.solutionVectors, self._solutionVector._cself )
+
+
+    def _add_to_stg_dict(self,componentDictionary):
+        # call parents method
+        super(SolveLinearSystem,self)._add_to_stg_dict(componentDictionary)
+        
+    def solve(self):
+        """
+        Solve system
+        """
+        if not self._solver:
+            self._solver = uw.systems.Solver(self)
+        self._solver.solve()
+
+
 class MeshVariable_Projection(_stgermain.StgCompoundComponent):
     """
     This class provides functionality for projecting data
@@ -109,7 +160,7 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
     """
     _objectsDict = {  "_system" : "SystemLinearEquations" }
     _selfObjectName = "_system"
-
+        
     def __init__(self, meshVariable=None, fn=None, voronoi_swarm=None, type=0, **kwargs):
 
         if not meshVariable:

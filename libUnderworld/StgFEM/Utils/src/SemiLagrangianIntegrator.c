@@ -525,6 +525,61 @@ void BicubicInterpolator( FeVariable* feVariable, double* position, double* delt
    Memory_Free( ptsZ );
 }
 
+
+void SemiLagrangianIntegrator_SolveNew( FeVariable* variableField, double dt, FeVariable* velocityField, FeVariable* varStarField  ) {
+   unsigned			node_I;
+   FeMesh*				feMesh		     = variableField->feMesh;
+   unsigned			meshSize	     = Mesh_GetLocalSize( feMesh, MT_VERTEX );
+   unsigned			dim_I;
+   unsigned			nDims		     = Mesh_GetDimSize( feMesh );
+   double				position[3];
+   double				var[3];
+   Grid**				grid		     = (Grid**) Mesh_GetExtension( feMesh, Grid*,  feMesh->elGridId );
+   unsigned*			sizes		     = Grid_GetSizes( *grid );
+   unsigned			nNodes[3];
+   double				delta[3];
+   unsigned			nInc;
+   unsigned*			inc;
+
+   FeMesh_GetElementNodes( variableField->feMesh, 0, variableField->inc );
+   nInc = IArray_GetSize( variableField->inc );
+   inc = IArray_GetPtr( variableField->inc );
+
+   delta[0] = Mesh_GetVertex( feMesh, inc[1] )[0] - Mesh_GetVertex( feMesh, inc[0] )[0];
+   if( nInc % 3 == 0 ) /* quadratic elements */ {
+      delta[1] = Mesh_GetVertex( feMesh, inc[3] )[1] - Mesh_GetVertex( feMesh, inc[0] )[1];
+      if( nDims == 3 )
+         delta[2] = Mesh_GetVertex( feMesh, inc[9] )[2] - Mesh_GetVertex( feMesh, inc[0] )[2];
+      for( dim_I = 0; dim_I < nDims; dim_I++ )
+         nNodes[dim_I] = 2 * sizes[dim_I] + 1;
+   }
+   else {
+      delta[1] = Mesh_GetVertex( feMesh, inc[2] )[1] - Mesh_GetVertex( feMesh, inc[0] )[1];
+      if( nDims == 3 )
+         delta[2] = Mesh_GetVertex( feMesh, inc[4] )[2] - Mesh_GetVertex( feMesh, inc[0] )[2];
+
+      for( dim_I = 0; dim_I < nDims; dim_I++ )
+         nNodes[dim_I] = sizes[dim_I] + 1;
+   }
+
+   FeVariable_SyncShadowValues( velocityField );
+   FeVariable_SyncShadowValues( variableField );
+
+   /* assume that the variable mesh is the same as the velocity mesh */
+   for( node_I = 0; node_I < meshSize; node_I++ ) {
+     
+      /* find the position back in time (u*) */
+      IntegrateRungeKutta( velocityField, dt, Mesh_GetVertex( feMesh, node_I ), position );
+
+      /* create a bicubic interpolation of variableField at u* */
+      BicubicInterpolator( variableField, position, delta, nNodes, var );
+
+      FeVariable_SetValueAtNode( varStarField, node_I, var );
+   }
+   FeVariable_SyncShadowValues( varStarField );
+}
+
+
 void SemiLagrangianIntegrator_Solve( void* slIntegrator, FeVariable* variableField, FeVariable* varStarField ) {
    SemiLagrangianIntegrator*	self 		     = (SemiLagrangianIntegrator*)slIntegrator;
    FiniteElementContext*		context		     = self->context;
@@ -570,14 +625,14 @@ void SemiLagrangianIntegrator_Solve( void* slIntegrator, FeVariable* variableFie
 
    /* assume that the variable mesh is the same as the velocity mesh */
    for( node_I = 0; node_I < meshSize; node_I++ ) {
+     
+      /* find the position back in time (u*) */
       IntegrateRungeKutta( velocityField, dt, Mesh_GetVertex( feMesh, node_I ), position );
 
+      /* create a bicubic interpolation of variableField at u* */
       BicubicInterpolator( variableField, position, delta, nNodes, var );
 
       FeVariable_SetValueAtNode( varStarField, node_I, var );
    }
    FeVariable_SyncShadowValues( varStarField );
 }
-
-
-

@@ -22,7 +22,7 @@ class HeatSolver(_stgermain.StgCompoundComponent):
     _selfObjectName = "_heatsolver"
 
     def __init__(self, heatSLE, **kwargs):
-        if not isinstance(heatSLE, (uw.systems.SteadyStateHeat, uw.utils.MeshVariable_Projection,uw.systems.SteadyStateDarcyFlow)): 
+        if not isinstance(heatSLE, (uw.systems.SteadyStateHeat, uw.utils.MeshVariable_Projection,uw.systems.SteadyStateDarcyFlow, uw.utils.SolveLinearSystem)): 
             raise TypeError("Provided system must be of 'SteadyStateHeat' class")
         self._heatSLE=heatSLE
 
