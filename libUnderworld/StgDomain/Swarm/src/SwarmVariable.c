@@ -121,6 +121,9 @@ void _SwarmVariable_Init( void* swarmVariable,
       case Variable_DataType_Int:
          variableSize = sizeof(int);
          break;
+      case Variable_DataType_Long:
+         variableSize = sizeof(long);
+         break;
       case Variable_DataType_Float:
          variableSize = sizeof(float);
          break;
@@ -248,6 +251,9 @@ void _SwarmVariable_Initialise( void* swarmVariable, void* data ) {
 		case Variable_DataType_Int:
 			self->_valueAt = _SwarmVariable_ValueAtInt;
 			break;
+		case Variable_DataType_Long:
+			self->_valueAt = NULL;
+			break;
 		case Variable_DataType_Float:
 			self->_valueAt = _SwarmVariable_ValueAtFloat;
 			break;
@@ -302,6 +308,17 @@ void _SwarmVariable_ValueAtInt( void* swarmVariable, Particle_Index lParticle_I,
 
 	for ( dof_I = 0 ; dof_I < dofCount ; dof_I++ ) {
 		value[ dof_I ] = (double) Variable_GetValueAtInt( variable, lParticle_I, dof_I );
+	}
+}
+
+void _SwarmVariable_ValueAtLong( void* swarmVariable, Particle_Index lParticle_I, double* value ) {
+	SwarmVariable*	self = (SwarmVariable*)swarmVariable;
+	Variable*		variable = self->variable;
+	Dof_Index		dofCount = self->dofCount;
+	Dof_Index		dof_I;
+	
+	for ( dof_I = 0 ; dof_I < dofCount ; dof_I++ ) {
+		value[ dof_I ] = (double) Variable_GetValueAtLong( variable, lParticle_I, dof_I );
 	}
 }
 

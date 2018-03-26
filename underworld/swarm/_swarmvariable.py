@@ -24,7 +24,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
 
     """
     The SwarmVariable class allows users to add data to swarm particles.  The data
-    can be of type "char", "short", "int", "float" or "double".
+	can be of type "char", "short", "int", "long, "float" or "double".
 
     Note that the swarm allocates one block of contiguous memory for all the particles.
     The per particle variable datums is then interlaced across this memory block.
@@ -40,13 +40,13 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         The swarm of particles for which we wish to add the variable
     dataType: str
         The data type for the variable. Available types are  "char",
-        "short", "int", "float" or "double".
+        "short", "int", "long", "float" or "double".
     count: unsigned
         The number of values to be stored for each particle.
     writeable: bool
         Signifies if the variable should be writeable.
     """
-    _supportedDataTypes = ["char", "short", "int", "float", "double"]
+    _supportedDataTypes = ["char", "short", "int", "long", "float", "double"]
 
     def __init__(self, swarm, dataType, count, writeable=True, **kwargs):
 
@@ -90,6 +90,8 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
             dtype = libUnderworld.StGermain.Variable_DataType_Float;
         elif self._dataType == "int" :
             dtype = libUnderworld.StGermain.Variable_DataType_Int;
+        elif self._dataType == "long" :
+            dtype = libUnderworld.StGermain.Variable_DataType_Long;
         elif self._dataType == "char" :
             dtype = libUnderworld.StGermain.Variable_DataType_Char;
         elif self._dataType == "short" :
@@ -139,7 +141,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         Returns
         -------
         str
-            Data type for variable.  Supported types are 'char', 'short', 'int', 
+            Data type for variable.  Supported types are 'char', 'short', 'int', 'long',
             'float' and 'double'.
         """
         return self._dataType

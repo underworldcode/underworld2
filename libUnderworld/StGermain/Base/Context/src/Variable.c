@@ -809,6 +809,8 @@ void _Variable_AssignFromXML( void* variable, Stg_ComponentFactory* cf, void* da
 		dataTypes[0] = Variable_DataType_Float;
 	else if ( !strcasecmp( dataTypeName, "Int" ) )
 		dataTypes[0] = Variable_DataType_Int;
+	else if ( !strcasecmp( dataTypeName, "Long" ) )
+		dataTypes[0] = Variable_DataType_Long;
 	else if ( !strcasecmp( dataTypeName, "Char" ) )
 		dataTypes[0] = Variable_DataType_Char;
 	else if ( !strcasecmp( dataTypeName, "Short" ) )
@@ -1088,6 +1090,8 @@ PyObject* Variable_getAsNumpyArray( void* variable ){
         numtype = NPY_SHORT;
     } else if ( self->dataTypes[0] == Variable_DataType_Int ){
         numtype = NPY_INT;
+	} else if ( self->dataTypes[0] == Variable_DataType_Long ){
+		numtype = NPY_LONG;
     } else if ( self->dataTypes[0] == Variable_DataType_Float ){
         numtype = NPY_FLOAT;
     } else if ( self->dataTypes[0] == Variable_DataType_Double ){
@@ -1114,8 +1118,10 @@ size_t Variable_SizeOfDataType( Variable_DataType dataType ){
             return sizeof( short );
         case Variable_DataType_Int:
             return sizeof( int );
-        case Variable_DataType_Float:
-            return sizeof( float );
+		case Variable_DataType_Long:
+			return sizeof( long );
+		case Variable_DataType_Float:
+			return sizeof( float );
         case Variable_DataType_Double:
             return sizeof( double );
         case Variable_DataType_Pointer:
