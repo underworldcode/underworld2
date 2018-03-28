@@ -207,8 +207,14 @@ void _MeshParticleLayout_InitialiseParticlesOfCell( void* meshParticleLayout, vo
 		particle->owningCell = cell_I;
 
         if (self->filltype == 0 ) {
+            // add some randomness to avoid moiré type patterns that can occur with sobol
+            double randnum = Swarm_Random_Random_WithMinMax( 0., 1. );
             for( dim_i = 0; dim_i < nDims; dim_i++ )
+            {
+                if (randnum > 0.9)
+                    SobolGenerator_GetNextNumber_WithMinMax( self->sobolGenerator[dim_i], -1.0, +1.0 );
                 lCoord[dim_i] = SobolGenerator_GetNextNumber_WithMinMax( self->sobolGenerator[dim_i], -1.0, +1.0 );
+            }
         } else if (self->filltype == 1){
             for( dim_i = 0; dim_i < nDims; dim_i++ )
                 lCoord[dim_i] = Swarm_Random_Random_WithMinMax( -1.0, +1.0 );
