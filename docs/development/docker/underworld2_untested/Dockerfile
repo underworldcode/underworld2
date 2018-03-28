@@ -46,8 +46,14 @@ EXPOSE 9999
 
 # copy this file over so that no password is required
 COPY jupyter_notebook_config.json /home/$NB_USER/.jupyter/jupyter_notebook_config.json
-USER root
-RUN chown -R $NB_USER:users /home/$NB_USER/.jupyter
+
+# update all permissions for user
+RUN chown -R $NB_USER:users $NB_WORK $UW2_DIR /home/$NB_USER
+
+# hack for matplotlib. kiwisolver  must be imported before matplotlib-pyplot, so do it first thing
+RUN sed -i "1i import kiwisolver;import warnings;warnings.filterwarnings(\"ignore\")" $UW2_DIR/underworld/__init__.py
+
+# CHANGE USER
 USER $NB_USER
 
 # setup symlink for terminal convenience 

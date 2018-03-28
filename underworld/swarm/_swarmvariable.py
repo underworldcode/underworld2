@@ -24,7 +24,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
 
     """
     The SwarmVariable class allows users to add data to swarm particles.  The data
-    can be of type "char", "short", "int", "float" or "double".
+	can be of type "char", "short", "int", "long, "float" or "double".
 
     Note that the swarm allocates one block of contiguous memory for all the particles.
     The per particle variable datums is then interlaced across this memory block.
@@ -40,13 +40,13 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         The swarm of particles for which we wish to add the variable
     dataType: str
         The data type for the variable. Available types are  "char",
-        "short", "int", "float" or "double".
+        "short", "int", "long", "float" or "double".
     count: unsigned
         The number of values to be stored for each particle.
     writeable: bool
         Signifies if the variable should be writeable.
     """
-    _supportedDataTypes = ["char", "short", "int", "float", "double"]
+    _supportedDataTypes = ["char", "short", "int", "long", "float", "double"]
 
     def __init__(self, swarm, dataType, count, writeable=True, **kwargs):
 
@@ -90,6 +90,8 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
             dtype = libUnderworld.StGermain.Variable_DataType_Float;
         elif self._dataType == "int" :
             dtype = libUnderworld.StGermain.Variable_DataType_Int;
+        elif self._dataType == "long" :
+            dtype = libUnderworld.StGermain.Variable_DataType_Long;
         elif self._dataType == "char" :
             dtype = libUnderworld.StGermain.Variable_DataType_Char;
         elif self._dataType == "short" :
@@ -139,7 +141,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         Returns
         -------
         str
-            Data type for variable.  Supported types are 'char', 'short', 'int', 
+            Data type for variable.  Supported types are 'char', 'short', 'int', 'long',
             'float' and 'double'.
         """
         return self._dataType
@@ -237,7 +239,6 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         self._arr = None
         self._arrshadow = None
 
-
     def load( self, filename ):
         """
         Load the swarm variable from disk. This must be called *after* the swarm.load().
@@ -289,9 +290,35 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
                 import warnings
                 warnings.warn("Warning, it appears {} particles were loaded, but this h5 variable has {} data points. Perhaps you restarting on a new mesh geometry?". format(particleGobalCount, dset.shape[0]), RuntimeWarning)
 
-        size = len(gIds) # number of local2global mapped indices
-        if size > 0:     # only if there is a non-zero local2global do we load
-            self.data[:] = dset[gIds,:]
+        # for efficiency, we want to load swarmvariable data in the largest stride chunks possible.
+        # we need to determine where required data is contiguous.
+        # first construct an array of gradients. the required data is contiguous
+        # where the indices into the array are increasing by 1, ie have a gradient of 1.
+        gradIds = np.zeros_like(gIds)            # creates array of zeros of same size & type
+        if len(gIds) > 1:
+            gradIds[:-1] = gIds[1:] - gIds[:-1]  # forward difference type gradient
+
+        guy = 0
+        while guy < len(gIds):
+
+            # do contiguous
+            start_guy = guy
+            while gradIds[guy]==1:  # count run of contiguous. note bounds check not required as last element of gradIds is always zero.
+                guy += 1
+            # copy contiguous chunk if found.. note that we are copying 'plus 1' items
+            if guy > start_guy:
+                self.data[start_guy:guy+1] = dset[gIds[start_guy]:gIds[guy]+1]
+                guy += 1
+
+            # do non-contiguous
+            start_guy = guy
+            while guy<len(gIds) and gradIds[guy]!=1:  # count run of non-contiguous
+                guy += 1
+            # copy non-contiguous items (if found) using index array slice
+            if guy > start_guy:
+                self.data[start_guy:guy,:] = dset[gIds[start_guy:guy],:]
+                
+            # repeat process until all done
 
         h5f.close();
 

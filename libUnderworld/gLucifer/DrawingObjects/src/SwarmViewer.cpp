@@ -42,13 +42,17 @@ void _lucSwarmViewer_SetFn( void* _self, Fn::Function* fn_colour, Fn::Function* 
     // record fns, and also throw in a min/max guy where required
     if (fn_colour)
     {
-        cppdata->fn_colour   = std::make_shared<Fn::MinMax>(fn_colour);
-        cppdata->func_colour = cppdata->fn_colour->getFunction(particleCoord.get());
-        const FunctionIO* io = dynamic_cast<const FunctionIO*>(cppdata->func_colour(particleCoord.get()));
+        Fn::Function::func  func = fn_colour->getFunction(particleCoord.get());
+        const FunctionIO*   io = dynamic_cast<const FunctionIO*>(func(particleCoord.get()));
         if( !io )
             throw std::invalid_argument("Provided function does not appear to return a valid result.");
         if( io->size() != 1 )
             throw std::invalid_argument("Provided function must return a scalar result.");
+        
+        // ok we've made it this far, switch out for MinMax version
+        cppdata->fn_colour   = std::make_shared<Fn::MinMax>(fn_colour);
+        cppdata->func_colour = cppdata->fn_colour->getFunction(particleCoord.get());
+
     }
 
     if (fn_mask)
@@ -64,24 +68,28 @@ void _lucSwarmViewer_SetFn( void* _self, Fn::Function* fn_colour, Fn::Function* 
 
     if (fn_size)
     {
-        cppdata->fn_size   = std::make_shared<Fn::MinMax>(fn_size);
-        cppdata->func_size = cppdata->fn_size->getFunction(particleCoord.get());
-        const FunctionIO* io = dynamic_cast<const FunctionIO*>(cppdata->func_size(particleCoord.get()));
+        Fn::Function::func  func = fn_size->getFunction(particleCoord.get());
+        const FunctionIO* io = dynamic_cast<const FunctionIO*>(func(particleCoord.get()));
         if( !io )
             throw std::invalid_argument("Provided function does not appear to return a valid result.");
         if( io->size() != 1 )
             throw std::invalid_argument("Provided function must return a scalar result.");
+        // ok we've made it this far, switch out for MinMax version
+        cppdata->fn_size   = std::make_shared<Fn::MinMax>(fn_size);
+        cppdata->func_size = cppdata->fn_size->getFunction(particleCoord.get());
     }
 
     if (fn_opacity)
     {
-        cppdata->fn_opacity   = std::make_shared<Fn::MinMax>(fn_opacity);
-        cppdata->func_opacity = cppdata->fn_opacity->getFunction(particleCoord.get());
-        const FunctionIO* io = dynamic_cast<const FunctionIO*>(cppdata->func_opacity(particleCoord.get()));
+        Fn::Function::func  func = fn_opacity->getFunction(particleCoord.get());
+        const FunctionIO* io = dynamic_cast<const FunctionIO*>(func(particleCoord.get()));
         if( !io )
             throw std::invalid_argument("Provided function does not appear to return a valid result.");
         if( io->size() != 1 )
             throw std::invalid_argument("Provided function must return a scalar result.");
+        // ok we've made it this far, switch out for MinMax version
+        cppdata->fn_opacity   = std::make_shared<Fn::MinMax>(fn_opacity);
+        cppdata->func_opacity = cppdata->fn_opacity->getFunction(particleCoord.get());
     }
     
 }
