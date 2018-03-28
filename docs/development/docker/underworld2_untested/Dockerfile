@@ -1,4 +1,4 @@
-FROM underworldcode/base:dev
+FROM underworldcode/base@sha256:04654de1c70622af713dd1b250689d55f20191b64f87d351ffdd6dc00930f682
 MAINTAINER https://github.com/underworldcode/
 
 # set working directory to /opt, and install underworld files there.
@@ -36,7 +36,9 @@ RUN git clone --branch "v2.5" --depth 1 https://github.com/underworldcode/underw
     find $UW2_DIR/docs -name \*.ipynb  -print0 | xargs -0 jupyter trust && \
     cd ../../docs/development/api_doc_generator/                     && \
     sphinx-build . ../../api_doc                                     && \
-    rsync -av $UW2_DIR/docs/. $NB_WORK
+    rsync -av $UW2_DIR/docs/. $NB_WORK                               && \
+    cd /opt/underworld2                                              && \
+    rm -fr .git
 
 
 # expose notebook port
