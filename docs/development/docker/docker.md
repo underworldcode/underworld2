@@ -44,6 +44,27 @@ and others are due to the release branch images).  Once pulled, the tests should
 success the image should be tagged with the required release number, and then pushed to the `underworld2`
 Docker Hub repository.
 
+Example, if `2.5` release:
+
+** Pull newly created 'latest' image:
+```
+$ docker pull underworldcode/underworld2_untested:v2.5
+```
+** Launch into the docker image and run required tests. Once happy,
+   determine the corresponding image ID:
+```
+$ docker images
+```
+** Tag the release locally:
+```
+$ docker tag 6649e5e26534 underworldcode/underworld2:2.5.0b
+```
+** Push the tagged image
+```
+$ docker login
+$ docker push underworldcode/underworld2:2.5.0b
+```
+
 Magnus images should also be tested and pushed with the `magnus` suffixed release tag.
 
 
