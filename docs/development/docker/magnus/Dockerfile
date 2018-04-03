@@ -44,7 +44,8 @@ RUN pip install setuptools wheel && \
         pillow \
         pyvirtualdisplay \
         ipyparallel \
-        scipy
+        scipy \
+        pint
 RUN pip install six --upgrade
 
 # ^^^ Note we choose an older version of ipython because it's tooltips work better.
