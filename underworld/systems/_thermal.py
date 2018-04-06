@@ -181,7 +181,7 @@ class SteadyStateHeat(_stgermain.StgCompoundComponent):
                 #NOTE many NeumannConditions can be used but the _sufaceFluxTerm only records the last
 
                 ### -VE flux because of the FEM discretisation method of the initial equation
-                negativeCond = uw.conditions.NeumannCondition( fn_flux=-1.0*cond.fn_flux,
+                negativeCond = uw.conditions.NeumannCondition( fn_flux=cond.fn_flux,
                                                                variable=cond.variable,
                                                                indexSetsPerDof=cond.indexSetsPerDof )
 

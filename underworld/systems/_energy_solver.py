@@ -12,6 +12,7 @@ import sle
 import libUnderworld
 from libUnderworld import petsc
 from _options import Options
+from mpi4py import MPI
 
 class HeatSolver(_stgermain.StgCompoundComponent):
     """
@@ -92,6 +93,7 @@ class HeatSolver(_stgermain.StgCompoundComponent):
         libUnderworld.StgFEM.SystemLinearEquations_ZeroAllVectors(self._heatSLE._cself, None)
         libUnderworld.StgFEM.SystemLinearEquations_MatrixSetup(self._heatSLE._cself, None)
         libUnderworld.StgFEM.SystemLinearEquations_VectorSetup(self._heatSLE._cself, None)
+
         if nonLinear and nonLinearIterate:
             libUnderworld.StgFEM.SystemLinearEquations_NonLinearExecute(self._heatSLE._cself, None)
         else:
@@ -101,7 +103,7 @@ class HeatSolver(_stgermain.StgCompoundComponent):
 
         if isinstance(self._heatSLE, (uw.systems.SteadyStateDarcyFlow)):
             self._heatSLE.solve_velocityField()
-
+            
     ########################################################################
     ### setup options for solve
     ########################################################################
