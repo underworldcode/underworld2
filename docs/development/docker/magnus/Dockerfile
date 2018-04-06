@@ -93,13 +93,27 @@ RUN cd /tmp && \
     rm -fr petsc-3.8.3
 
 RUN cd /opt/ && \
-    git clone --branch "development" --single-branch https://github.com/underworldcode/underworld2 && \
+    git clone --branch ${SOURCE_BRANCH} --single-branch https://github.com/underworldcode/underworld2 && \
     cd underworld2/libUnderworld && \
     ./configure.py --with-debugging=0 --petsc-dir=/opt/petsc --hdf5-dir=/opt/petsc && \
     ./compile.py && \
+    rm -fr h5py_ext              && \
+    rm .sconsign.dblite          && \
+    rm -fr .sconf_temp           && \
+    cd build                     && \
+    rm -fr libUnderworldPy       && \
+    rm -fr StGermain             && \
+    rm -fr gLucifer              && \
+    rm -fr Underworld            && \
+    rm -fr StgFEM                && \
+    rm -fr StgDomain             && \
+    rm -fr PICellerator          && \
+    rm -fr Solvers               && \
     rm -fr h5py_ext && \
     cd .. && \
     find . -name \*.os |xargs rm  && \
+    git rev-parse --verify HEAD > build_commit.txt                   && \
+    env > build_environment.txt                                      && \
     rm -fr .git
 
 # for some reason the package kiwisolver (used by matplotlib) needs to be imported first, else it segfaults.. weird.

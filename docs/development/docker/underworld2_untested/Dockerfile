@@ -15,10 +15,11 @@ RUN useradd -m -s /bin/bash -N jovyan
 COPY jupyter_notebook_config.json /home/$NB_USER/.jupyter/jupyter_notebook_config.json
 
 # get underworld, compile, delete some unnecessary files, trust notebooks, copy to workspace
-RUN git clone --branch "v2.5" --single-branch https://github.com/underworldcode/underworld2 && \
+RUN git clone --branch ${SOURCE_BRANCH} --single-branch https://github.com/underworldcode/underworld2 && \
     cd underworld2/libUnderworld && \
     ./configure.py --with-debugging=0  && \
     ./compile.py                 && \
+    rm -fr h5py_ext              && \
     rm .sconsign.dblite          && \
     rm -fr .sconf_temp           && \
     cd build                     && \
@@ -36,6 +37,9 @@ RUN git clone --branch "v2.5" --single-branch https://github.com/underworldcode/
     mkdir $NB_WORK                                                   && \
     rsync -av $UW2_DIR/docs/. $NB_WORK                               && \
     cd /opt/underworld2                                              && \
+    find . -name \*.os |xargs rm                                     && \
+    git rev-parse --verify HEAD > build_commit.txt                   && \
+    env > build_environment.txt                                      && \
     rm -fr .git                                                      && \
     chown -R $NB_USER:users $NB_WORK $UW2_DIR /home/$NB_USER
 
