@@ -89,7 +89,7 @@ RUN cd /tmp && \
     make PETSC_DIR=/tmp/petsc-3.8.3 PETSC_ARCH=arch-linux2-c-opt all && \
     make PETSC_DIR=/tmp/petsc-3.8.3 PETSC_ARCH=arch-linux2-c-opt install && \
     cd /tmp && \
-    rm petsc-lite-3.8.3.tar.gz && \
+    rm -f petsc-lite-3.8.3.tar.gz && \
     rm -fr petsc-3.8.3
 
 RUN cd /opt/ && \
@@ -98,7 +98,7 @@ RUN cd /opt/ && \
     ./configure.py --with-debugging=0 --petsc-dir=/opt/petsc --hdf5-dir=/opt/petsc && \
     ./compile.py && \
     rm -fr h5py_ext              && \
-    rm .sconsign.dblite          && \
+    rm -f .sconsign.dblite       && \
     rm -fr .sconf_temp           && \
     cd build                     && \
     rm -fr libUnderworldPy       && \
@@ -111,7 +111,7 @@ RUN cd /opt/ && \
     rm -fr Solvers               && \
     rm -fr h5py_ext && \
     cd .. && \
-    find . -name \*.os |xargs rm  && \
+    find . -name \*.os |xargs rm -f && \
     git rev-parse --verify HEAD > build_commit.txt                   && \
     env > build_environment.txt                                      && \
     rm -fr .git

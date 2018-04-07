@@ -37,7 +37,7 @@ RUN git clone --branch v2.5 --single-branch https://github.com/underworldcode/un
     mkdir $NB_WORK                                                   && \
     rsync -av $UW2_DIR/docs/. $NB_WORK                               && \
     cd /opt/underworld2                                              && \
-    find . -name \*.os |xargs rm                                     && \
+    find . -name \*.os |xargs rm -f                                  && \
     git rev-parse --verify HEAD > build_commit.txt                   && \
     env > build_environment.txt                                      && \
     rm -fr .git                                                      && \
