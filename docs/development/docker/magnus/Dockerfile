@@ -93,7 +93,7 @@ RUN cd /tmp && \
     rm -fr petsc-3.8.3
 
 RUN cd /opt/ && \
-    git clone --branch ${SOURCE_BRANCH} --single-branch https://github.com/underworldcode/underworld2 && \
+    git clone --branch v2.5 --single-branch https://github.com/underworldcode/underworld2 && \
     cd underworld2/libUnderworld && \
     ./configure.py --with-debugging=0 --petsc-dir=/opt/petsc --hdf5-dir=/opt/petsc && \
     ./compile.py && \
