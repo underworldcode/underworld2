@@ -1,59 +1,19 @@
 Directory Structure
-===================
+==============
 
-   * libUnderworld            - Backend stack of tools (Underworld, StgFEM, etc).
+This list is not exhaustive.
+
+   * libUnderworld              - Backend stack of tools (Underworld, StgFEM, etc).
       * libUnderworldPy       - Swig generated wrappers for backend as well as auxiliary implementations (such as StGermain_Tools).
-   * underworld               - Underworld python modules.
-   * glucifer                 - gLucifer python modules.
-   * docs                     - Various documentation including this file.
-     * development            - Documents relevant to developers.
-       * broken               - Input files & tests which are broken or require review/testing
-     * tests                  - Python type scripts which are mainly for regression testing underworld.
-     * examples               - Python type example scripts for users.
-     * user_guide             - Jupyter notebook based user guide
-     * publications           - Models in published work
-   * utils                    - Utility files.
-
-Documents (docs)
-=========
-
-Various user & developer domain documents and models. All models should run 
-successfully against corresponding version of Underworld. 
-
-Tests (docs/tests)
------
-These are more developer domain scripts, but advanced users might also find them useful.
-For example, more thorough analytic tests might be housed here.
-
-Examples (docs/examples)
----------
-Examples generally demonstrate complete underworld model construction and usage.
-
-Naming convention for example files:
-
-```
-a_b_textual_name.ipynb (.py)
-```
-
-where
-
-a: Loose indication of difficulty level (1=novice, 3=advanced)
-b: Unique & persistent integer identifier for example
-
-Example: `2_04_Analytic Solutions.ipynb`
-
-
-User Guide (docs/user_guide)
-----------
-The user guide takes a more focussed look at various aspects of underworld
-model construction. Jupyter notebooks are utilised to allow users to directly
-interact with and modify content (temporarily). Where possible, visualisation
-should be constructed using glucifer.
-
-
-Publications (docs/publications)
------------- 
-Models explicitly concerned with reproduced published results are housed here. 
+   * underworld                  - Underworld python modules.
+   * glucifer                        - gLucifer python modules.
+   * docs                            - Various documentation including this file.
+     * development             - Documents relevant to developers.
+     * tests                          - Python type scripts which are mainly for regression testing underworld.
+     * examples                  - Python type example scripts for users.
+     * user_guide                - Jupyter notebook based user guide
+     * publications              - Models in published work
+   * utils                             - Utility files.
   
 
 
@@ -117,32 +77,6 @@ once the following criterion are met:
    2. Any new functionality is sufficiently documented.
    3. All tests pass.
    
-To help with producing an update change list, and also with reporting, please use 
-one or more of the following tags within your changeset comments:
-
-NEWFEATURE : Any new API features
-NEWDOCUMENTATION : Any new documentation, including new models, docstrings, etc.
-APICHANGE : Any interface changes to existing API. 
-BUGFIX : Any bug fixes
-BUGFIXCRITICAL : Any very important bug fixes. 
-ENHANCEMENT: Other enhancements. 
-DEPRECATION: Deprecated functionality.
-
-These tags should be used for any note-worthy changes, but are not necessary for 
-any trivial changes. Also, where changes relate to github issues, reference the 
-issue number. Github will automatically provide a reference back to the changeset
-in the issue.  
-
-For example:
-
-```text
-BUGFIXCRITICAL
-Fixes #200
-
-...
-
-```
-
 
 Bug reporting
 =============
@@ -179,9 +113,6 @@ underworld notebooks and python scripts. The 'run_tests.py' script simply checks
 that input notebooks/scripts run to completion without raising an exception. 
 
 Continuous integration is performed via a Jenkins continuous integration system.
-
-Jenkins server address:
-http://130.56.252.251:32779/
 
 For further details about Jenkins testing, please refer "Guide to jenkins 
 testing" (stored within the private Underworld google documents folder).
