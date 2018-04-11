@@ -269,9 +269,9 @@ class Store(_stgermain.StgCompoundComponent):
                 #Remove tmp db
                 os.remove(tmpdb)
 
-        if not lavavu.is_ipython():
-            endtime = MPI.Wtime()
-            print "Visualisation export took %10.2fs on proc %d" % (endtime-starttime, uw.rank())
+#        if not lavavu.is_ipython():
+#            endtime = MPI.Wtime()
+#            print "Visualisation export took %10.2fs on proc %d" % (endtime-starttime, uw.rank())
 
     def _get_state(self, objects, props):
         #Get current state as string for export

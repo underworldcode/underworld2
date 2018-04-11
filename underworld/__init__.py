@@ -30,7 +30,7 @@ is very well suited to complex fluids which is how the solid Earth behaves
 on a geological timescale.
 """
 
-__version__ = "2.4.1b"
+__version__ = "2.5.0b"
 
 # lets  set sys.path such that the project parent directory takes
 # precedence
@@ -46,6 +46,14 @@ import function
 import swarm
 import systems
 import utils
+
+import numpy as _np
+
+# to allow our legacy doctest formats
+try:
+    _np.set_printoptions(legacy='1.13')
+except:
+    pass
 
 try:
     from ._uwid import uwid as _id

@@ -25,12 +25,12 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
     ----------
     mesh : underworld.mesh.FeMesh
         The supporting mesh for the variable.
-    dataType : strin
+    dataType : string
         The data type for the variable.
         Note that only 'double' type variables are currently
         supported.
     nodeDofCount : int
-        Number of degrees of freedom per node the variable should have.
+        Number of degrees of freedom per node the variable will have.
 
 
     See property docstrings for further information.
@@ -253,7 +253,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         Example
         -------
         First create the mesh add a variable:
-        
+
         >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
         >>> var = uw.mesh.MeshVariable( mesh=mesh, nodeDofCount=1, dataType="double" )
 
@@ -278,7 +278,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         True
 
         Clean up:
-        
+
         >>> if uw.rank() == 0:
         ...     import os;
         ...     os.remove( "saved_mesh_variable.h5" )

@@ -1,0 +1,17 @@
+<?xml version="1.0" ?>
+<Xdmf xmlns:xi="http://www.w3.org/2001/XInclude" Version="2.0">
+<Domain>
+<Grid Name="swarm" GridType="Uniform">
+
+	<Time Value="0.125" />
+
+	<Topology Type="POLYVERTEX" NodesPerElement="937830"> </Topology>
+		<Geometry Type="XY">
+			<DataItem Format="HDF" NumberType="Float" Precision="8" Dimensions="937830 2">swarm-6.h5:/data</DataItem>
+		</Geometry>
+	<Attribute Type="Scalar" Center="Node" Name="material">
+			<DataItem Format="HDF" NumberType="Float" Precision="8" Dimensions="937830 1">material-6.h5:/data</DataItem>
+	</Attribute>
+</Grid>
+</Domain>
+</Xdmf>

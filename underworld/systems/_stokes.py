@@ -104,7 +104,8 @@ class Stokes(_stgermain.StgCompoundComponent):
 
     def __init__(self, velocityField, pressureField, fn_viscosity, fn_bodyforce=None, fn_one_on_lambda=None,
                  fn_lambda=None, fn_source=None, voronoi_swarm=None, conditions=[],
-                _removeBCs=True, _fn_viscosity2=None, _fn_director=None, fn_stresshistory=None, _fn_stresshistory=None, **kwargs):
+                _removeBCs=True, _fn_viscosity2=None, _fn_director=None, fn_stresshistory=None, _fn_stresshistory=None,
+                _fn_v0=None, _fn_p0=None, _callback_post_solve=None, **kwargs):
 
         # DEPRECATION ERROR
         if fn_lambda != None:
@@ -112,7 +113,7 @@ class Stokes(_stgermain.StgCompoundComponent):
 
         if _fn_stresshistory:
             raise TypeError( "The parameter '_fn_stresshistory' has been updated to 'fn_stresshistory'." )
-        
+
         if not isinstance( velocityField, uw.mesh.MeshVariable):
             raise TypeError( "Provided 'velocityField' must be of 'MeshVariable' class." )
         if velocityField.nodeDofCount != velocityField.mesh.dim:
@@ -163,6 +164,15 @@ class Stokes(_stgermain.StgCompoundComponent):
             else:
                 fn_bodyforce = (0.,0.,0.)
         _fn_bodyforce = uw.function.Function.convert(fn_bodyforce)
+        
+        if _fn_p0 is not None:
+            if not isinstance(_fn_p0, uw.function.misc.constant):
+                raise ValueError("Provided '_fn_p0' must be of type 'uw.function.misc.constant'")
+        self._fn_p0 = _fn_p0       
+        if _fn_v0 is not None:
+            if not isinstance(_fn_v0, uw.function.misc.constant):
+                raise ValueError("Provided '_fn_v0' must be of type 'uw.function.misc.constant'")
+        self._fn_v0 = _fn_v0
 
 
         if voronoi_swarm and not isinstance(voronoi_swarm, uw.swarm.Swarm):
@@ -202,6 +212,21 @@ class Stokes(_stgermain.StgCompoundComponent):
         libUnderworld.StgFEM.SolutionVector_LoadCurrentFeVariableValuesOntoVector( self._velocitySol._cself );
         libUnderworld.StgFEM.SolutionVector_LoadCurrentFeVariableValuesOntoVector( self._pressureSol._cself );
 
+        # set callback to default or user defined
+        self.callback_post_solve = None
+        if _callback_post_solve is None:
+            if _fn_p0:
+                mesh = self._velocityField.mesh
+                top = mesh.specialSets["MaxJ_VertexSet"]
+                surfInt = uw.utils.Integral(fn=(1.0,self._pressureField), mesh=mesh, integrationType='surface', surfaceIndexSet=top)
+
+                def avtop_pressure_nullspace_removal():
+                    result = surfInt.evaluate()
+                    _fn_p0.value = result[1]/result[0]
+                self.callback_post_solve = avtop_pressure_nullspace_removal
+        else:
+            self.callback_post_solve = _callback_post_solve
+
         # create force vectors
         self._fvector = sle.AssembledVector(velocityField, self._eqNums[velocityField] )
         self._hvector = sle.AssembledVector(pressureField, self._eqNums[pressureField] )
@@ -212,7 +237,7 @@ class Stokes(_stgermain.StgCompoundComponent):
         self._preconditioner = sle.AssembledMatrix( self._pressureSol, self._pressureSol, rhs=self._hvector )
 
         # create assembly terms which always use gauss integration
-        gaussSwarm = uw.swarm.GaussIntegrationSwarm(self._velocityField.mesh)
+        gaussSwarm = uw.swarm.GaussIntegrationSwarm(mesh)
         self._gradStiffMatTerm = sle.GradientStiffnessMatrixTerm(   integrationSwarm=gaussSwarm,
           assembledObject=self._gmatrix)
         self._preCondMatTerm   = sle.PreconditionerMatrixTerm(  integrationSwarm=gaussSwarm,
@@ -259,15 +284,17 @@ class Stokes(_stgermain.StgCompoundComponent):
 
             self._compressibleTerm = sle.MatrixAssemblyTerm_NA__NB__Fn(  integrationSwarm=intswarm,
                                                                          assembledObject=self._mmatrix,
-                                                                         mesh=self._velocityField.mesh,
+                                                                         mesh=mesh,
                                                                          fn=self._fn_minus_one_on_lambda )
 
         if fn_stresshistory != None:
             self._NA_j__Fn_ijTerm    = sle.VectorAssemblyTerm_NA_j__Fn_ij(  integrationSwarm=intswarm,
         		                                                assembledObject=self._fvector,
                 		                                        fn=fn_stresshistory )
-
-
+        # objects used for analysis, dictionary for organisation
+        self._aObjects = dict()
+        self._aObjects['vdotv_fn'] = uw.function.math.dot( self._velocityField, self._velocityField )
+        
         super(Stokes, self).__init__(**kwargs)
 
 
@@ -346,8 +373,6 @@ class Stokes(_stgermain.StgCompoundComponent):
             import warnings
             warnings.warn("Cannot add fn_source to existing stokes object. Instead you should build a new object with fn_source defined", RuntimeWarning)
 
-
-
     @property
     def eqResiduals(self):
         """
@@ -370,3 +395,34 @@ class Stokes(_stgermain.StgCompoundComponent):
         res_cEq = uw.libUnderworld.StgFEM.Stokes_ContinuityResidual(self._cself)
 
         return res_mEq, res_cEq
+
+    @property
+    def stokes_callback(self):
+        """
+        Return the callback function used by this system
+        """
+        return self._stokes_callback
+
+    @stokes_callback.setter
+    def stokes_callback(self, value):
+        """
+        Setter for stokes_callback, must be a callable python function
+        """
+        if value is not None:
+            if not callable(value):
+                raise RuntimeError("The 'callback_post_solve' parameter is not 'None' and isn't callable")
+        self._stokes_callback = value
+        
+    def velocity_rms(self):
+        """
+        Calculates RMS velocity as follows
+        .. math:: v_{rms}  =  \sqrt{ \frac{ \int_V (\mathbf{v}.\mathbf{v}) \, \mathrm{d}V } {\int_V \, \mathrm{d}V} }
+        """
+        # get the mesh and perform integrals over it
+        mesh = self._velocityField.mesh
+        
+        fn_2_integrate = ( 1., self._aObjects['vdotv_fn'] )
+        (v2,vol)       = mesh.integrate( fn=fn_2_integrate )
+        import math
+        return math.sqrt(v2/vol)
+        

@@ -62,11 +62,12 @@ if env.get('with_graphics', None):
     env = env.Clone()
     env["LIBS"] = ['LavaVu']
     objs = []
-    srcs = Glob('../gLucifer/Viewer/LavaVuPython_wrap.cxx')
+    srcs = Glob('../gLucifer/Viewer/src/LavaVuPython_wrap.cxx')
     objs += env.SharedObject(srcs, CPPDEFINES=env.get('CPPDEFINES', []))
     # Build shared library.
     if env['shared_libs']:
-        env.SharedLibrary('lib/LavaVuPython_swig', objs)
+        swiglib = env.SharedLibrary('lib/LavaVuPython_swig', objs)
+        env.InstallAs(env['build_dir'] + '/lavavu/_LavaVuPython.so', swiglib)
 
     # add the lavavu guy here
     wrapperDict['LavaVuPython'] = ['LavaVuPython_wrap.cxx']

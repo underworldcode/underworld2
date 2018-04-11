@@ -14,6 +14,8 @@ from libUnderworld import petsc
 from libUnderworld import Solvers
 from _options import Options
 from mpi4py import MPI
+import numpy as np
+
 
 class Stats(object):
     pressure_its=0
@@ -359,10 +361,12 @@ class StokesSolver(_stgermain.StgCompoundComponent):
             if self.options.main.ksp_k2_type == "NULL":
                 self.options.main.ksp_k2_type = "GMG"
 
-        # error check callback_post_solve
+        # if user provided callback_post_solve then use it, else use stokes system
         if callback_post_solve is not None:
             if not callable(callback_post_solve):
                 raise RuntimeError("The 'callback_post_solve' parameter is not 'None' and isn't callable")
+        else:
+            callback_post_solve = self._stokesSLE.callback_post_solve
 
         # in this c function we handle callback_post_solve=None
         uw.libUnderworld.StgFEM.SystemLinearEquations_SetCallback(self._stokesSLE._cself, callback_post_solve)
@@ -419,8 +423,8 @@ class StokesSolver(_stgermain.StgCompoundComponent):
             libUnderworld.StgFEM.SystemLinearEquations_NonLinearExecute(self._stokesSLE._cself, None)
         else:
             libUnderworld.StgFEM.SystemLinearEquations_ExecuteSolver(self._stokesSLE._cself, None)
+            libUnderworld.StgFEM.SystemLinearEquations_UpdateSolutionOntoNodes(self._stokesSLE._cself, None)
 
-        libUnderworld.StgFEM.SystemLinearEquations_UpdateSolutionOntoNodes(self._stokesSLE._cself, None)
 
         if print_stats:
             self.print_stats()
@@ -449,7 +453,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
                 warnings.warn(estring)
 
         # check if fp error was detected and 'reduce' result to proc 0
-        import numpy as np
+
         lres, gres = np.zeros(1), np.zeros(1)
 
         lres[:] = uw.libUnderworld.Underworld.Underworld_fetestexcept()
