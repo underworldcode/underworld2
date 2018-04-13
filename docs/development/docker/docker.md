@@ -7,12 +7,15 @@ Underworld docker images are created across three distinct layers. The basic bre
 is as follows:
 
 **base**:
+
     Inherits from a `Debian` image, and configures the software stack required by Underworld. This
     image is only built when explicitly triggered by a developer. It always pulls from the latest
     available `Debian` image. At the beginning of a new release cycle (ie, just after a release has been
     made), this image is regenerated from the latest available `Debian` image and will install the latest
     software versions from apt and pip.
+    
 **underworld2_untested**:
+
     Inherits from `base`, downloads Underworld from Github and compiles. This image is
     automatically built whenever a commit is pushed to the Underworld Github
     repository. It inherits from an SHA digest pinned `base` image so that the full software
@@ -22,7 +25,9 @@ is as follows:
     of a release cycle, the `base` image is regenerated, and the `underworld2_untested`  image is
     then pinned to the new version of the `base` image. This allows thorough testing by the dev
     team before the next release.
+    
 **underworld2**:
+
     Inherits from underworld2_untested, runs tests. This image is built whenever a new
     `underworld2_untested` image is generated successfully. If the tests fails, the image
     is not created, and the developer should then launch the associated `underworld2_untested`

@@ -37,6 +37,9 @@ Testing
 * Ensure 'run_tests.py' script run to completion without raising an exception.
 * Test on docker, OSX, linux, NCI and Pawsey machines.
 * Scaling tests on NCI and Pawsey machines.
+* Check autocomplete to ensure no garbage has slipped in.  Non
+   user relevant objects should be made private so they don't appear in
+   autocomplete suggestions.
 
 Final Science/Production testing
 ================================
@@ -69,6 +72,7 @@ Announce new version
 
 After the release
 ============
+* Increment version number within ``underworld/__init__.py`` on dev branch (eg 2.6.0-dev)
 * Check `docker/docker.md` for docker related actions.
 
 

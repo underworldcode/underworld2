@@ -1,4 +1,5 @@
-FROM underworldcode/base@sha256:04654de1c70622af713dd1b250689d55f20191b64f87d351ffdd6dc00930f682
+FROM underworldcode/base:latest
+#FROM underworldcode/base@sha256:04654de1c70622af713dd1b250689d55f20191b64f87d351ffdd6dc00930f682
 MAINTAINER https://github.com/underworldcode/
 
 # set working directory to /opt, and install underworld files there.
@@ -13,6 +14,9 @@ RUN useradd -m -s /bin/bash -N jovyan
 
 # copy this file over so that no password is required
 COPY jupyter_notebook_config.json /home/$NB_USER/.jupyter/jupyter_notebook_config.json
+
+# install lavavu
+RUN pip install --no-cache-dir lavavu
 
 # get underworld, compile, delete some unnecessary files, trust notebooks, copy to workspace
 RUN git clone --branch development --single-branch https://github.com/underworldcode/underworld2 && \
@@ -42,6 +46,10 @@ RUN git clone --branch development --single-branch https://github.com/underworld
     env > build_environment.txt                                      && \
     rm -fr .git                                                      && \
     chown -R $NB_USER:users $NB_WORK $UW2_DIR /home/$NB_USER
+
+
+# kiwisolver hack, and pipe down numpy warnings
+RUN sed -i "1i import kiwisolver;import warnings;warnings.filterwarnings(\"ignore\")" /opt/underworld2/underworld/__init__.py
 
 # expose notebook port
 EXPOSE 8888

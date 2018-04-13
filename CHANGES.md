@@ -1,6 +1,12 @@
 CHANGES: Underworld2
 =======================
 
+Release 2.6.0b []
+------------------
+Enhancements:
+* Removed submodules in favour of direct access.
+* Improved docker image building strategy
+
 Release 2.5.0b [2018-04-10]
 ---------------------------
 New features:

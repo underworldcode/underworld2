@@ -84,6 +84,7 @@ env.UsePackage(packages.Python)
 env.UsePackage(packages.Numpy)
 env.UsePackage(packages.MPI)
 env.UsePackage(packages.PETSc)
+env.UsePackage(packages.gLucifer)
 
 # this flag is required to prevent possible issues with AssertMacro.h defining 'check' 
 if platform.system() == 'Darwin':
@@ -188,7 +189,7 @@ if not (GetOption('help') or GetOption('clean')):
     env.ConfigurePackage(packages.libm, required=False)
     env.ConfigurePackage(packages.libXML2)
     env.ConfigurePackage(packages.MPI)
-    env.ConfigurePackage(packages.HDF5, required=True)
+    env.ConfigurePackage(packages.HDF5, required=False)
     env.ConfigurePackage(packages.Python, required=True)
     env.ConfigurePackage(packages.PETSc)
     env.ConfigurePackage(packages.Numpy, required=True)
@@ -216,7 +217,7 @@ if not (GetOption('help') or GetOption('clean')):
     # If we're building gLucifer viewer then we need some more packages.
     viewer_env = 0
     if env.get('with_graphics', None):
-
+        env.ConfigurePackage(packages.gLucifer)
         # Configure auxilliary gLucifer packages.
         vis_env = base_env.Clone()
         env = vis_env
