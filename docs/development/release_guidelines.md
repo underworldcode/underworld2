@@ -30,7 +30,7 @@ Documentation review
 	- make sure builds are passing
 	- review latest content
 * Review top level README.md.
-* Review lsheet contents.
+* Review cheatsheet contents.
 
 Testing
 =======
