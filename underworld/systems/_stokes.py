@@ -416,7 +416,9 @@ class Stokes(_stgermain.StgCompoundComponent):
     def velocity_rms(self):
         """
         Calculates RMS velocity as follows
-        .. math:: v_{rms}  =  \sqrt{ \frac{ \int_V (\mathbf{v}.\mathbf{v}) \, \mathrm{d}V } {\int_V \, \mathrm{d}V} }
+        
+        .. math:: v_{rms}  =  \\sqrt{ \\frac{ \\int_V (\\mathbf{v}.\\mathbf{v}) \\, \\mathrm{d}V } {\\int_V \\, \\mathrm{d}V} }
+
         """
         # get the mesh and perform integrals over it
         mesh = self._velocityField.mesh

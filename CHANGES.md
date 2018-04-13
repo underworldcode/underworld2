@@ -1,6 +1,11 @@
 CHANGES: Underworld2
 =======================
 
+Release 2.5.1b [2018-04-13]
+---------------------------
+Documentation:
+* Fixes for Sphinx API documentation generation.
+
 Release 2.5.0b [2018-04-10]
 ---------------------------
 New features:
