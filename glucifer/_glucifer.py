@@ -27,9 +27,12 @@ from mpi4py import MPI
 
 #Attempt to import lavavu module
 if 'lavavu' in sys.modules:
-    #Already imported, some paths issue causes double import to load separate instances
-    raise RuntimeError("LavaVu module exists, must not be imported before glucifer")
-    #lavavu = sys.modules['lavavu']
+    import lavavu
+    # ok, we have 'lavavu', but let's check if it's actually a Mocked lavavu (as we use for the sphinx dox gen)
+    if not hasattr(lavavu, "only_a_mocked_lavavu_would_act_like_it_has_this_attribute"):
+        #Already imported, some paths issue causes double import to load separate instances
+        raise RuntimeError("LavaVu module exists, must not be imported before glucifer")
+        #lavavu = sys.modules['lavavu']
 else:
     try:
         import lavavu
