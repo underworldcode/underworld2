@@ -13,13 +13,14 @@ ENV NB_USER jovyan
 RUN useradd -m -s /bin/bash -N jovyan
 
 # copy this file over so that no password is required
-COPY --chown=jovyan:users docs/development/docker/underworld2_untested/jupyter_notebook_config.json /home/$NB_USER/.jupyter/jupyter_notebook_config.json
+COPY docs/development/docker/underworld2_untested/jupyter_notebook_config.json /home/$NB_USER/.jupyter/jupyter_notebook_config.json
 
 # install lavavu
 RUN pip install --no-cache-dir lavavu
 
 # COPY UW
-COPY --chown=jovyan:users . $UW2_DIR/
+#COPY --chown=jovyan:users . $UW2_DIR/   # unfortunately, the version of docker at docker cloud does not support chown yet.
+COPY . $UW2_DIR/
 
 # get underworld, compile, delete some unnecessary files, trust notebooks, copy to workspace
 RUN cd underworld2/libUnderworld && \
