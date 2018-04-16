@@ -41,7 +41,8 @@ else:
         import __main__
         __main__.lavavu = lavavu
     except Exception as e:
-        print e,"LavaVu module not found! disabling inline visualisation"
+        print e,": module not found! disabling inline visualisation"
+        import lavavu_null as lavavu
 
 # lets create somewhere to dump data for this session
 try:
@@ -139,17 +140,6 @@ class Store(_stgermain.StgCompoundComponent):
                             "singleFile"        :not self._split
         } )
 
-    def _setup(self):
-        # Detect if viewer was built by finding executable...
-        # (even though no longer needed as using libLavaVu 
-        #  will keep this for now as is useful to know if the executable was built
-        #  and to pass it as first command line arg or if needed to get html path)
-        self._lvpath = self._db.bin_path
-        self._lvbin = os.path.join(self._db.bin_path, "LavaVu")
-        if not os.path.isfile(self._lvbin):
-            print("LavaVu rendering engine does not appear to exist. Perhaps it was not compiled.\n"
-                  "Please check your configuration, or contact developers.")
-
     def save(self,filename):
         """  
         Saves the database to the provided filename.
@@ -181,7 +171,7 @@ class Store(_stgermain.StgCompoundComponent):
     def lvrun(self, db=None, *args, **kwargs):
         if not db:
             db = self._db.path
-        return lavavu.Viewer(cache=False, binpath=self._lvpath, database=db, timestep=self.step, *args, **kwargs)
+        return lavavu.Viewer(cache=False, database=db, timestep=self.step, *args, **kwargs)
 
     def _generate(self, figname, objects, props):
         #First merge object list with active
@@ -653,8 +643,9 @@ class Figure(dict):
             #Export encoded json string
             lv = self.db.lvget(script=self._script)
             #Create link to web content directory
-            if not os.path.isdir("html"):
-                os.symlink(os.path.join(self.db._lvpath, 'html'), 'html')
+            #TODO: rework this to not output in lvpath as we may not have write access
+            #if not os.path.isdir("html"):
+            #    os.symlink(os.path.join(self.db._lvpath, 'html'), 'html')
             jsonstr = lv.app.web()
             #Write files to disk first, can be passed directly on url but is slow for large datasets
             filename = "input_" + self.db._db.name + ".json"
@@ -740,7 +731,7 @@ class Figure(dict):
         if uw.rank() == 0:
             #Open viewer with local web server for interactive/iterative use
             if background:
-                self._viewerProc = subprocess.Popen([self.db._lvbin, "-" + str(self.db.step), "-p9999", "-q90", fname] + self._script + args,
+                self._viewerProc = subprocess.Popen(["LV", "-" + str(self.db.step), "-p9999", "-q90", fname] + self._script + args,
                                                     stdout=PIPE, stdin=PIPE, stderr=STDOUT)
                 from IPython.display import HTML
                 return HTML('''<a href='#' onclick='window.open("http://" + location.hostname + ":9999");'>Open Viewer Interface</a>''')
