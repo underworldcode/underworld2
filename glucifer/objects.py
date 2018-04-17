@@ -14,6 +14,7 @@ import underworld.mesh as _uwmesh
 from underworld.function import Function as _Function
 import libUnderworld as _libUnderworld
 import numpy
+import json
 
 #TODO: Drawing Objects to implement
 # HistoricalSwarmTrajectory
@@ -53,10 +54,7 @@ class ColourMap(_stgermain.StgCompoundComponent):
 
         if not isinstance(colours,(str,list)):
             raise TypeError("'colours' object passed in must be of python type 'str' or 'list'")
-        if isinstance(colours,(list)):
-            self.properties.update({"colours" : ' '.join(colours)})
-        else:
-            self.properties.update({"colours" : colours})
+        self.properties.update({"colours" : json.dumps(colours)})
 
         #User-defined props in kwargs
         self.properties.update(kwargs)
