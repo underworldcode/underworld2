@@ -33,7 +33,7 @@ typedef struct
    float maximum;
    float min[3];
    float max[3];
-   const char* labels;     /* Label strings */
+   char* labels;     /* Label strings */
 } lucGeometryData;
 
 extern const Type lucDatabase_Type;
