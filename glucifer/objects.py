@@ -959,7 +959,7 @@ class Mesh(Drawing):
         self._segmentsPerEdge = segmentsPerEdge
 
         #Default properties
-        self.properties = {"linesmooth" : False, "lit" : False, "font" : "small", "fontscale" : 0.5,
+        self.properties = {"lit" : False, "font" : "small", "fontscale" : 0.5,
                            "pointsize" : 5 if self._nodeNumbers else 1, 
                            "pointtype" : 2 if self._nodeNumbers else 4}
         

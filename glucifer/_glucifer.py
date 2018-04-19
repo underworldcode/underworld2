@@ -26,30 +26,24 @@ import os
 from mpi4py import MPI
 
 #Attempt to import lavavu module
-if 'lavavu' in sys.modules:
+try:
     import lavavu
-    # ok, we have 'lavavu', but let's check if it's actually a Mocked lavavu (as we use for the sphinx dox gen)
-    if not hasattr(lavavu, "only_a_mocked_lavavu_would_act_like_it_has_this_attribute"):
-        #Already imported, some paths issue causes double import to load separate instances
-        raise RuntimeError("LavaVu module exists, must not be imported before glucifer")
-        #lavavu = sys.modules['lavavu']
-else:
-    try:
-        import lavavu
-        #Import into main too so can be accessed there
-        #(necessary for interactive viewer/controls)
-        import __main__
-        __main__.lavavu = lavavu
-    except Exception as e:
-        print(e,": module not found! disabling inline visualisation")
-        import lavavu_null as lavavu
+    #Import into main too so can be accessed there
+    #(necessary for interactive viewer/controls)
+    import __main__
+    __main__.lavavu = lavavu
+except Exception as e:
+    print(e,": module not found! disabling inline visualisation")
+    import lavavu_null as lavavu
 
 # lets create somewhere to dump data for this session
 try:
     tmpdir = os.environ['TMPDIR']
 except:
     tmpdir = "/tmp"
+
 os.path.join(tmpdir,"glucifer")
+
 try:
     os.makedirs(tmpdir)
 except OSError as exception:
@@ -68,7 +62,7 @@ class Store(_stgermain.StgCompoundComponent):
     Parameters
     ----------
     filename: str
-        Filename to use for a disk database, default is in memory only unless saved.
+        Filename to use for a disk database, default is to create a temporary database filename.
     split: bool
         Set to true to write a separate database file for each timestep visualised
     view: bool
@@ -82,7 +76,7 @@ class Store(_stgermain.StgCompoundComponent):
     >>> import glucifer
     >>> store = glucifer.Store()
 
-    Optionally provide a filename so you don't need to call save later (no extension)
+    Optionally provide a filename so you don't need to call save later (no extension required)
     
     >>> store = glucifer.Store('myvis')
 
@@ -109,7 +103,9 @@ class Store(_stgermain.StgCompoundComponent):
     def __init__(self, filename=None, split=False, **kwargs):
 
         self.step = 0
-        if filename and not filename.lower().endswith('.gldb') and not filename.lower().endswith('.db'):
+        if filename is None:
+            filename = os.path.join(tmpdir,"tmpDB_"+self._db.name+".gldb")
+        elif filename and not filename.lower().endswith('.gldb') and not filename.lower().endswith('.db'):
             filename += ".gldb"
         self.filename = filename
         self._objects = []
@@ -237,13 +233,6 @@ class Store(_stgermain.StgCompoundComponent):
         if lavavu and any(hasattr(x, "parallel_render") for x in self._objects):
             #In case no external file has been written we need to create a temporary
             #database on root so the other procs can load it
-            tmpdb = None
-            if not self.filename:
-                tmpdb = os.path.join(tmpdir,"tmpDB_"+figname+".gldb")
-                if uw.rank() == 0:
-                    libUnderworld.gLucifer.lucDatabase_BackupDbFile(self._db, tmpdb)
-                else:
-                    self.filename = tmpdb
             #Wait for temporary db to be written if not already using an external store
             uw.barrier()
             #print uw.rank(),self.filename
@@ -258,9 +247,6 @@ class Store(_stgermain.StgCompoundComponent):
             if uw.rank() > 0:
                 lv = None
                 self.viewer = None
-            elif tmpdb is not None:
-                #Remove tmp db
-                os.remove(tmpdb)
 
 #        if not lavavu.is_ipython():
 #            endtime = MPI.Wtime()
