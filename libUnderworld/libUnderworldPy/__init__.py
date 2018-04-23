@@ -12,9 +12,9 @@ import c_pointers
 import StGermain_Tools
 import Function
 import petsc
+import petsc_layer
 
 try:
     import LavaVu
 except ImportError:
     pass
-

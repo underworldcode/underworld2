@@ -37,6 +37,7 @@ wrapperDict['StgFEM'] = ['StgFEM_wrap.cxx']
 wrapperDict['Solvers'] = ['Solvers_wrap.cxx']
 wrapperDict['PICellerator'] = ['PICellerator_wrap.cxx']
 wrapperDict['Function'] = ['Function_wrap.cxx']
+wrapperDict['petsc_layer'] = ['petsc_layer.cpp','petsc_layer_wrap.cxx']
 
 objs = []
 
