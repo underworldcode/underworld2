@@ -160,14 +160,14 @@ class Store(_stgermain.StgCompoundComponent):
         else:
             if not db:
                 db = self._db.path
-            self.viewer.setup(cache=False, database=db, timestep=self.step, *args, **kwargs)
+            self.viewer.setup(cache=False, clearstep=True, database=db, timestep=self.step, *args, **kwargs)
 
         return self.viewer
 
     def lvrun(self, db=None, *args, **kwargs):
         if not db:
             db = self._db.path
-        return lavavu.Viewer(cache=False, database=db, timestep=self.step, *args, **kwargs)
+        return lavavu.Viewer(cache=False, clearstep=True, database=db, timestep=self.step, *args, **kwargs)
 
     def _generate(self, figname, objects, props):
         #First merge object list with active
