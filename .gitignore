@@ -38,6 +38,7 @@ libUnderworld/libUnderworldPy/lavavu.py
 testResults
 docs/scratch
 docs/test/*Output
+docs/examples/images/*
 
 # We should probably not cache the output of all the examples -  if we are going to leave the
 # notebook output cells in place, then there is not much need.

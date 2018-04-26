@@ -30,13 +30,16 @@ Documentation review
 	- make sure builds are passing
 	- review latest content
 * Review top level README.md.
-* Review lsheet contents.
+* Review cheatsheet contents.
 
 Testing
 =======
 * Ensure 'run_tests.py' script run to completion without raising an exception.
 * Test on docker, OSX, linux, NCI and Pawsey machines.
 * Scaling tests on NCI and Pawsey machines.
+* Check autocomplete to ensure no garbage has slipped in.  Non
+   user relevant objects should be made private so they don't appear in
+   autocomplete suggestions.
 
 Final Science/Production testing
 ================================
@@ -53,42 +56,23 @@ Document release
 Version numbers and tags
 ========================
 * Increment version number within ``underworld/__init__.py``
-* Update Dockerfiles:
-** Within the `underworld_untested2` Dockerfile, ensure that the branch that
-   is checked out is correct (either `development` or `master`).
-** Within the `underworld_untested2` and `underworld2` Dockerfile, ensure that
-   we inherit from the correct parent tagged Dockerfile. The git `development`
-   branch should use the `dev` tag, while the `master` branch should use the 
-   `latest` tag. 
+* Check `guidelines.md` for release numbering details.
 
 Creating the release
 ====================
 * Create the release from within Github. We will mark as pre-production
-  while still in beta. 
-* Also, once satisfied that docker builds are being created successfully,
-create corresponding tags for the docker images:
-** Pull newly created 'latest' image:
-```
-$ docker pull underworldcode/underworld2:latest
-```
-** Determine the corresponding image ID:
-```
-$ docker images
-```
-** Tag the release locally:
-```
-$ docker tag 6649e5e26534 underworldcode/underworld2:2.1.1b
-```
-** Push the tagged image
-``` 
-$ docker login
-$ docker push underworldcode/underworld2:2.1.1b
-```
-
+  while still in beta.
+* Check `docker/docker.md` for docker image release information.
 * Add tagged documentation version at http://underworld2.readthedocs.io/  
 
 Announce new version
 ====================
 * via blog & facebook.
+
+
+After the release
+============
+* Increment version number within ``underworld/__init__.py`` on dev branch (eg 2.6.0-dev)
+* Check `docker/docker.md` for docker related actions.
 
 

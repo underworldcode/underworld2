@@ -1,4 +1,4 @@
-FROM debian@sha256:0a5fcee6f52d5170f557ee2447d7a10a5bdcf715dd7f0250be0b678c556a501b
+FROM debian:latest
 MAINTAINER https://github.com/underworldcode/
 
 # install things
@@ -33,11 +33,11 @@ RUN apt-get update -qq && \
         gdb-minimal \
         python2.7-dbg && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    \
+    rm -rf /var/lib/apt/lists/*
+
 # Install setuptools and wheel first, needed by plotly
-    pip install setuptools wheel && \
-    pip install packaging \
+RUN pip install --no-cache-dir setuptools wheel && \
+    pip install --no-cache-dir packaging \
         appdirs \
         numpy \
         jupyter \
@@ -47,6 +47,7 @@ RUN apt-get update -qq && \
         runipy \
         pillow \
         pyvirtualdisplay \
+        ipython==4.2.0 \
         ipyparallel \
         pint \
         sphinx \
@@ -54,8 +55,7 @@ RUN apt-get update -qq && \
         sphinxcontrib-napoleon \
         mock \
         scipy && \
-    pip install 'ipython==4.2.0' --force-reinstall && \
-    pip install six --upgrade
+    CC=mpicc HDF5_MPI="ON" HDF5_DIR=/usr/lib/x86_64-linux-gnu/hdf5/openmpi/ pip install --no-cache-dir --no-binary=h5py h5py
 
 # ^^^ Note we choose an older version of ipython because it's tooltips work better.
 #     Also, the system six is too old, so we upgrade for the pip version

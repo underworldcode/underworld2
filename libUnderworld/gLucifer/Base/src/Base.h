@@ -18,4 +18,6 @@
 #include "Init.h"
 #include "Finalise.h"
 
+#define MAX_PROPERTY_LEN 16384
+
 #endif

@@ -14,6 +14,7 @@ import underworld.mesh as _uwmesh
 from underworld.function import Function as _Function
 import libUnderworld as _libUnderworld
 import numpy
+import json
 
 #TODO: Drawing Objects to implement
 # HistoricalSwarmTrajectory
@@ -53,10 +54,7 @@ class ColourMap(_stgermain.StgCompoundComponent):
 
         if not isinstance(colours,(str,list)):
             raise TypeError("'colours' object passed in must be of python type 'str' or 'list'")
-        if isinstance(colours,(list)):
-            self.properties.update({"colours" : ' '.join(colours)})
-        else:
-            self.properties.update({"colours" : colours})
+        self.properties.update({"colours" : json.dumps(colours)})
 
         #User-defined props in kwargs
         self.properties.update(kwargs)
@@ -215,8 +213,8 @@ class Drawing(_stgermain.StgCompoundComponent):
         try:
             obj = viewer.objects[self.properties["name"]]
             if not obj: raise KeyError("Object not found")
-        except KeyError,e:
-            print self.properties["name"] + " Object lookup error: " + str(e)
+        except KeyError as e:
+            print(self.properties["name"] + " Object lookup error: " + str(e))
             return
 
         obj["geometry"] = self.geomType
@@ -664,17 +662,17 @@ class _GridSampler3D(CrossSection):
 
         #Convert deprecated parameters
         if resolutionI:
-            print "Parameter 'resolutionI' is deprecated, please use resolution=[I,J,K]"
+            print("Parameter 'resolutionI' is deprecated, please use resolution=[I,J,K]")
             if not isinstance(resolutionI,int):
                 raise TypeError("'resolutionI' must be of python type 'int'")
             resolution[0] = resolutionI
         if resolutionJ:
-            print "Parameter 'resolutionJ' is deprecated, please use resolution=[I,J,K]"
+            print("Parameter 'resolutionJ' is deprecated, please use resolution=[I,J,K]")
             if not isinstance(resolutionJ,int):
                 raise TypeError("'resolutionJ' must be of python type 'int'")
             resolution[1] = resolutionJ
         if resolutionK:
-            print "Parameter 'resolutionK' is deprecated, please use resolution=[I,J,K]"
+            print("Parameter 'resolutionK' is deprecated, please use resolution=[I,J,K]")
             if not isinstance(resolutionK,int):
                 raise TypeError("'resolutionK' must be of python type 'int'")
             resolution[2] = resolutionK
@@ -900,7 +898,7 @@ class IsoSurface(Volume):
             #Generate isosurface in same object, convert and delete volume, update db
             isobj.isosurface(name=None, convert=True, updatedb=True)
         else:
-            print "Object not found: " + self.properties["name"]
+            print("Object not found: " + self.properties["name"])
 
     def parallel_render(self, viewer, rank):
         #If this method defined, is run by all procs to process
@@ -961,7 +959,7 @@ class Mesh(Drawing):
         self._segmentsPerEdge = segmentsPerEdge
 
         #Default properties
-        self.properties = {"linesmooth" : False, "lit" : False, "font" : "small", "fontscale" : 0.5,
+        self.properties = {"lit" : False, "font" : "small", "fontscale" : 0.5,
                            "pointsize" : 5 if self._nodeNumbers else 1, 
                            "pointtype" : 2 if self._nodeNumbers else 4}
         

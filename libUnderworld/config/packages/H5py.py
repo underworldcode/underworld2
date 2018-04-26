@@ -1,6 +1,5 @@
 import os, sys
 from config import Package
-from Mpi4py import Mpi4py
 from MPI import MPI
 from HDF5 import HDF5
 import subprocess
@@ -13,9 +12,8 @@ class H5py(Package):
     _h5pyp     = os.path.abspath('../h5py')
 
     def setup_dependencies(self):
-        self.mpi4py = self.add_dependency(Mpi4py, required=True)
         self.MPI = self.add_dependency(MPI, required=True)
-        self.hdf5 = self.add_dependency(HDF5, required=True)
+        self.hdf5 = self.add_dependency(HDF5, required=False)
 
     def _buildh5py(self, cc):
         print("\nAttempting to build private h5py version at {} using cc={}. This may take a few minutes.".format(self._h5pyp,cc))
@@ -83,9 +81,13 @@ class H5py(Package):
         if subp.wait() != 0:
             self._logfile.write("\nh5py is not importable from {}, or does not appear to be built against mpi.\n".format(proj_folder))
             # try h5py in PYTHONPATH
-            subp = subprocess.Popen(self.launcher+'python -c \'import sys\nimport h5py\nif not h5py.get_config().mpi: raise RuntimeError(\"h5py imported, but not compiled against mpi.\")\'', shell=True, stdout=self._logfile, stderr=self._logfile)
+            subp = subprocess.Popen(self.launcher+'python -c \'import h5py\nif not h5py.get_config().mpi: raise RuntimeError(\"h5py imported, but not compiled against mpi.\")\'', shell=True, stdout=self._logfile, stderr=self._logfile)
             if subp.wait() != 0:
-                self._logfile.write("\nh5py is not importable from {}, or does not appear to be built against mpi.\n".format(proj_folder))
+                self._logfile.write("\nh5py is not importable from system, or does not appear to be built against mpi.\n")
+                self._logfile.write("\nNote that you can install parallel h5py via pip using the following command:\n \
+    CC=mpicc HDF5_MPI=\"ON\" HDF5_DIR=/path/to/your/hdf5/install/ pip install --no-binary=h5py h5py\n")
+
+                self._logfile.flush()
                 return False
 
         # if we made it this far, all is probably good
@@ -107,6 +109,13 @@ class H5py(Package):
             
             self._logfile.write("\n")
             self._logfile.write("h5py not found. try build local version using uw2 CC.\n")
+            if not self.hdf5.result:
+                self._logfile.write("    libhdf5 not found by config. Please explicitly specify your libhdf5 install via the --hdf5-dir flags.\n")
+                return False
+            
+            # let's get h5py
+            self.pull_from_git( "https://github.com/h5py/h5py", "2.7.0", self._h5pysrc, logfile=self._logfile)
+            
             try:
                 self._buildh5py(self.env['CC'])
                 if self._importtest():
