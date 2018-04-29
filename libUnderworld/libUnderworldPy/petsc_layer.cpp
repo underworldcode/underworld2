@@ -7,7 +7,9 @@
 **                                                                                  **
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 #include<stdio.h>
+#include<sstream>
 #include<petsc.h>
+#include<petscsys.h>
 #include<petscviewerhdf5.h>
 
 #include <Underworld/Function/Function.hpp>
@@ -31,9 +33,71 @@ void theMadness(AppCtx* self,Fn::Function* fn) {
   
   /* setup function */
   self->fn_source = fn->getFunction(input.get());
+  
+  {
+    PetscErrorCode (*initialGuess[1])(PetscInt dim, PetscReal time, const PetscReal x[], PetscInt Nf, PetscScalar *u, void* ctx) = {fn_x};
+    PetscInt                ids[4] = {1,2,3,4};
+    void *ctx[1];
+    Vec   u;
+    PetscDS prob;
+    PetscErrorCode ierr;
+    /* Get global vector */
+    ierr = DMCreateGlobalVector(self->dm, &u);
+    ierr = DMGetDS(self->dm, &prob);
+
+    ctx[0] = self;
+
+    // ierr = PetscDSAddBoundary(prob, DM_BC_ESSENTIAL, "mrJones", "wallTop",
+    //                           0, 0, NULL, /* field to constain and number of constained components */
+    //                           (void (*)(void)) fn_x, 1, &ids[0], self);
+    // 
+    // ierr = PetscDSAddBoundary(prob, DM_BC_ESSENTIAL, "mrsSkywalker", "wallBottom",
+    //                           0, 0, NULL, /* field to constain and number of constained components */
+    //                           (void (*)(void)) fn_x, 1, &ids[0], self);
+    ierr = PetscObjectSetName((PetscObject) u, "In madness");
+    ierr = DMProjectFunction(self->dm, 0.0, initialGuess, ctx, INSERT_ALL_VALUES, u);
+    
+    {
+  /* Output dm and temperature solution */
+      PetscViewer h5viewer;
+      PetscViewerHDF5Open(PETSC_COMM_WORLD, "madness.h5", FILE_MODE_WRITE, &h5viewer);
+      PetscViewerSetFromOptions(h5viewer);
+      DMView(self->dm, h5viewer);
+      PetscViewerDestroy(&h5viewer);
+  
+      PetscViewerHDF5Open(PETSC_COMM_WORLD, "madness.h5", FILE_MODE_APPEND, &h5viewer);
+      PetscViewerSetFromOptions(h5viewer);
+      VecView(u, h5viewer);
+      PetscViewerDestroy(&h5viewer);
+    }
+    VecDestroy(&u);
+
+  }
 }
 #if 0
 #endif
+
+std::string DSGetFieldInfo(AppCtx *user) {
+  PetscDS  prob;
+  PetscInt Nf, f_i;
+  PetscObject *object;
+  const char* name;
+  std::stringstream ss;
+  
+  ss << "The following fields are available:\n";
+  
+  DMGetDS(user->dm, &prob);
+  PetscDSGetNumFields(prob, &Nf);
+  
+  for(f_i = 0; f_i<Nf; f_i++) {
+    PetscDSGetDiscretization(prob, f_i, object);
+    PetscObjectGetName(*object, &name);
+    ss << "Object "<< f_i << name << "\n";
+    printf("Object %d : %s\n", f_i, name);
+  }
+  return ss.str();
+}
+
 
 PetscErrorCode ProcessOptions(MPI_Comm comm, AppCtx *user) {
   PetscInt dim;
@@ -63,19 +127,24 @@ AppCtx* SetupModel(int x)
   Vec gVec, lVec, xy;
   PetscErrorCode ierr;
 
-    PetscInt dim = 2;
-    PetscInt elements[2] = {4,3};
+  PetscInt dim = 2;
+  PetscInt elements[2] = {4,3};
   ProcessOptions(PETSC_COMM_WORLD, user);
-
-
-    ierr = SNESCreate(PETSC_COMM_WORLD, snes); 
-    ierr = DMPlexCreateHexBoxMesh(PETSC_COMM_WORLD, 2, user->elements,
-      DM_BOUNDARY_NONE,DM_BOUNDARY_NONE,DM_BOUNDARY_NONE, dm );
-    // PetscReal max[2]= {4,3};
-    // DMPlexCreateBoxMesh(PETSC_COMM_WORLD, 2,
-    //                     PETSC_FALSE, // use_simplices, if not then tesor_cells
-    //                     elements, NULL, max, // sizes, and the min and max coords  
-    //                     NULL, PETSC_TRUE,&dm);
+  ierr = SNESCreate(PETSC_COMM_WORLD, snes);
+  
+#if ((PETSC_VERSION_MAJOR == 3) && (PETSC_VERSION_MINOR >=9))
+  PetscReal max[2]= {4,3};
+  ierr = DMPlexCreateBoxMesh(PETSC_COMM_WORLD, 2,
+                      PETSC_FALSE, // use_simplices, if not then tesor_cells
+                      user->elements, NULL, max, // sizes, and the min and max coords  
+                      NULL, PETSC_TRUE,dm);    
+#else
+  ierr = DMPlexCreateHexBoxMesh(
+                        PETSC_COMM_WORLD, 2, 
+                        user->elements,
+                        DM_BOUNDARY_NONE,DM_BOUNDARY_NONE,DM_BOUNDARY_NONE, 
+                        dm );    
+#endif 
     // user->dm = dm;
     /* Distribute mesh over processes */
     {
@@ -144,10 +213,12 @@ int SolveModel(AppCtx *user) {
 
     /* Solve */
     {
-      PetscErrorCode (*initialGuess[1])(PetscInt dim, PetscReal time, const PetscReal x[], PetscInt Nf, PetscScalar *u, void* ctx) = {fn_x};
-      Vec              lu;
+      PetscErrorCode (*initialGuess[1])(PetscInt dim, PetscReal time, const PetscReal x[], PetscInt Nf, PetscScalar *u, void* ctx) = {one_scalar/*fn_x*/};
+      void *ctx[1];
+      Vec   lu;
 
-      ierr = DMProjectFunction(*dm, 0.0, initialGuess, NULL, INSERT_VALUES, u);
+      ctx[0] = user;
+      ierr = DMProjectFunction(*dm, 0.0, initialGuess, ctx, INSERT_VALUES, u);
       ierr = PetscObjectSetName((PetscObject) u, "Initial Solution");
       ierr = VecViewFromOptions(u, NULL, "-initial_vec_view");
       ierr = DMGetLocalVector(*dm, &lu);
@@ -187,14 +258,24 @@ int SolveModel(AppCtx *user) {
 PetscErrorCode zero_scalar(PetscInt dim, PetscReal time, const PetscReal coords[],
                                   PetscInt Nf, PetscScalar *u, void *ctx)
 {
-  u[0] = 0.0;
+  u[0] = coords[1];
   return 0;
 }
 
 PetscErrorCode fn_x(PetscInt dim, PetscReal time, const PetscReal coords[],
                                   PetscInt Nf, PetscScalar *u, void *ctx)
 {
-  u[0] = coords[0];
+  AppCtx *self = (AppCtx*)ctx;
+  
+  /* create input */
+  std::shared_ptr<IO_double> input = std::make_shared<IO_double>(dim, FunctionIO::Vector);
+  
+  memcpy(input->data(), coords, dim*sizeof(double));
+  
+  const FunctionIO* output = debug_dynamic_cast<const FunctionIO*>(self->fn_source(input.get()));
+  u[0] = output->at<double>(0);
+  
+  // u[0] = coords[0];
   return 0;
 }
 
@@ -260,7 +341,7 @@ PetscErrorCode SetupProblem(DM dm, PetscDS prob, AppCtx *user)
 
   ierr = PetscDSAddBoundary(prob, DM_BC_ESSENTIAL, "mrsSkywalker", "wallBottom",
                             0, 0, NULL, /* field to constain and number of constained components */
-                            (void (*)(void)) one_scalar, 1, &ids[0], user);
+                            (void (*)(void)) zero_scalar, 1, &ids[0], user);
 
   PetscFunctionReturn(0);
 }
@@ -269,7 +350,7 @@ PetscErrorCode SetupProblem(DM dm, PetscDS prob, AppCtx *user)
 AppCtx* SetupDiscretization(DM dm, AppCtx *user)
 {
   DM              cdm = dm;
-  PetscFE         fe;
+  PetscFE         fe,feaux;
   PetscQuadrature q;
   PetscDS         prob;
   PetscInt        dim;
@@ -283,13 +364,19 @@ AppCtx* SetupDiscretization(DM dm, AppCtx *user)
   ierr = PetscFEGetQuadrature(fe, &q);
   /* Set discretization and boundary conditions for each mesh */
   ierr = DMGetDS(dm, &prob);
+  
   ierr = PetscDSSetDiscretization(prob, 0, (PetscObject) fe);
+  // 
+  // ierr = PetscFECreateDefault(dm, dim, 1, PETSC_FALSE, "aux_", PETSC_DEFAULT, &feaux);
+  // ierr = PetscObjectSetName((PetscObject) fe, "aux");
+  // ierr = PetscDSSetDiscretization(prob, 1, (PetscObject) feaux);
   ierr = SetupProblem(dm, prob, user);
   while (cdm) {
     ierr = DMSetDS(cdm, prob);
     ierr = DMGetCoarseDM(cdm, &cdm);
   }
   ierr = PetscFEDestroy(&fe);
+  // ierr = PetscFEDestroy(&feaux);
   PetscFunctionReturn(user);
 }
 

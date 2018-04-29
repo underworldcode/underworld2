@@ -28,6 +28,7 @@ void theMadness(AppCtx* some,Fn::Function* fn);
 AppCtx* SetupDiscretization(DM dm, AppCtx *user);
 AppCtx* SetupModel(int x);
 PetscErrorCode SolveModel(AppCtx*);
+std::string DSGetFieldInfo(AppCtx *user);
 
 /** standard functions */
 PetscErrorCode SetupProblem(DM dm, PetscDS prob, AppCtx *user);
