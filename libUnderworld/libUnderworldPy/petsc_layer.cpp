@@ -115,9 +115,13 @@ void f0_u(PetscInt dim, PetscInt Nf, PetscInt NfAux,
                  const PetscInt aOff[], const PetscInt aOff_x[], const PetscScalar a[], const PetscScalar a_t[], const PetscScalar a_x[],
                  PetscReal t, const PetscReal x[], PetscInt numConstants, const PetscScalar constants[], PetscScalar f0[])
 {
-  f0[0] = a[0] * 0;
-  f0[1] = a[0] * 0;
-  f0[2] = a[0] * 1;
+  PetscScalar mag;
+
+  /* the newton formulations means this is a negative of the f0 */
+  mag = sqrt(x[0]*x[0] + x[1]*x[1] + x[2]*x[2]);
+  f0[0] = a[0] * x[0]/mag;
+  f0[1] = a[0] * x[1]/mag;
+  f0[2] = a[0] * x[2]/mag;
 }
 
 /* [P] The pointwise functions below describe all the problem physics */
@@ -201,7 +205,8 @@ void j3_uu(PetscInt dim, PetscInt Nf, PetscInt NfAux,
 
 PetscErrorCode SetupProblem(DM dm, PetscDS prob, AppCtx *user)
 {
-  PetscInt                id = 1;  // for DMLabel 'marker', '1' represents vertices + midpoints along the boundary
+  PetscInt                ids[2] = {1, 2};
+  //PetscInt                id = 1;  // for DMLabel 'marker', '1' represents vertices + midpoints along the boundary
   PetscErrorCode          ierr;
   //const PetscInt          comp[3]   = {0,1,2}; /* scalar */
 
@@ -214,8 +219,12 @@ PetscErrorCode SetupProblem(DM dm, PetscDS prob, AppCtx *user)
   ierr = PetscDSSetJacobian(prob, 1, 0, NULL, j1_pu,  NULL,  NULL);CHKERRQ(ierr);
   
   
+  /* simple box
   ierr = PetscDSAddBoundary(prob, DM_BC_ESSENTIAL, 
-    "wall", "marker", 0, 0, NULL, (void (*)(void)) zero_vector/*x_only_vector*/, 1, &id, user);CHKERRQ(ierr);
+    "wall", "marker", 0, 0, NULL, (void (*)(void)) zero_vector, 1, &id, user);CHKERRQ(ierr);
+  */
+  ierr = PetscDSAddBoundary(prob, DM_BC_ESSENTIAL, "wall", "marker", 0, 0, 0, (void (*)(void)) zero_vector, 2, ids, user);CHKERRQ(ierr);
+    ierr = PetscDSAddBoundary(prob, DM_BC_ESSENTIAL, "wall", "marker", 1, 0, 0, (void (*)(void)) zero_scalar, 2, ids, user);CHKERRQ(ierr);
   // ierr = PetscDSAddBoundary(prob, DM_BC_ESSENTIAL, "mrJones", "wallTop", 
   //                           0, 0, NULL, /* field to constain and number of constained components */
   //                           (void (*)(void)) zero_scalar, 1, &ids[0], user);CHKERRQ(ierr);
@@ -351,6 +360,7 @@ PetscErrorCode CreatePressureNullSpace(DM dm, AppCtx *user, Vec *v, MatNullSpace
 
 PetscErrorCode ProcessOptions(MPI_Comm comm, AppCtx *user) {
   PetscInt dim;
+  PetscBool flg;
   PetscErrorCode ierr;
   
   // set default elements
@@ -358,7 +368,10 @@ PetscErrorCode ProcessOptions(MPI_Comm comm, AppCtx *user) {
   user->elements[1] = 5;
   user->elements[2] = 5; 
   dim=3;
+  
   ierr = PetscOptionsBegin(comm, "", "Julian 3D Stokes test", PETSC_NULL);CHKERRQ(ierr); // must call before options
+  user->filename[0] = '\0';
+  ierr = PetscOptionsString("-f", "Mesh filename to read", "stokesmodel", user->filename, user->filename, sizeof(user->filename), &flg);CHKERRQ(ierr);
   ierr = PetscOptionsSetValue(NULL, "-u_petscspace_order", "1");CHKERRQ(ierr); // default linear trail function approximation
   ierr = PetscOptionsSetValue(NULL, "-p_petscspace_order", "0");CHKERRQ(ierr); // default linear trail function approximation
   ierr = PetscOptionsSetValue(NULL, "-aux_0_petscspace_order", "1");CHKERRQ(ierr); // default linear trail function approximation
@@ -372,7 +385,8 @@ PetscErrorCode ProcessOptions(MPI_Comm comm, AppCtx *user) {
   ierr = PetscOptionsSetValue(NULL, "-fieldsplit_velocity_pc_type", "mg");CHKERRQ(ierr);
   ierr = PetscOptionsSetValue(NULL, "-fieldsplit_pressure_pc_type", "jacobi");CHKERRQ(ierr);
   */
-  ierr = PetscOptionsSetValue(NULL, "-dm_view", "hdf5:sol.h5");CHKERRQ(ierr);
+  ierr = PetscOptionsHasName(NULL,NULL,"-dm_view",&flg);
+  if (!flg) { ierr = PetscOptionsSetValue(NULL, "-dm_view", "hdf5:sol.h5");CHKERRQ(ierr); }
   ierr = PetscOptionsSetValue(NULL, "-sol_vec_view", "hdf5:sol.h5::append");CHKERRQ(ierr);
   ierr = PetscOptionsSetValue(NULL, "-dmAux_view", "hdf5:aux.h5");CHKERRQ(ierr);
   ierr = PetscOptionsSetValue(NULL, "-aux_vec_view", "hdf5:aux.h5::append");CHKERRQ(ierr);
@@ -380,6 +394,56 @@ PetscErrorCode ProcessOptions(MPI_Comm comm, AppCtx *user) {
   ierr = PetscOptionsEnd();
   return(0);
 }
+#if 0
+static PetscErrorCode CreateMesh(MPI_Comm comm, AppCtx *user, DM *dm)
+{
+  const char    *filename = user->filename;
+  size_t         len;
+  PetscErrorCode ierr;
+
+  PetscFunctionBeginUser;
+  ierr = PetscStrlen(filename, &len);CHKERRQ(ierr);
+  if (!len) SETERRQ(comm, PETSC_ERR_ARG_WRONG, "Must supply a mesh filename");
+  ierr = DMPlexCreateFromFile(comm, filename, PETSC_TRUE, dm);CHKERRQ(ierr);
+  /* Distribute mesh over processes */
+  {
+    PetscPartitioner part;
+    DM               pdm = NULL;
+
+    ierr = DMPlexGetPartitioner(*dm, &part);CHKERRQ(ierr);
+    ierr = PetscPartitionerSetFromOptions(part);CHKERRQ(ierr);
+    ierr = DMPlexDistribute(*dm, 0, NULL, &pdm);CHKERRQ(ierr);
+    if (pdm) {
+      ierr = DMDestroy(dm);CHKERRQ(ierr);
+      *dm  = pdm;
+    }
+  }
+  /* Enable conversion to p4est */
+  {
+    char      convType[256];
+    PetscBool flg;
+
+    ierr = PetscOptionsBegin(comm, "", "Mesh conversion options", "DMPLEX");CHKERRQ(ierr);
+    ierr = PetscOptionsFList("-dm_plex_convert_type","Convert DMPlex to another format","ex1",DMList,DMPLEX,convType,256,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsEnd();
+    if (flg) {
+      DM dmConv;
+
+      ierr = DMConvert(*dm,convType,&dmConv);CHKERRQ(ierr);
+      if (dmConv) {
+        ierr = DMDestroy(dm);CHKERRQ(ierr);
+        *dm  = dmConv;
+      }
+    }
+  }
+  ierr = DMLocalizeCoordinates(*dm);CHKERRQ(ierr); /* needed for periodic */
+  ierr = DMSetFromOptions(*dm);CHKERRQ(ierr);
+  /* [O] The mesh is output to HDF5 using options */
+  ierr = DMViewFromOptions(*dm, NULL, "-dm_view");CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#endif
 
 AppCtx* StokesModel_Setup(int argc) {
 
@@ -391,18 +455,34 @@ AppCtx* StokesModel_Setup(int argc) {
     Vec nullVec;
     MatNullSpace nullSpace;
     PetscErrorCode ierr;    
+    MPI_Comm comm = PETSC_COMM_WORLD;
 
     PetscInt dim = 3;
     PetscBool use_simplices = PETSC_FALSE;
 
     //PetscInitialize( &argc, &argv, (char*)0, NULL );
-    ProcessOptions(PETSC_COMM_WORLD, user);
+    ProcessOptions(comm, user);
 
-    ierr = SNESCreate(PETSC_COMM_WORLD, snes);//CHKERRQ(ierr);
+    ierr = SNESCreate(comm, snes);//CHKERRQ(ierr);
+    
+    const char    *filename = user->filename;
+
+    /*
     DMPlexCreateBoxMesh(PETSC_COMM_WORLD, dim, 
                         use_simplices, // use_simplices, if not then tesor_cells
                         user->elements, NULL, NULL, // sizes, and the min and max coords  
                         NULL, PETSC_TRUE,dm);
+                        */
+    size_t len;
+    PetscStrlen(filename, &len);
+    if (len>0) {
+        DMPlexCreateFromFile(comm, filename, PETSC_TRUE, dm);
+    } else {
+        DMPlexCreateBoxMesh(comm, dim, 
+                            use_simplices, // use_simplices, if not then tesor_cells
+                            user->elements, NULL, NULL, // sizes, and the min and max coords  
+                            NULL, PETSC_TRUE,dm);
+    }
     /* Distribute mesh over processes */
     {
       PetscPartitioner part;
