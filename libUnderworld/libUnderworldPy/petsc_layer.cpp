@@ -31,18 +31,27 @@ void StokesModel_SetViscosityFn(AppCtx* self,Fn::Function* fn) {
   self->fn_viscosity = fn->getFunction(input.get());
 }
 
-void StokesModel_SetDensityFn(AppCtx* self,Fn::Function* fn) {
+void StokesModel_SetForceTerm(AppCtx* self,Fn::Function* fn) {
+  PetscInt dim;
+  DM       *dm = &(self->dm);
+
   /* create input */
   std::shared_ptr<IO_double> input = std::make_shared<IO_double>(3, FunctionIO::Vector);
-  
+
   /* test if input it works */
   auto func = fn->getFunction(input.get());
   const FunctionIO* io = dynamic_cast<const FunctionIO*>(func(input.get()));
+
+  /* error check */
+  DMGetDimension(*dm, &dim);
   if( !io )
     throw std::invalid_argument("Provided function does not appear to return a valid result.");
+  if( io->size() != dim ) {
+      throw std::invalid_argument("Provided function appears to have a different dimensionality to the petsc problem");
+  }
   
   /* setup function */
-  self->fn_density = fn->getFunction(input.get());
+  self->fn_forceterm = fn->getFunction(input.get());
 }
 
 PetscErrorCode zero_vector(PetscInt dim, PetscReal time, const PetscReal coords[], PetscInt Nf, PetscScalar *u, void *ctx)
@@ -82,7 +91,7 @@ PetscErrorCode x_only_vector(PetscInt dim, PetscReal time, const PetscReal coord
   return 0;
 }
 
-PetscErrorCode density_scalar(PetscInt dim, PetscReal time, const PetscReal coords[], 
+PetscErrorCode force_vector(PetscInt dim, PetscReal time, const PetscReal coords[], 
                                  PetscInt Nf, PetscScalar *u, void *ctx)
 {
 
@@ -93,9 +102,11 @@ PetscErrorCode density_scalar(PetscInt dim, PetscReal time, const PetscReal coor
   
   memcpy(input->data(), coords, 3*sizeof(double));
   
-  const FunctionIO* output = debug_dynamic_cast<const FunctionIO*>(self->fn_density(input.get()));
+  const FunctionIO* output = debug_dynamic_cast<const FunctionIO*>(self->fn_forceterm(input.get()));
   // f0[0] = 0.;
   u[0] = output->at<double>(0);
+  u[1] = output->at<double>(1);
+  u[2] = output->at<double>(2);
 #if 0
   PetscScalar circle;
   // circle geometry. If inside set gravity force, otherwise 0 force
@@ -109,6 +120,18 @@ PetscErrorCode density_scalar(PetscInt dim, PetscReal time, const PetscReal coor
   return 0;
 }
 
+#if 0
+updateFunctions(dim, Nf, NfAux, u, a) {
+    /* The idea here is to create a new input of the constant values,
+     * that way the constants are up-to-date. Then call the functions for the rhs.
+     * Note we still need the x[] (global coordinates to be used)
+     */
+ auto io_v = std::make_shared<IO_double>(dim, FunctionIO::Vector);
+ auto io_p = std::make_shared<IO_double>(1, FunctionIO::Scalar);
+ auto io_a0 = std::make_shared<IO_double>(a0_dim, FunctionIO::Vector);
+ auto io_a1 = std::make_shared<IO_double>(a1_dim, FunctionIO::Vector);
+}
+#endif
 
 void f0_u(PetscInt dim, PetscInt Nf, PetscInt NfAux,
                  const PetscInt uOff[], const PetscInt uOff_x[], const PetscScalar u[], const PetscScalar u_t[], const PetscScalar u_x[],
@@ -117,11 +140,29 @@ void f0_u(PetscInt dim, PetscInt Nf, PetscInt NfAux,
 {
   PetscScalar mag;
 
+#if 0
+  AppCtx *self = &petscApp;
+  self->fn_v = std::shared_ptr<IO_double> input = std::make_shared<IO_double>(dim, FunctionIO::Vector);
+  self->fn_p = std::shared_ptr<IO_double> input = std::make_shared<IO_double>(dim, FunctionIO::Scalar );
+  self->fn_a0
+  self->fn_a1
+  v0 = FunctionIO(u[0])
+  self->fn_v->value(0) = u[0];
+  self->fn_v->value(1) = u[1];
+
+  output->evaluate(input)
+#endif
+
   /* the newton formulations means this is a negative of the f0 */
+      /*
   mag = sqrt(x[0]*x[0] + x[1]*x[1] + x[2]*x[2]);
   f0[0] = a[0] * x[0]/mag;
   f0[1] = a[0] * x[1]/mag;
   f0[2] = a[0] * x[2]/mag;
+  */
+  f0[0] = a[0];
+  f0[1] = a[1];
+  f0[2] = a[2];
 }
 
 /* [P] The pointwise functions below describe all the problem physics */
@@ -238,7 +279,7 @@ PetscErrorCode SetupProblem(DM dm, PetscDS prob, AppCtx *user)
 
 PetscErrorCode SetupAux(DM dm, DM dmAux, AppCtx *user)
 {
-  PetscErrorCode (*matFuncs[1])(PetscInt dim, PetscReal time, const PetscReal x[], PetscInt Nc, PetscScalar u[], void *ctx) = {density_scalar};
+  PetscErrorCode (*matFuncs[2])(PetscInt dim, PetscReal time, const PetscReal x[], PetscInt Nc, PetscScalar u[], void *ctx) = {force_vector, one_scalar};
   Vec            auxVec;
   PetscErrorCode ierr;
 
@@ -266,11 +307,12 @@ PetscErrorCode SetupDiscretization(DM dm, AppCtx *user)
   
   PetscFE *feAux  = NULL;
   PetscDS probAux = NULL;
-  PetscInt numAux = 1, f;
-  const char auxNames[] = "density";
+  PetscInt numAux = 2, f;
 
   PetscFunctionBeginUser;
   ierr = DMGetDimension(dm, &dim);CHKERRQ(ierr);
+  const char auxNames[][2056] = {"force", "shutup_moresi"};
+  const PetscInt auxSizes[] = {dim, 1};
   /* Create finite element */
   ierr = PetscFECreateDefault(dm, dim, dim, PETSC_FALSE, "u_", PETSC_DEFAULT, &fe[0]);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject) fe[0], "velocity");CHKERRQ(ierr);
@@ -294,8 +336,8 @@ PetscErrorCode SetupDiscretization(DM dm, AppCtx *user)
     char prefix[PETSC_MAX_PATH_LEN];
   
     ierr = PetscSNPrintf(prefix, PETSC_MAX_PATH_LEN, "aux_%d_", f);CHKERRQ(ierr);
-    ierr = PetscFECreateDefault( dm, dim, 1, PETSC_FALSE, prefix, PETSC_DEFAULT, &feAux[f]);CHKERRQ(ierr);
-    ierr = PetscObjectSetName((PetscObject) feAux[f], auxNames);CHKERRQ(ierr);
+    ierr = PetscFECreateDefault( dm, dim, auxSizes[f], PETSC_FALSE, prefix, PETSC_DEFAULT, &feAux[f]);CHKERRQ(ierr);
+    ierr = PetscObjectSetName((PetscObject) feAux[f], auxNames[f]);CHKERRQ(ierr);
     ierr = PetscFESetQuadrature(feAux[f], q);CHKERRQ(ierr);
     ierr = PetscDSSetDiscretization(probAux, f, (PetscObject) feAux[f]);CHKERRQ(ierr);
   }
@@ -322,7 +364,9 @@ PetscErrorCode SetupDiscretization(DM dm, AppCtx *user)
   }
   ierr = PetscFEDestroy(&fe[0]);CHKERRQ(ierr);
   ierr = PetscFEDestroy(&fe[1]);CHKERRQ(ierr);
-  ierr = PetscFEDestroy(&feAux[0]);CHKERRQ(ierr);
+  for( f=0; f<numAux; f++ ) {
+    ierr = PetscFEDestroy(&feAux[f]);CHKERRQ(ierr);
+  }
   ierr = PetscDSDestroy(&probAux);CHKERRQ(ierr);
   
   {
