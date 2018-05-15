@@ -21,6 +21,7 @@ namespace Fn {
             virtual func getFunction( IOsptr sample_input );
             void set_value( const FunctionIO& value ){ _constIO_sp = std::shared_ptr<FunctionIO>(value.clone()); _constIO = _constIO_sp.get(); };
             virtual ~Constant(){};
+            FunctionIO* getFuncIO() { return _constIO; }
         private:
             std::shared_ptr<FunctionIO> _constIO_sp;
             FunctionIO* _constIO;
