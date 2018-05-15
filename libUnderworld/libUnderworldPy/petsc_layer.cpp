@@ -13,6 +13,7 @@
 #include<petscviewerhdf5.h>
 
 #include <Underworld/Function/Function.hpp>
+#include <Underworld/Function/Constant.hpp>
 #include "petsc_layer.hpp"
 
 AppCtx petscApp;
@@ -107,21 +108,11 @@ PetscErrorCode force_vector(PetscInt dim, PetscReal time, const PetscReal coords
   u[0] = output->at<double>(0);
   u[1] = output->at<double>(1);
   u[2] = output->at<double>(2);
-#if 0
-  PetscScalar circle;
-  // circle geometry. If inside set gravity force, otherwise 0 force
-  circle = pow(coords[0]-0.5,2)+pow(coords[1]-0.5,2)+pow(coords[2]-0.7,2);
-  if (circle < pow(0.3,2) ) {
-    u[0] = 1; 
-  } else {
-    u[0] = 0;
-  }
-#endif
+
   return 0;
 }
-
 #if 0
-updateFunctions(dim, Nf, NfAux, u, a) {
+void UpdateFunctions(dim, Nf, NfAux, u, a) {
     /* The idea here is to create a new input of the constant values,
      * that way the constants are up-to-date. Then call the functions for the rhs.
      * Note we still need the x[] (global coordinates to be used)
@@ -133,33 +124,33 @@ updateFunctions(dim, Nf, NfAux, u, a) {
 }
 #endif
 
+void UpdateFunction( const double* vals, Fn::Constant* myconst ) {
+    FunctionIO* funcIOptr = myconst->getFuncIO();
+    memcpy(funcIOptr->dataRaw(), vals, funcIOptr->_dataSize*funcIOptr->size() );
+} 
+
+void someSetter( AppCtx* self, int id, Fn::Function* fn ) {
+    self->solConstants[id] = (Fn::Constant*)fn;
+}
+
 void f0_u(PetscInt dim, PetscInt Nf, PetscInt NfAux,
                  const PetscInt uOff[], const PetscInt uOff_x[], const PetscScalar u[], const PetscScalar u_t[], const PetscScalar u_x[],
                  const PetscInt aOff[], const PetscInt aOff_x[], const PetscScalar a[], const PetscScalar a_t[], const PetscScalar a_x[],
                  PetscReal t, const PetscReal x[], PetscInt numConstants, const PetscScalar constants[], PetscScalar f0[])
 {
   PetscScalar mag;
-
-#if 0
+  double v[20];
   AppCtx *self = &petscApp;
-  self->fn_v = std::shared_ptr<IO_double> input = std::make_shared<IO_double>(dim, FunctionIO::Vector);
-  self->fn_p = std::shared_ptr<IO_double> input = std::make_shared<IO_double>(dim, FunctionIO::Scalar );
-  self->fn_a0
-  self->fn_a1
-  v0 = FunctionIO(u[0])
-  self->fn_v->value(0) = u[0];
-  self->fn_v->value(1) = u[1];
+  int f_i;
 
-  output->evaluate(input)
-#endif
+  for( f_i = 0; f_i < Nf; f_i++ ) {
+    UpdateFunction( u+uOff[f_i], self->solConstants[f_i] );
+  }
+  /* create input */
+  memcpy(self->input->dataRaw(), x, self->input->_dataSize );
+  const FunctionIO* output = debug_dynamic_cast<const FunctionIO*>(self->fn_viscosity(self->input.get()));
 
   /* the newton formulations means this is a negative of the f0 */
-      /*
-  mag = sqrt(x[0]*x[0] + x[1]*x[1] + x[2]*x[2]);
-  f0[0] = a[0] * x[0]/mag;
-  f0[1] = a[0] * x[1]/mag;
-  f0[2] = a[0] * x[2]/mag;
-  */
   f0[0] = a[0];
   f0[1] = a[1];
   f0[2] = a[2];
@@ -419,6 +410,7 @@ PetscErrorCode ProcessOptions(MPI_Comm comm, AppCtx *user) {
   ierr = PetscOptionsSetValue(NULL, "-u_petscspace_order", "1");CHKERRQ(ierr); // default linear trail function approximation
   ierr = PetscOptionsSetValue(NULL, "-p_petscspace_order", "0");CHKERRQ(ierr); // default linear trail function approximation
   ierr = PetscOptionsSetValue(NULL, "-aux_0_petscspace_order", "1");CHKERRQ(ierr); // default linear trail function approximation
+  ierr = PetscOptionsSetValue(NULL, "-aux_1_petscspace_order", "1");CHKERRQ(ierr); // default linear trail function approximation
   ierr = PetscOptionsIntArray("-elRes", "element count (default: 5,5,5)", "n/a", user->elements, &dim, NULL);CHKERRQ(ierr);
   // ierr = PetscOptionsSetValue(NULL, "-dm_plex_separate_marker", "");
  // ierr = PetscOptionsInsertFile(comm, NULL, "/home/julian/models/snippits/petsc_uw2/my.opts", PETSC_TRUE );
@@ -438,58 +430,8 @@ PetscErrorCode ProcessOptions(MPI_Comm comm, AppCtx *user) {
   ierr = PetscOptionsEnd();
   return(0);
 }
-#if 0
-static PetscErrorCode CreateMesh(MPI_Comm comm, AppCtx *user, DM *dm)
-{
-  const char    *filename = user->filename;
-  size_t         len;
-  PetscErrorCode ierr;
 
-  PetscFunctionBeginUser;
-  ierr = PetscStrlen(filename, &len);CHKERRQ(ierr);
-  if (!len) SETERRQ(comm, PETSC_ERR_ARG_WRONG, "Must supply a mesh filename");
-  ierr = DMPlexCreateFromFile(comm, filename, PETSC_TRUE, dm);CHKERRQ(ierr);
-  /* Distribute mesh over processes */
-  {
-    PetscPartitioner part;
-    DM               pdm = NULL;
-
-    ierr = DMPlexGetPartitioner(*dm, &part);CHKERRQ(ierr);
-    ierr = PetscPartitionerSetFromOptions(part);CHKERRQ(ierr);
-    ierr = DMPlexDistribute(*dm, 0, NULL, &pdm);CHKERRQ(ierr);
-    if (pdm) {
-      ierr = DMDestroy(dm);CHKERRQ(ierr);
-      *dm  = pdm;
-    }
-  }
-  /* Enable conversion to p4est */
-  {
-    char      convType[256];
-    PetscBool flg;
-
-    ierr = PetscOptionsBegin(comm, "", "Mesh conversion options", "DMPLEX");CHKERRQ(ierr);
-    ierr = PetscOptionsFList("-dm_plex_convert_type","Convert DMPlex to another format","ex1",DMList,DMPLEX,convType,256,&flg);CHKERRQ(ierr);
-    ierr = PetscOptionsEnd();
-    if (flg) {
-      DM dmConv;
-
-      ierr = DMConvert(*dm,convType,&dmConv);CHKERRQ(ierr);
-      if (dmConv) {
-        ierr = DMDestroy(dm);CHKERRQ(ierr);
-        *dm  = dmConv;
-      }
-    }
-  }
-  ierr = DMLocalizeCoordinates(*dm);CHKERRQ(ierr); /* needed for periodic */
-  ierr = DMSetFromOptions(*dm);CHKERRQ(ierr);
-  /* [O] The mesh is output to HDF5 using options */
-  ierr = DMViewFromOptions(*dm, NULL, "-dm_view");CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#endif
-
-AppCtx* StokesModel_Setup(int argc) {
+AppCtx* StokesModel_Setup(char *argv) {
 
     PetscFunctionBeginUser;
     AppCtx *user = &petscApp;
@@ -507,6 +449,7 @@ AppCtx* StokesModel_Setup(int argc) {
     //PetscInitialize( &argc, &argv, (char*)0, NULL );
     ProcessOptions(comm, user);
 
+    user->input = std::make_shared<IO_double>(dim, FunctionIO::Vector);
     ierr = SNESCreate(comm, snes);//CHKERRQ(ierr);
     
     const char    *filename = user->filename;
@@ -526,6 +469,7 @@ AppCtx* StokesModel_Setup(int argc) {
                             use_simplices, // use_simplices, if not then tesor_cells
                             user->elements, NULL, NULL, // sizes, and the min and max coords  
                             NULL, PETSC_TRUE,dm);
+        //DMPlexCreateFromFile(PETSC_COMM_WORLD, "sol.h5", PETSC_TRUE, dm);
     }
     /* Distribute mesh over processes */
     {
