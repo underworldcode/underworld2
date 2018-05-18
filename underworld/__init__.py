@@ -41,7 +41,7 @@ _sys.path.insert(0, _os.path.realpath(_os.path.dirname("..")))
 try:
     # Workaround for matplotlib import issues,
     # must be imported before underworld or segfaults
-    import matplotlib.pyplot as pyplot
+    import matplotlib.pyplot as _pyplot
 except:
     pass
 

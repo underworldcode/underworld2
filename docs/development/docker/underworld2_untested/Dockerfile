@@ -52,7 +52,7 @@ RUN cd underworld2/libUnderworld && \
 
 
 # kiwisolver hack, and pipe down numpy warnings
-RUN sed -i "1i import kiwisolver;import warnings;warnings.filterwarnings(\"ignore\")" /opt/underworld2/underworld/__init__.py
+RUN sed -i "1i import kiwisolver as _ks;import warnings as _warnings;_warnings.filterwarnings(\"ignore\")" /opt/underworld2/underworld/__init__.py
 
 # expose notebook port
 EXPOSE 8888
