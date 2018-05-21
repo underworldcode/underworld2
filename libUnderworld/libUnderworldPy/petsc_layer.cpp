@@ -35,7 +35,16 @@ void StokesModel_SetViscosityFn(AppCtx* self,Fn::Function* fn) {
 void StokesModel_SetForceTerm(AppCtx* self,Fn::Function* fn) {
   PetscInt dim;
   DM       *dm = &(self->dm);
+  PetscDS  prob;
+  PetscFE  fe;
+  PetscSpace sp;
 
+  // just to get the dof count of given equation unknown
+  DMGetDS(*dm, &prob);
+  PetscDSGetDiscretization(prob, 0, (PetscObject*)&fe);
+  PetscFEGetBasisSpace(fe, &sp);
+  PetscSpaceGetNumComponents(sp, &dim);
+  
   /* create input */
   std::shared_ptr<IO_double> input = std::make_shared<IO_double>(3, FunctionIO::Vector);
 
@@ -44,7 +53,6 @@ void StokesModel_SetForceTerm(AppCtx* self,Fn::Function* fn) {
   const FunctionIO* io = dynamic_cast<const FunctionIO*>(func(input.get()));
 
   /* error check */
-  DMGetDimension(*dm, &dim);
   if( !io )
     throw std::invalid_argument("Provided function does not appear to return a valid result.");
   if( io->size() != dim ) {
@@ -97,40 +105,32 @@ PetscErrorCode force_vector(PetscInt dim, PetscReal time, const PetscReal coords
 {
 
   AppCtx *self = &petscApp;
-  
+  PetscInt size,i; 
   /* create input */
   std::shared_ptr<IO_double> input = std::make_shared<IO_double>(3, FunctionIO::Vector);
   
   memcpy(input->data(), coords, 3*sizeof(double));
   
   const FunctionIO* output = debug_dynamic_cast<const FunctionIO*>(self->fn_forceterm(input.get()));
-  // f0[0] = 0.;
-  u[0] = output->at<double>(0);
-  u[1] = output->at<double>(1);
-  u[2] = output->at<double>(2);
+  size = output->size(); //retrieve output size
+  for( i = 0; i < size; i++ ) {
+    u[i] = output->at<double>(i);
+  }
 
   return 0;
 }
-#if 0
-void UpdateFunctions(dim, Nf, NfAux, u, a) {
-    /* The idea here is to create a new input of the constant values,
-     * that way the constants are up-to-date. Then call the functions for the rhs.
-     * Note we still need the x[] (global coordinates to be used)
-     */
- auto io_v = std::make_shared<IO_double>(dim, FunctionIO::Vector);
- auto io_p = std::make_shared<IO_double>(1, FunctionIO::Scalar);
- auto io_a0 = std::make_shared<IO_double>(a0_dim, FunctionIO::Vector);
- auto io_a1 = std::make_shared<IO_double>(a1_dim, FunctionIO::Vector);
-}
-#endif
 
 void UpdateFunction( const double* vals, Fn::Constant* myconst ) {
     FunctionIO* funcIOptr = myconst->getFuncIO();
     memcpy(funcIOptr->dataRaw(), vals, funcIOptr->_dataSize*funcIOptr->size() );
 } 
 
-void someSetter( AppCtx* self, int id, Fn::Function* fn ) {
-    self->solConstants[id] = (Fn::Constant*)fn;
+void prob_fnSetter( AppCtx* self, int id, Fn::Function* fn ) {
+    self->prob_fn[id] = (Fn::Constant*)fn;
+}
+
+void aux_fnSetter( AppCtx* self, int id, Fn::Function* fn ) {
+    self->aux_fn[id] = (Fn::Constant*)fn;
 }
 
 void f0_u(PetscInt dim, PetscInt Nf, PetscInt NfAux,
@@ -144,7 +144,7 @@ void f0_u(PetscInt dim, PetscInt Nf, PetscInt NfAux,
   int f_i;
 
   for( f_i = 0; f_i < Nf; f_i++ ) {
-    UpdateFunction( u+uOff[f_i], self->solConstants[f_i] );
+    UpdateFunction( u+uOff[f_i], self->prob_fn[f_i] );
   }
   /* create input */
   memcpy(self->input->dataRaw(), x, self->input->_dataSize );
@@ -235,12 +235,37 @@ void j3_uu(PetscInt dim, PetscInt Nf, PetscInt NfAux,
   }
 }
 
+static void stokes_momentum_J(PetscInt dim, PetscInt Nf, PetscInt NfAux,
+                                     const PetscInt uOff[], const PetscInt uOff_x[], const PetscScalar u[], const PetscScalar u_t[], const PetscScalar u_x[],
+                                     const PetscInt aOff[], const PetscInt aOff_x[], const PetscScalar a[], const PetscScalar a_t[], const PetscScalar a_x[],
+                                     PetscReal t, PetscReal u_tShift, const PetscReal x[], PetscInt numConstants, const PetscScalar constants[], PetscScalar g3[])
+{
+  const PetscReal nu  = 1.;//PetscExpReal(2.0*PetscRealPart(a[2])*x[0]);
+  PetscInt        cI, d;
+
+  for (cI = 0; cI < dim; ++cI) {
+    for (d = 0; d < dim; ++d) {
+      g3[((cI*dim+cI)*dim+d)*dim+d] += nu; /*g3[cI, cI, d, d]*/
+      g3[((cI*dim+d)*dim+d)*dim+cI] += nu; /*g3[cI, d, d, cI]*/
+    }
+  }
+}
+
+/* 1/nu < q, I q >, Jp_{pp} */
+static void massMatrix_invEta(PetscInt dim, PetscInt Nf, PetscInt NfAux,
+                                 const PetscInt uOff[], const PetscInt uOff_x[], const PetscScalar u[], const PetscScalar u_t[], const PetscScalar u_x[],
+                                 const PetscInt aOff[], const PetscInt aOff_x[], const PetscScalar a[], const PetscScalar a_t[], const PetscScalar a_x[],
+                                 PetscReal t, PetscReal u_tShift, const PetscReal x[], PetscInt numConstants, const PetscScalar constants[], PetscScalar g0[])
+{
+  const PetscReal nu = 1.;//PetscExpReal(2.0*PetscRealPart(a[2])*x[0]);
+  g0[0] = 1.0/nu;
+}
+
 PetscErrorCode SetupProblem(DM dm, PetscDS prob, AppCtx *user)
 {
-  PetscInt                ids[2] = {1, 2};
-  //PetscInt                id = 1;  // for DMLabel 'marker', '1' represents vertices + midpoints along the boundary
+  PetscInt                ids[2] = {1, 2}; // required for the cubed sphere reader matt implemented
   PetscErrorCode          ierr;
-  //const PetscInt          comp[3]   = {0,1,2}; /* scalar */
+  const PetscInt          comp[3]   = {0,1,2}; /* scalar */
 
   PetscFunctionBeginUser;
   ierr = PetscDSSetResidual(prob, 0, f0_u, f1_u);CHKERRQ(ierr);
@@ -249,41 +274,58 @@ PetscErrorCode SetupProblem(DM dm, PetscDS prob, AppCtx *user)
   ierr = PetscDSSetJacobian(prob, 0, 0, NULL,  NULL,  NULL, j3_uu);CHKERRQ(ierr);
   ierr = PetscDSSetJacobian(prob, 0, 1, NULL,  NULL, j2_up,  NULL);CHKERRQ(ierr);
   ierr = PetscDSSetJacobian(prob, 1, 0, NULL, j1_pu,  NULL,  NULL);CHKERRQ(ierr);
+
+#if 0
+  ierr = PetscDSSetJacobianPreconditioner(prob, 0, 0, NULL, NULL, NULL, stokes_momentum_J);CHKERRQ(ierr);
+  ierr = PetscDSSetJacobianPreconditioner(prob, 0, 1, NULL, NULL, j2_up, NULL);CHKERRQ(ierr);
+  ierr = PetscDSSetJacobianPreconditioner(prob, 1, 0, NULL, j1_pu, NULL, NULL);CHKERRQ(ierr);
+  ierr = PetscDSSetJacobianPreconditioner(prob, 1, 1, massMatrix_invEta, NULL, NULL, NULL);CHKERRQ(ierr);
+#endif
   
-  
-  /* simple box
+  // no-slip dirichlet bc
   ierr = PetscDSAddBoundary(prob, DM_BC_ESSENTIAL, 
-    "wall", "marker", 0, 0, NULL, (void (*)(void)) zero_vector, 1, &id, user);CHKERRQ(ierr);
-  */
-  ierr = PetscDSAddBoundary(prob, DM_BC_ESSENTIAL, "wall", "marker", 0, 0, 0, (void (*)(void)) zero_vector, 2, ids, user);CHKERRQ(ierr);
-    ierr = PetscDSAddBoundary(prob, DM_BC_ESSENTIAL, "wall", "marker", 1, 0, 0, (void (*)(void)) zero_scalar, 2, ids, user);CHKERRQ(ierr);
-  // ierr = PetscDSAddBoundary(prob, DM_BC_ESSENTIAL, "mrJones", "wallTop", 
-  //                           0, 0, NULL, /* field to constain and number of constained components */
-  //                           (void (*)(void)) zero_scalar, 1, &ids[0], user);CHKERRQ(ierr);
-  //                           
-  // ierr = PetscDSAddBoundary(prob, DM_BC_ESSENTIAL, "mrsSkywalker", "wallBottom", 
-  //                           0, 0, NULL, /* field to constain and number of constained components */
-  //                           (void (*)(void)) one_scalar, 1, &ids[0], user);CHKERRQ(ierr);
+          "wall", "marker", 0, 0, NULL, (void (*)(void)) zero_vector, 2, ids, user);CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }
 
+
 PetscErrorCode SetupAux(DM dm, DM dmAux, AppCtx *user)
 {
-  PetscErrorCode (*matFuncs[2])(PetscInt dim, PetscReal time, const PetscReal x[], PetscInt Nc, PetscScalar u[], void *ctx) = {force_vector, one_scalar};
-  Vec            auxVec;
+  PetscErrorCode (*matFuncs[3])(PetscInt dim, PetscReal time, const PetscReal x[], PetscInt Nc, PetscScalar u[], void *ctx) = {force_vector, one_scalar, zero_vector};
+  Vec            auxVec, gVec;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = DMCreateGlobalVector(dmAux, &auxVec);CHKERRQ(ierr);
-  ierr = DMProjectFunction(dmAux, 0.0, matFuncs, NULL, INSERT_ALL_VALUES, auxVec);CHKERRQ(ierr);
+  /* Get the local vector, global doesn't work in parallel */
+  ierr = DMCreateLocalVector(dmAux, &auxVec);CHKERRQ(ierr);
+  ierr = DMProjectFunctionLocal(dmAux, 0.0, matFuncs, NULL, INSERT_ALL_VALUES, auxVec);CHKERRQ(ierr);
 
   ierr = DMSetFromOptions(dmAux);CHKERRQ(ierr);
   ierr = DMViewFromOptions(dmAux, NULL, "-dmAux_view");CHKERRQ(ierr);
-  ierr = VecViewFromOptions(auxVec, NULL, "-aux_vec_view");CHKERRQ(ierr);
+  
+  ierr = DMCreateGlobalVector(dmAux, &gVec);CHKERRQ(ierr);
+  ierr = PetscObjectSetName((PetscObject) gVec, "auxiliary");CHKERRQ(ierr);
+  ierr = DMLocalToGlobalBegin( dmAux, auxVec, INSERT_VALUES, gVec );
+  ierr = DMLocalToGlobalEnd( dmAux, auxVec, INSERT_VALUES, gVec );
+#if 0
+  /* load from lm hdf5 file */
+  {
+      PetscViewer viewer;
+      PetscViewerHDF5Open(PETSC_COMM_WORLD, "aux.h5", FILE_MODE_READ, &viewer);
+      PetscViewerHDF5PushGroup(viewer, "/fields");
+      VecLoad(gVec, viewer);
+//      ierr = PetscViewerHDF5PopGroup(viewer);CHKERRQ(ierr);
+      ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+  }
+#endif
+
+  ierr = VecViewFromOptions(gVec, NULL, "-aux_vec_view"); CHKERRQ(ierr);
+
   // increases reference count
   ierr = PetscObjectCompose((PetscObject) dm, "A", (PetscObject) auxVec);CHKERRQ(ierr);
   ierr = VecDestroy(&auxVec);CHKERRQ(ierr);
+  ierr = VecDestroy(&gVec);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -298,12 +340,12 @@ PetscErrorCode SetupDiscretization(DM dm, AppCtx *user)
   
   PetscFE *feAux  = NULL;
   PetscDS probAux = NULL;
-  PetscInt numAux = 2, f;
+  PetscInt numAux = 3, f;
 
   PetscFunctionBeginUser;
   ierr = DMGetDimension(dm, &dim);CHKERRQ(ierr);
-  const char auxNames[][2056] = {"force", "shutup_moresi"};
-  const PetscInt auxSizes[] = {dim, 1};
+  const char auxNames[][2056] = {"force", "shutup_moresi", "lm_velocity"};
+  const PetscInt auxSizes[] = {dim, 1, dim};
   /* Create finite element */
   ierr = PetscFECreateDefault(dm, dim, dim, PETSC_FALSE, "u_", PETSC_DEFAULT, &fe[0]);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject) fe[0], "velocity");CHKERRQ(ierr);
@@ -319,18 +361,20 @@ PetscErrorCode SetupDiscretization(DM dm, AppCtx *user)
   ierr = PetscDSSetDiscretization(prob, 1, (PetscObject) fe[1]);CHKERRQ(ierr);
   ierr = SetupProblem(dm, prob, user);CHKERRQ(ierr);
   
-  // /* create auxiliary field dynamically */
-  PetscMalloc1( numAux, &feAux );
-  // create another DS for aux
-  PetscDSCreate(PetscObjectComm((PetscObject)dm), &probAux);
-  for(f = 0; f < numAux; f++ ) {
-    char prefix[PETSC_MAX_PATH_LEN];
-  
-    ierr = PetscSNPrintf(prefix, PETSC_MAX_PATH_LEN, "aux_%d_", f);CHKERRQ(ierr);
-    ierr = PetscFECreateDefault( dm, dim, auxSizes[f], PETSC_FALSE, prefix, PETSC_DEFAULT, &feAux[f]);CHKERRQ(ierr);
-    ierr = PetscObjectSetName((PetscObject) feAux[f], auxNames[f]);CHKERRQ(ierr);
-    ierr = PetscFESetQuadrature(feAux[f], q);CHKERRQ(ierr);
-    ierr = PetscDSSetDiscretization(probAux, f, (PetscObject) feAux[f]);CHKERRQ(ierr);
+  /* create auxiliary field dynamically */
+  if (numAux > 0) {
+      PetscMalloc1( numAux, &feAux );
+      // create another DS for aux
+      PetscDSCreate(PetscObjectComm((PetscObject)dm), &probAux);
+      for(f = 0; f < numAux; f++ ) {
+        char prefix[PETSC_MAX_PATH_LEN];
+      
+        ierr = PetscSNPrintf(prefix, PETSC_MAX_PATH_LEN, "aux_%d_", f);CHKERRQ(ierr);
+        ierr = PetscFECreateDefault( dm, dim, auxSizes[f], PETSC_FALSE, prefix, PETSC_DEFAULT, &feAux[f]);CHKERRQ(ierr);
+        ierr = PetscObjectSetName((PetscObject) feAux[f], auxNames[f]);CHKERRQ(ierr);
+        ierr = PetscFESetQuadrature(feAux[f], q);CHKERRQ(ierr);
+        ierr = PetscDSSetDiscretization(probAux, f, (PetscObject) feAux[f]);CHKERRQ(ierr);
+      }
   }
     
   while (cdm) {
@@ -358,7 +402,7 @@ PetscErrorCode SetupDiscretization(DM dm, AppCtx *user)
   for( f=0; f<numAux; f++ ) {
     ierr = PetscFEDestroy(&feAux[f]);CHKERRQ(ierr);
   }
-  ierr = PetscDSDestroy(&probAux);CHKERRQ(ierr);
+  if( probAux ) ierr = PetscDSDestroy(&probAux);CHKERRQ(ierr);
   
   {
     PetscObject  pressure;
@@ -393,7 +437,7 @@ PetscErrorCode CreatePressureNullSpace(DM dm, AppCtx *user, Vec *v, MatNullSpace
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode ProcessOptions(MPI_Comm comm, AppCtx *user) {
+PetscErrorCode ProcessOptionsStokes(MPI_Comm comm, AppCtx *user) {
   PetscInt dim;
   PetscBool flg;
   PetscErrorCode ierr;
@@ -406,11 +450,13 @@ PetscErrorCode ProcessOptions(MPI_Comm comm, AppCtx *user) {
   
   ierr = PetscOptionsBegin(comm, "", "Julian 3D Stokes test", PETSC_NULL);CHKERRQ(ierr); // must call before options
   user->filename[0] = '\0';
-  ierr = PetscOptionsString("-f", "Mesh filename to read", "stokesmodel", user->filename, user->filename, sizeof(user->filename), &flg);CHKERRQ(ierr);
+  // can't use '-f' for user->filename because jupyter steals it (!!!) 
+  ierr = PetscOptionsString("-mesh_file", "Mesh filename to read", "stokesmodel", user->filename, user->filename, sizeof(user->filename), &flg);CHKERRQ(ierr);
   ierr = PetscOptionsSetValue(NULL, "-u_petscspace_order", "1");CHKERRQ(ierr); // default linear trail function approximation
   ierr = PetscOptionsSetValue(NULL, "-p_petscspace_order", "0");CHKERRQ(ierr); // default linear trail function approximation
   ierr = PetscOptionsSetValue(NULL, "-aux_0_petscspace_order", "1");CHKERRQ(ierr); // default linear trail function approximation
   ierr = PetscOptionsSetValue(NULL, "-aux_1_petscspace_order", "1");CHKERRQ(ierr); // default linear trail function approximation
+  ierr = PetscOptionsSetValue(NULL, "-aux_2_petscspace_order", "1");CHKERRQ(ierr); // default linear trail function approximation
   ierr = PetscOptionsIntArray("-elRes", "element count (default: 5,5,5)", "n/a", user->elements, &dim, NULL);CHKERRQ(ierr);
   // ierr = PetscOptionsSetValue(NULL, "-dm_plex_separate_marker", "");
  // ierr = PetscOptionsInsertFile(comm, NULL, "/home/julian/models/snippits/petsc_uw2/my.opts", PETSC_TRUE );
@@ -431,45 +477,295 @@ PetscErrorCode ProcessOptions(MPI_Comm comm, AppCtx *user) {
   return(0);
 }
 
+static void t1_u(PetscInt dim, PetscInt Nf, PetscInt NfAux,
+                 const PetscInt uOff[], const PetscInt uOff_x[], const PetscScalar u[], const PetscScalar u_t[], const PetscScalar u_x[],
+                 const PetscInt aOff[], const PetscInt aOff_x[], const PetscScalar a[], const PetscScalar a_t[], const PetscScalar a_x[],
+                 PetscReal t, const PetscReal x[], PetscInt numConstants, const PetscScalar constants[], PetscScalar f0[])
+{
+  PetscInt d_i;
+  for( d_i=0; d_i<dim; ++d_i ) f0[d_i] = u_x[d_i];
+}
+
+static void t0_u(PetscInt dim, PetscInt Nf, PetscInt NfAux,
+                 const PetscInt uOff[], const PetscInt uOff_x[], const PetscScalar u[], const PetscScalar u_t[], const PetscScalar u_x[],
+                 const PetscInt aOff[], const PetscInt aOff_x[], const PetscScalar a[], const PetscScalar a_t[], const PetscScalar a_x[],
+                 PetscReal t, const PetscReal x[], PetscInt numConstants, const PetscScalar constants[], PetscScalar f0[])
+{
+  PetscScalar mag;
+  double v[20];
+  AppCtx *self = &petscApp;
+  int f_i;
+
+#if 0
+  for( f_i = 0; f_i < Nf; f_i++ ) {
+    UpdateFunction( u+uOff[f_i], self->prob_fn[f_i] );
+  }
+  /* create input */
+  memcpy(self->input->dataRaw(), x, self->input->_dataSize );
+  const FunctionIO* output = debug_dynamic_cast<const FunctionIO*>(self->fn_viscosity(self->input.get()));
+#endif
+
+  f0[0] = 0.;
+}
+
+
+PetscErrorCode PoissonSetupProblem(DM dm, PetscDS prob, AppCtx *user)
+{
+  PetscInt                ids[2] = {1, 2}; // required for the cubed sphere reader matt implemented
+  PetscErrorCode          ierr;
+  const PetscInt          comp[3]   = {0,1,2}; /* scalar */
+
+  PetscFunctionBeginUser;
+  ierr = PetscDSSetResidual(prob, 0, t0_u, t1_u);CHKERRQ(ierr);
+  ierr = PetscDSSetJacobian(prob, 0, 0, NULL,  NULL,  NULL, j1_pu);CHKERRQ(ierr);
+
+  ierr = PetscDSAddBoundary(prob, DM_BC_ESSENTIAL, "mrJones", "marker", 
+                             0, 0, NULL, /* field to constain and number of constained components */
+                             (void (*)(void)) zero_scalar, 1, &ids[1], user);CHKERRQ(ierr);
+                             
+  ierr = PetscDSAddBoundary(prob, DM_BC_ESSENTIAL, "mrsSkywalker", "marker", 
+                             0, 0, NULL, /* field to constain and number of constained components */
+                             (void (*)(void)) one_scalar, 1, &ids[0], user);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+// Can make a single SetupAux which dynamically takes the *user ptr and applies the coorect functions
+PetscErrorCode PoissonSetupAux(DM dm, DM dmAux, AppCtx *user)
+{
+  PetscErrorCode (*matFuncs[1])(PetscInt dim, PetscReal time, const PetscReal x[], PetscInt Nc, PetscScalar u[], void *ctx) = {force_vector};
+  Vec            auxVec, gVec;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  /* Get the local vector, global doesn't work in parallel */
+  ierr = DMCreateLocalVector(dmAux, &auxVec);CHKERRQ(ierr);
+  ierr = DMProjectFunctionLocal(dmAux, 0.0, matFuncs, NULL, INSERT_ALL_VALUES, auxVec);CHKERRQ(ierr);
+
+  ierr = DMSetFromOptions(dmAux);CHKERRQ(ierr);
+  ierr = DMViewFromOptions(dmAux, NULL, "-dmAux_view");CHKERRQ(ierr);
+  
+  ierr = DMCreateGlobalVector(dmAux, &gVec);CHKERRQ(ierr);
+  ierr = PetscObjectSetName((PetscObject) gVec, "auxiliary");CHKERRQ(ierr);
+  ierr = DMLocalToGlobalBegin( dmAux, auxVec, INSERT_VALUES, gVec );
+  ierr = DMLocalToGlobalEnd( dmAux, auxVec, INSERT_VALUES, gVec );
+#if 0
+  /* load from lm hdf5 file */
+  {
+      PetscViewer viewer;
+      PetscViewerHDF5Open(PETSC_COMM_WORLD, "aux.h5", FILE_MODE_READ, &viewer);
+      PetscViewerHDF5PushGroup(viewer, "/fields");
+      VecLoad(gVec, viewer);
+//      ierr = PetscViewerHDF5PopGroup(viewer);CHKERRQ(ierr);
+      ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+  }
+#endif
+
+  ierr = VecViewFromOptions(gVec, NULL, "-aux_vec_view"); CHKERRQ(ierr);
+
+  // increases reference count
+  ierr = PetscObjectCompose((PetscObject) dm, "A", (PetscObject) auxVec);CHKERRQ(ierr);
+  ierr = VecDestroy(&auxVec);CHKERRQ(ierr);
+  ierr = VecDestroy(&gVec);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode PoissonProcessOptions(MPI_Comm comm, AppCtx *user) {
+  PetscInt dim;
+  PetscBool flg;
+  PetscErrorCode ierr;
+  
+  // set default elements
+  user->elements[0] = 5;
+  user->elements[1] = 5;
+  user->elements[2] = 5; 
+  dim=3;
+  
+  ierr = PetscOptionsBegin(comm, "", "Julian 3D Poisson test", PETSC_NULL);CHKERRQ(ierr); // must call before options
+  user->filename[0] = '\0';
+  // can't use '-f' for user->filename because jupyter steals it (!!!) 
+  ierr = PetscOptionsString("-mesh_file", "Mesh filename to read", "stokesmodel", user->filename, user->filename, sizeof(user->filename), &flg);CHKERRQ(ierr);
+  //ierr = PetscOptionsSetValue(NULL, "-t_petscspace_order", "1");CHKERRQ(ierr); // default linear trail function approximation
+  //ierr = PetscOptionsSetValue(NULL, "-aux_0_petscspace_order", "1");CHKERRQ(ierr); // default linear trail function approximation
+  //ierr = PetscOptionsIntArray("-elRes", "element count (default: 5,5,5)", "n/a", user->elements, &dim, NULL);CHKERRQ(ierr);
+  // ierr = PetscOptionsSetValue(NULL, "-dm_plex_separate_marker", "");
+ // ierr = PetscOptionsInsertFile(comm, NULL, "/home/julian/models/snippits/petsc_uw2/my.opts", PETSC_TRUE );
+  //ierr = PetscOptionsSetValue(NULL, "-pc_type", "amg"); CHKERRQ(ierr);
+  /*
+  ierr = PetscOptionsHasName(NULL,NULL,"-dm_view",&flg);
+  if (!flg) { ierr = PetscOptionsSetValue(NULL, "-dm_view", "hdf5:sol.h5");CHKERRQ(ierr); }
+  ierr = PetscOptionsSetValue(NULL, "-sol_vec_view", "hdf5:sol.h5::append");CHKERRQ(ierr);
+  ierr = PetscOptionsSetValue(NULL, "-dmAux_view", "hdf5:aux.h5");CHKERRQ(ierr);
+  ierr = PetscOptionsSetValue(NULL, "-aux_vec_view", "hdf5:aux.h5::append");CHKERRQ(ierr);
+  ierr = PetscOptionsSetValue(NULL, "-snes_monitor", "");CHKERRQ(ierr);
+  */
+  ierr = PetscOptionsEnd();
+  return(0);
+}
+
+PetscErrorCode PoissonSetupDiscretization(DM dm, AppCtx *user)
+{
+  DM              cdm = dm;
+  PetscFE         fe;
+  PetscQuadrature q;
+  PetscDS         prob;
+  PetscInt        dim;
+  PetscErrorCode  ierr;
+
+  PetscFE *feAux  = NULL;
+  PetscDS probAux = NULL;
+  PetscInt numAux = 1, f;
+  const char auxNames[][2056] = {"heating"};
+  const PetscInt auxSizes[] = {1};
+
+  PetscFunctionBeginUser;
+  ierr = DMGetDimension(dm, &dim);CHKERRQ(ierr);
+  /* Create finite element */
+  ierr = PetscFECreateDefault(dm, dim, 1, PETSC_FALSE, "temperature_", PETSC_DEFAULT, &fe);CHKERRQ(ierr);
+  ierr = PetscObjectSetName((PetscObject) fe, "temperature");CHKERRQ(ierr);
+  ierr = PetscFEGetQuadrature(fe, &q);CHKERRQ(ierr);
+  /* Set discretization and boundary conditions for each mesh */
+  ierr = DMGetDS(dm, &prob);CHKERRQ(ierr);
+  ierr = PetscDSSetDiscretization(prob, 0, (PetscObject) fe);CHKERRQ(ierr);
+  ierr = PoissonSetupProblem(dm, prob, user);CHKERRQ(ierr);
+
+  /* create auxiliary field dynamically */
+  if (numAux > 0) {
+      PetscMalloc1( numAux, &feAux );
+      // create another DS for aux
+      PetscDSCreate(PetscObjectComm((PetscObject)dm), &probAux);
+      for(f = 0; f < numAux; f++ ) {
+        char prefix[PETSC_MAX_PATH_LEN];
+      
+        ierr = PetscSNPrintf(prefix, PETSC_MAX_PATH_LEN, "aux_%d_", f);CHKERRQ(ierr);
+        ierr = PetscFECreateDefault( dm, dim, auxSizes[f], PETSC_FALSE, prefix, PETSC_DEFAULT, &feAux[f]);CHKERRQ(ierr);
+        ierr = PetscObjectSetName((PetscObject) feAux[f], auxNames[f]);CHKERRQ(ierr);
+        ierr = PetscFESetQuadrature(feAux[f], q);CHKERRQ(ierr);
+        ierr = PetscDSSetDiscretization(probAux, f, (PetscObject) feAux[f]);CHKERRQ(ierr);
+      }
+  }
+
+  while (cdm) {
+    DM coordDM;
+
+    ierr = DMSetDS(cdm, prob);CHKERRQ(ierr);
+    ierr = DMGetCoordinateDM(cdm,&coordDM);CHKERRQ(ierr);
+
+    if ( feAux ) {
+      DM dmAux;
+      
+      // clone topology
+      ierr = DMClone(cdm, &dmAux);CHKERRQ(ierr); 
+      // copy coords
+      ierr = DMSetCoordinateDM(dmAux, coordDM);CHKERRQ(ierr);
+      ierr = DMSetDS(dmAux, probAux);CHKERRQ(ierr);
+      ierr = PetscObjectCompose((PetscObject) cdm, "dmAux", (PetscObject) dmAux);CHKERRQ(ierr);
+      // function that defines aux field, and associates it with the dm
+      ierr = DMDestroy(&dmAux);
+    }
+    ierr = DMGetCoarseDM(cdm, &cdm);CHKERRQ(ierr);
+  }
+
+  ierr = PetscFEDestroy(&fe);CHKERRQ(ierr);
+  for( f=0; f<numAux; f++ ) {
+    ierr = PetscFEDestroy(&feAux[f]);CHKERRQ(ierr);
+  }
+  if( probAux ) ierr = PetscDSDestroy(&probAux);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+AppCtx* PoissonModel_Setup(char* rubbish) {
+    PetscFunctionBeginUser;
+    AppCtx *user = &petscApp;
+    DM *dm       = &(user->dm);
+    SNES *snes   = &(user->snes);
+    Vec u, nullVec;
+    MatNullSpace nullSpace;
+    PetscErrorCode ierr;    
+    MPI_Comm comm = PETSC_COMM_WORLD;
+    PetscInt dim = 3;
+    PetscBool use_simplices = PETSC_FALSE;
+    size_t len;
+    const char    *filename = user->filename;
+
+    // represent the FunctionIO for a coordinate
+    user->input = std::make_shared<IO_double>(dim, FunctionIO::Vector);
+
+    PoissonProcessOptions(comm, user);
+    PetscStrlen(filename, &len);
+    if(len > 0) {
+       DMPlexCreateFromFile(comm, filename, PETSC_FALSE, dm);
+    } else if ( rubbish != NULL ) {
+       DMPlexCreateFromFile(comm, rubbish, PETSC_FALSE, dm);
+    } else {
+       DMPlexCreateBoxMesh(comm, dim, 
+                            use_simplices, // use_simplices, if FALSE then tesor_cells
+                            user->elements, NULL, NULL, // sizes, and the min and max coords  
+                            NULL, PETSC_TRUE,dm); 
+    }
+
+    /* Distribute mesh over processes */
+    {
+      PetscPartitioner part;
+      DM               pdm = NULL;
+
+      ierr = DMPlexGetPartitioner(*dm, &part);//CHKERRQ(ierr);
+      ierr = PetscPartitionerSetFromOptions(part);//CHKERRQ(ierr);
+      ierr = DMPlexDistribute(*dm, 0, NULL, &pdm);//CHKERRQ(ierr);
+      if (pdm) {
+        ierr = DMDestroy(dm);//CHKERRQ(ierr);
+        *dm  = pdm;
+      }
+    }
+    ierr = DMLocalizeCoordinates(*dm);//CHKERRQ(ierr); /* needed for periodic only */
+    ierr = DMSetFromOptions(*dm);//CHKERRQ(ierr);
+    ierr = DMViewFromOptions(*dm, NULL, "-dm_view");//CHKERRQ(ierr);
+    
+    PoissonSetupDiscretization(*dm, NULL);
+    /* Calculates the index of the 'default' section, should improve performance */
+    ierr = DMPlexCreateClosureIndex(*dm, NULL); // REQUIRED for hdf5 output after fields have been set
+    ierr = DMSetApplicationContext(*dm, user);//CHKERRQ(ierr);
+
+    SNESCreate(comm, snes);
+    ierr = SNESSetDM(*snes, *dm); //CHKERRQ(ierr);
+    
+    /* Sets the fem routines for boundary, residual and Jacobian point wise operations */
+    ierr = DMPlexSetSNESLocalFEM(*dm, user, user, user);//CHKERRQ(ierr);
+    /* Update SNES */
+    ierr = SNESSetFromOptions(*snes);//CHKERRQ(ierr);
+    ierr = SNESSetUp(*snes);
+    ierr = SNESView(*snes, PETSC_VIEWER_STDOUT_WORLD);
+    return user;
+}
+
 AppCtx* StokesModel_Setup(char *argv) {
 
     PetscFunctionBeginUser;
     AppCtx *user = &petscApp;
     DM *dm       = &(user->dm);
     SNES *snes   = &(user->snes);
-    Vec u;
-    Vec nullVec;
+    Vec u, nullVec;
     MatNullSpace nullSpace;
     PetscErrorCode ierr;    
     MPI_Comm comm = PETSC_COMM_WORLD;
-
     PetscInt dim = 3;
     PetscBool use_simplices = PETSC_FALSE;
 
     //PetscInitialize( &argc, &argv, (char*)0, NULL );
-    ProcessOptions(comm, user);
+    ProcessOptionsStokes(comm, user);
 
     user->input = std::make_shared<IO_double>(dim, FunctionIO::Vector);
     ierr = SNESCreate(comm, snes);//CHKERRQ(ierr);
     
     const char    *filename = user->filename;
-
-    /*
-    DMPlexCreateBoxMesh(PETSC_COMM_WORLD, dim, 
-                        use_simplices, // use_simplices, if not then tesor_cells
-                        user->elements, NULL, NULL, // sizes, and the min and max coords  
-                        NULL, PETSC_TRUE,dm);
-                        */
     size_t len;
     PetscStrlen(filename, &len);
     if (len>0) {
-        DMPlexCreateFromFile(comm, filename, PETSC_TRUE, dm);
+        DMPlexCreateFromFile(comm, filename, PETSC_FALSE, dm);
     } else {
         DMPlexCreateBoxMesh(comm, dim, 
                             use_simplices, // use_simplices, if not then tesor_cells
                             user->elements, NULL, NULL, // sizes, and the min and max coords  
                             NULL, PETSC_TRUE,dm);
-        //DMPlexCreateFromFile(PETSC_COMM_WORLD, "sol.h5", PETSC_TRUE, dm);
     }
     /* Distribute mesh over processes */
     {
@@ -518,7 +814,7 @@ AppCtx* StokesModel_Setup(char *argv) {
     ierr = DMPlexSetSNESLocalFEM(*dm, user, user, user);//CHKERRQ(ierr);
     ierr = CreatePressureNullSpace(*dm, user, &nullVec, &nullSpace);//CHKERRQ(ierr);
     /* Get global vector */
-    ierr = DMCreateGlobalVector(*dm, &u);//CHKERRQ(ierr);
+    //ierr = DMCreateGlobalVector(*dm, &u);//CHKERRQ(ierr);
     /* Update SNES */
     ierr = SNESSetFromOptions(*snes);//CHKERRQ(ierr);
     ierr = SNESSetUp(*snes);
@@ -540,10 +836,10 @@ int StokesModel_Solve(AppCtx* user) {
      ierr = SetupAux(*dm, dmAux, user);CHKERRQ(ierr);
 
     /* Solve and output*/
-      PetscErrorCode (*initialGuess[2])(PetscInt dim, PetscReal time, const PetscReal x[], PetscInt Nf, PetscScalar *u, void* ctx) = {coord_vector, one_scalar};
+      PetscErrorCode (*initialGuess[2])(PetscInt dim, PetscReal time, const PetscReal x[], PetscInt Nf, PetscScalar *u, void* ctx) = {zero_vector, zero_scalar};
       Vec              lu;
       
-      /* Get global vector */
+      /* Use global vector here */
       ierr = DMCreateGlobalVector(*dm, &u);
       ierr = DMProjectFunction(*dm, 0.0, initialGuess, NULL, INSERT_VALUES, u);CHKERRQ(ierr);
       ierr = PetscObjectSetName((PetscObject) u, "Initial Solution");CHKERRQ(ierr); 
@@ -552,6 +848,7 @@ int StokesModel_Solve(AppCtx* user) {
       ierr = DMPlexInsertBoundaryValues(*dm, PETSC_TRUE, lu, 0.0, NULL, NULL, NULL);CHKERRQ(ierr);
       ierr = DMGlobalToLocalBegin(*dm, u, INSERT_VALUES, lu);CHKERRQ(ierr);
       ierr = DMGlobalToLocalEnd(*dm, u, INSERT_VALUES, lu);CHKERRQ(ierr);
+      ierr = PetscObjectSetName((PetscObject) lu, "Local Solution");CHKERRQ(ierr);
       ierr = VecViewFromOptions(lu, NULL, "-local_vec_view");CHKERRQ(ierr);
       ierr = DMRestoreLocalVector(*dm, &lu);CHKERRQ(ierr);
       ierr = PetscObjectSetName((PetscObject) u, "Solution");CHKERRQ(ierr);
@@ -570,6 +867,47 @@ int StokesModel_Solve(AppCtx* user) {
   //     VecView(u, h5viewer);
   //     PetscViewerDestroy(&h5viewer);
   //   }
+	      
+    //VecDestroy(&nullVec);
+    //MatNullSpaceDestroy(&nullSpace);
+    VecDestroy(&u);
+    SNESDestroy(snes);
+    DMDestroy(dm);
+    //PetscFinalize(); Called by uw
+    return 0;
+}
+
+int PoissonModel_Solve(AppCtx* user) {
+    DM *dm = &(user->dm);
+    DM dmAux;
+    SNES *snes = &user->snes;
+    PetscErrorCode ierr;
+    Vec u;
+
+     /* Retrieve the auxiliary dm to set the aux field(s) */
+     ierr = PetscObjectQuery((PetscObject)*dm, "dmAux", (PetscObject*)&dmAux);CHKERRQ(ierr);
+     // function that defines aux field, and associates it with the dm
+     ierr = PoissonSetupAux(*dm, dmAux, user);CHKERRQ(ierr);
+
+    /* Solve and output*/
+      PetscErrorCode (*initialGuess[1])(PetscInt dim, PetscReal time, const PetscReal x[], PetscInt Nf, PetscScalar *u, void* ctx) = {zero_scalar};
+      Vec              lu;
+      
+      /* Use global vector here */
+      ierr = DMCreateGlobalVector(*dm, &u);
+      ierr = DMProjectFunction(*dm, 0.0, initialGuess, NULL, INSERT_VALUES, u);CHKERRQ(ierr);
+      ierr = PetscObjectSetName((PetscObject) u, "Initial Solution");CHKERRQ(ierr); 
+      ierr = VecViewFromOptions(u, NULL, "-initial_vec_view");CHKERRQ(ierr); 
+      ierr = DMGetLocalVector(*dm, &lu);CHKERRQ(ierr);
+      ierr = DMPlexInsertBoundaryValues(*dm, PETSC_TRUE, lu, 0.0, NULL, NULL, NULL);CHKERRQ(ierr);
+      ierr = DMGlobalToLocalBegin(*dm, u, INSERT_VALUES, lu);CHKERRQ(ierr);
+      ierr = DMGlobalToLocalEnd(*dm, u, INSERT_VALUES, lu);CHKERRQ(ierr);
+      ierr = PetscObjectSetName((PetscObject) lu, "Local Solution");CHKERRQ(ierr);
+      ierr = VecViewFromOptions(lu, NULL, "-local_vec_view");CHKERRQ(ierr);
+      ierr = DMRestoreLocalVector(*dm, &lu);CHKERRQ(ierr);
+      ierr = PetscObjectSetName((PetscObject) u, "Solution");CHKERRQ(ierr);
+      ierr = SNESSolve(*snes, NULL, u);CHKERRQ(ierr);
+      ierr = VecViewFromOptions(u, NULL, "-sol_vec_view");CHKERRQ(ierr);
 	      
     //VecDestroy(&nullVec);
     //MatNullSpaceDestroy(&nullSpace);

@@ -18,8 +18,8 @@ typedef struct {
   MatNullSpace nullSpace;
   Fn::Function::func fn_forceterm;
   Fn::Function::func fn_viscosity;
-  Fn::Constant *solConstants[2];
-  Fn::Constant *auxConstants[10];
+  Fn::Constant *prob_fn[2];
+  Fn::Constant *aux_fn[10];
   std::shared_ptr<IO_double> input;
   char filename[2048];
   RunType runType;
@@ -30,10 +30,12 @@ typedef int Simple;
 
 /** Would be nice to get all the mesh coordinates, in python move it */
 
-void someSetter( AppCtx* self, int id, Fn::Function* fn );
+void prob_fnSetter( AppCtx* self, int id, Fn::Function* fn );
 void StokesModel_SetViscosityFn(AppCtx* self,Fn::Function* fn); // not enabled in c yet
 void StokesModel_SetForceTerm(AppCtx*,Fn::Function*);
 int StokesModel_Solve(AppCtx*);
-AppCtx* StokesModel_Setup(char *argv);
+AppCtx* StokesModel_Setup(char*);
+AppCtx* PoissonModel_Setup(char*);
+int PoissonModel_Solve(AppCtx* user);
 //std::string DSGetFieldInfo(AppCtx *user);
 #endif
