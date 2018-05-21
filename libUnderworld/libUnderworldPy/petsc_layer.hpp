@@ -16,7 +16,7 @@ typedef struct {
   DM dm;
   SNES snes;
   MatNullSpace nullSpace;
-  Fn::Function::func fn_forceterm;
+  Fn::Function::func fn_forceTerm;
   Fn::Function::func fn_viscosity;
   Fn::Constant *prob_fn[2];
   Fn::Constant *aux_fn[10];
@@ -24,6 +24,7 @@ typedef struct {
   char filename[2048];
   RunType runType;
   PetscInt elements[3];
+  PetscBool reload;
 }AppCtx;
 
 typedef int Simple;

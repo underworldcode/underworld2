@@ -30,7 +30,8 @@ class Poisson(object):
 
 model = Poisson(filename=None)
 
-model.SetRHS(fn.misc.constant(1.0))
+someFn = fn.misc.constant(-1.)
+model.SetRHS(forceTerm = someFn)
 
 model.Solve()
 

@@ -40,14 +40,15 @@ fn_gravity =  fn.misc.constant(9.8) * (0., 0., 1.)
 
 fn_buoyancy = fn_gravity * fn_density
 
-v_const = fn.misc.constant([0.0,0.,0.])
+v_const = fn.misc.constant([4.0,2.,0.])
+f_const = fn.misc.constant([4.0,2.,0.])
 p_const = fn.misc.constant(0.0)
 
 model = pl.StokesModel_Setup("helloworld")
 
 pl.prob_fnSetter(model, 0, v_const._fncself )
 pl.prob_fnSetter(model, 1, p_const._fncself )
-fn_x = fn.misc.constant(0.0) #v_const[0] + v_const[1]
+fn_x = f_const[0]
 
 pl.StokesModel_SetViscosityFn( model, fn_x._fncself )
 

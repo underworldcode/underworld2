@@ -28,8 +28,9 @@ void StokesModel_SetViscosityFn(AppCtx* self,Fn::Function* fn) {
   if( !io )
     throw std::invalid_argument("Provided function does not appear to return a valid result.");
   
-  /* setup function */
-  self->fn_viscosity = fn->getFunction(input.get());
+  /* setup function, could I just give func */
+  //self->fn_viscosity = fn->getFunction(input.get());
+  self->fn_viscosity = func;
 }
 
 void StokesModel_SetForceTerm(AppCtx* self,Fn::Function* fn) {
@@ -60,7 +61,7 @@ void StokesModel_SetForceTerm(AppCtx* self,Fn::Function* fn) {
   }
   
   /* setup function */
-  self->fn_forceterm = fn->getFunction(input.get());
+  self->fn_forceTerm = fn->getFunction(input.get());
 }
 
 PetscErrorCode zero_vector(PetscInt dim, PetscReal time, const PetscReal coords[], PetscInt Nf, PetscScalar *u, void *ctx)
@@ -107,11 +108,11 @@ PetscErrorCode force_vector(PetscInt dim, PetscReal time, const PetscReal coords
   AppCtx *self = &petscApp;
   PetscInt size,i; 
   /* create input */
-  std::shared_ptr<IO_double> input = std::make_shared<IO_double>(3, FunctionIO::Vector);
+  std::shared_ptr<IO_double> input = self->input;
   
   memcpy(input->data(), coords, 3*sizeof(double));
   
-  const FunctionIO* output = debug_dynamic_cast<const FunctionIO*>(self->fn_forceterm(input.get()));
+  const FunctionIO* output = debug_dynamic_cast<const FunctionIO*>(self->fn_forceTerm(input.get()));
   size = output->size(); //retrieve output size
   for( i = 0; i < size; i++ ) {
     u[i] = output->at<double>(i);
@@ -141,14 +142,15 @@ void f0_u(PetscInt dim, PetscInt Nf, PetscInt NfAux,
   PetscScalar mag;
   double v[20];
   AppCtx *self = &petscApp;
+  std::shared_ptr<IO_double> input = self->input;
   int f_i;
 
   for( f_i = 0; f_i < Nf; f_i++ ) {
     UpdateFunction( u+uOff[f_i], self->prob_fn[f_i] );
   }
   /* create input */
-  memcpy(self->input->dataRaw(), x, self->input->_dataSize );
-  const FunctionIO* output = debug_dynamic_cast<const FunctionIO*>(self->fn_viscosity(self->input.get()));
+  memcpy(input->dataRaw(), x, (input->_dataSize*input->size()) );
+  const FunctionIO* output = debug_dynamic_cast<const FunctionIO*>(self->fn_viscosity(input.get()));
 
   /* the newton formulations means this is a negative of the f0 */
   f0[0] = a[0];
@@ -289,43 +291,41 @@ PetscErrorCode SetupProblem(DM dm, PetscDS prob, AppCtx *user)
   PetscFunctionReturn(0);
 }
 
-
 PetscErrorCode SetupAux(DM dm, DM dmAux, AppCtx *user)
 {
   PetscErrorCode (*matFuncs[3])(PetscInt dim, PetscReal time, const PetscReal x[], PetscInt Nc, PetscScalar u[], void *ctx) = {force_vector, one_scalar, zero_vector};
-  Vec            auxVec, gVec;
+  Vec            auxVec,gVec;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  /* Get the local vector, global doesn't work in parallel */
-  ierr = DMCreateLocalVector(dmAux, &auxVec);CHKERRQ(ierr);
-  ierr = DMProjectFunctionLocal(dmAux, 0.0, matFuncs, NULL, INSERT_ALL_VALUES, auxVec);CHKERRQ(ierr);
 
-  ierr = DMSetFromOptions(dmAux);CHKERRQ(ierr);
-  ierr = DMViewFromOptions(dmAux, NULL, "-dmAux_view");CHKERRQ(ierr);
-  
+  ierr = DMCreateLocalVector(dmAux, &auxVec);CHKERRQ(ierr);
+  // create global to output only
   ierr = DMCreateGlobalVector(dmAux, &gVec);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject) gVec, "auxiliary");CHKERRQ(ierr);
-  ierr = DMLocalToGlobalBegin( dmAux, auxVec, INSERT_VALUES, gVec );
-  ierr = DMLocalToGlobalEnd( dmAux, auxVec, INSERT_VALUES, gVec );
-#if 0
-  /* load from lm hdf5 file */
-  {
-      PetscViewer viewer;
-      PetscViewerHDF5Open(PETSC_COMM_WORLD, "aux.h5", FILE_MODE_READ, &viewer);
-      PetscViewerHDF5PushGroup(viewer, "/fields");
-      VecLoad(gVec, viewer);
-//      ierr = PetscViewerHDF5PopGroup(viewer);CHKERRQ(ierr);
-      ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
-  }
-#endif
 
-  ierr = VecViewFromOptions(gVec, NULL, "-aux_vec_view"); CHKERRQ(ierr);
+  // reload or create
+  if ( user->reload==PETSC_TRUE ) {
+    PetscViewer viewer;
+    PetscViewerHDF5Open(PETSC_COMM_WORLD, "aux.h5", FILE_MODE_READ, &viewer);
+    PetscViewerHDF5PushGroup(viewer, "/fields");
+    VecLoad(gVec, viewer);
+    ierr = PetscViewerHDF5PopGroup(viewer);CHKERRQ(ierr);
+    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+    DMGlobalToLocalBegin(dmAux, gVec, INSERT_VALUES, auxVec);
+    DMGlobalToLocalEnd(dmAux, gVec, INSERT_VALUES, auxVec);
+   } else {
+    ierr = DMProjectFunctionLocal(dmAux, 0.0, matFuncs, NULL, INSERT_ALL_VALUES, auxVec);CHKERRQ(ierr);
+    ierr = DMLocalToGlobalBegin( dmAux, auxVec, INSERT_VALUES, gVec );
+    ierr = DMLocalToGlobalEnd( dmAux, auxVec, INSERT_VALUES, gVec );
+    ierr = DMViewFromOptions( dmAux, NULL, "-dmAux_view");CHKERRQ(ierr);
+    ierr = VecViewFromOptions(gVec, NULL, "-aux_vec_view");CHKERRQ(ierr);
+   }
 
+  ierr = VecDestroy(&gVec);CHKERRQ(ierr);
   // increases reference count
   ierr = PetscObjectCompose((PetscObject) dm, "A", (PetscObject) auxVec);CHKERRQ(ierr);
   ierr = VecDestroy(&auxVec);CHKERRQ(ierr);
-  ierr = VecDestroy(&gVec);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -452,6 +452,7 @@ PetscErrorCode ProcessOptionsStokes(MPI_Comm comm, AppCtx *user) {
   user->filename[0] = '\0';
   // can't use '-f' for user->filename because jupyter steals it (!!!) 
   ierr = PetscOptionsString("-mesh_file", "Mesh filename to read", "stokesmodel", user->filename, user->filename, sizeof(user->filename), &flg);CHKERRQ(ierr);
+  ierr = PetscOptionsGetBool(NULL,"","-r",&(user->reload),NULL);CHKERRQ(ierr);
   ierr = PetscOptionsSetValue(NULL, "-u_petscspace_order", "1");CHKERRQ(ierr); // default linear trail function approximation
   ierr = PetscOptionsSetValue(NULL, "-p_petscspace_order", "0");CHKERRQ(ierr); // default linear trail function approximation
   ierr = PetscOptionsSetValue(NULL, "-aux_0_petscspace_order", "1");CHKERRQ(ierr); // default linear trail function approximation
@@ -494,18 +495,17 @@ static void t0_u(PetscInt dim, PetscInt Nf, PetscInt NfAux,
   PetscScalar mag;
   double v[20];
   AppCtx *self = &petscApp;
+  std::shared_ptr<IO_double> input = self->input;
   int f_i;
 
-#if 0
   for( f_i = 0; f_i < Nf; f_i++ ) {
     UpdateFunction( u+uOff[f_i], self->prob_fn[f_i] );
   }
   /* create input */
-  memcpy(self->input->dataRaw(), x, self->input->_dataSize );
-  const FunctionIO* output = debug_dynamic_cast<const FunctionIO*>(self->fn_viscosity(self->input.get()));
-#endif
+  memcpy(input->dataRaw(), x, (input->_dataSize*input->size()) );
+  const FunctionIO* output = debug_dynamic_cast<const FunctionIO*>(self->fn_forceTerm(self->input.get()));
 
-  f0[0] = 0.;
+  f0[0] = output->at<double>(0);
 }
 
 
@@ -546,6 +546,7 @@ PetscErrorCode PoissonSetupAux(DM dm, DM dmAux, AppCtx *user)
   
   ierr = DMCreateGlobalVector(dmAux, &gVec);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject) gVec, "auxiliary");CHKERRQ(ierr);
+  ierr = VecViewFromOptions(gVec, NULL, "-aux_vec_view"); CHKERRQ(ierr);
   ierr = DMLocalToGlobalBegin( dmAux, auxVec, INSERT_VALUES, gVec );
   ierr = DMLocalToGlobalEnd( dmAux, auxVec, INSERT_VALUES, gVec );
 #if 0
@@ -560,7 +561,6 @@ PetscErrorCode PoissonSetupAux(DM dm, DM dmAux, AppCtx *user)
   }
 #endif
 
-  ierr = VecViewFromOptions(gVec, NULL, "-aux_vec_view"); CHKERRQ(ierr);
 
   // increases reference count
   ierr = PetscObjectCompose((PetscObject) dm, "A", (PetscObject) auxVec);CHKERRQ(ierr);
@@ -684,6 +684,7 @@ AppCtx* PoissonModel_Setup(char* rubbish) {
     MPI_Comm comm = PETSC_COMM_WORLD;
     PetscInt dim = 3;
     PetscBool use_simplices = PETSC_FALSE;
+    user->reload = PETSC_FALSE;
     size_t len;
     const char    *filename = user->filename;
 
@@ -749,6 +750,7 @@ AppCtx* StokesModel_Setup(char *argv) {
     MPI_Comm comm = PETSC_COMM_WORLD;
     PetscInt dim = 3;
     PetscBool use_simplices = PETSC_FALSE;
+    user->reload = PETSC_FALSE;
 
     //PetscInitialize( &argc, &argv, (char*)0, NULL );
     ProcessOptionsStokes(comm, user);
