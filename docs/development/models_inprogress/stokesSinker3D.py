@@ -9,9 +9,8 @@ import numpy as np
 
 nSpheres = 1
 fn_conds = []
-inside = lambda x : [ (x, 1.), (True, 0.)]
 for s_i in xrange(nSpheres):
-    s,lati,longi, radius =  (7, 0, 0, 1.3)
+    s,lati,longi, radius =  (4.7, 0, 0, 1.3)
     #s,lati,longi, radius =  (3, 180, 360, 2.5)*np.random.rand(4) + (6., -90, 0, 0.5)
     print s, lati, longi, radius
     lati,longi = np.radians([lati, longi])
