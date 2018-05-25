@@ -1,0 +1,8 @@
+stokes problem:
+  mpirun -np 2 python stokesSinker3D.py -mesh_file mesh.11_6.dat -dm_partition_view       -pc_type jacobi       -snes_monitor -snes_converged_reason -ksp_error_if_not_converged 0 -ksp_converged_reason       -velocity_petscspace_order 1 -pressure_petscspace_order 0
+
+# in cube geometry
+ mpirun -np 3 python stokesSinker3D.py -options_file simple_options.dat
+
+poisson problem:
+  mpirun -np 3 python poisson3D.py -mesh_file mesh.11_6.dat -temperature_petscspace_order 1 -dm_view hdf5:ss.h5 -dm_partition_view -initial_vec_view hdf5:ss.h5::append -sol_vec_view hdf5:ss.h5::append -snes_monitor -ksp_converged_reason -aux_0_petscspace_order 1 

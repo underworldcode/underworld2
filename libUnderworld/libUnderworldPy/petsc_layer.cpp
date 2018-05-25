@@ -150,12 +150,16 @@ void f0_u(PetscInt dim, PetscInt Nf, PetscInt NfAux,
   }
   /* create input */
   memcpy(input->dataRaw(), x, (input->_dataSize*input->size()) );
-  const FunctionIO* output = debug_dynamic_cast<const FunctionIO*>(self->fn_viscosity(input.get()));
+  const FunctionIO* output = debug_dynamic_cast<const FunctionIO*>(self->fn_forceTerm(input.get()));
 
-  /* the newton formulations means this is a negative of the f0 */
+  for( f_i = 0; f_i < dim; f_i++ ) {
+    f0[f_i] = output->at<double>(f_i);
+  }
+  /*
   f0[0] = a[0];
   f0[1] = a[1];
   f0[2] = a[2];
+  */
 }
 
 /* [P] The pointwise functions below describe all the problem physics */
@@ -277,12 +281,10 @@ PetscErrorCode SetupProblem(DM dm, PetscDS prob, AppCtx *user)
   ierr = PetscDSSetJacobian(prob, 0, 1, NULL,  NULL, j2_up,  NULL);CHKERRQ(ierr);
   ierr = PetscDSSetJacobian(prob, 1, 0, NULL, j1_pu,  NULL,  NULL);CHKERRQ(ierr);
 
-#if 0
   ierr = PetscDSSetJacobianPreconditioner(prob, 0, 0, NULL, NULL, NULL, stokes_momentum_J);CHKERRQ(ierr);
   ierr = PetscDSSetJacobianPreconditioner(prob, 0, 1, NULL, NULL, j2_up, NULL);CHKERRQ(ierr);
   ierr = PetscDSSetJacobianPreconditioner(prob, 1, 0, NULL, j1_pu, NULL, NULL);CHKERRQ(ierr);
   ierr = PetscDSSetJacobianPreconditioner(prob, 1, 1, massMatrix_invEta, NULL, NULL, NULL);CHKERRQ(ierr);
-#endif
   
   // no-slip dirichlet bc
   ierr = PetscDSAddBoundary(prob, DM_BC_ESSENTIAL, 
@@ -443,9 +445,9 @@ PetscErrorCode ProcessOptionsStokes(MPI_Comm comm, AppCtx *user) {
   PetscErrorCode ierr;
   
   // set default elements
-  user->elements[0] = 5;
-  user->elements[1] = 5;
-  user->elements[2] = 5; 
+  user->elements[0] = 10;
+  user->elements[1] = 10;
+  user->elements[2] = 10; 
   dim=3;
   
   ierr = PetscOptionsBegin(comm, "", "Julian 3D Stokes test", PETSC_NULL);CHKERRQ(ierr); // must call before options
@@ -461,7 +463,7 @@ PetscErrorCode ProcessOptionsStokes(MPI_Comm comm, AppCtx *user) {
   ierr = PetscOptionsIntArray("-elRes", "element count (default: 5,5,5)", "n/a", user->elements, &dim, NULL);CHKERRQ(ierr);
   // ierr = PetscOptionsSetValue(NULL, "-dm_plex_separate_marker", "");
  // ierr = PetscOptionsInsertFile(comm, NULL, "/home/julian/models/snippits/petsc_uw2/my.opts", PETSC_TRUE );
-  ierr = PetscOptionsSetValue(NULL, "-pc_type", "jacobi"); CHKERRQ(ierr);
+  //ierr = PetscOptionsSetValue(NULL, "-pc_type", "jacobi"); CHKERRQ(ierr);
   /*
   ierr = PetscOptionsSetValue(NULL, "-pc_type", "fieldsplit"); CHKERRQ(ierr);
   ierr = PetscOptionsSetValue(NULL, "-pc_fieldsplit_type", "schur"); CHKERRQ(ierr);

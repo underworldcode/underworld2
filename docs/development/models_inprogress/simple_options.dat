@@ -1,0 +1,8 @@
+-ksp_type fgmres
+-pc_type fieldsplit 
+-pc_fieldsplit_type schur
+-pc_fieldsplit_schur_factorization_type full
+-fieldsplit_velocity_pc_type mg
+-fieldsplit_pressure_pc_type jacobi
+-aux_1_petscspace_order 1
+-snes_error_if_not_converged -snes_converged_reason -ksp_error_if_not_converged 0 -ksp_converged_reason

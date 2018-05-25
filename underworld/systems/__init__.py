@@ -16,6 +16,7 @@ from _advectiondiffusion import AdvectionDiffusion
 from _solver import Solver as _Solver
 from _thermal import SteadyStateHeat
 from _darcyflow import SteadyStateDarcyFlow
+from _petsc_uw import pl_StokesModel, pl_PoissonModel
 
 Solver=_Solver.factory
 
