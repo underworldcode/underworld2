@@ -33,7 +33,16 @@
 #include <Underworld/Function/Map.hpp>
 #include <Underworld/Function/Unary.hpp>
 #include <Underworld/Function/Binary.hpp>
+    
 #include <Underworld/Function/Analytic.hpp>
+#include <Underworld/Function/AnalyticSolCx.hpp>
+#include <Underworld/Function/AnalyticSolDB2d.hpp>
+#include <Underworld/Function/AnalyticSolDB3d.hpp>
+#include <Underworld/Function/AnalyticSolKx.hpp>
+#include <Underworld/Function/AnalyticSolKz.hpp>
+#include <Underworld/Function/AnalyticSolM.hpp>
+#include <Underworld/Function/AnalyticSolNL.hpp>
+
 #include <Underworld/Function/Tensor.hpp>
 #include <Underworld/Function/IOIterators.hpp>
 #include <Underworld/Function/Query.hpp>
@@ -66,7 +75,16 @@ extern "C" {
 %include "Function/GradFeVariableFn.hpp"
 %include "Function/Map.hpp"
 %include "Function/Tensor.hpp"
+
 %include "Function/Analytic.hpp"
+%include "Function/AnalyticSolCx.hpp"
+%include "Function/AnalyticSolDB2d.hpp"
+%include "Function/AnalyticSolDB3d.hpp"
+%include "Function/AnalyticSolKx.hpp"
+%include "Function/AnalyticSolKz.hpp"
+%include "Function/AnalyticSolM.hpp"
+%include "Function/AnalyticSolNL.hpp"
+
 %include "Function/IOIterators.hpp"
 %include "Function/Query.hpp"
 %include "Function/Shape.hpp"
