@@ -25,15 +25,15 @@ class pl_StokesModel(object):
         pl.prob_fnSetter(self._cmodel, 0, self.fn_v._fncself )
         pl.prob_fnSetter(self._cmodel, 1, self.fn_p._fncself )
 
-    def SetRHS(self, forceTerm):
-        self.fn_forceTerm = uw.function.Function.convert(forceTerm)
+    def SetRHS(self, fn):
+        self.fn_forceTerm = uw.function.Function.convert(fn)
         if not isinstance( self.fn_forceTerm, uw.function.Function):
             raise TypeError( "Provided 'forceTerm' must be of or convertible to 'Function' class." )
         # make the c function delete the previous version of themselves
         pl.StokesModel_SetForceTerm( self._cmodel, self.fn_forceTerm._fncself)
 
-    def SetViscosity(self, fn_viscosity):
-        self.fn_viscosity = uw.function.Function.convert(fn_viscosity)
+    def SetViscosity(self, fn):
+        self.fn_viscosity = uw.function.Function.convert(fn)
         if not isinstance( self.fn_viscosity, uw.function.Function):
             raise TypeError( "Provided 'fn_vicosity' must be of or convertible to 'Function' class." )
         # make the c function delete the previous version of themselves
@@ -54,8 +54,8 @@ class pl_PoissonModel(object):
         self.fn_temperature = fn.misc.constant(zero*dim)
         pl.prob_fnSetter(self._cmodel, 0, self.fn_temperature._fncself )
 
-    def SetRHS(self, forceTerm):
-        self.fn_forceTerm = uw.function.Function.convert(forceTerm)
+    def SetRHS(self, fn):
+        self.fn_forceTerm = uw.function.Function.convert(fn)
         if not isinstance( self.fn_forceTerm, uw.function.Function):
             raise TypeError( "Provided 'forceTerm' must be of or convertible to 'Function' class." )
         # make the c function delete the previous version of themselves

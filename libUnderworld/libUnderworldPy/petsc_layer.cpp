@@ -153,7 +153,7 @@ void f0_u(PetscInt dim, PetscInt Nf, PetscInt NfAux,
   const FunctionIO* output = debug_dynamic_cast<const FunctionIO*>(self->fn_forceTerm(input.get()));
 
   for( f_i = 0; f_i < dim; f_i++ ) {
-    f0[f_i] = output->at<double>(f_i);
+    f0[f_i] = -1. * output->at<double>(f_i);
   }
   /*
   f0[0] = a[0];
@@ -614,7 +614,7 @@ PetscErrorCode PoissonSetupDiscretization(DM dm, AppCtx *user)
   PetscErrorCode  ierr;
 
   PetscFE *feAux  = NULL;
-  PetscDS probAux = NULL;
+  PetscDS  probAux = NULL;
   PetscInt numAux = 1, f;
   const char auxNames[][2056] = {"heating"};
   const PetscInt auxSizes[] = {1};
