@@ -85,17 +85,17 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         self._count = count
 
         if self._dataType == "double" :
-            dtype = libUnderworld.StGermain.Variable_DataType_Double;
+            dtype = libUnderworld.StGermain.StgVariable_DataType_Double;
         elif self._dataType == "float" :
-            dtype = libUnderworld.StGermain.Variable_DataType_Float;
+            dtype = libUnderworld.StGermain.StgVariable_DataType_Float;
         elif self._dataType == "int" :
-            dtype = libUnderworld.StGermain.Variable_DataType_Int;
+            dtype = libUnderworld.StGermain.StgVariable_DataType_Int;
         elif self._dataType == "long" :
-            dtype = libUnderworld.StGermain.Variable_DataType_Long;
+            dtype = libUnderworld.StGermain.StgVariable_DataType_Long;
         elif self._dataType == "char" :
-            dtype = libUnderworld.StGermain.Variable_DataType_Char;
+            dtype = libUnderworld.StGermain.StgVariable_DataType_Char;
         elif self._dataType == "short" :
-            dtype = libUnderworld.StGermain.Variable_DataType_Short;
+            dtype = libUnderworld.StGermain.StgVariable_DataType_Short;
 
         # first, check if we were passed in a cself pointer, in which case we are purely wrapping a pre-exisiting swarmvar
         if "_cself" in kwargs:
@@ -202,7 +202,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         array([ 0.2,  0.2])
         """
         if self._arr is None:
-            self._arr = libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.variable)
+            self._arr = libUnderworld.StGermain.StgVariable_getAsNumpyArray(self._cself.variable)
             # set to writeability
             self._arr.flags.writeable = self._writeable
             # add to swarms weakref dict
@@ -223,7 +223,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         
         """
         if self._arrshadow is None:
-            self._arrshadow = libUnderworld.StGermain.Variable_getAsNumpyArray(
+            self._arrshadow = libUnderworld.StGermain.StgVariable_getAsNumpyArray(
                                 libUnderworld.StgDomain.Swarm_GetShadowVariable(self.swarm._cself, self._cself.variable) )
             # set to writeability
             self._arrshadow.flags.writeable = False

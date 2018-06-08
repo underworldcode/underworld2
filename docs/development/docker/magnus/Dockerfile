@@ -116,9 +116,5 @@ RUN cd /opt/ && \
     env > build_environment.txt                                      && \
     rm -fr .git
 
-# for some reason the package kiwisolver (used by matplotlib) needs to be imported first, else it segfaults.. weird.
-# also, let's get rid of python warnings.
-RUN sed -i "1i import kiwisolver;import warnings;warnings.filterwarnings(\"ignore\")" /opt/underworld2/underworld/__init__.py
-
 ENV PYTHONPATH $PYTHONPATH:/opt/underworld2:/opt/petsc/lib
 

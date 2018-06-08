@@ -38,13 +38,6 @@ import sys as _sys
 import os as _os
 _sys.path.insert(0, _os.path.realpath(_os.path.dirname("..")))
 
-try:
-    # Workaround for matplotlib import issues,
-    # must be imported before underworld or segfaults
-    import matplotlib.pyplot as _pyplot
-except:
-    pass
-
 import libUnderworld
 import container
 import mesh

@@ -89,13 +89,13 @@ void _IntegrationPointsSwarm_Init(
    self->mesh               = mesh;
 
    self->weightVariable = Swarm_NewScalarVariable( self, (Name)"Weight", GetOffsetOfMember( particle , weight ), 
-      Variable_DataType_Double );
+      StgVariable_DataType_Double );
 
    LiveComponentRegister_Add( LiveComponentRegister_GetLiveComponentRegister(), (Stg_Component*)self->weightVariable );
    LiveComponentRegister_Add( LiveComponentRegister_GetLiveComponentRegister(), (Stg_Component*)self->weightVariable->variable );
 
    self->localCoordVariable = Swarm_NewVectorVariable( self, (Name)"LocalElCoord", GetOffsetOfMember( localParticle , xi ),
-      Variable_DataType_Double, self->dim, "Xi", "Eta", "Zeta" );
+      StgVariable_DataType_Double, self->dim, "Xi", "Eta", "Zeta" );
 
    LiveComponentRegister_Add( LiveComponentRegister_GetLiveComponentRegister(), (Stg_Component*)self->localCoordVariable );
    LiveComponentRegister_Add( LiveComponentRegister_GetLiveComponentRegister(), (Stg_Component*)self->localCoordVariable->variable );

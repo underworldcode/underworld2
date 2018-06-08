@@ -31,7 +31,7 @@ const Type DofLayout_Type = "DofLayout";
 
 /** Add a new Variable to the group that may be used as dofs, where varIndex is the index of the variable
 in the variable register. */
-Dof_Index	_DofLayout_AddVariable_ByIndex(void* dofLayout, Variable_Index varIndex);
+Dof_Index	_DofLayout_AddVariable_ByIndex(void* dofLayout, StgVariable_Index varIndex);
 
 /** Add a new Variable to the group that may be used as dofs - by name. */
 Dof_Index	_DofLayout_AddVariable_ByName(void* dofLayout, Name varName);
@@ -88,8 +88,8 @@ void _DofLayout_Init(
 	void*						dofLayout,
 	Variable_Register*	variableRegister,
 	Index						numItemsInLayout,
-	Variable_Index			baseVariableCount,
-	Variable**				baseVariableArray,
+	StgVariable_Index			baseVariableCount,
+	StgVariable**				baseVariableArray,
 	void*						_mesh )
 {
 	DofLayout*	self = (DofLayout*)dofLayout;
@@ -154,8 +154,8 @@ void _DofLayout_AssignFromXML( void* dofLayout, Stg_ComponentFactory* cf, void* 
    Dictionary*             thisComponentDict = NULL;
    void*                   variableRegister = NULL;
    Dictionary_Entry_Value* list;
-   Variable_Index          baseVariableCount = 0;
-   Variable**              baseVariableList = NULL;
+   StgVariable_Index          baseVariableCount = 0;
+   StgVariable**              baseVariableList = NULL;
    Mesh*							mesh;
    MeshVariable*           meshVar=NULL;
    int v_i;
@@ -167,7 +167,7 @@ void _DofLayout_AssignFromXML( void* dofLayout, Stg_ComponentFactory* cf, void* 
    /* new way. check history for the old way JM 08/16 */
    mesh = meshVar->mesh;
    baseVariableCount = meshVar->subVariablesCount;
-   baseVariableList = Memory_Alloc_Array( Variable*, baseVariableCount, "baseVariableList" );
+   baseVariableList = Memory_Alloc_Array( StgVariable*, baseVariableCount, "baseVariableList" );
 
    /* setup up baseVariableCount & baseVariableList from the meshVar
    * and give those data structure to the init function */
@@ -217,7 +217,7 @@ void _DofLayout_Build( void* dofLayout, void* data ) {
 			Memory_Free(indices);
 	}
 	
-	self->varIndices = Memory_Alloc_2DComplex( Variable_Index, self->_numItemsInLayout, self->dofCounts, "DofLayout->varIndices" );
+	self->varIndices = Memory_Alloc_2DComplex( StgVariable_Index, self->_numItemsInLayout, self->dofCounts, "DofLayout->varIndices" );
 	for (i = 0; i < self->_numItemsInLayout; i++) {
 		pos = 0;
 
@@ -265,7 +265,7 @@ void _DofLayout_Destroy( void* dofLayout, void* data ) {
 ** Private functions
 */
 
-Dof_Index _DofLayout_AddVariable_ByIndex(void* dofLayout, Variable_Index varIndex) {
+Dof_Index _DofLayout_AddVariable_ByIndex(void* dofLayout, StgVariable_Index varIndex) {
 	DofLayout*	self = (DofLayout*)dofLayout;
 	Dof_Index	dof_I;
 	
@@ -277,10 +277,10 @@ Dof_Index _DofLayout_AddVariable_ByIndex(void* dofLayout, Variable_Index varInde
 	
 	/* Do an Alloc if array does not exist to register stats in memory module. Other times, just Realloc */
 	if ( self->_varIndicesMapping ) {
-		self->_varIndicesMapping = Memory_Realloc_Array( self->_varIndicesMapping, Variable_Index, self->_totalVarCount );
+		self->_varIndicesMapping = Memory_Realloc_Array( self->_varIndicesMapping, StgVariable_Index, self->_totalVarCount );
 	}
 	else {
-		self->_varIndicesMapping = Memory_Alloc_Array( Variable_Index, self->_totalVarCount,
+		self->_varIndicesMapping = Memory_Alloc_Array( StgVariable_Index, self->_totalVarCount,
 			"DofLayout->_varIndicesMapping" );
 	}
 	self->_varIndicesMapping[self->_totalVarCount - 1] = varIndex;
@@ -314,7 +314,7 @@ Dof_Index _DofLayout_AddVariable_ByName(void* dofLayout, Name varName) {
 ** Public functions
 */
 
-void DofLayout_AddDof_ByVarIndex(void* dofLayout, Variable_Index varIndex, Index index) {
+void DofLayout_AddDof_ByVarIndex(void* dofLayout, StgVariable_Index varIndex, Index index) {
 	DofLayout*	self = (DofLayout*)dofLayout;
 	
 	IndexSet_Add(self->_variableEnabledSets[varIndex], index);
@@ -327,9 +327,9 @@ void DofLayout_AddDof_ByVarName(void* dofLayout, Name varName, Index index) {
 	DofLayout_AddDof_ByVarIndex(self, _DofLayout_AddVariable_ByName(self, varName), index);
 }
 
-Variable* DofLayout_GetVariable(void* dofLayout, Index index, Dof_Index dofAtItemIndex ) {
+StgVariable* DofLayout_GetVariable(void* dofLayout, Index index, Dof_Index dofAtItemIndex ) {
 	DofLayout*	self = (DofLayout*)dofLayout;
-	Variable_Index	var_I = self->varIndices[index][dofAtItemIndex];
+	StgVariable_Index	var_I = self->varIndices[index][dofAtItemIndex];
 	
 	return Variable_Register_GetByIndex( self->_variableRegister, var_I );
 }
@@ -374,11 +374,11 @@ void DofLayout_SetAllToZero( void* dofLayout ) {
 	}
 }
 
-void DofLayout_AddAllFromVariableArray( void* dofLayout, Variable_Index variableCount, Variable** variableArray ) {
+void DofLayout_AddAllFromVariableArray( void* dofLayout, StgVariable_Index variableCount, StgVariable** variableArray ) {
 	DofLayout*      self        = (DofLayout*) dofLayout;
 	Index           item_I;
 	Index           itemCount   = self->_numItemsInLayout;
-	Variable_Index  variable_I;
+	StgVariable_Index  variable_I;
 
 	for( variable_I = 0; variable_I < variableCount ; variable_I++  ) {
 		Journal_Firewall( variableArray[variable_I] != NULL, NULL,

@@ -94,7 +94,7 @@ void ShadowSyncSuite_TestShadowSync( ShadowSyncSuiteData* data ) {
       swarm,
       "Velocity",
       (ArithPointer) &particle.velocity - (ArithPointer) &particle,
-      Variable_DataType_Double,
+      StgVariable_DataType_Double,
       swarm->dim,
       "VelocityX",
       "VelocityY",
@@ -104,7 +104,7 @@ void ShadowSyncSuite_TestShadowSync( ShadowSyncSuiteData* data ) {
       swarm,
       "RandomColour",
       (ArithPointer) &particle.randomColour - (ArithPointer) &particle,
-      Variable_DataType_Double );
+      StgVariable_DataType_Double );
 
    stgMainBuildAndInitialise( cf );
 

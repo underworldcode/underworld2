@@ -93,7 +93,7 @@ void _VariableCondition_Delete(void* variableCondition) {
 
 void _VariableCondition_Print(void* variableCondition) {
 	VariableCondition*					self = (VariableCondition*)variableCondition;
-	VariableCondition_VariableIndex	vcVar_I;
+	VariableCondition_StgVariableIndex	vcVar_I;
 	VariableCondition_ValueIndex		val_I;
 	Index										i;
 	
@@ -229,9 +229,9 @@ void* _VariableCondition_Copy( void* variableCondition, void* dest, Bool deep, N
 			PtrMap_Append( map, newVariableCondition->indexTbl, self->indexTbl );
 		}
 		
-		if( (newVariableCondition->vcVarCountTbl = (VariableCondition_VariableIndex*)PtrMap_Find( map, self->vcVarCountTbl )) == NULL && self->vcVarCountTbl ) {
-			newVariableCondition->vcVarCountTbl = Memory_Alloc_Array( VariableCondition_VariableIndex, newVariableCondition->indexCount, "VC->vcVarCountTbl" );
-			memcpy( newVariableCondition->vcVarCountTbl, self->vcVarCountTbl, sizeof(VariableCondition_VariableIndex) * newVariableCondition->indexCount );
+		if( (newVariableCondition->vcVarCountTbl = (VariableCondition_StgVariableIndex*)PtrMap_Find( map, self->vcVarCountTbl )) == NULL && self->vcVarCountTbl ) {
+			newVariableCondition->vcVarCountTbl = Memory_Alloc_Array( VariableCondition_StgVariableIndex, newVariableCondition->indexCount, "VC->vcVarCountTbl" );
+			memcpy( newVariableCondition->vcVarCountTbl, self->vcVarCountTbl, sizeof(VariableCondition_StgVariableIndex) * newVariableCondition->indexCount );
 			PtrMap_Append( map, newVariableCondition->vcVarCountTbl, self->vcVarCountTbl );
 		}
 		
@@ -304,7 +304,7 @@ void _VariableCondition_Build( void* variableCondition, void* data ) {
 	/* Only build the index related tables if there are active BCs */
 	if ( self->indexCount ) {
 		/* Build the variable to condition table */
-		self->vcVarCountTbl = Memory_Alloc_Array( VariableCondition_VariableIndex, self->indexCount, "VC->vcVarCountTbl" );
+		self->vcVarCountTbl = Memory_Alloc_Array( VariableCondition_StgVariableIndex, self->indexCount, "VC->vcVarCountTbl" );
 		
 		for (i = 0; i < self->indexCount; i++) {
 			/* For the index, get the number of "variables" that have been assigned conditions */
@@ -313,10 +313,10 @@ void _VariableCondition_Build( void* variableCondition, void* data ) {
 
 		self->vcTbl = Memory_Alloc_2DComplex( VariableCondition_Tuple, self->indexCount, self->vcVarCountTbl, "VC->vcTbl" );
 		for ( i = 0; i < self->indexCount; i++ ) {
-			VariableCondition_VariableIndex vcVar_I;
+			VariableCondition_StgVariableIndex vcVar_I;
 
 			for ( vcVar_I = 0; vcVar_I < self->vcVarCountTbl[i]; vcVar_I++ ) {
-				Variable* var;
+				StgVariable* var;
 
 				/* For the index's variable, get the variable i.d. and value i.d. */
 				self->vcTbl[i][vcVar_I].varIndex = self->_getVariableIndex(self, self->indexTbl[i], vcVar_I);
@@ -354,10 +354,10 @@ void _VariableCondition_Initialise( void* variableCondition, void* data ) {
 	}
 	
 	for( i = 0; i < self->indexCount; i++ ) {
-		VariableCondition_VariableIndex	vcVar_I;
+		VariableCondition_StgVariableIndex	vcVar_I;
 		
 		for( vcVar_I = 0; vcVar_I < self->vcVarCountTbl[i]; vcVar_I++ ) {
-			Variable* var;
+			StgVariable* var;
 			
 			/* Force the building of the variable (to be safe) */
 			var = self->variable_Register->_variable[self->vcTbl[i][vcVar_I].varIndex];
@@ -407,7 +407,7 @@ Bool VariableCondition_IsCondition( void* variableCondition, Index localIndex, I
 }
 
 
-void VariableCondition_ApplyToVariable( void* variableCondition, VariableCondition_VariableIndex varIndex, void* context ) {
+void VariableCondition_ApplyToVariable( void* variableCondition, VariableCondition_StgVariableIndex varIndex, void* context ) {
 	VariableCondition*	self = (VariableCondition*)variableCondition;
 	Index			i;
 	
@@ -418,8 +418,8 @@ void VariableCondition_ApplyToVariable( void* variableCondition, VariableConditi
 
 void VariableCondition_ApplyToIndex( void* variableCondition, Index localIndex, void* context ) {
 	VariableCondition*		self = (VariableCondition*)variableCondition;
-	Variable*			var;
-	Variable_Index			varIndex;
+	StgVariable*			var;
+	StgVariable_Index			varIndex;
 	VariableCondition_ValueIndex	val_I;
 	ConditionFunction*		cf;
 	Index				index, i;
@@ -448,14 +448,14 @@ void VariableCondition_ApplyToIndex( void* variableCondition, Index localIndex, 
 					"which has %d components. Specify a scalar Variable instead.\n",
 					__func__, self->name, self->indexTbl[index], "double",
 					var->name, var->dataTypeCounts[0] );
-				Variable_SetValueDouble(
+				StgVariable_SetValueDouble(
 					var, 
 					self->indexTbl[index], 
 					self->valueTbl[val_I].as.typeDouble );
 				break;
 			
 			case VC_ValueType_DoubleArray:
-				Variable_SetValue(
+				StgVariable_SetValue(
 					var, 
 					self->indexTbl[index], 
 					self->valueTbl[val_I].as.typeArray.array );
@@ -472,7 +472,7 @@ void VariableCondition_ApplyToIndex( void* variableCondition, Index localIndex, 
 					localIndex, 
 					varIndex, 
 					context, 
-					Variable_GetStructPtr( var, self->indexTbl[index] ) );
+					StgVariable_GetStructPtr( var, self->indexTbl[index] ) );
 				break;
 			
 			case VC_ValueType_Int:
@@ -482,7 +482,7 @@ void VariableCondition_ApplyToIndex( void* variableCondition, Index localIndex, 
 					"which has %d components. Specify a scalar Variable instead.\n",
 					__func__, self->name, self->indexTbl[index], "int",
 					var->name, var->dataTypeCounts[0] );
-				Variable_SetValueInt(
+				StgVariable_SetValueInt(
 					var, 
 					self->indexTbl[index], 
 					self->valueTbl[val_I].as.typeInt );
@@ -495,7 +495,7 @@ void VariableCondition_ApplyToIndex( void* variableCondition, Index localIndex, 
 					"which has %d components. Specify a scalar Variable instead.\n",
 					__func__, self->name, self->indexTbl[index], "short",
 					var->name, var->dataTypeCounts[0] );
-				Variable_SetValueShort(
+				StgVariable_SetValueShort(
 					var, 
 					self->indexTbl[index], 
 					self->valueTbl[val_I].as.typeShort );
@@ -508,14 +508,14 @@ void VariableCondition_ApplyToIndex( void* variableCondition, Index localIndex, 
 					"which has %d components. Specify a scalar Variable instead.\n",
 					__func__, self->name, self->indexTbl[index], "char",
 					var->name, var->dataTypeCounts[0] );
-				Variable_SetValueChar(
+				StgVariable_SetValueChar(
 					var, 
 					self->indexTbl[index], 
 					self->valueTbl[val_I].as.typeChar );
 				break;
 			
 			case VC_ValueType_Ptr:
-				Variable_SetValuePointer(
+				StgVariable_SetValuePointer(
 					var, 
 					self->indexTbl[index], 
 					self->valueTbl[val_I].as.typePtr );
@@ -532,12 +532,12 @@ void VariableCondition_ApplyToIndex( void* variableCondition, Index localIndex, 
 void VariableCondition_ApplyToIndexVariable(
 		void*				variableCondition, 
 		Index				localIndex, 
-		VariableCondition_VariableIndex	varIndex,
+		VariableCondition_StgVariableIndex	varIndex,
 		void*				context )
 {
 	VariableCondition*	self = (VariableCondition*)variableCondition;
-	Variable_Index		globalVarIndex;
-	Variable*		var;
+	StgVariable_Index		globalVarIndex;
+	StgVariable*		var;
 	ConditionFunction*	cf;
 	Index			index;
 	
@@ -559,7 +559,7 @@ void VariableCondition_ApplyToIndexVariable(
 	switch (self->valueTbl[self->vcTbl[index][varIndex].valIndex].type)
 	{
 		case VC_ValueType_Double:
-			Variable_SetValueDouble(
+			StgVariable_SetValueDouble(
 				var, 
 				self->indexTbl[index], 
 				self->valueTbl[self->vcTbl[index][varIndex].valIndex].as.typeDouble );
@@ -572,39 +572,39 @@ void VariableCondition_ApplyToIndexVariable(
 				localIndex, 
 				globalVarIndex, 
 				context, 
-				Variable_GetStructPtr( var, self->indexTbl[index]) );
+				StgVariable_GetStructPtr( var, self->indexTbl[index]) );
 			break;
 		
 		case VC_ValueType_DoubleArray:
-			Variable_SetValue(
+			StgVariable_SetValue(
 				var, 
 				self->indexTbl[index], 
 				self->valueTbl[self->vcTbl[index][varIndex].valIndex].as.typeArray.array );
 			break;
 		
 		case VC_ValueType_Int:
-			Variable_SetValueInt(
+			StgVariable_SetValueInt(
 				var, 
 				self->indexTbl[index], 
 				self->valueTbl[self->vcTbl[index][varIndex].valIndex].as.typeInt );
 			break;
 		
 		case VC_ValueType_Short:
-			Variable_SetValueShort(
+			StgVariable_SetValueShort(
 				var, 
 				self->indexTbl[index], 
 				self->valueTbl[self->vcTbl[index][varIndex].valIndex].as.typeShort );
 			break;
 		
 		case VC_ValueType_Char:
-			Variable_SetValueChar(
+			StgVariable_SetValueChar(
 				var, 
 				self->indexTbl[index], 
 				self->valueTbl[self->vcTbl[index][varIndex].valIndex].as.typeChar );
 			break;
 		
 		case VC_ValueType_Ptr:
-			Variable_SetValuePointer(
+			StgVariable_SetValuePointer(
 				var, 
 				self->indexTbl[index], 
 				self->valueTbl[self->vcTbl[index][varIndex].valIndex].as.typePtr );
@@ -619,13 +619,13 @@ void VariableCondition_ApplyToIndexVariable(
 
 Bool _VariableCondition_IsCondition( void* variableCondition, Index localIndex, Index inputVarIndex ) {
 	VariableCondition*		self = (VariableCondition*)variableCondition;
-	VariableCondition_VariableIndex	vcVar_I;
+	VariableCondition_StgVariableIndex	vcVar_I;
 	Index				i;
-	Variable_Index                  varIndexToTryMatch = 0;
-	Variable_Index                  subVarIndexToTryMatch = 0;
-	Variable*                       variableToTryMatch = NULL;
-	Variable*                       subVariableToTryMatch = NULL;
-	Variable_Index                  subVariable_I = 0;
+	StgVariable_Index                  varIndexToTryMatch = 0;
+	StgVariable_Index                  subVarIndexToTryMatch = 0;
+	StgVariable*                       variableToTryMatch = NULL;
+	StgVariable*                       subVariableToTryMatch = NULL;
+	StgVariable_Index                  subVariable_I = 0;
 
 	/* if the set isn't initialised, this is a NULL BC : False */
 	if ( !self->_set ) {
@@ -687,10 +687,10 @@ Bool _VariableCondition_IsCondition( void* variableCondition, Index localIndex, 
 }
 
 
-VariableCondition_ValueIndex VariableCondition_GetValueIndex (void* variableCondition, Index localIndex, Variable_Index varIndex )
+VariableCondition_ValueIndex VariableCondition_GetValueIndex (void* variableCondition, Index localIndex, StgVariable_Index varIndex )
 {
 	VariableCondition*		self = (VariableCondition*)variableCondition;
-	VariableCondition_VariableIndex	vcVar_I;
+	VariableCondition_StgVariableIndex	vcVar_I;
 	Index				i;
 	
 	/* if the set isn't initialised, this is a NULL BC : False */

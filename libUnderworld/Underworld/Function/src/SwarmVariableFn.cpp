@@ -37,19 +37,19 @@ Fn::SwarmVariableFn::func Fn::SwarmVariableFn::getFunction( IOsptr sample_input 
 
     std::shared_ptr<FunctionIO> _output_sp;
 	switch( swarmvar->variable->dataTypes[0] ) {
-		case Variable_DataType_Double:
+		case StgVariable_DataType_Double:
             _output_sp = std::make_shared<IO_double>(swarmvar->dofCount, FunctionIO::Array);
 			break;
-		case Variable_DataType_Int:
+		case StgVariable_DataType_Int:
             _output_sp = std::make_shared<IO_int>(swarmvar->dofCount, FunctionIO::Array);
 			break;
-		case Variable_DataType_Char:
+		case StgVariable_DataType_Char:
             _output_sp = std::make_shared<IO_char>(swarmvar->dofCount, FunctionIO::Array);
 			break;
-		case Variable_DataType_Float:
+		case StgVariable_DataType_Float:
             _output_sp = std::make_shared<IO_float>(swarmvar->dofCount, FunctionIO::Array);
 			break;
-		case Variable_DataType_Short:
+		case StgVariable_DataType_Short:
             _output_sp = std::make_shared<IO_short>(swarmvar->dofCount, FunctionIO::Array);
 			break;
 		default:
@@ -97,10 +97,10 @@ Fn::SwarmVariableFn::func Fn::SwarmVariableFn::getFunction( IOsptr sample_input 
             }
     
             // find the position into the swarmvar array we need to copy from
-            void* dataPtr = __Variable_GetStructPtr( swarmvar->variable, swarmVarLocalIndex );
+            void* dataPtr = __StgVariable_GetStructPtr( swarmvar->variable, swarmVarLocalIndex );
 
             // copy swarmvariable datum into output
-            memcpy( _output->dataRaw(), dataPtr, Variable_SizeOfDataType(swarmvar->variable->dataTypes[0]) * swarmvar->dofCount );
+            memcpy( _output->dataRaw(), dataPtr, StgVariable_SizeOfDataType(swarmvar->variable->dataTypes[0]) * swarmvar->dofCount );
 
             return debug_dynamic_cast<const FunctionIO*>(_output);
         };
@@ -115,10 +115,10 @@ Fn::SwarmVariableFn::func Fn::SwarmVariableFn::getFunction( IOsptr sample_input 
             const ParticleCoordinate*  partCoord = debug_dynamic_cast<const ParticleCoordinate*>(input);
             
             // find the position into the swarmvar array we need to copy from
-            void* dataPtr = __Variable_GetStructPtr( swarmvar->variable, partCoord->index() );
+            void* dataPtr = __StgVariable_GetStructPtr( swarmvar->variable, partCoord->index() );
 
             // copy swarmvariable datum into output
-            memcpy( _output->dataRaw(), dataPtr, Variable_SizeOfDataType(swarmvar->variable->dataTypes[0]) * swarmvar->dofCount );
+            memcpy( _output->dataRaw(), dataPtr, StgVariable_SizeOfDataType(swarmvar->variable->dataTypes[0]) * swarmvar->dofCount );
 
             return debug_dynamic_cast<const FunctionIO*>(_output);
         };

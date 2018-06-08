@@ -39,10 +39,10 @@ void LiveComponentRegisterSuite_TestGet( LiveComponentRegisterSuiteData* data ) 
    float* array;
    Triple* structArray;
 
-   Variable* var;
-   Variable* vec;
-   Variable* vecVar[3];
-   Variable* tempVar = NULL;
+   StgVariable* var;
+   StgVariable* vec;
+   StgVariable* vecVar[3];
+   StgVariable* tempVar = NULL;
    Index length = 10;
 
    Variable_Register* reg;
@@ -52,19 +52,19 @@ void LiveComponentRegisterSuite_TestGet( LiveComponentRegisterSuiteData* data ) 
 
    reg = Variable_Register_New();
 
-   var = Variable_NewScalar(
+   var = StgVariable_NewScalar(
       "Scalar",
 		NULL,
-      Variable_DataType_Float,
+      StgVariable_DataType_Float,
       &length,
       NULL,
       (void**)&array,
       reg );
 
-   vec = Variable_NewVector(
+   vec = StgVariable_NewVector(
       "Three",
 		NULL,
-      Variable_DataType_Float,
+      StgVariable_DataType_Float,
       3,
       &length,
       NULL,
@@ -86,19 +86,19 @@ void LiveComponentRegisterSuite_TestGet( LiveComponentRegisterSuiteData* data ) 
    LiveComponentRegister_Add( data->lcRegister, (Stg_Component*) vecVar[1] );
    LiveComponentRegister_Add( data->lcRegister, (Stg_Component*) vecVar[2] );
 
-   tempVar = (Variable*) LiveComponentRegister_Get( data->lcRegister, (Name)"Scalar" );
+   tempVar = (StgVariable*) LiveComponentRegister_Get( data->lcRegister, (Name)"Scalar" );
    pcu_check_true( tempVar == var );
 
-   tempVar = (Variable* ) LiveComponentRegister_Get( LiveComponentRegister_GetLiveComponentRegister(), (Name)"Three" );
+   tempVar = (StgVariable* ) LiveComponentRegister_Get( LiveComponentRegister_GetLiveComponentRegister(), (Name)"Three" );
    pcu_check_true( tempVar == vec );
 
-   tempVar = (Variable* ) LiveComponentRegister_Get( data->lcRegister, (Name)"a" );
+   tempVar = (StgVariable* ) LiveComponentRegister_Get( data->lcRegister, (Name)"a" );
    pcu_check_true( tempVar == vecVar[0] );
 
-   tempVar = (Variable* ) LiveComponentRegister_Get( data->lcRegister, (Name)"b" );
+   tempVar = (StgVariable* ) LiveComponentRegister_Get( data->lcRegister, (Name)"b" );
    pcu_check_true( tempVar == vecVar[1] );
 
-   tempVar = (Variable* ) LiveComponentRegister_Get( data->lcRegister, (Name)"c" );
+   tempVar = (StgVariable* ) LiveComponentRegister_Get( data->lcRegister, (Name)"c" );
    pcu_check_true( tempVar == vecVar[2] );
 }
 

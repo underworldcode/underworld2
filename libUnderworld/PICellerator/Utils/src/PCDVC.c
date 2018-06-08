@@ -1105,12 +1105,12 @@ void _PCDVC_Calculate( void* pcdvc, void* _swarm, Cell_LocalIndex lCell_I ){
         for( v_i = 0; v_i < swarm->nSwarmVars; v_i++ )
         {
             if( swarm->swarmVars[v_i]->variable )
-                Variable_Update( swarm->swarmVars[v_i]->variable );
+                StgVariable_Update( swarm->swarmVars[v_i]->variable );
         }
         for( v_i = 0; v_i < self->materialPointsSwarm->nSwarmVars; v_i++ )
         {
             if( self->materialPointsSwarm->swarmVars[v_i]->variable )
-                Variable_Update( self->materialPointsSwarm->swarmVars[v_i]->variable );
+                StgVariable_Update( self->materialPointsSwarm->swarmVars[v_i]->variable );
         }
 
     }

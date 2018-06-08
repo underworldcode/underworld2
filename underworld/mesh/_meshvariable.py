@@ -151,7 +151,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         >>> scalarFeVar.data[100]
         array([ 15.333])
         """
-        return libUnderworld.StGermain.Variable_getAsNumpyArray(self._cmeshvariable)
+        return libUnderworld.StGermain.StgVariable_getAsNumpyArray(self._cmeshvariable)
 
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method

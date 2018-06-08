@@ -85,8 +85,8 @@ void _Variable_Register_Init(void* variable_Register)
 	self->count = 0;
 	self->_size = 8;
 	self->_delta = 8;
-	self->_variable = Memory_Alloc_Array( Variable*, self->_size, "Variable_Register->_variable" );
-	memset(self->_variable, 0, sizeof(Variable*)*self->_size);
+	self->_variable = Memory_Alloc_Array( StgVariable*, self->_size, "Variable_Register->_variable" );
+	memset(self->_variable, 0, sizeof(StgVariable*)*self->_size);
 	self->errorStream = Journal_Register( Error_Type, self->type );
 }
 
@@ -124,7 +124,7 @@ void _Variable_Register_Print(void* variable_Register, Stream* stream)
 	Journal_Printf( variable_RegisterStream, "\t_variable (ptr): %p\n", self->_variable);
 	if (self->_variable)
 	{
-		Variable_Index	var_I;
+		StgVariable_Index	var_I;
 		
 		for (var_I = 0; var_I < self->count; var_I++)
 			Stg_Class_Print(self->_variable[var_I], stream);
@@ -145,12 +145,12 @@ void* _Variable_Register_Copy( void* vr, void* dest, Bool deep, Name nameExt, Pt
 
 	newVariableRegister->count = self->count;
 	newVariableRegister->_size = self->_size;
-	newVariableRegister->_variable = Memory_Alloc_Array( Variable*, self->_size, "Variable_Register->_variable" );
-	memset(newVariableRegister->_variable, 0, sizeof(Variable*)*self->_size);
+	newVariableRegister->_variable = Memory_Alloc_Array( StgVariable*, self->_size, "Variable_Register->_variable" );
+	memset(newVariableRegister->_variable, 0, sizeof(StgVariable*)*self->_size);
 
 	for ( ii = 0; ii < self->count; ++ii ) {
-		if ( (newVariableRegister->_variable[ii] = (Variable*)PtrMap_Find( ptrMap, self->_variable[ii] )) == NULL ) {
-			newVariableRegister->_variable[ii] = (Variable*)Stg_Class_Copy( self->_variable[ii], NULL, deep, nameExt, ptrMap );
+		if ( (newVariableRegister->_variable[ii] = (StgVariable*)PtrMap_Find( ptrMap, self->_variable[ii] )) == NULL ) {
+			newVariableRegister->_variable[ii] = (StgVariable*)Stg_Class_Copy( self->_variable[ii], NULL, deep, nameExt, ptrMap );
 		}
 	}
 
@@ -172,19 +172,19 @@ void* _Variable_Register_Copy( void* vr, void* dest, Bool deep, Name nameExt, Pt
 ** Build functions
 */
 
-Variable_Index Variable_Register_Add(void* variable_Register, Variable* variable)
+StgVariable_Index Variable_Register_Add(void* variable_Register, StgVariable* variable)
 {
 	Variable_Register*	self = (Variable_Register*)variable_Register;
-	Variable_Index		handle;
+	StgVariable_Index		handle;
 	
 	if (self->count >= self->_size)
 	{
 		SizeT currentSize = self->_size;
 
 		self->_size += self->_delta;
-		self->_variable = Memory_Realloc_Array( self->_variable, Variable*, self->_size );
-		memset( (Pointer)((ArithPointer)self->_variable + (currentSize * sizeof(Variable*)) ), 0, 
-			sizeof(Variable*) * (self->_size - currentSize) );
+		self->_variable = Memory_Realloc_Array( self->_variable, StgVariable*, self->_size );
+		memset( (Pointer)((ArithPointer)self->_variable + (currentSize * sizeof(StgVariable*)) ), 0, 
+			sizeof(StgVariable*) * (self->_size - currentSize) );
 	}
 	
 	handle = self->count++;
@@ -197,7 +197,7 @@ Variable_Index Variable_Register_Add(void* variable_Register, Variable* variable
 void Variable_Register_BuildAll(void* variable_Register)
 {
 	Variable_Register*	self = (Variable_Register*)variable_Register;
-	Variable_Index		var_I;
+	StgVariable_Index		var_I;
 	
 	for (var_I = 0; var_I < self->count; var_I++)
 		Stg_Component_Build( self->_variable[var_I], 0, False );
@@ -208,10 +208,10 @@ void Variable_Register_BuildAll(void* variable_Register)
 ** Functions
 */
 
-Variable_Index Variable_Register_GetIndex(void* variable_Register, Name name)
+StgVariable_Index Variable_Register_GetIndex(void* variable_Register, Name name)
 {
 	Variable_Register*	self = (Variable_Register*)variable_Register;
-	Variable_Index		var_I;
+	StgVariable_Index		var_I;
 	
 	for (var_I = 0; var_I < self->count; var_I++)
 	{
@@ -219,23 +219,23 @@ Variable_Index Variable_Register_GetIndex(void* variable_Register, Name name)
 			return var_I;
 	}
 	
-	return (Variable_Index)-1;
+	return (StgVariable_Index)-1;
 }
 
 
-Variable* Variable_Register_GetByName(void* variable_Register, Name name)
+StgVariable* Variable_Register_GetByName(void* variable_Register, Name name)
 {
 	Variable_Register*	self = (Variable_Register*)variable_Register;
-	Variable_Index		varIndex;
+	StgVariable_Index		varIndex;
 	
-	if( (varIndex = Variable_Register_GetIndex( self, name )) != (Variable_Index)-1 )
+	if( (varIndex = Variable_Register_GetIndex( self, name )) != (StgVariable_Index)-1 )
 		return self->_variable[varIndex];
 	
 	return NULL;
 }
 
 
-Variable* Variable_Register_GetByIndex(void* variable_Register, Variable_Index varIndex ) {
+StgVariable* Variable_Register_GetByIndex(void* variable_Register, StgVariable_Index varIndex ) {
 	Variable_Register*	self = (Variable_Register*)variable_Register;
 	Journal_DFirewall(  (varIndex < self->count), self->errorStream,
 		"Error: Given variable index %d not between 0 and variable count %d.\n",

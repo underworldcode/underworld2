@@ -42,12 +42,12 @@ MeshVariable* MeshVariable_New( Name name ) {
 	Stg_Component_DestroyFunction*                        _destroy = _MeshVariable_Destroy;
 	Index                                                dataCount = 0;
 	SizeT*                                             dataOffsets = NULL;
-	Variable_DataType*                                   dataTypes = NULL;
+	StgVariable_DataType*                                   dataTypes = NULL;
 	Index*                                          dataTypeCounts = NULL;
 	Name*                                                dataNames = NULL;
 	SizeT*                                           structSizePtr = NULL;
 	Index*                                            arraySizePtr = NULL;
-	Variable_ArraySizeFunc*                          arraySizeFunc = NULL;
+	StgVariable_ArraySizeFunc*                          arraySizeFunc = NULL;
 	void**                                             arrayPtrPtr = NULL;
 	Variable_Register*                                          vr = NULL;
 
@@ -66,7 +66,7 @@ MeshVariable* _MeshVariable_New(  MESHVARIABLE_DEFARGS  ) {
 	
 	/* Allocate memory */
 	assert( _sizeOfSelf >= sizeof(MeshVariable) );
-	self = (MeshVariable*)_Variable_New(  VARIABLE_PASSARGS  );
+	self = (MeshVariable*)_StgVariable_New(  VARIABLE_PASSARGS  );
 
 	/* Virtual info */
 
@@ -87,7 +87,7 @@ void _MeshVariable_Delete( void* meshVariable ) {
 	MeshVariable*	self = (MeshVariable*)meshVariable;
 
 	/* Delete the parent. */
-	_Variable_Delete( self );
+	_StgVariable_Delete( self );
 }
 
 void _MeshVariable_Print( void* meshVariable, Stream* stream ) {
@@ -99,13 +99,13 @@ void _MeshVariable_Print( void* meshVariable, Stream* stream ) {
 
 	/* Print parent */
 	Journal_Printf( stream, "MeshVariable (ptr): (%p)\n", self );
-	_Variable_Print( self, stream );
+	_StgVariable_Print( self, stream );
 }
 
 void _MeshVariable_AssignFromXML( void* meshVariable, Stg_ComponentFactory* cf, void* data ) {
 	MeshVariable*		self = (MeshVariable*)meshVariable;
 	SizeT					dataOffsets[] = { 0 };
-	Variable_DataType	dataTypes[] = { 0 };		/* Init value later */
+	StgVariable_DataType	dataTypes[] = { 0 };		/* Init value later */
 	Index					dataTypeCounts[] = { 1 };
 	Dictionary*			componentDict = NULL;
 	Dictionary*			thisComponentDict = NULL;
@@ -142,15 +142,15 @@ void _MeshVariable_AssignFromXML( void* meshVariable, Stg_ComponentFactory* cf, 
 	/* Get Type of Variable */
 	dataTypeName = Dictionary_GetString( thisComponentDict, (Dictionary_Entry_Key)"DataType"  );
 	if ( !strcasecmp( dataTypeName, "Double" ) )
-		dataTypes[0] = Variable_DataType_Double;
+		dataTypes[0] = StgVariable_DataType_Double;
 	else if ( !strcasecmp( dataTypeName, "Float" ) )
-		dataTypes[0] = Variable_DataType_Float;
+		dataTypes[0] = StgVariable_DataType_Float;
 	else if ( !strcasecmp( dataTypeName, "Int" ) )
-		dataTypes[0] = Variable_DataType_Int;
+		dataTypes[0] = StgVariable_DataType_Int;
 	else if ( !strcasecmp( dataTypeName, "Char" ) )
-		dataTypes[0] = Variable_DataType_Char;
+		dataTypes[0] = StgVariable_DataType_Char;
 	else if ( !strcasecmp( dataTypeName, "Short" ) )
-		dataTypes[0] = Variable_DataType_Short;
+		dataTypes[0] = StgVariable_DataType_Short;
 	else 
 		Journal_Firewall( False, error, "Variable '%s' cannot understand data type '%s'\n", self->name, dataTypeName );
 
@@ -182,8 +182,8 @@ void _MeshVariable_AssignFromXML( void* meshVariable, Stg_ComponentFactory* cf, 
 	else
 		Journal_Firewall( False, error, "Variable '%s' cannot understand rank '%s'\n", self->name, rankName );
 
-	_Variable_Init(
-                  (Variable*)self,
+	_StgVariable_Init(
+                  (StgVariable*)self,
                            context,
                                  1,
                        dataOffsets,
@@ -211,7 +211,7 @@ void _MeshVariable_Build( void* meshVariable, void* data ) {
 	 *  to ask for the Mesh Size etc. */	
 	Stg_Component_Build( self->mesh, data, False );
 
-	_Variable_Build( self, data );
+	_StgVariable_Build( self, data );
 }
 
 void _MeshVariable_Initialise( void* meshVariable, void* data ) {
@@ -229,7 +229,7 @@ void _MeshVariable_Destroy( void* meshVariable, void* data ) {
    if( self->mesh && List_Exists( self->mesh->vars, self ) )
        List_Remove( self->mesh->vars, self );
 
-   _Variable_Destroy( self, data );
+   _StgVariable_Destroy( self, data );
 }
 
 /*--------------------------------------------------------------------------------------------------------------------------
