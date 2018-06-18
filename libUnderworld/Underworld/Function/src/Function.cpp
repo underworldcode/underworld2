@@ -39,13 +39,13 @@ Fn::SafeMaths::func Fn::SafeMaths::getFunction( IOsptr sample_input )
         IOsptr _output = _func(input);
         // check for errors
         if(       std::fetestexcept(FE_DIVBYZERO) )
-            throw std::runtime_error("Divide by zero encountered while evaluating function.");
+            throw std::runtime_error("SafeMaths: Divide by zero encountered while evaluating function.");
         else if ( std::fetestexcept(FE_INVALID)   )
-            throw std::runtime_error("Invalid domain was encountered while evaluating function.");
+            throw std::runtime_error("SafeMaths: Invalid domain was encountered while evaluating function.");
         else if ( std::fetestexcept(FE_OVERFLOW)  )
-            throw std::runtime_error("Value overflow error was encountered while evaluating function.");
+            throw std::runtime_error("SafeMaths: Value overflow error was encountered while evaluating function.");
         else if ( std::fetestexcept(FE_UNDERFLOW) )
-            throw std::runtime_error("Value underflow error was encountered while evaluating function.");
+            throw std::runtime_error("SafeMaths: Value underflow error was encountered while evaluating function.");
         
         // ok, we got this far, let's continue
         return _output;
