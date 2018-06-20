@@ -43,7 +43,7 @@ class SafeMaths(_Function):
     >>> safedividebyzero.evaluate(0.)  # constant function, so eval anywhere
     Traceback (most recent call last):
     ...
-    RuntimeError: Divide by zero encountered while evaluating function.
+    RuntimeError: SafeMaths: Divide by zero encountered while evaluating function.
     
     
     """
