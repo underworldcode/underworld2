@@ -47,6 +47,11 @@ Fn::SafeMaths::func Fn::SafeMaths::getFunction( IOsptr sample_input )
                 ss << "   Value overflow";
             if( std::fetestexcept(FE_UNDERFLOW) )
                 ss << "   Value underflow";
+            
+            // restore original env before throwing
+            notsuccess = std::feupdateenv( &envp );
+            if (notsuccess)
+                throw std::runtime_error("Error in 'SafeMaths'. Please contact developers.");
             throw std::runtime_error(ss.str());
         }
         
