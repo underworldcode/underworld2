@@ -43,7 +43,6 @@ class SafeMaths(_Function):
     >>> safedividebyzero = fn.exception.SafeMaths(fn_dividebyzero)
     >>> safedividebyzero.evaluate()
     Traceback (most recent call last):
-        ...
     RuntimeError: SafeMaths function constructed at
 <BLANKLINE>
     0- doctefsts.py:11,
