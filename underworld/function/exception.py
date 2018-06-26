@@ -43,19 +43,9 @@ class SafeMaths(_Function):
     >>> safedividebyzero = fn.exception.SafeMaths(fn_dividebyzero)
     >>> safedividebyzero.evaluate()
     Traceback (most recent call last):
+        ...
     RuntimeError: SafeMaths function constructed at
-<BLANKLINE>
-    0- doctefsts.py:11,
-        res = doctest.testmod(mod)
-    0- doctest.py:1911,
-        runner.run(test)
-    0- doctest.py:1454,
-        return self.__run(test, compileflags, out)
-    0- doctest.py:1315,
-        compileflags, 1) in test.globs
-    0- <doctest underworld.function.exception.SafeMaths[5]>:1,
-        safedividebyzero = fn.exception.SafeMaths(fn_dividebyzero)
-<BLANKLINE>
+       --- FUNCTION CONSTRUCTION TIME STACK ---
     detected the following floating point exception(s), generated while evaluating its argument function:
        Divide by zero
     """

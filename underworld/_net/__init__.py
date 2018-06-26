@@ -39,7 +39,13 @@ def PostGAEvent( category, action, label=None, value=None ):
         Optional label for event.
     value: non-negative integer
         Optional value for event.
-        
+
+
+    Add the following test here to ensure we're catching out when we're
+    running from doctests to avoid dispatching metrics. 
+    >>> print('Running in doctest? {}'.format(uw._in_doctest()))
+    Running in doctest? True
+
 
     """
     try:

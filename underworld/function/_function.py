@@ -88,10 +88,10 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
         # may not be robust, so better to continue quietly if things
         # go awry.
         import underworld as uw
-#        if uw._in_doctest():
-#            # doctests don't play nice with stacks
-#            self._fncself.set_pystack("   --- FUNCTION CONSTRUCTION TIME STACK ---")
-#            return
+        if uw._in_doctest():
+            # doctests don't play nice with stacks
+            self._fncself.set_pystack("   --- FUNCTION CONSTRUCTION TIME STACK ---")
+            return
         from inspect import stack
         rank = str(uw.rank())+'- '
         stackstr = "\n"
