@@ -1,4 +1,4 @@
-FROM pawsey/mpi-base@sha256:3cd96b818c3a19cdbee3bbff542eeef8d6588b2aa8921dc76baa0a4a0c0d722b
+FROM pawsey/mpi-base:dev
 MAINTAINER https://github.com/underworldcode/
 
 # install things
