@@ -8,6 +8,7 @@ RUN apt-get update -qq && \
         build-essential \
         git \
         python \
+	wget \
         python-dev \
         python-pip \
         libxml2-dev \
