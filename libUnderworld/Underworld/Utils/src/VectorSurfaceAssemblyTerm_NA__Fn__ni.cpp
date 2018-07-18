@@ -65,6 +65,8 @@ void _VectorSurfaceAssemblyTerm_NA__Fn__ni_SetFn( void* _self, Fn::Function* fn 
     VectorAssemblyTerm_NA__Fn_cppdata* cppdata = (VectorAssemblyTerm_NA__Fn_cppdata*) self->cppdata;
     cppdata->fn = fn;
 
+    if( !self->forceVector )
+        throw std::invalid_argument( "Assembly term does not appear to have AssembledVector set." );
     FeMesh* mesh = self->forceVector->feVariable->feMesh;
     IntegrationPointsSwarm* swarm = (IntegrationPointsSwarm*)self->integrationSwarm;
     int expected_nbc_size = self->forceVector->feVariable->fieldComponentCount;
@@ -79,8 +81,6 @@ void _VectorSurfaceAssemblyTerm_NA__Fn__ni_SetFn( void* _self, Fn::Function* fn 
     const IO_double* iodub = dynamic_cast<const IO_double*>(sampleguy);
     if( !iodub )
         throw std::invalid_argument( "Assembly term expects functions to return 'double' type values." );
-    if( !self->forceVector )
-        throw std::invalid_argument( "Assembly term does not appear to have AssembledVector set." );
     if( iodub->size() != self->forceVector->feVariable->fieldComponentCount ) {
         std::stringstream ss;
         ss << "Assembly term expects function to return array of size " << expected_nbc_size << ".\n";

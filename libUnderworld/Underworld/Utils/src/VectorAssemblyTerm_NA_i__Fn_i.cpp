@@ -53,6 +53,8 @@ void _VectorAssemblyTerm_NA_i__Fn_i_SetFn( void* _self, Fn::Function* fn ){
     VectorAssemblyTerm_NA_i__Fn_i_cppdata* cppdata = (VectorAssemblyTerm_NA_i__Fn_i_cppdata*) self->cppdata;
     cppdata->fn = fn;
     
+    if( !self->forceVector )
+        throw std::invalid_argument( "Assembly term does not appear to have AssembledVector set." );
     FeMesh* mesh = self->forceVector->feVariable->feMesh;
     IntegrationPointsSwarm* swarm = (IntegrationPointsSwarm*)self->integrationSwarm;
 
@@ -64,8 +66,6 @@ void _VectorAssemblyTerm_NA_i__Fn_i_SetFn( void* _self, Fn::Function* fn ){
     // check output conforms
     const FunctionIO* sampleguy = cppdata->func(cppdata->input.get());
     const FunctionIO* io = dynamic_cast<const FunctionIO*>(sampleguy);
-    if( !self->forceVector )
-        throw std::invalid_argument( "Assembly term does not appear to have AssembledVector set." );
     if( io->size() != self->forceVector->dim ){
         std::stringstream ss;
         ss << "Assembly term expects function to return array of size " << self->forceVector->dim << ".\n";
