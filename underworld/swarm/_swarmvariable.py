@@ -288,7 +288,9 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         if dset.shape[0] != particleGobalCount:
             if rank == 0:
                 import warnings
-                warnings.warn("Warning, it appears {} particles were loaded, but this h5 variable has {} data points. Perhaps you restarting on a new mesh geometry?". format(particleGobalCount, dset.shape[0]), RuntimeWarning)
+                warnings.warn("Warning, it appears that the swarm has {} particles, but provided h5 file has {} data points. Please check that " \
+                              "both the Swarm and the SwarmVariable were saved at the same time, and that you have reloaded using " \
+                              "the correct files.". format(particleGobalCount, dset.shape[0]), RuntimeWarning)
 
         # for efficiency, we want to load swarmvariable data in the largest stride chunks possible.
         # we need to determine where required data is contiguous.
