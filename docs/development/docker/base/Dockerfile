@@ -57,7 +57,7 @@ RUN pip install --no-cache-dir setuptools wheel && \
         scipy && \
     CC=mpicc HDF5_MPI="ON" HDF5_DIR=/usr/lib/x86_64-linux-gnu/hdf5/openmpi/ pip install --no-cache-dir --no-binary=h5py h5py
 
-# ^^^ Note we choose an older version of ipython because it's tooltips work better.
+# ^^^ Note we choose an older version of ipython because its tooltips work better.
 #     Also, the system six is too old, so we upgrade for the pip version
 
 # Install Tini.. this is required because CMD (below) doesn't play nice with notebooks for some reason: https://github.com/ipython/ipython/issues/7062, https://github.com/jupyter/notebook/issues/334
