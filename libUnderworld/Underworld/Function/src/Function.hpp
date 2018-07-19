@@ -12,6 +12,7 @@
 
 #include <functional>
 #include <stdexcept>
+#include <iostream>
 
 #include "FunctionIO.hpp"
 
@@ -24,10 +25,10 @@ namespace Fn {
             typedef std::function<IOsptr( const IOsptr &input )> func;
             virtual func getFunction( IOsptr input )=0;
             virtual ~Function(){};
-            void set_pystack( char* pystack){_pystack = pystack;}
+            void set_pyfnerrorheader( char* pyfnerrorheader ){ _pyfnerrorheader = pyfnerrorheader; }
         protected:
-            Function(){};
-            std::string _pystack;  // this member records the python stack at construction time
+            Function(): _pyfnerrorheader("Error in function of class 'Function'\nError message:\n"){};
+            std::string _pyfnerrorheader;  // this member records the python stack error message at construction time
     };
 
     class Input: public Function

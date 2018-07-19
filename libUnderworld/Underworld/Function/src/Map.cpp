@@ -34,7 +34,7 @@ Fn::Map::func Fn::Map::getFunction( IOsptr sample_input )
     // now do test eval
     auto keyfuncout   = _keyFuncFunc( sample_input );
     if (keyfuncout->size() != 1)
-        throw std::invalid_argument( "Error setting up 'map' function.\nKey function appears to return a non-scalar value." );
+        throw std::invalid_argument( _pyfnerrorheader+"Error setting up 'map' function.\nKey function appears to return a non-scalar value." );
 
     // ensure correct default func
     int outputSize = -1;
@@ -47,7 +47,7 @@ Fn::Map::func Fn::Map::getFunction( IOsptr sample_input )
         // check if output castable to IO_double
         auto _defaultFuncOut = dynamic_cast<const IO_double*>(_defaultFuncFunc( sample_input ) );
         if (!_defaultFuncOut)
-            throw std::invalid_argument( "Error setting up 'map' function.\nDefault function does not appear to return a 'double' value, as required. "
+            throw std::invalid_argument( _pyfnerrorheader+"Error setting up 'map' function.\nDefault function does not appear to return a 'double' value, as required. "
                                          "Note that where the defaut Function you have constructed uses Python numeric objects, those objects "
                                          "must be of 'float' type (so for example '2.' instead of '2').");
 
@@ -68,24 +68,24 @@ Fn::Map::func Fn::Map::getFunction( IOsptr sample_input )
             if (!doubleio)
             {
                 std::stringstream ss;
-                ss << "Error setting up 'map' function.\n"
+                ss << "Error setting up 'map' function.\n";
                 ss << "Function with key " << ii << " does not appear to return a 'double' value. "
                                                     "The 'map' function currently only supports 'double' return values. "
                                                     "Note that where the Function you have constructed uses Python numeric "
                                                     "objects, those objects must be of 'float' type (so for example '2.'  "
                                                     "instead of '2').";
-                throw std::invalid_argument( ss.str());
+                throw std::invalid_argument( _pyfnerrorheader+ss.str());
             }
             if (outputSize != -1)
             {
                 if (outputSize != (int)doubleio->size())
                 {
                     std::stringstream ss;
-                    ss << "Error setting up 'map' function.\n"
+                    ss << "Error setting up 'map' function.\n";
                     ss << "Function with key " << ii <<" appears to return output\n";
                     ss << "of different size (" << doubleio->size() << ") to previous or default\n";
                     ss << "function (" << outputSize << ").";
-                    throw std::invalid_argument( ss.str() );
+                    throw std::invalid_argument( _pyfnerrorheader+ss.str() );
                 }
 
             }
@@ -99,11 +99,11 @@ Fn::Map::func Fn::Map::getFunction( IOsptr sample_input )
 
     // check that some func has been set!
     if (outputSize == -1)
-        throw std::invalid_argument( "It does not appear that any functions have been set for the 'map' function." );
+        throw std::invalid_argument( _pyfnerrorheader+"It does not appear that any functions have been set for the 'map' function." );
 
     // grab copy of this guy
     std::vector<bool>  isIndexInMap = _isIndexInMap;
-    return [_keyFuncFunc, _defaultFuncFunc, _funcfuncArray, isIndexInMap](IOsptr input)->IOsptr {
+    return [_keyFuncFunc, _defaultFuncFunc, _funcfuncArray, isIndexInMap, this](IOsptr input)->IOsptr {
         // evaluate key
         auto keyio = _keyFuncFunc( input );
         const unsigned key = keyio->at<unsigned>();
@@ -117,11 +117,11 @@ Fn::Map::func Fn::Map::getFunction( IOsptr sample_input )
         else
         {
             std::stringstream ss;
-            ss << "Error evaluating 'map' function.\n"
+            ss << "Error evaluating 'map' function.\n";
             ss << "Key function evaluates to key (" << key << ") which\n";
             ss << "does not appear to map to any functions, and no default function has been set.";
             // something aint right
-            throw std::runtime_error( ss.str() );
+            throw std::runtime_error( _pyfnerrorheader+ss.str() );
         }
     };
 }

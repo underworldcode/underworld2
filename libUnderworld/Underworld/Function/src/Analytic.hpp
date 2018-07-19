@@ -67,7 +67,7 @@ namespace Fn {
                     };
                 }
                 // if we get here, something aint right
-                throw std::invalid_argument("Function does not appear to be compatible with provided input type.");
+                throw std::invalid_argument(_pyfnerrorheader+"Function does not appear to be compatible with provided input type.");
             };
         private:
             T* _sol;
@@ -98,7 +98,7 @@ namespace Fn {
                     viscosityFn  = new _Analytic<T, 1, FunctionIO::Scalar         >(selfGuy,&T::viscosity);
                     bodyForceFn  = new _Analytic<T, 3, FunctionIO::Vector         >(selfGuy,&T::bodyforce);
                 } else
-                    throw std::invalid_argument("Solution appears to have invalid dimensionality.");
+                    throw std::invalid_argument(_pyfnerrorheader+"Solution appears to have invalid dimensionality.");
             };
             Function *velocityFn;
             Function *pressureFn;

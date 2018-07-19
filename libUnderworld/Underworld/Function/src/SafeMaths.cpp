@@ -19,14 +19,13 @@ Fn::SafeMaths::func Fn::SafeMaths::getFunction( IOsptr sample_input )
     func _func = _fn->getFunction( sample_input );
     
     // create and return the lambda
-    auto pystack = _pystack;
-    return [_func, pystack](IOsptr input)->IOsptr {
+    return [_func, this](IOsptr input)->IOsptr {
         std::fenv_t envp;
         
         // record and then clear existing fenv
         int notsuccess = std::feholdexcept( &envp ) ;
         if (notsuccess)
-            throw std::runtime_error("Error in 'SafeMaths'. Please contact developers.");
+            throw std::runtime_error(_pyfnerrorheader + "Unknown error. Please contact developers.");
         
         // perform func
         IOsptr _output = _func(input);
@@ -35,10 +34,7 @@ Fn::SafeMaths::func Fn::SafeMaths::getFunction( IOsptr sample_input )
         {
             
             std::stringstream ss;
-            ss << "SafeMaths function constructed at\n";
-            ss << pystack;
-
-            ss << "\ndetected the following floating point exception(s), generated while evaluating its argument function:\n";
+            ss << "Floating point exception(s) encountered while evaluating SafeMaths argument function:\n";
             if( std::fetestexcept(FE_DIVBYZERO) )
                 ss << "   Divide by zero";
             if( std::fetestexcept(FE_INVALID)   )
@@ -51,14 +47,14 @@ Fn::SafeMaths::func Fn::SafeMaths::getFunction( IOsptr sample_input )
             // restore original env before throwing
             notsuccess = std::feupdateenv( &envp );
             if (notsuccess)
-                throw std::runtime_error("Error in 'SafeMaths'. Please contact developers.");
-            throw std::runtime_error(ss.str());
+                throw std::runtime_error(_pyfnerrorheader + "Unknown error. Please contact developers.");
+            throw std::runtime_error(_pyfnerrorheader + ss.str());
         }
         
         // ok, we got this far, restore fenv and continue
         notsuccess = std::feupdateenv( &envp );
         if (notsuccess)
-            throw std::runtime_error("Error in 'SafeMaths'. Please contact developers.");
+            throw std::runtime_error(_pyfnerrorheader + "Unknown error. Please contact developers.");
         
         return _output;
     };

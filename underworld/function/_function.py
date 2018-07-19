@@ -88,21 +88,24 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
         # may not be robust, so better to continue quietly if things
         # go awry.
         import underworld as uw
-        if uw._in_doctest():
-            # doctests don't play nice with stacks
-            self._fncself.set_pystack("   --- FUNCTION CONSTRUCTION TIME STACK ---")
-            return
         from inspect import stack
         rank = str(uw.rank())+'- '
-        stackstr = "\n"
+        strguy = "Error in function of class '{}'".format(self.__class__.__name__)
         try:
-            for item in stack()[2:7][::-1]:
-                stackstr += rank+item[1]+':'+str(item[2]) + ',\n'
-                if item[4]:
-                    stackstr += "    " + item[4][0].lstrip()
-            self._fncself.set_pystack(str(stackstr))
+            if uw._in_doctest():
+                # doctests don't play nice with stacks
+                stackstr = "   --- CONSTRUCTION TIME STACK ---"
+            else:
+                stackstr = ""
+                for item in stack()[2:][::-1]:
+                    stackstr += rank+item[1]+':'+str(item[2]) + ',\n'
+                    if item[4]:
+                        stackstr += "    " + item[4][0].lstrip()
+            strguy += " constructed at:\n{}\nError message:\n".format(str(stackstr))
         except:
-            self._fncself.set_pystack("   Unable to extract stack information")
+            pass
+
+        self._fncself.set_pyfnerrorheader(strguy)
 
 
 

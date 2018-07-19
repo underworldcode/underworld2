@@ -44,9 +44,10 @@ class SafeMaths(_Function):
     >>> safedividebyzero.evaluate()
     Traceback (most recent call last):
         ...
-    RuntimeError: SafeMaths function constructed at
-       --- FUNCTION CONSTRUCTION TIME STACK ---
-    detected the following floating point exception(s), generated while evaluating its argument function:
+    RuntimeError: Error in function of class 'SafeMaths' constructed at:
+       --- CONSTRUCTION TIME STACK ---
+    Error message:
+    Floating point exception(s) encountered while evaluating SafeMaths argument function:
        Divide by zero
     """
     
@@ -102,7 +103,10 @@ class CustomException(_Function):
     >>> failing_one.evaluate()
     Traceback (most recent call last):
     ...
-    RuntimeError: CustomException condition function has evaluated to False for current input!
+    RuntimeError: Error in function of class 'CustomException' constructed at:
+       --- CONSTRUCTION TIME STACK ---
+    Error message:
+    CustomException condition function has evaluated to False for current input!
     
     Now with printing
 
@@ -110,7 +114,10 @@ class CustomException(_Function):
     >>> failing_one_by_five.evaluate()
     Traceback (most recent call last):
     ...
-    RuntimeError: CustomException condition function has evaluated to False for current input!
+    RuntimeError: Error in function of class 'CustomException' constructed at:
+       --- CONSTRUCTION TIME STACK ---
+    Error message:
+    CustomException condition function has evaluated to False for current input!
     Print function returns the following values (cast to double precision):
         ( 5 )
     

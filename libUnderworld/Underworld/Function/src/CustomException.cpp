@@ -22,7 +22,7 @@ Fn::CustomException::func Fn::CustomException::getFunction( IOsptr sample_input 
     // need to ensure func_condition returns a bool
     auto condition_output = dynamic_cast<const IO_bool*>(func_condition( sample_input ));
     if (!condition_output)
-        throw std::invalid_argument( "CustomException condition function does not appear to \
+        throw std::invalid_argument( _pyfnerrorheader+"CustomException condition function does not appear to \
                                     return a Bool type output as required." );
     
     // print guy
@@ -31,7 +31,7 @@ Fn::CustomException::func Fn::CustomException::getFunction( IOsptr sample_input 
         func_print = _fn_print->getFunction( sample_input );
     
     // create and return the lambda
-    return [ func_input, func_condition, func_print ](IOsptr input)->IOsptr {
+    return [ func_input, func_condition, func_print, this ](IOsptr input)->IOsptr {
         
         // now lets evaluate our condition function and check its output
         const IO_bool* condition_output = debug_dynamic_cast<const IO_bool*>(func_condition(input));
@@ -47,7 +47,7 @@ Fn::CustomException::func Fn::CustomException::getFunction( IOsptr sample_input 
                     ss << ", " << print_output->at<double>(ii);
                 ss << " )";
             }
-            throw std::runtime_error(ss.str());
+            throw std::runtime_error(_pyfnerrorheader+ss.str());
         }
         
         // ok, we got this far, let's continue.. return the result

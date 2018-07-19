@@ -25,7 +25,7 @@ extern "C" {
 Fn::SwarmVariableFn::SwarmVariableFn( void* swarmvariable ):Function(), _swarmvariable(swarmvariable){
     // setup output
     if(!Stg_Class_IsInstance( _swarmvariable, SwarmVariable_Type ))
-        throw std::invalid_argument("Provided 'swarmavariable' does not appear to be of 'SwarmVariable' type.");
+        throw std::invalid_argument(_pyfnerrorheader+"Provided 'swarmavariable' does not appear to be of 'SwarmVariable' type.");
 
 }
 
@@ -53,7 +53,7 @@ Fn::SwarmVariableFn::func Fn::SwarmVariableFn::getFunction( IOsptr sample_input 
             _output_sp = std::make_shared<IO_short>(swarmvar->dofCount, FunctionIO::Array);
 			break;
 		default:
-			throw std::invalid_argument( "SwarmVariable datatype does not appear to be supported." );
+			throw std::invalid_argument( _pyfnerrorheader+"SwarmVariable datatype does not appear to be supported." );
 	}
     FunctionIO* _output = _output_sp.get();
 
@@ -73,11 +73,11 @@ Fn::SwarmVariableFn::func Fn::SwarmVariableFn::getFunction( IOsptr sample_input 
     {
         const ParticleInCellCoordinate* partCoord = dynamic_cast<const ParticleInCellCoordinate*>(meshCoord->localCoord());
         if (!partCoord)
-            throw std::invalid_argument( "Provided 'FEMCoordinate' input to SwarmVariableFn does not appear to have 'ParticleInCellCoordinate' type local coordinate." );
+            throw std::invalid_argument( _pyfnerrorheader+"Provided 'FEMCoordinate' input to SwarmVariableFn does not appear to have 'ParticleInCellCoordinate' type local coordinate." );
 
         
         // return the lambda
-        return [_output, _output_sp, swarmvar](IOsptr input)->IOsptr {
+        return [_output, _output_sp, swarmvar,this](IOsptr input)->IOsptr {
             const FEMCoordinate*            meshCoord = debug_dynamic_cast<const FEMCoordinate*>(input);
             const ParticleInCellCoordinate* partCoord = debug_dynamic_cast<const ParticleInCellCoordinate*>(meshCoord->localCoord());
             
@@ -90,7 +90,7 @@ Fn::SwarmVariableFn::func Fn::SwarmVariableFn::getFunction( IOsptr sample_input 
 
             if ( swarmVarLocalIndex == (unsigned)-1 )
             {
-                throw std::domain_error(  "Error occurred while trying to evaluate swarm variable. "\
+                throw std::domain_error(  _pyfnerrorheader+"Error occurred while trying to evaluate swarm variable. "\
                                            "This can occur when there are no particles found in a given element. "\
                                            "You may wish to add population control mechanisms. "\
                                            "Please contact developers if this does not appear to be the issue." );
@@ -109,7 +109,7 @@ Fn::SwarmVariableFn::func Fn::SwarmVariableFn::getFunction( IOsptr sample_input 
     if (partCoord)
     {
         if (((SwarmVariable*)partCoord->object())->swarm != swarmvar->swarm)
-            throw std::invalid_argument( "'ParticleCoordinate' input and `SwarmVariableFn` function appear to be based on different swarms." );
+            throw std::invalid_argument( _pyfnerrorheader+"'ParticleCoordinate' input and `SwarmVariableFn` function appear to be based on different swarms." );
         // return the lambda
         return [_output, _output_sp, swarmvar](IOsptr input)->IOsptr {
             const ParticleCoordinate*  partCoord = debug_dynamic_cast<const ParticleCoordinate*>(input);
@@ -124,7 +124,7 @@ Fn::SwarmVariableFn::func Fn::SwarmVariableFn::getFunction( IOsptr sample_input 
         };
     }
     
-    throw std::invalid_argument( "Provided input to SwarmVariableFn does not appear to be of supported type. "
+    throw std::invalid_argument( _pyfnerrorheader+"Provided input to SwarmVariableFn does not appear to be of supported type. "
                                  "Supported types are 'FEMCoordinate' and 'ParticleCoordinate'. "
                                  "From Python, these are provided by respectively 'VoronoiIntegrationSwarm' "
                                  "and 'Swarm' type `FunctionInput` objects. " );
