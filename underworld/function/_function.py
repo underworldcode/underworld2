@@ -97,7 +97,7 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
                 stackstr = "   --- CONSTRUCTION TIME STACK ---"
             else:
                 stackstr = ""
-                for item in stack()[2:][::-1]:
+                for item in stack()[2:7][::-1]:
                     stackstr += rank+item[1]+':'+str(item[2]) + ',\n'
                     if item[4]:
                         stackstr += "    " + item[4][0].lstrip()
