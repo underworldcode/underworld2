@@ -25,7 +25,7 @@ namespace Fn
         :AnalyticCRTP<SolCx>(this,2), viscosityA(viscosityA), viscosityB(viscosityB), xc(xc), nz(nz)
         {
             if( xc < 0.0 || xc > 1.0 )
-            throw std::invalid_argument( _pyfnerrorheader+"Valid range of xc values is [0,1]. Provided value was " + std::to_string(xc));
+            throw std::invalid_argument( "Valid range of xc values is [0,1]. Provided value was " + std::to_string(xc));
         }
         virtual ~SolCx(){};
         double   viscosityA;

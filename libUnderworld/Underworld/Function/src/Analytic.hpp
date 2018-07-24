@@ -98,7 +98,7 @@ namespace Fn {
                     viscosityFn  = new _Analytic<T, 1, FunctionIO::Scalar         >(selfGuy,&T::viscosity);
                     bodyForceFn  = new _Analytic<T, 3, FunctionIO::Vector         >(selfGuy,&T::bodyforce);
                 } else
-                    throw std::invalid_argument(_pyfnerrorheader+"Solution appears to have invalid dimensionality.");
+                    throw std::invalid_argument("Solution appears to have invalid dimensionality.");
             };
             Function *velocityFn;
             Function *pressureFn;
