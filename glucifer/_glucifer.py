@@ -728,17 +728,6 @@ class Figure(dict):
                 else:
                     print("... failed, skipping ...")
                     pass
-
-    def clear(self):
-        # DEPRECATE, remove for v2.4.0
-        raise RuntimeError("This method is now deprecated.\n" \
-                           "To obtain an empty figure just create a new one")
-
-    def __add__(self,drawing_object):
-        # DEPRECATE, remove for v2.4.0
-        raise RuntimeError("This method is now deprecated.\n" \
-                           "To add drawing objects to figures, use the append() method:\n" \
-                           "    someFigure.append(someDrawingObject)")
     
     def append(self,drawingObject):
         """
