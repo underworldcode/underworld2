@@ -22,7 +22,7 @@ Review issue tracker
 
 Documentation review 
 ====================
-* Review docstrings updates for deprication warnings.
+* Review docstrings updates for deprecation warnings.
 * Review ``docs/`` for style, relevance and updates.
 * Review ``docs/development/broken``, contents to be kept at a minimum.
 * Review ``docs/development/unsupported``, contents to be kept at a minimum.
@@ -30,7 +30,7 @@ Documentation review
 	- make sure builds are passing
 	- review latest content
 * Review top level README.md.
-* Review cheatsheet contents.
+* Review cheat sheet contents.
 
 Testing
 =======
