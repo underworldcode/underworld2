@@ -68,8 +68,7 @@ class Stokes(_stgermain.StgCompoundComponent):
         Function which reports a body force for the system.
         Function must return float values of identical dimensionality
         to the provided velocity variable.
-    fn_lambda : Removed use, fn_one_on_lambda instead
-    fn_minus_one_on_lambda: underworld.function.Function, Default = None
+    fn_minus_one_on_lambda : underworld.function.Function, Default = None
         Function which defines a non solenoidal velocity field via the relationship
         div(velocityField) = -fn_minus_one_on_lambda * pressurefield + fn_source
         When this is left as None a incompressible formulation of the stokes equation is formed, ie, div(velocityField) = 0.
@@ -106,10 +105,6 @@ class Stokes(_stgermain.StgCompoundComponent):
                  fn_lambda=None, fn_source=None, voronoi_swarm=None, conditions=[],
                 _removeBCs=True, _fn_viscosity2=None, _fn_director=None, fn_stresshistory=None, _fn_stresshistory=None,
                 _fn_v0=None, _fn_p0=None, _callback_post_solve=None, **kwargs):
-
-        # DEPRECATION ERROR
-        if fn_lambda != None:
-            raise TypeError( "The parameter 'fn_lambda' has been deprecated. It has been replaced by 'fn_one_on_lambda', a simpler input parameter." )
 
         if _fn_stresshistory:
             raise TypeError( "The parameter '_fn_stresshistory' has been updated to 'fn_stresshistory'." )
