@@ -1,37 +1,21 @@
-# To execute
-# python stokesSinker3D.py -elRes 9,9,9 ; $PETSC_DIR/lib/petsc/bin/petsc_gen_xdmf.py sol.h5; $PETSC_DIR/lib/petsc/bin/petsc_gen_xdmf.py aux.h5
-
 import underworld as uw
 from underworld import libUnderworld
 from libUnderworld import petsc_layer as pl
 from underworld import function as fn
 import numpy as np
 
-class Poisson(object):
-    def __init__(self, elementRes=None, filename=None, dim=3, forceTerm=0.):
-        self._filename = filename
-        self.dim = dim
-        zero = (0.,)
-        
-        self._cmodel = pl.PoissonModel_Setup( filename )
-        
-        self.fn_temperature = fn.misc.constant(zero*dim)
-        pl.prob_fnSetter(self._cmodel, 0, self.fn_temperature._fncself )
+model = uw.systems.pl_PoissonModel()
 
-    def SetRHS(self, forceTerm):
-        self.fn_forceTerm = uw.function.Function.convert(forceTerm)
-        if not isinstance( self.fn_forceTerm, uw.function.Function):
-            raise TypeError( "Provided 'forceTerm' must be of or convertible to 'Function' class." )
-        # make the c function delete the previous version of themselves
-        pl.StokesModel_SetForceTerm( self._cmodel, self.fn_forceTerm._fncself)
-    
-    def Solve(self):
-        pl.PoissonModel_Solve(self._cmodel)
+# these following 2 fn are made available by the model
+temperature  = model.fn_temperature
 
-model = Poisson(filename=None)
+'''
+PI = fn.misc.constant(3.14159265359)
+my_k = fn.math.sin( PI * ( fn_r / 5. - 1. ) )
+'''
 
-someFn = fn.misc.constant(-1.)
-model.SetRHS(forceTerm = someFn)
+someFn = fn.misc.constant(-1)
+fn_r = fn.math.sqrt( fn.math.dot( fn.coord(), fn.coord() ) )
+fn_r2 = fn.math.dot( fn.coord(), fn.coord() )
 
-model.Solve()
-
+model.Solve(fn_k=fn_r, fn_f=1., fn_dBC_inner=2., fn_dBC_outer=0.)

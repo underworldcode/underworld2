@@ -18,7 +18,66 @@
 
 AppCtx petscApp;
 
-void StokesModel_SetViscosityFn(AppCtx* self,Fn::Function* fn) {
+void PoissonModel_SetFns(AppCtx* self, Fn::Function* fn_0,  Fn::Function* fn_1,
+                          Fn::Function* fn_2, Fn::Function* fn_3 ) {
+  PetscInt dof;
+  DM       *dm = &(self->dm);
+  PetscDS  prob;
+  PetscFE  fe;
+  PetscSpace sp;
+
+  // just to get the dof count of given equation unknown
+  DMGetDS(*dm, &prob);
+  PetscDSGetDiscretization(prob, 0, (PetscObject*)&fe);
+  PetscFEGetBasisSpace(fe, &sp);
+  PetscSpaceGetNumComponents(sp, &dof);
+
+  /* create input */
+  std::shared_ptr<IO_double> input = std::make_shared<IO_double>(3, FunctionIO::Vector);
+  
+  /* test if input it works */
+  if( fn_0 ) {
+    auto func = fn_0->getFunction(input.get());
+    const FunctionIO* io = dynamic_cast<const FunctionIO*>(func(input.get()));
+    if( !io )
+      throw std::invalid_argument("Provided fn_0 does not appear to return a valid result.");
+    
+    self->fn_coeff = func;
+  }
+
+  if( fn_1 ) {
+    auto func = fn_1->getFunction(input.get());
+    const FunctionIO* io = dynamic_cast<const FunctionIO*>(func(input.get()));
+    if( !io )
+      throw std::invalid_argument("Provided fn_1 does not appear to return a valid result.");
+    if( io->size() != dof ) {
+      throw std::invalid_argument("Provided fn_1 appears to have a different dimensionality to the petsc problem");
+    }
+    
+    self->fn_forceTerm = func;
+  }
+
+  if( fn_2 ) {
+    auto func = fn_2->getFunction(input.get());
+    const FunctionIO* io = dynamic_cast<const FunctionIO*>(func(input.get()));
+    if( !io )
+      throw std::invalid_argument("Provided fn_2 does not appear to return a valid result.");
+    
+    self->fn_outer_dBC = func;
+  } 
+
+  if( fn_3 ) {
+    auto func = fn_3->getFunction(input.get());
+    const FunctionIO* io = dynamic_cast<const FunctionIO*>(func(input.get()));
+    if( !io )
+      throw std::invalid_argument("Provided fn_3 does not appear to return a valid result.");
+    
+    self->fn_inner_dBC = func;
+  }
+
+}
+
+void StokesModel_SetCoeffFn(AppCtx* self,Fn::Function* fn) {
   /* create input */
   std::shared_ptr<IO_double> input = std::make_shared<IO_double>(3, FunctionIO::Vector);
   
@@ -29,11 +88,11 @@ void StokesModel_SetViscosityFn(AppCtx* self,Fn::Function* fn) {
     throw std::invalid_argument("Provided function does not appear to return a valid result.");
   
   /* setup function, could I just give func */
-  //self->fn_viscosity = fn->getFunction(input.get());
-  self->fn_viscosity = func;
+  self->fn_coeff = func;
 }
 
-void StokesModel_SetForceTerm(AppCtx* self,Fn::Function* fn) {
+
+void StokesModel_SetForceFn(AppCtx* self,Fn::Function* fn) {
   PetscInt dim;
   DM       *dm = &(self->dm);
   PetscDS  prob;
@@ -85,6 +144,46 @@ PetscErrorCode one_scalar(PetscInt dim, PetscReal time, const PetscReal coords[]
   return 0;
 }
 
+PetscErrorCode inner_dbc(PetscInt dim, PetscReal time, const PetscReal coords[], 
+                                  PetscInt Nf, PetscScalar *u, void *ctx)
+{
+  AppCtx *self = &petscApp;
+  PetscInt size,i; 
+
+  /* create input */
+  std::shared_ptr<IO_double> input = self->input;
+  memcpy(input->data(), coords, 3*sizeof(double));
+  
+  /* perform function evaluation and apply*/
+  const FunctionIO* output = debug_dynamic_cast<const FunctionIO*>(self->fn_inner_dBC(input.get()));
+  size = output->size(); //retrieve output size
+  for( i = 0; i < size; i++ ) {
+    u[i] = output->at<double>(i);
+  }
+
+  return 0;
+}
+
+PetscErrorCode outer_dbc(PetscInt dim, PetscReal time, const PetscReal coords[], 
+                                  PetscInt Nf, PetscScalar *u, void *ctx)
+{
+  AppCtx *self = &petscApp;
+  PetscInt size,i; 
+
+  /* create input */
+  std::shared_ptr<IO_double> input = self->input;
+  memcpy(input->data(), coords, 3*sizeof(double));
+  
+  /* perform function evaluation and apply*/
+  const FunctionIO* output = debug_dynamic_cast<const FunctionIO*>(self->fn_outer_dBC(input.get()));
+  size = output->size(); //retrieve output size
+  for( i = 0; i < size; i++ ) {
+    u[i] = output->at<double>(i);
+  }
+
+  return 0;
+}
+
 PetscErrorCode zero_scalar(PetscInt dim, PetscReal time, const PetscReal coords[], 
                                   PetscInt Nf, PetscScalar *u, void *ctx)
 {
@@ -98,6 +197,25 @@ PetscErrorCode x_only_vector(PetscInt dim, PetscReal time, const PetscReal coord
   u[0] = 1;
   u[1] = 1;
   u[2] = 1;
+  return 0;
+}
+
+PetscErrorCode coeff_scalar(PetscInt dim, PetscReal time, const PetscReal coords[], 
+                                 PetscInt Nf, PetscScalar *u, void *ctx)
+{
+
+  AppCtx *self = &petscApp;
+  PetscInt size,i; 
+  /* create input */
+  std::shared_ptr<IO_double> input = self->input;
+  
+  memcpy(input->data(), coords, 3*sizeof(double));
+  
+  const FunctionIO* output = debug_dynamic_cast<const FunctionIO*>(self->fn_coeff(input.get()));
+  size = output->size(); //retrieve output size
+  for( i = 0; i < size; i++ ) {
+    u[i] = output->at<double>(i);
+  }
   return 0;
 }
 
@@ -145,6 +263,7 @@ void f0_u(PetscInt dim, PetscInt Nf, PetscInt NfAux,
   std::shared_ptr<IO_double> input = self->input;
   int f_i;
 
+  /* put the current petsc values on the uw.fns */
   for( f_i = 0; f_i < Nf; f_i++ ) {
     UpdateFunction( u+uOff[f_i], self->prob_fn[f_i] );
   }
@@ -202,6 +321,25 @@ void f1_p(PetscInt dim, PetscInt Nf, PetscInt NfAux,
   for (d = 0; d < dim; ++d) f1[d] = 0.0;
 }
 
+void t_Nt_i_Nb_i(PetscInt dim, PetscInt Nf, PetscInt NfAux,
+                  const PetscInt uOff[], const PetscInt uOff_x[], const PetscScalar u[], const PetscScalar u_t[], const PetscScalar u_x[],
+                  const PetscInt aOff[], const PetscInt aOff_x[], const PetscScalar a[], const PetscScalar a_t[], const PetscScalar a_x[],
+                  PetscReal t, PetscReal u_tShift, const PetscReal x[], PetscInt numConstants, const PetscScalar constants[], PetscScalar g1[])
+{
+  AppCtx *self = &petscApp;
+  PetscScalar val;
+  PetscInt d, f_i;
+  std::shared_ptr<IO_double> input = self->input;
+  /* put the current petsc values on the uw.fns */
+  for( f_i = 0; f_i < Nf; f_i++ ) {
+    UpdateFunction( u+uOff[f_i], self->prob_fn[f_i] );
+  }
+  memcpy(input->dataRaw(), x, (input->_dataSize*input->size()) );
+  const FunctionIO* output = debug_dynamic_cast<const FunctionIO*>(self->fn_coeff(self->input.get()));
+  val = output->at<double>(0);
+
+  for (d = 0; d < dim; ++d) g1[d*dim+d] = val; /* \frac{\partial\phi^{u_d}}{\partial x_d} */
+}
 /* < q, \nabla\cdot u >
    NcompI = 1, NcompJ = dim */
 void j1_pu(PetscInt dim, PetscInt Nf, PetscInt NfAux,
@@ -485,8 +623,20 @@ static void t1_u(PetscInt dim, PetscInt Nf, PetscInt NfAux,
                  const PetscInt aOff[], const PetscInt aOff_x[], const PetscScalar a[], const PetscScalar a_t[], const PetscScalar a_x[],
                  PetscReal t, const PetscReal x[], PetscInt numConstants, const PetscScalar constants[], PetscScalar f0[])
 {
-  PetscInt d_i;
-  for( d_i=0; d_i<dim; ++d_i ) f0[d_i] = u_x[d_i];
+  AppCtx *self = &petscApp;
+  PetscScalar val;
+  PetscInt d_i, f_i;
+  std::shared_ptr<IO_double> input = self->input;
+  /* put the current petsc values on the uw.fns */
+  for( f_i = 0; f_i < Nf; f_i++ ) {
+    UpdateFunction( u+uOff[f_i], self->prob_fn[f_i] );
+  }
+  memcpy(input->dataRaw(), x, (input->_dataSize*input->size()) );
+  const FunctionIO* output = debug_dynamic_cast<const FunctionIO*>(self->fn_coeff(self->input.get()));
+  val = output->at<double>(0); //evaluate function
+
+  for( d_i=0; d_i<dim; ++d_i ) f0[d_i] = val*u_x[d_i];
+  // need diffusivity in here, ie. k * u_x. Assume k is isotropic
 }
 
 static void t0_u(PetscInt dim, PetscInt Nf, PetscInt NfAux,
@@ -495,11 +645,11 @@ static void t0_u(PetscInt dim, PetscInt Nf, PetscInt NfAux,
                  PetscReal t, const PetscReal x[], PetscInt numConstants, const PetscScalar constants[], PetscScalar f0[])
 {
   PetscScalar mag;
-  double v[20];
   AppCtx *self = &petscApp;
   std::shared_ptr<IO_double> input = self->input;
   int f_i;
 
+  /* put the current petsc values on the uw.fns */
   for( f_i = 0; f_i < Nf; f_i++ ) {
     UpdateFunction( u+uOff[f_i], self->prob_fn[f_i] );
   }
@@ -519,22 +669,59 @@ PetscErrorCode PoissonSetupProblem(DM dm, PetscDS prob, AppCtx *user)
 
   PetscFunctionBeginUser;
   ierr = PetscDSSetResidual(prob, 0, t0_u, t1_u);CHKERRQ(ierr);
-  ierr = PetscDSSetJacobian(prob, 0, 0, NULL,  NULL,  NULL, j1_pu);CHKERRQ(ierr);
+  ierr = PetscDSSetJacobian(prob, 0, 0, NULL,  NULL,  NULL, t_Nt_i_Nb_i);CHKERRQ(ierr);
 
+  /* register the boundary conditions and how to evaluate them for later */
   ierr = PetscDSAddBoundary(prob, DM_BC_ESSENTIAL, "mrJones", "marker", 
                              0, 0, NULL, /* field to constain and number of constained components */
-                             (void (*)(void)) zero_scalar, 1, &ids[1], user);CHKERRQ(ierr);
+                             (void (*)(void)) outer_dbc, 1, &ids[1], user);CHKERRQ(ierr);
                              
   ierr = PetscDSAddBoundary(prob, DM_BC_ESSENTIAL, "mrsSkywalker", "marker", 
-                             0, 0, NULL, /* field to constain and number of constained components */
-                             (void (*)(void)) one_scalar, 1, &ids[0], user);CHKERRQ(ierr);
+                             0, 0, NULL, (void (*)(void)) inner_dbc, 1, &ids[0], user);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 // Can make a single SetupAux which dynamically takes the *user ptr and applies the coorect functions
 PetscErrorCode PoissonSetupAux(DM dm, DM dmAux, AppCtx *user)
 {
-  PetscErrorCode (*matFuncs[1])(PetscInt dim, PetscReal time, const PetscReal x[], PetscInt Nc, PetscScalar u[], void *ctx) = {force_vector};
+  PetscErrorCode (*matFuncs[2])(PetscInt dim, PetscReal time, const PetscReal x[], PetscInt Nc, PetscScalar u[], void *ctx) = {coeff_scalar, force_vector};
+
+  Vec            auxVec,gVec;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+
+  ierr = DMCreateLocalVector(dmAux, &auxVec);CHKERRQ(ierr);
+  // create global to output only
+  ierr = DMCreateGlobalVector(dmAux, &gVec);CHKERRQ(ierr);
+  ierr = PetscObjectSetName((PetscObject) gVec, "initial_auxiliary");CHKERRQ(ierr);
+
+  // reload or create
+  if ( user->reload==PETSC_TRUE ) {
+    PetscViewer viewer;
+    PetscViewerHDF5Open(PETSC_COMM_WORLD, "aux.h5", FILE_MODE_READ, &viewer);
+    PetscViewerHDF5PushGroup(viewer, "/fields");
+    VecLoad(gVec, viewer);
+    ierr = PetscViewerHDF5PopGroup(viewer);CHKERRQ(ierr);
+    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+    DMGlobalToLocalBegin(dmAux, gVec, INSERT_VALUES, auxVec);
+    DMGlobalToLocalEnd(dmAux, gVec, INSERT_VALUES, auxVec);
+   } else {
+    ierr = DMProjectFunctionLocal(dmAux, 0.0, matFuncs, NULL, INSERT_ALL_VALUES, auxVec);CHKERRQ(ierr);
+    ierr = DMLocalToGlobalBegin( dmAux, auxVec, INSERT_VALUES, gVec );
+    ierr = DMLocalToGlobalEnd( dmAux, auxVec, INSERT_VALUES, gVec );
+    ierr = DMViewFromOptions( dmAux, NULL, "-dmAux_view");CHKERRQ(ierr);
+    ierr = VecViewFromOptions(gVec, NULL, "-aux_vec_view");CHKERRQ(ierr);
+   }
+
+  ierr = VecDestroy(&gVec);CHKERRQ(ierr);
+  // increases reference count
+  ierr = PetscObjectCompose((PetscObject) dm, "A", (PetscObject) auxVec);CHKERRQ(ierr);
+  ierr = VecDestroy(&auxVec);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+
+ #if 0
+  PetscErrorCode (*matFuncs[1])(PetscInt dim, PetscReal time, const PetscReal x[], PetscInt Nc, PetscScalar u[], void *ctx) = {coeff_scalar};
   Vec            auxVec, gVec;
   PetscErrorCode ierr;
 
@@ -569,6 +756,7 @@ PetscErrorCode PoissonSetupAux(DM dm, DM dmAux, AppCtx *user)
   ierr = VecDestroy(&auxVec);CHKERRQ(ierr);
   ierr = VecDestroy(&gVec);CHKERRQ(ierr);
   PetscFunctionReturn(0);
+#endif
 }
 
 PetscErrorCode PoissonProcessOptions(MPI_Comm comm, AppCtx *user) {
@@ -585,7 +773,7 @@ PetscErrorCode PoissonProcessOptions(MPI_Comm comm, AppCtx *user) {
   ierr = PetscOptionsBegin(comm, "", "Julian 3D Poisson test", PETSC_NULL);CHKERRQ(ierr); // must call before options
   user->filename[0] = '\0';
   // can't use '-f' for user->filename because jupyter steals it (!!!) 
-  ierr = PetscOptionsString("-mesh_file", "Mesh filename to read", "stokesmodel", user->filename, user->filename, sizeof(user->filename), &flg);CHKERRQ(ierr);
+  ierr = PetscOptionsString("-mesh_file", "Mesh filename to read", "poissonmodel", user->filename, user->filename, sizeof(user->filename), &flg);CHKERRQ(ierr);
   //ierr = PetscOptionsSetValue(NULL, "-t_petscspace_order", "1");CHKERRQ(ierr); // default linear trail function approximation
   //ierr = PetscOptionsSetValue(NULL, "-aux_0_petscspace_order", "1");CHKERRQ(ierr); // default linear trail function approximation
   //ierr = PetscOptionsIntArray("-elRes", "element count (default: 5,5,5)", "n/a", user->elements, &dim, NULL);CHKERRQ(ierr);
@@ -615,9 +803,9 @@ PetscErrorCode PoissonSetupDiscretization(DM dm, AppCtx *user)
 
   PetscFE *feAux  = NULL;
   PetscDS  probAux = NULL;
-  PetscInt numAux = 1, f;
-  const char auxNames[][2056] = {"heating"};
-  const PetscInt auxSizes[] = {1};
+  PetscInt numAux = 2, f;
+  const char auxNames[][2056] = {"conductivity", "heating"};
+  const PetscInt auxSizes[] = {1, 1};
 
   PetscFunctionBeginUser;
   ierr = DMGetDimension(dm, &dim);CHKERRQ(ierr);
@@ -676,7 +864,6 @@ PetscErrorCode PoissonSetupDiscretization(DM dm, AppCtx *user)
 }
 
 AppCtx* PoissonModel_Setup(char* rubbish) {
-    PetscFunctionBeginUser;
     AppCtx *user = &petscApp;
     DM *dm       = &(user->dm);
     SNES *snes   = &(user->snes);
