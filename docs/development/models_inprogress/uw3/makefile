@@ -5,7 +5,7 @@ run_debug: poisson3D.py
 	cgdb --args python poisson3D.py -mesh_file 11_6.mesh.dat -temperature_petscspace_order 1 -dm_view hdf5:ss.h5 -dm_partition_view -initial_vec_view hdf5:ss.h5::append -sol_vec_view hdf5:ss.h5::append -snes_monitor -ksp_converged_reason -aux_0_petscspace_order 1
 
 run_poisson: poisson3D.py
-	mpirun -oversubscribe -np 3 python poisson3D.py -mesh_file 11_6.mesh.dat -temperature_petscspace_order 1 -dm_view hdf5:ss.h5 -dm_partition_view -initial_vec_view hdf5:ss.h5::append -sol_vec_view hdf5:ss.h5::append -dmAux_view hdf5:aux.h5 -aux_vec_view hdf5:aux.h5::append -snes_monitor -ksp_converged_reason -aux_0_petscspace_order 1
+	mpirun -oversubscribe -np 3 python poisson3D.py -mesh_file mesh.dat -temperature_petscspace_order 1 -dm_view hdf5:ss.h5 -dm_partition_view -initial_vec_view hdf5:ss.h5::append -sol_vec_view hdf5:ss.h5::append -dmAux_view hdf5:aux.h5 -aux_vec_view hdf5:aux.h5::append -snes_monitor -ksp_converged_reason -aux_0_petscspace_order 1
 
 	${H52XDMF} ss.h5
 	${H52XDMF} aux.h5

@@ -1,6 +1,3 @@
-# To execute
-# python stokesSinker3D.py -elRes 9,9,9 ; $PETSC_DIR/lib/petsc/bin/petsc_gen_xdmf.py sol.h5; $PETSC_DIR/lib/petsc/bin/petsc_gen_xdmf.py aux.h5
-
 import underworld as uw
 from underworld import function as fn
 import numpy as np
@@ -26,7 +23,6 @@ fn_r = fn.math.sqrt( fn.math.dot( fn.coord(), fn.coord() ) )
 fn_gravity =  fn.misc.constant(9.8) / fn_r * (fn.coord()[0], fn.coord()[1], fn.coord()[2])
 
 '''
-
 sphereRadius = 0.2         # define radius
 spheres = [ (.5,.5,0.7),   # define list of sphere centres
             (.25,.25,0.6),
@@ -44,6 +40,7 @@ fn_density = fn.branching.conditional( fn_conds )
 
 
 fn_gravity =  fn.misc.constant(9.8) * (0., 0., 1.)
+
 fn_buoyancy = fn_gravity * fn_density
 
 v_const = fn.misc.constant([4.0,2.,0.])
