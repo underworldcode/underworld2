@@ -26,26 +26,24 @@ import os
 from mpi4py import MPI
 
 #Attempt to import lavavu module
-if 'lavavu' in sys.modules:
-    #Already imported, some paths issue causes double import to load separate instances
-    raise RuntimeError("LavaVu module exists, must not be imported before glucifer")
-    #lavavu = sys.modules['lavavu']
-else:
-    try:
-        import lavavu
-        #Import into main too so can be accessed there
-        #(necessary for interactive viewer/controls)
-        import __main__
-        __main__.lavavu = lavavu
-    except Exception as e:
-        print e,"LavaVu module not found! disabling inline visualisation"
+try:
+    import lavavu
+    #Import into main too so can be accessed there
+    #(necessary for interactive viewer/controls)
+    import __main__
+    __main__.lavavu = lavavu
+except Exception as e:
+    print(e,": module not found! disabling inline visualisation")
+    import lavavu_null as lavavu
 
 # lets create somewhere to dump data for this session
 try:
     tmpdir = os.environ['TMPDIR']
 except:
     tmpdir = "/tmp"
+
 os.path.join(tmpdir,"glucifer")
+
 try:
     os.makedirs(tmpdir)
 except OSError as exception:
@@ -64,7 +62,7 @@ class Store(_stgermain.StgCompoundComponent):
     Parameters
     ----------
     filename: str
-        Filename to use for a disk database, default is in memory only unless saved.
+        Filename to use for a disk database, default is to create a temporary database filename.
     split: bool
         Set to true to write a separate database file for each timestep visualised
     view: bool
@@ -78,7 +76,7 @@ class Store(_stgermain.StgCompoundComponent):
     >>> import glucifer
     >>> store = glucifer.Store()
 
-    Optionally provide a filename so you don't need to call save later (no extension)
+    Optionally provide a filename so you don't need to call save later (no extension required)
     
     >>> store = glucifer.Store('myvis')
 
@@ -105,7 +103,9 @@ class Store(_stgermain.StgCompoundComponent):
     def __init__(self, filename=None, split=False, **kwargs):
 
         self.step = 0
-        if filename and not filename.lower().endswith('.gldb') and not filename.lower().endswith('.db'):
+        if filename is None:
+            filename = os.path.join(tmpdir,"tmpDB_"+self._db.name+".gldb")
+        elif filename and not filename.lower().endswith('.gldb') and not filename.lower().endswith('.db'):
             filename += ".gldb"
         self.filename = filename
         self._objects = []
@@ -136,17 +136,6 @@ class Store(_stgermain.StgCompoundComponent):
                             "singleFile"        :not self._split
         } )
 
-    def _setup(self):
-        # Detect if viewer was built by finding executable...
-        # (even though no longer needed as using libLavaVu 
-        #  will keep this for now as is useful to know if the executable was built
-        #  and to pass it as first command line arg or if needed to get html path)
-        self._lvpath = self._db.bin_path
-        self._lvbin = os.path.join(self._db.bin_path, "LavaVu")
-        if not os.path.isfile(self._lvbin):
-            print("LavaVu rendering engine does not appear to exist. Perhaps it was not compiled.\n"
-                  "Please check your configuration, or contact developers.")
-
     def save(self,filename):
         """  
         Saves the database to the provided filename.
@@ -171,14 +160,14 @@ class Store(_stgermain.StgCompoundComponent):
         else:
             if not db:
                 db = self._db.path
-            self.viewer.setup(cache=False, database=db, timestep=self.step, *args, **kwargs)
+            self.viewer.setup(cache=False, clearstep=True, database=db, timestep=self.step, *args, **kwargs)
 
         return self.viewer
 
     def lvrun(self, db=None, *args, **kwargs):
         if not db:
             db = self._db.path
-        return lavavu.Viewer(cache=False, binpath=self._lvpath, database=db, timestep=self.step, *args, **kwargs)
+        return lavavu.Viewer(cache=False, clearstep=True, database=db, timestep=self.step, *args, **kwargs)
 
     def _generate(self, figname, objects, props):
         #First merge object list with active
@@ -244,13 +233,6 @@ class Store(_stgermain.StgCompoundComponent):
         if lavavu and any(hasattr(x, "parallel_render") for x in self._objects):
             #In case no external file has been written we need to create a temporary
             #database on root so the other procs can load it
-            tmpdb = None
-            if not self.filename:
-                tmpdb = os.path.join(tmpdir,"tmpDB_"+figname+".gldb")
-                if uw.rank() == 0:
-                    libUnderworld.gLucifer.lucDatabase_BackupDbFile(self._db, tmpdb)
-                else:
-                    self.filename = tmpdb
             #Wait for temporary db to be written if not already using an external store
             uw.barrier()
             #print uw.rank(),self.filename
@@ -265,13 +247,10 @@ class Store(_stgermain.StgCompoundComponent):
             if uw.rank() > 0:
                 lv = None
                 self.viewer = None
-            elif tmpdb is not None:
-                #Remove tmp db
-                os.remove(tmpdb)
 
-        if not lavavu.is_ipython():
-            endtime = MPI.Wtime()
-            print "Visualisation export took %10.2fs on proc %d" % (endtime-starttime, uw.rank())
+#        if not lavavu.is_ipython():
+#            endtime = MPI.Wtime()
+#            print("Visualisation export took %10.2fs on proc %d" % (endtime-starttime, uw.rank()))
 
     def _get_state(self, objects, props):
         #Get current state as string for export
@@ -302,8 +281,8 @@ class Store(_stgermain.StgCompoundComponent):
             self.timesteps = json.loads(lv.app.getTimeSteps())
             #Get figures/states
             return lv.app.figures
-        except RuntimeError,e:
-            print "LavaVu error: " + str(e)
+        except RuntimeError as e:
+            print("LavaVu error: " + str(e))
             import traceback
             traceback.print_exc()
             pass
@@ -550,23 +529,19 @@ class Figure(dict):
 
         """
         try:
-            if lavavu.is_notebook():
+            if type.lower() != "webgl" and lavavu.is_notebook():
                 self._generate_DB()
                 if uw.rank() > 0:
                     return
                 from IPython.display import display,Image,HTML
-                if type.lower() == "webgl":
-                    display(self._generate_HTML())
-                else:
-                    #Return inline image result
-                    filename = self._generate_image()
-                    display(HTML("<img src='%s'>" % filename))
+                #Return inline image result
+                filename = self._generate_image()
+                display(HTML("<img src='%s'>" % filename))
             else:
-                #Fallback to export image
+                #Fallback to export image or call viewer webgl export
                 self.save(filename=self.name, type=type)
-        except RuntimeError, e:
-            print "Error creating image: "
-            print e
+        except RuntimeError as e:
+            print("Error creating image: ", e)
             pass
         except:
             raise
@@ -610,12 +585,12 @@ class Figure(dict):
 
         try:
             if type.lower() == "webgl":
-                lv = self.db.lvget()
-                return lv.app.web(True)
+                lv = self.db.lvget(script=self._script)
+                return lv.webgl(filename + '.html')
             else:
                 return self._generate_image(filename, size)
-        except RuntimeError,e:
-            print "LavaVu error: " + str(e)
+        except RuntimeError as e:
+            print("LavaVu error: ", e)
             import traceback
             traceback.print_exc()
             pass
@@ -636,34 +611,8 @@ class Figure(dict):
             imagestr = lv.image(filename, resolution=size)
             #Return the generated filename
             return imagestr
-        except RuntimeError,e:
-            print "LavaVu error: " + str(e)
-            import traceback
-            traceback.print_exc()
-            pass
-        return ""
-
-    def _generate_HTML(self):
-        if uw.rank() > 0:
-            return
-        try:
-            #Export encoded json string
-            lv = self.db.lvget(script=self._script)
-            #Create link to web content directory
-            if not os.path.isdir("html"):
-                os.symlink(os.path.join(self.db._lvpath, 'html'), 'html')
-            jsonstr = lv.app.web()
-            #Write files to disk first, can be passed directly on url but is slow for large datasets
-            filename = "input_" + self.db._db.name + ".json"
-            text_file = open("html/" + filename, "w")
-            text_file.write(jsonstr);
-            text_file.close()
-            from IPython.display import IFrame
-            return IFrame("html/viewer.html#" + filename, width=self["resolution"][0], height=self["resolution"][1])
-            #import base64
-            #return IFrame("html/index.html#" + base64.b64encode(jsonstr), width=self["resolution"][0], height=self["resolution"][1])
-        except RuntimeError,e:
-            print "LavaVu error: " + str(e)
+        except RuntimeError as e:
+            print("LavaVu error: ", e)
             import traceback
             traceback.print_exc()
             pass
@@ -737,7 +686,7 @@ class Figure(dict):
         if uw.rank() == 0:
             #Open viewer with local web server for interactive/iterative use
             if background:
-                self._viewerProc = subprocess.Popen([self.db._lvbin, "-" + str(self.db.step), "-p9999", "-q90", fname] + self._script + args,
+                self._viewerProc = subprocess.Popen(["LV", "-" + str(self.db.step), "-p9999", "-q90", fname] + self._script + args,
                                                     stdout=PIPE, stdin=PIPE, stderr=STDOUT)
                 from IPython.display import HTML
                 return HTML('''<a href='#' onclick='window.open("http://" + location.hostname + ":9999");'>Open Viewer Interface</a>''')
@@ -770,14 +719,14 @@ class Figure(dict):
                 response = urllib2.urlopen(url).read()
                 #print response
             except:
-                print "Send command '" + cmd + "' failed, no response"
+                print("Send command '" + cmd + "' failed, no response")
                 if retry:
                     #Wait a few seconds so server has time to start then try again
-                    print "... retrying in 1s ..."
+                    print("... retrying in 1s ...")
                     time.sleep(1)
                     self.send_command(cmd, False)
                 else:
-                    print "... failed, skipping ..."
+                    print("... failed, skipping ...")
                     pass
 
     def clear(self):

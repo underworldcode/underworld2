@@ -20,7 +20,7 @@ Fn::Conditional::func Fn::Conditional::getFunction( IOsptr sample_input )
 {
     // are there any clauses?
     if (_clause.size() == 0)
-        throw std::invalid_argument( "It does not appear that any clauses have been set for the conditional function." );
+        throw std::invalid_argument( _pyfnerrorheader+"It does not appear that any clauses have been set for the conditional function." );
 
     unsigned outputSize =(unsigned)-1;
     std::type_index outputType = typeid(NULL);
@@ -40,13 +40,13 @@ Fn::Conditional::func Fn::Conditional::getFunction( IOsptr sample_input )
             std::stringstream ss;
             ss << "Issue with clause " << ii << " of conditional function.\n";
             ss << "Condition function does not appear to return 'bool' result.";
-            throw std::invalid_argument( ss.str() );
+            throw std::invalid_argument( _pyfnerrorheader+ss.str() );
         }
         if (boolio->size() != 1){
             std::stringstream ss;
             ss << "Issue with clause " << ii << " of conditional function.\n";
             ss << "Condition function appears to return non-scalar result (n=" << boolio->size() << ").\n";
-            throw std::invalid_argument( ss.str() );
+            throw std::invalid_argument( _pyfnerrorheader+ss.str() );
         }
         
         // get consequent func
@@ -72,14 +72,14 @@ Fn::Conditional::func Fn::Conditional::getFunction( IOsptr sample_input )
     }
 
     if(outputSize == (unsigned)-1) // at least one of the consequent functions should have evaluated successfully.
-        throw std::invalid_argument("It seems that none of the consequent functions were able to be successfully evaluated during testing.");
+        throw std::invalid_argument(_pyfnerrorheader+"It seems that none of the consequent functions were able to be successfully evaluated during testing.");
     
     
     
     unsigned totalClauses = _funcfuncArray.size();
     std::vector<bool> clauseTested(_clause.size(),false);
 
-    return [_funcfuncArray, totalClauses, clauseTested, outputSize, outputType] (IOsptr input) mutable ->IOsptr
+    return [_funcfuncArray, totalClauses, clauseTested, outputSize, outputType, this] (IOsptr input) mutable ->IOsptr
     {
         for (unsigned ii=0; ii<totalClauses; ii++)
         {
@@ -98,7 +98,7 @@ Fn::Conditional::func Fn::Conditional::getFunction( IOsptr sample_input )
                         ss << "Consequent function appears to return result of size " << io->size() << ".\n";
                         ss << "Previous function returned result of size " << outputSize << ".\n";
                         ss << "All consequent function must return results of identical size.";
-                        throw std::invalid_argument( ss.str() );
+                        throw std::invalid_argument( _pyfnerrorheader+ss.str() );
                     }
                     if (outputType != io->dataType()){
                         std::stringstream ss;
@@ -106,7 +106,7 @@ Fn::Conditional::func Fn::Conditional::getFunction( IOsptr sample_input )
                         ss << "Consequent function appears to return result of type " << functionio_get_type_name(io->dataType()) << ".\n";
                         ss << "Previous function returned result of type " << functionio_get_type_name(outputType) << ".\n";
                         ss << "All consequent function must return results of identical type.";
-                        throw std::invalid_argument( ss.str() );
+                        throw std::invalid_argument( _pyfnerrorheader+ss.str() );
                     }
                 }
 
@@ -114,6 +114,6 @@ Fn::Conditional::func Fn::Conditional::getFunction( IOsptr sample_input )
             }
         }
         // something aint right
-        throw std::runtime_error( "Reached end of conditional statement. At least one of the clause conditions must evaluate to 'True'." );
+        throw std::runtime_error( _pyfnerrorheader+"Reached end of conditional statement. At least one of the clause conditions must evaluate to 'True'." );
     };
 }

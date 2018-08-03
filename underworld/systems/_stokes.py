@@ -10,7 +10,6 @@ import underworld as uw
 import underworld._stgermain as _stgermain
 import sle
 import libUnderworld
-import math
 
 class Stokes(_stgermain.StgCompoundComponent):
     """
@@ -213,8 +212,17 @@ class Stokes(_stgermain.StgCompoundComponent):
         libUnderworld.StgFEM.SolutionVector_LoadCurrentFeVariableValuesOntoVector( self._pressureSol._cself );
 
         # set callback to default or user defined
+        self.callback_post_solve = None
         if _callback_post_solve is None:
-            self.callback_post_solve = self.default_stokes_callback
+            if _fn_p0:
+                mesh = self._velocityField.mesh
+                top = mesh.specialSets["MaxJ_VertexSet"]
+                surfInt = uw.utils.Integral(fn=(1.0,self._pressureField), mesh=mesh, integrationType='surface', surfaceIndexSet=top)
+
+                def avtop_pressure_nullspace_removal():
+                    result = surfInt.evaluate()
+                    _fn_p0.value = result[1]/result[0]
+                self.callback_post_solve = avtop_pressure_nullspace_removal
         else:
             self.callback_post_solve = _callback_post_solve
 
@@ -495,48 +503,13 @@ class Stokes(_stgermain.StgCompoundComponent):
             if not callable(value):
                 raise RuntimeError("The 'callback_post_solve' parameter is not 'None' and isn't callable")
         self._stokes_callback = value
-        
-    def default_stokes_callback(self):
-        """
-        The default operation to run immediately after a stokes linear solve
-        """
-        if self._fn_p0 is not None:
-            self._fn_p0.value = self._avgtop_pressure_nullspace_removal()
-            # other possibilities
-            # 1) What many want
-            #   self._pressureField.data[:] -= self._avgtop_pressure_nullspace_removal()
-            # 2) Another algorithm
-            # self._fn_p0.value = self._avg_pressure_nullspace_removal()
-        
-    def _avgtop_pressure_nullspace_removal(self):
-        # construct attribute first time 
-        if not hasattr( self, '_topSurfaceIntegral'):
-            mesh = self._velocityField.mesh
-            top = mesh.specialSets["MaxJ_VertexSet"]
-            self._topSurfaceIntegral = uw.utils.Integral(fn=1.0,mesh=mesh, integrationType='surface', surfaceIndexSet=top)
-        
-        surfInt = self._topSurfaceIntegral
-        
-        # calculate the area of the top surface
-        surfInt.fn=1.
-        (area,) = surfInt.evaluate()
-        # calculate the integrated pressure along the top surface
-        surfInt.fn = self._pressureField
-        (p0,) = surfInt.evaluate()
-        
-        return p0/area
-        
-    def _avg_pressure_nullspace_removal(self):
-        mesh = self._velocityField.mesh
-        fn_2_integrate = [1.0, self._pressureField]
-        (vol, int_pressure)  = mesh.integrate( fn=fn_2_integrate ) 
-        
-        return p0/area
     
     def velocity_rms(self):
         """
         Calculates RMS velocity as follows
-        .. math:: v_{rms}  =  \sqrt{ \frac{ \int_V (\mathbf{v}.\mathbf{v}) \, \mathrm{d}V } {\int_V \, \mathrm{d}V} }
+        
+        .. math:: v_{rms}  =  \\sqrt{ \\frac{ \\int_V (\\mathbf{v}.\\mathbf{v}) \\, \\mathrm{d}V } {\\int_V \\, \\mathrm{d}V} }
+
         """
         # get the mesh and perform integrals over it
         mesh = self._velocityField.mesh
@@ -544,6 +517,6 @@ class Stokes(_stgermain.StgCompoundComponent):
         # use tuple fn definition
         fn_2_integrate = ( 1., self._aObjects['vdotv_fn'] )
         (v2,vol)       = mesh.integrate( fn=fn_2_integrate )
-        
+        import math
         return math.sqrt(v2/vol)
         

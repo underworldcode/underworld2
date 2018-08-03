@@ -29,7 +29,7 @@ SwarmVariable* SwarmVariable_New(
    Name					name,
    AbstractContext*	context,
    Swarm*				swarm,
-   Variable*			variable,
+   StgVariable*			variable,
    Index			      dofCount,
    Bool              addToSwarmParticleExtension)
 {
@@ -80,7 +80,7 @@ SwarmVariable* _SwarmVariable_New(  SWARMVARIABLE_DEFARGS  ) {
 void _SwarmVariable_Init( void* swarmVariable, 
                           AbstractContext* context, 
                           Swarm* swarm, 
-                          Variable* variable, 
+                          StgVariable* variable, 
                           Index dofCount,
                           Bool useCacheMaxMin,
                           Bool addToSwarmParticleExtension )
@@ -112,22 +112,25 @@ void _SwarmVariable_Init( void* swarmVariable,
       /** first need to calculate required size */
       switch(variable->dataTypes[0])
       {
-      case Variable_DataType_Char:
+      case StgVariable_DataType_Char:
          variableSize = sizeof(char);
          break;
-      case Variable_DataType_Short:
+      case StgVariable_DataType_Short:
          variableSize = sizeof(short);
          break;
-      case Variable_DataType_Int:
+      case StgVariable_DataType_Int:
          variableSize = sizeof(int);
          break;
-      case Variable_DataType_Float:
+      case StgVariable_DataType_Long:
+         variableSize = sizeof(long);
+         break;
+      case StgVariable_DataType_Float:
          variableSize = sizeof(float);
          break;
-      case Variable_DataType_Double:
+      case StgVariable_DataType_Double:
          variableSize = sizeof(double);
          break;
-      case Variable_DataType_Pointer:
+      case StgVariable_DataType_Pointer:
          variableSize = sizeof(void*);
          break;
       }
@@ -209,7 +212,7 @@ void* _SwarmVariable_Copy( void* swarmVariable, void* dest, Bool deep, Name name
 void _SwarmVariable_AssignFromXML( void* swarmVariable, Stg_ComponentFactory* cf, void* data ) {
 	SwarmVariable*		self = (SwarmVariable*)swarmVariable;
 	Swarm*				swarm;
-	Variable*			variable;
+	StgVariable*			variable;
 	Index					dofCount;
 	AbstractContext*	context;
    Bool              useCacheMaxMin, addToSwarmParticleExtension;
@@ -219,7 +222,7 @@ void _SwarmVariable_AssignFromXML( void* swarmVariable, Stg_ComponentFactory* cf
 		context = Stg_ComponentFactory_ConstructByName( cf, (Name)"context", AbstractContext, False, data  );
 
 	swarm = Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"Swarm", Swarm, True, data  );
-	variable =  Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"Variable", Variable, False, data  );
+	variable =  Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)"Variable", StgVariable, False, data  );
 	dofCount = Stg_ComponentFactory_GetUnsignedInt( cf, self->name, (Dictionary_Entry_Key)"dofCount", 1  );
 	useCacheMaxMin = Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"useCacheMaxMin", False  );
    addToSwarmParticleExtension = Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"AddToSwarmParticleExtension", True  );
@@ -238,23 +241,26 @@ void _SwarmVariable_Initialise( void* swarmVariable, void* data ) {
 	SwarmVariable* self = (SwarmVariable*)swarmVariable;
 
 	if ( self->variable ) {
-		Variable_Update( self->variable );
+		StgVariable_Update( self->variable );
 		Stg_Component_Initialise( self->variable, data, False );
 	}
 	switch( self->variable->dataTypes[0] ) {
-		case Variable_DataType_Double:
+		case StgVariable_DataType_Double:
 			self->_valueAt = _SwarmVariable_ValueAtDouble;
 			break;
-		case Variable_DataType_Int:
+		case StgVariable_DataType_Int:
 			self->_valueAt = _SwarmVariable_ValueAtInt;
 			break;
-		case Variable_DataType_Float:
+		case StgVariable_DataType_Long:
+			self->_valueAt = NULL;
+			break;
+		case StgVariable_DataType_Float:
 			self->_valueAt = _SwarmVariable_ValueAtFloat;
 			break;
-		case Variable_DataType_Char:
+		case StgVariable_DataType_Char:
 			self->_valueAt = _SwarmVariable_ValueAtChar;
 			break;
-		case Variable_DataType_Short:
+		case StgVariable_DataType_Short:
 			self->_valueAt = _SwarmVariable_ValueAtShort;
 			break;
 		default:
@@ -290,51 +296,62 @@ void _SwarmVariable_ValueAtDouble( void* swarmVariable, Particle_Index lParticle
 	SwarmVariable*	self = (SwarmVariable*)swarmVariable;
 	double*			dataPtr;
 
-	dataPtr = Variable_GetPtrDouble( self->variable, lParticle_I );
+	dataPtr = StgVariable_GetPtrDouble( self->variable, lParticle_I );
 	memcpy( value, dataPtr, sizeof(double) * self->dofCount );
 }
 
 void _SwarmVariable_ValueAtInt( void* swarmVariable, Particle_Index lParticle_I, double* value ) {
 	SwarmVariable*	self = (SwarmVariable*)swarmVariable;
-	Variable*		variable = self->variable;
+	StgVariable*		variable = self->variable;
    Dof_Index		dofCount = self->dofCount;
 	Dof_Index		dof_I;
 
 	for ( dof_I = 0 ; dof_I < dofCount ; dof_I++ ) {
-		value[ dof_I ] = (double) Variable_GetValueAtInt( variable, lParticle_I, dof_I );
+		value[ dof_I ] = (double) StgVariable_GetValueAtInt( variable, lParticle_I, dof_I );
+	}
+}
+
+void _SwarmVariable_ValueAtLong( void* swarmVariable, Particle_Index lParticle_I, double* value ) {
+	SwarmVariable*	self = (SwarmVariable*)swarmVariable;
+	StgVariable*		variable = self->variable;
+	Dof_Index		dofCount = self->dofCount;
+	Dof_Index		dof_I;
+	
+	for ( dof_I = 0 ; dof_I < dofCount ; dof_I++ ) {
+		value[ dof_I ] = (double) StgVariable_GetValueAtLong( variable, lParticle_I, dof_I );
 	}
 }
 
 void _SwarmVariable_ValueAtFloat( void* swarmVariable, Particle_Index lParticle_I, double* value ) {
 	SwarmVariable*	self = (SwarmVariable*)swarmVariable;
-	Variable*		variable = self->variable;
+	StgVariable*		variable = self->variable;
 	Dof_Index		dofCount = self->dofCount;
 	Dof_Index		dof_I;
 
 	for ( dof_I = 0 ; dof_I < dofCount ; dof_I++ ) {
-		value[ dof_I ] = (double) Variable_GetValueAtFloat( variable, lParticle_I, dof_I );
+		value[ dof_I ] = (double) StgVariable_GetValueAtFloat( variable, lParticle_I, dof_I );
 	}
 }
 
 void _SwarmVariable_ValueAtChar( void* swarmVariable, Particle_Index lParticle_I, double* value ) {
 	SwarmVariable*	self = (SwarmVariable*)swarmVariable;
-	Variable*		variable = self->variable;
+	StgVariable*		variable = self->variable;
 	Dof_Index		dofCount = self->dofCount;
 	Dof_Index		dof_I;
 
 	for ( dof_I = 0 ; dof_I < dofCount ; dof_I++ ) {
-		value[ dof_I ] = (double) Variable_GetValueAtChar( variable, lParticle_I, dof_I );
+		value[ dof_I ] = (double) StgVariable_GetValueAtChar( variable, lParticle_I, dof_I );
 	}
 }
 
 void _SwarmVariable_ValueAtShort( void* swarmVariable, Particle_Index lParticle_I, double* value ) {
 	SwarmVariable*	self = (SwarmVariable*)swarmVariable;
-	Variable*		variable = self->variable;
+	StgVariable*		variable = self->variable;
 	Dof_Index		dofCount = self->dofCount;
 	Dof_Index		dof_I;
 
 	for ( dof_I = 0 ; dof_I < dofCount ; dof_I++ ) {
-		value[ dof_I ] = (double) Variable_GetValueAtShort( variable, lParticle_I, dof_I );
+		value[ dof_I ] = (double) StgVariable_GetValueAtShort( variable, lParticle_I, dof_I );
 	}
 }
 

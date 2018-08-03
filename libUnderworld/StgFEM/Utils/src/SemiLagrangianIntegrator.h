@@ -79,7 +79,7 @@
    Bool PeriodicUpdate( double* pos, double* min, double* max, unsigned dim, Bool isPeriodic );
    void InterpLagrange( double x, double* coords, double** values, unsigned numdofs, double* result );
    void IntegrateRungeKutta( FeVariable* velocityField, double dt, double* origin, double* position );
-   void IntegrateRungeKutta_VariableVelocity( FeVariable* velocityField, FeVariable* prevVelField, double dt, double* origin, double* position );
+   void IntegrateRungeKutta_StgVariableVelocity( FeVariable* velocityField, FeVariable* prevVelField, double dt, double* origin, double* position );
 
    /** Does any required solver setup beyond assembly of the matrices to be solved: e.g. priming the Matrix solvers
    etc. */

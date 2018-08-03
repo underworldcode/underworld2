@@ -38,7 +38,7 @@ double Dt( void* _context ) {
    return dt;
 }
 
-void SemiLagrangianIntegratorSuite_Line( Node_LocalIndex node_lI, Variable_Index var_I, void* _context, void* _data, void* _result ) {
+void SemiLagrangianIntegratorSuite_Line( Node_LocalIndex node_lI, StgVariable_Index var_I, void* _context, void* _data, void* _result ) {
    FiniteElementContext*	context		= (FiniteElementContext*)_context;
    Dictionary*		dictionary	= context->dictionary;
    FeVariable*		feVariable	= (FeVariable*) FieldVariable_Register_GetByName( context->fieldVariable_Register, "PhiField" );
@@ -55,7 +55,7 @@ void SemiLagrangianIntegratorSuite_Line( Node_LocalIndex node_lI, Variable_Index
       *result = 1.0;
 }
 
-void SemiLagrangianIntegratorSuite_ShearCellX( Node_LocalIndex node_lI, Variable_Index var_I, void* _context, void* _data, void* _result ) {
+void SemiLagrangianIntegratorSuite_ShearCellX( Node_LocalIndex node_lI, StgVariable_Index var_I, void* _context, void* _data, void* _result ) {
    FiniteElementContext*	context		= (FiniteElementContext*)_context;
    FeVariable*		feVariable	= (FeVariable*) FieldVariable_Register_GetByName( context->fieldVariable_Register, "VelocityField" );
    FeMesh*			mesh		= feVariable->feMesh;
@@ -65,7 +65,7 @@ void SemiLagrangianIntegratorSuite_ShearCellX( Node_LocalIndex node_lI, Variable
    *result = M_PI * sin( M_PI * coord[0] ) * cos( M_PI * coord[1] );
 }
 
-void SemiLagrangianIntegratorSuite_ShearCellY( Node_LocalIndex node_lI, Variable_Index var_I, void* _context, void* _data, void* _result ) {
+void SemiLagrangianIntegratorSuite_ShearCellY( Node_LocalIndex node_lI, StgVariable_Index var_I, void* _context, void* _data, void* _result ) {
    FiniteElementContext*	context		= (FiniteElementContext*)_context;
    FeVariable*		feVariable	= (FeVariable*) FieldVariable_Register_GetByName( context->fieldVariable_Register, "VelocityField" );
    FeMesh*			mesh		= feVariable->feMesh;

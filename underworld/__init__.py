@@ -30,7 +30,7 @@ is very well suited to complex fluids which is how the solid Earth behaves
 on a geological timescale.
 """
 
-__version__ = "2.5.0-dev"
+__version__ = "2.6.0-dev"
 
 # lets  set sys.path such that the project parent directory takes
 # precedence
@@ -46,6 +46,14 @@ import function
 import swarm
 import systems
 import utils
+
+import numpy as _np
+
+# to allow our legacy doctest formats
+try:
+    _np.set_printoptions(legacy='1.13')
+except:
+    pass
 
 try:
     from ._uwid import uwid as _id
@@ -145,11 +153,10 @@ _delclassinstance = _del_uw_class(libUnderworld.StGermain_Tools.StgFinalise, _da
 
 def _in_doctest():
     """
-    Returns true if running inside a doctest.
-
-    http://stackoverflow.com/questions/8116118/how-to-determine-whether-code-is-running-in-a-doctest
+    Returns true if running inside doctests run from docs/tests/doctest.py
     """
-    return hasattr(_sys.modules['__main__'], '_SpoofOut')
+    import os
+    return hasattr(_sys.modules['__main__'], '_SpoofOut') or "DOCTEST" in os.environ
 
 # lets shoot off some usage metrics
 # send metrics *only* if we are rank=0, and if we are not running inside a doctest.

@@ -75,10 +75,6 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
             raise ValueError("'nodeDofCount' must be one or greater.")
         self._nodeDofCount = nodeDofCount
 
-        # add this to keep second parent happy.. not ideal. actualy function setup
-        # occurs in the _setup method below
-        self._fncself=None
-
         # also null this guy initially
         self._fn_gradient = None
         # build parent
@@ -151,7 +147,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         >>> scalarFeVar.data[100]
         array([ 15.333])
         """
-        return libUnderworld.StGermain.Variable_getAsNumpyArray(self._cmeshvariable)
+        return libUnderworld.StGermain.StgVariable_getAsNumpyArray(self._cmeshvariable)
 
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method

@@ -312,7 +312,7 @@ void IntegrateRungeKutta( FeVariable* velocityField, double dt, double* origin, 
    Force term:
       F = 0.5*[3*S(x_j^n,t^n) - S(x_j^(n-1),t^(n-1))]
  */
-void IntegrateRungeKutta_VariableVelocity( FeVariable* currVelField, FeVariable* interVelField, double dt, double* origin, double* position ) {
+void IntegrateRungeKutta_StgVariableVelocity( FeVariable* currVelField, FeVariable* interVelField, double dt, double* origin, double* position ) {
    unsigned		nDims		     = Mesh_GetDimSize( currVelField->feMesh );
    unsigned		dim_i;
    double			min[3], max[3];

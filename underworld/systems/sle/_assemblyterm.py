@@ -168,7 +168,7 @@ class VectorAssemblyTerm_NA_j__Fn_ij(VectorAssemblyTerm):
         # build parent
         super(VectorAssemblyTerm_NA_j__Fn_ij,self).__init__(**kwargs)
 
-        self._set_fn_function = libUnderworld.Underworld._VectorAssemblyTerm_NA_j__Fn_ij_SetFneForce
+        self._set_fn_function = libUnderworld.Underworld._VectorAssemblyTerm_NA_j__Fn_ij_SetFn
         self._fn = fn
 
         if mesh:

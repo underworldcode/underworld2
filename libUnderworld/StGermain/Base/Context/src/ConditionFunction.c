@@ -132,7 +132,7 @@ void _ConditionFunction_Print( void* conditionFunction, Stream* stream ) {
 void _ConditionFunction_Apply(
    void*          conditionFunction,
    Index          index,
-   Variable_Index var_I,
+   StgVariable_Index var_I,
    void*          context,
    void*          result )
 {

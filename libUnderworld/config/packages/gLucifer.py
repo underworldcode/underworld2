@@ -5,20 +5,11 @@ from Underworld import Underworld
 class gLucifer(Package):
 
     def setup_dependencies(self):
-        self.underworld = self.add_dependency(Underworld, required=True)
+        with open(os.devnull, 'w') as FNULL:
+            import subprocess
+            subp = subprocess.Popen('python -c \'import lavavu\'', shell=True, stdout=FNULL, stderr=FNULL)
+            if subp.wait() != 0:
+                print("Unable to import lavavu from system python packages. Will try setup local copy.")
+                self.pull_from_git( "https://github.com/OKaluza/LavaVu.git", "d99059e90dcb622df7164b306937872d912ba613", os.path.abspath('./gLucifer/Viewer'))
 
-    def gen_locations(self):
-        yield ('/usr', [], [])
-        yield ('/usr/local', [], [])
 
-    def gen_envs(self, loc):
-        for env in Package.gen_envs(self, loc):
-            self.headers = [os.path.join('StGermain', 'StGermain.h'),
-                            os.path.join('StgDomain', 'StgDomain.h'),
-                            os.path.join('StgFEM', 'StgFEM.h'),
-                            os.path.join('PICellerator', 'PICellerator.h'),
-                            os.path.join('Underworld', 'Underworld.h'),
-                            os.path.join('gLucifer', 'gLucifer.h')]
-            if self.find_libraries(loc[2], 'gLucifer'):
-                env.PrependUnique(LIBS=['gLucifer'])
-                yield env

@@ -25,7 +25,7 @@ struct VectorAssemblyTerm_NA_j__Fn_ij_cppdata
     std::shared_ptr<FEMCoordinate> input;
 };
 
-void _VectorAssemblyTerm_NA_j__Fn_ij_SetFneForce( void* _self, Fn::Function* fn );
+void _VectorAssemblyTerm_NA_j__Fn_ij_SetFn( void* _self, Fn::Function* fn );
 
 }
 

@@ -50,7 +50,7 @@ Bool StgDomainMesh_Init( int* argc, char** argv[] ) {
 	RegisterParent( Mesh_Type, Stg_Component_Type );
 	RegisterParent( MeshGenerator_Type, Stg_Component_Type );
 	RegisterParent( CartesianGenerator_Type, MeshGenerator_Type );
-	RegisterParent( MeshVariable_Type, Variable_Type );
+	RegisterParent( MeshVariable_Type, StgVariable_Type );
 	RegisterParent( Remesher_Type, Stg_Component_Type );
 
 	return True;

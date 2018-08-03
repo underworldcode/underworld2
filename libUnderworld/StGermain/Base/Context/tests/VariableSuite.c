@@ -44,10 +44,10 @@ void VariableSuite_Setup( VariableSuiteData* data ) {
    Particle                tmpParticle;
    Name                    pNames[] = { "mass", "force", "info" };
    SizeT                   pOffsets[] = { 0, 0, 0 };   /* Init later... */
-   Variable_DataType       pDataTypes[] = {
-                              Variable_DataType_Int,
-                              Variable_DataType_Float,
-                              Variable_DataType_Pointer, };
+   StgVariable_DataType       pDataTypes[] = {
+                              StgVariable_DataType_Int,
+                              StgVariable_DataType_Float,
+                              StgVariable_DataType_Pointer, };
    Index                   pDtCounts[] = { 1, 3, 1 };
    static SizeT            pSize = sizeof(Particle);
    
@@ -61,9 +61,9 @@ void VariableSuite_Setup( VariableSuiteData* data ) {
 
    /* Construction phase --------------------------------------------------------------------------------------------*/
    data->vr = Variable_Register_New();
-   Variable_NewScalar( "temperature", NULL, Variable_DataType_Double, &data->aSize[0], NULL, (void**)&data->temperature, data->vr );
-   Variable_NewVector( "velocity", NULL, Variable_DataType_Double, 3, &data->aSize[1], NULL, (void**)&data->velocity, data->vr, "vx", "vy", "vz" );
-   Variable_New( "particle", NULL, 3, pOffsets, pDataTypes, pDtCounts, pNames, &pSize, &data->aSize[2], NULL, (void**)&data->particle, data->vr );
+   StgVariable_NewScalar( "temperature", NULL, StgVariable_DataType_Double, &data->aSize[0], NULL, (void**)&data->temperature, data->vr );
+   StgVariable_NewVector( "velocity", NULL, StgVariable_DataType_Double, 3, &data->aSize[1], NULL, (void**)&data->velocity, data->vr, "vx", "vy", "vz" );
+   StgVariable_New( "particle", NULL, 3, pOffsets, pDataTypes, pDtCounts, pNames, &pSize, &data->aSize[2], NULL, (void**)&data->particle, data->vr );
    
    /* Build phase ---------------------------------------------------------------------------------------------------*/
    data->temperature = Memory_Alloc_Array( double, data->aSize[0], "temperature" );
@@ -75,7 +75,7 @@ void VariableSuite_Setup( VariableSuiteData* data ) {
 
 
 void VariableSuite_Teardown( VariableSuiteData* data ) {
-   Variable_Index          var_I;
+   StgVariable_Index          var_I;
 
    /* manually delete all the created Variables */
    for( var_I = 0; var_I < data->vr->count; var_I++ ) {
@@ -91,7 +91,7 @@ void VariableSuite_Teardown( VariableSuiteData* data ) {
 void VariableSuite_TestGetValueDouble( VariableSuiteData* data ) {
    Index                   ii;
    double tmp;
-   Variable*      var = Variable_Register_GetByName( data->vr, "temperature" );
+   StgVariable*      var = Variable_Register_GetByName( data->vr, "temperature" );
 
    /* Test the Get and Set of a scalar double....................................................................... */
    /* Fill the temperature array with a known pattern of kinda random (bit filling) numbers. */
@@ -99,11 +99,11 @@ void VariableSuite_TestGetValueDouble( VariableSuiteData* data ) {
       data->temperature[ii] = 1.0f / (data->aSize[0]+2) * (ii+1); 
    }
    
-   /* Check that Variable_GetValueDouble on the temperature Variable returns the right numbers */
+   /* Check that StgVariable_GetValueDouble on the temperature Variable returns the right numbers */
    for( ii = 0; ii < data->aSize[0]; ii++ ) {
       tmp = 1.0f / (data->aSize[0]+2) * (ii+1);
 
-      pcu_check_true( fabs(Variable_GetValueDouble( var, ii ) - tmp ) < 1e-12);
+      pcu_check_true( fabs(StgVariable_GetValueDouble( var, ii ) - tmp ) < 1e-12);
    }
 }
    
@@ -111,15 +111,15 @@ void VariableSuite_TestGetValueDouble( VariableSuiteData* data ) {
 void VariableSuite_TestSetValueDouble( VariableSuiteData* data ) {
    Index                   ii;
    double tmp;
-   Variable*      var = Variable_Register_GetByName( data->vr, "temperature" );
+   StgVariable*      var = Variable_Register_GetByName( data->vr, "temperature" );
 
    /* Fill the temperature Variable with another known pattern of kinda random (bit filling) numbers */
    for( ii = 0; ii < data->aSize[0]; ii++ ) {
       
-      Variable_SetValueDouble( var, ii, 1.0f - ( 1.0f / (data->aSize[0]+2) * (ii+1) ) );
+      StgVariable_SetValueDouble( var, ii, 1.0f - ( 1.0f / (data->aSize[0]+2) * (ii+1) ) );
    }
    
-   /* Check that Variable_SetValueDouble on the temperature Variable set the right numbers */
+   /* Check that StgVariable_SetValueDouble on the temperature Variable set the right numbers */
    for( ii = 0; ii < data->aSize[0]; ii++ ) {
       tmp = 1.0f - 1.0f / (data->aSize[0]+2) * (ii+1);
       
@@ -132,7 +132,7 @@ void VariableSuite_TestSetValueDouble( VariableSuiteData* data ) {
 void VariableSuite_TestGetValueAtDouble( VariableSuiteData* data ) {
    Index                   ii;
    double tmp;
-   Variable*      var = Variable_Register_GetByName( data->vr, "velocity" );
+   StgVariable*      var = Variable_Register_GetByName( data->vr, "velocity" );
 
 /* Fill the velocity array with a known pattern of kinda random (bit filling) numbers. */
    for( ii = 0; ii < data->aSize[1]; ii++ ) {
@@ -143,14 +143,14 @@ void VariableSuite_TestGetValueAtDouble( VariableSuiteData* data ) {
       }
    }
    
-   /* Check that Variable_GetPtrDouble on the velocity Variable returns the right numbers */
+   /* Check that StgVariable_GetPtrDouble on the velocity Variable returns the right numbers */
    for( ii = 0; ii < data->aSize[1]; ii++ ) {
       int         d;
       
       for( d = 0; d < 3; d++ ) {
          tmp = 1.0f / ((data->aSize[1]*3)+2) * (ii*3+d+1);
          
-         pcu_check_true( fabs(Variable_GetValueAtDouble(var, ii, d ) - tmp) < 1e-12);
+         pcu_check_true( fabs(StgVariable_GetValueAtDouble(var, ii, d ) - tmp) < 1e-12);
       }
    }
 }
@@ -160,17 +160,17 @@ void VariableSuite_TestSetValueAtDouble( VariableSuiteData* data ) {
    Index                   ii;
    double tmp;
    int d;
-   Variable*      var = Variable_Register_GetByName( data->vr, "velocity" );
+   StgVariable*      var = Variable_Register_GetByName( data->vr, "velocity" );
 
    /* Fill the variable Variable with another known pattern of kinda random (bit filling) numbers */
    for( ii = 0; ii < data->aSize[1]; ii++ ) {
       
       for( d = 0; d < 3; d++ ) {
-         Variable_SetValueAtDouble( var, ii, d, 1.0 - ( 1.0 / ((data->aSize[1]*3)+2) * (ii*3+d+1) ) );
+         StgVariable_SetValueAtDouble( var, ii, d, 1.0 - ( 1.0 / ((data->aSize[1]*3)+2) * (ii*3+d+1) ) );
       }
    }
    
-   /* Check that Variable_SetValueDouble on the velocity Variable set the right numbers */
+   /* Check that StgVariable_SetValueDouble on the velocity Variable set the right numbers */
    for( ii = 0; ii < data->aSize[1]; ii++ ) {
       
       for( d = 0; d < 3; d++ ) {
@@ -197,16 +197,16 @@ void VariableSuite_TestVariable_Char( VariableSuiteData* data ) {
    Index testValueCount = 2;
    Index test_I;
    long int testValue;
-   Variable* var;
-   Variable* vec;
-   Variable* vecVar[3];
+   StgVariable* var;
+   StgVariable* vec;
+   StgVariable* vecVar[3];
    int i, j;
 
    array = Memory_Alloc_Array( char, length, "test" );
    structArray = Memory_Alloc_Array( Triple, length, "test" );
 
-   var = Variable_NewScalar( "Char-Scalar", NULL, Variable_DataType_Char, &length, NULL, (void**)&array, data->vr );
-   vec = Variable_NewVector( "Char-Three", NULL, Variable_DataType_Char, 3, &length, NULL, (void**)&structArray, data->vr, "a", "b", "c" );
+   var = StgVariable_NewScalar( "Char-Scalar", NULL, StgVariable_DataType_Char, &length, NULL, (void**)&array, data->vr );
+   vec = StgVariable_NewVector( "Char-Three", NULL, StgVariable_DataType_Char, 3, &length, NULL, (void**)&structArray, data->vr, "a", "b", "c" );
 
    vecVar[0] = Variable_Register_GetByName( data->vr, "a" );
    vecVar[1] = Variable_Register_GetByName( data->vr, "b" );
@@ -219,50 +219,50 @@ void VariableSuite_TestVariable_Char( VariableSuiteData* data ) {
       testValue = testValues[test_I];
 
       for ( i = 0; i < length; ++i ) {
-         Variable_SetValueChar( var, i, testValue );
-         Variable_SetValueAtChar( vec, i, 0, testValue );
-         Variable_SetValueAtChar( vec, i, 1, testValue );
-         Variable_SetValueAtChar( vec, i, 2, testValue );
+         StgVariable_SetValueChar( var, i, testValue );
+         StgVariable_SetValueAtChar( vec, i, 0, testValue );
+         StgVariable_SetValueAtChar( vec, i, 1, testValue );
+         StgVariable_SetValueAtChar( vec, i, 2, testValue );
       }
 
       /* ~~~Scalar~~~*/
       for ( i = 0; i < length; ++i ) {
-         pcu_check_true( Variable_GetValueChar( var, i ) == (char)(char)testValue );
-         pcu_check_true( Variable_GetValueCharAsShort( var, i ) == (short)(char)testValue );
-         pcu_check_true( Variable_GetValueCharAsInt( var, i ) == (int)(char)testValue );
-         pcu_check_true( Variable_GetValueCharAsFloat( var, i ) == (float)(char)testValue );
-         pcu_check_true( Variable_GetValueCharAsDouble( var, i ) == (double)(char)testValue );
+         pcu_check_true( StgVariable_GetValueChar( var, i ) == (char)(char)testValue );
+         pcu_check_true( StgVariable_GetValueCharAsShort( var, i ) == (short)(char)testValue );
+         pcu_check_true( StgVariable_GetValueCharAsInt( var, i ) == (int)(char)testValue );
+         pcu_check_true( StgVariable_GetValueCharAsFloat( var, i ) == (float)(char)testValue );
+         pcu_check_true( StgVariable_GetValueCharAsDouble( var, i ) == (double)(char)testValue );
       }
 
       /*~~~Vector~~~*/
       for ( i = 0; i < length; ++i ) {
-         pcu_check_true( Variable_GetValueAtChar( vec, i, 0 ) == (char)(char)testValue );
-         pcu_check_true( Variable_GetValueAtCharAsShort( vec, i, 0 ) == (short)(char)testValue );
-         pcu_check_true( Variable_GetValueAtCharAsInt( vec, i, 0 ) == (int)(char)testValue );
-         pcu_check_true( Variable_GetValueAtCharAsFloat( vec, i, 0 ) == (float)(char)testValue );
-         pcu_check_true( Variable_GetValueAtCharAsDouble( vec, i, 0 ) == (double)(char)testValue );
+         pcu_check_true( StgVariable_GetValueAtChar( vec, i, 0 ) == (char)(char)testValue );
+         pcu_check_true( StgVariable_GetValueAtCharAsShort( vec, i, 0 ) == (short)(char)testValue );
+         pcu_check_true( StgVariable_GetValueAtCharAsInt( vec, i, 0 ) == (int)(char)testValue );
+         pcu_check_true( StgVariable_GetValueAtCharAsFloat( vec, i, 0 ) == (float)(char)testValue );
+         pcu_check_true( StgVariable_GetValueAtCharAsDouble( vec, i, 0 ) == (double)(char)testValue );
 
-         pcu_check_true( Variable_GetPtrAtChar( vec, i, 0 ) == &structArray[i][0] );
+         pcu_check_true( StgVariable_GetPtrAtChar( vec, i, 0 ) == &structArray[i][0] );
 
-         pcu_check_true( Variable_GetValueAtChar( vec, i, 1 ) == (char)(char)testValue );
-         pcu_check_true( Variable_GetValueAtCharAsShort( vec, i, 1 ) == (short)(char)testValue );
-         pcu_check_true( Variable_GetValueAtCharAsInt( vec, i, 1 ) == (int)(char)testValue );
-         pcu_check_true( Variable_GetValueAtCharAsFloat( vec, i, 1 ) == (float)(char)testValue );
-         pcu_check_true( Variable_GetValueAtCharAsDouble( vec, i, 1 ) == (double)(char)testValue );
-         pcu_check_true( Variable_GetPtrAtChar( vec, i, 1 ) == &structArray[i][1] );
+         pcu_check_true( StgVariable_GetValueAtChar( vec, i, 1 ) == (char)(char)testValue );
+         pcu_check_true( StgVariable_GetValueAtCharAsShort( vec, i, 1 ) == (short)(char)testValue );
+         pcu_check_true( StgVariable_GetValueAtCharAsInt( vec, i, 1 ) == (int)(char)testValue );
+         pcu_check_true( StgVariable_GetValueAtCharAsFloat( vec, i, 1 ) == (float)(char)testValue );
+         pcu_check_true( StgVariable_GetValueAtCharAsDouble( vec, i, 1 ) == (double)(char)testValue );
+         pcu_check_true( StgVariable_GetPtrAtChar( vec, i, 1 ) == &structArray[i][1] );
 
-         pcu_check_true( Variable_GetValueAtChar( vec, i, 2 ) == (char)(char)testValue );
-         pcu_check_true( Variable_GetValueAtCharAsShort( vec, i, 2 ) == (short)(char)testValue );
-         pcu_check_true( Variable_GetValueAtCharAsInt( vec, i, 2 ) == (int)(char)testValue );
-         pcu_check_true( Variable_GetValueAtCharAsFloat( vec, i, 2 ) == (float)(char)testValue );
-         pcu_check_true( Variable_GetValueAtCharAsDouble( vec, i, 2 ) == (double)(char)testValue );
-         pcu_check_true( Variable_GetPtrAtChar( vec, i, 2 ) == &structArray[i][2] );
+         pcu_check_true( StgVariable_GetValueAtChar( vec, i, 2 ) == (char)(char)testValue );
+         pcu_check_true( StgVariable_GetValueAtCharAsShort( vec, i, 2 ) == (short)(char)testValue );
+         pcu_check_true( StgVariable_GetValueAtCharAsInt( vec, i, 2 ) == (int)(char)testValue );
+         pcu_check_true( StgVariable_GetValueAtCharAsFloat( vec, i, 2 ) == (float)(char)testValue );
+         pcu_check_true( StgVariable_GetValueAtCharAsDouble( vec, i, 2 ) == (double)(char)testValue );
+         pcu_check_true( StgVariable_GetPtrAtChar( vec, i, 2 ) == &structArray[i][2] );
       }
 
       /*~~~Vector: Sub-Variable~~~*/
       for ( i = 0; i < length; ++i ) {
          for ( j = 0; j < 3; ++j ) {
-            pcu_check_true( _Variable_GetStructPtr( vecVar[j], i ) == &structArray[i][j] );
+            pcu_check_true( _StgVariable_GetStructPtr( vecVar[j], i ) == &structArray[i][j] );
          }
       }
    }
@@ -281,17 +281,17 @@ void VariableSuite_TestVariable_Double( VariableSuiteData* data ) {
    Index test_I;
    double testValue;
 
-   Variable* var;
-   Variable* vec;
-   Variable* vecVar[3];
+   StgVariable* var;
+   StgVariable* vec;
+   StgVariable* vecVar[3];
 
    int i, j;
 
    array = Memory_Alloc_Array( double, length, "test" );
    structArray = Memory_Alloc_Array( Triple, length, "test" );
 
-   var = Variable_NewScalar( "Double-Scalar", NULL, Variable_DataType_Double, &length, NULL, (void**)&array, data->vr ); 
-   vec = Variable_NewVector( "Double-Three", NULL, Variable_DataType_Double, 3, &length, NULL, (void**)&structArray, data->vr, "a", "b", "c" );
+   var = StgVariable_NewScalar( "Double-Scalar", NULL, StgVariable_DataType_Double, &length, NULL, (void**)&array, data->vr ); 
+   vec = StgVariable_NewVector( "Double-Three", NULL, StgVariable_DataType_Double, 3, &length, NULL, (void**)&structArray, data->vr, "a", "b", "c" );
 
    vecVar[0] = Variable_Register_GetByName( data->vr, "a" );
    vecVar[1] = Variable_Register_GetByName( data->vr, "b" );
@@ -305,50 +305,50 @@ void VariableSuite_TestVariable_Double( VariableSuiteData* data ) {
       testValue = testValues[test_I];
 
       for ( i = 0; i < length; ++i ) {
-         Variable_SetValueDouble( var, i, testValue );
+         StgVariable_SetValueDouble( var, i, testValue );
 
-         Variable_SetValueAtDouble( vec, i, 0, testValue );
-         Variable_SetValueAtDouble( vec, i, 1, testValue );
-         Variable_SetValueAtDouble( vec, i, 2, testValue );
+         StgVariable_SetValueAtDouble( vec, i, 0, testValue );
+         StgVariable_SetValueAtDouble( vec, i, 1, testValue );
+         StgVariable_SetValueAtDouble( vec, i, 2, testValue );
       }
 
       /* "~~~Scalar~~~\n" */
       for ( i = 0; i < length; ++i ) {
-         pcu_check_true( Variable_GetValueDouble( var, i ) == (double)(double)testValue );
-         pcu_check_true( Variable_GetValueDoubleAsChar( var, i ) == (char)(double)testValue );
-         pcu_check_true( Variable_GetValueDoubleAsShort( var, i ) == (short)(double)testValue );
-         pcu_check_true( Variable_GetValueDoubleAsInt( var, i ) == (int)(double)testValue );
-         pcu_check_true( Variable_GetValueDoubleAsFloat( var, i ) == (float)(double)testValue );
+         pcu_check_true( StgVariable_GetValueDouble( var, i ) == (double)(double)testValue );
+         pcu_check_true( StgVariable_GetValueDoubleAsChar( var, i ) == (char)(double)testValue );
+         pcu_check_true( StgVariable_GetValueDoubleAsShort( var, i ) == (short)(double)testValue );
+         pcu_check_true( StgVariable_GetValueDoubleAsInt( var, i ) == (int)(double)testValue );
+         pcu_check_true( StgVariable_GetValueDoubleAsFloat( var, i ) == (float)(double)testValue );
       }
 
       /*~~~Vector~~~*/
       for ( i = 0; i < length; ++i ) {
-         pcu_check_true( Variable_GetValueAtDouble( vec, i, 0 ) == (double)(double)testValue );
-         pcu_check_true( Variable_GetValueAtDoubleAsChar( vec, i, 0 ) == (char)(double)testValue );
-         pcu_check_true( Variable_GetValueAtDoubleAsShort( vec, i, 0 ) == (short)(double)testValue );
-         pcu_check_true( Variable_GetValueAtDoubleAsInt( vec, i, 0 ) == (int)(double)testValue );
-         pcu_check_true( Variable_GetValueAtDoubleAsFloat( vec, i, 0 ) == (float)(double)testValue );
-         pcu_check_true( Variable_GetPtrAtDouble( vec, i, 0 ) == &structArray[i][0] );
+         pcu_check_true( StgVariable_GetValueAtDouble( vec, i, 0 ) == (double)(double)testValue );
+         pcu_check_true( StgVariable_GetValueAtDoubleAsChar( vec, i, 0 ) == (char)(double)testValue );
+         pcu_check_true( StgVariable_GetValueAtDoubleAsShort( vec, i, 0 ) == (short)(double)testValue );
+         pcu_check_true( StgVariable_GetValueAtDoubleAsInt( vec, i, 0 ) == (int)(double)testValue );
+         pcu_check_true( StgVariable_GetValueAtDoubleAsFloat( vec, i, 0 ) == (float)(double)testValue );
+         pcu_check_true( StgVariable_GetPtrAtDouble( vec, i, 0 ) == &structArray[i][0] );
 
-         pcu_check_true( Variable_GetValueAtDouble( vec, i, 1 ) == (double)(double)testValue );
-         pcu_check_true( Variable_GetValueAtDoubleAsChar( vec, i, 1 ) == (char)(double)testValue );
-         pcu_check_true( Variable_GetValueAtDoubleAsShort( vec, i, 1 ) == (short)(double)testValue );
-         pcu_check_true( Variable_GetValueAtDoubleAsInt( vec, i, 1 ) == (int)(double)testValue );
-         pcu_check_true( Variable_GetValueAtDoubleAsFloat( vec, i, 1 ) == (float)(double)testValue );
-         pcu_check_true( Variable_GetPtrAtDouble( vec, i, 1 ) == &structArray[i][1] );
+         pcu_check_true( StgVariable_GetValueAtDouble( vec, i, 1 ) == (double)(double)testValue );
+         pcu_check_true( StgVariable_GetValueAtDoubleAsChar( vec, i, 1 ) == (char)(double)testValue );
+         pcu_check_true( StgVariable_GetValueAtDoubleAsShort( vec, i, 1 ) == (short)(double)testValue );
+         pcu_check_true( StgVariable_GetValueAtDoubleAsInt( vec, i, 1 ) == (int)(double)testValue );
+         pcu_check_true( StgVariable_GetValueAtDoubleAsFloat( vec, i, 1 ) == (float)(double)testValue );
+         pcu_check_true( StgVariable_GetPtrAtDouble( vec, i, 1 ) == &structArray[i][1] );
 
-         pcu_check_true( Variable_GetValueAtDouble( vec, i, 2 ) == (double)(double)testValue );
-         pcu_check_true( Variable_GetValueAtDoubleAsChar( vec, i, 2 ) == (char)(double)testValue );
-         pcu_check_true( Variable_GetValueAtDoubleAsShort( vec, i, 2 ) == (short)(double)testValue );
-         pcu_check_true( Variable_GetValueAtDoubleAsInt( vec, i, 2 ) == (int)(double)testValue );
-         pcu_check_true( Variable_GetValueAtDoubleAsFloat( vec, i, 2 ) == (float)(double)testValue );
-         pcu_check_true( Variable_GetPtrAtDouble( vec, i, 2 ) == &structArray[i][2] );
+         pcu_check_true( StgVariable_GetValueAtDouble( vec, i, 2 ) == (double)(double)testValue );
+         pcu_check_true( StgVariable_GetValueAtDoubleAsChar( vec, i, 2 ) == (char)(double)testValue );
+         pcu_check_true( StgVariable_GetValueAtDoubleAsShort( vec, i, 2 ) == (short)(double)testValue );
+         pcu_check_true( StgVariable_GetValueAtDoubleAsInt( vec, i, 2 ) == (int)(double)testValue );
+         pcu_check_true( StgVariable_GetValueAtDoubleAsFloat( vec, i, 2 ) == (float)(double)testValue );
+         pcu_check_true( StgVariable_GetPtrAtDouble( vec, i, 2 ) == &structArray[i][2] );
       }
 
       /*~~~Vector: Sub-Variable~~~*/
       for ( i = 0; i < length; ++i ) {
          for ( j = 0; j < 3; ++j ) {
-            pcu_check_true( Variable_GetStructPtr( vecVar[j], i ) == &structArray[i][j] );
+            pcu_check_true( StgVariable_GetStructPtr( vecVar[j], i ) == &structArray[i][j] );
          }
       }
    }
@@ -367,17 +367,17 @@ void VariableSuite_TestVariable_Float( VariableSuiteData* data ) {
    Index test_I;
    float testValue;
 
-   Variable* var;
-   Variable* vec;
-   Variable* vecVar[3];
+   StgVariable* var;
+   StgVariable* vec;
+   StgVariable* vecVar[3];
 
    int i, j;
 
    array = Memory_Alloc_Array( float, length, "test" );
    structArray = Memory_Alloc_Array( Triple, length, "test" );
 
-   var = Variable_NewScalar( "Float-Scalar", NULL, Variable_DataType_Float, &length, NULL, (void**)&array, data->vr );
-   vec = Variable_NewVector( "Float-Three", NULL, Variable_DataType_Float, 3, &length, NULL, (void**)&structArray, data->vr, "a", "b", "c" );
+   var = StgVariable_NewScalar( "Float-Scalar", NULL, StgVariable_DataType_Float, &length, NULL, (void**)&array, data->vr );
+   vec = StgVariable_NewVector( "Float-Three", NULL, StgVariable_DataType_Float, 3, &length, NULL, (void**)&structArray, data->vr, "a", "b", "c" );
 
    vecVar[0] = Variable_Register_GetByName( data->vr, "a" );
    vecVar[1] = Variable_Register_GetByName( data->vr, "b" );
@@ -389,50 +389,50 @@ void VariableSuite_TestVariable_Float( VariableSuiteData* data ) {
       testValue = testValues[test_I];
 
       for ( i = 0; i < length; ++i ) {
-         Variable_SetValueFloat( var, i, testValue );
+         StgVariable_SetValueFloat( var, i, testValue );
 
-         Variable_SetValueAtFloat( vec, i, 0, testValue );
-         Variable_SetValueAtFloat( vec, i, 1, testValue );
-         Variable_SetValueAtFloat( vec, i, 2, testValue );
+         StgVariable_SetValueAtFloat( vec, i, 0, testValue );
+         StgVariable_SetValueAtFloat( vec, i, 1, testValue );
+         StgVariable_SetValueAtFloat( vec, i, 2, testValue );
       }
       
       /* "~~~Scalar~~~\n" */
       for ( i = 0; i < length; ++i ) {
-         pcu_check_true( Variable_GetValueFloat( var, i ) == (float)(float)testValue );
-         pcu_check_true( Variable_GetValueFloatAsChar( var, i ) == (float)(char)testValue );
-         pcu_check_true( Variable_GetValueFloatAsShort( var, i ) == (float)(short)testValue );
-         pcu_check_true( Variable_GetValueFloatAsInt( var, i ) == (float)(int)testValue );
-         pcu_check_true( Variable_GetValueFloatAsDouble( var, i ) == (double)(float)testValue );
+         pcu_check_true( StgVariable_GetValueFloat( var, i ) == (float)(float)testValue );
+         pcu_check_true( StgVariable_GetValueFloatAsChar( var, i ) == (float)(char)testValue );
+         pcu_check_true( StgVariable_GetValueFloatAsShort( var, i ) == (float)(short)testValue );
+         pcu_check_true( StgVariable_GetValueFloatAsInt( var, i ) == (float)(int)testValue );
+         pcu_check_true( StgVariable_GetValueFloatAsDouble( var, i ) == (double)(float)testValue );
       }
 
       /*~~~Vector~~~*/
       for ( i = 0; i < length; ++i ) {
-         pcu_check_true( Variable_GetValueAtFloat( vec, i, 0 ) == (float)(float)testValue );
-         pcu_check_true( Variable_GetValueAtFloatAsChar( vec, i, 0 ) == (char)(float)testValue );
-         pcu_check_true( Variable_GetValueAtFloatAsShort( vec, i, 0 ) == (short)(float)testValue );
-         pcu_check_true( Variable_GetValueAtFloatAsInt( vec, i, 0 ) == (int)(float)testValue );
-         pcu_check_true( Variable_GetValueAtFloatAsDouble( vec, i, 0 ) == (double)(float)testValue );
-         pcu_check_true( Variable_GetPtrAtFloat( vec, i, 0 ) == &structArray[i][0] );
+         pcu_check_true( StgVariable_GetValueAtFloat( vec, i, 0 ) == (float)(float)testValue );
+         pcu_check_true( StgVariable_GetValueAtFloatAsChar( vec, i, 0 ) == (char)(float)testValue );
+         pcu_check_true( StgVariable_GetValueAtFloatAsShort( vec, i, 0 ) == (short)(float)testValue );
+         pcu_check_true( StgVariable_GetValueAtFloatAsInt( vec, i, 0 ) == (int)(float)testValue );
+         pcu_check_true( StgVariable_GetValueAtFloatAsDouble( vec, i, 0 ) == (double)(float)testValue );
+         pcu_check_true( StgVariable_GetPtrAtFloat( vec, i, 0 ) == &structArray[i][0] );
 
-         pcu_check_true( Variable_GetValueAtFloat( vec, i, 1 ) == (float)(float)testValue );
-         pcu_check_true( Variable_GetValueAtFloatAsChar( vec, i, 1 ) == (char)(float)testValue );
-         pcu_check_true( Variable_GetValueAtFloatAsShort( vec, i, 1 ) == (short)(float)testValue );
-         pcu_check_true( Variable_GetValueAtFloatAsInt( vec, i, 1 ) == (int)(float)testValue );
-         pcu_check_true( Variable_GetValueAtFloatAsDouble( vec, i, 1 ) == (double)(float)testValue );
-         pcu_check_true( Variable_GetPtrAtFloat( vec, i, 1 ) == &structArray[i][1] );
+         pcu_check_true( StgVariable_GetValueAtFloat( vec, i, 1 ) == (float)(float)testValue );
+         pcu_check_true( StgVariable_GetValueAtFloatAsChar( vec, i, 1 ) == (char)(float)testValue );
+         pcu_check_true( StgVariable_GetValueAtFloatAsShort( vec, i, 1 ) == (short)(float)testValue );
+         pcu_check_true( StgVariable_GetValueAtFloatAsInt( vec, i, 1 ) == (int)(float)testValue );
+         pcu_check_true( StgVariable_GetValueAtFloatAsDouble( vec, i, 1 ) == (double)(float)testValue );
+         pcu_check_true( StgVariable_GetPtrAtFloat( vec, i, 1 ) == &structArray[i][1] );
 
-         pcu_check_true( Variable_GetValueAtFloat( vec, i, 2 ) == (float)(float)testValue );
-         pcu_check_true( Variable_GetValueAtFloatAsChar( vec, i, 2 ) == (char)(float)testValue );
-         pcu_check_true( Variable_GetValueAtFloatAsShort( vec, i, 2 ) == (short)(float)testValue );
-         pcu_check_true( Variable_GetValueAtFloatAsInt( vec, i, 2 ) == (int)(float)testValue );
-         pcu_check_true( Variable_GetValueAtFloatAsDouble( vec, i, 2 ) == (double)(float)testValue );
-         pcu_check_true( Variable_GetPtrAtFloat( vec, i, 2 ) == &structArray[i][2] );
+         pcu_check_true( StgVariable_GetValueAtFloat( vec, i, 2 ) == (float)(float)testValue );
+         pcu_check_true( StgVariable_GetValueAtFloatAsChar( vec, i, 2 ) == (char)(float)testValue );
+         pcu_check_true( StgVariable_GetValueAtFloatAsShort( vec, i, 2 ) == (short)(float)testValue );
+         pcu_check_true( StgVariable_GetValueAtFloatAsInt( vec, i, 2 ) == (int)(float)testValue );
+         pcu_check_true( StgVariable_GetValueAtFloatAsDouble( vec, i, 2 ) == (double)(float)testValue );
+         pcu_check_true( StgVariable_GetPtrAtFloat( vec, i, 2 ) == &structArray[i][2] );
       }
 
       /*~~~Vector: Sub-Variable~~~*/
       for ( i = 0; i < length; ++i ) {
          for ( j = 0; j < 3; ++j ) {
-            pcu_check_true( Variable_GetStructPtr( vecVar[j], i ) == &structArray[i][j] );
+            pcu_check_true( StgVariable_GetStructPtr( vecVar[j], i ) == &structArray[i][j] );
          }
       }
    }
@@ -455,17 +455,17 @@ void VariableSuite_TestVariable_Int( VariableSuiteData* data ) {
    Index test_I;
    long int testValue;
 
-   Variable* var;
-   Variable* vec;
-   Variable* vecVar[3];
+   StgVariable* var;
+   StgVariable* vec;
+   StgVariable* vecVar[3];
 
    int i, j;
 
    array = Memory_Alloc_Array( int, length, "test" );
    structArray = Memory_Alloc_Array( Triple, length, "test" );
 
-   var = Variable_NewScalar( "Int-Scalar", NULL, Variable_DataType_Int, &length, NULL, (void**)&array, data->vr );
-   vec = Variable_NewVector( "Int-Three", NULL, Variable_DataType_Int, 3, &length, NULL, (void**)&structArray, data->vr, "a", "b", "c" );
+   var = StgVariable_NewScalar( "Int-Scalar", NULL, StgVariable_DataType_Int, &length, NULL, (void**)&array, data->vr );
+   vec = StgVariable_NewVector( "Int-Three", NULL, StgVariable_DataType_Int, 3, &length, NULL, (void**)&structArray, data->vr, "a", "b", "c" );
 
    vecVar[0] = Variable_Register_GetByName( data->vr, "a" );
    vecVar[1] = Variable_Register_GetByName( data->vr, "b" );
@@ -478,50 +478,50 @@ void VariableSuite_TestVariable_Int( VariableSuiteData* data ) {
       testValue = testValues[test_I];
 
       for ( i = 0; i < length; ++i ) {
-         Variable_SetValueInt( var, i, testValue );
+         StgVariable_SetValueInt( var, i, testValue );
 
-         Variable_SetValueAtInt( vec, i, 0, testValue );
-         Variable_SetValueAtInt( vec, i, 1, testValue );
-         Variable_SetValueAtInt( vec, i, 2, testValue );
+         StgVariable_SetValueAtInt( vec, i, 0, testValue );
+         StgVariable_SetValueAtInt( vec, i, 1, testValue );
+         StgVariable_SetValueAtInt( vec, i, 2, testValue );
       }
 
       /*~~~Scalar~~~*/
       for ( i = 0; i < length; ++i ) {
-         pcu_check_true( Variable_GetValueInt( var, i ) == (int)(int)testValue );
-         pcu_check_true( Variable_GetValueIntAsChar( var, i ) == (char)(int)testValue );
-         pcu_check_true( Variable_GetValueIntAsShort( var, i ) == (short)(int)testValue );
-         pcu_check_true( fabsf(Variable_GetValueIntAsFloat( var, i ) - (float)(int)testValue) < fabsf(0.00001*testValue) );
-         pcu_check_true( fabs(Variable_GetValueIntAsDouble( var, i ) - (double)(int)testValue) < fabs(0.00001*testValue) );
+         pcu_check_true( StgVariable_GetValueInt( var, i ) == (int)(int)testValue );
+         pcu_check_true( StgVariable_GetValueIntAsChar( var, i ) == (char)(int)testValue );
+         pcu_check_true( StgVariable_GetValueIntAsShort( var, i ) == (short)(int)testValue );
+         pcu_check_true( fabsf(StgVariable_GetValueIntAsFloat( var, i ) - (float)(int)testValue) < fabsf(0.00001*testValue) );
+         pcu_check_true( fabs(StgVariable_GetValueIntAsDouble( var, i ) - (double)(int)testValue) < fabs(0.00001*testValue) );
       }
 
       /*~~~Vector~~~*/
       for ( i = 0; i < length; ++i ) {
-         pcu_check_true( Variable_GetValueAtInt( vec, i, 0 ) == (int)(int)testValue );
-         pcu_check_true( Variable_GetValueAtIntAsChar( vec, i, 0 ) == (char)(int)testValue );
-         pcu_check_true( Variable_GetValueAtIntAsShort( vec, i, 0 ) == (short)(int)testValue );
-         pcu_check_true( fabsf(Variable_GetValueAtIntAsFloat( vec, i, 0 ) - (float)(int)testValue) < fabsf(0.00001*testValue) );
-         pcu_check_true( fabs(Variable_GetValueAtIntAsDouble( vec, i, 0 ) - (double)(int)testValue) < fabs(0.00001*testValue));
-         pcu_check_true( Variable_GetPtrAtInt( vec, i, 0 ) == &structArray[i][0] );
+         pcu_check_true( StgVariable_GetValueAtInt( vec, i, 0 ) == (int)(int)testValue );
+         pcu_check_true( StgVariable_GetValueAtIntAsChar( vec, i, 0 ) == (char)(int)testValue );
+         pcu_check_true( StgVariable_GetValueAtIntAsShort( vec, i, 0 ) == (short)(int)testValue );
+         pcu_check_true( fabsf(StgVariable_GetValueAtIntAsFloat( vec, i, 0 ) - (float)(int)testValue) < fabsf(0.00001*testValue) );
+         pcu_check_true( fabs(StgVariable_GetValueAtIntAsDouble( vec, i, 0 ) - (double)(int)testValue) < fabs(0.00001*testValue));
+         pcu_check_true( StgVariable_GetPtrAtInt( vec, i, 0 ) == &structArray[i][0] );
 
-         pcu_check_true( Variable_GetValueAtInt( vec, i, 1 ) == (int)(int)testValue );
-         pcu_check_true( Variable_GetValueAtIntAsChar( vec, i, 1 ) == (char)(int)testValue );
-         pcu_check_true( Variable_GetValueAtIntAsShort( vec, i, 1 ) == (short)(int)testValue );
-         pcu_check_true( fabsf(Variable_GetValueAtIntAsFloat( vec, i, 1 ) - (float)(int)testValue) < fabsf(0.00001*testValue) );
-         pcu_check_true( fabs(Variable_GetValueAtIntAsDouble( vec, i, 1 ) - (double)(int)testValue) < fabs(0.00001*testValue));
-         pcu_check_true( Variable_GetPtrAtInt( vec, i, 1 ) == &structArray[i][1] );
+         pcu_check_true( StgVariable_GetValueAtInt( vec, i, 1 ) == (int)(int)testValue );
+         pcu_check_true( StgVariable_GetValueAtIntAsChar( vec, i, 1 ) == (char)(int)testValue );
+         pcu_check_true( StgVariable_GetValueAtIntAsShort( vec, i, 1 ) == (short)(int)testValue );
+         pcu_check_true( fabsf(StgVariable_GetValueAtIntAsFloat( vec, i, 1 ) - (float)(int)testValue) < fabsf(0.00001*testValue) );
+         pcu_check_true( fabs(StgVariable_GetValueAtIntAsDouble( vec, i, 1 ) - (double)(int)testValue) < fabs(0.00001*testValue));
+         pcu_check_true( StgVariable_GetPtrAtInt( vec, i, 1 ) == &structArray[i][1] );
 
-         pcu_check_true( Variable_GetValueAtInt( vec, i, 2 ) == (int)(int)testValue );
-         pcu_check_true( Variable_GetValueAtIntAsChar( vec, i, 2 ) == (char)(int)testValue );
-         pcu_check_true( Variable_GetValueAtIntAsShort( vec, i, 2 ) == (short)(int)testValue );
-         pcu_check_true( fabsf(Variable_GetValueAtIntAsFloat( vec, i, 2 ) - (float)(int)testValue) < fabsf(0.00001*testValue));
-         pcu_check_true( fabs(Variable_GetValueAtIntAsDouble( vec, i, 2 ) - (double)(int)testValue) < fabs(0.0001*testValue));
-         pcu_check_true( Variable_GetPtrAtInt( vec, i, 2 ) == &structArray[i][2] );
+         pcu_check_true( StgVariable_GetValueAtInt( vec, i, 2 ) == (int)(int)testValue );
+         pcu_check_true( StgVariable_GetValueAtIntAsChar( vec, i, 2 ) == (char)(int)testValue );
+         pcu_check_true( StgVariable_GetValueAtIntAsShort( vec, i, 2 ) == (short)(int)testValue );
+         pcu_check_true( fabsf(StgVariable_GetValueAtIntAsFloat( vec, i, 2 ) - (float)(int)testValue) < fabsf(0.00001*testValue));
+         pcu_check_true( fabs(StgVariable_GetValueAtIntAsDouble( vec, i, 2 ) - (double)(int)testValue) < fabs(0.0001*testValue));
+         pcu_check_true( StgVariable_GetPtrAtInt( vec, i, 2 ) == &structArray[i][2] );
       }
 
       /*~~~Vector: Sub-Variable~~~*/
       for ( i = 0; i < length; ++i ) {
          for ( j = 0; j < 3; ++j ) {
-            pcu_check_true( Variable_GetStructPtr( vecVar[j], i ) == &structArray[i][j] );
+            pcu_check_true( StgVariable_GetStructPtr( vecVar[j], i ) == &structArray[i][j] );
          }
       }
    }
@@ -544,17 +544,17 @@ void VariableSuite_TestVariable_Short( VariableSuiteData* data ) {
    Index test_I;
    long int testValue;
 
-   Variable* var;
-   Variable* vec;
-   Variable* vecVar[3];
+   StgVariable* var;
+   StgVariable* vec;
+   StgVariable* vecVar[3];
 
    int i, j;
 
    array = Memory_Alloc_Array( short, length, "test" );
    structArray = Memory_Alloc_Array( Triple, length, "test" );
 
-   var = Variable_NewScalar( "Short-Scalar", NULL, Variable_DataType_Short, &length, NULL, (void**)&array, data->vr );
-   vec = Variable_NewVector( "Short-Three", NULL, Variable_DataType_Short, 3, &length, NULL, (void**)&structArray, data->vr, "a", "b", "c" );
+   var = StgVariable_NewScalar( "Short-Scalar", NULL, StgVariable_DataType_Short, &length, NULL, (void**)&array, data->vr );
+   vec = StgVariable_NewVector( "Short-Three", NULL, StgVariable_DataType_Short, 3, &length, NULL, (void**)&structArray, data->vr, "a", "b", "c" );
 
    vecVar[0] = Variable_Register_GetByName( data->vr, "a" );
    vecVar[1] = Variable_Register_GetByName( data->vr, "b" );
@@ -569,47 +569,47 @@ void VariableSuite_TestVariable_Short( VariableSuiteData* data ) {
 
 
       for ( i = 0; i < length; ++i ) {
-         Variable_SetValueShort( var, i, testValue );
+         StgVariable_SetValueShort( var, i, testValue );
 
-         Variable_SetValueAtShort( vec, i, 0, testValue );
-         Variable_SetValueAtShort( vec, i, 1, testValue );
-         Variable_SetValueAtShort( vec, i, 2, testValue );
+         StgVariable_SetValueAtShort( vec, i, 0, testValue );
+         StgVariable_SetValueAtShort( vec, i, 1, testValue );
+         StgVariable_SetValueAtShort( vec, i, 2, testValue );
       }
 
       for ( i = 0; i < length; ++i ) {
-         pcu_check_true( Variable_GetValueShort( var, i ) == (short)(short)testValue );
-         pcu_check_true( Variable_GetValueShortAsChar( var, i ) == (char)(short)testValue );
-         pcu_check_true( Variable_GetValueShortAsInt( var, i ) == (int)(short)testValue );
-         pcu_check_true( Variable_GetValueShortAsFloat( var, i ) == (float)(short)testValue );
-         pcu_check_true( Variable_GetValueShortAsDouble( var, i ) == (double)(short)testValue );
+         pcu_check_true( StgVariable_GetValueShort( var, i ) == (short)(short)testValue );
+         pcu_check_true( StgVariable_GetValueShortAsChar( var, i ) == (char)(short)testValue );
+         pcu_check_true( StgVariable_GetValueShortAsInt( var, i ) == (int)(short)testValue );
+         pcu_check_true( StgVariable_GetValueShortAsFloat( var, i ) == (float)(short)testValue );
+         pcu_check_true( StgVariable_GetValueShortAsDouble( var, i ) == (double)(short)testValue );
       }
 
       for ( i = 0; i < length; ++i ) {
-         pcu_check_true( Variable_GetValueAtShort( vec, i, 0 ) == (short)(short)testValue );
-         pcu_check_true( Variable_GetValueAtShortAsChar( vec, i, 0 ) == (char)(short)testValue );
-         pcu_check_true( Variable_GetValueAtShortAsInt( vec, i, 0 ) == (int)(short)testValue );
-         pcu_check_true( Variable_GetValueAtShortAsFloat( vec, i, 0 ) == (float)(short)testValue );
-         pcu_check_true( Variable_GetValueAtShortAsDouble( vec, i, 0 ) == (double)(short)testValue );
-         pcu_check_true( Variable_GetPtrAtShort( vec, i, 0 ) == &structArray[i][0] );
+         pcu_check_true( StgVariable_GetValueAtShort( vec, i, 0 ) == (short)(short)testValue );
+         pcu_check_true( StgVariable_GetValueAtShortAsChar( vec, i, 0 ) == (char)(short)testValue );
+         pcu_check_true( StgVariable_GetValueAtShortAsInt( vec, i, 0 ) == (int)(short)testValue );
+         pcu_check_true( StgVariable_GetValueAtShortAsFloat( vec, i, 0 ) == (float)(short)testValue );
+         pcu_check_true( StgVariable_GetValueAtShortAsDouble( vec, i, 0 ) == (double)(short)testValue );
+         pcu_check_true( StgVariable_GetPtrAtShort( vec, i, 0 ) == &structArray[i][0] );
 
-         pcu_check_true( Variable_GetValueAtShort( vec, i, 1 ) == (short)(short)testValue );
-         pcu_check_true( Variable_GetValueAtShortAsChar( vec, i, 1 ) == (char)(short)testValue );
-         pcu_check_true( Variable_GetValueAtShortAsInt( vec, i, 1 ) == (int)(short)testValue );
-         pcu_check_true( Variable_GetValueAtShortAsFloat( vec, i, 1 ) == (float)(short)testValue );
-         pcu_check_true( Variable_GetValueAtShortAsDouble( vec, i, 1 ) == (double)(short)testValue );
-         pcu_check_true( Variable_GetPtrAtShort( vec, i, 1 ) == &structArray[i][1] );
+         pcu_check_true( StgVariable_GetValueAtShort( vec, i, 1 ) == (short)(short)testValue );
+         pcu_check_true( StgVariable_GetValueAtShortAsChar( vec, i, 1 ) == (char)(short)testValue );
+         pcu_check_true( StgVariable_GetValueAtShortAsInt( vec, i, 1 ) == (int)(short)testValue );
+         pcu_check_true( StgVariable_GetValueAtShortAsFloat( vec, i, 1 ) == (float)(short)testValue );
+         pcu_check_true( StgVariable_GetValueAtShortAsDouble( vec, i, 1 ) == (double)(short)testValue );
+         pcu_check_true( StgVariable_GetPtrAtShort( vec, i, 1 ) == &structArray[i][1] );
 
-         pcu_check_true( Variable_GetValueAtShort( vec, i, 2 ) == (short)(short)testValue );
-         pcu_check_true( Variable_GetValueAtShortAsChar( vec, i, 2 ) == (char)(short)testValue );
-         pcu_check_true( Variable_GetValueAtShortAsInt( vec, i, 2 ) == (int)(short)testValue );
-         pcu_check_true( Variable_GetValueAtShortAsFloat( vec, i, 2 ) == (float)(short)testValue );
-         pcu_check_true( Variable_GetValueAtShortAsDouble( vec, i, 2 ) == (double)(short)testValue );
-         pcu_check_true( Variable_GetPtrAtShort( vec, i, 2 ) == &structArray[i][2] );
+         pcu_check_true( StgVariable_GetValueAtShort( vec, i, 2 ) == (short)(short)testValue );
+         pcu_check_true( StgVariable_GetValueAtShortAsChar( vec, i, 2 ) == (char)(short)testValue );
+         pcu_check_true( StgVariable_GetValueAtShortAsInt( vec, i, 2 ) == (int)(short)testValue );
+         pcu_check_true( StgVariable_GetValueAtShortAsFloat( vec, i, 2 ) == (float)(short)testValue );
+         pcu_check_true( StgVariable_GetValueAtShortAsDouble( vec, i, 2 ) == (double)(short)testValue );
+         pcu_check_true( StgVariable_GetPtrAtShort( vec, i, 2 ) == &structArray[i][2] );
       }
 
       for ( i = 0; i < length; ++i ) {
          for ( j = 0; j < 3; ++j ) {
-            pcu_check_true( Variable_GetStructPtr( vecVar[j], i ) == &structArray[i][j] );
+            pcu_check_true( StgVariable_GetStructPtr( vecVar[j], i ) == &structArray[i][j] );
          }
       }
    }
@@ -642,9 +642,9 @@ typedef struct MockContext MockContext;
 void VariableSuite_TestVariableCopy( VariableSuiteData* data ) {
    MockContext*         ctx1 = NULL;
    MockContext*         ctx2 = NULL;
-	Variable*            scalar = NULL;
-	Variable*            vector = NULL;
-	Variable*            complexStuff = NULL;
+	StgVariable*            scalar = NULL;
+	StgVariable*            vector = NULL;
+	StgVariable*            complexStuff = NULL;
    PtrMap*              ptrMap = PtrMap_New( 10 );
    Index                ii=0;
    Index                jj=0;
@@ -665,20 +665,20 @@ void VariableSuite_TestVariableCopy( VariableSuiteData* data ) {
 
    ctx1->vr = Variable_Register_New();
 
-	Variable_NewScalar( "Scalar", NULL, Variable_DataType_Float, &(ctx1->scalarCount), NULL, (void**)&(ctx1->scalars), ctx1->vr );
-	Variable_NewVector( "Vector", NULL, Variable_DataType_Double, VECTOR_DATA_COUNT, &(ctx1->vectorCount), NULL, (void**)&(ctx1->vectors), ctx1->vr, "x", "y", "z" );
+	StgVariable_NewScalar( "Scalar", NULL, StgVariable_DataType_Float, &(ctx1->scalarCount), NULL, (void**)&(ctx1->scalars), ctx1->vr );
+	StgVariable_NewVector( "Vector", NULL, StgVariable_DataType_Double, VECTOR_DATA_COUNT, &(ctx1->vectorCount), NULL, (void**)&(ctx1->vectors), ctx1->vr, "x", "y", "z" );
 
 	{
 		ComplexStuff tmp;
 		SizeT dataOffsets[] = { 0, 0 };
-		Variable_DataType dataTypes[] = { Variable_DataType_Float, Variable_DataType_Char };
+		StgVariable_DataType dataTypes[] = { StgVariable_DataType_Float, StgVariable_DataType_Char };
 		Index dataTypeCounts[] = { 1, 1 };
 		Name dataNames[] = { "complexY", "complexZ" };
 		
 		dataOffsets[0] = (ArithPointer)&tmp.y - (ArithPointer)&tmp;
 		dataOffsets[1] = (ArithPointer)&tmp.z - (ArithPointer)&tmp;
 
-		Variable_New( "Complex", NULL, 2, dataOffsets, dataTypes, dataTypeCounts, dataNames, &(ctx1->complexStuffSize), &(ctx1->stuffCount), NULL, (void**)&(ctx1->stuff), ctx1->vr );
+		StgVariable_New( "Complex", NULL, 2, dataOffsets, dataTypes, dataTypeCounts, dataNames, &(ctx1->complexStuffSize), &(ctx1->stuffCount), NULL, (void**)&(ctx1->stuff), ctx1->vr );
 	}
 
 	Variable_Register_BuildAll( ctx1->vr );
@@ -688,15 +688,15 @@ void VariableSuite_TestVariableCopy( VariableSuiteData* data ) {
 	complexStuff = Variable_Register_GetByName( ctx1->vr, "Complex" );
 
    for ( ii = 0; ii < ctx1->scalarCount; ++ii ) {
-      Variable_SetValueFloat( scalar, ii, (float)ii );
+      StgVariable_SetValueFloat( scalar, ii, (float)ii );
    }
    for ( ii = 0; ii < ctx1->vectorCount; ++ii ) {
-      Variable_SetValueAtDouble( vector, ii, 0, (double)ii );
-      Variable_SetValueAtDouble( vector, ii, 1, (double)ii );
-      Variable_SetValueAtDouble( vector, ii, 2, (double)ii );
+      StgVariable_SetValueAtDouble( vector, ii, 0, (double)ii );
+      StgVariable_SetValueAtDouble( vector, ii, 1, (double)ii );
+      StgVariable_SetValueAtDouble( vector, ii, 2, (double)ii );
    }
    for ( ii = 0; ii < ctx1->stuffCount; ++ii ) {
-      ComplexStuff* stuff = (ComplexStuff*)Variable_GetStructPtr( complexStuff, ii );
+      ComplexStuff* stuff = (ComplexStuff*)StgVariable_GetStructPtr( complexStuff, ii );
       stuff->y = (float)ii;
       stuff->z = '0' + ii;
    }
@@ -756,8 +756,8 @@ void VariableSuite_TestVariableCopy( VariableSuiteData* data ) {
 
 
 void VariableSuite_TestVariableValueCompare( VariableSuiteData* data ) {
-   Variable*           orig;
-   Variable*           compare;
+   StgVariable*           orig;
+   StgVariable*           compare;
    double*             dataArray;
    double*             dataArray2;
    Index               arrayCount      = 150;
@@ -773,16 +773,16 @@ void VariableSuite_TestVariableValueCompare( VariableSuiteData* data ) {
       dataArray2[ index ] = dataArray[ index ] + amp * cos( index );
    }		
    
-   orig = Variable_NewVector( "orig", NULL, Variable_DataType_Double, componentCount,
+   orig = StgVariable_NewVector( "orig", NULL, StgVariable_DataType_Double, componentCount,
 		&arrayCount, NULL, (void**)&dataArray, data->vr, "orig1", "orig2", "orig3", "orig4" );
-   compare = Variable_NewVector( "compare", NULL, Variable_DataType_Double, componentCount,
+   compare = StgVariable_NewVector( "compare", NULL, StgVariable_DataType_Double, componentCount,
 		&arrayCount, NULL, (void**)&dataArray2, data->vr, "compare1", "compare2", "compare3", "compare4" );
 
    Stg_Component_Build( orig, 0, False );
    Stg_Component_Build( compare, 0, False );
 
-   pcu_check_true( abs( 0.030987 - Variable_ValueCompare( orig, compare ) ) < 0.00001 );
-   pcu_check_true( True == Variable_ValueCompareWithinTolerance( orig, compare, tolerance ) );
+   pcu_check_true( abs( 0.030987 - StgVariable_ValueCompare( orig, compare ) ) < 0.00001 );
+   pcu_check_true( True == StgVariable_ValueCompareWithinTolerance( orig, compare, tolerance ) );
 
    Memory_Free( dataArray );
    Memory_Free( dataArray2 );

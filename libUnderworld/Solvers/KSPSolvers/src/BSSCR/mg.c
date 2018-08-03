@@ -112,9 +112,13 @@ PetscErrorCode KSPCycleEffectivenessMonitorAndAdjust(KSP ksp, PetscInt n, PetscR
 	CHKERRQ(ierr);
     }
 
-    PCMGSetNumberSmoothDown( mgctx->pc, mgctx->currentNumberOfSmooths );
-    PCMGSetNumberSmoothUp(   mgctx->pc, mgctx->currentNumberOfSmooths );
-
+#if (PETSC_VERSION_MAJOR >= 3) && (PETSC_VERSION_MINOR >= 9 )
+  PCMGSetNumberSmooth(   mgctx->pc, mgctx->currentNumberOfSmooths );
+#else
+  PCMGSetNumberSmoothDown( mgctx->pc, mgctx->currentNumberOfSmooths );
+  PCMGSetNumberSmoothUp(   mgctx->pc, mgctx->currentNumberOfSmooths );
+#endif
+    
     mgctx->totalMgCycleCount++;
     mgctx->smoothingCountThisSolve += mgctx->currentNumberOfSmooths;
     mgctx->totalSmoothingCount += mgctx->currentNumberOfSmooths;

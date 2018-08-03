@@ -124,7 +124,7 @@
 	void TimeIntegrator_SetTime( void* timeIntegrator, double time ) ;
 	double TimeIntegrator_GetTime( void* timeIntegrator ) ;
 
-	Variable* Variable_NewFromOld( Variable* oldVariable, Name name, Bool copyValues ) ;
+	StgVariable* StgVariable_NewFromOld( StgVariable* oldVariable, Name name, Bool copyValues ) ;
 
 #endif 
 

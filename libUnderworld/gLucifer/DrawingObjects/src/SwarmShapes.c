@@ -205,13 +205,13 @@ void lucSwarmShapes_UpdateVariables( void* drawingObject )
    lucSwarmViewer_UpdateVariables( drawingObject ) ;
 
    if ( self->planeVectorVariable && self->planeVectorVariable->variable )
-      Variable_Update( self->planeVectorVariable->variable );
+      StgVariable_Update( self->planeVectorVariable->variable );
    if ( self->lengthVariable && self->lengthVariable->variable )
-      Variable_Update( self->lengthVariable->variable );
+      StgVariable_Update( self->lengthVariable->variable );
    if ( self->widthVariable && self->widthVariable->variable )
-      Variable_Update( self->widthVariable->variable );
+      StgVariable_Update( self->widthVariable->variable );
    if ( self->heightVariable && self->heightVariable->variable )
-      Variable_Update( self->heightVariable->variable );
+      StgVariable_Update( self->heightVariable->variable );
 }
 
 

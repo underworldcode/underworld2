@@ -1,3 +1,23 @@
+# Note that the current recommended method for running Underworld
+# on Magnus is through the use of Shifter. Shifter allows docker images
+# to be run on HPC facilities (with caveats). Magnus/Shifter compatible
+# Underworld images are published at dockerhub with the `magnus` suffixed tags.
+#
+#  https://hub.docker.com/r/underworldcode/underworld2/tags/
+#
+# The Dockerfile for the generation of Underworld shifter images may be found
+# within the current git repository at:
+#
+# docs/development/docker/magnus
+#
+# Please review the Shifter documentation at Pawsey for usage instructions.
+
+# If you still wish to build a native version of Underworld, the following instruction
+# were valid at 03/2018, though we no longer provide support for this.
+
+
+
+
 # This script builds underworld2 on the pawsey_mangus machine.
 
 git clone http://github.com/underworldcode/underworld2.git your_uw_directory

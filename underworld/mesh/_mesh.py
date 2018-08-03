@@ -126,7 +126,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
             NOTE: Length is local size.
         """
         uw.libUnderworld.StgDomain.Mesh_GenerateENMapVar(self._cself)
-        arr = uw.libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.enMapVar)
+        arr = uw.libUnderworld.StGermain.StgVariable_getAsNumpyArray(self._cself.enMapVar)
         if( len(arr) % self.elementsLocal != 0 ):
             raise RuntimeError("Unsupported element to node mapping for save routine"+
                     "\nThere doesn't appear to be elements with a consistent number of nodes")
@@ -145,7 +145,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
             Array specifying global element ids. Length is domain size, (local+shadow).
         """
         uw.libUnderworld.StgDomain.Mesh_GenerateElGlobalIdVar(self._cself)
-        arr = uw.libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.eGlobalIdsVar)
+        arr = uw.libUnderworld.StGermain.StgVariable_getAsNumpyArray(self._cself.eGlobalIdsVar)
         return arr
 
     @property
@@ -157,7 +157,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
             Array specifying global node ids. Length is domain size, (local+shadow).
         """
         uw.libUnderworld.StgDomain.Mesh_GenerateNodeGlobalIdVar(self._cself)
-        arr = uw.libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.vGlobalIdsVar)
+        arr = uw.libUnderworld.StGermain.StgVariable_getAsNumpyArray(self._cself.vGlobalIdsVar)
         return arr
 
     @property
@@ -205,7 +205,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
 
         """
         if self._arr is None:
-            self._arr = uw.libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.verticesVariable)
+            self._arr = uw.libUnderworld.StGermain.StgVariable_getAsNumpyArray(self._cself.verticesVariable)
             self._arr.flags.writeable = False
         return self._arr
 
@@ -1192,13 +1192,11 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
         True
 
         """
-        # check if _volume_integral exist, if not then create it
-        if not hasattr(self, "_volume_integral"):
-            # define volume integral class, with dummy fn=1.0
-            self._volume_integral = uw.utils.Integral(mesh=self, fn=1.0)
-
-        self._volume_integral.fn = fn
-        return self._volume_integral.evaluate()
+        # julian, i've dumbed this down for now as i'm not sure how to handle the
+        # circular dependency.  i think the performance hit will be generally
+        # negligible
+        _volume_integral = uw.utils.Integral(mesh=self, fn=fn)
+        return _volume_integral.evaluate()
 
 class FeMesh_IndexSet(uw.container.ObjectifiedIndexSet, function.FunctionInput):
     """

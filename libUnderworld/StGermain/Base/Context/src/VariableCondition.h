@@ -18,9 +18,9 @@
 	typedef void (VariableCondition_PrintConciseFunc) ( void* variableCondition, Stream* stream );
 	typedef void (VariableCondition_ReadDictionaryFunc) ( void* variableCondition, void* dictionary );
 	typedef IndexSet* (VariableCondition_GetSetFunc) ( void* variableCondition );
-	typedef VariableCondition_VariableIndex (VariableCondition_GetVariableCountFunc)	( void* variableCondition, Index index );
-	typedef Variable_Index (VariableCondition_GetVariableIndexFunc) ( void* variableCondition, Index index, VariableCondition_VariableIndex condVar_I );
-	typedef VariableCondition_ValueIndex (VariableCondition_GetValueIndexFunc) ( void* variableCondition, Index index, VariableCondition_VariableIndex condVar_I );
+	typedef VariableCondition_StgVariableIndex (VariableCondition_GetVariableCountFunc)	( void* variableCondition, Index index );
+	typedef StgVariable_Index (VariableCondition_GetVariableIndexFunc) ( void* variableCondition, Index index, VariableCondition_StgVariableIndex condVar_I );
+	typedef VariableCondition_ValueIndex (VariableCondition_GetValueIndexFunc) ( void* variableCondition, Index index, VariableCondition_StgVariableIndex condVar_I );
 	typedef VariableCondition_ValueIndex (VariableCondition_GetValueCountFunc) ( void* variableCondition );
 	typedef VariableCondition_Value (VariableCondition_GetValueFunc) ( void* variableCondition, VariableCondition_ValueIndex valIndex );
 	typedef void (VariableCondition_ApplyFunc)( void *vc, void* ctx );
@@ -49,7 +49,7 @@
 	
 	#define __VariableCondition_Tuple \
 		/** The variable index into VariableCondition::variable_Register identifying a variable */ \
-		Variable_Index				varIndex; \
+		StgVariable_Index				varIndex; \
 		/** The value index into VariableCondition::valueTbl identifying a value to apply to the variable */ \
 		VariableCondition_ValueIndex		valIndex; \
 	
@@ -88,7 +88,7 @@
 		/** Array, of size indexCount, containing the indexes this VC applies to. */ \
 		Index*												indexTbl; \
 		/** Array containing the number of variables at each index that are controlled by this VC */ \
-		VariableCondition_VariableIndex*				vcVarCountTbl; \
+		VariableCondition_StgVariableIndex*				vcVarCountTbl; \
 		/** 2d Array, which for each index this VC controls, stores the VariableCondition_Tuple that relates
 		what condition is being applied to which Variable */ \
 		VariableCondition_Tuple**						vcTbl; \
@@ -203,7 +203,7 @@
 
 	void VariableCondition_ApplyToVariable(
 		void*										variableCondition,
-		VariableCondition_VariableIndex	varIndex, 
+		VariableCondition_StgVariableIndex	varIndex, 
 		void*										context );
 	
 	void VariableCondition_ApplyToIndex( void* variableCondition, Index globalIndex, void* context );
@@ -211,14 +211,14 @@
 	void VariableCondition_ApplyToIndexVariable(
 		void*										variableCondition, 
 		Index										globalIndex, 
-		VariableCondition_VariableIndex	varIndex,
+		VariableCondition_StgVariableIndex	varIndex,
 		void*										context );
 	
 
 	VariableCondition_ValueIndex	VariableCondition_GetValueIndex(
 		void*				variableCondition, 
 		Index				globalIndex, 
-		Variable_Index	varIndex );
+		StgVariable_Index	varIndex );
 	
 	void VariableCondition_PrintConcise( void* variableCondition, Stream* stream );
 	

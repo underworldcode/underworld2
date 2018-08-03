@@ -172,11 +172,11 @@ void lucSwarmRGBColourViewer_UpdateVariables( void* drawingObject )
    lucSwarmViewer_UpdateVariables( drawingObject ) ;
 
    if ( self->colourRedVariable && self->colourRedVariable->variable )
-      Variable_Update( self->colourRedVariable->variable );
+      StgVariable_Update( self->colourRedVariable->variable );
    if ( self->colourGreenVariable && self->colourGreenVariable->variable )
-      Variable_Update( self->colourGreenVariable->variable );
+      StgVariable_Update( self->colourGreenVariable->variable );
    if ( self->colourBlueVariable && self->colourBlueVariable->variable )
-      Variable_Update( self->colourBlueVariable->variable );
+      StgVariable_Update( self->colourBlueVariable->variable );
 }
 
 

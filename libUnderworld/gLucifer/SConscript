@@ -30,9 +30,6 @@ libs = ['gLucifer'] + env.get('LIBS', [])
 # afterwards.
 #
 
-#Database types header...
-env.Install('include/gLucifer/Viewer', 'Viewer/src/ViewerTypes.h')
-
 #
 # Process each directory uniformly.
 #

@@ -329,3 +329,27 @@ class Package:
                     # base directory extensions.
                     for l in self._gen_extended_locations(loc):
                         yield l
+
+    def pull_from_git(self, git_repo, git_branch_tag, target_directory, logfile=None):
+        if not logfile:
+            import os
+            logfile = open(os.devnull, 'w')
+        import subprocess
+        subp = subprocess.Popen('mkdir -p {}'.format(target_directory), shell=True, stdout=logfile, stderr=logfile)
+        subp.wait()
+        if subp.wait() != 0:
+            raise RuntimeError("There appears to have been an error creating the directory: {}".format(target_directory))
+
+        subp = subprocess.Popen('cd {};' \
+                                'git init;' \
+                                'git remote add origin {};' \
+                                'git fetch;' \
+                                'git reset origin/master;' \
+                                'git checkout .;' \
+                                'git checkout -f {};' \
+                                'git submodule update --init;'.format(target_directory, git_repo, git_branch_tag), shell=True, stdout=logfile, stderr=logfile)
+        subp.wait()
+        if subp.wait() != 0:
+            raise RuntimeError("There appears to have been an error relating to a git repo creation.")
+
+

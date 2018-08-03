@@ -50,9 +50,9 @@ void _lucColourMap_Init(
 
 {
    /* Write property string */
-   self->properties = Memory_Alloc_Array(char, 4096, "properties");
-   memset(self->properties, 0, 4086);
-   strncpy(self->properties, properties, 4096);
+   self->properties = Memory_Alloc_Array(char, MAX_PROPERTY_LEN, "properties");
+   memset(self->properties, 0, MAX_PROPERTY_LEN);
+   strncpy(self->properties, properties, MAX_PROPERTY_LEN);
    lucColourMap_SetMinMax(self, 0, 0);
    self->id = 0;
 }
@@ -105,7 +105,7 @@ void _lucColourMap_Destroy( void* colourMap, void* data ) { }
 void lucColourMap_SetProperties( void* colourMap, char *props )
 {
    lucColourMap* self = colourMap;
-   strncpy(self->properties, props, 4096);
+   strncpy(self->properties, props, MAX_PROPERTY_LEN);
 }
 
 void lucColourMap_SetMinMax( void* colourMap, double min, double max )

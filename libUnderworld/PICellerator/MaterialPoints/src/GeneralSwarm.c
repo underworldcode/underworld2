@@ -53,7 +53,7 @@ void _GeneralSwarm_Init(
    self->escapedRoutine     = escapedRoutine;
 
    self->particleCoordVariable = Swarm_NewVectorVariable( self, (Name)"Position", GetOffsetOfMember( globalParticle, coord ),
-                                 Variable_DataType_Double,
+                                 StgVariable_DataType_Double,
                                  self->dim,
                                  "PositionX",
                                  "PositionY",

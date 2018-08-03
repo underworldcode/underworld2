@@ -19,7 +19,7 @@ const Type Underworld_VelicIC_Type = "Underworld_VelicIC";
 #define SMALL 1.0e-5
 
 /* Works with SolA */
-void Underworld_VelicIC_Sinusoidal( Node_LocalIndex node_lI, Variable_Index var_I, void* _context, void* _data, void* _result ) {
+void Underworld_VelicIC_Sinusoidal( Node_LocalIndex node_lI, StgVariable_Index var_I, void* _context, void* _data, void* _result ) {
    DomainContext* context = (DomainContext*)_context;
    FeVariable*    temperatureField = (FeVariable*) FieldVariable_Register_GetByName( context->fieldVariable_Register, "TemperatureField" );
    FeMesh*        feMesh = temperatureField->feMesh;
@@ -62,7 +62,7 @@ void Underworld_VelicIC_Sinusoidal( Node_LocalIndex node_lI, Variable_Index var_
 }
 
 /* Works with SolB */
-void Underworld_VelicIC_Hyperbolic( Node_LocalIndex node_lI, Variable_Index var_I, void* _context, void* _data, void* _result ) {
+void Underworld_VelicIC_Hyperbolic( Node_LocalIndex node_lI, StgVariable_Index var_I, void* _context, void* _data, void* _result ) {
    DomainContext* context = (DomainContext*)_context;
    FeVariable*    temperatureField = (FeVariable*)FieldVariable_Register_GetByName( context->fieldVariable_Register, "TemperatureField" );
    FeMesh*        feMesh = temperatureField->feMesh;
