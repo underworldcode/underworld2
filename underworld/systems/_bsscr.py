@@ -325,7 +325,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
               nonLinearMinIterations=1,
               nonLinearMaxIterations=500,
               callback_post_solve=None,
-              print_stats=False, reinitialise=True, fpwarning=True, petscwarning=True, **kwargs):
+              print_stats=False, reinitialise=True, **kwargs):
         """
         Solve the stokes system
 
@@ -441,15 +441,19 @@ class StokesSolver(_stgermain.StgCompoundComponent):
                     print
 
         # check the petsc convergence reasons, see StokesBlockKSPInterface.h
-        if petscwarning and (self._cself.fhat_reason < 0  or \
-            self._cself.outer_reason < 0 or \
+        if (self._cself.fhat_reason      < 0  or \
+            self._cself.outer_reason     < 0  or \
             self._cself.backsolve_reason < 0 ):
             import warnings
-
-            estring = "A petsc error has been detected during the solve.\n" + \
-            "The resultant solution fields are most likely erroneous, check them thoroughly.\n"+ \
-            "This is possibly due to many things, for example solar flares or insufficient boundary conditions.\n"+ \
-            "The resultant KSPConvergedReasons are (f_hat, outer, backsolve) ({},{},{}).".format(
+            estring = \
+                "A PETSc error has been encountered during the solve. " \
+                "Solution fields are most likely erroneous. \n\n" \
+                "This error is probably due to an incorrectly constructed linear system. " \
+                "Please check that your boundary conditions are consistent " \
+                "and sufficient and that your viscosity is positive definite. " \
+                "If you are deforming the mesh, ensure that it has not become " \
+                "tangled. \n\n" \
+                "The resultant KSPConvergedReasons are (f_hat, outer, backsolve) ({},{},{}).\n\n".format(
                 self._cself.fhat_reason,self._cself.outer_reason, self._cself.backsolve_reason)
             if uw.rank() == 0:
                 warnings.warn(estring)
@@ -462,13 +466,14 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         comm = MPI.COMM_WORLD
         comm.Allreduce(lres, gres, op=MPI.SUM)
 
-        if gres[0] > 0 and fpwarning:
+        if gres[0] > 0:
             import warnings
-            estring = "A floating-point operation error has been detected during the solve.\n" + \
-            "The resultant solution fields are most likely erroneous, check them thoroughly.\n"+ \
-            "This is likely due to large number variations in the linear algrebra or fragile solver configurations.\n"+ \
-            "Consider rescaling the fn_viscosity or fn_bodyforce inputs to avoid this problem.\n"+ \
-            "This warning can be supressed with the argument 'fpwarning=False'."
+            estring = "A floating-point error has been detected during the solve. " + \
+            "Solution fields are most likely erroneous. \n\n"+ \
+            "This is likely due to overly large value variations within your linear system, " \
+            "or a fragile (or incorrect) solver configuration. " \
+            "If your inputs are constructed using real world physical units, you may " \
+            "need to rescale them for solver amenability. \n\n"
             if uw.rank() == 0:
                 warnings.warn(estring)
         return
@@ -639,23 +644,29 @@ class StokesSolver(_stgermain.StgCompoundComponent):
             self.options.A11.reset() # sets self.options.A11._mg_active=True
             self.options.mg.reset()
             self.options.mg.set_levels(field=velocityField)
-        if solve_type=="mumps":
+        elif solve_type=="mumps":
             self.options.A11.set_mumps()
-        if solve_type=="lu":
+        elif solve_type=="lu":
             self.options.A11.set_lu()
-        if solve_type=="superlu":
+        elif solve_type=="superlu":
             self.options.A11.set_superlu()
-        if solve_type=="superludist":
+        elif solve_type=="superludist":
             self.options.A11.set_superludist()
-        if solve_type=="nomg":
+        elif solve_type=="nomg":
             self.options.A11.reset()
             self.options.mg.reset()
             self.options.A11._mg_active=False
+        else:
+            raise ValueError("Provided inner method '{}' does not appear to be supported".format(solve_type))
 
     def set_inner_rtol(self, rtol):
+        if not isinstance(rtol, float):
+            raise TypeError("Provided 'rtol' parameter must be of type 'float'.")
         self.options.A11.ksp_rtol=rtol
 
     def set_outer_rtol(self, rtol):
+        if not isinstance(rtol, float):
+            raise TypeError("Provided 'rtol' parameter must be of type 'float'.")
         self.options.scr.ksp_rtol=rtol
 
     def set_mg_levels(self, levels):
@@ -663,6 +674,10 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         Set the number of multigrid levels manually.
         It is set automatically by default.
         """
+        if not isinstance(levels, int):
+            raise TypeError("Provided 'levels' parameter must be of type 'int'.")
+        if levels < 0:
+            raise ValueError("Provided 'levels' parameter must be non-negative.")
         self.options.mg.levels=levels
 
     def get_stats(self):

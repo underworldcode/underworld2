@@ -546,6 +546,45 @@ class Figure(dict):
         except:
             raise
 
+    @staticmethod
+    def show_grid( *rows ):
+        """
+        Shows a set of Figure objects in a grid.
+        
+        Parameters
+        ----------
+        rows: set of tuples
+            Each provided tuple represents a row of Figures,
+            and should only contain Figure class objects.
+
+        """
+        try:
+            from IPython.display import HTML, display
+        except:
+            return
+        htmlstr ="""
+            <style>
+            table,td,tr,th {border:none!important}
+            </style>
+            """
+        htmlstr = "<table  style=\" border:none!important; background-repeat:no-repeat; width:900px;margin:0;\">"
+        
+        for row in rows:
+            if not isinstance( row, (list,tuple) ):
+                raise ValueError("You must provide a 'list' type object for each row.")
+            htmlstr += "<tr>"
+            for cell in row:
+                if not isinstance( cell, Figure ):
+                    raise ValueError("Only 'Figure' class objects should be provided.")
+                cell._generate_DB()
+                htmlstr += "<td>"
+                htmlstr += "<img src='%s'>" % cell._generate_image()
+                htmlstr += "</td>"
+            htmlstr += "</tr>"
+        htmlstr += "</table>"
+        display(HTML(htmlstr))
+
+
     def save_image(self, filename="", size=(0,0)):
         # For back compatibility
         return self.save(filename, size)

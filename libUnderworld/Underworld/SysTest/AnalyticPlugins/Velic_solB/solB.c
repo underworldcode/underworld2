@@ -11,40 +11,36 @@
 #include <stdio.h>
 #include <assert.h>
 
-void _Velic_solB( double* pos,
-		double sigma, double Z, int n, double km,
-		double* velocity, double* pressure, double* Tstress, double* strainRate );
+#include "solB.h"
 
-#ifndef NOSHARED
-int main() {
-	double sigma = 1.0;
-	double Z = 1.0;
-	int n = 1;
-	double km = 2*M_PI;
-	double pos[2], velocity[2], pressure, Tstress[3], strainRate[3];
-	int i,j;
+//int main() {
+//    double sigma = 1.0;
+//    double Z = 1.0;
+//    int n = 1;
+//    double km = 2*M_PI;
+//    double pos[2], velocity[2], pressure, Tstress[3], strainRate[3];
+//    int i,j;
+//
+//    for (i=0;i<33;i++){
+//        for(j=0;j<33;j++){
+//            pos[0] = i/32.0;
+//            pos[1] = j/32.0;
+//
+//            _Velic_solB( pos,
+//                    sigma, Z, n, km,
+//                    velocity, &pressure, Tstress, strainRate );
+//
+//            printf("%.7g %.7g %.7g %.7g %.7g %.7g %.7g %.7g %.7g %.7g %.7g\n",
+//                 pos[0], pos[1], velocity[0], velocity[1],
+//                 pressure,
+//                 strainRate[0], strainRate[1], strainRate[2],
+//                 Tstress[0], Tstress[1], Tstress[2] );
+//        }
+//    }
+//    return 0;
+//}
 
-	for (i=0;i<33;i++){
-		for(j=0;j<33;j++){
-			pos[0] = i/32.0;
-			pos[1] = j/32.0;
-
-			_Velic_solB( pos,
-					sigma, Z, n, km,
-					velocity, &pressure, Tstress, strainRate );
-
-			printf("%.7g %.7g %.7g %.7g %.7g %.7g %.7g %.7g %.7g %.7g %.7g\n",
-				 pos[0], pos[1], velocity[0], velocity[1],
-				 pressure, 
-				 strainRate[0], strainRate[1], strainRate[2],
-				 Tstress[0], Tstress[1], Tstress[2] );
-		}
-	}
-	return 0;
-}
-#endif
-
-void _Velic_solB( double* pos,
+void _Velic_solB( const double* pos,
 		double sigma, double Z, int n, double km,
 		double* velocity, double* pressure, double* Tstress, double* strainRate ) {
 
@@ -184,16 +180,16 @@ void _Velic_solB( double* pos,
 		 strainRate[1] = e_zz;
 		 strainRate[2] = e_xz;
 	 }
-	 /* Value checks, could be cleaned up if needed. Julian Giordani 2-Oct-2006*/
-	 if( fabs( sum5 - ( -0.5*(sum6+sum3) ) ) > 1e-5 ) {
-		 assert(0);
-	 }
-	 if( fabs( sum6 - (2*Z*e_xx - sum5) ) > 1e-5 ) {
-		 assert(0);
-	 }
-	 if( fabs( sum3 - (2*Z*e_zz - sum5) ) > 1e-5 ) {
-		 assert(0);
-	 }
+//     /* Value checks, could be cleaned up if needed. Julian Giordani 2-Oct-2006*/
+//     if( fabs( sum5 - ( -0.5*(sum6+sum3) ) ) > 1e-5 ) {
+//         assert(0);
+//     }
+//     if( fabs( sum6 - (2*Z*e_xx - sum5) ) > 1e-5 ) {
+//         assert(0);
+//     }
+//     if( fabs( sum3 - (2*Z*e_zz - sum5) ) > 1e-5 ) {
+//         assert(0);
+//     }
 }
 
 

@@ -78,8 +78,9 @@ namespace Fn {
     class AnalyticCRTP
     {
         public:
-            AnalyticCRTP(T* selfGuy, unsigned dim)
+            AnalyticCRTP(T* selfGuy, unsigned dimin)
             {
+                dim = dimin;
                 if (dim == 2)
                 {
                     velocityFn   = new _Analytic<T, 2, FunctionIO::Vector         >(selfGuy,&T::velocity);
@@ -106,6 +107,7 @@ namespace Fn {
             Function *strainRateFn;
             Function *viscosityFn;
             Function *bodyForceFn;
+            unsigned dim;
             ~AnalyticCRTP()
             {
                 delete velocityFn;
