@@ -549,13 +549,57 @@ class Figure(dict):
     @staticmethod
     def show_grid( *rows ):
         """
-        Shows a set of Figure objects in a grid.
+        Shows a set of Figure objects in a grid. Note that this method
+        currently only supports rendering images within a Jupyter Notebook,
+        and saving gridded images to a file is not currently supported.
         
         Parameters
         ----------
         rows: set of tuples
             Each provided tuple represents a row of Figures,
             and should only contain Figure class objects.
+
+        Example
+        -------
+        Create a bunch of figures:
+        >>> import glucifer
+        >>> fig1 = glucifer.Figure()
+        >>> fig2 = glucifer.Figure()
+        >>> fig3 = glucifer.Figure()
+        >>> fig4 = glucifer.Figure()
+        >>> fig5 = glucifer.Figure()
+        >>> fig6 = glucifer.Figure()
+
+        We need a mesh
+        >>> import underworld as uw
+        >>> mesh = uw.mesh.FeMesh_Cartesian()
+
+        Add drawing objects as usual:
+        >>> r = uw.function.input()
+        >>> fig1.append(glucifer.objects.Surface( mesh, 1.))
+        >>> fig2.append(glucifer.objects.Mesh( mesh ))
+        >>> fig3.append(glucifer.objects.Mesh( mesh, nodeNumbers=True ))
+        >>> fig4.append(glucifer.objects.Surface( mesh, r[0]))
+        >>> fig5.append(glucifer.objects.Surface( mesh, r[1]))
+        >>> fig6.append(glucifer.objects.VectorArrows( mesh, r ))
+
+        Draw images in a grid. Note that in a Jupyter notebook,
+        this will render the image within the notebook, though it will
+        not be rendered in this example. Also note that `show_grid()`
+        is a static method, and so we call it directly as below (instead
+        of as a method on a `Figure` instance).
+        
+        >>> glucifer.Figure.show_grid( (fig1,fig2,fig3),
+        ...                            (fig4,fig5,fig6)  )
+        <IPython.core.display.HTML object>
+        
+        The above should generate a 2x3 (row x col) grid. For a 3x2 grid
+        we would instead call:
+        
+        >>> glucifer.Figure.show_grid( (fig1,fig2),
+        ...                            (fig3,fig4),
+        ...                            (fig5,fig6)  )
+        <IPython.core.display.HTML object>
 
         """
         try:
