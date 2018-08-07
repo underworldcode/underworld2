@@ -1535,17 +1535,16 @@ class _FeMesh_Annulus(FeMesh_Cartesian):
         self.bndMeshVariable.data[:] = 0.
         # set a value 1.0 on provided vertices
         self.bndMeshVariable.data[self.specialSets["AllWalls_VertexSet"].data] = 1.0
-        # note we use this condition to only capture border swarm particles
-        # on the surface itself. for those directly adjacent, the deltaMeshVariable will evaluate
-        # to non-zero (but less than 1.), so we need to remove those from the integration as well.
+        # note we use this condition to only capture border quadrature points
+        # on the surface. For points not on the surface the bndMeshVariable will evaluate
+        # <1.0, so we need to remove those from the integration as well.
+        self.bnd_vec_normal  = uw.function.branching.conditional(
+                             [ ( self.bndMeshVariable > 0.9, self.fn_unitvec_radial() ),
+                               (               True, uw.function.misc.constant(1.0)*(1.0,0.0) ) ] )
 
-        self.rot_vec_normal = uw.function.branching.conditional(
-                            [ ( self.bndMeshVariable > 0.9, self.fn_unitvec_radial() ),
-                              (               True, uw.function.misc.constant(1.0)*(1.0,0.0) ) ] )
-
-        self.rot_vec_tangent = uw.function.branching.conditional(
-                            [ ( self.bndMeshVariable > 0.9, self.fn_unitvec_tangent() ),
-                              (               True, uw.function.misc.constant(1.0)*(0.0,1.0) ) ] )
+        self.bnd_vec_tangent = uw.function.branching.conditional(
+                             [ ( self.bndMeshVariable > 0.9, self.fn_unitvec_tangent() ),
+                               (               True, uw.function.misc.constant(1.0)*(0.0,1.0) ) ] )
         
          # define solid body rotation function for the annulus
         r = fn.math.sqrt(fn.math.pow(fn.coord()[0],2.) + fn.math.pow(fn.coord()[1],2.))

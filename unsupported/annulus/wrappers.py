@@ -556,7 +556,8 @@ class AnnulusConvection(Model):
         # fields to checkpoint by default
         # self.checkpoint_fields = dict(self.fields.items()) # possibility to chkp all fields
         self.checkpoint_fields = dict( temperature = tField,
-                                       tDot        = self.fields['tDot']        )
+                                       tDot        = self.fields['tDot'],
+                                       velocity    = vField             )
 
         # create the nodes Sets
         self.meshSets=dict()
@@ -571,15 +572,15 @@ class AnnulusConvection(Model):
                                                     variable=tField,
                                                     indexSetsPerDof=(inner+outer) )
 
-        self.dirichletBCs['velocity_freeSlip']      =  uw.conditions.RotatedDirichletCondition(
+        self.dirichletBCs['velocity_freeSlip'] =  uw.conditions.RotatedDirichletCondition(
                                     variable        = vField,
                                     indexSetsPerDof = (inner+outer, None),
-                                    basis_vectors   = (annulus.rot_vec_normal, annulus.rot_vec_tangent))
+                                    basis_vectors   = (annulus.bnd_vec_normal, annulus.bnd_vec_tangent))
 
-        self.dirichletBCs['velocity_noSlip']        =  uw.conditions.RotatedDirichletCondition(
+        self.dirichletBCs['velocity_noSlip']   =  uw.conditions.RotatedDirichletCondition(
                                     variable        = vField,
                                     indexSetsPerDof = (inner+outer, None),
-                                    basis_vectors   = (annulus.rot_vec_normal, annulus.rot_vec_tangent))
+                                    basis_vectors   = (annulus.bnd_vec_normal, annulus.bnd_vec_tangent))
 
         # set up analytics logging
         self.f = radialLengths[0]/radialLengths[1]
@@ -656,10 +657,10 @@ class AnnulusConvection(Model):
 
     def postSolve(self):
         stokesSLE = self.system['stokes']
-        # remove null space
-        uw.libUnderworld.StgFEM.SolutionVector_RemoveVectorSpace(stokesSLE._velocitySol._cself, stokesSLE._vnsVec._cself)
         # realign solution
         uw.libUnderworld.Underworld.AXequalsX( stokesSLE._rot._cself, stokesSLE._velocitySol._cself, False)
+        # remove null space
+        uw.libUnderworld.StgFEM.SolutionVector_RemoveVectorSpace(stokesSLE._velocitySol._cself, stokesSLE._vnsVec._cself)
 
     def model_init(self):
         self.init_log()
