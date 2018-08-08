@@ -91,7 +91,7 @@ class Model(object):
         self._version = uw.__version__
         self._extradata = None
 
-        self.log_titles = ['step','dT', 'time', 'cpu_time']
+        self.log_titles = ['step','time','dT','cpu_time']
         self.log = OutputFile(filename=outputPath+'FrequentOutput.dat')
 
     def checkpoint(self):
@@ -583,11 +583,8 @@ class AnnulusConvection(Model):
                                     basis_vectors   = (annulus.bnd_vec_normal, annulus.bnd_vec_tangent))
 
         # set up analytics logging
-        self.f = radialLengths[0]/radialLengths[1]
-
-        self.volume          = uw.utils.Integral(fn=1., mesh=annulus)
-        self.tField_integral = uw.utils.Integral(fn=tField, mesh=annulus)
-        self.dT_dr           = fn.math.dot(tField.fn_gradient,annulus.fn_unitvec_radial())
+        self.f     = radialLengths[0]/radialLengths[1]
+        self.dT_dr = fn.math.dot( tField.fn_gradient, annulus.fn_unitvec_radial() )
 
         self.dT_dr_outer_integral  = uw.utils.Integral( mesh=annulus, fn=self.dT_dr,
                                                    integrationType="surface", surfaceIndexSet=outer )
@@ -693,14 +690,16 @@ class AnnulusConvection(Model):
         vField = self.fields['velocity']
         tField = self.fields['temperature']
         tDot   = self.fields['tDot']
+        annulus = tField.mesh
 
         stokesSolver = self.solver['stokes']
         heatSolver   = self.system['heat']
 
         # controls for timesteping
+        time = 0.
         tOld = tField.copy()
         er=1.
-        its=0
+        its=chk_its=0
 
         mycallback = self.postSolve
 
@@ -710,29 +709,31 @@ class AnnulusConvection(Model):
             vField.data[self.meshSets['boundaryNodes'].data] = [0.,0.] # is this reuqired?
             stokesSolver.solve(callback_post_solve=mycallback)
 
-            dt = heatSolver.get_max_dt()
-            its+=1
             # visualisation goes here
             self.view.step = its
             if its%visualiseEvery==0:
                 self.view.save()
             if its%checkpointEvery==0:
-                self.checkpoint(its)
+                self.checkpoint(chk_its, time)
+                chk_its+=1
 
+            dt = heatSolver.get_max_dt()
             heatSolver.integrate(dt)
+            time += dt
+            its  += 1
 
             absErr = uw.utils._nps_2norm(tOld.data-tField.data)
             magT   = uw.utils._nps_2norm(tOld.data)
             er = absErr/magT              # calculate relative variation
 
             f = self.f
-            t_vol_arg = self.tField_integral.evaluate()[0] / self.volume.evaluate()[0]
+            t_vol_arg = self.mesh.integrate(tField)[0] / self.mesh.integrate(1.)[0]
             Nu_t =   np.log(f)/(2.*np.pi*(1.-f)) * self.dT_dr_outer_integral.evaluate()[0]
             Nu_b = f*np.log(f)/(2.*np.pi*(1.-f)) * self.dT_dr_inner_integral.evaluate()[0]
             cpu_time = MPI.Wtime() - self._start_time # on base class
 
             # records metrics
-            record_string = "{0}\t{1:.5e}\t{2:.5e}\t{3:.5e}\t{4:.5}\t{5:.5e}\n".format(its, dt, cpu_time, t_vol_arg, Nu_t, Nu_b)
+            record_string = "{0}\t{1:.5e}\t{2:.5e}\t{3:.5e}\t{4:.5}\t{5:.5e}\t{6:.5e}\n".format(its, time, dt, cpu_time, t_vol_arg, Nu_t, Nu_b)
             self.record_log(record_string)
 
         # final checkpoint
@@ -774,12 +775,12 @@ class AnnulusConvection(Model):
         tField.data[outer.data] = t_outer
 
     # create checkpoint function
-    def checkpoint(self, index):
-        self._checkpoint(self.mesh, self.checkpoint_fields, None, None, index)
+    def checkpoint(self, index, time=0.):
+        self._checkpoint(self.mesh, self.checkpoint_fields, None, None, index, modeltime=time)
 
     def _checkpoint( self, mesh, fieldDict, swarm, swarmDict, index,
                     meshName='mesh', swarmName='swarm',
-                    enable_xdmf=True, with_deform_mesh=False):
+                    enable_xdmf=True, modeltime=0., with_deform_mesh=False):
 
         prefix = self.outputPath
         # Check the prefix is valid
@@ -787,7 +788,7 @@ class AnnulusConvection(Model):
             raise RuntimeError("Error checkpointing, can't find {}".format(prefix))
         if not isinstance(index, int):
             raise TypeError("'index' is not of type int")
-        ii = str(index)
+        ii = str(index).zfill(5)
 
         # only is there's a mesh then check for fields to save
         if mesh is not None:
@@ -814,7 +815,7 @@ class AnnulusConvection(Model):
             for key,value in fieldDict.iteritems():
                 filename = prefix+key+'-'+ii
                 handle = value.save(filename+'.h5', mh)
-                if enable_xdmf: value.xdmf(filename, handle, key, mh, meshName)
+                if enable_xdmf: value.xdmf(filename, handle, key, mh, meshName, modeltime=modeltime)
 
         # is there a swarm
         if swarm is not None:
@@ -833,4 +834,4 @@ class AnnulusConvection(Model):
             for key,value in swarmDict.iteritems():
                 filename = prefix+key+'-'+ii
                 handle = value.save(filename+'.h5')
-                if enable_xdmf: value.xdmf(filename, handle, key, sH, swarmName)
+                if enable_xdmf: value.xdmf(filename, handle, key, sH, swarmName,modeltime=modeltime)
