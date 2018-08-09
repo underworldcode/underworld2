@@ -9,6 +9,6 @@ from gLucifer import gLucifer
 from libm import libm
 from Python import Python
 from Solvers import Solvers
-from Numpy import Numpy
+from NumpyPk import NumpyPk
 from H5py import H5py
-from Mpi4py import Mpi4py
+from Mpi4pyPk import Mpi4pyPk

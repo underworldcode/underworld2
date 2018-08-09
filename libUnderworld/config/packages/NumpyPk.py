@@ -1,7 +1,7 @@
 from config import Package
 from Python import Python
 import os
-class Numpy(Package):
+class NumpyPk(Package):
 
     def setup_dependencies(self):
         self.python = self.add_dependency(Python, required=True)

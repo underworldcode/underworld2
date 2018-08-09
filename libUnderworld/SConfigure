@@ -62,10 +62,10 @@ env.AddMethod( UWExit )
 env.UsePackage(packages.libm)
 env.UsePackage(packages.libXML2)
 env.UsePackage(packages.HDF5)
-env.UsePackage(packages.Mpi4py)
+env.UsePackage(packages.Mpi4pyPk)
 env.UsePackage(packages.H5py)
 env.UsePackage(packages.Python)
-env.UsePackage(packages.Numpy)
+env.UsePackage(packages.NumpyPk)
 env.UsePackage(packages.MPI)
 env.UsePackage(packages.PETSc)
 
@@ -175,8 +175,8 @@ if not (GetOption('help') or GetOption('clean')):
     env.ConfigurePackage(packages.HDF5, required=False)
     env.ConfigurePackage(packages.Python, required=True)
     env.ConfigurePackage(packages.PETSc)
-    env.ConfigurePackage(packages.Numpy, required=True)
-    env.ConfigurePackage(packages.Mpi4py, required=True)
+    env.ConfigurePackage(packages.NumpyPk, required=True)
+    env.ConfigurePackage(packages.Mpi4pyPk, required=True)
     env.ConfigurePackage(packages.H5py, required=True)
 
     #Squelch swig memory warnings
