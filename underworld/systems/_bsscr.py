@@ -450,7 +450,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
                 "Solution fields are most likely erroneous. \n\n" \
                 "This error is probably due to an incorrectly constructed linear system. " \
                 "Please check that your boundary conditions are consistent " \
-                "and sufficient and that your viscosity is positive definite. " \
+                "and sufficient and that your viscosity is non-negative. " \
                 "If you are deforming the mesh, ensure that it has not become " \
                 "tangled. \n\n" \
                 "The resultant KSPConvergedReasons are (f_hat, outer, backsolve) ({},{},{}).\n\n".format(
