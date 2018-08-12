@@ -55,6 +55,11 @@ try:
 except:
     pass
 
+# Squelch these warnings as they are very noisey and not necessary
+# https://stackoverflow.com/questions/40845304/runtimewarning-numpy-dtype-size-changed-may-indicate-binary-incompatibility
+import warnings
+warnings.filterwarnings("ignore", message="numpy.dtype size changed")
+warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
 try:
     from ._uwid import uwid as _id
 except:

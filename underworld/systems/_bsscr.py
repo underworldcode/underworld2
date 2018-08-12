@@ -631,13 +631,15 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         """
         Configure velocity/inner solver (A11 PETSc prefix).
 
-        solve_type can be one of:
+        Available options below. Note that associated solver software
+        (for example `mumps`) must be installed.
 
         mg          : Geometric multigrid (default).
+        nomg        : Disables multigrid.
+        lu          : LU direct solver (serial only).
         mumps       : MUMPS parallel direct solver.
         superludist : SuperLU parallel direct solver.
         superlu     : SuperLU direct solver (serial only).
-        lu          : LU direct solver (serial only).
         """
         if solve_type=="mg":
             velocityField=self._stokesSLE._velocityField
@@ -657,7 +659,8 @@ class StokesSolver(_stgermain.StgCompoundComponent):
             self.options.mg.reset()
             self.options.A11._mg_active=False
         else:
-            raise ValueError("Provided inner method '{}' does not appear to be supported".format(solve_type))
+            raise ValueError("Provided inner method '{}' does not appear to be supported. "\
+                             "Check method docstring for available solvers.".format(solve_type))
 
     def set_inner_rtol(self, rtol):
         if not isinstance(rtol, float):

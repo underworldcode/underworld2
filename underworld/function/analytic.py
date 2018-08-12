@@ -70,8 +70,36 @@ class _SolBase(object):
     def dim(self):
         return self._csol.dim
 
+class _SolBaseFreeSlipBc(_SolBase):
+    def get_bcs( self, velVar ):
+        '''
+        All wall free-slip is the default condition. Concrete classes
+        should overwrite to set alternate conditions.
 
-class SolA(_SolBase):
+        Parameters
+        ----------
+        velVar : underworld.mesh.MeshVariable
+            The velocity variable is required to construct the BC
+            object.
+
+        Returns
+        -------
+        underworld.conditions.SystemCondition
+            The BC object. It should be passed in to the system being constructed.
+
+        '''
+        mesh = velVar.mesh
+
+        bcverts = []
+        bcverts.append( mesh.specialSets["MinI_VertexSet"] + mesh.specialSets["MaxI_VertexSet"] )
+        bcverts.append( mesh.specialSets["MinJ_VertexSet"] + mesh.specialSets["MaxJ_VertexSet"] )
+        if self.dim == 3:
+            bcverts.append( mesh.specialSets["MinK_VertexSet"] + mesh.specialSets["MaxK_VertexSet"] )
+        import underworld as uw
+        return uw.conditions.DirichletCondition(velVar, bcverts)
+
+
+class SolA(_SolBaseFreeSlipBc):
     """
     """
     def __init__(self, sigma=1., n_x=1, n_z=1., eta=1., *args, **kwargs):
@@ -81,11 +109,11 @@ class SolA(_SolBase):
             raise TypeError("'sigma' parameter must be positive." )
         if not isinstance(n_x, int):
             raise TypeError("'n_x' parameter must be of 'int' type." )
-        
+
         self._ckeep = _cfn.SolA(float(sigma),float(eta),n_x,float(n_z))
         super(SolA,self).__init__(_cfn.SolACRTP(self._ckeep,2), **kwargs)
 
-class SolB(_SolBase):
+class SolB(_SolBaseFreeSlipBc):
     """
         """
     def __init__(self, sigma=1., n_x=1, n_z=1.5, eta=1., *args, **kwargs):
@@ -99,12 +127,12 @@ class SolB(_SolBase):
         self._ckeep = _cfn.SolB(float(sigma),float(eta),n_x,float(n_z))
         super(SolB,self).__init__(_cfn.SolBCRTP(self._ckeep,2), **kwargs)
 
-class SolCx(_SolBase):
+class SolCx(_SolBaseFreeSlipBc):
     """
     The boundary conditions are free-slip everywhere on a unit domain.
     There is a viscosity jump in the x direction at :math:`x=xc`.
     The flow is driven by the following density perturbation:
-    
+
     .. math::
         \\rho = \\sin (n_z \\pi z) \\cos (n_x \\pi x)
 
@@ -138,13 +166,13 @@ class SolCx(_SolBase):
         super(SolCx,self).__init__(_cfn.SolCxCRTP(self._ckeep,2), **kwargs)
 
 
-class SolKx(_SolBase):
+class SolKx(_SolBaseFreeSlipBc):
     """
-    The boundary conditions are free-slip everywhere on a unit domain. The 
+    The boundary conditions are free-slip everywhere on a unit domain. The
     viscosity varies exponentially in the x direction and is given by
-    :math:`\\eta = \\exp (2 B x)`. The flow is driven by the following density 
+    :math:`\\eta = \\exp (2 B x)`. The flow is driven by the following density
     perturbation:
-    
+
     .. math::
         \\rho = -\\sigma \\sin (n_z \\pi z) \\cos (n_x \\pi x).
 
@@ -165,18 +193,18 @@ class SolKx(_SolBase):
             raise TypeError("'sigma' must be a float." )
         if not isinstance(B, float):
             raise TypeError("'B' parameter must be of type 'float'." )
-        # check SolCx for some details
+
         self._ckeep = _cfn.SolKx(sigma,n_x,n_z,B)
         super(SolKx,self).__init__(_cfn.SolKxCRTP(self._ckeep,2), **kwargs)
 
 
-class SolKz(_SolBase):
+class SolKz(_SolBaseFreeSlipBc):
     """
-    The boundary conditions are free-slip everywhere on a unit domain. The 
-    viscosity varies exponentially in the z direction and is given by 
+    The boundary conditions are free-slip everywhere on a unit domain. The
+    viscosity varies exponentially in the z direction and is given by
     :math:`\\eta = \\exp (2 B z)`. The flow is driven by the following
     density perturbation:
-    
+
     .. math::
         \\rho = -\\sigma \\sin (nz \\pi z) \\cos (nx \\pi x).
 
@@ -202,17 +230,17 @@ class SolKz(_SolBase):
             raise TypeError("'nz' parameter must be of type 'float'." )
         if not isinstance(B, float):
             raise TypeError("'B' parameter must be of type 'float'." )
-        # check SolKz for some details
+
         self._ckeep = _cfn.SolKz(sigma,nx,nz,B)
         super(SolKz,self).__init__(_cfn.SolKzCRTP(self._ckeep,2), **kwargs)
 
-class SolM(_SolBase):
+class SolM(_SolBaseFreeSlipBc):
 #    """
 #    SolM inanis et vacua est,
 #    SolM est illusio,
 #    SolM non potest suggero vos sustentationem mentis
 #
-#    MV (Caesar Dandenonensis)
+#    MV ()
 #    """
 
     def __init__(self, eta0=1., m=1, n=1, r=1.5, *args, **kwargs):
@@ -226,19 +254,51 @@ class SolM(_SolBase):
             raise TypeError("'r' parameter must be a 'float' and != 'm'." )
         if abs(float(m)-r) < 1e-5:
             raise TypeError("'r' must be different than 'm'." )
-        # check SolM for some details
+
         self._ckeep = _cfn.SolM(eta0,m,n,r)
         super(SolM,self).__init__(_cfn.SolMCRTP(self._ckeep,2), **kwargs)
 
 
+class _SolBaseFixedBc(_SolBase):
+    def get_bcs( self, velVar ):
+        '''
+        ( Fixed,Fixed ) conditions on all walls.
+        
+        Fixed DOFs set to analytic soln values.
+
+        Parameters
+        ----------
+        velVar : underworld.mesh.MeshVariable
+            The velocity variable is required to construct the BC
+            object.
+
+        Returns
+        -------
+        underworld.conditions.SystemCondition
+            The BC object. It should be passed in to the system being constructed.
+
+        '''
+        mesh = velVar.mesh
+        
+        # set vel as necessary
+        wall_verts = mesh.specialSets["AllWalls_VertexSet"]
+        velVar.data[wall_verts.data] = self.fn_velocity.evaluate(wall_verts)
+
+        # now flag required nodes
+        bcverts = []
+        for dim in range(self.dim):
+            bcverts.append(wall_verts)
+
+        import underworld as uw
+        return uw.conditions.DirichletCondition(velVar, bcverts)
+
 class SolNL(_SolBase):
-#    """
-#    SolNL inanis et vacua est,
-#    SolNL est illusio,
-#    SolNL non potest suggero vos sustentationem mentis
-#
-#    MV (Caesar Dandenonensis)
-#    """
+    """
+    SolNL requires tighter solver tolerances and/or a direct solve for best results.
+    Need to check in with Caesar Dandenonensis as to the origins of this solution.
+    
+    Check `get_bcs()` for BC setup.
+    """
     def __init__(self, eta0=1., n=1, r=1.5, *args, **kwargs):
         if not isinstance(eta0, float) or eta0 <= 0.:
             raise TypeError("'eta0' can be any positive float." )
@@ -246,30 +306,72 @@ class SolNL(_SolBase):
             raise TypeError("'n' must be an int." )
         if not isinstance(r, float):
             raise TypeError("'r' parameter must be a 'float' and != 'm'." )
-        # check SolNL for some details
+
         self._ckeep = _cfn.SolNL(eta0,n,r)
         super(SolNL,self).__init__(_cfn.SolNLCRTP(self._ckeep,2), **kwargs)
 
+    def get_bcs( self, velVar ):
+        '''
+        ( Fixed,Fixed ) conditions left/right.
+        ( Free, Fixed ) conditions top/bottom.
 
-class SolDB2d(_SolBase):
+        All fixed DOFs set to analytic soln values.
+        
+        Parameters
+        ----------
+        velVar : underworld.mesh.MeshVariable
+            The velocity variable is required to construct the BC
+            object.
+        
+        Returns
+        -------
+        underworld.conditions.SystemCondition
+            The BC object. It should be passed in to the system being constructed.
+        
+        '''
+        mesh = velVar.mesh
+        # set vel on all boundaries
+        wall_verts = mesh.specialSets["AllWalls_VertexSet"]
+        velVar.data[wall_verts.data] = self.fn_velocity.evaluate(wall_verts)
+        
+        # now flag required fixed nodes
+        iw = mesh.specialSets["MinI_VertexSet"] + mesh.specialSets["MaxI_VertexSet"]
+        jw = mesh.specialSets["MinJ_VertexSet"] + mesh.specialSets["MaxJ_VertexSet"]
+
+        bcverts = [ iw,  iw+jw ]
+        
+        import underworld as uw
+        return uw.conditions.DirichletCondition(velVar, bcverts)
+
+
+class SolDB2d(_SolBaseFixedBc):
     """
     SolDB2d and solDB3d from:
-    
+
     Dohrmann, C.R., Bochev, P.B., A stabilized finite element method for the
-    Stokes problem based on polynomial pressure projections, 
+    Stokes problem based on polynomial pressure projections,
     Int. J. Numer. Meth. Fluids 46, 183-201 (2004).
+    
+    Tighter tolerances are required for optimal results.
+    Q1dQ0 elements also give poor pressure solution results, and the solver
+    flags floating point issues. Further investigation warranted.
+    
+    Check `get_bcs()` for BC setup.
+
 
     """
     def __init__(self, *args, **kwargs):
         self._ckeep = _cfn.SolDB2d()
         super(SolDB2d,self).__init__(_cfn.SolDB2dCRTP(self._ckeep,2), **kwargs)
 
-class SolDB3d(_SolBase):
+
+
+class SolDB3d(_SolBaseFixedBc):
     """
     SolDB2d and solDB3d from:
 
     Dohrmann, C.R., Bochev, P.B., A stabilized finite element method for the
-    Stokes problem based on polynomial pressure projections, 
+    Stokes problem based on polynomial pressure projections,
     Int. J. Numer. Meth. Fluids 46, 183-201 (2004).
 
     """
@@ -277,4 +379,3 @@ class SolDB3d(_SolBase):
     def __init__(self, Beta=4., *args, **kwargs):
         self._ckeep = _cfn.SolDB3d(Beta)
         super(SolDB3d,self).__init__(_cfn.SolDB3dCRTP(self._ckeep,3), **kwargs)
-

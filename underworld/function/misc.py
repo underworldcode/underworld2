@@ -13,16 +13,16 @@ import libUnderworld.libUnderworldPy.Function as _cfn
 from _function import Function as _Function
 
 class constant(_Function):
-    """  
+    """
     This function returns a constant value.
-    
+
     Parameters
     ----------
     value: int,float,bool, iterable
         The value the function should return. Note that iterable objects
         which contain valid types are permitted, but must be homogeneous
         in their type.
-        
+
     Example
     -------
     >>> import underworld as uw
@@ -45,10 +45,10 @@ class constant(_Function):
     >>> fn_const = fn.misc.constant( (True,False,True) )
     >>> fn_const.evaluate(0.) # eval anywhere for constant
     array([[ True, False,  True]], dtype=bool)
-    
+
     """
     def __init__(self, value, *args, **kwargs):
-        
+
         # lets try and convert
         self._ioguy = self._GetIOForPyInput(value)
         self._value = value
@@ -90,7 +90,7 @@ class constant(_Function):
             except TypeError:
                 raise ValueError("'value' object provided to Constant Function constructor does not appear to be valid. "
                                 +"Only python types 'int', 'float' and 'bool' are acceptable, or iterable objects "
-                                +"homogeneous in these types.")
+                                +"homogeneous in these types. Provided object was of type '{}'.".format(value.__class__.__name__) )
             else:
                 # iterable
                 tupleGuy = tuple(iterator)
@@ -99,7 +99,7 @@ class constant(_Function):
                 except:
                     raise ValueError("'value' object provided to Constant function appears to be an iterable, but "
                                     +"does not appear to have a known length.")
-                
+
                 if lenTupleGuy == 0:
                     raise ValueError("'value' object provided to Constant function appears to be an iterable, but "
                                     +"seems to be of zero size. Iterable values must be of non-zero size.")
@@ -125,41 +125,41 @@ class constant(_Function):
         return ioguy
 
 class max(_Function):
-    """ 
+    """
     Returns the maximum of the results returned from its two argument function.
-    
+
     Parameters
     ----------
     fn1: underworld.function.Function
         First argument function. Function must return a float type.
     fn2: underworld.function.Function
         Second argument function. Function must return a float type.
-        
+
     Example
     -------
     >>> import underworld as uw
     >>> import underworld.function as fn
     >>> import numpy as np
     >>> testpoints = np.array(([[ 0.0], [0.2], [0.4], [0.6], [0.8], [1.01], [1.2], [1.4], [1.6], [1.8], [2.0],]))
-    
+
     Create which return identical results via different paths:
-    
+
     >>> fn_x = fn.input()[0]
     >>> fn_x_minus_one = fn_x - 1.
     >>> fn_one_minus_x = 1. - fn_x
-    
+
     Here we use 'max' and 'min' functions:
-    
+
     >>> fn_max = fn.misc.max(fn_one_minus_x,fn_x_minus_one)
     >>> fn_min = fn.misc.min(fn_one_minus_x,fn_x_minus_one)
-    
+
     Here we use the conditional functions:
-    
+
     >>> fn_conditional_max = fn.branching.conditional( ( ( fn_x <= 1., fn_one_minus_x ), ( fn_x > 1., fn_x_minus_one ) ))
     >>> fn_conditional_min = fn.branching.conditional( ( ( fn_x >= 1., fn_one_minus_x ), ( fn_x < 1., fn_x_minus_one ) ))
-    
+
     They should return identical results:
-    
+
     >>> np.allclose(fn_max.evaluate(testpoints),fn_conditional_max.evaluate(testpoints))
     True
     >>> np.allclose(fn_min.evaluate(testpoints),fn_conditional_min.evaluate(testpoints))
@@ -172,7 +172,7 @@ class max(_Function):
         fn2fn = _Function.convert( fn2 )
         if not isinstance( fn2fn, _Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
-        
+
         self._fn1 = fn1fn
         self._fn2 = fn2fn
         # ok finally lets create the fn
@@ -181,20 +181,20 @@ class max(_Function):
         super(max,self).__init__(argument_fns=[fn1fn,fn2fn],**kwargs)
 
 class min(_Function):
-    """ 
+    """
     Returns the minimum of the results returned from its two argument function.
-    
+
     Parameters
     ----------
     fn1: underworld.function.Function
         First argument function. Function must return a float type.
     fn2: underworld.function.Function
         Second argument function. Function must return a float type.
-        
+
     Example
     -------
     See the example provided for 'max' function.
-    
+
     """
     def __init__(self, fn1, fn2, **kwargs):
         fn1fn = _Function.convert( fn1 )
@@ -203,11 +203,10 @@ class min(_Function):
         fn2fn = _Function.convert( fn2 )
         if not isinstance( fn2fn, _Function ):
             raise TypeError("Functions must be of type (or convertible to) 'Function'.")
-        
+
         self._fn1 = fn1fn
         self._fn2 = fn2fn
         # ok finally lets create the fn
         self._fncself = _cfn.Min(self._fn1._fncself, self._fn2._fncself )
         # build parent
         super(min,self).__init__(argument_fns=[fn1fn,fn2fn],**kwargs)
-
