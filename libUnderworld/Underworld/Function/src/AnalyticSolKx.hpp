@@ -21,7 +21,7 @@ namespace Fn
     class SolKx: public AnalyticCRTP<SolKx>
     {
         public:
-        SolKx( double sigma, double nx, unsigned nz, double B )
+        SolKx( double sigma, double nx, double nz, double B )
         :AnalyticCRTP<SolKx>(this,2), sigma(sigma), nx(nx), nz(nz), B(B)
         {
         }
@@ -30,11 +30,11 @@ namespace Fn
         double   nx;
         unsigned nz;
         double   B;
-        void velocity(   const double* in, double* out ) { _Velic_solKx( in, sigma, nz, nx, B,  out, NULL, NULL, NULL, NULL ); };
-        void pressure(   const double* in, double* out ) { _Velic_solKx( in, sigma, nz, nx, B, NULL,  out, NULL, NULL, NULL ); };
-        void stress(     const double* in, double* out ) { _Velic_solKx( in, sigma, nz, nx, B, NULL, NULL,  out, NULL, NULL ); };
-        void strainrate( const double* in, double* out ) { _Velic_solKx( in, sigma, nz, nx, B, NULL, NULL, NULL,  out, NULL ); };
-        void viscosity(  const double* in, double* out ) { _Velic_solKx( in, sigma, nz, nx, B, NULL, NULL, NULL, NULL,  out ); };
+        void velocity(   const double* in, double* out ) { _Velic_solKx( in, sigma, nx, nz, B,  out, NULL, NULL, NULL, NULL ); };
+        void pressure(   const double* in, double* out ) { _Velic_solKx( in, sigma, nx, nz, B, NULL,  out, NULL, NULL, NULL ); };
+        void stress(     const double* in, double* out ) { _Velic_solKx( in, sigma, nx, nz, B, NULL, NULL,  out, NULL, NULL ); };
+        void strainrate( const double* in, double* out ) { _Velic_solKx( in, sigma, nx, nz, B, NULL, NULL, NULL,  out, NULL ); };
+        void viscosity(  const double* in, double* out ) { _Velic_solKx( in, sigma, nx, nz, B, NULL, NULL, NULL, NULL,  out ); };
         void bodyforce(  const double* in, double* out )
         {
             out[0] = 0.;

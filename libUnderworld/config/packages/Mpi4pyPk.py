@@ -1,7 +1,7 @@
 import os
 from config import Package
 
-class Mpi4py(Package):
+class Mpi4pyPk(Package):
 
     def check(self, conf, env):
         try:

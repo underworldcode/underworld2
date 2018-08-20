@@ -37,6 +37,8 @@
 #include <Underworld/Function/Binary.hpp>
     
 #include <Underworld/Function/Analytic.hpp>
+#include <Underworld/Function/AnalyticSolA.hpp>
+#include <Underworld/Function/AnalyticSolB.hpp>
 #include <Underworld/Function/AnalyticSolCx.hpp>
 #include <Underworld/Function/AnalyticSolDB2d.hpp>
 #include <Underworld/Function/AnalyticSolDB3d.hpp>
@@ -81,6 +83,8 @@ extern "C" {
 %include "Function/Tensor.hpp"
 
 %include "Function/Analytic.hpp"
+%include "Function/AnalyticSolA.hpp"
+%include "Function/AnalyticSolB.hpp"
 %include "Function/AnalyticSolCx.hpp"
 %include "Function/AnalyticSolDB2d.hpp"
 %include "Function/AnalyticSolDB3d.hpp"
@@ -125,11 +129,13 @@ extern "C" {
 %template(MathUnary_erfc)   Fn::MathUnary<std::erfc>;
 %template(MathUnary_abs)    Fn::MathUnary<std::abs>;
 
-%template(SolCxCRTP) Fn::AnalyticCRTP<Fn::SolCx>;
-%template(SolKxCRTP) Fn::AnalyticCRTP<Fn::SolKx>;
-%template(SolKzCRTP) Fn::AnalyticCRTP<Fn::SolKz>;
-%template(SolMCRTP) Fn::AnalyticCRTP<Fn::SolM>;
-%template(SolNLCRTP) Fn::AnalyticCRTP<Fn::SolNL>;
+%template(SolACRTP)    Fn::AnalyticCRTP<Fn::SolA>;
+%template(SolBCRTP)    Fn::AnalyticCRTP<Fn::SolB>;
+%template(SolCxCRTP)   Fn::AnalyticCRTP<Fn::SolCx>;
+%template(SolKxCRTP)   Fn::AnalyticCRTP<Fn::SolKx>;
+%template(SolKzCRTP)   Fn::AnalyticCRTP<Fn::SolKz>;
+%template(SolMCRTP)    Fn::AnalyticCRTP<Fn::SolM>;
+%template(SolNLCRTP)   Fn::AnalyticCRTP<Fn::SolNL>;
 %template(SolDB2dCRTP) Fn::AnalyticCRTP<Fn::SolDB2d>;
 %template(SolDB3dCRTP) Fn::AnalyticCRTP<Fn::SolDB3d>;
 

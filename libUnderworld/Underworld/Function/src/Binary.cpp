@@ -97,7 +97,7 @@ Fn::Multiply::func  Fn::Multiply::getFunction( IOsptr sample_input )
     
     if ( !_identicalSize && (doubleio[_minGuy]->size()!=1) )
         throw std::invalid_argument(_pyfnerrorheader+"Function multiplication is only possible between functions of identical " \
-                                                     "size (pointwise) or where one function is scalar.");
+                                                     "size (for pointwise operation) or where one function is scalar.");
     // allocate memory for our output
     auto _output_sp = std::make_shared<IO_double>(doubleio[_maxGuy]->size(), doubleio[_maxGuy]->iotype());
     auto _output    = _output_sp.get();
@@ -145,7 +145,7 @@ Fn::Divide::func  Fn::Divide::getFunction( IOsptr sample_input )
     
     if ( !_identicalSize && (doubleio[1]->size()!=1) )
         throw std::invalid_argument(_pyfnerrorheader+"Function division is only possible between functions of identical " \
-                                                     "size (pointwise) or where denominator function returns scalars.");
+                                                     "size (for pointwise operation) or where the denominator function returns scalars.");
     // allocate memory for our output
     auto _output_sp = std::make_shared<IO_double>(doubleio[_maxGuy]->size(), doubleio[_maxGuy]->iotype());
     auto _output    = _output_sp.get();

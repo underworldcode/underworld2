@@ -465,7 +465,7 @@ class Surface(CrossSection):
     _objectsDict = {  "_dr"  : "lucScalarField" }
 
     def __init__(self, mesh, fn, drawSides="xyzXYZ",
-                       colourBar=True,
+                       colourBar=True, onMesh=True,
                        *args, **kwargs):
 
         if not isinstance(drawSides,str):
@@ -473,7 +473,7 @@ class Surface(CrossSection):
         self._drawSides = drawSides
 
         # build parent
-        super(Surface,self).__init__( mesh=mesh, fn=fn, colourBar=colourBar, *args, **kwargs)
+        super(Surface,self).__init__( mesh=mesh, fn=fn, colourBar=colourBar, onMesh=onMesh, *args, **kwargs )
 
         #Merge with default properties
         is3d = len(self._crossSection) == 0
