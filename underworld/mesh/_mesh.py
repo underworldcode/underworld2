@@ -1405,26 +1405,29 @@ class _FeMesh_Annulus(FeMesh_Cartesian):
         """
         Class initialiser for Annulus mesh, centered on the 'centroid'.
 
-        TODO - Fix documentation
         MinI_VertexSet / MaxI_VertexSet -> radial walls       : [min/max] = [inner/outer]
+        MinJ_VertexSet / MaxJ_VertexSet -> angular walls      : [min/max] = [right/left]
 
         Parameter
         ---------
-            elementRes : 3-tuple
-                1st element - Number of elements across the radial length of the domain
-                2nd element - Number of elements along the circumfrance
+        elementRes : 3-tuple
+            1st element - Number of elements across the radial length of the domain
+            2nd element - Number of elements along the circumfrance
 
-            radialLengths : 2-tuple, default (3.0,6.0)
-                The radial position of the inner and outer surfaces respectively.
-                (inner radialLengths, outer radialLengths)
+        radialLengths : 2-tuple, default (3.0,6.0)
+            The radial position of the inner and outer surfaces respectively.
+            (inner radialLengths, outer radialLengths)
 
-            angularExtent : 2-tuple, default (0.0,360.0)
-                The angular extent of the domain
+        angularExtent : 2-tuple, default (0.0,360.0)
+            The angular extent of the domain
 
-            radialData : Return the mesh node locations in polar form.
-                (radial length, angle in degrees)
+        radialData : Return the mesh node locations in polar form.
+            (radial length, angle in degrees)
 
-            See parent classes for further required/optional parameters.
+        periodic : 2-tuple, default [False,True]
+            Sets the periodic boundary conditions along the radial and angular walls, respectively
+
+        See parent classes for further required/optional parameters.
 
         >>> (radMin, radMax) = (4.0,8.0)
         >>> mesh = uw.mesh._FeMesh_Annulus( elementRes=(14, 36), radialLengths=(radMin, radMax), angularExtent=[0.0,180.0] )
