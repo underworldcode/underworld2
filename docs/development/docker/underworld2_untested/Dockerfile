@@ -1,4 +1,4 @@
-FROM underworldcode/base@sha256:3e6062677cc4a82fabdc634686ecd9cdb96e529d41c4324ac855ab5ee6291e63
+FROM underworldcode/base@sha256:633d9b7436586966cbceb2c3120009f3ad0fc893744309a40069df18fd55d85a
 MAINTAINER https://github.com/underworldcode/
 
 # set working directory to /opt, and install underworld files there.
