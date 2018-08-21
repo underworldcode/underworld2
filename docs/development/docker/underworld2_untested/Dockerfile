@@ -20,15 +20,12 @@ RUN pip install --no-cache-dir lavavu
 
 # Get UW regionalMesh branch
 #COPY --chown=jovyan:users . $UW2_DIR/   # unfortunately, the version of docker at docker cloud does not support chown yet.
-#COPY . $UW2_DIR/
+COPY . $UW2_DIR/
 
 # get underworld, compile, delete some unnecessary files, trust notebooks, copy to workspace
-RUN cd /opt/ && \
-    git clone --branch regionalMesh --single-branch https://github.com/underworldcode/underworld2 && \
-    cd underworld2/libUnderworld && \
+RUN cd underworld2/libUnderworld && \
     ./configure.py --with-debugging=0  && \
     ./compile.py                 && \
-    rm -fr h5py_ext              && \
     rm .sconsign.dblite          && \
     rm -fr .sconf_temp           && \
     cd build                     && \
