@@ -26,7 +26,6 @@ COPY . $UW2_DIR/
 RUN cd underworld2/libUnderworld && \
     ./configure.py --with-debugging=0  && \
     ./compile.py                 && \
-    rm -fr h5py_ext              && \
     rm .sconsign.dblite          && \
     rm -fr .sconf_temp           && \
     cd build                     && \
@@ -47,7 +46,6 @@ RUN cd underworld2/libUnderworld && \
     find . -name \*.os |xargs rm -f                                  && \
     cat .git/refs/heads/* > build_commit.txt                         && \
     env > build_environment.txt                                      && \
-    rm -fr .git                                                      && \
     chown -R $NB_USER:users $NB_WORK $UW2_DIR /home/$NB_USER
 
 # expose notebook port
