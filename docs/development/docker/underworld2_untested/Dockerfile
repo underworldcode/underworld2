@@ -18,12 +18,14 @@ COPY docs/development/docker/underworld2_untested/jupyter_notebook_config.json /
 # install lavavu
 RUN pip install --no-cache-dir lavavu
 
-# COPY UW
+# Get UW regionalMesh branch
 #COPY --chown=jovyan:users . $UW2_DIR/   # unfortunately, the version of docker at docker cloud does not support chown yet.
-COPY . $UW2_DIR/
+#COPY . $UW2_DIR/
 
 # get underworld, compile, delete some unnecessary files, trust notebooks, copy to workspace
-RUN cd underworld2/libUnderworld && \
+RUN cd /opt/ && \
+    git clone --branch regionalMesh --single-branch https://github.com/underworldcode/underworld2 && \
+    cd underworld2/libUnderworld && \
     ./configure.py --with-debugging=0  && \
     ./compile.py                 && \
     rm -fr h5py_ext              && \
@@ -47,7 +49,6 @@ RUN cd underworld2/libUnderworld && \
     find . -name \*.os |xargs rm -f                                  && \
     cat .git/refs/heads/* > build_commit.txt                         && \
     env > build_environment.txt                                      && \
-    rm -fr .git                                                      && \
     chown -R $NB_USER:users $NB_WORK $UW2_DIR /home/$NB_USER
 
 # expose notebook port
