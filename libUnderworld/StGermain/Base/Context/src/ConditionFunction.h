@@ -12,7 +12,7 @@
 #define __StGermain_Base_Context_ConditionFunction_h__
 
 
-   typedef void (ConditionFunction_ApplyFunc) ( Index index, Variable_Index var_I, void* context, void* data, void* result );
+   typedef void (ConditionFunction_ApplyFunc) ( Index index, StgVariable_Index var_I, void* context, void* data, void* result );
    typedef void (ConditionFunction_InitFunc)  ( void* context, void* data );
    
    extern const Type ConditionFunction_Type;
@@ -100,7 +100,7 @@
    void _ConditionFunction_Apply( 
       void*          conditionFunction,
       Index          index,
-      Variable_Index var_I,
+      StgVariable_Index var_I,
       void*          context,
       void*          result);
 

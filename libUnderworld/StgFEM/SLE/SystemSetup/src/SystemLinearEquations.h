@@ -126,6 +126,7 @@
 		void*							nlSolver,
 		Bool							isNonLinear,
 		double						nonLinearTolerance,
+		Iteration_Index			nonLinearMinIterations,
 		Iteration_Index			nonLinearMaxIterations,
 		Bool							killNonConvergent,
 		EntryPoint_Register*		entryPoint_Register,

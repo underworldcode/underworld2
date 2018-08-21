@@ -19,7 +19,7 @@
 	/** Class contents */
 	#define __MeshVariable \
 		/* General info */ \
-		__Variable \
+		__StgVariable \
 		\
 		/* Virtual info */ \
 		\

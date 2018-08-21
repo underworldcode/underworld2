@@ -101,7 +101,7 @@ void TimeIntegrationSuite_TestContextType( void* timeIntegrand, Stg_Class* data 
 }
 
 void TimeIntegrationSuite_TestVariableType( void* timeIntegrand, Stg_Class* data ) {
-   assert( data->type == Variable_Type );
+   assert( data->type == StgVariable_Type );
 }
 
 void TimeIntegrationSuite_Setup( TimeIntegrationSuiteData* data ) {
@@ -125,8 +125,8 @@ void TimeIntegrationSuite_TestDriver( TimeIntegrationSuiteData* data, char *_nam
    TimeIntegrand*        timeIntegrand;
    TimeIntegrand*        timeIntegrandList[2];
    DomainContext*        context;
-   Variable*             variable;
-   Variable*             variableList[2];
+   StgVariable*             variable;
+   StgVariable*             variableList[2];
    double*               array;
    double*               array2;
    Index                 size0 = 11;
@@ -157,8 +157,8 @@ void TimeIntegrationSuite_TestDriver( TimeIntegrationSuiteData* data, char *_nam
    /* Create Stuff */
    order = _order;
    simultaneous = False;
-   variableList[0] = Variable_NewVector( "testVariable", (AbstractContext*)context, Variable_DataType_Double, 2, &size0, NULL, (void**)&array, NULL );
-   variableList[1] = Variable_NewVector( "testVariable2", (AbstractContext*)context, Variable_DataType_Double, 2, &size1, NULL, (void**)&array2, NULL );
+   variableList[0] = StgVariable_NewVector( "testVariable", (AbstractContext*)context, StgVariable_DataType_Double, 2, &size0, NULL, (void**)&array, NULL );
+   variableList[1] = StgVariable_NewVector( "testVariable2", (AbstractContext*)context, StgVariable_DataType_Double, 2, &size1, NULL, (void**)&array2, NULL );
    timeIntegrator = TimeIntegrator_New( "testTimeIntegrator", order, simultaneous, NULL, NULL );
    timeIntegrator->context = context;
    timeIntegrandList[0] = TimeIntegrand_New( "testTimeIntegrand0", context, timeIntegrator, variableList[0], 0, NULL, True );
@@ -215,28 +215,28 @@ void TimeIntegrationSuite_TestDriver( TimeIntegrationSuiteData* data, char *_nam
          variable         = variableList[ integrand_I ];
          for ( array_I = 0 ; array_I < variable->arraySize ; array_I++ ) {
             if ( timeIntegrand->_calculateTimeDeriv == TimeIntegrationSuite_ConstantTimeDeriv ) {
-               error += fabs( Variable_GetValueAtDouble( variable, array_I, 0 ) - 2.0 * array_I * context->currentTime );
-               error += fabs( Variable_GetValueAtDouble( variable, array_I, 1 ) + array_I * context->currentTime );
+               error += fabs( StgVariable_GetValueAtDouble( variable, array_I, 0 ) - 2.0 * array_I * context->currentTime );
+               error += fabs( StgVariable_GetValueAtDouble( variable, array_I, 1 ) + array_I * context->currentTime );
             }
             else if ( timeIntegrand->_calculateTimeDeriv == TimeIntegrationSuite_ConstantTimeDeriv2 ) {
-               error += fabs( Variable_GetValueAtDouble( variable, array_I, 0 ) + 0.5 * array_I * context->currentTime );
-               error += fabs( Variable_GetValueAtDouble( variable, array_I, 1 ) - 3 * array_I * context->currentTime );
+               error += fabs( StgVariable_GetValueAtDouble( variable, array_I, 0 ) + 0.5 * array_I * context->currentTime );
+               error += fabs( StgVariable_GetValueAtDouble( variable, array_I, 1 ) - 3 * array_I * context->currentTime );
             }
             else if ( timeIntegrand->_calculateTimeDeriv == TimeIntegrationSuite_LinearTimeDeriv ) {
-               error += fabs( Variable_GetValueAtDouble( variable, array_I, 0 ) - array_I * context->currentTime * context->currentTime );
-               error += fabs( Variable_GetValueAtDouble( variable, array_I, 1 ) + 0.5 * array_I * context->currentTime * context->currentTime );
+               error += fabs( StgVariable_GetValueAtDouble( variable, array_I, 0 ) - array_I * context->currentTime * context->currentTime );
+               error += fabs( StgVariable_GetValueAtDouble( variable, array_I, 1 ) + 0.5 * array_I * context->currentTime * context->currentTime );
             }
             else if ( timeIntegrand->_calculateTimeDeriv == TimeIntegrationSuite_LinearTimeDeriv2 ) {
-               error += fabs( Variable_GetValueAtDouble( variable, array_I, 0 ) + 0.25 * array_I * context->currentTime * context->currentTime );
-               error += fabs( Variable_GetValueAtDouble( variable, array_I, 1 ) - 1.5 * array_I * context->currentTime * context->currentTime );
+               error += fabs( StgVariable_GetValueAtDouble( variable, array_I, 0 ) + 0.25 * array_I * context->currentTime * context->currentTime );
+               error += fabs( StgVariable_GetValueAtDouble( variable, array_I, 1 ) - 1.5 * array_I * context->currentTime * context->currentTime );
             }
             else if ( timeIntegrand->_calculateTimeDeriv == TimeIntegrationSuite_CubicTimeDeriv ) {
-               error += fabs( Variable_GetValueAtDouble( variable, array_I, 0 ) - 2.0 * array_I * ( 0.25 * pow( context->currentTime, 4.0 ) - pow( context->currentTime, 3.0)/3.0));
-               error += fabs( Variable_GetValueAtDouble( variable, array_I, 1 ) + array_I * ( 0.25 * pow( context->currentTime, 4.0 ) - pow( context->currentTime, 3.0 )/3.0));
+               error += fabs( StgVariable_GetValueAtDouble( variable, array_I, 0 ) - 2.0 * array_I * ( 0.25 * pow( context->currentTime, 4.0 ) - pow( context->currentTime, 3.0)/3.0));
+               error += fabs( StgVariable_GetValueAtDouble( variable, array_I, 1 ) + array_I * ( 0.25 * pow( context->currentTime, 4.0 ) - pow( context->currentTime, 3.0 )/3.0));
             }
             else if ( timeIntegrand->_calculateTimeDeriv == TimeIntegrationSuite_CubicTimeDeriv2 ) {
-               error += fabs( Variable_GetValueAtDouble( variable, array_I, 0 ) + 0.5 * array_I * ( 0.25 * pow( context->currentTime, 4.0 ) - pow( context->currentTime, 3.0)/3.0));
-               error += fabs( Variable_GetValueAtDouble( variable, array_I, 1 ) - 3.0 * array_I * ( 0.25 * pow( context->currentTime, 4.0 ) - pow( context->currentTime, 3.0 )/3.0));
+               error += fabs( StgVariable_GetValueAtDouble( variable, array_I, 0 ) + 0.5 * array_I * ( 0.25 * pow( context->currentTime, 4.0 ) - pow( context->currentTime, 3.0)/3.0));
+               error += fabs( StgVariable_GetValueAtDouble( variable, array_I, 1 ) - 3.0 * array_I * ( 0.25 * pow( context->currentTime, 4.0 ) - pow( context->currentTime, 3.0 )/3.0));
             }
             else
                Journal_Firewall( 0 , Journal_Register( Error_Type, (Name)CURR_MODULE_NAME  ), "Don't understand _calculateTimeDeriv = %p\n", timeIntegrand->_calculateTimeDeriv );

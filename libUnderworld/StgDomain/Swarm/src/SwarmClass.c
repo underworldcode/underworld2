@@ -173,7 +173,7 @@ void _Swarm_Init(
 			self,
 			"OwningCell",
 			GetOffsetOfMember( particle , owningCell ),
-			Variable_DataType_Int ); /* Should be unsigned int */
+			StgVariable_DataType_Int ); /* Should be unsigned int */
 
    lcReg = LiveComponentRegister_GetLiveComponentRegister(); /* only needed for tests like GaussLayoutSingleCellSuite which don't have liveComponent_Registers */
    if( lcReg ) {
@@ -192,7 +192,7 @@ void _Swarm_Init(
       self->globalIdVariable = Swarm_NewScalarVariable(
                                  self, "GlobalId",
                                  (ArithPointer) gidExt - (ArithPointer)&particle,
-                                 Variable_DataType_Int );
+                                 StgVariable_DataType_Int );
 
       if( lcReg ) {
          LiveComponentRegister_Add( LiveComponentRegister_GetLiveComponentRegister(), (Stg_Component*)self->globalIdVariable );
@@ -798,7 +798,7 @@ void _Swarm_BuildParticles( void* swarm, void* data ) {
 	*/
 	for( v_i = 0; v_i < self->nSwarmVars; v_i++ ) {
 		if( self->swarmVars[v_i]->variable )
-			Variable_Update( self->swarmVars[v_i]->variable );
+			StgVariable_Update( self->swarmVars[v_i]->variable );
         }
    /* lets finish allocing cells */
    char tempStr[100];
@@ -853,7 +853,7 @@ void _Swarm_InitialiseParticles( void* swarm, void* data ) {
     
 	for( v_i = 0; v_i < self->nSwarmVars; v_i++ ) {
 		if( self->swarmVars[v_i]->variable )
-			Variable_Update( self->swarmVars[v_i]->variable );
+			StgVariable_Update( self->swarmVars[v_i]->variable );
         }
 
 
@@ -901,7 +901,7 @@ void Swarm_UpdateAllParticleOwners( void* swarm ) {
 	for( v_i = 0; v_i < self->nSwarmVars; v_i++ )
     {
 		if( self->swarmVars[v_i]->variable )
-			Variable_Update( self->swarmVars[v_i]->variable );
+			StgVariable_Update( self->swarmVars[v_i]->variable );
     }
 
 	Stream_UnIndentBranch( Swarm_Debug );
@@ -1268,13 +1268,13 @@ SwarmVariable* Swarm_NewScalarVariable(
 		void*                           swarm,
 		Name                            nameExt,
 		int                             dataOffset,
-		Variable_DataType               dataType )
+		StgVariable_DataType               dataType )
 {
 	Swarm*                   self              = (Swarm*) swarm;
 	Name                     name;
-	Variable*                variable;
+	StgVariable*                variable;
 	SizeT                    dataOffsets[]     = { 0 };		/* Init value later */
-	Variable_DataType        dataTypes[]       = { 0 };		/* Init value later */
+	StgVariable_DataType        dataTypes[]       = { 0 };		/* Init value later */
 	Index                    dataTypeCounts[]  = { 1 };
 	SwarmVariable*           swarmVariable;
 	Variable_Register*       variable_Register      = NULL;
@@ -1282,7 +1282,7 @@ SwarmVariable* Swarm_NewScalarVariable(
 
     if( dataOffset == -1 ){
         dataOffset = ExtensionManager_GetFinalSize( self->particleExtensionMgr );
-        ExtensionManager_Add( self->particleExtensionMgr, (Name)self->type, Variable_SizeOfDataType(dataType) ) ;
+        ExtensionManager_Add( self->particleExtensionMgr, (Name)self->type, StgVariable_SizeOfDataType(dataType) ) ;
     }
 	Journal_Firewall(
 		dataOffset < ExtensionManager_GetFinalSize( self->particleExtensionMgr ),
@@ -1305,7 +1305,7 @@ SwarmVariable* Swarm_NewScalarVariable(
 		variable_Register = swarmVariable_Register->variable_Register;
 	
 	name = Stg_Object_AppendSuffix( self, (Name)nameExt  );
-	variable = Variable_New( 
+	variable = StgVariable_New( 
 		name,
 		self->context,
 		1, 
@@ -1330,14 +1330,14 @@ SwarmVariable* Swarm_NewVectorVariable(
 		void*                           _swarm,
 		Name                            nameExt,
 		int                             dataOffset,
-		Variable_DataType               dataType,
+		StgVariable_DataType               dataType,
 		Index                           dataTypeCount,
 		...                         /* vector component names */ )
 {
 	Swarm*                   self             = (Swarm*) _swarm;
-	Variable*                variable;
+	StgVariable*                variable;
 	SizeT                    dataOffsets[]    = { 0 };	/* Init later... */
-	Variable_DataType	     dataTypes[]      = { 0 };	/* Init later... */	
+	StgVariable_DataType	     dataTypes[]      = { 0 };	/* Init later... */	
 	Index                    dataTypeCounts[] = { 0 };	/* Init later... */	
 	Name*                    dataNames;
 	Index                    vector_I;
@@ -1349,7 +1349,7 @@ SwarmVariable* Swarm_NewVectorVariable(
 
     if( dataOffset == -1 ){
         dataOffset = ExtensionManager_GetFinalSize( self->particleExtensionMgr );
-        ExtensionManager_Add( self->particleExtensionMgr, (Name)self->type, dataTypeCount*Variable_SizeOfDataType(dataType) ) ;
+        ExtensionManager_Add( self->particleExtensionMgr, (Name)self->type, dataTypeCount*StgVariable_SizeOfDataType(dataType) ) ;
     }
 	Journal_Firewall(
 		dataOffset < ExtensionManager_GetFinalSize( self->particleExtensionMgr ),
@@ -1396,7 +1396,7 @@ SwarmVariable* Swarm_NewVectorVariable(
 		variable_Register = swarmVariable_Register->variable_Register;
 	
 	/* Construct */
-	variable = Variable_New( 
+	variable = StgVariable_New( 
 		name,
 		self->context,
 		1, 
@@ -1429,11 +1429,11 @@ SwarmVariable* Swarm_NewVectorVariable(
 	return swarmVariable;
 }
 
-Variable* Swarm_GetShadowVariable( void* _swarm, Variable* variable )
+StgVariable* Swarm_GetShadowVariable( void* _swarm, StgVariable* variable )
 {
 	Swarm* self = (Swarm*) _swarm;
 	/* Construct */
-	return Variable_New(
+	return StgVariable_New(
 		NULL,
 		NULL,
 		1, 
@@ -1509,7 +1509,7 @@ void Swarm_Realloc( void* swarm ) {
       */
       for( v_i = 0; v_i < self->nSwarmVars; v_i++ ) {
 		if( self->swarmVars[v_i]->variable )
-          Variable_Update( self->swarmVars[v_i]->variable );
+          StgVariable_Update( self->swarmVars[v_i]->variable );
       }
     
       self->preReallocParticleSize = self->particleExtensionMgr->finalSize;
@@ -1549,7 +1549,7 @@ void Swarm_CheckCoordsAreFinite( void* swarm ) {
 }
 
 
-void Swarm_AssignIndexWithinShape( void* swarm, void* _shape, Variable* variableToAssign, Index indexToAssign ) {
+void Swarm_AssignIndexWithinShape( void* swarm, void* _shape, StgVariable* variableToAssign, Index indexToAssign ) {
 	Swarm*            self              = Stg_CheckType( swarm, Swarm );
 	Stg_Shape*        shape             = Stg_CheckType( _shape, Stg_Shape );
 	GlobalParticle*   particle;
@@ -1568,7 +1568,7 @@ void Swarm_AssignIndexWithinShape( void* swarm, void* _shape, Variable* variable
 		particle = (GlobalParticle*)Swarm_ParticleAt( self, lParticle_I );
 
 		if ( Stg_Shape_IsCoordInside( shape, particle->coord ) ) 
-			Variable_SetValueInt( variableToAssign, lParticle_I, indexToAssign );
+			StgVariable_SetValueInt( variableToAssign, lParticle_I, indexToAssign );
 	}
 }
 

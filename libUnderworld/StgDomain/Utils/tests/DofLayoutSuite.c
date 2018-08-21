@@ -47,7 +47,7 @@ void DofLayoutSuite_TestBasic( DofLayoutSuiteData* data ) {
       DofLayout*         dof;
       DofLayout*         destDof;
       Variable_Register* variableRegister;
-      Variable*          var[6];
+      StgVariable*          var[6];
       char*              varName[] = {"x", "y", "z", "vx", "vy", "vz"};
       Index              ii, dof_I, var_I;
       Index              arraySize = 27;
@@ -62,14 +62,14 @@ void DofLayoutSuite_TestBasic( DofLayoutSuiteData* data ) {
       /* Create variables */
       for (var_I = 0; var_I < 6; var_I++) {
          varArrays[var_I] = Memory_Alloc_Array_Unnamed( double, arraySize );
-         var[var_I] = Variable_NewScalar( varName[var_I], NULL, Variable_DataType_Double, (Index*)&arraySize, NULL, (void**)&(varArrays[var_I]), variableRegister  );
+         var[var_I] = StgVariable_NewScalar( varName[var_I], NULL, StgVariable_DataType_Double, (Index*)&arraySize, NULL, (void**)&(varArrays[var_I]), variableRegister  );
          Stg_Component_Build( var[var_I], 0, False );
          Stg_Component_Initialise( var[var_I], 0, False );
       }
 
       for (ii = 0; ii < arraySize; ii++) {
          for (var_I = 0; var_I < 6; var_I++) {
-            Variable_SetValueDouble( var[var_I], ii, 0.0 );
+            StgVariable_SetValueDouble( var[var_I], ii, 0.0 );
          }
       }
 

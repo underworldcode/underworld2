@@ -67,9 +67,11 @@ for d in dirs:
     tst_exp += env.Install(tst_install_dir + '/expected', Glob(tst_exp_dir + '/*'))
     tst_input += env.Install(tst_install_dir + '/input', Glob(tst_input_dir + '/*'))
 
-dirs = ['SysTest/AnalyticPlugins/Velic_solCx',
-             'SysTest/AnalyticPlugins/Velic_solKx',
-             'SysTest/AnalyticPlugins/Velic_solKz']
+dirs = ['SysTest/AnalyticPlugins/Velic_solA',
+        'SysTest/AnalyticPlugins/Velic_solB',
+        'SysTest/AnalyticPlugins/Velic_solCx',
+        'SysTest/AnalyticPlugins/Velic_solKx',
+        'SysTest/AnalyticPlugins/Velic_solKz']
 for d in dirs:
     # Need tee module name, which is just the directory.
     mod_name = env['ESCAPE']('"' + ''.join(d.split('/')) + '"')
@@ -101,17 +103,6 @@ env.Install('include/Underworld', Glob('libUnderworld/src/*.h'))
 # --KathleenHumble -20-08-2010
 
 pluginDirs  = ['libUnderworld/Toolbox',
-#        'SysTest/AnalyticPlugins/VelicIC',
-#        'SysTest/AnalyticPlugins/DepthDependentAnalytic3D',
-#	    'SysTest/AnalyticPlugins/Trubitsyn2006',
-        'SysTest/AnalyticPlugins/Velic_solA',
-        'SysTest/AnalyticPlugins/Velic_solB',
-#        'SysTest/AnalyticPlugins/Velic_solCx',
-#        'SysTest/AnalyticPlugins/Velic_solKx',
-        'SysTest/AnalyticPlugins/Velic_solHA',
-#        'SysTest/AnalyticPlugins/Velic_solKz',
-        'SysTest/AnalyticPlugins/Velic_solS',
-#        'SysTest/AnalyticPlugins/PlaneWaveShearAdvectionDiffusion'
          ]
 
 

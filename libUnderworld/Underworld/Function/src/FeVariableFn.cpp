@@ -25,7 +25,7 @@ extern "C" {
 
 Fn::FeVariableFn::FeVariableFn( void* fevariable ):Function(), _fevariable(fevariable){
     if(!Stg_Class_IsInstance( _fevariable, FeVariable_Type ))
-        throw std::invalid_argument("Provided 'fevariable' does not appear to be of 'FeVariable' type.");
+        throw std::invalid_argument(_pyfnerrorheader+"Provided 'fevariable' does not appear to be of 'FeVariable' type.");
 
 
 }
@@ -74,9 +74,9 @@ Fn::FeVariableFn::func Fn::FeVariableFn::getFunction( IOsptr sample_input )
             std::stringstream streamguy;
             streamguy << "Function input dimensionality (" << iodouble->size() << ") ";
             streamguy << "does not appear to match mesh variable dimensionality (" << fevar->dim << ").";
-            throw std::runtime_error(streamguy.str());
+            throw std::runtime_error(_pyfnerrorheader+streamguy.str());
         }
-        return [_output,_output_sp,fevar](IOsptr input)->IOsptr {
+        return [_output,_output_sp,fevar,this](IOsptr input)->IOsptr {
             const IO_double* iodouble = debug_dynamic_cast<const IO_double*>(input);            
 
             InterpolationResult retval = _FeVariable_InterpolateValueAt( fevar, iodouble->data(), _output->data() );
@@ -88,7 +88,7 @@ Fn::FeVariableFn::func Fn::FeVariableFn::getFunction( IOsptr sample_input )
                     streamguy << ", "<< iodouble->at(ii);
                 streamguy << ") does not appear to be valid.\nLocation is probably outside local domain.";
                 
-                throw std::range_error(streamguy.str());
+                throw std::range_error(_pyfnerrorheader+streamguy.str());
             }
 
             return debug_dynamic_cast<const FunctionIO*>(_output);
@@ -96,7 +96,7 @@ Fn::FeVariableFn::func Fn::FeVariableFn::getFunction( IOsptr sample_input )
     }
     
     // if we get here, something aint right
-    throw std::invalid_argument("'FeVariableFn' does not appear to be compatible with provided input type.");
+    throw std::invalid_argument(_pyfnerrorheader+"'FeVariableFn' does not appear to be compatible with provided input type.");
 
     
 }

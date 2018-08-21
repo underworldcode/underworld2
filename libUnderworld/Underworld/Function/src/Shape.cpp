@@ -28,14 +28,14 @@ Fn::Polygon::Polygon( Function* fn, double* IN_ARRAY2, int DIM1, int DIM2 )
         std::stringstream ss;
         ss << "Vertex array must provide at least 3 vertices.\n";
         ss << "Array appears to provide only " << DIM1 <<" vertices.";
-        throw std::invalid_argument(ss.str());
+        throw std::invalid_argument(_pyfnerrorheader+ss.str());
     }
     if(DIM2 != 3)
     {
         std::stringstream ss;
         ss << "Vertex array of 3-Vectors is expected.\n";
         ss << "Array appears to provide vectors of dimension " << DIM2 <<".";
-        throw std::invalid_argument(ss.str());
+        throw std::invalid_argument(_pyfnerrorheader+ss.str());
     }
     
     XYZ centre   = { 0., 0., 0. };
@@ -68,7 +68,7 @@ Fn::Function::func  Fn::Polygon::getFunction( IOsptr sample_input ){
     // test out to make sure it's double.. we should be able to relax this later
     const IO_double* funcio = dynamic_cast<const IO_double*>(_func(sample_input));
     if (!funcio)
-        throw std::invalid_argument("Polygon shape function expects a 'double' type object as input.");
+        throw std::invalid_argument(_pyfnerrorheader+"Polygon shape function expects a 'double' type object as input.");
 
     unsigned size = funcio->size();
     if( !( (size==2) || (size==3) ) )
@@ -76,7 +76,7 @@ Fn::Function::func  Fn::Polygon::getFunction( IOsptr sample_input ){
         std::stringstream ss;
         ss << "Polygon shape expects input to be be 2 or 3 dimensional vector.\n";
         ss << "Provided input dimensionality is " << size <<".";
-        throw std::invalid_argument(ss.str());
+        throw std::invalid_argument(_pyfnerrorheader+ss.str());
     }
     // allocate memory for our output
     std::shared_ptr<IO_bool> _output_sp = std::make_shared<IO_bool>(1,FunctionIO::Scalar);

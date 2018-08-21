@@ -55,6 +55,11 @@ try:
 except:
     pass
 
+# Squelch these warnings as they are very noisey and not necessary
+# https://stackoverflow.com/questions/40845304/runtimewarning-numpy-dtype-size-changed-may-indicate-binary-incompatibility
+import warnings
+warnings.filterwarnings("ignore", message="numpy.dtype size changed")
+warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
 try:
     from ._uwid import uwid as _id
 except:
@@ -153,11 +158,10 @@ _delclassinstance = _del_uw_class(libUnderworld.StGermain_Tools.StgFinalise, _da
 
 def _in_doctest():
     """
-    Returns true if running inside a doctest.
-
-    http://stackoverflow.com/questions/8116118/how-to-determine-whether-code-is-running-in-a-doctest
+    Returns true if running inside doctests run from docs/tests/doctest.py
     """
-    return hasattr(_sys.modules['__main__'], '_SpoofOut')
+    import os
+    return hasattr(_sys.modules['__main__'], '_SpoofOut') or "DOCTEST" in os.environ
 
 # lets shoot off some usage metrics
 # send metrics *only* if we are rank=0, and if we are not running inside a doctest.

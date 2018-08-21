@@ -26,9 +26,8 @@ class cos(_Function):
 
     Parameters
     ----------
-    fn: underworld.function.Function (or convertible).  Default: None
-        The argument function. Default is None, in which case
-        the input is processed directly.
+    fn: underworld.function.Function (or convertible).
+        Optionally provided for function composition.
 
     Example
     -------
@@ -60,9 +59,8 @@ class sin(_Function):
 
     Parameters
     ----------
-    fn: underworld.function.Function (or convertible).  Default: None
-        The argument function. Default is None, in which case
-        the input is processed directly.
+    fn: underworld.function.Function (or convertible).
+        Optionally provided for function composition.
 
     Example
     -------
@@ -94,9 +92,8 @@ class tan(_Function):
 
     Parameters
     ----------
-    fn: underworld.function.Function (or convertible).  Default: None
-        The argument function. Default is None, in which case
-        the input is processed directly.
+    fn: underworld.function.Function (or convertible).
+        Optionally provided for function composition.
 
     Example
     -------
@@ -127,9 +124,8 @@ class acos(_Function):
 
     Parameters
     ----------
-    fn: underworld.function.Function (or convertible).  Default: None
-        The argument function. Default is None, in which case
-        the input is processed directly.
+    fn: underworld.function.Function (or convertible).
+        Optionally provided for function composition.
 
     Example
     -------
@@ -160,9 +156,8 @@ class asin(_Function):
 
     Parameters
     ----------
-    fn: underworld.function.Function (or convertible).  Default: None
-        The argument function. Default is None, in which case
-        the input is processed directly.
+    fn: underworld.function.Function (or convertible).
+        Optionally provided for function composition.
 
     Example
     -------
@@ -193,9 +188,8 @@ class atan(_Function):
 
     Parameters
     ----------
-    fn: underworld.function.Function (or convertible).  Default: None
-        The argument function. Default is None, in which case
-        the input is processed directly.
+    fn: underworld.function.Function (or convertible).
+        Optionally provided for function composition.
 
     Example
     -------
@@ -226,9 +220,8 @@ class cosh(_Function):
 
     Parameters
     ----------
-    fn: underworld.function.Function (or convertible).  Default: None
-        The argument function. Default is None, in which case
-        the input is processed directly.
+    fn: underworld.function.Function (or convertible).
+        Optionally provided for function composition.
 
     Example
     -------
@@ -259,9 +252,8 @@ class sinh(_Function):
 
     Parameters
     ----------
-    fn: underworld.function.Function (or convertible).  Default: None
-        The argument function. Default is None, in which case
-        the input is processed directly.
+    fn: underworld.function.Function (or convertible).
+        Optionally provided for function composition.
 
     Example
     -------
@@ -292,9 +284,8 @@ class tanh(_Function):
 
     Parameters
     ----------
-    fn: underworld.function.Function (or convertible).  Default: None
-        The argument function. Default is None, in which case
-        the input is processed directly.
+    fn: underworld.function.Function (or convertible).
+        Optionally provided for function composition.
 
     Example
     -------
@@ -325,9 +316,8 @@ class acosh(_Function):
 
     Parameters
     ----------
-    fn: underworld.function.Function (or convertible).  Default: None
-        The argument function. Default is None, in which case
-        the input is processed directly.
+    fn: underworld.function.Function (or convertible).
+        Optionally provided for function composition.
 
     Example
     -------
@@ -358,9 +348,8 @@ class asinh(_Function):
 
     Parameters
     ----------
-    fn: underworld.function.Function (or convertible).  Default: None
-        The argument function. Default is None, in which case
-        the input is processed directly.
+    fn: underworld.function.Function (or convertible).
+        Optionally provided for function composition.
 
     Example
     -------
@@ -391,9 +380,8 @@ class atanh(_Function):
 
     Parameters
     ----------
-    fn: underworld.function.Function (or convertible).  Default: None
-        The argument function. Default is None, in which case
-        the input is processed directly.
+    fn: underworld.function.Function (or convertible).
+        Optionally provided for function composition.
 
     Example
     -------
@@ -424,9 +412,8 @@ class exp(_Function):
 
     Parameters
     ----------
-    fn: underworld.function.Function (or convertible).  Default: None
-        The argument function. Default is None, in which case
-        the input is processed directly.
+    fn: underworld.function.Function (or convertible).
+        Optionally provided for function composition.
 
     Example
     -------
@@ -457,9 +444,9 @@ class log(_Function):
 
     Parameters
     ----------
-    fn: underworld.function.Function (or convertible).  Default: None
-        The argument function. Default is None, in which case
-        the input is processed directly.
+    fn: underworld.function.Function (or convertible).
+        Optionally provided for function composition.
+
 
     Example
     -------
@@ -490,9 +477,8 @@ class log2(_Function):
 
     Parameters
     ----------
-    fn: underworld.function.Function (or convertible).  Default: None
-        The argument function. Default is None, in which case
-        the input is processed directly.
+    fn: underworld.function.Function (or convertible).
+        Optionally provided for function composition.
 
     Example
     -------
@@ -523,9 +509,8 @@ class log10(_Function):
 
     Parameters
     ----------
-    fn: underworld.function.Function (or convertible).  Default: None
-        The argument function. Default is None, in which case
-        the input is processed directly.
+    fn: underworld.function.Function (or convertible).
+        Optionally provided for function composition.
 
     Example
     -------
@@ -556,9 +541,8 @@ class sqrt(_Function):
 
     Parameters
     ----------
-    fn: underworld.function.Function (or convertible).  Default: None
-        The argument function. Default is None, in which case
-        the input is processed directly.
+    fn: underworld.function.Function (or convertible).
+        Optionally provided for function composition.
 
     Example
     -------
@@ -589,9 +573,8 @@ class erf(_Function):
 
     Parameters
     ----------
-    fn: underworld.function.Function (or convertible).  Default: None
-        The argument function. Default is None, in which case
-        the input is processed directly.
+    fn: underworld.function.Function (or convertible).
+        Optionally provided for function composition.
 
     Example
     -------
@@ -622,9 +605,8 @@ class erfc(_Function):
 
     Parameters
     ----------
-    fn: underworld.function.Function (or convertible).  Default: None
-        The argument function. Default is None, in which case
-        the input is processed directly.
+    fn: underworld.function.Function (or convertible).
+        Optionally provided for function composition.
 
     Example
     -------
@@ -655,9 +637,8 @@ class abs(_Function):
 
     Parameters
     ----------
-    fn: underworld.function.Function (or convertible).  Default: None
-        The argument function. Default is None, in which case
-        the input is processed directly.
+    fn: underworld.function.Function (or convertible).
+        Optionally provided for function composition.
 
     Example
     -------

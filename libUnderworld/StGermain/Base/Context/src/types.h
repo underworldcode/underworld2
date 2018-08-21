@@ -13,7 +13,7 @@
    
    /* types/classes */
    typedef struct Codelet Codelet;
-   typedef struct _Variable Variable;
+   typedef struct _StgVariable StgVariable;
    typedef struct _Variable_Register Variable_Register;
    typedef struct _VariableCondition VariableCondition;
    typedef struct PythonVC PythonVC;
@@ -23,8 +23,8 @@
    typedef Index ConditionFunction_Index;
 
    /* Variable_Register types */
-   typedef Index Variable_Set_Index;
-   typedef Index Variable_Index;
+   typedef Index StgVariable_Set_Index;
+   typedef Index StgVariable_Index;
    typedef Index Dof_Index;
    
    /* VariableCondition_Register types */
@@ -46,7 +46,7 @@
    typedef struct _VariableCondition_Value VariableCondition_Value;
    typedef struct _VariableCondition_Tuple VariableCondition_Tuple;
    typedef Index VariableCondition_ValueIndex;
-   typedef Index VariableCondition_VariableIndex;
+   typedef Index VariableCondition_StgVariableIndex;
 
    /* Context types/classes */
    typedef struct AbstractContext AbstractContext;

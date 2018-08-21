@@ -1,4 +1,4 @@
-FROM pawsey/mpi-base@sha256:3cd96b818c3a19cdbee3bbff542eeef8d6588b2aa8921dc76baa0a4a0c0d722b
+FROM pawsey/mpi-base:dev
 MAINTAINER https://github.com/underworldcode/
 
 # install things
@@ -8,6 +8,7 @@ RUN apt-get update -qq && \
         build-essential \
         git \
         python \
+	wget \
         python-dev \
         python-pip \
         libxml2-dev \
@@ -85,7 +86,7 @@ RUN cd /tmp && \
     wget http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-3.8.3.tar.gz && \
     tar zxf petsc-lite-3.8.3.tar.gz && \
     cd petsc-3.8.3 && \
-    ./configure --download-hdf5=1 --with-debugging=0 --prefix=/opt/petsc --download-fblaslapack=1 --COPTFLAGS="-g -O2" --CXXOPTFLAGS="-g -O2" --FOPTFLAGS="-g -O2" --download-petsc4py=1 --download-mumps=1 --download-parmetis=1 --download-metis=1 --download-superlu=1 --download-hypre=1 --download-cmake=1 --download-scalapack=1 && \
+    ./configure --download-hdf5=1 --with-debugging=0 --prefix=/opt/petsc --download-fblaslapack=1 --COPTFLAGS="-g -O2" --CXXOPTFLAGS="-g -O2" --FOPTFLAGS="-g -O2" --download-petsc4py=1 --download-mumps=1 --download-parmetis=1 --download-metis=1 --download-superlu=1 --download-hypre=1 --download-cmake=1 --download-scalapack=1 --download-superlu_dist=1 --download-superlu=1 && \
     make PETSC_DIR=/tmp/petsc-3.8.3 PETSC_ARCH=arch-linux2-c-opt all && \
     make PETSC_DIR=/tmp/petsc-3.8.3 PETSC_ARCH=arch-linux2-c-opt install && \
     cd /tmp && \
@@ -115,10 +116,6 @@ RUN cd /opt/ && \
     git rev-parse --verify HEAD > build_commit.txt                   && \
     env > build_environment.txt                                      && \
     rm -fr .git
-
-# for some reason the package kiwisolver (used by matplotlib) needs to be imported first, else it segfaults.. weird.
-# also, let's get rid of python warnings.
-RUN sed -i "1i import kiwisolver;import warnings;warnings.filterwarnings(\"ignore\")" /opt/underworld2/underworld/__init__.py
 
 ENV PYTHONPATH $PYTHONPATH:/opt/underworld2:/opt/petsc/lib
 

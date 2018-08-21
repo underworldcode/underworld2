@@ -160,14 +160,14 @@ class Store(_stgermain.StgCompoundComponent):
         else:
             if not db:
                 db = self._db.path
-            self.viewer.setup(cache=False, database=db, timestep=self.step, *args, **kwargs)
+            self.viewer.setup(cache=False, clearstep=True, database=db, timestep=self.step, *args, **kwargs)
 
         return self.viewer
 
     def lvrun(self, db=None, *args, **kwargs):
         if not db:
             db = self._db.path
-        return lavavu.Viewer(cache=False, database=db, timestep=self.step, *args, **kwargs)
+        return lavavu.Viewer(cache=False, clearstep=True, database=db, timestep=self.step, *args, **kwargs)
 
     def _generate(self, figname, objects, props):
         #First merge object list with active
@@ -529,25 +529,105 @@ class Figure(dict):
 
         """
         try:
-            if lavavu.is_notebook():
+            if type.lower() != "webgl" and lavavu.is_notebook():
                 self._generate_DB()
                 if uw.rank() > 0:
                     return
                 from IPython.display import display,Image,HTML
-                if type.lower() == "webgl":
-                    display(self._generate_HTML())
-                else:
-                    #Return inline image result
-                    filename = self._generate_image()
-                    display(HTML("<img src='%s'>" % filename))
+                #Return inline image result
+                filename = self._generate_image()
+                display(HTML("<img src='%s'>" % filename))
             else:
-                #Fallback to export image
+                #Fallback to export image or call viewer webgl export
                 self.save(filename=self.name, type=type)
         except RuntimeError as e:
             print("Error creating image: ", e)
             pass
         except:
             raise
+
+    @staticmethod
+    def show_grid( *rows ):
+        """
+        Shows a set of Figure objects in a grid. Note that this method
+        currently only supports rendering images within a Jupyter Notebook,
+        and saving gridded images to a file is not currently supported.
+        
+        Parameters
+        ----------
+        rows: set of tuples
+            Each provided tuple represents a row of Figures,
+            and should only contain Figure class objects.
+
+        Example
+        -------
+        Create a bunch of figures:
+        >>> import glucifer
+        >>> fig1 = glucifer.Figure()
+        >>> fig2 = glucifer.Figure()
+        >>> fig3 = glucifer.Figure()
+        >>> fig4 = glucifer.Figure()
+        >>> fig5 = glucifer.Figure()
+        >>> fig6 = glucifer.Figure()
+
+        We need a mesh
+        >>> import underworld as uw
+        >>> mesh = uw.mesh.FeMesh_Cartesian()
+
+        Add drawing objects as usual:
+        >>> r = uw.function.input()
+        >>> fig1.append(glucifer.objects.Surface( mesh, 1.))
+        >>> fig2.append(glucifer.objects.Mesh( mesh ))
+        >>> fig3.append(glucifer.objects.Mesh( mesh, nodeNumbers=True ))
+        >>> fig4.append(glucifer.objects.Surface( mesh, r[0]))
+        >>> fig5.append(glucifer.objects.Surface( mesh, r[1]))
+        >>> fig6.append(glucifer.objects.VectorArrows( mesh, r ))
+
+        Draw images in a grid. Note that in a Jupyter notebook,
+        this will render the image within the notebook, though it will
+        not be rendered in this example. Also note that `show_grid()`
+        is a static method, and so we call it directly as below (instead
+        of as a method on a `Figure` instance).
+        
+        >>> glucifer.Figure.show_grid( (fig1,fig2,fig3),
+        ...                            (fig4,fig5,fig6)  )
+        <IPython.core.display.HTML object>
+        
+        The above should generate a 2x3 (row x col) grid. For a 3x2 grid
+        we would instead call:
+        
+        >>> glucifer.Figure.show_grid( (fig1,fig2),
+        ...                            (fig3,fig4),
+        ...                            (fig5,fig6)  )
+        <IPython.core.display.HTML object>
+
+        """
+        try:
+            from IPython.display import HTML, display
+        except:
+            return
+        htmlstr ="""
+            <style>
+            table,td,tr,th {border:none!important}
+            </style>
+            """
+        htmlstr = "<table  style=\" border:none!important; background-repeat:no-repeat; width:900px;margin:0;\">"
+        
+        for row in rows:
+            if not isinstance( row, (list,tuple) ):
+                raise ValueError("You must provide a 'list' type object for each row.")
+            htmlstr += "<tr>"
+            for cell in row:
+                if not isinstance( cell, Figure ):
+                    raise ValueError("Only 'Figure' class objects should be provided.")
+                cell._generate_DB()
+                htmlstr += "<td>"
+                htmlstr += "<img src='%s'>" % cell._generate_image()
+                htmlstr += "</td>"
+            htmlstr += "</tr>"
+        htmlstr += "</table>"
+        display(HTML(htmlstr))
+
 
     def save_image(self, filename="", size=(0,0)):
         # For back compatibility
@@ -588,8 +668,8 @@ class Figure(dict):
 
         try:
             if type.lower() == "webgl":
-                lv = self.db.lvget()
-                return lv.app.web(True)
+                lv = self.db.lvget(script=self._script)
+                return lv.webgl(filename + '.html')
             else:
                 return self._generate_image(filename, size)
         except RuntimeError as e:
@@ -614,33 +694,6 @@ class Figure(dict):
             imagestr = lv.image(filename, resolution=size)
             #Return the generated filename
             return imagestr
-        except RuntimeError as e:
-            print("LavaVu error: ", e)
-            import traceback
-            traceback.print_exc()
-            pass
-        return ""
-
-    def _generate_HTML(self):
-        if uw.rank() > 0:
-            return
-        try:
-            #Export encoded json string
-            lv = self.db.lvget(script=self._script)
-            #Create link to web content directory
-            #TODO: rework this to not output in lvpath as we may not have write access
-            #if not os.path.isdir("html"):
-            #    os.symlink(os.path.join(self.db._lvpath, 'html'), 'html')
-            jsonstr = lv.app.web()
-            #Write files to disk first, can be passed directly on url but is slow for large datasets
-            filename = "input_" + self.db._db.name + ".json"
-            text_file = open("html/" + filename, "w")
-            text_file.write(jsonstr);
-            text_file.close()
-            from IPython.display import IFrame
-            return IFrame("html/viewer.html#" + filename, width=self["resolution"][0], height=self["resolution"][1])
-            #import base64
-            #return IFrame("html/index.html#" + base64.b64encode(jsonstr), width=self["resolution"][0], height=self["resolution"][1])
         except RuntimeError as e:
             print("LavaVu error: ", e)
             import traceback

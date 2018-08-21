@@ -12,6 +12,7 @@
 
 #include <functional>
 #include <stdexcept>
+#include <iostream>
 
 #include "FunctionIO.hpp"
 
@@ -24,8 +25,10 @@ namespace Fn {
             typedef std::function<IOsptr( const IOsptr &input )> func;
             virtual func getFunction( IOsptr input )=0;
             virtual ~Function(){};
+            void set_pyfnerrorheader( char* pyfnerrorheader ){ _pyfnerrorheader = pyfnerrorheader; }
         protected:
-            Function(){};
+            Function(): _pyfnerrorheader("Error in function of class 'Function'\nError message:\n"){};
+            std::string _pyfnerrorheader;  // this member records the python stack error message at construction time
     };
 
     class Input: public Function
@@ -33,33 +36,12 @@ namespace Fn {
         public:
             Input(){};
             virtual ~Input(){};
-            virtual func getFunction( IOsptr sample_input );
-        protected:
+            virtual func getFunction( IOsptr sample_input )
+            {
+                return [](IOsptr input)->IOsptr { return input; };
+            };
     };
-
-    class SafeMaths: public Function
-    {
-        public:
-            SafeMaths( Function *fn ): _fn(fn) {};
-            virtual ~SafeMaths(){};
-            virtual func getFunction( IOsptr sample_input );
-        protected:
-            Function* _fn;
-    };
-
-    class CustomException: public Function
-    {
-        public:
-            CustomException( Function *fn_input, Function *fn_condition, Function *fn_print=NULL ):
-                _fn_input(fn_input), _fn_condition(fn_condition), _fn_print(fn_print) {};
-            virtual ~CustomException(){};
-            virtual func getFunction( IOsptr sample_input );
-        protected:
-            Function* _fn_input;
-            Function* _fn_condition;
-            Function* _fn_print;
-    };
-    
+        
 }
 
 
