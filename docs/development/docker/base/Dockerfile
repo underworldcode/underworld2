@@ -68,7 +68,8 @@ RUN pip install --no-cache-dir setuptools wheel && \
         sphinx_rtd_theme \
         sphinxcontrib-napoleon \
         mock \
-        scipy
+        scipy \ 
+        tabulate
 # ^^^ Note we choose an older version of ipython because its tooltips work better.
 #     Also, the system six is too old, so we upgrade for the pip version
 

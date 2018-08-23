@@ -38,14 +38,22 @@ import sys as _sys
 import os as _os
 _sys.path.insert(0, _os.path.realpath(_os.path.dirname("..")))
 
+import timing
 import libUnderworld
 import container
+timing._add_timing_to_mod(container)
 import mesh
+timing._add_timing_to_mod(mesh)
 import conditions
+timing._add_timing_to_mod(conditions)
 import function
+timing._add_timing_to_mod(function)
 import swarm
+timing._add_timing_to_mod(swarm)
 import systems
+timing._add_timing_to_mod(systems)
 import utils
+timing._add_timing_to_mod(utils)
 
 import numpy as _np
 
@@ -104,6 +112,15 @@ def barrier():
     from mpi4py import MPI
     MPI.COMM_WORLD.Barrier()
 
+def _run_from_ipython():
+    """
+    Small routine to check if running from ipy/jupyter.s
+    """
+    try:
+        __IPYTHON__
+        return True
+    except NameError:
+        return False
 def matplotlib_inline():
     """
     This function simply enables Jupyter Notebook inlined matplotlib results.
@@ -112,11 +129,8 @@ def matplotlib_inline():
     the same functionality, however it allows notebooks to be converted to
     python without having to explicitly remove these calls.
     """
-    try :
-        if(__IPYTHON__) :
-            get_ipython().magic(u'matplotlib inline')
-    except:
-        pass
+    if _run_from_ipython():
+        get_ipython().magic(u'matplotlib inline')
 
 # lets handle exceptions differently in parallel to ensure we call.
 # add isinstance so that this acts correctly for Mocked classes used in sphinx docs generation
