@@ -224,7 +224,12 @@ for key in timing_data.keys():
     if not np.isclose(valuescript[1],valuemod[1], rtol=0.15):
         raise RuntimeError( "Timing for '{}' not within tolerance ( {}: {} ).".format(key,valuescript[1],valuemod[1]) )
 
-uw.timing.print_table(group_by="routine")
+try:
+    from tabulate import tabulate
+    uw.timing.print_table(group_by="routine")
+except:
+    pass
+
 
 # simple test for file output
 fname = "timing_test.txt"
