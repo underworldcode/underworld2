@@ -227,15 +227,15 @@ for key in timing_data.keys():
 try:
     from tabulate import tabulate
     uw.timing.print_table(group_by="routine")
+    # simple test for file output
+    fname = "timing_test.txt"
+    uw.timing.print_table(group_by="routine", output_file=fname)
+    import os.path
+    exists = os.path.isfile(fname)
+    if not exists:
+        raise RuntimeError( "Timing output to file does not appear to have worked." )
+    os.remove(fname)
 except:
     pass
 
 
-# simple test for file output
-fname = "timing_test.txt"
-uw.timing.print_table(group_by="routine", output_file=fname)
-import os.path
-exists = os.path.isfile(fname)
-if not exists:
-    raise RuntimeError( "Timing output to file does not appear to have worked." )
-os.remove(fname)
