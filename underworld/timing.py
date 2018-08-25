@@ -131,12 +131,10 @@ def get_data(group_by="line_routine"):
 
     return regrouped_dict
 
-def print_table(group_by="line_routine", sort_by="total", display_fraction=0.95, output_file=None ):
+def print_table(group_by="line_routine", sort_by="total", display_fraction=0.95, float_precision=".3f", output_file=None, **kwargs ):
     """
     Print timing results to stdout or to a provided file. Call this function
     stops timing.
-    
-    Note that the `tabulate` module is required to generate the table.
     
     Parameters
     ----------
@@ -150,6 +148,10 @@ def print_table(group_by="line_routine", sort_by="total", display_fraction=0.95,
         Set this option to cull insignificant (short time) results.
     output_file: str
         File to record table to. If none provided, outputs to stdout.
+    **kwargs
+        Any extra kwargs are passed to `tabulate` module (if installed).
+        This allows you to tweak the output format. Consule the `tabulate`
+        module instructions for details.
 
     """
     stop()
@@ -173,35 +175,80 @@ def print_table(group_by="line_routine", sort_by="total", display_fraction=0.95,
     all_time = 0.
     for row in table_data:
         all_time+= row[2]
-                         
-    # get index for cutoff
+
+    # max sure columns withds accommodate titles
+    row_title = [group_by, "hits", "tot_time", "av_time"]
+    maxl = [0,0,0,0]
+    for ii in range(0,4):
+        maxl[ii] = max(maxl[ii],len(row_title[ii]))
+
+    # get index for cutoff, and also column widths
     inc_time = 0.
+    formatstr = "{0:"+float_precision+"}"
     for index,row in enumerate(table_data):
         inc_time += row[2]
+        # calc string lengths of data
+        maxl[0] = max(maxl[0],len(row[0]))
+        maxl[1] = max(maxl[1],len("{}".format(row[1])))
+        maxl[2] = max(maxl[2],len(formatstr.format(row[2])))
+        maxl[3] = max(maxl[3],len(formatstr.format(row[3])))
         if inc_time/all_time > display_fraction:
             stop_row = index
             break
+
+
+    # add a space between columns
+    for ii in range(0,len(maxl)):
+        maxl[ii] += 1
 
     footerrow = [[ None,                     None, None, None],
                  [ "Total Time (UW2 API) :", None,            all_time, None],
                  [ "Total Time (Runtime) :", None, _endtime-_starttime, None]]
 
-    from tabulate import tabulate
+    try:
+        from tabulate import tabulate
+        have_tab = True
+    except:
+        have_tab = False
 
-    row_title = [group_by, "hits", "tot_time", "av_time"]
-    if False: #_uw._run_from_ipython():
-        from IPython.display import HTML, display
-        display(HTML(tabulate( table_data[0:stop_row]+footerrow, row_title, tablefmt='html',floatfmt=".3f" )))
-    else:
-        tabstr = tabulate(table_data[0:stop_row]+footerrow,row_title,floatfmt=".3f")
-        tabstr += "\n"
-        if output_file:
-            with open(output_file, "w") as text_file:
-                text_file.write(tabstr)
+    try:  # try using tabulate
+        if False: #_uw._run_from_ipython():
+            from IPython.display import HTML, display
+            display(HTML(tabulate( table_data[0:stop_row]+footerrow, row_title, tablefmt='html',floatfmt=".3f", **kwargs )))
         else:
-            print("")
-            print(tabstr)
+            tabstr = tabuflate(table_data[0:stop_row]+footerrow,row_title,floatfmt=".3f", **kwargs)
+            tabstr += "\n"
+    except: # othersise use homebake.. our hipster snowflakes friends (and colleague) are not forgotten!
+        # add header
+        tabstr = "{}".format(row_title[0]).ljust(maxl[0]) + \
+                 "{}".format(row_title[1]).rjust(maxl[1]) + \
+                 "{}".format(row_title[2]).rjust(maxl[2]) + \
+                 "{}".format(row_title[3]).rjust(maxl[3]) + "\n"
+        # add margin line
+        tabstr += "-" * (maxl[0] -1) + "  "
+        tabstr += "-" * (maxl[1] -1) + " "
+        tabstr += "-" * (maxl[2] -1) + " "
+        tabstr += "-" * (maxl[3] -1) + "\n"
+        # add data colums
+        for row in table_data[0:stop_row]:
+            tabstr +="{}".format(row[0]).ljust(maxl[0]) + \
+                     "{}".format(row[1]).rjust(maxl[1]) + \
+                     formatstr.format(row[2]).rjust(maxl[2]) + \
+                     formatstr.format(row[3]).rjust(maxl[3]) + "\n"
+        tabstr += "\n"
+        for row in footerrow[1:]:
+            tabstr +="{}".format(row[0]).ljust(maxl[0]) + \
+                     "".rjust(maxl[1]) + \
+                     formatstr.format(row[2]).rjust(maxl[2]) + \
+                     "".rjust(maxl[3]) + "\n"
+    if output_file:
+        with open(output_file, "w") as text_file:
+            text_file.write(tabstr)
+    else:
+        print("")
+        print(tabstr)
 
+              
 def _incrementDepth():
     """
     Manually increment depth counter.

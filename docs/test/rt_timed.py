@@ -224,18 +224,15 @@ for key in timing_data.keys():
     if not np.isclose(valuescript[1],valuemod[1], rtol=0.15):
         raise RuntimeError( "Timing for '{}' not within tolerance ( {}: {} ).".format(key,valuescript[1],valuemod[1]) )
 
-try:
-    from tabulate import tabulate
-    uw.timing.print_table(group_by="routine")
-    # simple test for file output
-    fname = "timing_test.txt"
-    uw.timing.print_table(group_by="routine", output_file=fname)
-    import os.path
-    exists = os.path.isfile(fname)
-    if not exists:
-        raise RuntimeError( "Timing output to file does not appear to have worked." )
-    os.remove(fname)
-except:
-    pass
+
+uw.timing.print_table(group_by="routine", tablefmt="grid")
+# simple test for file output
+fname = "timing_test.txt"
+uw.timing.print_table(group_by="routine", output_file=fname)
+import os.path
+exists = os.path.isfile(fname)
+if not exists:
+    raise RuntimeError( "Timing output to file does not appear to have worked." )
+os.remove(fname)
 
 
