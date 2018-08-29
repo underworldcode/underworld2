@@ -67,7 +67,9 @@ class Store(_stgermain.StgCompoundComponent):
         Set to true to write a separate database file for each timestep visualised
     view: bool
         Set to true and pass filename if loading a saved database for revisualisation
-            
+    compress: bool
+        Set to true to enable database compression.
+
     Example
     -------
         
@@ -100,7 +102,7 @@ class Store(_stgermain.StgCompoundComponent):
     _selfObjectName = "_db"
     viewer = None
 
-    def __init__(self, filename=None, split=False, **kwargs):
+    def __init__(self, filename=None, split=False, compress=True, **kwargs):
 
         self.step = 0
         if filename is None:
@@ -112,7 +114,7 @@ class Store(_stgermain.StgCompoundComponent):
         #Don't split on timestep unless filename provided
         if not self.filename: split = False
         self._split = split
-
+        self.compress = compress
         super(Store,self).__init__(**kwargs)
 
     def _add_to_stg_dict(self,componentDictionary):
@@ -133,7 +135,8 @@ class Store(_stgermain.StgCompoundComponent):
         componentDictionary[self._db.name].update( {
                             "filename"          :filename,
                             "splitTransactions" :True,
-                            "singleFile"        :not self._split
+                            "singleFile"        :not self._split,
+                            "compressed"        :self.compress,
         } )
 
     def save(self,filename):
