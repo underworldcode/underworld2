@@ -78,7 +78,8 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
     Vec f_tmp;
 
     MGContext mgCtx;
-    double mgSetupTime, scrSolveTime, RHSsolveTime, a11SingleSolveTime, penaltyNumber;// hFactor;
+    double mgSetupTime, problemBuildTime, scrSolveTime, RHSSolveTime, a11SingleSolveTime, penaltyNumber;// hFactor;
+    double backsolveSetupTime, scrSetupTime, RHSSetupTime;
     int been_here = bsscrp_self->been_here;
 
     char name[PETSC_MAX_PATH_LEN];
@@ -154,9 +155,11 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
         }
 
         K2=bsscrp_self->K2;
+
         scrSolveTime = MPI_Wtime();
         ierr=MatAXPY(K,penaltyNumber,K2,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);/* Computes K = penaltyNumber*K2 + K */
         scrSolveTime =  MPI_Wtime() - scrSolveTime;
+
         PetscPrintf( PETSC_COMM_WORLD, "\n\t* K+p*K2 in time: %lf seconds\n\n", scrSolveTime);
         KisJustK=PETSC_FALSE;
         forcecorrection=PETSC_TRUE;
@@ -257,7 +260,6 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
     /* It may be the case that the current velocity solution might not be bad guess for f_tmp? <-- maybe not */
     MatGetVecs( K, PETSC_NULL, &f_tmp );
 
-    RHSsolveTime = MPI_Wtime();
 
     /*************************************/
     /*************************************/
@@ -275,13 +277,21 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
         KSPSetInitialGuessNonzero( ksp_inner, PETSC_FALSE );
 //    }
 
+
+    RHSSetupTime = MPI_Wtime();
+    KSPSetUp(ksp_inner);
+    RHSSetupTime = MPI_Wtime() - RHSSetupTime;
+    bsscrp_self->solver->stats.velocity_presolve_setup_time = RHSSetupTime;
+
+    RHSSolveTime = MPI_Wtime();
     KSPSolve(ksp_inner, f, f_tmp);
     KSPGetConvergedReason( ksp_inner, &reason ); {if (reason < 0) bsscrp_self->solver->fhat_reason=(int)reason; }
-//    VecCopy( f_tmp, uStar);
-
     KSPGetIterationNumber( ksp_inner, &bsscrp_self->solver->stats.velocity_presolve_its );
-    RHSsolveTime =  MPI_Wtime() - RHSsolveTime;
-    scrSolveTime =  RHSsolveTime;
+    RHSSolveTime =  MPI_Wtime() - RHSSolveTime;
+    bsscrp_self->solver->stats.velocity_presolve_time = RHSSolveTime;
+
+    // VecCopy( f_tmp, uStar);
+    // scrSolveTime =  RHSsolveTime;
 
     MatMult(D, f_tmp, h_hat);
     VecAYPX(h_hat, -1.0, h); /* Computes y = x + alpha y.  h_hat -> h - Gt*K^(-1)*f*/
@@ -400,12 +410,19 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
         BSSCR_KSPSetConvergenceMinIts(ksp_S, min_it, bsscrp_self);
     }
 
+    /** Pressure Setup **/
+    scrSetupTime = MPI_Wtime();
+    KSPSetUp(ksp_S);
+    scrSetupTime = MPI_Wtime() - scrSetupTime;
+    bsscrp_self->solver->stats.velocity_pressuresolve_setup_time = scrSetupTime;
+
     /** Pressure Solve **/
     if(get_flops) PetscGetFlops(&flopsA);
     scrSolveTime = MPI_Wtime();
-    /*************************************/
-    /*************************************/
     KSPSolve( ksp_S, h_hat, p );
+    scrSolveTime =  MPI_Wtime() - scrSolveTime;
+
+
     KSPGetConvergedReason( ksp_S, &reason ); {if (reason < 0) bsscrp_self->solver->outer_reason=(int)reason; }
     /*************************************/
     /*************************************/
@@ -417,7 +434,8 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
 #else
     bsscrp_self->solver->stats.velocity_pressuresolve_its=-1;
 #endif
-    scrSolveTime =  MPI_Wtime() - scrSolveTime;
+
+
     if(get_flops) {
       PetscGetFlops(&flopsB);
       bsscrp_self->solver->stats.pressure_flops=(double)(flopsB-flopsA); }
@@ -489,6 +507,12 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
     if(get_flops) PetscGetFlops(&flopsA);
     /*************************************/
     /*************************************/
+
+    backsolveSetupTime = MPI_Wtime();
+    KSPSetUp(ksp_inner);
+    backsolveSetupTime = MPI_Wtime() - backsolveSetupTime;
+    bsscrp_self->solver->stats.velocity_backsolve_setup_time = backsolveSetupTime;
+
     KSPSolve(ksp_inner, t, u);
     KSPGetConvergedReason(ksp_inner, &reason ); {if (reason < 0) bsscrp_self->solver->backsolve_reason=(int)reason; }
     /*************************************/
@@ -499,7 +523,7 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
       bsscrp_self->solver->stats.velocity_backsolve_flops=(double)(flopsB-flopsA); }
     a11SingleSolveTime = MPI_Wtime() - a11SingleSolveTime;              /* ------------------ Final V Solve */
 
-    bsscrp_self->solver->stats.velocity_presolve_time=RHSsolveTime;
+    bsscrp_self->solver->stats.velocity_presolve_time=RHSSolveTime;
     bsscrp_self->solver->stats.velocity_backsolve_time=a11SingleSolveTime;
     bsscrp_self->solver->stats.velocity_total_its = bsscrp_self->solver->stats.velocity_backsolve_its +
                                                     bsscrp_self->solver->stats.velocity_presolve_its +
@@ -531,7 +555,8 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
     /***************************************************************************************************************/
     /***************************************************************************************************************/
     /******     SOLUTION SUMMARY      ******************************************************************************/
-    bsscr_summary(bsscrp_self,ksp_S,ksp_inner,K,K2,D,G,C,u,p,f,h,t,penaltyNumber,KisJustK, mgSetupTime, scrSolveTime, a11SingleSolveTime);
+    bsscr_summary(bsscrp_self,ksp_S,ksp_inner,K,K2,D,G,C,u,p,f,h,t,penaltyNumber,KisJustK,
+                  mgSetupTime, RHSSolveTime, scrSolveTime, a11SingleSolveTime);
 
     /***************************************************************************************************************/
     /***************************************************************************************************************/

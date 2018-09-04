@@ -220,6 +220,7 @@ PetscErrorCode  KSPSolve_BSSCR(KSP ksp)
     /**********************************************************/
     /******* SOLVE!! ******************************************/
     /**********************************************************/
+    
     flg = PETSC_FALSE;
     augment = PETSC_TRUE;
     PetscOptionsGetTruth(PETSC_NULL, "-augmented_lagrangian", &augment, &flg);

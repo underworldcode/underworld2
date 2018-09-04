@@ -41,6 +41,7 @@ solver.options.mg_accel.mg_accelerating_smoothing_view=1
 #solver.options.main.penalty=1000.0
 #solver.options.main.help=''
 solver.options.main.penalty=10.0
+solver.options.main.restore_K=True
 solver.solve()
 stats=solver.get_stats()
 solver.print_stats()

@@ -168,7 +168,9 @@ class OptionsMain(Options):
         self.change_backsolve = False
         self.change_A11rhspresolve = False
         self.penalty = 0.0
-        self.restore_K = True
+        self.restore_K = False ## Default to True might be better for MG but
+                               ## the setup cost can be expensive and may well
+                               ## outweigh the iteration benefit
 
 class OptionsGroup(object):
     """
@@ -309,11 +311,11 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         componentDictionary[ self._cself.name ][            "stokesEqn"] = self._stokesSLE._cself.name
         componentDictionary[ self._cself.name ]["2ndStressTensorMatrix"] = None # used when we assemble K2 directly
         componentDictionary[ self._cself.name ][       "2ndForceVector"] = None # used when we assemble K2 directly
-        componentDictionary[ self._cself.name ][        "penaltyNumber"] = None #self.options.main.penalty
-        componentDictionary[ self._cself.name ][           "MassMatrix"] = None #self._mmatrix._cself.name
-        componentDictionary[ self._cself.name ][      "JunkForceVector"] = None #self._junkfvector._cself.name
-        componentDictionary[ self._cself.name ][   "VelocityMassMatrix"] = None #self._vmmatrix._cself.name
-        componentDictionary[ self._cself.name ][     "VMassForceVector"] = None #self._vmfvector._cself.name
+        componentDictionary[ self._cself.name ][        "penaltyNumber"] = None # self.options.main.penalty
+        componentDictionary[ self._cself.name ][           "MassMatrix"] = None # self._mmatrix._cself.name
+        componentDictionary[ self._cself.name ][      "JunkForceVector"] = None # self._junkfvector._cself.name
+        componentDictionary[ self._cself.name ][   "VelocityMassMatrix"] = None # self._vmmatrix._cself.name
+        componentDictionary[ self._cself.name ][     "VMassForceVector"] = None # self._vmfvector._cself.name
 
 
     ########################################################################
@@ -496,7 +498,8 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         self._mmatrix  = sle.AssembledMatrix( stokesSLE._pressureSol, stokesSLE._pressureSol, rhs=self._junkfvector )
 
         # create assembly terms
-        self._pressMassMatTerm = sle.MatrixAssemblyTerm_NA__NB__Fn( integrationSwarm=uw.swarm.GaussIntegrationSwarm(velocityField.mesh), fn=1.0, assembledObject=self._mmatrix,
+        self._pressMassMatTerm = sle.MatrixAssemblyTerm_NA__NB__Fn( integrationSwarm=uw.swarm.GaussIntegrationSwarm(velocityField.mesh),
+                                                             fn=1.0, assembledObject=self._mmatrix,
                                                              mesh = velocityField._mesh)
 
         # attach terms to live solver struct
@@ -504,9 +507,11 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         self._cself.vmStiffMat = self._vmmatrix._cself
         self._cself.jForceVec  = self._junkfvector._cself
         self._cself.mStiffMat  = self._mmatrix._cself
+
     ########################################################################
     ### assemble vectors and matrices for augmented lagrangian solve
     ########################################################################
+
     def _setup_penalty_objects(self):
         # using this function so we don't need to add anything extra to the stokeSLE struct
 
@@ -519,9 +524,11 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         # matrix set up
         libUnderworld.StgFEM.StiffnessMatrix_Assemble( self._vmmatrix._cself, self._stokesSLE._cself, None );
         libUnderworld.StgFEM.StiffnessMatrix_Assemble( self._mmatrix._cself,  self._stokesSLE._cself, None );
+
     ########################################################################
     ### setup options for solve
     ########################################################################
+
     def _setup_options(self, **kwargs):
         self._optionsStr=''
         # the A11._mg_active overrides the mg.active so we can set direct solve using A11 prefix
@@ -711,8 +718,11 @@ class StokesSolver(_stgermain.StgCompoundComponent):
             print( "Velocity iterations: %3d (backsolve)     " % (self._cself.stats.velocity_backsolve_its) )
             print( "Velocity iterations: %3d (total solve)   " % (self._cself.stats.velocity_total_its) )
             print( " " )
+            print( "SCR RHS  setup time: %.4e" %(self._cself.stats.velocity_presolve_setup_time) )
             print( "SCR RHS  solve time: %.4e" %(self._cself.stats.velocity_presolve_time) )
+            print( "Pressure setup time: %.4e" %(self._cself.stats.velocity_pressuresolve_setup_time) )
             print( "Pressure solve time: %.4e" %(self._cself.stats.pressure_time) )
+            print( "Velocity setup time: %.4e (backsolve)" %(self._cself.stats.velocity_backsolve_setup_time) )
             print( "Velocity solve time: %.4e (backsolve)" %(self._cself.stats.velocity_backsolve_time) )
             print( "Total solve time   : %.4e" %(self._cself.stats.total_time) )
             print( " " )
@@ -728,13 +738,17 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         This method can often help improve convergence issues for problems with large viscosity
         contrasts that are having trouble converging.
 
-        A penalty of roughly 0.1 of the maximum viscosity contrast is not a bad place to start as a guess. (check notes/paper)
+        A penalty of roughly 0.1 of the maximum viscosity contrast is not a bad place
+        to start as a rule of thumb. (check notes/paper)
         """
+
         if isinstance(self.options.main.penalty, float) and self.options.main.penalty >= 0.0:
             self.options.main.penalty=penalty
             self.options.main.Q22_pc_type="gkgdiag"
+
         elif 0==uw.rank():
             print( "Invalid penalty number chosen. Penalty must be a positive float." )
-
+            self.options.main.penalty = 0.0
+            
     def _debug(self):
         import pdb; pdb.set_trace()
