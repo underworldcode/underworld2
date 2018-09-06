@@ -7,7 +7,7 @@ The Underworld2 development team is based in Melbourne, Australia at the Univers
 
 Lastest stable release (master branch) [![Build Status](http://130.56.252.251:32779/buildStatus/icon?job=master)](http://130.56.252.251:32779/job/master/)
 
-Development branch - [![Build Status](http://130.56.252.251:32779/buildStatus/icon?job=uw-dev)](http://130.56.252.251:32779/job/uw-dev/)
+Development branch - [![Build Status](http://130.56.252.251:32779/buildStatus/icon?job=uw-dev)](http://130.56.252.251:32779/job/uw-dev/) [![Join the chat at https://gitter.im/underworld2/Lobby](https://badges.gitter.im/underworld2/Lobby.svg)](https://gitter.im/underworld2/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 Getting Underworld2
 -------------------
