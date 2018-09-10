@@ -105,6 +105,9 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
     VecNestGetSubVec( stokes_b, 0, &f );
     VecNestGetSubVec( stokes_b, 1, &h );
 
+    // Try this ...
+    // MatMPIAIJSetPreallocation(K, 375 ,PETSC_NULL, 375, PETSC_NULL);
+
     PetscPrintf( PETSC_COMM_WORLD, "AUGMENTED LAGRANGIAN K2 METHOD " );
     PetscPrintf( PETSC_COMM_WORLD, "- Penalty = %f\n\n", bsscrp_self->solver->penaltyNumber );
     sprintf(suffix,"%s","x");
@@ -318,12 +321,14 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
     /* create solver for S p = h_hat */
     KSPCreate( PETSC_COMM_WORLD, &ksp_S );
     KSPSetOptionsPrefix( ksp_S, "scr_");
+
     /* By default use the UW approxS Schur preconditioner -- same as the one used by the Uzawa solver */
     /* Note that if scaling is activated then the approxS matrix has been scaled already */
     /* so no need to rebuild in the case of scaling as we have been doing */
     if(!approxS){
         PetscPrintf( PETSC_COMM_WORLD,  "WARNING approxS is NULL\n");
     }
+
     Stg_KSPSetOperators( ksp_S, S, S, SAME_NONZERO_PATTERN );
     KSPSetType( ksp_S, "cg" );
     KSPGetPC( ksp_S, &pc_S );
