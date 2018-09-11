@@ -29,7 +29,7 @@ Fn::MinMax::func Fn::MinMax::getFunction( IOsptr sample_input )
     const FunctionIO* output;
     output = _func(sample_input);
     if (output->size() > 1 && !_fn_norm)
-        throw std::invalid_argument("Function provided to `min_max` class does not return scalar results. "\
+        throw std::invalid_argument(_pyfnerrorheader+"Argument function does not return scalar results. "\
                                     "You must also provide a function which calculates the required norm like quantity "\
                                     "via the `fn_norm` parameter.");
 
@@ -43,7 +43,7 @@ Fn::MinMax::func Fn::MinMax::getFunction( IOsptr sample_input )
         {
             std::stringstream ss;
             ss << "Norm function appears to return a result of size " << output->size() << ", where a scalar result it required.";
-            throw std::invalid_argument( ss.str() );
+            throw std::invalid_argument( _pyfnerrorheader+ss.str() );
         }
     }
 

@@ -38,7 +38,7 @@ FeVariable* BuildFeVariable_AsPosition( unsigned dim ) {
    static int              arraySize;
    static double*          arrayPtrs[3];
    int                     nRanks;
-   Variable*               var;
+   StgVariable*               var;
    FieldVariable_Register* fieldReg;
    FeVariable*             feVar;
    int                     n_i;
@@ -65,13 +65,13 @@ FeVariable* BuildFeVariable_AsPosition( unsigned dim ) {
    arraySize = Mesh_GetDomainSize( feMesh, MT_VERTEX );
    arrayPtrs[0] = Memory_Alloc_Array_Unnamed( double, arraySize * dim );
 
-   var = Variable_NewVector( "velocity", NULL, Variable_DataType_Double, dim, (unsigned*)&arraySize, NULL,
+   var = StgVariable_NewVector( "velocity", NULL, StgVariable_DataType_Double, dim, (unsigned*)&arraySize, NULL,
       (void**)arrayPtrs, varReg, "vx", "vy", "vz" );
    Variable_Register_BuildAll( varReg );
 
    dofs = DofLayout_New( "", varReg, 0, feMesh );
    dofs->nBaseVariables = dim;
-   dofs->baseVariables = Memory_Alloc_Array_Unnamed( Variable*, dim );
+   dofs->baseVariables = Memory_Alloc_Array_Unnamed( StgVariable*, dim );
    dofs->baseVariables[0] = var->components[0];
    dofs->baseVariables[1] = var->components[1];
    dofs->baseVariables[2] = var->components[2];
@@ -87,7 +87,7 @@ FeVariable* BuildFeVariable_AsPosition( unsigned dim ) {
 
    for( n_i = 0; n_i < Mesh_GetLocalSize( feMesh, 0 ); n_i++ ) {
       double* pos = Mesh_GetVertex( feMesh, n_i );
-      Variable_SetValue( var, n_i, pos );
+      StgVariable_SetValue( var, n_i, pos );
    }
 
    /* Build and initialise system */
@@ -110,7 +110,7 @@ FeVariable* BuildFeVariable_AsConstant( unsigned dim ) {
    static int              arraySize;
    static double*          arrayPtr;
    int                     nRanks;
-   Variable*               var;
+   StgVariable*               var;
    FieldVariable_Register* fieldReg;
    FeVariable*             feVar;
    int                     n_i;
@@ -138,12 +138,12 @@ FeVariable* BuildFeVariable_AsConstant( unsigned dim ) {
    arraySize = Mesh_GetDomainSize( feMesh, MT_VERTEX );
    arrayPtr = Memory_Alloc_Array_Unnamed( double, arraySize );
 
-   var = Variable_NewScalar( "pressure", NULL, Variable_DataType_Double, (Index*)(unsigned*)&arraySize, NULL, (void**)&arrayPtr, varReg );
+   var = StgVariable_NewScalar( "pressure", NULL, StgVariable_DataType_Double, (Index*)(unsigned*)&arraySize, NULL, (void**)&arrayPtr, varReg );
    Variable_Register_BuildAll( varReg  );
 
    dofs = DofLayout_New( "", varReg, 0, feMesh );
    dofs->nBaseVariables = 1;
-   dofs->baseVariables = Memory_Alloc_Array_Unnamed( Variable*, 1 );
+   dofs->baseVariables = Memory_Alloc_Array_Unnamed( StgVariable*, 1 );
    dofs->baseVariables[0] = var;
    Stg_Component_Build( dofs, NULL, False );
    Stg_Component_Initialise( dofs, NULL, False );
@@ -156,7 +156,7 @@ FeVariable* BuildFeVariable_AsConstant( unsigned dim ) {
    feVar = FeVariable_New( "pressure", NULL, feMesh, dofs, NULL, NULL, NULL, dim, False, False, fieldReg );
 
    for( n_i = 0; n_i < Mesh_GetLocalSize( feMesh, 0 ); n_i++ ) {
-      Variable_SetValue( var, n_i, constant );
+      StgVariable_SetValue( var, n_i, constant );
    }
 
    /* Build and initialise system */

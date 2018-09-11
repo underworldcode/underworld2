@@ -1,4 +1,4 @@
-FROM underworldcode/base@sha256:59e242b34ea610784838232b93b81799828a3c59a25946e01129b71aae26ee3d
+FROM underworldcode/base@sha256:633d9b7436586966cbceb2c3120009f3ad0fc893744309a40069df18fd55d85a
 MAINTAINER https://github.com/underworldcode/
 
 # set working directory to /opt, and install underworld files there.
@@ -49,10 +49,6 @@ RUN cd underworld2/libUnderworld && \
     env > build_environment.txt                                      && \
     rm -fr .git                                                      && \
     chown -R $NB_USER:users $NB_WORK $UW2_DIR /home/$NB_USER
-
-
-# kiwisolver hack, and pipe down numpy warnings
-RUN sed -i "1i import kiwisolver;import warnings;warnings.filterwarnings(\"ignore\")" /opt/underworld2/underworld/__init__.py
 
 # expose notebook port
 EXPOSE 8888

@@ -38,14 +38,22 @@ import sys as _sys
 import os as _os
 _sys.path.insert(0, _os.path.realpath(_os.path.dirname("..")))
 
+import timing
 import libUnderworld
 import container
+timing._add_timing_to_mod(container)
 import mesh
+timing._add_timing_to_mod(mesh)
 import conditions
+timing._add_timing_to_mod(conditions)
 import function
+timing._add_timing_to_mod(function)
 import swarm
+timing._add_timing_to_mod(swarm)
 import systems
+timing._add_timing_to_mod(systems)
 import utils
+timing._add_timing_to_mod(utils)
 
 import numpy as _np
 
@@ -55,6 +63,11 @@ try:
 except:
     pass
 
+# Squelch these warnings as they are very noisey and not necessary
+# https://stackoverflow.com/questions/40845304/runtimewarning-numpy-dtype-size-changed-may-indicate-binary-incompatibility
+import warnings
+warnings.filterwarnings("ignore", message="numpy.dtype size changed")
+warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
 try:
     from ._uwid import uwid as _id
 except:
@@ -99,6 +112,15 @@ def barrier():
     from mpi4py import MPI
     MPI.COMM_WORLD.Barrier()
 
+def _run_from_ipython():
+    """
+    Small routine to check if running from ipy/jupyter.s
+    """
+    try:
+        __IPYTHON__
+        return True
+    except NameError:
+        return False
 def matplotlib_inline():
     """
     This function simply enables Jupyter Notebook inlined matplotlib results.
@@ -107,11 +129,8 @@ def matplotlib_inline():
     the same functionality, however it allows notebooks to be converted to
     python without having to explicitly remove these calls.
     """
-    try :
-        if(__IPYTHON__) :
-            get_ipython().magic(u'matplotlib inline')
-    except:
-        pass
+    if _run_from_ipython():
+        get_ipython().magic(u'matplotlib inline')
 
 # lets handle exceptions differently in parallel to ensure we call.
 # add isinstance so that this acts correctly for Mocked classes used in sphinx docs generation
@@ -153,11 +172,10 @@ _delclassinstance = _del_uw_class(libUnderworld.StGermain_Tools.StgFinalise, _da
 
 def _in_doctest():
     """
-    Returns true if running inside a doctest.
-
-    http://stackoverflow.com/questions/8116118/how-to-determine-whether-code-is-running-in-a-doctest
+    Returns true if running inside doctests run from docs/tests/doctest.py
     """
-    return hasattr(_sys.modules['__main__'], '_SpoofOut')
+    import os
+    return hasattr(_sys.modules['__main__'], '_SpoofOut') or "DOCTEST" in os.environ
 
 # lets shoot off some usage metrics
 # send metrics *only* if we are rank=0, and if we are not running inside a doctest.

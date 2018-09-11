@@ -49,6 +49,6 @@ ParticleCoordinate::data(){
 
 const double*
 ParticleCoordinate::data() const {
-    return Variable_GetPtrDouble( ((SwarmVariable*) _object)->variable, _index );
+    return StgVariable_GetPtrDouble( ((SwarmVariable*) _object)->variable, _index );
 };
 

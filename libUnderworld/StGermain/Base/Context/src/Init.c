@@ -48,8 +48,8 @@ Bool BaseContext_Init( int* argc, char** argv[] ) {
    
    /* Adding default constructors of various components to the Stg_ComponentRegister */
    Stg_ComponentRegister_Add(
-      Stg_ComponentRegister_Get_ComponentRegister(), Variable_Type,
-      (Name)"0", (Stg_Component_DefaultConstructorFunction*)_Variable_DefaultNew );
+      Stg_ComponentRegister_Get_ComponentRegister(), StgVariable_Type,
+      (Name)"0", (Stg_Component_DefaultConstructorFunction*)_StgVariable_DefaultNew );
 
    Stg_ComponentRegister_Add(
       Stg_ComponentRegister_Get_ComponentRegister(), PythonVC_Type,
@@ -57,7 +57,7 @@ Bool BaseContext_Init( int* argc, char** argv[] ) {
 
 
    /* Register Parents for All Classes */
-   RegisterParent( Variable_Type, Stg_Component_Type );
+   RegisterParent( StgVariable_Type, Stg_Component_Type );
    RegisterParent( VariableCondition_Register_Type, Stg_Class_Type );
    RegisterParent( Variable_Register_Type, Stg_Class_Type );
    RegisterParent( VariableCondition_Type, Stg_Component_Type );

@@ -19,7 +19,10 @@
                 int velocity_pressuresolve_its; \
                 int velocity_total_its; \
                 double pressure_time; \
-                double velocity_backsolve_time;\
+								double velocity_presolve_setup_time; \
+								double velocity_pressuresolve_setup_time; \
+								double velocity_backsolve_setup_time; \
+                double velocity_backsolve_time; \
                 double velocity_presolve_time; \
                 double velocity_pressuresolve_time; \
                 double velocity_total_time; \

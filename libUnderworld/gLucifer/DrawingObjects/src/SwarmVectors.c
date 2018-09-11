@@ -185,11 +185,11 @@ void lucSwarmVectors_UpdateVariables( void* drawingObject )
    lucSwarmViewer_UpdateVariables( drawingObject ) ;
 
    if ( self->directionVariable && self->directionVariable->variable )
-      Variable_Update( self->directionVariable->variable );
+      StgVariable_Update( self->directionVariable->variable );
    if ( self->thicknessVariable && self->thicknessVariable->variable )
-      Variable_Update( self->thicknessVariable->variable );
+      StgVariable_Update( self->thicknessVariable->variable );
    if ( self->lengthVariable && self->lengthVariable->variable )
-      Variable_Update( self->lengthVariable->variable );
+      StgVariable_Update( self->lengthVariable->variable );
 }
 
 

@@ -22,11 +22,15 @@ environment, glucifer will inline rendered images or even interactive webgl
 frames (still experimental).   
 
 """
+import underworld as _uw
 import _glucifer
+_uw.timing._add_timing_to_mod(_glucifer)
 from _glucifer import Store
 from _glucifer import Figure
 from _glucifer import Viewer
 from . import objects
+_uw.timing._add_timing_to_mod(objects)
+
 try:
     from _glucifer import lavavu
 except:
@@ -55,4 +59,5 @@ class _xvfb_runner(object):
 import os as _os
 # disable collection of data if requested
 if "GLUCIFER_USE_XVFB" in _os.environ:
-    _display = _xvfb_runner()
+    if _uw.rank() == 0:
+        _display = _xvfb_runner()

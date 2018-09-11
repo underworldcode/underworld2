@@ -22,10 +22,10 @@
 		\
 		/* Stg_Class info */ \
 		/** Total number of variables counted */ \
-		Variable_Index                          count; \
+		StgVariable_Index                          count; \
 		SizeT                                   _size; \
 		SizeT                                   _delta; \
-		Variable**                              _variable; \
+		StgVariable**                              _variable; \
 		Stream*					errorStream;
 		
 	struct _Variable_Register { __Variable_Register };
@@ -79,7 +79,7 @@
 	*/
 	
 	/* Add a variable... do before building */
-	Variable_Index	Variable_Register_Add(void* variable_Register, Variable* variable);
+	StgVariable_Index	Variable_Register_Add(void* variable_Register, StgVariable* variable);
 	
 	void		Variable_Register_BuildAll(void* variable_Register);
 	
@@ -88,11 +88,11 @@
 	** Public Functions & Macros
 	*/
 	
-	Variable_Index	Variable_Register_GetIndex(void* variable_Register, Name name);
+	StgVariable_Index	Variable_Register_GetIndex(void* variable_Register, Name name);
 
-	Variable*	Variable_Register_GetByName(void* variable_Register, Name name);
+	StgVariable*	Variable_Register_GetByName(void* variable_Register, Name name);
 
-	Variable*	Variable_Register_GetByIndex( void* variable_Register, Variable_Index varIndex);	
+	StgVariable*	Variable_Register_GetByIndex( void* variable_Register, StgVariable_Index varIndex);	
 	
 #endif /* __StGermain_Base_Context_Variable_Register_h__ */
 

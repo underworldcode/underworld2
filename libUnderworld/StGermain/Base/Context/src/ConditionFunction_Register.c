@@ -138,7 +138,7 @@ void _ConditionFunction_Register_Print( void* conditionFunction_Register, Stream
 
 ConditionFunction_Index ConditionFunction_Register_Add( void* conditionFunction_Register, ConditionFunction* cf ) {
    ConditionFunction_Register* self = (ConditionFunction_Register*)conditionFunction_Register;
-   Variable_Index              handle;
+   StgVariable_Index              handle;
    
    if( self->count >= self->_size ) {
       SizeT currentSize = self->_size;

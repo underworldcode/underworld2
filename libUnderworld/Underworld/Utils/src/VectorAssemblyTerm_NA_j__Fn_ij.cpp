@@ -45,14 +45,16 @@ VectorAssemblyTerm_NA_j__Fn_ij* _VectorAssemblyTerm_NA_j__Fn_ij_New(  FORCEASSEM
    return self;
 }
 
-void _VectorAssemblyTerm_NA_j__Fn_ij_SetFneForce( void* _self, Fn::Function* fn ){
+void _VectorAssemblyTerm_NA_j__Fn_ij_SetFn( void* _self, Fn::Function* fn ){
     VectorAssemblyTerm_NA_j__Fn_ij*  self = (VectorAssemblyTerm_NA_j__Fn_ij*)_self;
     double     dim;
     
     // record fn to struct
     VectorAssemblyTerm_NA_j__Fn_ij_cppdata* funeForce = (VectorAssemblyTerm_NA_j__Fn_ij_cppdata*) self->funeForce;
     funeForce->fn = fn;
-    
+
+    if( !self->forceVector )
+        throw std::invalid_argument( "Assembly term does not appear to have AssembledVector set." );
     FeMesh* mesh = self->forceVector->feVariable->feMesh;
     IntegrationPointsSwarm* swarm = (IntegrationPointsSwarm*)self->integrationSwarm;
 
@@ -68,8 +70,6 @@ void _VectorAssemblyTerm_NA_j__Fn_ij_SetFneForce( void* _self, Fn::Function* fn 
     const IO_double* iodub = dynamic_cast<const IO_double*>(sampleguy);
     if( !iodub )
         throw std::invalid_argument( "Assembly term expects functions to return 'double' type values." );
-    if( !self->forceVector )
-        throw std::invalid_argument( "Assembly term does not appear to have AssembledVector set." );
     if( dim == 2 ) {
 	    if( iodub->size() != 3 ){  //assuming a 2D symmetric tensor
     	    std::stringstream ss;

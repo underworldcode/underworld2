@@ -17,7 +17,7 @@
 void _Velic_solKx( 
 		const double pos[],
 		double _sigma,
-		int _m, double _n, 
+		double _n, double _m, 
 		double _B,
 		double vel[], double* presssure, 
 		double total_stress[], double strain_rate[], double* viscosity );

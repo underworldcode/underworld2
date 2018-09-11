@@ -10,6 +10,12 @@
 
 %module gLucifer
 
+%{
+/* Includes the header in the wrapper code */
+#include <cmath>
+%}
+
+
 %include "exception.i"
 %import "StGermain.i"
 %import "StgDomain.i"

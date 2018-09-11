@@ -470,7 +470,7 @@ double FeVariable_GetScalarAtNode( void* feVariable, Node_LocalIndex lNode_I ) {
 
 void _FeVariable_GetValueAtNode( void* feVariable, Node_DomainIndex dNode_I, double* value ) {
    FeVariable* self = (FeVariable*)feVariable;
-   Variable*   currVariable = NULL;
+   StgVariable*   currVariable = NULL;
    Dof_Index   dofCountThisNode = 0;
    Dof_Index   nodeLocalDof_I = 0;
 
@@ -478,7 +478,7 @@ void _FeVariable_GetValueAtNode( void* feVariable, Node_DomainIndex dNode_I, dou
 
    for( nodeLocalDof_I=0; nodeLocalDof_I < dofCountThisNode; nodeLocalDof_I++ ) {
       currVariable = DofLayout_GetVariable( self->dofLayout, dNode_I, nodeLocalDof_I );
-      value[ nodeLocalDof_I ] = Variable_GetValueDouble( currVariable, dNode_I );
+      value[ nodeLocalDof_I ] = StgVariable_GetValueDouble( currVariable, dNode_I );
    }
 }
 
@@ -821,7 +821,7 @@ void FeVariable_InterpolateDerivatives_WithGNx(
    Node_LocalIndex        lNode_I;
    Dof_Index              dof_I;
    Dof_Index              dofCount;
-   /* Variable*           dofVariable; */
+   /* StgVariable*           dofVariable; */
    unsigned               nInc;
    int                    *inc;
    Dimension_Index        dim = self->dim;
@@ -838,7 +838,7 @@ void FeVariable_InterpolateDerivatives_WithGNx(
 
    /* get fevariable top data pointer */
    /* note that we now assume much simpler memory layouts */
-   double* feData = Variable_GetPtrDouble( DofLayout_GetVariable( self->dofLayout, 0, 0 ), 0 );
+   double* feData = StgVariable_GetPtrDouble( DofLayout_GetVariable( self->dofLayout, 0, 0 ), 0 );
 
    /* Interpolate derivative from nodes */
    for( elLocalNode_I = 0 ; elLocalNode_I < nInc ; elLocalNode_I++) {
@@ -861,7 +861,7 @@ void FeVariable_InterpolateValue_WithNi( void* _feVariable, Element_LocalIndex l
    Node_LocalIndex        lNode_I;
    Dof_Index              dof_I;
    Dof_Index              dofCount;
-   Variable*              dofVariable;
+   StgVariable*              dofVariable;
    double                 nodeValue;
    unsigned               nInc;
    int                    *inc;
@@ -881,7 +881,7 @@ void FeVariable_InterpolateValue_WithNi( void* _feVariable, Element_LocalIndex l
       for( elLocalNode_I = 0 ; elLocalNode_I < nInc ; elLocalNode_I++) {
          lNode_I = inc[ elLocalNode_I ];
          dofVariable = DofLayout_GetVariable( self->dofLayout, lNode_I, dof_I );
-         nodeValue = Variable_GetValueDouble( dofVariable, lNode_I );
+         nodeValue = StgVariable_GetValueDouble( dofVariable, lNode_I );
 
          value[dof_I] += Ni[elLocalNode_I] * nodeValue;
       }
@@ -920,7 +920,7 @@ void _FeVariable_SyncShadowValues( void* feVariable ) {
     */
    for( var_i = 0; var_i < dofLayout->_totalVarCount; var_i++ ) {
       unsigned  varInd;
-      Variable* var;
+      StgVariable* var;
       unsigned  field_i;
 
       /* Get the variable. */
@@ -965,7 +965,7 @@ void FeVariable_PrintCoordsAndValues( void* _feVariable, Stream* stream ) {
    Node_LocalIndex nodeLocalCount = FeMesh_GetNodeLocalSize( self->feMesh );
    Dof_Index       currNodeNumDofs;
    Dof_Index       nodeLocalDof_I;
-   Variable*       currVariable;
+   StgVariable*       currVariable;
    double*         nodeCoord;
 
    /* Print Header of stream */
@@ -996,7 +996,7 @@ void FeVariable_PrintCoordsAndValues( void* _feVariable, Stream* stream ) {
       /* Print each dof */
       for( nodeLocalDof_I = 0; nodeLocalDof_I < currNodeNumDofs; nodeLocalDof_I++ ) {
          currVariable = DofLayout_GetVariable( self->dofLayout, node_I, nodeLocalDof_I );
-         Journal_Printf( stream, "%12.6g   ", Variable_GetValueDouble( currVariable, node_I ) );
+         Journal_Printf( stream, "%12.6g   ", StgVariable_GetValueDouble( currVariable, node_I ) );
       }
       Journal_Printf( stream, "\n" );
    }
@@ -1016,7 +1016,7 @@ void _FeVariable_InterpolateNodeValuesToElLocalCoord(
    Dof_Index              dofCountThisNode=0;
    Node_ElementLocalIndex elLocalNode_I=0;
    Node_LocalIndex        lNode_I=0;
-   Variable*              currVariable=NULL;
+   StgVariable*              currVariable=NULL;
    double                 dofValueAtCurrNode=0;
    unsigned               nInc;
    int                    *inc;
@@ -1041,7 +1041,7 @@ void _FeVariable_InterpolateNodeValuesToElLocalCoord(
 
       for( nodeLocalDof_I=0; nodeLocalDof_I < dofCountThisNode; nodeLocalDof_I++ ) {
          currVariable = DofLayout_GetVariable( self->dofLayout, lNode_I, nodeLocalDof_I );
-         dofValueAtCurrNode = Variable_GetValueDouble( currVariable, lNode_I );
+         dofValueAtCurrNode = StgVariable_GetValueDouble( currVariable, lNode_I );
          value[nodeLocalDof_I] += dofValueAtCurrNode * shapeFuncsEvaluated[elLocalNode_I];
       }
    }
@@ -1053,7 +1053,7 @@ void _FeVariable_PrintLocalOrDomainValues( void* variable, Index localOrDomainCo
    Node_GlobalIndex   gNode_I = 0;
    Dof_Index          currNodeNumDofs;
    Dof_Index          nodeLocalDof_I;
-   Variable*          currVariable;
+   StgVariable*          currVariable;
 
    for( node_I=0; node_I < localOrDomainCount; node_I++ ) {
       gNode_I = FeMesh_NodeDomainToGlobal( self->feMesh, node_I );
@@ -1070,7 +1070,7 @@ void _FeVariable_PrintLocalOrDomainValues( void* variable, Index localOrDomainCo
             "\tdof %d \"%s\": %6g - ",
             nodeLocalDof_I,
             currVariable->name,
-            Variable_GetValueDouble( currVariable, node_I ) );
+            StgVariable_GetValueDouble( currVariable, node_I ) );
       }
    }
 }

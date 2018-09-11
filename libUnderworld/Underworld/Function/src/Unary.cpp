@@ -25,13 +25,13 @@ Fn::At::func Fn::At::getFunction( IOsptr sample_input )
     const IO_double* funcio;
     funcio = dynamic_cast<const IO_double*>(_func(sample_input));
     if (!funcio)
-        throw std::invalid_argument("At function expects functions to return a 'double' type object.");
+        throw std::invalid_argument(_pyfnerrorheader+"Argument function is expected to return 'double' type object.");
 
     if ( funcio->size() <= _component ){
         std::stringstream ss;
         ss << "Trying to extract component " << _component << " from from object with size " << funcio->size() << ".\n";
         ss << "Index must be in [0," << funcio->size()-1 << "].";
-        throw std::invalid_argument( ss.str() );
+        throw std::invalid_argument(_pyfnerrorheader+ss.str());
     }
     // allocate memory for our output
     std::shared_ptr<IO_double> _output_sp = std::make_shared<IO_double>(1,FunctionIO::Scalar);

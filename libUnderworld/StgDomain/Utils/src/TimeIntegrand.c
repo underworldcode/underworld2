@@ -30,7 +30,7 @@ TimeIntegrand* TimeIntegrand_New(
 		Name                                       name,
 		DomainContext*                             context,
 		TimeIntegrator*                            timeIntegrator, 
-		Variable*                                  variable,
+		StgVariable*                                  variable,
 		Index                                      dataCount, 
 		Stg_Component**                            data,
 		Bool                                       allowFallbackToFirstOrder )
@@ -67,7 +67,7 @@ void _TimeIntegrand_Init(
 		void*                                      timeIntegrand,
 		DomainContext*                             context,
 		TimeIntegrator*                            timeIntegrator, 
-		Variable*                                  variable, 
+		StgVariable*                                  variable, 
 		Index                                      dataCount, 
 		Stg_Component**                            data,
 		Bool                                       allowFallbackToFirstOrder )
@@ -148,7 +148,7 @@ void _TimeIntegrand_AssignFromXML( void* timeIntegrand, Stg_ComponentFactory* cf
 	TimeIntegrand*         self                    = (TimeIntegrand*)timeIntegrand;
 	Index                   dataCount               = 0;
 	Stg_Component**         initData                = NULL;
-	Variable*               variable                = NULL;
+	StgVariable*               variable                = NULL;
 	TimeIntegrator*         timeIntegrator          = NULL;
 	Bool                    allowFallbackToFirstOrder = False;
 	DomainContext*          context;
@@ -157,7 +157,7 @@ void _TimeIntegrand_AssignFromXML( void* timeIntegrand, Stg_ComponentFactory* cf
 	if( !self->context  )
 		context = Stg_ComponentFactory_ConstructByName( cf, (Name)"context", DomainContext, False, data  );
 	
-	variable       =  Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)Variable_Type, Variable, False, data  ) ;
+	variable       =  Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)StgVariable_Type, StgVariable, False, data  ) ;
 	timeIntegrator =  Stg_ComponentFactory_ConstructByKey( cf, self->name, (Dictionary_Entry_Key)TimeIntegrator_Type, TimeIntegrator, True, data  ) ;
 	initData = Stg_ComponentFactory_ConstructByList( cf, self->name, (Dictionary_Entry_Key)"data", Stg_ComponentFactory_Unlimited, Stg_Component, False, &dataCount, data  );
 	allowFallbackToFirstOrder = Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"allowFallbackToFirstOrder", False  );	
@@ -196,9 +196,9 @@ void _TimeIntegrand_Destroy( void* timeIntegrand, void* data ) {
 }
 
 /* +++ Virtual Functions +++ */
-void TimeIntegrand_FirstOrder( void* timeIntegrand, Variable* startValue, double dt ) {
+void TimeIntegrand_FirstOrder( void* timeIntegrand, StgVariable* startValue, double dt ) {
 	TimeIntegrand*	self           = (TimeIntegrand*)timeIntegrand;
-	Variable*       variable       = self->variable;
+	StgVariable*       variable       = self->variable;
 	double*         arrayDataPtr;
 	double*         startDataPtr;
 	double**        timeDeriv;
@@ -212,8 +212,8 @@ void TimeIntegrand_FirstOrder( void* timeIntegrand, Variable* startValue, double
 	Journal_DPrintf( self->debug, "In func %s for %s '%s'\n", __func__, self->type, self->name );
 
 	/* Update Variables */
-	Variable_Update( variable );
-	Variable_Update( startValue );
+	StgVariable_Update( variable );
+	StgVariable_Update( startValue );
 	arrayCount     = variable->arraySize;
 
 	timeDeriv = Memory_Alloc_2DArray( double, arrayCount, componentCount, (Name)"Time Deriv" );
@@ -229,8 +229,8 @@ void TimeIntegrand_FirstOrder( void* timeIntegrand, Variable* startValue, double
 	}
 
 	for ( array_I = 0 ; array_I < arrayCount ; array_I++ ) {
-		arrayDataPtr = Variable_GetPtrDouble( variable, array_I );
-		startDataPtr = Variable_GetPtrDouble( startValue, array_I );
+		arrayDataPtr = StgVariable_GetPtrDouble( variable, array_I );
+		startDataPtr = StgVariable_GetPtrDouble( startValue, array_I );
 		
 		for ( component_I = 0 ; component_I < componentCount ; component_I++ ) {
 			arrayDataPtr[ component_I ] = startDataPtr[ component_I ] + dt * timeDeriv[array_I][ component_I ];
@@ -242,9 +242,9 @@ void TimeIntegrand_FirstOrder( void* timeIntegrand, Variable* startValue, double
 	Memory_Free( timeDeriv );
 }
 
-void TimeIntegrand_SecondOrder( void* timeIntegrand, Variable* startValue, double dt ) {
+void TimeIntegrand_SecondOrder( void* timeIntegrand, StgVariable* startValue, double dt ) {
 	TimeIntegrand*	self           = (TimeIntegrand*)timeIntegrand;
-	Variable*       variable       = self->variable;
+	StgVariable*       variable       = self->variable;
 	double*         arrayDataPtr;
 	double*         startDataPtr;
 	double*         timeDeriv;
@@ -263,13 +263,13 @@ void TimeIntegrand_SecondOrder( void* timeIntegrand, Variable* startValue, doubl
 	memset( startData, 0, componentCount * sizeof( double ) );
 	
 	/* Update Variables */
-	Variable_Update( variable );
-	Variable_Update( startValue );
+	StgVariable_Update( variable );
+	StgVariable_Update( startValue );
 	arrayCount     = variable->arraySize;
 	
 	for ( array_I = 0 ; array_I < arrayCount ; array_I++ ) {
-		arrayDataPtr = Variable_GetPtrDouble( variable, array_I );
-		startDataPtr = Variable_GetPtrDouble( startValue, array_I );
+		arrayDataPtr = StgVariable_GetPtrDouble( variable, array_I );
+		startDataPtr = StgVariable_GetPtrDouble( startValue, array_I );
 
 		TimeIntegrator_SetTime( self->timeIntegrator, startTime );
 
@@ -314,9 +314,9 @@ void TimeIntegrand_SecondOrder( void* timeIntegrand, Variable* startValue, doubl
 	Memory_Free( startData );
 }
 
-void TimeIntegrand_FourthOrder( void* timeIntegrand, Variable* startValue, double dt ) {
+void TimeIntegrand_FourthOrder( void* timeIntegrand, StgVariable* startValue, double dt ) {
 	TimeIntegrand*	self           = (TimeIntegrand*)timeIntegrand;
-	Variable*       variable       = self->variable;
+	StgVariable*       variable       = self->variable;
 	double*         arrayDataPtr;
 	double*         startDataPtr;
 	double*         timeDeriv;
@@ -338,13 +338,13 @@ void TimeIntegrand_FourthOrder( void* timeIntegrand, Variable* startValue, doubl
 	memset( finalTimeDeriv, 0, componentCount * sizeof( double ) );
 	
 	/* Update Variables */
-	Variable_Update( variable );
-	Variable_Update( startValue );
+	StgVariable_Update( variable );
+	StgVariable_Update( startValue );
 	arrayCount     = variable->arraySize;
 	
 	for ( array_I = 0 ; array_I < arrayCount ; array_I++ ) {
-		arrayDataPtr = Variable_GetPtrDouble( variable, array_I );
-		startDataPtr = Variable_GetPtrDouble( startValue, array_I );
+		arrayDataPtr = StgVariable_GetPtrDouble( variable, array_I );
+		startDataPtr = StgVariable_GetPtrDouble( startValue, array_I );
 		
 		TimeIntegrator_SetTime( self->timeIntegrator, startTime );
 
@@ -443,7 +443,7 @@ void _TimeIntegrand_RewindToStartAndApplyFirstOrderUpdate(
 		double*         timeDeriv,
 		Index           array_I )
 {
-	Variable*       variable       = self->variable;
+	StgVariable*       variable       = self->variable;
 	Index           component_I; 
 	Index           componentCount = *variable->dataTypeCounts;
 	Bool            successFlag = False;
@@ -478,7 +478,7 @@ Bool _TimeIntegrand_AdvectionTimeDeriv( void* timeIntegrand, Index array_I, doub
 	InterpolationResult  result;
 
 	/* Get Coordinate of Object using Variable */
-	coord = Variable_GetPtrDouble( self->variable, array_I );
+	coord = StgVariable_GetPtrDouble( self->variable, array_I );
 
 	result = FieldVariable_InterpolateValueAt( velocityField, coord, timeDeriv );
 
@@ -503,25 +503,25 @@ Bool _TimeIntegrand_AdvectionTimeDeriv( void* timeIntegrand, Index array_I, doub
 void _TimeIntegrand_Intermediate( void* timeIntegrand, Index array_I ) {}
 
 /* +++ Public Functions +++ */
-void TimeIntegrand_StoreTimeDeriv( void* timeIntegrand, Variable* timeDeriv ) {
+void TimeIntegrand_StoreTimeDeriv( void* timeIntegrand, StgVariable* timeDeriv ) {
 	TimeIntegrand*	self           = (TimeIntegrand*)timeIntegrand;
 	double*         arrayDataPtr;
 	Index           array_I; 
 	Index           arrayCount;
 
 	/* Update Variable */
-	Variable_Update( timeDeriv );
+	StgVariable_Update( timeDeriv );
 	arrayCount = timeDeriv->arraySize;
 
 	for ( array_I = 0 ; array_I < arrayCount ; array_I++ ) {
-		arrayDataPtr = Variable_GetPtrDouble( timeDeriv, array_I );
+		arrayDataPtr = StgVariable_GetPtrDouble( timeDeriv, array_I );
 		TimeIntegrand_CalculateTimeDeriv( self, array_I, arrayDataPtr );
 	}
 }
 
-void TimeIntegrand_Add2TimesTimeDeriv( void* timeIntegrand, Variable* timeDerivVariable ) {
+void TimeIntegrand_Add2TimesTimeDeriv( void* timeIntegrand, StgVariable* timeDerivVariable ) {
 	TimeIntegrand*	self           = (TimeIntegrand*)timeIntegrand;
-	Variable*       variable       = self->variable;
+	StgVariable*       variable       = self->variable;
 	double*         timeDerivPtr;
 	double*         timeDeriv;
 	Index           component_I; 
@@ -533,13 +533,13 @@ void TimeIntegrand_Add2TimesTimeDeriv( void* timeIntegrand, Variable* timeDerivV
 	memset( timeDeriv,      0, componentCount * sizeof( double ) );
 	
 	/* Update Variables */
-	Variable_Update( variable );
-	Variable_Update( timeDerivVariable );
+	StgVariable_Update( variable );
+	StgVariable_Update( timeDerivVariable );
 	arrayCount = variable->arraySize;
 	
 	for ( array_I = 0 ; array_I < arrayCount ; array_I++ ) {
 		TimeIntegrand_CalculateTimeDeriv( self, array_I, timeDeriv );
-		timeDerivPtr = Variable_GetPtrDouble( timeDerivVariable, array_I );
+		timeDerivPtr = StgVariable_GetPtrDouble( timeDerivVariable, array_I );
 		
 		for ( component_I = 0 ; component_I < componentCount ; component_I++ ) {
 			timeDerivPtr[ component_I ] += 2.0 * timeDeriv[ component_I ];
@@ -550,9 +550,9 @@ void TimeIntegrand_Add2TimesTimeDeriv( void* timeIntegrand, Variable* timeDerivV
 }
 	
 
-void TimeIntegrand_FourthOrderFinalStep( void* timeIntegrand, Variable* startData, Variable* timeDerivVariable, double dt ) {
+void TimeIntegrand_FourthOrderFinalStep( void* timeIntegrand, StgVariable* startData, StgVariable* timeDerivVariable, double dt ) {
 	TimeIntegrand*	self           = (TimeIntegrand*)timeIntegrand;
-	Variable*       variable       = self->variable;
+	StgVariable*       variable       = self->variable;
 	double*         k4;
 	double*         k1_2k2_2k3;
 	double*         startPtr;
@@ -566,17 +566,17 @@ void TimeIntegrand_FourthOrderFinalStep( void* timeIntegrand, Variable* startDat
 	memset( k4, 0, componentCount * sizeof( double ) );
 	
 	/* Update Variables */
-	Variable_Update( variable );
-	Variable_Update( startData );
-	Variable_Update( timeDerivVariable );
+	StgVariable_Update( variable );
+	StgVariable_Update( startData );
+	StgVariable_Update( timeDerivVariable );
 	arrayCount     = variable->arraySize;
 	
 	for ( array_I = 0 ; array_I < arrayCount ; array_I++ ) {
 		TimeIntegrand_CalculateTimeDeriv( self, array_I, k4 );
 
-		k1_2k2_2k3 = Variable_GetPtrDouble( timeDerivVariable, array_I );
-		arrayPtr = Variable_GetPtrDouble( variable, array_I );
-		startPtr = Variable_GetPtrDouble( startData, array_I );
+		k1_2k2_2k3 = StgVariable_GetPtrDouble( timeDerivVariable, array_I );
+		arrayPtr = StgVariable_GetPtrDouble( variable, array_I );
+		startPtr = StgVariable_GetPtrDouble( startData, array_I );
 		
 		for ( component_I = 0 ; component_I < componentCount ; component_I++ ) {
 			arrayPtr[ component_I ] = startPtr[ component_I ] + dt/6.0 * ( k4[ component_I ] + k1_2k2_2k3[ component_I ] );

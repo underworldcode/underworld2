@@ -367,7 +367,7 @@ void _TimeIntegrator_ExecuteRK2Simultaneous( void* timeIntegrator, void* data ) 
 	Index					integrandCount = TimeIntegrator_GetCount( self );
 	double				dt = self->dt;
 	TimeIntegrand*	integrand;
-	Variable**			originalVariableList;
+	StgVariable**			originalVariableList;
 
     assert(0); /* this shit be broken */
 	Journal_DPrintf( self->debug, "In %s for %s '%s'\n", __func__, self->type, self->name );
@@ -382,7 +382,7 @@ void _TimeIntegrator_ExecuteRK2Simultaneous( void* timeIntegrator, void* data ) 
 	/* Set Time */
 	TimeIntegrator_SetTime( self, context->currentTime );
 
-	originalVariableList = Memory_Alloc_Array( Variable*, integrandCount, "originalVariableList" );
+	originalVariableList = Memory_Alloc_Array( StgVariable*, integrandCount, "originalVariableList" );
 	
 	TimeIntegrator_Setup( self );
 	for ( integrand_I = 0 ; integrand_I < integrandCount ; integrand_I++ ) {
@@ -390,7 +390,7 @@ void _TimeIntegrator_ExecuteRK2Simultaneous( void* timeIntegrator, void* data ) 
 		Journal_RPrintf(self->info,"\t2nd order (simultaneous): %s\n", integrand->name);
 		
 		/* Store Original */
-		originalVariableList[ integrand_I ] = Variable_NewFromOld( integrand->variable, "Original", True );
+		originalVariableList[ integrand_I ] = StgVariable_NewFromOld( integrand->variable, "Original", True );
 
 		/* Predictor Step */
 		TimeIntegrand_FirstOrder( integrand, integrand->variable, 0.5 * dt );
@@ -421,8 +421,8 @@ void _TimeIntegrator_ExecuteRK4Simultaneous( void* timeIntegrator, void* data ) 
 	Index					integrandCount = TimeIntegrator_GetCount( self );
 	double				dt = self->dt;
 	TimeIntegrand*	integrand;
-	Variable**			originalVariableList;
-	Variable**			timeDerivVariableList;
+	StgVariable**			originalVariableList;
+	StgVariable**			timeDerivVariableList;
     assert(0); /* this shit be broken */
 
 	Journal_DPrintf( self->debug, "In %s for %s '%s'\n", __func__, self->type, self->name );
@@ -430,8 +430,8 @@ void _TimeIntegrator_ExecuteRK4Simultaneous( void* timeIntegrator, void* data ) 
 	/* Set Time */
 	TimeIntegrator_SetTime( self, context->currentTime );
 	
-	originalVariableList  = Memory_Alloc_Array( Variable*, integrandCount, "originalVariableList" );
-	timeDerivVariableList = Memory_Alloc_Array( Variable*, integrandCount, "timeDerivVariableList" );
+	originalVariableList  = Memory_Alloc_Array( StgVariable*, integrandCount, "originalVariableList" );
+	timeDerivVariableList = Memory_Alloc_Array( StgVariable*, integrandCount, "timeDerivVariableList" );
 
 	/* First Step */
 	TimeIntegrator_Setup( self );
@@ -440,8 +440,8 @@ void _TimeIntegrator_ExecuteRK4Simultaneous( void* timeIntegrator, void* data ) 
 		Journal_RPrintf(self->info,"\t4nd order (simultaneous): %s\n", integrand->name);
 
 		/* Store Original Position Variable */
-		originalVariableList[ integrand_I ]  = Variable_NewFromOld( integrand->variable, "Original", True );
-		timeDerivVariableList[ integrand_I ] = Variable_NewFromOld( integrand->variable, "k1+2k2+2k3", False );
+		originalVariableList[ integrand_I ]  = StgVariable_NewFromOld( integrand->variable, "Original", True );
+		timeDerivVariableList[ integrand_I ] = StgVariable_NewFromOld( integrand->variable, "k1+2k2+2k3", False );
 
 		/* Store k1 */
 		TimeIntegrand_StoreTimeDeriv( integrand, timeDerivVariableList[ integrand_I ] );
@@ -629,16 +629,16 @@ double TimeIntegrator_GetTime( void* timeIntegrator ) {
 	return self->time;
 }
 
-Variable* Variable_NewFromOld( Variable* oldVariable, Name name, Bool copyValues ) {
-	Variable*         self;
+StgVariable* StgVariable_NewFromOld( StgVariable* oldVariable, Name name, Bool copyValues ) {
+	StgVariable*         self;
 	Index             array_I;
 	SizeT             dataOffsets[] = { 0 };
 	void*             myPtr;
 	void*             oldPtr;
 
-	Variable_Update( oldVariable );
+	StgVariable_Update( oldVariable );
 
-	self = Variable_New(  
+	self = StgVariable_New(  
 		name,
 		self->context,
 		1,
@@ -663,8 +663,8 @@ Variable* Variable_NewFromOld( Variable* oldVariable, Name name, Bool copyValues
 
 	if ( copyValues ) {
 		for ( array_I = 0 ; array_I < self->arraySize ; array_I++ ) {
-			myPtr = Variable_GetStructPtr( self, array_I );
-			oldPtr = Variable_GetStructPtr( oldVariable, array_I );
+			myPtr = StgVariable_GetStructPtr( self, array_I );
+			oldPtr = StgVariable_GetStructPtr( oldVariable, array_I );
 			memcpy( myPtr, oldPtr, self->dataSizes[0] ); 
 		}
 	}

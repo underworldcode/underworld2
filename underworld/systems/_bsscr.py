@@ -168,7 +168,9 @@ class OptionsMain(Options):
         self.change_backsolve = False
         self.change_A11rhspresolve = False
         self.penalty = 0.0
-        self.restore_K = True
+        self.restore_K = False ## Default to True might be better for MG but
+                               ## the setup cost can be expensive and may well
+                               ## outweigh the iteration benefit
 
 class OptionsGroup(object):
     """
@@ -309,11 +311,11 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         componentDictionary[ self._cself.name ][            "stokesEqn"] = self._stokesSLE._cself.name
         componentDictionary[ self._cself.name ]["2ndStressTensorMatrix"] = None # used when we assemble K2 directly
         componentDictionary[ self._cself.name ][       "2ndForceVector"] = None # used when we assemble K2 directly
-        componentDictionary[ self._cself.name ][        "penaltyNumber"] = None #self.options.main.penalty
-        componentDictionary[ self._cself.name ][           "MassMatrix"] = None #self._mmatrix._cself.name
-        componentDictionary[ self._cself.name ][      "JunkForceVector"] = None #self._junkfvector._cself.name
-        componentDictionary[ self._cself.name ][   "VelocityMassMatrix"] = None #self._vmmatrix._cself.name
-        componentDictionary[ self._cself.name ][     "VMassForceVector"] = None #self._vmfvector._cself.name
+        componentDictionary[ self._cself.name ][        "penaltyNumber"] = None # self.options.main.penalty
+        componentDictionary[ self._cself.name ][           "MassMatrix"] = None # self._mmatrix._cself.name
+        componentDictionary[ self._cself.name ][      "JunkForceVector"] = None # self._junkfvector._cself.name
+        componentDictionary[ self._cself.name ][   "VelocityMassMatrix"] = None # self._vmmatrix._cself.name
+        componentDictionary[ self._cself.name ][     "VMassForceVector"] = None # self._vmfvector._cself.name
 
 
     ########################################################################
@@ -322,9 +324,10 @@ class StokesSolver(_stgermain.StgCompoundComponent):
 
     def solve(self, nonLinearIterate=None, nonLinearTolerance=1.0e-2,
               nonLinearKillNonConvergent=False,
+              nonLinearMinIterations=1,
               nonLinearMaxIterations=500,
               callback_post_solve=None,
-              print_stats=False, reinitialise=True, fpwarning=True, petscwarning=True, **kwargs):
+              print_stats=False, reinitialise=True, **kwargs):
         """
         Solve the stokes system
 
@@ -394,6 +397,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
             # self._stokesSLE._cself.nonLinearTolerance = nonLinearTolerance # set via python
             libUnderworld.StgFEM.SystemLinearEquations_SetNonLinearTolerance(self._stokesSLE._cself, nonLinearTolerance)
             libUnderworld.StgFEM.SystemLinearEquations_SetToNonLinear(self._stokesSLE._cself, True, )
+            self._stokesSLE._cself.nonLinearMinIterations = nonLinearMinIterations
             self._stokesSLE._cself.nonLinearMaxIterations = nonLinearMaxIterations
             self._stokesSLE._cself.killNonConvergent = nonLinearKillNonConvergent
 
@@ -439,15 +443,19 @@ class StokesSolver(_stgermain.StgCompoundComponent):
                     print
 
         # check the petsc convergence reasons, see StokesBlockKSPInterface.h
-        if petscwarning and (self._cself.fhat_reason < 0  or \
-            self._cself.outer_reason < 0 or \
+        if (self._cself.fhat_reason      < 0  or \
+            self._cself.outer_reason     < 0  or \
             self._cself.backsolve_reason < 0 ):
             import warnings
-
-            estring = "A petsc error has been detected during the solve.\n" + \
-            "The resultant solution fields are most likely erroneous, check them thoroughly.\n"+ \
-            "This is possibly due to many things, for example solar flares or insufficient boundary conditions.\n"+ \
-            "The resultant KSPConvergedReasons are (f_hat, outer, backsolve) ({},{},{}).".format(
+            estring = \
+                "A PETSc error has been encountered during the solve. " \
+                "Solution fields are most likely erroneous. \n\n" \
+                "This error is probably due to an incorrectly constructed linear system. " \
+                "Please check that your boundary conditions are consistent " \
+                "and sufficient and that your viscosity is positive everywhere. " \
+                "If you are deforming the mesh, ensure that it has not become " \
+                "tangled. \n\n" \
+                "The resultant KSPConvergedReasons are (f_hat, outer, backsolve) ({},{},{}).\n\n".format(
                 self._cself.fhat_reason,self._cself.outer_reason, self._cself.backsolve_reason)
             if uw.rank() == 0:
                 warnings.warn(estring)
@@ -460,16 +468,27 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         comm = MPI.COMM_WORLD
         comm.Allreduce(lres, gres, op=MPI.SUM)
 
-        if gres[0] > 0 and fpwarning:
+        if gres[0] > 0:
             import warnings
-            estring = "A floating-point operation error has been detected during the solve.\n" + \
-            "The resultant solution fields are most likely erroneous, check them thoroughly.\n"+ \
-            "This is likely due to large number variations in the linear algrebra or fragile solver configurations.\n"+ \
-            "Consider rescaling the fn_viscosity or fn_bodyforce inputs to avoid this problem.\n"+ \
-            "This warning can be supressed with the argument 'fpwarning=False'."
+            estring = "A floating-point error has been detected during the solve. " + \
+            "Solution fields are most likely erroneous. \n\n"+ \
+            "This is likely due to overly large value variations within your linear system, " \
+            "or a fragile (or incorrect) solver configuration. " \
+            "If your inputs are constructed using real world physical units, you may " \
+            "need to rescale them for solver amenability. \n\n"
             if uw.rank() == 0:
                 warnings.warn(estring)
         return
+
+
+    ########################################################################
+    ### show the collected options in PETSc format
+    ########################################################################
+
+    def print_petsc_options(self):
+        self._setup_options()
+        print("Options: {}".format(self._optionsStr))
+
 
     ########################################################################
     ### create vectors and matrices for augmented lagrangian solve
@@ -489,7 +508,8 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         self._mmatrix  = sle.AssembledMatrix( stokesSLE._pressureSol, stokesSLE._pressureSol, rhs=self._junkfvector )
 
         # create assembly terms
-        self._pressMassMatTerm = sle.MatrixAssemblyTerm_NA__NB__Fn( integrationSwarm=uw.swarm.GaussIntegrationSwarm(velocityField.mesh), fn=1.0, assembledObject=self._mmatrix,
+        self._pressMassMatTerm = sle.MatrixAssemblyTerm_NA__NB__Fn( integrationSwarm=uw.swarm.GaussIntegrationSwarm(velocityField.mesh),
+                                                             fn=1.0, assembledObject=self._mmatrix,
                                                              mesh = velocityField._mesh)
 
         # attach terms to live solver struct
@@ -497,9 +517,11 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         self._cself.vmStiffMat = self._vmmatrix._cself
         self._cself.jForceVec  = self._junkfvector._cself
         self._cself.mStiffMat  = self._mmatrix._cself
+
     ########################################################################
     ### assemble vectors and matrices for augmented lagrangian solve
     ########################################################################
+
     def _setup_penalty_objects(self):
         # using this function so we don't need to add anything extra to the stokeSLE struct
 
@@ -512,9 +534,11 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         # matrix set up
         libUnderworld.StgFEM.StiffnessMatrix_Assemble( self._vmmatrix._cself, self._stokesSLE._cself, None );
         libUnderworld.StgFEM.StiffnessMatrix_Assemble( self._mmatrix._cself,  self._stokesSLE._cself, None );
+
     ########################################################################
     ### setup options for solve
     ########################################################################
+
     def _setup_options(self, **kwargs):
         self._optionsStr=''
         # the A11._mg_active overrides the mg.active so we can set direct solve using A11 prefix
@@ -624,36 +648,45 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         """
         Configure velocity/inner solver (A11 PETSc prefix).
 
-        solve_type can be one of:
+        Available options below. Note that associated solver software
+        (for example `mumps`) must be installed.
 
         mg          : Geometric multigrid (default).
+        nomg        : Disables multigrid.
+        lu          : LU direct solver (serial only).
         mumps       : MUMPS parallel direct solver.
         superludist : SuperLU parallel direct solver.
         superlu     : SuperLU direct solver (serial only).
-        lu          : LU direct solver (serial only).
         """
         if solve_type=="mg":
             velocityField=self._stokesSLE._velocityField
             self.options.A11.reset() # sets self.options.A11._mg_active=True
             self.options.mg.reset()
             self.options.mg.set_levels(field=velocityField)
-        if solve_type=="mumps":
+        elif solve_type=="mumps":
             self.options.A11.set_mumps()
-        if solve_type=="lu":
+        elif solve_type=="lu":
             self.options.A11.set_lu()
-        if solve_type=="superlu":
+        elif solve_type=="superlu":
             self.options.A11.set_superlu()
-        if solve_type=="superludist":
+        elif solve_type=="superludist":
             self.options.A11.set_superludist()
-        if solve_type=="nomg":
+        elif solve_type=="nomg":
             self.options.A11.reset()
             self.options.mg.reset()
             self.options.A11._mg_active=False
+        else:
+            raise ValueError("Provided inner method '{}' does not appear to be supported. "\
+                             "Check method docstring for available solvers.".format(solve_type))
 
     def set_inner_rtol(self, rtol):
+        if not isinstance(rtol, float):
+            raise TypeError("Provided 'rtol' parameter must be of type 'float'.")
         self.options.A11.ksp_rtol=rtol
 
     def set_outer_rtol(self, rtol):
+        if not isinstance(rtol, float):
+            raise TypeError("Provided 'rtol' parameter must be of type 'float'.")
         self.options.scr.ksp_rtol=rtol
 
     def set_mg_levels(self, levels):
@@ -661,6 +694,10 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         Set the number of multigrid levels manually.
         It is set automatically by default.
         """
+        if not isinstance(levels, int):
+            raise TypeError("Provided 'levels' parameter must be of type 'int'.")
+        if levels < 0:
+            raise ValueError("Provided 'levels' parameter must be non-negative.")
         self.options.mg.levels=levels
 
     def get_stats(self):
@@ -691,8 +728,11 @@ class StokesSolver(_stgermain.StgCompoundComponent):
             print( "Velocity iterations: %3d (backsolve)     " % (self._cself.stats.velocity_backsolve_its) )
             print( "Velocity iterations: %3d (total solve)   " % (self._cself.stats.velocity_total_its) )
             print( " " )
+            print( "SCR RHS  setup time: %.4e" %(self._cself.stats.velocity_presolve_setup_time) )
             print( "SCR RHS  solve time: %.4e" %(self._cself.stats.velocity_presolve_time) )
+            print( "Pressure setup time: %.4e" %(self._cself.stats.velocity_pressuresolve_setup_time) )
             print( "Pressure solve time: %.4e" %(self._cself.stats.pressure_time) )
+            print( "Velocity setup time: %.4e (backsolve)" %(self._cself.stats.velocity_backsolve_setup_time) )
             print( "Velocity solve time: %.4e (backsolve)" %(self._cself.stats.velocity_backsolve_time) )
             print( "Total solve time   : %.4e" %(self._cself.stats.total_time) )
             print( " " )
@@ -708,13 +748,17 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         This method can often help improve convergence issues for problems with large viscosity
         contrasts that are having trouble converging.
 
-        A penalty of roughly 0.1 of the maximum viscosity contrast is not a bad place to start as a guess. (check notes/paper)
+        A penalty of roughly 0.1 of the maximum viscosity contrast is not a bad place
+        to start as a rule of thumb. (check notes/paper)
         """
+
         if isinstance(self.options.main.penalty, float) and self.options.main.penalty >= 0.0:
             self.options.main.penalty=penalty
             self.options.main.Q22_pc_type="gkgdiag"
+
         elif 0==uw.rank():
             print( "Invalid penalty number chosen. Penalty must be a positive float." )
+            self.options.main.penalty = 0.0
 
     def _debug(self):
         import pdb; pdb.set_trace()

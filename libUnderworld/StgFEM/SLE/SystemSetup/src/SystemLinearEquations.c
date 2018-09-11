@@ -43,6 +43,7 @@ SystemLinearEquations* SystemLinearEquations_New(
    void*                   nlSolver,
    Bool                    isNonLinear,
    double                  nonLinearTolerance,
+   Iteration_Index         nonLinearMinIterations,
    Iteration_Index         nonLinearMaxIterations,
    Bool                    killNonConvergent,
    EntryPoint_Register*    entryPoint_Register,
@@ -61,7 +62,7 @@ SystemLinearEquations* SystemLinearEquations_New(
       nonLinearTolerance,
       nonLinearMaxIterations,
       killNonConvergent,
-      1, /* TODO : hack for setting the minimum number of iterations to 1- same hack as above */
+      nonLinearMinIterations,
       "",
       "",
       entryPoint_Register,

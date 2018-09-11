@@ -103,7 +103,7 @@ double Stg_TimeMonitor_End( Stg_TimeMonitor* tm, TimeMonitorData* tmData ) {
 		*/
 		/* Note: Above is commented out because cannot use MPI_Reduce functions unless we are sure
 		 * that ALL procs will call end(). This is currently not the case with Stg_Component_Initialise()
-		 * phase as some procs will have more/less variables to call Initialise() on via Variable_Condition
+		 * phase as some procs will have more/less variables to call Initialise() on via StgVariable_Condition
 		 * due to decomposition and Wall boundary conditions */
 		sumdt = tmData->dt * nProc;
 		tmData->maxProcDt = tmData->dt;

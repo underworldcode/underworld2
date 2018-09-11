@@ -126,7 +126,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
             NOTE: Length is local size.
         """
         uw.libUnderworld.StgDomain.Mesh_GenerateENMapVar(self._cself)
-        arr = uw.libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.enMapVar)
+        arr = uw.libUnderworld.StGermain.StgVariable_getAsNumpyArray(self._cself.enMapVar)
         if( len(arr) % self.elementsLocal != 0 ):
             raise RuntimeError("Unsupported element to node mapping for save routine"+
                     "\nThere doesn't appear to be elements with a consistent number of nodes")
@@ -145,7 +145,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
             Array specifying global element ids. Length is domain size, (local+shadow).
         """
         uw.libUnderworld.StgDomain.Mesh_GenerateElGlobalIdVar(self._cself)
-        arr = uw.libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.eGlobalIdsVar)
+        arr = uw.libUnderworld.StGermain.StgVariable_getAsNumpyArray(self._cself.eGlobalIdsVar)
         return arr
 
     @property
@@ -157,7 +157,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
             Array specifying global node ids. Length is domain size, (local+shadow).
         """
         uw.libUnderworld.StgDomain.Mesh_GenerateNodeGlobalIdVar(self._cself)
-        arr = uw.libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.vGlobalIdsVar)
+        arr = uw.libUnderworld.StGermain.StgVariable_getAsNumpyArray(self._cself.vGlobalIdsVar)
         return arr
 
     @property
@@ -205,7 +205,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
 
         """
         if self._arr is None:
-            self._arr = uw.libUnderworld.StGermain.Variable_getAsNumpyArray(self._cself.verticesVariable)
+            self._arr = uw.libUnderworld.StGermain.StgVariable_getAsNumpyArray(self._cself.verticesVariable)
             self._arr.flags.writeable = False
         return self._arr
 

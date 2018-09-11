@@ -6,12 +6,12 @@
 ##  located at the project root, or contact the authors.                             ##
 ##                                                                                   ##
 ##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
-import sys as _sys
 import os as _os
 import xml.etree.cElementTree as _ET
 from . import libUnderworld
 import abc
 from collections import defaultdict
+import underworld as uw
 
 class LeftOverParamsChecker(object):
     # This class simply checks for any left over args or parameters.
@@ -93,7 +93,11 @@ class _SetupClass(abc.ABCMeta):
     '''
     def __call__(cls, *args, **kwargs):
         # create the instance as normal.  this will invoke the class's
-        # __init__'s as expected.
+        # __init__'s as expected
+        import time
+        import timing
+        timing._incrementDepth()
+        ts = time.time()
         self = super(_SetupClass, cls).__call__(*args, **kwargs)
 
         # this steps through the MRO in ascending order (so that child
@@ -108,8 +112,10 @@ class _SetupClass(abc.ABCMeta):
             if callable(_setup):
                 _setup()
 
+        te = time.time()
+        timing._decrementDepth()
+        timing.log_result( te-ts, cls.__name__+".__init__()")
         return self
-
 
 class StgCompoundComponent(StgClass):
     """ 

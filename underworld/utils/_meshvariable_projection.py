@@ -238,6 +238,18 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
 
         super(MeshVariable_Projection, self).__init__(**kwargs)
 
+    @property
+    def fn(self):
+        return self._fn
+
+    @fn.setter
+    def fn(self, value):
+        _fn = uw.function._function.Function.convert(value)
+        if not isinstance( _fn, uw.function.Function):
+            raise ValueError( "Provided 'fn' must be of, or convertible to, 'Function' class." )
+        self._forceVecTerm.fn = _fn
+        self._fn = _fn
+
     def _setup(self):
         uw.libUnderworld.StGermain.Stg_ObjectList_Append( self._cself.forceVectors, self._fvector._cself )
         if self.type == 1:
