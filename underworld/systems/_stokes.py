@@ -258,10 +258,11 @@ class Stokes(_stgermain.StgCompoundComponent):
                                                                 assembledObject=self._fvector,
                                                                 fn=_fn_bodyforce)
 
-        if fn_source:
+        if fn_source != None:
             self._cforceVecTerm   = sle.VectorAssemblyTerm_NA__Fn(  integrationSwarm=intswarm,
                                                                     assembledObject=self._hvector,
-                                                                    fn=self.fn_source)
+                                                                    fn=self.fn_source,
+                                                                    mesh=mesh)
 
 
         for cond in self._conditions:
