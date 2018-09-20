@@ -1419,7 +1419,8 @@ class _FeMesh_Annulus(FeMesh_Cartesian):
             (inner radialLengths, outer radialLengths)
 
         angularExtent : 2-tuple, default (0.0,360.0)
-            The angular extent of the domain
+            The angular extent of the domain, i.e. [15,75], starts at 15 degrees until 75 degrees.
+            0 degrees represents the x-axis, i.e. 3 o'clock.
 
         radialData : Return the mesh node locations in polar form.
             (radial length, angle in degrees)
@@ -1438,22 +1439,24 @@ class _FeMesh_Annulus(FeMesh_Cartesian):
 
         """
 
+        errmsg = "Provided 'angularExtent' must be a tuple/list of 2 floats between values [0,360]"
         if not isinstance( angularExtent, (tuple,list)):
-            raise TypeError("Provided 'angularExtent' must be a tuple/list of 2 floats")
+            raise TypeError(errmsg)
         if len(angularExtent) != 2:
-            raise ValueError("Provided 'angularExtent' must be a tuple/list of 2 floats")
+            raise ValueError(errmsg)
         for el in angularExtent:
-            if not isinstance( el, (float,int)) :
-                raise TypeError("Provided 'angularExtent' must be a tuple/list of 2 floats")
+            if not isinstance( el, (float,int)) or (el < 0.0 or el > 360.0):
+                raise TypeError(errmsg)
         self._angularExtent = angularExtent
 
+        errmsg = "Provided 'radialLengths' must be a tuple/list of 2 floats"
         if not isinstance( radialLengths, (tuple,list)):
-            raise TypeError("Provided 'radialLengths' must be a tuple/list of 2 floats")
+            raise TypeError(errmsg)
         if len(radialLengths) != 2:
-            raise ValueError("Provided 'radialLengths' must be a tuple/list of 2 floats")
+            raise ValueError(errmsg)
         for el in radialLengths:
             if not isinstance( el, (float,int)) :
-                raise TypeError("Provided 'radialLengths' must be a tuple/list of 2 floats")
+                raise TypeError(errmsg)
         self._radialLengths = radialLengths
 
         # build 3D mesh cartesian mesh centred on (0.0,0.0,0.0) - in _setup() we deform the mesh
