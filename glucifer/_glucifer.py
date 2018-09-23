@@ -237,7 +237,9 @@ class Store(_stgermain.StgCompoundComponent):
             #In case no external file has been written we need to create a temporary
             #database on root so the other procs can load it
             #Wait for temporary db to be written if not already using an external store
-            uw.barrier()
+            comm = MPI.COMM_WORLD
+            rank = uw.rank()
+            self.filename = comm.bcast(self.filename, root=0)
             #print uw.rank(),self.filename
             #Open the viewer with db filename
             lv = self.lvget(self.filename)
