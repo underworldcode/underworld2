@@ -55,6 +55,6 @@ class _xvfb_runner(object):
 import os as _os
 # disable collection of data if requested
 if "GLUCIFER_USE_XVFB" in _os.environ:
-    import underworld as uw
-    if uw.rank() == 0:
+    import underworld as _uw
+    if _uw.rank() == 0:
         _display = _xvfb_runner()
