@@ -480,6 +480,16 @@ class StokesSolver(_stgermain.StgCompoundComponent):
                 warnings.warn(estring)
         return
 
+
+    ########################################################################
+    ### show the collected options in PETSc format
+    ########################################################################
+
+    def print_petsc_options(self):
+        self._setup_options()
+        print("Options: {}".format(self._optionsStr))
+
+
     ########################################################################
     ### create vectors and matrices for augmented lagrangian solve
     ########################################################################
@@ -749,6 +759,6 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         elif 0==uw.rank():
             print( "Invalid penalty number chosen. Penalty must be a positive float." )
             self.options.main.penalty = 0.0
-            
+
     def _debug(self):
         import pdb; pdb.set_trace()

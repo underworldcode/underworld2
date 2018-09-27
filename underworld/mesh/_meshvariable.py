@@ -408,14 +408,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
             if not isinstance(meshHandle, (str, uw.utils.SavedFileData)):
                 raise TypeError("Expected 'meshHandle' to be of type 'uw.utils.SavedFileData'")
 
-            if isinstance(meshHandle, str):
-                # DEPRECATION check
-                import warnings
-                warnings.warn("'meshHandle' paramater should be of type uw.utils.SaveFileData. Please update your models. "+
-                              "Accepting 'meshHandle' as a string parameter will be removed in the next release.")
-                meshFilename = meshHandle
-            else:
-                meshFilename = meshHandle.filename
+            meshFilename = meshHandle.filename
 
             if not os.path.exists(meshFilename):
                 raise ValueError("You are trying to link against the mesh file '{}'\n\

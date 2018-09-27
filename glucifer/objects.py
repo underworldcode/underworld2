@@ -13,8 +13,7 @@ import underworld.swarm as _swarmMod
 import underworld.mesh as _uwmesh
 from underworld.function import Function as _Function
 import libUnderworld as _libUnderworld
-import numpy
-import json
+import json as _json
 
 #TODO: Drawing Objects to implement
 # HistoricalSwarmTrajectory
@@ -54,7 +53,7 @@ class ColourMap(_stgermain.StgCompoundComponent):
 
         if not isinstance(colours,(str,list)):
             raise TypeError("'colours' object passed in must be of python type 'str' or 'list'")
-        self.properties.update({"colours" : json.dumps(colours)})
+        self.properties.update({"colours" : _json.dumps(colours)})
 
         #User-defined props in kwargs
         self.properties.update(kwargs)
@@ -828,6 +827,7 @@ class Sampler(Drawing):
 
     def sample(self, vertices):
         sz = len(vertices)/3*self._cself.fieldComponentCount
+        import numpy
         values = numpy.zeros(sz, dtype='float32')
         _libUnderworld.gLucifer.lucSampler_SampleField( self._cself, vertices, values)
         return values
