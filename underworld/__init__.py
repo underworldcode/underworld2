@@ -32,6 +32,11 @@ on a geological timescale.
 
 __version__ = "2.6.0b"
 
+# squelch h5py/numpy future warnings
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
+
+
 # lets  set sys.path such that the project parent directory takes
 # precedence
 import sys as _sys
