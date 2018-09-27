@@ -449,7 +449,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
             import warnings
             estring = \
                 "A PETSc error has been encountered during the solve. " \
-                "Solution fields are most likely erroneous. \n\n" \
+                "Solution fields are possibly erroneous. \n\n" \
                 "This error is probably due to an incorrectly constructed linear system. " \
                 "Please check that your boundary conditions are consistent " \
                 "and sufficient and that your viscosity is positive everywhere. " \
@@ -471,7 +471,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         if gres[0] > 0:
             import warnings
             estring = "A floating-point error has been detected during the solve. " + \
-            "Solution fields are most likely erroneous. \n\n"+ \
+            "Solution fields are possibly erroneous. \n\n"+ \
             "This is likely due to overly large value variations within your linear system, " \
             "or a fragile (or incorrect) solver configuration. " \
             "If your inputs are constructed using real world physical units, you may " \
