@@ -1,7 +1,13 @@
 CHANGES: Underworld2
 =======================
 
-Release 2.6.0b []
+Release 2.7.0-dev []
+------------------
+Enhancements:
+* Timing functionality available
+* glucifer defaults to use onMesh=True
+
+Release 2.6.0b [2018-09-27]
 ------------------
 Enhancements:
 * Removed submodules in favour of direct access.
