@@ -153,7 +153,8 @@ class Store(_stgermain.StgCompoundComponent):
                 raise TypeError("Provided parameter 'filename' must be of type 'str'. ")
             if not filename.lower().endswith('.gldb') and not filename.lower().endswith('.db'):
                 filename += '.gldb'
-            libUnderworld.gLucifer.lucDatabase_BackupDbFile(self._db, filename)
+            if filename != self.filename:
+                libUnderworld.gLucifer.lucDatabase_BackupDbFile(self._db, filename)
             return filename
 
     def lvget(self, db=None, *args, **kwargs):
@@ -348,12 +349,12 @@ class Figure(dict):
 
     Add drawing objects:
     
-    >>> fig.Surface( mesh, 1.)
+    >>> fig.append(glucifer.objects.Surface( mesh, 1.))
 
-    Draw image (note, in a Jupyter notebook, this will render the image within the notebook).
+    Draw image. Note that if called from within a Jupyter notebook, image
+    will be rendered inline. Otherwise, image will be saved to disk.
     
     >>> fig.show()
-    <IPython.core.display.HTML object>
     
     Save the image
     
@@ -816,17 +817,6 @@ class Figure(dict):
                 else:
                     print("... failed, skipping ...")
                     pass
-
-    def clear(self):
-        # DEPRECATE, remove for v2.4.0
-        raise RuntimeError("This method is now deprecated.\n" \
-                           "To obtain an empty figure just create a new one")
-
-    def __add__(self,drawing_object):
-        # DEPRECATE, remove for v2.4.0
-        raise RuntimeError("This method is now deprecated.\n" \
-                           "To add drawing objects to figures, use the append() method:\n" \
-                           "    someFigure.append(someDrawingObject)")
     
     def append(self,drawingObject):
         """
@@ -871,31 +861,39 @@ class Viewer(lavavu.Viewer):
             
     Example
     -------
-        
-    Open an existing database:
+    Create database to use
     
     >>> import glucifer
-    >>> saved = glucifer.Viewer('vis.gldb')
+    >>> store = glucifer.Store('myvis')
+    >>> fig = glucifer.Figure(store, name="myfigure")
+    >>> import underworld as uw
+    >>> mesh = uw.mesh.FeMesh_Cartesian()
+    >>> fig.append(glucifer.objects.Mesh(mesh))
+    >>> fig.save()
+
+    Now reopen database:
+    
+    >>> viewer = glucifer.Viewer('myvis')
 
     Iterate over the figures, print their names
     
-    >>> for name in saved.figures():
-    >>>     print(name)
-
+    >>> for name in viewer.figures:
+    ...     print(name)
+    myfigure
+    
     Get a figure by name and display
     (A chosen name can be provided when creating the figures to make this easier)
     
-    >>> figures = saved.figures()
-    >>> saved.figure("myfig")
-    >>> saved.show()
+    >>> viewer.figure("myfig")
+    >>> viewer.show()
 
     Display all figures at each timestep
     
-    >>> for step in saved.timesteps():
-    >>>    saved.timestep(step)
-    >>>    for name in figures:
-    >>>        saved.figure(name)
-    >>>        saved.show()
+    >>> for step in viewer.steps:
+    ...    viewer.step = step
+    ...    for name in viewer.figures:
+    ...        viewer.figure(name)
+    ...        viewer.show()
 
     """
 
@@ -917,7 +915,7 @@ class Viewer(lavavu.Viewer):
         self.display()
 
     def showall(self):
-        for fig in self.figures():
+        for fig in self.figures:
             self.figure(fig)
             self.display()
 

@@ -30,7 +30,12 @@ is very well suited to complex fluids which is how the solid Earth behaves
 on a geological timescale.
 """
 
-__version__ = "2.6.0-dev"
+__version__ = "2.6.0b"
+
+# squelch h5py/numpy future warnings
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
+
 
 # lets  set sys.path such that the project parent directory takes
 # precedence
