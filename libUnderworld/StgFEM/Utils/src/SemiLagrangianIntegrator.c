@@ -382,16 +382,16 @@ void InterpLagrange( double x, double* coords, double** values, unsigned numdofs
 }
 
 Bool PeriodicUpdate( double* pos, double* min, double* max, unsigned dim, Bool isPeriodic ) {
-   if( pos[dim] < min[dim] ) {
-      pos[dim] = (isPeriodic) ? max[dim] - min[dim] + pos[dim] : min[dim];
-      return True;
-        }
-        if( pos[dim] > max[dim] ) {
-         pos[dim] = (isPeriodic) ? min[dim] - max[dim] + pos[dim] : max[dim];
-      return True;
-        }
+  if( pos[dim] < min[dim] ) {
+    pos[dim] = (isPeriodic) ? max[dim] - min[dim] + pos[dim] : min[dim];
+    return True;
+  }
+  if( pos[dim] > max[dim] ) {
+    pos[dim] = (isPeriodic) ? min[dim] - max[dim] + pos[dim] : max[dim];
+    return True;
+  }
 
-   return False;
+  return False;
 }
 
 void BicubicInterpolator( FeVariable* feVariable, double* position, double* delta, unsigned* nNodes, double* result ) {
@@ -416,13 +416,14 @@ void BicubicInterpolator( FeVariable* feVariable, double* position, double* delt
    nInc = IArray_GetSize( feVariable->inc );                        // from inc. get the number of nodes on the element
    inc = IArray_GetPtr( feVariable->inc );                          // get the node ids from inc.
    
-   delta[0] = Mesh_GetVertex( feMesh, inc[1] )[0] - Mesh_GetVertex( feMesh, inc[0] )[0];
    if( nInc % 3 == 0 ) /* quadratic elements */ {
+      delta[0] = Mesh_GetVertex( feMesh, inc[1] )[0] - Mesh_GetVertex( feMesh, inc[0] )[0];
       delta[1] = Mesh_GetVertex( feMesh, inc[3] )[1] - Mesh_GetVertex( feMesh, inc[0] )[1];
       if( nDims == 3 )
          delta[2] = Mesh_GetVertex( feMesh, inc[9] )[2] - Mesh_GetVertex( feMesh, inc[0] )[2];
    }
    else {
+      delta[0] = Mesh_GetVertex( feMesh, inc[1] )[0] - Mesh_GetVertex( feMesh, inc[0] )[0];
       delta[1] = Mesh_GetVertex( feMesh, inc[2] )[1] - Mesh_GetVertex( feMesh, inc[0] )[1];
       if( nDims == 3 )
          delta[2] = Mesh_GetVertex( feMesh, inc[4] )[2] - Mesh_GetVertex( feMesh, inc[0] )[2];
@@ -482,8 +483,8 @@ void BicubicInterpolator( FeVariable* feVariable, double* position, double* delt
          for( x_i = 0; x_i < 4; x_i++ ) {
             gNode_I = x_0 + x_i + ( y_0 + y_i ) * nNodes[0];
             if( !Mesh_GlobalToDomain( feMesh, MT_VERTEX, gNode_I, &lNode_I ) ){
-               printf("Error in BicubicInterpolator(), trying to use node %d, a non domain node, in interpolator.\n", gNode_I);
-               abort();
+              printf("Error in BicubicInterpolator(), trying to build an interpolation to position (%g, %g) using node %d, a non domain node, in interpolator.\n", position[0], position[1], gNode_I);
+              abort();
             }
             else
                nodeIndex[x_i][y_i] = lNode_I;
@@ -495,8 +496,8 @@ void BicubicInterpolator( FeVariable* feVariable, double* position, double* delt
             for( x_i = 0; x_i < 4; x_i++ ) {
                gNode_I = x_0 + x_i + ( y_0 + y_i ) * nNodes[0] + ( z_0 + z_i ) * nNodes[0] * nNodes[1];
                if( !Mesh_GlobalToDomain( feMesh, MT_VERTEX, gNode_I, &lNode_I ) ) {
-                  printf("Error in BicubicInterpolator(), trying to use node %d, a non domain node, in interpolator.\n", gNode_I);
-                  abort();
+                 printf("Error in BicubicInterpolator(), trying to build an interpolation to position (%g, %g, %g) using node %d, a non domain node, in interpolator.\n", position[0], position[1], position[2], gNode_I);
+                 abort();
                }
                else
                   node_I3D[x_i][y_i][z_i] = lNode_I;
