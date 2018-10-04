@@ -13,15 +13,15 @@ class Python(Package):
             if self.find_libraries(loc[2], 'python'):
                 env.PrependUnique(LIBS=['python'])
                 yield env
-            if self.find_libraries(loc[2], 'python2.7'):
-                env.AppendUnique(CPPPATH=[os.path.join(self.location[1][0],'python2.7')])
-                env.PrependUnique(LIBS=['python2.7'])
+            if self.find_libraries(loc[2], 'python3.5m'):
+                env.AppendUnique(CPPPATH=[os.path.join(self.location[1][0],'python3.5m')])
+                env.PrependUnique(LIBS=['python3.5m'])
                 yield env
-            if self.find_libraries(loc[2], 'python2.6'):
-                env.AppendUnique(CPPPATH=[os.path.join(self.location[1][0],'python2.6')])
-                env.PrependUnique(LIBS=['python2.6'])
+            if self.find_libraries(loc[2], 'python3.6m'):
+                env.AppendUnique(CPPPATH=[os.path.join(self.location[1][0],'python3.6m')])
+                env.PrependUnique(LIBS=['python3.6m'])
                 yield env
-            if self.find_libraries(loc[2], 'python2.5'):
-                env.AppendUnique(CPPPATH=[os.path.join(self.location[1][0],'python2.5')])
-                env.PrependUnique(LIBS=['python2.5'])
+            if self.find_libraries(loc[2], 'python3.7m'):
+                env.AppendUnique(CPPPATH=[os.path.join(self.location[1][0],'python3.7m')])
+                env.PrependUnique(LIBS=['python3.7m'])
                 yield env
