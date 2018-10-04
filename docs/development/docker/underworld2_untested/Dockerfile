@@ -1,16 +1,32 @@
-FROM underworldcode/base:dev
+FROM underworldcode/base@sha256:0f9b00fe918df29d9e2c9cc6d10bb2a8b42060d1d75fb8800646be9cad748baf
 MAINTAINER https://github.com/underworldcode/
 
 # set working directory to /opt, and install underworld files there.
 WORKDIR /opt
 ENV UW2_DIR /opt/underworld2
+RUN mkdir $UW2_DIR
 ENV PYTHONPATH $PYTHONPATH:$UW2_DIR
+ENV NB_WORK /workspace
+
+# add default user jovyan and change permissions on NB_WORK
+ENV NB_USER jovyan
+RUN useradd -m -s /bin/bash -N jovyan
+
+# copy this file over so that no password is required
+COPY docs/development/docker/underworld2_untested/jupyter_notebook_config.json /home/$NB_USER/.jupyter/jupyter_notebook_config.json
+
+# install lavavu
+RUN pip install --no-cache-dir lavavu
+
+# COPY UW
+#COPY --chown=jovyan:users . $UW2_DIR/   # unfortunately, the version of docker at docker cloud does not support chown yet.
+COPY . $UW2_DIR/
 
 # get underworld, compile, delete some unnecessary files, trust notebooks, copy to workspace
-RUN git clone --branch "development" --single-branch https://github.com/underworldcode/underworld2 && \
-    cd underworld2/libUnderworld && \
+RUN cd underworld2/libUnderworld && \
     ./configure.py --with-debugging=0  && \
     ./compile.py                 && \
+    rm -fr h5py_ext              && \
     rm .sconsign.dblite          && \
     rm -fr .sconf_temp           && \
     cd build                     && \
@@ -23,24 +39,33 @@ RUN git clone --branch "development" --single-branch https://github.com/underwor
     rm -fr PICellerator          && \
     rm -fr Solvers               && \
     find $UW2_DIR/docs -name \*.ipynb  -print0 | xargs -0 jupyter trust && \
-    mkdir /workspace                                                 && \
     cd ../../docs/development/api_doc_generator/                     && \
     sphinx-build . ../../api_doc                                     && \
-    rsync -av $UW2_DIR/docs/. /workspace
-
+    mkdir $NB_WORK                                                   && \
+    rsync -av $UW2_DIR/docs/. $NB_WORK                               && \
+    cd /opt/underworld2                                              && \
+    find . -name \*.os |xargs rm -f                                  && \
+    cat .git/refs/heads/* > build_commit.txt                         && \
+    env > build_environment.txt                                      && \
+    rm -fr .git                                                      && \
+    chown -R $NB_USER:users $NB_WORK $UW2_DIR /home/$NB_USER
 
 # expose notebook port
 EXPOSE 8888
 # expose glucifer port
 EXPOSE 9999
 
-# setup space for working in
-VOLUME /workspace/user_data
-WORKDIR /workspace
+# CHANGE USER
+USER $NB_USER
+ENV PYTHONPATH $PYTHONPATH:$UW2_DIR
 
-# copy this file over so that no password is required
+# setup symlink for terminal convenience
+RUN ln -s $NB_WORK /home/$NB_USER/
 
-COPY jupyter_notebook_config.json /root/.jupyter/jupyter_notebook_config.json
+# create a volume
+VOLUME $NB_WORK/user_data
+WORKDIR $NB_WORK
 
 # launch notebook
-CMD ["jupyter", "notebook", "--no-browser", "--allow-root"]
+CMD ["jupyter", "notebook", "--ip='*'", "--no-browser"]
+
