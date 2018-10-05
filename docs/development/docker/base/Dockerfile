@@ -30,10 +30,14 @@ RUN apt-get update -qq && \
         swig \
         gdb-minimal \
         python3-dbg \
+	python3-setuptools \
         wget \
         gfortran  && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
+
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python2.7 1
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.5 2
 
 ARG MPICH_VERSION="3.1.4"
 ARG MPICH_CONFIGURE_OPTIONS="--enable-fast=all,O3 --prefix=/usr"
@@ -51,8 +55,7 @@ RUN wget http://www.mpich.org/static/downloads/${MPICH_VERSION}/mpich-${MPICH_VE
 
 ENV LANG=C.UTF-8
 # Install setuptools and wheel first, needed by plotly
-RUN pip3 install --no-cache-dir setuptools wheel && \
-    pip3 install --no-cache-dir packaging \
+RUN pip3 install --no-cache-dir packaging \
         runipy \
         appdirs \
         numpy \

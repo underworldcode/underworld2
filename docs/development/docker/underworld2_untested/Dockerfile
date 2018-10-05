@@ -1,4 +1,4 @@
-FROM underworldcode/base@sha256:4d0e1d45c07a055c22972fec44bc8f749e520b3329ecbe7c49501a457b393a70
+FROM underworldcode/base@sha256:5a10b5011e903e814b6927ffad91a604d61db8bc77ae5ee8bdc3cb53b04dcf11
 MAINTAINER https://github.com/underworldcode/
 
 # set working directory to /opt, and install underworld files there.
@@ -12,11 +12,14 @@ ENV NB_WORK /workspace
 ENV NB_USER jovyan
 RUN useradd -m -s /bin/bash -N jovyan
 
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python2.7 1
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.5 2
+
 # copy this file over so that no password is required
 COPY docs/development/docker/underworld2_untested/jupyter_notebook_config.json /home/$NB_USER/.jupyter/jupyter_notebook_config.json
 
 # install lavavu
-RUN pip install --no-cache-dir lavavu
+RUN pip3 install --no-cache-dir lavavu
 
 # COPY UW
 #COPY --chown=jovyan:users . $UW2_DIR/   # unfortunately, the version of docker at docker cloud does not support chown yet.
