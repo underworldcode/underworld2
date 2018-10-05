@@ -1,0 +1,989 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1"><style>
+.lvctrl input { display: inline; }
+.lvctrl input[type=range] { width: 200px; }
+.lvctrl input[type=button] { width: 100px; }
+.lvctrl input[type=number] { width: 120px; height: 28px; border-radius: 0; border: 1px dotted #999;}
+.lvctrl pre { display: inline; }
+.lvctrl p  { color: gray; margin: 0px}
+
+/* Colour select */
+.colourbg {display: inline-block; margin:5px 0px; width: 100px; height: 20px; border: 1px dotted #999; }
+.colour {display: inline-block; width: 100%; height: 100%; margin: 0px; padding: 0px; border: none;}
+
+.checkerboard {background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAIElEQVQ4jWP4TwAcOHAAL2YYNWBYGEBIASEwasCwMAAALvidroqDalkAAAAASUVORK5CYII=");}
+
+.palette { margin: 3px; border:1px solid #000; border: 1px dotted #000;}
+
+.lvtab    { border: 1px solid #999; padding: 5px; }
+.lvtabbar { width:100%; overflow:hidden; margin-top: 5px; }
+.lvtabbar .lvtabbar-item { padding:4px 8px; float:left; width:auto; border:none; outline:none; display:block; }
+.lvtabbar .dropdown-hover,.lvtabbar .dropdown-click { position:static; float:left; }
+.lvtabbar .lvbutton { white-space:normal; }
+
+.lvbutton:hover { color:#000!important; background-color:#ccc!important; border: 1px solid #999; border-bottom: 0; }
+.lvbutton { border: 1px solid #999; border-bottom: 0; border-radius: 5px 5px 0px 0px; margin-right: 3px; display:inline-block; outline:0; padding:4px 8px; vertical-align:middle; overflow:hidden; text-decoration:none; color:inherit; background-color:inherit; text-align:center; cursor:pointer; white-space:nowrap; }
+
+.lvseltab,.hover-lvseltab:hover { color:#fff!important; background-color:#555!important; }
+
+</style>
+
+<script id="line-fs" type="x-shader/x-fragment">
+precision highp float;
+varying vec4 vColour;
+void main(void)
+{
+  gl_FragColor = vColour;
+}
+</script>
+
+<script id="line-vs" type="x-shader/x-vertex">
+precision highp float;
+//Line vertex shader
+attribute vec3 aVertexPosition;
+uniform mat4 uMVMatrix;
+uniform mat4 uPMatrix;
+uniform vec4 uColour;
+varying vec4 vColour;
+void main(void)
+{
+  vec4 mvPosition = uMVMatrix * vec4(aVertexPosition, 1.0);
+  gl_Position = uPMatrix * mvPosition;
+  vColour = uColour;
+}
+</script>
+<script>
+// gl-matrix 1.3.7 - https://github.com/toji/gl-matrix/blob/master/LICENSE.md
+(function(w,D){"object"===typeof exports?module.exports=D(global):"function"===false/*OK: removed require.js support.. typeof define&&define.amd*/?define([],function(){return D(w)}):D(w)})(this,function(w){function D(a){return o=a}function G(){return o="undefined"!==typeof Float32Array?Float32Array:Array}var E={};(function(){if("undefined"!=typeof Float32Array){var a=new Float32Array(1),b=new Int32Array(a.buffer);E.invsqrt=function(c){a[0]=c;b[0]=1597463007-(b[0]>>1);var d=a[0];return d*(1.5-0.5*c*d*d)}}else E.invsqrt=function(a){return 1/
+Math.sqrt(a)}})();var o=null;G();var r={create:function(a){var b=new o(3);a?(b[0]=a[0],b[1]=a[1],b[2]=a[2]):b[0]=b[1]=b[2]=0;return b},createFrom:function(a,b,c){var d=new o(3);d[0]=a;d[1]=b;d[2]=c;return d},set:function(a,b){b[0]=a[0];b[1]=a[1];b[2]=a[2];return b},equal:function(a,b){return a===b||1.0E-6>Math.abs(a[0]-b[0])&&1.0E-6>Math.abs(a[1]-b[1])&&1.0E-6>Math.abs(a[2]-b[2])},add:function(a,b,c){if(!c||a===c)return a[0]+=b[0],a[1]+=b[1],a[2]+=b[2],a;c[0]=a[0]+b[0];c[1]=a[1]+b[1];c[2]=a[2]+b[2];
+return c},subtract:function(a,b,c){if(!c||a===c)return a[0]-=b[0],a[1]-=b[1],a[2]-=b[2],a;c[0]=a[0]-b[0];c[1]=a[1]-b[1];c[2]=a[2]-b[2];return c},multiply:function(a,b,c){if(!c||a===c)return a[0]*=b[0],a[1]*=b[1],a[2]*=b[2],a;c[0]=a[0]*b[0];c[1]=a[1]*b[1];c[2]=a[2]*b[2];return c},negate:function(a,b){b||(b=a);b[0]=-a[0];b[1]=-a[1];b[2]=-a[2];return b},scale:function(a,b,c){if(!c||a===c)return a[0]*=b,a[1]*=b,a[2]*=b,a;c[0]=a[0]*b;c[1]=a[1]*b;c[2]=a[2]*b;return c},normalize:function(a,b){b||(b=a);var c=
+a[0],d=a[1],e=a[2],g=Math.sqrt(c*c+d*d+e*e);if(!g)return b[0]=0,b[1]=0,b[2]=0,b;if(1===g)return b[0]=c,b[1]=d,b[2]=e,b;g=1/g;b[0]=c*g;b[1]=d*g;b[2]=e*g;return b},cross:function(a,b,c){c||(c=a);var d=a[0],e=a[1],a=a[2],g=b[0],f=b[1],b=b[2];c[0]=e*b-a*f;c[1]=a*g-d*b;c[2]=d*f-e*g;return c},length:function(a){var b=a[0],c=a[1],a=a[2];return Math.sqrt(b*b+c*c+a*a)},squaredLength:function(a){var b=a[0],c=a[1],a=a[2];return b*b+c*c+a*a},dot:function(a,b){return a[0]*b[0]+a[1]*b[1]+a[2]*b[2]},direction:function(a,
+b,c){c||(c=a);var d=a[0]-b[0],e=a[1]-b[1],a=a[2]-b[2],b=Math.sqrt(d*d+e*e+a*a);if(!b)return c[0]=0,c[1]=0,c[2]=0,c;b=1/b;c[0]=d*b;c[1]=e*b;c[2]=a*b;return c},lerp:function(a,b,c,d){d||(d=a);d[0]=a[0]+c*(b[0]-a[0]);d[1]=a[1]+c*(b[1]-a[1]);d[2]=a[2]+c*(b[2]-a[2]);return d},dist:function(a,b){var c=b[0]-a[0],d=b[1]-a[1],e=b[2]-a[2];return Math.sqrt(c*c+d*d+e*e)}},H=null,y=new o(4);r.unproject=function(a,b,c,d,e){e||(e=a);H||(H=x.create());var g=H;y[0]=2*(a[0]-d[0])/d[2]-1;y[1]=2*(a[1]-d[1])/d[3]-1;y[2]=
+2*a[2]-1;y[3]=1;x.multiply(c,b,g);if(!x.inverse(g))return null;x.multiplyVec4(g,y);if(0===y[3])return null;e[0]=y[0]/y[3];e[1]=y[1]/y[3];e[2]=y[2]/y[3];return e};var L=r.createFrom(1,0,0),M=r.createFrom(0,1,0),N=r.createFrom(0,0,1),z=r.create();r.rotationTo=function(a,b,c){c||(c=k.create());var d=r.dot(a,b);if(1<=d)k.set(O,c);else if(-0.999999>d)r.cross(L,a,z),1.0E-6>r.length(z)&&r.cross(M,a,z),1.0E-6>r.length(z)&&r.cross(N,a,z),r.normalize(z),k.fromAngleAxis(Math.PI,z,c);else{var d=Math.sqrt(2*(1+
+d)),e=1/d;r.cross(a,b,z);c[0]=z[0]*e;c[1]=z[1]*e;c[2]=z[2]*e;c[3]=0.5*d;k.normalize(c)}1<c[3]?c[3]=1:-1>c[3]&&(c[3]=-1);return c};r.str=function(a){return"["+a[0]+", "+a[1]+", "+a[2]+"]"};var A={create:function(a){var b=new o(9);a?(b[0]=a[0],b[1]=a[1],b[2]=a[2],b[3]=a[3],b[4]=a[4],b[5]=a[5],b[6]=a[6],b[7]=a[7],b[8]=a[8]):b[0]=b[1]=b[2]=b[3]=b[4]=b[5]=b[6]=b[7]=b[8]=0;return b},createFrom:function(a,b,c,d,e,g,f,h,j){var i=new o(9);i[0]=a;i[1]=b;i[2]=c;i[3]=d;i[4]=e;i[5]=g;i[6]=f;i[7]=h;i[8]=j;return i},
+determinant:function(a){var b=a[3],c=a[4],d=a[5],e=a[6],g=a[7],f=a[8];return a[0]*(f*c-d*g)+a[1]*(-f*b+d*e)+a[2]*(g*b-c*e)},inverse:function(a,b){var c=a[0],d=a[1],e=a[2],g=a[3],f=a[4],h=a[5],j=a[6],i=a[7],m=a[8],l=m*f-h*i,C=-m*g+h*j,q=i*g-f*j,n=c*l+d*C+e*q;if(!n)return null;n=1/n;b||(b=A.create());b[0]=l*n;b[1]=(-m*d+e*i)*n;b[2]=(h*d-e*f)*n;b[3]=C*n;b[4]=(m*c-e*j)*n;b[5]=(-h*c+e*g)*n;b[6]=q*n;b[7]=(-i*c+d*j)*n;b[8]=(f*c-d*g)*n;return b},multiply:function(a,b,c){c||(c=a);var d=a[0],e=a[1],g=a[2],
+f=a[3],h=a[4],j=a[5],i=a[6],m=a[7],a=a[8],l=b[0],C=b[1],q=b[2],n=b[3],k=b[4],p=b[5],o=b[6],s=b[7],b=b[8];c[0]=l*d+C*f+q*i;c[1]=l*e+C*h+q*m;c[2]=l*g+C*j+q*a;c[3]=n*d+k*f+p*i;c[4]=n*e+k*h+p*m;c[5]=n*g+k*j+p*a;c[6]=o*d+s*f+b*i;c[7]=o*e+s*h+b*m;c[8]=o*g+s*j+b*a;return c},multiplyVec2:function(a,b,c){c||(c=b);var d=b[0],b=b[1];c[0]=d*a[0]+b*a[3]+a[6];c[1]=d*a[1]+b*a[4]+a[7];return c},multiplyVec3:function(a,b,c){c||(c=b);var d=b[0],e=b[1],b=b[2];c[0]=d*a[0]+e*a[3]+b*a[6];c[1]=d*a[1]+e*a[4]+b*a[7];c[2]=
+d*a[2]+e*a[5]+b*a[8];return c},set:function(a,b){b[0]=a[0];b[1]=a[1];b[2]=a[2];b[3]=a[3];b[4]=a[4];b[5]=a[5];b[6]=a[6];b[7]=a[7];b[8]=a[8];return b},equal:function(a,b){return a===b||1.0E-6>Math.abs(a[0]-b[0])&&1.0E-6>Math.abs(a[1]-b[1])&&1.0E-6>Math.abs(a[2]-b[2])&&1.0E-6>Math.abs(a[3]-b[3])&&1.0E-6>Math.abs(a[4]-b[4])&&1.0E-6>Math.abs(a[5]-b[5])&&1.0E-6>Math.abs(a[6]-b[6])&&1.0E-6>Math.abs(a[7]-b[7])&&1.0E-6>Math.abs(a[8]-b[8])},identity:function(a){a||(a=A.create());a[0]=1;a[1]=0;a[2]=0;a[3]=0;
+a[4]=1;a[5]=0;a[6]=0;a[7]=0;a[8]=1;return a},transpose:function(a,b){if(!b||a===b){var c=a[1],d=a[2],e=a[5];a[1]=a[3];a[2]=a[6];a[3]=c;a[5]=a[7];a[6]=d;a[7]=e;return a}b[0]=a[0];b[1]=a[3];b[2]=a[6];b[3]=a[1];b[4]=a[4];b[5]=a[7];b[6]=a[2];b[7]=a[5];b[8]=a[8];return b},toMat4:function(a,b){b||(b=x.create());b[15]=1;b[14]=0;b[13]=0;b[12]=0;b[11]=0;b[10]=a[8];b[9]=a[7];b[8]=a[6];b[7]=0;b[6]=a[5];b[5]=a[4];b[4]=a[3];b[3]=0;b[2]=a[2];b[1]=a[1];b[0]=a[0];return b},str:function(a){return"["+a[0]+", "+a[1]+
+", "+a[2]+", "+a[3]+", "+a[4]+", "+a[5]+", "+a[6]+", "+a[7]+", "+a[8]+"]"}},x={create:function(a){var b=new o(16);a&&(b[0]=a[0],b[1]=a[1],b[2]=a[2],b[3]=a[3],b[4]=a[4],b[5]=a[5],b[6]=a[6],b[7]=a[7],b[8]=a[8],b[9]=a[9],b[10]=a[10],b[11]=a[11],b[12]=a[12],b[13]=a[13],b[14]=a[14],b[15]=a[15]);return b},createFrom:function(a,b,c,d,e,g,f,h,j,i,m,l,C,q,n,k){var p=new o(16);p[0]=a;p[1]=b;p[2]=c;p[3]=d;p[4]=e;p[5]=g;p[6]=f;p[7]=h;p[8]=j;p[9]=i;p[10]=m;p[11]=l;p[12]=C;p[13]=q;p[14]=n;p[15]=k;return p},set:function(a,
+b){b[0]=a[0];b[1]=a[1];b[2]=a[2];b[3]=a[3];b[4]=a[4];b[5]=a[5];b[6]=a[6];b[7]=a[7];b[8]=a[8];b[9]=a[9];b[10]=a[10];b[11]=a[11];b[12]=a[12];b[13]=a[13];b[14]=a[14];b[15]=a[15];return b},equal:function(a,b){return a===b||1.0E-6>Math.abs(a[0]-b[0])&&1.0E-6>Math.abs(a[1]-b[1])&&1.0E-6>Math.abs(a[2]-b[2])&&1.0E-6>Math.abs(a[3]-b[3])&&1.0E-6>Math.abs(a[4]-b[4])&&1.0E-6>Math.abs(a[5]-b[5])&&1.0E-6>Math.abs(a[6]-b[6])&&1.0E-6>Math.abs(a[7]-b[7])&&1.0E-6>Math.abs(a[8]-b[8])&&1.0E-6>Math.abs(a[9]-b[9])&&1.0E-6>
+Math.abs(a[10]-b[10])&&1.0E-6>Math.abs(a[11]-b[11])&&1.0E-6>Math.abs(a[12]-b[12])&&1.0E-6>Math.abs(a[13]-b[13])&&1.0E-6>Math.abs(a[14]-b[14])&&1.0E-6>Math.abs(a[15]-b[15])},identity:function(a){a||(a=x.create());a[0]=1;a[1]=0;a[2]=0;a[3]=0;a[4]=0;a[5]=1;a[6]=0;a[7]=0;a[8]=0;a[9]=0;a[10]=1;a[11]=0;a[12]=0;a[13]=0;a[14]=0;a[15]=1;return a},transpose:function(a,b){if(!b||a===b){var c=a[1],d=a[2],e=a[3],g=a[6],f=a[7],h=a[11];a[1]=a[4];a[2]=a[8];a[3]=a[12];a[4]=c;a[6]=a[9];a[7]=a[13];a[8]=d;a[9]=g;a[11]=
+a[14];a[12]=e;a[13]=f;a[14]=h;return a}b[0]=a[0];b[1]=a[4];b[2]=a[8];b[3]=a[12];b[4]=a[1];b[5]=a[5];b[6]=a[9];b[7]=a[13];b[8]=a[2];b[9]=a[6];b[10]=a[10];b[11]=a[14];b[12]=a[3];b[13]=a[7];b[14]=a[11];b[15]=a[15];return b},determinant:function(a){var b=a[0],c=a[1],d=a[2],e=a[3],g=a[4],f=a[5],h=a[6],j=a[7],i=a[8],m=a[9],l=a[10],C=a[11],q=a[12],n=a[13],k=a[14],a=a[15];return q*m*h*e-i*n*h*e-q*f*l*e+g*n*l*e+i*f*k*e-g*m*k*e-q*m*d*j+i*n*d*j+q*c*l*j-b*n*l*j-i*c*k*j+b*m*k*j+q*f*d*C-g*n*d*C-q*c*h*C+b*n*h*C+
+g*c*k*C-b*f*k*C-i*f*d*a+g*m*d*a+i*c*h*a-b*m*h*a-g*c*l*a+b*f*l*a},inverse:function(a,b){b||(b=a);var c=a[0],d=a[1],e=a[2],g=a[3],f=a[4],h=a[5],j=a[6],i=a[7],m=a[8],l=a[9],k=a[10],q=a[11],n=a[12],o=a[13],p=a[14],r=a[15],s=c*h-d*f,v=c*j-e*f,t=c*i-g*f,u=d*j-e*h,w=d*i-g*h,x=e*i-g*j,y=m*o-l*n,z=m*p-k*n,F=m*r-q*n,A=l*p-k*o,D=l*r-q*o,E=k*r-q*p,B=s*E-v*D+t*A+u*F-w*z+x*y;if(!B)return null;B=1/B;b[0]=(h*E-j*D+i*A)*B;b[1]=(-d*E+e*D-g*A)*B;b[2]=(o*x-p*w+r*u)*B;b[3]=(-l*x+k*w-q*u)*B;b[4]=(-f*E+j*F-i*z)*B;b[5]=
+(c*E-e*F+g*z)*B;b[6]=(-n*x+p*t-r*v)*B;b[7]=(m*x-k*t+q*v)*B;b[8]=(f*D-h*F+i*y)*B;b[9]=(-c*D+d*F-g*y)*B;b[10]=(n*w-o*t+r*s)*B;b[11]=(-m*w+l*t-q*s)*B;b[12]=(-f*A+h*z-j*y)*B;b[13]=(c*A-d*z+e*y)*B;b[14]=(-n*u+o*v-p*s)*B;b[15]=(m*u-l*v+k*s)*B;return b},toRotationMat:function(a,b){b||(b=x.create());b[0]=a[0];b[1]=a[1];b[2]=a[2];b[3]=a[3];b[4]=a[4];b[5]=a[5];b[6]=a[6];b[7]=a[7];b[8]=a[8];b[9]=a[9];b[10]=a[10];b[11]=a[11];b[12]=0;b[13]=0;b[14]=0;b[15]=1;return b},toMat3:function(a,b){b||(b=A.create());b[0]=
+a[0];b[1]=a[1];b[2]=a[2];b[3]=a[4];b[4]=a[5];b[5]=a[6];b[6]=a[8];b[7]=a[9];b[8]=a[10];return b},toInverseMat3:function(a,b){var c=a[0],d=a[1],e=a[2],g=a[4],f=a[5],h=a[6],j=a[8],i=a[9],m=a[10],l=m*f-h*i,k=-m*g+h*j,q=i*g-f*j,n=c*l+d*k+e*q;if(!n)return null;n=1/n;b||(b=A.create());b[0]=l*n;b[1]=(-m*d+e*i)*n;b[2]=(h*d-e*f)*n;b[3]=k*n;b[4]=(m*c-e*j)*n;b[5]=(-h*c+e*g)*n;b[6]=q*n;b[7]=(-i*c+d*j)*n;b[8]=(f*c-d*g)*n;return b},multiply:function(a,b,c){c||(c=a);var d=a[0],e=a[1],g=a[2],f=a[3],h=a[4],j=a[5],
+i=a[6],m=a[7],l=a[8],k=a[9],q=a[10],n=a[11],o=a[12],p=a[13],r=a[14],a=a[15],s=b[0],v=b[1],t=b[2],u=b[3];c[0]=s*d+v*h+t*l+u*o;c[1]=s*e+v*j+t*k+u*p;c[2]=s*g+v*i+t*q+u*r;c[3]=s*f+v*m+t*n+u*a;s=b[4];v=b[5];t=b[6];u=b[7];c[4]=s*d+v*h+t*l+u*o;c[5]=s*e+v*j+t*k+u*p;c[6]=s*g+v*i+t*q+u*r;c[7]=s*f+v*m+t*n+u*a;s=b[8];v=b[9];t=b[10];u=b[11];c[8]=s*d+v*h+t*l+u*o;c[9]=s*e+v*j+t*k+u*p;c[10]=s*g+v*i+t*q+u*r;c[11]=s*f+v*m+t*n+u*a;s=b[12];v=b[13];t=b[14];u=b[15];c[12]=s*d+v*h+t*l+u*o;c[13]=s*e+v*j+t*k+u*p;c[14]=s*g+
+v*i+t*q+u*r;c[15]=s*f+v*m+t*n+u*a;return c},multiplyVec3:function(a,b,c){c||(c=b);var d=b[0],e=b[1],b=b[2];c[0]=a[0]*d+a[4]*e+a[8]*b+a[12];c[1]=a[1]*d+a[5]*e+a[9]*b+a[13];c[2]=a[2]*d+a[6]*e+a[10]*b+a[14];return c},multiplyVec4:function(a,b,c){c||(c=b);var d=b[0],e=b[1],g=b[2],b=b[3];c[0]=a[0]*d+a[4]*e+a[8]*g+a[12]*b;c[1]=a[1]*d+a[5]*e+a[9]*g+a[13]*b;c[2]=a[2]*d+a[6]*e+a[10]*g+a[14]*b;c[3]=a[3]*d+a[7]*e+a[11]*g+a[15]*b;return c},translate:function(a,b,c){var d=b[0],e=b[1],b=b[2],g,f,h,j,i,m,l,k,q,
+n,o,p;if(!c||a===c)return a[12]=a[0]*d+a[4]*e+a[8]*b+a[12],a[13]=a[1]*d+a[5]*e+a[9]*b+a[13],a[14]=a[2]*d+a[6]*e+a[10]*b+a[14],a[15]=a[3]*d+a[7]*e+a[11]*b+a[15],a;g=a[0];f=a[1];h=a[2];j=a[3];i=a[4];m=a[5];l=a[6];k=a[7];q=a[8];n=a[9];o=a[10];p=a[11];c[0]=g;c[1]=f;c[2]=h;c[3]=j;c[4]=i;c[5]=m;c[6]=l;c[7]=k;c[8]=q;c[9]=n;c[10]=o;c[11]=p;c[12]=g*d+i*e+q*b+a[12];c[13]=f*d+m*e+n*b+a[13];c[14]=h*d+l*e+o*b+a[14];c[15]=j*d+k*e+p*b+a[15];return c},scale:function(a,b,c){var d=b[0],e=b[1],b=b[2];if(!c||a===c)return a[0]*=
+d,a[1]*=d,a[2]*=d,a[3]*=d,a[4]*=e,a[5]*=e,a[6]*=e,a[7]*=e,a[8]*=b,a[9]*=b,a[10]*=b,a[11]*=b,a;c[0]=a[0]*d;c[1]=a[1]*d;c[2]=a[2]*d;c[3]=a[3]*d;c[4]=a[4]*e;c[5]=a[5]*e;c[6]=a[6]*e;c[7]=a[7]*e;c[8]=a[8]*b;c[9]=a[9]*b;c[10]=a[10]*b;c[11]=a[11]*b;c[12]=a[12];c[13]=a[13];c[14]=a[14];c[15]=a[15];return c},rotate:function(a,b,c,d){var e=c[0],g=c[1],c=c[2],f=Math.sqrt(e*e+g*g+c*c),h,j,i,m,l,k,q,n,o,p,r,s,v,t,u,w,x,y,z,A;if(!f)return null;1!==f&&(f=1/f,e*=f,g*=f,c*=f);h=Math.sin(b);j=Math.cos(b);i=1-j;b=a[0];
+f=a[1];m=a[2];l=a[3];k=a[4];q=a[5];n=a[6];o=a[7];p=a[8];r=a[9];s=a[10];v=a[11];t=e*e*i+j;u=g*e*i+c*h;w=c*e*i-g*h;x=e*g*i-c*h;y=g*g*i+j;z=c*g*i+e*h;A=e*c*i+g*h;e=g*c*i-e*h;g=c*c*i+j;d?a!==d&&(d[12]=a[12],d[13]=a[13],d[14]=a[14],d[15]=a[15]):d=a;d[0]=b*t+k*u+p*w;d[1]=f*t+q*u+r*w;d[2]=m*t+n*u+s*w;d[3]=l*t+o*u+v*w;d[4]=b*x+k*y+p*z;d[5]=f*x+q*y+r*z;d[6]=m*x+n*y+s*z;d[7]=l*x+o*y+v*z;d[8]=b*A+k*e+p*g;d[9]=f*A+q*e+r*g;d[10]=m*A+n*e+s*g;d[11]=l*A+o*e+v*g;return d},rotateX:function(a,b,c){var d=Math.sin(b),
+b=Math.cos(b),e=a[4],g=a[5],f=a[6],h=a[7],j=a[8],i=a[9],m=a[10],l=a[11];c?a!==c&&(c[0]=a[0],c[1]=a[1],c[2]=a[2],c[3]=a[3],c[12]=a[12],c[13]=a[13],c[14]=a[14],c[15]=a[15]):c=a;c[4]=e*b+j*d;c[5]=g*b+i*d;c[6]=f*b+m*d;c[7]=h*b+l*d;c[8]=e*-d+j*b;c[9]=g*-d+i*b;c[10]=f*-d+m*b;c[11]=h*-d+l*b;return c},rotateY:function(a,b,c){var d=Math.sin(b),b=Math.cos(b),e=a[0],g=a[1],f=a[2],h=a[3],j=a[8],i=a[9],m=a[10],l=a[11];c?a!==c&&(c[4]=a[4],c[5]=a[5],c[6]=a[6],c[7]=a[7],c[12]=a[12],c[13]=a[13],c[14]=a[14],c[15]=
+a[15]):c=a;c[0]=e*b+j*-d;c[1]=g*b+i*-d;c[2]=f*b+m*-d;c[3]=h*b+l*-d;c[8]=e*d+j*b;c[9]=g*d+i*b;c[10]=f*d+m*b;c[11]=h*d+l*b;return c},rotateZ:function(a,b,c){var d=Math.sin(b),b=Math.cos(b),e=a[0],g=a[1],f=a[2],h=a[3],j=a[4],i=a[5],m=a[6],l=a[7];c?a!==c&&(c[8]=a[8],c[9]=a[9],c[10]=a[10],c[11]=a[11],c[12]=a[12],c[13]=a[13],c[14]=a[14],c[15]=a[15]):c=a;c[0]=e*b+j*d;c[1]=g*b+i*d;c[2]=f*b+m*d;c[3]=h*b+l*d;c[4]=e*-d+j*b;c[5]=g*-d+i*b;c[6]=f*-d+m*b;c[7]=h*-d+l*b;return c},frustum:function(a,b,c,d,e,g,f){f||
+(f=x.create());var h=b-a,j=d-c,i=g-e;f[0]=2*e/h;f[1]=0;f[2]=0;f[3]=0;f[4]=0;f[5]=2*e/j;f[6]=0;f[7]=0;f[8]=(b+a)/h;f[9]=(d+c)/j;f[10]=-(g+e)/i;f[11]=-1;f[12]=0;f[13]=0;f[14]=-(2*g*e)/i;f[15]=0;return f},perspective:function(a,b,c,d,e){a=c*Math.tan(a*Math.PI/360);b*=a;return x.frustum(-b,b,-a,a,c,d,e)},ortho:function(a,b,c,d,e,g,f){f||(f=x.create());var h=b-a,j=d-c,i=g-e;f[0]=2/h;f[1]=0;f[2]=0;f[3]=0;f[4]=0;f[5]=2/j;f[6]=0;f[7]=0;f[8]=0;f[9]=0;f[10]=-2/i;f[11]=0;f[12]=-(a+b)/h;f[13]=-(d+c)/j;f[14]=
+-(g+e)/i;f[15]=1;return f},lookAt:function(a,b,c,d){d||(d=x.create());var e,g,f,h,j,i,m,l,k=a[0],o=a[1],a=a[2];f=c[0];h=c[1];g=c[2];m=b[0];c=b[1];e=b[2];if(k===m&&o===c&&a===e)return x.identity(d);b=k-m;c=o-c;m=a-e;l=1/Math.sqrt(b*b+c*c+m*m);b*=l;c*=l;m*=l;e=h*m-g*c;g=g*b-f*m;f=f*c-h*b;(l=Math.sqrt(e*e+g*g+f*f))?(l=1/l,e*=l,g*=l,f*=l):f=g=e=0;h=c*f-m*g;j=m*e-b*f;i=b*g-c*e;(l=Math.sqrt(h*h+j*j+i*i))?(l=1/l,h*=l,j*=l,i*=l):i=j=h=0;d[0]=e;d[1]=h;d[2]=b;d[3]=0;d[4]=g;d[5]=j;d[6]=c;d[7]=0;d[8]=f;d[9]=
+i;d[10]=m;d[11]=0;d[12]=-(e*k+g*o+f*a);d[13]=-(h*k+j*o+i*a);d[14]=-(b*k+c*o+m*a);d[15]=1;return d},fromRotationTranslation:function(a,b,c){c||(c=x.create());var d=a[0],e=a[1],g=a[2],f=a[3],h=d+d,j=e+e,i=g+g,a=d*h,m=d*j,d=d*i,k=e*j,e=e*i,g=g*i,h=f*h,j=f*j,f=f*i;c[0]=1-(k+g);c[1]=m+f;c[2]=d-j;c[3]=0;c[4]=m-f;c[5]=1-(a+g);c[6]=e+h;c[7]=0;c[8]=d+j;c[9]=e-h;c[10]=1-(a+k);c[11]=0;c[12]=b[0];c[13]=b[1];c[14]=b[2];c[15]=1;return c},str:function(a){return"["+a[0]+", "+a[1]+", "+a[2]+", "+a[3]+", "+a[4]+", "+
+a[5]+", "+a[6]+", "+a[7]+", "+a[8]+", "+a[9]+", "+a[10]+", "+a[11]+", "+a[12]+", "+a[13]+", "+a[14]+", "+a[15]+"]"}},k={create:function(a){var b=new o(4);a?(b[0]=a[0],b[1]=a[1],b[2]=a[2],b[3]=a[3]):b[0]=b[1]=b[2]=b[3]=0;return b},createFrom:function(a,b,c,d){var e=new o(4);e[0]=a;e[1]=b;e[2]=c;e[3]=d;return e},set:function(a,b){b[0]=a[0];b[1]=a[1];b[2]=a[2];b[3]=a[3];return b},equal:function(a,b){return a===b||1.0E-6>Math.abs(a[0]-b[0])&&1.0E-6>Math.abs(a[1]-b[1])&&1.0E-6>Math.abs(a[2]-b[2])&&1.0E-6>
+Math.abs(a[3]-b[3])},identity:function(a){a||(a=k.create());a[0]=0;a[1]=0;a[2]=0;a[3]=1;return a}},O=k.identity();k.calculateW=function(a,b){var c=a[0],d=a[1],e=a[2];if(!b||a===b)return a[3]=-Math.sqrt(Math.abs(1-c*c-d*d-e*e)),a;b[0]=c;b[1]=d;b[2]=e;b[3]=-Math.sqrt(Math.abs(1-c*c-d*d-e*e));return b};k.dot=function(a,b){return a[0]*b[0]+a[1]*b[1]+a[2]*b[2]+a[3]*b[3]};k.inverse=function(a,b){var c=a[0],d=a[1],e=a[2],g=a[3],c=(c=c*c+d*d+e*e+g*g)?1/c:0;if(!b||a===b)return a[0]*=-c,a[1]*=-c,a[2]*=-c,a[3]*=
+c,a;b[0]=-a[0]*c;b[1]=-a[1]*c;b[2]=-a[2]*c;b[3]=a[3]*c;return b};k.conjugate=function(a,b){if(!b||a===b)return a[0]*=-1,a[1]*=-1,a[2]*=-1,a;b[0]=-a[0];b[1]=-a[1];b[2]=-a[2];b[3]=a[3];return b};k.length=function(a){var b=a[0],c=a[1],d=a[2],a=a[3];return Math.sqrt(b*b+c*c+d*d+a*a)};k.normalize=function(a,b){b||(b=a);var c=a[0],d=a[1],e=a[2],g=a[3],f=Math.sqrt(c*c+d*d+e*e+g*g);if(0===f)return b[0]=0,b[1]=0,b[2]=0,b[3]=0,b;f=1/f;b[0]=c*f;b[1]=d*f;b[2]=e*f;b[3]=g*f;return b};k.add=function(a,b,c){if(!c||
+a===c)return a[0]+=b[0],a[1]+=b[1],a[2]+=b[2],a[3]+=b[3],a;c[0]=a[0]+b[0];c[1]=a[1]+b[1];c[2]=a[2]+b[2];c[3]=a[3]+b[3];return c};k.multiply=function(a,b,c){c||(c=a);var d=a[0],e=a[1],g=a[2],a=a[3],f=b[0],h=b[1],j=b[2],b=b[3];c[0]=d*b+a*f+e*j-g*h;c[1]=e*b+a*h+g*f-d*j;c[2]=g*b+a*j+d*h-e*f;c[3]=a*b-d*f-e*h-g*j;return c};k.multiplyVec3=function(a,b,c){c||(c=b);var d=b[0],e=b[1],g=b[2],b=a[0],f=a[1],h=a[2],a=a[3],j=a*d+f*g-h*e,i=a*e+h*d-b*g,k=a*g+b*e-f*d,d=-b*d-f*e-h*g;c[0]=j*a+d*-b+i*-h-k*-f;c[1]=i*a+
+d*-f+k*-b-j*-h;c[2]=k*a+d*-h+j*-f-i*-b;return c};k.scale=function(a,b,c){if(!c||a===c)return a[0]*=b,a[1]*=b,a[2]*=b,a[3]*=b,a;c[0]=a[0]*b;c[1]=a[1]*b;c[2]=a[2]*b;c[3]=a[3]*b;return c};k.toMat3=function(a,b){b||(b=A.create());var c=a[0],d=a[1],e=a[2],g=a[3],f=c+c,h=d+d,j=e+e,i=c*f,k=c*h,c=c*j,l=d*h,d=d*j,e=e*j,f=g*f,h=g*h,g=g*j;b[0]=1-(l+e);b[1]=k+g;b[2]=c-h;b[3]=k-g;b[4]=1-(i+e);b[5]=d+f;b[6]=c+h;b[7]=d-f;b[8]=1-(i+l);return b};k.toMat4=function(a,b){b||(b=x.create());var c=a[0],d=a[1],e=a[2],g=
+a[3],f=c+c,h=d+d,j=e+e,i=c*f,k=c*h,c=c*j,l=d*h,d=d*j,e=e*j,f=g*f,h=g*h,g=g*j;b[0]=1-(l+e);b[1]=k+g;b[2]=c-h;b[3]=0;b[4]=k-g;b[5]=1-(i+e);b[6]=d+f;b[7]=0;b[8]=c+h;b[9]=d-f;b[10]=1-(i+l);b[11]=0;b[12]=0;b[13]=0;b[14]=0;b[15]=1;return b};k.slerp=function(a,b,c,d){d||(d=a);var e=a[0]*b[0]+a[1]*b[1]+a[2]*b[2]+a[3]*b[3],g,f;if(1<=Math.abs(e))return d!==a&&(d[0]=a[0],d[1]=a[1],d[2]=a[2],d[3]=a[3]),d;g=Math.acos(e);f=Math.sqrt(1-e*e);if(0.001>Math.abs(f))return d[0]=0.5*a[0]+0.5*b[0],d[1]=0.5*a[1]+0.5*b[1],
+d[2]=0.5*a[2]+0.5*b[2],d[3]=0.5*a[3]+0.5*b[3],d;e=Math.sin((1-c)*g)/f;c=Math.sin(c*g)/f;d[0]=a[0]*e+b[0]*c;d[1]=a[1]*e+b[1]*c;d[2]=a[2]*e+b[2]*c;d[3]=a[3]*e+b[3]*c;return d};k.fromRotationMatrix=function(a,b){b||(b=k.create());var c=a[0]+a[4]+a[8],d;if(0<c)d=Math.sqrt(c+1),b[3]=0.5*d,d=0.5/d,b[0]=(a[7]-a[5])*d,b[1]=(a[2]-a[6])*d,b[2]=(a[3]-a[1])*d;else{d=k.fromRotationMatrix.s_iNext=k.fromRotationMatrix.s_iNext||[1,2,0];c=0;a[4]>a[0]&&(c=1);a[8]>a[3*c+c]&&(c=2);var e=d[c],g=d[e];d=Math.sqrt(a[3*c+
+c]-a[3*e+e]-a[3*g+g]+1);b[c]=0.5*d;d=0.5/d;b[3]=(a[3*g+e]-a[3*e+g])*d;b[e]=(a[3*e+c]+a[3*c+e])*d;b[g]=(a[3*g+c]+a[3*c+g])*d}return b};A.toQuat4=k.fromRotationMatrix;(function(){var a=A.create();k.fromAxes=function(b,c,d,e){a[0]=c[0];a[3]=c[1];a[6]=c[2];a[1]=d[0];a[4]=d[1];a[7]=d[2];a[2]=b[0];a[5]=b[1];a[8]=b[2];return k.fromRotationMatrix(a,e)}})();k.identity=function(a){a||(a=k.create());a[0]=0;a[1]=0;a[2]=0;a[3]=1;return a};k.fromAngleAxis=function(a,b,c){c||(c=k.create());var a=0.5*a,d=Math.sin(a);
+c[3]=Math.cos(a);c[0]=d*b[0];c[1]=d*b[1];c[2]=d*b[2];return c};k.toAngleAxis=function(a,b){b||(b=a);var c=a[0]*a[0]+a[1]*a[1]+a[2]*a[2];0<c?(b[3]=2*Math.acos(a[3]),c=E.invsqrt(c),b[0]=a[0]*c,b[1]=a[1]*c,b[2]=a[2]*c):(b[3]=0,b[0]=1,b[1]=0,b[2]=0);return b};k.str=function(a){return"["+a[0]+", "+a[1]+", "+a[2]+", "+a[3]+"]"};var J={create:function(a){var b=new o(2);a?(b[0]=a[0],b[1]=a[1]):(b[0]=0,b[1]=0);return b},createFrom:function(a,b){var c=new o(2);c[0]=a;c[1]=b;return c},add:function(a,b,c){c||
+(c=b);c[0]=a[0]+b[0];c[1]=a[1]+b[1];return c},subtract:function(a,b,c){c||(c=b);c[0]=a[0]-b[0];c[1]=a[1]-b[1];return c},multiply:function(a,b,c){c||(c=b);c[0]=a[0]*b[0];c[1]=a[1]*b[1];return c},divide:function(a,b,c){c||(c=b);c[0]=a[0]/b[0];c[1]=a[1]/b[1];return c},scale:function(a,b,c){c||(c=a);c[0]=a[0]*b;c[1]=a[1]*b;return c},dist:function(a,b){var c=b[0]-a[0],d=b[1]-a[1];return Math.sqrt(c*c+d*d)},set:function(a,b){b[0]=a[0];b[1]=a[1];return b},equal:function(a,b){return a===b||1.0E-6>Math.abs(a[0]-
+b[0])&&1.0E-6>Math.abs(a[1]-b[1])},negate:function(a,b){b||(b=a);b[0]=-a[0];b[1]=-a[1];return b},normalize:function(a,b){b||(b=a);var c=a[0]*a[0]+a[1]*a[1];0<c?(c=Math.sqrt(c),b[0]=a[0]/c,b[1]=a[1]/c):b[0]=b[1]=0;return b},cross:function(a,b,c){a=a[0]*b[1]-a[1]*b[0];if(!c)return a;c[0]=c[1]=0;c[2]=a;return c},length:function(a){var b=a[0],a=a[1];return Math.sqrt(b*b+a*a)},squaredLength:function(a){var b=a[0],a=a[1];return b*b+a*a},dot:function(a,b){return a[0]*b[0]+a[1]*b[1]},direction:function(a,
+b,c){c||(c=a);var d=a[0]-b[0],a=a[1]-b[1],b=d*d+a*a;if(!b)return c[0]=0,c[1]=0,c[2]=0,c;b=1/Math.sqrt(b);c[0]=d*b;c[1]=a*b;return c},lerp:function(a,b,c,d){d||(d=a);d[0]=a[0]+c*(b[0]-a[0]);d[1]=a[1]+c*(b[1]-a[1]);return d},str:function(a){return"["+a[0]+", "+a[1]+"]"}},I={create:function(a){var b=new o(4);a?(b[0]=a[0],b[1]=a[1],b[2]=a[2],b[3]=a[3]):b[0]=b[1]=b[2]=b[3]=0;return b},createFrom:function(a,b,c,d){var e=new o(4);e[0]=a;e[1]=b;e[2]=c;e[3]=d;return e},set:function(a,b){b[0]=a[0];b[1]=a[1];
+b[2]=a[2];b[3]=a[3];return b},equal:function(a,b){return a===b||1.0E-6>Math.abs(a[0]-b[0])&&1.0E-6>Math.abs(a[1]-b[1])&&1.0E-6>Math.abs(a[2]-b[2])&&1.0E-6>Math.abs(a[3]-b[3])},identity:function(a){a||(a=I.create());a[0]=1;a[1]=0;a[2]=0;a[3]=1;return a},transpose:function(a,b){if(!b||a===b){var c=a[1];a[1]=a[2];a[2]=c;return a}b[0]=a[0];b[1]=a[2];b[2]=a[1];b[3]=a[3];return b},determinant:function(a){return a[0]*a[3]-a[2]*a[1]},inverse:function(a,b){b||(b=a);var c=a[0],d=a[1],e=a[2],g=a[3],f=c*g-e*
+d;if(!f)return null;f=1/f;b[0]=g*f;b[1]=-d*f;b[2]=-e*f;b[3]=c*f;return b},multiply:function(a,b,c){c||(c=a);var d=a[0],e=a[1],g=a[2],a=a[3];c[0]=d*b[0]+e*b[2];c[1]=d*b[1]+e*b[3];c[2]=g*b[0]+a*b[2];c[3]=g*b[1]+a*b[3];return c},rotate:function(a,b,c){c||(c=a);var d=a[0],e=a[1],g=a[2],a=a[3],f=Math.sin(b),b=Math.cos(b);c[0]=d*b+e*f;c[1]=d*-f+e*b;c[2]=g*b+a*f;c[3]=g*-f+a*b;return c},multiplyVec2:function(a,b,c){c||(c=b);var d=b[0],b=b[1];c[0]=d*a[0]+b*a[1];c[1]=d*a[2]+b*a[3];return c},scale:function(a,
+b,c){c||(c=a);var d=a[1],e=a[2],g=a[3],f=b[0],b=b[1];c[0]=a[0]*f;c[1]=d*b;c[2]=e*f;c[3]=g*b;return c},str:function(a){return"["+a[0]+", "+a[1]+", "+a[2]+", "+a[3]+"]"}},K={create:function(a){var b=new o(4);a?(b[0]=a[0],b[1]=a[1],b[2]=a[2],b[3]=a[3]):(b[0]=0,b[1]=0,b[2]=0,b[3]=0);return b},createFrom:function(a,b,c,d){var e=new o(4);e[0]=a;e[1]=b;e[2]=c;e[3]=d;return e},add:function(a,b,c){c||(c=b);c[0]=a[0]+b[0];c[1]=a[1]+b[1];c[2]=a[2]+b[2];c[3]=a[3]+b[3];return c},subtract:function(a,b,c){c||(c=
+b);c[0]=a[0]-b[0];c[1]=a[1]-b[1];c[2]=a[2]-b[2];c[3]=a[3]-b[3];return c},multiply:function(a,b,c){c||(c=b);c[0]=a[0]*b[0];c[1]=a[1]*b[1];c[2]=a[2]*b[2];c[3]=a[3]*b[3];return c},divide:function(a,b,c){c||(c=b);c[0]=a[0]/b[0];c[1]=a[1]/b[1];c[2]=a[2]/b[2];c[3]=a[3]/b[3];return c},scale:function(a,b,c){c||(c=a);c[0]=a[0]*b;c[1]=a[1]*b;c[2]=a[2]*b;c[3]=a[3]*b;return c},set:function(a,b){b[0]=a[0];b[1]=a[1];b[2]=a[2];b[3]=a[3];return b},equal:function(a,b){return a===b||1.0E-6>Math.abs(a[0]-b[0])&&1.0E-6>
+Math.abs(a[1]-b[1])&&1.0E-6>Math.abs(a[2]-b[2])&&1.0E-6>Math.abs(a[3]-b[3])},negate:function(a,b){b||(b=a);b[0]=-a[0];b[1]=-a[1];b[2]=-a[2];b[3]=-a[3];return b},length:function(a){var b=a[0],c=a[1],d=a[2],a=a[3];return Math.sqrt(b*b+c*c+d*d+a*a)},squaredLength:function(a){var b=a[0],c=a[1],d=a[2],a=a[3];return b*b+c*c+d*d+a*a},lerp:function(a,b,c,d){d||(d=a);d[0]=a[0]+c*(b[0]-a[0]);d[1]=a[1]+c*(b[1]-a[1]);d[2]=a[2]+c*(b[2]-a[2]);d[3]=a[3]+c*(b[3]-a[3]);return d},str:function(a){return"["+a[0]+", "+
+a[1]+", "+a[2]+", "+a[3]+"]"}};w&&(w.glMatrixArrayType=o,w.MatrixArray=o,w.setMatrixArrayType=D,w.determineMatrixArrayType=G,w.glMath=E,w.vec2=J,w.vec3=r,w.vec4=K,w.mat2=I,w.mat3=A,w.mat4=x,w.quat4=k);return{glMatrixArrayType:o,MatrixArray:o,setMatrixArrayType:D,determineMatrixArrayType:G,glMath:E,vec2:J,vec3:r,vec4:K,mat2:I,mat3:A,mat4:x,quat4:k}});/*
+ Javascript graphics utility library
+ Helper functions, WebGL classes, Mouse input, Colours and Gradients UI
+ Copyright (c) 2014, Owen Kaluza
+ Released into public domain:
+ This program is free software. It comes without any warranty, to
+ the extent permitted by applicable law. You can redistribute it
+ and/or modify it as long as this header remains intact
+*/
+var $jscomp=$jscomp||{};$jscomp.scope={};$jscomp.checkStringArgs=function(a,b,c){if(null==a)throw new TypeError("The 'this' value for String.prototype."+c+" must not be null or undefined");if(b instanceof RegExp)throw new TypeError("First argument to String.prototype."+c+" must not be a regular expression");return a+""};
+$jscomp.defineProperty="function"==typeof Object.defineProperties?Object.defineProperty:function(a,b,c){if(c.get||c.set)throw new TypeError("ES3 does not support getters and setters.");a!=Array.prototype&&a!=Object.prototype&&(a[b]=c.value)};$jscomp.getGlobal=function(a){return"undefined"!=typeof window&&window===a?a:"undefined"!=typeof global&&null!=global?global:a};$jscomp.global=$jscomp.getGlobal(this);
+$jscomp.polyfill=function(a,b,c,d){if(b){c=$jscomp.global;a=a.split(".");for(d=0;d<a.length-1;d++){var e=a[d];e in c||(c[e]={});c=c[e]}a=a[a.length-1];d=c[a];b=b(d);b!=d&&null!=b&&$jscomp.defineProperty(c,a,{configurable:!0,writable:!0,value:b})}};
+$jscomp.polyfill("String.prototype.repeat",function(a){return a?a:function(a){var b=$jscomp.checkStringArgs(this,null,"repeat");if(0>a||1342177279<a)throw new RangeError("Invalid count value");a|=0;for(var d="";a;)if(a&1&&(d+=b),a>>>=1)b+=b;return d}},"es6-impl","es3");$jscomp.stringPadding=function(a,b){var c=void 0!==a?String(a):" ";return 0<b&&c?c.repeat(Math.ceil(b/c.length)).substring(0,b):""};
+$jscomp.polyfill("String.prototype.padStart",function(a){return a?a:function(a,c){var b=$jscomp.checkStringArgs(this,null,"padStart");return $jscomp.stringPadding(c,a-b.length)+b}},"es8","es3");var OK=function(){var a={debug_on:!1,debug:function(b){if(a.debug_on){var c=document.getElementById("console");c?c.innerHTML="<div style=\"font-family: 'monospace'; font-size: 8pt;\">"+b+"</div>"+c.innerHTML:console.log(b)}},clear:function(){var a=document.getElementById("console");a&&(a.innerHTML="")}};return a}();
+function getSearchVariable(a,b){for(var c=window.location.search.substring(1).split("&"),d=0;d<c.length;d++){var e=c[d].split("=");if(unescape(e[0])==a)return unescape(e[1])}return b}function getImageDataURL(a){var b=document.createElement("canvas");b.width=a.width;b.height=a.height;b.getContext("2d").drawImage(a,0,0);return b.toDataURL("image/png")}
+function toggle(a){var b=document.getElementById(a).style.display;"none"!=b&&b?document.getElementById(a).style.display="none":document.getElementById(a).style.display="block"}function setAll(a,b){for(var c=document.getElementsByClassName(b),d=0;d<c.length;d++)c[d].style.display=a}function getSourceFromElement(a){var b=document.getElementById(a);if(!b)return null;a="";for(b=b.firstChild;b;)3==b.nodeType&&(a+=b.textContent),b=b.nextSibling;return a}
+function removeChildren(a){if(a.hasChildNodes())for(;0<a.childNodes.length;)a.removeChild(a.firstChild)}function requestFullScreen(a){a=document.getElementById(a);a.requestFullscreen?a.requestFullscreen():a.mozRequestFullScreen?a.mozRequestFullScreen():a.webkitRequestFullScreen&&a.webkitRequestFullScreen()}function typeOf(a){var b=typeof a;"object"===b&&(a?"number"!==typeof a.length||a.propertyIsEnumerable("length")||"function"!==typeof a.splice||(b="array"):b="null");return b}
+function isEmpty(a){var b,c;if("object"===typeOf(a))for(b in a)if(c=a[b],void 0!==c&&"function"!==typeOf(c))return!1;return!0}
+function ajaxReadFile(a,b,c,d,e){var f=new XMLHttpRequest,g=0;void 0!=d&&("number"==typeof d?g=d:f.onprogress=d);f.onreadystatechange=function(){if(0<g&&2<f.readyState){var c=parseInt(f.responseText.length);d&&setProgress(c/g*100)}4==f.readyState&&(200==f.status?(d&&setProgress(100),OK.debug("RECEIVED: "+a),b&&b(f.responseText,a)):b?b("Error: "+f.status+" : "+a):OK.debug("Ajax Read File Error: returned status code "+f.status+" "+f.statusText))};c?f.open("GET",a+"?d="+(new Date).getTime(),!0):f.open("GET",
+a,!0);for(var h in e)f.setRequestHeader(h,e[h]);f.send(null)}function readURL(a,b,c){var d=new XMLHttpRequest,e=0;void 0!=c&&("number"==typeof c?e=c:d.onprogress=c);d.onreadystatechange=function(){if(0<e&&2<d.readyState){var a=parseInt(d.responseText.length);c&&setProgress(a/e*100)}};b?d.open("GET",a+"?d="+(new Date).getTime(),!1):d.open("GET",a,!1);d.overrideMimeType("text/plain; charset=x-user-defined");d.send(null);if(200!=d.status)return"";c&&setProgress(100);return d.responseText}
+function updateProgress(a){a.lengthComputable&&(setProgress(a.loaded/a.total*100),OK.debug(a.loaded+" / "+a.total))}function setProgress(a){a=Math.round(a);document.getElementById("progressbar").style.width=3*a+"px";document.getElementById("progressstatus").innerHTML=a+"%"}
+function ajaxPost(a,b,c,d,e){var f=new XMLHttpRequest;void 0!=d&&(f.upload.onprogress=d);f.onreadystatechange=function(){4==f.readyState&&(200==f.status?(d&&setProgress(100),OK.debug("POST: "+a),c&&c(f.responseText)):c?c("Error, status:"+f.status):OK.debug("Ajax Post Error: returned status code "+f.status+" "+f.statusText))};f.open("POST",a,!0);"string"==typeof b&&f.setRequestHeader("Content-type","application/x-www-form-urlencoded");if(e)for(key in e)f.setRequestHeader(key,e[key]);f.send(b)}
+var defaultMouse,dragMouse;function MouseEventHandler(a,b,c,d,e,f,g){this.click=a;this.wheel=b;this.move=c;this.down=d;this.up=e;this.leave=f;this.pinch=g}
+function Mouse(a,b,c){this.element=a;this.handler=b;this.isdown=this.disabled=!1;this.button=null;this.dragged=!1;this.lastY=this.lastX=this.absoluteY=this.absoluteX=this.x=this.x=0;this.slider=null;this.spin=0;this.moveUpdate=!1;this.enableContext=c?!0:!1;a.addEventListener("onwheel"in document?"wheel":"mousewheel",handleMouseWheel,!1);a.onmousedown=handleMouseDown;a.onmouseout=handleMouseLeave;document.onmouseup=handleMouseUp;document.onmousemove=handleMouseMove;a.addEventListener("touchstart",
+touchHandler,!0);a.addEventListener("touchmove",touchHandler,!0);a.addEventListener("touchend",touchHandler,!0);a.oncontextmenu=function(){return this.mouse.enableContext}}Mouse.prototype.setDefault=function(){defaultMouse=document.mouse=this};
+Mouse.prototype.update=function(a){a||(a=window.event);this.x=a.clientX;this.y=a.clientY;this.absoluteX=this.x;this.absoluteY=this.y;var b=this.element.getBoundingClientRect(),b=[b.left,b.top];this.x-=b[0];this.y-=b[1];this.clientx=a.pageX-b[0];this.clienty=a.pageY-b[1]};function getMouse(a){a||(a=window.event);var b=a.target.mouse;if(b)return b;for(a=a.target;a!=document;)if(a=a.parentNode,a.mouse)return a.mouse;return null}
+function handleMouseDown(a){var b=getMouse(a);if(!b||b.disabled)return!0;b.target=(a||window.event).target;b.dragged=!1;b.update(a);b.isdown||(b.lastX=b.absoluteX,b.lastY=b.absoluteY);b.isdown=!0;dragMouse=b;b.button=a.button;document.mouse=b;var c=!0;b.handler.down&&(c=b.handler.down(a,b));!c&&a.preventDefault&&a.preventDefault();return c}
+function handleMouseUp(a){var b=document.mouse;if(!b||b.disabled)return!0;var c=!0;b.isdown&&(b.update(a),b.handler.click&&(c=b.handler.click(a,b)),b.isdown=!1,dragMouse=null,b.button=null,b.dragged=!1);b.handler.up&&(c=c&&b.handler.up(a,b));document.mouse=defaultMouse;!c&&a.preventDefault&&a.preventDefault();return c}
+function handleMouseMove(a){var b=dragMouse?dragMouse:getMouse(a);if(!b||b.disabled)return!0;b.update(a);b.deltaX=b.absoluteX-b.lastX;b.deltaY=b.absoluteY-b.lastY;var c=!0;!b.dragged&&b.isdown&&3<Math.abs(b.deltaX)+Math.abs(b.deltaY)&&(b.dragged=!0);b.handler.move&&(c=b.handler.move(a,b));b.moveUpdate&&(b.lastX=b.absoluteX,b.lastY=b.absoluteY);!c&&a.preventDefault&&a.preventDefault();return c}
+function handleMouseWheel(a){var b=getMouse(a);if(!b||b.disabled)return!0;b.update(a);var c=!1;a.spin=0<(a.deltaY?-a.deltaY:a.wheelDelta)?1:-1;b.handler.wheel&&(c=b.handler.wheel(a,b));!c&&a.preventDefault&&a.preventDefault();return c}function handleMouseLeave(a){var b=getMouse(a);if(!b||b.disabled)return!0;var c=!0;b.handler.leave&&(c=b.handler.leave(a,b));!c&&a.preventDefault&&a.preventDefault();return a.returnValue=c}
+function touchHandler(a){var b=a.changedTouches[0],c=null,d=getMouse(a);switch(a.type){case "touchstart":2==a.touches.length?(d.isdown=!1,d.scaling=0):c="mousedown";break;case "touchmove":if(null!=d.scaling&&2==a.touches.length){var e=Math.sqrt((a.touches[0].pageX-a.touches[1].pageX)*(a.touches[0].pageX-a.touches[1].pageX)+(a.touches[0].pageY-a.touches[1].pageY)*(a.touches[0].pageY-a.touches[1].pageY));0<d.scaling?(a.distance=e-d.scaling,d.handler.pinch&&d.handler.pinch(a,d),a.returnValue=!0):d.scaling=
+e}else c="mousemove";break;case "touchend":null!=d.scaling?d.scaling=0==d.scaling?null:0:c="mouseup";break;default:return}1<a.touches.length&&(c=null);c&&(d=document.createEvent("MouseEvent"),d.initMouseEvent(c,!0,!0,window,1,b.screenX,b.screenY,b.clientX,b.clientY,a.ctrlKey,a.altKey,a.shiftKey,a.metaKey,0,null),b.target.dispatchEvent(d),a.preventDefault())}
+function printMatrix(a){console.log("--------- --------- --------- ---------");for(var b=0;4>b;b++){for(var c="",d=0;4>d;d++)var e=""+(4*d+b),f=""+a[4*d+b].toFixed(5),c=c+(e.padStart(2)+" "+f.padStart(8)+" ");console.log(c)}console.log("--------- --------- --------- ---------")}function Viewport(a,b,c,d){this.x=a;this.y=b;this.width=c;this.height=d;this.array=new Float32Array([a,b,c,d])}
+function WebGL(a,b){this.program=null;this.modelView=new ViewMatrix;this.projection=new ViewMatrix;this.textures=[];this.timer=null;if(!window.WebGLRenderingContext)throw"No browser WebGL support";try{this.gl=a.getContext("webgl",b)||a.getContext("experimental-webgl",b)}catch(c){throw OK.debug("detectGL exception: "+c),"No context";}this.viewport=new Viewport(0,0,a.width,a.height);if(!this.gl)throw"Failed to get context";}
+WebGL.prototype.setMatrices=function(){this.gl.uniformMatrix4fv(this.program.mvMatrixUniform,!1,this.modelView.matrix);this.gl.uniformMatrix4fv(this.program.pMatrixUniform,!1,this.projection.matrix);this.setNormalMatrix()};WebGL.prototype.setNormalMatrix=function(){this.program.nMatrixUniform&&(this.nMatrix=mat4.create(this.modelView.matrix),mat4.inverse(this.nMatrix),mat4.transpose(this.nMatrix),this.gl.uniformMatrix4fv(this.program.nMatrixUniform,!1,this.nMatrix))};
+WebGL.prototype.initDraw2d=function(){this.gl.enableVertexAttribArray(this.program.attributes.aVertexPosition);this.gl.bindBuffer(this.gl.ARRAY_BUFFER,this.vertexPositionBuffer);this.gl.vertexAttribPointer(this.program.attributes.aVertexPosition,this.vertexPositionBuffer.itemSize,this.gl.FLOAT,!1,0,0);this.program.attributes.aTextureCoord&&(this.gl.enableVertexAttribArray(this.program.attributes.aTextureCoord),this.gl.bindBuffer(this.gl.ARRAY_BUFFER,this.textureCoordBuffer),this.gl.vertexAttribPointer(this.program.attributes.aTextureCoord,
+this.textureCoordBuffer.itemSize,this.gl.FLOAT,!1,0,0));this.setMatrices()};WebGL.prototype.updateTexture=function(a,b,c){void 0==c&&(c=this.gl.TEXTURE0);this.gl.activeTexture(c);this.gl.bindTexture(this.gl.TEXTURE_2D,a);this.gl.texImage2D(this.gl.TEXTURE_2D,0,this.gl.RGBA,this.gl.RGBA,this.gl.UNSIGNED_BYTE,b);this.gl.bindTexture(this.gl.TEXTURE_2D,null)};
+WebGL.prototype.init2dBuffers=function(a){void 0==a&&(a=this.gl.TEXTURE0);this.vertexPositionBuffer=this.gl.createBuffer();this.gl.bindBuffer(this.gl.ARRAY_BUFFER,this.vertexPositionBuffer);this.gl.bufferData(this.gl.ARRAY_BUFFER,new Float32Array([1,1,-1,1,1,-1,-1,-1]),this.gl.STATIC_DRAW);this.vertexPositionBuffer.itemSize=2;this.vertexPositionBuffer.numItems=4;this.gl.activeTexture(a);this.gradientTexture=this.gl.createTexture();this.gl.bindTexture(this.gl.TEXTURE_2D,this.gradientTexture);this.gl.texParameteri(this.gl.TEXTURE_2D,
+this.gl.TEXTURE_MAG_FILTER,this.gl.NEAREST);this.gl.texParameteri(this.gl.TEXTURE_2D,this.gl.TEXTURE_MIN_FILTER,this.gl.NEAREST);this.textureCoordBuffer=this.gl.createBuffer();this.gl.bindBuffer(this.gl.ARRAY_BUFFER,this.textureCoordBuffer);this.gl.bufferData(this.gl.ARRAY_BUFFER,new Float32Array([1,1,0,1,1,0,0,0]),this.gl.STATIC_DRAW);this.textureCoordBuffer.itemSize=2;this.textureCoordBuffer.numItems=4};
+WebGL.prototype.loadTexture=function(a,b,c,d){void 0==b&&(b=this.gl.NEAREST);void 0==c&&(c=this.gl.RGBA);this.texid=this.textures.length;this.textures.push(this.gl.createTexture());this.gl.bindTexture(this.gl.TEXTURE_2D,this.textures[this.texid]);d&&this.gl.pixelStorei(this.gl.UNPACK_FLIP_Y_WEBGL,!0);this.gl.texImage2D(this.gl.TEXTURE_2D,0,c,c,this.gl.UNSIGNED_BYTE,a);this.gl.texParameteri(this.gl.TEXTURE_2D,this.gl.TEXTURE_MAG_FILTER,b);this.gl.texParameteri(this.gl.TEXTURE_2D,this.gl.TEXTURE_MIN_FILTER,
+b);this.gl.texParameteri(this.gl.TEXTURE_2D,this.gl.TEXTURE_WRAP_S,this.gl.CLAMP_TO_EDGE);this.gl.texParameteri(this.gl.TEXTURE_2D,this.gl.TEXTURE_WRAP_T,this.gl.CLAMP_TO_EDGE);this.gl.bindTexture(this.gl.TEXTURE_2D,null);return this.textures[this.texid]};WebGL.prototype.setPerspective=function(a,b,c,d){void 0==a&&(a=45);void 0==b&&(b=1);void 0==c&&(c=.1);void 0==d&&(d=1E3);this.projection.matrix=mat4.perspective(a,b,c,d)};WebGL.prototype.use=function(a){this.program=a;this.program.program&&this.gl.useProgram(this.program.program)};
+WebGL.prototype.view=function(a){this.gl&&(this.gl.viewport(this.viewport.x,this.viewport.y,this.viewport.width,this.viewport.height),this.gl.clear(this.gl.COLOR_BUFFER_BIT|this.gl.DEPTH_BUFFER_BIT),this.apply(a))};
+WebGL.prototype.apply=function(a){if(this.gl){this.setPerspective(a.fov,this.viewport.width/this.viewport.height,a.near_clip,a.far_clip);this.modelView.identity();this.modelView.translate([a.translate[0],a.translate[1],a.translate[2]]);var b=[-(a.focus[0]-a.centre[0]),-(a.focus[1]-a.centre[1]),-(a.focus[2]-a.centre[2])];this.modelView.translate(b);this.modelView.mult(quat4.toMat4(a.rotate));this.modelView.scale(a.scale);this.modelView.translate([-b[0],-b[1],-b[2]]);this.modelView.translate([-a.focus[0],
+-a.focus[1],-a.focus[2]*a.orientation]);1==a.orientation?this.gl.frontFace(a.gl.CCW):(this.gl.frontFace(a.gl.CW),this.modelView.scale([1,1,-1]))}};
+function WebGLProgram(a,b,c){this.program=null;0>b.indexOf("main")&&(b=getSourceFromElement(b));0>c.indexOf("main")&&(c=getSourceFromElement(c));this.gl=a;this.program&&this.gl.isProgram(this.program)&&(this.gl.isShader(this.vshader)&&(this.gl.detachShader(this.program,this.vshader),this.gl.deleteShader(this.vshader)),this.gl.isShader(this.fshader)&&(this.gl.detachShader(this.program,this.fshader),this.gl.deleteShader(this.fshader)),this.gl.deleteProgram(this.program));this.program=this.gl.createProgram();
+this.vshader=this.compileShader(b,this.gl.VERTEX_SHADER);this.fshader=this.compileShader(c,this.gl.FRAGMENT_SHADER);this.gl.attachShader(this.program,this.vshader);this.gl.attachShader(this.program,this.fshader);this.gl.linkProgram(this.program);if(!this.gl.getProgramParameter(this.program,this.gl.LINK_STATUS))throw"Could not initialise shaders: "+this.gl.getProgramInfoLog(this.program);}
+WebGLProgram.prototype.compileShader=function(a,b){var c=this.gl.createShader(b);this.gl.shaderSource(c,a);this.gl.compileShader(c);if(!this.gl.getShaderParameter(c,this.gl.COMPILE_STATUS))throw this.gl.getShaderInfoLog(c);return c};
+WebGLProgram.prototype.setup=function(a,b,c){if(this.program){if(void 0==a){a=[];for(var d=this.gl.getProgramParameter(this.program,this.gl.ACTIVE_ATTRIBUTES),e=0;e<d;++e){var f=this.gl.getActiveAttrib(this.program,e);a.push(f.name)}}if(void 0==b)for(b=[],d=this.gl.getProgramParameter(this.program,this.gl.ACTIVE_UNIFORMS),e=0;e<d;++e)f=this.gl.getActiveUniform(this.program,e),b.push(f.name);this.attributes={};for(e in a)this.attributes[a[e]]=this.gl.getAttribLocation(this.program,a[e]),c||this.gl.enableVertexAttribArray(this.attributes[a[e]]);
+this.uniforms={};for(e in b)this.uniforms[b[e]]=this.gl.getUniformLocation(this.program,b[e]);this.mvMatrixUniform=this.gl.getUniformLocation(this.program,"uMVMatrix");this.pMatrixUniform=this.gl.getUniformLocation(this.program,"uPMatrix");this.nMatrixUniform=this.gl.getUniformLocation(this.program,"uNMatrix")}};function ViewMatrix(){this.matrix=mat4.create();mat4.identity(this.matrix);this.stack=[]}ViewMatrix.prototype.toString=function(){return JSON.stringify(this.toArray())};
+ViewMatrix.prototype.toArray=function(){return JSON.parse(mat4.str(this.matrix))};ViewMatrix.prototype.push=function(a){a?(this.stack.push(mat4.create(a)),this.matrix=mat4.create(a)):this.stack.push(mat4.create(this.matrix))};ViewMatrix.prototype.pop=function(){if(0==this.stack.length)throw"Matrix stack underflow";return this.matrix=this.stack.pop()};ViewMatrix.prototype.mult=function(a){mat4.multiply(this.matrix,a)};ViewMatrix.prototype.identity=function(){mat4.identity(this.matrix)};
+ViewMatrix.prototype.scale=function(a){mat4.scale(this.matrix,a)};ViewMatrix.prototype.translate=function(a){mat4.translate(this.matrix,a)};ViewMatrix.prototype.rotate=function(a,b){mat4.rotate(this.matrix,a*Math.PI/180,b)};
+function Palette(a,b){this.premultiply=b;this.background=new Colour("rgba(0,0,0,0)");this.colours=[];this.slider=new Image;this.slider.src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAPCAYAAAA2yOUNAAAAj0lEQVQokWNIjHT8/+zZs//Pnj37/+TJk/9XLp/+f+bEwf9HDm79v2Prqv9aKrz/GUYVEaeoMDMQryJXayWIoi0bFmFV1NWS+z/E1/Q/AwMDA0NVcez/LRsWoSia2luOUAADVcWx/xfO6/1/5fLp/1N7y//HhlmhKoCBgoyA/w3Vyf8jgyyxK4CBUF8zDAUAAJRXY0G1eRgAAAAASUVORK5CYII=";if(a){var c=!1;if("string"==typeof a)for(var d=a.split(/[\n;]/),e,f=0;f<
+d.length;f++){var g=d[f].trim();if(g){var h=g.split("=");if("Background"==h[0])this.background=new Colour(h[1]);else if("P"==h[0][0])e=parseFloat(h[1]);else if("C"==h[0][0]){if(this.colours.push(new ColourPos(h[1],e)),1==e)break}else 2==h.length?this.colours.push(new ColourPos(h[1],h[0])):(c=!0,this.colours.push(new ColourPos(g)))}}else{for(d=0;d<a.length;d++)void 0==a[d].position&&(c=!0),this.colours.push(new ColourPos(a[d].colour,a[d].position));a.background&&(this.background=new Colour(a.background))}if(c)for(d=
+0;d<this.colours.length;d++)this.colours[d].position=1/(this.colours.length-1)*d;this.sort();c=!1;for(d=0;d<this.colours.length;d++)0<this.colours[d].colour.alpha&&(c=!0),1<this.colours[d].colour.alpha&&(this.colours[d].colour.alpha=1);if(!c)for(d=0;d<this.colours.length;d++)this.colours[d].colour.alpha=1}else this.colours.push(new ColourPos("rgba(255,255,255,1)",0)),this.colours.push(new ColourPos("rgba(0,0,0,1)",1))}
+Palette.prototype.sort=function(){this.colours.sort(function(a,b){return a.position-b.position})};Palette.prototype.newColour=function(a,b){var c=new ColourPos(b,a);this.colours.push(c);this.sort();for(c=1;c<this.colours.length-1;c++)if(this.colours[c].position==a)return c;return-1};Palette.prototype.inRange=function(a,b,c){for(var d=0;d<this.colours.length;d++){var e=this.colours[d].position*c;if(a==e||1<b&&a>=e-b/2&&a<=e+b/2)return d}return-1};
+Palette.prototype.inDragRange=function(a,b,c){for(var d=1;d<this.colours.length-1;d++){var e=this.colours[d].position*c;if(a==e||1<b&&a>=e-b/2&&a<=e+b/2)return d}return 0};Palette.prototype.remove=function(a){this.colours.splice(a,1)};Palette.prototype.toString=function(){for(var a="Background="+this.background.html(),b=0;b<this.colours.length;b++)a+="\n"+this.colours[b].position.toFixed(6)+"="+this.colours[b].colour.html();return a};
+Palette.prototype.get=function(){var a={};a.background=this.background.html();a.colours=[];for(var b=0;b<this.colours.length;b++)a.colours.push({position:this.colours[b].position,colour:this.colours[b].colour.html()});return a};Palette.prototype.toJSON=function(){return JSON.stringify(this.get())};
+Palette.prototype.draw=function(a,b){if(!this.slider.width&&b){var c=this;setTimeout(function(){c.draw(a,b)},150)}else if(a){var d=/webkit/.test(navigator.userAgent.toLowerCase());0==this.colours.length&&(this.background=new Colour("#ffffff"),this.colours.push(new ColourPos("#000000",0)),this.colours.push(new ColourPos("#ffffff",1)));list=this.colours.slice(0);list.sort(function(a,b){return a.position-b.position});if(a.getContext){var e=a.width,f=a.height,g=a.getContext("2d");g.clearRect(0,0,e,f);
+if(d)for(var h=0,d=1;d<list.length;d++){var k=Math.round(e*list[d].position);g.fillStyle=g.createLinearGradient(h,0,k,0);var l=list[d-1].colour,m=list[d].colour;this.premultiply&&!b&&(l=this.background.blend(l),m=this.background.blend(m));g.fillStyle.addColorStop(0,l.html());g.fillStyle.addColorStop(1,m.html());g.fillRect(h,0,k-h,f);h=k}else{g.fillStyle=g.createLinearGradient(0,0,e,0);for(d=0;d<list.length;d++)h=list[d].colour,this.premultiply&&!b&&(h=this.background.blend(h)),g.fillStyle.addColorStop(list[d].position,
+h.html());g.fillRect(0,0,e,f)}if(f=document.getElementById("backgroundCUR"))f.style.background=this.background.html();if(b)for(d=1;d<list.length-1;d++)f=Math.floor(e*list[d].position)+.5,50<list[d].colour.HSV().V?g.strokeStyle="black":g.strokeStyle="white",g.beginPath(),g.moveTo(f,0),g.lineTo(f,a.height),g.closePath(),g.stroke(),f-=this.slider.width/2,g.drawImage(this.slider,f,0)}else alert("getContext failed!")}else alert("Invalid canvas!")};
+function ColourPos(a,b){this.position=void 0==b?0:parseFloat(b);if(0<=this.position&&1>=this.position)this.colour=a?"object"==typeof a?a:new Colour(a):new Colour("#000000");else throw"Invalid Colour Position: "+b;}
+function Colour(a){"undefined"==typeof a?this.set("#ffffff"):"string"==typeof a?this.set(a):"object"==typeof a?"undefined"!=typeof a.H?this.setHSV(a):"undefined"!=typeof a.red?(this.red=a.red,this.green=a.green,this.blue=a.blue,this.alpha=a.alpha):a.R?(this.red=a.R,this.green=a.G,this.blue=a.B,this.alpha="undefined"==typeof a.A?1:a.A):(this.red=a[0],this.green=a[1],this.blue=a[2],1>=this.red&&1>=this.green&&1>=this.blue&&(this.red=Math.round(255*this.red),this.green=Math.round(255*this.green),this.blue=
+Math.round(255*this.blue)),this.alpha="undefined"==typeof a[3]?1:a[3]):this.fromInt(a);1<this.alpha&&(this.alpha/=255)}
+Colour.prototype.set=function(a){a||(a="#ffffff");var b=/^rgba?\((\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,?\s*(\d\.?\d*)?\)$/.exec(a);b?(this.red=parseInt(b[1]),this.green=parseInt(b[2]),this.blue=parseInt(b[3]),this.alpha="undefined"==typeof b[4]?1:parseFloat(b[4])):"#"==a.charAt(0)?(a=a.substring(1,7),this.alpha=1,this.red=parseInt(a.substring(0,2),16),this.green=parseInt(a.substring(2,4),16),this.blue=parseInt(a.substring(4,6),16)):this.fromInt(parseInt(a));1<this.alpha&&(this.alpha/=255)};
+Colour.prototype.fromInt=function(a){this.red=a&255;this.green=(a&65280)>>>8;this.blue=(a&16711680)>>>16;this.alpha=((a&4278190080)>>>24)/255};Colour.prototype.toInt=function(){var a=this.red,a=a+(this.green<<8),a=a+(this.blue<<16);return a+=Math.round(255*this.alpha)<<24};Colour.prototype.toString=function(){return this.html()};Colour.prototype.html=function(){return"rgba("+this.red+","+this.green+","+this.blue+","+this.alpha.toFixed(2)+")"};
+Colour.prototype.rgbaGL=function(){return new Float32Array([this.red/255,this.green/255,this.blue/255,this.alpha])};Colour.prototype.rgbaGLSL=function(){var a=this.rgbaGL();return"rgba("+a[0].toFixed(4)+","+a[1].toFixed(4)+","+a[2].toFixed(4)+","+a[3].toFixed(4)+")"};Colour.prototype.rgba=function(){return[this.red/255,this.green/255,this.blue/255,this.alpha]};Colour.prototype.rgbaObj=function(){return{R:this.red,G:this.green,B:this.blue,A:this.alpha}};Colour.prototype.print=function(){OK.debug(this.printString(!0))};
+Colour.prototype.printString=function(a){return"R:"+this.red+" G:"+this.green+" B:"+this.blue+(a?" A:"+this.alpha:"")};Colour.prototype.HEX=function(a){a=Math.round(Math.min(Math.max(0,a),255));return"0123456789ABCDEF".charAt((a-a%16)/16)+"0123456789ABCDEF".charAt(a%16)};Colour.prototype.htmlHex=function(a){return"#"+this.HEX(this.red)+this.HEX(this.green)+this.HEX(this.blue)};Colour.prototype.hex=function(a){return this.HEX(this.red)+this.HEX(this.green)+this.HEX(this.blue)+this.HEX(255*this.alpha)};
+Colour.prototype.hexGL=function(a){return this.HEX(255*this.alpha)+this.HEX(this.blue)+this.HEX(this.green)+this.HEX(this.red)};
+Colour.prototype.setHSV=function(a){var b,c,d,e,f;f=a.S/100;var g=a.V/100,h=a.H/360;if(0<f){1<=h&&(h=0);h*=6;F=h-Math.floor(h);d=Math.round(255*g*(1-f));e=Math.round(255*g*(1-f*F));f=Math.round(255*g*(1-f*(1-F)));g=Math.round(255*g);switch(Math.floor(h)){case 0:b=g;c=f;e=d;break;case 1:b=e;c=g;e=d;break;case 2:b=d;c=g;e=f;break;case 3:b=d;c=e;e=g;break;case 4:b=f;c=d;e=g;break;case 5:b=g,c=d}this.red=b?b:0;this.green=c?c:0;this.blue=e?e:0}else this.blue=this.green=this.red=g=Math.round(255*g);this.alpha=
+"undefined"==typeof a.A?1:a.A};Colour.prototype.HSV=function(){var a=this.red/255,b=this.green/255,c=this.blue/255,d=Math.max(a,b,c);deltaMax=d-Math.min(a,b,c);var e,f,g,h,k;0==deltaMax?e=f=0:(e=deltaMax/d,g=((d-a)/6+deltaMax/2)/deltaMax,h=((d-b)/6+deltaMax/2)/deltaMax,k=((d-c)/6+deltaMax/2)/deltaMax,a==d?f=k-h:b==d?f=1/3+g-k:c==d&&(f=2/3+h-g),0>f&&(f+=1),1<f&&--f);return{H:360*f,S:100*e,V:100*d}};Colour.prototype.HSVA=function(){var a=this.HSV();a.A=this.alpha;return a};
+Colour.prototype.interpolate=function(a,b){this.red=Math.round(this.red+b*(a.red-this.red));this.green=Math.round(this.green+b*(a.green-this.green));this.blue=Math.round(this.blue+b*(a.blue-this.blue));this.alpha=Math.round(this.alpha+b*(a.alpha-this.alpha))};Colour.prototype.blend=function(a){return new Colour([Math.round((1-a.alpha)*this.red+a.alpha*a.red),Math.round((1-a.alpha)*this.green+a.alpha*a.green),Math.round((1-a.alpha)*this.blue+a.alpha*a.blue),(1-a.alpha)*this.alpha+a.alpha*a.alpha])};
+function MoveWindow(a){if(a){this.element=document.getElementById(a);if(!this.element)return alert("No such element: "+a),null;this.mouse=new Mouse(this.element,this);this.mouse.moveUpdate=!0;this.element.mouse=this.mouse}}
+MoveWindow.prototype.open=function(a,b){var c=this.element.style;0>a&&(a=0);0>b&&(b=0);void 0!=a&&(c.left=a+"px");void 0!=b&&(c.top=b+"px");c.display="block";var d=this.element.offsetWidth,e=this.element.offsetHeight;a+d>window.innerWidth-20&&(c.left=window.innerWidth-d-20+"px");b+e>window.innerHeight-20&&(c.top=window.innerHeight-e-20+"px")};MoveWindow.prototype.close=function(){this.element.style.display="none"};
+MoveWindow.prototype.move=function(a,b){if(b.isdown&&!(0<b.button)){var c=b.element.style;c.left=parseInt(c.left)+b.deltaX+"px";c.top=parseInt(c.top)+b.deltaY+"px"}};MoveWindow.prototype.down=function(a,b){return!1};function scale(a,b,c,d){return clamp(d*a/b,c,d)}function clamp(a,b,c){return Math.max(b,Math.min(c,a))}
+function ColourPicker(a,b){function c(a,b,c){var d=document.createElement("div");d.id=a;b&&(d.innerHTML=b);c&&(d.style.cssText=c);return d}var d=document.getElementById("picker");if(d&&d.picker)return d.picker.savefn=a,d.picker.abortfn=b,d.picker;d=document.body;this.element=c("picker",null,"display:none; top: 58px; z-index: 20; background: #0d0d0d; color: #aaa; cursor: move; font-family: arial; font-size: 11px; padding: 7px 10px 11px 10px; position: fixed; width: 232px; border-radius: 5px; border: 1px solid #444;");
+var e=c("pickCURBG",null,'background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAIElEQVQ4jWP4TwAcOHAAL2YYNWBYGEBIASEwasCwMAAALvidroqDalkAAAAASUVORK5CYII="); float: left; width: 12px; height: 12px; margin-right: 3px;');e.appendChild(c("pickCUR",null,"float: left; width: 12px; height: 12px; background: #fff; margin-right: 3px;"));this.element.appendChild(e);e=c("pickRGB","R: 255 G: 255 B: 255","float: left; position: relative; top: -1px;");e.onclick="colours.picker.updateString()";
+this.element.appendChild(e);this.element.appendChild(c("pickCLOSE","X","float: right; cursor: pointer; margin: 0 8px 3px;"));this.element.appendChild(c("pickOK","OK","float: right; cursor: pointer; margin: 0 8px 3px;"));e=c("SV",null,"position: relative; cursor: crosshair; float: left; height: 170px; width: 170px; margin-right: 10px; background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAEG0lEQVQ4jQEQBO/7APz8/Pz7+/vx+/v75Pr6+tb6+vrF+Pj4tPf396H4+PiO9/f3e/X19Wfz8/NU8PDwQuvr6zLi4uIjzs7OFZmZmQoA8PDw/O/v7/Ht7e3l7Ozs2Ozs7Mjq6uq35ubmpeXl5ZLf39+A3NzcbtXV1VvMzMxLvr6+O6ioqCyEhIQfQEBAFADk5OT84eHh8uDg4Obe3t7Z3Nzcy9nZ2brV1dWq0NDQmcrKyofCwsJ2uLi4ZKqqqlSYmJhFfX19N1lZWSsnJychANPT0/zT09Pz0NDQ6c3NzdzKysrNx8fHv8DAwK+6urqfsrKyj6mpqX+cnJxvjIyMX3l5eVBeXl5EPz8/ORsbGy8Aw8PD/MHBwfS+vr7qurq63ra2ttKxsbHErKystaOjo6eampqXj4+PiYODg3lycnJrXl5eX0hISFIuLi5IEBAQPwCwsLD9r6+v9aysrOynp6fioqKi1p2dncmVlZW8jo6OroODg6F5eXmUa2trhl1dXXlLS0ttNzc3YiIiIlkNDQ1RAJ6env2bm5v2l5eX7pSUlOWPj4/aiIiIz4GBgcN5eXm3cHBwq2RkZJ5XV1eSSkpKhzk5OX0qKipzGBgYawgICGMAioqK/YeHh/eDg4PvgICA6Hp6et90dHTVbW1ty2VlZcBcXFy1UVFRqkZGRqA6OjqWLS0tjSEhIYQSEhJ9BgYGdwB2dnb+c3Nz+HFxcfJra2vrZmZm42JiYttaWlrRUlJSyUtLS79CQkK2Nzc3rS0tLaQiIiKdGBgYlQ4ODo8EBASKAGNjY/5gYGD5XV1d9FpaWu5VVVXnTk5O4UlJSdlCQkLRPDw8yTQ0NMEqKiq7IiIisxkZGa0RERGmCgoKoQMDA5wAUFBQ/k9PT/pKSkr3R0dH8kNDQ+w+Pj7mOTk54DMzM9otLS3TJycnzSAgIMgZGRnBExMTvA0NDbcHBweyAwMDrwA9PT3+PDw8+zo6Ovg2Njb0MzMz8DAwMOwqKirnJSUl4iEhId4cHBzYFxcX1BISEtAODg7KCQkJxwQEBMQBAQHBAC0tLf4rKyv9Kioq+iYmJvclJSX0ISEh8R4eHu4aGhrqFhYW5xMTE+MQEBDgDQ0N3AgICNkGBgbWBAQE0wAAANEAHh4e/h0dHf0bGxv7Ghoa+hgYGPcWFhb2FBQU8xEREfEPDw/uDAwM7AoKCuoICAjoBgYG5gMDA+MBAQHiAAAA4QARERH+EBAQ/g8PD/0NDQ38DQ0N+wsLC/kKCgr4CAgI9wcHB/YFBQX0BAQE8wICAvIBAQHwAQEB7wAAAO8AAADuAAUFBf4FBQX+BAQE/gQEBP4DAwP+AwMD/QMDA/0CAgL8AQEB/AEBAfsAAAD7AAAA+wAAAPoAAAD6AAAA+QAAAPmq2NbsCl2m4wAAAABJRU5ErkJggg==') no-repeat; background-size: 100%;");
+e.appendChild(c("SVslide",null,"background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAALUlEQVQYlWNgQAX/kTBW8B8ZYFMIk0ARQFaIoQCbQuopIspNRPsOrpABSzgBAFHzU61KjdKlAAAAAElFTkSuQmCC'); height: 9px; width: 9px; position: absolute; cursor: crosshair"));this.element.appendChild(e);e=c("H",null,'cursor: crosshair; float: left; height: 170px; position: relative; width: 19px; padding: 0;background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAIElEQVQ4jWP4TwAcOHAAL2YYNWBYGEBIASEwasCwMAAALvidroqDalkAAAAASUVORK5CYII=");');
+e.appendChild(c("Hmodel",null,"position: relative;"));e.appendChild(c("Hslide",null,'top: 0px; left: -5px; background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB0AAAAFCAYAAAC5Fuf5AAAAKklEQVQokWP4////fwY6gv////9n+A8F9LIQxVJaW4xiz4D5lB4WIlsMAPjER7mTpG/OAAAAAElFTkSuQmCC"); height: 5px; width: 29px; position: absolute; '));this.element.appendChild(e);e=c("O",null,'cursor: crosshair; float: left; height: 170px; position: relative; width: 19px; padding: 0;background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAIElEQVQ4jWP4TwAcOHAAL2YYNWBYGEBIASEwasCwMAAALvidroqDalkAAAAASUVORK5CYII=");border: 1px solid #888; left: 9px;');
+e.appendChild(c("Omodel",null,"position: relative;"));e.appendChild(c("Oslide",null,'top: 0px; left: -5px; background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB0AAAAFCAYAAAC5Fuf5AAAAKklEQVQokWP4////fwY6gv////9n+A8F9LIQxVJaW4xiz4D5lB4WIlsMAPjER7mTpG/OAAAAAElFTkSuQmCC"); height: 5px; width: 29px; position: absolute; '));this.element.appendChild(e);d.appendChild(this.element);d=document.createElement("style");d.styleSheet?d.styleSheet.cssText="#pickRGB:hover {color: #FFD000;} #pickCLOSE:hover {color: #FFD000;} #pickOK:hover {color: #FFD000;}":
+d.appendChild(document.createTextNode("#pickRGB:hover {color: #FFD000;} #pickCLOSE:hover {color: #FFD000;} #pickOK:hover {color: #FFD000;}"));document.getElementsByTagName("head")[0].appendChild(d);MoveWindow.call(this,"picker");this.savefn=a;this.abortfn=b;this.size=170;this.sv=5;this.oh=2;this.picked={H:360,S:100,V:100,A:1};this.max={H:360,S:100,V:100,A:1};this.colour=new Colour;for(var e="",f,d=0;d<=this.size;d++)f=new Colour({H:Math.round(360/this.size*d),S:100,V:100,A:1}),e+="<div class='hue' style='height: 1px; width: 19px; margin: 0; padding: 0; background: "+
+f.htmlHex()+";'> </div>";document.getElementById("Hmodel").innerHTML=e;e="";for(d=0;d<=this.size;d++)f=1-d/this.size,e+="<div class='opacity' style='height: 1px; width: 19px; margin: 0; padding: 0; background: #000;opacity: "+f.toFixed(2)+";'> </div>";document.getElementById("Omodel").innerHTML=e;this.element.picker=this}ColourPicker.prototype=new MoveWindow;ColourPicker.prototype.constructor=MoveWindow;
+ColourPicker.prototype.pick=function(a,b,c){this.update(a.HSVA());"block"!=this.element.style.display&&MoveWindow.prototype.open.call(this,b,c)};ColourPicker.prototype.select=function(a,b,c){if(!b||!c){var d=a.getBoundingClientRect();b=b?b:d.left+32;c=c?c:d.top+32}d=new Colour(a.style.backgroundColor);this.update(d.HSVA());"block"!=this.element.style.display&&(MoveWindow.prototype.open.call(this,b,c),this.target=a)};
+ColourPicker.prototype.click=function(a,b){if("pickCLOSE"==b.target.id)this.abortfn&&this.abortfn(),toggle("picker");else if("pickOK"==b.target.id){this.savefn&&this.savefn(this.picked);if(this.target){var c=new Colour(this.picked);this.target.style.backgroundColor=c.html()}toggle("picker")}else"SV"==b.target.id?this.setSV(b):"Hslide"==b.target.id||"hue"==b.target.className?this.setHue(b):"Oslide"!=b.target.id&&"opacity"!=b.target.className||this.setOpacity(b)};
+ColourPicker.prototype.move=function(a,b){b.isdown&&0==b.button&&("picker"==b.target.id||"pickCUR"==b.target.id||"pickRGB"==b.target.id?MoveWindow.prototype.move.call(this,a,b):b.target&&this.click(a,b))};ColourPicker.prototype.wheel=function(a,b){this.incHue(-a.spin)};
+ColourPicker.prototype.setSV=function(a){var b=document.getElementById("SV").getBoundingClientRect(),c=a.absoluteX-parseInt(b.left);a=a.absoluteY-parseInt(b.top);this.picked.S=scale(c,this.size,0,this.max.S);this.picked.V=this.max.V-scale(a,this.size,0,this.max.V);this.update(this.picked)};ColourPicker.prototype.setHue=function(a){var b=document.getElementById("H").getBoundingClientRect();parseInt(b.left);a=a.absoluteY-parseInt(b.top);this.picked.H=scale(a,this.size,0,this.max.H);this.update(this.picked)};
+ColourPicker.prototype.incHue=function(a){this.picked.H+=a;this.picked.H=clamp(this.picked.H,0,this.max.H);this.update(this.picked)};ColourPicker.prototype.setOpacity=function(a){var b=document.getElementById("O").getBoundingClientRect();parseInt(b.left);a=a.absoluteY-parseInt(b.top);this.picked.A=1-clamp(a/this.size,0,1);this.update(this.picked)};ColourPicker.prototype.updateString=function(a){a||(a=prompt("Edit colour:",this.colour.html()));a&&(this.colour=new Colour(a),this.update(this.colour.HSV()))};
+ColourPicker.prototype.update=function(a){this.picked=a;this.colour=new Colour(a);rgba=this.colour.rgbaObj();rgbaStr=this.colour.html();bgcol=new Colour({H:a.H,S:100,V:100,A:255});document.getElementById("pickRGB").innerHTML=this.colour.printString();document.getElementById("pickCUR").style.background=rgbaStr;document.getElementById("pickCUR").style.backgroundColour=rgbaStr;document.getElementById("SV").style.backgroundColor=bgcol.htmlHex();document.getElementById("Hslide").style.top=a.H/360*this.size-
+this.oh+"px";document.getElementById("SVslide").style.top=Math.round(this.size-a.V/100*this.size-this.sv)+"px";document.getElementById("SVslide").style.left=Math.round(a.S/100*this.size-this.sv)+"px";document.getElementById("Oslide").style.top=this.size*(1-a.A)-this.oh-1+"px"};
+function GradientEditor(a,b,c,d,e){this.canvas=a;this.callback=b;this.premultiply=c;this.changed=!0;this.inserting=!1;this.element=this.editing=null;this.spin=0;this.scrollable=e;d||(this.picker=new ColourPicker(this.save.bind(this),this.cancel.bind(this)));this.palette=new Palette(null,c);this.canvas.mouse=new Mouse(this.canvas,this);this.canvas.oncontextmenu="return false;";this.canvas.oncontextmenu=function(){return!1}}
+GradientEditor.prototype.read=function(a){this.palette=new Palette(a,this.premultiply);this.reset();this.update(!0)};GradientEditor.prototype.update=function(a){this.changed=!0;this.palette.draw(this.canvas,!0);!a&&this.callback&&this.callback(this)};GradientEditor.prototype.get=function(a,b){if(b&&!this.changed)return!1;this.changed=!1;this.palette.draw(a,!1);return!0};
+GradientEditor.prototype.insert=function(a,b,c){this.inserting=!0;var d=new Colour;this.editing=this.palette.newColour(a,d);this.update();this.picker=new ColourPicker(this.save.bind(this),this.cancel.bind(this));this.picker.pick(d,b,c)};GradientEditor.prototype.editBackground=function(a){this.editing=-1;this.element=a;this.picker=new ColourPicker(this.save.bind(this),this.cancel.bind(this));a=a.getBoundingClientRect();this.picker.pick(this.palette.background,a.left+32,a.top+32)};
+GradientEditor.prototype.edit=function(a,b,c){this.picker=new ColourPicker(this.save.bind(this),this.cancel.bind(this));"number"==typeof a?(this.editing=a,this.picker.pick(this.palette.colours[a].colour,b,c)):"object"==typeof a&&(this.cancel(),this.element=a,b=new Colour(a.style.backgroundColor),a=a.getBoundingClientRect(),this.picker.pick(b,a.left+32,a.top+32));this.update()};
+GradientEditor.prototype.save=function(a){null!=this.editing&&(0<=this.editing?this.palette.colours[this.editing].colour.setHSV(a):this.palette.background.setHSV(a));if(this.element){var b=new Colour(0);b.setHSV(a);this.element.style.backgroundColor=b.html();if(this.element.onchange)this.element.onchange()}this.reset();this.update()};GradientEditor.prototype.cancel=function(){0<=this.editing&&this.inserting&&this.palette.remove(this.editing);this.reset();this.update()};
+GradientEditor.prototype.reset=function(){this.inserting=!1;this.element=this.editing=null};
+GradientEditor.prototype.click=function(a,b){if(a.ctrlKey){for(var c=0;c<this.palette.colours.length;c++)this.palette.colours[c].position=1-this.palette.colours[c].position;this.update();return!1}if(null!=b.slider)return b.slider=null,this.palette.sort(),this.update(),!1;var d=this.canvas;if(d.getContext){this.cancel();d.getContext("2d");var e=d.getBoundingClientRect().top+30,c=this.palette.inRange(b.x,this.palette.slider.width,d.width);0<=c?0==a.button?this.edit(c,a.clientX-128,e):2==a.button&&(this.palette.remove(c),
+this.update()):this.insert(b.x/d.width,a.clientX-128,e)}return!1};GradientEditor.prototype.down=function(a,b){return!1};GradientEditor.prototype.move=function(a,b){if(!b.isdown)return!0;if(null==b.slider){var c=this.palette.inDragRange(b.x,this.palette.slider.width,this.canvas.width);0<c&&(b.slider=c)}null==b.slider?b.isdown=!1:(1>b.x&&(b.x=1),b.x>this.canvas.width-1&&(b.x=this.canvas.width-1),this.palette.colours[b.slider].position=b.x/this.canvas.width,this.update(!0))};
+GradientEditor.prototype.wheel=function(a,b){this.timer?clearTimeout(this.timer):this.canvas.style.cursor="wait";this.spin+=.01*a.spin;var c=this;this.timer=setTimeout(function(){c.cycle(c.spin);c.spin=0},150)};GradientEditor.prototype.leave=function(a,b){};
+GradientEditor.prototype.cycle=function(a){this.canvas.style.cursor="default";this.timer=null;for(var b=1;b<this.palette.colours.length-1;b++){var c=this.palette.colours[b].position,c=c+a;0>=c&&(c+=1);1<=c&&--c;this.palette.colours[b].position=c}this.palette.sort();this.update()};
+//Bounding box only in WebGL
+//Urgent TODO: move shared code with draw.js into common file
+//maintaining two copies currently!
+function initBox(el, cmd_callback) {
+  //console.log("INITBOX: " + el.id);
+  var canvas = document.createElement("canvas");
+  if (!el) el = document.body.firstChild;
+  canvas.id = "canvas_" + el.id;
+  canvas.imgtarget = el
+  el.parentElement.appendChild(canvas);
+  canvas.style.cssText = "position: absolute; width: 100%; height: 100%; margin: 0px; padding: 0px; top: 0; left: 0; bottom: 0; right: 0; z-index: 11; border: none;"
+  viewer = new BoxViewer(canvas);
+
+  //Canvas event handling
+  canvas.mouse = new Mouse(canvas, new MouseEventHandler(canvasBoxMouseClick, canvasBoxMouseWheel, canvasBoxMouseMove, canvasBoxMouseDown, null, null, canvasBoxMousePinch));
+  //Following two settings should probably be defaults?
+  canvas.mouse.moveUpdate = true; //Continual update of deltaX/Y
+  //canvas.mouse.setDefault();
+  canvas.mouse.wheelTimer = true; //Accumulate wheel scroll (prevents too many events backing up)
+  defaultMouse = document.mouse = canvas.mouse;
+
+  //Attach viewer object to canvas
+  canvas.viewer = viewer;
+
+  //Command callback function
+  viewer.command = cmd_callback;
+
+  return viewer;
+}
+
+function updateBox(viewer, loaderfn) {
+  if (!viewer) return;
+  //Loader callback
+  loaderfn(function(data) {viewer.loadFile(data);});
+}
+
+function canvasBoxMouseClick(event, mouse) {
+  if (mouse.element.viewer.rotating)
+    mouse.element.viewer.command('' + mouse.element.viewer.getRotationString());
+  else
+    mouse.element.viewer.command('' + mouse.element.viewer.getTranslationString());
+
+  if (mouse.element.viewer.rotating) {
+    mouse.element.viewer.rotating = false;
+    //mouse.element.viewer.reload = true;
+  }
+
+  //Clear the webgl box
+  mouse.element.viewer.clear();
+
+  return false;
+}
+
+function canvasBoxMouseDown(event, mouse) {
+  return false;
+}
+
+var hideBoxTimer;
+
+function canvasBoxMouseMove(event, mouse) {
+  if (mouse.element && mouse.element.imgtarget) {
+    var rect = mouse.element.getBoundingClientRect();
+    x = event.clientX-rect.left;
+    y = event.clientY-rect.top;
+    if (x >= 0 && y >= 0 && x < rect.width && y < rect.height) {
+      mouse.element.imgtarget.nextElementSibling.style.display = "block";
+      if (hideBoxTimer) 
+        clearTimeout(hideBoxTimer);
+      hideBoxTimer = setTimeout(function () {mouse.element.imgtarget.nextElementSibling.style.display = "none";}, 1000 );
+    }
+  }
+
+  if (!mouse.isdown || !mouse.element.viewer) return true;
+  mouse.element.viewer.rotating = false;
+
+  //Switch buttons for translate/rotate
+  var button = mouse.button;
+
+  if (mouse.element.viewer.mode == "Translate") {
+    //Swap rotate/translate buttons
+    if (button == 0)
+      button = 2
+    else if (button == 2)
+      button = 0;
+  } else if (button==0 && mouse.element.viewer.mode == "Zoom") {
+      button = 100;
+  }
+
+  //console.log(mouse.deltaX + "," + mouse.deltaY);
+  switch (button)
+  {
+    case 0:
+      mouse.element.viewer.rotateY(mouse.deltaX/5);
+      mouse.element.viewer.rotateX(mouse.deltaY/5);
+      mouse.element.viewer.rotating = true;
+      break;
+    case 1:
+      mouse.element.viewer.rotateZ(Math.sqrt(mouse.deltaX*mouse.deltaX + mouse.deltaY*mouse.deltaY)/5);
+      mouse.element.viewer.rotating = true;
+      break;
+    case 2:
+      var adjust = mouse.element.viewer.modelsize / 1000;   //1/1000th of size
+      mouse.element.viewer.translate[0] += mouse.deltaX * adjust;
+      mouse.element.viewer.translate[1] -= mouse.deltaY * adjust;
+      break;
+    case 100:
+      var adjust = mouse.element.viewer.modelsize / 1000;   //1/1000th of size
+      mouse.element.viewer.translate[2] += mouse.deltaX * adjust;
+      break;
+  }
+
+  mouse.element.viewer.draw();
+
+  return false;
+}
+
+var zoomBoxTimer;
+var zoomBoxClipTimer;
+var zoomBoxSpin = 0;
+
+function canvasBoxMouseWheel(event, mouse) {
+  if (event.shiftKey) {
+    var factor = event.spin * 0.01;
+    if (zoomBoxClipTimer) clearTimeout(zoomBoxClipTimer);
+    zoomBoxClipTimer = setTimeout(function () {mouse.element.viewer.zoomClip(factor);}, 100 );
+  } else {
+    if (zoomBoxTimer) 
+      clearTimeout(zoomBoxTimer);
+    zoomBoxSpin += event.spin;
+    zoomBoxTimer = setTimeout(function () {mouse.element.viewer.zoom(zoomBoxSpin*0.01); zoomBoxSpin = 0;}, 100 );
+    //Clear the box after a second
+    setTimeout(function() {mouse.element.viewer.clear();}, 1000);
+  }
+  return false; //Prevent default
+}
+
+function canvasBoxMousePinch(event, mouse) {
+  if (event.distance != 0) {
+    var factor = event.distance * 0.0001;
+    mouse.element.viewer.zoom(factor);
+    //Clear the box after a second
+    setTimeout(function() {mouse.element.viewer.clear();}, 1000);
+  }
+  return false; //Prevent default
+}
+
+//This object encapsulates a vertex buffer and shader set
+function BoxRenderer(gl, colour) {
+  this.gl = gl;
+  if (colour) this.colour = colour;
+
+    //Line renderer
+    this.attribSizes = [3 * Float32Array.BYTES_PER_ELEMENT];
+
+  this.elements = 0;
+  this.elementSize = 0;
+  for (var i=0; i<this.attribSizes.length; i++)
+    this.elementSize += this.attribSizes[i];
+}
+
+BoxRenderer.prototype.init = function() {
+  //Compile the shaders
+  this.program = new WebGLProgram(this.gl, "line-vs", "line-fs");
+  if (this.program.errors) console.log(this.program.errors);
+  //Setup attribs/uniforms (flag set to skip enabling attribs)
+  this.program.setup(undefined, undefined, true);
+
+  return true;
+}
+
+BoxRenderer.prototype.updateBuffers = function(view) {
+  //Create buffer if not yet allocated
+  if (this.vertexBuffer == undefined) {
+    //Init shaders etc...
+    if (!this.init()) return;
+    this.vertexBuffer = this.gl.createBuffer();
+    this.indexBuffer = this.gl.createBuffer();
+  }
+
+  //Bind buffers
+  this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
+  this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
+
+  this.box(view.min, view.max);
+  this.elements = 24;
+}
+
+BoxRenderer.prototype.box = function(min, max) {
+  var vertices = new Float32Array(
+        [
+          min[0], min[1], max[2],
+          min[0], max[1], max[2],
+          max[0], max[1], max[2],
+          max[0], min[1], max[2],
+          min[0], min[1], min[2],
+          min[0], max[1], min[2],
+          max[0], max[1], min[2],
+          max[0], min[1], min[2]
+        ]);
+
+  var indices = new Uint16Array(
+        [
+          0, 1, 1, 2, 2, 3, 3, 0,
+          4, 5, 5, 6, 6, 7, 7, 4,
+          0, 4, 3, 7, 1, 5, 2, 6
+        ]
+     );
+  this.gl.bufferData(this.gl.ARRAY_BUFFER, vertices, this.gl.STATIC_DRAW);
+  this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, indices, this.gl.STATIC_DRAW);
+}
+
+BoxRenderer.prototype.draw = function(webgl) {
+  if (!this.elements) return;
+
+  if (this.program.attributes["aVertexPosition"] == undefined) return; //Require vertex buffer
+
+  webgl.use(this.program);
+  webgl.setMatrices();
+
+  //Bind buffers
+  this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
+  this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
+
+  //Enable attributes
+  for (var key in this.program.attributes)
+    this.gl.enableVertexAttribArray(this.program.attributes[key]);
+
+  if (this.colour)
+    this.gl.uniform4f(this.program.uniforms["uColour"], this.colour[0], this.colour[1], this.colour[2], this.colour[3]);
+ 
+  //Line box render
+  this.gl.vertexAttribPointer(this.program.attributes["aVertexPosition"], 3, this.gl.FLOAT, false, 0, 0);
+  this.gl.drawElements(this.gl.LINES, this.elements, this.gl.UNSIGNED_SHORT, 0);
+
+  //Disable attribs
+  for (var key in this.program.attributes)
+    this.gl.disableVertexAttribArray(this.program.attributes[key]);
+
+  this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
+  this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, null);
+  this.gl.useProgram(null);
+}
+
+//This object holds the viewer details and calls the renderers
+function BoxViewer(canvas) {
+  this.canvas = canvas;
+  if (!canvas) {alert("Invalid Canvas"); return;}
+  try {
+    this.webgl = new WebGL(this.canvas, {antialias: true}); //, premultipliedAlpha: false});
+    this.gl = this.webgl.gl;
+    canvas.addEventListener("webglcontextlost", function(event) {
+      event.preventDefault();
+      console.log("CONTEXT LOSS DETECTED");
+    }, false);
+
+  } catch(e) {
+    //No WebGL
+    console.log("No WebGL: " + e);
+  }
+
+  this.vis = {};
+  this.view = 0; //Active view
+
+  this.rotating = false;
+  this.translate = [0,0,0];
+  this.rotate = quat4.create();
+  quat4.identity(this.rotate);
+  this.fov = 45;
+  this.focus = [0,0,0];
+  this.centre = [0,0,0];
+  this.near_clip = this.far_clip = 0.0;
+  this.modelsize = 1;
+  this.scale = [1, 1, 1];
+  this.orientation = 1.0; //1.0 for RH, -1.0 for LH
+
+  if (!this.gl) return;
+
+  //Create the renderers
+  this.border = new BoxRenderer(this.gl, [0.5,0.5,0.5,1]);
+
+  this.gl.enable(this.gl.DEPTH_TEST);
+  this.gl.depthFunc(this.gl.LEQUAL);
+  //this.gl.depthMask(this.gl.FALSE);
+  this.gl.enable(this.gl.BLEND);
+  //this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
+  //this.gl.blendFuncSeparate(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA, this.gl.ZERO, this.gl.ONE);
+  this.gl.blendFuncSeparate(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA, this.gl.ONE, this.gl.ONE_MINUS_SRC_ALPHA);
+}
+
+BoxViewer.prototype.checkPointMinMax = function(coord) {
+  for (var i=0; i<3; i++) {
+    this.vis.views[this.view].min[i] = Math.min(coord[i], this.vis.views[this.view].min[i]);
+    this.vis.views[this.view].max[i] = Math.max(coord[i], this.vis.views[this.view].max[i]);
+  }
+  //console.log(JSON.stringify(this.vis.views[this.view].min) + " -- " + JSON.stringify(this.vis.views[this.view].max));
+}
+
+BoxViewer.prototype.loadFile = function(source) {
+  //Skip update to rotate/translate etc if in process of updating
+  //if (document.mouse.isdown) return;
+
+  //Replace data
+  this.vis = JSON.parse(source);
+
+  //Always set a bounding box, get from objects if not in view
+  var objbb = false;
+  if (!this.vis.views[this.view].min || !this.vis.views[this.view].max) {
+    this.vis.views[this.view].min = [Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE];
+    this.vis.views[this.view].max = [-Number.MAX_VALUE, -Number.MAX_VALUE, -Number.MAX_VALUE];
+    objbb = true;
+  }
+  //console.log(JSON.stringify(this.vis.views[this.view],null, 2));
+
+  if (this.vis.views[this.view]) {
+    this.fov = this.vis.views[this.view].aperture || 45;
+    this.near_clip = this.vis.views[this.view].near || 0;
+    this.far_clip = this.vis.views[this.view].far || 0;
+    this.orientation = this.vis.views[this.view].orientation || 1;
+    this.axes = this.vis.views[this.view].axis == undefined ? true : this.vis.views[this.view].axis;
+  }
+
+  if (this.vis.properties.resolution && this.vis.properties.resolution[0] && this.vis.properties.resolution[1]) {
+    this.width = this.vis.properties.resolution[0];
+    this.height = this.vis.properties.resolution[1];
+    //this.canvas.style.width = "";
+    //this.canvas.style.height = "";
+  } else {
+    //Autosize when img loaded
+    this.width = 0;
+    this.height = 0;
+  }
+
+  //Process object data
+  for (var id in this.vis.objects) {
+    //Apply object bounding box
+    if (objbb && this.vis.objects[id].min)
+      this.checkPointMinMax(this.vis.objects[id].min);
+    if (objbb && this.vis.objects[id].max)
+      this.checkPointMinMax(this.vis.objects[id].max);
+  }
+
+  this.updateDims(this.vis.views[this.view]);
+
+  //Update display
+  if (!this.gl) return;
+  this.draw();
+  this.clear();
+}
+
+
+BoxViewer.prototype.clear = function() {
+  if (!this.gl) return;
+  this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+}
+
+BoxViewer.prototype.draw = function() {
+  if (!this.canvas) return;
+
+  //Get the dimensions from the current canvas
+  if (this.width != this.canvas.offsetWidth || this.height != this.canvas.offsetHeight) {
+    this.width = this.canvas.offsetWidth;
+    this.height = this.canvas.offsetHeight;
+    //Need to set this too for some reason
+    this.canvas.width = this.width;
+    this.canvas.height = this.height;
+    if (this.gl) {
+      this.gl.viewportWidth = this.width;
+      this.gl.viewportHeight = this.height;
+      this.webgl.viewport = new Viewport(0, 0, this.width, this.height);
+    }
+  }
+  if (!this.gl) return;
+
+  this.gl.viewport(0, 0, this.gl.viewportWidth, this.gl.viewportHeight);
+  //this.gl.clearColor(1, 1, 1, 0);
+  this.gl.clearColor(0, 0, 0, 0);
+  this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+
+  this.webgl.view(this);
+
+  //Render objects
+  this.border.draw(this.webgl);
+
+}
+
+BoxViewer.prototype.rotateX = function(deg) {
+  this.rotation(deg, [1,0,0]);
+}
+
+BoxViewer.prototype.rotateY = function(deg) {
+  this.rotation(deg, [0,1,0]);
+}
+
+BoxViewer.prototype.rotateZ = function(deg) {
+  this.rotation(deg, [0,0,1]);
+}
+
+BoxViewer.prototype.rotation = function(deg, axis) {
+  //Quaterion rotate
+  var arad = deg * Math.PI / 180.0;
+  var rotation = quat4.fromAngleAxis(arad, axis);
+  rotation = quat4.normalize(rotation);
+  this.rotate = quat4.multiply(rotation, this.rotate);
+}
+
+BoxViewer.prototype.getRotation = function() {
+  return [this.rotate[0], this.rotate[1], this.rotate[2], this.rotate[3]];
+}
+
+BoxViewer.prototype.getRotationString = function() {
+  //Return current rotation quaternion as string
+  var q = this.getRotation();
+  return 'rotation ' + q[0] + ' ' + q[1] + ' ' + q[2] + ' ' + q[3];
+}
+
+BoxViewer.prototype.getTranslationString = function() {
+  return 'translation ' + this.translate[0] + ' ' + this.translate[1] + ' ' + this.translate[2];
+}
+
+BoxViewer.prototype.reset = function() {
+  if (this.gl) {
+    this.updateDims(this.vis.views[this.view]);
+    this.draw();
+  }
+
+  this.command('reset');
+}
+
+BoxViewer.prototype.zoom = function(factor) {
+  if (this.gl) {
+    this.translate[2] += factor * this.modelsize;
+    this.draw();
+  }
+
+  this.command('' + this.getTranslationString());
+  //this.command('zoom ' + factor);
+}
+
+BoxViewer.prototype.zoomClip = function(factor) {
+  if (this.gl) {
+     var near_clip = this.near_clip + factor * this.modelsize;
+     if (near_clip >= this.modelsize * 0.001)
+       this.near_clip = near_clip;
+    this.draw();
+  }
+
+  this.command('zoomclip ' + factor);
+}
+
+BoxViewer.prototype.updateDims = function(view) {
+  if (!view) return;
+  var oldsize = this.modelsize;
+  this.dims = [view.max[0] - view.min[0], view.max[1] - view.min[1], view.max[2] - view.min[2]];
+  this.modelsize = Math.sqrt(this.dims[0]*this.dims[0] + this.dims[1]*this.dims[1] + this.dims[2]*this.dims[2]);
+
+  this.focus = [view.min[0] + 0.5*this.dims[0], view.min[1] + 0.5*this.dims[1], view.min[2] + 0.5*this.dims[2]];
+  this.centre = [this.focus[0],this.focus[1],this.focus[2]];
+
+  this.translate = [0,0,0];
+  if (this.modelsize != oldsize) this.translate[2] = -this.modelsize*1.25;
+
+  if (this.near_clip == 0.0) this.near_clip = this.modelsize / 10.0;   
+  if (this.far_clip == 0.0) this.far_clip = this.modelsize * 10.0;
+
+  quat4.identity(this.rotate);
+
+  if (view) {
+    //Initial rotation
+    if (view.rotate) {
+      if (view.rotate.length == 3) {
+        this.rotateZ(-view.rotate[2]);
+        this.rotateY(-view.rotate[1]);
+        this.rotateX(-view.rotate[0]);
+      } else if (view.rotate.length == 4) {
+        this.rotate = quat4.create(view.rotate);
+      }
+    }
+
+    //Translate
+    if (view.translate) {
+      this.translate[0] = view.translate[0];
+      this.translate[1] = view.translate[1];
+      this.translate[2] = view.translate[2];
+    }
+
+    //Scale
+    if (view.scale) {
+      this.scale[0] = view.scale[0];
+      this.scale[1] = view.scale[1];
+      this.scale[2] = view.scale[2];
+    }
+
+    //Focal point
+    if (view.focus) {
+      this.focus[0] = this.centre[0] = view.focus[0];
+      this.focus[1] = this.centre[1] = view.focus[1];
+      this.focus[2] = this.centre[2] = view.focus[2];
+    }
+
+  }
+
+  //console.log("DIMS: " + min[0] + " to " + max[0] + "," + min[1] + " to " + max[1] + "," + min[2] + " to " + max[2]);
+  //console.log("New model size: " + this.modelsize + ", Focal point: " + this.focus[0] + "," + this.focus[1] + "," + this.focus[2]);
+  //console.log("Translate: " + this.translate[0] + "," + this.translate[1] + "," + this.translate[2]);
+
+  if (!this.gl) return;
+ 
+  //Create the bounding box vertex buffer
+  this.border.updateBuffers(this.vis.views[this.view]);
+}
+
+//IPython kernel object
+var kernel;
+if (parent.IPython) {
+  kernel = parent.IPython.notebook.kernel;
+}
+
+//Maintain a list of interactor instances opened by id
+//(check in case this script imported twice, don't overwrite previous)
+var _wi = window._wi ? window._wi : [];
+var delay = 0;
+var debug_mode = false;
+
+function exec_kernel(cmd) {
+  //For debugging:
+  //Run a python command in kernel and log output to console
+  if (kernel) {
+    if (debug_mode) {
+      //Debug callback
+      var callbacks = {'output' : function(out) {
+          if (!out.content.data) {console.log(JSON.stringify(out)); return;}
+          data = out.content.data['text/plain']
+          console.log("CMD: " + cmd + ", RESULT: " + data);
+        }
+      };
+    }
+    kernel.execute(cmd, {iopub: callbacks}, {silent: false});
+  }
+}
+
+function getUrl() {
+  var loc = window.location;
+  var baseUrl = loc.protocol + "//" + loc.hostname + (loc.port ? ":" + loc.port : "");
+  return baseUrl;
+}
+
+function WindowInteractor(id) {
+  //Store self in list and save id
+  this.id = id;
+  
+  console.log("New interactor: " + this.id);
+  //Interactor class, handles javascript side of window control
+  //Takes viewer id
+  // - set as active target for commands
+  // - init webgl bounding box
+  // - display initial image
+  this.img = document.getElementById("imgtarget_" + this.id);
+
+  //No window
+  if (!this.img) return;
+
+  //Initial image
+  //(Init WebGL bounding box interaction on load)
+  var that = this;
+  this.get_image(function() {
+    //console.log('In image loaded callback ' + that.id);
+    //Init on image load with callback function to execute commands
+    that.box = initBox(that.img, function(cmd) {that.execute(cmd);});
+    //console.log("Box init on " + that.id);
+    //Update the box size by getting state
+    updateBox(that.box, function(onget) {that.get_state(onget);});
+    //Clear onload
+    that.img.onload = null;
+  });
+}
+
+//Load frame image and run command in single action (non-IPython mode only)
+var instant = true;
+
+WindowInteractor.prototype.execute = function(cmd, callback) {
+  //console.log("execute: " + cmd);
+  if (kernel) {
+    exec_kernel('lavavu.control.windows[' + this.id + '].commands("' + cmd + '")');
+    //kernel.execute('lavavu.control.windows[' + this.id + '].commands("' + cmd + '")');
+    this.get_image(callback);
+  } else {
+    //HTTP interface
+    //Replace newlines with semi-colon first
+    cmd = cmd.replace(/\n/g,';');
+    if (instant && this.img) {
+      var url = getUrl() + "/icommand=" + cmd + "?" + new Date().getTime();
+      this.img.onload = null;
+      if (callback)
+        this.img.onload = callback;
+      this.img.src = url;
+    } else {
+      var url = getUrl() + "/command=" + cmd + "?" + new Date().getTime()
+      x = new XMLHttpRequest();
+      x.open('GET', url, true);
+      x.send();
+      this.get_image(callback);
+    }
+
+  }
+
+  //Reload state
+  if (this.img) {
+    var that = this;
+    updateBox(this.box, function(onget) {that.get_state(onget);});
+  }
+
+  return false;
+}
+
+WindowInteractor.prototype.set_prop = function(obj, prop, val) {
+  this.execute("select " + obj + "; " + prop + "=" + val);
+  this.get_image();
+}
+
+WindowInteractor.prototype.do_action = function(id, val) {
+  if (kernel) {
+    //Non-numeric, add quotes and strip newlines
+    if (typeof(val) == 'string' && ("" + parseFloat(val) !== val)) {
+      val = val.replace(/\n/g,';');
+      val = '"' + val + '"';
+    }
+
+    //kernel.execute('cmds = lavavu.control.action(' + id + ',' + val + ')');
+    var cmd = 'cmds = lavavu.control.Action.do(' + id + ',' + val + ')';
+    exec_kernel(cmd);
+    cmd = 'if cmds: lavavu.control.windows[' + this.id + '].commands(cmds)';
+    exec_kernel(cmd);
+    this.get_image();
+  } else {
+    //HTML control actions via http
+    actions[id](val);
+  }
+
+  //Reload state
+  if (this.img) {
+    var that = this;
+    updateBox(this.box, function(onget) {that.get_state(onget);});
+  }
+}
+
+WindowInteractor.prototype.redisplay = function() {
+  //console.log("redisplay: " + this.id);
+  if (this.img) {
+    //Call get_image
+    this.get_image();
+    //Update the box size by getting state
+    var that = this;
+    updateBox(that.box, function(onget) {that.get_state(onget);});
+  }
+}
+
+WindowInteractor.prototype.get_image = function(onload) {
+  if (!this.img) return;
+  //console.log("get_img: " + this.id);
+  if (kernel) {
+    var that = this;
+    var callbacks = {'output' : function(out) {
+        //Skip first message we get without data
+        //if (!out.content.data) {console.log(JSON.stringify(out)); return;}
+        if (!out.content.data) return;
+        data = out.content.data['text/plain']
+        data = data.substring(1, data.length-1)
+        //console.log("Got image: " + data.length);
+        if (that.img) {
+          //Only set onload if provided
+          if (onload) // && !that.img.onload)
+            that.img.onload = onload;
+          that.img.src = data;
+        }
+      }
+    };
+
+    kernel.execute('lavavu.control.windows[' + this.id + '].frame()', {iopub: callbacks}, {silent: false});
+  } else {
+    //if (!this.img) this.img = document.getElementById('imgtarget_0');
+    var url = getUrl() + "/image?" + new Date().getTime();
+    if (this.img) {
+      this.img.onload = onload;
+      this.img.src = url;
+    }
+  }
+}
+
+WindowInteractor.prototype.get_state = function(onget) {
+  //console.log("get_state: " + this.id);
+  if (kernel) {
+    var callbacks = {'output' : function(out) {
+        //if (!out.content.data) {console.log(JSON.stringify(out)); return;}
+        if (!out.content.data) return;
+        data = out.content.data['text/plain']
+        data = data.replace(/(?:\\n)+/g, "");
+        data = data.substring(1, data.length-1)
+        onget(data);
+      }
+    };
+    kernel.execute('lavavu.control.windows[' + this.id + '].app.getState()', {iopub: callbacks}, {silent: false});
+  }
+  else {
+    var url = getUrl() + "/getstate"
+    x = new XMLHttpRequest();
+    x.onload = function() { 
+      if(x.status == 200)
+        onget(x.response);
+      else  
+        console.log("Ajax Request Error: " + url + ", returned status code " + x.status + " " + x.statusText);
+    } 
+    x.open('GET', url, true);
+    x.send();
+  }
+}
+
+//Update controls from JSON data
+function updateControlValues(controls) {
+  for (var c in controls) {
+    var control = controls[c];
+    var els = document.getElementsByClassName(control[0]);
+    for(var i = 0; i < els.length; i++) {
+      //console.log(els[i].id + " : " + els[i].value + " ==> " + control[1]);
+      if (els[i].type == 'checkbox')
+        els[i].checked = control[1];
+      else
+        els[i].value = control[1];
+    };
+  }
+}
+
+function getAndUpdateControlValues(names) {
+  //Get the updated values
+  if (kernel) {
+    var callbacks = {'output' : function(out) {
+        if (!out.content.data) {console.log(JSON.stringify(out)); return;}
+        data = out.content.data['text/plain']
+        data = data.substring(1, data.length-1)
+        data = data.replace(/(?:\\n)+/g, "");
+        data = data.replace(/'/g, '"');
+        //console.log(data);
+        updateControlValues(JSON.parse(data));
+      }
+    };
+    kernel.execute('import json; json.dumps(lavavu.control.getcontrolvalues("' + names + '"))', {iopub: callbacks}, {silent: false});
+  } else {
+    //TODO: http version, need to request updated values from web server
+  }
+}
+
+
+
+</script>
+<script type="text/Javascript">
+var actions = [
+  function(value) {_wi[0].execute("select ScalarField_0; opacity=" + value + "; reload " + value + "");},
+  function(value) {_wi[0].execute("select; scalevectors=" + value + "; redraw " + value + "");},
+  null];
+function init() {_wi[0] = new WindowInteractor(0);}
+</script></head>
+<body onload="init();">
+<div style="min-height: 200px; min-width: 200px; background: #ccc; position: relative; display: inline-block;  margin-right: 10px;">
+<img id="imgtarget_0" draggable=false style="margin: 0px; border: 1px solid #aaa; display: inline-block;">
+
+           <div style="display: none; z-index: 200; position: absolute; top: 5px; right: 5px;">
+             <select onchange="_wi[0].box.mode = this.value;">
+               <option>Rotate</option>
+               <option>Translate</option>
+               <option>Zoom</option>
+             </select>
+             <input type="button" value="Reset" onclick="_wi[0].execute('reset');">
+           </div></div>
+<div style="" class="lvctrl">
+</div>
+<div style="clear: both;">
+<div style="" class="lvctrl">
+<p>Opacity:</p>
+<input id="lvctrl_2" class="lvctrl_2" type="number" max="1" step="0.01" min="0" value="0.75" onchange="this.nextElementSibling.value=this.value; _wi[0].do_action(0, this.value, this);" >
+<input id="lvctrl_2" class="lvctrl_2" type="range" max="1" step="0.01" min="0" value="0.75" onchange="this.previousElementSibling.value=this.value; _wi[0].do_action(0, this.value, this);" >
+<br>
+<p>Scale Arrows:</p>
+<input id="lvctrl_3" class="lvctrl_3" type="number" max="2.5" step="0.1" min="0.1" value="1.0" onchange="this.nextElementSibling.value=this.value; _wi[0].do_action(1, this.value, this);" >
+<input id="lvctrl_3" class="lvctrl_3" type="range" max="2.5" step="0.1" min="0.1" value="1.0" onchange="this.previousElementSibling.value=this.value; _wi[0].do_action(1, this.value, this);" >
+<br>
+</div>
+
+</body>
+</html>
