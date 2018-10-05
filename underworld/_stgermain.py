@@ -286,7 +286,7 @@ def _itemToElement(inputItem, inputItemName, inputEl):
             subEl.attrib['name'] = inputItemName
         for k, v in inputItem.items():
             _itemToElement(v, k, subEl)
-    elif issubclass(itemType,(str, float, int, bool, unicode)):
+    elif issubclass(itemType,(str, float, int, bool)):
         subEl = _ET.SubElement(inputEl, 'param')
         if inputItemName != '':
             subEl.attrib['name'] = inputItemName
