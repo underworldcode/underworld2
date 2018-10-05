@@ -343,9 +343,20 @@ void lucDatabase_OutputDrawingObject(lucDatabase* self, lucDrawingObject* object
    /* Save the object */
    if (!object->id) /* Not already written */
    {
-      snprintf(SQL, MAX_QUERY_LEN, "insert into object (name, properties) values ('%s_%s', '%s')", object->type, object->name, object->properties); 
-      /*printf("%s\n", SQL);*/
-      if (!lucDatabase_IssueSQL(self->db, SQL)) return;
+      snprintf(SQL, MAX_QUERY_LEN, "insert into object (name, properties) values ('%s_%s', ?)", object->type, object->name); 
+
+     /* Prepare statement... */
+     sqlite3_stmt* statement;
+     if (sqlite3_prepare_v2(self->db, SQL, -1, &statement, NULL) != SQLITE_OK)
+        Journal_Printf(lucError, "SQL prepare error: (%s) %s\n", SQL, sqlite3_errmsg(self->db));
+     /* Setup text data for insert */
+     else if (sqlite3_bind_text(statement, 1, object->properties, strlen(object->properties), SQLITE_STATIC) != SQLITE_OK)
+        Journal_Printf(lucError, "SQL bind error: %s\n", sqlite3_errmsg(self->db));
+     /* Execute statement */
+     else if (sqlite3_step(statement) != SQLITE_DONE )
+        Journal_Printf(lucError, "SQL step error: (%s) %s\n", SQL, sqlite3_errmsg(self->db));
+     else
+       sqlite3_finalize(statement);
 
       /* Save object id */
       object->id = sqlite3_last_insert_rowid(self->db);
@@ -379,9 +390,22 @@ void lucDatabase_OutputColourMap(lucDatabase* self, lucColourMap* colourMap, luc
    /* Save colourMap */
    if (!colourMap->id) /* Not already written */
    {
-      snprintf(SQL, MAX_QUERY_LEN, "insert into colourmap (name, properties) values ('%s', '%s')", colourMap->name, colourMap->properties );
+      snprintf(SQL, MAX_QUERY_LEN, "insert into colourmap (name, properties) values ('%s', ?)", colourMap->name);
       /*printf("%s\n", SQL);*/
-      if (!lucDatabase_IssueSQL(self->db, SQL)) return;
+      //if (!lucDatabase_IssueSQL(self->db, SQL)) return;
+
+      /* Prepare statement... */
+      sqlite3_stmt* statement;
+      if (sqlite3_prepare_v2(self->db, SQL, -1, &statement, NULL) != SQLITE_OK)
+         Journal_Printf(lucError, "SQL prepare error: (%s) %s\n", SQL, sqlite3_errmsg(self->db));
+      /* Setup text data for insert */
+      else if (sqlite3_bind_text(statement, 1, colourMap->properties, strlen(colourMap->properties), SQLITE_STATIC) != SQLITE_OK)
+         Journal_Printf(lucError, "SQL bind error: %s\n", sqlite3_errmsg(self->db));
+      /* Execute statement */
+      else if (sqlite3_step(statement) != SQLITE_DONE )
+         Journal_Printf(lucError, "SQL step error: (%s) %s\n", SQL, sqlite3_errmsg(self->db));
+      else
+         sqlite3_finalize(statement);
 
       /* Save id */
       colourMap->id = sqlite3_last_insert_rowid(self->db);

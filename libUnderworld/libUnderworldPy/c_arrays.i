@@ -10,6 +10,11 @@
 
 %module (package="libUnderworld.libUnderworldPy") c_arrays
 
+%{
+/* Includes the header in the wrapper code */
+#include <cmath>
+%}
+
 /* this guy is an interface to malloc */
 %include "carrays.i"
 %include "cdata.i"
@@ -17,3 +22,4 @@
 %array_class(float, FloatArray)
 %array_class(int, IntArray)
 %array_class(unsigned, UnsignedArray)
+

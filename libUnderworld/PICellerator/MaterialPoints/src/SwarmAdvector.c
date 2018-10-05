@@ -246,7 +246,7 @@ Bool _SwarmAdvector_TimeDeriv( void* swarmAdvector, Index array_I, double* timeD
   InterpolationResult result;
 
   /* Get Coordinate of Object using Variable */
-  coord = Variable_GetPtrDouble( self->variable, array_I );
+  coord = StgVariable_GetPtrDouble( self->variable, array_I );
 
   // if a non regular mesh and ElementCellLayout use the particle and mesh information to optimise search
   if( !mesh->isRegular &&

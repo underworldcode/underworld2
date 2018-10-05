@@ -25,7 +25,7 @@ extern "C" {
 Fn::ParticleFound::ParticleFound( void* swarm ):Function(), _swarm(swarm){
     // setup output
     if(!Stg_Class_IsInstance( _swarm, Swarm_Type ))
-        throw std::invalid_argument("Provided 'swarm' does not appear to be of 'Swarm' type.");
+        throw std::invalid_argument(_pyfnerrorheader+"Provided 'swarm' does not appear to be of 'Swarm' type.");
 
 }
 

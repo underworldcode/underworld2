@@ -32,17 +32,17 @@
 		/** Array of sets, 1 per variable, which record the items in the layout that have that variable as a dof. */ \
 		IndexSet**				_variableEnabledSets; \
 		/** Table which maps local storage indices of variables to indices into the Variable_Register. */ \
-		Variable_Index*		_varIndicesMapping; \
+		StgVariable_Index*		_varIndicesMapping; \
 		\
 		/** Array containing number of dofs at each index (e.g. at each node in a mesh) */ \
 		Dof_Index*				dofCounts; \
 		/** 2D Array: for each index (e.g. each node), stores an array (of size dofCounts[i]) containing
 		the indexes into the DofLayout::_variableRegister of the Variable s at that index. */ \
-		Variable_Index**		varIndices; \
+		StgVariable_Index**		varIndices; \
 		\
 		Mesh*						mesh;	\
 		unsigned					nBaseVariables; \
-		Variable**				baseVariables;
+		StgVariable**				baseVariables;
 
 
 	/** Allows the user to lay out which Variables exist at each index in a structure (eg nodes of a mesh) - see
@@ -76,8 +76,8 @@
 		void*						dofLayout,
 		Variable_Register*	variableRegister,
 		Index						numItemsInLayout,
-		Variable_Index			baseVariableCount,
-		Variable**				baseVariableArray,
+		StgVariable_Index			baseVariableCount,
+		StgVariable**				baseVariableArray,
 		void*						mesh );
 	
 	
@@ -131,24 +131,24 @@
 
 	/** Adds a new Dof, by specifying the Variable index (into the Variable_Register) the dof is an instantiation of,
 	and the index in the client's structure it applies to. An example might be (var index 0 ("vx"), node 100). */
-	void	DofLayout_AddDof_ByVarIndex(void* dofLayout, Variable_Index varIndex, Index index);
+	void	DofLayout_AddDof_ByVarIndex(void* dofLayout, StgVariable_Index varIndex, Index index);
 	
 	/** Adds a new Dof, by specifying the Variable name the dof is an instantiation of, and the index into the
 	client's structure it applies to. An example might be (variable "vx", node 100).  */
 	void	DofLayout_AddDof_ByVarName(void* dofLayout, Name varName, Index index);
 
 	/** Gets a ptr to the Variable that lives at a particular index for a Dof */
-	Variable* DofLayout_GetVariable(void* dofLayout, Index index, Dof_Index dofAtItemIndex );
+	StgVariable* DofLayout_GetVariable(void* dofLayout, Index index, Dof_Index dofAtItemIndex );
 
 	/** Shortcut macro to set a value of a particular dof, at a given index, without having to worry
 	about the underlying variable interface. (Only have a "double" version as that's all we need so far */
 	#define DofLayout_SetValueDouble( dofLayout, index, dofAtItemIndex, value ) \
-		( Variable_SetValueDouble( DofLayout_GetVariable( dofLayout, index, dofAtItemIndex ), index, value ) )
+		( StgVariable_SetValueDouble( DofLayout_GetVariable( dofLayout, index, dofAtItemIndex ), index, value ) )
 	
 	/** Shortcut macro to get a value of a particular dof, at a given index, without having to worry
 	about the underlying variable interface. (Only have a "double" version as that's all we need so far */
 	#define DofLayout_GetValueDouble( dofLayout, index, dofAtItemIndex ) \
-		( Variable_GetValueDouble( DofLayout_GetVariable( dofLayout, index, dofAtItemIndex ), index ) )
+		( StgVariable_GetValueDouble( DofLayout_GetVariable( dofLayout, index, dofAtItemIndex ), index ) )
 	
 	/** Utility function to set every dof's value to zero. */
 	void DofLayout_SetAllToZero( void* dofLayout );
@@ -158,7 +158,7 @@
 	void DofLayout_CopyValues( void* dofLayout, void* destDofLayout );
 	
 	/** Adds each variable in this array to each item in the dof layout */
-	void DofLayout_AddAllFromVariableArray( void* dofLayout, Variable_Index variableCount, Variable** variableArray ) ;
+	void DofLayout_AddAllFromVariableArray( void* dofLayout, StgVariable_Index variableCount, StgVariable** variableArray ) ;
 
 #endif /* __StgDomain_Utils_DofLayout_h__ */
 

@@ -58,11 +58,6 @@ class Function(underworld._stgermain.LeftOverParamsChecker, metaclass = ABCMeta)
     """
     def __init__(self, argument_fns, **kwargs):
 
-        # all of these guys must define a _fncself, as this will be expected by objects that receive functions.
-        if not hasattr(self, '_fncself'):
-            raise RuntimeError("Failure during object creation. Object with class \n'{}'\n".format(type(self)) \
-                             + "does not appear to have set a value for '_fncself'. Please contact developers.")
-
         self._underlyingDataItems = weakref.WeakSet()
         if argument_fns:
             for argfn in argument_fns:
@@ -73,6 +68,46 @@ class Function(underworld._stgermain.LeftOverParamsChecker, metaclass = ABCMeta)
 
         super(Function,self).__init__(**kwargs)
 
+    @property
+    def _fncself(self):
+        if not hasattr(self, '_fncselfpriv'):
+            return None
+        else:
+            return self._fncselfpriv
+    @_fncself.setter
+    def _fncself(self, _fncself):
+        self._fncselfpriv = _fncself
+        # now record the construction time stack to the c object so
+        # that if it fails, it can signal to the user where the
+        # constructor was called from (ie, which function failed).
+        # Walk stack in reversed order. Also, only list a few frames
+        # as ipython/jupyter stacks are quiet ugly.
+        # Construct within try context, as extracting stack info
+        # may not be robust, so better to continue quietly if things
+        # go awry.
+        import underworld as uw
+        from inspect import stack
+        rank = str(uw.rank())+'- '
+        strguy = "Error in function of class '{}'".format(self.__class__.__name__)
+        try:
+            if uw._in_doctest():
+                # doctests don't play nice with stacks
+                stackstr = "   --- CONSTRUCTION TIME STACK ---"
+            else:
+                stackstr = ""
+                for item in stack()[2:7][::-1]:
+                    stackstr += rank+item[1]+':'+str(item[2]) + ',\n'
+                    if item[4]:
+                        stackstr += "    " + item[4][0].lstrip()
+            strguy += " constructed at:\n{}\nError message:\n".format(str(stackstr))
+        except:
+            pass
+
+        self._fncself.set_pyfnerrorheader(strguy)
+
+
+
+    
     @staticmethod
     def convert(obj):
         """

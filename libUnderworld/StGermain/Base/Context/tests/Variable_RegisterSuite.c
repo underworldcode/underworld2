@@ -34,7 +34,7 @@ void Variable_RegisterSuite_Teardown( Variable_RegisterSuiteData* data ) {
    
 
 void Variable_RegisterSuite_TestAddGet( Variable_RegisterSuiteData* data ) {
-   Variable*		var[10];
+   StgVariable*		var[10];
    #define ARRAY_SIZE	4
    #define STRUCT_SIZE	4
    double			array[ARRAY_SIZE];
@@ -45,7 +45,7 @@ void Variable_RegisterSuite_TestAddGet( Variable_RegisterSuiteData* data ) {
    Index		   	i;
 
    for (i = 0; i < 10; i++) {
-      var[i] = Variable_NewVector( name[i], NULL, Variable_DataType_Double, 4, &arraySize, NULL, (void**)&array, 0 );
+      var[i] = StgVariable_NewVector( name[i], NULL, StgVariable_DataType_Double, 4, &arraySize, NULL, (void**)&array, 0 );
    }
 
    for (i = 0; i < 10; i++)

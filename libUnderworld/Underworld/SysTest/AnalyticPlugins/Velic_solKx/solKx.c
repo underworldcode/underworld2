@@ -43,11 +43,11 @@ int main( int argc, char **argv )
 
 
 
-/* this solution matches the stream function values in Zhong's paper for the few given viscosity constrasts */
+/* this solution matches the stream function values in Zhong's paper for the few given viscosity contrasts */
 void _Velic_solKx( 
 		const double pos[],
 		double _sigma, /* density */
-		int _m, double _n, /* wavelength in z, wavenumber in x */
+		double _n, double _m,  /* wavelength in z, wavenumber in x */
 		double _B, /* viscosity parameter */
 		double vel[], double* presssure, 
 		double total_stress[], double strain_rate[], double* viscosity )

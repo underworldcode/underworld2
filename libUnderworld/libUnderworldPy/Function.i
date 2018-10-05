@@ -24,6 +24,8 @@
 #include <typeindex>
 #include <Underworld/Function/FunctionIO.hpp>
 #include <Underworld/Function/Function.hpp>
+#include <Underworld/Function/SafeMaths.hpp>
+#include <Underworld/Function/CustomException.hpp>
 #include <Underworld/Function/MinMax.hpp>
 #include <Underworld/Function/Constant.hpp>
 #include <Underworld/Function/SwarmVariableFn.hpp>
@@ -33,7 +35,18 @@
 #include <Underworld/Function/Map.hpp>
 #include <Underworld/Function/Unary.hpp>
 #include <Underworld/Function/Binary.hpp>
+    
 #include <Underworld/Function/Analytic.hpp>
+#include <Underworld/Function/AnalyticSolA.hpp>
+#include <Underworld/Function/AnalyticSolB.hpp>
+#include <Underworld/Function/AnalyticSolCx.hpp>
+#include <Underworld/Function/AnalyticSolDB2d.hpp>
+#include <Underworld/Function/AnalyticSolDB3d.hpp>
+#include <Underworld/Function/AnalyticSolKx.hpp>
+#include <Underworld/Function/AnalyticSolKz.hpp>
+#include <Underworld/Function/AnalyticSolM.hpp>
+#include <Underworld/Function/AnalyticSolNL.hpp>
+
 #include <Underworld/Function/Tensor.hpp>
 #include <Underworld/Function/IOIterators.hpp>
 #include <Underworld/Function/Query.hpp>
@@ -56,6 +69,8 @@ extern "C" {
 
 %include "Function/FunctionIO.hpp"
 %include "Function/Function.hpp"
+%include "Function/SafeMaths.hpp"
+%include "Function/CustomException.hpp"
 %include "Function/MinMax.hpp"
 %include "Function/Unary.hpp"
 %include "Function/Binary.hpp"
@@ -66,7 +81,18 @@ extern "C" {
 %include "Function/GradFeVariableFn.hpp"
 %include "Function/Map.hpp"
 %include "Function/Tensor.hpp"
+
 %include "Function/Analytic.hpp"
+%include "Function/AnalyticSolA.hpp"
+%include "Function/AnalyticSolB.hpp"
+%include "Function/AnalyticSolCx.hpp"
+%include "Function/AnalyticSolDB2d.hpp"
+%include "Function/AnalyticSolDB3d.hpp"
+%include "Function/AnalyticSolKx.hpp"
+%include "Function/AnalyticSolKz.hpp"
+%include "Function/AnalyticSolM.hpp"
+%include "Function/AnalyticSolNL.hpp"
+
 %include "Function/IOIterators.hpp"
 %include "Function/Query.hpp"
 %include "Function/Shape.hpp"
@@ -103,11 +129,13 @@ extern "C" {
 %template(MathUnary_erfc)   Fn::MathUnary<std::erfc>;
 %template(MathUnary_abs)    Fn::MathUnary<std::abs>;
 
-%template(SolCxCRTP) Fn::AnalyticCRTP<Fn::SolCx>;
-%template(SolKxCRTP) Fn::AnalyticCRTP<Fn::SolKx>;
-%template(SolKzCRTP) Fn::AnalyticCRTP<Fn::SolKz>;
-%template(SolMCRTP) Fn::AnalyticCRTP<Fn::SolM>;
-%template(SolNLCRTP) Fn::AnalyticCRTP<Fn::SolNL>;
+%template(SolACRTP)    Fn::AnalyticCRTP<Fn::SolA>;
+%template(SolBCRTP)    Fn::AnalyticCRTP<Fn::SolB>;
+%template(SolCxCRTP)   Fn::AnalyticCRTP<Fn::SolCx>;
+%template(SolKxCRTP)   Fn::AnalyticCRTP<Fn::SolKx>;
+%template(SolKzCRTP)   Fn::AnalyticCRTP<Fn::SolKz>;
+%template(SolMCRTP)    Fn::AnalyticCRTP<Fn::SolM>;
+%template(SolNLCRTP)   Fn::AnalyticCRTP<Fn::SolNL>;
 %template(SolDB2dCRTP) Fn::AnalyticCRTP<Fn::SolDB2d>;
 %template(SolDB3dCRTP) Fn::AnalyticCRTP<Fn::SolDB3d>;
 

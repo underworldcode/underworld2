@@ -1,6 +1,47 @@
 CHANGES: Underworld2
 =======================
 
+Release 2.7.0-dev []
+------------------
+Enhancements:
+* Timing functionality available
+* glucifer defaults to use onMesh=True
+
+Release 2.6.0b [2018-09-27]
+------------------
+Enhancements:
+* Removed submodules in favour of direct access.
+* Improved docker image building strategy.
+* Native Shifter support at Magnus Pawsey.
+* Petsc-3.9.x compatible.
+* Support for nested SafeMaths operations.
+* Improved function error messaging.
+
+Release 2.5.1b [2018-04-13]
+---------------------------
+Documentation:
+* Fixes for Sphinx API documentation generation.
+
+Release 2.5.0b [2018-04-10]
+---------------------------
+New features:
+* New 'long' type swarm variable.
+* User provided post-solve callback functionality added.
+
+Enhancements:
+* Speed up (minimum 5x) for SwarmVariable reload.
+* Petsc-3.8 compatible.
+* Non root dockerfile now. 
+
+Documentation:
+* Viscoelastic tutorial, see ./docs/tutorials/
+* Update raijin and magnus build instructions.
+
+API Changes:
+* New interface for a MeshVariable,  mesh.add_variable().
+* New interface to Integrate, mesh.integrate().
+
+
 Release 2.4.1b [2017-10-24]
 ----------------------------
 *  Updating release to the correct version of lavavu

@@ -787,11 +787,11 @@ void _ViscousPenaltyConstMatrixCartesian3D_CalculateStress( void* constitutiveMa
 //		/* TODO: clean up this vector logic. The only reson there's an if is because
 //		*        * of the list of names the must be given as the final arguments to this function.  */ 
 //		self->storedConstSwarmVar = Swarm_NewVectorVariable( materialSwarm, (Name)"ConstitutiveMatrix", (ArithPointer)cMatrix - (ArithPointer)&particle,
-//		Variable_DataType_Double, self->rowSize * self->columnSize,
+//		StgVariable_DataType_Double, self->rowSize * self->columnSize,
 //		"c00", "c01", "c02", "c10", "c11", "c12", "c20", "c21", "c22" );
 //	} else {
 //		self->storedConstSwarmVar = Swarm_NewVectorVariable( materialSwarm, (Name)"ConstitutiveMatrix", (ArithPointer)cMatrix - (ArithPointer)&particle,
-//		Variable_DataType_Double, self->rowSize * self->columnSize,
+//		StgVariable_DataType_Double, self->rowSize * self->columnSize,
 //		"c00", "c01", "c02", "c03", "c04", "c05",
 //		"c10", "c11", "c12", "c13", "c14", "c15",
 //		"c20", "c21", "c22", "c23", "c24", "c25",

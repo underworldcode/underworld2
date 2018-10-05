@@ -6,12 +6,12 @@
 ##  located at the project root, or contact the authors.                             ##
 ##                                                                                   ##
 ##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
-import sys as _sys
 import os as _os
 import xml.etree.cElementTree as _ET
 from . import libUnderworld
 import abc
 from collections import defaultdict
+import underworld as uw
 
 class LeftOverParamsChecker(object):
     # This class simply checks for any left over args or parameters.
@@ -98,7 +98,11 @@ class _SetupClass(abc.ABCMeta):
     '''
     def __call__(cls, *args, **kwargs):
         # create the instance as normal.  this will invoke the class's
-        # __init__'s as expected.
+        # __init__'s as expected
+        import time
+        import timing
+        timing._incrementDepth()
+        ts = time.time()
         self = super(_SetupClass, cls).__call__(*args, **kwargs)
 
         # this steps through the MRO in ascending order (so that child
@@ -113,6 +117,9 @@ class _SetupClass(abc.ABCMeta):
             if callable(_setup):
                 _setup()
 
+        te = time.time()
+        timing._decrementDepth()
+        timing.log_result( te-ts, cls.__name__+".__init__()")
         return self
 
 
@@ -236,10 +243,10 @@ class StgCompoundComponent(StgClass, metaclass=_SetupClass):
             fullDictionary = {"components": componentDictionary}
             StgConstruct(fullDictionary)
             # lets build
-            for compName, compPtr in self._objpointerDict.items():
+            for compName, compPtr in self._objpointerDict.iteritems():
                 libUnderworld.StGermain.Stg_Component_Build( compPtr, None, False )
             # lets initialise
-            for compName, compPtr in self._objpointerDict.items():
+            for compName, compPtr in self._objpointerDict.iteritems():
                 libUnderworld.StGermain.Stg_Component_Initialise( compPtr, None, False )
             self._setupDone = True
 
@@ -279,7 +286,7 @@ def _itemToElement(inputItem, inputItemName, inputEl):
             subEl.attrib['name'] = inputItemName
         for k, v in inputItem.items():
             _itemToElement(v, k, subEl)
-    elif issubclass(itemType,(str, float, int, bool)):
+    elif issubclass(itemType,(str, float, int, bool, unicode)):
         subEl = _ET.SubElement(inputEl, 'param')
         if inputItemName != '':
             subEl.attrib['name'] = inputItemName
@@ -306,9 +313,9 @@ def SetStgDictionaryFromPyDict( pyDict, stgDict ):
        Nothing.
        """
     root = _dictToUWElementTree(pyDict)
-    xmlString = _ET.tostring(root, encoding = 'utf-8', method = 'xml').decode('utf-8')
+    xmlString = _ET.tostring(root, encoding = 'utf-8', method = 'xml')
     ioHandler = libUnderworld.StGermain.XML_IO_Handler_New()
-    libUnderworld.StGermain.IO_Handler_ReadAllFromBuffer( ioHandler, xmlString, stgDict, 'None' )
+    libUnderworld.StGermain.IO_Handler_ReadAllFromBuffer( ioHandler, xmlString, stgDict, None )
     libUnderworld.StGermain.Stg_Class_Delete( ioHandler )
 
     return
@@ -358,7 +365,7 @@ def StgCreateInstances( pyUWDict ):
     pointerDict = {}
     # lets go ahead and construct component
     if "components" in pyUWDict:
-        for compName, compDict in pyUWDict["components"].items():
+        for compName, compDict in pyUWDict["components"].iteritems():
             compPointer = libUnderworld.StGermain.LiveComponentRegister_Get( libUnderworld.StGermain.LiveComponentRegister_GetLiveComponentRegister(), compName )
             pointerDict[compName] = compPointer
 
@@ -389,7 +396,7 @@ def StgConstruct( pyUWDict ):
 
     # lets go ahead and construct component
     if "components" in pyUWDict:
-        for compName, compDict in pyUWDict["components"].items():
+        for compName, compDict in pyUWDict["components"].iteritems():
             compPointer = libUnderworld.StGermain.LiveComponentRegister_Get( libUnderworld.StGermain.LiveComponentRegister_GetLiveComponentRegister(), compName )
             libUnderworld.StGermain.Stg_Component_AssignFromXML( compPointer, cf, None, False )
     if "plugins" in pyUWDict:

@@ -11,58 +11,47 @@
 #include <stdio.h>
 #include <assert.h>
 
-void _Velic_solA(
-   double* pos, 
-   double  sigma,
-   double  Z,
-   int     n,
-   double  km,
-   double* velocity,
-   double* pressure,
-   double* Tstress,
-   double* strainRate );
+#include "solA.h"
 
-#ifndef NOSHARED
-int main() {
-   double sigma = 1.0;
-   double Z = 1.0;
-   double km = M_PI;
-   int    n = 1;
-   double pos[2], velocity[2], pressure, Tstress[3], strainRate[3],jp;
-   int    i, j;   
-
-   for (i=0;i<101;i++){
-      for(j=0;j<101;j++){
-         pos[0] = i/100.0;
-         pos[1] = j/100.0;
-
-         _Velic_solA(
-            pos,
-            sigma,
-            Z,
-            n,
-            km,
-            velocity,
-            &pressure,
-            Tstress,
-            strainRate );
-
-         printf(
-            "%.7g %.7g %.7g %.7g %.7g %.7g %.7g %.7g %.7g %.7g %.7g %.7g\n",
-            pos[0], pos[1],
-            velocity[0], velocity[1],
-            pressure,
-            jp, 
-            strainRate[0], strainRate[1], strainRate[2],
-            Tstress[0], Tstress[1], Tstress[2] );
-      }
-   }
-   return 0;
-}
-#endif
+//int main() {
+//   double sigma = 1.0;
+//   double Z = 1.0;
+//   double km = M_PI;
+//   int    n = 1;
+//   double pos[2], velocity[2], pressure, Tstress[3], strainRate[3],jp;
+//   int    i, j;   
+//
+//   for (i=0;i<101;i++){
+//      for(j=0;j<101;j++){
+//         pos[0] = i/100.0;
+//         pos[1] = j/100.0;
+//
+//         _Velic_solA(
+//            pos,
+//            sigma,
+//            Z,
+//            n,
+//            km,
+//            velocity,
+//            &pressure,
+//            Tstress,
+//            strainRate );
+//
+//         printf(
+//            "%.7g %.7g %.7g %.7g %.7g %.7g %.7g %.7g %.7g %.7g %.7g %.7g\n",
+//            pos[0], pos[1],
+//            velocity[0], velocity[1],
+//            pressure,
+//            jp, 
+//            strainRate[0], strainRate[1], strainRate[2],
+//            Tstress[0], Tstress[1], Tstress[2] );
+//      }
+//   }
+//   return 0;
+//}
 
 void _Velic_solA(
-   double* pos, 
+   const double* pos,
    double  sigma,
    double  Z,
    int     n,
@@ -183,10 +172,10 @@ void _Velic_solA(
    e_xx = -e_zz;  /* xx rate of strain */
    e_xz = -0.5*(ss_zz+kn*kn*ss)*sin(kn*x); /* xz rate of strain */
 
-   ss *= sin(kn*x); /* stream function */
+//   ss *= sin(kn*x); /* stream function */
    /* density/temp */
-   sum7 += -sin(km*z)*cos(kn*x);
-   mag=sqrt(sum1*sum1+sum2*sum2);
+//   sum7 += -sin(km*z)*cos(kn*x);
+//   mag=sqrt(sum1*sum1+sum2*sum2);
 
    // printf("%0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f\n",x,z,sum1,sum2,sum3,sum4,sum5,sum6,mag,sum7,e_zz,e_xx,e_xz,ss);
 

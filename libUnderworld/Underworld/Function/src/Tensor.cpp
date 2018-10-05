@@ -35,7 +35,7 @@ Fn::TensorFunc::func Fn::TensorFunc::getFunction( IOsptr sample_input )
     const IO_double* funcio;
     funcio = dynamic_cast<const IO_double*>(_func(sample_input));
     if (!funcio)
-        throw std::invalid_argument("TensorFunc expects input function to return a 'double' type object.");
+        throw std::invalid_argument(_pyfnerrorheader+"Argument function is expected to return 'double' type object.");
     
     FunctionIO::IOType iotype;
     unsigned dim;
@@ -45,21 +45,21 @@ Fn::TensorFunc::func Fn::TensorFunc::getFunction( IOsptr sample_input )
         // lets try take a sqrt
         dim = (unsigned) std::sqrt(funcio->size());
         if (!( dim*dim == funcio->size() && (dim==2 || dim==3) ))
-            throw std::invalid_argument("TensorFunc Tensor input does not appear to be valid.");
+            throw std::invalid_argument(_pyfnerrorheader+"Tensor input does not appear to be of valid size.");
     }
     else if ( funcio->iotype() == FunctionIO::SymmetricTensor )
     {
         iotype = FunctionIO::SymmetricTensor;
         if ( ! ( funcio->size()==3 || funcio->size()==6 ))
-            throw std::invalid_argument("TensorFunc SymmetricTensor input does not appear to be valid.");
+            throw std::invalid_argument(_pyfnerrorheader+"SymmetricTensor input does not appear to be of valid size.");
         dim = ( funcio->size()==3 ) ? 2 : 3;
     }
     else
-        throw std::invalid_argument("TensorFunc expects input function to return a 'Tensor' or 'SymmetricTensor' object.");
+        throw std::invalid_argument(_pyfnerrorheader+"TensorFunc expects input function to return a 'Tensor' or 'SymmetricTensor' object.");
     
     if ( _partFunc == get_symmetric ) {
         if (iotype!=FunctionIO::Tensor)
-            throw std::invalid_argument("TensorFunc expects Tensor input for 'get_symmetric' function.");
+            throw std::invalid_argument(_pyfnerrorheader+"TensorFunc expects Tensor input for 'get_symmetric' function.");
         unsigned outsize = (dim==2) ? 3 : 6;
         std::shared_ptr<IO_double> _output_sp = std::make_shared<IO_double>(outsize,FunctionIO::SymmetricTensor);
         IO_double* _output = _output_sp.get();
@@ -72,7 +72,7 @@ Fn::TensorFunc::func Fn::TensorFunc::getFunction( IOsptr sample_input )
         };
     } else if ( _partFunc == get_antisymmetric ) {
         if (iotype!=FunctionIO::Tensor)
-            throw std::invalid_argument("TensorFunc expects Tensor input for 'get_antisymmetric' function.");
+            throw std::invalid_argument(_pyfnerrorheader+"TensorFunc expects Tensor input for 'get_antisymmetric' function.");
         std::shared_ptr<IO_double> _output_sp = std::make_shared<IO_double>(funcio->size(),FunctionIO::Tensor);
         IO_double* _output = _output_sp.get();
         return [_output,_output_sp,_func,dim](IOsptr input)->IOsptr {
@@ -103,7 +103,7 @@ Fn::TensorFunc::func Fn::TensorFunc::getFunction( IOsptr sample_input )
             };
     } else if (_partFunc == get_deviatoric) {
         if (iotype!=FunctionIO::SymmetricTensor)
-            throw std::invalid_argument("TensorFunc expects SymmetricTensor input for 'get_deviatoric' function.");
+            throw std::invalid_argument(_pyfnerrorheader+"TensorFunc expects SymmetricTensor input for 'get_deviatoric' function.");
         std::shared_ptr<IO_double> _output_sp = std::make_shared<IO_double>(funcio->size(),FunctionIO::SymmetricTensor);
         IO_double* _output = _output_sp.get();
         return [_output, _output_sp, _func, dim](IOsptr input)->IOsptr {
@@ -126,5 +126,5 @@ Fn::TensorFunc::func Fn::TensorFunc::getFunction( IOsptr sample_input )
     }
     
     // something amiss if we get here
-    throw std::invalid_argument("TensorFunc input does not appear to be valid..");
+    throw std::invalid_argument(_pyfnerrorheader+"Unknown error. Please contact developers.");
 }

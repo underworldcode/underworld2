@@ -13,7 +13,7 @@ import underworld.swarm as _swarmMod
 import underworld.mesh as _uwmesh
 from underworld.function import Function as _Function
 import libUnderworld as _libUnderworld
-import numpy as _numpy
+import json as _json
 
 #TODO: Drawing Objects to implement
 # HistoricalSwarmTrajectory
@@ -53,14 +53,11 @@ class ColourMap(_stgermain.StgCompoundComponent):
 
         if not isinstance(colours,(str,list)):
             raise TypeError("'colours' object passed in must be of python type 'str' or 'list'")
-        if isinstance(colours,(list)):
-            self.properties.update({"colours" : ' '.join(colours)})
-        else:
-            self.properties.update({"colours" : colours})
+        self.properties.update({"colours" : _json.dumps(colours)})
 
         #User-defined props in kwargs
         self.properties.update(kwargs)
-        dict((k.lower(), v) for k, v in self.properties.items())
+        dict((k.lower(), v) for k, v in self.properties.iteritems())
 
         if valueRange != None:
             # is valueRange correctly defined, ie list of length 2 made of numbers
@@ -108,7 +105,7 @@ class ColourMap(_stgermain.StgCompoundComponent):
 
     def _getProperties(self):
         #Convert properties to string
-        return '\n'.join(['%s=%s' % (k,v) for k,v in self.properties.items()]);
+        return '\n'.join(['%s=%s' % (k,v) for k,v in self.properties.iteritems()]);
 
 class Drawing(_stgermain.StgCompoundComponent):
     """
@@ -165,7 +162,7 @@ class Drawing(_stgermain.StgCompoundComponent):
 
         #User-defined props in kwargs
         self.properties.update(kwargs)
-        dict((k.lower(), v) for k, v in self.properties.items())
+        dict((k.lower(), v) for k, v in self.properties.iteritems())
 
         if not isinstance(colourBar, bool):
             raise TypeError("'colourBar' parameter must be of 'bool' type.")
@@ -205,7 +202,7 @@ class Drawing(_stgermain.StgCompoundComponent):
 
     def _getProperties(self):
         #Convert properties to string
-        return '\n'.join(['%s=%s' % (k,v) for k,v in self.properties.items()]);
+        return '\n'.join(['%s=%s' % (k,v) for k,v in self.properties.iteritems()]);
 
     def render(self, viewer):
         #Place any custom geometry output in this method, called after database creation
@@ -467,7 +464,7 @@ class Surface(CrossSection):
     _objectsDict = {  "_dr"  : "lucScalarField" }
 
     def __init__(self, mesh, fn, drawSides="xyzXYZ",
-                       colourBar=True,
+                       colourBar=True, onMesh=True,
                        *args, **kwargs):
 
         if not isinstance(drawSides,str):
@@ -475,7 +472,7 @@ class Surface(CrossSection):
         self._drawSides = drawSides
 
         # build parent
-        super(Surface,self).__init__( mesh=mesh, fn=fn, colourBar=colourBar, *args, **kwargs)
+        super(Surface,self).__init__( mesh=mesh, fn=fn, colourBar=colourBar, onMesh=onMesh, *args, **kwargs )
 
         #Merge with default properties
         is3d = len(self._crossSection) == 0
@@ -829,8 +826,9 @@ class Sampler(Drawing):
         _libUnderworld.gLucifer._lucSampler_SetFn( self._cself, fn_ptr )
 
     def sample(self, vertices):
-        sz = round(len(vertices)/3*self._cself.fieldComponentCount)
-        values = _numpy.zeros(sz, dtype='float32')
+        sz = len(vertices)/3*self._cself.fieldComponentCount
+        import numpy
+        values = numpy.zeros(sz, dtype='float32')
         _libUnderworld.gLucifer.lucSampler_SampleField( self._cself, vertices, values)
         return values
 
@@ -961,7 +959,7 @@ class Mesh(Drawing):
         self._segmentsPerEdge = segmentsPerEdge
 
         #Default properties
-        self.properties = {"linesmooth" : False, "lit" : False, "font" : "small", "fontscale" : 0.5,
+        self.properties = {"lit" : False, "font" : "small", "fontscale" : 0.5,
                            "pointsize" : 5 if self._nodeNumbers else 1, 
                            "pointtype" : 2 if self._nodeNumbers else 4}
         

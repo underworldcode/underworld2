@@ -30,7 +30,7 @@ is very well suited to complex fluids which is how the solid Earth behaves
 on a geological timescale.
 """
 
-__version__ = "2.5.0-dev"
+__version__ = "2.7.0-dev"
 
 # lets  set sys.path such that the project parent directory takes
 # precedence
@@ -38,6 +38,7 @@ import sys as _sys
 import os as _os
 _sys.path.insert(0, _os.path.realpath(_os.path.dirname("..")))
 
+import timing
 import libUnderworld
 from . import _stgermain
 
@@ -69,19 +70,39 @@ def _set_init_sig_as_sig(mod):
 
 import underworld.container
 _set_init_sig_as_sig(underworld.container)
+timing._add_timing_to_mod(container)
 import underworld.mesh
 _set_init_sig_as_sig(underworld.mesh)
+timing._add_timing_to_mod(underworld.mesh)
 import underworld.conditions
 _set_init_sig_as_sig(underworld.conditions)
+timing._add_timing_to_mod(underworld.conditions)
 import underworld.function
 _set_init_sig_as_sig(underworld.function)
+timing._add_timing_to_mod(underworld.function)
 import underworld.swarm
 _set_init_sig_as_sig(underworld.swarm)
+timing._add_timing_to_mod(underworld.swarm)
 import underworld.systems
 _set_init_sig_as_sig(underworld.systems)
+timing._add_timing_to_mod(underworld.systems)
 import underworld.utils
 _set_init_sig_as_sig(underworld.utils)
+timing._add_timing_to_mod(underworld.utils)
 
+import numpy as _np
+
+# to allow our legacy doctest formats
+try:
+    _np.set_printoptions(legacy='1.13')
+except:
+    pass
+
+# Squelch these warnings as they are very noisey and not necessary
+# https://stackoverflow.com/questions/40845304/runtimewarning-numpy-dtype-size-changed-may-indicate-binary-incompatibility
+import warnings
+warnings.filterwarnings("ignore", message="numpy.dtype size changed")
+warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
 try:
     from ._uwid import uwid as _id
 except:
@@ -125,6 +146,16 @@ def barrier():
     from mpi4py import MPI
     MPI.COMM_WORLD.Barrier()
 
+def _run_from_ipython():
+    """
+    Small routine to check if running from ipy/jupyter.s
+    """
+    try:
+        __IPYTHON__
+        return True
+    except NameError:
+        return False
+
 def matplotlib_inline():
     """
     This function simply enables Jupyter Notebook inlined matplotlib results.
@@ -133,11 +164,8 @@ def matplotlib_inline():
     the same functionality, however it allows notebooks to be converted to
     python without having to explicitly remove these calls.
     """
-    try :
-        if(__IPYTHON__) :
-            get_ipython().magic(u'matplotlib inline')
-    except:
-        pass
+    if _run_from_ipython():
+        get_ipython().magic(u'matplotlib inline')
 
 # lets handle exceptions differently in parallel to ensure we call.
 # add isinstance so that this acts correctly for Mocked classes used in sphinx docs generation
@@ -173,32 +201,18 @@ class _del_uw_class:
     def __del__(self):
         # put this in a try loop to avoid errors during sphinx documentation generation
         try:
-#            print("You are now Finalising UW from uwclass.")
-#            print("Objects not deleted thus far:")
-#            pp.pprint(_stgermain.StgClass.guys)
             self.delfunc(self.deldata)
-#            print("You have finished Finalising UW from uwclass.")
         except:
             pass
 
 _delclassinstance = _del_uw_class(libUnderworld.StGermain_Tools.StgFinalise, _data)
-#
-#import atexit
-#@atexit.register
-#def goodbye():
-#    print("You are now Finalising UW.")
-#    print("Objects not deleted thus far:")
-#    pp.pprint(_stgermain.StgClass.guys)
-#    libUnderworld.StGermain_Tools.StgFinalise(_data)
-#    print("You have Finalising UW.")
 
 def _in_doctest():
     """
-    Returns true if running inside a doctest.
-
-    http://stackoverflow.com/questions/8116118/how-to-determine-whether-code-is-running-in-a-doctest
+    Returns true if running inside doctests run from docs/tests/doctest.py
     """
-    return hasattr(_sys.modules['__main__'], '_SpoofOut')
+    import os
+    return hasattr(_sys.modules['__main__'], '_SpoofOut') or "DOCTEST" in os.environ
 
 # lets shoot off some usage metrics
 # send metrics *only* if we are rank=0, and if we are not running inside a doctest.
