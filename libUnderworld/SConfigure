@@ -156,9 +156,9 @@ if not (GetOption('help') or GetOption('clean')):
         #env.AppendUnique(LINKFLAGS=['-static'])
         Package.static = True
     else:
-        print 
-        print '****  ERROR ****'
-        print 'Invalid option \'--lib-type\''
+        print(""" 
+              **** ERROR ****
+              Invalid option \'--lib-type\' """)
         env.UWExit()
 
     # enable all warnings.
