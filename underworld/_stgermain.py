@@ -243,10 +243,10 @@ class StgCompoundComponent(StgClass, metaclass=_SetupClass):
             fullDictionary = {"components": componentDictionary}
             StgConstruct(fullDictionary)
             # lets build
-            for compName, compPtr in self._objpointerDict.iteritems():
+            for compName, compPtr in self._objpointerDict.items():
                 libUnderworld.StGermain.Stg_Component_Build( compPtr, None, False )
             # lets initialise
-            for compName, compPtr in self._objpointerDict.iteritems():
+            for compName, compPtr in self._objpointerDict.items():
                 libUnderworld.StGermain.Stg_Component_Initialise( compPtr, None, False )
             self._setupDone = True
 
@@ -313,9 +313,9 @@ def SetStgDictionaryFromPyDict( pyDict, stgDict ):
        Nothing.
        """
     root = _dictToUWElementTree(pyDict)
-    xmlString = _ET.tostring(root, encoding = 'utf-8', method = 'xml')
+    xmlString = _ET.tostring(root, encoding = 'utf-8', method = 'xml').decode('utf-8')
     ioHandler = libUnderworld.StGermain.XML_IO_Handler_New()
-    libUnderworld.StGermain.IO_Handler_ReadAllFromBuffer( ioHandler, xmlString, stgDict, None )
+    libUnderworld.StGermain.IO_Handler_ReadAllFromBuffer( ioHandler, xmlString, stgDict, 'None' )
     libUnderworld.StGermain.Stg_Class_Delete( ioHandler )
 
     return
@@ -365,7 +365,7 @@ def StgCreateInstances( pyUWDict ):
     pointerDict = {}
     # lets go ahead and construct component
     if "components" in pyUWDict:
-        for compName, compDict in pyUWDict["components"].iteritems():
+        for compName, compDict in pyUWDict["components"].items():
             compPointer = libUnderworld.StGermain.LiveComponentRegister_Get( libUnderworld.StGermain.LiveComponentRegister_GetLiveComponentRegister(), compName )
             pointerDict[compName] = compPointer
 
@@ -396,7 +396,7 @@ def StgConstruct( pyUWDict ):
 
     # lets go ahead and construct component
     if "components" in pyUWDict:
-        for compName, compDict in pyUWDict["components"].iteritems():
+        for compName, compDict in pyUWDict["components"].items():
             compPointer = libUnderworld.StGermain.LiveComponentRegister_Get( libUnderworld.StGermain.LiveComponentRegister_GetLiveComponentRegister(), compName )
             libUnderworld.StGermain.Stg_Component_AssignFromXML( compPointer, cf, None, False )
     if "plugins" in pyUWDict:
