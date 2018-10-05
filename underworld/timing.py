@@ -341,9 +341,8 @@ def _class_timer_decorator(cls):
 
 
 # keep a global list of done classes and modules
-from sets import Set as _Set
-_donemods = _Set()
-_doneclss = _Set()
+_donemods = set()
+_doneclss = set()
 
 def _add_timing_to_mod(mod):
     """
