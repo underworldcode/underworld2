@@ -100,7 +100,7 @@ class _SetupClass(abc.ABCMeta):
         # create the instance as normal.  this will invoke the class's
         # __init__'s as expected
         import time
-        import .timing
+        from . import timing
         timing._incrementDepth()
         ts = time.time()
         self = super(_SetupClass, cls).__call__(*args, **kwargs)
