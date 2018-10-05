@@ -114,7 +114,7 @@ ENV GLUCIFER_USE_XVFB 1
 
 # Add a notebook profile.
 RUN mkdir -p -m 700 /root/.jupyter/ && \
-    echo "c.NotebookApp.ip = '*'" >> /root/.jupyter/jupyter_notebook_config.py
+    echo "c.NotebookApp.ip = '0.0.0.0'" >> /root/.jupyter/jupyter_notebook_config.py
 
 # Setup ipyparallel for mpi profile
 WORKDIR /root/.jupyter
