@@ -42,8 +42,8 @@ RUN cd underworld2/libUnderworld && \
     rm -fr PICellerator          && \
     rm -fr Solvers               && \
     find $UW2_DIR/docs -name \*.ipynb  -print0 | xargs -0 jupyter trust && \
-    cd ../../docs/development/api_doc_generator/                     && \
-    sphinx-build . ../../api_doc                                     && \
+#    cd ../../docs/development/api_doc_generator/                     && \
+#    sphinx-build . ../../api_doc                                     && \
     mkdir $NB_WORK                                                   && \
     rsync -av $UW2_DIR/docs/. $NB_WORK                               && \
     cd /opt/underworld2                                              && \
