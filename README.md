@@ -13,6 +13,14 @@ The Underworld 2 code can be cited via Zenodo [![DOI](https://zenodo.org/badge/D
 
 Details of the algorithms are citeable from the references listed below. 
 
+Trying out Underworld2
+----------------------
+
+You can try out the code at the mybinder.org site. Be aware that it can take a little while for the site to fire up - and that it will time-out after 30 minutes and reset if you log back in. 
+
+[![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2-documentation/master)
+
+The mybinder.org installation is running our docker image which you can easily download and run on your own machine. 
 
 Getting Underworld2
 -------------------
@@ -20,17 +28,18 @@ The Underworld2 docker container is the recommended method of installation for W
 
 https://hub.docker.com/r/underworldcode/underworld2/
 
-Please check our blog page for a writeup on using dockers:
+Please check our blog page for a writeup on using dockers, and also recommendations for native installation on various platforms. 
 
 http://www.underworldcode.org/pages/Blog/
 
-If you need to compile Underworld2 (in particular for HPC usage), please refer to COMPILE.md
+If you need to compile Underworld2 (in particular for HPC usage), please refer to COMPILE.md in this repository.
 
 API documentation is available at http://underworld2.readthedocs.io/
 
 
 Underworld Docker Usage
-------------
+----------------------
+
 Most new users may wish to use the Kitematic GUI to download and run Underworld. Simply search for 'underworldcode/underworld2' within Kitematic, and then click 'CREATE' to launch a container. You will eventually wish to modify your container settings (again through Kitematic) to enable local folder volume mapping, which will allow you to access your local drives within your container. 
 
 For Linux users, and those who prefer the command line, the following minimal command should be sufficient to access the Underworld2 Jupyter Notebook examples: 
