@@ -139,12 +139,19 @@ void _TrilinearInnerElType_Destroy( void* elementType, void *data ){
 	TrilinearInnerElType* self = (TrilinearInnerElType*)elementType;
 	
 	FreeArray( self->tetInds );
+    Memory_Free( self->evaluatedShapeFunc );
+    Memory_Free( self->GNi );
 
 	_ElementType_Destroy( self, data );
 }
 
 void _TrilinearInnerElType_Build( void* elementType, void *data ) {
-	
+    TrilinearInnerElType* self = (TrilinearInnerElType*)elementType;
+
+    self->dim=3;
+    self->evaluatedShapeFunc = Memory_Alloc_Array( double, self->nodeCount, "evaluatedShapeFuncs" );
+    self->GNi = Memory_Alloc_2DArray( double, self->dim, self->nodeCount, (Name)"localShapeFuncDerivitives"  );
+
 }
 
 #if 0
@@ -213,14 +220,7 @@ void _TrilinearInnerElType_SF_allNodes( void* elementType, const double localCoo
 void _TrilinearInnerElType_SF_allLocalDerivs_allNodes( void* elementType, const double localCoord[],
 		double** const evaluatedDerivatives )
 {		
-	double xi, eta, zeta;
-	double fac;
-	
-	xi   = localCoord[0];
-	eta  = localCoord[1];
-	zeta = localCoord[2];	
-	
-	fac = 1.0/9.0;
+	double fac = 1.0/9.0;
 	                       
 	evaluatedDerivatives[0][0] = fac*( - 4.0 ); 
 	evaluatedDerivatives[0][1] = fac*(  16.0 ); 
