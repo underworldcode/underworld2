@@ -9,6 +9,12 @@ Lastest stable release (master branch) [![Build Status](http://130.56.252.251:32
 
 Development branch - [![Build Status](http://130.56.252.251:32779/buildStatus/icon?job=uw-dev)](http://130.56.252.251:32779/job/uw-dev/)
 
+The Underworld 2 code can be cited via Zenodo and the details of the algorithms in the references below.
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1436040.svg)](https://doi.org/10.5281/zenodo.1436040)
+
+
+
 Getting Underworld2
 -------------------
 The Underworld2 docker container is the recommended method of installation for Windows, Mac OSX and Linux. You will need to install [Docker](https://www.docker.com) on your system. The Underworld docker container is available through the docker hub:
