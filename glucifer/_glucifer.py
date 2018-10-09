@@ -415,7 +415,7 @@ class Figure(dict):
 
         #User-defined props in kwargs
         self.update(kwargs)
-        dict((k.lower(), v) for k, v in self.iteritems())
+        dict((k.lower(), v) for k, v in self.items())
 
         if boundingBox:
             #Add 3rd dimension if missing
@@ -462,7 +462,7 @@ class Figure(dict):
 
     def _getProperties(self):
         #Convert properties to string
-        return '\n'.join(['%s=%s' % (k,v) for k,v in self.iteritems()]);
+        return '\n'.join(['%s=%s' % (k,v) for k,v in self.items()]);
 
     def _setProperties(self, newProps):
         #Update the properties values (merge)

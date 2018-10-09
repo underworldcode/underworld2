@@ -124,7 +124,7 @@ def get_data(group_by="line_routine"):
 
     # regroup data
     regrouped_dict = _dd(lambda: [0,0.])
-    for key, value in _hit_count.iteritems():
+    for key, value in _hit_count.items():
         data = regrouped_dict[keyfunc(key)]
         data[0] += value[0]
         data[1] += value[1]
@@ -162,7 +162,7 @@ def print_table(group_by="line_routine", sort_by="total", display_fraction=0.95,
     
     # convert to list
     table_data = []
-    for key, value in regrouped_dict.iteritems():
+    for key, value in regrouped_dict.items():
         row = [ key, value[0], value[1], value[1]/value[0] ]
         table_data.append(row)
 
