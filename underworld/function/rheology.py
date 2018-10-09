@@ -82,7 +82,12 @@ class stress_limiting_viscosity(_Function):
 
     >>> fn_visc_limited = fn.rheology.stress_limiting_viscosity(fn_stress,0.5,fn_visc)
     >>> stokesSys.fn_viscosity = fn_visc_limited
-    >>> solver.solve(nonLinearIterate=True) 
+    >>> solver.solve(nonLinearIterate=True) #doctest: +ELLIPSIS
+    Setup - BCs        ... s
+    Setup - Eq numbers ... s
+    Setup - Zero vecs  ... s
+    Setup - Matrices   ... s
+    Setup - Vectors    ... s
 
     Now check the stress:
 
