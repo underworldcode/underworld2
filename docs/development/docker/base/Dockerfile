@@ -36,9 +36,6 @@ RUN apt-get update -qq && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-RUN update-alternatives --install /usr/bin/python python /usr/bin/python2.7 1
-RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.5 2
-
 ARG MPICH_VERSION="3.1.4"
 ARG MPICH_CONFIGURE_OPTIONS="--enable-fast=all,O3 --prefix=/usr"
 ARG MPICH_MAKE_OPTIONS="-j4"
