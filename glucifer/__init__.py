@@ -24,12 +24,16 @@ frames (still experimental).
 """
 import underworld as _uw
 from . import _glucifer
+_uw.timing._add_timing_to_mod(_glucifer)
 from ._glucifer import Store
 _uw._set_init_sig_as_sig(Store)
+
 from ._glucifer import Figure
 _uw._set_init_sig_as_sig(Figure)
+
 from ._glucifer import Viewer
 _uw._set_init_sig_as_sig(Viewer)
+
 from . import objects
 _uw._set_init_sig_as_sig(objects)
 _uw.timing._add_timing_to_mod(objects)

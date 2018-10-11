@@ -71,29 +71,34 @@ def _set_init_sig_as_sig(mod):
 import underworld.container
 _set_init_sig_as_sig(underworld.container)
 timing._add_timing_to_mod(container)
+
 import underworld.mesh
 _set_init_sig_as_sig(underworld.mesh)
 timing._add_timing_to_mod(underworld.mesh)
+
 import underworld.conditions
 _set_init_sig_as_sig(underworld.conditions)
 timing._add_timing_to_mod(underworld.conditions)
+
 import underworld.function
 _set_init_sig_as_sig(underworld.function)
 timing._add_timing_to_mod(underworld.function)
+
 import underworld.swarm
 _set_init_sig_as_sig(underworld.swarm)
 timing._add_timing_to_mod(underworld.swarm)
+
 import underworld.systems
 _set_init_sig_as_sig(underworld.systems)
 timing._add_timing_to_mod(underworld.systems)
+
 import underworld.utils
 _set_init_sig_as_sig(underworld.utils)
 timing._add_timing_to_mod(underworld.utils)
 
-import numpy as _np
-
 # to allow our legacy doctest formats
 try:
+    import numpy as _np
     _np.set_printoptions(legacy='1.13')
 except:
     pass

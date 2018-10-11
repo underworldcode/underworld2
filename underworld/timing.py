@@ -69,10 +69,10 @@ def stop():
     Note that this is automatically called when
     `print_table()` is called.
     """
-    global _endtime
-    _endtime = _time.time()
     global timing
+    global _endtime
     if timing:
+        _endtime = _time.time()
         timing = False
 
 def reset():
@@ -185,6 +185,7 @@ def print_table(group_by="line_routine", sort_by="total", display_fraction=0.95,
     # get index for cutoff, and also column widths
     inc_time = 0.
     formatstr = "{0:"+float_precision+"}"
+    stop_row = 0
     for index,row in enumerate(table_data):
         inc_time += row[2]
         # calc string lengths of data
@@ -192,9 +193,10 @@ def print_table(group_by="line_routine", sort_by="total", display_fraction=0.95,
         maxl[1] = max(maxl[1],len("{}".format(row[1])))
         maxl[2] = max(maxl[2],len(formatstr.format(row[2])))
         maxl[3] = max(maxl[3],len(formatstr.format(row[3])))
-        if inc_time/all_time > display_fraction:
-            stop_row = index
+        stop_row = index
+        if inc_time/all_time >= display_fraction:
             break
+    stop_row = min(stop_row+1, len(table_data))
 
 
     # add a space between columns
@@ -291,16 +293,17 @@ def log_result( time, name ):
             data[0]+=1
             data[1]+=time
 
+_timedroutines = set()
 def _routine_timer_decorator(routine, class_name=None):
     """
     This decorator replaces any routine with the timed equivalent.
     """
-    if routine.__name__ == "timed":  # parent class already added timing so skip
-        return routine
+    import inspect
     if class_name:
         recname = class_name+"."+routine.__name__+"()"
     else:
         recname = routine.__name__
+
     def timed(*args, **kwargs):
         global _currentDepth
         if timing:
@@ -318,6 +321,11 @@ def _routine_timer_decorator(routine, class_name=None):
             _currentDepth -= 1
         # if we get here, we're not timing, call routine / return result.
         return routine(*args, **kwargs)
+
+    # the follow copies various attributes (signatures, docstrings etc) from the
+    # wrapped function to the wrapper function
+    import functools
+    functools.update_wrapper(timed,routine)
     return timed
 
 def _class_timer_decorator(cls):
@@ -325,25 +333,38 @@ def _class_timer_decorator(cls):
     This decorator walks the provided class decorating its
     methods with timed equivalents.
     """
-    for attr in _inspect.getmembers(cls, _inspect.ismethod):
+    for attr in _inspect.getmembers(cls, _inspect.isfunction):
         if issubclass(cls, _uw._stgermain.StgCompoundComponent):  # metaclass captures constructor timing
-            if attr[0] in ["__init__","__call__","__del__", "_setup"]:
+            if attr[0] in ["__init__","__call__","__del__", "_setup", "__new__"]:
                 continue
         if attr[0] in ["__del__",]:
             continue # don't wrap destructors
-#        if attr[0][0] == "_" and (issubclass(cls, _uw._stgermain.StgCompoundComponent)):  # metaclass captures constructor timing
-#            continue
-#        if attr[0][0] == "_" and (attr[0] != "__init__"):
-#            continue
+        if attr[1] in _timedroutines:
+            continue # do not double wrap!
+#        if attr[0] not in cls.__dict__:
+#            continue # do not wrap attribs belonging to parents.. they will be wrapped when parent is processed.
+        if attr[0] == "convert":
+            continue # There's great great difficulty in determining static methods nested with classes with children.
+                     # As such, we treat this as a special case, unfortunately.
+
+        # created timed routine
         timedroutine = _routine_timer_decorator(attr[1], cls.__name__)
+
+        # static methods need to be setup accordingly
+        try:
+            if isinstance(cls.__dict__[attr[0]], staticmethod):
+                timedroutine = staticmethod(timedroutine)
+        except:
+            pass
+
         setattr(cls, attr[0], timedroutine)
+        _timedroutines.add(timedroutine)  # add to set of timed routines to avoid doubling up
     return cls
 
 
 # keep a global list of done classes and modules
 _donemods = set()
 _doneclss = set()
-
 def _add_timing_to_mod(mod):
     """
     This function walks the provided module, seeking out classes
@@ -360,24 +381,28 @@ def _add_timing_to_mod(mod):
     # first gather info
     mods = []
     for guy in dir(mod):
-        if guy[0] != "":  # don't grab private guys
-            obj = getattr(mod,guy)
-            if inspect.ismodule(obj): # add list of submodules
-                if hasattr(obj, "__file__"):
-                    objpath = _os.path.dirname(inspect.getfile(obj))
-                    if objpath[0:lendir] != moddir:  # check if object is in current mod
-                        continue
-                else:
-                    continue
-                if obj not in _donemods:
-                    _donemods.add(obj)
-                    mods.append(obj)
-            elif inspect.isclass(obj):
-                # replace with timed version
-                if obj not in _doneclss:
-                    timed_obj = _class_timer_decorator(obj)
-                    setattr(mod,guy,timed_obj)
-                    _doneclss.add(obj)
+        obj = getattr(mod,guy)
+        # only wrap these
+        if not (inspect.ismodule(obj) or inspect.isclass(obj) or inspect.ismethod(obj)):
+            continue
+        # make sure obj is from current module.
+        # do in try loops because some (builtins) wont work
+        try:
+            objpath = _os.path.dirname(inspect.getfile(obj))
+        except:
+            continue
+        if objpath[0:lendir] != moddir:
+            continue
+        if inspect.ismodule(obj): # add list of submodules
+            if obj not in _donemods:
+                _donemods.add(obj)
+                mods.append(obj)
+        elif inspect.isclass(obj):
+            # replace with timed version
+            if obj not in _doneclss:
+                timed_obj = _class_timer_decorator(obj)
+                setattr(mod,guy,timed_obj)
+                _doneclss.add(obj)
 
     for mod in mods:
         # recurse into submodules
