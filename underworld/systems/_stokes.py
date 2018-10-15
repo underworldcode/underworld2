@@ -316,7 +316,7 @@ class Stokes(_stgermain.StgCompoundComponent):
 
     def redefineVelocityDirichletBC(self, basis_vectors):
         '''
-        Function to hid the implementation of rotating dirichlet boundary conditions.
+        Function to hide the implementation of rotating dirichlet boundary conditions.
         Here we build a global rotation matrix and a local assembly term for it for 2 reasons.
         1) The assembly term rotates local element contributions immediately after their local evaluation
            for the stokes system. This supports the Engelman & Sani idea in,
@@ -342,10 +342,8 @@ class Stokes(_stgermain.StgCompoundComponent):
         self._vnsVec = uw.systems.sle.SolutionVector(vnsField, vnsEqNum) # store on class
 
         # evaluate vnsField, check compatibility
-        if type(mesh) == uw.mesh._FeMesh_Annulus: # with _FeMesh_Annulus we have the sbr_fn
+        if isinstance(mesh, uw.mesh.FeMesh_Annulus): # with FeMesh_Annulus we have the sbr_fn
             self._vnsVec.meshVariable.data[:] = mesh.sbr_fn.evaluate(mesh)
-        else:
-            raise RuntimeError("Can't redefineVelocityDirichletBC because the velocity null space is unknown for this mesh")
              
         uw.libUnderworld.StgFEM.SolutionVector_LoadCurrentFeVariableValuesOntoVector(self._vnsVec._cself) # store in petsc vec
 
@@ -360,8 +358,7 @@ class Stokes(_stgermain.StgCompoundComponent):
         
         term = self._term = uw.systems.sle.MatrixAssemblyTerm_RotationDof(integrationSwarm=gaussSwarm,
                                                              assembledObject = self._rot,
-                                                             fn_e1=basis_vectors[0],
-                                                             fn_e2=basis_vectors[1],
+                                                             fn_basis=basis_vectors,
                                                              mesh=mesh)
 
         # self._eqNums[self._velocityField]._cself.removeBCs=True
@@ -372,7 +369,7 @@ class Stokes(_stgermain.StgCompoundComponent):
         vnsEqNum._cself.removeBCs = False
         # self._eqNums[self._velocityField]._cself.removeBCs=False
 
-        # # add rotation matrix element terms using the following
+        # add rotation matrix element terms using the following
         uw.libUnderworld.StgFEM.StiffnessMatrix_SetRotationTerm(self._kmatrix._cself, term._cself)
         uw.libUnderworld.StgFEM.StiffnessMatrix_SetRotationTerm(self._gmatrix._cself, term._cself)
         uw.libUnderworld.StgFEM.ForceVector_SetRotationTerm(self._fvector._cself, term._cself)

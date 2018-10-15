@@ -43,7 +43,7 @@ MatrixAssemblyTerm_RotationDof* _MatrixAssemblyTerm_RotationDof_New(  MatrixAsse
     return self;
 }
 
-void MatrixAssemblyTerm_RotationDof_SetE1Fn( void* _self, Fn::Function* fn ){
+void MatrixAssemblyTerm_RotationDof_SetEFn( void* _self, int i, Fn::Function* fn ){
     MatrixAssemblyTerm_RotationDof*  self = (MatrixAssemblyTerm_RotationDof*)_self;
     FeMesh  *mesh = (FeMesh*)self->geometryMesh;
     unsigned dim  = Mesh_GetDimSize(mesh);
@@ -51,29 +51,10 @@ void MatrixAssemblyTerm_RotationDof_SetE1Fn( void* _self, Fn::Function* fn ){
     MatrixAssemblyTerm_RotationDof_cppdata* cppdata = (MatrixAssemblyTerm_RotationDof_cppdata*) self->cppdata;
     // record fn to struct
     cppdata->input = std::make_shared<MeshCoordinate>((void*)mesh );
-    cppdata->e1func = fn->getFunction(cppdata->input.get());
+    cppdata->eVecFn[i] = fn->getFunction(cppdata->input.get());
 
     // check output conforms
-    const IO_double *testOutput = dynamic_cast<const IO_double*>(cppdata->e1func(cppdata->input.get()));
-    if( !testOutput || testOutput->size() != dim ) {
-      std::stringstream ss;
-      ss << "Expected 'fn' for " << __func__ << " must be of length " << dim;
-      throw std::invalid_argument(ss.str());
-    }
-}
-
-void MatrixAssemblyTerm_RotationDof_SetE2Fn( void* _self, Fn::Function* fn ){
-    MatrixAssemblyTerm_RotationDof*  self = (MatrixAssemblyTerm_RotationDof*)_self;
-    FeMesh  *mesh = (FeMesh*)self->geometryMesh;
-    unsigned dim  = Mesh_GetDimSize(mesh);
-
-    MatrixAssemblyTerm_RotationDof_cppdata* cppdata = (MatrixAssemblyTerm_RotationDof_cppdata*) self->cppdata;
-    // record fn to struct
-    cppdata->input = std::make_shared<MeshCoordinate>((void*)mesh );
-    cppdata->e2func = fn->getFunction(cppdata->input.get());
-
-    // check output conforms
-    const IO_double *testOutput = dynamic_cast<const IO_double*>(cppdata->e2func(cppdata->input.get()));
+    const IO_double *testOutput = dynamic_cast<const IO_double*>(cppdata->eVecFn[i](cppdata->input.get()));
     if( !testOutput || testOutput->size() != dim ) {
       std::stringstream ss;
       ss << "Expected 'fn' for " << __func__ << " must be of length " << dim;
@@ -205,8 +186,8 @@ void _MatrixAssemblyTerm_RotationDof_AssembleElement(
    FeMesh*        mesh         = ( self->geometryMesh ? self->geometryMesh : variable_row->feMesh );
    int            dim          = variable_row->dim;
 
-   const IO_double *e1_fnout, *e2_fnout; // the unit vector uw function ptrs
-   const double *e2Vec, *e1Vec;
+   const IO_double *e1_fnout, *e2_fnout, *e3_fnout; // the unit vector uw function ptrs
+   const double *e1ptr, *e2ptr, *e3ptr;
    IArray       *inc = self->inc;
    double       crossproduct[3];
    int          nNbr, *nbr, n_i, row_i, col_i, d_i, dofsPerNode;
@@ -226,25 +207,29 @@ void _MatrixAssemblyTerm_RotationDof_AssembleElement(
 
      auto rawPtr = cppdata->input.get();
      // get the 'e1' units vector for the vertex
-     e1_fnout = debug_dynamic_cast<const IO_double*>(cppdata->e1func(rawPtr));
-     e1Vec = e1_fnout->data();
+     e1_fnout = debug_dynamic_cast<const IO_double*>(cppdata->eVecFn[0](rawPtr));
+     e1ptr = e1_fnout->data();
 
      // get the e2 unit vector
-     e2_fnout = debug_dynamic_cast<const IO_double*>(cppdata->e2func(rawPtr));
-     e2Vec = e2_fnout->data();
+     e2_fnout = debug_dynamic_cast<const IO_double*>(cppdata->eVecFn[1](rawPtr));
+     e2ptr = e2_fnout->data();
 
      if (dim == 2) {
 
-       elStiffMat[row_i  ][col_i  ] = e1Vec[0];  elStiffMat[row_i  ][col_i+1] = e2Vec[0];
-       elStiffMat[row_i+1][col_i  ] = e1Vec[1];  elStiffMat[row_i+1][col_i+1] = e2Vec[1];
+       elStiffMat[row_i  ][col_i  ] = e1ptr[0];  elStiffMat[row_i  ][col_i+1] = e2ptr[0];
+       elStiffMat[row_i+1][col_i  ] = e1ptr[1];  elStiffMat[row_i+1][col_i+1] = e2ptr[1];
 
     } else {
-       // assume we can always calulate the 3rd basis vector from e2 x e2
-       StGermain_VectorCrossProduct(crossproduct, (double*)e1Vec, (double*)e2Vec);
+       // assume we can always calulate the 3rd basis vector from the cross product of e1 & e2
+       //StGermain_VectorCrossProduct(crossproduct, (double*)e1ptr, (double*)e2ptr);
+      
+       // get the e2 unit vector
+       e3_fnout = debug_dynamic_cast<const IO_double*>(cppdata->eVecFn[2](rawPtr));
+       e3ptr = e3_fnout->data();
 
-       elStiffMat[row_i  ][col_i  ] = e1Vec[0];  elStiffMat[row_i  ][col_i+1] = e2Vec[0];  elStiffMat[row_i  ][col_i+2] = crossproduct[0];
-       elStiffMat[row_i+1][col_i  ] = e1Vec[1];  elStiffMat[row_i+1][col_i+1] = e2Vec[1];  elStiffMat[row_i+1][col_i+2] = crossproduct[1];
-       elStiffMat[row_i+2][col_i  ] = e1Vec[2];  elStiffMat[row_i+2][col_i+1] = e2Vec[2];  elStiffMat[row_i+2][col_i+2] = crossproduct[2];
+       elStiffMat[row_i  ][col_i  ] = e1ptr[0];  elStiffMat[row_i  ][col_i+1] = e2ptr[0];  elStiffMat[row_i  ][col_i+2] = e3ptr[0];
+       elStiffMat[row_i+1][col_i  ] = e1ptr[1];  elStiffMat[row_i+1][col_i+1] = e2ptr[1];  elStiffMat[row_i+1][col_i+2] = e3ptr[1];
+       elStiffMat[row_i+2][col_i  ] = e1ptr[2];  elStiffMat[row_i+2][col_i+1] = e2ptr[2];  elStiffMat[row_i+2][col_i+2] = e3ptr[2];
      }
 
    }

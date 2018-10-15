@@ -531,7 +531,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
                                               partitioned=False)
 
             # build an annulus
-            elif type(self.mesh) is uw.mesh._FeMesh_Annulus:
+            elif type(self.mesh) is uw.mesh.FeMesh_Annulus:
                 if uw.rank() == 0:
                     print ("As the fields mesh geometry is an Annulus only the internal nodes will have their values\n"+
                           "interpolated from the hdf5 file. The use is required to manually initialise the field values\n"+
@@ -540,7 +540,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
                 radialLengths = (inputMin[0], inputMax[0])
                 angularExtent = (inputMin[1], inputMax[1])
 
-                inputMesh = uw.mesh._FeMesh_Annulus( elementRes=tuple(res),
+                inputMesh = uw.mesh.FeMesh_Annulus( elementRes=tuple(res),
                                                   radialLengths=radialLengths,
                                                   angularExtent=angularExtent,
                                                   periodic = [False, True], partitioned=False )
@@ -563,7 +563,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
             if type(self.mesh) is uw.mesh.FeMesh_Cartesian:
                 # interpolate 'inputField' onto the self nodes
                 self.data[:] = inputField.evaluate(self.mesh.data)
-            elif type(self.mesh) is uw.mesh._FeMesh_Annulus:
+            elif type(self.mesh) is uw.mesh.FeMesh_Annulus:
                 # only interpolate on interior nodes, not boundary nodes
                 mesh = self.mesh
                 outer = mesh.specialSets['outer']

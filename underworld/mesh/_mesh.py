@@ -18,7 +18,7 @@ import underworld._stgermain as _stgermain
 import weakref
 import libUnderworld
 import _specialSets_Cartesian
-import underworld.function as function
+import underworld.function as fn
 import contextlib
 import time
 import abc
@@ -27,7 +27,7 @@ from mpi4py import MPI
 import numpy as np
 
 
-class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
+class FeMesh(_stgermain.StgCompoundComponent, fn.FunctionInput):
     """
     The FeMesh class provides the geometry and topology of a finite
     element discretised domain. The FeMesh is implicitly parallel. Some aspects
@@ -1198,7 +1198,7 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
         _volume_integral = uw.utils.Integral(mesh=self, fn=fn)
         return _volume_integral.evaluate()
 
-class FeMesh_IndexSet(uw.container.ObjectifiedIndexSet, function.FunctionInput):
+class FeMesh_IndexSet(uw.container.ObjectifiedIndexSet, fn.FunctionInput):
     """
     This class ties the FeMesh instance to an index set, and stores other
     metadata relevant to the set.
@@ -1267,13 +1267,13 @@ class FeMesh_IndexSet(uw.container.ObjectifiedIndexSet, function.FunctionInput):
     def _get_iterator(self):
         return libUnderworld.Function.MeshIndexSet(self._cself, self.object._cself)
 
-class _FeMesh_Regional(FeMesh_Cartesian):
+class FeMesh_SRegion(FeMesh_Cartesian):
     def __new__(cls, **kwargs):
-        return super(_FeMesh_Regional,cls).__new__(cls, **kwargs)
+        return super(FeMesh_SRegion,cls).__new__(cls, **kwargs)
 
     def __init__(self, elementRes=(16,16,10), radialLengths=(3.0,6.0), latExtent=90.0, longExtent=90.0, centroid=[0.0,0.0,0.0], **kwargs):
         """
-        Class initialiser for Cubed-sphere sixth, centered on the 'centroid'.
+        Cre Cubed-sphere sixth, centered on the 'centroid'.
 
 
         MinI_VertexSet / MaxI_VertexSet -> longitudinal walls : [min/max] = [west/east]
@@ -1298,17 +1298,12 @@ class _FeMesh_Regional(FeMesh_Cartesian):
         -------
 
         >>> (radMin, radMax) = (4.0,8.0)
-        >>> mesh = uw.mesh._FeMesh_Regional( elementRes=(20,20,14), radialLengths=(radMin, radMax) )
+        >>> mesh = uw.mesh.FeMesh_SRegion( elementRes=(20,20,14), radialLengths=(radMin, radMax) )
         >>> integral = uw.utils.Integral( 1.0, mesh).evaluate()[0]
         >>> exact = 4/3.0*np.pi*(radMax**3 - radMin**2) / 6.0
         >>> np.fabs(integral-exact)/exact < 1e-1
         True
         """
-
-    def __new__(cls, **kwargs):
-        return super(_FeMesh_Regional,cls).__new__(cls, **kwargs)
-
-    def __init__(self, elementRes=(16,16,10), radial=(3.0,6.0), latExtent=90.0, longExtent=90.0, **kwargs):
 
         if not isinstance( latExtent, (float,int) ):
             raise TypeError("Provided 'latExtent' must be a float or integer")
@@ -1329,12 +1324,21 @@ class _FeMesh_Regional(FeMesh_Cartesian):
         long_half = longExtent/2.0
 
         # build 3D mesh cartesian mesh centred on (0.0,0.0,0.0) - in _setup() we deform the mesh
-        super(_FeMesh_Regional,self).__init__(elementType="Q1/dQ0", elementRes=elementRes,
+        # elementType="Q1/dQ0", 
+        super(FeMesh_SRegion,self).__init__(elementRes=elementRes,
                     minCoord=(radialLengths[0],-long_half,-lat_half), maxCoord=(radialLengths[1],long_half,lat_half), periodic=None, **kwargs)
+
+        self.specialSets["innerWall_VertexSet"] = _specialSets_Cartesian.MinI_VertexSet
+        self.specialSets["outerWall_VertexSet"] = _specialSets_Cartesian.MaxI_VertexSet
+        self.specialSets["northWall_VertexSet"] = _specialSets_Cartesian.MaxK_VertexSet
+        self.specialSets["southWall_VertexSet"] = _specialSets_Cartesian.MinK_VertexSet
+        self.specialSets["eastWall_VertexSet"] = _specialSets_Cartesian.MaxJ_VertexSet
+        self.specialSets["westWall_VertexSet"] = _specialSets_Cartesian.MinJ_VertexSet
 
         self._centroid = centroid
 
     def _setup(self):
+        import underworld.function as fn
 
         with self.deform_mesh():
             # perform Cubed-sphere projection on coordinates
@@ -1354,55 +1358,105 @@ class _FeMesh_Regional(FeMesh_Cartesian):
         # # note we use this condition to only capture border swarm particles
         # # on the surface itself. for those directly adjacent, the deltaMeshVariable will evaluate
         # # to non-zero (but less than 1.), so we need to remove those from the integration as well.
-        # self._boundaryNodeFn = uw.function.branching.conditional(
-        #                                   [  ( self.bndMeshVariable > 0.999, 1. ),
-        #                                      (                    True, 0. )   ] )
+        self._boundaryNodeFn = fn.branching.conditional( 
+                                        [  ( self.bndMeshVariable > 0.999, 1. ), 
+                                        (                    True, 0. )   ] ) 
 
-        self._rFn  = self._boundaryNodeFn * self.fn_unitvec_radial()
-        self._nsFn = self._boundaryNodeFn * self._getNSFn()
-        self._ewFn = self._boundaryNodeFn * self._getEWFn()
+        """
+        Rotation documentation.
+        We will create 3 basis vectors that will rotate the (x,y,z) problem to be a
+        (r,n,t) [radial, normal to cut, tangential to cut] problem.
+        
+        The rotations are performed on the local element level using the existing machinery
+        provided by UW2. As such only elements on the domain boundary need rotation, all internal
+        elements can continue with the (x,y,z) representation.
 
-        nsWalls = self.specialSets["MinJ_VertexSet"] + self.specialSets['MaxJ_VertexSet']
+        This is implemented with rotations on all dofs such that:
+         1. If on the domain boundary - rotated to (r,n,t) and 
+         2. If not on the domain boundary - rotated by identity matrix i.e. (NO rotation).
+        """
 
-        nsWallField = uw.mesh.MeshVariable(self, nodeDofCount=1)
+        # initialiase bases vectors as meshVariables
+        self._e1 = self.add_variable(nodeDofCount=3)
+        self._e2 = self.add_variable(nodeDofCount=3)
+        self._e3 = self.add_variable(nodeDofCount=3)
 
-        nsWallField.data[:] = 0.0
-        nsWallField.data[nsWalls.data] = 1.0
-        self._normal = uw.function.branching.conditional([ (nsWallField > 0.5, self._nsFn ),
-                                                           (             True, self._ewFn) ] )
+        # _x_or_radial, y_or_east, z_or_north functions
+        self._fn_x_or_radial = fn.branching.conditional(
+                                    [ ( self.bndMeshVariable > 0.9, self.fn_unitvec_radial() ),
+                                      (               True, fn.misc.constant(1.0)*(1.,0.,0.) ) ] )
+        self._fn_y_or_east   = fn.branching.conditional(
+                                    [ ( self.bndMeshVariable > 0.9, self._getEWFn() ),
+                                      (               True, fn.misc.constant(1.0)*(0.,1.,0.) ) ] )
+        self._fn_z_or_north  = fn.branching.conditional(
+                                    [ ( self.bndMeshVariable > 0.9, self._getNSFn() ),
+                                      (               True, fn.misc.constant(1.0)*(0.,0.,1.) ) ] )
+
+        # shorthand variables for the walls
+        inner = self.specialSets["innerWall_VertexSet"]
+        outer = self.specialSets["outerWall_VertexSet"]
+        W     = self.specialSets["westWall_VertexSet"]
+        E     = self.specialSets["eastWall_VertexSet"]
+        S     = self.specialSets["southWall_VertexSet"]
+        N     = self.specialSets["northWall_VertexSet"]
+
+        # evaluate the new bases
+        self._e1.data[:] = self._fn_x_or_radial.evaluate(self)
+        self._e2.data[:] = self._fn_y_or_east.evaluate(self) # only good on EW walls
+        self._e3.data[:] = self._fn_z_or_north.evaluate(self) # only good on NS walls
+
+        # build the correct e3 on EW, with e3 = e1 cross e2
+        walls = E+W
+        a = self._e1.data[walls.data]
+        b = self._e2.data[walls.data]
+        self._e3.data[walls.data] = np.cross(a,b)
+
+        # build the correct e2 on NS-EW
+        # note, at the side edges of the sixth a choice for the basis must be made
+        # as two non orthogonal side walls meet. We let the basis of the EW walls
+        # define the rotations required and don't correct them below.
+        walls = N+S - walls
+        a = self._e3.data[walls.data]
+        b = self._e1.data[walls.data]
+        self._e2.data[walls.data] = np.cross(a,b)
 
     def fn_unitvec_radial(self):
 
-        pos = function.coord()
+        pos = fn.coord()
         centre = self._centroid
         r_vec = pos - centre
-        mag = function.math.sqrt(function.math.dot( r_vec, r_vec ))
+        mag = fn.math.sqrt(fn.math.dot( r_vec, r_vec ))
         r_vec = r_vec / mag
         return r_vec
 
     def _getEWFn(self):
-        pos = function.coord() - self._centroid
-        xi = function.math.atan(pos[0]/pos[2])
+        pos = fn.coord() - self._centroid
+        xi = fn.math.atan(pos[0]/pos[2])
         # vec = [ cos(xi), 0.0, -sin(xi) ]
-        vec = function.math.cos(xi) * (0., 1., 0. )
-        vec = vec + function.math.sin(xi) * (0.0,0.0,-1.)
+        vec =       fn.math.cos(xi) * (1.,0.,0.)
+        vec = vec + fn.math.sin(xi) * (0.,0.,-1.)
         return vec
 
     def _getNSFn(self):
-        pos = function.coord() - self._centroid
-        xi = function.math.atan(pos[1]/pos[2])
+        pos = fn.coord() - self._centroid
+        xi = fn.math.atan(pos[1]/pos[2])
         # vec = [ 0.0, cos(xi), -sin(xi) ]
-        vec = function.math.cos(xi)* (1., 0., 0. )
-        vec = vec + function.math.sin(xi) * (0.0,0.0,-1.)
+        vec =       fn.math.cos(xi) * (0.,1.,0.)
+        vec = vec + fn.math.sin(xi) * (0.,0.,-1.)
         return vec
 
-class _FeMesh_Annulus(FeMesh_Cartesian):
+class FeMesh_Annulus(FeMesh_Cartesian):
 
     def __new__(cls, **kwargs):
-        return super(_FeMesh_Annulus,cls).__new__(cls, **kwargs)
+        return super(FeMesh_Annulus,cls).__new__(cls, **kwargs)
 
-    def __init__(self, elementRes=(10,16), radialLengths=(3.0,6.0), angularExtent=[0.0,360.0], centroid=[0.0,0.0], periodic=[False, True], **kwargs):
+    def __init__(self, elementRes=(10,16), radialLengths=(3.0,6.0), angularExtent=[0.0,360.0], centroid=[0.0,0.0], periodic=[False, True],  **kwargs):
         """
+        This class generates a 2D finite element mesh which is topologically cartesian
+        and in an annulus geometry. It is possible to directly build a dual mesh by
+        passing a pair of element types to the constructor. Warning only 'elementTypes' Q1/dQ0 are tested,
+        use other types at your own risk.
+
         Class initialiser for Annulus mesh, centered on the 'centroid'.
 
         MinI_VertexSet / MaxI_VertexSet -> radial walls       : [min/max] = [inner/outer]
@@ -1431,7 +1485,7 @@ class _FeMesh_Annulus(FeMesh_Cartesian):
         See parent classes for further required/optional parameters.
 
         >>> (radMin, radMax) = (4.0,8.0)
-        >>> mesh = uw.mesh._FeMesh_Annulus( elementRes=(14, 36), radialLengths=(radMin, radMax), angularExtent=[0.0,180.0] )
+        >>> mesh = uw.mesh.FeMesh_Annulus( elementRes=(14, 36), radialLengths=(radMin, radMax), angularExtent=[0.0,180.0] )
         >>> integral = uw.utils.Integral( 1.0, mesh).evaluate()[0]
         >>> exact = np.pi*(radMax**2 - radMin**2)/2.
         >>> np.fabs(integral-exact)/exact < 1e-1
@@ -1460,26 +1514,12 @@ class _FeMesh_Annulus(FeMesh_Cartesian):
         self._radialLengths = radialLengths
 
         # build 3D mesh cartesian mesh centred on (0.0,0.0,0.0) - in _setup() we deform the mesh
-        super(_FeMesh_Annulus,self).__init__(elementType="Q1/dQ0", elementRes=elementRes,
+        super(FeMesh_Annulus,self).__init__(elementRes=elementRes,
                     minCoord=(radialLengths[0],angularExtent[0]), maxCoord=(radialLengths[1],angularExtent[1]), periodic=periodic, **kwargs)
 
-        # TODO: make annulus specific specialSets
+        # define new specialSets, TODO, remove labels that don't make sense for the annulus
         self.specialSets["inner"] = _specialSets_Cartesian.MinI_VertexSet
-        # uw.mesh.FeMesh_IndexSet(object=iset.object,
-        #                                 topologicalIndex=iset.topologicalIndex,
-        #                                 size=iset.object.nodesGlobal,
-        #                                 fromObject=iset)
         self.specialSets["outer"] = _specialSets_Cartesian.MaxI_VertexSet
-        # uw.mesh.FeMesh_IndexSet(object=iset.object,
-        #                                 topologicalIndex=iset.topologicalIndex,
-        #                                 size=iset.object.nodesGlobal,
-        #                                 fromObject=iset)
-
-        # self.specialSets["MinI_VertexSet"] = None
-        # self.specialSets["MaxI_VertexSet"] = None
-        # self.specialSets["MinJ_VertexSet"] = None
-        # self.specialSets["MaxJ_VertexSet"] = None
-
         self._centroid = centroid
 
     @property
@@ -1500,20 +1540,20 @@ class _FeMesh_Annulus(FeMesh_Cartesian):
 
     def fn_unitvec_radial(self):
         # returns the radial position
-        pos = function.coord()
+        pos = fn.coord()
         centre = self._centroid
         r_vec = pos - centre
-        mag = function.math.sqrt(function.math.dot( r_vec, r_vec ))
+        mag = fn.math.sqrt(fn.math.dot( r_vec, r_vec ))
         r_vec = r_vec / mag
         return r_vec
 
     def fn_unitvec_tangent(self):
         # returns the radial position
-        pos = function.coord()
+        pos = fn.coord()
         centre = self._centroid
         r_vec = pos - centre
         theta = [-1.0*r_vec[1], r_vec[0]]
-        mag = function.math.sqrt(function.math.dot( theta, theta ))
+        mag = fn.math.sqrt(fn.math.dot( theta, theta ))
         theta = theta / mag
         return theta
 
@@ -1523,6 +1563,14 @@ class _FeMesh_Annulus(FeMesh_Cartesian):
         r = np.sqrt((self.data ** 2).sum(1))
         theta = (180/np.pi)*np.arctan2(self.data[:,1],self.data[:,0])
         return np.array([r,theta]).T
+
+    # a function for radial coordinates
+    @property
+    def fn_radial(self):
+        pos = fn.coord()
+        centre = self._centroid
+        r_vec = pos - centre
+        return fn.math.sqrt(fn.math.dot( r_vec, r_vec ))
 
     def _setup(self):
         from underworld import function as fn
@@ -1544,14 +1592,24 @@ class _FeMesh_Annulus(FeMesh_Cartesian):
         # note we use this condition to only capture border quadrature points
         # on the surface. For points not on the surface the bndMeshVariable will evaluate
         # <1.0, so we need to remove those from the integration as well.
-        self.bnd_vec_normal  = uw.function.branching.conditional(
+        self.bnd_vec_normal  = fn.branching.conditional(
                              [ ( self.bndMeshVariable > 0.9, self.fn_unitvec_radial() ),
-                               (               True, uw.function.misc.constant(1.0)*(1.0,0.0) ) ] )
+                               (               True, fn.misc.constant(1.0)*(1.0,0.0) ) ] )
 
-        self.bnd_vec_tangent = uw.function.branching.conditional(
+        self.bnd_vec_tangent = fn.branching.conditional(
                              [ ( self.bndMeshVariable > 0.9, self.fn_unitvec_tangent() ),
-                               (               True, uw.function.misc.constant(1.0)*(0.0,1.0) ) ] )
+                               (               True, fn.misc.constant(1.0)*(0.0,1.0) ) ] )
         
          # define solid body rotation function for the annulus
         r = fn.math.sqrt(fn.math.pow(fn.coord()[0],2.) + fn.math.pow(fn.coord()[1],2.))
         self.sbr_fn = r*self.fn_unitvec_tangent() # solid body rotation function
+
+def _FeMesh_Annulus(*args, **kwargs):
+    from warnings import warn
+    warn("Deprecation warning, '_FeMesh_Annulus' will be deprecated, call 'FeMesh_Annulus' instead")
+    return FeMesh_Annulus(*args, **kwargs)
+
+def _FeMesh_Regional(*args, **kwargs):
+    from warnings import warn
+    warn("Deprecation warning, '_FeMesh_Regional' will be deprecated, call 'FeMesh_SRegion' instead")
+    return FeMesh_SRegion(*args, **kwargs)
