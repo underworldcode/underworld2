@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#ifndef NOSHARED
+#if 0
 int main (){
    double Z,u1,u2,u3,u4,u5,u6;
    double sum1,sum2,sum3,sum4,sum5,sum6,mag,sum7,sum8,sum9,sum10,x,y,z;

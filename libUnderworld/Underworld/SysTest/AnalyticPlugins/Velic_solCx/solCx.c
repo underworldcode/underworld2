@@ -8,8 +8,7 @@
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 #include "solCx.h"
 
-#ifdef MAIN
-
+#if 0
 int main( int argc, char **argv )
 {
   int i,j;
@@ -42,7 +41,6 @@ int main( int argc, char **argv )
 	
   return 0;
 }
-
 #endif
 
 void _Velic_solCx(
@@ -72,10 +70,10 @@ void _solCx_A(
   double total_stress[], double strain_rate[] )
 {
   double Z,u1,u2,u3,u4,u5,u6,ZA,ZB,ZR;
-  double sum1,sum2,sum3,sum4,sum5,sum6,mag,x,z,xc;
+  double sum1,sum2,sum3,sum4,sum5,sum6,x,z,xc;
   double num1A,num2A,num3A,num4A,num1B,num2B,num3B,num4B,denA,denB;
   double _C1A,_C2A,_C3A,_C4A,_C1B,_C2B,_C3B,_C4B,_C1,_C2,_C3,_C4;
-  int n,nx;
+  int nx;
   double kx, kn;
 
   double t1,t2,t3,t4,t5,t6,t7,t8,t9,t10;
@@ -746,7 +744,7 @@ void _solCx_A(
   sum3 += u3;
   u4 *= sin(kn*z); /* zx stress */
   sum4 += u4;
-  mag=sqrt(sum1*sum1+sum2*sum2);
+  //mag=sqrt(sum1*sum1+sum2*sum2);
   /* Output */
   if( vel != NULL ) {
     vel[0] = sum1;
@@ -782,10 +780,10 @@ void _solCx_B(
   double total_stress[], double strain_rate[] )
 {
   double Z,u1,u2,u3,u4,u5,u6,ZA,ZB,ZR;
-  double sum1,sum2,sum3,sum4,sum5,sum6,mag,x,z,xc;
+  double sum1,sum2,sum3,sum4,sum5,sum6,x,z,xc;
   double num1A,num2A,num3A,num4A,num1B,num2B,num3B,num4B,denA,denB;
   double _C1A,_C2A,_C3A,_C4A,_C1B,_C2B,_C3B,_C4B,_C1,_C2,_C3,_C4;
-  int n,nx;
+  int nx;
   double kx, kn;
 
   double t1,t2,t3,t4,t5,t6,t7,t8,t9,t10;
@@ -1474,7 +1472,7 @@ void _solCx_B(
   sum3 += u3;
   u4 *= sin(kn*z); /* zx stress */
   sum4 += u4;
-  mag=sqrt(sum1*sum1+sum2*sum2);
+  //mag=sqrt(sum1*sum1+sum2*sum2);
   /* Output */
   if( vel != NULL ) {
     vel[0] = sum1;

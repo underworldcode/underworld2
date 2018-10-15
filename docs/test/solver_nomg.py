@@ -38,10 +38,10 @@ petsc.OptionsPrint()
 
 if 4 != stats.pressure_its:
     raise RuntimeError("Test returned wrong number of pressure iterations.")
-if 28 != stats.velocity_presolve_its:
+if 27 != stats.velocity_presolve_its:
     raise RuntimeError("Test returned wrong number of velocity pre solve iterations.")
 if -1 != stats.velocity_pressuresolve_its:  # -1 will be returned if this stat isn't supported.
-    if stats.velocity_pressuresolve_its < 100:
+    if stats.velocity_pressuresolve_its < 80:
         raise RuntimeError("Test returned wrong number of velocity pressure solve iterations.")
-if 30 != stats.velocity_backsolve_its:
+if 24 != stats.velocity_backsolve_its:
     raise RuntimeError("Test returned wrong number of velocity back solve iterations.")

@@ -10,18 +10,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
+#include "solC.h"
 
-#define PI 3.14159265358979323846264338328
-#define FOURIER_TERMS 150
-
-void _Velic_solC( 
-		double pos[], 
-		double sigma, double eta, double x_c,
-		double vel[], double* presssure, 
-		double total_stress[], double strain_rate[] );
-
-
-#ifndef NOSHARED
+#if 0
 int main( int argc, char **argv )
 {
 	int i,j;
@@ -35,7 +26,7 @@ int main( int argc, char **argv )
 			
 			pos[0] = x;
 			pos[1] = z;
-			_Velic_solC( pos, 1.0, 1.0, 0.4, vel, &pressure, total_stress, strain_rate );
+			_Velic_solC( pos, 1.0, 1.0, 0.4, vel, &pressure, total_stress, strain_rate, 200 );
 			
 			printf("t_xz,e_xz look funny \n");
 			printf("%0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f \n",
@@ -54,14 +45,14 @@ int main( int argc, char **argv )
 
 
 void _Velic_solC( 
-		double pos[],									/* coordinates */
+		const double pos[],									/* coordinates */
 		double _sigma, double _eta, double _x_c,		/* problem dependant inputs: density, viscosity, width of dense column */
 		double vel[], double* presssure, 				/* output: velocity, pressure */
-		double total_stress[], double strain_rate[] ) 	/* ouput: total stresss, strain rate */ 
+		double total_stress[], double strain_rate[], int nmodes ) 	/* ouput: total stresss, strain rate */
 {
 	double Z,u1,u2,u3,u4,u5,u6;
 	double _C1,_C2,_C3,_C4;
-	double sum1,sum2,sum3,sum4,sum5,sum6,sum7,mag,x,z;
+	double sum1,sum2,sum3,sum4,sum5,sum6,sum7,x,z;
 	double sigma,del_rho,k,xc;
 	int n;
 	
@@ -87,7 +78,7 @@ void _Velic_solC(
 	
 	
 	
-	for(n=1;n<FOURIER_TERMS;n++){
+	for(n=1;n<nmodes;n++){
 		
 		k = (double)n*M_PI;
 		del_rho = 2.0*sigma*sin(k*xc)/k;
@@ -166,7 +157,7 @@ void _Velic_solC(
 	sum5 +=  sigma*xc*(0.5-z); /* now have total pressure */
 	sum3 += -sum5; /* now have total zz stress */
 	sum6 += -sum5; /* now have total xx stress */
-	mag=sqrt(sum1*sum1+sum2*sum2);
+	//mag=sqrt(sum1*sum1+sum2*sum2);
 	/*printf("%0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f\n",x,z,sum1,sum2,sum3,sum4,sum5,sum6,mag,sum7);*/
 
 
