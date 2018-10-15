@@ -411,11 +411,32 @@ class StokesSolver(_stgermain.StgCompoundComponent):
 
         # set up objects on SLE
         if reinitialise:
+            import mpi4py
+
+            wtime = mpi4py.MPI.Wtime()
             libUnderworld.StgFEM.SystemLinearEquations_BC_Setup(self._stokesSLE._cself, None)
+            if uw.rank() == 0 and print_stats:
+                print("Setup - BCs        {:.4} s".format(mpi4py.MPI.Wtime() - wtime))
+
+            wtime = mpi4py.MPI.Wtime()
             libUnderworld.StgFEM.SystemLinearEquations_LM_Setup(self._stokesSLE._cself, None)
+            if uw.rank() == 0 and print_stats:
+                print("Setup - Eq numbers {:.4} s".format(mpi4py.MPI.Wtime() - wtime))
+
+            wtime = mpi4py.MPI.Wtime()
             libUnderworld.StgFEM.SystemLinearEquations_ZeroAllVectors(self._stokesSLE._cself, None)
+            if uw.rank() == 0 and print_stats:
+                print("Setup - Zero vecs  {:.4} s".format(mpi4py.MPI.Wtime() - wtime))
+
+            wtime = mpi4py.MPI.Wtime()
             libUnderworld.StgFEM.SystemLinearEquations_MatrixSetup(self._stokesSLE._cself, None)
+            if uw.rank() == 0 and print_stats:
+                print("Setup - Matrices   {:.4} s".format(mpi4py.MPI.Wtime() - wtime))
+
+            wtime = mpi4py.MPI.Wtime()
             libUnderworld.StgFEM.SystemLinearEquations_VectorSetup(self._stokesSLE._cself, None)
+            if uw.rank() == 0 and print_stats:
+                print("Setup - Vectors    {:.4} s".format(mpi4py.MPI.Wtime() - wtime))
 
             # setup penalty specific objects
             if isinstance(self.options.main.penalty, float) and self.options.main.penalty > 0.0:
@@ -487,7 +508,8 @@ class StokesSolver(_stgermain.StgCompoundComponent):
 
     def print_petsc_options(self):
         self._setup_options()
-        print("Options: {}".format(self._optionsStr))
+        if uw.rank()==0:
+            print("Options: {}".format(self._optionsStr))
 
 
     ########################################################################

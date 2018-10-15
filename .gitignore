@@ -35,10 +35,13 @@ libUnderworld/libUnderworldPy/c_pointers.py
 libUnderworld/libUnderworldPy/gLucifer.py
 libUnderworld/libUnderworldPy/petsc.py
 libUnderworld/libUnderworldPy/lavavu.py
+libUnderworld/h5py_ext/
 testResults
 docs/scratch
 docs/test/*Output
 docs/examples/images/*
+*ipynb.out
+*ipynb.err
 
 # We should probably not cache the output of all the examples -  if we are going to leave the
 # notebook output cells in place, then there is not much need.
@@ -48,6 +51,7 @@ docs/examples/PureShear2D
 docs/examples/Buckling2D
 docs/examples/SlabSubduction
 docs/examples/*Output
+docs/examples/*.pdf
 
 docs/Rheology/
 
@@ -56,6 +60,7 @@ docs/publications/TosiEtAl-2015/TosiOutput
 docs/development/TransIsoCompression
 docs/development/TransIsoShear
 
+docs/myvis.gldb
 
 # switch to regexp syntax.
 
@@ -97,3 +102,6 @@ docs/user_guide/surf.gldb
 docs/test/image_tests/notebooks/*
 
 docs/test/Pressure_Error.png
+
+docs/test/uplift/buildMount.txt
+docs/test/temp.h5

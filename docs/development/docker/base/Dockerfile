@@ -7,10 +7,9 @@ RUN apt-get update -qq && \
         bash-completion \
         build-essential \
         git \
-        python-minimal python-pip \
-        python3-minimal \
-        python3-dev \
-        python3-pip \
+        python-minimal \
+        python-dev \
+        python-pip \
         libxml2-dev \
         xorg-dev \
         ssh \
@@ -23,14 +22,14 @@ RUN apt-get update -qq && \
         freeglut3-dev \
         libgl1-mesa-dri \
         libgl1-mesa-glx \
-        python3-tk \
+        python-tk \
         rsync \
         vim \
         less \
         xauth \
         swig \
         gdb-minimal \
-        python3-dbg \
+        python2.7-dbg \
         wget \
         gfortran  && \
     apt-get clean && \
@@ -50,19 +49,19 @@ RUN wget http://www.mpich.org/static/downloads/${MPICH_VERSION}/mpich-${MPICH_VE
     cd /tmp                                && \
     rm -fr *
 
-ENV LANG=C.UTF-8
+
 # Install setuptools and wheel first, needed by plotly
-RUN pip3 install --no-cache-dir setuptools wheel && \
-    pip3 install --no-cache-dir packaging \
-        runipy \
+RUN pip install --no-cache-dir setuptools wheel && \
+    pip install --no-cache-dir packaging \
         appdirs \
         numpy \
         jupyter \
         plotly \
         matplotlib \
+        runipy \
         pillow \
         pyvirtualdisplay \
-        ipython \
+        ipython==4.2.0 \
         ipyparallel \
         pint \
         sphinx \
@@ -70,14 +69,17 @@ RUN pip3 install --no-cache-dir setuptools wheel && \
         sphinxcontrib-napoleon \
         mock \
         scipy \ 
-        tabulate \
-        mpi4py
+        tabulate
+# ^^^ Note we choose an older version of ipython because its tooltips work better.
+#     Also, the system six is too old, so we upgrade for the pip version
 
 WORKDIR /tmp/petsc-build
 RUN wget http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-3.9.3.tar.gz
-RUN tar zxf petsc-lite-3.9.3.tar.gz && cd petsc-3.9.3                         && \
+RUN tar zxf petsc-lite-3.9.3.tar.gz && cd petsc-3.9.3 && \
     ./configure --with-debugging=0 --prefix=/usr                                 \
                 --COPTFLAGS="-g -O3" --CXXOPTFLAGS="-g -O3" --FOPTFLAGS="-g -O3" \
+                --download-petsc4py=1     \
+                --download-mpi4py=1       \
                 --download-mumps=1        \
                 --download-parmetis=1     \
                 --download-metis=1        \
@@ -94,7 +96,8 @@ RUN tar zxf petsc-lite-3.9.3.tar.gz && cd petsc-3.9.3                         &&
     cd /tmp && \
     rm -fr *
 
-RUN CC=mpicc HDF5_MPI="ON" pip3 install --no-cache-dir --no-binary=h5py h5py
+ENV PYTHONPATH $PYTHONPATH:/usr/lib
+RUN CC=mpicc HDF5_MPI="ON" pip install --no-cache-dir --no-binary=h5py h5py
 
 # Install Tini.. this is required because CMD (below) doesn't play nice with notebooks for some reason: https://github.com/ipython/ipython/issues/7062, https://github.com/jupyter/notebook/issues/334
 RUN curl -L https://github.com/krallin/tini/releases/download/v0.10.0/tini > tini && \
