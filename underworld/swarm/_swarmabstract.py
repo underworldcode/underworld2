@@ -10,10 +10,10 @@ import underworld as uw
 import underworld._stgermain as _stgermain
 import weakref
 import libUnderworld
-import _swarmvariable as svar
+from . import _swarmvariable as svar
 import abc
 
-class SwarmAbstract(_stgermain.StgCompoundComponent):
+class SwarmAbstract(_stgermain.StgCompoundComponent, metaclass = abc.ABCMeta):
     """
     The SwarmAbstract class supports particle like data structures. Each instance of 
     this class will store a set of unique particles. In this context, particles
@@ -35,7 +35,6 @@ class SwarmAbstract(_stgermain.StgCompoundComponent):
 
     _supportedDataTypes = ["char","short","int","float", "double"]
 
-    __metaclass__ = abc.ABCMeta
     def __init__(self, mesh, **kwargs):
 
         if not isinstance(mesh, uw.mesh.FeMesh):

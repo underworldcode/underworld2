@@ -1,5 +1,5 @@
 import re
-import conv
+from . import conv
 
 
 # def is_macro(word):

@@ -57,7 +57,7 @@ class ColourMap(_stgermain.StgCompoundComponent):
 
         #User-defined props in kwargs
         self.properties.update(kwargs)
-        dict((k.lower(), v) for k, v in self.properties.iteritems())
+        dict((k.lower(), v) for k, v in self.properties.items())
 
         if valueRange != None:
             # is valueRange correctly defined, ie list of length 2 made of numbers
@@ -105,7 +105,7 @@ class ColourMap(_stgermain.StgCompoundComponent):
 
     def _getProperties(self):
         #Convert properties to string
-        return '\n'.join(['%s=%s' % (k,v) for k,v in self.properties.iteritems()]);
+        return '\n'.join(['%s=%s' % (k,v) for k,v in self.properties.items()]);
 
 class Drawing(_stgermain.StgCompoundComponent):
     """
@@ -162,7 +162,7 @@ class Drawing(_stgermain.StgCompoundComponent):
 
         #User-defined props in kwargs
         self.properties.update(kwargs)
-        dict((k.lower(), v) for k, v in self.properties.iteritems())
+        dict((k.lower(), v) for k, v in self.properties.items())
 
         if not isinstance(colourBar, bool):
             raise TypeError("'colourBar' parameter must be of 'bool' type.")
@@ -202,7 +202,7 @@ class Drawing(_stgermain.StgCompoundComponent):
 
     def _getProperties(self):
         #Convert properties to string
-        return '\n'.join(['%s=%s' % (k,v) for k,v in self.properties.iteritems()]);
+        return '\n'.join(['%s=%s' % (k,v) for k,v in self.properties.items()]);
 
     def render(self, viewer):
         #Place any custom geometry output in this method, called after database creation

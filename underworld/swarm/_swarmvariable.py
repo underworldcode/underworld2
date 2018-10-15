@@ -11,8 +11,8 @@ import underworld._stgermain as _stgermain
 import underworld.mesh as mesh
 import numpy as np
 import libUnderworld
-import _swarmabstract as sab
-import _swarm
+from . import _swarmabstract as sab
+from . import _swarm
 import underworld.function as function
 import libUnderworld.libUnderworldPy.Function as _cfn
 from mpi4py import MPI
@@ -404,7 +404,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
 
         # calculate the hdf5 file offset
         offset=0
-        for i in xrange(rank):
+        for i in range(rank):
             offset += procCount[i]
 
         # open parallel hdf5 file

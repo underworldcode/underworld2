@@ -14,8 +14,8 @@ whether the queried locations are inside or outside the shape.
 """
 
 import libUnderworld.libUnderworldPy.Function as _cfn
-from _function import Function as _Function
-from _function import input as _input
+from ._function import Function as _Function
+from ._function import input as _input
 import numpy as _np
 
 class Polygon(_Function):

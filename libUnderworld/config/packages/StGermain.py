@@ -1,8 +1,8 @@
 import os
 from config import Package
-from libXML2 import libXML2
-from MPI import MPI
-from pcu import pcu
+from .libXML2 import libXML2
+from .MPI import MPI
+from .pcu import pcu
 
 class StGermain(Package):
 

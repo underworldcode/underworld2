@@ -30,11 +30,11 @@ for f in files:
     fname = os.path.join(nbdir, f)
     #Get filename without path and extension
     notebook = os.path.splitext(os.path.basename(fname))[0]
-    print "Testing Notebook: " + notebook
+    print("Testing Notebook: " + notebook)
     #Check if the test dir exists, if not create
     dirfound = os.path.exists(notebook)
     if not dirfound: 
-        print "Creating dirs: " + notebook + '/expected'
+        print("Creating dirs: " + notebook + '/expected')
         os.makedirs(os.path.join(notebook, 'expected'))
     #Create log file
     outName = notebook + "/convert.out"
@@ -49,7 +49,7 @@ for f in files:
 
     #Use output of the initial run as expected data
     if not dirfound:
-        print "Using files created by initial run as expected output for tests"
+        print("Using files created by initial run as expected output for tests")
         images = glob.glob("*.png")
         for f in images:
             shutil.move(f, os.path.join('expected', f))

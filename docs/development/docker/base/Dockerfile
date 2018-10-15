@@ -7,9 +7,9 @@ RUN apt-get update -qq && \
         bash-completion \
         build-essential \
         git \
-        python-minimal \
-        python-dev \
-        python-pip \
+        python3-minimal \
+        python3-dev \
+        python3-pip \
         libxml2-dev \
         xorg-dev \
         ssh \
@@ -22,14 +22,15 @@ RUN apt-get update -qq && \
         freeglut3-dev \
         libgl1-mesa-dri \
         libgl1-mesa-glx \
-        python-tk \
+        python3-tk \
         rsync \
         vim \
         less \
         xauth \
         swig \
         gdb-minimal \
-        python2.7-dbg \
+        python3-dbg \
+	python3-setuptools \
         wget \
         gfortran  && \
     apt-get clean && \
@@ -49,19 +50,18 @@ RUN wget http://www.mpich.org/static/downloads/${MPICH_VERSION}/mpich-${MPICH_VE
     cd /tmp                                && \
     rm -fr *
 
-
+ENV LANG=C.UTF-8
 # Install setuptools and wheel first, needed by plotly
-RUN pip install --no-cache-dir setuptools wheel && \
-    pip install --no-cache-dir packaging \
+RUN pip3 install --no-cache-dir packaging \
+        runipy \
         appdirs \
         numpy \
         jupyter \
         plotly \
         matplotlib \
-        runipy \
         pillow \
         pyvirtualdisplay \
-        ipython==4.2.0 \
+        ipython \
         ipyparallel \
         pint \
         sphinx \
@@ -69,35 +69,35 @@ RUN pip install --no-cache-dir setuptools wheel && \
         sphinxcontrib-napoleon \
         mock \
         scipy \ 
-        tabulate
-# ^^^ Note we choose an older version of ipython because its tooltips work better.
-#     Also, the system six is too old, so we upgrade for the pip version
+        tabulate \
+        mpi4py
+
+RUN apt-get update -qq && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends python-minimal python-pip
 
 WORKDIR /tmp/petsc-build
 RUN wget http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-3.9.3.tar.gz
-RUN tar zxf petsc-lite-3.9.3.tar.gz && cd petsc-3.9.3 && \
+RUN tar zxf petsc-lite-3.9.3.tar.gz && cd petsc-3.9.3                         && \
     ./configure --with-debugging=0 --prefix=/usr                                 \
                 --COPTFLAGS="-g -O3" --CXXOPTFLAGS="-g -O3" --FOPTFLAGS="-g -O3" \
-                --download-petsc4py=1     \
-                --download-mpi4py=1       \
-                --download-mumps=1        \
-                --download-parmetis=1     \
-                --download-metis=1        \
-                --download-superlu=1      \
-                --download-hypre=1        \
                 --download-cmake=1        \
-                --download-scalapack=1    \
-                --download-superlu_dist=1 \
-                --download-superlu=1      \
                 --download-fblaslapack=1  \
-                --download-hdf5=1                                                    && \
+                --download-hdf5=1
+RUN cd petsc-3.9.3                         && \
     make PETSC_DIR=/tmp/petsc-build/petsc-3.9.3 PETSC_ARCH=arch-linux2-c-opt all     && \
     make PETSC_DIR=/tmp/petsc-build/petsc-3.9.3 PETSC_ARCH=arch-linux2-c-opt install && \
     cd /tmp && \
     rm -fr *
 
+WORKDIR /tmp
+RUN wget http://prdownloads.sourceforge.net/scons/scons-3.0.1.tar.gz
+RUN tar zxf scons-3.0.1.tar.gz && cd scons-3.0.1 && \
+    python setup.py install && \
+    cd /tmp && \
+    rm -rf *
+
 ENV PYTHONPATH $PYTHONPATH:/usr/lib
-RUN CC=mpicc HDF5_MPI="ON" pip install --no-cache-dir --no-binary=h5py h5py
+RUN CC=mpicc HDF5_MPI="ON" pip3 install --no-cache-dir --no-binary=h5py h5py
 
 # Install Tini.. this is required because CMD (below) doesn't play nice with notebooks for some reason: https://github.com/ipython/ipython/issues/7062, https://github.com/jupyter/notebook/issues/334
 RUN curl -L https://github.com/krallin/tini/releases/download/v0.10.0/tini > tini && \
@@ -111,7 +111,7 @@ ENV GLUCIFER_USE_XVFB 1
 
 # Add a notebook profile.
 RUN mkdir -p -m 700 /root/.jupyter/ && \
-    echo "c.NotebookApp.ip = '*'" >> /root/.jupyter/jupyter_notebook_config.py
+    echo "c.NotebookApp.ip = '0.0.0.0'" >> /root/.jupyter/jupyter_notebook_config.py
 
 # Setup ipyparallel for mpi profile
 WORKDIR /root/.jupyter

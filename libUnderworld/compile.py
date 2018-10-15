@@ -8,7 +8,7 @@ if os.path.exists(build_success_file):
     os.remove(build_success_file)
 
 # call scons once
-sconsBin = os.path.join('config', 'scons', 'scons.py')
+sconsBin = 'scons'
 returncode = subprocess.call( sconsBin + ' ' + ' '.join(sys.argv[1:]), shell=True )
 #if returncode != 0:
 #    sys.exit(returncode)

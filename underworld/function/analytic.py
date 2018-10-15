@@ -28,7 +28,7 @@ with exact solutions provided by solution objects.
 """
 
 import libUnderworld.libUnderworldPy.Function as _cfn
-from _function import Function as _Function
+from ._function import Function as _Function
 
 class _Sol_Function(_Function):
    # This class simply wraps cpp Function class pointers

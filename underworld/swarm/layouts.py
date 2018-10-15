@@ -11,10 +11,10 @@ This module contains classes for populating swarms with particles across
 the domain.
 '''
 import underworld._stgermain as _stgermain
-import _swarm
+from . import _swarm
 import abc as _abc
 
-class ParticleLayoutAbstract(_stgermain.StgCompoundComponent):
+class ParticleLayoutAbstract(_stgermain.StgCompoundComponent, metaclass = _abc.ABCMeta):
     """
     Abstract class. Children classes are responsible for populating 
     swarms with particles, generally across the entire domain.
@@ -28,7 +28,6 @@ class ParticleLayoutAbstract(_stgermain.StgCompoundComponent):
     _objectsDict = {  "_layout": None }
     _selfObjectName = "_layout"
 
-    __metaclass__ = _abc.ABCMeta
     def __init__(self, swarm, **kwargs ):
 
 

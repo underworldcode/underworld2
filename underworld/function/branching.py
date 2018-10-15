@@ -13,7 +13,7 @@ certain conditions are met (with the condition also described by a function!).
 
 """
 import libUnderworld.libUnderworldPy.Function as _cfn
-from _function import Function as _Function
+from ._function import Function as _Function
 
 
 class map(_Function):
@@ -129,7 +129,7 @@ class map(_Function):
         
         self._map = {}
 
-        for key, value in mapping.iteritems():
+        for key, value in mapping.items():
             if not isinstance(key, int) or key < 0:
                 raise ValueError("Key '{}' not valid. Mapping keys must be unsigned integers.".format(key))
             funcVal = _Function.convert(value)

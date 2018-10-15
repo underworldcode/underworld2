@@ -12,14 +12,14 @@ import underworld as uw
 import errno
 import underworld._stgermain as _stgermain
 import os
-import urllib2
+import urllib
 import time
 import json
 from base64 import b64encode
 import libUnderworld
 import subprocess
 from subprocess import Popen, PIPE, STDOUT
-from . import objects
+import glucifer.objects as objects
 import libUnderworld as _libUnderworld
 import sys
 import os
@@ -78,7 +78,7 @@ class Store(_stgermain.StgCompoundComponent):
     >>> import glucifer
     >>> store = glucifer.Store()
 
-    Optionally provide a filename so you don't need to call save later (no extension required)
+    Optionally provide a filename so you don't need to call save later (no extension)
     
     >>> store = glucifer.Store('myvis')
 
@@ -415,7 +415,7 @@ class Figure(dict):
 
         #User-defined props in kwargs
         self.update(kwargs)
-        dict((k.lower(), v) for k, v in self.iteritems())
+        dict((k.lower(), v) for k, v in self.items())
 
         if boundingBox:
             #Add 3rd dimension if missing
@@ -462,7 +462,7 @@ class Figure(dict):
 
     def _getProperties(self):
         #Convert properties to string
-        return '\n'.join(['%s=%s' % (k,v) for k,v in self.iteritems()]);
+        return '\n'.join(['%s=%s' % (k,v) for k,v in self.items()]);
 
     def _setProperties(self, newProps):
         #Update the properties values (merge)

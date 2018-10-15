@@ -8,12 +8,12 @@
 ##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
 import underworld as uw
 import underworld._stgermain as _stgermain
-import sle
+from . import sle
 import libUnderworld
 from libUnderworld import petsc
 from libUnderworld import Solvers
-import _bsscr
-import _energy_solver
+from . import _bsscr
+from . import _energy_solver
 
 class Solver(_stgermain.StgCompoundComponent):
     _objectsDict = {  "_solver" : None  }

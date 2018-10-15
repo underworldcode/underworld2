@@ -11,9 +11,9 @@ This module contains functions relating to rheological operations.
 """
 
 import libUnderworld.libUnderworldPy.Function as _cfn
-from _function import Function as _Function
-import tensor as _tensor
-import branching as _branching
+from ._function import Function as _Function
+from . import tensor as _tensor
+from . import branching as _branching
 
 class stress_limiting_viscosity(_Function):
     """

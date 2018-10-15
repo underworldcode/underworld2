@@ -15,8 +15,7 @@ import underworld._stgermain as _stgermain
 import libUnderworld
 import abc
 
-class SystemCondition(_stgermain.StgCompoundComponent):
-    __metaclass__ = abc.ABCMeta
+class SystemCondition(_stgermain.StgCompoundComponent, metaclass = abc.ABCMeta):
     def _add_to_stg_dict(self,componentDict):
         pass
 

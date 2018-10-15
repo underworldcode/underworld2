@@ -6,7 +6,7 @@
 ** located at the project root, or contact the authors.                             **
 **                                                                                  **
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
-%module Function
+%module (package="libUnderworld.libUnderworldPy") Function
 
 %include "exception.i"
 %import "StGermain.i"

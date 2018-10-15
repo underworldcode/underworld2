@@ -25,24 +25,22 @@ class LeftOverParamsChecker(object):
             raise RuntimeError("There were left over keyword arguments. kwargs = [{}]\n".format(kwargs)+\
                                "Please check the function/method parameter names.")
 
-class Save(LeftOverParamsChecker):
+class Save(LeftOverParamsChecker, metaclass=abc.ABCMeta):
     """
     Objects that inherit from this class are able to save their
     data to disk at the provided filename.
     """
-    __metaclass__ = abc.ABCMeta
     @abc.abstractmethod
     def save(self, filename):
         """ All children should define this method which returns the 
         c iterator object """
         pass
 
-class Load(LeftOverParamsChecker):
+class Load(LeftOverParamsChecker, metaclass=abc.ABCMeta):
     """
     Objects that inherit from this class are able to load their
     data from disk at the provided filename.
     """
-    __metaclass__ = abc.ABCMeta
     @abc.abstractmethod
     def load(self, filename):
         """ All children should define this method which returns the 
@@ -65,7 +63,7 @@ class StgClass(LeftOverParamsChecker):
     fly by passing the _cself parameter to the constructor.
     
     """
-
+    _live_objects = set()
     def __init__(self, _cself=None, delSelf=True, **kwargs):
         if _cself:
             self._cself = _cself
@@ -76,12 +74,19 @@ class StgClass(LeftOverParamsChecker):
         self._delSelf = delSelf
         if self._delSelf:
             libUnderworld.StGermain.Stg_Class_Lock(self._cself)
-
+        
+        self._live_objects.add(self._cself.name)
+#        print("creating {},{}".format(self._cself.name,self._cself.type))
+#        import ipdb
+#        ipdb.set_trace()
         super(StgClass, self).__init__(**kwargs)
 
     
     def __del__(self):
         if hasattr(self, "_delSelf") and self._delSelf:
+            self._live_objects.remove(self._cself.name)
+#            print("deleting {},{}".format(self._cself.name,self._cself.type))
+#            print("deleting {},{}".format(self._cself.name,self._cself.type))
             libUnderworld.StGermain.Stg_Class_Unlock(self._cself)
             libUnderworld.StGermain.Stg_Class_Delete(self._cself)
 
@@ -95,7 +100,7 @@ class _SetupClass(abc.ABCMeta):
         # create the instance as normal.  this will invoke the class's
         # __init__'s as expected
         import time
-        import timing
+        from . import timing
         timing._incrementDepth()
         ts = time.time()
         self = super(_SetupClass, cls).__call__(*args, **kwargs)
@@ -117,7 +122,8 @@ class _SetupClass(abc.ABCMeta):
         timing.log_result( te-ts, cls.__name__+".__init__()")
         return self
 
-class StgCompoundComponent(StgClass):
+
+class StgCompoundComponent(StgClass, metaclass=_SetupClass):
     """ 
     This class ties multiple StGermain components together into a single python object.
     The life cycle of the objects (construction/build/destruction) are handled automatically.
@@ -126,7 +132,6 @@ class StgCompoundComponent(StgClass):
     from within a C routine.
     
     """
-    __metaclass__ = _SetupClass
     
     def __new__(cls, *args, **kwargs):
         """
@@ -184,13 +189,13 @@ class StgCompoundComponent(StgClass):
         # ok, create stgermain objects
         # first rearrange to create stg compatible dictionary
         newObjDict = {}
-        for compName, compType in fullObjDict.iteritems():
+        for compName, compType in fullObjDict.items():
             newObjDict[self._id + "_" + compName] = { "Type": compType }
         fullDictionary = {"components": newObjDict}
 
         # create
         self._objpointerDict = StgCreateInstances(fullDictionary)
-        for objName, objPointer in self._objpointerDict.iteritems():
+        for objName, objPointer in self._objpointerDict.items():
             # lets create an easy access attribute. note here we strip out the id part to make it user friendly
             setattr(self, objName.replace(self._id+"_",""), objPointer)
             # ok, lets, now wrap these in the python StgClass class
@@ -238,10 +243,10 @@ class StgCompoundComponent(StgClass):
             fullDictionary = {"components": componentDictionary}
             StgConstruct(fullDictionary)
             # lets build
-            for compName, compPtr in self._objpointerDict.iteritems():
+            for compName, compPtr in self._objpointerDict.items():
                 libUnderworld.StGermain.Stg_Component_Build( compPtr, None, False )
             # lets initialise
-            for compName, compPtr in self._objpointerDict.iteritems():
+            for compName, compPtr in self._objpointerDict.items():
                 libUnderworld.StGermain.Stg_Component_Initialise( compPtr, None, False )
             self._setupDone = True
 
@@ -281,7 +286,7 @@ def _itemToElement(inputItem, inputItemName, inputEl):
             subEl.attrib['name'] = inputItemName
         for k, v in inputItem.items():
             _itemToElement(v, k, subEl)
-    elif issubclass(itemType,(str, float, int, bool, unicode)):
+    elif issubclass(itemType,(str, float, int, bool)):
         subEl = _ET.SubElement(inputEl, 'param')
         if inputItemName != '':
             subEl.attrib['name'] = inputItemName
@@ -308,9 +313,9 @@ def SetStgDictionaryFromPyDict( pyDict, stgDict ):
        Nothing.
        """
     root = _dictToUWElementTree(pyDict)
-    xmlString = _ET.tostring(root, encoding = 'utf-8', method = 'xml')
+    xmlString = _ET.tostring(root, encoding = 'utf-8', method = 'xml').decode('utf-8')
     ioHandler = libUnderworld.StGermain.XML_IO_Handler_New()
-    libUnderworld.StGermain.IO_Handler_ReadAllFromBuffer( ioHandler, xmlString, stgDict, None )
+    libUnderworld.StGermain.IO_Handler_ReadAllFromBuffer( ioHandler, xmlString, stgDict, 'None' )
     libUnderworld.StGermain.Stg_Class_Delete( ioHandler )
 
     return
@@ -360,7 +365,7 @@ def StgCreateInstances( pyUWDict ):
     pointerDict = {}
     # lets go ahead and construct component
     if "components" in pyUWDict:
-        for compName, compDict in pyUWDict["components"].iteritems():
+        for compName, compDict in pyUWDict["components"].items():
             compPointer = libUnderworld.StGermain.LiveComponentRegister_Get( libUnderworld.StGermain.LiveComponentRegister_GetLiveComponentRegister(), compName )
             pointerDict[compName] = compPointer
 
@@ -391,7 +396,7 @@ def StgConstruct( pyUWDict ):
 
     # lets go ahead and construct component
     if "components" in pyUWDict:
-        for compName, compDict in pyUWDict["components"].iteritems():
+        for compName, compDict in pyUWDict["components"].items():
             compPointer = libUnderworld.StGermain.LiveComponentRegister_Get( libUnderworld.StGermain.LiveComponentRegister_GetLiveComponentRegister(), compName )
             libUnderworld.StGermain.Stg_Component_AssignFromXML( compPointer, cf, None, False )
     if "plugins" in pyUWDict:

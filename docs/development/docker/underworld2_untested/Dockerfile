@@ -1,4 +1,4 @@
-FROM underworldcode/base@sha256:0f9b00fe918df29d9e2c9cc6d10bb2a8b42060d1d75fb8800646be9cad748baf
+FROM underworldcode/base@sha256:a77ad9c083dbc7c16b18d4c41b6dd5491fc510151d8105079a9579eb56871996
 MAINTAINER https://github.com/underworldcode/
 
 # set working directory to /opt, and install underworld files there.
@@ -12,11 +12,14 @@ ENV NB_WORK /workspace
 ENV NB_USER jovyan
 RUN useradd -m -s /bin/bash -N jovyan
 
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python2.7 1
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.5 2
+
 # copy this file over so that no password is required
 COPY docs/development/docker/underworld2_untested/jupyter_notebook_config.json /home/$NB_USER/.jupyter/jupyter_notebook_config.json
 
 # install lavavu
-RUN pip install --no-cache-dir lavavu
+RUN pip3 install --no-cache-dir lavavu
 
 # COPY UW
 #COPY --chown=jovyan:users . $UW2_DIR/   # unfortunately, the version of docker at docker cloud does not support chown yet.
@@ -39,8 +42,8 @@ RUN cd underworld2/libUnderworld && \
     rm -fr PICellerator          && \
     rm -fr Solvers               && \
     find $UW2_DIR/docs -name \*.ipynb  -print0 | xargs -0 jupyter trust && \
-    cd ../../docs/development/api_doc_generator/                     && \
-    sphinx-build . ../../api_doc                                     && \
+#    cd ../../docs/development/api_doc_generator/                     && \
+#    sphinx-build . ../../api_doc                                     && \
     mkdir $NB_WORK                                                   && \
     rsync -av $UW2_DIR/docs/. $NB_WORK                               && \
     cd /opt/underworld2                                              && \

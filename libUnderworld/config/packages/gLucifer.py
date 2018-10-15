@@ -1,6 +1,6 @@
 import os
 from config import Package
-from Underworld import Underworld
+from .Underworld import Underworld
 
 class gLucifer(Package):
 

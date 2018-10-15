@@ -11,8 +11,8 @@ This module implements some basic functionality for posting usage metrics
 to google analytics.
 """
 
-import json,httplib,urllib
-import httplib
+import json,urllib
+import http.client
 import urllib
 import uuid
 import underworld as uw
@@ -75,7 +75,7 @@ def PostGAEvent( category, action, label=None, value=None ):
 
     """
     try:
-        connection = httplib.HTTPSConnection('www.google-analytics.com')
+        connection = http.client.HTTPSConnection('www.google-analytics.com')
         form_fields = {
         "v"  : "1",             # Version.
         "aip": "1",             # Enable IP anonymizing.

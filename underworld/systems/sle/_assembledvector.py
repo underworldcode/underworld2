@@ -9,7 +9,7 @@
 import underworld as uw
 import underworld._stgermain as _stgermain
 import libUnderworld
-from _svector import SolutionVector
+from ._svector import SolutionVector
 
 class AssembledVector(SolutionVector):
     """
