@@ -30,6 +30,7 @@ RUN apt-get update -qq && \
         swig \
         gdb-minimal \
         python3-dbg \
+        python-minimal python-pip \
 	python3-setuptools \
         wget \
         gfortran  && \
@@ -72,26 +73,23 @@ RUN pip3 install --no-cache-dir packaging \
         tabulate \
         mpi4py
 
-RUN apt-get update -qq && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends python-minimal python-pip
-
 WORKDIR /tmp/petsc-build
-RUN wget http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-3.9.3.tar.gz
-RUN tar zxf petsc-lite-3.9.3.tar.gz && cd petsc-3.9.3                         && \
+RUN wget http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-3.9.3.tar.gz && \
+    tar zxf petsc-lite-3.9.3.tar.gz && cd petsc-3.9.3                         && \
     ./configure --with-debugging=0 --prefix=/usr                                 \
                 --COPTFLAGS="-g -O3" --CXXOPTFLAGS="-g -O3" --FOPTFLAGS="-g -O3" \
                 --download-cmake=1        \
                 --download-fblaslapack=1  \
-                --download-hdf5=1
-RUN cd petsc-3.9.3                         && \
+                --download-hdf5=1          && \
+    cd petsc-3.9.3                         && \
     make PETSC_DIR=/tmp/petsc-build/petsc-3.9.3 PETSC_ARCH=arch-linux2-c-opt all     && \
     make PETSC_DIR=/tmp/petsc-build/petsc-3.9.3 PETSC_ARCH=arch-linux2-c-opt install && \
     cd /tmp && \
     rm -fr *
 
 WORKDIR /tmp
-RUN wget http://prdownloads.sourceforge.net/scons/scons-3.0.1.tar.gz
-RUN tar zxf scons-3.0.1.tar.gz && cd scons-3.0.1 && \
+RUN wget http://prdownloads.sourceforge.net/scons/scons-3.0.1.tar.gz && \
+    tar zxf scons-3.0.1.tar.gz && cd scons-3.0.1 && \
     python setup.py install && \
     cd /tmp && \
     rm -rf *
