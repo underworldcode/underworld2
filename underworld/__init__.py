@@ -193,24 +193,26 @@ def _prepend_message_to_exception(e, message):
     raise          type(e)(message + '\n' + e.message).with_traceback(_sys.exc_info()[2])
 
 
-class _del_uw_class:
-    """
-    This simple class simply facilitates calling StgFinalise on uw exit
-    Previous implementations used the 'atexit' module, but this called finalise
-    *before* python garbage collection which as problematic as objects were being
-    deleted after StgFinalise was called.
-    """
-    def __init__(self,delfunc, deldata):
-        self.delfunc = delfunc
-        self.deldata = deldata
-    def __del__(self):
-        # put this in a try loop to avoid errors during sphinx documentation generation
-        try:
-            self.delfunc(self.deldata)
-        except:
-            pass
-
-_delclassinstance = _del_uw_class(libUnderworld.StGermain_Tools.StgFinalise, _data)
+# comment this out for now, as tear down in py3 is cleaner without it.
+#
+#class _del_uw_class:
+#    """
+#    This simple class simply facilitates calling StgFinalise on uw exit
+#    Previous implementations used the 'atexit' module, but this called finalise
+#    *before* python garbage collection which as problematic as objects were being
+#    deleted after StgFinalise was called.
+#    """
+#    def __init__(self,delfunc, deldata):
+#        self.delfunc = delfunc
+#        self.deldata = deldata
+#    def __del__(self):
+#        # put this in a try loop to avoid errors during sphinx documentation generation
+#        try:
+#            self.delfunc(self.deldata)
+#        except:
+#            pass
+#
+#_delclassinstance = _del_uw_class(libUnderworld.StGermain_Tools.StgFinalise, _data)
 
 def _in_doctest():
     """

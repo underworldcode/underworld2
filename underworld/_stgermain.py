@@ -75,6 +75,11 @@ class StgClass(LeftOverParamsChecker):
         if self._delSelf:
             libUnderworld.StGermain.Stg_Class_Lock(self._cself)
         
+        # record these on objects themselves to ensure they're available during __del__.
+        # not sure why Python isn't ensuring this, but this works.
+        self._Stg_Class_Unlock = libUnderworld.StGermain.Stg_Class_Unlock
+        self._Stg_Class_Delete = libUnderworld.StGermain.Stg_Class_Delete
+        
         self._live_objects.add(self._cself.name)
 #        print("creating {},{}".format(self._cself.name,self._cself.type))
 #        import ipdb
@@ -87,8 +92,8 @@ class StgClass(LeftOverParamsChecker):
             self._live_objects.remove(self._cself.name)
 #            print("deleting {},{}".format(self._cself.name,self._cself.type))
 #            print("deleting {},{}".format(self._cself.name,self._cself.type))
-            libUnderworld.StGermain.Stg_Class_Unlock(self._cself)
-            libUnderworld.StGermain.Stg_Class_Delete(self._cself)
+            self._Stg_Class_Unlock(self._cself)
+            self._Stg_Class_Delete(self._cself)
 
 class _SetupClass(abc.ABCMeta):
     '''
