@@ -5,8 +5,6 @@ Release 2.6.0b []
 ------------------
 Enhancements:
 * Removed submodules in favour of direct access.
-* Improved docker image building strategy.
-* Native Shifter support at Magnus Pawsey.
 * Petsc-3.9.x compatible.
 * Support for nested SafeMaths operations.
 * Improved function error messaging.
