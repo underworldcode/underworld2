@@ -328,6 +328,23 @@ def _xdmfAttributeschema( varname, variableType, centering, globalcount, dof_cou
 
     return out
 
+def _xdmfAverageDiscontinuousElements(varname, variableType, globalCount,
+                                      nnodes, dataFile):
+
+    out = "\t<Attribute Type=\"Scalar\" Center=\"Cell\" Name=\"{0}\">\n".format(varname)
+    func = ["$" + str(val) + "/" + str(nnodes) for val in range(nnodes)]
+    func = "+".join(func)
+    out += "\t\t<DataItem ItemType=\"Function\" Dimensions=\"{0} 1\" Function=\"{1}\">\n".format(globalCount/nnodes, func)
+    for node in range(nnodes):
+        out += "\t\t\t<DataItem ItemType=\"HyperSlab\" Dimensions=\"{0} 1\" Name=\"P{1}\">\n".format(globalCount/nnodes, node)
+        out += "\t\t\t\t<DataItem Dimensions=\"3 2\" Format=\"XML\"> 0 0 {1} 1 {0} 1 </DataItem>\n".format(globalCount/nnodes, nnodes)
+        out += "\t\t\t\t\t<DataItem Format=\"HDF\" {0} Dimensions=\"{1} 1\">{2}:/data</DataItem>\n".format(variableType, globalCount/nnodes, dataFile)
+        out += "\t\t\t</DataItem>\n"
+    out += "\t\t</DataItem>\n"
+    out += "\t</Attribute>\n"
+
+    return out
+
 def _swarmvarschema( varSavedData, varname ):
     """"
     Writes the attribute schema for a swarm variable xdmf file
@@ -504,6 +521,13 @@ def _fieldschema(varSavedFile, varname ):
         centering = "Node"
     elif (nodesGlobal == mesh.elementsGlobal ):
         centering = "Cell"
+    elif field.mesh.elementType.upper() in ["DQ1", "DPC1"]:
+        nodes = {"DQ1": 4, "DPC1": 3}
+        nnodes = nodes[field.mesh.elementType.upper()]
+
+        return _xdmfAverageDiscontinuousElements(varname, variableType,
+                                                 nodesGlobal, nnodes,
+                                                 filename)
     else:
         raise RuntimeError("Can't output field '{}', unsupported elementType '{}'\n".format(varname, field.mesh.elementType) )
        # more conditions needed above for various pressure elementTypes???
