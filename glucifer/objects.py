@@ -51,9 +51,9 @@ class ColourMap(_stgermain.StgCompoundComponent):
         if not hasattr(self, "properties"):
             self.properties = {}
 
-        if not isinstance(colours,(str,list)):
-            raise TypeError("'colours' object passed in must be of python type 'str' or 'list'")
-        self.properties.update({"colours" : _json.dumps(colours)})
+        if not isinstance(colours,(str,list,tuple)):
+            raise TypeError("'colours' object passed in must be of python type 'str', 'list' or 'tuple'")
+        self.properties.update({"colours" : json.dumps(colours)})
 
         #User-defined props in kwargs
         self.properties.update(kwargs)
