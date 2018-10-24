@@ -8,14 +8,14 @@ if os.path.exists(build_success_file):
     os.remove(build_success_file)
 
 # call scons once
-sconsBin = 'scons'
+sconsBin = 'python3 `which scons`'
 returncode = subprocess.call( sconsBin + ' ' + ' '.join(sys.argv[1:]), shell=True )
 #if returncode != 0:
 #    sys.exit(returncode)
 
 # run swig generation - must go down a directory
 os.chdir('libUnderworldPy')
-returncode = subprocess.call( './swigall.py', shell=True )
+returncode = subprocess.call( 'python3 ./swigall.py', shell=True )
 os.chdir('..')
 if returncode != 0:
     sys.exit(returncode)

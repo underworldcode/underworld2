@@ -5,7 +5,7 @@ build_success_file='.build_success'
 if os.path.exists(build_success_file):
     os.remove(build_success_file)
 
-sconsBin = 'scons'
+sconsBin = 'python3 `which scons`'
 
 returncode = subprocess.call(
     sconsBin + ' ' + ' '.join(sys.argv[1:]), shell=True
