@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 This script tests multiple python scripts or Jupyter Notebooks. A test is
 considered to have been completed successfully if it returns with the '0' exit
@@ -176,7 +176,7 @@ if __name__ == '__main__':
             continue
 
         # build executable command
-        exe = ['python']
+        exe = ['python3']
 
         if is_ipynb and can_runipy and not args.convert:
             exe = ['runipy']      # use runipy instead
