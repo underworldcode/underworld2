@@ -176,7 +176,7 @@ if __name__ == '__main__':
             continue
 
         # build executable command
-        exe = ['python']
+        exe = ['python3']
 
         if is_ipynb and can_runipy and not args.convert:
             exe = ['runipy']      # use runipy instead
