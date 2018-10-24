@@ -44,12 +44,12 @@ def MaxI_VertexSet( mesh ):
     """
     Returns the set of local indices which are within the global 3d index set (MaxI,\*,\*).
     Here MaxI is the global mesh maximum index in the I direction.
-    
+
     Parameters
     ----------
     mesh : FeMesh
         Mesh from which the IndexSet set is required.
-    
+
     Returns
     -------
     set : IndexSet
@@ -67,12 +67,12 @@ def MinI_VertexSet( mesh ):
     """
     Returns the set of local indices which are within the global 3d index set (MinI,\*,\*).
     Here MinI is the global mesh minimum index in the I direction.
-    
+
     Parameters
     ----------
     mesh : FeMesh
         Mesh from which the IndexSet set is required.
-    
+
     Returns
     -------
     set : IndexSet
@@ -89,12 +89,12 @@ def MaxJ_VertexSet( mesh ):
     """
     Returns the set of local indices which are within the global 3d index set (\*,MaxJ,\*).
     Here MaxJ is the global mesh maximum index in the J direction.
-    
+
     Parameters
     ----------
     mesh : FeMesh
         Mesh from which the IndexSet set is required.
-    
+
     Returns
     -------
     set : IndexSet
@@ -111,12 +111,12 @@ def MinJ_VertexSet( mesh ):
     """
     Returns the set of local indices which are within the global 3d index set (\*,MinJ,\*).
     Here MinJ is the global mesh minimum index in the J direction.
-    
+
     Parameters
     ----------
     mesh : FeMesh
         Mesh from which the IndexSet set is required.
-    
+
     Returns
     -------
     set : IndexSet
@@ -134,21 +134,22 @@ def MaxK_VertexSet( mesh ):
     """
     Returns the set of local indices which are within the global 3d index set (\*,\*,MaxK).
     Here MaxK is the global mesh maximum index in the K direction.
-    
+
     Parameters
     ----------
     mesh : FeMesh
         Mesh from which the IndexSet set is required.
-    
+
     Returns
     -------
     set : IndexSet
         The MaxK IndexSet.
 
     """
+
     if mesh.dim < 3:
         raise ValueError( "Mesh provided must be 3-Dimensional to use this function.")
-    
+
     return _uw.mesh.FeMesh_IndexSet( object           = mesh,
                                      topologicalIndex = 0,
                                      size             = _libUnderworld.StgDomain.Mesh_GetDomainSize( mesh._mesh, _libUnderworld.StgDomain.MT_VERTEX ),
@@ -160,12 +161,12 @@ def MinK_VertexSet( mesh ):
     """
     Returns the set of local indices which are within the global 3d index set (\*,\*,MinK).
     Here MinK is the global mesh minimum index in the K direction.
-    
+
     Parameters
     ----------
     mesh : FeMesh
         Mesh from which the IndexSet set is required.
-    
+
     Returns
     -------
     set : IndexSet
@@ -181,12 +182,12 @@ def MinK_VertexSet( mesh ):
 def AllWalls( mesh ):
     """
     Returns the set of local indices which fall along the outer wall of the domain.
-    
+
     Parameters
     ----------
     mesh : FeMesh
         Mesh from which the IndexSet set is required.
-    
+
     Returns
     -------
     set : IndexSet
@@ -200,5 +201,56 @@ def AllWalls( mesh ):
     if mesh.dim == 3:
         wallSet += MaxK_VertexSet( mesh )
         wallSet += MinK_VertexSet( mesh )
+
+    return wallSet
+
+
+@_meshCheck
+def AllJKWalls( mesh ):
+    """
+    Returns the set of local indices which fall along the JK walls of the domain.
+
+    Parameters
+    ----------
+    mesh : FeMesh
+        Mesh from which the IndexSet set is required.
+
+    Returns
+    -------
+    set : IndexSet
+        The JK walls IndexSet.
+
+    """
+
+    wallSet = MaxJ_VertexSet( mesh )
+    wallSet += MinJ_VertexSet( mesh )
+    if mesh.dim == 3:
+        wallSet += MaxK_VertexSet( mesh )
+        wallSet += MinK_VertexSet( mesh )
+
+    return wallSet
+
+
+@_meshCheck
+def AllIJWalls( mesh ):
+    """
+    Returns the set of local indices which fall along the IK walls of the domain.
+
+    Parameters
+    ----------
+    mesh : FeMesh
+        Mesh from which the IndexSet set is required.
+
+    Returns
+    -------
+    set : IndexSet
+        The IJ walls IndexSet.
+
+    """
+
+    wallSet = MaxI_VertexSet( mesh )
+    wallSet += MinI_VertexSet( mesh )
+    wallSet += MaxJ_VertexSet( mesh )
+    wallSet += MinJ_VertexSet( mesh )
 
     return wallSet
