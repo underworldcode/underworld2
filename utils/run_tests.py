@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 This script tests multiple python scripts or Jupyter Notebooks. A test is
 considered to have been completed successfully if it returns with the '0' exit
