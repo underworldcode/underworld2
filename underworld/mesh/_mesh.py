@@ -1791,10 +1791,9 @@ class FeMesh_SphericalCap(FeMesh_Cartesian):
 
             # There are some artefacts in this transformation
             # These could be important where they define the edges
-            dr = 1.0 / np.hypot(self.data[:,1], self.data[:,2])
-            self.data[W.data,1] *= dr[W.data]
-            self.data[W.data,2] *= dr[W.data]
-
+            dr = 1.0 / np.hypot(self.data[W.data,1], self.data[W.data,2])
+            self.data[W.data,1] *= dr
+            self.data[W.data,2] *= dr
 
             ## OK, so now we have a cylinder and we can
             ## deform this to the hemispherical shell
