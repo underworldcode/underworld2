@@ -303,9 +303,10 @@ class IndexSet(object):
         arr.flags.writeable = False
         return arr
 
-    @property
-    def count(self):
+    def __len__(self):
         """
+        Overload for Python `len` usage.
+        
         Returns
         -------
         int: member count
@@ -314,12 +315,14 @@ class IndexSet(object):
         Example
         -------
         >>> someSet = uw.container.IndexSet( 15, [3,9,10] )
-        >>> someSet.count
+        >>> len(someSet)
         3
 
         """
         # get member count
         return libUnderworld.StGermain.IndexSet_UpdateMembersCount(self._cself)
+    
+    
     
     def invert(self):
         """
