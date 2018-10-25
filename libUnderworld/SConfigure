@@ -44,14 +44,15 @@ env.Tool('config', toolpath=['config'], options=options)
 #
 
 def UWExit( self ):
-   print '\n'
-   print '***************************************'
-   print 'If you require help, send the files:'
-   print '\tconfig.log'
-   print '\tconfig.cfg (if it exists)'
-   print 'to: development@underworldproject.org'
-   print '************************************'
-   env.Exit(1)
+    print('''
+*********************************************
+Error configuring Underworld2.
+If you require assistance, please create
+an issue at the Underworld github page:
+https://github.com/underworldcode/underworld2
+*********************************************
+    ''')
+    env.Exit(1)
 
 env.AddMethod( UWExit )
 
@@ -155,9 +156,9 @@ if not (GetOption('help') or GetOption('clean')):
         #env.AppendUnique(LINKFLAGS=['-static'])
         Package.static = True
     else:
-        print 
-        print '****  ERROR ****'
-        print 'Invalid option \'--lib-type\''
+        print(""" 
+              **** ERROR ****
+              Invalid option \'--lib-type\' """)
         env.UWExit()
 
     # enable all warnings.
@@ -218,17 +219,16 @@ if not os.path.isfile(idfile):
     with open(idfile,"w+") as f:
         f.write("uwid = \'" + str(uuid.uuid4())  + "\'" )
 
-print
-print '*****************************************************************'
-print '* Successfully configured.                                      *'
-print '*                                                               *'
-print '* Note that basic usage metrics are dispatched when you use     *'
-print '* Underworld.                                                   *'
-print '* To opt out, set the UW_NO_USAGE_METRICS environment variable. *'
-print '* See PRIVACY.md for full details.                              *'
-print '*                                                               *'
-print '* Now run \'./compile.py\' to build.                                *'
-print '*****************************************************************'
-print
-
-
+print(
+'''
+*****************************************************************
+* Successfully configured.                                      *
+*                                                               *
+* Note that basic usage metrics are dispatched when you use     *
+* Underworld.                                                   *
+* To opt out, set the UW_NO_USAGE_METRICS environment variable. *
+* See PRIVACY.md for full details.                              *
+*                                                               *
+* Now run \'./compile.py\' to build.                            *
+*****************************************************************
+''')

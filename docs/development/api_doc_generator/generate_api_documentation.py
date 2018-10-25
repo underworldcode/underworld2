@@ -53,7 +53,7 @@ def doc_module(module, modname):
             f.write("\n")
 
 
-        # write classes brief
+        # write functions brief
         if len(functions)>0:
             f.write("functions:\n")
             f.write("~~~~~~~~~~\n")

@@ -132,7 +132,7 @@ Bool IO_Handler_ReadAllFromFile( void* io_handler, const char* filename, Diction
 }
 
 /* Read a dictionary entry of a given name from file */
-Bool IO_Handler_ReadAllFromBuffer( void* io_handler, const char* buffer, Dictionary* dictionary, const char* tag ) {
+Bool IO_Handler_ReadAllFromBuffer( void* io_handler, const char* buffer, Dictionary* dictionary, const char* tag  ) {
    IO_Handler* self = (IO_Handler*)io_handler;
 
    return self->_readAllFromBuffer( self, buffer, dictionary, tag );

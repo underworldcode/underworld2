@@ -1,4 +1,4 @@
-import conv
+from . import conv
 
 def gen_combinations(items, size, cur_set=[]):
     if len(cur_set) == size:

@@ -30,7 +30,7 @@ is very well suited to complex fluids which is how the solid Earth behaves
 on a geological timescale.
 """
 
-__version__ = "2.6.0-dev"
+__version__ = "2.7.0-dev"
 
 # lets  set sys.path such that the project parent directory takes
 # precedence
@@ -38,27 +38,67 @@ import sys as _sys
 import os as _os
 _sys.path.insert(0, _os.path.realpath(_os.path.dirname("..")))
 
-import timing
+from . import timing
 import libUnderworld
-import container
-timing._add_timing_to_mod(container)
-import mesh
-timing._add_timing_to_mod(mesh)
-import conditions
-timing._add_timing_to_mod(conditions)
-import function
-timing._add_timing_to_mod(function)
-import swarm
-timing._add_timing_to_mod(swarm)
-import systems
-timing._add_timing_to_mod(systems)
-import utils
-timing._add_timing_to_mod(utils)
+from . import _stgermain
 
-import numpy as _np
+def _set_init_sig_as_sig(mod):
+    '''
+    This method replaces all constructor signatures with those defined
+    by the class' __init__ method.  This is necessary for StgCompountComponent
+    subclasses (the only type this method applies to) due to the metaclassing
+    which results in the __call__ method's signature (as defined in _SetupClass)
+    being the one inspect.signature() returns (which is *not* what the user
+    should see).
+    '''
+    import inspect
+    # first gather info
+    mods = {}
+    for guy in dir(mod):
+        if guy[0] != "_":  # don't grab private guys
+            obj = getattr(mod,guy)
+            if inspect.ismodule(obj):
+                mods[guy] = obj
+            elif inspect.isclass(obj):
+                if issubclass(obj, _stgermain.StgCompoundComponent):
+                    # replace signature here
+                    obj.__signature__ = inspect.signature(obj.__init__)
+    for key in mods:
+        # recurse into submodules
+        _set_init_sig_as_sig(getattr(mod,key))
+
+
+import underworld.container
+_set_init_sig_as_sig(underworld.container)
+timing._add_timing_to_mod(container)
+
+import underworld.mesh
+_set_init_sig_as_sig(underworld.mesh)
+timing._add_timing_to_mod(underworld.mesh)
+
+import underworld.conditions
+_set_init_sig_as_sig(underworld.conditions)
+timing._add_timing_to_mod(underworld.conditions)
+
+import underworld.function
+_set_init_sig_as_sig(underworld.function)
+timing._add_timing_to_mod(underworld.function)
+
+import underworld.swarm
+_set_init_sig_as_sig(underworld.swarm)
+timing._add_timing_to_mod(underworld.swarm)
+
+import underworld.systems
+_set_init_sig_as_sig(underworld.systems)
+timing._add_timing_to_mod(underworld.systems)
+
+import underworld.utils
+_set_init_sig_as_sig(underworld.utils)
+timing._add_timing_to_mod(underworld.utils)
 
 # to allow our legacy doctest formats
 try:
+    import numpy as _np
     _np.set_printoptions(legacy='1.13')
 except:
     pass
@@ -73,10 +113,9 @@ try:
 except:
     import uuid as _uuid
     _id = str(_uuid.uuid4())
-import _net
+from . import _net
 
 # lets go right ahead and init now.  user can re-init if necessary.
-import _stgermain
 _data =  libUnderworld.StGermain_Tools.StgInit( _sys.argv )
 
 _stgermain.LoadModules( {"import":["StgDomain","StgFEM","PICellerator","Underworld","gLucifer","Solvers"]} )
@@ -121,6 +160,7 @@ def _run_from_ipython():
         return True
     except NameError:
         return False
+
 def matplotlib_inline():
     """
     This function simply enables Jupyter Notebook inlined matplotlib results.
@@ -149,26 +189,30 @@ def _prepend_message_to_exception(e, message):
     Currently it is not python 3 friendly.  Check here
     http://stackoverflow.com/questions/6062576/adding-information-to-a-python-exception
     """
-    raise type(e), type(e)(message + '\n' + e.message), _sys.exc_info()[2]
+#    raise type(e), type(e)(message + '\n' + e.message), _sys.exc_info()[2]
+    raise          type(e)(message + '\n' + e.message).with_traceback(_sys.exc_info()[2])
 
-class _del_uw_class:
-    """
-    This simple class simply facilitates calling StgFinalise on uw exit
-    Previous implementations used the 'atexit' module, but this called finalise
-    *before* python garbage collection which as problematic as objects were being
-    deleted after StgFinalise was called.
-    """
-    def __init__(self,delfunc, deldata):
-        self.delfunc = delfunc
-        self.deldata = deldata
-    def __del__(self):
-        # put this in a try loop to avoid errors during sphinx documentation generation
-        try:
-            self.delfunc(self.deldata)
-        except:
-            pass
 
-_delclassinstance = _del_uw_class(libUnderworld.StGermain_Tools.StgFinalise, _data)
+# comment this out for now, as tear down in py3 is cleaner without it.
+#
+#class _del_uw_class:
+#    """
+#    This simple class simply facilitates calling StgFinalise on uw exit
+#    Previous implementations used the 'atexit' module, but this called finalise
+#    *before* python garbage collection which as problematic as objects were being
+#    deleted after StgFinalise was called.
+#    """
+#    def __init__(self,delfunc, deldata):
+#        self.delfunc = delfunc
+#        self.deldata = deldata
+#    def __del__(self):
+#        # put this in a try loop to avoid errors during sphinx documentation generation
+#        try:
+#            self.delfunc(self.deldata)
+#        except:
+#            pass
+#
+#_delclassinstance = _del_uw_class(libUnderworld.StGermain_Tools.StgFinalise, _data)
 
 def _in_doctest():
     """

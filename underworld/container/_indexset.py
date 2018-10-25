@@ -71,6 +71,9 @@ class IndexSet(object):
             raise ValueError("The 'size' parameter must be positive.")
         self._size = size
         
+        # keep record of this function incase libUnderworld disappears before __del__
+        self._Stg_Class_Delete = libUnderworld.StGermain.Stg_Class_Delete
+        
         # ok, let's do a cheeky, and if the object passed in is a native stg guy,
         # we'll take ownership        
         if isinstance(fromObject,libUnderworld.StGermain.IndexSet):
@@ -85,7 +88,7 @@ class IndexSet(object):
 
     def __del__(self):
         # delete stg class
-        libUnderworld.StGermain.Stg_Class_Delete(self._cself)
+        self._Stg_Class_Delete(self._cself)
     
     @property
     def size(self):

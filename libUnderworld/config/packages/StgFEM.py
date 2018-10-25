@@ -1,7 +1,7 @@
 import os
 from config import Package
-from StgDomain import StgDomain
-from PETSc import PETSc
+from .StgDomain import StgDomain
+from .PETSc import PETSc
 
 class StgFEM(Package):
 

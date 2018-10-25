@@ -190,14 +190,16 @@ add_timing("AdvectionDiffusion.integrate()", time()-ts)
 ts = time()
 meshFileHandle = mesh.save("Mesh.h5")
 add_timing("FeMesh.save()", time()-ts)
-os.remove("Mesh.h5")
+uw.barrier()
+if uw.rank() == 0:
+    os.remove("Mesh.h5")
 
 ts = time()
 vFH = velocityField.save("velocityField.h5")
 add_timing("MeshVariable.save()", time()-ts)
-velocityField.xdmf( "velocityField", vFH, "velocity", meshFileHandle, "Mesh" )
-os.remove("velocityField.xdmf")
-os.remove("velocityField.h5")
+uw.barrier()
+if uw.rank() == 0:
+    os.remove("velocityField.h5")
 
 ts = time()
 swarmFileHandle = swarm.save("Swarm.h5")
@@ -206,33 +208,37 @@ add_timing("Swarm.save()", time()-ts)
 # Timing for this guy is consistently out of tolerance (like 30%).
 # It is a very fast call, so not concerned.
 mH = materialIndex.save("materialIndex.h5")
-materialIndex.xdmf("materialIndex", mH, "material", swarmFileHandle, "Swarm" )
-os.remove("Swarm.h5")
-os.remove("materialIndex.h5")
-os.remove("materialIndex.xdmf")
+uw.barrier()
+if uw.rank() == 0:
+    os.remove("Swarm.h5")
+    os.remove("materialIndex.h5")
 
 ts = time()
 fig.save()
 add_timing("Figure.save()", time()-ts)
-os.remove("RT.gldb")
-
-import numpy as np
-module_timing_data = uw.timing.get_data(group_by="routine")
-for key in timing_data.keys():
-    valuescript = timing_data[key]
-    valuemod    = module_timing_data[key]
-    if not np.isclose(valuescript[1],valuemod[1], rtol=0.15):
-        raise RuntimeError( "Timing for '{}' not within tolerance ( {}: {} ).".format(key,valuescript[1],valuemod[1]) )
-
+uw.barrier()
+if uw.rank() == 0:
+    os.remove("RT.gldb")
 
 uw.timing.print_table(group_by="routine", tablefmt="grid")
+
+if uw.rank() == 0:
+    import numpy as np
+    module_timing_data = uw.timing.get_data(group_by="routine")
+    for key in timing_data.keys():
+        valuescript = timing_data[key]
+        valuemod    = module_timing_data[key]
+        if not np.isclose(valuescript[1],valuemod[1], rtol=0.15):
+            raise RuntimeError( "Timing for '{}' not within tolerance ( {}: {} ).".format(key,valuescript[1],valuemod[1]) )
+
 # simple test for file output
 fname = "timing_test.txt"
 uw.timing.print_table(group_by="routine", output_file=fname)
-import os.path
-exists = os.path.isfile(fname)
-if not exists:
-    raise RuntimeError( "Timing output to file does not appear to have worked." )
-os.remove(fname)
+if uw.rank() == 0:
+    import os.path
+    exists = os.path.isfile(fname)
+    if not exists:
+        raise RuntimeError( "Timing output to file does not appear to have worked." )
+    os.remove(fname)
 
 

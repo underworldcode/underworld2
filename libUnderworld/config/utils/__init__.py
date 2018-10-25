@@ -1,10 +1,10 @@
-import command
-import options
-import path
-import conv
-import macro
-from Environment import Environment
-import graph
-import perm
-import format
-from ilog import log
+from . import command
+from . import options
+from . import path
+from . import conv
+from . import macro
+from .Environment import Environment
+from . import graph
+from . import perm
+from . import format
+from .ilog import log

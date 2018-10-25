@@ -1,5 +1,5 @@
 import os, tempfile, glob
-import conv
+from . import conv
 
 _temp_counter = 0
 

@@ -20,7 +20,7 @@ def to_list(var):
 
 def multiget(dicts, key, default=None):
     for d in dicts:
-        if d.has_key(key):
+        if key in d:
             return d[key]
     else:
         return default

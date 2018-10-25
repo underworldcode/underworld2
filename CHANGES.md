@@ -1,11 +1,21 @@
 CHANGES: Underworld2
 =======================
 
-Release 2.6.0b []
+Release 2.7.0-dev []
+------------------
+Enhancements:
+* Timing functionality available
+* glucifer defaults to use onMesh=True
+
+Release 2.6.0b [2018-09-27]
 ------------------
 Enhancements:
 * Removed submodules in favour of direct access.
-* Improved docker image building strategy
+* Improved docker image building strategy.
+* Native Shifter support at Magnus Pawsey.
+* Petsc-3.9.x compatible.
+* Support for nested SafeMaths operations.
+* Improved function error messaging.
 
 Release 2.5.1b [2018-04-13]
 ---------------------------

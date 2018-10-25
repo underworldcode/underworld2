@@ -67,11 +67,30 @@ for d in dirs:
     tst_exp += env.Install(tst_install_dir + '/expected', Glob(tst_exp_dir + '/*'))
     tst_input += env.Install(tst_install_dir + '/input', Glob(tst_input_dir + '/*'))
 
-dirs = ['SysTest/AnalyticPlugins/Velic_solA',
+dirs = [
+        'SysTest/AnalyticPlugins/Velic_solA',
         'SysTest/AnalyticPlugins/Velic_solB',
+        'SysTest/AnalyticPlugins/Velic_solC',
+        'SysTest/AnalyticPlugins/Velic_solCA',
         'SysTest/AnalyticPlugins/Velic_solCx',
+        'SysTest/AnalyticPlugins/Velic_solDA',
+#        'SysTest/AnalyticPlugins/Velic_solE',
+#        'SysTest/AnalyticPlugins/Velic_solF',
+#        'SysTest/AnalyticPlugins/Velic_solG',
+        'SysTest/AnalyticPlugins/Velic_solH',
+        'SysTest/AnalyticPlugins/Velic_solHA',
+#        'SysTest/AnalyticPlugins/Velic_solHAy',
+#        'SysTest/AnalyticPlugins/Velic_solHy',
+#        'SysTest/AnalyticPlugins/Velic_solI',
+#        'SysTest/AnalyticPlugins/Velic_solIA',
+#        'SysTest/AnalyticPlugins/Velic_solJ',
+#        'SysTest/AnalyticPlugins/Velic_solJA',
         'SysTest/AnalyticPlugins/Velic_solKx',
-        'SysTest/AnalyticPlugins/Velic_solKz']
+        'SysTest/AnalyticPlugins/Velic_solKz',
+#        'SysTest/AnalyticPlugins/Velic_solL',
+#        'SysTest/AnalyticPlugins/Velic_solS',
+        ]
+
 for d in dirs:
     # Need tee module name, which is just the directory.
     mod_name = env['ESCAPE']('"' + ''.join(d.split('/')) + '"')

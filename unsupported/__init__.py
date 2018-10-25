@@ -19,4 +19,4 @@ may never become supported.
 
 __version__ = "0.0"
 
-import geodynamics
+from . import geodynamics

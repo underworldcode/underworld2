@@ -12,7 +12,7 @@ function queries.  These functions never modify query data.
 """
 
 import libUnderworld.libUnderworldPy.Function as _cfn
-import _function
+from . import _function
 
 class min_max(_function.Function):
     """ 

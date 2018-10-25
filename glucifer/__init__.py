@@ -23,16 +23,23 @@ frames (still experimental).
 
 """
 import underworld as _uw
-import _glucifer
+from . import _glucifer
 _uw.timing._add_timing_to_mod(_glucifer)
-from _glucifer import Store
-from _glucifer import Figure
-from _glucifer import Viewer
+from ._glucifer import Store
+_uw._set_init_sig_as_sig(Store)
+
+from ._glucifer import Figure
+_uw._set_init_sig_as_sig(Figure)
+
+from ._glucifer import Viewer
+_uw._set_init_sig_as_sig(Viewer)
+
 from . import objects
+_uw._set_init_sig_as_sig(objects)
 _uw.timing._add_timing_to_mod(objects)
 
 try:
-    from _glucifer import lavavu
+    from ._glucifer import lavavu
 except:
     pass
 
@@ -52,9 +59,10 @@ class _xvfb_runner(object):
         self._xvfb = Display(visible=0, size=(1600, 1200))
         self._xvfb.start()
 
-    def __del__(self):
-        if not self._xvfb is None :
-            self._xvfb.stop()
+# This is getting in the way, and shouldn't be necessary.
+#    def __del__(self):
+#        if not self._xvfb is None :
+#            self._xvfb.stop()
 
 import os as _os
 # disable collection of data if requested

@@ -17,7 +17,7 @@ import underworld as uw
 import underworld._stgermain as _stgermain
 import weakref
 import libUnderworld
-import _specialSets_Cartesian
+from . import _specialSets_Cartesian
 import underworld.function as function
 import contextlib
 import time
@@ -130,10 +130,9 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         if( len(arr) % self.elementsLocal != 0 ):
             raise RuntimeError("Unsupported element to node mapping for save routine"+
                     "\nThere doesn't appear to be elements with a consistent number of nodes")
-
         # we ASSUME a constant number of nodes for each element
         # and we reshape the arr accordingly
-        nodesPerElement = len(arr)/self.elementsLocal
+        nodesPerElement = int(round(len(arr)/self.elementsLocal))
         return arr.reshape(self.elementsLocal, nodesPerElement)
 
     @property
@@ -447,8 +446,8 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         -------
         >>> import underworld as uw
         >>> someMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1', elementRes=(2,2), minCoord=(0.,0.), maxCoord=(1.,1.) )
-        >>> someMesh.specialSets.keys()
-        ['MaxI_VertexSet', 'MinI_VertexSet', 'AllWalls_VertexSet', 'MinJ_VertexSet', 'MaxJ_VertexSet', 'Empty']
+        >>> sorted(someMesh.specialSets.keys())    # NOTE THAT WE ONLY SORT THIS LIST SO THAT RESULTS ARE DETERMINISTIC FOR DOCTESTS
+        ['AllWalls_VertexSet', 'Empty', 'MaxI_VertexSet', 'MaxJ_VertexSet', 'MinI_VertexSet', 'MinJ_VertexSet']
         >>> someMesh.specialSets["MinJ_VertexSet"]
         FeMesh_IndexSet([0, 1, 2])
 
@@ -1131,10 +1130,6 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
             self.specialSets["MaxK_VertexSet"] = _specialSets_Cartesian.MaxK_VertexSet
             self.specialSets["MinK_VertexSet"] = _specialSets_Cartesian.MinK_VertexSet
         self.specialSets["AllWalls_VertexSet"] = _specialSets_Cartesian.AllWalls
-
-        # send some metrics
-        # disable for now.  note, this seems to fire in doctests!  need to fix.
-#        uw._sendData('init_femesh_cartesian', self.dim, np.prod( self.elementRes ))
 
     def _setup(self):
         # build the sub-mesh now

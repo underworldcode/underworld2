@@ -6,7 +6,7 @@
 ** located at the project root, or contact the authors.                             **
 **                                                                                  **
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
-%module Function
+%module (package="libUnderworld.libUnderworldPy") Function
 
 %include "exception.i"
 %import "StGermain.i"
@@ -39,9 +39,13 @@
 #include <Underworld/Function/Analytic.hpp>
 #include <Underworld/Function/AnalyticSolA.hpp>
 #include <Underworld/Function/AnalyticSolB.hpp>
+#include <Underworld/Function/AnalyticSolC.hpp>
 #include <Underworld/Function/AnalyticSolCx.hpp>
+#include <Underworld/Function/AnalyticSolDA.hpp>
 #include <Underworld/Function/AnalyticSolDB2d.hpp>
 #include <Underworld/Function/AnalyticSolDB3d.hpp>
+#include <Underworld/Function/AnalyticSolH.hpp>
+#include <Underworld/Function/AnalyticSolHA.hpp>
 #include <Underworld/Function/AnalyticSolKx.hpp>
 #include <Underworld/Function/AnalyticSolKz.hpp>
 #include <Underworld/Function/AnalyticSolM.hpp>
@@ -85,9 +89,13 @@ extern "C" {
 %include "Function/Analytic.hpp"
 %include "Function/AnalyticSolA.hpp"
 %include "Function/AnalyticSolB.hpp"
+%include "Function/AnalyticSolC.hpp"
 %include "Function/AnalyticSolCx.hpp"
+%include "Function/AnalyticSolDA.hpp"
 %include "Function/AnalyticSolDB2d.hpp"
 %include "Function/AnalyticSolDB3d.hpp"
+%include "Function/AnalyticSolH.hpp"
+%include "Function/AnalyticSolHA.hpp"
 %include "Function/AnalyticSolKx.hpp"
 %include "Function/AnalyticSolKz.hpp"
 %include "Function/AnalyticSolM.hpp"
@@ -131,7 +139,11 @@ extern "C" {
 
 %template(SolACRTP)    Fn::AnalyticCRTP<Fn::SolA>;
 %template(SolBCRTP)    Fn::AnalyticCRTP<Fn::SolB>;
+%template(SolCCRTP)    Fn::AnalyticCRTP<Fn::SolC>;
 %template(SolCxCRTP)   Fn::AnalyticCRTP<Fn::SolCx>;
+%template(SolDACRTP)   Fn::AnalyticCRTP<Fn::SolDA>;
+%template(SolHCRTP)    Fn::AnalyticCRTP<Fn::SolH>;
+%template(SolHACRTP)   Fn::AnalyticCRTP<Fn::SolHA>;
 %template(SolKxCRTP)   Fn::AnalyticCRTP<Fn::SolKx>;
 %template(SolKzCRTP)   Fn::AnalyticCRTP<Fn::SolKz>;
 %template(SolMCRTP)    Fn::AnalyticCRTP<Fn::SolM>;

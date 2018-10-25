@@ -8,11 +8,11 @@
 ##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
 import underworld as uw
 import underworld._stgermain as _stgermain
-import sle
+from . import sle
 import libUnderworld
 from libUnderworld import petsc
 from libUnderworld import Solvers
-from _options import Options
+from ._options import Options
 from mpi4py import MPI
 import numpy as np
 
@@ -411,11 +411,32 @@ class StokesSolver(_stgermain.StgCompoundComponent):
 
         # set up objects on SLE
         if reinitialise:
+            import mpi4py
+
+            wtime = mpi4py.MPI.Wtime()
             libUnderworld.StgFEM.SystemLinearEquations_BC_Setup(self._stokesSLE._cself, None)
+            if uw.rank() == 0 and print_stats:
+                print("Setup - BCs        {:.4} s".format(mpi4py.MPI.Wtime() - wtime))
+
+            wtime = mpi4py.MPI.Wtime()
             libUnderworld.StgFEM.SystemLinearEquations_LM_Setup(self._stokesSLE._cself, None)
+            if uw.rank() == 0 and print_stats:
+                print("Setup - Eq numbers {:.4} s".format(mpi4py.MPI.Wtime() - wtime))
+
+            wtime = mpi4py.MPI.Wtime()
             libUnderworld.StgFEM.SystemLinearEquations_ZeroAllVectors(self._stokesSLE._cself, None)
+            if uw.rank() == 0 and print_stats:
+                print("Setup - Zero vecs  {:.4} s".format(mpi4py.MPI.Wtime() - wtime))
+
+            wtime = mpi4py.MPI.Wtime()
             libUnderworld.StgFEM.SystemLinearEquations_MatrixSetup(self._stokesSLE._cself, None)
+            if uw.rank() == 0 and print_stats:
+                print("Setup - Matrices   {:.4} s".format(mpi4py.MPI.Wtime() - wtime))
+
+            wtime = mpi4py.MPI.Wtime()
             libUnderworld.StgFEM.SystemLinearEquations_VectorSetup(self._stokesSLE._cself, None)
+            if uw.rank() == 0 and print_stats:
+                print("Setup - Vectors    {:.4} s".format(mpi4py.MPI.Wtime() - wtime))
 
             # setup penalty specific objects
             if isinstance(self.options.main.penalty, float) and self.options.main.penalty > 0.0:
@@ -437,9 +458,9 @@ class StokesSolver(_stgermain.StgCompoundComponent):
                     purple = "\033[0;35m"
                     endcol = "\033[00m"
                     boldpurple = "\033[1;35m"
-                    print boldpurple
+                    print(boldpurple)
                     print( "Non linear iterations: %3d of 500 " % (self._stokesSLE._cself.nonLinearIteration_I) )
-                    print endcol
+                    print(endcol)
                     print
 
         # check the petsc convergence reasons, see StokesBlockKSPInterface.h
@@ -449,7 +470,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
             import warnings
             estring = \
                 "A PETSc error has been encountered during the solve. " \
-                "Solution fields are most likely erroneous. \n\n" \
+                "Solution fields are possibly erroneous. \n\n" \
                 "This error is probably due to an incorrectly constructed linear system. " \
                 "Please check that your boundary conditions are consistent " \
                 "and sufficient and that your viscosity is positive everywhere. " \
@@ -471,7 +492,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         if gres[0] > 0:
             import warnings
             estring = "A floating-point error has been detected during the solve. " + \
-            "Solution fields are most likely erroneous. \n\n"+ \
+            "Solution fields are possibly erroneous. \n\n"+ \
             "This is likely due to overly large value variations within your linear system, " \
             "or a fragile (or incorrect) solver configuration. " \
             "If your inputs are constructed using real world physical units, you may " \
@@ -487,7 +508,8 @@ class StokesSolver(_stgermain.StgCompoundComponent):
 
     def print_petsc_options(self):
         self._setup_options()
-        print("Options: {}".format(self._optionsStr))
+        if uw.rank()==0:
+            print("Options: {}".format(self._optionsStr))
 
 
     ########################################################################
@@ -548,7 +570,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         self.options.scr._mg_active=0
         del self.options.scr._mg_active # not currently used
 
-        for key, value in self.options.main.__dict__.iteritems():
+        for key, value in self.options.main.__dict__.items():
             if key != 'penalty': # don't add penalty to petsc options
                 if value == 'bfbt': # allowed alias
                     value = 'gtkg'
@@ -556,23 +578,23 @@ class StokesSolver(_stgermain.StgCompoundComponent):
                     if key != 'k_scale_only' or self.options.main.rescale_equations==True:
                         self._optionsStr = self._optionsStr+" "+"-"+key+" "+str(value)
 
-        for key, value in self.options.A11.__dict__.iteritems():
+        for key, value in self.options.A11.__dict__.items():
             if key != '_mg_active':
                 self._optionsStr = self._optionsStr+" "+"-A11_"+key+" "+str(value)
 
-        for key, value in self.options.scr.__dict__.iteritems():
+        for key, value in self.options.scr.__dict__.items():
             self._optionsStr = self._optionsStr+" "+"-scr_"+key+" "+str(value)
 
         if self.options.main.change_backsolve:
-            for key, value in self.options.backsolveA11.__dict__.iteritems():
+            for key, value in self.options.backsolveA11.__dict__.items():
                 self._optionsStr = self._optionsStr+" "+"-backsolveA11_"+key+" "+str(value)
 
         if self.options.main.change_A11rhspresolve:
-            for key, value in self.options.rhsA11.__dict__.iteritems():
+            for key, value in self.options.rhsA11.__dict__.items():
                 self._optionsStr = self._optionsStr+" "+"-rhsA11_"+key+" "+str(value)
 
         if self.options.mg.active:
-            for key, value in self.options.mg.__dict__.iteritems():
+            for key, value in self.options.mg.__dict__.items():
                 if key != 'active' and key != 'levels':
                     self._optionsStr = self._optionsStr+" "+"-A11_"+key+" "+str(str(value))
             self.options._mgLevels=self.options.mg.levels # todo dynamically set mgLevels.
@@ -580,11 +602,11 @@ class StokesSolver(_stgermain.StgCompoundComponent):
             self._optionsStr = self._optionsStr+" "+"-A11_"+"mg_active"+" "+"False"
 
         if self.options.mg_accel.mg_accelerating_smoothing and self.options.mg.active:
-            for key, value in self.options.mg_accel.__dict__.iteritems():
+            for key, value in self.options.mg_accel.__dict__.items():
                 if key != 'active' and key != 'levels':
                     self._optionsStr = self._optionsStr+" "+"-"+key+" "+str(str(value))
 
-        for key, value in kwargs.iteritems():      # kwargs is a regular dictionary
+        for key, value in kwargs.items():      # kwargs is a regular dictionary
             self._optionsStr = self._optionsStr+" "+"-"+key+" "+str(value)
 
 
@@ -720,7 +742,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         endcol = "\033[00m"
         boldpurple = "\033[1;35m"
         if 0==uw.rank():
-            print boldpurple
+            print(boldpurple)
             print( " " )
             print( "Pressure iterations: %3d" % (self._cself.stats.pressure_its) )
             print( "Velocity iterations: %3d (presolve)      " % (self._cself.stats.velocity_presolve_its) )
@@ -739,7 +761,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
             print( "Velocity solution min/max: %.4e/%.4e" % (self._cself.stats.vmin,self._cself.stats.vmax) )
             print( "Pressure solution min/max: %.4e/%.4e" % (self._cself.stats.pmin,self._cself.stats.pmax) )
             print( " " )
-            print endcol
+            print(endcol)
 
     def set_penalty(self, penalty):
         """

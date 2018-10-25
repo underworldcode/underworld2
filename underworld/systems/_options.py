@@ -19,7 +19,7 @@ class Options(object):
         List options.
         """
         dd=self.__dict__
-        for key, value in dd.iteritems():
+        for key, value in dd.items():
             print(key, value)
     
     def help(self):

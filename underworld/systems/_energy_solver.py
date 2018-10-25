@@ -8,10 +8,10 @@
 ##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
 import underworld as uw
 import underworld._stgermain as _stgermain
-import sle
+from . import sle
 import libUnderworld
 from libUnderworld import petsc
-from _options import Options
+from ._options import Options
 from mpi4py import MPI
 
 class HeatSolver(_stgermain.StgCompoundComponent):
@@ -109,10 +109,10 @@ class HeatSolver(_stgermain.StgCompoundComponent):
     ########################################################################
     def _setup_options(self, **kwargs):
         self._optionsStr=''
-        for key, value in self.options.EnergySolver.__dict__.iteritems():
+        for key, value in self.options.EnergySolver.__dict__.items():
             self._optionsStr += " "+"-EnergySolver_"+key+" "+str(value)
 
-        for key, value in kwargs.iteritems():      # kwargs is a regular dictionary
+        for key, value in kwargs.items():      # kwargs is a regular dictionary
             self._optionsStr += " "+"-"+key+" "+str(value)
 
     def _check_linearity(self, nonLinearIterate):

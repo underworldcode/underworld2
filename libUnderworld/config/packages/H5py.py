@@ -1,7 +1,7 @@
 import os, sys
 from config import Package
-from MPI import MPI
-from HDF5 import HDF5
+from .MPI import MPI
+from .HDF5 import HDF5
 import subprocess
 from SCons.Script.Main import AddOption
 
@@ -75,13 +75,13 @@ class H5py(Package):
         proj_folder = os.path.realpath(os.path.dirname("../.."))
 
         # try h5py in the parent directory
-        subp = subprocess.Popen(self.launcher+'python -c \'import sys\nsys.path.insert(0, \"{}\")\nimport h5py\nif not h5py.get_config().mpi: raise RuntimeError(\"h5py imported, but not compiled against mpi.\")\''.format(proj_folder), shell=True, stdout=self._logfile, stderr=self._logfile)
+        subp = subprocess.Popen(self.launcher+'python3 -c \'import sys\nsys.path.insert(0, \"{}\")\nimport h5py\nif not h5py.get_config().mpi: raise RuntimeError(\"h5py imported, but not compiled against mpi.\")\''.format(proj_folder), shell=True, stdout=self._logfile, stderr=self._logfile)
         subp.wait()
 
         if subp.wait() != 0:
             self._logfile.write("\nh5py is not importable from {}, or does not appear to be built against mpi.\n".format(proj_folder))
             # try h5py in PYTHONPATH
-            subp = subprocess.Popen(self.launcher+'python -c \'import h5py\nif not h5py.get_config().mpi: raise RuntimeError(\"h5py imported, but not compiled against mpi.\")\'', shell=True, stdout=self._logfile, stderr=self._logfile)
+            subp = subprocess.Popen(self.launcher+'python3 -c \'import h5py\nif not h5py.get_config().mpi: raise RuntimeError(\"h5py imported, but not compiled against mpi.\")\'', shell=True, stdout=self._logfile, stderr=self._logfile)
             if subp.wait() != 0:
                 self._logfile.write("\nh5py is not importable from system, or does not appear to be built against mpi.\n")
                 self._logfile.write("\nNote that you can install parallel h5py via pip using the following command:\n \

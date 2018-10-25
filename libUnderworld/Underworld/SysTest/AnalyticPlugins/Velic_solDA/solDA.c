@@ -10,17 +10,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
+#include "solDA.h"
 
-
-void _Velic_solDA( 
-		double pos[],
-		double _sigma,
-		double _eta_A, double _eta_B, 
-		double _z_c, double _dx, double _x_0,
-		double vel[], double* presssure, 
-		double total_stress[], double strain_rate[] );
-
-#ifndef NOSHARED
+#if 0
 int main( int argc, char **argv )
 {
 	int i,j;
@@ -56,16 +48,16 @@ int main( int argc, char **argv )
 
 
 void _Velic_solDA(		
-		double pos[],
+		const double pos[],
 		double _sigma, /* density */
 		double _eta_A, double _eta_B, /* viscosity A, viscosity B */ 
 		double _z_c, double _dx, double _x_0, /* viscosity jump location, width of dense column, centre of dense column */
 		double vel[], double* presssure, 
-		double total_stress[], double strain_rate[] )
+		double total_stress[], double strain_rate[], int nmodes )
 {
 	double Z,ZA,ZB,u1,u2,u3,u4,pp,txx;
 	double u1a,u2a,u3a,u4a,u1b,u2b,u3b,u4b;
-	double sum1,sum2,sum3,sum4,sum5,sum6,mag,sum7,x,z;
+	double sum1,sum2,sum3,sum4,sum5,sum6,sum7,x,z;
 	double sigma,dx;
 	double del_rhoA,del_rhoB,del_rho;
 	int n;
@@ -123,7 +115,7 @@ void _Velic_solDA(
 	sum6=0.0;
 	sum7=0.0;
 	/* convergence is good */
-	for(n=1;n<75;n++){
+	for(n=1;n<nmodes;n++){
 		kn = (double) n*M_PI;
 		
 		/*******************************************/
@@ -942,7 +934,7 @@ void _Velic_solDA(
 	/* i.e. u3 for n=0 is arbitrarily set to zero at z=zc */
 	
 	
-	mag=sqrt(sum1*sum1+sum2*sum2);
+	//mag=sqrt(sum1*sum1+sum2*sum2);
 	//printf("%0.7g %0.7g %0.7g %0.7g %0.7g %0.7g\n",x,y,z,sum3,sum2,sum1);
 	//printf("%0.7g %0.7g %0.7g\n%0.7g %0.7g %0.7g\n\n\n",x,y,z,x+sum3,y+sum2,z+sum1);
 	/*printf("%0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f\n",x,z,sum1,sum2,sum3,sum4,sum5,sum6,mag,sum7); */
@@ -973,9 +965,9 @@ void _Velic_solDA(
 		strain_rate[2] = (sum4)/(2.0*Z);
 	}
 	/* Value checks, could be cleaned up if needed. Julian Giordani 9-Oct-2006*/
-        if( fabs( sum5 - ( -0.5*(sum6+sum3) ) ) > 1e-5 ) {
-                assert(0);
-        }
+//        if( fabs( sum5 - ( -0.5*(sum6+sum3) ) ) > 1e-5 ) {
+//                assert(0);
+//        }
 	
 }
 

@@ -29,7 +29,7 @@ stokesSystem = uw.systems.Stokes(velocityField,pressureField,sol.fn_viscosity,so
 #Run the BSSCR Solver
 solver=uw.systems.Solver(stokesSystem)
 solver.set_inner_method("nomg")
-print solver.options.A11._mg_active
+print(solver.options.A11._mg_active)
 solver.solve()
 stats=solver.get_stats()
 solver.print_stats()
@@ -38,10 +38,10 @@ petsc.OptionsPrint()
 
 if 4 != stats.pressure_its:
     raise RuntimeError("Test returned wrong number of pressure iterations.")
-if 28 != stats.velocity_presolve_its:
+if 27 != stats.velocity_presolve_its:
     raise RuntimeError("Test returned wrong number of velocity pre solve iterations.")
 if -1 != stats.velocity_pressuresolve_its:  # -1 will be returned if this stat isn't supported.
-    if stats.velocity_pressuresolve_its < 100:
+    if stats.velocity_pressuresolve_its < 80:
         raise RuntimeError("Test returned wrong number of velocity pressure solve iterations.")
-if 30 != stats.velocity_backsolve_its:
+if 24 != stats.velocity_backsolve_its:
     raise RuntimeError("Test returned wrong number of velocity back solve iterations.")

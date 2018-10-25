@@ -305,7 +305,7 @@ def _xdmfAttributeschema( varname, variableType, centering, globalcount, dof_cou
         
         out = "\t<Attribute Type=\"Tensor6\" Center=\"{0}\" Name=\"{1}\">\n".format(centering, varname)
         out += "\t<DataItem ItemType=\"Function\"  Dimensions=\"{0} 6\" Function=\"JOIN($0, $3, $4, $1, $5, $2)\">\n".format(globalcount)
-        for d_i in xrange(dof_count):
+        for d_i in range(dof_count):
             out += "\t\t<DataItem ItemType=\"HyperSlab\" Dimensions=\"{0} 1\" Name=\"x{1}\">\n".format(globalcount, d_i)
             out += "\t\t\t<DataItem Dimensions=\"3 2\" Format=\"XML\"> 0 {0} 1 1 {1} 1 </DataItem>\n".format(d_i, globalcount)
             out += "\t\t\t<DataItem Format=\"HDF\" Dimensions=\"{0} 1\">{1}:/data</DataItem>\n".format(globalcount, datafile )
@@ -318,13 +318,30 @@ def _xdmfAttributeschema( varname, variableType, centering, globalcount, dof_cou
         out += "\t</Attribute>\n"
     else:
         out = ""
-        for d_i in xrange(dof_count):
+        for d_i in range(dof_count):
             out += "\t<Attribute Type=\"Scalar\" Center=\"{0}\" Name=\"{1}-Component-{2}\">\n".format(centering, varname, d_i)
             out += "\t\t<DataItem ItemType=\"HyperSlab\" Dimensions=\"{0} 1\" >\n".format(globalcount)
             out += "\t\t\t<DataItem Dimensions=\"3 2\" Format=\"XML\"> 0 {0} 1 1 {1} 1 </DataItem>\n".format(offset, globalcount)
             out += "\t\t\t<DataItem Format=\"HDF\" {0} Dimensions=\"{1} {2}\">{3}:/data</DataItem>\n".format(variableType, globalcount, dof_count, datafile)
             out += "\t\t</DataItem>\n"
             out += "\t</Attribute>\n"
+
+    return out
+
+def _xdmfAverageDiscontinuousElements(varname, variableType, globalCount,
+                                      nnodes, dataFile):
+
+    out = "\t<Attribute Type=\"Scalar\" Center=\"Cell\" Name=\"{0}\">\n".format(varname)
+    func = ["$" + str(val) + "/" + str(nnodes) for val in range(nnodes)]
+    func = "+".join(func)
+    out += "\t\t<DataItem ItemType=\"Function\" Dimensions=\"{0} 1\" Function=\"{1}\">\n".format(globalCount/nnodes, func)
+    for node in range(nnodes):
+        out += "\t\t\t<DataItem ItemType=\"HyperSlab\" Dimensions=\"{0} 1\" Name=\"P{1}\">\n".format(globalCount/nnodes, node)
+        out += "\t\t\t\t<DataItem Dimensions=\"3 2\" Format=\"XML\"> 0 0 {1} 1 {0} 1 </DataItem>\n".format(globalCount/nnodes, nnodes)
+        out += "\t\t\t\t\t<DataItem Format=\"HDF\" {0} Dimensions=\"{1} 1\">{2}:/data</DataItem>\n".format(variableType, globalCount/nnodes, dataFile)
+        out += "\t\t\t</DataItem>\n"
+    out += "\t\t</DataItem>\n"
+    out += "\t</Attribute>\n"
 
     return out
 
@@ -428,7 +445,7 @@ def _spacetimeschema( savedMeshFile, meshname, time ):
 
 
     # define each hyperslab element for the element-node map
-    for n_i in xrange(nodesPerElement):
+    for n_i in range(nodesPerElement):
         out += "\t\t<DataItem ItemType=\"HyperSlab\" Dimensions=\"{0} 1\" Name=\"C{1}\">\n".format( nGlobalEls, n_i )
         out += "\t\t\t\t<DataItem Dimensions=\"3 2\" Format=\"XML\"> 0 {0} 1 1 {1} 1 </DataItem>\n".format( n_i, nGlobalEls )
         out += "\t\t\t\t<DataItem Format=\"HDF\" NumberType=\"Int\" Dimensions=\"{0} 1\">{1}:/en_map</DataItem>\n".format( nGlobalEls, filename )
@@ -504,6 +521,13 @@ def _fieldschema(varSavedFile, varname ):
         centering = "Node"
     elif (nodesGlobal == mesh.elementsGlobal ):
         centering = "Cell"
+    elif field.mesh.elementType.upper() in ["DQ1", "DPC1"]:
+        nodes = {"DQ1": 4, "DPC1": 3}
+        nnodes = nodes[field.mesh.elementType.upper()]
+
+        return _xdmfAverageDiscontinuousElements(varname, variableType,
+                                                 nodesGlobal, nnodes,
+                                                 filename)
     else:
         raise RuntimeError("Can't output field '{}', unsupported elementType '{}'\n".format(varname, field.mesh.elementType) )
        # more conditions needed above for various pressure elementTypes???

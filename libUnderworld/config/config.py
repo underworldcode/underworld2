@@ -19,8 +19,8 @@ def UsePackage(env, mod, **kw):
 def ConfigurePackage(env, mod, **kw):
     # If we aren't aware of the package throw an error.
     if mod not in env['packages']:
-        print 'Error: UsePackage not called prior to ConfigurePackage for'
-        print '       package %s.'%repr(mod.__module__)
+        print('Error: UsePackage not called prior to ConfigurePackage for')
+        print('       package %s.'%repr(mod.__module__))
         env.Exit()
     # Don't configure if we're cleaning or helping.
     pkg = env['packages'][mod]
@@ -85,18 +85,18 @@ def SaveConfig(env, filename='config.cfg'):
 
 def PrintSummary(env, filename="config.cfg"):
     if not (GetOption('help') or GetOption('clean')):
-        print ''
-        print 'Saved configuration: "' + filename + '"'
+        print('')
+        print('Saved configuration: "' + filename + '"')
         if 'PETSC_FLAGS' in env:
-            print '  Flags imported from PETSc:'
-            for key, val in env['PETSC_FLAGS'].iteritems():
+            print('  Flags imported from PETSc:')
+            for key, val in env['PETSC_FLAGS'].items():
                 if val:
-                    print '   ' + key + ': ' + repr(val)
+                    print('   ' + key + ': ' + repr(val))
         if (filename == "config.cfg"):
-            print '  C compiler:     %s'%repr(env['CC'])
-            print '  C flags:        %s'%env.subst('$CFLAGS $CCFLAGS')
-        print '  C preprocessor: %s'%repr(env.get('CPPDEFINES'))
-        print '  Libraries: %s'%repr(env.get('LIBS'))
+            print('  C compiler:     %s'%repr(env['CC']))
+            print('  C flags:        %s'%env.subst('$CFLAGS $CCFLAGS'))
+        print('  C preprocessor: %s'%repr(env.get('CPPDEFINES')))
+        print('  Libraries: %s'%repr(env.get('LIBS')))
 
 def generate(env, options=[]):
     import platform

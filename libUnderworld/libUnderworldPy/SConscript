@@ -44,7 +44,7 @@ objs = []
 # Process each directory uniformly.
 #
 
-for key,value in wrapperDict.iteritems():
+for key,value in wrapperDict.items():
     # Build our source files.
     objs = []
     for file in value:
@@ -62,7 +62,7 @@ import os
 if env['SHLIBSUFFIX'] == '.dylib':
     def SymLink(target, source, env):
         os.symlink(os.path.abspath(str(source[0])), os.path.abspath(str(target[0])))
-    for key,value in wrapperDict.iteritems():
+    for key,value in wrapperDict.items():
         destLink = os.path.join('..', env["build_dir"],'lib', 'lib'+key+'_swig.so')
         sourceFile = os.path.join('..', env["build_dir"],'lib', 'lib'+key+'_swig.dylib')
         env.Command(destLink, sourceFile, SymLink)
