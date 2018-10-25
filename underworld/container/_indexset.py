@@ -277,6 +277,12 @@ class IndexSet(object):
                     except TypeError:
                         raise TypeError("Incompatible array type ({}) provided. Must be of integer type.".format(ndarray.dtype))
 
+    def __getitem__(self,index):
+        # This method is required so that we can index into numpy
+        # arrays using IndexSet objects. However, it doesn't need
+        # to be implemented, curiously.
+        raise RuntimeError("Not yet implemented")
+    
     @property
     def data(self):
         """
