@@ -382,16 +382,16 @@ void InterpLagrange( double x, double* coords, double** values, unsigned numdofs
 }
 
 Bool PeriodicUpdate( double* pos, double* min, double* max, unsigned dim, Bool isPeriodic ) {
-   if( pos[dim] < min[dim] ) {
-      pos[dim] = (isPeriodic) ? max[dim] - min[dim] + pos[dim] : min[dim];
-      return True;
-        }
-        if( pos[dim] > max[dim] ) {
-         pos[dim] = (isPeriodic) ? min[dim] - max[dim] + pos[dim] : max[dim];
-      return True;
-        }
+  if( pos[dim] < min[dim] ) {
+    pos[dim] = (isPeriodic) ? max[dim] - min[dim] + pos[dim] : min[dim];
+    return True;
+  }
+  if( pos[dim] > max[dim] ) {
+    pos[dim] = (isPeriodic) ? min[dim] - max[dim] + pos[dim] : max[dim];
+    return True;
+  }
 
-   return False;
+  return False;
 }
 
 void BicubicInterpolator( FeVariable* feVariable, double* position, double* delta, unsigned* nNodes, double* result ) {
@@ -411,10 +411,23 @@ void BicubicInterpolator( FeVariable* feVariable, double* position, double* delt
    double**	ptsY			= Memory_Alloc_2DArray_Unnamed( double, 4, 3 );
    double**	ptsZ			= Memory_Alloc_2DArray_Unnamed( double, 4, 3 );
 
-   Mesh_SearchElements( feMesh, position, &elementIndex );
-   FeMesh_GetElementNodes( feMesh, elementIndex, feVariable->inc );
-   nInc = IArray_GetSize( feVariable->inc );
-   inc = IArray_GetPtr( feVariable->inc );
+   Mesh_SearchElements( feMesh, position, &elementIndex );          // get the element id
+   FeMesh_GetElementNodes( feMesh, elementIndex, feVariable->inc ); // get the incidence graph (inc.) of nodes on the element
+   nInc = IArray_GetSize( feVariable->inc );                        // from inc. get the number of nodes on the element
+   inc = IArray_GetPtr( feVariable->inc );                          // get the node ids from inc.
+   
+   if( nInc % 3 == 0 ) /* quadratic elements */ {
+      delta[0] = Mesh_GetVertex( feMesh, inc[1] )[0] - Mesh_GetVertex( feMesh, inc[0] )[0];
+      delta[1] = Mesh_GetVertex( feMesh, inc[3] )[1] - Mesh_GetVertex( feMesh, inc[0] )[1];
+      if( nDims == 3 )
+         delta[2] = Mesh_GetVertex( feMesh, inc[9] )[2] - Mesh_GetVertex( feMesh, inc[0] )[2];
+   }
+   else {
+      delta[0] = Mesh_GetVertex( feMesh, inc[1] )[0] - Mesh_GetVertex( feMesh, inc[0] )[0];
+      delta[1] = Mesh_GetVertex( feMesh, inc[2] )[1] - Mesh_GetVertex( feMesh, inc[0] )[1];
+      if( nDims == 3 )
+         delta[2] = Mesh_GetVertex( feMesh, inc[4] )[2] - Mesh_GetVertex( feMesh, inc[0] )[2];
+   }
 
    Mesh_GetLocalCoordRange( feMesh, localMin, localMax );
    gNode_I = Mesh_DomainToGlobal( feMesh, MT_VERTEX, inc[0] );
@@ -449,7 +462,9 @@ void BicubicInterpolator( FeVariable* feVariable, double* position, double* delt
       }
    }
    else if ( nInc % 2 == 0 ) { /* linear mesh */
+     // if x position greater than the first elements width 
       if( position[0] > localMin[0] + delta[0] ) x_0--;
+      // if x position is within the right most element
       if( position[0] >= localMax[0] - delta[0] ) x_0--;
 
       if( position[1] > localMin[1] + delta[1] ) y_0--;
@@ -467,7 +482,10 @@ void BicubicInterpolator( FeVariable* feVariable, double* position, double* delt
       for( y_i = 0; y_i < 4; y_i++ )
          for( x_i = 0; x_i < 4; x_i++ ) {
             gNode_I = x_0 + x_i + ( y_0 + y_i ) * nNodes[0];
-            if( !Mesh_GlobalToDomain( feMesh, MT_VERTEX, gNode_I, &lNode_I ) ) abort();
+            if( !Mesh_GlobalToDomain( feMesh, MT_VERTEX, gNode_I, &lNode_I ) ){
+              printf("Error in BicubicInterpolator(), trying to build an interpolation to position (%g, %g) using node %d, a non domain node, in interpolator.\n", position[0], position[1], gNode_I);
+              abort();
+            }
             else
                nodeIndex[x_i][y_i] = lNode_I;
          }
@@ -477,7 +495,10 @@ void BicubicInterpolator( FeVariable* feVariable, double* position, double* delt
          for( y_i = 0; y_i < 4; y_i++ )
             for( x_i = 0; x_i < 4; x_i++ ) {
                gNode_I = x_0 + x_i + ( y_0 + y_i ) * nNodes[0] + ( z_0 + z_i ) * nNodes[0] * nNodes[1];
-               if( !Mesh_GlobalToDomain( feMesh, MT_VERTEX, gNode_I, &lNode_I ) ) abort();
+               if( !Mesh_GlobalToDomain( feMesh, MT_VERTEX, gNode_I, &lNode_I ) ) {
+                 printf("Error in BicubicInterpolator(), trying to build an interpolation to position (%g, %g, %g) using node %d, a non domain node, in interpolator.\n", position[0], position[1], position[2], gNode_I);
+                 abort();
+               }
                else
                   node_I3D[x_i][y_i][z_i] = lNode_I;
             }
@@ -525,6 +546,61 @@ void BicubicInterpolator( FeVariable* feVariable, double* position, double* delt
    Memory_Free( ptsZ );
 }
 
+
+void SemiLagrangianIntegrator_SolveNew( FeVariable* variableField, double dt, FeVariable* velocityField, FeVariable* varStarField  ) {
+   unsigned			node_I;
+   FeMesh*				feMesh		     = variableField->feMesh;
+   unsigned			meshSize	     = Mesh_GetLocalSize( feMesh, MT_VERTEX );
+   unsigned			dim_I;
+   unsigned			nDims		     = Mesh_GetDimSize( feMesh );
+   double				position[3];
+   double				var[3];
+   Grid**				grid		     = (Grid**) Mesh_GetExtension( feMesh, Grid*,  feMesh->elGridId );
+   unsigned*			sizes		     = Grid_GetSizes( *grid );
+   unsigned			nNodes[3];
+   double				delta[3];
+   unsigned			nInc;
+   unsigned*			inc;
+
+   FeMesh_GetElementNodes( variableField->feMesh, 0, variableField->inc );
+   nInc = IArray_GetSize( variableField->inc );
+   inc = IArray_GetPtr( variableField->inc );
+
+   delta[0] = Mesh_GetVertex( feMesh, inc[1] )[0] - Mesh_GetVertex( feMesh, inc[0] )[0];
+   if( nInc % 3 == 0 ) /* quadratic elements */ {
+      delta[1] = Mesh_GetVertex( feMesh, inc[3] )[1] - Mesh_GetVertex( feMesh, inc[0] )[1];
+      if( nDims == 3 )
+         delta[2] = Mesh_GetVertex( feMesh, inc[9] )[2] - Mesh_GetVertex( feMesh, inc[0] )[2];
+      for( dim_I = 0; dim_I < nDims; dim_I++ )
+         nNodes[dim_I] = 2 * sizes[dim_I] + 1;
+   }
+   else {
+      delta[1] = Mesh_GetVertex( feMesh, inc[2] )[1] - Mesh_GetVertex( feMesh, inc[0] )[1];
+      if( nDims == 3 )
+         delta[2] = Mesh_GetVertex( feMesh, inc[4] )[2] - Mesh_GetVertex( feMesh, inc[0] )[2];
+
+      for( dim_I = 0; dim_I < nDims; dim_I++ )
+         nNodes[dim_I] = sizes[dim_I] + 1;
+   }
+
+   FeVariable_SyncShadowValues( velocityField );
+   FeVariable_SyncShadowValues( variableField );
+
+   /* assume that the variable mesh is the same as the velocity mesh */
+   for( node_I = 0; node_I < meshSize; node_I++ ) {
+     
+      /* find the position back in time (u*) */
+      IntegrateRungeKutta( velocityField, dt, Mesh_GetVertex( feMesh, node_I ), position );
+
+      /* create a bicubic interpolation of variableField at u* */
+      BicubicInterpolator( variableField, position, delta, nNodes, var );
+
+      FeVariable_SetValueAtNode( varStarField, node_I, var );
+   }
+   FeVariable_SyncShadowValues( varStarField );
+}
+
+
 void SemiLagrangianIntegrator_Solve( void* slIntegrator, FeVariable* variableField, FeVariable* varStarField ) {
    SemiLagrangianIntegrator*	self 		     = (SemiLagrangianIntegrator*)slIntegrator;
    FiniteElementContext*		context		     = self->context;
@@ -570,14 +646,14 @@ void SemiLagrangianIntegrator_Solve( void* slIntegrator, FeVariable* variableFie
 
    /* assume that the variable mesh is the same as the velocity mesh */
    for( node_I = 0; node_I < meshSize; node_I++ ) {
+     
+      /* find the position back in time (u*) */
       IntegrateRungeKutta( velocityField, dt, Mesh_GetVertex( feMesh, node_I ), position );
 
+      /* create a bicubic interpolation of variableField at u* */
       BicubicInterpolator( variableField, position, delta, nNodes, var );
 
       FeVariable_SetValueAtNode( varStarField, node_I, var );
    }
    FeVariable_SyncShadowValues( varStarField );
 }
-
-
-
