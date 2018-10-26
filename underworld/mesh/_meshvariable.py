@@ -393,7 +393,8 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
 
         # write to the dset using the global node ids
         local = mesh.nodesLocal
-        dset[mesh.data_nodegId[0:local],:] = self.data[0:local]
+        with dset.collective:
+            dset[mesh.data_nodegId[0:local],:] = self.data[0:local]
 
         # save a hdf5 attribute to the elementType used for this field - maybe useful
         h5f.attrs["elementType"] = np.string_(mesh.elementType)
@@ -468,12 +469,12 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
             raise RuntimeError("Can't load hdf5 '{0}', incompatible data shape".format(filename))
 
         if len(dset) == self.mesh.nodesGlobal:
-
             # assume dset matches field exactly
             mesh = self.mesh
             local = mesh.nodesLocal
 
-            self.data[0:local] = dset[mesh.data_nodegId[0:local],:]
+            with dset.collective:
+                self.data[0:local] = dset[mesh.data_nodegId[0:local],:]
 
         else:
             if not interpolate:

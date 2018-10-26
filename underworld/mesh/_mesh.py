@@ -565,7 +565,8 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
 
         local = self.nodesLocal
         # write to the dset using the local set of global node ids
-        dset[self.data_nodegId[0:local],:] = self.data[0:local]
+        with dset.collective:
+            dset[self.data_nodegId[0:local],:] = self.data[0:local]
 
         # write the element node connectivity
         globalShape = ( self.elementsGlobal, self.data_elementNodes.shape[1] )
@@ -575,7 +576,8 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
 
         local = self.elementsLocal
         # write to the dset using the local set of global node ids
-        dset[self.data_elgId[0:local],:] = self.data_elementNodes[0:local]
+        with dset.collective:
+            dset[self.data_elgId[0:local],:] = self.data_elementNodes[0:local]
 
         h5f.close()
 
@@ -637,7 +639,8 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
             raise RuntimeError("Provided data file appears to be for a different resolution mesh.")
 
         with self.deform_mesh(isRegular=h5f.attrs['regular']):
-            self.data[0:self.nodesLocal] = dset[self.data_nodegId[0:self.nodesLocal],:]
+            with dset.collective:
+                self.data[0:self.nodesLocal] = dset[self.data_nodegId[0:self.nodesLocal],:]
 
         h5f.close()
 

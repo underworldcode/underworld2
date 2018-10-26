@@ -345,8 +345,9 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
                 size = procCount[rank]
             
         valid = np.zeros(0, dtype='i') # array for read in
-        chunk=int(1e4) # read in this many points at a time
+        chunk=int(1e6) # read in this many points at a time
 
+        firstChunk = True
         (multiples, remainder) = divmod( size, chunk )
         for ii in range(multiples+1):
             # setup the points to begin and end reading in
@@ -358,9 +359,18 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
             else:
                 chunkEnd = chunkStart + chunk
 
-            # add particles to swarm, ztmp is the corresponding local array
-            # non-local particles are not added and their ztmp index is -1
-            ztmp = self.add_particles_with_coordinates(dset[ chunkStart : chunkEnd ])
+            # Add particles to swarm, ztmp is the corresponding local array
+            # non-local particles are not added and their ztmp index is -1.
+            # Note that for the first chunk, we do collective read, as this
+            # is the only time that we can guaranteed that all procs will
+            # take part, and usually most (if not all) particles are loaded
+            # in this step.
+            if firstChunk:
+                with dset.collective:
+                    ztmp = self.add_particles_with_coordinates(dset[ chunkStart : chunkEnd ])
+                    firstChunk = False
+            else:
+                ztmp = self.add_particles_with_coordinates(dset[ chunkStart : chunkEnd ])
             tmp = np.copy(ztmp) # copy because ztmp is 'readonly'
 
             # slice out -neg bits and make the local indices global
