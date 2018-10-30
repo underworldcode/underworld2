@@ -269,8 +269,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         gIds = self.swarm._local2globalMap
 
         comm = MPI.COMM_WORLD
-        rank = comm.Get_rank()
-        nProcs = comm.Get_size()
+        rank = comm.rank
 
         # open hdf5 file
         h5f = h5py.File(name=filename, mode="r", driver='mpio', comm=MPI.COMM_WORLD)
@@ -283,47 +282,57 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
             raise RuntimeError("Cannot load file data on current swarm. Data in file '{0}', " \
                                "has {1} components -the particlesCoords has {2} components".format(filename, dset.shape[1], self.particleCoordinates.data.shape[1]))
 
-        particleGobalCount = self.swarm.particleGlobalCount
-        
-        if dset.shape[0] != particleGobalCount:
-            if rank == 0:
-                import warnings
-                warnings.warn("Warning, it appears that the swarm has {} particles, but provided h5 file has {} data points. Please check that " \
-                              "both the Swarm and the SwarmVariable were saved at the same time, and that you have reloaded using " \
-                              "the correct files.". format(particleGobalCount, dset.shape[0]), RuntimeWarning)
+        if dset.shape[0] != self.swarm.particleGlobalCount:
+            raise RuntimeError("It appears that the swarm has {} particles, but provided h5 file has {} data points. Please check that " \
+                               "both the Swarm and the SwarmVariable were saved at the same time, and that you have reloaded using " \
+                               "the correct files.".format(particleGobalCount, dset.shape[0]))
 
-#        # for efficiency, we want to load swarmvariable data in the largest stride chunks possible.
-#        # we need to determine where required data is contiguous.
-#        # first construct an array of gradients. the required data is contiguous
-#        # where the indices into the array are increasing by 1, ie have a gradient of 1.
-#        gradIds = np.zeros_like(gIds)            # creates array of zeros of same size & type
-#        if len(gIds) > 1:
-#            gradIds[:-1] = gIds[1:] - gIds[:-1]  # forward difference type gradient
-#
-#        guy = 0
-#        while guy < len(gIds):
-#
-#            # do contiguous
-#            start_guy = guy
-#            while gradIds[guy]==1:  # count run of contiguous. note bounds check not required as last element of gradIds is always zero.
-#                guy += 1
-#            # copy contiguous chunk if found.. note that we are copying 'plus 1' items
-#            if guy > start_guy:
-#                self.data[start_guy:guy+1] = dset[gIds[start_guy]:gIds[guy]+1]
-#                guy += 1
-#
-#            # do non-contiguous
-#            start_guy = guy
-#            while guy<len(gIds) and gradIds[guy]!=1:  # count run of non-contiguous
-#                guy += 1
-#            # copy non-contiguous items (if found) using index array slice
-#            if guy > start_guy:
-#                self.data[start_guy:guy,:] = dset[gIds[start_guy:guy],:]
-#
-#            # repeat process until all done
+        # for efficiency, we want to load swarmvariable data in the largest stride chunks possible.
+        # we need to determine where required data is contiguous.
+        # first construct an array of gradients. the required data is contiguous
+        # where the indices into the array are increasing by 1, ie have a gradient of 1.
+        gradIds = np.zeros_like(gIds)            # creates array of zeros of same size & type
+        if len(gIds) > 1:
+            gradIds[:-1] = gIds[1:] - gIds[:-1]  # forward difference type gradient
 
-        with dset.collective:
-            self.data[:,:] = dset[gIds[:],:]
+        # note that we do only the first read into dset collective. this call usually
+        # does the entire read, but if it doesn't we won't know how many calls will
+        # be necessary, hence only collective calling the first. 
+        done_collective = False
+        guy = 0
+        while guy < len(gIds):
+            # do contiguous
+            start_guy = guy
+            while gradIds[guy]==1:  # count run of contiguous. note bounds check not required as last element of gradIds is always zero.
+                guy += 1
+            # copy contiguous chunk if found.. note that we are copying 'plus 1' items
+            if guy > start_guy:
+                if not done_collective:
+                    with dset.collective:
+                        self.data[start_guy:guy+1] = dset[gIds[start_guy]:gIds[guy]+1]
+                        done_collective = True
+                else:
+                    self.data[start_guy:guy+1] = dset[gIds[start_guy]:gIds[guy]+1]
+                guy += 1
+
+            # do non-contiguous
+            start_guy = guy
+            while guy<len(gIds) and gradIds[guy]!=1:  # count run of non-contiguous
+                guy += 1
+            # copy non-contiguous items (if found) using index array slice
+            if guy > start_guy:
+                if not done_collective:
+                    with dset.collective:
+                        self.data[start_guy:guy,:] = dset[gIds[start_guy:guy],:]
+                        done_collective = True
+                else:
+                    self.data[start_guy:guy,:] = dset[gIds[start_guy:guy],:]
+
+        # if we haven't entered a collective call, do so now to
+        # avoid deadlock. we just do an empty read/write.
+        if not done_collective:
+            with dset.collective:
+                self.data[0:0,:] = dset[gIds[0:0],:]
 
         h5f.close();
 
@@ -396,35 +405,36 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
 
         # setup mpi basic vars
         comm = MPI.COMM_WORLD
-        rank = comm.Get_rank()
-        nProcs = comm.Get_size()
+        rank = comm.rank
 
         # allgather the number of particles each proc has
         swarm = self.swarm
         procCount = comm.allgather(swarm.particleLocalCount)
-        particleGlobalCount = np.sum(procCount) #swarm.particleGlobalCount
+        particleGlobalCount = np.sum(procCount)
 
         # calculate the hdf5 file offset
         offset=0
-        for i in range(rank):
+        for i in range(comm.rank):
             offset += procCount[i]
 
         # open parallel hdf5 file
-        h5f = h5py.File(name=filename, mode="w", driver='mpio', comm=MPI.COMM_WORLD)
-        
-        # attribute of the proc offsets - used for loading from checkpoint
-        h5f.attrs["proc_offset"] = procCount
-        
-        # write the entire local swarm to the appropriate offset position
-        globalShape = (particleGlobalCount, self.data.shape[1])
-        dset = h5f.create_dataset("data",
-                                   shape=globalShape,
-                                   dtype=self.data.dtype)
+        with h5py.File(name=filename, mode="w", driver='mpio', comm=MPI.COMM_WORLD) as h5f:
+            # write the entire local swarm to the appropriate offset position
+            globalShape = (particleGlobalCount, self.data.shape[1])
+            dset = h5f.create_dataset("data",
+                                       shape=globalShape,
+                                       dtype=self.data.dtype)
 
-        with dset.collective:
-            dset[offset:offset+swarm.particleLocalCount] = self.data[:]
+            with dset.collective:
+                dset[offset:offset+swarm.particleLocalCount] = self.data[:]
 
-        h5f.close()
+        # let's reopen in serial to write the attrib.
+        # not sure if this really is necessary.
+        comm.barrier()
+        if comm.rank==0:
+            with h5py.File(name=filename, mode="a") as h5f:
+                # attribute of the proc offsets - used for loading from checkpoint
+                h5f.attrs["proc_offset"] = procCount
 
         return uw.utils.SavedFileData( self, filename )
 

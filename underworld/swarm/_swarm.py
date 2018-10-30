@@ -335,7 +335,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         # we set the 'offset' & 'size' variables to achieve the above 
         
         offset = 0
-        totalsize = size = dset.shape[0] # number of particles in h5 file
+        size = dset.shape[0] # number of particles in h5 file
         
         if try_optimise:
             procCount = h5f.attrs.get('proc_offset')
@@ -345,7 +345,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
                 size = procCount[rank]
             
         valid = np.zeros(0, dtype='i') # array for read in
-        chunk=int(1e6) # read in this many points at a time
+        chunk=int(2e7) # read in max this many points at a time
 
         firstChunk = True
         (multiples, remainder) = divmod( size, chunk )
@@ -467,14 +467,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
             The global number (across all processes) of particles in the swarm.
         """
 
-        # setup mpi basic vars
-        comm = MPI.COMM_WORLD
-        rank = comm.Get_rank()
-        nProcs = comm.Get_size()
-
-        # allgather the number of particles each proc has
-        procCount = comm.allgather(self.particleLocalCount)
-        return sum(procCount)
+        return MPI.COMM_WORLD.allreduce(self.particleLocalCount, op=MPI.SUM)
 
     @property
     def _voronoi_swarm(self):

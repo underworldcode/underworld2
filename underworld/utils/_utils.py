@@ -657,7 +657,7 @@ def _nps_2norm( v, comm=MPI.COMM_WORLD ):
     lnorm_sq = np.linalg.norm(v)**2 # sq as this is 2-norm
 
     # comm all gather across procs
-    gnorm_sq = np.sum( comm.allgather(lnorm_sq) )
+    gnorm_sq = comm.allreduce(lnorm_sq,op=MPI.SUM)
 
     return np.sqrt(gnorm_sq)
 
