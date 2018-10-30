@@ -548,3 +548,50 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
             xdmfFH = open(filename, "w")
             xdmfFH.write(string)
             xdmfFH.close()
+
+    def copy(self, deepcopy=False):
+        """
+        This method returns a copy of the swarmvariable.
+
+        Parameters
+        ----------
+        deepcopy: bool
+            If True, the variable's data is also copied into
+            new variable.
+
+        Returns
+        -------
+        underworld.swarm.SwarmVariable
+            The swarm variable copy.
+
+        Example
+        -------
+        >>> import math
+        >>> mesh = uw.mesh.FeMesh_Cartesian()
+        >>> swarm = uw.swarm.Swarm()
+        >>> swarm.populate.using_layout(uw.swarm.layouts.PerCellGaussLayout(swarm, 2)
+        >>> svar = swarm.add_variable("double", 1)
+        >>> svar.data[:] = math.exp(1.)
+        >>> svarCopy = svar.copy()
+        >>> svarCopy.swarm == var.swarm
+        True
+        >>> svarCopy.dataType == svar.dataType
+        True
+        >>> import numpy as np
+        >>> np.allclose(svar.data,svarCopy.data)
+        False
+        >>> svarCopy2 = svar.copy(deepcopy=True)
+        >>> np.allclose(svar.data,svarCopy2.data)
+        True
+
+        """
+
+        if not isinstance(deepcopy, bool):
+            raise TypeError("'deepcopy' parameter is expected to be of type 'bool'.")
+
+        newSv = SwarmVariable(self.swarm, self.dataType, self.count)
+
+        if deepcopy:
+            newSv.data[:] = self.data[:]
+
+        return newSv
