@@ -32,6 +32,14 @@ on a geological timescale.
 
 __version__ = "2.7.0-dev"
 
+# squelch h5py/numpy future warnings
+import warnings as _warnings
+_warnings.simplefilter(action='ignore', category=FutureWarning)
+# also these warnings as they are very noisey and not necessary
+# https://stackoverflow.com/questions/40845304/runtimewarning-numpy-dtype-size-changed-may-indicate-binary-incompatibility
+_warnings.filterwarnings("ignore", message="numpy.dtype size changed")
+_warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
+
 # lets  set sys.path such that the project parent directory takes
 # precedence
 import sys as _sys
@@ -103,11 +111,6 @@ try:
 except:
     pass
 
-# Squelch these warnings as they are very noisey and not necessary
-# https://stackoverflow.com/questions/40845304/runtimewarning-numpy-dtype-size-changed-may-indicate-binary-incompatibility
-import warnings
-warnings.filterwarnings("ignore", message="numpy.dtype size changed")
-warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
 try:
     from ._uwid import uwid as _id
 except:
@@ -248,9 +251,3 @@ if (rank() == 0) and not _in_doctest():
     except: # continue quietly if something above failed
         pass
 
-# lets also enable deprecation warnings
-#import warnings as _warnings
-#_warnings.simplefilter('always', DeprecationWarning)
-
-# enable the following to force exceptions on warnings
-#_warnings.simplefilter('error')

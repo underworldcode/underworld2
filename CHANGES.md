@@ -7,12 +7,15 @@ Enhancements:
 * Timing functionality available
 * glucifer defaults to use onMesh=True
 
-Release 2.6.0b [2018-09-27]
+Release 2.6.1b [2018-10-31]
+------------------
+* Remove `warning` module visibility from top level underworld 
+  module.
+
+Release 2.6.0b [2018-10-18]
 ------------------
 Enhancements:
 * Removed submodules in favour of direct access.
-* Improved docker image building strategy.
-* Native Shifter support at Magnus Pawsey.
 * Petsc-3.9.x compatible.
 * Support for nested SafeMaths operations.
 * Improved function error messaging.
