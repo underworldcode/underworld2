@@ -1503,6 +1503,11 @@ class FeMesh_Cylinder(FeMesh_Cartesian):
         with self.deform_mesh():
             # old = self.data
             (x,y) = (self.data[:,1], self.data[:,2] )
+
+            # Move nodes away from the axis
+            r = np.hypot(x,y)
+            x[ r == 0.0 ] += 0.000001 * self._cyl_size[2]
+
             theta = np.arctan2(y,x)
             scale  = np.maximum(np.cos(theta%(np.pi*0.5)), np.sin(theta%(np.pi*0.5)))
 
@@ -1510,14 +1515,8 @@ class FeMesh_Cylinder(FeMesh_Cartesian):
             self.data[:,1] *= scale
             self.data[:,2] *= scale
 
-            # There are some artefacts in this transformation
-            # These could be important where they define the edges
-            # dr = radius / np.hypot(self.data[:,1], self.data[:,2])
-            # self.data[W.data,1] *= dr[W.data]
-            # self.data[W.data,2] *= dr[W.data]
-
         self._boundaryNodeFn = fn.branching.conditional(
-                                        [  ( self.bndMeshVariable > 0.999, 1. ),
+                                        [  ( self.bndMeshVariable != 0.0 , 1. ),
                                         (                            True, 0. )   ] )
 
         """
@@ -1539,20 +1538,30 @@ class FeMesh_Cylinder(FeMesh_Cartesian):
         self._e2 = self.add_variable(nodeDofCount=3)
         self._e3 = self.add_variable(nodeDofCount=3)
 
-        # _x_or_radial, y_or_east, z_or_north functions
+        posFn = fn.coord()
+        radiusFn =  fn.math.sqrt(posFn[1]**2 + posFn[2]**2)
+
+
         self._fn_x_or_rotated  = fn.misc.constant(1.0)*(1.,0.,0.)
 
         self._fn_y_or_rotated  = fn.branching.conditional(
-                                    [ ( self.bndMeshVariable > 0.9, self._get_tangential_Fn() ),
+                                    [ ( self.bndMeshVariable != 0.0, self._get_tangential_Fn() ),
                                       (                       True, fn.misc.constant(1.0)*(0.,1.,0.) ) ] )
         self._fn_z_or_rotated  = fn.branching.conditional(
-                                    [ ( self.bndMeshVariable > 0.9, self._get_normal_Fn() ),
+                                    [ ( self.bndMeshVariable != 0.0 , self._get_normal_Fn() ),
                                       (                       True, fn.misc.constant(1.0)*(0.,0.,1.) ) ] )
 
         # evaluate the new bases
+
         self._e1.data[:] = self._fn_x_or_rotated.evaluate(self) # should be unchanged in this mesh
         self._e2.data[:] = self._fn_y_or_rotated.evaluate(self) #
         self._e3.data[:] = self._fn_z_or_rotated.evaluate(self) #
+        #
+        # self._e1.data[:] = (1.,0.,0.)
+        # self._e2.data[:] = self._get_tangential_Fn().evaluate(self)
+        # self._e3.data[:] = self._get_normal_Fn().evaluate(self)
+
+        return
 
 
     def fn_r_theta_z(self):
@@ -1566,7 +1575,7 @@ class FeMesh_Cylinder(FeMesh_Cartesian):
     ## This one is y or other direction  (normal)
     def _get_tangential_Fn(self):
         pos = fn.coord()
-        xi = fn.math.atan2(pos[2],pos[1])
+        xi  = fn.math.atan2(pos[2],pos[1])
         vec =       fn.math.cos(xi) * (0.0,1.0, 0.0)
         vec = vec + fn.math.sin(xi) * (0.0,0.0, 1.0)
         return vec
@@ -1580,14 +1589,12 @@ class FeMesh_Cylinder(FeMesh_Cartesian):
         return vec
 
 
-
-
 class FeMesh_SphericalCap(FeMesh_Cartesian):
 # LNM
     def __new__(cls, **kwargs):
         return super(FeMesh_SphericalCap,cls).__new__(cls, **kwargs)
 
-    def __init__(self, elementRes=(6,12,12), cap_size=(0.5,1.0, 90.0), elementType="Q1/dQ0", **kwargs):
+    def __init__(self, resolution=(6,12), cap_size=(0.5,1.0, 90.0), elementType="Q1/dQ0", **kwargs):
         """
         Refer to parent classes for parameters beyond those below.
 
@@ -1600,6 +1607,16 @@ class FeMesh_SphericalCap(FeMesh_Cartesian):
 
         """
 
+
+        if not isinstance( resolution, (tuple,list)):
+            raise TypeError("Provided 'resolution' must be a tuple/list of 2 ints")
+        if len(resolution) != 2:
+            raise ValueError("Provided 'resolution' must be a tuple/list of 2 ints")
+        for el in resolution:
+            if not isinstance( el, int) :
+                raise TypeError("Provided 'resolution' must be a tuple/list of 2 ints")
+
+
         if not isinstance( cap_size, (tuple,list)):
             raise TypeError("Provided 'cap_size' must be a tuple/list of 3 floats")
         if len(cap_size) != 3:
@@ -1609,11 +1626,12 @@ class FeMesh_SphericalCap(FeMesh_Cartesian):
                 raise TypeError("Provided 'cap_size' must be a tuple/list of 3 floats")
 
         self._cap_size = cap_size
+        self._resolution = resolution
 
         # build 3D mesh cartesian mesh centred on (0.0,0.0,0.0) - in _setup() we deform the mesh
         # elementType="Q1/dQ0"
 
-        super(FeMesh_SphericalCap,self).__init__(elementRes=elementRes,
+        super(FeMesh_SphericalCap,self).__init__(elementRes=(resolution[0], resolution[1], resolution[1]),
                     minCoord=(0.0,-1.0,-1.0),
                     maxCoord=(1.0, 1.0, 1.0),
                     periodic=None, **kwargs)
@@ -1625,6 +1643,9 @@ class FeMesh_SphericalCap(FeMesh_Cartesian):
 
     def _setup(self):
         import underworld.function as fn
+
+        self.xyz     = self.data
+        self.rlonlat = self.data.copy()
 
         cap_size = self._cap_size
 
@@ -1638,20 +1659,13 @@ class FeMesh_SphericalCap(FeMesh_Cartesian):
             self.data[:,1] *= scale
             self.data[:,2] *= scale
 
-
-            # There are some artefacts in this transformation
-            # These could be important where they define the edges
-            # dr = 1.0 / np.hypot(self.data[W.data,1], self.data[W.data,2])
-            # self.data[W.data,1] *= dr
-            # self.data[W.data,2] *= dr
-
             ## OK, so now we have a cylinder and we can
             ## deform this to the hemispherical shell
 
             # 1. Distance from axis maps to co-latitude
 
             phi = np.hypot(y,z) * (0.5 * np.pi * cap_size[2] / 180.0)
-            r = (cap_size[1] - cap_size[0]) * self.data[:,0] + cap_size[0]
+            r   = (cap_size[1] - cap_size[0]) * self.data[:,0] + cap_size[0]
 
             # 2. We have r, theta, phi
 
@@ -1659,6 +1673,9 @@ class FeMesh_SphericalCap(FeMesh_Cartesian):
             self.data[:,1] = r * np.sin(phi) * np.cos(theta)
             self.data[:,2] = r * np.sin(phi) * np.sin(theta)
 
+            self.rlonlat[:,0] = r
+            self.rlonlat[:,1] = theta
+            self.rlonlat[:,2] = phi
 
 
         # ASSUME the parent class builds the _boundaryNodeFn
@@ -1670,8 +1687,8 @@ class FeMesh_SphericalCap(FeMesh_Cartesian):
         # # on the surface itself. for those directly adjacent, the deltaMeshVariable will evaluate
         # # to non-zero (but less than 1.), so we need to remove those from the integration as well.
         self._boundaryNodeFn = fn.branching.conditional(
-                                        [  ( self.bndMeshVariable > 0.999, 1. ),
-                                        (                    True, 0. )   ] )
+                                        [  ( self.bndMeshVariable != 0.0, 1. ),
+                                        (                           True, 0. )   ] )
 
         """
         Rotation documentation.
@@ -1694,16 +1711,15 @@ class FeMesh_SphericalCap(FeMesh_Cartesian):
 
         # _x_or_radial, y_or_east, z_or_north functions
         self._fn_x_or_rotated = fn.branching.conditional(
-                                    [ ( self.bndMeshVariable > 0.9, self.fn_unitvec_r() ),
+                                    [ ( self.bndMeshVariable != 0.0, self.fn_unitvec_r() ),
                                       (               True, fn.misc.constant(1.0)*(1.,0.,0.) ) ] )
         self._fn_y_or_rotated   = fn.branching.conditional(
-                                    [ ( self.bndMeshVariable > 0.9, self.fn_unitvec_phi() ),
+                                    [ ( self.bndMeshVariable != 0.0, self.fn_unitvec_phi() ),
                                       (               True, fn.misc.constant(1.0)*(0.,1.,0.) ) ] )
 
         self._fn_z_or_rotated  = fn.branching.conditional(
-                                    [ ( self.bndMeshVariable > 0.9, self.fn_unitvec_theta() ),
+                                    [ ( self.bndMeshVariable != 0.0, self.fn_unitvec_theta() ),
                                       (               True, fn.misc.constant(1.0)*(0.,0.,1.) ) ] )
-
 
         # evaluate the new bases
         self._e1.data[:] = self._fn_x_or_rotated.evaluate(self)
@@ -1714,9 +1730,10 @@ class FeMesh_SphericalCap(FeMesh_Cartesian):
     def fn_r_theta_phi(self):
         pos = fn.coord()
         r = fn.math.sqrt(pos[0]**2 + pos[1]**2 + pos[2]**2)
-        phi = fn.math.atan2(pos[2],pos[1])
-        theta = fn.math.asin(pos[0]/r)
+        theta = fn.math.acos(pos[0]/r)
+        phi   = fn.math.atan2(pos[2],pos[1])
         return r, theta, phi
+
 
     def fn_unitvec_r(self):
         pos = fn.coord()
@@ -1746,6 +1763,289 @@ class FeMesh_SphericalCap(FeMesh_Cartesian):
         vec   = -fn.math.sin(phi) * (0.0, 1.0, 0.0)
         vec  +=  fn.math.cos(phi) * (0.0, 0.0, 1.0)
         return vec
+
+
+
+class FeMesh_CubedSphere(FeMesh_Cartesian):
+# LNM
+# A big blob with the inner nodes masked out / set to boundary nodes
+
+    def __new__(cls, **kwargs):
+        return super(FeMesh_CubedSphere,cls).__new__(cls, **kwargs)
+
+    def __init__(self, radial_resolution=6, radii=(0.5,1.0), core_stretch=1.0, elementType="Q1/dQ0", **kwargs):
+        """
+        Refer to parent classes for parameters beyond those below.
+
+        Parameter
+        ---------
+        resolution : int
+            Int determining number of *elements* radially (implicity sets lateral resolution)
+        radii : tuple
+            Tuple determining the (inner radius, outer radius ).
+        core_stretch : float
+            Float that determines the relative node spacing in the core cf. outer shell
+
+        """
+
+        if not isinstance(radial_resolution, int):
+            raise TypeError("CubedSphere: radial_resolution expects an integer value")
+
+        if not isinstance(core_stretch, float):
+            raise TypeError("CubedSphere: core_stretch expects an float value")
+
+        if not isinstance( radii, (tuple,list)):
+            raise TypeError("Provided 'radii' must be a tuple/list of 2 floats")
+        if len(radii) != 2:
+            raise ValueError("Provided 'radii' must be a tuple/list of 2 floats")
+        for el in radii:
+            if not isinstance( el, (float,int)) :
+                raise TypeError("Provided 'radii' must be a tuple/list of 2 floats")
+
+
+        self._radial_resolution = radial_resolution
+        self._core_stretch = core_stretch
+        self._radii = radii
+
+        # build 3D mesh cartesian mesh centred on (0.0,0.0,0.0) - in _setup() we deform the mesh
+        # elementType="Q1/dQ0", otherwise we have crashes ... sigh
+
+        res = radial_resolution * 2
+
+        super(FeMesh_CubedSphere,self).__init__(elementRes=(res, res, res),
+                    minCoord=(-1.0,-1.0,-1.0),
+                    maxCoord=( 1.0, 1.0, 1.0),
+                    periodic=None, **kwargs)
+
+        self.specialSets["surface_VertexSet"]    = _specialSets_Cartesian.AllWalls
+
+
+
+
+    def _setup(self):
+        import underworld.function as fn
+
+        # This is an alias for the mesh points in Cartesian
+
+        self.xyz = self.data
+        self.rlonlat = self.data.copy()
+
+        inner_radius = self._radii[0] / self._radii[1]
+        outer_radius = 1.0
+
+        # We need a mesh with a node that aligns on the CMB
+
+        core_elts  = np.round( self._radial_resolution * inner_radius / self._core_stretch)
+        scale = self._radial_resolution * inner_radius / core_elts
+        max_puff1 = outer_radius * scale
+        scale_back = (outer_radius-inner_radius) / (max_puff1-inner_radius)
+
+        with self.deform_mesh():
+
+            ## Radial levels before a
+
+            (x,y,z) = (self.data[:,0], self.data[:,1], self.data[:,2] )
+
+            # A reference radius as we want to nest shells rather than
+            # have the inner shells be progressively more cubic
+            # This is how we get the kite elements so something halfway
+            # in between might be better.
+
+            dx = 0.0000001 * self._radii[1]
+            x[ x < dx ] += dx
+
+            # This is the standard cubed sphere which is the gentlest
+            # move away from the Cartesian mesh as possible. The problem
+            # is that there are no concentric spheres in the mesh and the
+            # inner boundary (and any internal phase boundaries) do not lie
+            # on element edges.
+
+            # xr = x
+            # yr = y
+            # zr = z
+            #
+            # xp = x * np.sqrt(1.0 - 0.5*yr**2 - 0.5*zr**2 + yr**2 * zr**2 / 3.0)
+            # yp = y * np.sqrt(1.0 - 0.5*xr**2 - 0.5*zr**2 + xr**2 * zr**2 / 3.0)
+            # zp = z * np.sqrt(1.0 - 0.5*xr**2 - 0.5*yr**2 + xr**2 * yr**2 / 3.0)
+
+            # This is a modification which applies the same transformation at each
+            # level of the mesh and hence creates nested spheres. The issue here
+            # is the element geometry along various symmetry planes / axes
+
+            rr = np.maximum(np.abs(x),np.maximum(np.abs(y),np.abs(z)))
+
+            xr = x  / rr
+            yr = y  / rr
+            zr = z  / rr
+
+            xp = x * np.sqrt(1.0 - 0.5*yr**2 - 0.5*zr**2 + yr**2 * zr**2 / 3.0)
+            yp = y * np.sqrt(1.0 - 0.5*xr**2 - 0.5*zr**2 + xr**2 * zr**2 / 3.0)
+            zp = z * np.sqrt(1.0 - 0.5*xr**2 - 0.5*yr**2 + xr**2 * yr**2 / 3.0)
+
+            r   = np.sqrt(xp**2 + yp**2 + zp**2)
+            rscale = self._radii[1] * np.minimum(rr * scale, (rr * scale - inner_radius) * scale_back + inner_radius)
+
+            lon   = np.arctan2(zp,yp)
+            lat   = np.arcsin( xp/r)
+
+            self.rlonlat[:,0] = rscale
+            self.rlonlat[:,1] = lon
+            self.rlonlat[:,2] = lat
+
+            self.data[:,0] = rscale * np.sin(lat)
+            self.data[:,1] = rscale * np.cos(lat) * np.cos(lon)
+            self.data[:,2] = rscale * np.cos(lat) * np.sin(lon)
+
+
+
+        # ASSUME the parent class builds the _boundaryNodeFn
+        # self.bndMeshVariable = uw.mesh.MeshVariable(self, 1)
+        # self.bndMeshVariable.data[:] = 0.
+        # # set a value 1.0 on provided vertices
+        # self.bndMeshVariable.data[self.specialSets["AllWalls_VertexSet"].data] = 1.0
+        # # note we use this condition to only capture border swarm particles
+        # # on the surface itself. for those directly adjacent, the deltaMeshVariable will evaluate
+        # # to non-zero (but less than 1.), so we need to remove those from the integration as well.
+
+
+        lower_surface_vertexSet = self.specialSets["Empty"]
+        lower_surface_vertexSet += np.where(np.isclose(self.rlonlat[:,0], self._radii[0], rtol=1.0e-3))[0]
+        self.specialSets["lower_surface_vertexSet"]  = lambda selfobject: lower_surface_vertexSet
+
+        excluded_vertexSet = self.specialSets["Empty"]
+        excluded_vertexSet += np.where(self.rlonlat[:,0] < self._radii[0]*0.999)[0]  # Need to be careful about the resolution.
+        self.specialSets["excluded_vertexSet"] = lambda selfobject: excluded_vertexSet
+
+        dead_centre_vertexSet = self.specialSets["Empty"]
+        dead_centre_vertexSet += np.where(self.rlonlat[:,0] < 0.00001 * self._radii[1])[0]
+        self.specialSets["dead_centre_vertexSet"] = lambda selfobject: dead_centre_vertexSet
+
+
+        self._boundaryNodeFn = fn.branching.conditional(
+                                        [  ( self.bndMeshVariable > 0.999, 1. ),
+                                        (                    True, 0. )   ] )
+
+
+        """
+        Rotation documentation.
+        We will create 3 basis vectors that will rotate the (x,y,z) problem to be a
+        (r,n,t) [radial, normal to cut, tangential to cut] problem.
+
+        The rotations are performed on the local element level using the existing machinery
+        provided by UW2. As such only elements on the domain boundary need rotation, all internal
+        elements can continue with the (x,y,z) representation.
+
+        This is implemented with rotations on all dofs such that:
+         1. If on the domain boundary - rotated to (r,n,t) and
+         2. If not on the domain boundary - rotated by identity matrix i.e. (NO rotation).
+        """
+
+        # initialiase bases vectors as meshVariables
+        self._e1 = self.add_variable(nodeDofCount=3)
+        self._e2 = self.add_variable(nodeDofCount=3)
+        self._e3 = self.add_variable(nodeDofCount=3)
+
+        # _x_or_radial, y_or_east, z_or_north functions
+        self._fn_x_or_rotated = fn.branching.conditional(
+                                    [ ( self.bndMeshVariable != 0.0, self.fn_unitvec_r() ),
+                                      (               True, fn.misc.constant(1.0)*(1.,0.,0.) ) ] )
+        self._fn_y_or_rotated   = fn.branching.conditional(
+                                    [ ( self.bndMeshVariable != 0.0, self.fn_unitvec_lon() ),
+                                      (               True, fn.misc.constant(1.0)*(0.,1.,0.) ) ] )
+        self._fn_z_or_rotated  = fn.branching.conditional(
+                                    [ ( self.bndMeshVariable != 0.0, self.fn_unitvec_lat() ),
+                                      (               True, fn.misc.constant(1.0)*(0.,0.,1.) ) ] )
+
+
+        # evaluate the new bases
+        self._e1.data[:] = self._fn_x_or_rotated.evaluate(self)
+        self._e2.data[:] = self._fn_y_or_rotated.evaluate(self) # only good on EW walls
+        self._e3.data[:] = self._fn_z_or_rotated.evaluate(self) # only good on NS walls
+
+
+    def fn_r_lon_lat(self):
+        pos = fn.coord()
+        rFn = fn.math.sqrt(pos[0]**2 + pos[1]**2 + pos[2]**2)
+        lonFn = fn.math.atan2(pos[2],pos[1])
+        latFn = fn.math.asin(pos[0]/rFn)
+        return rFn, lonFn, latFn
+
+
+    def vec_rlonlat2xyz(self, vField, index_set=None):
+        """ Takes a vector mesh variable and optional index set
+            This is not a UW function though perhaps it should be
+        """
+
+        if index_set is None:
+            nodes = slice(None)
+        else:
+            nodes = index_set.data
+
+        tv = vField.data[nodes,:].copy() # be careful not to over-write
+        uv = vField.data[nodes,:]
+
+        e1 = self.fn_unitvec_r().evaluate(self.data[nodes])
+        e2 = self.fn_unitvec_lon().evaluate(self.data[nodes])
+        e3 = self.fn_unitvec_lat().evaluate(self.data[nodes])
+
+        tv[:,0] = uv[:,0] * e1[:,0] + uv[:,1] * e2[:,0] + uv[:,2] * e3[:,0]
+        tv[:,1] = uv[:,0] * e1[:,1] + uv[:,1] * e2[:,1] + uv[:,2] * e3[:,1]
+        tv[:,2] = uv[:,0] * e1[:,2] + uv[:,1] * e2[:,2] + uv[:,2] * e3[:,2]
+
+        return tv
+
+    def vec_xyz2rlonlat(self, vField, index_set=None):
+        """ Takes a vector mesh variable and optional index set
+            This is not a UW function though perhaps it should be
+        """
+
+        if index_set is None:
+            nodes = slice(None)
+        else:
+            nodes = index_set.data
+
+        tv = vField.data[nodes,:].copy() # be careful not to over-write
+        uv = vField.data[nodes,:]
+
+        e1 = self.fn_unitvec_r().evaluate(self.data[nodes])
+        e2 = self.fn_unitvec_lon().evaluate(self.data[nodes])
+        e3 = self.fn_unitvec_lat().evaluate(self.data[nodes])
+
+        tv[:,0] = uv[:,0] * e1[:,0] + uv[:,1] * e1[:,1] + uv[:,2] * e1[:,2]
+        tv[:,1] = uv[:,0] * e2[:,0] + uv[:,1] * e2[:,1] + uv[:,2] * e2[:,2]
+        tv[:,2] = uv[:,0] * e3[:,0] + uv[:,1] * e3[:,1] + uv[:,2] * e3[:,2]
+
+        return tv
+
+
+    def fn_unitvec_r(self):
+        pos = fn.coord()
+        mag = fn.math.sqrt(fn.math.dot( pos, pos ))
+        r_vec = pos / mag
+        return r_vec
+
+    # The unit vector is defined along the direction of colatitude from North
+    def fn_unitvec_lat(self):
+        pos = fn.coord()
+        r = fn.math.sqrt(pos[0]**2 + pos[1]**2 + pos[2]**2)
+        colat = fn.math.acos(pos[0]/r)
+        lon   = fn.math.atan2(pos[2],pos[1])
+
+        vec   = fn.math.cos(colat) * fn.math.cos(lon) * (0.0, 1.0, 0.0)
+        vec +=  fn.math.cos(colat) * fn.math.sin(lon) * (0.0, 0.0, 1.0)
+        vec += -fn.math.sin(colat) * (1.0, 0.0, 0.0)
+        return vec
+
+    ## This one is longitudinal unit vector
+    def fn_unitvec_lon(self):
+        pos = fn.coord()
+        # r = fn.math.sqrt(pos[0]**2 + pos[1]**2 + pos[2]**2)
+        # colat = fn.math.acos(pos[0]/r)
+        lon   = fn.math.atan2(pos[2],pos[1])
+        vec   = -fn.math.sin(lon) * (0.0, 1.0, 0.0)
+        vec  +=  fn.math.cos(lon) * (0.0, 0.0, 1.0)
+        return vec
+
 
 
 
@@ -1890,6 +2190,7 @@ class FeMesh_Annulus(FeMesh_Cartesian):
             (self.data[:,0], self.data[:,1]) = offset_x + r*np.cos(t), offset_y + r*np.sin(t)
 
         self.bndMeshVariable = uw.mesh.MeshVariable(self, 1)
+
         self.bndMeshVariable.data[:] = 0.
         # set a value 1.0 on provided vertices
         self.bndMeshVariable.data[self.specialSets["AllWalls_VertexSet"].data] = 1.0
