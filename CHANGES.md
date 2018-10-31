@@ -1,7 +1,12 @@
 CHANGES: Underworld2
 =======================
 
-Release 2.6.0b []
+Release 2.6.1b [2018-10-31]
+------------------
+* Remove `warning` module visibility from top level underworld 
+  module.
+
+Release 2.6.0b [2018-10-18]
 ------------------
 Enhancements:
 * Removed submodules in favour of direct access.
