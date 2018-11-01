@@ -566,14 +566,13 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
 
         Example
         -------
-        >>> import math
         >>> mesh = uw.mesh.FeMesh_Cartesian()
-        >>> swarm = uw.swarm.Swarm()
-        >>> swarm.populate.using_layout(uw.swarm.layouts.PerCellGaussLayout(swarm, 2)
+        >>> swarm = uw.swarm.Swarm(mesh)
+        >>> swarm.populate_using_layout(uw.swarm.layouts.PerCellGaussLayout(swarm, 2))
         >>> svar = swarm.add_variable("double", 1)
-        >>> svar.data[:] = math.exp(1.)
+        >>> svar.data[:] = 1.23456
         >>> svarCopy = svar.copy()
-        >>> svarCopy.swarm == var.swarm
+        >>> svarCopy.swarm == svar.swarm
         True
         >>> svarCopy.dataType == svar.dataType
         True
