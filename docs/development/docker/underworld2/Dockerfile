@@ -1,3 +1,8 @@
+# This image needs to be built from the top level project directory.
+# Typically:
+#    $  docker build -f docs/development/docker/underworld2/Dockerfile .
+
+
 FROM underworldcode/base@sha256:ad1ac7be0e5dc6b2489bac43d8e8f40e998c34d8019d2bea34935ca1ff31d23e
 MAINTAINER https://github.com/underworldcode/
 
