@@ -765,19 +765,19 @@ class Function(underworld._stgermain.LeftOverParamsChecker, metaclass = ABCMeta)
 
         Examples
         --------
-        >>> import math
+        >>> import math as sysmath
         >>> import underworld.function.math as fnmath
         >>> sinfn = fnmath.sin()
         
         Single evaluation:
         
-        >>> np.allclose( sinfn.evaluate(math.pi/4.), [[ 0.5*math.sqrt(2.)]]  )
+        >>> np.allclose( sinfn.evaluate(sysmath.pi/4.), [[ 0.5*sysmath.sqrt(2.)]]  )
         True
         
         Multiple evaluations
         
-        >>> input = (0.,math.pi/4.,2.*math.pi)
-        >>> np.allclose( sinfn.evaluate(input), [[ 0., 0.5*math.sqrt(2.), 0.]]  )
+        >>> input = (0.,sysmath.pi/4.,2.*sysmath.pi)
+        >>> np.allclose( sinfn.evaluate(input), [[ 0., 0.5*sysmath.sqrt(2.), 0.]]  )
         True
         
         
