@@ -183,6 +183,9 @@ if isinstance(nProcs(), int) and nProcs() > 1:
         print('An uncaught exception was encountered on processor {}.'.format(rank()))
         # pass through to original handler
         _origexcepthook(exctype, value, tb)
+        import sys
+        sys.stdout.flush()
+        sys.stderr.flush()
         libUnderworld.StGermain_Tools.StgAbort( _data )
     _sys.excepthook = _uw_uncaught_exception_handler
 
