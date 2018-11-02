@@ -221,7 +221,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         """
         return libUnderworld.Function.SwarmInput(self._particleCoordinates._cself)
 
-    def save(self, filename):
+    def save(self, filename, collective=False):
         """
         Save the swarm to disk.
 
@@ -230,6 +230,10 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         filename : str
             The filename for the saved file. Relative or absolute paths may be
             used, but all directories must exist.
+        collective : bool
+            If True, swarm is saved MPI collective. This is usually faster, but
+            currently is problematic for passive swarms which may not have
+            representation on all processes.
 
         Returns
         -------
@@ -275,11 +279,11 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
             raise TypeError("Expected filename to be provided as a string")
 
         # just save the particle coordinates SwarmVariable
-        self.particleCoordinates.save(filename)
+        self.particleCoordinates.save(filename, collective)
 
         return uw.utils.SavedFileData( self, filename )
 
-    def load( self, filename, try_optimise=True, verbose=False ):
+    def load( self, filename, collective=False, try_optimise=True, verbose=False ):
         """
         Load a swarm from disk. Note that this must be called before any SwarmVariable
         members are loaded.
@@ -289,6 +293,10 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         filename : str
             The filename for the saved file. Relative or absolute paths may be
             used.
+        collective : bool
+            If True, swarm is loaded MPI collective. This is usually faster, but
+            currently is problematic for passive swarms which may not have
+            representation on all processes.
         try_optimise : bool, Default=True
             Will speed up the swarm load time but warning - this algorithm assumes the 
             previously saved swarm data was made on an identical mesh and mesh partitioning 
@@ -365,7 +373,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
             # is the only time that we can guaranteed that all procs will
             # take part, and usually most (if not all) particles are loaded
             # in this step.
-            if firstChunk:
+            if firstChunk and collective:
                 with dset.collective:
                     ztmp = self.add_particles_with_coordinates(dset[ chunkStart : chunkEnd ])
                     firstChunk = False

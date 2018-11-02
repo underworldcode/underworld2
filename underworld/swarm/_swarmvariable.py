@@ -239,7 +239,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         self._arr = None
         self._arrshadow = None
 
-    def load( self, filename ):
+    def load( self, filename, collective=False ):
         """
         Load the swarm variable from disk. This must be called *after* the swarm.load().
 
@@ -248,6 +248,10 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         filename : str
             The filename for the saved file. Relative or absolute paths may be
             used, but all directories must exist.
+        collective : bool
+            If True, variable is loaded MPI collective. This is usually faster, but
+            currently is problematic for passive swarms which may not have
+            representation on all processes.
 
         Notes
         -----
@@ -307,7 +311,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
                 guy += 1
             # copy contiguous chunk if found.. note that we are copying 'plus 1' items
             if guy > start_guy:
-                if not done_collective:
+                if collective and not done_collective:
                     with dset.collective:
                         self.data[start_guy:guy+1] = dset[gIds[start_guy]:gIds[guy]+1]
                         done_collective = True
@@ -321,7 +325,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
                 guy += 1
             # copy non-contiguous items (if found) using index array slice
             if guy > start_guy:
-                if not done_collective:
+                if collective and not done_collective:
                     with dset.collective:
                         self.data[start_guy:guy,:] = dset[gIds[start_guy:guy],:]
                         done_collective = True
@@ -330,13 +334,13 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
 
         # if we haven't entered a collective call, do so now to
         # avoid deadlock. we just do an empty read/write.
-        if not done_collective:
+        if collective and not done_collective:
             with dset.collective:
-                self.data[0:0,:] = dset[gIds[0:0],:]
+                self.data[0:0,:] = dset[0:0,:]
 
-        h5f.close();
+        h5f.close()
 
-    def save( self, filename ):
+    def save( self, filename, collective=False ):
         """
         Save the swarm variable to disk.
 
@@ -345,9 +349,10 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         filename : str
             The filename for the saved file. Relative or absolute paths may be
             used, but all directories must exist.
-        swarmHandle :uw.utils.SavedFileData , optional
-            The saved swarm file handle. If provided, a reference to the swarm file
-            is made. Currently this doesn't provide any extra functionality.
+        collective : bool
+            If True, variable is saved MPI collective. This is usually faster, but
+            currently is problematic for passive swarms which may not have
+            representation on all processes.
 
         Returns
         -------
@@ -425,8 +430,11 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
                                        shape=globalShape,
                                        dtype=self.data.dtype)
 
-            with dset.collective:
-                dset[offset:offset+swarm.particleLocalCount] = self.data[:]
+            if collective:
+                with dset.collective:
+                    dset[offset:offset+swarm.particleLocalCount] = self.data[:]
+            else:
+                dset[offset:offset + swarm.particleLocalCount] = self.data[:]
 
         # let's reopen in serial to write the attrib.
         # not sure if this really is necessary.
