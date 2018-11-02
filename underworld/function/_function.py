@@ -765,7 +765,7 @@ class Function(underworld._stgermain.LeftOverParamsChecker, metaclass = ABCMeta)
 
         Examples
         --------
-        >>> from . import _systemmath as math
+        >>> import math
         >>> import underworld.function.math as fnmath
         >>> sinfn = fnmath.sin()
         
