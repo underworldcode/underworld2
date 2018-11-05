@@ -124,10 +124,16 @@ Fn::SwarmVariableFn::func Fn::SwarmVariableFn::getFunction( IOsptr sample_input 
         };
     }
     
-    throw std::invalid_argument( _pyfnerrorheader+"Provided input to SwarmVariableFn does not appear to be of supported type. "
-                                 "Supported types are 'FEMCoordinate' and 'ParticleCoordinate'. "
-                                 "From Python, these are provided by respectively 'VoronoiIntegrationSwarm' "
-                                 "and 'Swarm' type `FunctionInput` objects. " );
+    throw std::invalid_argument( _pyfnerrorheader+"Unable to evaluate function using provided input. \n"
+                                 "Note that your function is constructed using a SwarmVariable. We do not \n"
+                                 "currently support interpolation of SwarmVariables, so where you wish to \n"
+                                 "`evaluate()` a SwarmVariable based function, you may only do so using \n"
+                                 "the swarm itself as the input to the function evaluation, resulting in \n"
+                                 "evaluation at each particle location. Note also that for evaluation, \n"
+                                 "you must use the Swarm object from which the SwarmVariable was derived. \n"
+                                 "Alternatively, you may wish to project your function onto a MeshVariable \n"
+                                 "(using a MeshVariable_Projection object) and then perform interpolation \n"
+                                 "on the MeshVariable object.");
     
 }
 

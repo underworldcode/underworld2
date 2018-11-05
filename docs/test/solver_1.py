@@ -49,5 +49,5 @@ if 7 != stats.velocity_presolve_its:
 if -1 != stats.velocity_pressuresolve_its:  # -1 will be returned if this stat isn't supported.
     if 18 != stats.velocity_pressuresolve_its:
         raise RuntimeError("Test returned wrong number of velocity pressure solve iterations: should be 15")
-if 7 != stats.velocity_backsolve_its:
+if 6 != stats.velocity_backsolve_its:
     raise RuntimeError("Test returned wrong number of velocity back solve iterations: should be 6")

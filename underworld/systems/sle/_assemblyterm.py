@@ -10,8 +10,8 @@ import underworld as uw
 import underworld._stgermain as _stgermain
 import underworld.mesh as mesh
 import libUnderworld.libUnderworldPy.Function as _cfn
-import _assembledvector
-import _assembledmatrix
+from . import _assembledvector
+from . import _assembledmatrix
 import libUnderworld
 
 class AssemblyTerm(_stgermain.StgCompoundComponent):

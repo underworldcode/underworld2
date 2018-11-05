@@ -8,6 +8,7 @@
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 #include <mpi.h>
 #include <StGermain/StGermain.h>
+#include <petsc.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -40,7 +41,8 @@ StgData* StgInit( int argc, char* argv[] ) {
 
 int StgFinalise(StgData* data){
    /* Close off everything */
-   StGermain_Finalise();
+//   StGermain_Finalise();
+    PetscFinalize();
    MPI_Finalize();
 
    /* free up these guys created earlier */

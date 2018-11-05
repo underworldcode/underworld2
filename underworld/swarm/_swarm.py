@@ -9,8 +9,8 @@
 import underworld._stgermain as _stgermain
 import libUnderworld.libUnderworldPy.Function as _cfn
 import numpy as np
-import _swarmabstract
-import _swarmvariable as svar
+from . import _swarmabstract
+from . import _swarmvariable as svar
 import underworld.function as function
 import libUnderworld
 import underworld as uw
@@ -221,7 +221,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         """
         return libUnderworld.Function.SwarmInput(self._particleCoordinates._cself)
 
-    def save(self, filename):
+    def save(self, filename, collective=False):
         """
         Save the swarm to disk.
 
@@ -230,6 +230,10 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         filename : str
             The filename for the saved file. Relative or absolute paths may be
             used, but all directories must exist.
+        collective : bool
+            If True, swarm is saved MPI collective. This is usually faster, but
+            currently is problematic for passive swarms which may not have
+            representation on all processes.
 
         Returns
         -------
@@ -275,11 +279,11 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
             raise TypeError("Expected filename to be provided as a string")
 
         # just save the particle coordinates SwarmVariable
-        self.particleCoordinates.save(filename)
+        self.particleCoordinates.save(filename, collective)
 
         return uw.utils.SavedFileData( self, filename )
 
-    def load( self, filename, try_optimise=True, verbose=False ):
+    def load( self, filename, collective=False, try_optimise=True, verbose=False ):
         """
         Load a swarm from disk. Note that this must be called before any SwarmVariable
         members are loaded.
@@ -289,6 +293,10 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         filename : str
             The filename for the saved file. Relative or absolute paths may be
             used.
+        collective : bool
+            If True, swarm is loaded MPI collective. This is usually faster, but
+            currently is problematic for passive swarms which may not have
+            representation on all processes.
         try_optimise : bool, Default=True
             Will speed up the swarm load time but warning - this algorithm assumes the 
             previously saved swarm data was made on an identical mesh and mesh partitioning 
@@ -335,20 +343,21 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         # we set the 'offset' & 'size' variables to achieve the above 
         
         offset = 0
-        totalsize = size = dset.shape[0] # number of particles in h5 file
+        size = dset.shape[0] # number of particles in h5 file
         
         if try_optimise:
             procCount = h5f.attrs.get('proc_offset')
             if procCount is not None and nProcs == len(procCount):
-                for p_i in xrange(rank):
+                for p_i in range(rank):
                     offset += procCount[p_i]
                 size = procCount[rank]
             
         valid = np.zeros(0, dtype='i') # array for read in
-        chunk=int(1e4) # read in this many points at a time
+        chunk=int(2e7) # read in max this many points at a time
 
+        firstChunk = True
         (multiples, remainder) = divmod( size, chunk )
-        for ii in xrange(multiples+1):
+        for ii in range(multiples+1):
             # setup the points to begin and end reading in
             chunkStart = offset + ii*chunk
             if ii == multiples:
@@ -358,9 +367,18 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
             else:
                 chunkEnd = chunkStart + chunk
 
-            # add particles to swarm, ztmp is the corresponding local array
-            # non-local particles are not added and their ztmp index is -1
-            ztmp = self.add_particles_with_coordinates(dset[ chunkStart : chunkEnd ])
+            # Add particles to swarm, ztmp is the corresponding local array
+            # non-local particles are not added and their ztmp index is -1.
+            # Note that for the first chunk, we do collective read, as this
+            # is the only time that we can guaranteed that all procs will
+            # take part, and usually most (if not all) particles are loaded
+            # in this step.
+            if firstChunk and collective:
+                with dset.collective:
+                    ztmp = self.add_particles_with_coordinates(dset[ chunkStart : chunkEnd ])
+                    firstChunk = False
+            else:
+                ztmp = self.add_particles_with_coordinates(dset[ chunkStart : chunkEnd ])
             tmp = np.copy(ztmp) # copy because ztmp is 'readonly'
 
             # slice out -neg bits and make the local indices global
@@ -457,14 +475,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
             The global number (across all processes) of particles in the swarm.
         """
 
-        # setup mpi basic vars
-        comm = MPI.COMM_WORLD
-        rank = comm.Get_rank()
-        nProcs = comm.Get_size()
-
-        # allgather the number of particles each proc has
-        procCount = comm.allgather(self.particleLocalCount)
-        return sum(procCount)
+        return MPI.COMM_WORLD.allreduce(self.particleLocalCount, op=MPI.SUM)
 
     @property
     def _voronoi_swarm(self):
@@ -562,7 +573,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
     def update_particle_owners(self):
         """
         This routine will update particles owners after particles have been
-        moved. This is both in terms of the cell/element the the
+        moved. This is both in terms of the cell/element that the
         particle resides within, and also in terms of the parallel processor
         decomposition (particles belonging on other processors will be sent across).
         

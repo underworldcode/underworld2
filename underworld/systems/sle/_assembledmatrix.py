@@ -8,7 +8,7 @@
 ##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
 import underworld as uw
 import underworld._stgermain as _stgermain
-import _assembledvector
+from . import _assembledvector
 import libUnderworld
 
 class AssembledMatrix(_stgermain.StgCompoundComponent):

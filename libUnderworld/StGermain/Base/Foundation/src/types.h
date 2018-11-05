@@ -23,8 +23,7 @@
     * TODO: Find a more elegant way to fix this issue.
     */
    #ifndef Bool   
-      /** Boolean type in StGermain. */
-      typedef enum Bool { False=0, True=1 } Bool;
+   typedef enum Bool { False=0, True=1 } Bool;
    #endif
 
    typedef unsigned char stgByte;

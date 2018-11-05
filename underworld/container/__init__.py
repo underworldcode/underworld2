@@ -12,4 +12,4 @@ Implementation relating to container objects.
 
 """
 
-from _indexset import IndexSet, ObjectifiedIndexSet
+from ._indexset import IndexSet, ObjectifiedIndexSet

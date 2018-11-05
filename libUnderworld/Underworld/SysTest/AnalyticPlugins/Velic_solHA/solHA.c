@@ -10,16 +10,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
+#include "solHA.h"
 
-void _Velic_solHA( 
-		double pos[],
-		double _sigma, double _eta,
-		double _dx, double _dy,
-		double _x_0, double _y_0,
-		double vel[], double* presssure, 
-		double total_stress[], double strain_rate[] );
-
-#ifndef NOSHARED
+#if 0
 int main( int argc, char **argv )
 {
 	int i,j;
@@ -40,7 +33,7 @@ int main( int argc, char **argv )
 					1.0, 1.0,
 					0.4, 0.35,
 					0.3, 0.6,
-					vel, &pressure, total_stress, strain_rate );
+					vel, &pressure, total_stress, strain_rate, 45 );
 		}
 	}
 	
@@ -61,15 +54,15 @@ of in one corner.
 **********************************/
 
 void _Velic_solHA( 
-		double pos[],
+		const double pos[],
 		double _sigma, double _eta,
 		double _dx, double _dy,
 		double _x_0, double _y_0,
 		double vel[], double* presssure, 
-		double total_stress[], double strain_rate[] )
+		double total_stress[], double strain_rate[], int nmodes )
 {
 	double Z,u1,u2,u3,u4,u5,u6;
-	double sum1,sum2,sum3,sum4,sum5,sum6,mag,sum7,sum8,sum9,sum10,sum11,x,y,z;
+	double sum1,sum2,sum3,sum4,sum5,sum6,sum7,sum8,sum9,sum10,sum11,x,y,z;
 	double sigma,dx,dy,x0,y0;
 	double del_rho;
 	int n,m;
@@ -77,18 +70,9 @@ void _Velic_solHA(
 	double Am,Ap,Bm,Bp,C,D,E;
 	double pp,txx,tyy,tyx,rho;
 
-	/* Do transformation from StGermain coord system ---> the coord system this analytic was written in
-	 * NOTE: This transformation is made here, into analytic system and then,
-	 * once the relevent quantites have been calculated, these quantites are transformed back 
-	 * StGermain cood sys		Analytic coord sys
-	 * 	x				y
-	 * 	y				z
-	 * 	z				x
-	 */
-	double _x,_y,_z;
-	_x = pos[0];
-	_y = pos[1];
-	_z = pos[2];
+	x = pos[0];
+	y = pos[1];
+	z = pos[2];
 
 	/*************************************************************************/
 	x0 = _x_0; /* x-centre of dense column */ 
@@ -97,12 +81,6 @@ void _Velic_solHA(
 	dy = _dy; /* y width of block */
 	sigma = _sigma; /* density of column */
 	Z = _eta; /* viscosity */
-	
-	
-	/* Analytic = StGermain */
-	x = _z;
-	y = _x;
-	z = _y; /* height of 2-d slice in x-y plane to view */
 	
 	sum1=0.0;
 	sum2=0.0;
@@ -116,8 +94,8 @@ void _Velic_solHA(
 	sum10=0.0;
 	sum11=0.0;
 	
-	for(n=0;n<45;n++){
-		for(m=0;m<45;m++){
+	for(n=0;n<nmodes;n++){
+		for(m=0;m<nmodes;m++){
 			
 			if ( n!=0 && m!=0 ){
 				del_rho = 16.0*sigma*cos(n*M_PI*x0)*cos(m*M_PI*y0)*sin(n*M_PI*dx/2.0)*sin(m*M_PI*dy/2.0)/(n*m*M_PI*M_PI);
@@ -197,7 +175,7 @@ void _Velic_solHA(
 		}/* n */
 	}/* m */
 	
-	mag=sqrt(sum1*sum1+sum2*sum2+sum3*sum3);
+	//mag=sqrt(sum1*sum1+sum2*sum2+sum3*sum3);
 	
 	//printf("%0.7g %0.7g %0.7g %0.7g %0.7g %0.7g %0.7g %0.7g %0.7g %0.7g %0.7g %0.7g %0.7g %0.7g\n",x,y,sum1,sum2,sum3,sum4,sum5,sum6,sum7,sum8,sum9,sum10,mag,sum11);
 	
@@ -230,14 +208,10 @@ void _Velic_solHA(
 	if( vel != NULL ) {
 		/*
 		 * Mirko's coord sys
+        */
 		vel[0] = sum3;
 		vel[1] = sum2;
 		vel[2] = sum1;
-		*/
-		/* StGermain coord sys */
-		vel[0] = sum2;
-		vel[1] = sum1;
-		vel[2] = sum3;
 	}
 	if( presssure != NULL ) {
 		(*presssure) = sum7;
@@ -245,38 +219,23 @@ void _Velic_solHA(
 	if( total_stress != NULL ) {
 		/* xx,yy,zz,xy,xz,yz */
 		/* Mirko's coord sys
+        */
 		total_stress[0] = sum8;
 		total_stress[1] = sum9;
 		total_stress[2] = sum4;
 		total_stress[3] = sum10;
 		total_stress[4] = sum6;
 		total_stress[5] = sum5;
-		*/
-		/* StGermain coord sys */
-		total_stress[0] = sum9;
-		total_stress[1] = sum4;
-		total_stress[2] = sum8;
-		total_stress[3] = sum5;
-		total_stress[4] = sum10;
-		total_stress[5] = sum6;
 	}
 	if( strain_rate != NULL ) {
-		strain_rate[0] = (sum9+sum7)/(2.0*Z);
-		strain_rate[1] = (sum4+sum7)/(2.0*Z);
-		strain_rate[2] = (sum8+sum7)/(2.0*Z);
-		strain_rate[3] = (sum5)/(2.0*Z);
-		strain_rate[4] = (sum10)/(2.0*Z);
-		strain_rate[5] = (sum6)/(2.0*Z);
+		strain_rate[0] = (sum8+sum7)/(2.0*Z);
+		strain_rate[1] = (sum9+sum7)/(2.0*Z);
+		strain_rate[2] = (sum4+sum7)/(2.0*Z);
+		strain_rate[3] = (sum10)/(2.0*Z);
+		strain_rate[4] = (sum6)/(2.0*Z);
+		strain_rate[5] = (sum5)/(2.0*Z);
 	}
-	/* TODO Enable the check below so it occurs on the first numerical timestep */
-	/* Value checks, could be cleaned up if needed. Julian Giordani 9-Oct-2006
-        if( fabs( sum7 - ( -0.5*(sum8+sum9+sum4) ) ) > 1e-5 ) {
-                //assert(0);
-        }
-	*/
-	
-	
-	
+		
 }
 
 

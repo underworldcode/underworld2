@@ -8,7 +8,7 @@
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 /* -*- C -*-  (not really, but good for syntax highlighting) */
 
-%module StGermain
+%module (package="libUnderworld.libUnderworldPy") StGermain
 
 %{
 /* Includes the header in the wrapper code */
@@ -45,6 +45,10 @@ import_array();
         SWIG_exception(SWIG_RuntimeError, e.what());
     }
 }
+
+
+%rename(CFalse) False;
+%rename(CTrue) True;
 
 %include "Base/Foundation/types.h"       
 %include "Base/Container/types.h"       

@@ -1,7 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import sys, subprocess
 subp = subprocess.Popen(
-'config/scons/scons.py --config=force -f SConfigure ' + ' '.join(sys.argv[1:]), shell=True
+    'python3 `which scons` --config=force -f SConfigure ' + ' '.join(sys.argv[1:]), shell=True
 )
 subp.wait()
 

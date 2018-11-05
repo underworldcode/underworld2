@@ -1,6 +1,6 @@
 import os
 from config import Package
-from PICellerator import PICellerator
+from .PICellerator import PICellerator
 
 class Underworld(Package):
 

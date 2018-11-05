@@ -11,8 +11,8 @@ import underworld._stgermain as _stgermain
 import underworld.mesh as mesh
 import numpy as np
 import libUnderworld
-import _swarmabstract as sab
-import _swarm
+from . import _swarmabstract as sab
+from . import _swarm
 import underworld.function as function
 import libUnderworld.libUnderworldPy.Function as _cfn
 from mpi4py import MPI
@@ -239,7 +239,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         self._arr = None
         self._arrshadow = None
 
-    def load( self, filename ):
+    def load( self, filename, collective=False ):
         """
         Load the swarm variable from disk. This must be called *after* the swarm.load().
 
@@ -248,6 +248,10 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         filename : str
             The filename for the saved file. Relative or absolute paths may be
             used, but all directories must exist.
+        collective : bool
+            If True, variable is loaded MPI collective. This is usually faster, but
+            currently is problematic for passive swarms which may not have
+            representation on all processes.
 
         Notes
         -----
@@ -269,8 +273,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         gIds = self.swarm._local2globalMap
 
         comm = MPI.COMM_WORLD
-        rank = comm.Get_rank()
-        nProcs = comm.Get_size()
+        rank = comm.rank
 
         # open hdf5 file
         h5f = h5py.File(name=filename, mode="r", driver='mpio', comm=MPI.COMM_WORLD)
@@ -283,14 +286,10 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
             raise RuntimeError("Cannot load file data on current swarm. Data in file '{0}', " \
                                "has {1} components -the particlesCoords has {2} components".format(filename, dset.shape[1], self.particleCoordinates.data.shape[1]))
 
-        particleGobalCount = self.swarm.particleGlobalCount
-        
-        if dset.shape[0] != particleGobalCount:
-            if rank == 0:
-                import warnings
-                warnings.warn("Warning, it appears that the swarm has {} particles, but provided h5 file has {} data points. Please check that " \
-                              "both the Swarm and the SwarmVariable were saved at the same time, and that you have reloaded using " \
-                              "the correct files.". format(particleGobalCount, dset.shape[0]), RuntimeWarning)
+        if dset.shape[0] != self.swarm.particleGlobalCount:
+            raise RuntimeError("It appears that the swarm has {} particles, but provided h5 file has {} data points. Please check that " \
+                               "both the Swarm and the SwarmVariable were saved at the same time, and that you have reloaded using " \
+                               "the correct files.".format(particleGobalCount, dset.shape[0]))
 
         # for efficiency, we want to load swarmvariable data in the largest stride chunks possible.
         # we need to determine where required data is contiguous.
@@ -300,16 +299,24 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         if len(gIds) > 1:
             gradIds[:-1] = gIds[1:] - gIds[:-1]  # forward difference type gradient
 
+        # note that we do only the first read into dset collective. this call usually
+        # does the entire read, but if it doesn't we won't know how many calls will
+        # be necessary, hence only collective calling the first. 
+        done_collective = False
         guy = 0
         while guy < len(gIds):
-
             # do contiguous
             start_guy = guy
             while gradIds[guy]==1:  # count run of contiguous. note bounds check not required as last element of gradIds is always zero.
                 guy += 1
             # copy contiguous chunk if found.. note that we are copying 'plus 1' items
             if guy > start_guy:
-                self.data[start_guy:guy+1] = dset[gIds[start_guy]:gIds[guy]+1]
+                if collective and not done_collective:
+                    with dset.collective:
+                        self.data[start_guy:guy+1] = dset[gIds[start_guy]:gIds[guy]+1]
+                        done_collective = True
+                else:
+                    self.data[start_guy:guy+1] = dset[gIds[start_guy]:gIds[guy]+1]
                 guy += 1
 
             # do non-contiguous
@@ -318,14 +325,22 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
                 guy += 1
             # copy non-contiguous items (if found) using index array slice
             if guy > start_guy:
-                self.data[start_guy:guy,:] = dset[gIds[start_guy:guy],:]
-                
-            # repeat process until all done
+                if collective and not done_collective:
+                    with dset.collective:
+                        self.data[start_guy:guy,:] = dset[gIds[start_guy:guy],:]
+                        done_collective = True
+                else:
+                    self.data[start_guy:guy,:] = dset[gIds[start_guy:guy],:]
 
-        h5f.close();
+        # if we haven't entered a collective call, do so now to
+        # avoid deadlock. we just do an empty read/write.
+        if collective and not done_collective:
+            with dset.collective:
+                self.data[0:0,:] = dset[0:0,:]
 
+        h5f.close()
 
-    def save( self, filename, swarmHandle=None ):
+    def save( self, filename, swarmHandle=None, collective=False ):
         """
         Save the swarm variable to disk.
 
@@ -337,6 +352,10 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         swarmHandle :uw.utils.SavedFileData , optional
             The saved swarm file handle. If provided, a reference to the swarm file
             is made.
+        collective : bool
+            If True, variable is saved MPI collective. This is usually faster, but
+            currently is problematic for passive swarms which may not have
+            representation on all processes.
 
         Returns
         -------
@@ -394,50 +413,54 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
 
         # setup mpi basic vars
         comm = MPI.COMM_WORLD
-        rank = comm.Get_rank()
-        nProcs = comm.Get_size()
+        rank = comm.rank
 
         # allgather the number of particles each proc has
         swarm = self.swarm
         procCount = comm.allgather(swarm.particleLocalCount)
-        particleGlobalCount = np.sum(procCount) #swarm.particleGlobalCount
+        particleGlobalCount = np.sum(procCount)
 
         # calculate the hdf5 file offset
         offset=0
-        for i in xrange(rank):
+        for i in range(comm.rank):
             offset += procCount[i]
 
         # open parallel hdf5 file
-        h5f = h5py.File(name=filename, mode="w", driver='mpio', comm=MPI.COMM_WORLD)
-        
-        # attribute of the proc offsets - used for loading from checkpoint
-        h5f.attrs["proc_offset"] = procCount
-        
-        # write the entire local swarm to the appropriate offset position
-        globalShape = (particleGlobalCount, self.data.shape[1])
-        dset = h5f.create_dataset("data",
-                                   shape=globalShape,
-                                   dtype=self.data.dtype)
+        with h5py.File(name=filename, mode="w", driver='mpio', comm=MPI.COMM_WORLD) as h5f:
+            # write the entire local swarm to the appropriate offset position
+            globalShape = (particleGlobalCount, self.data.shape[1])
+            dset = h5f.create_dataset("data",
+                                       shape=globalShape,
+                                       dtype=self.data.dtype)
 
-        if swarm.particleLocalCount > 0: # only add if there are local particles
-            dset[offset:offset+swarm.particleLocalCount] = self.data[:]
+            if collective:
+                with dset.collective:
+                    dset[offset:offset+swarm.particleLocalCount] = self.data[:]
+            else:
+                dset[offset:offset + swarm.particleLocalCount] = self.data[:]
 
-        # create an ExternalLink to the swarm - optional because intrinsic SwarmVariables
-        # 'coordinates'  & 'owningCell' are SwarmVariables that don't have a corresponding
-        # swarm file because they are the swarm itself.
-        if swarmHandle is not None:
-            if not isinstance(swarmHandle, (str, uw.utils.SavedFileData)):
-                raise TypeError("Expected 'swarmHandle' to be of type 'uw.utils.SavedFileData'")
+            # create an ExternalLink to the swarm - optional because intrinsic SwarmVariables
+            # 'coordinates'  & 'owningCell' are SwarmVariables that don't have a corresponding
+            # swarm file because they are the swarm itself.
+            if swarmHandle is not None:
+                if not isinstance(swarmHandle, (str, uw.utils.SavedFileData)):
+                    raise TypeError("Expected 'swarmHandle' to be of type 'uw.utils.SavedFileData'")
 
-            sFilename = swarmHandle.filename
+                sFilename = swarmHandle.filename
 
-            if not os.path.exists(sFilename):
-                raise ValueError("You are trying to link against the swarm file '{}'\n\
-                                  that does not appear to exist.".format(sFilename))
-            # set reference to mesh (all procs must call following)
-            h5f["swarm"] = h5py.ExternalLink(sFilename, "./")
+                if not os.path.exists(sFilename):
+                    raise ValueError("You are trying to link against the swarm file '{}'\n\
+                                      that does not appear to exist.".format(sFilename))
+                # set reference to mesh (all procs must call following)
+                h5f["swarm"] = h5py.ExternalLink(sFilename, "./")
 
-        h5f.close()
+        # let's reopen in serial to write the attrib.
+        # not sure if this really is necessary.
+        comm.barrier()
+        if comm.rank==0:
+            with h5py.File(name=filename, mode="a") as h5f:
+                # attribute of the proc offsets - used for loading from checkpoint
+                h5f.attrs["proc_offset"] = procCount
 
         return uw.utils.SavedFileData( self, filename )
 
@@ -551,3 +574,49 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
             xdmfFH = open(filename, "w")
             xdmfFH.write(string)
             xdmfFH.close()
+
+    def copy(self, deepcopy=False):
+        """
+        This method returns a copy of the swarmvariable.
+
+        Parameters
+        ----------
+        deepcopy: bool
+            If True, the variable's data is also copied into
+            new variable.
+
+        Returns
+        -------
+        underworld.swarm.SwarmVariable
+            The swarm variable copy.
+
+        Example
+        -------
+        >>> mesh = uw.mesh.FeMesh_Cartesian()
+        >>> swarm = uw.swarm.Swarm(mesh)
+        >>> swarm.populate_using_layout(uw.swarm.layouts.PerCellGaussLayout(swarm, 2))
+        >>> svar = swarm.add_variable("double", 1)
+        >>> svar.data[:] = 1.23456
+        >>> svarCopy = svar.copy()
+        >>> svarCopy.swarm == svar.swarm
+        True
+        >>> svarCopy.dataType == svar.dataType
+        True
+        >>> import numpy as np
+        >>> np.allclose(svar.data,svarCopy.data)
+        False
+        >>> svarCopy2 = svar.copy(deepcopy=True)
+        >>> np.allclose(svar.data,svarCopy2.data)
+        True
+
+        """
+
+        if not isinstance(deepcopy, bool):
+            raise TypeError("'deepcopy' parameter is expected to be of type 'bool'.")
+
+        newSv = SwarmVariable(self.swarm, self.dataType, self.count)
+
+        if deepcopy:
+            newSv.data[:] = self.data[:]
+
+        return newSv

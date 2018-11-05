@@ -1,6 +1,6 @@
 import os
 from config import Package
-from StgFEM import StgFEM
+from .StgFEM import StgFEM
 
 class PICellerator(Package):
 

@@ -13,7 +13,7 @@ query data.
 """
 
 import libUnderworld.libUnderworldPy.Function as _cfn
-from _function import Function as _Function
+from ._function import Function as _Function
 
 class SafeMaths(_Function):
     """  

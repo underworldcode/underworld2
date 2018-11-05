@@ -1,5 +1,5 @@
 from config import Package
-from Python import Python
+from .Python import Python
 import os
 class NumpyPk(Package):
 
@@ -16,7 +16,7 @@ class NumpyPk(Package):
                 nppath = ''
             yield (nppath, [incpath], [nppath + '/lib'])
         except ImportError:
-            print "Cannot import numpy. Perhaps it is not installed."
+            print("Cannot import numpy. Perhaps it is not installed.")
             raise
         yield ('/usr', [], [])
         yield ('/usr/local', [], [])
@@ -25,7 +25,7 @@ class NumpyPk(Package):
         try:
             import numpy as np
         except ImportError:
-            print "Cannot import numpy. Perhaps it is not installed."
+            print("Cannot import numpy. Perhaps it is not installed.")
             raise
         for env in Package.gen_envs(self, loc):
             self.headers = [self.python.headers[0], 'numpy/arrayobject.h']

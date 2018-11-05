@@ -1,6 +1,6 @@
 import os
 from config import Package
-from StGermain import StGermain
+from .StGermain import StGermain
 
 class StgDomain(Package):
 

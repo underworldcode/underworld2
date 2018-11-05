@@ -17,8 +17,8 @@ import underworld as uw
 import underworld._stgermain as _stgermain
 import weakref
 import libUnderworld
-import _specialSets_Cartesian
-import underworld.function as fn
+from . import _specialSets_Cartesian
+import underworld.function as function
 import contextlib
 import time
 import abc
@@ -130,10 +130,9 @@ class FeMesh(_stgermain.StgCompoundComponent, fn.FunctionInput):
         if( len(arr) % self.elementsLocal != 0 ):
             raise RuntimeError("Unsupported element to node mapping for save routine"+
                     "\nThere doesn't appear to be elements with a consistent number of nodes")
-
         # we ASSUME a constant number of nodes for each element
         # and we reshape the arr accordingly
-        nodesPerElement = len(arr)/self.elementsLocal
+        nodesPerElement = int(round(len(arr)/self.elementsLocal))
         return arr.reshape(self.elementsLocal, nodesPerElement)
 
     @property
@@ -447,8 +446,8 @@ class FeMesh(_stgermain.StgCompoundComponent, fn.FunctionInput):
         -------
         >>> import underworld as uw
         >>> someMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1', elementRes=(2,2), minCoord=(0.,0.), maxCoord=(1.,1.) )
-        >>> someMesh.specialSets.keys()
-        ['MaxI_VertexSet', 'MinI_VertexSet', 'AllWalls_VertexSet', 'MinJ_VertexSet', 'MaxJ_VertexSet', 'Empty']
+        >>> sorted(someMesh.specialSets.keys())    # NOTE THAT WE ONLY SORT THIS LIST SO THAT RESULTS ARE DETERMINISTIC FOR DOCTESTS
+        ['AllWalls_VertexSet', 'Empty', 'MaxI_VertexSet', 'MaxJ_VertexSet', 'MinI_VertexSet', 'MinJ_VertexSet']
         >>> someMesh.specialSets["MinJ_VertexSet"]
         FeMesh_IndexSet([0, 1, 2])
 
@@ -566,7 +565,8 @@ class FeMesh(_stgermain.StgCompoundComponent, fn.FunctionInput):
 
         local = self.nodesLocal
         # write to the dset using the local set of global node ids
-        dset[self.data_nodegId[0:local],:] = self.data[0:local]
+        with dset.collective:
+            dset[self.data_nodegId[0:local],:] = self.data[0:local]
 
         # write the element node connectivity
         globalShape = ( self.elementsGlobal, self.data_elementNodes.shape[1] )
@@ -576,7 +576,8 @@ class FeMesh(_stgermain.StgCompoundComponent, fn.FunctionInput):
 
         local = self.elementsLocal
         # write to the dset using the local set of global node ids
-        dset[self.data_elgId[0:local],:] = self.data_elementNodes[0:local]
+        with dset.collective:
+            dset[self.data_elgId[0:local],:] = self.data_elementNodes[0:local]
 
         h5f.close()
 
@@ -638,7 +639,8 @@ class FeMesh(_stgermain.StgCompoundComponent, fn.FunctionInput):
             raise RuntimeError("Provided data file appears to be for a different resolution mesh.")
 
         with self.deform_mesh(isRegular=h5f.attrs['regular']):
-            self.data[0:self.nodesLocal] = dset[self.data_nodegId[0:self.nodesLocal],:]
+            with dset.collective:
+                self.data[0:self.nodesLocal] = dset[self.data_nodegId[0:self.nodesLocal],:]
 
         h5f.close()
 
@@ -1131,10 +1133,6 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
             self.specialSets["MaxK_VertexSet"] = _specialSets_Cartesian.MaxK_VertexSet
             self.specialSets["MinK_VertexSet"] = _specialSets_Cartesian.MinK_VertexSet
         self.specialSets["AllWalls_VertexSet"] = _specialSets_Cartesian.AllWalls
-
-        # send some metrics
-        # disable for now.  note, this seems to fire in doctests!  need to fix.
-#        uw._sendData('init_femesh_cartesian', self.dim, np.prod( self.elementRes ))
 
     def _setup(self):
         # build the sub-mesh now

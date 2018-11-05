@@ -16,7 +16,7 @@ All functions operate on and return 'double' type data (or
 'float' from python).
 """
 import libUnderworld.libUnderworldPy.Function as _cfn
-from _function import Function as _Function
+from ._function import Function as _Function
 import underworld as _uw
 
 class cos(_Function):
@@ -31,10 +31,10 @@ class cos(_Function):
 
     Example
     -------
-    >>> from . import _systemmath as math
+    >>> import math as sysmath
     >>> import numpy as np
     >>> func = cos()
-    >>> np.allclose( func.evaluate(0.1234), math.cos(0.1234) )
+    >>> np.allclose( func.evaluate(0.1234), sysmath.cos(0.1234) )
     True
 
     """
@@ -64,10 +64,10 @@ class sin(_Function):
 
     Example
     -------
-    >>> from . import _systemmath as math
+    >>> import math as sysmath
     >>> import numpy as np
     >>> func = sin()
-    >>> np.allclose( func.evaluate(0.1234), math.sin(0.1234) )
+    >>> np.allclose( func.evaluate(0.1234), sysmath.sin(0.1234) )
     True
 
     """
@@ -97,10 +97,10 @@ class tan(_Function):
 
     Example
     -------
-    >>> from . import _systemmath as math
+    >>> import math as sysmath
     >>> import numpy as np
     >>> func = tan()
-    >>> np.allclose( func.evaluate(0.1234), math.tan(0.1234) )
+    >>> np.allclose( func.evaluate(0.1234), sysmath.tan(0.1234) )
     True
 
     """
@@ -129,10 +129,10 @@ class acos(_Function):
 
     Example
     -------
-    >>> from . import _systemmath as math
+    >>> import math as sysmath
     >>> import numpy as np
     >>> func = acos()
-    >>> np.allclose( func.evaluate(0.1234), math.acos(0.1234) )
+    >>> np.allclose( func.evaluate(0.1234), sysmath.acos(0.1234) )
     True
 
     """
@@ -161,10 +161,10 @@ class asin(_Function):
 
     Example
     -------
-    >>> from . import _systemmath as math
+    >>> import math as sysmath
     >>> import numpy as np
     >>> func = asin()
-    >>> np.allclose( func.evaluate(0.1234), math.asin(0.1234) )
+    >>> np.allclose( func.evaluate(0.1234), sysmath.asin(0.1234) )
     True
 
     """
@@ -193,10 +193,10 @@ class atan(_Function):
 
     Example
     -------
-    >>> from . import _systemmath as math
+    >>> import math as sysmath
     >>> import numpy as np
     >>> func = atan()
-    >>> np.allclose( func.evaluate(0.1234), math.atan(0.1234) )
+    >>> np.allclose( func.evaluate(0.1234), sysmath.atan(0.1234) )
     True
 
     """
@@ -225,10 +225,10 @@ class cosh(_Function):
 
     Example
     -------
-    >>> from . import _systemmath as math
+    >>> import math as sysmath
     >>> import numpy as np
     >>> func = cosh()
-    >>> np.allclose( func.evaluate(0.1234), math.cosh(0.1234) )
+    >>> np.allclose( func.evaluate(0.1234), sysmath.cosh(0.1234) )
     True
 
     """
@@ -257,10 +257,10 @@ class sinh(_Function):
 
     Example
     -------
-    >>> from . import _systemmath as math
+    >>> import math as sysmath
     >>> import numpy as np
     >>> func = sinh()
-    >>> np.allclose( func.evaluate(0.1234), math.sinh(0.1234) )
+    >>> np.allclose( func.evaluate(0.1234), sysmath.sinh(0.1234) )
     True
 
     """
@@ -289,10 +289,10 @@ class tanh(_Function):
 
     Example
     -------
-    >>> from . import _systemmath as math
+    >>> import math as sysmath
     >>> import numpy as np
     >>> func = tanh()
-    >>> np.allclose( func.evaluate(0.1234), math.tanh(0.1234) )
+    >>> np.allclose( func.evaluate(0.1234), sysmath.tanh(0.1234) )
     True
 
     """
@@ -321,10 +321,10 @@ class acosh(_Function):
 
     Example
     -------
-    >>> from . import _systemmath as math
+    >>> import math as sysmath
     >>> import numpy as np
     >>> func = acosh()
-    >>> np.allclose( func.evaluate(5.1234), math.acosh(5.1234) )
+    >>> np.allclose( func.evaluate(5.1234), sysmath.acosh(5.1234) )
     True
 
     """
@@ -353,10 +353,10 @@ class asinh(_Function):
 
     Example
     -------
-    >>> from . import _systemmath as math
+    >>> import math as sysmath
     >>> import numpy as np
     >>> func = asinh()
-    >>> np.allclose( func.evaluate(5.1234), math.asinh(5.1234) )
+    >>> np.allclose( func.evaluate(5.1234), sysmath.asinh(5.1234) )
     True
 
     """
@@ -385,10 +385,10 @@ class atanh(_Function):
 
     Example
     -------
-    >>> from . import _systemmath as math
+    >>> import math as sysmath
     >>> import numpy as np
     >>> func = atanh()
-    >>> np.allclose( func.evaluate(0.1234), math.atanh(0.1234) )
+    >>> np.allclose( func.evaluate(0.1234), sysmath.atanh(0.1234) )
     True
 
     """
@@ -417,10 +417,10 @@ class exp(_Function):
 
     Example
     -------
-    >>> from . import _systemmath as math
+    >>> import math as sysmath
     >>> import numpy as np
     >>> func = exp()
-    >>> np.allclose( func.evaluate(0.1234), math.exp(0.1234) )
+    >>> np.allclose( func.evaluate(0.1234), sysmath.exp(0.1234) )
     True
 
     """
@@ -450,10 +450,10 @@ class log(_Function):
 
     Example
     -------
-    >>> from . import _systemmath as math
+    >>> import math as sysmath
     >>> import numpy as np
     >>> func = log()
-    >>> np.allclose( func.evaluate(0.1234), math.log(0.1234) )
+    >>> np.allclose( func.evaluate(0.1234), sysmath.log(0.1234) )
     True
 
     """
@@ -482,10 +482,10 @@ class log2(_Function):
 
     Example
     -------
-    >>> from . import _systemmath as math
+    >>> import math as sysmath
     >>> import numpy as np
     >>> func = log2()
-    >>> np.allclose( func.evaluate(0.1234), math.log(0.1234,2) )
+    >>> np.allclose( func.evaluate(0.1234), sysmath.log(0.1234,2) )
     True
 
     """
@@ -514,10 +514,10 @@ class log10(_Function):
 
     Example
     -------
-    >>> from . import _systemmath as math
+    >>> import math as sysmath
     >>> import numpy as np
     >>> func = log10()
-    >>> np.allclose( func.evaluate(0.1234), math.log10(0.1234) )
+    >>> np.allclose( func.evaluate(0.1234), sysmath.log10(0.1234) )
     True
 
     """
@@ -546,10 +546,10 @@ class sqrt(_Function):
 
     Example
     -------
-    >>> from . import _systemmath as math
+    >>> import math as sysmath
     >>> import numpy as np
     >>> func = sqrt()
-    >>> np.allclose( func.evaluate(0.1234), math.sqrt(0.1234) )
+    >>> np.allclose( func.evaluate(0.1234), sysmath.sqrt(0.1234) )
     True
 
     """
@@ -578,10 +578,10 @@ class erf(_Function):
 
     Example
     -------
-    >>> from . import _systemmath as math
+    >>> import math as sysmath
     >>> import numpy as np
     >>> func = erf()
-    >>> np.allclose( func.evaluate(0.1234), math.erf(0.1234) )
+    >>> np.allclose( func.evaluate(0.1234), sysmath.erf(0.1234) )
     True
 
     """
@@ -610,10 +610,10 @@ class erfc(_Function):
 
     Example
     -------
-    >>> from . import _systemmath as math
+    >>> import math as sysmath
     >>> import numpy as np
     >>> func = erfc()
-    >>> np.allclose( func.evaluate(0.1234), math.erfc(0.1234) )
+    >>> np.allclose( func.evaluate(0.1234), sysmath.erfc(0.1234) )
     True
 
     """
@@ -642,10 +642,10 @@ class abs(_Function):
 
     Example
     -------
-    >>> from . import _systemmath as math
+    >>> import math as sysmath
     >>> import numpy as np
     >>> func = abs()
-    >>> np.allclose( func.evaluate(-0.1234), math.fabs(0.1234) )
+    >>> np.allclose( func.evaluate(-0.1234), sysmath.fabs(0.1234) )
     True
 
     """
@@ -676,10 +676,10 @@ class pow(_Function):
 
     Example
     -------
-    >>> from . import _systemmath as math
+    >>> import math as sysmath
     >>> import numpy as np
     >>> func = pow(_uw.function.input(),3.)
-    >>> np.allclose( func.evaluate(2.), math.pow(2.,3.) )
+    >>> np.allclose( func.evaluate(2.), sysmath.pow(2.,3.) )
     True
 
     """
@@ -752,7 +752,7 @@ class dot(_Function):
 
     Example
     -------
-    >>> from . import _systemmath as math
+    >>> import math as sysmath
     >>> import numpy as np
     >>> input1 = (2.,3.,4.)
     >>> input2 = (5.,6.,7.)

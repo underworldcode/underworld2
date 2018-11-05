@@ -13,8 +13,7 @@ import underworld.swarm as _swarmMod
 import underworld.mesh as _uwmesh
 from underworld.function import Function as _Function
 import libUnderworld as _libUnderworld
-import numpy
-import json
+import json as _json
 
 #TODO: Drawing Objects to implement
 # HistoricalSwarmTrajectory
@@ -52,13 +51,13 @@ class ColourMap(_stgermain.StgCompoundComponent):
         if not hasattr(self, "properties"):
             self.properties = {}
 
-        if not isinstance(colours,(str,list)):
-            raise TypeError("'colours' object passed in must be of python type 'str' or 'list'")
-        self.properties.update({"colours" : json.dumps(colours)})
+        if not isinstance(colours,(str,list,tuple)):
+            raise TypeError("'colours' object passed in must be of python type 'str', 'list' or 'tuple'")
+        self.properties.update({"colours" : _json.dumps(colours)})
 
         #User-defined props in kwargs
         self.properties.update(kwargs)
-        dict((k.lower(), v) for k, v in self.properties.iteritems())
+        dict((k.lower(), v) for k, v in self.properties.items())
 
         if valueRange != None:
             # is valueRange correctly defined, ie list of length 2 made of numbers
@@ -106,7 +105,7 @@ class ColourMap(_stgermain.StgCompoundComponent):
 
     def _getProperties(self):
         #Convert properties to string
-        return '\n'.join(['%s=%s' % (k,v) for k,v in self.properties.iteritems()]);
+        return '\n'.join(['%s=%s' % (k,v) for k,v in self.properties.items()]);
 
 class Drawing(_stgermain.StgCompoundComponent):
     """
@@ -163,7 +162,7 @@ class Drawing(_stgermain.StgCompoundComponent):
 
         #User-defined props in kwargs
         self.properties.update(kwargs)
-        dict((k.lower(), v) for k, v in self.properties.iteritems())
+        dict((k.lower(), v) for k, v in self.properties.items())
 
         if not isinstance(colourBar, bool):
             raise TypeError("'colourBar' parameter must be of 'bool' type.")
@@ -203,7 +202,7 @@ class Drawing(_stgermain.StgCompoundComponent):
 
     def _getProperties(self):
         #Convert properties to string
-        return '\n'.join(['%s=%s' % (k,v) for k,v in self.properties.iteritems()]);
+        return '\n'.join(['%s=%s' % (k,v) for k,v in self.properties.items()]);
 
     def render(self, viewer):
         #Place any custom geometry output in this method, called after database creation
@@ -828,6 +827,7 @@ class Sampler(Drawing):
 
     def sample(self, vertices):
         sz = len(vertices)/3*self._cself.fieldComponentCount
+        import numpy
         values = numpy.zeros(sz, dtype='float32')
         _libUnderworld.gLucifer.lucSampler_SampleField( self._cself, vertices, values)
         return values

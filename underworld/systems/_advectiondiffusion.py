@@ -8,9 +8,156 @@
 ##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
 import underworld as uw
 import underworld._stgermain as _stgermain
-import sle
+from . import sle
 import libUnderworld
+from mpi4py import MPI
 
+class SLCN_AdvectionDiffusion(object):
+    def __init__(self, phiField, velocityField, fn_diffusivity, fn_sourceTerm=None, conditions=[]):
+        # Implements the Spiegelman Semi-lagrangian Crank Nicholson algorithm
+        
+        # unknown field and velocity field
+        self.phiField = phiField
+        self.vField   = velocityField
+        
+        # uw.functions for diffusivity and a source term
+        self.fn_diffusivity = uw.function.Function.convert(fn_diffusivity)
+        self.fn_sourceTerm  = uw.function.Function.convert(fn_sourceTerm)
+        self.fn_dt          = uw.function.misc.constant(1.0) # dummy value
+        
+        # build a grid field, phiStar, for the information at departure points
+        self._phiStar = phiField.copy()
+        
+        # check input 'conditions' list is valid
+        if not isinstance(conditions,(list,tuple)):
+            conditionslist = []
+            conditionslist.append(conditions)
+            conditions = conditionslist
+            
+        nbc = None  # storage for neumann conditions
+        
+        for cond in conditions:
+            if not isinstance( cond, uw.conditions.SystemCondition ):
+                raise TypeError( "Provided 'conditions' must be a list 'SystemCondition' objects." )
+            # check type of condition
+            if type(cond) == uw.conditions.NeumannCondition:
+                if nbc != None:
+                    # check only one nbc condition is given in 'conditions' list
+                    RuntimeError( "Provided 'conditions' can only accept one NeumannConditions condition object.")
+                nbc = cond
+            elif type(cond) == uw.conditions.DirichletCondition:
+                if cond.variable == self.phiField:
+                    libUnderworld.StgFEM.FeVariable_SetBC( self.phiField._cself, cond._cself )
+            else:
+                raise RuntimeError("Input condition type not recognised.")
+        self._conditions = conditions
+        
+        # build matrices and vectors
+        phi_eqnums        = uw.systems.sle.EqNumber(phiField)
+        solv = self._solv = uw.systems.sle.SolutionVector(phiField, phi_eqnums)
+        f    = self._f    = uw.systems.sle.AssembledVector(phiField, phi_eqnums)
+        K    = self._K    = uw.systems.sle.AssembledMatrix(solv, solv, f)
+
+        # create quadrature swarm
+        mesh     = phiField.mesh
+        intSwarm = uw.swarm.GaussIntegrationSwarm(mesh,particleCount=2)
+        
+        fn_dt = self.fn_dt
+        
+        # take sourceTerm into account - implementation doesn't track from departure points so is less accurate in time
+        if fn_sourceTerm is not None:
+            rhs_term = self._phiStar + fn_dt*self.fn_sourceTerm
+        else:
+            rhs_term = self._phiStar
+            
+        self._mv_term = uw.systems.sle.VectorAssemblyTerm_NA__Fn( integrationSwarm = intSwarm,
+                                                                assembledObject    = f,
+                                                                mesh = mesh, 
+                                                                fn   = 1.*rhs_term )
+
+        self._kv_term = uw.systems.sle.VectorAssemblyTerm_NA_i__Fn_i( integrationSwarm = intSwarm,
+                                                                    assembledObject    = f,
+                                                                    mesh = mesh,
+                                                                    fn   = -0.5 * fn_dt * self.fn_diffusivity * self._phiStar.fn_gradient )
+                                                                    
+        if nbc is not None:
+            ### -VE flux because of the FEM discretisation method of the initial equation
+            negativeCond = uw.conditions.NeumannCondition( fn_flux  = fn_dt * nbc.fn_flux,
+                                                           variable = nbc.variable,
+                                                           indexSetsPerDof = nbc.indexSetsPerDof )
+
+            #NOTE many NeumannConditions can be used but the _sufaceFluxTerm only records the last
+            self._surfaceFluxTerm = sle.VectorSurfaceAssemblyTerm_NA__Fn__ni(
+                                                            assembledObject    = f,
+                                                            surfaceGaussPoints = 2,
+                                                            nbc         = negativeCond )
+                                                                
+        self._k_term = uw.systems.sle.MatrixAssemblyTerm_NA_i__NB_i__Fn(assembledObject  = K,
+                                                                        integrationSwarm = intSwarm,
+                                                                        fn = +0.5 * fn_dt * self.fn_diffusivity)
+
+        self._m_term = uw.systems.sle.MatrixAssemblyTerm_NA__NB__Fn(assembledObject  = K,
+                                                                    integrationSwarm = intSwarm, 
+                                                                    fn   = 1.,
+                                                                    mesh = mesh)
+        
+        # functions used to calculate the timestep, see function get_max_dt()
+        self._maxVsq  = uw.function.view.min_max(velocityField, fn_norm = uw.function.math.dot(velocityField,velocityField) )
+        self._maxDiff = uw.function.view.min_max(self.fn_diffusivity)
+        
+        # the required for the solve
+        self.sle = uw.utils.SolveLinearSystem(AMat=K, bVec=f, xVec=solv)
+
+    def integrate(self, dt):
+        
+        # use the given timestep
+        self.fn_dt.value = dt
+        
+        # apply conditions 
+        uw.libUnderworld.StgFEM.SolutionVector_LoadCurrentFeVariableValuesOntoVector( self._solv._cself )
+        
+        # update T* - temperature at departure points
+        uw.libUnderworld.StgFEM.SemiLagrangianIntegrator_SolveNew( 
+            self.phiField._cself,
+            dt,
+            self.vField._cself,
+            self._phiStar._cself)
+        
+        # solve T
+        self.sle.solve()
+       
+    def get_max_dt(self):
+        """
+        Returns a timestep size for the current system.
+
+        Returns
+        -------
+        float
+         The timestep size.
+        """
+        mesh = self.phiField.mesh
+        vField = self.vField
+        
+        # evaluate the global maximum velocity
+        ignore = self._maxVsq.evaluate(mesh)
+        vmax = uw._np.sqrt(self._maxVsq.max_global())
+                
+        # evaluate the global maximum diffusivity
+        if type(self.fn_diffusivity) == uw.swarm.SwarmVariable:
+            maxDiffusion = self._maxDiff.evaluate(self.fn_diffusivity.swarm)
+        else:
+            maxDiffusion = self._maxDiff.evaluate(self.phiField.mesh)
+        maxDiffusion = self._maxDiff.max_global()
+        
+        # evaluate the minimum separation of the mesh
+        dx = mesh._cself.minSep
+        
+        diff_dt = dx*dx / maxDiffusion
+        adv_dt  = dx / vmax
+        
+        return  min(adv_dt, diff_dt)
+
+                                                      
 class AdvectionDiffusion(_stgermain.StgCompoundComponent):
     """
     This class provides functionality for a discrete representation
@@ -154,7 +301,7 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
             if isinstance( cond, uw.conditions.NeumannCondition ):
 
                 ### -VE flux because of the FEM discretisation method of the initial equation
-                negativeCond = uw.conditions.NeumannCondition( fn_flux=-1.0*cond.fn_flux,
+                negativeCond = uw.conditions.NeumannCondition( fn_flux=cond.fn_flux,
                                                                variable=cond.variable,
                                                                indexSetsPerDof=cond.indexSetsPerDof )
 

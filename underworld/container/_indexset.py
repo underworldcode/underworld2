@@ -71,6 +71,9 @@ class IndexSet(object):
             raise ValueError("The 'size' parameter must be positive.")
         self._size = size
         
+        # keep record of this function incase libUnderworld disappears before __del__
+        self._Stg_Class_Delete = libUnderworld.StGermain.Stg_Class_Delete
+        
         # ok, let's do a cheeky, and if the object passed in is a native stg guy,
         # we'll take ownership        
         if isinstance(fromObject,libUnderworld.StGermain.IndexSet):
@@ -85,7 +88,7 @@ class IndexSet(object):
 
     def __del__(self):
         # delete stg class
-        libUnderworld.StGermain.Stg_Class_Delete(self._cself)
+        self._Stg_Class_Delete(self._cself)
     
     @property
     def size(self):
@@ -274,6 +277,12 @@ class IndexSet(object):
                     except TypeError:
                         raise TypeError("Incompatible array type ({}) provided. Must be of integer type.".format(ndarray.dtype))
 
+    def __getitem__(self,index):
+        # This method is required so that we can index into numpy
+        # arrays using IndexSet objects. However, it doesn't need
+        # to be implemented, curiously.
+        raise RuntimeError("Not yet implemented")
+    
     @property
     def data(self):
         """
@@ -303,9 +312,10 @@ class IndexSet(object):
         arr.flags.writeable = False
         return arr
 
-    @property
-    def count(self):
+    def __len__(self):
         """
+        Overload for Python `len` usage.
+        
         Returns
         -------
         int: member count
@@ -314,12 +324,14 @@ class IndexSet(object):
         Example
         -------
         >>> someSet = uw.container.IndexSet( 15, [3,9,10] )
-        >>> someSet.count
+        >>> len(someSet)
         3
 
         """
         # get member count
         return libUnderworld.StGermain.IndexSet_UpdateMembersCount(self._cself)
+    
+    
     
     def invert(self):
         """

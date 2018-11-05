@@ -1,4 +1,4 @@
-import checks
+from .checks import CheckCCFixed
 
 def apply_cc(env, cc):
     if cc in ['gcc']:
@@ -9,7 +9,7 @@ def apply_cc(env, cc):
 
     conf = env.Configure(
         custom_tests={
-            'CheckCCFixed': checks.CheckCCFixed
+            'CheckCCFixed': CheckCCFixed
             }
         )
     if not conf.CheckCCFixed():

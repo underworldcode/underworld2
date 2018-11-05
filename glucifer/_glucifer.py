@@ -12,14 +12,14 @@ import underworld as uw
 import errno
 import underworld._stgermain as _stgermain
 import os
-import urllib2
+import urllib
 import time
 import json
 from base64 import b64encode
 import libUnderworld
 import subprocess
 from subprocess import Popen, PIPE, STDOUT
-from . import objects
+import glucifer.objects as objects
 import libUnderworld as _libUnderworld
 import sys
 import os
@@ -67,7 +67,9 @@ class Store(_stgermain.StgCompoundComponent):
         Set to true to write a separate database file for each timestep visualised
     view: bool
         Set to true and pass filename if loading a saved database for revisualisation
-            
+    compress: bool
+        Set to true to enable database compression.
+
     Example
     -------
         
@@ -76,7 +78,7 @@ class Store(_stgermain.StgCompoundComponent):
     >>> import glucifer
     >>> store = glucifer.Store()
 
-    Optionally provide a filename so you don't need to call save later (no extension required)
+    Optionally provide a filename so you don't need to call save later (no extension)
     
     >>> store = glucifer.Store('myvis')
 
@@ -100,7 +102,7 @@ class Store(_stgermain.StgCompoundComponent):
     _selfObjectName = "_db"
     viewer = None
 
-    def __init__(self, filename=None, split=False, **kwargs):
+    def __init__(self, filename=None, split=False, compress=True, **kwargs):
 
         self.step = 0
         if filename is None:
@@ -112,7 +114,7 @@ class Store(_stgermain.StgCompoundComponent):
         #Don't split on timestep unless filename provided
         if not self.filename: split = False
         self._split = split
-
+        self.compress = compress
         super(Store,self).__init__(**kwargs)
 
     def _add_to_stg_dict(self,componentDictionary):
@@ -133,7 +135,8 @@ class Store(_stgermain.StgCompoundComponent):
         componentDictionary[self._db.name].update( {
                             "filename"          :filename,
                             "splitTransactions" :True,
-                            "singleFile"        :not self._split
+                            "singleFile"        :not self._split,
+                            "compressed"        :self.compress,
         } )
 
     def save(self,filename):
@@ -150,7 +153,8 @@ class Store(_stgermain.StgCompoundComponent):
                 raise TypeError("Provided parameter 'filename' must be of type 'str'. ")
             if not filename.lower().endswith('.gldb') and not filename.lower().endswith('.db'):
                 filename += '.gldb'
-            libUnderworld.gLucifer.lucDatabase_BackupDbFile(self._db, filename)
+            if filename != self.filename:
+                libUnderworld.gLucifer.lucDatabase_BackupDbFile(self._db, filename)
             return filename
 
     def lvget(self, db=None, *args, **kwargs):
@@ -234,7 +238,9 @@ class Store(_stgermain.StgCompoundComponent):
             #In case no external file has been written we need to create a temporary
             #database on root so the other procs can load it
             #Wait for temporary db to be written if not already using an external store
-            uw.barrier()
+            comm = MPI.COMM_WORLD
+            rank = uw.rank()
+            self.filename = comm.bcast(self.filename, root=0)
             #print uw.rank(),self.filename
             #Open the viewer with db filename
             lv = self.lvget(self.filename)
@@ -343,12 +349,12 @@ class Figure(dict):
 
     Add drawing objects:
     
-    >>> fig.Surface( mesh, 1.)
+    >>> fig.append(glucifer.objects.Surface( mesh, 1.))
 
-    Draw image (note, in a Jupyter notebook, this will render the image within the notebook).
+    Draw image. Note that if called from within a Jupyter notebook, image
+    will be rendered inline. Otherwise, image will be saved to disk.
     
     >>> fig.show()
-    <IPython.core.display.HTML object>
     
     Save the image
     
@@ -409,7 +415,7 @@ class Figure(dict):
 
         #User-defined props in kwargs
         self.update(kwargs)
-        dict((k.lower(), v) for k, v in self.iteritems())
+        dict((k.lower(), v) for k, v in self.items())
 
         if boundingBox:
             #Add 3rd dimension if missing
@@ -456,7 +462,7 @@ class Figure(dict):
 
     def _getProperties(self):
         #Convert properties to string
-        return '\n'.join(['%s=%s' % (k,v) for k,v in self.iteritems()]);
+        return '\n'.join(['%s=%s' % (k,v) for k,v in self.items()]);
 
     def _setProperties(self, newProps):
         #Update the properties values (merge)
@@ -811,17 +817,6 @@ class Figure(dict):
                 else:
                     print("... failed, skipping ...")
                     pass
-
-    def clear(self):
-        # DEPRECATE, remove for v2.4.0
-        raise RuntimeError("This method is now deprecated.\n" \
-                           "To obtain an empty figure just create a new one")
-
-    def __add__(self,drawing_object):
-        # DEPRECATE, remove for v2.4.0
-        raise RuntimeError("This method is now deprecated.\n" \
-                           "To add drawing objects to figures, use the append() method:\n" \
-                           "    someFigure.append(someDrawingObject)")
     
     def append(self,drawingObject):
         """
@@ -866,31 +861,39 @@ class Viewer(lavavu.Viewer):
             
     Example
     -------
-        
-    Open an existing database:
+    Create database to use
     
     >>> import glucifer
-    >>> saved = glucifer.Viewer('vis.gldb')
+    >>> store = glucifer.Store('myvis')
+    >>> fig = glucifer.Figure(store, name="myfigure")
+    >>> import underworld as uw
+    >>> mesh = uw.mesh.FeMesh_Cartesian()
+    >>> fig.append(glucifer.objects.Mesh(mesh))
+    >>> fig.save()
+
+    Now reopen database:
+    
+    >>> viewer = glucifer.Viewer('myvis')
 
     Iterate over the figures, print their names
     
-    >>> for name in saved.figures():
-    >>>     print(name)
-
+    >>> for name in viewer.figures:
+    ...     print(name)
+    myfigure
+    
     Get a figure by name and display
     (A chosen name can be provided when creating the figures to make this easier)
     
-    >>> figures = saved.figures()
-    >>> saved.figure("myfig")
-    >>> saved.show()
+    >>> viewer.figure("myfig")
+    >>> viewer.show()
 
     Display all figures at each timestep
     
-    >>> for step in saved.timesteps():
-    >>>    saved.timestep(step)
-    >>>    for name in figures:
-    >>>        saved.figure(name)
-    >>>        saved.show()
+    >>> for step in viewer.steps:
+    ...    viewer.step = step
+    ...    for name in viewer.figures:
+    ...        viewer.figure(name)
+    ...        viewer.show()
 
     """
 
@@ -912,7 +915,7 @@ class Viewer(lavavu.Viewer):
         self.display()
 
     def showall(self):
-        for fig in self.figures():
+        for fig in self.figures:
             self.figure(fig)
             self.display()
 

@@ -1,20 +1,20 @@
 import numpy 
-import StGermain
-import StgDomain
-import StgFEM
-import Solvers
-import PICellerator
-import Underworld
-import gLucifer
+from . import StGermain
+from . import StgDomain
+from . import StgFEM
+from . import Solvers
+from . import PICellerator
+from . import Underworld
+from . import gLucifer
 #import ImportersToolbox
-import c_arrays
-import c_pointers
-import StGermain_Tools
-import Function
-import petsc
+from . import c_arrays
+from . import c_pointers
+from . import StGermain_Tools
+from . import Function
+from . import petsc
 
 try:
-    import LavaVu
+    from . import LavaVu
 except ImportError:
     pass
 
