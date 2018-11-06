@@ -1,6 +1,10 @@
 # use glob syntax.
 syntax: glob
 
+out_*
+myvis.gldb
+.idea
+myfigure*
 _uwid.py
 *~
 h5py
