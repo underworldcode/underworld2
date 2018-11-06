@@ -228,7 +228,7 @@ if uw.rank() == 0:
     for key in timing_data.keys():
         valuescript = timing_data[key]
         valuemod    = module_timing_data[key]
-        if not np.isclose(valuescript[1],valuemod[1], rtol=0.15):
+        if not np.isclose(valuescript[1],valuemod[1], rtol=0.20):
             raise RuntimeError( "Timing for '{}' not within tolerance ( {}: {} ).".format(key,valuescript[1],valuemod[1]) )
 
 # simple test for file output

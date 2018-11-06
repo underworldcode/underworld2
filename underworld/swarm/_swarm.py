@@ -279,7 +279,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
             raise TypeError("Expected filename to be provided as a string")
 
         # just save the particle coordinates SwarmVariable
-        self.particleCoordinates.save(filename, collective)
+        self.particleCoordinates.save(filename, collective=collective)
 
         return uw.utils.SavedFileData( self, filename )
 

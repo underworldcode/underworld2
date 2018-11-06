@@ -714,7 +714,6 @@ class atan2(_Function):
 
     Example
     -------
-    >>> from . import _systemmath as math
     >>> import numpy as np
     >>> func = atan2(_uw.function.input(),3.)
     >>> np.allclose( func.evaluate(3.), np.pi/4 ) # TODO:think it should fail.

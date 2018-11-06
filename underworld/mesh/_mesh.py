@@ -15,12 +15,12 @@ This module contains FeMesh classes, and associated implementation.
 
 import underworld as uw
 import underworld._stgermain as _stgermain
+import underworld.function as fn
 import weakref
 import libUnderworld
-from . import _specialSets_Cartesian
+from underworld.mesh import _specialSets_Cartesian
 import underworld.function as function
 import contextlib
-import time
 import abc
 import h5py
 from mpi4py import MPI
@@ -1266,9 +1266,6 @@ class FeMesh_IndexSet(uw.container.ObjectifiedIndexSet, fn.FunctionInput):
         return libUnderworld.Function.MeshIndexSet(self._cself, self.object._cself)
 
 class FeMesh_SRegion(FeMesh_Cartesian):
-    def __new__(cls, **kwargs):
-        return super(FeMesh_SRegion,cls).__new__(cls, **kwargs)
-
     def __init__(self, elementRes=(16,16,10), radialLengths=(3.0,6.0), latExtent=90.0, longExtent=90.0, centroid=[0.0,0.0,0.0], **kwargs):
         """
         Cre Cubed-sphere sixth, centered on the 'centroid'.
@@ -1298,8 +1295,8 @@ class FeMesh_SRegion(FeMesh_Cartesian):
         >>> (radMin, radMax) = (4.0,8.0)
         >>> mesh = uw.mesh.FeMesh_SRegion( elementRes=(20,20,14), radialLengths=(radMin, radMax) )
         >>> integral = uw.utils.Integral( 1.0, mesh).evaluate()[0]
-        >>> exact = 4/3.0*np.pi*(radMax**3 - radMin**2) / 6.0
-        >>> np.fabs(integral-exact)/exact < 1e-1
+        >>> exact = (4./3.)*np.pi*(radMax**3 - radMin**3) / 6.0
+        >>> np.isclose(integral, exact, rtol=0.02)
         True
         """
 
@@ -1447,10 +1444,6 @@ class FeMesh_SRegion(FeMesh_Cartesian):
 
 class FeMesh_Cylinder(FeMesh_Cartesian):
 # LNM
-
-    def __new__(cls, **kwargs):
-        return super(FeMesh_Cylinder,cls).__new__(cls, **kwargs)
-
     def __init__(self, elementRes=(6,12,12), cyl_size=(0.0,1.0,1.0), elementType="Q1/dQ0", **kwargs):
         """
 
@@ -1589,9 +1582,6 @@ class FeMesh_Cylinder(FeMesh_Cartesian):
 
 class FeMesh_SphericalCap(FeMesh_Cartesian):
 # LNM
-    def __new__(cls, **kwargs):
-        return super(FeMesh_SphericalCap,cls).__new__(cls, **kwargs)
-
     def __init__(self, resolution=(6,12), cap_size=(0.5,1.0, 90.0), elementType="Q1/dQ0", **kwargs):
         """
         Refer to parent classes for parameters beyond those below.
@@ -1767,10 +1757,6 @@ class FeMesh_SphericalCap(FeMesh_Cartesian):
 class FeMesh_CubedSphere(FeMesh_Cartesian):
 # LNM
 # A big blob with the inner nodes masked out / set to boundary nodes
-
-    def __new__(cls, **kwargs):
-        return super(FeMesh_CubedSphere,cls).__new__(cls, **kwargs)
-
     def __init__(self, radial_resolution=6, radii=(0.5,1.0), core_stretch=1.0, elementType="Q1/dQ0", **kwargs):
         """
         Refer to parent classes for parameters beyond those below.
@@ -2048,10 +2034,6 @@ class FeMesh_CubedSphere(FeMesh_Cartesian):
 
 
 class FeMesh_Annulus(FeMesh_Cartesian):
-
-    def __new__(cls, **kwargs):
-        return super(FeMesh_Annulus,cls).__new__(cls, **kwargs)
-
     def __init__(self, elementRes=(10,16), radialLengths=(3.0,6.0), angularExtent=[0.0,360.0], centroid=[0.0,0.0], periodic=[False, True],  **kwargs):
         """
         This class generates a 2D finite element mesh which is topologically cartesian
