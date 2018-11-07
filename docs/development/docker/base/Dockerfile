@@ -107,7 +107,7 @@ RUN apt-get update -qq && \
 ENV SCONS_LIB_DIR /usr/local/lib/python3.5/dist-packages/scons-3.0.1
 
 ENV PYTHONPATH $PYTHONPATH:/usr/lib
-RUN CC=mpicc HDF5_MPI="ON" pip3 install --no-cache-dir --no-binary=h5py h5py
+RUN CC=h5pcc HDF5_MPI="ON" pip3 install --no-cache-dir --no-binary=h5py h5py
 
 # Install Tini.. this is required because CMD (below) doesn't play nice with notebooks for some reason: https://github.com/ipython/ipython/issues/7062, https://github.com/jupyter/notebook/issues/334
 RUN curl -L https://github.com/krallin/tini/releases/download/v0.10.0/tini > tini && \
