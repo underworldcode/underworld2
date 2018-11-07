@@ -98,7 +98,7 @@ class Integral(_stgermain.StgCompoundComponent):
                 integrationSwarm = uw.swarm.GaussIntegrationSwarm(mesh)
             else:
                 self._cself.isSurfaceIntegral = True
-                if not surfaceIndexSet:
+                if surfaceIndexSet is None:
                     raise RuntimeError("For surface integration, you must provide a 'surfaceIndexSet'.")
                 if not isinstance(surfaceIndexSet, uw.mesh.FeMesh_IndexSet ):
                     raise TypeError("'surfaceIndexSet' must be of type 'FeMesh_IndexSet'.")
@@ -245,7 +245,7 @@ def _swarmspacetimeschema( swarmSavedData, swarmname, time ):
     refName = os.path.basename(swarmSavedData.filename)
 
     # get swarm parameters - serially read from hdf5 file to get size
-    h5f = h5py.File(name=filename, mode="r")
+    h5f = h5py.File(name=filename, mode="r", driver="mpio", comm=MPI.COMM_WORLD)
     dset = h5f.get('data')
     if dset == None:
         raise RuntimeError("Can't find 'data' in file '{}'.\n".format(filename))
@@ -368,7 +368,8 @@ def _swarmvarschema( varSavedData, varname ):
     refName = os.path.basename(varSavedData.filename)
 
     # set parameters - serially open the varfilename
-    h5f = h5py.File(name=varfilename, mode="r")
+    h5f = h5py.File(name=varfilename, mode="r", driver="mpio",
+                    comm=MPI.COMM_WORLD)
     dset = h5f.get('data')
     if dset == None:
         raise RuntimeError("Can't find 'data' in file '{}'.\n".format(filename))

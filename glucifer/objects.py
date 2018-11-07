@@ -390,6 +390,11 @@ class CrossSection(Drawing):
                        *args, **kwargs):
 
         self._onMesh = onMesh
+        #Check the mesh has a valid vertGridId, if not then we can't use onMesh
+        #(Invalid should be -1, but is read as unsigned (4294967295) from python for some reason
+        # valid value should be small, so just treat any large integer as invalid)
+        if mesh._mesh.vertGridId > 1000 or mesh._mesh.vertGridId < 0:
+            self._onMesh = False
 
         self._fn = _underworld.function.Function.convert(fn)
         
@@ -464,8 +469,17 @@ class Surface(CrossSection):
     _objectsDict = {  "_dr"  : "lucScalarField" }
 
     def __init__(self, mesh, fn, drawSides="xyzXYZ",
-                       colourBar=True, onMesh=True,
+                       colourBar=True, onMesh=None,
                        *args, **kwargs):
+
+        if onMesh is None:
+            #Default onMesh=True for faster drawing and accuracy
+            #(Will be disabled in CrossSection if mesh does not support it)
+            onMesh = True
+            #Default onMesh=False if less than 64 nodes
+            #(Smooth/better output on interpolated mesh for low res meshes)
+            if mesh.nodesGlobal < 64 or "resolution" in kwargs:
+                onMesh = False
 
         if not isinstance(drawSides,str):
             raise ValueError("'drawSides' parameter must be of python type 'str'")
