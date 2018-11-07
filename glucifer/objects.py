@@ -472,13 +472,13 @@ class Surface(CrossSection):
                        colourBar=True, onMesh=None,
                        *args, **kwargs):
 
-        if onMesh is None and not "resolution" in kwargs:
+        if onMesh is None:
             #Default onMesh=True for faster drawing and accuracy
             #(Will be disabled in CrossSection if mesh does not support it)
             onMesh = True
             #Default onMesh=False if less than 64 nodes
             #(Smooth/better output on interpolated mesh for low res meshes)
-            if mesh.nodesGlobal < 64:
+            if mesh.nodesGlobal < 64 or "resolution" in kwargs:
                 onMesh = False
 
         if not isinstance(drawSides,str):
