@@ -3,7 +3,7 @@
 #    $  docker build -f docs/development/docker/underworld2/Dockerfile .
 
 
-FROM underworldcode/base@sha256:ad1ac7be0e5dc6b2489bac43d8e8f40e998c34d8019d2bea34935ca1ff31d23e
+FROM underworldcode/base@sha256:c9286b3dddc7a7b4c2324dc026d3e17f0c7ef7c5ad39b72e57c6351602927478
 MAINTAINER https://github.com/underworldcode/
 
 USER root
