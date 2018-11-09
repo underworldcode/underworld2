@@ -1251,11 +1251,6 @@ class FeMesh_IndexSet(uw.container.ObjectifiedIndexSet, function.FunctionInput):
 
         if self.object._cself != other.object._cself:
             raise TypeError("This operation is illegal. The meshes associated with these IndexSets appear to be different.")
-    def __call__(self, *args, **kwards):
-        raise RuntimeError("Note that if you accessed this IndexSet via a specialSet dictionary,\n"+
-                           "the interface has changed, and you should no longer call the object.\n"+
-                           "This is now handled internally. Simpy use the objects directly.\n"+
-                           "Ie, remove the '()'.")
     def _get_iterator(self):
         return libUnderworld.Function.MeshIndexSet(self._cself, self.object._cself)
 
