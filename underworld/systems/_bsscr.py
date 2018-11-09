@@ -280,8 +280,8 @@ class StokesSolver(_stgermain.StgCompoundComponent):
     _optionsStr=''
 
     def __init__(self, stokesSLE, **kwargs):
-        if not isinstance(stokesSLE, uw.systems.Stokes):
-            raise TypeError("Provided system must be of 'Stokes' class")
+        if not isinstance(stokesSLE, (uw.systems.Stokes, uw.systems.Curvilinear_Stokes)):
+            raise TypeError("Provided system must be one of the 'Stokes' classes")
 
         self.options=OptionsGroup()
         self.options.A11.ksp_rtol=1e-6

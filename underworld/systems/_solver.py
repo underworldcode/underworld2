@@ -17,7 +17,7 @@ from . import _energy_solver
 
 class Solver(_stgermain.StgCompoundComponent):
     _objectsDict = {  "_solver" : None  }
-    _selfObjectName = "_solver"    
+    _selfObjectName = "_solver"
 
     def __init__(self, **kwargs):
         super(Solver, self).__init__(**kwargs)
@@ -27,7 +27,7 @@ class Solver(_stgermain.StgCompoundComponent):
         """
         This method simply returns a necessary solver for the provided system.
         """
-        if isinstance(eqs, uw.systems.Stokes):
+        if isinstance(eqs, (uw.systems.Stokes, uw.systems.Curvilinear_Stokes)):
             return _bsscr.StokesSolver(eqs, *args, **kwargs)
         elif isinstance(eqs, (uw.systems.SteadyStateHeat, uw.utils.MeshVariable_Projection, uw.systems.SteadyStateDarcyFlow, uw.utils.SolveLinearSystem)):
             return _energy_solver.HeatSolver(eqs, *args, **kwargs)

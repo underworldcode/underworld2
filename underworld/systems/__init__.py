@@ -11,6 +11,7 @@ This module contains routines relating to differential system.
 """
 from . import sle
 from ._stokes import Stokes
+from ._curvilinear_stokes import Curvilinear_Stokes
 from ._timeintegration import TimeIntegration, SwarmAdvector
 from ._advectiondiffusion import AdvectionDiffusion, SLCN_AdvectionDiffusion
 from ._solver import Solver as _Solver
