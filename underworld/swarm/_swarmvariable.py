@@ -511,6 +511,10 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         ...     os.remove( "TESTxdmf.xdmf" )
 
         """
+        # use barrier as there are some file open operations below
+        # and we need to ensure that all procs have finished writing
+        # before we try and open any files.
+        uw.barrier()
         if uw.rank() == 0:
             if not isinstance(varname, str):
                 raise ValueError("'varname' must be of type str")
