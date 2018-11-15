@@ -49,12 +49,15 @@ RUN cd underworld2/libUnderworld && \
     rm -fr .git                                                      && \
     chown -R $NB_USER:users $NB_WORK $UW2_DIR /home/$NB_USER
 
-RUN pip3 install --no-cache-dir git+https://github.com/underworldcode/UWGeodynamics.git && \
+RUN git clone https://github.com/underworldcode/UWGeodynamics.git && \
+    pip3 install --no-cache-dir UWGeodynamics/ && \
     mkdir /workspace/UWGeodynamics && \
-    mv /opt/UWGeodynamics/examples /workspace/UWGeodynamics/. && \
-    mv /opt/UWGeodynamics/tutorials /workspace/UWGeodynamics/. && \
-    mv /opt/UWGeodynamics/benchmarks /workspace/UWGeodynamics/. && \
-    mv /opt/UWGeodynamics/docs /workspace/UWGeodynamics/
+    mv ./UWGeodynamics/examples /workspace/UWGeodynamics/. && \
+    mv ./UWGeodynamics/tutorials /workspace/UWGeodynamics/. && \
+    mv ./UWGeodynamics/benchmarks /workspace/UWGeodynamics/. && \
+    mv ./UWGeodynamics/docs /workspace/UWGeodynamics/ && \
+    rm -rf UWGeodynamics && \
+    chown -R $NB_USER:users /workspace/$NB_USER
 
 # expose glucifer port
 EXPOSE 9999
