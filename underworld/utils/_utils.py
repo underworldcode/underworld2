@@ -245,7 +245,7 @@ def _swarmspacetimeschema( swarmSavedData, swarmname, time ):
     refName = os.path.basename(swarmSavedData.filename)
 
     # get swarm parameters - serially read from hdf5 file to get size
-    h5f = h5py.File(name=filename, mode="r", driver="mpio", comm=MPI.COMM_WORLD)
+    h5f = h5py.File(name=filename, mode="r")
     dset = h5f.get('data')
     if dset == None:
         raise RuntimeError("Can't find 'data' in file '{}'.\n".format(filename))
@@ -368,8 +368,7 @@ def _swarmvarschema( varSavedData, varname ):
     refName = os.path.basename(varSavedData.filename)
 
     # set parameters - serially open the varfilename
-    h5f = h5py.File(name=varfilename, mode="r", driver="mpio",
-                    comm=MPI.COMM_WORLD)
+    h5f = h5py.File(name=varfilename, mode="r")
     dset = h5f.get('data')
     if dset == None:
         raise RuntimeError("Can't find 'data' in file '{}'.\n".format(filename))
