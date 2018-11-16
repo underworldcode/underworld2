@@ -57,7 +57,7 @@ RUN git clone https://github.com/underworldcode/UWGeodynamics.git && \
     mv ./UWGeodynamics/benchmarks /workspace/UWGeodynamics/. && \
     mv ./UWGeodynamics/docs /workspace/UWGeodynamics/ && \
     rm -rf UWGeodynamics && \
-    chown -R $NB_USER:users /workspace/$NB_USER
+    chown -R $NB_USER:users /workspace/UWGeodynamics
 
 # expose glucifer port
 EXPOSE 9999
