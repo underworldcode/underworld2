@@ -68,7 +68,7 @@
 	void _MatrixAssemblyTerm_RotationDof_Delete( void* matrixTerm );
 
   void AXequalsY( StiffnessMatrix* Amat, SolutionVector* x, SolutionVector* y, Bool transpose );
-  void AXequalsX( StiffnessMatrix* Amat, SolutionVector* x, Bool transpose );
+  PetscErrorCode AXequalsX( StiffnessMatrix* Amat, SolutionVector* x, Bool transpose );
 
 	void* _MatrixAssemblyTerm_RotationDof_DefaultNew( Name name );
 

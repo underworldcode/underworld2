@@ -149,26 +149,32 @@ void AXequalsY( StiffnessMatrix* a, SolutionVector* x, SolutionVector* y, Bool t
   FeVariable_SyncShadowValues( y->feVariable );
 }
 
-void AXequalsX( StiffnessMatrix* a, SolutionVector* x, Bool transpose ) {
+PetscErrorCode AXequalsX( StiffnessMatrix* a, SolutionVector* x, Bool transpose ) {
   Mat Amat;
   Vec X, Y;
+  PetscErrorCode ierr;
 
+  PetscFunctionBeginUser;
   Amat = a->matrix;
   X    = x->vector;
   // create Y, duplicate vector of X
   VecDuplicate(X, &Y);
   VecCopy(X,Y);
 
-  if (transpose)
-    MatMultTranspose(Amat,X,Y);
-  else
-    MatMult(Amat,X,Y);
+  if (transpose) {
+    ierr = MatMultTranspose(Amat,X,Y);
+  } else {
+    ierr = MatMult(Amat,X,Y);
+  }
+  // check for non-zero error code manually
+  Journal_Firewall(ierr==0, NULL, "Error in AXequalsX(), see terminal command line\n");
 
   VecCopy(Y, X);
   VecDestroy(&Y);
 
   SolutionVector_UpdateSolutionOntoNodes( x );
   FeVariable_SyncShadowValues( x->feVariable );
+  PetscFunctionReturn(0);
 }
 
 void _MatrixAssemblyTerm_RotationDof_AssembleElement(

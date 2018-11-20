@@ -639,7 +639,7 @@ void SystemLinearEquations_SetCallback( void* sle, PyObject* func) {
   else {
     // check if it's callable
     if(!PyCallable_Check(func)){
-      PyErr_SetString( PyExc_ValueError, "The callback function can't be called, please check if it's valid");
+      Journal_Firewall(0, NULL, "The callback function can't be called, please check if it's valid");
     }
     self->solver_callback = func;
   }                
@@ -654,7 +654,7 @@ void SystemLinearEquations_UpdateSolutionOntoNodes( void* sle, void* _context ) 
    if( self->solver_callback ) {
      if(!PyObject_CallObject(self->solver_callback, NULL )) {
        // check if callback execution failed
-       PyErr_SetString( PyExc_RuntimeError, "Failed to execute the callback function, please check if it's valid");
+       Journal_Firewall(0, NULL, "Failed to execute the callback function, please check if it's valid\n" );
      }
    }
 }
