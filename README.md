@@ -25,7 +25,7 @@ API documentation is available at http://underworld2.readthedocs.io/
 
 
 Underworld Docker Usage
-------------
+-----------------------
 Most new users may wish to use the Kitematic GUI to download and run Underworld. Simply search for 'underworldcode/underworld2' within Kitematic, and then click 'CREATE' to launch a container. You will eventually wish to modify your container settings (again through Kitematic) to enable local folder volume mapping, which will allow you to access your local drives within your container. 
 
 For Linux users, and those who prefer the command line, the following minimal command should be sufficient to access the Underworld2 Jupyter Notebook examples: 
@@ -34,6 +34,13 @@ For Linux users, and those who prefer the command line, the following minimal co
    docker run -p 8888:8888 underworldcode/underworld2
 ```
 
+Directories
+-----------
+- **underworld**                 - Underworld python modules.
+- **glucifer**                   - gLucifer python modules.
+- **docs**                       - Various documentation.
+- **utils**                      - Utility files.
+- **libUnderworld**              - Backend library
 
 Privacy
 -------
