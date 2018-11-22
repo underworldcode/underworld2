@@ -39,7 +39,6 @@ Directories
 - **underworld**                 - Underworld python modules.
 - **glucifer**                   - gLucifer python modules.
 - **docs**                       - Various documentation.
-- **utils**                      - Utility files.
 - **libUnderworld**              - Backend library
 
 Privacy

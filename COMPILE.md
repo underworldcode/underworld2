@@ -1,17 +1,22 @@
 Underworld 2 Compilation
 ========================
 
+Note that for most personal computer usage, we recommend using Underworld
+through a Docker container environment. See README.md for details. 
+
+For HPC usage, you will generally need to compile Underworld, though we 
+support Shifter where available (check with the HPC admins). Basic compilation
+information is below, though please submit a github issue if you have have
+difficulties. 
+
 Dependencies
 -------------
   * MPI
   * PETSc 
   * numpy
-  * libpng
   * swig
-  * libhdf5-mpi
-  * h5py-mpi (optional)
+  * h5py-mpi
 
-Note that h5py (as installed via pip) is usually not parallel enabled. If you have an installation of libhdf5 (parallel), Underworld will attempted to download and build its own h5py during the configuration stage. If you appear to be having difficulties with h5py, it is often useful to try and import it directly from the top underworld level. 
 
 Getting the code
 ----------------
@@ -28,9 +33,7 @@ We periodically post build recipes for particular platforms on the [underworld b
 ```bash
     $ cd libUnderworld
     $ ./configure.py
-    $ ./scons.py
-    $ cd libUnderworldPy ; ./swigall.py ; cd ../
-    $ ./scons.py
+    $ ./compile.py
 ```
 
 Check available configuration options using `./configure.py --help`.  
@@ -44,6 +47,4 @@ You will first need to make the project directory available to import within pyt
     $ export PYTHONPATH=$PYTHONPATH:/top/directory/of/project
 ```
 (note that if you are not using the bash shell, the required command will be different.)
-
-Various example files are provided in the `docs` directory in either ipython notebook format or in python format.
 
