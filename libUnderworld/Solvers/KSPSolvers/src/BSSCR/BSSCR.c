@@ -291,24 +291,20 @@ PetscErrorCode KSPSetFromOptions_BSSCR(KSP ksp)
     PetscFunctionReturn(0);
 }
 #else
-PetscErrorCode KSPSetFromOptions_BSSCR(Stg_PetscOptions *Object, KSP ksp)
+PetscErrorCode KSPSetFromOptions_BSSCR(Stg_PetscOptions *PetscOptionsObject, KSP ksp)
 {
 
     PetscTruth  flg;
     KSP_BSSCR  *bsscr = (KSP_BSSCR *)ksp->data;
     PetscErrorCode ierr;
     PetscFunctionBegin;
-    PetscOptionItems *PetscOptionsObject;
-
     ierr = PetscOptionsHead(PetscOptionsObject,"KSP BSSCR options");CHKERRQ(ierr);
     /* if this ksp has a prefix "XXX_" it will be automatically added to the options. e.g. -ksp_test -> -XXX_ksp_test */
     /* ierr = PetscOptionsTruth("-ksp_test","Test KSP flag","nil",PETSC_FALSE,&test,PETSC_NULL);CHKERRQ(ierr); */
     /* if(test){ PetscPrintf( PETSC_COMM_WORLD,  "\n\n-----  test flag set  ------\n\n"); } */
     ierr = PetscOptionsEnum("-ksp_k2_type","Augmented Lagrangian matrix type","",K2Types, bsscr->k2type,(PetscEnum*)&bsscr->k2type,&flg);CHKERRQ(ierr);
     //if(flg){  PetscPrintf( PETSC_COMM_WORLD,  "-----  k2 type is  ------\n"); }
-
-    ierr = PetscOptionsTail();
-    CHKERRQ(ierr);
+    ierr = PetscOptionsTail();CHKERRQ(ierr);
     PetscFunctionReturn(0);
 }
 #endif
