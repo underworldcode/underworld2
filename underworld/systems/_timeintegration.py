@@ -121,14 +121,14 @@ class SwarmAdvector(TimeIntegration):
         dt: double
             The timestep to use in the intergration
         update_owners: bool
-            If this is set to False, particle ownership (which element owns a 
-            particular particle) is not updated after advection. This is often 
-            necessary when both the mesh and particles are advecting 
-            simutaneously.
+            If this is set to False, particle ownership (which element owns a
+            particular particle) is not updated after advection. This is often
+            necessary when both the mesh and particles are advecting
+            simultaneously.
 
         Example
         -------
-        
+
         >>> import underworld as uw
         >>> import numpy as np
         >>> import numpy.testing as npt
@@ -153,5 +153,6 @@ class SwarmAdvector(TimeIntegration):
         # this check isn't necessary, but good. possibly get rid.
         libUnderworld.StgDomain.Swarm_CheckCoordsAreFinite( self._integrand.swarm );
         # Move particles across processors because they've just been advected
+        
         if update_owners:
             self._swarm.update_particle_owners()

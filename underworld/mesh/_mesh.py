@@ -659,10 +659,14 @@ class MeshGenerator(_stgermain.StgCompoundComponent):
     _objectsDict = { "_gen": None }
     _selfObjectName = "_gen"
 
-    def __init__(self, partitioned=True, **kwargs):
+    def __init__(self, partitioned=True, shadowDepth=1, **kwargs):
         if not isinstance(partitioned,bool):
             raise TypeError("'partitioned' parameter must be of type 'bool'.")
         self._partitioned = partitioned
+
+        if not isinstance(shadowDepth,int):
+            raise TypeError("'shadowDepth' parameter must be of type 'int'.")
+        self._shadowDepth = shadowDepth
         # build parent
         super(MeshGenerator,self).__init__(**kwargs)
 
@@ -688,6 +692,8 @@ class MeshGenerator(_stgermain.StgCompoundComponent):
         super(MeshGenerator,self)._add_to_stg_dict(componentDictionary)
 
         componentDictionary[self._gen.name]["partitioned"] = self._partitioned
+        componentDictionary[self._gen.name]["shadowDepth"] = self._shadowDepth
+
 
 class CartesianMeshGenerator(MeshGenerator):
     """
@@ -913,6 +919,7 @@ class TemplatedMeshGenerator(MeshGenerator):
         super(TemplatedMeshGenerator,self)._add_to_stg_dict(componentDictionary)
         componentDictionary[self._gen.name]["elementMesh"] = self.geometryMesh._cself.name
 
+
 class LinearInnerGenerator(TemplatedMeshGenerator):
     """
     This class provides the algorithms to generate a 'dPc1' mesh.
@@ -1073,7 +1080,7 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
     _meshGenerator = [ "C2Generator", "CartesianGenerator" ]
     _objectsDict = { "_gen": None }  # this is set programmatically in __new__
 
-    def __new__(cls, elementType="Q1/dQ0", elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.), periodic=None, partitioned=True, **kwargs):
+    def __new__(cls, elementType="Q1/dQ0", elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.), periodic=None, partitioned=True, shadowDepth=1, **kwargs):
         # This class requires a custom __new__ so that we can decide which
         # type of generator is required dynamically
 
@@ -1113,7 +1120,7 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
         return super(FeMesh_Cartesian,cls).__new__(cls, objectsDictOverrule=overruleDict, **kwargs)
 
 
-    def __init__(self, elementType="Q1/dQ0", elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.), periodic=None, partitioned=True, **kwargs):
+    def __init__(self, elementType="Q1/dQ0", elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.), periodic=None, partitioned=True, shadowDepth=1, **kwargs):
 
         if isinstance(elementType, str):
             # convert to tuple to make things easier
@@ -1122,7 +1129,8 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
 
         self._elementTypes = elementType
         # ok, lets go ahead and build primary mesh (ie, self)
-        super(FeMesh_Cartesian,self).__init__(elementType=elementType[0], elementRes=elementRes, minCoord=minCoord, maxCoord=maxCoord, periodic=periodic, partitioned=partitioned, **kwargs)
+        super(FeMesh_Cartesian,self).__init__(elementType=elementType[0], elementRes=elementRes, minCoord=minCoord,
+                                             maxCoord=maxCoord, periodic=periodic, partitioned=partitioned, shadowDepth=shadowDepth, **kwargs)
 
         # lets add the special sets
         self.specialSets["MaxI_VertexSet"] = _specialSets_Cartesian.MaxI_VertexSet

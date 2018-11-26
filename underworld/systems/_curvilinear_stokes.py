@@ -294,7 +294,7 @@ class Curvilinear_Stokes(_stgermain.StgCompoundComponent):
         super(Curvilinear_Stokes, self).__init__(**kwargs)
 
         for cond in self._conditions:
-            if isinstance( cond, uw.conditions.RotatedDirichletCondition):
+            if isinstance( cond, (uw.conditions.RotatedDirichletCondition, uw.conditions.CurvilinearDirichletCondition) ):
                 self.redefineVelocityDirichletBC(cond.basis_vectors)
 
     def _add_to_stg_dict(self,componentDictionary):
@@ -334,6 +334,7 @@ class Curvilinear_Stokes(_stgermain.StgCompoundComponent):
         mesh = self._velocityField.mesh
 
         # build 'vns' (the velocity null space) MeshVariable and SolutionVector
+
         vnsField = self._vnsField = self._velocityField.copy()
         vnsEqNum = uw.systems.sle.EqNumber( vnsField, False )
         self._vnsVec = uw.systems.sle.SolutionVector(vnsField, vnsEqNum) # store on class
@@ -378,9 +379,11 @@ class Curvilinear_Stokes(_stgermain.StgCompoundComponent):
         property.
         """
         return self._constitMatTerm.fn_visc1
+
     @fn_viscosity.setter
     def fn_viscosity(self, value):
         self._constitMatTerm.fn_visc1 = value
+        return
 
     @property
     def fn_bodyforce(self):
@@ -393,6 +396,7 @@ class Curvilinear_Stokes(_stgermain.StgCompoundComponent):
     @fn_bodyforce.setter
     def fn_bodyforce(self, value):
         self._forceVecTerm.fn = value
+        return
 
     def addRotationMatrix(self, rMat):
         if rMat:
@@ -401,6 +405,7 @@ class Curvilinear_Stokes(_stgermain.StgCompoundComponent):
             self.rMat = rMat;
             # hack that should work
             self._cself.rMat = rMat._cself
+        return
 
     # define getter and setter decorators for fn_minus_one_on_lambda - will be conditionally available to users
     @property

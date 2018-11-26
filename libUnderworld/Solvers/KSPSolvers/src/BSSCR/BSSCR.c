@@ -17,6 +17,7 @@
 #include <petscpc.h>
 #include <petscsnes.h>
 
+
 #include <petscversion.h>
 #if ( (PETSC_VERSION_MAJOR >= 3) && (PETSC_VERSION_MINOR >=3) )
   #if (PETSC_VERSION_MINOR >=6)
@@ -50,6 +51,7 @@ EXTERN_C_END
 
 PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec stokes_b, Mat approxS,
                                     MatStokesBlockScaling BA, PetscTruth sym, KSP_BSSCR * bsscrp_self );
+
 PetscErrorCode BSSCR_DRIVER_flex( KSP ksp, Mat stokes_A, Vec stokes_x, Vec stokes_b, Mat approxS, KSP ksp_K,
                                   MatStokesBlockScaling BA, PetscTruth sym, KSP_BSSCR * bsscrp_self );
 
@@ -220,7 +222,7 @@ PetscErrorCode  KSPSolve_BSSCR(KSP ksp)
     /**********************************************************/
     /******* SOLVE!! ******************************************/
     /**********************************************************/
-    
+
     flg = PETSC_FALSE;
     augment = PETSC_TRUE;
     PetscOptionsGetTruth(PETSC_NULL, "-augmented_lagrangian", &augment, &flg);
@@ -289,20 +291,24 @@ PetscErrorCode KSPSetFromOptions_BSSCR(KSP ksp)
     PetscFunctionReturn(0);
 }
 #else
-PetscErrorCode KSPSetFromOptions_BSSCR(Stg_PetscOptions *PetscOptionsObject, KSP ksp)
+PetscErrorCode KSPSetFromOptions_BSSCR(Stg_PetscOptions *Object, KSP ksp)
 {
 
     PetscTruth  flg;
     KSP_BSSCR  *bsscr = (KSP_BSSCR *)ksp->data;
     PetscErrorCode ierr;
     PetscFunctionBegin;
+    PetscOptionItems *PetscOptionsObject;
+
     ierr = PetscOptionsHead(PetscOptionsObject,"KSP BSSCR options");CHKERRQ(ierr);
     /* if this ksp has a prefix "XXX_" it will be automatically added to the options. e.g. -ksp_test -> -XXX_ksp_test */
     /* ierr = PetscOptionsTruth("-ksp_test","Test KSP flag","nil",PETSC_FALSE,&test,PETSC_NULL);CHKERRQ(ierr); */
     /* if(test){ PetscPrintf( PETSC_COMM_WORLD,  "\n\n-----  test flag set  ------\n\n"); } */
     ierr = PetscOptionsEnum("-ksp_k2_type","Augmented Lagrangian matrix type","",K2Types, bsscr->k2type,(PetscEnum*)&bsscr->k2type,&flg);CHKERRQ(ierr);
     //if(flg){  PetscPrintf( PETSC_COMM_WORLD,  "-----  k2 type is  ------\n"); }
-    ierr = PetscOptionsTail();CHKERRQ(ierr);
+
+    ierr = PetscOptionsTail();
+    CHKERRQ(ierr);
     PetscFunctionReturn(0);
 }
 #endif
@@ -416,6 +422,7 @@ PetscErrorCode PETSCKSP_DLLEXPORT KSPCreate_BSSCR(KSP ksp)
     ksp->ops->buildresidual        = KSPDefaultBuildResidual;
 
 //    bsscr->k2type=K2_GMG;
+
     bsscr->k2type      = 0;
     bsscr->do_scaling  = PETSC_FALSE;
     bsscr->scaled      = PETSC_FALSE;

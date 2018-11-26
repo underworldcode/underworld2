@@ -342,7 +342,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         nonLinearMaxIterations: int, Default=500
             Maximum number of non linear iteration to perform
 
-        callback_post_sovle: func, Default=None
+        callback_post_solve: func, Default=None
             Optional callback function to be performed at the end of a linear solve iteration.
             Commonly this will be used to perform operations between non linear iterations, for example,
             calibrating the pressure solution or removing the system null space.
@@ -365,6 +365,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
                 self.options.main.ksp_k2_type = "GMG"
 
         # if user provided callback_post_solve then use it, else use stokes system
+
         if callback_post_solve is not None:
             if not callable(callback_post_solve):
                 raise RuntimeError("The 'callback_post_solve' parameter is not 'None' and isn't callable")
@@ -403,7 +404,6 @@ class StokesSolver(_stgermain.StgCompoundComponent):
 
         else:
             libUnderworld.StgFEM.SystemLinearEquations_SetToNonLinear(self._stokesSLE._cself, False )
-
 
 
         if self._stokesSLE._swarm and reinitialise:
@@ -757,9 +757,9 @@ class StokesSolver(_stgermain.StgCompoundComponent):
             print( "Velocity setup time: %.4e (backsolve)" %(self._cself.stats.velocity_backsolve_setup_time) )
             print( "Velocity solve time: %.4e (backsolve)" %(self._cself.stats.velocity_backsolve_time) )
             print( "Total solve time   : %.4e" %(self._cself.stats.total_time) )
-            print( " " )
-            print( "Velocity solution min/max: %.4e/%.4e" % (self._cself.stats.vmin,self._cself.stats.vmax) )
-            print( "Pressure solution min/max: %.4e/%.4e" % (self._cself.stats.pmin,self._cself.stats.pmax) )
+            # print( " " )
+            # print( "Velocity solution min/max: %.4e/%.4e" % (self._cself.stats.vmin,self._cself.stats.vmax) )
+            # print( "Pressure solution min/max: %.4e/%.4e" % (self._cself.stats.pmin,self._cself.stats.pmax) )
             print( " " )
             print(endcol)
 

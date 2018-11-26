@@ -37,6 +37,9 @@
 #include "summary.h"
 #include "ksp_pressure_nullspace.h"
 
+#include <math.h>
+
+
 #define BSSCR_GetPetscMatrix( matrix ) ( (Mat)(matrix) )
 #define BSSCR_GetPetscVector( vector ) ( (Vec)(vector) )
 
@@ -80,7 +83,6 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
     MGContext mgCtx;
     double mgSetupTime, problemBuildTime, scrSolveTime, RHSSolveTime, a11SingleSolveTime, penaltyNumber;// hFactor;
     double backsolveSetupTime, scrSetupTime, RHSSetupTime;
-    int been_here = bsscrp_self->been_here;
 
     char name[PETSC_MAX_PATH_LEN];
     char suffix[PETSC_MAX_PATH_LEN];
@@ -107,6 +109,7 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
     /* get sub matrix / vector objects */
     /* note that here, the matrix D should always exist. It is set up in  _StokesBlockKSPInterface_Solve in StokesBlockKSPInterface.c */
     /* now extract K,G etc from a MatNest object */
+
     MatNestGetSubMat( stokes_A, 0,0, &K );
     MatNestGetSubMat( stokes_A, 0,1, &G );
     MatNestGetSubMat( stokes_A, 1,0, &D );if(!D){ PetscPrintf( PETSC_COMM_WORLD, "D does not exist but should!!\n"); exit(1); }
@@ -144,8 +147,6 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
       D = Dr;
       f = fr;
     }
-    // Try this ...
-    // MatMPIAIJSetPreallocation(K, 375 ,PETSC_NULL, 375, PETSC_NULL);
 
     PetscPrintf( PETSC_COMM_WORLD, "AUGMENTED LAGRANGIAN K2 METHOD " );
     PetscPrintf( PETSC_COMM_WORLD, "- Penalty = %f\n\n", bsscrp_self->solver->penaltyNumber );
@@ -258,28 +259,29 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
     KSPSetFromOptions( ksp_inner );
     Stg_KSPSetOperators(ksp_inner, K, K, DIFFERENT_NONZERO_PATTERN);
 
-    useNormInfStoppingConditions = PETSC_FALSE;
-    PetscOptionsGetTruth( PETSC_NULL ,"-A11_use_norm_inf_stopping_condition", &useNormInfStoppingConditions, &found );
-    if(useNormInfStoppingConditions)
-        BSSCR_KSPSetNormInfConvergenceTest( ksp_inner );
-
-    useNormInfMonitor = PETSC_FALSE;
-    PetscOptionsGetTruth( PETSC_NULL, "-A11_ksp_norm_inf_monitor", &useNormInfMonitor, &found );
-    if(useNormInfMonitor)  KSPMonitorSet( ksp_inner, BSSCR_KSPNormInfMonitor, PETSC_NULL, PETSC_NULL );
-
-    useNormInfMonitor = PETSC_FALSE;
-    PetscOptionsGetTruth( PETSC_NULL, "-A11_ksp_norm_inf_to_norm_2_monitor", &useNormInfMonitor, &found );
-    if(useNormInfMonitor)  KSPMonitorSet( ksp_inner, BSSCR_KSPNormInfToNorm2Monitor, PETSC_NULL, PETSC_NULL );
+    // useNormInfStoppingConditions = PETSC_FALSE;
+    // PetscOptionsGetTruth( PETSC_NULL ,"-A11_use_norm_inf_stopping_condition", &useNormInfStoppingConditions, &found );
+    // if(useNormInfStoppingConditions)
+    //     BSSCR_KSPSetNormInfConvergenceTest( ksp_inner );
+    //
+    // useNormInfMonitor = PETSC_FALSE;
+    // PetscOptionsGetTruth( PETSC_NULL, "-A11_ksp_norm_inf_monitor", &useNormInfMonitor, &found );
+    // if(useNormInfMonitor)  KSPMonitorSet( ksp_inner, BSSCR_KSPNormInfMonitor, PETSC_NULL, PETSC_NULL );
+    //
+    // useNormInfMonitor = PETSC_FALSE;
+    // PetscOptionsGetTruth( PETSC_NULL, "-A11_ksp_norm_inf_to_norm_2_monitor", &useNormInfMonitor, &found );
+    // if(useNormInfMonitor)  KSPMonitorSet( ksp_inner, BSSCR_KSPNormInfToNorm2Monitor, PETSC_NULL, PETSC_NULL );
 
     usePreviousGuess = PETSC_FALSE;
-//    if(been_here)
-//        PetscOptionsGetTruth( PETSC_NULL, "-scr_use_previous_guess", &usePreviousGuess, &found );
-    /***************************************************************************************************************/
+    //if(bsscrp_self->been_here)
+    PetscOptionsGetTruth( PETSC_NULL, "-scr_use_previous_guess", &usePreviousGuess, &found );
 
+    bsscrp_self->been_here++;
 
     /***************************************************************************************************************/
     /***************************************************************************************************************/
     /* If multigrid is enabled, set it now. */
+
     change_A11rhspresolve = PETSC_FALSE;
     PetscOptionsGetTruth( PETSC_NULL, "-change_A11rhspresolve", &change_A11rhspresolve, &found );
 
@@ -288,6 +290,7 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
     /***************************************************************************************************************/
     /* create right hand side */
 
+    /* Problem with this is that it does not actually get the MG setup properly (LM - 2018) */
     if(change_A11rhspresolve){
       KSPCreate(PETSC_COMM_WORLD, &ksp_new_inner);
       Stg_KSPSetOperators(ksp_new_inner, K, K, DIFFERENT_NONZERO_PATTERN);
@@ -320,6 +323,7 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
 //    }
 
 
+
     RHSSetupTime = MPI_Wtime();
     KSPSetUp(ksp_inner);
     RHSSetupTime = MPI_Wtime() - RHSSetupTime;
@@ -341,6 +345,7 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
 
     /*************************************/
     /*************************************/
+
 
 
 
@@ -369,36 +374,44 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
     }
 
     Stg_KSPSetOperators( ksp_S, S, S, SAME_NONZERO_PATTERN );
-    KSPSetType( ksp_S, "cg" );
+    KSPSetType( ksp_S, "fgmres" );
     KSPGetPC( ksp_S, &pc_S );
     BSSCR_BSSCR_StokesCreatePCSchur2( K,G,D,C,approxS, pc_S, sym, bsscrp_self );
 
-    flg=0;
-    PetscOptionsGetString( PETSC_NULL, "-NN", name, PETSC_MAX_PATH_LEN-1, &flg );
-    if(flg){
-      Mat Smat, Pmat;
-      //MatStructure mstruct;
-      Stg_PCGetOperators( pc_S, &Smat, &Pmat, NULL );
-      sprintf(str,"%s/Pmat%s",name, suffix);
-      bsscr_writeMat( Pmat, str, "Writing Pmat matrix in al Solver");
-    }
+    // flg=0;
+    // PetscOptionsGetString( PETSC_NULL, "-NN", name, PETSC_MAX_PATH_LEN-1, &flg );
+    // if(flg){
+    //   Mat Smat, Pmat;
+    //   //MatStructure mstruct;
+    //   Stg_PCGetOperators( pc_S, &Smat, &Pmat, NULL );
+    //   sprintf(str,"%s/Pmat%s",name, suffix);
+    //   bsscr_writeMat( Pmat, str, "Writing Pmat matrix in al Solver");
+    // }
 
-    uzawastyle=PETSC_FALSE;
-    PetscOptionsGetTruth( PETSC_NULL, "-uzawa_style", &uzawastyle, &found );
-    if(uzawastyle){
-        /* now want to set up the ksp_S->pc to be of type ksp (gmres) by default to match Uzawa */
-        KSP pc_ksp;
-        KSPGetPC( ksp_S, &pc_S );
-        PCSetType(pc_S,PCKSP);
-        PCKSPGetKSP( pc_S, &pc_ksp);
-        KSPSetType(pc_ksp, "gmres" );
-        KSPSetOptionsPrefix( pc_ksp, "scrPCKSP_");
-        KSPSetFromOptions( pc_ksp );
-    }
+    // uzawastyle=PETSC_FALSE;
+    // PetscOptionsGetTruth( PETSC_NULL, "-uzawa_style", &uzawastyle, &found );
+    // if(uzawastyle){
+    //     /* now want to set up the ksp_S->pc to be of type ksp (gmres) by default to match Uzawa */
+    //     KSP pc_ksp;
+    //     KSPGetPC( ksp_S, &pc_S );
+    //     PCSetType(pc_S,PCKSP);
+    //     PCKSPGetKSP( pc_S, &pc_ksp);
+    //     KSPSetType(pc_ksp, "gmres" );
+    //     KSPSetOptionsPrefix( pc_ksp, "scrPCKSP_");
+    //     KSPSetFromOptions( pc_ksp );
+    // }
 
     KSPSetFromOptions( ksp_S );
     /* Set specific monitor test */
     KSPGetTolerances( ksp_S, PETSC_NULL, PETSC_NULL, PETSC_NULL, &max_it );
+
+    /* Here is an opportunity to lessen the tolerance on ksp_inner */
+
+    PetscReal ksp_inner_rtol, ksp_scr_rtol;
+    KSPGetTolerances(ksp_inner, &ksp_inner_rtol, (PetscReal *) NULL, (PetscReal *) NULL, (PetscInt *) NULL);
+    KSPGetTolerances(ksp_S, &ksp_scr_rtol, (PetscReal *) NULL, (PetscReal *) NULL, (PetscInt *) NULL);
+    KSPSetTolerances(ksp_inner, ksp_scr_rtol * 0.5, PETSC_DEFAULT, PETSC_DEFAULT, PETSC_DEFAULT); // better to just grab these and keep them
+
 
     if(usePreviousGuess) {   /* Note this should actually look at checkpoint information */
         KSPSetInitialGuessNonzero( ksp_S, PETSC_TRUE ); }
@@ -413,15 +426,15 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
     /***************************************************************************************************************/
     /*******     SET CONVERGENCE TESTS     *************************************************************************/
 
-    useNormInfStoppingConditions = PETSC_FALSE;
-    PetscOptionsGetTruth( PETSC_NULL ,"-scr_use_norm_inf_stopping_condition", &useNormInfStoppingConditions, &found );
-    if(useNormInfStoppingConditions)
-        BSSCR_KSPSetNormInfConvergenceTest(ksp_S);
-
-    useNormInfMonitor = PETSC_FALSE;
-    PetscOptionsGetTruth( PETSC_NULL, "-scr_ksp_norm_inf_monitor", &useNormInfMonitor, &found );
-    if(useNormInfMonitor)
-        KSPMonitorSet( ksp_S, BSSCR_KSPNormInfToNorm2Monitor, PETSC_NULL, PETSC_NULL );
+    // useNormInfStoppingConditions = PETSC_FALSE;
+    // PetscOptionsGetTruth( PETSC_NULL ,"-scr_use_norm_inf_stopping_condition", &useNormInfStoppingConditions, &found );
+    // if(useNormInfStoppingConditions)
+    //     BSSCR_KSPSetNormInfConvergenceTest(ksp_S);
+    //
+    // useNormInfMonitor = PETSC_FALSE;
+    // PetscOptionsGetTruth( PETSC_NULL, "-scr_ksp_norm_inf_monitor", &useNormInfMonitor, &found );
+    // if(useNormInfMonitor)
+    //     KSPMonitorSet( ksp_S, BSSCR_KSPNormInfToNorm2Monitor, PETSC_NULL, PETSC_NULL );
 
     /***************************************************************************************************************/
     /***************************************************************************************************************/
@@ -461,10 +474,42 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
     bsscrp_self->solver->stats.velocity_pressuresolve_setup_time = scrSetupTime;
 
     /** Pressure Solve **/
-    if(get_flops) PetscGetFlops(&flopsA);
+    if(get_flops)
+        PetscGetFlops(&flopsA);
+
+    /* We can loop here with increasingly aggressive tolerance */
+
     scrSolveTime = MPI_Wtime();
-    KSPSolve( ksp_S, h_hat, p );
+    KSPSetInitialGuessNonzero( ksp_S, PETSC_FALSE );
+    KSPSetInitialGuessNonzero( ksp_inner, PETSC_FALSE );
+
+    int i;
+    int sub_its=1;
+    PetscReal sub_it_rtol=1.0;
+    float rtol;
+
+    PetscOptionsGetInt(  PETSC_NULL,"-scr_ksp_sub_iterations", &sub_its, &found);
+    PetscOptionsGetReal( PETSC_NULL, PETSC_NULL, "-scr_ksp_sub_iteration_rtol", &sub_it_rtol, &found);
+
+    for(i=sub_its;i>=1;i--) {
+        rtol = ksp_inner_rtol * pow(sub_it_rtol, (float)(i-1));
+        KSPSetTolerances(ksp_inner, rtol, PETSC_DEFAULT, PETSC_DEFAULT, PETSC_DEFAULT);
+        KSPSetTolerances(ksp_S,     rtol, PETSC_DEFAULT, PETSC_DEFAULT, PETSC_DEFAULT);
+
+        KSPSolve( ksp_S, h_hat, p );
+        KSPSetInitialGuessNonzero( ksp_S, PETSC_TRUE );
+        // KSPSetInitialGuessNonzero( ksp_inner, PETSC_TRUE );
+        // fprintf(stderr,"Subloop %d / %f", i, rtol);
+    }
+
+    KSPSetInitialGuessNonzero( ksp_S, PETSC_FALSE );
+    KSPSetInitialGuessNonzero( ksp_inner, PETSC_FALSE );
+
+
+    // KSPSolve( ksp_S, h_hat, p );
+
     scrSolveTime =  MPI_Wtime() - scrSolveTime;
+
 
 
     KSPGetConvergedReason( ksp_S, &reason ); {if (reason < 0) bsscrp_self->solver->outer_reason=(int)reason; }
@@ -483,7 +528,7 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
     if(get_flops) {
       PetscGetFlops(&flopsB);
       bsscrp_self->solver->stats.pressure_flops=(double)(flopsB-flopsA); }
-    //PetscPrintf( PETSC_COMM_WORLD, "\n\t* KSPSolve( ksp_S, h_hat, p )  Solve Finished in time: %lf seconds\n\n", scrSolveTime);
+
     bsscrp_self->solver->stats.pressure_time=scrSolveTime;
 
     /***************************************/
@@ -516,7 +561,9 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
             KisJustK=PETSC_TRUE;
         }
     }
-    if(f3){ Stg_VecDestroy(&f3 ); } /* always destroy this local vector if was created */
+    if(f3){
+      Stg_VecDestroy(&f3 );
+    } /* always destroy this local vector if was created */
 
     /* obtain solution for u */
 
@@ -526,8 +573,12 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
 
     MatSchurComplementGetKSP( S, &ksp_inner );
     a11SingleSolveTime = MPI_Wtime();           /* ----------------------------------  Final V Solve */
+
     if(usePreviousGuess)
         KSPSetInitialGuessNonzero( ksp_inner, PETSC_TRUE );
+
+    /* restore the tolerance on ksp_inner */
+    KSPSetTolerances(ksp_inner, ksp_inner_rtol, PETSC_DEFAULT, PETSC_DEFAULT, PETSC_DEFAULT);
 
     /***************************************************************************************************************/
     /***************************************************************************************************************/
@@ -573,18 +624,16 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
                                                     bsscrp_self->solver->stats.velocity_presolve_its +
                                                     bsscrp_self->solver->stats.velocity_pressuresolve_its;
 
-    flg=0;
-
-    PetscOptionsGetString( PETSC_NULL, "-solutiondumpdir", name, PETSC_MAX_PATH_LEN-1, &flg );
-    if(flg){
-        sprintf(str,"%s/p%s",name,suffix);
-        bsscr_writeVec( p, str, "Writing p vector in al Solver");
-        sprintf(str,"%s/u%s",name, suffix);
-        bsscr_writeVec( u, str, "Writing u vector in al Solver");
-        sprintf(str,"%s/h_hat%s",name,suffix);
-        bsscr_writeVec( h_hat, str, "Writing h_hat vector in al Solver");
-
-    }
+    // flg=0;
+    // PetscOptionsGetString( PETSC_NULL, "-solutiondumpdir", name, PETSC_MAX_PATH_LEN-1, &flg );
+    // if(flg){
+    //     sprintf(str,"%s/p%s",name,suffix);
+    //     bsscr_writeVec( p, str, "Writing p vector in al Solver");
+    //     sprintf(str,"%s/u%s",name, suffix);
+    //     bsscr_writeVec( u, str, "Writing u vector in al Solver");
+    //     sprintf(str,"%s/h_hat%s",name,suffix);
+    //     bsscr_writeVec( h_hat, str, "Writing h_hat vector in al Solver");
+    // }
 
     found = PETSC_FALSE;
     restorek = PETSC_FALSE;
@@ -596,6 +645,8 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
             KisJustK=PETSC_TRUE;
         }
     }
+
+
     /***************************************************************************************************************/
     /***************************************************************************************************************/
     /******     SOLUTION SUMMARY      ******************************************************************************/
@@ -616,6 +667,9 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
     Stg_KSPDestroy(&ksp_S );
     Stg_VecDestroy(&h_hat );
     Stg_MatDestroy(&S );//This will destroy ksp_inner: also.. pcInner == pc_MG and is destroyed when ksp_inner is
-    been_here = 1;
+
+
+    bsscrp_self->been_here = 1;
+
     PetscFunctionReturn(0);
 }

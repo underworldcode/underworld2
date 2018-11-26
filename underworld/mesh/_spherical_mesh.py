@@ -213,7 +213,7 @@ class FeMesh_SRegion(FeMesh_Cartesian):
 
 class FeMesh_Cylinder(FeMesh_Cartesian):
 # LNM
-    def __init__(self, elementRes=(6,12,12), cyl_size=(0.0,1.0,1.0), elementType="Q1/dQ0", **kwargs):
+    def __init__(self, elementRes=(6,12,12), cyl_size=(0.0,1.0,1.0), **kwargs):
         """
 
         Refer to parent classes for parameters beyond those below.
@@ -357,7 +357,7 @@ class FeMesh_Cylinder(FeMesh_Cartesian):
 
 class FeMesh_SphericalCap(FeMesh_Cartesian):
 # LNM
-    def __init__(self, resolution=(6,12), cap_size=(0.5,1.0, 90.0), elementType="Q1/dQ0", **kwargs):
+    def __init__(self, resolution=(6,12), cap_size=(0.5,1.0, 90.0), **kwargs):
         """
         Refer to parent classes for parameters beyond those below.
 
@@ -441,8 +441,6 @@ class FeMesh_SphericalCap(FeMesh_Cartesian):
             self.rthetaphi[:,2] = phi
 
 
-
-
         """
         Rotation documentation.
         We will create 3 basis vectors that will rotate the (x,y,z) problem to be a
@@ -508,11 +506,11 @@ class FeMesh_SphericalCap(FeMesh_Cartesian):
 
 
 
-class FeMesh_CubedSphere(FeMesh_Cartesian):
+class FeMesh_PuffedCubeSphericalShell(FeMesh_Cartesian):
 # LNM
 # A big blob with the inner nodes masked out / set to boundary nodes
 
-    def __init__(self, radial_resolution=6, radii=(0.5,1.0), core_stretch=1.0, elementType="Q1/dQ0", process_kites=True, **kwargs):
+    def __init__(self, radial_resolution=6, radii=(0.5,1.0), core_stretch=1.5, process_kites=True, **kwargs):
         """
         Refer to parent classes for parameters beyond those below.
 
@@ -552,12 +550,37 @@ class FeMesh_CubedSphere(FeMesh_Cartesian):
 
         res = radial_resolution * 2
 
-        super(FeMesh_CubedSphere,self).__init__(elementRes=(res, res, res),
+        super(FeMesh_PuffedCubeSphericalShell,self).__init__(elementRes=(res, res, res),
                     minCoord=(-1.0,-1.0,-1.0),
                     maxCoord=( 1.0, 1.0, 1.0),
                     periodic=None, **kwargs)
 
         self.specialSets["surface_VertexSet"]    = _specialSets_Cartesian.AllWalls
+
+
+        self.unitvec_r   = self._fn_unitvec_r()
+        self.unitvec_lat = self._fn_unitvec_theta()
+        self.unitvec_lon = self._fn_unitvec_theta()
+
+
+        self.radiusFn, self.lonFn, self.latFn = self._fn_r_lon_lat()
+
+        dR = (radii[1]-radii[0])
+        iR = (radii[0])
+
+        # A uw function that scales from 0.0 at the inner surface to 1.0 at the outer
+        self.unit_radiusFn = fn.branching.conditional([ (self.radiusFn < iR, 0.0),
+                                                                (True, (self.radiusFn-iR) / dR) ])
+
+        # A uw function that is 1.0 between the inner and outer shell and 0.0
+        # in the excluded inner region
+        self.shellMaskFn  = fn.branching.conditional([ (self.radiusFn < iR, 0.0),
+                                                       (True, 1.0 )])
+
+
+        return
+
+
 
 
 
@@ -568,7 +591,6 @@ class FeMesh_CubedSphere(FeMesh_Cartesian):
 
         self.xyz = self.data
         self.rlonlat = self.data.copy()
-
         inner_radius = self._radii[0] / self._radii[1]
         outer_radius = 1.0
 
@@ -666,44 +688,45 @@ class FeMesh_CubedSphere(FeMesh_Cartesian):
             self.data[:,0] = rscale * np.sin(lat)
             self.data[:,1] = rscale * np.cos(lat) * np.cos(lon)
             self.data[:,2] = rscale * np.cos(lat) * np.sin(lon)
-            #
 
-        # ASSUME the parent class builds the _boundaryNodeFn
-        # self.bndMeshVariable = uw.mesh.MeshVariable(self, 1)
-        # self.bndMeshVariable.data[:] = 0.
-        # # set a value 1.0 on provided vertices
-        # self.bndMeshVariable.data[self.specialSets["AllWalls_VertexSet"].data] = 1.0
-        # # note we use this condition to only capture border swarm particles
-        # # on the surface itself. for those directly adjacent, the deltaMeshVariable will evaluate
-        # # to non-zero (but less than 1.), so we need to remove those from the integration as well.
+        ## Vertex sets for boundaries, excluded regions and the central node
 
-        surface_vertexSet = self.specialSets["surface_VertexSet"]
+        surface_VertexSet = self.specialSets["surface_VertexSet"]
 
-        lower_surface_vertexSet = self.specialSets["Empty"]
-        lower_surface_vertexSet += np.where(np.isclose(self.rlonlat[:,0], self._radii[0], rtol=1.0e-3))[0]
-        self.specialSets["lower_surface_vertexSet"]  = lambda selfobject: lower_surface_vertexSet
+        lower_surface_VertexSet = self.specialSets["Empty"]
+        lower_surface_VertexSet += np.where(np.isclose(self.rlonlat[:,0], self._radii[0], rtol=1.0e-3))[0]
+        self.specialSets["lower_surface_VertexSet"]  = lambda selfobject: lower_surface_VertexSet
 
-        excluded_vertexSet = self.specialSets["Empty"]
-        excluded_vertexSet += np.where(self.rlonlat[:,0] < self._radii[0]*0.999)[0]  # Need to be careful about the resolution.
-        self.specialSets["excluded_vertexSet"] = lambda selfobject: excluded_vertexSet
+        excluded_VertexSet = self.specialSets["Empty"]
+        excluded_VertexSet += np.where(self.rlonlat[:,0] < self._radii[0]*0.999)[0]  # Need to be careful about the resolution.
+        self.specialSets["excluded_VertexSet"] = lambda selfobject: excluded_VertexSet
 
-        dead_centre_vertexSet = self.specialSets["Empty"]
-        dead_centre_vertexSet += np.where(self.rlonlat[:,0] < 0.00001 * self._radii[1])[0]
-        self.specialSets["dead_centre_vertexSet"] = lambda selfobject: dead_centre_vertexSet
+        dead_centre_VertexSet = self.specialSets["Empty"]
+        dead_centre_VertexSet += np.where(self.rlonlat[:,0] < 0.00001 * self._radii[1])[0]
+        self.specialSets["dead_centre_VertexSet"] = lambda selfobject: dead_centre_VertexSet
+
+        ## mesh geometry information
+        self.volume = uw.utils.Integral(self.shellMaskFn, self).evaluate()[0]
+        self.full_volume = uw.utils.Integral(1.0, self).evaluate()[0]
+
+        ## moments of weight functions used to compute mean / radial gradients in the shell
+        ## calculate this once at setup time.
+        self._c0 = uw.utils.Integral(self.unit_radiusFn, self).evaluate()[0] / self.area
+        self._c1 = uw.utils.Integral(self.shellMaskFn*(self.unit_radiusFn-self._c0)**2, self).evaluate()[0]
+
+
+
+
+
 
 
         """
         Rotation documentation.
-        We will create 3 basis vectors that will rotate the (x,y,z) problem to be a
-        (r,n,t) [radial, normal to cut, tangential to cut] problem.
+        We create 3 basis vectors that will rotate the (x,y,z) problem to be a
+        (r,lon, lat) [radial, longitudinal to colatitudinal (north)] problem.
 
         The rotations are performed on the local element level using the existing machinery
-        provided by UW2. As such only elements on the domain boundary need rotation, all internal
-        elements can continue with the (x,y,z) representation.
-
-        This is implemented with rotations on all dofs such that:
-         1. If on the domain boundary - rotated to (r,n,t) and
-         2. If not on the domain boundary - rotated by identity matrix i.e. (NO rotation).
+        provided by UW2.
         """
 
         # initialiase bases vectors as meshVariables
@@ -712,9 +735,32 @@ class FeMesh_CubedSphere(FeMesh_Cartesian):
         self._e2 = self.add_variable(nodeDofCount=3)
         self._e3 = self.add_variable(nodeDofCount=3)
 
-        self._e1.data[:] = self.fn_unitvec_r().evaluate(self)
-        self._e2.data[:] = self.fn_unitvec_lon().evaluate(self)
-        self._e3.data[:] = self.fn_unitvec_lat().evaluate(self)
+        self._e1.data[:] = self.unitvec_r.evaluate(self)
+        self._e2.data[:] = self.unitvec_lon.evaluate(self)
+        self._e3.data[:] = self.unitvec_lat.evaluate(self)
+
+        return
+
+    def mean_value(self, fn=None):
+        """Returns mean value on the shell of scalar uw function"""
+
+        ## Need to check here that the supplied function is
+        ## valid and is a scalar.
+
+        mean_value = uw.utils.Integral(fn * self.shellMaskFn, self).evaluate()[0] / self.volume
+
+        return mean_value
+
+    def radial_gradient_value(self, fn=None):
+        """Returns vertical gradient within the shell of scalar uw function"""
+
+        ## Need to check here that the supplied function is
+        ## valid and is a scalar. Mask function is to eliminate the
+        ## effect of the values in the core.
+
+        rGrad = uw.utils.Integral(fn * (self.unit_radiusFn-self._c0)*self.shellMaskFn, self).evaluate()[0] / self._c1
+
+        return rGrad
 
 
     def fn_r_lon_lat(self):
@@ -771,15 +817,36 @@ class FeMesh_CubedSphere(FeMesh_Cartesian):
 
         return tv
 
+    def mean_value(self, fn=None):
+        """Returns mean value on the shell of scalar uw function"""
 
-    def fn_unitvec_r(self):
+        ## Need to check here that the supplied function is
+        ## valid and is a scalar.
+
+        mean_value = uw.utils.Integral(fn * self.shellMaskFn, self).evaluate()[0] / self.area
+
+        return mean_value
+
+    def radial_gradient_value(self, fn=None):
+        """Returns vertical gradient within the shell of scalar uw function"""
+
+        ## Need to check here that the supplied function is
+        ## valid and is a scalar. Mask function is to eliminate the
+        ## effect of the values in the core.
+
+        rGrad = uw.utils.Integral(fn * (self.unit_radiusFn-self._c0)*self.shellMaskFn, self).evaluate()[0] / self._c1
+
+        return rGrad
+
+
+    def _fn_unitvec_r(self):
         pos = fn.coord()
         mag = fn.math.sqrt(fn.math.dot( pos, pos ))
         r_vec = pos / mag
         return r_vec
 
-    # The unit vector is defined along the direction of colatitude towards North
-    def fn_unitvec_lat(self):
+    # The unit vector is defined along the direction of colatitude pointing North
+    def _fn_unitvec_lat(self):
         pos = fn.coord()
         # r = fn.math.sqrt(pos[0]**2 + pos[1]**2 + pos[2]**2)
         r = fn.math.sqrt(fn.math.dot( pos, pos ))
@@ -792,7 +859,7 @@ class FeMesh_CubedSphere(FeMesh_Cartesian):
         return vec
 
     ## This one is longitudinal unit vector
-    def fn_unitvec_lon(self):
+    def _fn_unitvec_lon(self):
         pos = fn.coord()
         # r = fn.math.sqrt(pos[0]**2 + pos[1]**2 + pos[2]**2)
         # colat = fn.math.acos(pos[0]/r)
@@ -802,11 +869,11 @@ class FeMesh_CubedSphere(FeMesh_Cartesian):
         return vec
 
 
-class FeMesh_SquaredCircle(FeMesh_Cartesian):
+class FeMesh_PuffedSquareAnnulus(FeMesh_Cartesian):
 # LNM
 # A 2D cubed sphere with the inner nodes masked out / set to boundary nodes
 
-    def __init__(self, radial_resolution=6, radii=(0.5,1.0), core_stretch=1.0, process_kites=True, elementType="Q1/dQ0", **kwargs):
+    def __init__(self, radial_resolution=6, radii=(0.5,1.0), core_stretch=1.0, process_kites=True, **kwargs):
         """
         Refer to parent classes for parameters beyond those below.
 
@@ -850,7 +917,7 @@ class FeMesh_SquaredCircle(FeMesh_Cartesian):
         import time
         walltime=time.clock()
 
-        super(FeMesh_SquaredCircle,self).__init__(elementRes=(res, res),
+        super(FeMesh_PuffedSquareAnnulus,self).__init__(elementRes=(res, res),
                     minCoord=(-1.0,-1.0),
                     maxCoord=( 1.0, 1.0),
                     periodic=None, **kwargs)
@@ -861,20 +928,25 @@ class FeMesh_SquaredCircle(FeMesh_Cartesian):
         ## The following can be defined at this stage since they don't
         ## depend on the mesh resolution or coordinates.
 
-        (radiusFn, thetaFn) = self.fn_r_theta()
+        (self.radiusFn, self.thetaFn) = self._fn_r_theta()
+
 
         dR = (radii[1]-radii[0])
         iR = (radii[0])
 
         # A uw function that scales from 0.0 at the inner surface to 1.0 at the outer
-        self.unit_radiusFn = fn.branching.conditional([ (radiusFn < iR, 0.0),
-                                                      (True, (radiusFn-iR) / dR) ])
+        self.unit_radiusFn = fn.branching.conditional([ (self.radiusFn < iR, 0.0),
+                                                        (True, (self.radiusFn-iR) / dR) ])
 
         # A uw function that is 1.0 between the inner and outer shell and 0.0
         # in the excluded inner region
-        self.shellMaskFn  = fn.branching.conditional([ (radiusFn < iR, 0.0),
+        self.shellMaskFn  = fn.branching.conditional([ (self.radiusFn < iR, 0.0),
                                                        (True, 1.0 )])
 
+        self.unitvec_r = self._fn_unitvec_r()
+        self.unitvec_theta = self._fn_unitvec_theta()
+
+        return
 
 
     def _setup(self):
@@ -921,31 +993,33 @@ class FeMesh_SquaredCircle(FeMesh_Cartesian):
             yp = y * np.sqrt(1.0 - 0.5*xr**2)
 
             ur = (rr - inner_radius) / (outer_radius-inner_radius)
+            ur = np.maximum(ur, 0.0)
+            theta   = np.arctan2(yp,xp)
 
 
             # cases with kites ... nodes where abs(x) = abs(y) = abs(z)
-
-            is_a_kite = np.isclose(np.abs(x), np.abs(y))
-
-            # print("Kites: {}".format(np.where(is_a_kite)))
 
 
             r   = np.sqrt(xp**2 + yp**2)
             rscale = self._radii[1] * np.minimum(rr * scale, (rr * scale - inner_radius) * scale_back + inner_radius)
 
+            inodes =np.isclose(rscale, self._radii[0], rtol=1.0e-2)
+            onodes = np.isclose(rscale, self._radii[1], rtol=1.0e-2)
+            ionodes = np.logical_or(inodes, onodes)
+            bodynodes = np.logical_not(ionodes)
+            is_a_kite = np.isclose(np.abs(x), np.abs(y))
+
+
+            rscale[bodynodes] += 0.25 * np.sin(2.0*theta[bodynodes])**4 * (self._radii[1] - self._radii[0]) / self._radial_resolution
+
             if self._kites:
-                inodes = np.isclose(rscale, self._radii[0], rtol=1.0e-3)
-                onodes = np.isclose(rscale, self._radii[1], rtol=1.0e-3)
-                ionodes = np.logical_or(inodes, onodes)
-                bodynodes = np.logical_not(ionodes)
-
-                # kites are not i/o nodes
                 is_moveable_kite = np.logical_and(bodynodes, is_a_kite)
+                # rscale[is_moveable_kite] += (1.0 - rscale[is_moveable_kite] / self._radii[1]) * 0.25 * (self._radii[1] - self._radii[0]) / self._radial_resolution
+                rscale[is_moveable_kite] += 0.25 * (self._radii[1] - self._radii[0]) / self._radial_resolution
 
-                rscale[is_moveable_kite] += 0.5 * (self._radii[1] - self._radii[0]) / self._radial_resolution
-
-
-            theta   = np.arctan2(yp,xp)
+            inodes = rscale < self._radii[0] * 0.99
+            depth = self._radii[0] - rscale[inodes]
+            rscale[inodes] += (0.5 * (self._radii[0] - rscale[inodes])) * (rscale[inodes]/self._radii[0])
 
             self.rtheta[:,0] = rscale
             self.rtheta[:,1] = theta
@@ -956,19 +1030,19 @@ class FeMesh_SquaredCircle(FeMesh_Cartesian):
 
         ## Vertex sets for boundaries, excluded regions and the central node
 
-        surface_vertexSet = self.specialSets["surface_VertexSet"]
+        surface_VertexSet = self.specialSets["surface_VertexSet"]
 
-        lower_surface_vertexSet = self.specialSets["Empty"]
-        lower_surface_vertexSet += np.where(np.isclose(self.rtheta[:,0], self._radii[0], rtol=1.0e-3))[0]
-        self.specialSets["lower_surface_vertexSet"]  = lambda selfobject: lower_surface_vertexSet
+        lower_surface_VertexSet = self.specialSets["Empty"]
+        lower_surface_VertexSet += np.where(np.isclose(self.rtheta[:,0], self._radii[0], rtol=1.0e-3))[0]
+        self.specialSets["lower_surface_VertexSet"]  = lambda selfobject: lower_surface_VertexSet
 
-        excluded_vertexSet = self.specialSets["Empty"]
-        excluded_vertexSet += np.where(self.rtheta[:,0] < self._radii[0]*0.999)[0]  # Need to be careful about the resolution.
-        self.specialSets["excluded_vertexSet"] = lambda selfobject: excluded_vertexSet
+        excluded_VertexSet = self.specialSets["Empty"]
+        excluded_VertexSet += np.where(self.rtheta[:,0] < self._radii[0]*0.999)[0]  # Need to be careful about the resolution.
+        self.specialSets["excluded_VertexSet"] = lambda selfobject: excluded_VertexSet
 
-        dead_centre_vertexSet = self.specialSets["Empty"]
-        dead_centre_vertexSet += np.where(self.rtheta[:,0] < 0.001 * self._radii[1])[0]
-        self.specialSets["dead_centre_vertexSet"] = lambda selfobject: dead_centre_vertexSet
+        dead_centre_VertexSet = self.specialSets["Empty"]
+        dead_centre_VertexSet += np.where(self.rtheta[:,0] < 0.001 * self._radii[1])[0]
+        self.specialSets["dead_centre_VertexSet"] = lambda selfobject: dead_centre_VertexSet
 
         ## mesh geometry information
         self.area = uw.utils.Integral(self.shellMaskFn, self).evaluate()[0]
@@ -979,28 +1053,23 @@ class FeMesh_SquaredCircle(FeMesh_Cartesian):
         self._c0 = uw.utils.Integral(self.unit_radiusFn, self).evaluate()[0] / self.area
         self._c1 = uw.utils.Integral(self.shellMaskFn*(self.unit_radiusFn-self._c0)**2, self).evaluate()[0]
 
-
-
         """
         Rotation documentation.
-        We will create 3 basis vectors that will rotate the (x,y,z) problem to be a
-        (r,n,t) [radial, normal to cut, tangential to cut] problem.
+        We  create 2 basis vectors that will rotate the (x,y,z) problem to be a
+        (r,t) [radial, theta] problem.
 
         The rotations are performed on the local element level using the existing machinery
-        provided by UW2. As such only elements on the domain boundary need rotation, all internal
-        elements can continue with the (x,y,z) representation.
-
-        This is implemented with rotations on all dofs such that:
-         1. If on the domain boundary - rotated to (r,n,t) and
-         2. If not on the domain boundary - rotated by identity matrix i.e. (NO rotation).
+        provided by UW2.
         """
 
         # initialiase bases vectors as meshVariables
         self._e1 = self.add_variable(nodeDofCount=2)
         self._e2 = self.add_variable(nodeDofCount=2)
 
-        self._e1.data[:] = self.fn_unitvec_r().evaluate(self)
-        self._e2.data[:] = self.fn_unitvec_theta().evaluate(self)
+        self._e1.data[:] = self._fn_unitvec_r().evaluate(self)
+        self._e2.data[:] = self._fn_unitvec_theta().evaluate(self)
+
+        return
 
 
     def mean_value(self, fn=None):
@@ -1024,7 +1093,7 @@ class FeMesh_SquaredCircle(FeMesh_Cartesian):
 
         return rGrad
 
-    def fn_r_theta(self):
+    def _fn_r_theta(self):
         pos = fn.coord()
         rFn = fn.math.sqrt(pos[0]**2 + pos[1]**2)
         thetaFn = fn.math.atan2(pos[1],pos[0])
@@ -1074,14 +1143,14 @@ class FeMesh_SquaredCircle(FeMesh_Cartesian):
         return tv
 
 
-    def fn_unitvec_r(self):
+    def _fn_unitvec_r(self):
         pos = fn.coord()
         mag = fn.math.sqrt(fn.math.dot( pos, pos ))
         r_vec = pos / mag
         return r_vec
 
     # The unit vector is defined along the direction of colatitude towards North
-    def fn_unitvec_theta(self):
+    def _fn_unitvec_theta(self):
         pos = fn.coord()
         # r = fn.math.sqrt(pos[0]**2 + pos[1]**2 + pos[2]**2)
 

@@ -620,7 +620,17 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         """
         This method is often necessary when Underworld is operating in parallel.
 
-        It will syncronise the mesh variable so that it is consistent
+        It will synchronise the mesh variable so that it is consistent
+        with it's parallel neighbours. Specifically, the shadow space of each
+        process obtains the required data from neighbouring processes.
+        """
+        uw.libUnderworld.StgFEM._FeVariable_SyncShadowValues( self._cself )
+
+    def synchronise(self):
+        """
+        This method is often necessary when Underworld is operating in parallel.
+
+        It will synchronise the mesh variable so that it is consistent
         with it's parallel neighbours. Specifically, the shadow space of each
         process obtains the required data from neighbouring processes.
         """
