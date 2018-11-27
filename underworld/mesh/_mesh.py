@@ -1123,13 +1123,19 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
         super(FeMesh_Cartesian,self).__init__(elementType=elementType[0], elementRes=elementRes, minCoord=minCoord, maxCoord=maxCoord, periodic=periodic, partitioned=partitioned, **kwargs)
 
         # lets add the special sets
-        self.specialSets["MaxI_VertexSet"] = _specialSets_Cartesian.MaxI_VertexSet
-        self.specialSets["MinI_VertexSet"] = _specialSets_Cartesian.MinI_VertexSet
-        self.specialSets["MaxJ_VertexSet"] = _specialSets_Cartesian.MaxJ_VertexSet
-        self.specialSets["MinJ_VertexSet"] = _specialSets_Cartesian.MinJ_VertexSet
+        self.specialSets["MinI_VertexSet"]   = _specialSets_Cartesian.MinI_VertexSet
+        self.specialSets["Left_VertexSet"]   = _specialSets_Cartesian.MinI_VertexSet
+        self.specialSets["MaxI_VertexSet"]   = _specialSets_Cartesian.MaxI_VertexSet
+        self.specialSets["Right_VertexSet"]  = _specialSets_Cartesian.MaxI_VertexSet
+        self.specialSets["MinJ_VertexSet"]   = _specialSets_Cartesian.MinJ_VertexSet
+        self.specialSets["Bottom_VertexSet"] = _specialSets_Cartesian.MinJ_VertexSet
+        self.specialSets["MaxJ_VertexSet"]   = _specialSets_Cartesian.MaxJ_VertexSet
+        self.specialSets["Top_VertexSet"]    = _specialSets_Cartesian.MaxJ_VertexSet
         if(self.dim==3):
-            self.specialSets["MaxK_VertexSet"] = _specialSets_Cartesian.MaxK_VertexSet
-            self.specialSets["MinK_VertexSet"] = _specialSets_Cartesian.MinK_VertexSet
+            self.specialSets["MinK_VertexSet"]  = _specialSets_Cartesian.MinK_VertexSet
+            self.specialSets["Front_VertexSet"] = _specialSets_Cartesian.MinK_VertexSet
+            self.specialSets["MaxK_VertexSet"]  = _specialSets_Cartesian.MaxK_VertexSet
+            self.specialSets["Back_VertexSet"]  = _specialSets_Cartesian.MaxK_VertexSet
         self.specialSets["AllWalls_VertexSet"] = _specialSets_Cartesian.AllWalls
 
         # send some metrics
