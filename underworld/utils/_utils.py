@@ -98,7 +98,7 @@ class Integral(_stgermain.StgCompoundComponent):
                 integrationSwarm = uw.swarm.GaussIntegrationSwarm(mesh)
             else:
                 self._cself.isSurfaceIntegral = True
-                if not surfaceIndexSet:
+                if surfaceIndexSet is None:
                     raise RuntimeError("For surface integration, you must provide a 'surfaceIndexSet'.")
                 if not isinstance(surfaceIndexSet, uw.mesh.FeMesh_IndexSet ):
                     raise TypeError("'surfaceIndexSet' must be of type 'FeMesh_IndexSet'.")

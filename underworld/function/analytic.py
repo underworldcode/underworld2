@@ -21,10 +21,14 @@ pressure and viscosity.
 For numerical validation in Underworld, we construct a
 Stokes system with appropriate domain and boundary
 conditions. Viscosity and body forces are set directly
-using corresponding Functions provided by the solution
-object. Generated numerical solution for velocity and
-pressure (or derivated quantities) may then be compared
+using corresponding Function objects provided by the solution
+class. Generated numerical solution for velocity and
+pressure (or derived quantities) may then be compared
 with exact solutions provided by solution objects.
+
+Where appropriate, solution classes provide Latex descriptions
+of the body force and viscosity functions via the `eqn_bodyforce`
+and `eqn_viscosity` attributes.
 """
 
 import libUnderworld.libUnderworldPy.Function as _cfn
@@ -170,7 +174,7 @@ class SolC(_SolBaseFreeSlipBc):
     Notes
     -----
     This solution is quiet slow to evaluate due to large number of
-    Fourier terms required. Number of terms is hard code in `solC.c`.
+    Fourier terms required.
 
     """
     eqn_bodyforce = "(0,-\sigma_0\mathrm{step}(1,0,x_c; x)"
@@ -262,7 +266,7 @@ class SolDA(_SolBaseFreeSlipBc):
 
 class SolH(_SolBaseFreeSlipBc):
     """
-    Density step profile in (x,y). Constant viscosity.
+    Three dimensional solution with density step profile in (x,y). Constant viscosity.
 
     Parameters
     ----------
@@ -277,6 +281,14 @@ class SolH(_SolBaseFreeSlipBc):
     nmodes: int
         Number of Fourier modes used when evaluating
         analytic solution.
+
+    Notes
+    -----
+    Evaluation of this Fourier based solution is extremely expensive.
+    Default number of mode count is set for fast evaluation, though
+    for high order or high resolution simulations significantly larger
+    mode counts are required. For example, 240 modes are necessary for
+    64^3 simulations on Q2/dPc1 elements.
 
     """
     eqn_bodyforce = "(0, 0, -\sigma_0 \mathrm{step}(1, 0, x_c; x) \mathrm{step}(1, 0, y_c; y) )"
@@ -300,6 +312,9 @@ class SolH(_SolBaseFreeSlipBc):
 class _SolHA(_SolBaseFreeSlipBc):
     """
     Columnar density profile in (x,y). Constant viscosity.
+
+    Note: This solution is kept private as it does not appear to produce
+    the correct pressure solution. Further investigation is required.
 
     Parameters
     ----------
@@ -347,10 +362,8 @@ class _SolHA(_SolBaseFreeSlipBc):
 
 class SolKx(_SolBaseFreeSlipBc):
     """
-    The boundary conditions are free-slip everywhere on a unit domain. The
-    viscosity varies exponentially in the x direction and is given by
-    :math:`\\eta = \\exp (2 B x)`. The flow is driven by the following density
-    perturbation:
+    Trigonometric body forcing. Exponentially (in x)
+    varying viscosity.
 
     Parameters
     ----------
@@ -382,10 +395,8 @@ class SolKx(_SolBaseFreeSlipBc):
 
 class SolKz(_SolBaseFreeSlipBc):
     """
-    The boundary conditions are free-slip everywhere on a unit domain. The
-    viscosity varies exponentially in the z direction and is given by
-    :math:`\\eta = \\exp (2 B z)`. The flow is driven by the following
-    density perturbation:
+    Trigonometric body forcing. Exponentially (in z)
+    varying viscosity.
 
     Parameters
     ----------
@@ -416,70 +427,57 @@ class SolKz(_SolBaseFreeSlipBc):
         super(SolKz,self).__init__(_cfn.SolKzCRTP(self._ckeep,2), **kwargs)
 
 class SolM(_SolBaseFreeSlipBc):
-#    """
-#    SolM inanis et vacua est,
-#    SolM est illusio,
-#    SolM non potest suggero vos sustentationem mentis
-#
-#    MV ()
-#    """
+    """
+    Sinusoidal viscosity.
+
+    Parameters
+    ----------
+    eta_0 : float
+        Viscosity perturbation strength factor.
+    n_x : int
+        Velocity wavenumber parameter (in x).
+    n_z : int
+        Velocity wavenumber parameter (in z).
+    r : float
+        Viscosity parameter.
+
+    """
+    eqn_bodyforce = ""
+    eqn_viscosity = "1 + \eta_0(1+\cos{k_r x})"
 
     def __init__(self, eta_0=1., n_x=1, n_z=1, r=1.5, *args, **kwargs):
         if not isinstance(eta_0, float) or eta_0 <= 0.:
             raise TypeError("'eta_0' can be any positive float." )
-        if not isinstance(n_z, int):
-            raise TypeError("'n_z' must be an int." )
         if not isinstance(n_x, int):
             raise TypeError("'n_x' must be an int." )
+        if not isinstance(n_z, int):
+            raise TypeError("'n_z' must be an int." )
         if not isinstance(r, float):
             raise TypeError("'r' parameter must be a 'float' and != 'n_z'." )
         if abs(float(n_z)-r) < 1e-5:
             raise TypeError("'r' must be different than 'n_z'." )
-
-        self._ckeep = _cfn.SolM(eta_0,n_z,n_x,r)
+        self._ckeep = _cfn.SolM(eta_0, n_x, n_z, r)
         super(SolM,self).__init__(_cfn.SolMCRTP(self._ckeep,2), **kwargs)
-
-
-class _SolBaseFixedBc(_SolBase):
-    def get_bcs( self, velVar ):
-        '''
-        ( Fixed,Fixed ) conditions on all walls.
-        
-        Fixed DOFs set to analytic soln values.
-
-        Parameters
-        ----------
-        velVar : underworld.mesh.MeshVariable
-            The velocity variable is required to construct the BC
-            object.
-
-        Returns
-        -------
-        underworld.conditions.SystemCondition
-            The BC object. It should be passed in to the system being constructed.
-
-        '''
-        mesh = velVar.mesh
-        
-        # set vel as necessary
-        wall_verts = mesh.specialSets["AllWalls_VertexSet"]
-        velVar.data[wall_verts.data] = self.fn_velocity.evaluate(wall_verts)
-
-        # now flag required nodes
-        bcverts = []
-        for dim in range(self.dim):
-            bcverts.append(wall_verts)
-
-        import underworld as uw
-        return uw.conditions.DirichletCondition(velVar, bcverts)
 
 class SolNL(_SolBase):
     """
-    SolNL requires tighter solver tolerances and/or a direct solve for best results.
-    Need to check in with Caesar Dandenonensis as to the origins of this solution.
-    
-    Check `get_bcs()` for BC setup.
+    Non-linear analytic solution. Note that the exactly analytic viscosity
+    (function of position only) is exposed via the standard `fn_viscosity`
+    attribute, while the non-linear viscosity (function of position and
+    velocity) is exposed via the `get_viscosity_nl()` method.
+
+    Parameters
+    ----------
+    eta_0 : float
+        Viscosity perturbation strength factor.
+    n_z : int
+        Velocity wavenumber parameter (in z).
+    r : float
+        Viscosity parameter.
+
     """
+    eqn_bodyforce = ""
+    eqn_viscosity = "2\eta_0 (\tfrac{1}{2} \dot{\eta}_{ij} \dot{\eta}_{ij} )^(1/r - 1)"
     def __init__(self, eta_0=1., n_z=1, r=1.5, *args, **kwargs):
         if not isinstance(eta_0, float) or eta_0 <= 0.:
             raise TypeError("'eta_0' can be any positive float." )
@@ -487,16 +485,15 @@ class SolNL(_SolBase):
             raise TypeError("'n_z' must be an int." )
         if not isinstance(r, float):
             raise TypeError("'r' parameter must be a 'float'." )
-            
-        self.nonlinear = True
-
+        
         self._ckeep = _cfn.SolNL(eta_0,n_z,r)
         super(SolNL,self).__init__(_cfn.SolNLCRTP(self._ckeep,2), **kwargs)
+        self.nonlinear = True
 
     def get_bcs( self, velVar ):
         '''
-        ( Fixed,Fixed ) conditions left/right.
-        ( Free, Fixed ) conditions top/bottom.
+        ( Fixed, Fixed ) conditions vertical walls.
+        (  Free, Fixed ) conditions hortizontal walls.
 
         All fixed DOFs set to analytic soln values.
         
@@ -521,27 +518,80 @@ class SolNL(_SolBase):
         iw = mesh.specialSets["MinI_VertexSet"] + mesh.specialSets["MaxI_VertexSet"]
         jw = mesh.specialSets["MinJ_VertexSet"] + mesh.specialSets["MaxJ_VertexSet"]
 
+        #           v_x   v_y
         bcverts = [ iw,  iw+jw ]
         
         import underworld as uw
         return uw.conditions.DirichletCondition(velVar, bcverts)
 
-#    @property
-#    def fn_viscosity(self):
-#        return _Sol_Function( self._csol.viscosityFn )
+    def get_viscosity_nl(self, velocity, pressure):
+        """
+        This method returns a `Function` object for the non-linear
+        viscosity.
+
+        Parameters
+        ----------
+        velocity: underworld.function.Function
+            The velocity.
+        pressure: underworld.function.Function
+            The pressure. Pressure is not utilised for this
+            viscosity.
+        """
+        import underworld.function as fn
+        inv2 = fn.tensor.second_invariant(
+                      fn.tensor.deviatoric(
+                      fn.tensor.symmetric( velocity.fn_gradient ) ) )
+        alpha_by_two  = (2./self._ckeep.r -2.)
+        factor = 2.*self._ckeep.eta0
+        return factor * fn.math.pow(inv2, alpha_by_two)
+
+
+class _SolBaseFixedBc(_SolBase):
+    def get_bcs(self, velVar):
+        '''
+        ( Fixed,Fixed ) conditions on all walls.
+
+        Fixed DOFs set to analytic soln values.
+
+        Parameters
+        ----------
+        velVar : underworld.mesh.MeshVariable
+            The velocity variable is required to construct the BC
+            object.
+
+        Returns
+        -------
+        underworld.conditions.SystemCondition
+            The BC object. It should be passed in to the system being constructed.
+
+        '''
+        mesh = velVar.mesh
+
+        # set vel as necessary
+        wall_verts = mesh.specialSets["AllWalls_VertexSet"]
+        velVar.data[wall_verts.data] = self.fn_velocity.evaluate(wall_verts)
+
+        # now flag required nodes
+        bcverts = []
+        for dim in range(self.dim):
+            bcverts.append(wall_verts)
+
+        import underworld as uw
+        return uw.conditions.DirichletCondition(velVar, bcverts)
+
 
 class SolDB2d(_SolBaseFixedBc):
     """
-    SolDB2d and solDB3d from:
+    This solution uses fixed velocity boundary conditions on all walls
+    along with a constant viscosity. It is originally published in:
 
     Dohrmann, C.R., Bochev, P.B., A stabilized finite element method for the
     Stokes problem based on polynomial pressure projections,
     Int. J. Numer. Meth. Fluids 46, 183-201 (2004).
-        
-    Check `get_bcs()` for BC setup.
-
 
     """
+    eqn_bodyforce = ""
+    eqn_viscosity = "1"
     def __init__(self, *args, **kwargs):
         self._ckeep = _cfn.SolDB2d()
         super(SolDB2d,self).__init__(_cfn.SolDB2dCRTP(self._ckeep,2), **kwargs)
@@ -550,14 +600,19 @@ class SolDB2d(_SolBaseFixedBc):
 
 class SolDB3d(_SolBaseFixedBc):
     """
-    SolDB2d and solDB3d from:
+    This solution uses fixed velocity boundary conditions on all walls and
+    a variable viscosity. It is originally published in:
 
     Dohrmann, C.R., Bochev, P.B., A stabilized finite element method for the
     Stokes problem based on polynomial pressure projections,
     Int. J. Numer. Meth. Fluids 46, 183-201 (2004).
 
-    """
+    Parameters
+    ----------
+    Beta: float
+        Viscosity perturbation strength factor.
 
+    """
     def __init__(self, Beta=4., *args, **kwargs):
         self._ckeep = _cfn.SolDB3d(Beta)
         super(SolDB3d,self).__init__(_cfn.SolDB3dCRTP(self._ckeep,3), **kwargs)

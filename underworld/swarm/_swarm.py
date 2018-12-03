@@ -286,7 +286,10 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
     def load( self, filename, collective=False, try_optimise=True, verbose=False ):
         """
         Load a swarm from disk. Note that this must be called before any SwarmVariable
-        members are loaded.
+        members are loaded. Note also that this method will not replace the currently
+        existing particles, but will instead *add* all the particles from the provided
+        h5 file to the current swarm. Usually you will want to call this method when
+        the swarm is still empty.
 
         Parameters
         ----------

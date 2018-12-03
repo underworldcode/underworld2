@@ -3,7 +3,7 @@
 #    $  docker build -f docs/development/docker/underworld2/Dockerfile .
 
 
-FROM underworldcode/base@sha256:ad1ac7be0e5dc6b2489bac43d8e8f40e998c34d8019d2bea34935ca1ff31d23e
+FROM underworldcode/base@sha256:c9286b3dddc7a7b4c2324dc026d3e17f0c7ef7c5ad39b72e57c6351602927478
 MAINTAINER https://github.com/underworldcode/
 
 USER root
@@ -48,6 +48,16 @@ RUN cd underworld2/libUnderworld && \
     env > build_environment.txt                                      && \
     rm -fr .git                                                      && \
     chown -R $NB_USER:users $NB_WORK $UW2_DIR /home/$NB_USER
+
+RUN git clone https://github.com/underworldcode/UWGeodynamics.git && \
+    pip3 install --no-cache-dir UWGeodynamics/ && \
+    mkdir /workspace/UWGeodynamics && \
+    mv ./UWGeodynamics/examples /workspace/UWGeodynamics/. && \
+    mv ./UWGeodynamics/tutorials /workspace/UWGeodynamics/. && \
+    mv ./UWGeodynamics/benchmarks /workspace/UWGeodynamics/. && \
+    mv ./UWGeodynamics/docs /workspace/UWGeodynamics/ && \
+    rm -rf UWGeodynamics && \
+    chown -R $NB_USER:users /workspace/UWGeodynamics
 
 # expose glucifer port
 EXPOSE 9999

@@ -818,7 +818,16 @@ class Function(underworld._stgermain.LeftOverParamsChecker, metaclass = ABCMeta)
         
         >>> np.allclose( var.evaluate(mesh), var.evaluate(mesh.data))
         True
-        
+
+        Also note that if evaluating across an empty input, an empty output
+        is returned. Note that the shape and type of the output is always fixed
+        and may differ from the shape/type returned for an actual (non-empty)
+        evaluation. Usually this should not be an issue.
+        >>> var.evaluate(np.zeros((0,2)))
+        array([], shape=(0, 1), dtype=float64)
+        >>> var.evaluate(mesh.specialSets["Empty"])
+        array([], shape=(0, 1), dtype=float64)
+
         """
         if inputData is None:
             inputData = 0.
