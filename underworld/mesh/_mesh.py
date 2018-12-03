@@ -1160,6 +1160,17 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
 
             self._secondaryMesh = FeMesh( elementType=self._elementTypes[1].upper(), generator=genSecondary )
 
+
+            sepFn = uw.function.misc.constant( self._cself.minSep)
+            minmaxSep  = uw.function.view.min_max(sepFn)
+            minmaxSep.evaluate(self)
+
+            self._minDx = minmaxSep.min_global()
+            ## FIX !!
+            self._typicalDx = self._minDx
+
+
+
     @property
     def subMesh(self):
         """
