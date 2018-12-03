@@ -70,6 +70,10 @@ void Fn::NumpyInput::reset()
 {
     _io = std::make_shared<IO_double>(_dim,_inputType);
 
+    // nothing to do if size is zero
+    if (_size==0)
+        return;
+
     // setup numpy iterator
     if (_iter) {
         NpyIter_Deallocate(_iter);
