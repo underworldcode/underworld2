@@ -477,21 +477,24 @@ PetscErrorCode SetupDiscretization(DM dm, AppCtx *user)
   PetscDS         prob;
   PetscInt        dim;
   PetscErrorCode  ierr;
+  MPI_Comm        comm;
+
   
   PetscFE *feAux  = NULL;
   PetscDS probAux = NULL;
   PetscInt numAux = 3, f;
 
   PetscFunctionBeginUser;
+  ierr = PetscObjectGetComm((PetscObject)dm, &comm);CHKERRQ(ierr);
   ierr = DMGetDimension(dm, &dim);CHKERRQ(ierr);
   const char auxNames[][2056] = {"force", "shutup_moresi", "lm_velocity"};
   const PetscInt auxSizes[] = {dim, 1, dim};
   /* Create finite element */
-  ierr = PetscFECreateDefault(dm, dim, dim, PETSC_FALSE, "u_", PETSC_DEFAULT, &fe[0]);CHKERRQ(ierr);
+  ierr = PetscFECreateDefault(comm, dim, dim, PETSC_FALSE, "u_", PETSC_DEFAULT, &fe[0]);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject) fe[0], "velocity");CHKERRQ(ierr);
   ierr = PetscFEGetQuadrature(fe[0], &q);CHKERRQ(ierr);
   
-  ierr = PetscFECreateDefault(dm, dim, 1, PETSC_FALSE, "p_", PETSC_DEFAULT, &fe[1]);CHKERRQ(ierr);
+  ierr = PetscFECreateDefault(comm, dim, 1, PETSC_FALSE, "p_", PETSC_DEFAULT, &fe[1]);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject) fe[1], "pressure");CHKERRQ(ierr);
   ierr = PetscFESetQuadrature(fe[1], q);CHKERRQ(ierr);
 
@@ -510,7 +513,7 @@ PetscErrorCode SetupDiscretization(DM dm, AppCtx *user)
         char prefix[PETSC_MAX_PATH_LEN];
       
         ierr = PetscSNPrintf(prefix, PETSC_MAX_PATH_LEN, "aux_%d_", f);CHKERRQ(ierr);
-        ierr = PetscFECreateDefault( dm, dim, auxSizes[f], PETSC_FALSE, prefix, PETSC_DEFAULT, &feAux[f]);CHKERRQ(ierr);
+        ierr = PetscFECreateDefault(comm, dim, auxSizes[f], PETSC_FALSE, prefix, PETSC_DEFAULT, &feAux[f]);CHKERRQ(ierr);
         ierr = PetscObjectSetName((PetscObject) feAux[f], auxNames[f]);CHKERRQ(ierr);
         ierr = PetscFESetQuadrature(feAux[f], q);CHKERRQ(ierr);
         ierr = PetscDSSetDiscretization(probAux, f, (PetscObject) feAux[f]);CHKERRQ(ierr);
@@ -800,6 +803,7 @@ PetscErrorCode PoissonSetupDiscretization(DM dm, AppCtx *user)
   PetscDS         prob;
   PetscInt        dim;
   PetscErrorCode  ierr;
+  MPI_Comm        comm;
 
   PetscFE *feAux  = NULL;
   PetscDS  probAux = NULL;
@@ -808,9 +812,10 @@ PetscErrorCode PoissonSetupDiscretization(DM dm, AppCtx *user)
   const PetscInt auxSizes[] = {1, 1};
 
   PetscFunctionBeginUser;
+  ierr = PetscObjectGetComm((PetscObject)dm, &comm);CHKERRQ(ierr);
   ierr = DMGetDimension(dm, &dim);CHKERRQ(ierr);
   /* Create finite element */
-  ierr = PetscFECreateDefault(dm, dim, 1, PETSC_FALSE, "temperature_", PETSC_DEFAULT, &fe);CHKERRQ(ierr);
+  ierr = PetscFECreateDefault(comm, dim, 1, PETSC_FALSE, "temperature_", PETSC_DEFAULT, &fe);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject) fe, "temperature");CHKERRQ(ierr);
   ierr = PetscFEGetQuadrature(fe, &q);CHKERRQ(ierr);
   /* Set discretization and boundary conditions for each mesh */
@@ -827,7 +832,7 @@ PetscErrorCode PoissonSetupDiscretization(DM dm, AppCtx *user)
         char prefix[PETSC_MAX_PATH_LEN];
       
         ierr = PetscSNPrintf(prefix, PETSC_MAX_PATH_LEN, "aux_%d_", f);CHKERRQ(ierr);
-        ierr = PetscFECreateDefault( dm, dim, auxSizes[f], PETSC_FALSE, prefix, PETSC_DEFAULT, &feAux[f]);CHKERRQ(ierr);
+        ierr = PetscFECreateDefault(comm, dim, auxSizes[f], PETSC_FALSE, prefix, PETSC_DEFAULT, &feAux[f]);CHKERRQ(ierr);
         ierr = PetscObjectSetName((PetscObject) feAux[f], auxNames[f]);CHKERRQ(ierr);
         ierr = PetscFESetQuadrature(feAux[f], q);CHKERRQ(ierr);
         ierr = PetscDSSetDiscretization(probAux, f, (PetscObject) feAux[f]);CHKERRQ(ierr);
