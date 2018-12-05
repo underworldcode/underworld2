@@ -6,7 +6,7 @@ import numpy as np
 
 model = uw.systems.pl_PoissonModel()
 
-# these following 2 fn are made available by the model
+# the following fn are made available by the model
 temperature  = model.fn_temperature
 
 '''
