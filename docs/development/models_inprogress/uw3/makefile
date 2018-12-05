@@ -14,7 +14,7 @@ run_poisson: poisson3D.py
 
 
 run_stokes_sphere: stokesSinker3D.py
-	mpirun -np 2 python $^ -mesh_file 11_6.mesh.dat -dm_partition_view       -pc_type jacobi       -snes_monitor -snes_converged_reason -ksp_error_if_not_converged 0 -ksp_converged_reason       -velocity_petscspace_degree 1 -pressure_petscspace_degree 0
+	mpirun -np 2 python $^ -mesh_file 11_6.mesh.dat -dm_partition_view       -pc_type jacobi  -snes_atol 1e-12 -snes_monitor -snes_converged_reason -ksp_error_if_not_converged 0 -ksp_converged_reason       -velocity_petscspace_degree 1 -pressure_petscspace_degree 0
 	#mpirun -np 2 python stokesSinker3D.py -mesh_file 22_12.mesh.dat -dm_partition_view       -pc_type jacobi       -snes_monitor -snes_converged_reason -ksp_error_if_not_converged 0 -ksp_converged_reason       -u_petscspace_degree 1 -p_petscspace_degree 0
 
 run_cube: cube_stokesSinker3D.py

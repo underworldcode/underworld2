@@ -2,7 +2,6 @@ import underworld as uw
 from underworld import function as fn
 import numpy as np
 
-'''
 nSpheres = 1
 fn_conds = []
 for s_i in xrange(nSpheres):
@@ -20,7 +19,7 @@ fn_conds.append( (True, 0.0 ) ) # default condition
 fn_density = fn.branching.conditional( fn_conds )
 
 fn_r = fn.math.sqrt( fn.math.dot( fn.coord(), fn.coord() ) )
-fn_gravity =  fn.misc.constant(9.8) / fn_r * (fn.coord()[0], fn.coord()[1], fn.coord()[2])
+fn_gravity =  fn.misc.constant(-9.8) / fn_r * (fn.coord()[0], fn.coord()[1], fn.coord()[2])
 
 '''
 sphereRadius = 0.2         # define radius
@@ -37,9 +36,8 @@ for s_i, centre, in enumerate(spheres):
 
 fn_conds.append( (True, 1.0) )
 fn_density = fn.branching.conditional( fn_conds )
-
-
 fn_gravity =  fn.misc.constant(9.8) * (0., 0., 1.)
+'''
 
 fn_buoyancy = fn_gravity * fn_density
 

@@ -419,11 +419,13 @@ PetscErrorCode SetupProblem(DM dm, PetscDS prob, AppCtx *user)
   ierr = PetscDSSetJacobian(prob, 0, 1, NULL,  NULL, j2_up,  NULL);CHKERRQ(ierr);
   ierr = PetscDSSetJacobian(prob, 1, 0, NULL, j1_pu,  NULL,  NULL);CHKERRQ(ierr);
 
+  /*
   ierr = PetscDSSetJacobianPreconditioner(prob, 0, 0, NULL, NULL, NULL, stokes_momentum_J);CHKERRQ(ierr);
   ierr = PetscDSSetJacobianPreconditioner(prob, 0, 1, NULL, NULL, j2_up, NULL);CHKERRQ(ierr);
   ierr = PetscDSSetJacobianPreconditioner(prob, 1, 0, NULL, j1_pu, NULL, NULL);CHKERRQ(ierr);
   ierr = PetscDSSetJacobianPreconditioner(prob, 1, 1, massMatrix_invEta, NULL, NULL, NULL);CHKERRQ(ierr);
-  
+  */
+
   // no-slip dirichlet bc
   ierr = PetscDSAddBoundary(prob, DM_BC_ESSENTIAL, 
           "wall", "marker", 0, 0, NULL, (void (*)(void)) zero_vector, 2, ids, user);CHKERRQ(ierr);
@@ -559,6 +561,34 @@ PetscErrorCode SetupDiscretization(DM dm, AppCtx *user)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode CreatePressureNullSpace(DM dm, PetscInt dummy, MatNullSpace *nullspace)
+{
+  Vec              vec;
+  PetscErrorCode (*funcs[2])(PetscInt dim, PetscReal time, const PetscReal x[], PetscInt Nf, PetscScalar *u, void* ctx) = {zero_vector, one_scalar};
+  PetscErrorCode   ierr;
+
+  PetscFunctionBeginUser;
+  ierr = DMCreateGlobalVector(dm, &vec);CHKERRQ(ierr);
+  ierr = DMProjectFunction(dm, 0.0, funcs, NULL, INSERT_ALL_VALUES, vec);CHKERRQ(ierr);
+  ierr = VecNormalize(vec, NULL);CHKERRQ(ierr);
+  ierr = PetscObjectSetName((PetscObject) vec, "Pressure Null Space");CHKERRQ(ierr);
+  ierr = VecViewFromOptions(vec, NULL, "-pressure_nullspace_view");CHKERRQ(ierr);
+  ierr = MatNullSpaceCreate(PetscObjectComm((PetscObject)dm), PETSC_FALSE, 1, &vec, nullspace);CHKERRQ(ierr);
+  ierr = VecDestroy(&vec);CHKERRQ(ierr);
+  /* New style for field null spaces */
+  {
+    PetscObject  pressure;
+    MatNullSpace nullspacePres;
+
+    ierr = DMGetField(dm, 1, &pressure);CHKERRQ(ierr);
+    ierr = MatNullSpaceCreate(PetscObjectComm(pressure), PETSC_TRUE, 0, NULL, &nullspacePres);CHKERRQ(ierr);
+    ierr = PetscObjectCompose(pressure, "nullspace", (PetscObject) nullspacePres);CHKERRQ(ierr);
+    ierr = MatNullSpaceDestroy(&nullspacePres);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+/*
 PetscErrorCode CreatePressureNullSpace(DM dm, AppCtx *user, Vec *v, MatNullSpace *nullSpace)
 {
   Vec              vec;
@@ -579,6 +609,7 @@ PetscErrorCode CreatePressureNullSpace(DM dm, AppCtx *user, Vec *v, MatNullSpace
   ierr = DMRestoreGlobalVector(dm, &vec);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+*/
 
 PetscErrorCode ProcessOptionsStokes(MPI_Comm comm, AppCtx *user) {
   PetscInt dim;
@@ -596,11 +627,11 @@ PetscErrorCode ProcessOptionsStokes(MPI_Comm comm, AppCtx *user) {
   // can't use '-f' for user->filename because jupyter steals it (!!!) 
   ierr = PetscOptionsString("-mesh_file", "Mesh filename to read", "stokesmodel", user->filename, user->filename, sizeof(user->filename), &flg);CHKERRQ(ierr);
   ierr = PetscOptionsGetBool(NULL,"","-r",&(user->reload),NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsSetValue(NULL, "-u_petscspace_order", "1");CHKERRQ(ierr); // default linear trail function approximation
-  ierr = PetscOptionsSetValue(NULL, "-p_petscspace_order", "0");CHKERRQ(ierr); // default linear trail function approximation
-  ierr = PetscOptionsSetValue(NULL, "-aux_0_petscspace_order", "1");CHKERRQ(ierr); // default linear trail function approximation
-  ierr = PetscOptionsSetValue(NULL, "-aux_1_petscspace_order", "1");CHKERRQ(ierr); // default linear trail function approximation
-  ierr = PetscOptionsSetValue(NULL, "-aux_2_petscspace_order", "1");CHKERRQ(ierr); // default linear trail function approximation
+  ierr = PetscOptionsSetValue(NULL, "-u_petscspace_degree", "1");CHKERRQ(ierr); // default linear trail function approximation
+  ierr = PetscOptionsSetValue(NULL, "-p_petscspace_degree", "0");CHKERRQ(ierr); // default linear trail function approximation
+  ierr = PetscOptionsSetValue(NULL, "-aux_0_petscspace_degree", "1");CHKERRQ(ierr); // default linear trail function approximation
+  ierr = PetscOptionsSetValue(NULL, "-aux_1_petscspace_degree", "1");CHKERRQ(ierr); // default linear trail function approximation
+  ierr = PetscOptionsSetValue(NULL, "-aux_2_petscspace_degree", "1");CHKERRQ(ierr); // default linear trail function approximation
   ierr = PetscOptionsIntArray("-elRes", "element count (default: 5,5,5)", "n/a", user->elements, &dim, NULL);CHKERRQ(ierr);
   // ierr = PetscOptionsSetValue(NULL, "-dm_plex_separate_marker", "");
  // ierr = PetscOptionsInsertFile(comm, NULL, "/home/julian/models/snippits/petsc_uw2/my.opts", PETSC_TRUE );
@@ -777,8 +808,8 @@ PetscErrorCode PoissonProcessOptions(MPI_Comm comm, AppCtx *user) {
   user->filename[0] = '\0';
   // can't use '-f' for user->filename because jupyter steals it (!!!) 
   ierr = PetscOptionsString("-mesh_file", "Mesh filename to read", "poissonmodel", user->filename, user->filename, sizeof(user->filename), &flg);CHKERRQ(ierr);
-  //ierr = PetscOptionsSetValue(NULL, "-t_petscspace_order", "1");CHKERRQ(ierr); // default linear trail function approximation
-  //ierr = PetscOptionsSetValue(NULL, "-aux_0_petscspace_order", "1");CHKERRQ(ierr); // default linear trail function approximation
+  //ierr = PetscOptionsSetValue(NULL, "-t_petscspace_degree", "1");CHKERRQ(ierr); // default linear trail function approximation
+  //ierr = PetscOptionsSetValue(NULL, "-aux_0_petscspace_degree", "1");CHKERRQ(ierr); // default linear trail function approximation
   //ierr = PetscOptionsIntArray("-elRes", "element count (default: 5,5,5)", "n/a", user->elements, &dim, NULL);CHKERRQ(ierr);
   // ierr = PetscOptionsSetValue(NULL, "-dm_plex_separate_marker", "");
  // ierr = PetscOptionsInsertFile(comm, NULL, "/home/julian/models/snippits/petsc_uw2/my.opts", PETSC_TRUE );
@@ -938,8 +969,7 @@ AppCtx* StokesModel_Setup(char *argv) {
     AppCtx *user = &petscApp;
     DM *dm       = &(user->dm);
     SNES *snes   = &(user->snes);
-    Vec u, nullVec;
-    MatNullSpace nullSpace;
+    Vec u;
     PetscErrorCode ierr;    
     MPI_Comm comm = PETSC_COMM_WORLD;
     PetscInt dim = 3;
@@ -1006,9 +1036,9 @@ AppCtx* StokesModel_Setup(char *argv) {
     
     /* Calculates the index of the 'default' section, should improve performance */
     ierr = DMPlexCreateClosureIndex(*dm, NULL);//CHKERRQ(ierr);
+    ierr = DMSetNullSpaceConstructor(*dm, 2, CreatePressureNullSpace);//CHKERRQ(ierr);
     /* Sets the fem routines for boundary, residual and Jacobian point wise operations */
     ierr = DMPlexSetSNESLocalFEM(*dm, user, user, user);//CHKERRQ(ierr);
-    ierr = CreatePressureNullSpace(*dm, user, &nullVec, &nullSpace);//CHKERRQ(ierr);
     /* Get global vector */
     //ierr = DMCreateGlobalVector(*dm, &u);//CHKERRQ(ierr);
     /* Update SNES */
