@@ -1,0 +1,120 @@
+site_name: "The Underworld Geodynamics Modelling Code"
+site_author: Louis Moresi
+site_dir: www
+docs_dir: content/docs
+python_module: mkdocs_macros
+
+## Add the pages you want built here
+##
+#  The hierarchy of the list describes how these pages will be represented in the navigation
+#  bar at the top of the page. Either as individual links or as a dropdown menu of links
+
+nav:
+- Home: index.md
+- Geodynamics : Geodynamics.md
+- Numerical Methods: Numerics.md
+- Practical Matters: Practice.md
+- User's Manual :
+  - Getting Started : UserGuide/01_GettingStarted.md
+  - TheMesh :         UserGuide/02_TheMesh.md
+  - Swarms :          UserGuide/03_Swarms.md
+  - Functions :       UserGuide/04_Functions.md
+  - Systems :         UserGuide/05_Systems.md
+  - Utilities :       UserGuide/06_Utilities.md
+  - Visualisation :   UserGuide/07_Visualisation.md
+  - StokesSolver :    UserGuide/08_StokesSolver.md
+#
+#  - Cookbooks :
+#    - Components of Underworld : UserManual/Examples/Components.md
+#    - Worked Examples : UserManual/Examples/WorkedExamples.md
+#  - Tutorials:
+#    - Convection Models : UserManual/Tutorials/ConvectionModels.md
+#    - ViscoElasticity :  UserManual/Tutorials/ViscoElasticity.md
+#  - Published Results:
+#    - Benchmarks : UserManual/Published/Benchmarks.md
+#    - Original Work : UserManual/Published/OriginalPapers.md
+
+- Underworld Resources:
+    - UW2 website : http://www.underworldcode.org
+    - UW2 on Github : https://github.com/underworldcode/underworld2
+    - UW2 API docs : https://underworld2.readthedocs.io/en/latest/underworld.html
+    - Zenodo: https://doi.org/10.5281/zenodo.1436039
+    - Email us: mailto:anyone@underworldcode.org
+
+#- About Us:
+#    - ''
+
+## No need to change these config options unless you want to change the theme or the
+#  layout of the navigation bar.
+#
+#  Some of these options are not intuitive so take care !
+
+theme:
+  name: readthedocs
+  feature:
+    tabs: true
+
+repo_name: 'Underworld2 documentation on Github'
+repo_url: 'https://github.com/underworldcode/underworld2-documentation'
+edit_uri: "" ## don't edit these docs online
+
+extra:
+  social:
+    - type: 'github'
+      link: 'https://github.com/underworldcode'
+    - type: 'twitter'
+      link: 'https://twitter.com/underworldcode'
+  uw:
+    version: 2.6.0b  # Note variables do not nest in this version of the macros
+    gh_code: https://github.com/underworldcode/underworld2/tree/2.6.0b
+    gh_docs: https://github.com/underworldcode/underworld2-documentation/tree/master
+    gh_render_doc: https://nbviewer.jupyter.org/github/underworldcode/underworld2-documentation/blob/master
+
+# Layout of pages
+
+use_directory_urls: False
+
+###
+### This section is configuration of the build and does not change the site structure
+###
+### Config below requires:
+###   python3
+###   pip3 install mkdocs # obviously
+###   pip3 install mkdocs-macros-plugin
+###   pip3 install pymdown-extensions
+###
+### see docs/build_requirements.txt
+
+
+
+# Mathematics
+
+extra_javascript:
+  - 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML'
+  - js/mathjax-local-config.js
+
+plugins:
+   - search
+   - macros
+
+markdown_extensions:
+  - admonition
+#  - codehilite:
+#      linenums: true
+  - footnotes
+  - pymdownx.arithmatex
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.critic
+  - pymdownx.details
+  # - pymdownx.emoji:
+  #     emoji_generator: !!python/name:pymdownx.emoji.to_svg
+  - pymdownx.inlinehilite
+  # - pymdownx.magiclink
+  - pymdownx.mark
+  # - pymdownx.smartsymbols
+#  - pymdownx.superfences
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
