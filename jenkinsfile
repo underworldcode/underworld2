@@ -1,0 +1,67 @@
+#!groovy
+
+/* A Jenkins "Declarative" Pipeline file.
+See http://130.56.252.251:32779
+*/
+
+pipeline {
+  
+  // define the docker environment to run the pipeline in.
+  agent {
+      docker { 
+        image 'underworldcode/underworld2:dev'
+        
+        // special label to jenkins config. See http://130.56.252.251:32779/computer/
+        label 'slave'
+      }
+  }
+
+  stages {
+
+    // Build stage: compile the code
+    stage('Build') {
+      steps {
+        dir("./libUnderworld") {
+          sh './configure.py'
+          sh './compile.py'
+        }
+      }
+    }
+    
+    
+    // Test stage: runs the basic tests
+    stage('Test') {
+      steps {
+        sh 'source updatePyPath.sh'
+        // sh './utils/run_tests.py ./docs/test/compress.ipynb'
+        sh 'sh ./test_basic.sh'
+      }
+    }
+      
+  }
+  
+  /* For post build analysis */
+  post {
+    failure {
+      // notify users when the Pipeline fails
+      emailext (
+          subject: "Failed Pipeline: ${currentBuild.fullDisplayName}",
+          body: "Something is wrong with ${env.BUILD_URL}",
+          // mimeType: 'text/html',
+          to: 'underworlddev@googlegroups.com'
+        )
+    }
+    success {
+      script {
+        if (currentBuild.previousBuild != null && currentBuild.previousBuild.result != 'SUCCESS') {
+          emailext (
+            subject: "Back to normal: ${currentBuild.fullDisplayName}",
+            body: "Project is back to normal",
+            // mimeType: 'text/html',
+            to: 'underworlddev@googlegroups.com'
+          )
+        }
+      }
+    }
+  }
+}
