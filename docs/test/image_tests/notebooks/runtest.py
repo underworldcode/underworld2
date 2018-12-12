@@ -45,7 +45,7 @@ for f in files:
         #Change to working dir for test
         os.chdir(notebook)
         #Execute converted script
-        subprocess.check_call(['python', notebook+".py"], stdout=outFile, stderr=outFile )
+        subprocess.check_call(['python3', notebook+".py"], stdout=outFile, stderr=outFile )
 
     #Use output of the initial run as expected data
     if not dirfound:
