@@ -36,6 +36,7 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinx.ext.mathjax',
     'sphinx.ext.autosummary',
+    # 'nbsphinx',
 ]
 
 napoleon_google_docstring = False
@@ -57,9 +58,24 @@ templates_path = ['_templates']
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #
-# source_suffix = ['.rst', '.md']
-source_suffix = '.rst'
 
+import recommonmark
+from recommonmark.parser import CommonMarkParser
+from recommonmark.transform import AutoStructify
+source_suffix = ['.rst', '.md']
+source_parsers = {
+    '.md': CommonMarkParser,
+}
+
+def setup(app):
+    app.add_config_value('recommonmark_config', {
+            'enable_math': True,
+            'enable_inline_math': True,
+            }, True)
+    app.add_transform(AutoStructify)
+
+# source_suffix = '.rst'
+#
 # The encoding of source files.
 #
 # source_encoding = 'utf-8-sig'
@@ -68,7 +84,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'underworld2'
+project = u'The Underworld Geodynamics Modelling Code'
 copyright = u'2016, Melbourne University, Monash University.'
 author = u'Melbourne University, Monash University.'
 
@@ -480,5 +496,26 @@ except:
     sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 import generate_api_documentation
+import subprocess
+subprocess.call("./run-nb-to-md.sh", shell=True)
+
+def process_build_finished(app, exception):
+    if exception is not None:
+        return
+
+    # target_files = []
+    # for doc in app.env.found_docs:
+    #     target_uri        = app.builder.get_target_uri(doc)
+    #     target_uri_wpath  = os.path.join(app.outdir, target_uri)
+    #     target_uri_wapath = os.path.abspath(target_uri_wpath)
+    #     target_files.append(target_uri_wapath)
+    # print(target_files)
+    # print(app.outdir)
+    subprocess.call("./inject_interactive.sh " + app.outdir, shell=True)
 
 
+html_static_path = ['_static']
+def setup(app):
+    # app.add_stylesheet('css/material.css')
+    # app.add_javascript('juniper.min.js')
+    app.connect('build-finished', process_build_finished)
