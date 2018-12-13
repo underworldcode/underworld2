@@ -6,7 +6,7 @@ code, which should signify that no uncaught exceptions were encountered.
 
 This script will return a non-zero exit code if any tests fail.
 
-Usage: `run_tests.py --prepend="mpirun -np 2" --convert=True foo.py [bar.ipynb [...]]`
+Usage: `run_tests.py --prepend="mpirun -np 2" foo.py [bar.ipynb [...]]`
 
 
 """
@@ -24,15 +24,6 @@ try:
 except ImportError:
     import os
     DEVNULL = open(os.devnull, 'wb')
-
-# test if we can execute runipy
-can_runipy = True
-try:
-    subprocess.check_call("runipy -h".split(), stdout=DEVNULL, stderr=DEVNULL)
-except:
-    can_runipy = False
-    print("'runipy' does not appear to be available. All jupyter notebooks will be skipped.")
-
 
 def get_files(args,recursive):
     """
@@ -135,10 +126,8 @@ if __name__ == '__main__':
 
     # use the argparse module to read cmd line
     parser = argparse.ArgumentParser()
-    parser.add_argument("--prepend", help="Command to prepend before test executable. Useful for mpi tests.", type=str, default=None)
+    parser.add_argument("--prepend", help="Command to prepend before test executable. Useful for mpi tests (currently broken).", type=str, default=None)
     parser.add_argument("--recursive", help="Recurse directories for files.", type=bool, default=False)
-    parser.add_argument("--replace_outputs", help="Runs ipynb models replacing output cells.", type=bool, default=False)
-    parser.add_argument("--convert", help="If enabled, all ipynb files are converted to py before processing.", type=bool, default=False)
     parser.add_argument("files", nargs="+", help="the input file list")
     args = parser.parse_args()
 
@@ -171,17 +160,19 @@ if __name__ == '__main__':
         if not (is_ipynb or fname.endswith(".py")):
             continue
         
-        # if replacing outputs, only run ipynb models
-        if args.replace_outputs and fname.endswith(".py"):
-            continue
-
         # build executable command
         exe = ['python3']
 
-        if is_ipynb and can_runipy and not args.convert:
-            exe = ['runipy']      # use runipy instead
-        elif is_ipynb:
-            # convert ipynb to py and move to 'testResults'
+        if args.prepend:
+            exe = args.prepend.split() + exe
+
+        # if prefix args found and it's an ipynb, use 'jupyter nbconvert --execute'
+        if is_ipynb and not args.prepend:
+            exe = ['jupyter', 'nbconvert', '--ExecutePreprocessor.kernel_name="python3"',
+                   '--ExecutePreprocessor.timeout=180','--execute', '--stdout']
+
+        elif is_ipynb and args.prepend:
+            # convert ipynb to py and run with python
             print("Converting test {} to .py".format(fname));
             logFile.write("\nconverting "+fname+" to a python script");
 
@@ -193,11 +184,6 @@ if __name__ == '__main__':
 
             cleanup=True
 
-        if args.replace_outputs:
-            exe = ['runipy','-o']   # use runipy with -o arg
-
-        if args.prepend:
-            exe = args.prepend.split() + exe
         # log and run test
         print("Running test {}: {}".format(testnumber+1," ".join(exe)+" "+fname));
         logFile.write("\nRunning "+ " ".join(exe)+" "+fname);
