@@ -31,7 +31,7 @@ RUN apt-get update -qq && \
         gdb-minimal \
         python3-dbg \
         cmake \
-	    python3-setuptools \
+        python3-setuptools \
         wget \
         gfortran  && \
     apt-get clean && \
@@ -56,7 +56,6 @@ ENV LANG=C.UTF-8
 RUN pip3 install -U setuptools  && \
     pip3 install -U wheel       && \
     pip3 install --no-cache-dir packaging \
-        runipy \
         appdirs \
         numpy \
         jupyter \
