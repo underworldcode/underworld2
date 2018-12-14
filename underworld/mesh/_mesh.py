@@ -463,6 +463,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
 
                     # call parents method
                     super(_SpecialSetsDict,self).__init__()
+
                 def __getitem__(self,index):
                     # get item using regular dict
                     item = super(_SpecialSetsDict,self).__getitem__(index)
@@ -1133,14 +1134,22 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
                                              maxCoord=maxCoord, periodic=periodic, partitioned=partitioned, shadowDepth=shadowDepth, **kwargs)
 
         # lets add the special sets
+
         self.specialSets["MaxI_VertexSet"] = _specialSets_Cartesian.MaxI_VertexSet
         self.specialSets["MinI_VertexSet"] = _specialSets_Cartesian.MinI_VertexSet
         self.specialSets["MaxJ_VertexSet"] = _specialSets_Cartesian.MaxJ_VertexSet
         self.specialSets["MinJ_VertexSet"] = _specialSets_Cartesian.MinJ_VertexSet
+
         if(self.dim==3):
             self.specialSets["MaxK_VertexSet"] = _specialSets_Cartesian.MaxK_VertexSet
             self.specialSets["MinK_VertexSet"] = _specialSets_Cartesian.MinK_VertexSet
+
         self.specialSets["AllWalls_VertexSet"] = _specialSets_Cartesian.AllWalls
+
+        # These are for consistency with the Annulus / Sphere (note a change in convention for vertical)
+        self.specialSets["lower_surface_VertexSet"] = _specialSets_Cartesian.MinJ_VertexSet
+        self.specialSets["upper_surface_VertexSet"] = _specialSets_Cartesian.MaxJ_VertexSet
+
 
     def _setup(self):
         # build the sub-mesh now
@@ -1160,15 +1169,35 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
 
             self._secondaryMesh = FeMesh( elementType=self._elementTypes[1].upper(), generator=genSecondary )
 
+        ## Other setup
 
-            sepFn = uw.function.misc.constant( self._cself.minSep)
-            minmaxSep  = uw.function.view.min_max(sepFn)
-            minmaxSep.evaluate(self)
+        sepFn = uw.function.misc.constant( self._cself.minSep)
+        minmaxSep  = uw.function.view.min_max(sepFn)
+        minmaxSep.evaluate(self)
 
-            self._minDx = minmaxSep.min_global()
-            ## FIX !!
-            self._typicalDx = self._minDx
+        self._minDx = minmaxSep.min_global()
+        ## FIX !!
+        self._typicalDx = self._minDx
 
+        self.specialSets["excluded_VertexSet"] = lambda selfobject: self.specialSets["Empty"]
+
+        ## Here we should also check for periodic bcs ...
+
+        ## Here are some vertex sets for generalised boundary condition assignments
+        self.specialSets["vertical_surfaces_VertexSet"] = _specialSets_Cartesian.AllJKWalls
+
+        # Walls by relevant normal ...
+        surfaces_e1_normal_VertexSet = _specialSets_Cartesian.MaxI_VertexSet(self) + _specialSets_Cartesian.MinI_VertexSet(self)
+        self.specialSets["surfaces_e1_normal_VertexSet"]  = lambda selfobject: surfaces_e1_normal_VertexSet
+
+        # Walls by relevant normal ...
+        surfaces_e2_normal_VertexSet = _specialSets_Cartesian.MaxJ_VertexSet(self) + _specialSets_Cartesian.MinJ_VertexSet(self)
+        self.specialSets["surfaces_e2_normal_VertexSet"]  = lambda selfobject: surfaces_e2_normal_VertexSet
+
+        # Walls by relevant normal ...
+        if self.dim == 3:
+            surfaces_e3_normal_VertexSet = _specialSets_Cartesian.MaxK_VertexSet(self) + _specialSets_Cartesian.MinK_VertexSet(self)
+            self.specialSets["surfaces_e3_normal_VertexSet"]  = lambda selfobject: surfaces_e3_normal_VertexSet
 
 
     @property

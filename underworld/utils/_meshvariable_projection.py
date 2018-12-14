@@ -18,7 +18,7 @@ class SolveLinearSystem(_stgermain.StgCompoundComponent):
     """
     _objectsDict = {  "_system" : "SystemLinearEquations" }
     _selfObjectName = "_system"
-        
+
     def __init__(self, AMat, bVec, xVec, **kwargs):
 
         if not xVec:
@@ -27,7 +27,7 @@ class SolveLinearSystem(_stgermain.StgCompoundComponent):
             raise ValueError("You must specify a 'AMat' parameter.")
         if not bVec:
             raise ValueError("You must specify a 'bVec' parameter.")
-            
+
         if not isinstance( xVec, uw.systems.sle.SolutionVector):
             raise TypeError( "Provided 'xVec' must be of 'SolutionVector' class." )
         self._solutionVector = xVec
@@ -37,10 +37,10 @@ class SolveLinearSystem(_stgermain.StgCompoundComponent):
         if not isinstance( AMat, uw.systems.sle.AssembledMatrix):
             raise TypeError( "Provided 'AMat' must be of 'AssembledMatrix' class." )
         self._kmatrix = AMat
-        
+
         self._solver = None
         self._swarm  = None
-        
+
         super(SolveLinearSystem, self).__init__(**kwargs)
 
     def _setup(self):
@@ -52,7 +52,7 @@ class SolveLinearSystem(_stgermain.StgCompoundComponent):
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method
         super(SolveLinearSystem,self)._add_to_stg_dict(componentDictionary)
-        
+
     def solve(self):
         """
         Solve system
@@ -77,13 +77,13 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
     spurious results for *difficult* functions :math:`F`.
 
     The weighted average method is defined as:
-    
+
     .. math::
          \\bf{u}_a = \\frac{\\int_{\\Omega} \\bf{F} N_a \\partial\\Omega }{\\int_{\\Omega} N_a \\partial\\Omega }
 
     The weighted residual method constructs an SLE which is then solved to
     determine the unknowns:
-    
+
     .. math::
          \\bf{u}_a\\int_{\\Omega} N_a N_b \\partial\\Omega = \\int_{\\Omega} \\bf{F} N_b \\partial\\Omega
 
@@ -94,9 +94,9 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
     fn : underworld.function.Function
         The function you wish to project.
     voronoi_swarm : underworld.swarm.Swarm
-        Optional. If a voronoi_swarm is provided, voronoi type integration is 
-        utilised to integrate across elements. The provided swarm is used as the 
-        basis for the voronoi integration. If no swarm is provided, Gauss 
+        Optional. If a voronoi_swarm is provided, voronoi type integration is
+        utilised to integrate across elements. The provided swarm is used as the
+        basis for the voronoi integration. If no swarm is provided, Gauss
         integration is used.
     type : int, default=0
         Projection type.  0:`weighted average`, 1:`weighted residual`
@@ -160,7 +160,7 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
     """
     _objectsDict = {  "_system" : "SystemLinearEquations" }
     _selfObjectName = "_system"
-        
+
     def __init__(self, meshVariable=None, fn=None, voronoi_swarm=None, type=0, **kwargs):
 
         if not meshVariable:
@@ -182,7 +182,7 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
         if voronoi_swarm and meshVariable.mesh.elementType=='Q2':
             import warnings
             warnings.warn("Voronoi integration may yield unsatisfactory results for Q2 mesh.")
-            
+
 
 
         if not type in [0,1]:
@@ -206,7 +206,7 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
             # initial test functions which may require a valid voronoi swarm
             self._swarm._voronoi_swarm.repopulate()
         else:
-            intswarm = uw.swarm.GaussIntegrationSwarm(geometryMesh)
+            intswarm = uw.swarm.GaussIntegrationSwarm(geometryMesh, particleCount=4)
 
         self._fn = _fn
 

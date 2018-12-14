@@ -28,6 +28,116 @@ import numpy as np
 
 from ._mesh import FeMesh_Cartesian
 
+
+
+class FeMesh_CurvilinearCartesian(FeMesh_Cartesian):
+    """As FeMesh_Cartesian but includes the various basis vectors etc
+       that allow the general curvilinear solver to be used"""
+
+    def __init__(self, elementType="Q1/dQ0", elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.), periodic=None, partitioned=True, shadowDepth=1, **kwargs):
+
+        super(FeMesh_CurvilinearCartesian,self).__init__(elementType=elementType,
+                                                         elementRes=elementRes, minCoord=minCoord, maxCoord=maxCoord,
+                                                         periodic=periodic, partitioned=partitioned, shadowDepth=shadowDepth, **kwargs)
+
+        return
+
+
+    def _setup(self):
+
+        self.maskFn = fn.misc.constant(1.0)
+
+        # This needs to check for periodic and then implement as necessary
+
+        self.has_velocity_null_space = False
+
+        if self.dim == 2:
+
+            self.natural_coords=('x','y')
+
+            self._e1 = self.add_variable(nodeDofCount=2)
+            self._e2 = self.add_variable(nodeDofCount=2)
+
+            self.unitvec_x_Fn = fn.misc.constant((1.0,0.0))
+            self.unitvec_y_Fn = fn.misc.constant((0.0,1.0))
+
+            self._e1.data[:] =  self.unitvec_x_Fn.evaluate(self)
+            self._e2.data[:] =  self.unitvec_y_Fn.evaluate(self)
+
+            self.unitvec_v_Fn  = self.unitvec_y_Fn
+            self.unitvec_h1_Fn = self.unitvec_x_Fn
+
+            pos = fn.coord()
+            self.v_coord_Fn  = pos[1]
+            self.h1_coord_Fn = pos[0]
+            self.h2_coord_Fn = fn.misc.constant(0.0)
+
+
+        else:
+
+            self.natural_coords=('x','y','z')
+
+            self._e1 = self.add_variable(nodeDofCount=3)
+            self._e2 = self.add_variable(nodeDofCount=3)
+            self._e3 = self.add_variable(nodeDofCount=3)
+
+            self.unitvec_x_Fn = fn.misc.constant((1.0,0.0,0.0))
+            self.unitvec_y_Fn = fn.misc.constant((0.0,1.0,0.0))
+            self.unitvec_z_Fn = fn.misc.constant((0.0,0.0,1.0))
+
+            self._e1.data[:] =  self.unitvec_x_Fn.evaluate(self)
+            self._e2.data[:] =  self.unitvec_y_Fn.evaluate(self)
+            self._e3.data[:] =  self.unitvec_z_Fn.evaluate(self)
+
+            self.unitvec_v_Fn  = self.unitvec_y_Fn
+            self.unitvec_h1_Fn = self.unitvec_x_Fn
+            self.unitvec_h2_Fn = self.unitvec_z_Fn
+
+            pos = fn.coord()
+            self.v_coord_Fn  = pos[1]
+            self.h1_coord_Fn = pos[0]
+            self.h2_coord_Fn = pos[2]
+
+
+
+
+        self.volume = uw.utils.Integral(1.0, self).evaluate()[0]
+
+        pos = fn.coord()
+        self.unit_heightFn = (pos[1] - self.minCoord[1]) / (self.maxCoord[1]-self.minCoord[1])
+
+        ## moments of weight functions used to compute mean / vertical gradients in the mesh
+        ## calculate this once at setup time.
+
+        self._c0 = uw.utils.Integral(self.unit_heightFn, self).evaluate()[0] / self.volume
+        self._c1 = uw.utils.Integral(self.maskFn*(self.unit_heightFn-self._c0)**2, self).evaluate()[0]
+
+        return
+
+
+    def mean_value(self, fn=None):
+        """Returns mean value on the shell of scalar uw function"""
+
+        ## Need to check here that the supplied function is
+        ## valid and is a scalar.
+
+        mean_value = uw.utils.Integral(fn, self).evaluate()[0] / self.volume
+
+        return mean_value
+
+    def vertical_gradient_value(self, fn=None):
+        """Returns vertical gradient within the shell of scalar uw function"""
+
+        ## Need to check here that the supplied function is
+        ## valid and is a scalar. Mask function is to eliminate the
+        ## effect of the values in the core.
+
+        vGrad = uw.utils.Integral(fn * (self.unit_heightFn-self._c0)*self.maskFn, self).evaluate()[0] / self._c1
+
+        return vGrad
+
+
+
 class FeMesh_SRegion(FeMesh_Cartesian):
     def __init__(self, elementRes=(16,16,10), radialLengths=(3.0,6.0), latExtent=90.0, longExtent=90.0, centroid=[0.0,0.0,0.0], **kwargs):
         """
@@ -84,7 +194,8 @@ class FeMesh_SRegion(FeMesh_Cartesian):
         # build 3D mesh cartesian mesh centred on (0.0,0.0,0.0) - in _setup() we deform the mesh
         # elementType="Q1/dQ0",
         super(FeMesh_SRegion,self).__init__(elementRes=elementRes,
-                    minCoord=(radialLengths[0],-long_half,-lat_half), maxCoord=(radialLengths[1],long_half,lat_half), periodic=None, **kwargs)
+                    minCoord=(radialLengths[0],-long_half,-lat_half),
+                    maxCoord=(radialLengths[1],long_half,lat_half), periodic=None, **kwargs)
 
         self.specialSets["innerWall_VertexSet"] = _specialSets_Cartesian.MinI_VertexSet
         self.specialSets["outerWall_VertexSet"] = _specialSets_Cartesian.MaxI_VertexSet
@@ -228,6 +339,9 @@ class FeMesh_Cylinder(FeMesh_Cartesian):
 
         """
 
+        self.natural_coords=('r','theta','z')
+        self.maskFn = fn.misc.constant(1.0)
+
         if not isinstance( cyl_size, (tuple,list)):
             raise TypeError("Provided 'cyl_size' must be a tuple/list of 3 floats")
         if len(cyl_size) != 3:
@@ -245,9 +359,9 @@ class FeMesh_Cylinder(FeMesh_Cartesian):
                     maxCoord=(1.0, 1.0, 1.0),
                     periodic=None, **kwargs)
 
-        self.specialSets["base_VertexSet"] = _specialSets_Cartesian.MinI_VertexSet
-        self.specialSets["lid_VertexSet"]  = _specialSets_Cartesian.MaxI_VertexSet
-        self.specialSets["verticalWall_VertexSet"] = _specialSets_Cartesian.AllJKWalls
+        self.specialSets["upper_surface_VertexSet"]     = _specialSets_Cartesian.MinI_VertexSet
+        self.specialSets["lower_surface_VertexSet"]     = _specialSets_Cartesian.MaxI_VertexSet
+        self.specialSets["vertical_surfaces_VertexSet"] = _specialSets_Cartesian.AllJKWalls
 
 
 
@@ -370,6 +484,8 @@ class FeMesh_SphericalCap(FeMesh_Cartesian):
 
         """
 
+        self.natural_coords=('r','theta','phi')
+
 
         if not isinstance( resolution, (tuple,list)):
             raise TypeError("Provided 'resolution' must be a tuple/list of 2 ints")
@@ -399,9 +515,8 @@ class FeMesh_SphericalCap(FeMesh_Cartesian):
                     maxCoord=(1.0, 1.0, 1.0),
                     periodic=None, **kwargs)
 
-        self.specialSets["core_VertexSet"]    = _specialSets_Cartesian.MinI_VertexSet
-        self.specialSets["surface_VertexSet"] = _specialSets_Cartesian.MaxI_VertexSet
-        self.specialSets["wall_VertexSet"]    = _specialSets_Cartesian.AllJKWalls
+        self.specialSets["lower_surface_VertexSet"]    = _specialSets_Cartesian.MinI_VertexSet
+        self.specialSets["upper_surface_VertexSet"]    = _specialSets_Cartesian.MaxI_VertexSet
 
 
     def _setup(self):
@@ -460,9 +575,9 @@ class FeMesh_SphericalCap(FeMesh_Cartesian):
         self._e2 = self.add_variable(nodeDofCount=3)
         self._e3 = self.add_variable(nodeDofCount=3)
 
-        self._e1.data[:] = self.fn_unitvec_r().evaluate(self)
-        self._e2.data[:] = self.fn_unitvec_lon().evaluate(self)
-        self._e3.data[:] = self.fn_unitvec_lat().evaluate(self)
+        self._e1.data[:] = self._fn_unitvec_r().evaluate(self)
+        self._e2.data[:] = self._fn_unitvec_lon().evaluate(self)
+        self._e3.data[:] = self._fn_unitvec_lat().evaluate(self)
 
 
     def fn_r_theta_phi(self):
@@ -473,14 +588,14 @@ class FeMesh_SphericalCap(FeMesh_Cartesian):
         return r, theta, phi
 
 
-    def fn_unitvec_r(self):
+    def _fn_unitvec_r(self):
         pos = fn.coord()
         mag = fn.math.sqrt(fn.math.dot( pos, pos ))
         r_vec = pos / mag
         return r_vec
 
-    ## This one is theta (colatitude) unit vector
-    def fn_unitvec_theta(self):
+    ## This one is theta (colatitude) unit vector as uw.fn
+    def _fn_unitvec_theta(self):
         pos = fn.coord()
         r = fn.math.sqrt(pos[0]**2 + pos[1]**2 + pos[2]**2)
         theta = fn.math.acos(pos[0]/r)
@@ -491,8 +606,8 @@ class FeMesh_SphericalCap(FeMesh_Cartesian):
         vec += -fn.math.sin(theta) * (1.0, 0.0, 0.0)
         return vec
 
-    ## This one is phi (longitudinal) unit vector
-    def fn_unitvec_phi(self):
+    ## This one is phi (longitudinal) unit vector as uw.fn
+    def _fn_unitvec_phi(self):
         pos = fn.coord()
         r = fn.math.sqrt(pos[0]**2 + pos[1]**2 + pos[2]**2)
         theta = fn.math.acos(pos[0]/r)
@@ -525,6 +640,10 @@ class FeMesh_PuffedCubeSphericalShell(FeMesh_Cartesian):
 
         """
 
+        self.natural_coords=('r','lon','lat')
+        self.has_velocity_null_space = False # Not actually the case, but we need to add one to make this work
+
+
         if not isinstance(radial_resolution, int):
             raise TypeError("CubedSphere: radial_resolution expects an integer value")
 
@@ -543,7 +662,7 @@ class FeMesh_PuffedCubeSphericalShell(FeMesh_Cartesian):
         self._radial_resolution = radial_resolution
         self._core_stretch = core_stretch
         self._radii = radii
-        selt._kites=process_kites
+        self._kites=process_kites
 
         # build 3D mesh cartesian mesh centred on (0.0,0.0,0.0) - in _setup() we deform the mesh
         # elementType="Q1/dQ0", otherwise we have crashes ... sigh
@@ -555,33 +674,37 @@ class FeMesh_PuffedCubeSphericalShell(FeMesh_Cartesian):
                     maxCoord=( 1.0, 1.0, 1.0),
                     periodic=None, **kwargs)
 
-        self.specialSets["surface_VertexSet"]    = _specialSets_Cartesian.AllWalls
+        self.specialSets["upper_surface_VertexSet"]    = _specialSets_Cartesian.AllWalls
 
 
-        self.unitvec_r   = self._fn_unitvec_r()
-        self.unitvec_lat = self._fn_unitvec_theta()
-        self.unitvec_lon = self._fn_unitvec_theta()
+        self.unitvec_r_Fn   = self._fn_unitvec_r()
+        self.unitvec_lon_Fn = self._fn_unitvec_lon()
+        self.unitvec_lat_Fn = self._fn_unitvec_lat()
 
+        self.unitvec_v_Fn = self.unitvec_r_Fn
+        self.unitvec_h1_Fn = self.unitvec_lon_Fn
+        self.unitvec_h2_Fn = self.unitvec_lat_Fn
 
         self.radiusFn, self.lonFn, self.latFn = self._fn_r_lon_lat()
+
+        self.v_coord_Fn = self.radiusFn
+        self.h1_coord_Fn = self.lonFn
+        self.h2_coord_Fn = self.latFn
 
         dR = (radii[1]-radii[0])
         iR = (radii[0])
 
         # A uw function that scales from 0.0 at the inner surface to 1.0 at the outer
-        self.unit_radiusFn = fn.branching.conditional([ (self.radiusFn < iR, 0.0),
-                                                                (True, (self.radiusFn-iR) / dR) ])
+        self.unit_heightFn = fn.branching.conditional([ (self.radiusFn < iR, 0.0),
+                                                        (True, (self.radiusFn-iR) / dR) ])
 
         # A uw function that is 1.0 between the inner and outer shell and 0.0
         # in the excluded inner region
-        self.shellMaskFn  = fn.branching.conditional([ (self.radiusFn < iR, 0.0),
-                                                       (True, 1.0 )])
+        self.maskFn  = fn.branching.conditional([ (self.radiusFn < iR*0.999, 0.0),
+                                                                      (True, 1.0 )])
 
 
         return
-
-
-
 
 
     def _setup(self):
@@ -600,6 +723,11 @@ class FeMesh_PuffedCubeSphericalShell(FeMesh_Cartesian):
         scale = self._radial_resolution * inner_radius / core_elts
         max_puff1 = outer_radius * scale
         scale_back = (outer_radius-inner_radius) / (max_puff1-inner_radius)
+
+
+        self._core_elt_resolution = core_elts
+        self._typicalDx = (self._radii[1] - self._radii[0]) / (self._radial_resolution - self._core_elt_resolution)
+
 
         with self.deform_mesh():
 
@@ -675,7 +803,7 @@ class FeMesh_PuffedCubeSphericalShell(FeMesh_Cartesian):
                 # kites are not i/o nodes
                 is_moveable_half_kite = np.logical_and(bodynodes, is_a_half_kite)
 
-                rscale[is_moveable_half_kite] += 0.5 * (self._radii[1] - self._radii[0]) / self._radial_resolution
+                rscale[is_moveable_half_kite] += 0.25 * (self._radii[1] - self._radii[0]) / self._radial_resolution
 
 
             lon   = np.arctan2(zp,yp)
@@ -691,7 +819,7 @@ class FeMesh_PuffedCubeSphericalShell(FeMesh_Cartesian):
 
         ## Vertex sets for boundaries, excluded regions and the central node
 
-        surface_VertexSet = self.specialSets["surface_VertexSet"]
+        surface_VertexSet = self.specialSets["upper_surface_VertexSet"]
 
         lower_surface_VertexSet = self.specialSets["Empty"]
         lower_surface_VertexSet += np.where(np.isclose(self.rlonlat[:,0], self._radii[0], rtol=1.0e-3))[0]
@@ -705,19 +833,30 @@ class FeMesh_PuffedCubeSphericalShell(FeMesh_Cartesian):
         dead_centre_VertexSet += np.where(self.rlonlat[:,0] < 0.00001 * self._radii[1])[0]
         self.specialSets["dead_centre_VertexSet"] = lambda selfobject: dead_centre_VertexSet
 
+
+        self.specialSets["MaxI_VertexSet"] = _specialSets_Cartesian.MaxI_VertexSet
+        self.specialSets["MinI_VertexSet"] = _specialSets_Cartesian.MinI_VertexSet
+        self.specialSets["MaxJ_VertexSet"] = _specialSets_Cartesian.MaxJ_VertexSet
+        self.specialSets["MinJ_VertexSet"] = _specialSets_Cartesian.MinJ_VertexSet
+
+        # Walls by relevant normal ...
+        surfaces_e1_normal_VertexSet = self.specialSets["lower_surface_VertexSet"] + self.specialSets["upper_surface_VertexSet"]
+        self.specialSets["surfaces_e1_normal_VertexSet"]  = lambda selfobject: surfaces_e1_normal_VertexSet
+
+        surfaces_e2_normal_VertexSet = self.specialSets["Empty"]
+        self.specialSets["surfaces_e2_normal_VertexSet"]  = lambda selfobject: surfaces_e2_normal_VertexSet
+
+        surfaces_e3_normal_VertexSet = self.specialSets["Empty"]
+        self.specialSets["surfaces_e3_normal_VertexSet"]  = lambda selfobject: surfaces_e3_normal_VertexSet
+
         ## mesh geometry information
-        self.volume = uw.utils.Integral(self.shellMaskFn, self).evaluate()[0]
+        self.volume = uw.utils.Integral(self.maskFn, self).evaluate()[0]
         self.full_volume = uw.utils.Integral(1.0, self).evaluate()[0]
 
         ## moments of weight functions used to compute mean / radial gradients in the shell
         ## calculate this once at setup time.
-        self._c0 = uw.utils.Integral(self.unit_radiusFn, self).evaluate()[0] / self.area
-        self._c1 = uw.utils.Integral(self.shellMaskFn*(self.unit_radiusFn-self._c0)**2, self).evaluate()[0]
-
-
-
-
-
+        self._c0 = uw.utils.Integral(self.unit_heightFn, self).evaluate()[0] / self.volume
+        self._c1 = uw.utils.Integral(self.maskFn*(self.unit_heightFn-self._c0)**2, self).evaluate()[0]
 
 
         """
@@ -735,9 +874,9 @@ class FeMesh_PuffedCubeSphericalShell(FeMesh_Cartesian):
         self._e2 = self.add_variable(nodeDofCount=3)
         self._e3 = self.add_variable(nodeDofCount=3)
 
-        self._e1.data[:] = self.unitvec_r.evaluate(self)
-        self._e2.data[:] = self.unitvec_lon.evaluate(self)
-        self._e3.data[:] = self.unitvec_lat.evaluate(self)
+        self._e1.data[:] = self.unitvec_r_Fn.evaluate(self)
+        self._e2.data[:] = self.unitvec_lon_Fn.evaluate(self)
+        self._e3.data[:] = self.unitvec_lat_Fn.evaluate(self)
 
         return
 
@@ -747,23 +886,23 @@ class FeMesh_PuffedCubeSphericalShell(FeMesh_Cartesian):
         ## Need to check here that the supplied function is
         ## valid and is a scalar.
 
-        mean_value = uw.utils.Integral(fn * self.shellMaskFn, self).evaluate()[0] / self.volume
+        mean_value = uw.utils.Integral(fn * self.maskFn, self).evaluate()[0] / self.volume
 
         return mean_value
 
-    def radial_gradient_value(self, fn=None):
+    def vertical_gradient_value(self, fn=None):
         """Returns vertical gradient within the shell of scalar uw function"""
 
         ## Need to check here that the supplied function is
         ## valid and is a scalar. Mask function is to eliminate the
         ## effect of the values in the core.
 
-        rGrad = uw.utils.Integral(fn * (self.unit_radiusFn-self._c0)*self.shellMaskFn, self).evaluate()[0] / self._c1
+        rGrad = uw.utils.Integral(fn * (self.unit_heightFn-self._c0)*self.maskFn, self).evaluate()[0] / self._c1
 
         return rGrad
 
 
-    def fn_r_lon_lat(self):
+    def _fn_r_lon_lat(self):
         pos = fn.coord()
         rFn = fn.math.sqrt(pos[0]**2 + pos[1]**2 + pos[2]**2)
         lonFn = fn.math.atan2(pos[2],pos[1])
@@ -784,9 +923,9 @@ class FeMesh_PuffedCubeSphericalShell(FeMesh_Cartesian):
         tv = vField.data[nodes,:].copy() # be careful not to over-write
         uv = vField.data[nodes,:]
 
-        e1 = self.fn_unitvec_r().evaluate(self.data[nodes])
-        e2 = self.fn_unitvec_lon().evaluate(self.data[nodes])
-        e3 = self.fn_unitvec_lat().evaluate(self.data[nodes])
+        e1 = self._fn_unitvec_r().evaluate(self.data[nodes])
+        e2 = self._fn_unitvec_lon().evaluate(self.data[nodes])
+        e3 = self._fn_unitvec_lat().evaluate(self.data[nodes])
 
         tv[:,0] = uv[:,0] * e1[:,0] + uv[:,1] * e2[:,0] + uv[:,2] * e3[:,0]
         tv[:,1] = uv[:,0] * e1[:,1] + uv[:,1] * e2[:,1] + uv[:,2] * e3[:,1]
@@ -807,9 +946,9 @@ class FeMesh_PuffedCubeSphericalShell(FeMesh_Cartesian):
         tv = vField.data[nodes,:].copy() # be careful not to over-write
         uv = vField.data[nodes,:]
 
-        e1 = self.fn_unitvec_r().evaluate(self.data[nodes])
-        e2 = self.fn_unitvec_lon().evaluate(self.data[nodes])
-        e3 = self.fn_unitvec_lat().evaluate(self.data[nodes])
+        e1 = self._fn_unitvec_r().evaluate(self.data[nodes])
+        e2 = self._fn_unitvec_lon().evaluate(self.data[nodes])
+        e3 = self._fn_unitvec_lat().evaluate(self.data[nodes])
 
         tv[:,0] = uv[:,0] * e1[:,0] + uv[:,1] * e1[:,1] + uv[:,2] * e1[:,2]
         tv[:,1] = uv[:,0] * e2[:,0] + uv[:,1] * e2[:,1] + uv[:,2] * e2[:,2]
@@ -823,18 +962,18 @@ class FeMesh_PuffedCubeSphericalShell(FeMesh_Cartesian):
         ## Need to check here that the supplied function is
         ## valid and is a scalar.
 
-        mean_value = uw.utils.Integral(fn * self.shellMaskFn, self).evaluate()[0] / self.area
+        mean_value = uw.utils.Integral(fn * self.maskFn, self).evaluate()[0] / self.volume
 
         return mean_value
 
-    def radial_gradient_value(self, fn=None):
+    def vertical_gradient_value(self, fn=None):
         """Returns vertical gradient within the shell of scalar uw function"""
 
         ## Need to check here that the supplied function is
         ## valid and is a scalar. Mask function is to eliminate the
         ## effect of the values in the core.
 
-        rGrad = uw.utils.Integral(fn * (self.unit_radiusFn-self._c0)*self.shellMaskFn, self).evaluate()[0] / self._c1
+        rGrad = uw.utils.Integral(fn * (self.unit_heightFn-self._c0)*self.maskFn, self).evaluate()[0] / self._c1
 
         return rGrad
 
@@ -888,6 +1027,9 @@ class FeMesh_PuffedSquareAnnulus(FeMesh_Cartesian):
 
         """
 
+        self.natural_coords=('r','theta')
+
+
         if not isinstance(radial_resolution, int):
             raise TypeError("CubedSphere: radial_resolution expects an integer value")
 
@@ -908,6 +1050,8 @@ class FeMesh_PuffedSquareAnnulus(FeMesh_Cartesian):
         self._radii = radii
         self._kites=process_kites
 
+        self.has_velocity_null_space = True
+
 
         # build 3D mesh cartesian mesh centred on (0.0,0.0,0.0) - in _setup() we deform the mesh
         # elementType="Q1/dQ0", otherwise we have crashes ... sigh
@@ -922,7 +1066,7 @@ class FeMesh_PuffedSquareAnnulus(FeMesh_Cartesian):
                     maxCoord=( 1.0, 1.0),
                     periodic=None, **kwargs)
 
-        self.specialSets["surface_VertexSet"]    = _specialSets_Cartesian.AllWalls
+        self.specialSets["upper_surface_VertexSet"]    = _specialSets_Cartesian.AllWalls
 
 
         ## The following can be defined at this stage since they don't
@@ -935,16 +1079,23 @@ class FeMesh_PuffedSquareAnnulus(FeMesh_Cartesian):
         iR = (radii[0])
 
         # A uw function that scales from 0.0 at the inner surface to 1.0 at the outer
-        self.unit_radiusFn = fn.branching.conditional([ (self.radiusFn < iR, 0.0),
+        self.unit_heightFn = fn.branching.conditional([ (self.radiusFn < iR, 0.0),
                                                         (True, (self.radiusFn-iR) / dR) ])
 
         # A uw function that is 1.0 between the inner and outer shell and 0.0
         # in the excluded inner region
-        self.shellMaskFn  = fn.branching.conditional([ (self.radiusFn < iR, 0.0),
+        self.maskFn  = fn.branching.conditional([ (self.radiusFn < iR*0.99, 0.0),
                                                        (True, 1.0 )])
 
-        self.unitvec_r = self._fn_unitvec_r()
-        self.unitvec_theta = self._fn_unitvec_theta()
+        self.unitvec_r_Fn = self._fn_unitvec_r()
+        self.unitvec_theta_Fn = self._fn_unitvec_theta()
+
+        self.unitvec_v_Fn = self.unitvec_r_Fn
+        self.unitvec_h1_Fn = self.unitvec_theta_Fn
+
+        self.v_coord_Fn = self.radiusFn
+        self.h1_coord_Fn = self.thetaFn
+        self.h2_coord_Fn = fn.misc.constant(0.0)
 
         return
 
@@ -968,6 +1119,9 @@ class FeMesh_PuffedSquareAnnulus(FeMesh_Cartesian):
         scale_back = (outer_radius-inner_radius) / (max_puff1-inner_radius)
 
         self._core_elt_resolution = core_elts
+
+        self._typicalDx = (self._radii[1] - self._radii[0]) / (self._radial_resolution - self._core_elt_resolution)
+
 
         with self.deform_mesh():
 
@@ -1030,7 +1184,7 @@ class FeMesh_PuffedSquareAnnulus(FeMesh_Cartesian):
 
         ## Vertex sets for boundaries, excluded regions and the central node
 
-        surface_VertexSet = self.specialSets["surface_VertexSet"]
+        surface_VertexSet = self.specialSets["upper_surface_VertexSet"]
 
         lower_surface_VertexSet = self.specialSets["Empty"]
         lower_surface_VertexSet += np.where(np.isclose(self.rtheta[:,0], self._radii[0], rtol=1.0e-3))[0]
@@ -1044,14 +1198,27 @@ class FeMesh_PuffedSquareAnnulus(FeMesh_Cartesian):
         dead_centre_VertexSet += np.where(self.rtheta[:,0] < 0.001 * self._radii[1])[0]
         self.specialSets["dead_centre_VertexSet"] = lambda selfobject: dead_centre_VertexSet
 
+        vertical_surfaces_VertexSet = self.specialSets["Empty"]
+        self.specialSets["vertical_surfaces_VertexSet"]  = lambda selfobject: vertical_surfaces_VertexSet
+
+        # Walls by relevant normal ...
+        surfaces_e1_normal_VertexSet = self.specialSets["lower_surface_VertexSet"] + self.specialSets["upper_surface_VertexSet"]
+        self.specialSets["surfaces_e1_normal_VertexSet"]  = lambda selfobject: surfaces_e1_normal_VertexSet
+
+        surfaces_e2_normal_VertexSet = self.specialSets["Empty"]
+        self.specialSets["surfaces_e2_normal_VertexSet"]  = lambda selfobject: surfaces_e2_normal_VertexSet
+
+        surfaces_e3_normal_VertexSet = self.specialSets["Empty"]
+        self.specialSets["surfaces_e3_normal_VertexSet"]  = lambda selfobject: surfaces_e3_normal_VertexSet
+
         ## mesh geometry information
-        self.area = uw.utils.Integral(self.shellMaskFn, self).evaluate()[0]
+        self.area = uw.utils.Integral(self.maskFn, self).evaluate()[0]
         self.full_area = uw.utils.Integral(1.0, self).evaluate()[0]
 
         ## moments of weight functions used to compute mean / radial gradients in the shell
         ## calculate this once at setup time.
-        self._c0 = uw.utils.Integral(self.unit_radiusFn, self).evaluate()[0] / self.area
-        self._c1 = uw.utils.Integral(self.shellMaskFn*(self.unit_radiusFn-self._c0)**2, self).evaluate()[0]
+        self._c0 = uw.utils.Integral(self.unit_heightFn, self).evaluate()[0] / self.area
+        self._c1 = uw.utils.Integral(self.maskFn*(self.unit_heightFn-self._c0)**2, self).evaluate()[0]
 
         """
         Rotation documentation.
@@ -1078,20 +1245,40 @@ class FeMesh_PuffedSquareAnnulus(FeMesh_Cartesian):
         ## Need to check here that the supplied function is
         ## valid and is a scalar.
 
-        mean_value = uw.utils.Integral(fn * self.shellMaskFn, self).evaluate()[0] / self.area
+        mean_value = uw.utils.Integral(fn * self.maskFn, self).evaluate()[0] / self.area
 
         return mean_value
 
-    def radial_gradient_value(self, fn=None):
+    def vertical_gradient_value(self, fn=None):
         """Returns vertical gradient within the shell of scalar uw function"""
 
         ## Need to check here that the supplied function is
         ## valid and is a scalar. Mask function is to eliminate the
         ## effect of the values in the core.
 
-        rGrad = uw.utils.Integral(fn * (self.unit_radiusFn-self._c0)*self.shellMaskFn, self).evaluate()[0] / self._c1
+        rGrad = uw.utils.Integral(fn * (self.unit_heightFn-self._c0)*self.maskFn, self).evaluate()[0] / self._c1
 
         return rGrad
+
+
+    def remove_velocity_null_space(self, vField):
+
+        # This is a sort-of null space !
+        vField.data[:,:] *= self.maskFn.evaluate(self)
+
+        # Value of the null space
+        null_space_v  = uw.utils.Integral(fn.math.dot( vField, self.unitvec_theta_Fn ) * self.radiusFn * self.maskFn, self).evaluate()[0]
+        null_space_v /= uw.utils.Integral( (self.radiusFn * self.maskFn)**2, self).evaluate()[0]
+
+        print("1: Null Space Velocity: {}".format(null_space_v))
+
+
+
+        # Clean up the solution
+        vField.data[:,:] -= null_space_v * (self.unitvec_theta_Fn * self.radiusFn * self.maskFn).evaluate(self)[:,:]
+
+        return null_space_v
+
 
     def _fn_r_theta(self):
         pos = fn.coord()
@@ -1152,7 +1339,6 @@ class FeMesh_PuffedSquareAnnulus(FeMesh_Cartesian):
     # The unit vector is defined along the direction of colatitude towards North
     def _fn_unitvec_theta(self):
         pos = fn.coord()
-        # r = fn.math.sqrt(pos[0]**2 + pos[1]**2 + pos[2]**2)
 
         r = fn.math.sqrt(fn.math.dot( pos, pos ))
         theta   = fn.math.atan2(pos[1],pos[0])
@@ -1209,6 +1395,30 @@ class FeMesh_Annulus(FeMesh_Cartesian):
 
         """
 
+        self.has_velocity_null_space = True
+
+        self._centroid = centroid
+
+        self.natural_coords=('r','theta')
+        self.maskFn = fn.misc.constant(1.0)
+
+        self.unitvec_r_Fn = self._fn_unitvec_radial()
+        self.unitvec_theta_Fn = self._fn_unitvec_tangent()
+
+        self.unitvec_v_Fn = self.unitvec_r_Fn
+        self.unitvec_h1_Fn = self.unitvec_theta_Fn
+
+        self.radiusFn, self.thetaFn = self._fn_r_theta()
+        self.v_coord_Fn = self.radiusFn
+        self.h1_coord_Fn = self.thetaFn
+        self.h2_coord_Fn = fn.misc.constant(0.0)
+
+
+        dR = (radialLengths[1]-radialLengths[0])
+        iR = (radialLengths[0])
+        self.unit_heightFn = (self.radiusFn-iR) / dR
+
+
         errmsg = "Provided 'angularExtent' must be a tuple/list of 2 floats between values [0,360]"
         if not isinstance( angularExtent, (tuple,list)):
             raise TypeError(errmsg)
@@ -1234,9 +1444,18 @@ class FeMesh_Annulus(FeMesh_Cartesian):
                     minCoord=(radialLengths[0],angularExtent[0]), maxCoord=(radialLengths[1],angularExtent[1]), periodic=periodic, **kwargs)
 
         # define new specialSets, TODO, remove labels that don't make sense for the annulus
+
         self.specialSets["inner"] = _specialSets_Cartesian.MinI_VertexSet
         self.specialSets["outer"] = _specialSets_Cartesian.MaxI_VertexSet
-        self._centroid = centroid
+
+        # These are to provide consistency with other meshes (what of side walls if not 2pi mesh)
+        self.specialSets["lower_surface_VertexSet"] = _specialSets_Cartesian.MinI_VertexSet
+        self.specialSets["upper_surface_VertexSet"] = _specialSets_Cartesian.MaxI_VertexSet
+
+
+        return
+
+
 
     @property
     def radialLengths(self):
@@ -1254,7 +1473,7 @@ class FeMesh_Annulus(FeMesh_Cartesian):
         """
         return self._angularExtent
 
-    def fn_unitvec_radial(self):
+    def _fn_unitvec_radial(self):
         # returns the radial position
         pos = fn.coord()
         centre = self._centroid
@@ -1263,7 +1482,7 @@ class FeMesh_Annulus(FeMesh_Cartesian):
         r_vec = r_vec / mag
         return r_vec
 
-    def fn_unitvec_tangent(self):
+    def _fn_unitvec_tangent(self):
         # returns the radial position
         pos = fn.coord()
         centre = self._centroid
@@ -1279,6 +1498,13 @@ class FeMesh_Annulus(FeMesh_Cartesian):
         r = np.sqrt((self.data ** 2).sum(1))
         theta = (180/np.pi)*np.arctan2(self.data[:,1],self.data[:,0])
         return np.array([r,theta]).T
+
+    def _fn_r_theta(self):
+        pos = fn.coord() - self._centroid
+        rFn = fn.math.sqrt(pos[0]**2 + pos[1]**2)
+        thetaFn = fn.math.atan2(pos[1],pos[0])
+        return rFn, thetaFn
+
 
     # a function for radial coordinates
     @property
@@ -1316,16 +1542,87 @@ class FeMesh_Annulus(FeMesh_Cartesian):
         # on the surface. For points not on the surface the bndMeshVariable will evaluate
         # <1.0, so we need to remove those from the integration as well.
         self.bnd_vec_normal  = fn.branching.conditional(
-                             [ ( self.bndMeshVariable > 0.9, self.fn_unitvec_radial() ),
+                             [ ( self.bndMeshVariable > 0.9, self._fn_unitvec_radial() ),
                                (               True, fn.misc.constant(1.0)*(1.0,0.0) ) ] )
 
         self.bnd_vec_tangent = fn.branching.conditional(
-                             [ ( self.bndMeshVariable > 0.9, self.fn_unitvec_tangent() ),
+                             [ ( self.bndMeshVariable > 0.9, self._fn_unitvec_tangent() ),
                                (               True, fn.misc.constant(1.0)*(0.0,1.0) ) ] )
 
          # define solid body rotation function for the annulus
+
         r = fn.math.sqrt(fn.math.pow(fn.coord()[0],2.) + fn.math.pow(fn.coord()[1],2.))
-        self.sbr_fn = r*self.fn_unitvec_tangent() # solid body rotation function
+        self.sbr_fn = r*self._fn_unitvec_tangent() # solid body rotation function
+
+        self._e1 = self.add_variable(nodeDofCount=2)
+        self._e2 = self.add_variable(nodeDofCount=2)
+
+        self._e1.data[:] = self.bnd_vec_normal.evaluate(self)
+        self._e2.data[:] = self.bnd_vec_tangent.evaluate(self)
+
+        self.area = uw.utils.Integral(self.maskFn, self).evaluate()[0]
+        self.full_area = uw.utils.Integral(1.0, self).evaluate()[0]
+
+        ## moments of weight functions used to compute mean / radial gradients in the shell
+        ## calculate this once at setup time.
+        self._c0 = uw.utils.Integral(self.unit_heightFn, self).evaluate()[0] / self.area
+        self._c1 = uw.utils.Integral(self.maskFn*(self.unit_heightFn-self._c0)**2, self).evaluate()[0]
+
+        # Walls by relevant normal ...
+
+        surfaces_e1i_normal_VertexSet = _specialSets_Cartesian.MaxI_VertexSet(self) + _specialSets_Cartesian.MinI_VertexSet(self)
+        self.specialSets["surfaces_e1_normal_VertexSet"] = lambda selfobject: surfaces_e1i_normal_VertexSet
+
+        surfaces_e2_normal_VertexSet = self.specialSets["Empty"]
+        self.specialSets["surfaces_e2_normal_VertexSet"]  = lambda selfobject: surfaces_e2_normal_VertexSet
+
+        surfaces_e3_normal_VertexSet = self.specialSets["Empty"]
+        self.specialSets["surfaces_e3_normal_VertexSet"]  = lambda selfobject: surfaces_e3_normal_VertexSet
+
+        return
+
+    def mean_value(self, fn=None):
+        """Returns mean value on the shell of scalar uw function"""
+
+        ## Need to check here that the supplied function is
+        ## valid and is a scalar.
+
+        mean_value = uw.utils.Integral(fn * self.maskFn, self).evaluate()[0] / self.area
+
+        return mean_value
+
+    def vertical_gradient_value(self, fn=None):
+        """Returns vertical gradient within the shell of scalar uw function"""
+
+        ## Need to check here that the supplied function is
+        ## valid and is a scalar. Mask function is to eliminate the
+        ## effect of the values in the core.
+
+        rGrad = uw.utils.Integral(fn * (self.unit_heightFn-self._c0)*self.maskFn, self).evaluate()[0] / self._c1
+
+        return rGrad
+
+
+    def remove_velocity_null_space(self, vField):
+
+        # This is a sort-of null space !
+        vField.data[:,:] *= self.maskFn.evaluate(self)
+
+        # Value of the null space
+        null_space_v  = uw.utils.Integral(fn.math.dot( vField, self.unitvec_theta_Fn ) * self.radiusFn * self.maskFn, self).evaluate()[0]
+        null_space_v /= uw.utils.Integral( (self.radiusFn * self.maskFn)**2, self).evaluate()[0]
+
+        print("1: Null Space Velocity: {}".format(null_space_v))
+
+
+
+        # Clean up the solution
+        vField.data[:,:] -= null_space_v * (self.unitvec_theta_Fn * self.radiusFn * self.maskFn).evaluate(self)[:,:]
+
+        return null_space_v
+
+
+
 
 def _FeMesh_Annulus(*args, **kwargs):
     from warnings import warn

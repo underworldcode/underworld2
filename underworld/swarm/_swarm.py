@@ -39,7 +39,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
     Example
     -------
     Create a swarm with some variables:
-    
+
     >>> # First we need a mesh:
     >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
     >>> # Create empty swarm:
@@ -116,7 +116,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
 
         # init this to -1 to signify no mapping has occurred
         self._checkpointMapsToState = -1
-        
+
         # build parent
         super(Swarm,self).__init__(mesh, **kwargs)
 
@@ -206,6 +206,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
             raise ValueError("""The 'coordinateArray' must have shape n*dim, where 'n' is the
                               number of particles to add, and 'dim' is the dimensionality of
                               the supporting mesh ({}).""".format(self.mesh.dim) )
+
         retarr = self._cself.GeneralSwarm_AddParticlesFromCoordArray( coordinatesArray )
         # lets realloc swarm now
         libUnderworld.StgDomain.Swarm_Realloc(self._cself)
@@ -301,8 +302,8 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
             currently is problematic for passive swarms which may not have
             representation on all processes.
         try_optimise : bool, Default=True
-            Will speed up the swarm load time but warning - this algorithm assumes the 
-            previously saved swarm data was made on an identical mesh and mesh partitioning 
+            Will speed up the swarm load time but warning - this algorithm assumes the
+            previously saved swarm data was made on an identical mesh and mesh partitioning
             (number of processors) with respect to the current mesh. If this isn't the case then
             the reloaded particle ordering will be broken, leading to an invalid swarms.
             One can disable this optimisation and revert to a brute force algorithm, much slower,
@@ -322,7 +323,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
 
         if not isinstance(filename, str):
             raise TypeError("Expected 'filename' to be provided as a string")
-        
+
         # open hdf5 file
         h5f = h5py.File(name=filename, mode="r", driver='mpio', comm=MPI.COMM_WORLD)
 
@@ -335,26 +336,26 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
         nProcs = comm.Get_size()
-        
+
         if rank == 0 and verbose:
             bar = uw.utils._ProgressBar( start=0, end=dset.shape[0]-1, title="loading "+filename)
-        
+
         # try and read the procCount attribute & assume that if nProcs in .h5 file
-        # is equal to the current no. procs then the particles will be distributed the 
+        # is equal to the current no. procs then the particles will be distributed the
         # same across the processors. (Danger if different discretisations are used... i think)
         # else try and load the whole .h5 file.
-        # we set the 'offset' & 'size' variables to achieve the above 
-        
+        # we set the 'offset' & 'size' variables to achieve the above
+
         offset = 0
         size = dset.shape[0] # number of particles in h5 file
-        
+
         if try_optimise:
             procCount = h5f.attrs.get('proc_offset')
             if procCount is not None and nProcs == len(procCount):
                 for p_i in range(rank):
                     offset += procCount[p_i]
                 size = procCount[rank]
-            
+
         valid = np.zeros(0, dtype='i') # array for read in
         chunk=int(2e7) # read in max this many points at a time
 
@@ -406,9 +407,9 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
 
     def fn_particle_found(self):
         """
-        This function returns True where a particle is able to be found using 
+        This function returns True where a particle is able to be found using
         the provided input to function evaluation.
-        
+
         Returns
         -------
         underworld.function.Function
@@ -417,39 +418,39 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         Example
         -------
         Setup some things:
-        
+
         >>> import numpy as np
         >>> mesh = uw.mesh.FeMesh_Cartesian(elementRes=(32,32))
         >>> swarm = uw.swarm.Swarm(mesh, particleEscape=True)
         >>> layout = uw.swarm.layouts.PerCellGaussLayout(swarm,2)
         >>> swarm.populate_using_layout(layout)
-        
-        Now, evaluate the fn_particle_found function on the swarm.. all 
+
+        Now, evaluate the fn_particle_found function on the swarm.. all
         should be true
-        
+
         >>> fn_pf = swarm.fn_particle_found()
         >>> fn_pf.evaluate(swarm).all()
         True
-        
+
         Evalute at arbitrary coord... should return False
-        
+
         >>> fn_pf.evaluate( (0.3,0.9) )
         array([[False]], dtype=bool)
-        
+
         Now, lets get rid of all particles outside of a circle, and look
         to obtain pi/4.  First eject particles:
-        
+
         >>> with swarm.deform_swarm():
         ...    for ind,coord in enumerate(swarm.particleCoordinates.data):
         ...        if np.dot(coord,coord)>1.:
         ...            swarm.particleCoordinates.data[ind] = (99999.,99999.)
-        
+
         Now integrate and test
-        
+
         >>> incirc = uw.function.branching.conditional( ( (fn_pf,1.),(True,0.)  ) )
         >>> np.isclose(uw.utils.Integral(incirc, mesh).evaluate(),np.pi/4.,rtol=2e-2)
         array([ True], dtype=bool)
-        
+
         """
 
         if not hasattr(self, '_fn_particle_found'):
@@ -483,8 +484,8 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
     @property
     def _voronoi_swarm(self):
         """
-        This property points to an integration type swarm which mirrors the 
-        current swarm. The mirror swarms particles are coincident with the 
+        This property points to an integration type swarm which mirrors the
+        current swarm. The mirror swarms particles are coincident with the
         current swarms, but use local coordinates to record positions, and also
         records particle weights.
         """
@@ -495,16 +496,16 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
     @contextlib.contextmanager
     def deform_swarm(self, update_owners=True):
         """
-        Any particle location modifications must occur within this python 
+        Any particle location modifications must occur within this python
         context manager. This is necessary as it is critical that certain
         internal objects are updated when particle locations are modified.
 
         Parameters
         ----------
         update_owners : bool, default=True
-            If this is set to False, particle ownership (which element owns a 
+            If this is set to False, particle ownership (which element owns a
             particular particle) is not updated at the conclusion of the context
-            manager. This is often necessary when both the mesh and particles 
+            manager. This is often necessary when both the mesh and particles
             are advecting simutaneously.
 
         Example
@@ -515,16 +516,16 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         >>> swarm.populate_using_layout(layout)
         >>> swarm.particleCoordinates.data[0]
         array([ 0.0132078,  0.0132078])
-        
+
         Attempted modification without using deform_swarm() should fail:
-        
+
         >>> swarm.particleCoordinates.data[0] = [0.2,0.2]
         Traceback (most recent call last):
         ...
         ValueError: assignment destination is read-only
-        
+
         Within the deform_swarm() context manager, modification is allowed:
-        
+
         >>> with swarm.deform_swarm():
         ...     swarm.particleCoordinates.data[0] = [0.2,0.2]
         >>> swarm.particleCoordinates.data[0]
@@ -551,17 +552,17 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
 
     def shadow_particles_fetch(self):
         """
-        When called, neighbouring processor particles which have coordinates 
-        within the current processor's shadow zone will be communicated to the 
-        current processor. Ie, the processor shadow zone is populated using 
-        particles that are owned by neighbouring processors. After this 
-        method has been called, particle shadow data is available via the 
+        When called, neighbouring processor particles which have coordinates
+        within the current processor's shadow zone will be communicated to the
+        current processor. Ie, the processor shadow zone is populated using
+        particles that are owned by neighbouring processors. After this
+        method has been called, particle shadow data is available via the
         `data_shadow` handles of SwarmVariable objects. This data is read only.
-        
+
         Note that you will need to call this whenever neighbouring information
         has potentially changed, for example after swarm advection, or after
-        you have modified a SwarmVariable object. 
-        
+        you have modified a SwarmVariable object.
+
         Any existing shadow information will be discarded when this is called.
 
         Notes
@@ -571,7 +572,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         """
         self._clear_variable_arrays()
         uw.libUnderworld.StgDomain._ParticleShadowSync_Execute(self._particleShadowSync,self._cself)
-    
+
 
     def update_particle_owners(self):
         """
@@ -579,14 +580,14 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         moved. This is both in terms of the cell/element that the
         particle resides within, and also in terms of the parallel processor
         decomposition (particles belonging on other processors will be sent across).
-        
+
         Users should not generally need to call this as it will be called automatically at the
         conclusion of a deform_swarm() block.
 
         Notes
         -----
         This method must be called collectively by all processes.
-        
+
         Example
         -------
         >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )

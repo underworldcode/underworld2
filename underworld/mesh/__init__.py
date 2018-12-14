@@ -13,6 +13,7 @@
 """
 
 from ._mesh import FeMesh, FeMesh_Cartesian, FeMesh_IndexSet
+from ._spherical_mesh import FeMesh_CurvilinearCartesian
 from ._spherical_mesh import _FeMesh_Regional, FeMesh_SRegion, _FeMesh_Annulus,  FeMesh_Annulus
 from ._spherical_mesh import  FeMesh_SphericalCap, FeMesh_Cylinder, FeMesh_PuffedCubeSphericalShell, FeMesh_PuffedSquareAnnulus
 from ._meshvariable import MeshVariable

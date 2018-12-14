@@ -14,7 +14,9 @@ from mpi4py import MPI
 
 class SLCN_AdvectionDiffusion(object):
     def __init__(self, phiField, velocityField, fn_diffusivity, fn_sourceTerm=None, conditions=[]):
-        # Implements the Spiegelman Semi-lagrangian Crank Nicholson algorithm
+        """Implements the Spiegelman / Katz   Semi-lagrangian Advection / Crank Nicholson Diffusion algorithm"""
+
+        mesh = velocityField.mesh
 
         # unknown field and velocity field
         self.phiField = phiField
@@ -63,7 +65,6 @@ class SLCN_AdvectionDiffusion(object):
         K    = self._K    = uw.systems.sle.AssembledMatrix(solv, solv, f)
 
         # create quadrature swarm
-        mesh     = phiField.mesh
         intSwarm = uw.swarm.GaussIntegrationSwarm(mesh,particleCount=5)
 
         fn_dt = self.fn_dt
@@ -110,12 +111,12 @@ class SLCN_AdvectionDiffusion(object):
         self._maxVsq  = uw.function.view.min_max(velocityField, fn_norm = uw.function.math.dot(velocityField,velocityField) )
         self._maxDiff = uw.function.view.min_max(self.fn_diffusivity)
 
-        # Note that the c level minSep is for the local domain
+        # Note that the c level minSep on the mesh is for the local domain
         sepFn = uw.function.misc.constant( velocityField.mesh._cself.minSep)
         minmaxSep  = uw.function.view.min_max(sepFn)
         minmaxSep.evaluate(mesh)
-        self._minSep = minmaxSep.min_global()
 
+        self._minDx = minmaxSep.min_global()
 
         # the required for the solve
         self.sle = uw.utils.SolveLinearSystem(AMat=K, bVec=f, xVec=solv)
@@ -202,9 +203,8 @@ class SLCN_AdvectionDiffusion(object):
         localID = mswarm.add_particles_with_coordinates(swarm_coords2)
 
         accepted = np.where(localID != -1)
-        mswarm_map.data[accepted] = mesh.data_elementNodes.reshape(-1,1)[accepted]
-        mswarm_home_pts.data[accepted] = mswarm.particleCoordinates.data[accepted]
-
+        mswarm_map.data[:] = mesh.data_elementNodes.reshape(-1,1)[accepted]
+        mswarm_home_pts.data[:] = mswarm.particleCoordinates.data[accepted]
 
         # mcoords[surface,:] *= 0.9999
         # localID = mswarm.add_particles_with_coordinates(mcoords)
@@ -273,16 +273,45 @@ class SLCN_AdvectionDiffusion(object):
             for i, gId in enumerate(mesh.data_nodegId):
                 local_nId[gId] = i
 
-            element_centroids = mesh.data[local_nId[mesh.data_elementNodes]].mean(axis=1)
-            element_centroids2 = element_centroids.reshape(tuple((*element_centroids.shape, 1)))
-            element_coords = mesh.data[local_nId[mesh.data_elementNodes]].transpose(0,2,1)
-            swarm_coords   = (element_coords - element_centroids2) * ratio + element_centroids2
-            swarm_coords2  = swarm_coords.transpose(0,2,1).reshape(-1, 2)
-            localID = mswarm.add_particles_with_coordinates(swarm_coords2)
+            print("{} - building mswarm".format(uw.rank()), flush=True )
 
-            accepted = np.where(localID != -1)
-            mswarm_map.data[accepted] = mesh.data_elementNodes.reshape(-1,1)[accepted]
-            mswarm_home_pts.data[accepted] = mswarm.particleCoordinates.data[accepted]
+            layout = uw.swarm.layouts.PerCellRandomLayout(mswarm, particlesPerCell=mesh.data_elementNodes[0].shape[0])
+            mswarm.populate_using_layout(layout)
+
+
+            # element_centroids = mesh.data[local_nId[mesh.data_elementNodes]].mean(axis=1)
+            # element_centroids2 = element_centroids.reshape(tuple((*element_centroids.shape, 1)))
+            # element_coords = mesh.data[local_nId[mesh.data_elementNodes]].transpose(0,2,1)
+            # swarm_coords   = (element_coords - element_centroids2) * ratio + element_centroids2
+            # swarm_coords2  = swarm_coords.transpose(0,2,1).reshape(-1, mesh.dim)
+
+            ## This is not optimised for the element loop
+            ## But there eliminates the initial search issues
+            ## associated with adding points to an empty swarm.
+
+            ## print("{} - adding {} particles".format(uw.rank(), swarm_coords2.shape[0]), flush=True )
+
+            with mswarm.deform_swarm(update_owners=True):
+                for el in range(0,mesh.elementsLocal):
+                    element_centroid = mesh.data[local_nId[mesh.data_elementNodes[el]]].mean(axis=0)
+                    node_rel_coords  = mesh.data[local_nId[mesh.data_elementNodes[el]]] - element_centroid
+                    particle_coords  = node_rel_coords * ratio + element_centroid
+
+                    particles = np.where(mswarm.owningCell.data == el)[0]
+                    mswarm.particleCoordinates.data[particles] = particle_coords
+                    mswarm_map.data[particles,0] = mesh.data_elementNodes[el]
+
+            #
+            # localID = mswarm.add_particles_with_coordinates(swarm_coords2)
+            # accepted = np.where(localID != -1)
+
+            # mswarm_map.data[:] = mesh.data_elementNodes.reshape(-1,1)[accepted]
+            # mswarm_home_pts.data[:] = swarm_coords2[accepted]
+
+            mswarm_home_pts.data[:] = mswarm.particleCoordinates.data[:]
+
+            # if np.any(localID == -1):
+            #     print("{} - particles missing: {}".format(uw.rank(), np.where(localID == -1).shape[0]), flush=True )
 
             ## Make these variables accessible
 
@@ -314,14 +343,15 @@ class SLCN_AdvectionDiffusion(object):
 
         return
 
-    def _phiStar_stripy(self, dt):
+    def _phiStar_stripy(self, dt, smooth=0.9):
 
         import stripy
         import numpy as np
         from scipy.spatial import cKDTree
+        import time
 
         if self._mswarm == None:
-            self._build_phiStar_swarm(ratio=0.9)
+            self._build_phiStar_swarm(ratio=smooth)
 
         mesh = self.phiField.mesh
         phiStar = mesh.add_variable(dataType="double", nodeDofCount=1)
@@ -340,6 +370,7 @@ class SLCN_AdvectionDiffusion(object):
         mswarm_phiStar.data[:,0], err = mesh_interpolator.interpolate_cubic(mswarm.particleCoordinates.data[:,0],
                                         mswarm.particleCoordinates.data[:,1],
                                         self.phiField.data)
+
         ## Restore
         self._reset_phiStar_swarm()
 
@@ -360,6 +391,7 @@ class SLCN_AdvectionDiffusion(object):
                 phiNorm.data[node] += 1.0
 
         phiStar.data[np.where(phiNorm.data > 0.0)] /= phiNorm.data[np.where(phiNorm.data > 0.0)]
+
 
         self._phiStar_dirichlet_conditions(phiStar)
 
@@ -378,13 +410,19 @@ class SLCN_AdvectionDiffusion(object):
         return
 
 
-    def _phiStar_rbf(self, dt):
+    def _phiStar_rbf(self, dt, smooth=0.9):
 
         import numpy as np
         from scipy.spatial import cKDTree
+        from scipy.interpolate import Rbf
+        import time
 
         if self._mswarm == None:
-            self._build_phiStar_swarm(ratio=0.9)
+            self._build_phiStar_swarm(ratio=smooth)
+
+
+        walltime = time.process_time()
+
 
         mesh = self.phiField.mesh
         phiStar = mesh.add_variable(dataType="double", nodeDofCount=1)
@@ -392,14 +430,46 @@ class SLCN_AdvectionDiffusion(object):
         mswarm_phiStar = self._mswarm_phiStar
         mswarm = self._mswarm
 
-        ## This can't be cached
-        mesh_interpolator = Rbf(mesh.data[:,0],mesh.data[:,1], self.phiField.data, smooth=0.0, function='thin_plate' )
+        # ## This can't be cached
+        # if mesh.dim == 2:
+        #     mesh_interpolator = Rbf(mesh.data[:,0],mesh.data[:,1], self.phiField.data, smooth=0.0, function='thin_plate' )
+        # else:
+        #     mesh_interpolator = Rbf(mesh.data[:,0],mesh.data[:,1], mesh.data[:,2], self.phiField.data, smooth=0.0, function='thin_plate' )
 
-        # Consider doing this in 2 half steps ...
+        mesh_tree = cKDTree( mesh.data)
+
         self._mswarm_advector.integrate(-dt, update_owners=True)
 
-        mswarm_phiStar.data[:,0] = mesh_interpolator(mswarm.particleCoordinates.data[:,0],
-                                                     mswarm.particleCoordinates.data[:,1])
+
+        # if mesh.dim == 2:
+        #     mswarm_phiStar.data[:,0] = mesh_interpolator(mswarm.particleCoordinates.data[:,0],
+        #                                                  mswarm.particleCoordinates.data[:,1])
+        # else:
+        #     mswarm_phiStar.data[:,0] = mesh_interpolator(mswarm.particleCoordinates.data[:,0],
+        #                                                  mswarm.particleCoordinates.data[:,1],
+        #                                                  mswarm.particleCoordinates.data[:,2] )
+        #
+
+        ## EBE version - global RBF is impractical in nearly every case
+        ## We need to know the element size and mesh dimension to do this interpolation
+        ## correctly ... first, the 3D, Q1 version ...
+
+        # I think this can be eliminated at some stage ...
+        local_nId = -1 * np.ones(mesh.nodesGlobal, dtype=np.int)
+        for i, gId in enumerate(mesh.data_nodegId):
+            local_nId[gId] = i
+
+        for el in range(0,mesh.elementsLocal):
+            if el%1000 == 0:
+                print("Element: {}".format(el), flush=True)
+            element_centroid = mesh.data[local_nId[mesh.data_elementNodes[el]]].mean(axis=0)
+            d, local_nodes = mesh_tree.query(element_centroid, k=64)
+            mesh_interpolator = Rbf(mesh.data[local_nodes,0],mesh.data[local_nodes,1], mesh.data[local_nodes,2], self.phiField.data[local_nodes], smooth=0.0, function='thin_plate' )
+
+            particles = np.where(mswarm.owningCell.data == el)[0]
+            locations_x, locations_y, locations_z = mswarm.particleCoordinates.data[particles].T
+            mswarm_phiStar.data[particles,0] = mesh_interpolator(locations_x, locations_y, locations_z)
+
 
         ## Restore
         self._reset_phiStar_swarm()
@@ -424,18 +494,21 @@ class SLCN_AdvectionDiffusion(object):
 
         self._phiStar_dirichlet_conditions(phiStar)
 
+        print("{} - RBF interpolation ... {}s".format(uw.rank(), time.process_time()-walltime), flush=True )
+
+
         return phiStar
 
 
-    def _phiStar_fe(self, dt):
+    def _phiStar_fe(self, dt, smooth=0.9):
 
-        import stripy
         import numpy as np
+        import time
         from scipy.spatial import cKDTree
 
-
         if self._mswarm == None:
-            self._build_phiStar_swarm(ratio=0.9)
+            self._build_phiStar_swarm(ratio=smooth)
+
 
         mesh = self.phiField.mesh
         phiStar = mesh.add_variable(dataType="double", nodeDofCount=1)
@@ -443,13 +516,13 @@ class SLCN_AdvectionDiffusion(object):
         mswarm_phiStar = self._mswarm_phiStar
         mswarm = self._mswarm
 
-        # Consider doing this in 2 half steps ...
         self._mswarm_advector.integrate(-dt, update_owners=True)
 
         ## FE variable based interpolator
         mswarm_phiStar.data[:] = self.phiField.evaluate(mswarm)
 
         ## Restore
+        walltime = time.process_time()
         self._reset_phiStar_swarm()
 
         phiStar.data[:] = 0.0
@@ -475,59 +548,61 @@ class SLCN_AdvectionDiffusion(object):
         return phiStar
 
 
-    def integrate(self,  dt=0.0, phiStar=None, interpolator="built_in", solve=True, phiStarCopy=None):
+    def integrate(self,  dt=0.0, phiStar=None, interpolator="built_in", solve=True, phiStarCopy=None, smooth=0.9, substep=1):
         """SLCN integration in time. In a regular mesh, the update
         of the field can be calculated directly, but in an irregular
         mesh, it is necessary to supply phiStar (the T at launch points)"""
 
         import warnings
 
-        # use the given timestep
-        self.fn_dt.value = dt
+        dts = dt / float(substeps)
+        for substep in range(0,substeps):
 
-        # apply conditions
-        uw.libUnderworld.StgFEM.SolutionVector_LoadCurrentFeVariableValuesOntoVector( self._solv._cself )
+            # use the given timestep
+            self.fn_dt.value = dts
 
-        # update T* - temperature at departure points
+            # apply conditions
+            uw.libUnderworld.StgFEM.SolutionVector_LoadCurrentFeVariableValuesOntoVector( self._solv._cself )
 
-        if "stripy" in interpolator.lower():
-            if self._have_stripy:
-                if self.phiField.mesh.dim == 2:
-                    phiStar = self._phiStar_stripy(dt)
+            # update T* - temperature at departure points
+
+            if "stripy" in interpolator.lower():
+                if self._have_stripy:
+                    if self.phiField.mesh.dim == 2:
+                        phiStar = self._phiStar_stripy(dt, smooth=smooth)
+                    else:
+                        warnings.warn("stripy is only suitable for 2D meshes", category=RuntimeWarning)
                 else:
-                    warnings.warn("stripy is only suitable for 2D meshes", category=RuntimeWarning)
+                    warnings.warn("stripy is not installed", category=RuntimeWarning)
+
+            if "rbf" in interpolator.lower():
+                if self._have_rbf:
+                    phiStar = self._phiStar_rbf(dt, smooth=smooth)
+                else:
+                    warnings.warn("scipy / rbf is not installed", category=RuntimeWarning)
+
+            if "fe" in interpolator.lower():
+                phiStar = self._phiStar_fe(dt, smooth=smooth)
+                warnings.warn("fe is a low-order method for debugging use only", category=RuntimeWarning)
+
+            if phiStar is None:
+                uw.libUnderworld.StgFEM.SemiLagrangianIntegrator_SolveNew(
+                    self.phiField._cself,
+                    dt,
+                    self.vField._cself,
+                    self._phiStar._cself)
+
             else:
-                warnings.warn("stripy is not installed", category=RuntimeWarning)
-
-        if "rbf" in interpolator.lower():
-            if self._have_rbf:
-                phiStar = self._phiStar_rbf(dt)
-            else:
-                warnings.warn("scipy / rbf is not installed", category=RuntimeWarning)
-
-        if "fe" in interpolator.lower():
-            phiStar = self._phiStar_fe(dt)
-            warnings.warn("fe is a low-order method for debugging use only", category=RuntimeWarning)
-
-        if phiStar is None:
-            uw.libUnderworld.StgFEM.SemiLagrangianIntegrator_SolveNew(
-                self.phiField._cself,
-                dt,
-                self.vField._cself,
-                self._phiStar._cself)
-
-        else:
-            self._phiStar.data[:] = phiStar.data[:]
+                self._phiStar.data[:] = phiStar.data[:]
 
 
-        if phiStarCopy is not None:
-            phiStarCopy.data[:] = self._phiStar.data[:]
+            if phiStarCopy is not None:
+                phiStarCopy.data[:] = self._phiStar.data[:]
 
-        # Solve the update problem
-        if solve:
-            self.sle.solve()
-
-        return
+            # Solve the update problem
+            if solve:
+                    self.sle.solve()
+            return
 
 
     def launchPts(self,  dt=0.0):
@@ -587,7 +662,8 @@ class SLCN_AdvectionDiffusion(object):
         maxDiffusion = self._maxDiff.max_global()
 
         # the minimum separation of the mesh (globally)
-        dx = self._minSep
+        # dx = self._minDx
+        dx = self.vField.mesh._typicalDx
 
         # Note, if dx is not constant, these tests are potentially
         # overly pessimistic
