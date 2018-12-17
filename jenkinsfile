@@ -10,7 +10,7 @@ pipeline {
   agent {
       docker { 
         image 'underworldcode/underworld2:dev'
-        
+
         // special label to jenkins config. See http://130.56.252.251:32779/computer/
         label 'slave'
       }
@@ -28,16 +28,38 @@ pipeline {
       }
     }
     
-    
     // Test stage: runs the basic tests
-    stage('Test') {
+    stage('Basic Tests') {
       steps {
         sh 'source updatePyPath.sh'
-        // sh './utils/run_tests.py ./docs/test/compress.ipynb'
+        
+        /* TODO: Undo this solution to image_tests.py 
+        Disable ./doc/test/image_tests.py from the 'Test' stage. It shows
+        instabilities when run with other tests on jenkins.  
+        */
+        
+        sh 'mv ./docs/test/image_tests.py ./docs/test/image_tests.py.disable'
         sh 'sh ./test_basic.sh'
+        sh 'mv ./docs/test/image_tests.py.disable ./docs/test/image_tests.py'
       }
     }
-      
+    
+    // Run image_test.py separately, if it fails mark build 'UNSTABLE'
+    stage('image_tests') {
+      steps {
+        script {
+          try{
+            dir("./utils") {
+              sh './run_tests.py ../doc/test/image_tests.py'
+            }
+          }
+          catch(exc) {
+            currentBuild.result = 'UNSTABLE'
+            echo 'The image test phase failed. Not critical'
+          }
+        }
+      }
+    }
   }
   
   /* For post build analysis */
@@ -47,6 +69,15 @@ pipeline {
       emailext (
           subject: "Failed Pipeline: ${currentBuild.fullDisplayName}",
           body: "Something is wrong with ${env.BUILD_URL}",
+          // mimeType: 'text/html',
+          to: 'underworlddev@googlegroups.com'
+        )
+    }
+    unstable {
+      // notify users when the Pipeline fails
+      emailext (
+          subject: "Unstable Pipeline: ${currentBuild.fullDisplayName}",
+          body: "Something is unstable with ${env.BUILD_URL}",
           // mimeType: 'text/html',
           to: 'underworlddev@googlegroups.com'
         )
