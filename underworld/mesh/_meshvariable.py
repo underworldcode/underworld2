@@ -372,6 +372,14 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         >>> np.allclose(var.data,clone_var.data)
         True
 
+        Now check the field can be loaded on a different mesh topology (interpolation)
+
+        >>> mesh19 = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(19,19), minCoord=(0.,0.), maxCoord=(1.,1.) )
+        >>> clone_var2 = mesh19.add_variable(1)
+        >>> clone_var2.load("saved_mesh_variable.h5", interpolate=True)
+        >>> np.allclose(mesh.integrate(var), mesh19.integrate(clone_var2)) 
+        True
+
         >>> # clean up:
         >>> if uw.rank() == 0:
         ...     import os;
@@ -490,18 +498,18 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
                         "'mesh' hdf5 file. Resave the field with its associated mesh."+
                         "i.e. myField.save(\"filename.h5\", meshFilename)" )
             # get resolution of old mesh
-            res = h5f['mesh'].attrs.get('mesh resolution')
+            res = h5f['mesh'].attrs.get('mesh resolution').tolist()
             if res is None:
                 raise RuntimeError("Can't read the 'mesh resolution' for the field hdf5 file,"+
                        " was it created correctly?")
 
             # get max of old mesh
-            inputMax = h5f['mesh'].attrs.get('max')
+            inputMax = h5f['mesh'].attrs.get('max').tolist()
             if inputMax is None:
                 raise RuntimeError("Can't read the 'max' for the field hdf5 file,"+
                        " was it created correctly?")
 
-            inputMin = h5f['mesh'].attrs.get('min')
+            inputMin = h5f['mesh'].attrs.get('min').tolist()
             if inputMin is None:
                 raise RuntimeError("Can't read the 'min' for the field hdf5 file,"+
                        " was it created correctly?")
@@ -517,9 +525,9 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
 
             # build the NON-PARALLEL field and mesh
             inputMesh = uw.mesh.FeMesh_Cartesian( elementType = (elType+"/DQ0"), # only geometryMesh can be saved
-                                          elementRes  = tuple(res),
-                                          minCoord    = tuple(inputMin),
-                                          maxCoord    = tuple(inputMax),
+                                          elementRes  = res,
+                                          minCoord    = inputMin,
+                                          maxCoord    = inputMax,
                                           partitioned=False)
 
             # load data onto MeshVariable

@@ -716,7 +716,7 @@ class CartesianMeshGenerator(MeshGenerator):
             raise TypeError("'elementRes' object passed in must be of type 'list' or 'tuple'")
         for item in elementRes:
             if not isinstance(item,(int)) or (item < 1):
-                raise TypeError("'elementRes' list must only contain positive integers.")
+                raise TypeError("'elementRes' list must only contain positive integers. item was type/value {}/{}".format(type(item),item))
         if not len(elementRes) in [2,3]:
             raise ValueError("For 'elementRes', you must provide a tuple of length 2 or 3 (for respectively a 2d or 3d mesh).")
         self._elementRes = elementRes
