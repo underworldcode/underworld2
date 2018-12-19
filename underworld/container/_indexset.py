@@ -20,35 +20,35 @@ import numbers
 class IndexSet(object):
     """
     The IndexSet class provides a set type container for integer values.
-    The underlying implementation is designed for memory efficiency. 
+    The underlying implementation is designed for memory efficiency.
     Index insertion and removal is a constant time operation.
-    
+
     .. The following is just for rendering the docstrings with Sphinx.
     .. role:: python(code)
        :language: python
 
     Parameters
     ----------
-    
+
     size : int
         The size of the IndexSet. Note that the size corresponds to the maximum index
         value (plus 1) the set is required to hold, *NOT* the number of elements in
         the set. See IndexSet.size docstring for more information.
     fromObject : iterable, array_like, IndexSet. Optional.
-        If provided, an IndexSet will be constructed using provided object's data. 
+        If provided, an IndexSet will be constructed using provided object's data.
         See 'add' method for more details on acceptable objects.
         If not provided, empty set is generated.
 
     Examples
     --------
     You can add items via the constructor:
-    
+
     >>> someSet = uw.container.IndexSet( 15, [3,14,2] )
     >>> someSet
     IndexSet([ 2,  3, 14])
-    
+
     Alternatively, create an empty set and add items as necessary:
-    
+
     >>> someSet = uw.container.IndexSet( 15 )
     >>> someSet
     IndexSet([])
@@ -58,10 +58,10 @@ class IndexSet(object):
     >>> someSet.add( [2,11] )
     >>> someSet
     IndexSet([ 2,  3, 11])
-    
+
     Python operators are overloaded for convenience. Check class method details
     for full details.
-    
+
     """
 
     def __init__(self, size, fromObject=None):
@@ -70,12 +70,12 @@ class IndexSet(object):
         if size <= 0:
             raise ValueError("The 'size' parameter must be positive.")
         self._size = size
-        
+
         # keep record of this function incase libUnderworld disappears before __del__
         self._Stg_Class_Delete = libUnderworld.StGermain.Stg_Class_Delete
         
         # ok, let's do a cheeky, and if the object passed in is a native stg guy,
-        # we'll take ownership        
+        # we'll take ownership
         if isinstance(fromObject,libUnderworld.StGermain.IndexSet):
             self._cself = fromObject
             self._size = fromObject.size
@@ -89,13 +89,13 @@ class IndexSet(object):
     def __del__(self):
         # delete stg class
         self._Stg_Class_Delete(self._cself)
-    
+
     @property
     def size(self):
         """
         The size of the IndexSet. Note that the size corresponds to the maximum index
-        value (plus 1) the set is required to hold, *NOT* the number of elements in 
-        the set. So for example, a size of 16, would result in an IndexSet which can 
+        value (plus 1) the set is required to hold, *NOT* the number of elements in
+        the set. So for example, a size of 16, would result in an IndexSet which can
         retain values between 0 and 15 (inclusive). Note also that the the IndexSet
         will require ( size/8 + 1 ) bytes of memory storage.
         """
@@ -104,19 +104,19 @@ class IndexSet(object):
     def add(self, indices):
         """
         Add item(s) to IndexSet.
-        
+
         Parameters
         ----------
         indices: unsigned int, ndarray, IndexSet, iterable object.
-            Index or indices to be added to the IndexSet. Ensure value(s) are integer 
+            Index or indices to be added to the IndexSet. Ensure value(s) are integer
             and non-negative. An iterable object may also be provided, with numpy arrays
             and IndexSets being significantly more efficient.
-            
-        
+
+
         Example
         -------
         Create an empty set and add items as necessary:
-        
+
         >>> someSet = uw.container.IndexSet( 15 )
         >>> someSet.add(3)
         >>> someSet
@@ -129,21 +129,21 @@ class IndexSet(object):
         >>> someSet.add(np.array([10,11,3]))
         >>> someSet
         IndexSet([ 3,  5,  7,  8, 10, 11])
-        
+
         """
-        
+
         self._addremove(indices,True);
-        
+
     def remove(self, indices):
         """
         Remove item(s) from IndexSet.
-        
+
         Parameters
         ----------
         indices: unsigned int, ndarray, iterable object
             Index or indices to be removed from the IndexSet. Ensure value(s) are integer
             and non-negative. An iterable object may also be provided, with numpy arrays
-            being significantly more efficient. Note that the 'remove' method can not 
+            being significantly more efficient. Note that the 'remove' method can not
             be provided with an IndexSet object, as the 'add' object can.
 
         Example
@@ -162,8 +162,8 @@ class IndexSet(object):
 
         """
         self._addremove(indices,False);
-    
-        
+
+
     def _addremove(self, indices, isadding):
         # note we use numbers.Integral here which also catches numpy int types
         if isinstance(indices, numbers.Integral):
@@ -175,7 +175,7 @@ class IndexSet(object):
                 libUnderworld.StGermain.IndexSet_Add(self._cself,indices)
             else:
                 libUnderworld.StGermain.IndexSet_Remove(self._cself,indices)
-            
+
         elif isinstance(indices, np.ndarray):  # if numpy, add the quick way
             self._AddOrRemoveWithNumpyArray(indices, isadding)
         elif isinstance(indices, IndexSet):
@@ -198,12 +198,12 @@ class IndexSet(object):
     def AND(self, indices):
         """
         Logical AND operation performed with provided IndexSet.
-        
+
         Parameters
         ----------
         indices: IndexSet
             IndexSet for which AND operation is performed. Note that provided set must be of type IndexSet.
-            
+
         Example
         -------
         >>> someSet1 = uw.container.IndexSet( 15, [3,9,10] )
@@ -215,17 +215,17 @@ class IndexSet(object):
         """
         self._checkCompatWith(indices)
         libUnderworld.StGermain.IndexSet_Merge_AND(self._cself,indices._cself)
-    
-    
+
+
     def __contains__(self, index):
         """
         Check if item is in IndexSet.
-        
+
         Parameters
         ----------
         index: unsigned int
             Check if index is in IndexSet.
-            
+
         Returns
         -------
         inSet: bool
@@ -243,7 +243,7 @@ class IndexSet(object):
     def _AddOrRemoveWithNumpyArray(self,ndarray,adding):
         """
         Add values from a numpy array to a set
-        
+
         Parameters
         ----------
         ndarray: numpyp.ndarray (uint32, int32, uint64, int64)
@@ -253,7 +253,7 @@ class IndexSet(object):
         """
         if not isinstance(ndarray,np.ndarray):
             raise TypeError("Object must be of 'ndarray' type")
-        
+
         if len(ndarray) == 0:  # nothing to do, so return
             return
 
@@ -282,20 +282,20 @@ class IndexSet(object):
         # arrays using IndexSet objects. However, it doesn't need
         # to be implemented, curiously.
         raise RuntimeError("Not yet implemented")
-    
+
     @property
     def data(self):
         """
         Returns the set members as a numpy array.
-        
+
         Note that only a numpy copy of the set is returned, and modifying this
         array is disabled (and would have no effect).
-        
+
         Returns
         -------
         numpy.ndarray (uint32)
             Array containing IndexSet members.
-            
+
         Example
         -------
         >>> someSet = uw.container.IndexSet( 15, [3,9,10] )
@@ -315,12 +315,12 @@ class IndexSet(object):
     def __len__(self):
         """
         Overload for Python `len` usage.
-        
+
         Returns
         -------
         int: member count
             Returns the total number of members this set contains.
-        
+
         Example
         -------
         >>> someSet = uw.container.IndexSet( 15, [3,9,10] )
@@ -330,13 +330,13 @@ class IndexSet(object):
         """
         # get member count
         return libUnderworld.StGermain.IndexSet_UpdateMembersCount(self._cself)
-    
-    
-    
+
+
+
     def invert(self):
         """
         Inverts the index set in place.
-        
+
         Example
         -------
         >>> someSet = uw.container.IndexSet( 15, [1,3,5,7,9,11,13] )
@@ -346,7 +346,7 @@ class IndexSet(object):
 
         """
         libUnderworld.StGermain.IndexSet_Invert(self._cself)
-    
+
     def addAll(self):
         """
         Set all indices of set to added.
@@ -387,9 +387,9 @@ class IndexSet(object):
     def __add__(self,other):
         """
         Operator overloading for :python:`C = A + B`
-        
+
         Creates a new set C, then adds indices from A and B.
-        
+
         Returns
         -------
         indexSet: IndexSet
@@ -402,7 +402,7 @@ class IndexSet(object):
         >>> someSet1 + someSet2
         IndexSet([ 1,  3,  9, 10, 12])
 
-        
+
         """
         if not isinstance( other, IndexSet ):
             raise TypeError("Indices provided must be of type 'IndexSet'.")
@@ -414,7 +414,7 @@ class IndexSet(object):
     def __iadd__(self,other):
         """
         Operator overloading for :python:`A += B`
-        
+
         Adds indices from A and B.
 
         Example
@@ -424,7 +424,7 @@ class IndexSet(object):
         >>> someSet1 += someSet2
         >>> someSet1
         IndexSet([ 1,  3,  9, 10, 12])
-        
+
         """
         self.add(other)
         return self
@@ -432,11 +432,11 @@ class IndexSet(object):
     def __sub__(self,other):
         """
         Operator overloading for :python:`C = A - B`
-        
+
         Creates a new set C, then adds indices from A, and removes those
         from B.
 
-        
+
         Returns
         -------
         indexSet: IndexSet
@@ -460,9 +460,9 @@ class IndexSet(object):
     def __isub__(self,other):
         """
         Operator overloading for :python:`A -= B`
-        
+
         Removes from A indices in B.
-        
+
         Example
         -------
         >>> someSet1 = uw.container.IndexSet( 15, [3,9,10] )
@@ -479,11 +479,11 @@ class IndexSet(object):
     def __and__(self,other):
         """
         Operator overloading for :python:`C = A & B`
-        
+
         Creates a new set C, then adds indices from A, and performs
         AND logic with B.
 
-        
+
         Returns
         -------
         indexSet: IndexSet
@@ -506,10 +506,10 @@ class IndexSet(object):
     def __iand__(self,other):
         """
         Operator overloading for :python:`A &= B`
-        
+
         Performs logical AND operation with A and B. Results are stored
         in A.
-        
+
         Example
         -------
         >>> someSet1 = uw.container.IndexSet( 15, [3,9,10] )
@@ -525,11 +525,11 @@ class IndexSet(object):
     def __or__(self,other):
         """
         Operator overloading for :python:`C = A | B`
-        
-        Creates a new set C, then adds indices from A, and performs OR 
+
+        Creates a new set C, then adds indices from A, and performs OR
         logic with B.
 
-        
+
         Returns
         -------
         indexSet: IndexSet
@@ -552,9 +552,9 @@ class IndexSet(object):
     def __ior__(self,other):
         """
         Operator overloading for :python:`A |= B`
-        
+
         Performs logical OR operation with A and B. Results are stored in A.
-        
+
         Example
         -------
         >>> someSet1 = uw.container.IndexSet( 15, [3,9,10] )
@@ -568,16 +568,16 @@ class IndexSet(object):
         return self
 
     def __deepcopy__(self, memo):
-        """ 
+        """
         Custom deepcopy routine required because python won't know how to copy
-        memory owned by stgermain. 
+        memory owned by stgermain.
         """
         newguy = copy.copy(self)  # this should copy all python attributes
         newguy._cself = libUnderworld.StGermain.IndexSet_Duplicate( newguy._cself )  # creates new stg guy, and overwrites py _cself attribute
         return newguy
 
     def _checkCompatWith(self,other):
-        """ 
+        """
         Checks that these IndexSets are compatible. This should be overwritten by child classes.
         """
         if type(self) != type(other):
@@ -587,24 +587,24 @@ class IndexSet(object):
 class ObjectifiedIndexSet(IndexSet):
     """
     This class simply adds an object to IndexSet data. Usually this object will be
-    the object for which the IndexSet data relates to.. For example, we can attach a 
+    the object for which the IndexSet data relates to.. For example, we can attach a
     Mesh object to an IndexSet containing mesh vertices.
     """
     def __init__(self, object=None, *args, **kwargs):
         """
         Class initialiser
-        
+
         Parameters
         ----------
         object : any, default=None
             Object to tether to data
 
         See parent classes for further parameters.
-        
+
         Returns
         -------
         objectifiedIndexSet : ObjectifiedIndexSet
-        
+
         """
         self._object = object
 
@@ -621,7 +621,7 @@ class ObjectifiedIndexSet(IndexSet):
         return repr(self.data).replace("array","ObjectifiedIndexSet").replace(", dtype=uint32","")
 
     def _checkCompatWith(self,other):
-        """ 
+        """
         Checks that these IndexSets are compatible.
         """
         # check parent first
@@ -629,5 +629,3 @@ class ObjectifiedIndexSet(IndexSet):
 
         if type(self.object) != type(other.object):
             raise TypeError("This operation is illegal. The associated objects for these IndexSets do not appear to be of identical type.")
-
-        

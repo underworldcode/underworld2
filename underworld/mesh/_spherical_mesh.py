@@ -34,9 +34,9 @@ class FeMesh_CurvilinearCartesian(FeMesh_Cartesian):
     """As FeMesh_Cartesian but includes the various basis vectors etc
        that allow the general curvilinear solver to be used"""
 
-    def __init__(self, elementType="Q1/dQ0", elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.), periodic=None, partitioned=True, shadowDepth=1, **kwargs):
+    def __init__(self, elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.), periodic=None, partitioned=True, shadowDepth=1, **kwargs):
 
-        super(FeMesh_CurvilinearCartesian,self).__init__(elementType=elementType,
+        super(FeMesh_CurvilinearCartesian,self).__init__(
                                                          elementRes=elementRes, minCoord=minCoord, maxCoord=maxCoord,
                                                          periodic=periodic, partitioned=partitioned, shadowDepth=shadowDepth, **kwargs)
 

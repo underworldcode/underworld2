@@ -1150,6 +1150,8 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
         self.specialSets["lower_surface_VertexSet"] = _specialSets_Cartesian.MinJ_VertexSet
         self.specialSets["upper_surface_VertexSet"] = _specialSets_Cartesian.MaxJ_VertexSet
 
+        self._SPR = None
+
 
     def _setup(self):
         # build the sub-mesh now
@@ -1235,8 +1237,50 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
         # julian, i've dumbed this down for now as i'm not sure how to handle the
         # circular dependency.  i think the performance hit will be generally
         # negligible
+
         _volume_integral = uw.utils.Integral(mesh=self, fn=fn)
         return _volume_integral.evaluate()
+
+
+    def integrate_surface(self, fn, surfaceIndexSet=None):
+        """
+        Perform a domain integral of the given underworld function over this mesh
+
+        Parameters
+        ----------
+        mesh : uw.mesh.FeMesh_Cartesian
+            Domain to perform surface integral over.
+        surfaceIndexSet: index set defining the surface
+
+        """
+        # julian, i've dumbed this down for now as i'm not sure how to handle the
+        # circular dependency.  i think the performance hit will be generally
+        # negligible
+
+        _surface_integral = uw.utils.Integral(mesh=self, fn=fn, integrationType="Surface", surfaceIndexSet=surfaceIndexSet)
+        return _surface_integral.evaluate()
+
+
+    def gradient_recovery(self, fn, nodesList=None):
+        """
+        SPR
+
+        Parameters
+        ----------
+        mesh : uw.mesh.FeMesh_Cartesian
+            Domain to perform integral over.
+
+        fn:
+
+        nodesList:  don't need it everywhere but that's the default
+        """
+
+        if self._SPR is None:
+            self._SPR = uw.utils.SuperconvergentPatchRecovery(self)
+
+        return self._SPR.evaluate(GradVariable=fn, nodesList=nodesList)
+
+
 
 class FeMesh_IndexSet(uw.container.ObjectifiedIndexSet, function.FunctionInput):
     """

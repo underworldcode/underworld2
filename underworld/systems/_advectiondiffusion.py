@@ -436,10 +436,10 @@ class SLCN_AdvectionDiffusion(object):
         # else:
         #     mesh_interpolator = Rbf(mesh.data[:,0],mesh.data[:,1], mesh.data[:,2], self.phiField.data, smooth=0.0, function='thin_plate' )
 
+        # This really only needs to be built if the mesh changes
         mesh_tree = cKDTree( mesh.data)
 
         self._mswarm_advector.integrate(-dt, update_owners=True)
-
 
         # if mesh.dim == 2:
         #     mswarm_phiStar.data[:,0] = mesh_interpolator(mswarm.particleCoordinates.data[:,0],
@@ -454,21 +454,42 @@ class SLCN_AdvectionDiffusion(object):
         ## We need to know the element size and mesh dimension to do this interpolation
         ## correctly ... first, the 3D, Q1 version ...
 
+        if "Q1" in mesh.elementType:
+            stencil_size = 6**mesh.dim
+        elif "Q2" in mesh.elementType:
+            stencil_size = 7**mesh.dim
+        else: # No idea
+            stencil_size = 7**mesh.dim
+
+
         # I think this can be eliminated at some stage ...
         local_nId = -1 * np.ones(mesh.nodesGlobal, dtype=np.int)
         for i, gId in enumerate(mesh.data_nodegId):
             local_nId[gId] = i
 
         for el in range(0,mesh.elementsLocal):
-            if el%1000 == 0:
-                print("Element: {}".format(el), flush=True)
+            # if el%1000 == 0:
+            #     print("{}: Element: {}".format(uw.rank(), el), flush=True)
             element_centroid = mesh.data[local_nId[mesh.data_elementNodes[el]]].mean(axis=0)
-            d, local_nodes = mesh_tree.query(element_centroid, k=64)
-            mesh_interpolator = Rbf(mesh.data[local_nodes,0],mesh.data[local_nodes,1], mesh.data[local_nodes,2], self.phiField.data[local_nodes], smooth=0.0, function='thin_plate' )
 
+            d, local_nodes = mesh_tree.query(element_centroid, k=stencil_size)
             particles = np.where(mswarm.owningCell.data == el)[0]
-            locations_x, locations_y, locations_z = mswarm.particleCoordinates.data[particles].T
-            mswarm_phiStar.data[particles,0] = mesh_interpolator(locations_x, locations_y, locations_z)
+
+            if mesh.dim == 2:
+                mesh_interpolator = Rbf(mesh.data[local_nodes,0],
+                                        mesh.data[local_nodes,1],
+                                        self.phiField.data[local_nodes], smooth=0.0, function='thin_plate' )
+                locations_x, locations_y = mswarm.particleCoordinates.data[particles].T
+                mswarm_phiStar.data[particles,0] = mesh_interpolator(locations_x, locations_y)
+
+            else:
+                mesh_interpolator = Rbf(mesh.data[local_nodes,0],
+                                        mesh.data[local_nodes,1],
+                                        mesh.data[local_nodes,2],
+                                        self.phiField.data[local_nodes], smooth=0.0, function='thin_plate' )
+
+                locations_x, locations_y, locations_z = mswarm.particleCoordinates.data[particles].T
+                mswarm_phiStar.data[particles,0] = mesh_interpolator(locations_x, locations_y, locations_z)
 
 
         ## Restore
@@ -493,9 +514,9 @@ class SLCN_AdvectionDiffusion(object):
         phiStar.data[np.where(phiNorm.data > 0.0)] /= phiNorm.data[np.where(phiNorm.data > 0.0)]
 
         self._phiStar_dirichlet_conditions(phiStar)
-
-        print("{} - RBF interpolation ... {}s".format(uw.rank(), time.process_time()-walltime), flush=True )
-
+        #
+        # print("{} - RBF interpolation ... {}s".format(uw.rank(), time.process_time()-walltime), flush=True )
+        #
 
         return phiStar
 
@@ -548,7 +569,7 @@ class SLCN_AdvectionDiffusion(object):
         return phiStar
 
 
-    def integrate(self,  dt=0.0, phiStar=None, interpolator="built_in", solve=True, phiStarCopy=None, smooth=0.9, substep=1):
+    def integrate(self,  dt=0.0, phiStar=None, interpolator="rbf", solve=True, phiStarCopy=None, smooth=0.9, substeps=1):
         """SLCN integration in time. In a regular mesh, the update
         of the field can be calculated directly, but in an irregular
         mesh, it is necessary to supply phiStar (the T at launch points)"""
@@ -569,7 +590,7 @@ class SLCN_AdvectionDiffusion(object):
             if "stripy" in interpolator.lower():
                 if self._have_stripy:
                     if self.phiField.mesh.dim == 2:
-                        phiStar = self._phiStar_stripy(dt, smooth=smooth)
+                        phiStar = self._phiStar_stripy(dts, smooth=smooth)
                     else:
                         warnings.warn("stripy is only suitable for 2D meshes", category=RuntimeWarning)
                 else:
@@ -577,15 +598,17 @@ class SLCN_AdvectionDiffusion(object):
 
             if "rbf" in interpolator.lower():
                 if self._have_rbf:
-                    phiStar = self._phiStar_rbf(dt, smooth=smooth)
+                    phiStar = self._phiStar_rbf(dts, smooth=smooth)
                 else:
                     warnings.warn("scipy / rbf is not installed", category=RuntimeWarning)
 
             if "fe" in interpolator.lower():
-                phiStar = self._phiStar_fe(dt, smooth=smooth)
+                phiStar = self._phiStar_fe(dts, smooth=smooth)
                 warnings.warn("fe is a low-order method for debugging use only", category=RuntimeWarning)
 
+
             if phiStar is None:
+                ## Extremely unreliable !!
                 uw.libUnderworld.StgFEM.SemiLagrangianIntegrator_SolveNew(
                     self.phiField._cself,
                     dt,
@@ -595,14 +618,16 @@ class SLCN_AdvectionDiffusion(object):
             else:
                 self._phiStar.data[:] = phiStar.data[:]
 
-
             if phiStarCopy is not None:
                 phiStarCopy.data[:] = self._phiStar.data[:]
 
             # Solve the update problem
             if solve:
                     self.sle.solve()
-            return
+
+        self.fn_dt.value = dt
+        return
+
 
 
     def launchPts(self,  dt=0.0):
