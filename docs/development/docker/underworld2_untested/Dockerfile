@@ -10,7 +10,9 @@ ENV NB_WORK /workspace
 
 # add default user jovyan and change permissions on NB_WORK
 ENV NB_USER jovyan
-RUN useradd -m -s /bin/bash -N jovyan
+ENV NB_UID 1000
+#RUN useradd -m -s /bin/bash -N jovyan
+RUN adduser --disabled-password --gecos "Default user" --uid ${NB_UID} ${NB_USER}
 
 # copy this file over so that no password is required
 COPY docs/development/docker/underworld2_untested/jupyter_notebook_config.json /home/$NB_USER/.jupyter/jupyter_notebook_config.json
@@ -19,8 +21,8 @@ COPY docs/development/docker/underworld2_untested/jupyter_notebook_config.json /
 RUN pip install --no-cache-dir lavavu
 
 # COPY UW
-#COPY --chown=jovyan:users . $UW2_DIR/   # unfortunately, the version of docker at docker cloud does not support chown yet.
-COPY . $UW2_DIR/
+COPY --chown=jovyan:users . $UW2_DIR/
+#COPY . $UW2_DIR/
 
 # get underworld, compile, delete some unnecessary files, trust notebooks, copy to workspace
 RUN cd underworld2/libUnderworld && \
@@ -39,8 +41,6 @@ RUN cd underworld2/libUnderworld && \
     rm -fr PICellerator          && \
     rm -fr Solvers               && \
     find $UW2_DIR/docs -name \*.ipynb  -print0 | xargs -0 jupyter trust && \
-    cd ../../docs/development/api_doc_generator/                     && \
-    sphinx-build . ../../api_doc                                     && \
     mkdir $NB_WORK                                                   && \
     rsync -av $UW2_DIR/docs/. $NB_WORK                               && \
     cd /opt/underworld2                                              && \
@@ -67,5 +67,5 @@ VOLUME $NB_WORK/user_data
 WORKDIR $NB_WORK
 
 # launch notebook
-CMD ["jupyter", "notebook", "--ip='*'", "--no-browser"]
+CMD ["jupyter", "notebook", "--no-browser"]
 
