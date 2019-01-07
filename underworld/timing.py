@@ -317,6 +317,8 @@ def _routine_timer_decorator(routine, class_name=None):
                 return result
             _currentDepth -= 1
         # if we get here, we're not timing, call routine / return result.
+        # note, you can disable timing instrumentation altogether by setting
+        # the `UW_DISABLE_TIMING` environment variable.
         return routine(*args, **kwargs)
     return timed
 

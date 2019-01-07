@@ -1,9 +1,0 @@
-# .readthedocs.yml
-
-build:
-  image: latest
-
-python:
-  version: 3.6
-
-requirements_file: content/mkdocs_build_requirements.txt
