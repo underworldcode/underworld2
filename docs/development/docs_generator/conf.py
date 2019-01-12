@@ -469,7 +469,6 @@ import sys
 # just to be safe.  Also disable timing, as this won't work without build available.
 import os
 os.environ["UW_NO_USAGE_METRICS"] = "1"
-os.environ["UW_DISABLE_TIMING"  ] = "1"
 
 # generate rst files
 import sys
