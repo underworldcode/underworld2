@@ -360,7 +360,8 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
 
         Save to a file (note that the 'ignoreMe' object isn't really required):
 
-        >>> ignoreMe = var.save("saved_mesh_variable.h5")
+        >>> meshHandle = mesh.save("saved_mesh.h5")
+        >>> ignoreMe = var.save("saved_mesh_variable.h5", meshHandle)
 
         Now let's try and reload.
 
@@ -384,6 +385,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         >>> if uw.rank() == 0:
         ...     import os;
         ...     os.remove( "saved_mesh_variable.h5" )
+        ...     os.remove( "saved_mesh.h5" )
 
         """
         if not isinstance(filename, str):
