@@ -7,7 +7,7 @@ The Underworld2 development team is based in Melbourne, Australia at the Univers
 
 Lastest stable release (master branch) [![Build Status](http://130.56.252.251:32779/buildStatus/icon?job=master)](http://130.56.252.251:32779/job/master/)
 
-Development branch - [![Build Status](http://130.56.252.251:32779/buildStatus/icon?job=uw-dev)](http://130.56.252.251:32779/job/uw-dev/)
+Development branch - [![Build Status](http://130.56.252.251:32779/buildStatus/icon?job=Underworld2/development)](http://130.56.252.251:32779/job/Underworld2/job/development/)
 
 The Underworld 2 code can be cited via Zenodo [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1436040.svg)](https://doi.org/10.5281/zenodo.1436040)
 
