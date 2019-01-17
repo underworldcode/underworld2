@@ -140,10 +140,10 @@ class HeatSolver(_stgermain.StgCompoundComponent):
 
         solve_type can be one of:
 
-        mumps       : MUMPS parallel direct solver.
-        superludist : SuperLU parallel direct solver.
-        superlu     : SuperLU direct solver (serial only).
-        lu          : LU direct solver (serial only).
+        - mumps       : MUMPS parallel direct solver.
+        - superludist : SuperLU parallel direct solver.
+        - superlu     : SuperLU direct solver (serial only).
+        - lu          : LU direct solver (serial only).
         """
         if not isinstance(solve_type,str):
             raise TypeError("Solver type must be provided as a string. \
