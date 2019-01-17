@@ -419,7 +419,7 @@ class Stokes(_stgermain.StgCompoundComponent):
         # get the mesh and perform integrals over it
         mesh = self._velocityField.mesh
         
-        fn_2_integrate = ( 1., self._aObjects['vdotv_fn'] )
+        fn_2_integrate = ( self._aObjects['vdotv_fn'], 1. )
         (v2,vol)       = mesh.integrate( fn=fn_2_integrate )
         import math
         return math.sqrt(v2/vol)
