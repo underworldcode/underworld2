@@ -289,35 +289,22 @@ Cell_Index _ElementCellLayout_CellOf_Irregular( void* elementCellLayout, void* _
 }
 
 Cell_Index _ElementCellLayout_CellOf( void* elementCellLayout, void* _particle ) {
-  ElementCellLayout*      self     = (ElementCellLayout*)elementCellLayout;
-  Mesh                    *mesh    = self->mesh;
-  GlobalParticle*         particle = (GlobalParticle*)_particle;
-  int                     dim      = Mesh_GetDimSize(mesh);
-  unsigned                elInd    = Mesh_GetDomainSize( mesh, dim );
+	ElementCellLayout*      self     = (ElementCellLayout*)elementCellLayout;
+	GlobalParticle*	        particle = (GlobalParticle*)_particle;
+	unsigned		elInd;
 
-  /* A filter to see if the particle coords fall inside the local mesh geometry */
-  {
-    double minCrd[3], maxCrd[3];
-    int d_i;
-    Mesh_GetLocalCoordRange( mesh, minCrd, maxCrd );
-    for( d_i = 0; d_i < dim; d_i++ ) {
-      if( particle->coord[d_i] < minCrd[d_i] || particle->coord[d_i] > maxCrd[d_i] )
-      return elInd;
-    }
-  }
-  
   /* this objects highjacks the conditional statement of isRegular made by the mesh
    * in order to optimise the search algorithm using the particles existing owningCell */
-  if( mesh->isRegular ) {
+  if( self->mesh->isRegular ) {
     // for regularly spaced grid search
-      if( !Mesh_SearchElements( mesh, particle->coord, &elInd ) )
-      elInd = Mesh_GetDomainSize( mesh, dim );
+      if( !Mesh_SearchElements( self->mesh, particle->coord, &elInd ) )
+      elInd = Mesh_GetDomainSize( self->mesh, Mesh_GetDimSize( self->mesh ) );
   } else {
     // for irregularly spaced grid search
     elInd = _ElementCellLayout_CellOf_Irregular( elementCellLayout, _particle );
   }
 
-  return elInd;
+	return elInd;
 }
 
 
