@@ -83,6 +83,7 @@ RUN apt-get update -qq && \
     tar zxf petsc-lite-3.9.3.tar.gz && cd petsc-3.9.3                         && \
     ./configure --with-debugging=0 --prefix=/usr                                 \
                 --COPTFLAGS="-g -O3" --CXXOPTFLAGS="-g -O3" --FOPTFLAGS="-g -O3" \
+		--with-zlib=1                   \
                 --download-fblaslapack=1        \
                 --download-hdf5=1               \
                 --download-mumps=1              \
