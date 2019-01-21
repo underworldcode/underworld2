@@ -59,21 +59,6 @@ templates_path = ['_templates']
 # You can specify multiple suffix as a list of string:
 #
 
-import recommonmark
-from recommonmark.parser import CommonMarkParser
-from recommonmark.transform import AutoStructify
-source_suffix = ['.rst', '.md']
-source_parsers = {
-    '.md': CommonMarkParser,
-}
-
-def setup(app):
-    app.add_config_value('recommonmark_config', {
-            'enable_math': True,
-            'enable_inline_math': True,
-            }, True)
-    app.add_transform(AutoStructify)
-
 # source_suffix = '.rst'
 #
 # The encoding of source files.
@@ -496,7 +481,7 @@ except:
 
 import generate_api_documentation
 import subprocess
-subprocess.call("./run-nb-to-md.sh", shell=True)
+subprocess.call("./run-nb-to-rst.sh", shell=True)
 
 def process_build_finished(app, exception):
     if exception is not None:
@@ -510,7 +495,7 @@ def process_build_finished(app, exception):
     #     target_files.append(target_uri_wapath)
     # print(target_files)
     # print(app.outdir)
-    subprocess.call("./inject_interactive.sh " + app.outdir, shell=True)
+    subprocess.call("./add_scripts_to_html.sh " + app.outdir, shell=True)
 
 
 html_static_path = ['_static']

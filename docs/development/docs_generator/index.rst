@@ -45,8 +45,12 @@ Moresi, L., Quenette, S., Lemiale, V., Mériaux, C., Appelbe, W., Mühlhaus, 200
     Numerical Methods <Numerics>
     Installation <Installation>
     User Guide <UserGuide>
+
     API Reference: Underworld <underworld>
     API Reference: Glucifer <glucifer>
 
+    UW2 Github  <https://github.com/underworldcode/underworld2>
+    UW2 Website <http://www.underworldcode.org>
+    UW2 Zenodo <https://doi.org/10.5281/zenodo.1436039>
 
 

@@ -12,6 +12,7 @@ The following python packages are required to build the documentation:
 * sphinx
 * sphinx_rtd_theme
 * sphinxcontrib-napoleon
-* recommonmark
+* jupyter
+* pandoc
 * mock
 
