@@ -44,7 +44,7 @@ class SafeMaths(_Function):
     >>> safedividebyzero.evaluate()
     Traceback (most recent call last):
         ...
-    RuntimeError: Error in function of class 'SafeMaths' constructed at:
+    RuntimeError: Issue utilising function of class 'SafeMaths' constructed at:
        --- CONSTRUCTION TIME STACK ---
     Error message:
     Floating point exception(s) encountered while evaluating SafeMaths argument function:
@@ -103,7 +103,7 @@ class CustomException(_Function):
     >>> failing_one.evaluate()
     Traceback (most recent call last):
     ...
-    RuntimeError: Error in function of class 'CustomException' constructed at:
+    RuntimeError: Issue utilising function of class 'CustomException' constructed at:
        --- CONSTRUCTION TIME STACK ---
     Error message:
     CustomException condition function has evaluated to False for current input!
@@ -114,7 +114,7 @@ class CustomException(_Function):
     >>> failing_one_by_five.evaluate()
     Traceback (most recent call last):
     ...
-    RuntimeError: Error in function of class 'CustomException' constructed at:
+    RuntimeError: Issue utilising function of class 'CustomException' constructed at:
        --- CONSTRUCTION TIME STACK ---
     Error message:
     CustomException condition function has evaluated to False for current input!

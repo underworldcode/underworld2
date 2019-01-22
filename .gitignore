@@ -41,6 +41,7 @@ docs/scratch
 docs/test/*Output
 *ipynb.out
 *ipynb.err
+myfigure*
 
 # We should probably not cache the output of all the examples -  if we are going to leave the
 # notebook output cells in place, then there is not much need.

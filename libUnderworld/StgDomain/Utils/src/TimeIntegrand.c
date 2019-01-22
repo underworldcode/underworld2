@@ -59,6 +59,10 @@ TimeIntegrand* _TimeIntegrand_New(  TIMEINTEGRAND_DEFARGS  )
 	/* virtual info */
 	self->_calculateTimeDeriv = _calculateTimeDeriv;
 	self->_intermediate = _intermediate;
+
+	/* Create empty string. Children classes might add something useful */
+	Stg_asprintf(&self->error_msg, "");
+
 	
 	return self;
 }
@@ -82,9 +86,6 @@ void _TimeIntegrand_Init(
 	self->data           = Memory_Alloc_Array( Stg_Component*, dataCount, "data" );
 	self->allowFallbackToFirstOrder = allowFallbackToFirstOrder;
 	memcpy( self->data, data, dataCount * sizeof(Stg_Component*) );
-
-    /* Create empty string. Children classes might add something useful */
-	Stg_asprintf(&self->error_msg, "");
 
 	TimeIntegrator_Add( timeIntegrator, self );
 }

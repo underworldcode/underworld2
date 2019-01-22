@@ -131,7 +131,6 @@ class SwarmAdvector(TimeIntegration):
         
         >>> import underworld as uw
         >>> import numpy as np
-        >>> import numpy.testing as npt
         >>> from underworld import function as fn
         >>> dim=2;
         >>> elementMesh = uw.mesh.FeMesh_Cartesian(elementType="Q1/dQ0", elementRes=(9,9), minCoord=(-1.,-1.), maxCoord=(1.,1.))
@@ -143,9 +142,10 @@ class SwarmAdvector(TimeIntegration):
         array([0], dtype=int32)
         >>> velocityField.data[:]=[1.0,1.0]
         >>> swarmAdvector = uw.systems.SwarmAdvector(velocityField=velocityField, swarm=swarm, order=2)
-        >>> dt=1.0
+        >>> dt=swarmAdvector.get_max_dt()
         >>> swarmAdvector.integrate(dt)
-        >>> npt.assert_allclose(swarm.particleCoordinates.data[0], [1.2,0.8], rtol=1e-8, verbose=True)
+        >>> np.allclose(swarm.particleCoordinates.data[0], [ 0.27856742, -0.12143258], rtol=1e-4)
+        True
 
         """
         libUnderworld.StgFEM._FeVariable_SyncShadowValues( self._integrand.velocityField )

@@ -3,6 +3,8 @@ This test runs a basic RT type simulation, and measures the
 timing for various routines against that provided by the
 timing routine.
 """
+import os
+os.environ['UW_ENABLE_TIMING'] = '1'
 import underworld as uw
 from underworld import function as fn
 import glucifer

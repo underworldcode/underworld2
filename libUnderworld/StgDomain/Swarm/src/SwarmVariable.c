@@ -275,7 +275,6 @@ void _SwarmVariable_Execute( void* swarmVariable, void* data ) {
 void _SwarmVariable_Destroy( void* swarmVariable, void* data ) {
 	SwarmVariable* self = (SwarmVariable*)swarmVariable;
    
-   Stg_Component_Destroy( self->swarm, data, False );
    if( self->variable )
 		Stg_Component_Destroy(self->variable, data, False);
 }
