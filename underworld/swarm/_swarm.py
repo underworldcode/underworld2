@@ -55,7 +55,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
     >>> swarm.populate_using_layout(layout)
     >>> swarm.particleLocalCount
     1024
-    >>> swarm.particleCoordinates.data[0]
+    >>> swarm.data[0]
     array([ 0.0132078,  0.0132078])
     >>> swarm.owningCell.data[0]
     array([0], dtype=int32)
@@ -87,7 +87,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
     >>> swarm.particleGlobalCount
     1024
     >>> with swarm.deform_swarm():
-    ...     swarm.particleCoordinates.data[:] -= (0.5,0.)
+    ...     swarm.data[:] -= (0.5,0.)
     >>> swarm.particleGlobalCount
     512
 
@@ -134,9 +134,8 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         componentDictionary[ self._swarm.name ][          "CellLayout"] = self._cellLayout.name
         componentDictionary[ self._swarm.name ][      "createGlobalId"] = False
         componentDictionary[ self._swarm.name ]["ParticleCommHandlers"] = [self._pMovementHandler.name,]
-        if self.particleEscape:
-            componentDictionary[ self._swarm.name ][  "EscapedRoutine"] = self._escapedRoutine.name
-            componentDictionary[ self._escapedRoutine.name][ "particlesToRemoveDelta" ] = 1000
+        componentDictionary[ self._swarm.name ][  "EscapedRoutine"]     = self._escapedRoutine.name
+        componentDictionary[ self._escapedRoutine.name][ "particlesToRemoveDelta" ] = 1000
 
         componentDictionary[ self._cellLayout.name ]["Mesh"]            = self._mesh._cself.name
 
@@ -177,7 +176,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         array([ 0,  1,  2, -1,  3], dtype=int32)
         >>> swarm.particleLocalCount
         4
-        >>> swarm.particleCoordinates.data
+        >>> swarm.data
         array([[ 0.1,  0.1],
                [ 0.2,  0.1],
                [ 0.1,  0.2],
@@ -261,7 +260,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         Now check for equality:
 
         >>> import numpy as np
-        >>> np.allclose(swarm.particleCoordinates.data,clone_swarm.particleCoordinates.data)
+        >>> np.allclose(swarm.data,clone_swarm.data)
         True
 
         >>> # clean up:
@@ -318,9 +317,9 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         dset = h5f.get('data')
         if dset == None:
             raise RuntimeError("Can't find 'data' in file '{0}'.\n".format(filename))
-        if dset.shape[1] != self.particleCoordinates.data.shape[1]:
+        if dset.shape[1] != self.data.shape[1]:
             raise RuntimeError("Cannot load file data on current swarm. Data in file '{0}', " \
-                               "has {1} components -the particlesCoords has {2} components".format(filename, dset.shape[1], self.particleCoordinates.data.shape[1]))
+                               "has {1} components -the particlesCoords has {2} components".format(filename, dset.shape[1], self.data.shape[1]))
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
         nProcs = comm.Get_size()
@@ -419,9 +418,9 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         to obtain pi/4.  First eject particles:
         
         >>> with swarm.deform_swarm():
-        ...    for ind,coord in enumerate(swarm.particleCoordinates.data):
+        ...    for ind,coord in enumerate(swarm.data):
         ...        if np.dot(coord,coord)>1.:
-        ...            swarm.particleCoordinates.data[ind] = (99999.,99999.)
+        ...            swarm.data[ind] = (99999.,99999.)
         
         Now integrate and test
         
@@ -459,12 +458,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
 
         # setup mpi basic vars
         comm = MPI.COMM_WORLD
-        rank = comm.Get_rank()
-        nProcs = comm.Get_size()
-
-        # allgather the number of particles each proc has
-        procCount = comm.allgather(self.particleLocalCount)
-        return sum(procCount)
+        return comm.allreduce(self.particleLocalCount, op=MPI.SUM)
 
     @property
     def _voronoi_swarm(self):
@@ -499,12 +493,12 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         >>> swarm = uw.swarm.Swarm(mesh)
         >>> layout = uw.swarm.layouts.PerCellGaussLayout(swarm,2)
         >>> swarm.populate_using_layout(layout)
-        >>> swarm.particleCoordinates.data[0]
+        >>> swarm.data[0]
         array([ 0.0132078,  0.0132078])
         
         Attempted modification without using deform_swarm() should fail:
         
-        >>> swarm.particleCoordinates.data[0] = [0.2,0.2]
+        >>> swarm.data[0] = [0.2,0.2]
         Traceback (most recent call last):
         ...
         ValueError: assignment destination is read-only
@@ -512,8 +506,8 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         Within the deform_swarm() context manager, modification is allowed:
         
         >>> with swarm.deform_swarm():
-        ...     swarm.particleCoordinates.data[0] = [0.2,0.2]
-        >>> swarm.particleCoordinates.data[0]
+        ...     swarm.data[0] = [0.2,0.2]
+        >>> swarm.data[0]
         array([ 0.2,  0.2])
 
         """
@@ -578,19 +572,25 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
         >>> swarm = uw.swarm.Swarm(mesh)
         >>> swarm.populate_using_layout(uw.swarm.layouts.PerCellGaussLayout(swarm,2))
-        >>> swarm.particleCoordinates.data[0]
+        >>> swarm.data[0]
         array([ 0.0132078,  0.0132078])
         >>> swarm.owningCell.data[0]
         array([0], dtype=int32)
         >>> with swarm.deform_swarm():
-        ...     swarm.particleCoordinates.data[0] = [0.1,0.1]
+        ...     swarm.data[0] = [0.1,0.1]
         >>> swarm.owningCell.data[0]
         array([17], dtype=int32)
 
         """
+        orig_total_particles = self.particleGlobalCount
         libUnderworld.StgDomain.Swarm_UpdateAllParticleOwners( self._cself );
-        if self.particleEscape:
-            libUnderworld.PICellerator.EscapedRoutine_RemoveFromSwarm( self._escapedRoutine, self._cself )
+        libUnderworld.PICellerator.EscapedRoutine_RemoveFromSwarm(self._escapedRoutine, self._cself)
+        new_total_particles = self.particleGlobalCount
+        if (uw.rank()==0) and (not self.particleEscape) and (orig_total_particles != new_total_particles):
+            raise RuntimeError("Particles appear to have left the domain, but swarm flag `particleEscape` is False. "
+                               "Check your velocity field or your particle relocation routines, or set the "
+                               "`particleEscape` swarm constructor parameter to True to allow escape.")
+
 
         libUnderworld.PICellerator.GeneralSwarm_ClearSwarmMaps( self._cself );
         self._toggle_state()

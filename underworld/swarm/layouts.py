@@ -143,10 +143,12 @@ class GlobalSpaceFillerLayout(_ParticleLayoutAbstract):
     _objectsDict = {  "_layout": "SpaceFillerParticleLayout" }
 
     def __init__(self, swarm, particlesPerCell, **kwargs ):
+        import underworld as uw
+        if uw.rank()==0:
         # TODO: Deprecate
-        import warnings
-        warnings.warn("Note that the 'GlobalSpaceFillerLayout' will be deprecated in future releases of Underworld. "
-                      "The `PerCellSpaceFillerLayout` provides similar functionality.")
+            import warnings
+            warnings.warn("Note that the 'GlobalSpaceFillerLayout' will be deprecated in future releases of Underworld. "
+                          "The `PerCellSpaceFillerLayout` provides similar functionality.")
         if not isinstance(particlesPerCell, (int,float)):
             raise TypeError("'particlesPerCell' object passed in must be of type 'float' or 'int'.")
         if particlesPerCell<=0:

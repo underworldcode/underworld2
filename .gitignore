@@ -39,7 +39,6 @@ libUnderworld/h5py_ext/
 testResults
 docs/scratch
 docs/test/*Output
-docs/examples/images/*
 *ipynb.out
 *ipynb.err
 
