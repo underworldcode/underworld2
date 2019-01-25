@@ -54,6 +54,13 @@ import systems
 timing._add_timing_to_mod(systems)
 import utils
 timing._add_timing_to_mod(utils)
+import scaling as _scaling
+timing._add_timing_to_mod(_scaling)
+
+from .scaling import COEFFICIENTS as scaling_coefficients
+from .scaling import UnitRegistry
+from .scaling import nonDimensionalize
+from .scaling import Dimensionalize
 
 import numpy as _np
 
