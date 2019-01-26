@@ -30,16 +30,16 @@ def get_coefficients():
     """
     return COEFFICIENTS
 
-def non_dimensionalise(dimValue):
+def non_dimensionalise(dim_value):
     """
-    Non-dimensionalize (scale) quantity
+    Non-dimensionalize (scale) provided quantity.
 
-    This function uses pint object to perform a dimension analysis and
+    This function uses pint to perform a dimension analysis and
     return a value scaled according to a set of scaling coefficients.
 
     Parameters
     ----------
-    dimValue : pint quantity
+    dim_value : pint quantity
 
     Returns
     -------
@@ -75,13 +75,13 @@ def non_dimensionalise(dimValue):
     >>> gravity = uw.scaling.non_dimensionalise(9.81 * u.meter / u.second**2)
     """
     try:
-        val = dimValue.unitless
+        val = dim_value.unitless
         if val:
-            return dimValue
+            return dim_value
     except AttributeError:
-        return dimValue
+        return dim_value
 
-    dimValue = dimValue.to_base_units()
+    dim_value = dim_value.to_base_units()
 
     scaling_coefficients = get_coefficients()
 
@@ -104,32 +104,32 @@ def non_dimensionalise(dimValue):
     check(length, time, mass, temperature, substance)
 
     # Get dimensionality
-    dlength = dimValue.dimensionality['[length]']
-    dtime = dimValue.dimensionality['[time]']
-    dmass = dimValue.dimensionality['[mass]']
-    dtemp = dimValue.dimensionality['[temperature]']
-    dsubstance = dimValue.dimensionality['[substance]']
+    dlength = dim_value.dimensionality['[length]']
+    dtime = dim_value.dimensionality['[time]']
+    dmass = dim_value.dimensionality['[mass]']
+    dtemp = dim_value.dimensionality['[temperature]']
+    dsubstance = dim_value.dimensionality['[substance]']
     factor = (length**(-dlength) *
               time**(-dtime) *
               mass**(-dmass) *
               temperature**(-dtemp) *
               substance**(-dsubstance))
 
-    dimValue *= factor
+    dim_value *= factor
 
-    if dimValue.unitless:
-        return dimValue.magnitude
+    if dim_value.unitless:
+        return dim_value.magnitude
     else:
         raise ValueError('Dimension Error')
 
 
-def dimensionalise(Value, units):
+def dimensionalise(value, units):
     """
-    dimensionalise a value
+    Dimensionalise a value.
 
     Parameters
     ----------
-    Value : float, int
+    value : float, int
         The value to be assigned units.
     units : pint units
         The units to be assigned.
@@ -179,12 +179,12 @@ def dimensionalise(Value, units):
               temperature**(dtemp) *
               substance**(dsubstance))
 
-    if (isinstance(Value, uw.mesh._meshvariable.MeshVariable) or
-       isinstance(Value, uw.swarm._swarmvariable.SwarmVariable)):
+    if (isinstance(value, uw.mesh._meshvariable.MeshVariable) or
+       isinstance(value, uw.swarm._swarmvariable.SwarmVariable)):
 
-        tempVar = Value.copy()
-        tempVar.data[...] = (Value.data[...] * factor).to(units)
+        tempVar = value.copy()
+        tempVar.data[...] = (value.data[...] * factor).to(units)
         return tempVar
     else:
-        return (Value * factor).to(units)
+        return (value * factor).to(units)
 
