@@ -1,33 +1,54 @@
-# Utilities to convert between dimensional and non-dimensional values.
-# Romain BEUCHER, December 2016
+##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
+##                                                                                   ##
+##  This file forms part of the Underworld geophysics modelling application.         ##
+##                                                                                   ##
+##  For full license and copyright information, please refer to the LICENSE.md file  ##
+##  located at the project root, or contact the authors.                             ##
+##                                                                                   ##
+##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
+
+"""
+Utilities to convert between dimensional and non-dimensional values.
+"""
 from __future__ import print_function, absolute_import
 import underworld as uw
-from ._coefficients import COEFFICIENTS as scaling
-from ._utils import u
+from ._utils import TransformedDict
+from pint import UnitRegistry
 
+u = UnitRegistry()
 
-def nonDimensionalize(dimValue):
-    """Non-dimensionalize (scale) quantity
+COEFFICIENTS = TransformedDict()
+COEFFICIENTS["[length]"] = 1.0 * u.meter
+COEFFICIENTS["[mass]"] = 1.0 * u.kilogram
+COEFFICIENTS["[time]"] = 1.0 * u.year
+COEFFICIENTS["[temperature]"] = 1.0 * u.degK
+COEFFICIENTS["[substance]"] = 1.0 * u.mole
+
+def get_coefficients():
+    """
+    Returns the global scaling dictionary.
+    """
+    return COEFFICIENTS
+
+def non_dimensionalise(dimValue):
+    """
+    Non-dimensionalize (scale) quantity
 
     This function uses pint object to perform a dimension analysis and
-    return a value scaled according to a set of scaling coefficients:
+    return a value scaled according to a set of scaling coefficients.
 
     Parameters
     ----------
-
-        dimValue : pint Quantity
+    dimValue : pint quantity
 
     Returns
     -------
+    float: The scaled value.
 
-        float
-
-    example:
+    Example:
     --------
-
     >>> import underworld as uw
-
-    >>> u = uw.UnitRegistry
+    >>> u = uw.scaling.units
 
     >>> # Characteristic values of the system
     >>> half_rate = 0.5 * u.centimeter / u.year
@@ -43,17 +64,16 @@ def nonDimensionalize(dimValue):
     >>> Kt_degrees = (baseModelTemp - surfaceTemp)
     >>> K_substance = 1. * u.mole
 
-    >>> uw.scaling_coefficients["[time]"] = KT_seconds
-    >>> uw.scaling_coefficients["[length]"] = KL_meters
-    >>> uw.scaling_coefficients["[mass]"] = KM_kilograms
-    >>> uw.scaling_coefficients["[temperature]"] = Kt_degrees
-    >>> uw.scaling_coefficients["[substance]"] -= K_substance
+    >>> scaling_coefficients = uw.scaling.get_coefficients()
+    >>> scaling_coefficients["[time]"] = KT_seconds
+    >>> scaling_coefficients["[length]"] = KL_meters
+    >>> scaling_coefficients["[mass]"] = KM_kilograms
+    >>> scaling_coefficients["[temperature]"] = Kt_degrees
+    >>> scaling_coefficients["[substance]"] -= K_substance
 
     >>> # Get a scaled value:
-    >>> gravity = uw.nonDimensionalize(9.81 * u.meter / u.second**2)
+    >>> gravity = uw.scaling.non_dimensionalise(9.81 * u.meter / u.second**2)
     """
-    global scaling
-
     try:
         val = dimValue.unitless
         if val:
@@ -63,11 +83,13 @@ def nonDimensionalize(dimValue):
 
     dimValue = dimValue.to_base_units()
 
-    length = scaling["[length]"]
-    time = scaling["[time]"]
-    mass = scaling["[mass]"]
-    temperature = scaling["[temperature]"]
-    substance = scaling["[substance]"]
+    scaling_coefficients = get_coefficients()
+
+    length = scaling_coefficients["[length]"]
+    time = scaling_coefficients["[time]"]
+    mass = scaling_coefficients["[mass]"]
+    temperature = scaling_coefficients["[temperature]"]
+    substance = scaling_coefficients["[substance]"]
 
     length = length.to_base_units()
     time = time.to_base_units()
@@ -101,39 +123,36 @@ def nonDimensionalize(dimValue):
         raise ValueError('Dimension Error')
 
 
-def Dimensionalize(Value, units):
-    """Dimensionalize a value
+def dimensionalise(Value, units):
+    """
+    dimensionalise a value
 
     Parameters
     ----------
-
     Value : float, int
-
+        The value to be assigned units.
     units : pint units
-        output units
+        The units to be assigned.
 
     Returns
     -------
+    pint quantity: dimensionalised value.
 
-       pint Quantity
-
-    example
+    Example
     -------
-
     >>> import underworld as uw
-
-    >>> A = uw.Dimensionalize(1.0, u.metre)
+    >>> A = uw.scaling.dimensionalise(1.0, u.metre)
     """
-
-    global scaling
 
     unit = (1.0 * units).to_base_units()
 
-    length = scaling["[length]"]
-    time = scaling["[time]"]
-    mass = scaling["[mass]"]
-    temperature = scaling["[temperature]"]
-    substance = scaling["[substance]"]
+    scaling_coefficients = get_coefficients()
+
+    length = scaling_coefficients["[length]"]
+    time = scaling_coefficients["[time]"]
+    mass = scaling_coefficients["[mass]"]
+    temperature = scaling_coefficients["[temperature]"]
+    substance = scaling_coefficients["[substance]"]
 
     length = length.to_base_units()
     time = time.to_base_units()

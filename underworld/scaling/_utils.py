@@ -1,10 +1,15 @@
+##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
+##                                                                                   ##
+##  This file forms part of the Underworld geophysics modelling application.         ##
+##                                                                                   ##
+##  For full license and copyright information, please refer to the LICENSE.md file  ##
+##  located at the project root, or contact the authors.                             ##
+##                                                                                   ##
+##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
+
 from __future__ import print_function,  absolute_import
-from pint import UnitRegistry
 from itertools import chain
 from collections import OrderedDict
-import functools
-from pint.compat import zip_longest
-from pint.errors import DimensionalityError
 
 try:              # Python 2
     str_base = basestring
@@ -15,7 +20,6 @@ except NameError: # Python 3
 
 _RaiseKeyError = object()  # singleton for no-default behavior
 
-u = UnitRegistry = UnitRegistry()
 
 
 def ensure_lower(maybe_str):

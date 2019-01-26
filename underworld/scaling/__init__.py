@@ -1,8 +1,17 @@
-__version__ = "0.1"
+##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
+##                                                                                   ##
+##  This file forms part of the Underworld geophysics modelling application.         ##
+##                                                                                   ##
+##  For full license and copyright information, please refer to the LICENSE.md file  ##
+##  located at the project root, or contact the authors.                             ##
+##                                                                                   ##
+##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
 
-from ._scaling import nonDimensionalize
-from ._scaling import Dimensionalize
-from ._coefficients import COEFFICIENTS
-from ._utils import UnitRegistry
+"""
+The scaling module provides units and scaling capabilities.
+"""
 
-u = UnitRegistry
+from ._scaling import non_dimensionalise
+from ._scaling import dimensionalise
+from ._scaling import u as units
+from ._scaling import get_coefficients
