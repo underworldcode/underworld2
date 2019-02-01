@@ -30,7 +30,7 @@ def get_coefficients():
     """
     return COEFFICIENTS
 
-def non_dimensionalise(dim_value):
+def non_dimensionalise(dimValue):
     """
     Non-dimensionalize (scale) provided quantity.
 
@@ -39,7 +39,7 @@ def non_dimensionalise(dim_value):
 
     Parameters
     ----------
-    dim_value : pint quantity
+    dimValue : pint quantity
 
     Returns
     -------
@@ -75,13 +75,13 @@ def non_dimensionalise(dim_value):
     >>> gravity = uw.scaling.non_dimensionalise(9.81 * u.meter / u.second**2)
     """
     try:
-        val = dim_value.unitless
+        val = dimValue.unitless
         if val:
-            return dim_value
+            return dimValue
     except AttributeError:
-        return dim_value
+        return dimValue
 
-    dim_value = dim_value.to_base_units()
+    dimValue = dimValue.to_base_units()
 
     scaling_coefficients = get_coefficients()
 
@@ -104,21 +104,21 @@ def non_dimensionalise(dim_value):
     check(length, time, mass, temperature, substance)
 
     # Get dimensionality
-    dlength = dim_value.dimensionality['[length]']
-    dtime = dim_value.dimensionality['[time]']
-    dmass = dim_value.dimensionality['[mass]']
-    dtemp = dim_value.dimensionality['[temperature]']
-    dsubstance = dim_value.dimensionality['[substance]']
+    dlength = dimValue.dimensionality['[length]']
+    dtime = dimValue.dimensionality['[time]']
+    dmass = dimValue.dimensionality['[mass]']
+    dtemp = dimValue.dimensionality['[temperature]']
+    dsubstance = dimValue.dimensionality['[substance]']
     factor = (length**(-dlength) *
               time**(-dtime) *
               mass**(-dmass) *
               temperature**(-dtemp) *
               substance**(-dsubstance))
 
-    dim_value *= factor
+    dimValue *= factor
 
-    if dim_value.unitless:
-        return dim_value.magnitude
+    if dimValue.unitless:
+        return dimValue.magnitude
     else:
         raise ValueError('Dimension Error')
 
