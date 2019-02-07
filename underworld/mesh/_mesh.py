@@ -448,7 +448,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         >>> import underworld as uw
         >>> someMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1', elementRes=(2,2), minCoord=(0.,0.), maxCoord=(1.,1.) )
         >>> sorted(someMesh.specialSets.keys())    # NOTE THAT WE ONLY SORT THIS LIST SO THAT RESULTS ARE DETERMINISTIC FOR DOCTESTS
-        ['MaxI_VertexSet', 'Top_VertexSet', 'Left_VertexSet', 'MinI_VertexSet', 'AllWalls_VertexSet', 'Bottom_VertexSet', 'Right_VertexSet', 'MinJ_VertexSet', 'MaxJ_VertexSet', 'Empty']
+        ['AllWalls_VertexSet', 'Bottom_VertexSet', 'Empty', 'Left_VertexSet', 'MaxI_VertexSet', 'MaxJ_VertexSet', 'MinI_VertexSet', 'MinJ_VertexSet', 'Right_VertexSet', 'Top_VertexSet']
         >>> someMesh.specialSets["MinJ_VertexSet"]
         FeMesh_IndexSet([0, 1, 2])
 
