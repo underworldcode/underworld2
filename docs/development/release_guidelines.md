@@ -23,40 +23,30 @@ Review issue tracker
 Documentation review 
 ====================
 * Review docstrings updates for deprecation warnings.
+* Check for other DEPRECATE flags in the code.
+* Check autocomplete to ensure no garbage has slipped in. Non
+   user relevant objects should be made private so they don't appear in
+   autocomplete suggestions.
 * Review ``docs/`` for style, relevance and updates.
-* Review ``docs/development/broken``, contents to be kept at a minimum.
-* Review ``docs/development/unsupported``, contents to be kept at a minimum.
 * Review docs generated at http://underworld2.readthedocs.io/
 	- make sure builds are passing
 	- review latest content
 * Review top level README.md.
+** Add new Binder link, and keep link to old Binder.
+* Generate/update change log (`CHANGES.md`).
 * Review cheat sheet contents.
+* Increment version number within ``underworld/__init__.py``
+  (check `guidelines.md` for details on version numbering).
+* Update `FROM` tag in top level Dockerfile.
 
 Testing
 =======
 * Ensure 'run_tests.py' script run to completion without raising an exception.
 * Test on docker, OSX, linux, NCI and Pawsey machines.
 * Scaling tests on NCI and Pawsey machines.
-* Check autocomplete to ensure no garbage has slipped in.  Non
-   user relevant objects should be made private so they don't appear in
-   autocomplete suggestions.
-
-Final Science/Production testing
-================================
 * High resolution production tests on raijin, magnus run to completion with 
-  correct results. These should include models from ``docs/publications``, 
-  record overall condition and walltime with optimised code.  TODO: include 
-  detailed list of models, parameters and completion state.
+  correct results.
 * Ensure jenkins and docker are working correctly.
-
-Document release
-================
-* Generate and review change log.
-
-Version numbers and tags
-========================
-* Increment version number within ``underworld/__init__.py``
-* Check `guidelines.md` for release numbering details.
 
 Creating the release
 ====================
@@ -68,7 +58,6 @@ Creating the release
 Announce new version
 ====================
 * via blog & facebook.
-
 
 After the release
 ============

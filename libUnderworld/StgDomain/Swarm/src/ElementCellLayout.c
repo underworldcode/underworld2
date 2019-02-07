@@ -299,7 +299,7 @@ Cell_Index _ElementCellLayout_CellOf( void* elementCellLayout, void* _particle )
   {
     double minCrd[3], maxCrd[3];
     int d_i;
-    Mesh_GetLocalCoordRange( mesh, minCrd, maxCrd );
+    Mesh_GetDomainCoordRange( mesh, minCrd, maxCrd );
     for( d_i = 0; d_i < dim; d_i++ ) {
       if( particle->coord[d_i] < minCrd[d_i] || particle->coord[d_i] > maxCrd[d_i] )
       return elInd;

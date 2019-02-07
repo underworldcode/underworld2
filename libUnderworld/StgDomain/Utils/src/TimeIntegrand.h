@@ -32,6 +32,7 @@
 		Stg_Component**                            data;                 \
 		Bool                                       allowFallbackToFirstOrder; \
 		Stream*                                    debug;                \
+		char*                                      error_msg;
 		
 	struct TimeIntegrand { __TimeIntegrand };
 	

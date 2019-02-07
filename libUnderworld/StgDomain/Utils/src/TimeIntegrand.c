@@ -59,6 +59,10 @@ TimeIntegrand* _TimeIntegrand_New(  TIMEINTEGRAND_DEFARGS  )
 	/* virtual info */
 	self->_calculateTimeDeriv = _calculateTimeDeriv;
 	self->_intermediate = _intermediate;
+
+	/* Create empty string. Children classes might add something useful */
+	Stg_asprintf(&self->error_msg, "");
+
 	
 	return self;
 }
@@ -192,7 +196,7 @@ void _TimeIntegrand_Destroy( void* timeIntegrand, void* data ) {
 	TimeIntegrand*	self = (TimeIntegrand*)timeIntegrand;
    	
 	Memory_Free( self->data );
-
+    free(self->error_msg);
 }
 
 /* +++ Virtual Functions +++ */
@@ -224,8 +228,8 @@ void TimeIntegrand_FirstOrder( void* timeIntegrand, StgVariable* startValue, dou
                 }
 		Journal_Firewall( True == successFlag, errorStream,
 			"Error - in %s(), for TimeIntegrand \"%s\" of type %s: When trying to find time "
-			"deriv for item %u in step %u, *failed*.\n",
-			__func__, self->name, self->type, array_I, 1 );
+			"deriv for item %u in step %u, *failed*.\n\n%s",
+			__func__, self->name, self->type, array_I, 1, self->error_msg );
 	}
 
 	for ( array_I = 0 ; array_I < arrayCount ; array_I++ ) {
@@ -280,8 +284,8 @@ void TimeIntegrand_SecondOrder( void* timeIntegrand, StgVariable* startValue, do
 		successFlag = TimeIntegrand_CalculateTimeDeriv( self, array_I, timeDeriv );
 		Journal_Firewall( True == successFlag, errorStream,
 			"Error - in %s(), for TimeIntegrand \"%s\" of type %s: When trying to find time "
-			"deriv for item %u in step %u, *failed*.\n",
-			__func__, self->name, self->type, array_I, 1 );
+			"deriv for item %u in step %u, *failed*.\n\n%s",
+			__func__, self->name, self->type, array_I, 1, self->error_msg );
 		
 		for ( component_I = 0 ; component_I < componentCount ; component_I++ ) 
 			arrayDataPtr[ component_I ] = startData[ component_I ] + 0.5 * dt * timeDeriv[ component_I ];
@@ -302,7 +306,7 @@ void TimeIntegrand_SecondOrder( void* timeIntegrand, StgVariable* startValue, do
 			Journal_Firewall( True == self->allowFallbackToFirstOrder, errorStream,
 				"Error - in %s(), for TimeIntegrand \"%s\" of type %s: When trying to find time "
 				"deriv for item %u in step %u, *failed*, and self->allowFallbackToFirstOrder "
-				"not enabled.\n", __func__, self->name, self->type, array_I, 2 );
+				"not enabled.\n\n%s", __func__, self->name, self->type, array_I, 2, self->error_msg );
 				
 			_TimeIntegrand_RewindToStartAndApplyFirstOrderUpdate( self,
 				arrayDataPtr, startData, startTime, dt,
@@ -355,8 +359,8 @@ void TimeIntegrand_FourthOrder( void* timeIntegrand, StgVariable* startValue, do
 		successFlag = TimeIntegrand_CalculateTimeDeriv( self, array_I, finalTimeDeriv );
 		Journal_Firewall( True == successFlag, errorStream,
 			"Error - in %s(), for TimeIntegrand \"%s\" of type %s: When trying to find time "
-			"deriv for item %u in step %u, *failed*.\n",
-			__func__, self->name, self->type, array_I, 1 );
+			"deriv for item %u in step %u, *failed*.\n\n%s",
+			__func__, self->name, self->type, array_I, 1, self->error_msg );
 
 		for ( component_I = 0 ; component_I < componentCount ; component_I++ ) 
 			arrayDataPtr[ component_I ] = startData[ component_I ] + 0.5 * dt * finalTimeDeriv[ component_I ];
@@ -377,7 +381,7 @@ void TimeIntegrand_FourthOrder( void* timeIntegrand, StgVariable* startValue, do
 			Journal_Firewall( True == self->allowFallbackToFirstOrder, errorStream,
 				"Error - in %s(), for TimeIntegrand \"%s\" of type %s: When trying to find time "
 				"deriv for item %u in step %u, *failed*, and self->allowFallbackToFirstOrder "
-				"not enabled.\n", __func__, self->name, self->type, array_I, 2 );
+				"not enabled.\n\n%s", __func__, self->name, self->type, array_I, 2, self->error_msg );
 				
 			_TimeIntegrand_RewindToStartAndApplyFirstOrderUpdate( self,
 				arrayDataPtr, startData, startTime, dt,
@@ -397,7 +401,7 @@ void TimeIntegrand_FourthOrder( void* timeIntegrand, StgVariable* startValue, do
 			Journal_Firewall( True == self->allowFallbackToFirstOrder, errorStream,
 				"Error - in %s(), for TimeIntegrand \"%s\" of type %s: When trying to find time "
 				"deriv for item %u in step %u, *failed*, and self->allowFallbackToFirstOrder "
-				"not enabled.\n", __func__, self->name, self->type, array_I, 3 );
+				"not enabled.\n\n%s", __func__, self->name, self->type, array_I, 3, self->error_msg );
 				
 			_TimeIntegrand_RewindToStartAndApplyFirstOrderUpdate( self,
 				arrayDataPtr, startData, startTime, dt,
@@ -419,7 +423,7 @@ void TimeIntegrand_FourthOrder( void* timeIntegrand, StgVariable* startValue, do
 			Journal_Firewall( True == self->allowFallbackToFirstOrder, errorStream,
 				"Error - in %s(), for TimeIntegrand \"%s\" of type %s: When trying to find time "
 				"deriv for item %u in step %u, *failed*, and self->allowFallbackToFirstOrder "
-				"not enabled.\n", __func__, self->name, self->type, array_I, 4 );
+				"not enabled.\n\n%s", __func__, self->name, self->type, array_I, 4, self->error_msg );
 				
 			_TimeIntegrand_RewindToStartAndApplyFirstOrderUpdate( self,
 				arrayDataPtr, startData, startTime, dt,

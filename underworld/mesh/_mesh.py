@@ -130,9 +130,10 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         if( len(arr) % self.elementsLocal != 0 ):
             raise RuntimeError("Unsupported element to node mapping for save routine"+
                     "\nThere doesn't appear to be elements with a consistent number of nodes")
+
         # we ASSUME a constant number of nodes for each element
         # and we reshape the arr accordingly
-        nodesPerElement = int(round(len(arr)/self.elementsLocal))
+        nodesPerElement = round(len(arr)/self.elementsLocal)
         return arr.reshape(self.elementsLocal, nodesPerElement)
 
     @property
@@ -447,7 +448,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         >>> import underworld as uw
         >>> someMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1', elementRes=(2,2), minCoord=(0.,0.), maxCoord=(1.,1.) )
         >>> sorted(someMesh.specialSets.keys())    # NOTE THAT WE ONLY SORT THIS LIST SO THAT RESULTS ARE DETERMINISTIC FOR DOCTESTS
-        ['AllWalls_VertexSet', 'Empty', 'MaxI_VertexSet', 'MaxJ_VertexSet', 'MinI_VertexSet', 'MinJ_VertexSet']
+        ['MaxI_VertexSet', 'Top_VertexSet', 'Left_VertexSet', 'MinI_VertexSet', 'AllWalls_VertexSet', 'Bottom_VertexSet', 'Right_VertexSet', 'MinJ_VertexSet', 'MaxJ_VertexSet', 'Empty']
         >>> someMesh.specialSets["MinJ_VertexSet"]
         FeMesh_IndexSet([0, 1, 2])
 
@@ -1125,13 +1126,19 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
         super(FeMesh_Cartesian,self).__init__(elementType=elementType[0], elementRes=elementRes, minCoord=minCoord, maxCoord=maxCoord, periodic=periodic, partitioned=partitioned, **kwargs)
 
         # lets add the special sets
-        self.specialSets["MaxI_VertexSet"] = _specialSets_Cartesian.MaxI_VertexSet
-        self.specialSets["MinI_VertexSet"] = _specialSets_Cartesian.MinI_VertexSet
-        self.specialSets["MaxJ_VertexSet"] = _specialSets_Cartesian.MaxJ_VertexSet
-        self.specialSets["MinJ_VertexSet"] = _specialSets_Cartesian.MinJ_VertexSet
+        self.specialSets["MinI_VertexSet"]   = _specialSets_Cartesian.MinI_VertexSet
+        self.specialSets["Left_VertexSet"]   = _specialSets_Cartesian.MinI_VertexSet
+        self.specialSets["MaxI_VertexSet"]   = _specialSets_Cartesian.MaxI_VertexSet
+        self.specialSets["Right_VertexSet"]  = _specialSets_Cartesian.MaxI_VertexSet
+        self.specialSets["MinJ_VertexSet"]   = _specialSets_Cartesian.MinJ_VertexSet
+        self.specialSets["Bottom_VertexSet"] = _specialSets_Cartesian.MinJ_VertexSet
+        self.specialSets["MaxJ_VertexSet"]   = _specialSets_Cartesian.MaxJ_VertexSet
+        self.specialSets["Top_VertexSet"]    = _specialSets_Cartesian.MaxJ_VertexSet
         if(self.dim==3):
-            self.specialSets["MaxK_VertexSet"] = _specialSets_Cartesian.MaxK_VertexSet
-            self.specialSets["MinK_VertexSet"] = _specialSets_Cartesian.MinK_VertexSet
+            self.specialSets["MinK_VertexSet"]  = _specialSets_Cartesian.MinK_VertexSet
+            self.specialSets["Front_VertexSet"] = _specialSets_Cartesian.MinK_VertexSet
+            self.specialSets["MaxK_VertexSet"]  = _specialSets_Cartesian.MaxK_VertexSet
+            self.specialSets["Back_VertexSet"]  = _specialSets_Cartesian.MaxK_VertexSet
         self.specialSets["AllWalls_VertexSet"] = _specialSets_Cartesian.AllWalls
 
     def _setup(self):

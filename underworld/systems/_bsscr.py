@@ -259,21 +259,16 @@ class StokesSolver(_stgermain.StgCompoundComponent):
     these solves individually via the `solver.options.A11` and
     `solver.options.scr` dictionaries.
 
-    Try uw.help(solver.options.A11) for some details.
+    Try help(solver.options.A11) for some details.
 
-    Common configurations are provided via the
-    solver.set_inner_method() function.
+    Common configurations are provided via the `set_inner_method()` method.
 
-    solver.set_inner_method("mg") sets up a multigrid solve for the inner solve. This is the default.
-    solver.set_inner_method("mumps") will set up a parallel direct solve on the inner solve.
-    solver.set_inner_method("lu") will set up a serial direct solve on the inner solve.
-
-    uw.help(solver.set_inner_method) for more.
+    help(solver.set_inner_method) for more.
 
     For more advanced configurations use the
     solver.options.A11/scr dictionaries directly.
 
-    uw.help(solver.options) to see more.
+    help(solver.options) to see more.
     """
     _objectsDict = {  "_stokessolver" : "StokesBlockKSPInterface"  }
     _selfObjectName = "_stokessolver"
@@ -673,12 +668,12 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         Available options below. Note that associated solver software
         (for example `mumps`) must be installed.
 
-        mg          : Geometric multigrid (default).
-        nomg        : Disables multigrid.
-        lu          : LU direct solver (serial only).
-        mumps       : MUMPS parallel direct solver.
-        superludist : SuperLU parallel direct solver.
-        superlu     : SuperLU direct solver (serial only).
+        - mg          : Geometric multigrid (default).
+        - nomg        : Disables multigrid.
+        - lu          : LU direct solver (serial only).
+        - mumps       : MUMPS parallel direct solver.
+        - superludist : SuperLU parallel direct solver.
+        - superlu     : SuperLU direct solver (serial only).
         """
         if solve_type=="mg":
             velocityField=self._stokesSLE._velocityField

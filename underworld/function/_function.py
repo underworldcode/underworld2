@@ -88,7 +88,7 @@ class Function(underworld._stgermain.LeftOverParamsChecker, metaclass = ABCMeta)
         import underworld as uw
         from inspect import stack
         rank = str(uw.rank())+'- '
-        strguy = "Error in function of class '{}'".format(self.__class__.__name__)
+        strguy = "Issue utilising function of class '{}'".format(self.__class__.__name__)
         try:
             if uw._in_doctest():
                 # doctests don't play nice with stacks
@@ -96,6 +96,12 @@ class Function(underworld._stgermain.LeftOverParamsChecker, metaclass = ABCMeta)
             else:
                 stackstr = ""
                 for item in stack()[2:7][::-1]:
+                    # if in notebook, just grab cell/line info
+                    if item[1][0:15] == '<ipython-input-':
+                        stackstr = "    Line {} of notebook cell {}".format(item[2], item[1].split("-")[2])
+                        if item[4]:
+                            stackstr += ":\n       " + item[4][0].lstrip()
+                        break
                     stackstr += rank+item[1]+':'+str(item[2]) + ',\n'
                     if item[4]:
                         stackstr += "    " + item[4][0].lstrip()

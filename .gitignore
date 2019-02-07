@@ -43,9 +43,9 @@ libUnderworld/h5py_ext/
 testResults
 docs/scratch
 docs/test/*Output
-docs/examples/images/*
 *ipynb.out
 *ipynb.err
+myfigure*
 
 # We should probably not cache the output of all the examples -  if we are going to leave the
 # notebook output cells in place, then there is not much need.
@@ -102,8 +102,6 @@ docs/user_guide/highdef.png
 docs/user_guide/deformedMesh.h5
 
 docs/user_guide/surf.gldb
-
-docs/test/image_tests/notebooks/*
 
 docs/test/Pressure_Error.png
 

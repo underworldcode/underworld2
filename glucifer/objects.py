@@ -662,33 +662,10 @@ class _GridSampler3D(CrossSection):
 
     resolution : list(unsigned)
         Number of samples in the I,J,K directions.
-    resolutionI : unsigned
-        DEPRECATED: Number of samples in the I direction.
-    resolutionJ : unsigned
-        DEPRECATED: Number of samples in the J direction.
-    resolutionK : unsigned
-        DEPRECATED: Number of samples in the K direction.
     """
     _objectsDict = { "_dr": None } #Abstract class, Set by child
 
-    def __init__(self, resolution=[16,16,16], resolutionI=None, resolutionJ=None, resolutionK=None, *args, **kwargs):
-
-        #Convert deprecated parameters
-        if resolutionI:
-            print("Parameter 'resolutionI' is deprecated, please use resolution=[I,J,K]")
-            if not isinstance(resolutionI,int):
-                raise TypeError("'resolutionI' must be of python type 'int'")
-            resolution[0] = resolutionI
-        if resolutionJ:
-            print("Parameter 'resolutionJ' is deprecated, please use resolution=[I,J,K]")
-            if not isinstance(resolutionJ,int):
-                raise TypeError("'resolutionJ' must be of python type 'int'")
-            resolution[1] = resolutionJ
-        if resolutionK:
-            print("Parameter 'resolutionK' is deprecated, please use resolution=[I,J,K]")
-            if not isinstance(resolutionK,int):
-                raise TypeError("'resolutionK' must be of python type 'int'")
-            resolution[2] = resolutionK
+    def __init__(self, resolution=[16,16,16], *args, **kwargs):
 
         self._resolution = resolution
 

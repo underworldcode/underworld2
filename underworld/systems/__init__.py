@@ -16,5 +16,7 @@ from ._advectiondiffusion import AdvectionDiffusion, SLCN_AdvectionDiffusion
 from ._solver import Solver as _Solver
 from ._thermal import SteadyStateHeat
 from ._darcyflow import SteadyStateDarcyFlow
+from ._bsscr import StokesSolver
+from ._energy_solver import HeatSolver
 
 Solver=_Solver.factory

@@ -11,7 +11,7 @@ origCreatingProc = swarm.add_variable('int',1)
 origParticleIndex = swarm.add_variable('int',1)
 randomNumber = swarm.add_variable('int',1)
 
-swarm.populate_using_layout(uw.swarm.layouts.GlobalSpaceFillerLayout(swarm,20))
+swarm.populate_using_layout(uw.swarm.layouts.PerCellSpaceFillerLayout(swarm,20))
 
 # init variables
 origOwningEl.data[:] = mesh.data_elgId[swarm.owningCell.data[:,0]] # global elementId where created

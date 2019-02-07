@@ -30,7 +30,7 @@ is very well suited to complex fluids which is how the solid Earth behaves
 on a geological timescale.
 """
 
-__version__ = "2.7.0-dev"
+__version__ = "2.8.0-dev"
 
 # squelch h5py/numpy future warnings
 import warnings as _warnings
@@ -111,6 +111,11 @@ try:
 except:
     pass
 
+# Squelch these warnings as they are very noisey and not necessary
+# https://stackoverflow.com/questions/40845304/runtimewarning-numpy-dtype-size-changed-may-indicate-binary-incompatibility
+import warnings as _warnings
+_warnings.filterwarnings("ignore", message="numpy.dtype size changed")
+_warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
 try:
     from ._uwid import uwid as _id
 except:

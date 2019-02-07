@@ -14,7 +14,7 @@ import underworld._stgermain as _stgermain
 from . import _swarm
 import abc as _abc
 
-class ParticleLayoutAbstract(_stgermain.StgCompoundComponent, metaclass = _abc.ABCMeta):
+class _ParticleLayoutAbstract(_stgermain.StgCompoundComponent, metaclass = _abc.ABCMeta):
     """
     Abstract class. Children classes are responsible for populating 
     swarms with particles, generally across the entire domain.
@@ -36,7 +36,7 @@ class ParticleLayoutAbstract(_stgermain.StgCompoundComponent, metaclass = _abc.A
         self._swarm = swarm
 
         # build parent
-        super(ParticleLayoutAbstract,self).__init__(**kwargs)
+        super(_ParticleLayoutAbstract,self).__init__(**kwargs)
 
     @property
     def swarm(self):
@@ -50,7 +50,7 @@ class ParticleLayoutAbstract(_stgermain.StgCompoundComponent, metaclass = _abc.A
     
 
 
-class PerCellGaussLayout(ParticleLayoutAbstract):
+class PerCellGaussLayout(_ParticleLayoutAbstract):
     """
     This layout populates the domain with particles located at gauss locations 
     within each element of the swarm's associated finite element mesh.
@@ -108,7 +108,7 @@ class PerCellGaussLayout(ParticleLayoutAbstract):
         componentDictionary[ self._layout.name ]["gaussParticles"] = self._gaussPointCount
 
 
-class GlobalSpaceFillerLayout(ParticleLayoutAbstract):
+class GlobalSpaceFillerLayout(_ParticleLayoutAbstract):
     """
     This layout fills the domain with particles in a quasi-random pattern. It utilises
     sobol sequences to generate global particle locations which are more uniform than that
@@ -142,6 +142,12 @@ class GlobalSpaceFillerLayout(ParticleLayoutAbstract):
     _objectsDict = {  "_layout": "SpaceFillerParticleLayout" }
 
     def __init__(self, swarm, particlesPerCell, **kwargs ):
+        import underworld as uw
+        if uw.rank()==0:
+        # TODO: Deprecate
+            import warnings
+            warnings.warn("Note that the 'GlobalSpaceFillerLayout' will be deprecated in future releases of Underworld. "
+                          "The `PerCellSpaceFillerLayout` provides similar functionality.")
         if not isinstance(particlesPerCell, (int,float)):
             raise TypeError("'particlesPerCell' object passed in must be of type 'float' or 'int'.")
         if particlesPerCell<=0:
@@ -161,7 +167,7 @@ class GlobalSpaceFillerLayout(ParticleLayoutAbstract):
         componentDictionary[ self._layout.name ]["averageInitialParticlesPerCell"] = self._particlesPerCell
 
 
-class _PerCellMeshParticleLayout(ParticleLayoutAbstract):
+class _PerCellMeshParticleLayout(_ParticleLayoutAbstract):
     """
     This layout fills the domain with particles on a per cell basis. It should not
     be directly invoked with instead one of its child classes being used.
