@@ -17,17 +17,19 @@ from pint import UnitRegistry
 
 u = UnitRegistry()
 
-COEFFICIENTS = TransformedDict()
-COEFFICIENTS["[length]"] = 1.0 * u.meter
-COEFFICIENTS["[mass]"] = 1.0 * u.kilogram
-COEFFICIENTS["[time]"] = 1.0 * u.year
-COEFFICIENTS["[temperature]"] = 1.0 * u.degK
-COEFFICIENTS["[substance]"] = 1.0 * u.mole
-
+COEFFICIENTS = None
 def get_coefficients():
     """
     Returns the global scaling dictionary.
     """
+    global COEFFICIENTS
+    if COEFFICIENTS is None:
+        COEFFICIENTS = TransformedDict()
+        COEFFICIENTS["[length]"] = 1.0 * u.meter
+        COEFFICIENTS["[mass]"] = 1.0 * u.kilogram
+        COEFFICIENTS["[time]"] = 1.0 * u.year
+        COEFFICIENTS["[temperature]"] = 1.0 * u.degK
+        COEFFICIENTS["[substance]"] = 1.0 * u.mole
     return COEFFICIENTS
 
 def non_dimensionalise(dimValue):
