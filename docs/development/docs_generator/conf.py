@@ -471,7 +471,7 @@ except:
         @classmethod
         def __getattr__(cls, name):
                 return MagicMock()
-    MOCK_MODULES = ['numpy',  '_StGermain', '_StgDomain', '_PICellerator', '_StgFEM', '_Solvers',
+    MOCK_MODULES = ['pint', 'numpy',  '_StGermain', '_StgDomain', '_PICellerator', '_StgFEM', '_Solvers',
                     '_Underworld', 'h5py', '_Function', '_gLucifer', '_c_arrays', '_c_pointers',
                     '_StGermain_Tools', '_petsc', 'mpi4py', 'StGermain', 'StgDomain', 'StgFEM',
                     'PICellerator', 'Underworld', 'Solvers', 'gLucifer', 'c_arrays', 'c_pointers',
