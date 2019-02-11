@@ -7,14 +7,14 @@
 #  branch: 
 #     for branch to checkout, ie 'master'(default), 'development', 'x.y.z'
 #
-# Tested successfully 30/1/2018
+# Tested successfully 11/2/2019
 #
 
 # exit when any command fails
 set -e
 
-# DATE=`date +%d%b%Y` # could be used to date checkout eg,
-# UW_DIR=`pwd`/underworld-$DATE
+#DATE=`date +%d%b%Y` # could be used to date checkout eg,
+#UW_DIR=`pwd`/underworld-$DATE
 UW_DIR=`pwd`/underworld
 git clone https://github.com/underworldcode/underworld2.git $UW_DIR
 cd $UW_DIR
@@ -27,9 +27,9 @@ module load hdf5/1.10.2p petsc/3.9.4 gcc/5.2.0 swig/3.0.12 $RUN_MODS
 
 # setup environment
 H5PY_DIR=/apps/underworld/opt/h5py/2.8.0-python_2.7/lib/python2.7/site-packages
-LAVU_DIR=/apps/underworld/opt/lavavu/
-MYPYPGK=$H5PY:$LAVU_DIR
-export PYTHONPATH=$MYPYPG:$PYTHONPATH
+LAVU_DIR=/apps/underworld/opt/lavavu/1.2.55
+MYPYPGK=$H5PY_DIR:$LAVU_DIR
+PYTHONPATH=$MYPYPGK:$PYTHONPATH
 
 # build and install code
 cd libUnderworld
@@ -42,9 +42,9 @@ echo "#############################################"
 echo "Underworld2 built successfully.              "
 echo "Remember to set the required environment     "
 echo "before running Underworld2.                  "
-echo "   source $UW_DIR/updatePyPath.sh            "
 echo "   module load $RUN_MODS                     "
-echo "   export PYTHONPATH=$MYPYPG:$PYTHONPATH     "
+echo "   export PYTHONPATH=$PYTHONPATH             "
+echo "   source $UW_DIR/updatePyPath.sh            "
 echo ""
 echo "You will also need the following for         "
 echo "glucifer output in your job script:          "
