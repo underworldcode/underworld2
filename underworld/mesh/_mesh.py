@@ -6,8 +6,6 @@
 ##  located at the project root, or contact the authors.                             ##
 ##                                                                                   ##
 ##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
-#
-#
 
 """
 This module contains FeMesh classes, and associated implementation.
@@ -22,10 +20,7 @@ import underworld.function as function
 import contextlib
 import time
 import abc
-import h5py
-from mpi4py import MPI
 import numpy as np
-
 
 class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
     """
@@ -536,11 +531,12 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         True
 
         >>> # clean up:
-        >>> if uw.rank() == 0:
+        >>> if uw.mpi.rank == 0:
         ...     import os;
         ...     os.remove( "saved_mesh.h5" )
 
         """
+        from ..utils._io import h5File, h5_require_dataset
 
         if hasattr(self.generator, 'geometryMesh'):
             raise RuntimeError("Cannot save this mesh as it's a subMesh. "
@@ -548,39 +544,33 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         if not isinstance(filename, str):
             raise TypeError("'filename', must be of type 'str'")
 
-        h5f = h5py.File(name=filename, mode="w", driver='mpio', comm=MPI.COMM_WORLD)
+        with h5File(name=filename, mode="w") as h5f:
+            # Save attributes and simple data.
+            # This must be done in collectively for mpio driver.
+            # Also, for sequential, this is performed redundantly.
+            h5f.attrs['dimensions'] = self.dim
+            h5f.attrs['mesh resolution'] = self.elementRes
+            h5f.attrs['max'] = self.maxCoord
+            h5f.attrs['min'] = self.minCoord
+            h5f.attrs['regular'] = self._cself.isRegular
+            h5f.attrs['elementType'] = self.elementType
 
-        # save attributes and simple data - MUST be parallel as driver is mpio
-        h5f.attrs['dimensions'] = self.dim
-        h5f.attrs['mesh resolution'] = self.elementRes
-        h5f.attrs['max'] = self.maxCoord
-        h5f.attrs['min'] = self.minCoord
-        h5f.attrs['regular'] = self._cself.isRegular
-        h5f.attrs['elementType'] = self.elementType
+            # write the vertices
+            globalShape = ( self.nodesGlobal, self.data.shape[1] )
+            dset = h5_require_dataset(h5f, name="vertices", shape=globalShape, dtype=self.data.dtype )
+            local = self.nodesLocal
+            # write to the dset using the local set of global node ids
+            with dset.collective:
+                dset[self.data_nodegId[0:local],:] = self.data[0:local]
 
-        # write the vertices
-        globalShape = ( self.nodesGlobal, self.data.shape[1] )
-        dset = h5f.create_dataset("vertices",
-                                  shape=globalShape,
-                                  dtype=self.data.dtype)
+            # write the element node connectivity
+            globalShape = ( self.elementsGlobal, self.data_elementNodes.shape[1] )
+            dset = h5_require_dataset(h5f, name="en_map", shape=globalShape, dtype=self.data_elementNodes.dtype)
 
-        local = self.nodesLocal
-        # write to the dset using the local set of global node ids
-        with dset.collective:
-            dset[self.data_nodegId[0:local],:] = self.data[0:local]
-
-        # write the element node connectivity
-        globalShape = ( self.elementsGlobal, self.data_elementNodes.shape[1] )
-        dset = h5f.create_dataset("en_map",
-                                  shape=globalShape,
-                                  dtype=self.data_elementNodes.dtype)
-
-        local = self.elementsLocal
-        # write to the dset using the local set of global node ids
-        with dset.collective:
-            dset[self.data_elgId[0:local],:] = self.data_elementNodes[0:local]
-
-        h5f.close()
+            local = self.elementsLocal
+            # write to the dset using the local set of global node ids
+            with dset.collective:
+                dset[self.data_elgId[0:local],:] = self.data_elementNodes[0:local]
 
         # return our file handle
         return uw.utils.SavedFileData(self, filename)
@@ -611,39 +601,36 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         Refer to example provided for 'save' method.
 
         """
+        from ..utils._io import h5File, h5_get_dataset
+
         self.reset()
         if not isinstance(filename, str):
             raise TypeError("Expected filename to be provided as a string")
 
         # get field and mesh information
-        h5f = h5py.File( filename, "r", driver='mpio', comm=MPI.COMM_WORLD );
+        with h5File(name=filename, mode="r") as h5f:
+            # get resolution of old mesh
+            res = h5f.attrs['mesh resolution']
+            if res is None:
+                raise RuntimeError("Can't read the 'mesh resolution' for the field hdf5 file,"+
+                       " was it created correctly?")
 
-        # get resolution of old mesh
-        res = h5f.attrs['mesh resolution']
-        if res is None:
-            raise RuntimeError("Can't read the 'mesh resolution' for the field hdf5 file,"+
-                   " was it created correctly?")
+            if (res == self.elementRes).all() == False:
+                raise RuntimeError("Provided file mesh resolution does not appear to correspond to\n"\
+                                   "resolution of mesh object.")
 
-        if (res == self.elementRes).all() == False:
-            raise RuntimeError("Provided file mesh resolution does not appear to correspond to\n"\
-                               "resolution of mesh object.")
+            dset = h5_get_dataset(h5f, 'vertices')
 
-        dset = h5f.get('vertices')
-        if dset == None:
-            raise RuntimeError("Can't find the 'vertices' dataset in hdf5 file '{0}'".format(filename) )
+            dof = dset.shape[1]
+            if dof != self.data.shape[1]:
+                raise RuntimeError("Can't load hdf5 '{0}', incompatible data shape".format(filename))
 
-        dof = dset.shape[1]
-        if dof != self.data.shape[1]:
-            raise RuntimeError("Can't load hdf5 '{0}', incompatible data shape".format(filename))
+            if len(dset) != self.nodesGlobal:
+                raise RuntimeError("Provided data file appears to be for a different resolution mesh.")
 
-        if len(dset) != self.nodesGlobal:
-            raise RuntimeError("Provided data file appears to be for a different resolution mesh.")
-
-        with self.deform_mesh(isRegular=h5f.attrs['regular']):
-            with dset.collective:
-                self.data[0:self.nodesLocal] = dset[self.data_nodegId[0:self.nodesLocal],:]
-
-        h5f.close()
+            with self.deform_mesh(isRegular=h5f.attrs['regular']):
+                with dset.collective:
+                    self.data[0:self.nodesLocal] = dset[self.data_nodegId[0:self.nodesLocal],:]
 
 
 class MeshGenerator(_stgermain.StgCompoundComponent):

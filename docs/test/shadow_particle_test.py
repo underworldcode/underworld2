@@ -15,7 +15,7 @@ swarm.populate_using_layout(uw.swarm.layouts.PerCellSpaceFillerLayout(swarm,20))
 
 # init variables
 origOwningEl.data[:] = mesh.data_elgId[swarm.owningCell.data[:,0]] # global elementId where created
-origCreatingProc.data[:] = uw.rank()                               # rank where created
+origCreatingProc.data[:] = uw.mpi.rank                               # rank where created
 origParticleIndex.data[:,0] = range(swarm.particleLocalCount)      # local index where created
 from random import randint
 for index in range(0,swarm.particleLocalCount):                    # add random numbers to this variable
@@ -36,7 +36,7 @@ import h5py
 f = h5py.File('primarydata.hdf5', 'w', driver='mpio', comm=MPI.COMM_WORLD)
 dset_data = f.create_dataset('randomdata', (comm.Get_size(),outguy[0]), dtype='i')
 # write primary data parallel array
-dset_data[uw.rank(),origParticleIndex.data[:,0]] = randomNumber.data[:,0]
+dset_data[uw.mpi.rank,origParticleIndex.data[:,0]] = randomNumber.data[:,0]
 
 # also create one to write particle element counts
 dset_counts = f.create_dataset('counts', (mesh.elementsGlobal,), dtype='i')
@@ -52,7 +52,7 @@ if len(origCreatingProc.data_shadow) != 0:
 # get shadow particles!!
 swarm.shadow_particles_fetch()
 
-if len(origCreatingProc.data_shadow) == 0 and (uw.nProcs()>1):
+if len(origCreatingProc.data_shadow) == 0 and (uw.mpi.size>1):
     raise RuntimeError("The shadow data should be populated at this stage, but isn't. Hmm...")
 
 
@@ -75,6 +75,6 @@ if not (dset_numpy_counts[el_index] == counts[:]).all():
 # close and cleaup
 f.close()
 import os
-if uw.rank()==0:
+if uw.mpi.rank==0:
     os.remove('primarydata.hdf5')
 

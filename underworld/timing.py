@@ -56,7 +56,7 @@ def start():
     global _maxdepth
     global _currentDepth
     _currentDepth = 0
-    if _uw.rank() == 0 and ("UW_ENABLE_TIMING" in _os.environ):
+    if _uw.mpi.rank == 0 and ("UW_ENABLE_TIMING" in _os.environ):
         timing = True
     _maxdepth = depth + 1
     global _starttime
@@ -99,7 +99,7 @@ def get_data(group_by="line_routine"):
         "routine"     : Class routine.
         "line_routine": Line&routine form an individual timing group.
     """
-    if _uw.rank() != 0:
+    if _uw.mpi.rank != 0:
         return
 
     # function to convert key into useful text
@@ -154,7 +154,7 @@ def print_table(group_by="line_routine", sort_by="total", display_fraction=0.95,
 
     """
     stop()
-    if _uw.rank() != 0:
+    if _uw.mpi.rank != 0:
         return
 
     regrouped_dict = get_data(group_by)

@@ -170,7 +170,7 @@ while steps<stepEnd:
 doOutput()
 
 #Check the image results
-if uw.rank() == 0:
+if uw.mpi.rank == 0:
     lv = glucifer.lavavu.Viewer(quality=1)
     lv.testimages(tolerance=1e-3)
 

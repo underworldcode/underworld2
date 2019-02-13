@@ -143,7 +143,7 @@ class GlobalSpaceFillerLayout(_ParticleLayoutAbstract):
 
     def __init__(self, swarm, particlesPerCell, **kwargs ):
         import underworld as uw
-        if uw.rank()==0:
+        if uw.mpi.rank==0:
         # TODO: Deprecate
             import warnings
             warnings.warn("Note that the 'GlobalSpaceFillerLayout' will be deprecated in future releases of Underworld. "

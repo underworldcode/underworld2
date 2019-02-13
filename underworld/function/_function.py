@@ -87,7 +87,7 @@ class Function(underworld._stgermain.LeftOverParamsChecker, metaclass = ABCMeta)
         # go awry.
         import underworld as uw
         from inspect import stack
-        rank = str(uw.rank())+'- '
+        rank = str(uw.mpi.rank)+'- '
         strguy = "Issue utilising function of class '{}'".format(self.__class__.__name__)
         try:
             if uw._in_doctest():

@@ -53,7 +53,7 @@ for fname in files:
             shutil.move(f, os.path.join('expected', f))
     else:
         #Check the image results
-        if uw.rank() == 0:
+        if uw.mpi.rank == 0:
             lv.testimages(tolerance=1e-3)
 
         # cleanup

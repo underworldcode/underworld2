@@ -268,7 +268,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         True
 
         >>> # clean up:
-        >>> if uw.rank() == 0:
+        >>> if uw.mpi.rank == 0:
         ...     import os;
         ...     os.remove( "saved_swarm.h5" )
 
@@ -282,7 +282,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
 
         return uw.utils.SavedFileData( self, filename )
 
-    def load( self, filename, collective=False, try_optimise=True, verbose=False ):
+    def load( self, filename, collective=False, try_optimise=True ):
         """
         Load a swarm from disk. Note that this must be called before any SwarmVariable
         members are loaded. Note also that this method will not replace the currently
@@ -306,8 +306,6 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
             the reloaded particle ordering will be broken, leading to an invalid swarms.
             One can disable this optimisation and revert to a brute force algorithm, much slower,
             by setting this option to False.
-        verbose : bool
-            Prints a swarm load progress bar.
 
         Notes
         -----
@@ -318,87 +316,78 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         Refer to example provided for 'save' method.
 
         """
+        from ..utils._io import h5File, h5_get_dataset
 
         if not isinstance(filename, str):
             raise TypeError("Expected 'filename' to be provided as a string")
-        
+
+        rank = uw.mpi.rank
+        nProcs = uw.mpi.size
+
         # open hdf5 file
-        h5f = h5py.File(name=filename, mode="r", driver='mpio', comm=MPI.COMM_WORLD)
+        with h5File(name=filename, mode="r") as h5f:
+            dset = h5_get_dataset(h5f, 'data')
+            if dset.shape[1] != self.data.shape[1]:
+                raise RuntimeError("Cannot load file data on current swarm. Data in file '{0}', " \
+                                   "has {1} components -the particlesCoords has {2} components".format(filename, dset.shape[1], self.data.shape[1]))
 
-        dset = h5f.get('data')
-        if dset == None:
-            raise RuntimeError("Can't find 'data' in file '{0}'.\n".format(filename))
-        if dset.shape[1] != self.data.shape[1]:
-            raise RuntimeError("Cannot load file data on current swarm. Data in file '{0}', " \
-                               "has {1} components -the particlesCoords has {2} components".format(filename, dset.shape[1], self.data.shape[1]))
-        comm = MPI.COMM_WORLD
-        rank = comm.Get_rank()
-        nProcs = comm.Get_size()
-        
-        if rank == 0 and verbose:
-            bar = uw.utils._ProgressBar( start=0, end=dset.shape[0]-1, title="loading "+filename)
-        
-        # try and read the procCount attribute & assume that if nProcs in .h5 file
-        # is equal to the current no. procs then the particles will be distributed the 
-        # same across the processors. (Danger if different discretisations are used... i think)
-        # else try and load the whole .h5 file.
-        # we set the 'offset' & 'size' variables to achieve the above 
-        
-        offset = 0
-        size = dset.shape[0] # number of particles in h5 file
-        
-        if try_optimise:
-            procCount = h5f.attrs.get('proc_offset')
-            if procCount is not None and nProcs == len(procCount):
-                for p_i in range(rank):
-                    offset += procCount[p_i]
-                size = procCount[rank]
-            
-        valid = np.zeros(0, dtype='i') # array for read in
-        chunk=int(2e7) # read in max this many points at a time
+            # try and read the procCount attribute & assume that if nProcs in .h5 file
+            # is equal to the current no. procs then the particles will be distributed the
+            # same across the processors. (Danger if different discretisations are used... i think)
+            # else try and load the whole .h5 file.
+            # we set the 'offset' & 'size' variables to achieve the above
 
-        firstChunk = True
-        (multiples, remainder) = divmod( size, chunk )
-        for ii in range(multiples+1):
-            # setup the points to begin and end reading in
-            chunkStart = offset + ii*chunk
-            if ii == multiples:
-                chunkEnd = chunkStart + remainder
-                if remainder == 0: # in the case remainder is 0
-                    break
-            else:
-                chunkEnd = chunkStart + chunk
+            offset = 0
+            size = dset.shape[0] # number of particles in h5 file
 
-            # Add particles to swarm, ztmp is the corresponding local array
-            # non-local particles are not added and their ztmp index is -1.
-            # Note that for the first chunk, we do collective read, as this
-            # is the only time that we can guaranteed that all procs will
-            # take part, and usually most (if not all) particles are loaded
-            # in this step.
-            if firstChunk and collective:
-                with dset.collective:
+            if try_optimise:
+                procCount = h5f.attrs.get('proc_offset')
+                if procCount is not None and nProcs == len(procCount):
+                    for p_i in range(rank):
+                        offset += procCount[p_i]
+                    size = procCount[rank]
+
+            valid = np.zeros(0, dtype='i') # array for read in
+            chunk=int(2e7) # read in max this many points at a time
+
+            firstChunk = True
+            (multiples, remainder) = divmod( size, chunk )
+            for ii in range(multiples+1):
+                # setup the points to begin and end reading in
+                chunkStart = offset + ii*chunk
+                if ii == multiples:
+                    chunkEnd = chunkStart + remainder
+                    if remainder == 0: # in the case remainder is 0
+                        break
+                else:
+                    chunkEnd = chunkStart + chunk
+
+                # Add particles to swarm, ztmp is the corresponding local array
+                # non-local particles are not added and their ztmp index is -1.
+                # Note that for the first chunk, we do collective read, as this
+                # is the only time that we can guaranteed that all procs will
+                # take part, and usually most (if not all) particles are loaded
+                # in this step.
+                if firstChunk and collective:
+                    with dset.collective:
+                        ztmp = self.add_particles_with_coordinates(dset[ chunkStart : chunkEnd ])
+                        firstChunk = False
+                else:
                     ztmp = self.add_particles_with_coordinates(dset[ chunkStart : chunkEnd ])
-                    firstChunk = False
-            else:
-                ztmp = self.add_particles_with_coordinates(dset[ chunkStart : chunkEnd ])
-            tmp = np.copy(ztmp) # copy because ztmp is 'readonly'
+                tmp = np.copy(ztmp) # copy because ztmp is 'readonly'
 
-            # slice out -neg bits and make the local indices global
-            it = np.nditer(tmp, op_flags=['readwrite'], flags=['f_index'])
-            while not it.finished:
-                if it[0] >= 0:
-                    it[0] = chunkStart+it.index # local to global
-                it.iternext()
+                # slice out -neg bits and make the local indices global
+                it = np.nditer(tmp, op_flags=['readwrite'], flags=['f_index'])
+                while not it.finished:
+                    if it[0] >= 0:
+                        it[0] = chunkStart+it.index # local to global
+                    it.iternext()
 
-            # slice out -neg bits
-            tmp = tmp[tmp[:]>=0]
-            # append to valid
-            valid = np.append(valid, tmp)
+                # slice out -neg bits
+                tmp = tmp[tmp[:]>=0]
+                # append to valid
+                valid = np.append(valid, tmp)
 
-            if rank == 0 and verbose:
-                bar.update(chunkEnd)
-
-        h5f.close()
         self._local2globalMap = valid
         # record which swarm state this corresponds to
         self._checkpointMapsToState = self.stateId
@@ -607,7 +596,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         libUnderworld.StgDomain.Swarm_UpdateAllParticleOwners( self._cself );
         libUnderworld.PICellerator.EscapedRoutine_RemoveFromSwarm(self._escapedRoutine, self._cself)
         new_total_particles = self.particleGlobalCount
-        if (uw.rank()==0) and (not self.particleEscape) and (orig_total_particles != new_total_particles):
+        if (uw.mpi.rank==0) and (not self.particleEscape) and (orig_total_particles != new_total_particles):
             raise RuntimeError("Particles appear to have left the domain, but swarm flag `particleEscape` is False. "
                                "Check your velocity field or your particle relocation routines, or set the "
                                "`particleEscape` swarm constructor parameter to True to allow escape.")

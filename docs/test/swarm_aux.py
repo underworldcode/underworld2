@@ -55,7 +55,7 @@ def swarm_save_load(swarmtype):
         raise RuntimeError("Loaded swarm variable2 does not appear to contain correct data.")
 
     # Clean up:
-    if uw.rank() == 0: import os; os.remove( "saved_swarm.h5" ); os.remove( "saved_swarm_variable1.h5" ); os.remove( "saved_swarm_variable2.h5" );
+    if uw.mpi.rank == 0: import os; os.remove( "saved_swarm.h5" ); os.remove( "saved_swarm_variable1.h5" ); os.remove( "saved_swarm_variable2.h5" );
 
 
 if __name__ == '__main__':

@@ -45,14 +45,26 @@ except:
 
 _display = None
 
+class _xvfb_runner(object):
+    """
+    This class will initialise the X virtual framebuffer (Xvfb).
+    Xvfb is useful on headless systems. Note that xvfb will need to be 
+    installed, as will pyvirtualdisplay.
+
+    This class also manages the lifetime of the virtual display driver. When
+    the object is garbage collected, the driver is stopped.
+    """
+    def __init__(self):
+        from pyvirtualdisplay import Display
+        self._xvfb = Display(visible=0, size=(1600, 1200))
+        self._xvfb.start()
+
+    def __del__(self):
+        if not self._xvfb is None :
+            self._xvfb.stop()
+
 import os as _os
 # disable collection of data if requested
 if "GLUCIFER_USE_XVFB" in _os.environ:
-    if _uw.rank() == 0:
-        from pyvirtualdisplay import Display
-        _display = Display(visible=0, size=(1600, 1200))
-        _display.start()
-        import atexit
-        def all_done():
-            _display.stop()
-        atexit.register(all_done)
+    if _uw.mpi.rank == 0:
+        _display = _xvfb_runner()

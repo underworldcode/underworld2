@@ -148,7 +148,7 @@ class Store(_stgermain.StgCompoundComponent):
         filename :str
             Filename to save file to.  May include an absolute or relative path.
         """
-        if uw.rank() == 0:
+        if uw.mpi.rank == 0:
             if not isinstance(filename, str):
                 raise TypeError("Provided parameter 'filename' must be of type 'str'. ")
             if not filename.lower().endswith('.gldb') and not filename.lower().endswith('.db'):
@@ -227,7 +227,7 @@ class Store(_stgermain.StgCompoundComponent):
         libUnderworld.gLucifer.lucDatabase_WriteState(self._db, figname, self._get_state(self._objects, props))
 
         #Output any custom geometry on objects
-        if lavavu and uw.rank() == 0 and any(x.geomType is not None for x in self._objects):
+        if lavavu and uw.mpi.rank == 0 and any(x.geomType is not None for x in self._objects):
             lv = self.lvget() #Open the viewer
             for obj in self._objects:
                 #Create/Transform geometry by object
@@ -239,24 +239,24 @@ class Store(_stgermain.StgCompoundComponent):
             #database on root so the other procs can load it
             #Wait for temporary db to be written if not already using an external store
             comm = MPI.COMM_WORLD
-            rank = uw.rank()
+            rank = uw.mpi.rank
             self.filename = comm.bcast(self.filename, root=0)
-            #print uw.rank(),self.filename
+            #print uw.mpi.rank,self.filename
             #Open the viewer with db filename
             lv = self.lvget(self.filename)
             #Loop through objects and run their parallel_render method if present
             for obj in self._objects:
                 if hasattr(obj, "parallel_render"):
-                    obj.parallel_render(lv, uw.rank())
+                    obj.parallel_render(lv, uw.mpi.rank)
             #Delete the viewer instance on non-root procs
-            uw.barrier()
-            if uw.rank() > 0:
+            uw.mpi.barrier()
+            if uw.mpi.rank > 0:
                 lv = None
                 self.viewer = None
 
 #        if not lavavu.is_ipython():
 #            endtime = MPI.Wtime()
-#            print("Visualisation export took %10.2fs on proc %d" % (endtime-starttime, uw.rank()))
+#            print("Visualisation export took %10.2fs on proc %d" % (endtime-starttime, uw.mpi.rank))
 
     def _get_state(self, objects, props):
         #Get current state as string for export
@@ -277,7 +277,7 @@ class Store(_stgermain.StgCompoundComponent):
 
     def _read_state(self):
         #Read state from database (DEPRECATED)
-        if uw.rank() > 0:
+        if uw.mpi.rank > 0:
             return
         if not self._db.db:
             libUnderworld.gLucifer.lucDatabase_OpenDatabase(self._db)
@@ -537,7 +537,7 @@ class Figure(dict):
         try:
             if type.lower() != "webgl" and lavavu.is_notebook():
                 self._generate_DB()
-                if uw.rank() > 0:
+                if uw.mpi.rank > 0:
                     return
                 from IPython.display import display,Image,HTML
                 #Return inline image result
@@ -665,7 +665,7 @@ class Figure(dict):
             anything.
         """
         self._generate_DB()
-        if filename is None or uw.rank() > 0:
+        if filename is None or uw.mpi.rank > 0:
             return
         if not isinstance(filename, str):
             raise TypeError("Provided parameter 'filename' must be of type 'str'. ")
@@ -692,7 +692,7 @@ class Figure(dict):
         self.db._generate(self.name, objects, self)
 
     def _generate_image(self, filename="", size=(0,0)):
-        if uw.rank() > 0:
+        if uw.mpi.rank > 0:
             return
         try:
             #Render with viewer
@@ -733,7 +733,7 @@ class Figure(dict):
         and opens it as an interactive viewing window.
         """
         #Open a new viewer instance and display window
-        if uw.rank() == 0:
+        if uw.mpi.rank == 0:
             v = self.viewer(new=True, *args, **kwargs)
             #Ensure correct figure selected
             v.figure(self.name)
@@ -751,7 +751,7 @@ class Figure(dict):
             Otherwise the existing instance will be used if available
         """
         #Open/get viewer instance
-        if uw.rank() == 0:
+        if uw.mpi.rank == 0:
             #Generate db if doesn't exist
             if not self.db._db.path:
                 self._generate_DB()
@@ -772,7 +772,7 @@ class Figure(dict):
         if self._viewerProc and self._viewerProc.poll() == None:
             return
 
-        if uw.rank() == 0:
+        if uw.mpi.rank == 0:
             #Open viewer with local web server for interactive/iterative use
             if background:
                 self._viewerProc = subprocess.Popen(["LV", "-" + str(self.db.step), "-p9999", "-q90", fname] + self._script + args,
@@ -800,7 +800,7 @@ class Figure(dict):
         cmd: str
             Command to send to open viewer.
         """
-        if uw.rank() == 0:
+        if uw.mpi.rank == 0:
             self.open_viewer()
             url = "http://localhost:9999/command=" + urllib2.quote(cmd)
             try:

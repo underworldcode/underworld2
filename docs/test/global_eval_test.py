@@ -29,7 +29,7 @@ inarr = np.array( ( (0.1,0.1),(0.2,0.2),(0.3,0.3),(0.4,0.4),(0.5,0.5),(0.6,0.6),
 expectarr = np.array([[108.8,108.8],[217.6,217.6],[326.4,326.4],[435.2,435.2],[544.,544.],[652.8,652.8],[761.6,761.6],[870.4,870.4],[979.2,979.2]])
 # In[16]:
 out = var.evaluate_global(inarr)
-if uw.rank() == 0:
+if uw.mpi.rank == 0:
     if not np.allclose( out, expectarr ):
         raise RuntimeError("Error in global evaluation. Return results not as expected.")
 

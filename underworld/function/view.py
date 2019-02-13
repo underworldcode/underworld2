@@ -304,7 +304,7 @@ class min_max(_function.Function):
         
         import underworld as uw
         # if we are the rank with the min result, extract result
-        if uw.rank() == self.min_rank():
+        if uw.mpi.rank == self.min_rank():
             auxout = self.min_local_auxiliary()
         else:
             auxout = None
@@ -335,7 +335,7 @@ class min_max(_function.Function):
         
         import underworld as uw
         # if we are the rank with the max result, extract result
-        if uw.rank() == self.max_rank():
+        if uw.mpi.rank == self.max_rank():
             auxout = self.max_local_auxiliary()
         else:
             auxout = None
