@@ -18,3 +18,4 @@ from ._utils import SavedFileData
 from ._utils import _createMeshName, _spacetimeschema, _fieldschema, _swarmspacetimeschema, _swarmvarschema, _xdmfheader, _xdmffooter, _nps_2norm
 from ._utils import is_kernel
 from ._meshvariable_projection import MeshVariable_Projection, SolveLinearSystem
+from . import _io

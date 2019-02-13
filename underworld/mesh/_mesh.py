@@ -232,10 +232,6 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         >>> someMesh.data[0]
         array([ 0.1,  0.1])
         """
-
-        if not remainsRegular is None:
-            raise RuntimeError("'remainsRegular' parameter has been renamed to 'isRegular'")
-
         # execute any pre deform functions
         for function in self._pre_deform_functions:
             function()
@@ -544,7 +540,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         if not isinstance(filename, str):
             raise TypeError("'filename', must be of type 'str'")
 
-        with h5File(name=filename, mode="w") as h5f:
+        with h5File(name=filename, mode="a") as h5f:
             # Save attributes and simple data.
             # This must be done in collectively for mpio driver.
             # Also, for sequential, this is performed redundantly.
@@ -557,7 +553,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
 
             # write the vertices
             globalShape = ( self.nodesGlobal, self.data.shape[1] )
-            dset = h5_require_dataset(h5f, name="vertices", shape=globalShape, dtype=self.data.dtype )
+            dset = h5_require_dataset(h5f, "vertices", shape=globalShape, dtype=self.data.dtype )
             local = self.nodesLocal
             # write to the dset using the local set of global node ids
             with dset.collective:
@@ -565,7 +561,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
 
             # write the element node connectivity
             globalShape = ( self.elementsGlobal, self.data_elementNodes.shape[1] )
-            dset = h5_require_dataset(h5f, name="en_map", shape=globalShape, dtype=self.data_elementNodes.dtype)
+            dset = h5_require_dataset(h5f, "en_map", shape=globalShape, dtype=self.data_elementNodes.dtype)
 
             local = self.elementsLocal
             # write to the dset using the local set of global node ids
@@ -607,7 +603,10 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         if not isinstance(filename, str):
             raise TypeError("Expected filename to be provided as a string")
 
-        # get field and mesh information
+        # Get field and mesh information
+        # Note that we collect all required information first
+        # and then perform deform.
+        vertcpy = np.zeros_like(self.data)
         with h5File(name=filename, mode="r") as h5f:
             # get resolution of old mesh
             res = h5f.attrs['mesh resolution']
@@ -627,10 +626,11 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
 
             if len(dset) != self.nodesGlobal:
                 raise RuntimeError("Provided data file appears to be for a different resolution mesh.")
-
-            with self.deform_mesh(isRegular=h5f.attrs['regular']):
-                with dset.collective:
-                    self.data[0:self.nodesLocal] = dset[self.data_nodegId[0:self.nodesLocal],:]
+            with dset.collective:
+                vertcpy = dset[self.data_nodegId[0:self.nodesLocal],:].copy()
+            isRegular = h5f.attrs['regular']
+        with self.deform_mesh(isRegular=isRegular):
+            self.data[0:self.nodesLocal] = vertcpy[:]
 
 
 class MeshGenerator(_stgermain.StgCompoundComponent):

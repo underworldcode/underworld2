@@ -47,7 +47,6 @@ def swarm_save_load(swarmtype):
     clone_svar1.load("saved_swarm_variable1.h5")
     if np.allclose(clone_swarm.particleCoordinates.data,clone_svar1.data) != True:
         raise RuntimeError("Loaded swarm variable1 does not appear to contain the correct data.")
-
     clone_svar2 = clone_swarm.add_variable("int",1)
     clone_svar2.load("saved_swarm_variable2.h5")
 
@@ -59,5 +58,10 @@ def swarm_save_load(swarmtype):
 
 
 if __name__ == '__main__':
+    import underworld as uw
+    uw.utils._io.PATTERN=1 # sequential
+    swarm_save_load('global')
+    swarm_save_load('passivetracer')
+    uw.utils._io.PATTERN=2 # collective
     swarm_save_load('global')
     swarm_save_load('passivetracer')

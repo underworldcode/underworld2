@@ -158,7 +158,7 @@ def matplotlib_inline():
 if isinstance(underworld.mpi.size, int) and underworld.mpi.size > 1:
     _origexcepthook = _sys.excepthook
     def _uw_uncaught_exception_handler(exctype, value, tb):
-        print('An uncaught exception was encountered on processor {}.'.format(uw.mpi.rank))
+        print('An uncaught exception was encountered on processor {}.'.format(underworld.mpi.rank))
         # pass through to original handler
         _origexcepthook(exctype, value, tb)
         import sys

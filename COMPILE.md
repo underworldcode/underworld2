@@ -15,7 +15,7 @@ Dependencies
   * PETSc 
   * numpy
   * swig
-  * h5py-mpi
+  * h5py
 
 
 Getting the code
@@ -47,4 +47,19 @@ You will first need to make the project directory available to import within pyt
     $ export PYTHONPATH=$PYTHONPATH:/top/directory/of/project
 ```
 (note that if you are not using the bash shell, the required command will be different.)
+
+h5py-mpi
+--------
+Underworld now supports non-mpi versions of `h5py`. Note however that for large parallel simulations,
+saving data to disk may become a bottleneck, and collective IO via MPI-enabled `h5py` is recommended.
+To install `h5py` with MPI enabled, you will first required a parallel enabled version of `libhdf5`. 
+The following command may be useful for installed MPI-enabled `h5py`:
+
+```bash
+    $ CC=mpicc HDF5_MPI="ON" HDF5_DIR=/path/to/your/hdf5/install/ pip install --no-binary=h5py h5py
+```
+
+or alternatively you might use `CC=h5pcc` (if available). Please check the `h5py` site for more information.
+Underworld will automatically perform `save()`/`load()` operations collectively if MPI-enabled `hdf5` is 
+available. 
 

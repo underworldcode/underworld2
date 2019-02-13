@@ -394,7 +394,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
             raise TypeError("Expected 'filename' to be provided as a string")
 
         mesh = self.mesh
-        with h5File(name=filename, mode="w") as h5f:
+        with h5File(name=filename, mode="a") as h5f:
 
             # ugly global shape def
             globalShape = ( mesh.nodesGlobal, self.data.shape[1] )
@@ -552,7 +552,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
                 self.data[:] = inputField.evaluate(self.mesh.data)
 
         # add sync
-        uw.libUnderworld.StgFEM._FeVariable_SyncShadowValues( self._cself )
+        self.syncronise()
 
     def copy(self, deepcopy=False):
         """

@@ -277,13 +277,14 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         rank = comm.rank
 
         # open hdf5 file
+        globalCount = self.swarm.particleGlobalCount
         with h5File(name=filename, mode="r") as h5f:
 
             dset = h5_get_dataset(h5f,'data')
             if dset.shape[1] != self.data.shape[1]:
                 raise RuntimeError("Cannot load file data on current swarm. Data in file '{0}', " \
                                    "has {1} components -the particlesCoords has {2} components".format(filename, dset.shape[1], self.particleCoordinates.data.shape[1]))
-            if dset.shape[0] != self.swarm.particleGlobalCount:
+            if dset.shape[0] != globalCount:
                 raise RuntimeError("It appears that the swarm has {} particles, but provided h5 file has {} data points. Please check that " \
                                    "both the Swarm and the SwarmVariable were saved at the same time, and that you have reloaded using " \
                                    "the correct files.".format(particleGobalCount, dset.shape[0]))
@@ -419,16 +420,16 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
             offset += procCount[i]
 
         # open parallel hdf5 file
-        with h5File(name=filename, mode="w") as h5f:
+        with h5File(name=filename, mode="a") as h5f:
             # write the entire local swarm to the appropriate offset position
             globalShape = (particleGlobalCount, self.data.shape[1])
-            dset = h5_require_dataset(h5f,"data", shape=globalShape, dtype=self.data.dtype)
+            dset = h5_require_dataset(h5f, "data", shape=globalShape, dtype=self.data.dtype)
 
             if collective:
                 with dset.collective:
                     dset[offset:offset+swarm.particleLocalCount] = self.data[:]
             else:
-                dset[offset:offset + swarm.particleLocalCount] = self.data[:]
+                dset[offset:offset+swarm.particleLocalCount] = self.data[:]
 
             # also write proc offsets - used for loading from checkpoint
             h5f.attrs["proc_offset"] = procCount

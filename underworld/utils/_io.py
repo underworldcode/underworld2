@@ -34,6 +34,11 @@ class h5File(uw.mpi.call_pattern):
     read/write within the manager block, depending on the configuration of the available
     h5py package, and/or the user requested write pattern.
 
+    Important: Remember that all code written within the manager's block should be sequential
+    safe!! It can be easy to accidentally including global operations (for example
+    `self.swarm.particleGlobalCount`) that may work correctly when called collectively, but
+    will cause a deadlock when called sequentially.
+
     Parameters
     ----------
     args: list
@@ -91,20 +96,23 @@ class h5File(uw.mpi.call_pattern):
         # running sequentially)
         self.h5f.close()
         super(h5File, self).__exit__(*args)
+        # add barrier to be safe
+        uw.mpi.barrier()
 
 
 class _PatchedDataset(h5py.Dataset):
-    class _dummy_manager():
-        def __enter__(self):
-            pass
-        def __exit__(self, *args):
-            pass
     @property
     def collective(self):
+        class _dummy_manager():
+            def __enter__(self):
+                pass
+
+            def __exit__(self, *args):
+                pass
         return _dummy_manager()
 
 
-def h5_require_dataset(h5f, *args, **kwargs):
+def h5_require_dataset(h5f, name, *args, **kwargs):
     """
     This function either creates uses an existing file
     dataset where compatible, or creates a dataset of the
@@ -118,6 +126,8 @@ def h5_require_dataset(h5f, *args, **kwargs):
     ----------
     h5f: h5py.File
         The h5py File object to add the dataset to.
+    name: str
+        Name for the dataset.
     args: list
         Arguments to pass through to h5py.Dataset constructor.
     kwargs: dict
@@ -129,9 +139,10 @@ def h5_require_dataset(h5f, *args, **kwargs):
     # having to reallocate space on disk. If that
     # fails, create
     try:
-        dset = h5f.require_dataset(*args, **kwargs)
+        dset = h5f.require_dataset(name, *args, **kwargs)
     except TypeError:
-        dset = h5f.create_dataset(*args, **kwargs)
+        del h5f[name]
+        dset = h5f.create_dataset(name, *args, **kwargs)
 
     # Also, so minimise branching in our code, let's add
     # a `collective` context manager that does nothing
