@@ -53,10 +53,11 @@ class h5File(uw.mpi.call_pattern):
         if h5py_mpi:
             pattern = 'collective'
         else:
-            import warnings
-            warnings.warn("H5py not available in parallel mode. Read/write will be " \
-                          "performed sequentially. Note that this may be slow for " \
-                          "parallel simulations.")
+            if (uw.mpi.size>1) and (uw.mpi.rank==0):
+                import warnings
+                warnings.warn("H5py not available in parallel mode. Read/write will be " \
+                              "performed sequentially. Note that this may be slow for " \
+                              "parallel simulations.")
             pattern = 'sequential'
             if PATTERN==2:
                 raise RuntimeError("Collective IO not possible as h5py not available in parallel mode.")
