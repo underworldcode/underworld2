@@ -1,8 +1,15 @@
 CHANGES: Underworld2
 =======================
 
+Release 2.7.1b [2019-02-19]
+---------------------------
+Documentation:
+* Dockerfile for TACC/Stampede2
+* New build instructions for NCI/Raijin.
+* Add dev Binder to README.md
+
 Release 2.7.0b [2019-02-06]
-------------------
+---------------------------
 
 New functionality: 
 * Timing module for high level profiling.
