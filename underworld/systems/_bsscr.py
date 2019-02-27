@@ -259,21 +259,16 @@ class StokesSolver(_stgermain.StgCompoundComponent):
     these solves individually via the `solver.options.A11` and
     `solver.options.scr` dictionaries.
 
-    Try uw.help(solver.options.A11) for some details.
+    Try help(solver.options.A11) for some details.
 
-    Common configurations are provided via the
-    solver.set_inner_method() function.
+    Common configurations are provided via the `set_inner_method()` method.
 
-    solver.set_inner_method("mg") sets up a multigrid solve for the inner solve. This is the default.
-    solver.set_inner_method("mumps") will set up a parallel direct solve on the inner solve.
-    solver.set_inner_method("lu") will set up a serial direct solve on the inner solve.
-
-    uw.help(solver.set_inner_method) for more.
+    help(solver.set_inner_method) for more.
 
     For more advanced configurations use the
     solver.options.A11/scr dictionaries directly.
 
-    uw.help(solver.options) to see more.
+    help(solver.options) to see more.
     """
     _objectsDict = {  "_stokessolver" : "StokesBlockKSPInterface"  }
     _selfObjectName = "_stokessolver"
@@ -415,27 +410,27 @@ class StokesSolver(_stgermain.StgCompoundComponent):
 
             wtime = mpi4py.MPI.Wtime()
             libUnderworld.StgFEM.SystemLinearEquations_BC_Setup(self._stokesSLE._cself, None)
-            if uw.rank() == 0 and print_stats:
+            if uw.mpi.rank == 0 and print_stats:
                 print("Setup - BCs        {:.4} s".format(mpi4py.MPI.Wtime() - wtime))
 
             wtime = mpi4py.MPI.Wtime()
             libUnderworld.StgFEM.SystemLinearEquations_LM_Setup(self._stokesSLE._cself, None)
-            if uw.rank() == 0 and print_stats:
+            if uw.mpi.rank == 0 and print_stats:
                 print("Setup - Eq numbers {:.4} s".format(mpi4py.MPI.Wtime() - wtime))
 
             wtime = mpi4py.MPI.Wtime()
             libUnderworld.StgFEM.SystemLinearEquations_ZeroAllVectors(self._stokesSLE._cself, None)
-            if uw.rank() == 0 and print_stats:
+            if uw.mpi.rank == 0 and print_stats:
                 print("Setup - Zero vecs  {:.4} s".format(mpi4py.MPI.Wtime() - wtime))
 
             wtime = mpi4py.MPI.Wtime()
             libUnderworld.StgFEM.SystemLinearEquations_MatrixSetup(self._stokesSLE._cself, None)
-            if uw.rank() == 0 and print_stats:
+            if uw.mpi.rank == 0 and print_stats:
                 print("Setup - Matrices   {:.4} s".format(mpi4py.MPI.Wtime() - wtime))
 
             wtime = mpi4py.MPI.Wtime()
             libUnderworld.StgFEM.SystemLinearEquations_VectorSetup(self._stokesSLE._cself, None)
-            if uw.rank() == 0 and print_stats:
+            if uw.mpi.rank == 0 and print_stats:
                 print("Setup - Vectors    {:.4} s".format(mpi4py.MPI.Wtime() - wtime))
 
             # setup penalty specific objects
@@ -454,7 +449,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         if print_stats:
             self.print_stats()
             if nonLinear and nonLinearIterate:
-                if uw.rank()==0:
+                if uw.mpi.rank==0:
                     purple = "\033[0;35m"
                     endcol = "\033[00m"
                     boldpurple = "\033[1;35m"
@@ -478,7 +473,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
                 "tangled. \n\n" \
                 "The resultant KSPConvergedReasons are (f_hat, outer, backsolve) ({},{},{}).\n\n".format(
                 self._cself.fhat_reason,self._cself.outer_reason, self._cself.backsolve_reason)
-            if uw.rank() == 0:
+            if uw.mpi.rank == 0:
                 warnings.warn(estring)
 
         # check if fp error was detected and 'reduce' result to proc 0
@@ -497,7 +492,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
             "or a fragile (or incorrect) solver configuration. " \
             "If your inputs are constructed using real world physical units, you may " \
             "need to rescale them for solver amenability. \n\n"
-            if uw.rank() == 0:
+            if uw.mpi.rank == 0:
                 warnings.warn(estring)
         return
 
@@ -508,7 +503,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
 
     def print_petsc_options(self):
         self._setup_options()
-        if uw.rank()==0:
+        if uw.mpi.rank==0:
             print("Options: {}".format(self._optionsStr))
 
 
@@ -673,12 +668,12 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         Available options below. Note that associated solver software
         (for example `mumps`) must be installed.
 
-        mg          : Geometric multigrid (default).
-        nomg        : Disables multigrid.
-        lu          : LU direct solver (serial only).
-        mumps       : MUMPS parallel direct solver.
-        superludist : SuperLU parallel direct solver.
-        superlu     : SuperLU direct solver (serial only).
+        - mg          : Geometric multigrid (default).
+        - nomg        : Disables multigrid.
+        - lu          : LU direct solver (serial only).
+        - mumps       : MUMPS parallel direct solver.
+        - superludist : SuperLU parallel direct solver.
+        - superlu     : SuperLU direct solver (serial only).
         """
         if solve_type=="mg":
             velocityField=self._stokesSLE._velocityField
@@ -741,7 +736,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         purple = "\033[0;35m"
         endcol = "\033[00m"
         boldpurple = "\033[1;35m"
-        if 0==uw.rank():
+        if 0==uw.mpi.rank:
             print(boldpurple)
             print( " " )
             print( "Pressure iterations: %3d" % (self._cself.stats.pressure_its) )
@@ -778,7 +773,7 @@ class StokesSolver(_stgermain.StgCompoundComponent):
             self.options.main.penalty=penalty
             self.options.main.Q22_pc_type="gkgdiag"
 
-        elif 0==uw.rank():
+        elif 0==uw.mpi.rank:
             print( "Invalid penalty number chosen. Penalty must be a positive float." )
             self.options.main.penalty = 0.0
 

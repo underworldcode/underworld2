@@ -31,7 +31,7 @@ RUN apt-get update -qq && \
         gdb-minimal \
         python3-dbg \
         cmake \
-	    python3-setuptools \
+        python3-setuptools \
         wget \
         gfortran  && \
     apt-get clean && \
@@ -56,7 +56,6 @@ ENV LANG=C.UTF-8
 RUN pip3 install -U setuptools  && \
     pip3 install -U wheel       && \
     pip3 install --no-cache-dir packaging \
-        runipy \
         appdirs \
         numpy \
         jupyter \
@@ -84,6 +83,7 @@ RUN apt-get update -qq && \
     tar zxf petsc-lite-3.9.3.tar.gz && cd petsc-3.9.3                         && \
     ./configure --with-debugging=0 --prefix=/usr                                 \
                 --COPTFLAGS="-g -O3" --CXXOPTFLAGS="-g -O3" --FOPTFLAGS="-g -O3" \
+		--with-zlib=1                   \
                 --download-fblaslapack=1        \
                 --download-hdf5=1               \
                 --download-mumps=1              \

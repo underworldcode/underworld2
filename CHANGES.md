@@ -1,19 +1,54 @@
 CHANGES: Underworld2
 =======================
 
-Release 2.7.0-dev []
-------------------
-Enhancements:
-* Timing functionality available
-* glucifer defaults to use onMesh=True
+Release 2.7.1b [2019-02-19]
+---------------------------
+Documentation:
+* Dockerfile for TACC/Stampede2
+* New build instructions for NCI/Raijin.
+* Add dev Binder to README.md
+
+Release 2.7.0b [2019-02-06]
+---------------------------
+
+New functionality: 
+* Timing module for high level profiling.
+* Scaling module for numerical value scaling.
+* Index set objects can now directly index numpy arrays.
+* `show_grid()` image rendering.
+
+Changes:
+* glucifer Surface defaults to use onMesh=True.
+* added `data` handle to swarm as shortcut to particle coordinates data.
+* Adding aliases for mesh vertex sets (left,right,etc)
+* Removed `unsupported` subrepo.
+* Docker images switch to MPICH for Shifter compatibility at magnus.
+
+Documentation:
+* Examples reorganised.
+* All examples now include quantitative tests.
+* Moved many examples to models library repo.
+    https://github.com/underworldcode/model_library
+* Added new example, 08_Uplift_TractionBCs.ipynb.
+* Moved benchmarks and tutorials to models library repo.
+* Relocated defunct models:
+    https://github.com/underworldcode/model_graveyard
+* Big overhaul of user guide.
+* User guide rendered to html for Readthedocs page.
+* Updates for docstrings and doctests.
+* Improved error messaging.
+
+Fixes:
+* Fix incorrect particle outside domain issue #335
+* Other stability improvements.
 
 Release 2.6.1b [2018-10-31]
-------------------
+---------------------------
 * Remove `warning` module visibility from top level underworld 
   module.
 
-Release 2.6.0b [2018-10-18]
-------------------
+Release 2.6.0b [2018-09-27]
+---------------------------
 Enhancements:
 * Removed submodules in favour of direct access.
 * Petsc-3.9.x compatible.

@@ -15,20 +15,19 @@ been spent elsewhere (such as `numpy`, `scipy` etc). The total runtime
 is also recorded which gives users an indication of how much time
 is spent outside Underworld.
 
-Timing routines enabled by this module should introduce neglibile
-computational overhead, and the user should feel confident enabling
-them at all times without concern for efficiency implications.
+Timing routines enabled by this module should introduce negligible
+computational overhead.
 
 Only the root process records timing information.
 
-Note that Underworld API methods are automatically instrumented
-with timing routines at `import` time, though the user must activate
-storing timing data via a call to `timing.start()`. To completely
-disable timing instrumentation, the user should set the
-`UW_DISABLE_TIMING` environment variable.
+Note that to utilise timing routines, you must first set the
+'UW_ENABLE_TIMING' environment variable, and this must be done
+before you call `import underworld`.
 
 Example
 -------
+>>> import os
+>>> os.environ["UW_ENABLE_TIMING"] = "1"
 >>> import underworld as uw
 >>> uw.timing.start()
 >>> someMesh = uw.mesh.FeMesh_Cartesian()
@@ -57,7 +56,7 @@ def start():
     global _maxdepth
     global _currentDepth
     _currentDepth = 0
-    if _uw.rank() == 0 and ("UW_DISABLE_TIMING" not in _os.environ):
+    if _uw.mpi.rank == 0 and ("UW_ENABLE_TIMING" in _os.environ):
         timing = True
     _maxdepth = depth + 1
     global _starttime
@@ -100,7 +99,7 @@ def get_data(group_by="line_routine"):
         "routine"     : Class routine.
         "line_routine": Line&routine form an individual timing group.
     """
-    if _uw.rank() != 0:
+    if _uw.mpi.rank != 0:
         return
 
     # function to convert key into useful text
@@ -155,7 +154,7 @@ def print_table(group_by="line_routine", sort_by="total", display_fraction=0.95,
 
     """
     stop()
-    if _uw.rank() != 0:
+    if _uw.mpi.rank != 0:
         return
 
     regrouped_dict = get_data(group_by)
@@ -371,7 +370,7 @@ def _add_timing_to_mod(mod):
     to replace via the _class_timer_decorator.
     
     """
-    if "UW_DISABLE_TIMING" in _os.environ:
+    if "UW_ENABLE_TIMING" not in _os.environ:
         return
 
     import inspect

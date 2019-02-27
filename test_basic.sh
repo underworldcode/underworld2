@@ -5,5 +5,4 @@ set -e
 
 export PYTHONPATH=$PWD:$PYTHONPATH
 
-cd utils
-./run_tests.py ../docs/examples/1_*.ipynb ../docs/user_guide/*.ipynb ../docs/test/*
+./docs/development/run_tests.py ./docs/examples/*.ipynb ./docs/user_guide/*.ipynb ./docs/test/*

@@ -51,8 +51,8 @@ void PCDVC_Firewall( int nump, int lCell_I, char* funcguy )
 {
     Journal_Firewall( nump , NULL, "Something went wrong in %s: Problem has an under resolved cell (Cell Id = %d).\n"
                                    "You may need to check your initial particle layout configuration. A per cell layout might give better results than a global layout, "
-                                   "especially where you have a deformed mesh. Also, if particles are able to escape the domain, you can enable aggressive population "
-                                   "control by setting the 'particleEscape' swarm constructor parameter.", funcguy, lCell_I );
+                                   "especially where you have a deformed mesh. Also, if particles are allowed to escape the domain, you will need to set "
+                                   "the 'particleEscape=True' swarm constructor parameter, and likely also the 'aggressive=True' population control constructed parameter.", funcguy, lCell_I );
 }
 
 PCDVC* PCDVC_New(

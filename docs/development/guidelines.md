@@ -1,22 +1,3 @@
-Directory Structure
-==============
-
-This list is not exhaustive.
-
-   * libUnderworld              - Backend stack of tools (Underworld, StgFEM, etc).
-      * libUnderworldPy       - Swig generated wrappers for backend as well as auxiliary implementations (such as StGermain_Tools).
-   * underworld                  - Underworld python modules.
-   * glucifer                        - gLucifer python modules.
-   * docs                            - Various documentation including this file.
-     * development             - Documents relevant to developers.
-     * tests                          - Python type scripts which are mainly for regression testing underworld.
-     * examples                  - Python type example scripts for users.
-     * user_guide                - Jupyter notebook based user guide
-     * publications              - Models in published work
-   * utils                             - Utility files.
-  
-
-
 Coding Style
 ============
 

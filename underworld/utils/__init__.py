@@ -19,3 +19,4 @@ from ._utils import _createMeshName, _spacetimeschema, _fieldschema, _swarmspace
 from ._utils import is_kernel
 from ._SPR   import SuperconvergentPatchRecovery
 from ._meshvariable_projection import MeshVariable_Projection, SolveLinearSystem
+from . import _io

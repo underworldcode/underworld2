@@ -270,19 +270,19 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         Does file exist?
 
         >>> import os
-        >>> if uw.rank() == 0: os.path.isfile("TESTxdmf.xdmf")
+        >>> if uw.mpi.rank == 0: os.path.isfile("TESTxdmf.xdmf")
         True
 
         Clean up:
 
-        >>> if uw.rank() == 0:
+        >>> if uw.mpi.rank == 0:
         ...     import os;
         ...     os.remove( "saved_mesh_variable.h5" )
         ...     os.remove( "saved_mesh.h5" )
         ...     os.remove( "TESTxdmf.xdmf" )
 
         """
-        if uw.rank() == 0:
+        if uw.mpi.rank == 0:
             if not isinstance(varname, str):
                 raise ValueError("'varname' must be of type str")
             if not isinstance(meshname, str):
@@ -360,7 +360,8 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
 
         Save to a file (note that the 'ignoreMe' object isn't really required):
 
-        >>> ignoreMe = var.save("saved_mesh_variable.h5")
+        >>> meshHandle = mesh.save("saved_mesh.h5")
+        >>> ignoreMe = var.save("saved_mesh_variable.h5", meshHandle)
 
         Now let's try and reload.
 
@@ -372,53 +373,63 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         >>> np.allclose(var.data,clone_var.data)
         True
 
+        Now check the field can be loaded on a different mesh topology (interpolation)
+
+        >>> mesh19 = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(19,19), minCoord=(0.,0.), maxCoord=(1.,1.) )
+        >>> clone_var2 = mesh19.add_variable(1)
+        >>> clone_var2.load("saved_mesh_variable.h5", interpolate=True)
+        >>> np.allclose(mesh.integrate(var), mesh19.integrate(clone_var2)) 
+        True
+
         >>> # clean up:
-        >>> if uw.rank() == 0:
+        >>> if uw.mpi.rank == 0:
         ...     import os;
         ...     os.remove( "saved_mesh_variable.h5" )
+        ...     os.remove( "saved_mesh.h5" )
 
         """
+        from ..utils._io import h5File, h5_require_dataset
+
         if not isinstance(filename, str):
             raise TypeError("Expected 'filename' to be provided as a string")
 
         mesh = self.mesh
-        h5f = h5py.File(name=filename, mode="w", driver='mpio', comm=MPI.COMM_WORLD)
+        with h5File(name=filename, mode="a") as h5f:
 
-        # ugly global shape def
-        globalShape = ( mesh.nodesGlobal, self.data.shape[1] )
-        # create dataset
-        dset = h5f.create_dataset("data",
-                                  shape=globalShape,
-                                  dtype=self.data.dtype)
+            # ugly global shape def
+            globalShape = ( mesh.nodesGlobal, self.data.shape[1] )
+            # create dataset
+            dset = h5_require_dataset(h5f, "data",
+                                      shape=globalShape,
+                                      dtype=self.data.dtype)
 
-        # write to the dset using the global node ids
-        local = mesh.nodesLocal
-        with dset.collective:
-            dset[mesh.data_nodegId[0:local],:] = self.data[0:local]
+            # write to the dset using the global node ids
+            local = mesh.nodesLocal
+            with dset.collective:
+                dset[mesh.data_nodegId[0:local],:] = self.data[0:local]
 
-        # save a hdf5 attribute to the elementType used for this field - maybe useful
-        h5f.attrs["elementType"] = np.string_(mesh.elementType)
+            # save a hdf5 attribute to the elementType used for this field - maybe useful
+            h5f.attrs["elementType"] = np.string_(mesh.elementType)
 
-        ## setup reference to mesh - THE GEOMETRY MESH
-        saveDir = os.path.dirname(filename)
+            # setup reference to mesh - THE GEOMETRY MESH
+            saveDir = os.path.dirname(filename)
 
-        if hasattr( mesh.generator, "geometryMesh"):
-            mesh = mesh.generator.geometryMesh
+            if hasattr( mesh.generator, "geometryMesh"):
+                mesh = mesh.generator.geometryMesh
 
-        if meshHandle:
-            if not isinstance(meshHandle, (str, uw.utils.SavedFileData)):
-                raise TypeError("Expected 'meshHandle' to be of type 'uw.utils.SavedFileData'")
+            if meshHandle:
+                if not isinstance(meshHandle, (str, uw.utils.SavedFileData)):
+                    raise TypeError("Expected 'meshHandle' to be of type 'uw.utils.SavedFileData'")
 
-            meshFilename = meshHandle.filename
+                meshFilename = meshHandle.filename
 
-            if not os.path.exists(meshFilename):
-                raise ValueError("You are trying to link against the mesh file '{}'\n\
-                                  that does not appear to exist. If you need to link \n\
-                                  against a mesh file, please make sure it is created first.".format(meshFilename))
-            # set reference to mesh (all procs must call following)
-            h5f["mesh"] = h5py.ExternalLink(meshFilename, "./")
+                if not os.path.exists(meshFilename):
+                    raise ValueError("You are trying to link against the mesh file '{}'\n\
+                                      that does not appear to exist. If you need to link \n\
+                                      against a mesh file, please make sure it is created first.".format(meshFilename))
+                # set reference to mesh (all procs must call following)
+                h5f["mesh"] = h5py.ExternalLink(meshFilename, "./")
 
-        h5f.close()
 
         # return our file handle
         return uw.utils.SavedFileData(self, filename)
@@ -455,58 +466,56 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         Refer to example provided for 'save' method.
 
         """
+        from ..utils._io import h5File, h5_get_dataset
+
         if not isinstance(filename, str):
             raise TypeError("Expected filename to be provided as a string")
 
         # get field and mesh information
-        h5f = h5py.File( filename, "r", driver='mpio', comm=MPI.COMM_WORLD );
-        dset = h5f.get('data')
-        if dset == None:
-            raise RuntimeError("Can't find the 'data' in hdf5 file '{0}'".format(filename) )
+        with h5File(name=filename, mode="r") as h5f:
+            dset = h5_get_dataset(h5f,'data')
 
-        dof = dset.shape[1]
-        if dof != self.data.shape[1]:
-            raise RuntimeError("Can't load hdf5 '{0}', incompatible data shape".format(filename))
+            dof = dset.shape[1]
+            if dof != self.data.shape[1]:
+                raise RuntimeError("Can't load hdf5 '{0}', incompatible data shape".format(filename))
 
-        if len(dset) == self.mesh.nodesGlobal:
-            # assume dset matches field exactly
-            mesh = self.mesh
-            local = mesh.nodesLocal
+            if len(dset) == self.mesh.nodesGlobal:
+                # assume dset matches field exactly
+                mesh = self.mesh
+                local = mesh.nodesLocal
 
-            with dset.collective:
-                self.data[0:local] = dset[mesh.data_nodegId[0:local],:]
+                with dset.collective:
+                    self.data[0:local] = dset[mesh.data_nodegId[0:local],:]
 
-        else:
-            if not interpolate:
-                raise RuntimeError("Provided data file appears to be for a different resolution MeshVariable.\n"\
-                                   "If you would like to interpolate the data to the current variable, please set\n" \
-                                   "the 'interpolate' parameter. Check docstring for important caveats of interpolation method.")
+            else:
+                if not interpolate:
+                    raise RuntimeError("Provided data file appears to be for a different resolution MeshVariable.\n"\
+                                       "If you would like to interpolate the data to the current variable, please set\n" \
+                                       "the 'interpolate' parameter. Check docstring for important caveats of interpolation method.")
 
-            # if here then we build a local version of the entire file field and interpolate it's values
+                # if here then we build a local version of the entire file field and interpolate it's values
 
-            # first get file field's mesh
-            if h5f.get('mesh') == None:
-                raise RuntimeError("The hdf5 field to be loaded with interpolation must have an associated "+
-                        "'mesh' hdf5 file. Resave the field with its associated mesh."+
-                        "i.e. myField.save(\"filename.h5\", meshFilename)" )
-            # get resolution of old mesh
-            res = h5f['mesh'].attrs.get('mesh resolution')
-            if res is None:
-                raise RuntimeError("Can't read the 'mesh resolution' for the field hdf5 file,"+
-                       " was it created correctly?")
+                # first get file field's mesh
+                if h5f.get('mesh') == None:
+                    raise RuntimeError("The hdf5 field to be loaded with interpolation must have an associated "+
+                            "'mesh' hdf5 file. Resave the field with its associated mesh."+
+                            "i.e. myField.save(\"filename.h5\", meshFilename)" )
+                # get resolution of old mesh
+                res = h5f['mesh'].attrs.get('mesh resolution').tolist()
+                if res is None:
+                    raise RuntimeError("Can't read the 'mesh resolution' for the field hdf5 file,"+
+                           " was it created correctly?")
 
-            # get max of old mesh
-            inputMax = h5f['mesh'].attrs.get('max')
-            if inputMax is None:
-                raise RuntimeError("Can't read the 'max' for the field hdf5 file,"+
-                       " was it created correctly?")
-            inputMin = h5f['mesh'].attrs.get('min')
-            if inputMin is None:
-                raise RuntimeError("Can't read the 'min' for the field hdf5 file,"+
-                       " was it created correctly?")
+                # get max of old mesh
+                inputMax = h5f['mesh'].attrs.get('max').tolist()
+                if inputMax is None:
+                    raise RuntimeError("Can't read the 'max' for the field hdf5 file,"+
+                           " was it created correctly?")
 
-            # build regular Rectangular mesh
-            if type(self.mesh) is uw.mesh.FeMesh_Cartesian:
+                inputMin = h5f['mesh'].attrs.get('min').tolist()
+                if inputMin is None:
+                    raise RuntimeError("Can't read the 'min' for the field hdf5 file,"+
+                           " was it created correctly?")
                 regular = h5f['mesh'].attrs.get('regular')
                 if regular and regular!=True:
                     raise RuntimeError("Saved mesh file appears to correspond to a irregular mesh.\n"\
@@ -519,57 +528,31 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
 
                 # build the NON-PARALLEL field and mesh
                 inputMesh = uw.mesh.FeMesh_Cartesian( elementType = (elType+"/DQ0"), # only geometryMesh can be saved
-                                              elementRes  = tuple(res),
-                                              minCoord    = tuple(inputMin),
-                                              maxCoord    = tuple(inputMax),
+                                              elementRes  = res,
+                                              minCoord    = inputMin,
+                                              maxCoord    = inputMax,
                                               partitioned=False)
 
-            # build an annulus
-            elif type(self.mesh) is uw.mesh.FeMesh_Annulus:
-                if uw.rank() == 0:
-                    print ("As the fields mesh geometry is an Annulus only the internal nodes will have their values\n"+
-                          "interpolated from the hdf5 file. The use is required to manually initialise the field values\n"+
-                          "on the boundary nodes. ie\n"+
-                          "  field.data[mesh.specialSets[\"boundaryNodes\"].data] = 1.23" )
-                radialLengths = (inputMin[0], inputMax[0])
-                angularExtent = (inputMin[1], inputMax[1])
+                # load data onto MeshVariable
+                if len(dset) == inputMesh.nodesGlobal:
+                    inputField = uw.mesh.MeshVariable( mesh=inputMesh, nodeDofCount=dof )
+                elif  dset.shape[0] == inputMesh.subMesh.nodesGlobal:
+                    # load as a subMesh
+                    # assume the dset field belongs to the subMesh
+                    inputField = uw.mesh.MeshVariable( mesh=inputMesh.subMesh, nodeDofCount=dof )
+                else:
+                    # raise error
+                    raise RuntimeError("The saved mesh file can't be read onto the interpolation grid.\n" \
+                                       "Note: only subMesh variable with elementType 'DQ0' can be used presently used")
 
-                inputMesh = uw.mesh.FeMesh_Annulus( elementRes=tuple(res),
-                                                  radialLengths=radialLengths,
-                                                  angularExtent=angularExtent,
-                                                  periodic = [False, True], partitioned=False )
+                # copy hdf5 numpy array onto serial inputField
+                inputField.data[:] = dset[:]
 
-            # load data onto MeshVariable
-            if len(dset) == inputMesh.nodesGlobal:
-                inputField = uw.mesh.MeshVariable( mesh=inputMesh, nodeDofCount=dof )
-            elif  dset.shape[0] == inputMesh.subMesh.nodesGlobal:
-                # load as a subMesh
-                # assume the dset field belongs to the subMesh
-                inputField = uw.mesh.MeshVariable( mesh=inputMesh.subMesh, nodeDofCount=dof )
-            else:
-                # raise error
-                raise RuntimeError("The saved mesh file can't be read onto the interpolation grid.\n" \
-                                   "Note: only subMesh variable with elementType 'DQ0' can be used presently used")
-
-            # copy hdf5 numpy array onto serial inputField
-            inputField.data[:] = dset[:]
-
-            if type(self.mesh) is uw.mesh.FeMesh_Cartesian:
                 # interpolate 'inputField' onto the self nodes
                 self.data[:] = inputField.evaluate(self.mesh.data)
-            elif type(self.mesh) is uw.mesh.FeMesh_Annulus:
-                # only interpolate on interior nodes, not boundary nodes
-                mesh = self.mesh
-                outer = mesh.specialSets['outer']
-                inner = mesh.specialSets['inner']
-                for node in range(mesh.nodesLocal):
-                    pos = mesh.data[node]
-                    if node not in inner and node not in outer:
-                        self.data[node] = inputField.evaluate(tuple(pos))
 
-
-        uw.libUnderworld.StgFEM._FeVariable_SyncShadowValues( self._cself )
-        h5f.close()
+        # add sync
+        self.syncronise()
 
     def copy(self, deepcopy=False):
         """
@@ -620,17 +603,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         """
         This method is often necessary when Underworld is operating in parallel.
 
-        It will synchronise the mesh variable so that it is consistent
-        with it's parallel neighbours. Specifically, the shadow space of each
-        process obtains the required data from neighbouring processes.
-        """
-        uw.libUnderworld.StgFEM._FeVariable_SyncShadowValues( self._cself )
-
-    def synchronise(self):
-        """
-        This method is often necessary when Underworld is operating in parallel.
-
-        It will synchronise the mesh variable so that it is consistent
+        It will syncronise the mesh variable so that it is consistent
         with it's parallel neighbours. Specifically, the shadow space of each
         process obtains the required data from neighbouring processes.
         """

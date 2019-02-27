@@ -75,7 +75,7 @@ class map(_Function):
     >>> mesh = uw.mesh.FeMesh_Cartesian(elementRes=(8,8),minCoord=(-1.0, -1.0), maxCoord=(1.0, 1.0))
     >>> swarm = uw.swarm.Swarm(mesh)
     >>> svar = swarm.add_variable("int",1)
-    >>> swarm.populate_using_layout(uw.swarm.layouts.GlobalSpaceFillerLayout(swarm,20))
+    >>> swarm.populate_using_layout(uw.swarm.layouts.PerCellSpaceFillerLayout(swarm,20))
 
     For all particles in unit circle, set svar to 1
 

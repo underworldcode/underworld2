@@ -6,8 +6,6 @@
 ##  located at the project root, or contact the authors.                             ##
 ##                                                                                   ##
 ##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
-#
-#
 
 """
 This module contains FeMesh classes, and associated implementation.
@@ -22,10 +20,7 @@ import underworld.function as function
 import contextlib
 import time
 import abc
-import h5py
-from mpi4py import MPI
 import numpy as np
-
 
 class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
     """
@@ -130,6 +125,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         if( len(arr) % self.elementsLocal != 0 ):
             raise RuntimeError("Unsupported element to node mapping for save routine"+
                     "\nThere doesn't appear to be elements with a consistent number of nodes")
+
         # we ASSUME a constant number of nodes for each element
         # and we reshape the arr accordingly
         nodesPerElement = int(round(len(arr)/self.elementsLocal))
@@ -209,7 +205,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         return self._arr
 
     @contextlib.contextmanager
-    def deform_mesh(self, isRegular=False, remainsRegular=None):
+    def deform_mesh(self, isRegular=False):
         """
         Any mesh deformation must occur within this python context manager. Note
         that certain algorithms may be switched to their irregular mesh equivalents
@@ -236,10 +232,6 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         >>> someMesh.data[0]
         array([ 0.1,  0.1])
         """
-
-        if not remainsRegular is None:
-            raise RuntimeError("'remainsRegular' parameter has been renamed to 'isRegular'")
-
         # execute any pre deform functions
         for function in self._pre_deform_functions:
             function()
@@ -447,7 +439,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         >>> import underworld as uw
         >>> someMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1', elementRes=(2,2), minCoord=(0.,0.), maxCoord=(1.,1.) )
         >>> sorted(someMesh.specialSets.keys())    # NOTE THAT WE ONLY SORT THIS LIST SO THAT RESULTS ARE DETERMINISTIC FOR DOCTESTS
-        ['AllWalls_VertexSet', 'Empty', 'MaxI_VertexSet', 'MaxJ_VertexSet', 'MinI_VertexSet', 'MinJ_VertexSet']
+        ['AllWalls_VertexSet', 'Bottom_VertexSet', 'Empty', 'Left_VertexSet', 'MaxI_VertexSet', 'MaxJ_VertexSet', 'MinI_VertexSet', 'MinJ_VertexSet', 'Right_VertexSet', 'Top_VertexSet']
         >>> someMesh.specialSets["MinJ_VertexSet"]
         FeMesh_IndexSet([0, 1, 2])
 
@@ -463,7 +455,6 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
 
                     # call parents method
                     super(_SpecialSetsDict,self).__init__()
-
                 def __getitem__(self,index):
                     # get item using regular dict
                     item = super(_SpecialSetsDict,self).__getitem__(index)
@@ -536,11 +527,12 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         True
 
         >>> # clean up:
-        >>> if uw.rank() == 0:
+        >>> if uw.mpi.rank == 0:
         ...     import os;
         ...     os.remove( "saved_mesh.h5" )
 
         """
+        from ..utils._io import h5File, h5_require_dataset
 
         if hasattr(self.generator, 'geometryMesh'):
             raise RuntimeError("Cannot save this mesh as it's a subMesh. "
@@ -548,39 +540,33 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         if not isinstance(filename, str):
             raise TypeError("'filename', must be of type 'str'")
 
-        h5f = h5py.File(name=filename, mode="w", driver='mpio', comm=MPI.COMM_WORLD)
+        with h5File(name=filename, mode="a") as h5f:
+            # Save attributes and simple data.
+            # This must be done in collectively for mpio driver.
+            # Also, for sequential, this is performed redundantly.
+            h5f.attrs['dimensions'] = self.dim
+            h5f.attrs['mesh resolution'] = self.elementRes
+            h5f.attrs['max'] = self.maxCoord
+            h5f.attrs['min'] = self.minCoord
+            h5f.attrs['regular'] = self._cself.isRegular
+            h5f.attrs['elementType'] = self.elementType
 
-        # save attributes and simple data - MUST be parallel as driver is mpio
-        h5f.attrs['dimensions'] = self.dim
-        h5f.attrs['mesh resolution'] = self.elementRes
-        h5f.attrs['max'] = self.maxCoord
-        h5f.attrs['min'] = self.minCoord
-        h5f.attrs['regular'] = self._cself.isRegular
-        h5f.attrs['elementType'] = self.elementType
+            # write the vertices
+            globalShape = ( self.nodesGlobal, self.data.shape[1] )
+            dset = h5_require_dataset(h5f, "vertices", shape=globalShape, dtype=self.data.dtype )
+            local = self.nodesLocal
+            # write to the dset using the local set of global node ids
+            with dset.collective:
+                dset[self.data_nodegId[0:local],:] = self.data[0:local]
 
-        # write the vertices
-        globalShape = ( self.nodesGlobal, self.data.shape[1] )
-        dset = h5f.create_dataset("vertices",
-                                  shape=globalShape,
-                                  dtype=self.data.dtype)
+            # write the element node connectivity
+            globalShape = ( self.elementsGlobal, self.data_elementNodes.shape[1] )
+            dset = h5_require_dataset(h5f, "en_map", shape=globalShape, dtype=self.data_elementNodes.dtype)
 
-        local = self.nodesLocal
-        # write to the dset using the local set of global node ids
-        with dset.collective:
-            dset[self.data_nodegId[0:local],:] = self.data[0:local]
-
-        # write the element node connectivity
-        globalShape = ( self.elementsGlobal, self.data_elementNodes.shape[1] )
-        dset = h5f.create_dataset("en_map",
-                                  shape=globalShape,
-                                  dtype=self.data_elementNodes.dtype)
-
-        local = self.elementsLocal
-        # write to the dset using the local set of global node ids
-        with dset.collective:
-            dset[self.data_elgId[0:local],:] = self.data_elementNodes[0:local]
-
-        h5f.close()
+            local = self.elementsLocal
+            # write to the dset using the local set of global node ids
+            with dset.collective:
+                dset[self.data_elgId[0:local],:] = self.data_elementNodes[0:local]
 
         # return our file handle
         return uw.utils.SavedFileData(self, filename)
@@ -611,39 +597,40 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         Refer to example provided for 'save' method.
 
         """
+        from ..utils._io import h5File, h5_get_dataset
+
         self.reset()
         if not isinstance(filename, str):
             raise TypeError("Expected filename to be provided as a string")
 
-        # get field and mesh information
-        h5f = h5py.File( filename, "r", driver='mpio', comm=MPI.COMM_WORLD );
+        # Get field and mesh information
+        # Note that we collect all required information first
+        # and then perform deform.
+        vertcpy = np.zeros_like(self.data)
+        with h5File(name=filename, mode="r") as h5f:
+            # get resolution of old mesh
+            res = h5f.attrs['mesh resolution']
+            if res is None:
+                raise RuntimeError("Can't read the 'mesh resolution' for the field hdf5 file,"+
+                       " was it created correctly?")
 
-        # get resolution of old mesh
-        res = h5f.attrs['mesh resolution']
-        if res is None:
-            raise RuntimeError("Can't read the 'mesh resolution' for the field hdf5 file,"+
-                   " was it created correctly?")
+            if (res == self.elementRes).all() == False:
+                raise RuntimeError("Provided file mesh resolution does not appear to correspond to\n"\
+                                   "resolution of mesh object.")
 
-        if (res == self.elementRes).all() == False:
-            raise RuntimeError("Provided file mesh resolution does not appear to correspond to\n"\
-                               "resolution of mesh object.")
+            dset = h5_get_dataset(h5f, 'vertices')
 
-        dset = h5f.get('vertices')
-        if dset == None:
-            raise RuntimeError("Can't find the 'vertices' dataset in hdf5 file '{0}'".format(filename) )
+            dof = dset.shape[1]
+            if dof != self.data.shape[1]:
+                raise RuntimeError("Can't load hdf5 '{0}', incompatible data shape".format(filename))
 
-        dof = dset.shape[1]
-        if dof != self.data.shape[1]:
-            raise RuntimeError("Can't load hdf5 '{0}', incompatible data shape".format(filename))
-
-        if len(dset) != self.nodesGlobal:
-            raise RuntimeError("Provided data file appears to be for a different resolution mesh.")
-
-        with self.deform_mesh(isRegular=h5f.attrs['regular']):
+            if len(dset) != self.nodesGlobal:
+                raise RuntimeError("Provided data file appears to be for a different resolution mesh.")
             with dset.collective:
-                self.data[0:self.nodesLocal] = dset[self.data_nodegId[0:self.nodesLocal],:]
-
-        h5f.close()
+                vertcpy = dset[self.data_nodegId[0:self.nodesLocal],:].copy()
+            isRegular = h5f.attrs['regular']
+        with self.deform_mesh(isRegular=isRegular):
+            self.data[0:self.nodesLocal] = vertcpy[:]
 
 
 class MeshGenerator(_stgermain.StgCompoundComponent):
@@ -723,7 +710,7 @@ class CartesianMeshGenerator(MeshGenerator):
             raise TypeError("'elementRes' object passed in must be of type 'list' or 'tuple'")
         for item in elementRes:
             if not isinstance(item,(int)) or (item < 1):
-                raise TypeError("'elementRes' list must only contain positive integers.")
+                raise TypeError("'elementRes' list must only contain positive integers. item was type/value {}/{}".format(type(item),item))
         if not len(elementRes) in [2,3]:
             raise ValueError("For 'elementRes', you must provide a tuple of length 2 or 3 (for respectively a 2d or 3d mesh).")
         self._elementRes = elementRes
@@ -1134,16 +1121,19 @@ class FeMesh_Cartesian(FeMesh, CartesianMeshGenerator):
                                              maxCoord=maxCoord, periodic=periodic, partitioned=partitioned, shadowDepth=shadowDepth, **kwargs)
 
         # lets add the special sets
-
-        self.specialSets["MaxI_VertexSet"] = _specialSets_Cartesian.MaxI_VertexSet
-        self.specialSets["MinI_VertexSet"] = _specialSets_Cartesian.MinI_VertexSet
-        self.specialSets["MaxJ_VertexSet"] = _specialSets_Cartesian.MaxJ_VertexSet
-        self.specialSets["MinJ_VertexSet"] = _specialSets_Cartesian.MinJ_VertexSet
-
+        self.specialSets["MinI_VertexSet"]   = _specialSets_Cartesian.MinI_VertexSet
+        self.specialSets["Left_VertexSet"]   = _specialSets_Cartesian.MinI_VertexSet
+        self.specialSets["MaxI_VertexSet"]   = _specialSets_Cartesian.MaxI_VertexSet
+        self.specialSets["Right_VertexSet"]  = _specialSets_Cartesian.MaxI_VertexSet
+        self.specialSets["MinJ_VertexSet"]   = _specialSets_Cartesian.MinJ_VertexSet
+        self.specialSets["Bottom_VertexSet"] = _specialSets_Cartesian.MinJ_VertexSet
+        self.specialSets["MaxJ_VertexSet"]   = _specialSets_Cartesian.MaxJ_VertexSet
+        self.specialSets["Top_VertexSet"]    = _specialSets_Cartesian.MaxJ_VertexSet
         if(self.dim==3):
-            self.specialSets["MaxK_VertexSet"] = _specialSets_Cartesian.MaxK_VertexSet
-            self.specialSets["MinK_VertexSet"] = _specialSets_Cartesian.MinK_VertexSet
-
+            self.specialSets["MinK_VertexSet"]  = _specialSets_Cartesian.MinK_VertexSet
+            self.specialSets["Front_VertexSet"] = _specialSets_Cartesian.MinK_VertexSet
+            self.specialSets["MaxK_VertexSet"]  = _specialSets_Cartesian.MaxK_VertexSet
+            self.specialSets["Back_VertexSet"]  = _specialSets_Cartesian.MaxK_VertexSet
         self.specialSets["AllWalls_VertexSet"] = _specialSets_Cartesian.AllWalls
 
         # These are for consistency with the Annulus / Sphere (note a change in convention for vertical)

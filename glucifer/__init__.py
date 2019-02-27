@@ -59,13 +59,12 @@ class _xvfb_runner(object):
         self._xvfb = Display(visible=0, size=(1600, 1200))
         self._xvfb.start()
 
-# This is getting in the way, and shouldn't be necessary.
-#    def __del__(self):
-#        if not self._xvfb is None :
-#            self._xvfb.stop()
+    def __del__(self):
+        if not self._xvfb is None :
+            self._xvfb.stop()
 
 import os as _os
 # disable collection of data if requested
 if "GLUCIFER_USE_XVFB" in _os.environ:
-    if _uw.rank() == 0:
+    if _uw.mpi.rank == 0:
         _display = _xvfb_runner()

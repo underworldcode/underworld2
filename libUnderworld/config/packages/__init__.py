@@ -1,7 +1,6 @@
 from .libXML2 import libXML2
 from .MPI import MPI
 from .PETSc import PETSc
-from .HDF5 import HDF5
 from .spatialdata import spatialdata
 from .pcu import pcu
 from .Underworld import Underworld

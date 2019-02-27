@@ -177,7 +177,7 @@ class SwarmAbstract(_stgermain.StgCompoundComponent, metaclass = abc.ABCMeta):
         
         Parameters
         ----------
-        layout: underworld.swarm.layouts.ParticleLayoutAbstract
+        layout: underworld.swarm.layouts._ParticleLayoutAbstract
             The layout which determines where particles are created and added.
 
         Example
@@ -192,7 +192,7 @@ class SwarmAbstract(_stgermain.StgCompoundComponent, metaclass = abc.ABCMeta):
         """
         if self.particleLocalCount > 0:
             raise RuntimeError("Swarm appears to already have particles. \nLayouts can only be used with empty swarms.")
-        if not isinstance( layout, uw.swarm.layouts.ParticleLayoutAbstract ):
+        if not isinstance( layout, uw.swarm.layouts._ParticleLayoutAbstract ):
             raise TypeError("Provided layout does not appear to be a subclass of ParticleLayout")
 
         if not (self == layout.swarm):
@@ -260,4 +260,14 @@ class SwarmAbstract(_stgermain.StgCompoundComponent, metaclass = abc.ABCMeta):
         for var in self._variables:
             var._clear_array()
 
-
+    @property
+    def data(self):
+        """
+        Returns
+        -------
+        numpy.ndarray
+            Numpy proxy array to underlying particle coordinate data. Note that
+            this is an alias to `swarm.particleCoordinates.data`.  Check
+            `SwarmVariable.data` for further info.
+        """
+        return self.particleCoordinates.data

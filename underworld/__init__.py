@@ -30,7 +30,7 @@ is very well suited to complex fluids which is how the solid Earth behaves
 on a geological timescale.
 """
 
-__version__ = "2.7.0-dev"
+__version__ = "2.8.0-dev"
 
 # squelch h5py/numpy future warnings
 import warnings as _warnings
@@ -100,9 +100,12 @@ import underworld.systems
 _set_init_sig_as_sig(underworld.systems)
 timing._add_timing_to_mod(underworld.systems)
 
+import underworld.mpi
+
 import underworld.utils
 _set_init_sig_as_sig(underworld.utils)
 timing._add_timing_to_mod(underworld.utils)
+
 
 # to allow our legacy doctest formats
 try:
@@ -111,6 +114,11 @@ try:
 except:
     pass
 
+# Squelch these warnings as they are very noisey and not necessary
+# https://stackoverflow.com/questions/40845304/runtimewarning-numpy-dtype-size-changed-may-indicate-binary-incompatibility
+import warnings as _warnings
+_warnings.filterwarnings("ignore", message="numpy.dtype size changed")
+_warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
 try:
     from ._uwid import uwid as _id
 except:
@@ -123,36 +131,6 @@ _data =  libUnderworld.StGermain_Tools.StgInit( _sys.argv )
 
 _stgermain.LoadModules( {"import":["StgDomain","StgFEM","PICellerator","Underworld","gLucifer","Solvers"]} )
 
-def rank():
-    """
-    Returns the rank of the current process.
-
-    Returns
-    -------
-    unsigned
-        Rank of current process.
-    """
-    return _data.rank
-
-
-def nProcs():
-    """
-    Returns the number of processes being utilised by the simulation.
-
-    Returns
-    -------
-    unsigned
-        Number of processors.
-    """
-    return _data.nProcs
-
-def barrier():
-    """
-    Creates an MPI barrier. All processes wait here for others to catch up.
-
-    """
-    from mpi4py import MPI
-    MPI.COMM_WORLD.Barrier()
 
 def _run_from_ipython():
     """
@@ -177,10 +155,10 @@ def matplotlib_inline():
 
 # lets handle exceptions differently in parallel to ensure we call.
 # add isinstance so that this acts correctly for Mocked classes used in sphinx docs generation
-if isinstance(nProcs(), int) and nProcs() > 1:
+if isinstance(underworld.mpi.size, int) and underworld.mpi.size > 1:
     _origexcepthook = _sys.excepthook
     def _uw_uncaught_exception_handler(exctype, value, tb):
-        print('An uncaught exception was encountered on processor {}.'.format(rank()))
+        print('An uncaught exception was encountered on processor {}.'.format(underworld.mpi.rank))
         # pass through to original handler
         _origexcepthook(exctype, value, tb)
         import sys
@@ -228,8 +206,8 @@ def _in_doctest():
     return hasattr(_sys.modules['__main__'], '_SpoofOut') or "DOCTEST" in os.environ
 
 # lets shoot off some usage metrics
-# send metrics *only* if we are rank=0, and if we are not running inside a doctest.
-if (rank() == 0) and not _in_doctest():
+# send metrics *only* if we are rank==0, and if we are not running inside a doctest.
+if (underworld.mpi.rank == 0) and not _in_doctest():
     def _sendData():
         import os
         # disable collection of data if requested
@@ -245,7 +223,7 @@ if (rank() == 0) and not _in_doctest():
 
             # send info async
             import threading
-            thread = threading.Thread( target=_net.PostGAEvent, args=( "runtime", "import", label, nProcs() ) )
+            thread = threading.Thread( target=_net.PostGAEvent, args=( "runtime", "import", label, underworld.mpi.size ) )
             thread.daemon = True
             thread.start()
 

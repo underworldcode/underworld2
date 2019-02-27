@@ -12,22 +12,20 @@ lv = glucifer.lavavu.Viewer(quality=1)
 
 #files = glob.glob("*.ipynb")
 nbdir = "../../../user_guide/"
-#files = glob.glob(nbdir  + "*.ipynb")
-files = [
-    '01_GettingStarted.ipynb', 
-    '02_TheMesh.ipynb', 
-    '03_MeshVariable.ipynb', 
-    '04_Swarms.ipynb', 
-    '07_Utilities.ipynb', 
-    '08_Visualisation.ipynb',
-    ]
-
+files = glob.glob(nbdir  + "*.ipynb")
+#files = [
+#    '01_GettingStarted.ipynb', 
+#    '02_TheMesh.ipynb', 
+#    '03_MeshVariable.ipynb', 
+#    '04_Swarms.ipynb', 
+#    '07_Utilities.ipynb', 
+#    '08_Visualisation.ipynb',
+#    ]
 #Save working dir
 wd = os.getcwd()
 
 #Process list of notebooks
-for f in files:
-    fname = os.path.join(nbdir, f)
+for fname in files:
     #Get filename without path and extension
     notebook = os.path.splitext(os.path.basename(fname))[0]
     print("Testing Notebook: " + notebook)
@@ -45,7 +43,7 @@ for f in files:
         #Change to working dir for test
         os.chdir(notebook)
         #Execute converted script
-        subprocess.check_call(['python', notebook+".py"], stdout=outFile, stderr=outFile )
+        subprocess.check_call(['ipython', notebook+".py"], stdout=outFile, stderr=outFile )
 
     #Use output of the initial run as expected data
     if not dirfound:
@@ -55,8 +53,15 @@ for f in files:
             shutil.move(f, os.path.join('expected', f))
     else:
         #Check the image results
-        if uw.rank() == 0:
+        if uw.mpi.rank == 0:
             lv.testimages(tolerance=1e-3)
+
+        # cleanup
+        import glob, os
+        for f in glob.glob("Figure_*"):
+            os.remove(f)
+    os.remove("convert.out")
+    os.remove(notebook+".py")
 
     #Restore working dir
     os.chdir(wd)
