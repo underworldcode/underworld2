@@ -15,7 +15,7 @@ from mpi4py import MPI
 # available to all
 comm = MPI.COMM_WORLD
 
-# if uw.rank() ==0 and not uw.utils.is_kernel():
+# if uw.mpi.rank ==0 and not uw.utils.is_kernel():
 #
 #     from shutil import copyfile
 #     from datetime import datetime
@@ -30,7 +30,7 @@ class OutputFile(object):
             raise ValueError("'filename' must be of type 'str', not type {}".format(type(filename)))
         self._filename = filename
         # open the file
-        if uw.rank() == 0:
+        if uw.mpi.rank == 0:
             timestamped_file_name = '{}-{}'.format(filename,datetime.now().strftime("%Y.%m.%d-%H.%M.%S"))
             self.oFile = open(timestamped_file_name, 'w',0)    # zero for no buffering
 
@@ -43,14 +43,14 @@ class OutputFile(object):
             self.oFile = None
 
     def __del__(self):
-        if uw.rank() != 0:
+        if uw.mpi.rank != 0:
             return
 
         # close the file
         self.oFile.close()
 
     def emit(self, data):
-        if uw.rank() != 0:
+        if uw.mpi.rank != 0:
             return
 
         if data is None:
@@ -79,10 +79,10 @@ class Model(object):
         # add a backslash
         if not outputPath.endswith('/'): outputPath += '/'
         # create path only on rank 0
-        if not os.path.exists(outputPath) and uw.rank()==0:
+        if not os.path.exists(outputPath) and uw.mpi.rank==0:
             print "Creating directory: ",outputPath
             os.makedirs(outputPath)
-        uw.barrier()
+        uw.mpi.barrier()
         self.outputPath = outputPath
 
         self.animation = glucifer.Store(outputPath+'animation')
@@ -169,7 +169,7 @@ class Swarm(uw.swarm.Swarm):
         self._particlesPerCell = particlesPerCell # should be error checked by layout
 
         # create outputPath and files only with proc 0
-        if uw.rank() == 0:
+        if uw.mpi.rank == 0:
             dirname = os.path.dirname(outputPath)
             if not os.path.exists(dirname):
                 os.makedirs(dirname)
@@ -249,7 +249,7 @@ class Swarm(uw.swarm.Swarm):
                 elif dtype.find('int') > -1: dtype = 'int'
 
                 # create the correct storage and load variable
-                if uw.rank() == 0:
+                if uw.mpi.rank == 0:
                     print("Reloading swarm variables - {} - with shape {}".format(name, shape[1]))
                 self.vars[name] = self.add_variable( count=shape[1], dataType=dtype )
                 self.vars[name].load(filename)
@@ -468,7 +468,7 @@ class Swarm(uw.swarm.Swarm):
             # more to implementent
 
 
-        if uw.rank()==0:
+        if uw.mpi.rank==0:
             # write the single time step
             filename = self._outputPath + '/swarm.'+chkpid+'.xdmf'
             with open(filename, 'w') as oF:
@@ -503,7 +503,7 @@ def Annulus_loadswarm(mesh, path):
     swarm.load(path+'/coordinates.h5')
 
     # import pdb; pdb.set_trace()
-    if uw.rank() == 0:
+    if uw.mpi.rank == 0:
         tree = ET.parse(path+'/swarm.xdmf')
         root = tree.getroot()
         i = 0
@@ -784,7 +784,7 @@ class AnnulusConvection(Model):
 
         prefix = self.outputPath
         # Check the prefix is valid
-        if not os.path.exists(prefix) and uw.rank()==0:
+        if not os.path.exists(prefix) and uw.mpi.rank==0:
             raise RuntimeError("Error checkpointing, can't find {}".format(prefix))
         if not isinstance(index, int):
             raise TypeError("'index' is not of type int")

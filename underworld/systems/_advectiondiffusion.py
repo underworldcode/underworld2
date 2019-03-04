@@ -182,7 +182,7 @@ class SLCN_AdvectionDiffusion(object):
         mesh_interpolator = self._mesh_interpolator_stripy
 
         # The swarm info can also be cached !
-        mswarm = uw.swarm.Swarm(mesh, particleEscape=False)
+        mswarm = uw.swarm.Swarm(mesh, particleEscape=True)
         mswarm_map = mswarm.add_variable(dataType="int", count=1)
         mswarm_home_pts = mswarm.add_variable(dataType="double", count=mesh.dim)
         mcoords = mesh.data.copy()
@@ -209,7 +209,7 @@ class SLCN_AdvectionDiffusion(object):
         # mcoords[surface,:] *= 0.9999
         # localID = mswarm.add_particles_with_coordinates(mcoords)
         # not_accepted = np.where(localID == -1)
-        print("A{}: mswarm has {} particles ({} local)".format(uw.rank(), mswarm.particleGlobalCount, mswarm.particleLocalCount))
+        print("A{}: mswarm has {} particles ({} local)".format(uw.mpi.rank, mswarm.particleGlobalCount, mswarm.particleLocalCount))
 
         morig_coords = mswarm.add_variable("double", mesh.dim)
         morig_coords.data[...] = mswarm.particleCoordinates.data[...]
@@ -220,7 +220,7 @@ class SLCN_AdvectionDiffusion(object):
         madvector.integrate(-dt, update_owners=True)
         # madvector.integrate(-dt*0.5, update_owners=True)
 
-        print("B{}: mswarm has {} particles ({} local)".format(uw.rank(), mswarm.particleGlobalCount, mswarm.particleLocalCount))
+        print("B{}: mswarm has {} particles ({} local)".format(uw.mpi.rank, mswarm.particleGlobalCount, mswarm.particleLocalCount))
 
 
         # mswarm_Tstar.data[:,0], err = mesh_interpolator.interpolate_cubic(mswarm.particleCoordinates.data[:,0],
@@ -245,7 +245,7 @@ class SLCN_AdvectionDiffusion(object):
             phiStar.data[node] += mswarm_Tstar.data[i]
             phiNorm.data[node] += 1.0
 
-        if uw.nProcs() > 1:
+        if uw.mpi.size > 1:
             mswarm.shadow_particles_fetch()
             for i, gnode in enumerate(mswarm_map.data_shadow[:,0]):
                 node = np.where(mesh.data_nodegId == gnode)[0]
@@ -264,7 +264,7 @@ class SLCN_AdvectionDiffusion(object):
         mesh = self.phiField.mesh
 
         if self._mswarm == None:
-            mswarm = uw.swarm.Swarm(mesh, particleEscape=False)
+            mswarm = uw.swarm.Swarm(mesh, particleEscape=True)
             mswarm_map = mswarm.add_variable(dataType="int", count=1)
             mswarm_home_pts = mswarm.add_variable(dataType="double", count=mesh.dim)
             mswarm_phiStar = mswarm.add_variable(dataType="float", count=1)
@@ -273,7 +273,7 @@ class SLCN_AdvectionDiffusion(object):
             for i, gId in enumerate(mesh.data_nodegId):
                 local_nId[gId] = i
 
-            print("{} - building mswarm".format(uw.rank()), flush=True )
+            # print("{} - building mswarm".format(uw.mpi.rank), flush=True )
 
             layout = uw.swarm.layouts.PerCellRandomLayout(mswarm, particlesPerCell=mesh.data_elementNodes[0].shape[0])
             mswarm.populate_using_layout(layout)
@@ -289,7 +289,7 @@ class SLCN_AdvectionDiffusion(object):
             ## But there eliminates the initial search issues
             ## associated with adding points to an empty swarm.
 
-            ## print("{} - adding {} particles".format(uw.rank(), swarm_coords2.shape[0]), flush=True )
+            ## print("{} - adding {} particles".format(uw.mpi.rank, swarm_coords2.shape[0]), flush=True )
 
             with mswarm.deform_swarm(update_owners=True):
                 for el in range(0,mesh.elementsLocal):
@@ -311,7 +311,7 @@ class SLCN_AdvectionDiffusion(object):
             mswarm_home_pts.data[:] = mswarm.particleCoordinates.data[:]
 
             # if np.any(localID == -1):
-            #     print("{} - particles missing: {}".format(uw.rank(), np.where(localID == -1).shape[0]), flush=True )
+            #     print("{} - particles missing: {}".format(uw.mpi.rank, np.where(localID == -1).shape[0]), flush=True )
 
             ## Make these variables accessible
 
@@ -383,7 +383,7 @@ class SLCN_AdvectionDiffusion(object):
             phiStar.data[node] += mswarm_phiStar.data[i]
             phiNorm.data[node] += 1.0
 
-        if uw.nProcs() > 1:
+        if uw.mpi.size > 1:
             mswarm.shadow_particles_fetch()
             for i, gnode in enumerate(self._mswarm_map.data_shadow[:,0]):
                 node = np.where(mesh.data_nodegId == gnode)[0]
@@ -437,7 +437,7 @@ class SLCN_AdvectionDiffusion(object):
         #     mesh_interpolator = Rbf(mesh.data[:,0],mesh.data[:,1], mesh.data[:,2], self.phiField.data, smooth=0.0, function='thin_plate' )
 
         # This really only needs to be built if the mesh changes
-        mesh_tree = cKDTree( mesh.data)
+        mesh_tree = cKDTree( mesh.data )
 
         self._mswarm_advector.integrate(-dt, update_owners=True)
 
@@ -469,7 +469,7 @@ class SLCN_AdvectionDiffusion(object):
 
         for el in range(0,mesh.elementsLocal):
             # if el%1000 == 0:
-            #     print("{}: Element: {}".format(uw.rank(), el), flush=True)
+            #     print("{}: Element: {}".format(uw.mpi.rank, el), flush=True)
             element_centroid = mesh.data[local_nId[mesh.data_elementNodes[el]]].mean(axis=0)
 
             d, local_nodes = mesh_tree.query(element_centroid, k=stencil_size)
@@ -504,7 +504,7 @@ class SLCN_AdvectionDiffusion(object):
             phiStar.data[node] += mswarm_phiStar.data[i]
             phiNorm.data[node] += 1.0
 
-        if uw.nProcs() > 1:
+        if uw.mpi.size > 1:
             mswarm.shadow_particles_fetch()
             for i, gnode in enumerate(self._mswarm_map.data_shadow[:,0]):
                 node = np.where(mesh.data_nodegId == gnode)[0]
@@ -515,7 +515,7 @@ class SLCN_AdvectionDiffusion(object):
 
         self._phiStar_dirichlet_conditions(phiStar)
         #
-        # print("{} - RBF interpolation ... {}s".format(uw.rank(), time.process_time()-walltime), flush=True )
+        # print("{} - RBF interpolation ... {}s".format(uw.mpi.rank, time.process_time()-walltime), flush=True )
         #
 
         return phiStar
@@ -555,7 +555,7 @@ class SLCN_AdvectionDiffusion(object):
             phiStar.data[node] += mswarm_phiStar.data[i]
             phiNorm.data[node] += 1.0
 
-        if uw.nProcs() > 1:
+        if uw.mpi.size > 1:
             mswarm.shadow_particles_fetch()
             for i, gnode in enumerate(self._mswarm_map.data_shadow[:,0]):
                 node = np.where(mesh.data_nodegId == gnode)[0]

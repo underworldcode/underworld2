@@ -596,10 +596,10 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         libUnderworld.PICellerator.EscapedRoutine_RemoveFromSwarm(self._escapedRoutine, self._cself)
         new_total_particles = self.particleGlobalCount
         if (uw.mpi.rank==0) and (not self.particleEscape) and (orig_total_particles != new_total_particles):
-            raise RuntimeError("Particles appear to have left the domain, but swarm flag `particleEscape` is False. "
-                               "Check your velocity field or your particle relocation routines, or set the "
-                               "`particleEscape` swarm constructor parameter to True to allow escape.")
-
+            raise RuntimeError("""Particles appear to have left the domain, but swarm flag `particleEscape` is False. 
+Original count was {}, but after advection count is {}. 
+Check your velocity field or your particle relocation routines, or set the 
+`particleEscape` swarm constructor parameter to True to allow escape.""".format(orig_total_particles,new_total_particles))
 
         libUnderworld.PICellerator.GeneralSwarm_ClearSwarmMaps( self._cself );
         self._toggle_state()
