@@ -373,7 +373,7 @@ class Figure(dict):
     _id = 1
 
     def __init__(self, store=None, name=None, figsize=None, boundingBox=None, facecolour="white",
-                 edgecolour="black", title="", axis=False, quality=1, *args, **kwargs):
+                 edgecolour="black", title="", axis=False, quality=3, *args, **kwargs):
 
         #Create a default database just for this figure if none provided
         if store and isinstance(store, Store):
