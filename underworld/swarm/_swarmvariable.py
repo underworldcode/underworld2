@@ -287,7 +287,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
             if dset.shape[0] != globalCount:
                 raise RuntimeError("It appears that the swarm has {} particles, but provided h5 file has {} data points. Please check that " \
                                    "both the Swarm and the SwarmVariable were saved at the same time, and that you have reloaded using " \
-                                   "the correct files.".format(particleGobalCount, dset.shape[0]))
+                                   "the correct files.".format(globalCount, dset.shape[0]))
 
             # for efficiency, we want to load swarmvariable data in the largest stride chunks possible.
             # we need to determine where required data is contiguous.
