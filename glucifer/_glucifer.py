@@ -25,6 +25,10 @@ import sys
 import os
 from mpi4py import MPI
 
+#Ignore SIGPIPE, required to prevent abort by petsc signal handler
+from signal import signal, SIGPIPE, SIG_IGN
+signal(SIGPIPE, SIG_IGN)
+
 #Attempt to import lavavu module
 try:
     import lavavu
@@ -263,8 +267,6 @@ class Store(_stgermain.StgCompoundComponent):
         export = dict()
         #Global properties passed from figure
         export["properties"] = props
-        #View properties passed from figure
-        export["views"] = [props] #[viewprops]
         #Objects passed from figure
         objlist = []
         for obj in objects:
@@ -371,7 +373,7 @@ class Figure(dict):
     _id = 1
 
     def __init__(self, store=None, name=None, figsize=None, boundingBox=None, facecolour="white",
-                 edgecolour="black", title="", axis=False, quality=1, *args, **kwargs):
+                 edgecolour="black", title="", axis=False, quality=3, *args, **kwargs):
 
         #Create a default database just for this figure if none provided
         if store and isinstance(store, Store):
