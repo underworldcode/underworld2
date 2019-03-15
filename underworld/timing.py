@@ -170,7 +170,6 @@ def print_table(group_by="line_routine", sort_by="total", display_fraction=0.95,
         row = [ key[0], value[0], value[1], value[1]/value[0] ]
         table_data.append(row)
         if key[1]==1:
-            print(key[1], key[0])
             all_time += value[1]
 
     sort_col = { "total":2, "average":3 }
