@@ -254,15 +254,15 @@ class Curvilinear_Stokes(_stgermain.StgCompoundComponent):
                                                             fn_visc2         = _fn_viscosity2,
                                                             fn_director      = _fn_director)
 
-        self._forceVecTerm   = sle.VectorAssemblyTerm_NA__Fn(   integrationSwarm=intswarm,
-                                                                assembledObject=self._fvector,
-                                                                fn=_fn_bodyforce)
+        self._forceVecTerm   = sle.VectorAssemblyTerm_NA__Fn( integrationSwarm = intswarm,
+                                                              assembledObject  = self._fvector,
+                                                              fn               = _fn_bodyforce)
 
         if fn_source != None:
-            self._cforceVecTerm   = sle.VectorAssemblyTerm_NA__Fn(  integrationSwarm=intswarm,
-                                                                    assembledObject=self._hvector,
-                                                                    fn=self.fn_source,
-                                                                    mesh=mesh)
+            self._cforceVecTerm = sle.VectorAssemblyTerm_NA__Fn( integrationSwarm = intswarm,
+                                                                 assembledObject  = self._hvector,
+                                                                 fn               = self.fn_source,
+                                                                 mesh             = mesh)
 
 
         for cond in self._conditions:
@@ -278,23 +278,23 @@ class Curvilinear_Stokes(_stgermain.StgCompoundComponent):
             self._mmatrix = sle.AssembledMatrix( self._pressureSol, self._pressureSol, rhs=self._hvector )
             # -1. as per Hughes, The Finite Element Method, 1987, Table 4.3.1, [M]
 
-            self._compressibleTerm = sle.MatrixAssemblyTerm_NA__NB__Fn(  integrationSwarm=intswarm,
-                                                                         assembledObject=self._mmatrix,
-                                                                         mesh=mesh,
-                                                                         fn=self._fn_minus_one_on_lambda )
+            self._compressibleTerm = sle.MatrixAssemblyTerm_NA__NB__Fn( integrationSwarm = intswarm,
+                                                                        assembledObject  = self._mmatrix,
+                                                                        mesh             =  mesh,
+                                                                        fn               = self._fn_minus_one_on_lambda )
 
         if fn_stresshistory != None:
-            self._NA_j__Fn_ijTerm    = sle.VectorAssemblyTerm_NA_j__Fn_ij(  integrationSwarm=intswarm,
-        		                                                assembledObject=self._fvector,
-                		                                        fn=fn_stresshistory )
+            self._NA_j__Fn_ijTerm    = sle.VectorAssemblyTerm_NA_j__Fn_ij( integrationSwarm = intswarm, 
+                                                                           assembledObject  = self._fvector, 
+                                                                           fn               = fn_stresshistory )
         # objects used for analysis, dictionary for organisation
         self._aObjects = dict()
-        self._aObjects['vdotv_fn'] = uw.function.math.dot( self._velocityField, self._velocityField )
+        self._aObjects['vdotv_fn'] = uw.function.math.dot(self._velocityField, self._velocityField)
 
         super(Curvilinear_Stokes, self).__init__(**kwargs)
 
         for cond in self._conditions:
-            if isinstance( cond, (uw.conditions.RotatedDirichletCondition, uw.conditions.CurvilinearDirichletCondition) ):
+            if type(cond) in [uw.conditions.RotatedDirichletCondition, uw.conditions.CurvilinearDirichletCondition]:
                 self.redefineVelocityDirichletBC(cond.basis_vectors)
 
     def _add_to_stg_dict(self,componentDictionary):
@@ -335,8 +335,8 @@ class Curvilinear_Stokes(_stgermain.StgCompoundComponent):
 
         # build 'vns' (the velocity null space) MeshVariable and SolutionVector
 
-        vnsField = self._vnsField = self._velocityField.copy()
-        vnsEqNum = uw.systems.sle.EqNumber( vnsField, False )
+        vnsField     = self._vnsField = self._velocityField.copy()
+        vnsEqNum     = uw.systems.sle.EqNumber( vnsField, False )
         self._vnsVec = uw.systems.sle.SolutionVector(vnsField, vnsEqNum) # store on class
 
         # evaluate vnsField, check compatibility
@@ -349,23 +349,18 @@ class Curvilinear_Stokes(_stgermain.StgCompoundComponent):
         self._velocityField._cself.nonAABCs = 1
 
         # build a global 're-rotate' matrix
-        # self._rot = uw.systems.sle.AssembledMatrix( self._velocitySol, self._velocitySol, rhs=None )
         self._rot = uw.systems.sle.AssembledMatrix( self._vnsVec, self._vnsVec, rhs=None )
         gaussSwarm = self._constitMatTerm._integrationSwarm
         self._rot._cself.assembleOnNodes = 1 # important doesn't perform FEM integral
 
-        term = self._term = uw.systems.sle.MatrixAssemblyTerm_RotationDof(integrationSwarm=gaussSwarm,
-                                                             assembledObject = self._rot,
-                                                             fn_basis=basis_vectors,
-                                                             mesh=mesh)
+        term = self._term = uw.systems.sle.MatrixAssemblyTerm_RotationDof( integrationSwarm = gaussSwarm,
+                                                                           assembledObject  = self._rot,
+                                                                           fn_basis         = basis_vectors,
+                                                                           mesh             = mesh)
 
-        # self._eqNums[self._velocityField]._cself.removeBCs=True
         vnsEqNum._cself.removeBCs = True
-        uw.libUnderworld.StgFEM.StiffnessMatrix_Assemble(
-            self._rot._cself,
-            None, None );
+        uw.libUnderworld.StgFEM.StiffnessMatrix_Assemble(self._rot._cself, None, None);
         vnsEqNum._cself.removeBCs = False
-        # self._eqNums[self._velocityField]._cself.removeBCs=False
 
         # add rotation matrix element terms using the following
         uw.libUnderworld.StgFEM.StiffnessMatrix_SetRotationTerm(self._kmatrix._cself, term._cself)
@@ -402,8 +397,8 @@ class Curvilinear_Stokes(_stgermain.StgCompoundComponent):
         if rMat:
             if not isinstance( rMat, uw.systems.sle.AssembledMatrix):
                 raise TypeError( "Provided 'rMat' must be of or convertible to 'AssembledMatrix' class." )
-            self.rMat = rMat;
-            # hack that should work
+            # TODO: write a setter for the following 2 lines
+            self.rMat = rMat
             self._cself.rMat = rMat._cself
         return
 

@@ -1529,15 +1529,11 @@ class FeMesh_Annulus(FeMesh_Cartesian):
 
         # add a boundary MeshVariable - 1 if nodes is on the boundary(ie 'AllWalls_VertexSet'), 0 if node is internal
         self.bndMeshVariable = uw.mesh.MeshVariable(self, 1)
-        self.bndMeshVariable.data[:] = 0.
-        self.bndMeshVariable.data[self.specialSets["AllWalls_VertexSet"].data] = 1.0
 
-
-        self.bndMeshVariable = uw.mesh.MeshVariable(self, 1)
-
-        self.bndMeshVariable.data[:] = 0.
         # set a value 1.0 on provided vertices
-        self.bndMeshVariable.data[self.specialSets["AllWalls_VertexSet"].data] = 1.0
+        self.bndMeshVariable.data[:] = 0.
+        self.bndMeshVariable.data[self.specialSets["AllWalls_VertexSet"]] = 1.0
+
         # note we use this condition to only capture border quadrature points
         # on the surface. For points not on the surface the bndMeshVariable will evaluate
         # <1.0, so we need to remove those from the integration as well.

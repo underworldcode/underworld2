@@ -2,7 +2,7 @@ import os
 import underworld as uw
 import numpy as np
 from underworld import function as fn
-uw.matplotlib_inline()
+#uw.matplotlib_inline()
 import glucifer
 from datetime import datetime
 from mpi4py import MPI
@@ -32,7 +32,9 @@ class OutputFile(object):
         # open the file
         if uw.mpi.rank == 0:
             timestamped_file_name = '{}-{}'.format(filename,datetime.now().strftime("%Y.%m.%d-%H.%M.%S"))
-            self.oFile = open(timestamped_file_name, 'w',0)    # zero for no buffering
+            if os.path.exists(timestamped_file_name):
+                os.remove(timestamped_file_name)
+            self.oFile = open(timestamped_file_name, 'w')    # zero for no buffering
 
             # create a link with a simple name, check if it already exists
             if os.path.exists(self._filename):
@@ -80,7 +82,7 @@ class Model(object):
         if not outputPath.endswith('/'): outputPath += '/'
         # create path only on rank 0
         if not os.path.exists(outputPath) and uw.mpi.rank==0:
-            print "Creating directory: ",outputPath
+            print("Creating directory: ",outputPath)
             os.makedirs(outputPath)
         uw.mpi.barrier()
         self.outputPath = outputPath
@@ -584,7 +586,7 @@ class AnnulusConvection(Model):
 
         # set up analytics logging
         self.f     = radialLengths[0]/radialLengths[1]
-        self.dT_dr = fn.math.dot( tField.fn_gradient, annulus.fn_unitvec_radial() )
+        self.dT_dr = fn.math.dot( tField.fn_gradient, annulus._fn_unitvec_radial() )
 
         self.dT_dr_outer_integral  = uw.utils.Integral( mesh=annulus, fn=self.dT_dr,
                                                    integrationType="surface", surfaceIndexSet=outer )
@@ -641,10 +643,10 @@ class AnnulusConvection(Model):
         if eqn == 'EBA':
             # should give these better names
             self.viscous_dissipation = 2.0*self.fn_eta*fn_sr_2ndinv
-            self.adiabatic_heating   = -self.Di*fn.math.dot(annulus.fn_unitvec_radial(), vField) * (tField + T_s)
+            self.adiabatic_heating   = -self.Di*fn.math.dot(annulus._fn_unitvec_radial(), vField) * (tField + T_s)
             self.fn_source = self.Di / self.Ra * self.viscous_dissipation + self.adiabatic_heating
 
-        self.fn_force = tField * Ra * annulus.fn_unitvec_radial()
+        self.fn_force = tField * Ra * annulus._fn_unitvec_radial()
         
         # setups the systems
         self.model_init()
@@ -798,7 +800,7 @@ class AnnulusConvection(Model):
                 raise TypeError("'mesh' is not of type uw.mesh.FeMesh")
             if not isinstance(fieldDict, dict):
                 raise TypeError("'fieldDict' is not of type dict")
-            for key, value in fieldDict.iteritems():
+            for key, value in fieldDict.items():
                 if not isinstance( value, uw.mesh.MeshVariable ):
                     raise TypeError("'fieldDict' must contain uw.mesh.MeshVariable elements")
 
@@ -812,7 +814,7 @@ class AnnulusConvection(Model):
                 mh = self.mH
 
             # save xdmf files
-            for key,value in fieldDict.iteritems():
+            for key,value in fieldDict.items():
                 filename = prefix+key+'-'+ii
                 handle = value.save(filename+'.h5', mh)
                 if enable_xdmf: value.xdmf(filename, handle, key, mh, meshName, modeltime=modeltime)
@@ -825,13 +827,13 @@ class AnnulusConvection(Model):
                 raise TypeError("'swarm' is not of type uw.swarm.Swarm")
             if not isinstance(swarmDict, dict):
                 raise TypeError("'swarmDict' is not of type dict")
-            for key, value in swarmDict.iteritems():
+            for key, value in swarmDict.items():
                 if not isinstance( value, uw.swarm.SwarmVariable ):
                     raise TypeError("'fieldDict' must contain uw.swarm.SwarmVariable elements")
 
             # save xdmf files
             sH = swarm.save(prefix+swarmName+"-"+ii+".h5")
-            for key,value in swarmDict.iteritems():
+            for key,value in swarmDict.items():
                 filename = prefix+key+'-'+ii
                 handle = value.save(filename+'.h5')
                 if enable_xdmf: value.xdmf(filename, handle, key, sH, swarmName,modeltime=modeltime)
