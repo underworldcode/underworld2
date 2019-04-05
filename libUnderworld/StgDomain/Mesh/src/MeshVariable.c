@@ -224,12 +224,7 @@ void _MeshVariable_Execute( void* meshVariable, void* data ) {
 }
 
 void _MeshVariable_Destroy( void* meshVariable, void* data ) {
-   MeshVariable*	self = (MeshVariable*)meshVariable;
-   
-   if( self->mesh && List_Exists( self->mesh->vars, self ) )
-       List_Remove( self->mesh->vars, self );
-
-   _StgVariable_Destroy( self, data );
+   _StgVariable_Destroy( meshVariable, data );
 }
 
 /*--------------------------------------------------------------------------------------------------------------------------
@@ -243,8 +238,6 @@ void MeshVariable_SetMesh( void* meshVariable, void* _mesh ) {
 	assert( self );
 
 	self->mesh = mesh;
-	if( mesh )
-		List_Append( mesh->vars, self );
 }
 
 

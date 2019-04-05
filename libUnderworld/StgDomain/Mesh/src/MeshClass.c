@@ -65,8 +65,6 @@ Mesh* _Mesh_New(  MESH_DEFARGS  ) {
     self->elgid = NULL;
     self->eGlobalIdsVar = NULL;
 
-	self->vars = List_New();
-	List_SetItemSize( self->vars, sizeof(MeshVariable*) );
 
 	self->minSep = 0.0;
 	self->minAxialSep = NULL;
@@ -207,7 +205,6 @@ void _Mesh_Destroy( void* mesh, void* data ) {
    Mesh_Destruct( self );
    Stg_Component_Destroy( self->algorithms, NULL, False );
    Stg_Class_Delete( self->info );
-   Stg_Class_Delete( self->vars );
    Stg_Class_Delete( self->topoDataSizes );
 
 	for( d_i = 0; d_i < Mesh_GetDimSize( self ); d_i++ ) {
@@ -826,13 +823,4 @@ void Mesh_Destruct( Mesh* self ) {
 	self->generator = NULL;
 	self->emReg = NULL;
 
-	/*
-	for( v_i = 0; v_i < List_GetSize( self->vars ); v_i++ ) {
-		MeshVariable*	var;
-
-		var = *(MeshVariable**)List_GetItem( self->vars, v_i );
-		MeshVariable_SetMesh( var, NULL );
-	}
-	List_Clear( self->vars );
-	*/
 }
