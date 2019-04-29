@@ -351,9 +351,9 @@ def _xdmfAverageDiscontinuousElements(varname, variableType, globalCount,
     func = "+".join(func)
     out += "\t\t<DataItem ItemType=\"Function\" Dimensions=\"{0} 1\" Function=\"{1}\">\n".format(globalCount/nnodes, func)
     for node in range(nnodes):
-        out += "\t\t\t<DataItem ItemType=\"HyperSlab\" Dimensions=\"{0} 1\" Name=\"P{1}\">\n".format(globalCount/nnodes, node)
-        out += "\t\t\t\t<DataItem Dimensions=\"3 2\" Format=\"XML\"> 0 0 {1} 1 {0} 1 </DataItem>\n".format(globalCount/nnodes, nnodes)
-        out += "\t\t\t\t\t<DataItem Format=\"HDF\" {0} Dimensions=\"{1} 1\">{2}:/data</DataItem>\n".format(variableType, globalCount/nnodes, dataFile)
+        out += "\t\t\t<DataItem ItemType=\"HyperSlab\" Dimensions=\"{0} 1\" Name=\"P{1}\">\n".format(globalCount//nnodes, node)
+        out += "\t\t\t\t<DataItem Dimensions=\"3 2\" Format=\"XML\"> 0 0 {1} 1 {0} 1 </DataItem>\n".format(globalCount//nnodes, nnodes)
+        out += "\t\t\t\t\t<DataItem Format=\"HDF\" {0} Dimensions=\"{1} 1\">{2}:/data</DataItem>\n".format(variableType, globalCount//nnodes, dataFile)
         out += "\t\t\t</DataItem>\n"
     out += "\t\t</DataItem>\n"
     out += "\t</Attribute>\n"
