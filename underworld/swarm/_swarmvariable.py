@@ -431,6 +431,26 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
             else:
                 dset[offset:offset+swarm.particleLocalCount] = self.data[:]
 
+            # create an ExternalLink to the swarm - optional because intrinsic SwarmVariables
+            # 'coordinates'  & 'owningCell' are SwarmVariables that don't have a corresponding
+            # swarm file because they are the swarm itself.
+
+            # as we're appending we remove the mesh
+            if "swarm" in h5f.keys():
+                del h5f["swarm"]
+
+            if swarmHandle is not None:
+                if not isinstance(swarmHandle, (str, uw.utils.SavedFileData)):
+                    raise TypeError("Expected 'swarmHandle' to be of type 'uw.utils.SavedFileData'")
+
+                sFilename = swarmHandle.filename
+
+                if not os.path.exists(sFilename):
+                    raise ValueError("You are trying to link against the swarm file '{}'\n\
+                                      that does not appear to exist.".format(sFilename))
+                # set reference to mesh (all procs must call following)
+                h5f["swarm"] = h5py.ExternalLink(sFilename, "./")
+
             # also write proc offsets - used for loading from checkpoint
             h5f.attrs["proc_offset"] = procCount
 
