@@ -222,15 +222,15 @@ uw.mpi.barrier()
 if uw.mpi.rank == 0:
     os.remove("RT.gldb")
 
-uw.timing.print_table(group_by="routine", tablefmt="grid")
+uw.timing.print_table(group_by="routine")
 
 if uw.mpi.rank == 0:
     import numpy as np
     module_timing_data = uw.timing.get_data(group_by="routine")
     for key in timing_data.keys():
         valuescript = timing_data[key]
-        valuemod    = module_timing_data[key]
-        if not np.isclose(valuescript[1],valuemod[1], rtol=0.20):
+        valuemod    = module_timing_data[(key,1)]
+        if not np.isclose(valuescript[1],valuemod[1], rtol=0.15):
             raise RuntimeError( "Timing for '{}' not within tolerance ( {}: {} ).".format(key,valuescript[1],valuemod[1]) )
 
 # simple test for file output

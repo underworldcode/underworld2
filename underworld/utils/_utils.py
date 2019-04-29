@@ -20,6 +20,21 @@ import sys
 import shutil
 import os
 
+_dtypes_to_xdmf = {
+    '<f8': ("Float", "8"),
+    '<f4': ("Float", "4"),
+    '<f1': ("Float", "1"),
+    '<i8': ("Int", "8"),
+    '<i4': ("Int", "4"),
+    '<i2': ("Int", "2"),
+    '<i1': ("Int", "1"),
+    '<u8': ("UInt", "8"),
+    '<u4': ("UInt", "4"),
+    '<u2': ("UInt", "2"),
+    '<u1': ("UInt", "1"),
+}
+
+
 class Integral(_stgermain.StgCompoundComponent):
     """
     The `Integral` class constructs the volume integral
@@ -336,16 +351,17 @@ def _xdmfAverageDiscontinuousElements(varname, variableType, globalCount,
     func = "+".join(func)
     out += "\t\t<DataItem ItemType=\"Function\" Dimensions=\"{0} 1\" Function=\"{1}\">\n".format(globalCount/nnodes, func)
     for node in range(nnodes):
-        out += "\t\t\t<DataItem ItemType=\"HyperSlab\" Dimensions=\"{0} 1\" Name=\"P{1}\">\n".format(globalCount/nnodes, node)
-        out += "\t\t\t\t<DataItem Dimensions=\"3 2\" Format=\"XML\"> 0 0 {1} 1 {0} 1 </DataItem>\n".format(globalCount/nnodes, nnodes)
-        out += "\t\t\t\t\t<DataItem Format=\"HDF\" {0} Dimensions=\"{1} 1\">{2}:/data</DataItem>\n".format(variableType, globalCount/nnodes, dataFile)
+        out += "\t\t\t<DataItem ItemType=\"HyperSlab\" Dimensions=\"{0} 1\" Name=\"P{1}\">\n".format(globalCount//nnodes, node)
+        out += "\t\t\t\t<DataItem Dimensions=\"3 2\" Format=\"XML\"> 0 0 {1} 1 {0} 1 </DataItem>\n".format(globalCount//nnodes, nnodes)
+        out += "\t\t\t\t\t<DataItem Format=\"HDF\" {0} Dimensions=\"{1} 1\">{2}:/data</DataItem>\n".format(variableType, globalCount//nnodes, dataFile)
         out += "\t\t\t</DataItem>\n"
     out += "\t\t</DataItem>\n"
     out += "\t</Attribute>\n"
 
     return out
 
-def _swarmvarschema( varSavedData, varname ):
+
+def _swarmvarschema(varSavedData, varname):
     """"
     Writes the attribute schema for a swarm variable xdmf file
 
@@ -370,18 +386,18 @@ def _swarmvarschema( varSavedData, varname ):
     # set parameters - serially open the varfilename
     h5f = h5py.File(name=varfilename, mode="r")
     dset = h5f.get('data')
-    if dset == None:
-        raise RuntimeError("Can't find 'data' in file '{}'.\n".format(filename))
+    if dset is None:
+        raise RuntimeError("Can't find 'data' in file '{}'.\n".format(varfilename))
     globalCount = len(dset)
     h5f.close()
 
     dof_count = var.data.shape[1]
-    variableType = "NumberType=\"Float\" Precision=\"8\""
+    vartype, precision = _dtypes_to_xdmf[var.data.dtype.str]
+    variableType = "NumberType=\"{0}\" Precision=\"{1}\"".format(vartype, precision)
 
-    out = _xdmfAttributeschema( varname, variableType, "Node", globalCount, dof_count, refName )
+    out = _xdmfAttributeschema(varname, variableType, "Node", globalCount, dof_count, refName )
 
     return out
-
 
 
 def _spacetimeschema( savedMeshFile, meshname, time ):

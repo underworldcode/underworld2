@@ -34,7 +34,6 @@
                 int*                    e_n; \
                 StgVariable*               enMapVar; \
 								\
-		List*				vars;		\
         /* just record these for various variable */ \
         unsigned            nverts;\
         unsigned            dVerts;\

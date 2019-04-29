@@ -261,7 +261,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         Save mesh and var to a file:
 
         >>> meshDat = mesh.save("saved_mesh.h5")
-        >>> varDat = var.save("saved_mesh_variable.h5")
+        >>> varDat = var.save("saved_mesh_variable.h5", meshDat)
 
         Now let's create the xdmf file
 
@@ -362,6 +362,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
 
         >>> meshHandle = mesh.save("saved_mesh.h5")
         >>> ignoreMe = var.save("saved_mesh_variable.h5", meshHandle)
+        >>> ignoreMe = var.save("saved_mesh_variable.h5", meshHandle) #test dup
 
         Now let's try and reload.
 
@@ -417,6 +418,10 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
             if hasattr( mesh.generator, "geometryMesh"):
                 mesh = mesh.generator.geometryMesh
 
+            # as we're appending we remove the mesh
+            if "mesh" in h5f.keys():
+                del h5f["mesh"]
+
             if meshHandle:
                 if not isinstance(meshHandle, (str, uw.utils.SavedFileData)):
                     raise TypeError("Expected 'meshHandle' to be of type 'uw.utils.SavedFileData'")
@@ -427,8 +432,8 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
                     raise ValueError("You are trying to link against the mesh file '{}'\n\
                                       that does not appear to exist. If you need to link \n\
                                       against a mesh file, please make sure it is created first.".format(meshFilename))
-                # set reference to mesh (all procs must call following)
-                h5f["mesh"] = h5py.ExternalLink(meshFilename, "./")
+                # set reference to mesh 
+                h5f["mesh"] = h5py.ExternalLink(meshFilename, ".")
 
 
         # return our file handle

@@ -544,26 +544,28 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
             # Save attributes and simple data.
             # This must be done in collectively for mpio driver.
             # Also, for sequential, this is performed redundantly.
-            h5f.attrs['dimensions'] = self.dim
+            h5f.attrs['dimensions']      = self.dim
             h5f.attrs['mesh resolution'] = self.elementRes
-            h5f.attrs['max'] = self.maxCoord
-            h5f.attrs['min'] = self.minCoord
-            h5f.attrs['regular'] = self._cself.isRegular
-            h5f.attrs['elementType'] = self.elementType
+            h5f.attrs['max']             = self.maxCoord
+            h5f.attrs['min']             = self.minCoord
+            h5f.attrs['regular']         = self._cself.isRegular
+            h5f.attrs['elementType']     = self.elementType
 
             # write the vertices
-            globalShape = ( self.nodesGlobal, self.data.shape[1] )
-            dset = h5_require_dataset(h5f, "vertices", shape=globalShape, dtype=self.data.dtype )
-            local = self.nodesLocal
+            globalShape = (self.nodesGlobal, self.data.shape[1])
+            dset        = h5_require_dataset(h5f, "vertices", shape=globalShape, dtype=self.data.dtype )
+            local       = self.nodesLocal
+
             # write to the dset using the local set of global node ids
             with dset.collective:
                 dset[self.data_nodegId[0:local],:] = self.data[0:local]
 
             # write the element node connectivity
-            globalShape = ( self.elementsGlobal, self.data_elementNodes.shape[1] )
-            dset = h5_require_dataset(h5f, "en_map", shape=globalShape, dtype=self.data_elementNodes.dtype)
+            globalShape = (self.elementsGlobal, self.data_elementNodes.shape[1])
+            dset        = h5_require_dataset(h5f, "en_map", 
+                                    shape=globalShape, dtype=self.data_elementNodes.dtype)
+            local       = self.elementsLocal
 
-            local = self.elementsLocal
             # write to the dset using the local set of global node ids
             with dset.collective:
                 dset[self.data_elgId[0:local],:] = self.data_elementNodes[0:local]

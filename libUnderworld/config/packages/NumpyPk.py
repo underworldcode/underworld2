@@ -18,8 +18,6 @@ class NumpyPk(Package):
         except ImportError:
             print("Cannot import numpy. Perhaps it is not installed.")
             raise
-        yield ('/usr', [], [])
-        yield ('/usr/local', [], [])
 
     def gen_envs(self, loc):
         try:

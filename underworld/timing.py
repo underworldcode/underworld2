@@ -51,14 +51,18 @@ def start():
     """
     Call this function to start recording timing data.
     """
-    depth=0
     global timing
     global _maxdepth
     global _currentDepth
+    _maxdepth = 1
     _currentDepth = 0
     if _uw.mpi.rank == 0 and ("UW_ENABLE_TIMING" in _os.environ):
         timing = True
-    _maxdepth = depth + 1
+    else:
+        import warnings
+        warnings.warn("Timing unable to start. You must set the `UW_ENABLE_TIMING` environment variable before "
+                      "importing `underworld`. See `underworld.timing` module documentation for further info.")
+
     global _starttime
     _starttime = _time.time()
 
@@ -110,7 +114,7 @@ def get_data(group_by="line_routine"):
             no_line = key[2]
             return "Cell: {:>3}  Line:{:>3}".format(no_cell,no_line)
         else:
-            return "{}:{:>5}".format(key[1],key[2])
+            return "{}:{:>5}".format(key[1].split('/')[-1],key[2])
 
     if group_by == "line":
         keyfunc = linefunc
@@ -124,7 +128,7 @@ def get_data(group_by="line_routine"):
     # regroup data
     regrouped_dict = _dd(lambda: [0,0.])
     for key, value in _hit_count.items():
-        data = regrouped_dict[keyfunc(key)]
+        data = regrouped_dict[(keyfunc(key),key[3])]
         data[0] += value[0]
         data[1] += value[1]
 
@@ -159,23 +163,22 @@ def print_table(group_by="line_routine", sort_by="total", display_fraction=0.95,
 
     regrouped_dict = get_data(group_by)
     
-    # convert to list
+    # convert to list and get tot time
+    all_time = 0.
     table_data = []
     for key, value in regrouped_dict.items():
-        row = [ key, value[0], value[1], value[1]/value[0] ]
+        row = [ key[0], value[0], value[1], value[1]/value[0] ]
         table_data.append(row)
+        if key[1]==1:
+            all_time += value[1]
 
     sort_col = { "total":2, "average":3 }
     if sort_by not in sort_col.keys():
         raise ValueError("'sort_by' parameter should specify one of {}".format(sort_col.keys()))
     table_data = sorted(table_data, key= lambda x: x[sort_col[sort_by]], reverse=True)
 
-    # get tots time
-    all_time = 0.
-    for row in table_data:
-        all_time+= row[2]
 
-    # max sure columns withds accommodate titles
+    # max sure columns widths accommodate titles
     row_title = [group_by, "hits", "tot_time", "av_time"]
     maxl = [0,0,0,0]
     for ii in range(0,4):
@@ -217,9 +220,9 @@ def print_table(group_by="line_routine", sort_by="total", display_fraction=0.95,
             from IPython.display import HTML, display
             display(HTML(tabulate( table_data[0:stop_row]+footerrow, row_title, tablefmt='html',floatfmt=".3f", **kwargs )))
         else:
-            tabstr = tabuflate(table_data[0:stop_row]+footerrow,row_title,floatfmt=".3f", **kwargs)
+            tabstr = tabulate(table_data[0:stop_row]+footerrow,row_title,floatfmt=".3f", **kwargs)
             tabstr += "\n"
-    except: # othersise use homebake.. our hipster snowflakes friends (and colleague) are not forgotten!
+    except: # otherwise use homebake.. our hipster snowflake friends (and colleague) are not forgotten!
         # add header
         tabstr = "{}".format(row_title[0]).ljust(maxl[0]) + \
                  "{}".format(row_title[1]).rjust(maxl[1]) + \
@@ -288,7 +291,7 @@ def log_result( time, name ):
     if timing:
         if _currentDepth < _maxdepth:
             stk = _inspect.stack(0)
-            data = _hit_count[(name,stk[2][1],stk[2][2])]
+            data = _hit_count[(name,stk[2][1],stk[2][2],_currentDepth+1)]
             data[0]+=1
             data[1]+=time
 
@@ -311,8 +314,9 @@ def _routine_timer_decorator(routine, class_name=None):
                 stk = _inspect.stack(0)
                 ts = _time.time()
                 result = routine(*args, **kwargs)
+                # print(ts)
                 te = _time.time()
-                data = _hit_count[(recname,stk[1][1],stk[1][2])]
+                data = _hit_count[(recname,stk[1][1],stk[1][2],_currentDepth)]
                 data[0]+= 1
                 data[1]+= (te - ts)
                 _currentDepth -= 1
