@@ -119,8 +119,8 @@ void _Module_Init( Module* self, Module_MangleNameFunction MangleName, Stg_Objec
          found = True;
          break;
       } else {
-         Journal_RPrintf( stream, "\n%s \"%s\" NOT found using %s\n", self->type, self->name, fullPathName );
-         Journal_RPrintf( stream, "   dlopen returned the error: %s\n\n", dlerror() );
+         Journal_RPrintf( debug, "\n%s \"%s\" NOT found using %s\n", self->type, self->name, fullPathName );
+         Journal_RPrintf( debug, "   dlopen returned the error: %s\n\n", dlerror() );
       }
    }
 
