@@ -55,8 +55,7 @@ for d in dirs:
     tst_install_dir = 'tests/Solvers/' + d
 
     # Install the headers and '.def' files.
-    hdrs = env.Install(inc_dir, Glob(src_dir + '/*.h'))
-    defs = env.Install(inc_dir, Glob(src_dir + '/*.def'))
+    hdrs = env.Install(os.path.join(env['build_dir'],inc_dir), Glob(src_dir + '/*.h'))
 
     # Build our source files.
     srcs = Glob(src_dir + '/*.c')
@@ -65,17 +64,12 @@ for d in dirs:
         stg_cpp_defs = cpp_defs + [('SOURCE_FILE', '"\\"' + src.name + '\\""')]
         objs += env.SharedObject(src, CPPDEFINES=stg_cpp_defs)
 
-    # If we found any '.def' files make sure to register them as
-    # explicit dependencies.
-    if defs:
-        env.Depends(hdrs + objs, defs)
-
     # Build any test suites we might find.
-    suites += env.Object(Glob(tst_dir + '/*Suite.c'))
+    # suites += env.Object(Glob(tst_dir + '/*Suite.c'))
 
     # Install any test expected and input files
-    tst_exp += env.Install(tst_install_dir + '/expected', Glob(tst_exp_dir + '/*'))
-    tst_input += env.Install(tst_install_dir + '/input', Glob(tst_input_dir + '/*'))
+    # tst_exp += env.Install(os.path.join(env['build_dir'],tst_install_dir,'/expected'), Glob(tst_exp_dir + '/*'))
+    # tst_input += env.Install(os.path.join(env['build_dir'],tst_install_dir,'/input'), Glob(tst_input_dir + '/*'))
 #
 # Process each directories of chosen dirs.
 #
@@ -119,28 +113,22 @@ for dir in topdirs:
         
         # Glob returns a list of Nodes that represent the absolute locations of files
         # Install the headers and '.def' files.
-        hdrs = env.Install(inc_dir, Glob(src_dir + '/*.h'))
-        defs = env.Install(inc_dir, Glob(src_dir + '/*.def'))
-        
+        hdrs = env.Install(os.path.join(env['build_dir'],inc_dir), Glob(src_dir + '/*.h'))
+
         # Build our source files.
         srcs = Glob(src_dir + '/*.c')
         srcs = [s for s in srcs if s.path.find('-meta.c') == -1]
         objs += env.SharedObject(srcs, CPPDEFINES=cpp_defs)
-                
-        # If we found any '.def' files make sure to register them as
-        # explicit dependencies.
-        if defs:
-            env.Depends(hdrs + objs, defs)
 
         # Build any test suites we might find.
         suites += env.Object(Glob(tst_dir + '/*Suite.c'))
         
         # Install any test expected and input files
-        tst_exp += env.Install(tst_install_dir + '/expected', Glob(tst_exp_dir + '/*'))
-        tst_input += env.Install(tst_install_dir + '/input', Glob(tst_input_dir + '/*'))
+        tst_exp += env.Install(os.path.join(env['build_dir'],tst_install_dir,'/expected'), Glob(tst_exp_dir + '/*'))
+        tst_input += env.Install(os.path.join(env['build_dir'],tst_install_dir,'/input'), Glob(tst_input_dir + '/*'))
 
 # Need to install headers from libSolvers.
-env.Install('include/Solvers', Glob('libSolvers/src/*.h'))
+env.Install(os.path.join(env['build_dir'],'include/Solvers'), Glob('libSolvers/src/*.h'))
 
 #
 # Build Toolbox.
@@ -155,7 +143,7 @@ for d in dirs:
     mod_name = env['ESCAPE']('"' + ''.join(d.split('/')) + '"')
     cpp_defs = [('CURR_MODULE_NAME', mod_name)] + env.get('CPPDEFINES', [])
 
-    env.Install('include/Solvers/' + d.split('/')[-1], Glob(d + '/*.h'))
+    env.Install(os.path.join(env['build_dir'],'include/Solvers/',d.split('/')[-1]), Glob(d + '/*.h'))
 
     srcs = Glob(d + '/*.c')
     srcs = [s for s in srcs if s.path.find('-meta.c') == -1]

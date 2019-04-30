@@ -56,7 +56,7 @@ for d in dirs:
     tst_input_dir = tst_dir + '/input'
     tst_install_dir = 'tests/StgFEM/' + d
 
-    hdrs = env.Install(inc_dir, Glob(src_dir + '/*.h'))
+    hdrs = env.Install(os.path.join(env['build_dir'],inc_dir), Glob(src_dir + '/*.h'))
 
     # Build our source files.
     srcs = Glob(src_dir + '/*.c')
@@ -65,14 +65,14 @@ for d in dirs:
         objs += env.SharedObject(src, CPPDEFINES=stg_cpp_defs)
 
     # Build any test suites we might find.
-    suites += env.Object(Glob(tst_dir + '/*Suite.c'))
+    # suites += env.Object(Glob(tst_dir + '/*Suite.c'))
 
     # Install any test expected and input files
-    tst_exp += env.Install(tst_install_dir + '/expected', Glob(tst_exp_dir + '/*'))
-    tst_input += env.Install(tst_install_dir + '/input', Glob(tst_input_dir + '/*'))
+    # tst_exp += env.Install(os.path.join(env['build_dir'],tst_install_dir,'/expected'), Glob(tst_exp_dir + '/*'))
+    # tst_input += env.Install(os.path.join(env['build_dir'],tst_install_dir,'/input'), Glob(tst_input_dir + '/*'))
 
 # Need to install headers from libStgFEM.
-env.Install('include/StgFEM', Glob('libStgFEM/src/*.h'))
+env.Install(os.path.join(env['build_dir'],'include/StgFEM'), Glob('libStgFEM/src/*.h'))
 
 
 pluginDirs = ['libStgFEM/Toolbox',]
@@ -85,7 +85,7 @@ for d in pluginDirs:
     mod_name = env['ESCAPE']('"' + ''.join(d.split('/')) + '"')
     cpp_defs = [('CURR_MODULE_NAME', mod_name)] + env.get('CPPDEFINES', []) 
 
-    env.Install('include/StgFEM/' + d.split('/')[-1], Glob(d + '/*.h'))
+    env.Install(os.path.join(env['build_dir'],'include/StgFEM/',d.split('/')[-1]), Glob(d + '/*.h'))
 
     srcs = Glob(d + '/*.c')
     cur_objs = env.SharedObject(srcs, CPPDEFINES=cpp_defs)

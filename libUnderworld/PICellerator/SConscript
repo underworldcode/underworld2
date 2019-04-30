@@ -54,7 +54,7 @@ for d in dirs:
     tst_install_dir = 'tests/PICellerator/' + d
 
     # Install the headers
-    hdrs = env.Install(inc_dir, Glob(src_dir + '/*.h'))
+    hdrs = env.Install(os.path.join(env['build_dir'],inc_dir), Glob(src_dir + '/*.h'))
 
     # Build our source files.
     srcs = Glob(src_dir + '/*.c')
@@ -63,22 +63,18 @@ for d in dirs:
         objs += env.SharedObject(src, CPPDEFINES=stg_cpp_defs)
 
     # Build any test suites we might find.
-    suites += env.Object(Glob(tst_dir + '/*Suite.c'))
+    # suites += env.Object(Glob(tst_dir + '/*Suite.c'))
 
     # Install any test expected and input files
-    tst_exp += env.Install(tst_install_dir + '/expected', Glob(tst_exp_dir + '/*'))
-    tst_input += env.Install(tst_install_dir + '/input', Glob(tst_input_dir + '/*'))
+    # tst_exp += env.Install(os.path.join(env['build_dir'],tst_install_dir,'/expected'), Glob(tst_exp_dir + '/*'))
+    # tst_input += env.Install(os.path.join(env['build_dir'],tst_install_dir,'/input'), Glob(tst_input_dir + '/*'))
 
 # Need to install headers from libPICellerator.
-env.Install('include/PICellerator', Glob('libPICellerator/src/*.h'))
+env.Install(os.path.join(env['build_dir'],'include/PICellerator'), Glob('libPICellerator/src/*.h'))
 
 #
 # Build plugins.
 #
-# Added an Import/export command so that items added here are added to env and can be used by other 
-# scons executables. Added it as Dictionaries so that the Toolbox ID can be preserved.
-# --KathleenHumble -20-08-2010
-
 pluginDirs = Split('libPICellerator/Toolbox ' )
 
 pl_objs = []
@@ -89,7 +85,7 @@ for d in pluginDirs:
     mod_name = env['ESCAPE']('"' + ''.join(d.split('/')) + '"')
     cpp_defs = [('CURR_MODULE_NAME', mod_name)] + env.get('CPPDEFINES', []) 
 
-    env.Install('include/PICellerator/' + d.split('/')[-1], Glob(d + '/*.h'))
+    env.Install(os.path.join(env['build_dir'],'include/PICellerator/',d.split('/')[-1]), Glob(d + '/*.h'))
 
     srcs = Glob(d + '/*.c')
     cur_objs = env.SharedObject(srcs, CPPDEFINES=cpp_defs)

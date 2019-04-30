@@ -11,7 +11,7 @@ USER root
 WORKDIR /opt
 ENV UW2_DIR /opt/underworld2
 RUN mkdir $UW2_DIR
-ENV PYTHONPATH $PYTHONPATH:$UW2_DIR
+ENV PYTHONPATH $PYTHONPATH:$UW2_DIR:$UW2_DIR/libUnderworld/build/lib
 
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.5 1
 

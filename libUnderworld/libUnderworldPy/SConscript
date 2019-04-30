@@ -44,6 +44,9 @@ objs = []
 # Process each directory uniformly.
 #
 
+# drop the shlibprefix for these as there's a particular name expected by the py modules,
+# for example _StGermain.so
+env['SHLIBPREFIX'] = '_'
 for key,value in wrapperDict.items():
     # Build our source files.
     objs = []
@@ -55,14 +58,4 @@ for key,value in wrapperDict.items():
     # Build shared library.
     #
     if env['shared_libs']:
-        env.SharedLibrary('lib/'+key+'_swig', objs)
-
-# if on osx, create symlink for python modules
-import os
-if env['SHLIBSUFFIX'] == '.dylib':
-    def SymLink(target, source, env):
-        os.symlink(os.path.abspath(str(source[0])), os.path.abspath(str(target[0])))
-    for key,value in wrapperDict.items():
-        destLink = os.path.join('..', env["build_dir"],'lib', 'lib'+key+'_swig.so')
-        sourceFile = os.path.join('..', env["build_dir"],'lib', 'lib'+key+'_swig.dylib')
-        env.Command(destLink, sourceFile, SymLink)
+        env.SharedLibrary('lib/'+key, objs)

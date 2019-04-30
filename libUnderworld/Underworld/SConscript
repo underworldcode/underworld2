@@ -51,8 +51,8 @@ for d in dirs:
     tst_install_dir = 'tests/Underworld/' + d
 
     # Install the headers and '.def' files.
-    env.Install(inc_dir, Glob(src_dir + '/*.h'))
-    env.Install(inc_dir, Glob(src_dir + '/*.hpp'))
+    env.Install(os.path.join(env['build_dir'],inc_dir), Glob(src_dir + '/*.h'))
+    env.Install(os.path.join(env['build_dir'],inc_dir), Glob(src_dir + '/*.hpp'))
 
     # Build our source files.
     srcs = Glob(src_dir + '/*.c') +  Glob(src_dir + '/*.cpp')
@@ -61,11 +61,11 @@ for d in dirs:
         objs += env.SharedObject(src, CPPDEFINES=stg_cpp_defs)
 
     # Build any test suites we might find.
-    suites += env.Object(Glob(tst_dir + '/*Suite.c'))
+    # suites += env.Object(Glob(tst_dir + '/*Suite.c'))
 
     # Install any test expected and input files
-    tst_exp += env.Install(tst_install_dir + '/expected', Glob(tst_exp_dir + '/*'))
-    tst_input += env.Install(tst_install_dir + '/input', Glob(tst_input_dir + '/*'))
+    # tst_exp += env.Install(os.path.join(env['build_dir'],tst_install_dir,'/expected'), Glob(tst_exp_dir + '/*'))
+    # tst_input += env.Install(os.path.join(env['build_dir'],tst_install_dir,'/input'), Glob(tst_input_dir + '/*'))
 
 dirs = [
         'SysTest/AnalyticPlugins/Velic_solA',
@@ -102,7 +102,7 @@ for d in dirs:
     inc_dir = 'include/Underworld/' + d
 
     # Install the headers and '.def' files.
-    env.Install(inc_dir, Glob(src_dir + '/*.h'))
+    env.Install(os.path.join(env['build_dir'],inc_dir), Glob(src_dir + '/*.h'))
 
     # Build our source files.
     srcs = Glob(src_dir + '/*.c') +  Glob(src_dir + '/*.cpp')
@@ -112,7 +112,7 @@ for d in dirs:
 
 
 # Need to install headers from libUnderworld.
-env.Install('include/Underworld', Glob('libUnderworld/src/*.h'))
+env.Install(os.path.join(env['build_dir'],'include/Underworld'), Glob('libUnderworld/src/*.h'))
 
 #
 # Build plugins.
@@ -133,7 +133,7 @@ for d in pluginDirs:
     mod_name = env['ESCAPE']('"' + ''.join(d.split('/')) + '"')
     cpp_defs = [('CURR_MODULE_NAME', mod_name)] + env.get('CPPDEFINES', []) 
     
-    env.Install('include/Underworld/' + d.split('/')[-1], Glob(d + '/*.h'))
+    env.Install(os.path.join(env['build_dir'],'include/Underworld/',d.split('/')[-1]), Glob(d + '/*.h'))
 
     srcs = Glob(d + '/*.c')
     cur_objs = env.SharedObject(srcs, CPPDEFINES=cpp_defs)
