@@ -59,3 +59,16 @@ for key,value in wrapperDict.items():
     #
     if env['shared_libs']:
         env.SharedLibrary('lib/'+key, objs)
+
+# add symlinks for osx.. 
+import os
+if env['SHLIBSUFFIX'] == '.dylib':
+    def SymLink(target, source, env):
+        os.symlink(os.path.abspath(str(source[0])), os.path.abspath(str(target[0])))
+    for key,value in wrapperDict.items():
+        destLink   = os.path.join(env["build_dir"],'lib', '_'+key+'.so')
+        sourceFile = os.path.join(env["build_dir"],'lib', '_'+key+'.dylib')
+        env.Command(destLink, sourceFile, SymLink)
+        destLink   = os.path.join(env["prefix"],'lib', '_'+key+'.so')
+        sourceFile = os.path.join(env["prefix"],'lib', '_'+key+'.dylib')
+        env.Command(destLink, sourceFile, SymLink)
