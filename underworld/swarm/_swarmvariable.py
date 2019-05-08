@@ -336,7 +336,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
                 with dset.collective:
                     self.data[0:0,:] = dset[0:0,:]
 
-    def save( self, filename, collective=False ):
+    def save( self, filename, collective=False, swarmHandle=None  ):
         """
         Save the swarm variable to disk.
 
@@ -347,8 +347,12 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
             used, but all directories must exist.
         collective : bool
             If True, variable is saved MPI collective. This is usually faster, but
-            currently is problematic for passive swarms which may not have
+            currently is problematic for passive type warms which may not have
             representation on all processes.
+        swarmHandle :underworld.utils.SavedFileData
+            The saved swarm file handle. If provided, a link is created within the
+            swarmvariable file to this saved swarm file. Optional.
+
 
         Returns
         -------
@@ -431,15 +435,13 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
             else:
                 dset[offset:offset+swarm.particleLocalCount] = self.data[:]
 
-            # create an ExternalLink to the swarm - optional because intrinsic SwarmVariables
-            # 'coordinates'  & 'owningCell' are SwarmVariables that don't have a corresponding
-            # swarm file because they are the swarm itself.
-
-            # as we're appending we remove the mesh
-            if "swarm" in h5f.keys():
-                del h5f["swarm"]
 
             if swarmHandle is not None:
+                # create an ExternalLink to the swarm - optional because intrinsic SwarmVariables
+                # 'coordinates'  & 'owningCell' are SwarmVariables that don't have a corresponding
+                # swarm file because they are the swarm itself.
+
+
                 if not isinstance(swarmHandle, (str, uw.utils.SavedFileData)):
                     raise TypeError("Expected 'swarmHandle' to be of type 'uw.utils.SavedFileData'")
 
@@ -448,6 +450,9 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
                 if not os.path.exists(sFilename):
                     raise ValueError("You are trying to link against the swarm file '{}'\n\
                                       that does not appear to exist.".format(sFilename))
+                # as we're appending we remove the mesh
+                if "swarm" in h5f.keys():
+                    del h5f["swarm"]
                 # set reference to mesh (all procs must call following)
                 h5f["swarm"] = h5py.ExternalLink(sFilename, "./")
 
