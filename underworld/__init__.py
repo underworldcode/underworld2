@@ -30,6 +30,19 @@ is very well suited to complex fluids which is how the solid Earth behaves
 on a geological timescale.
 """
 
+# first import h5py. this is due to the dlopen changes which follow.
+# by importing h5py, we ensure it uses the libHDF5 it was built against
+# as opposed to version PETSc is possibly built against.
+import h5py as _h5py
+# ok, now need to change default python dlopen flags to global
+# this is because when python imports the module, the shared libraries are loaded as RTLD_LOCAL
+# and then when MPI_Init is called, OpenMPI tries to dlopen its plugin, they are unable to
+# link to the openmpi libraries as they are private
+import sys as _sys
+import ctypes as _ctypes
+_oldflags = _sys.getdlopenflags()
+_sys.setdlopenflags( _oldflags | _ctypes.RTLD_GLOBAL )
+
 __version__ = "2.8.0-dev"
 
 # squelch h5py/numpy future warnings
@@ -60,6 +73,32 @@ import sys as _sys
 from . import timing
 import libUnderworld
 from . import _stgermain
+_data =  libUnderworld.StGermain_Tools.StgInit( _sys.argv )
+_stgermain.LoadModules( {"import":["StgDomain","StgFEM","PICellerator","Underworld","gLucifer","Solvers"]} )
+
+class _del_uw_class:
+   """
+   This simple class simply facilitates calling StgFinalise on uw exit
+   Previous implementations used the 'atexit' module, but this called finalise
+   *before* python garbage collection which as problematic as objects were being
+   deleted after StgFinalise was called.
+   """
+   def __init__(self,delfunc, deldata):
+       from mpi4py import MPI
+       self.mpidelfn = MPI.Finalize
+       self.delfunc = delfunc
+       self.deldata = deldata
+       self.exited = False
+   def __del__(self):
+       # put this in a try loop to avoid errors during sphinx documentation generation
+       try:
+           self.exited = True
+           self.delfunc(self.deldata)
+           self.mpidelfn()
+       except:
+           pass
+
+_delclassinstance = _del_uw_class(libUnderworld.StGermain_Tools.StgFinalise, _data)
 
 def _set_init_sig_as_sig(mod):
     '''
@@ -137,11 +176,6 @@ except:
     _id = str(_uuid.uuid4())
 from . import _net
 
-# lets go right ahead and init now.  user can re-init if necessary.
-_data =  libUnderworld.StGermain_Tools.StgInit( _sys.argv )
-
-_stgermain.LoadModules( {"import":["StgDomain","StgFEM","PICellerator","Underworld","gLucifer","Solvers"]} )
-
 
 def _run_from_ipython():
     """
@@ -186,28 +220,6 @@ def _prepend_message_to_exception(e, message):
     """
 #    raise type(e), type(e)(message + '\n' + e.message), _sys.exc_info()[2]
     raise          type(e)(message + '\n' + e.message).with_traceback(_sys.exc_info()[2])
-
-
-# comment this out for now, as tear down in py3 is cleaner without it.
-#
-#class _del_uw_class:
-#    """
-#    This simple class simply facilitates calling StgFinalise on uw exit
-#    Previous implementations used the 'atexit' module, but this called finalise
-#    *before* python garbage collection which as problematic as objects were being
-#    deleted after StgFinalise was called.
-#    """
-#    def __init__(self,delfunc, deldata):
-#        self.delfunc = delfunc
-#        self.deldata = deldata
-#    def __del__(self):
-#        # put this in a try loop to avoid errors during sphinx documentation generation
-#        try:
-#            self.delfunc(self.deldata)
-#        except:
-#            pass
-#
-#_delclassinstance = _del_uw_class(libUnderworld.StGermain_Tools.StgFinalise, _data)
 
 def _in_doctest():
     """

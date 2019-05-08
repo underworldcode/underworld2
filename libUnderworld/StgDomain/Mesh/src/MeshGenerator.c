@@ -324,8 +324,6 @@ void MeshGenerator_SetIncidenceState( void* meshGenerator, unsigned fromDim, uns
 */
 
 void MeshGenerator_Destruct( MeshGenerator* self ) {
-	assert( self && Stg_CheckType( self, MeshGenerator ) );
-
 	KillArray( self->enabledDims );
 	KillArray( self->enabledInc );
 	KillArray( self->meshes );
