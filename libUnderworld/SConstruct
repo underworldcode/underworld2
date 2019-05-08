@@ -129,8 +129,8 @@ dir = Dir(env['build_dir']).abspath
 if not os.path.exists(dir):
    os.makedirs(dir)
 
-env.Install('.', 'config.log')
-env.Install('.', 'config.cfg')
+env.Install('share/underworld', 'config.log')
+env.Install('share/underworld', 'config.cfg')
 
 import os
 # install python API files
