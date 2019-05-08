@@ -146,7 +146,8 @@ if __name__ == '__main__':
     list_fails=[]
 
     # create the test directory if needed
-    dir = os.path.join(os.path.dirname(os.path.realpath(__file__)),"./testResults/")
+
+    dir = os.path.join(os.getcwd(),"./testResults/")
     try:
        os.stat(dir)
     except:
