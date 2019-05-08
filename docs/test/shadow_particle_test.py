@@ -1,3 +1,9 @@
+import h5py
+if h5py.get_config().mpi == False:
+    import warnings
+    warnings.warn("h5py not MPI enabled. Discontinuing test.")
+    import sys
+    sys.exit(0)
 import underworld as uw
 import numpy as np
 
@@ -32,7 +38,6 @@ inguy[:] = swarm.particleLocalCount
 comm.Allreduce(inguy, outguy, op=MPI.MAX)
 
 # create h5 array for players to write primary data into
-import h5py
 f = h5py.File('primarydata.hdf5', 'w', driver='mpio', comm=MPI.COMM_WORLD)
 dset_data = f.create_dataset('randomdata', (comm.Get_size(),outguy[0]), dtype='i')
 # write primary data parallel array

@@ -48,6 +48,7 @@ class h5File(uw.mpi.call_pattern):
     """
 
     def __init__(self, *args, **kwargs):
+        global PATTERN
         # figure if we need to run collective or sequential
         h5py_mpi = h5py.get_config().mpi
         if h5py_mpi:
@@ -60,7 +61,9 @@ class h5File(uw.mpi.call_pattern):
                               "parallel simulations.")
             pattern = 'sequential'
             if PATTERN==2:
-                raise RuntimeError("Collective IO not possible as h5py not available in parallel mode.")
+                import warnings
+                warnings.warn("Collective IO not possible as h5py not available in parallel mode. Switching to sequential.")
+                PATTERN=1
 
         if PATTERN != 0:
             if PATTERN==1:
