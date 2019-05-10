@@ -140,15 +140,15 @@ for root, dirs, files in chain(os.walk("../underworld"),os.walk("../glucifer")):
     basepath = os.sep.join(path[1:])
     for file in files:
         if file.endswith(".py"):
-            env.Install(basepath, os.path.join(root, file))
-# install python C-API files
+            env.Install(os.path.join(env["prefix"],'lib',basepath), os.path.join(root, file))
+# install python bindings C-API files
 for root, dirs, files in os.walk("./libUnderworldPy"):
     path = root.split(os.sep)
     basepath = os.sep.join(path[1:])
     for file in files:
         if file.endswith(".py"):
-            env.Install(os.path.join('libUnderworld','libUnderworldPy'), os.path.join(root, file))
-env.Install('libUnderworld', '__init__.py')
+            env.Install(os.path.join(env["prefix"],'lib','libUnderworld','libUnderworldPy'), os.path.join(root, file))
+env.Install(os.path.join(env["prefix"],'lib','libUnderworld'), '__init__.py')
 Export('env')
 
 SConscript('StGermain/SConscript',
@@ -218,7 +218,3 @@ SConscript('libUnderworldPy/SConscript',
            variant_dir=env['build_dir'] + '/libUnderworldPy',
            duplicate=0)
 env.Prepend(LIBS=['libUnderworldPy'])
-
-
-
-
