@@ -72,18 +72,19 @@ RUN pip3 install -U setuptools  && \
         mock \
         scipy \ 
         tabulate \
-        mpi4py  && \
-    pip3 install scons
+        mpi4py \
+        scons
+
+# update python to py3
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.5 1
 
 WORKDIR /tmp/petsc-build
-RUN apt-get update -qq && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
-    python-minimal python-pip         &&\
-    wget http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-3.9.3.tar.gz && \
-    tar zxf petsc-lite-3.9.3.tar.gz && cd petsc-3.9.3                         && \
-    ./configure --with-debugging=0 --prefix=/usr                                 \
+ARG PETSC_VERSION="3.11.1"
+RUN wget http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-${PETSC_VERSION}.tar.gz && \
+    tar zxf petsc-lite-${PETSC_VERSION}.tar.gz && cd petsc-${PETSC_VERSION}   && \
+    ./configure --with-debugging=0 --prefix=/usr/local/petsc                     \
                 --COPTFLAGS="-g -O3" --CXXOPTFLAGS="-g -O3" --FOPTFLAGS="-g -O3" \
-		--with-zlib=1                   \
+                --with-zlib=1                   \
                 --download-fblaslapack=1        \
                 --download-hdf5=1               \
                 --download-mumps=1              \
@@ -93,27 +94,25 @@ RUN apt-get update -qq && \
                 --download-hypre=1              \
                 --download-scalapack=1          \
                 --download-superlu_dist=1       \
-                --download-superlu=1         && \
-    make PETSC_DIR=/tmp/petsc-build/petsc-3.9.3 PETSC_ARCH=arch-linux2-c-opt all     && \
-    make PETSC_DIR=/tmp/petsc-build/petsc-3.9.3 PETSC_ARCH=arch-linux2-c-opt install && \
+                --useThreads=1                  \
+                --download-superlu=1            \
+                --with-shared-libraries         \
+                --with-cxx-dialect=C++11     && \
+    make PETSC_DIR=/tmp/petsc-build/petsc-${PETSC_VERSION} PETSC_ARCH=arch-linux-c-opt all     && \
+    make PETSC_DIR=/tmp/petsc-build/petsc-${PETSC_VERSION} PETSC_ARCH=arch-linux-c-opt install && \
+    make PETSC_DIR=/usr/local/petsc PETSC_ARCH="" test && \
     cd /tmp && \
-    rm -fr *  && \
-    apt-get remove -yq python-minimal python-pip  && \
-    apt autoremove -yq  && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    rm -fr *
+
+ENV PETSC_DIR=/usr/local/petsc
+ENV PATH=${PETSC_DIR}/bin:$PATH
 
 # Hack for scons.. should be able to remove in future.
 ENV SCONS_LIB_DIR /usr/local/lib/python3.5/dist-packages/scons-3.0.1
 
 ENV PYTHONPATH $PYTHONPATH:/usr/lib
-RUN CC=h5pcc HDF5_MPI="ON" pip3 install --no-cache-dir --no-binary=h5py h5py
-
-# Install Tini.. this is required because CMD (below) doesn't play nice with notebooks for some reason: https://github.com/ipython/ipython/issues/7062, https://github.com/jupyter/notebook/issues/334
-RUN curl -L https://github.com/krallin/tini/releases/download/v0.10.0/tini > tini && \
-    echo "1361527f39190a7338a0b434bd8c88ff7233ce7b9a4876f3315c22fce7eca1b0 *tini" | sha256sum -c - && \
-    mv tini /usr/local/bin/tini && \
-    chmod +x /usr/local/bin/tini
+RUN CC=h5pcc HDF5_MPI="ON" HDF5_DIR=${PETSC_DIR} pip3 install --no-cache-dir --no-binary=h5py h5py && \
+    pip3 install --no-cache-dir petsc4py
 
 # expose notebook port
 EXPOSE 8888
@@ -121,26 +120,26 @@ EXPOSE 8888
 # Setup ipyparallel for mpi profile
 RUN ipcluster nbextension enable
 
+# Install Tini.. sedd https://github.com/ipython/ipython/issues/7062, https://github.com/jupyter/notebook/issues/334
+ENV TINI_VERSION v0.18.0
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
+RUN chmod +x /tini
+ENTRYPOINT ["/tini", "--"]
+
 # add default user jovyan and change permissions on NB_WORK
 ENV NB_USER jovyan
 RUN useradd -m -s /bin/bash -N jovyan
 USER $NB_USER
-ENV NB_WORK /workspace
+ENV NB_WORK /home/$NB_USER
 
 RUN ipython profile create --parallel --profile=mpi && \
-    echo "c.IPClusterEngines.engine_launcher_class = 'MPIEngineSetLauncher'" >> /home/$NB_USER/.ipython/profile_mpi/ipcluster_config.py
-
-# note we also use xvfb which is required for viz
-ENTRYPOINT ["/usr/local/bin/tini", "--"]
+    echo "c.IPClusterEngines.engine_launcher_class = 'MPIEngineSetLauncher'" >> $NB_WORK/.ipython/profile_mpi/ipcluster_config.py
 
 # copy this file over so that no password is required
-COPY jupyter_notebook_config.json /home/$NB_USER/.jupyter/jupyter_notebook_config.json
-
-# setup symlink for terminal convenience
-RUN ln -s $NB_WORK /home/$NB_USER/
+COPY --chown=jovyan:users ./docs/development/docker/base/jupyter_notebook_config.json $NB_WORK/.jupyter/jupyter_notebook_config.json
 
 # create a volume
-VOLUME $NB_WORK/user_data
+VOLUME $NB_WORK/workspace
 WORKDIR $NB_WORK
 
 # launch notebook
