@@ -3,61 +3,44 @@
 #    $  docker build -f docs/development/docker/underworld2/Dockerfile .
 
 
-FROM underworldcode/base@sha256:12016775a555410515783a49c4fb9b3f4edca1e084a0fba656af7c5e7529539b
+FROM underworldcode/base@sha256:e022c04b6bbaddf7447b89dd187bdd31958d403db3677adc3b21c7ca6560202e
 MAINTAINER https://github.com/underworldcode/
 
 USER root
-# set working directory to /opt, and install underworld files there.
-WORKDIR /opt
-ENV UW2_DIR /opt/underworld2
-RUN mkdir $UW2_DIR
-ENV PYTHONPATH $PYTHONPATH:$UW2_DIR:$UW2_DIR/libUnderworld/build/lib
 
-RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.5 1
+# install underworld under /tmp.
+WORKDIR /tmp
+ENV UW2_TMP /tmp/underworld2
+ENV UW2_DIR /usr/local/underworld2
+ENV PYTHONPATH $PYTHONPATH:$UW2_DIR:$UW2_DIR/lib
+RUN mkdir -p $UW2_TMP 
 
 # install lavavu
 RUN pip3 install --no-cache-dir lavavu
 
-# COPY UW
-#COPY --chown=jovyan:users . $UW2_DIR/   # unfortunately, the version of docker at docker cloud does not support chown yet.
-COPY . $UW2_DIR/
+# COPY UW - unfortunately, the version of docker at docker cloud does not support chown yet.
+COPY --chown=jovyan:users . $UW2_TMP
+COPY --chown=jovyan:users ./docs/ $NB_WORK/
 
-# get underworld, compile, delete some unnecessary files, trust notebooks, copy to workspace
-RUN cd underworld2/libUnderworld && \
-    ./configure.py --with-debugging=0  && \
+# get underworld, compile and install underworld libs
+RUN cd ${UW2_TMP}/libUnderworld && \
+    ./configure.py --with-debugging=0 --prefix=${UW2_DIR}  && \
     ./compile.py                 && \
-    rm -fr h5py_ext              && \
-    rm .sconsign.dblite          && \
-    rm -fr .sconf_temp           && \
-    cd build                     && \
-    rm -fr libUnderworldPy       && \
-    rm -fr StGermain             && \
-    rm -fr gLucifer              && \
-    rm -fr Underworld            && \
-    rm -fr StgFEM                && \
-    rm -fr StgDomain             && \
-    rm -fr PICellerator          && \
-    rm -fr Solvers               && \
-    find $UW2_DIR/docs -name \*.ipynb  -print0 | xargs -0 jupyter trust && \
-#    cd ../../docs/development/api_doc_generator/                     && \
-#    sphinx-build . ../../api_doc                                     && \
-    rsync -av $UW2_DIR/docs/. $NB_WORK                               && \
-    cd /opt/underworld2                                              && \
-    find . -name \*.os |xargs rm -f                                  && \
-    cat .git/refs/heads/* > build_commit.txt                         && \
-    env > build_environment.txt                                      && \
-    rm -fr .git                                                      && \
-    chown -R $NB_USER:users $NB_WORK $UW2_DIR /home/$NB_USER
+    scons install                && \
+    env > $UW2_DIR/build_environment.txt  && \
+    cd /tmp                               && \
+    rm -fr *
 
+# clone UWGeodyanamics, install 
 RUN git clone https://github.com/underworldcode/UWGeodynamics.git && \
     pip3 install --no-cache-dir UWGeodynamics/ && \
-    mkdir /workspace/UWGeodynamics && \
-    mv ./UWGeodynamics/examples /workspace/UWGeodynamics/. && \
-    mv ./UWGeodynamics/tutorials /workspace/UWGeodynamics/. && \
-    mv ./UWGeodynamics/benchmarks /workspace/UWGeodynamics/. && \
-    mv ./UWGeodynamics/docs /workspace/UWGeodynamics/ && \
-    rm -rf UWGeodynamics && \
-    chown -R $NB_USER:users /workspace/UWGeodynamics
+    mkdir $NB_WORK/UWGeodynamics && \
+    mv ./UWGeodynamics/examples   $NB_WORK/UWGeodynamics/. && \
+    mv ./UWGeodynamics/tutorials  $NB_WORK/UWGeodynamics/. && \
+    mv ./UWGeodynamics/benchmarks $NB_WORK/UWGeodynamics/. && \
+    mv ./UWGeodynamics/docs       $NB_WORK/UWGeodynamics/  && \
+    rm -rf UWGeodynamics                                   && \
+    chown -R $NB_USER:users $NB_WORK/UWGeodynamics
 
 # expose glucifer port
 EXPOSE 9999
@@ -66,7 +49,6 @@ EXPOSE 9999
 # see /opt/underworld2/glucifer/__init__.py
 ENV GLUCIFER_USE_XVFB 1
 
-# CHANGE USER
 USER $NB_USER
 WORKDIR $NB_WORK
 

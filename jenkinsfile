@@ -6,46 +6,65 @@ See http://130.56.252.251:32779
 
 pipeline {
   
-  // define the docker environment to run the pipeline in.
   agent {
-      docker { 
-        image 'underworldcode/underworld2:dev'
+    // special label to jenkins config. See http://130.56.252.251:32779/computer/
+    label 'slave'
+  }
+  
+  environment {
+    // define environment variable active within pipeline
+    CNAME = "test_uw2_container"
+    INAME = "underworld2:jdev"
+  }
 
-        // special label to jenkins config. See http://130.56.252.251:32779/computer/
-        label 'slave'
-      }
+  options {
+    disableConcurrentBuilds()
+    timestamps()
   }
 
   stages {
-
+      
     // Build stage: compile the code
     stage('Build') {
       steps {
-        dir("./libUnderworld") {
-          sh './configure.py'
-          sh './compile.py'
-        }
+        // print environment variables
+        sh 'printenv'
+        // build the docker
+        sh 'docker build --force-rm --no-cache -t ${INAME} -f ./docs/development/docker/underworld2/Dockerfile .'
+        echo "Pass"
       }
     }
     
     // Test stage: runs the basic tests
     stage('Basic Tests') {
+      // Run inside docker continer created
       steps {
-        sh 'source updatePyPath.sh'
-        
+              sh '''
+              docker run -i --name ${CNAME} ${INAME} \
+                  bash -c 'cd docs/development/;  ./test_suite.sh'
+              '''
         /* TODO: Undo this solution to image_tests.py 
         Disable ./doc/test/image_tests.py from the 'Test' stage. It shows
         instabilities when run with other tests on jenkins.  
         */
         
+	/*
         sh 'mv ./docs/test/image_tests.py ./docs/test/image_tests.py.disable'
         sh 'sh ./test_basic.sh'
         sh 'mv ./docs/test/image_tests.py.disable ./docs/test/image_tests.py'
+	*/
+      }
+      post {
+        always {
+              sh '''
+                  docker cp ${CNAME}:/home/jovyan/docs/development/testResults ./testResults
+              '''
+        }
       }
     }
     
     // Run image_test.py separately, if it fails mark build 'UNSTABLE'
-    stage('image_tests') {
+    /*stage('image_tests') {
       steps {
         script {
           try{
@@ -59,7 +78,7 @@ pipeline {
           }
         }
       }
-    }
+    }*/
   }
   
   /* For post build analysis */
@@ -70,7 +89,7 @@ pipeline {
           subject: "Failed Pipeline: ${currentBuild.fullDisplayName}",
           body: "Something is wrong with ${env.BUILD_URL}",
           // mimeType: 'text/html',
-          to: 'underworlddev@googlegroups.com'
+          to: 'julian.giordani@unimelb.edu.au'
         )
     }
     unstable {
@@ -79,7 +98,7 @@ pipeline {
           subject: "Unstable Pipeline: ${currentBuild.fullDisplayName}",
           body: "Something is unstable with ${env.BUILD_URL}",
           // mimeType: 'text/html',
-          to: 'underworlddev@googlegroups.com'
+          to: 'julian.giordani@unimelb.edu.au'
         )
     }
     success {
@@ -89,10 +108,13 @@ pipeline {
             subject: "Back to normal: ${currentBuild.fullDisplayName}",
             body: "Project is back to normal",
             // mimeType: 'text/html',
-            to: 'underworlddev@googlegroups.com'
+            to: 'julian.giordani@unimelb.edu.au'
           )
         }
       }
+    }
+    cleanup {
+      sh 'docker rm -f ${CNAME}'
     }
   }
 }
