@@ -25,13 +25,12 @@ pipeline {
   stages {
       
     // Build stage: compile the code
-    stage('Build') {
+    stage('Build Image') {
       steps {
         // print environment variables
         sh 'printenv'
         // build the docker
         sh 'docker build --force-rm --no-cache -t ${INAME} -f ./docs/development/docker/underworld2/Dockerfile .'
-        echo "Pass"
       }
     }
     
@@ -41,18 +40,8 @@ pipeline {
       steps {
               sh '''
               docker run -i --name ${CNAME} ${INAME} \
-                  bash -c 'cd docs/development/;  ./test_suite.sh'
+                  bash -c 'cd development/;  ./test_suite.sh'
               '''
-        /* TODO: Undo this solution to image_tests.py 
-        Disable ./doc/test/image_tests.py from the 'Test' stage. It shows
-        instabilities when run with other tests on jenkins.  
-        */
-        
-	/*
-        sh 'mv ./docs/test/image_tests.py ./docs/test/image_tests.py.disable'
-        sh 'sh ./test_basic.sh'
-        sh 'mv ./docs/test/image_tests.py.disable ./docs/test/image_tests.py'
-	*/
       }
       post {
         always {
@@ -89,7 +78,7 @@ pipeline {
           subject: "Failed Pipeline: ${currentBuild.fullDisplayName}",
           body: "Something is wrong with ${env.BUILD_URL}",
           // mimeType: 'text/html',
-          to: 'julian.giordani@unimelb.edu.au'
+          to: 'underworlddev@googlegroups.com'
         )
     }
     unstable {
@@ -98,7 +87,7 @@ pipeline {
           subject: "Unstable Pipeline: ${currentBuild.fullDisplayName}",
           body: "Something is unstable with ${env.BUILD_URL}",
           // mimeType: 'text/html',
-          to: 'julian.giordani@unimelb.edu.au'
+          to: 'underworlddev@googlegroups.com'
         )
     }
     success {
@@ -108,12 +97,13 @@ pipeline {
             subject: "Back to normal: ${currentBuild.fullDisplayName}",
             body: "Project is back to normal",
             // mimeType: 'text/html',
-            to: 'julian.giordani@unimelb.edu.au'
+            to: 'underworlddev@googlegroups.com'
           )
         }
       }
     }
     cleanup {
+      // force container removal
       sh 'docker rm -f ${CNAME}'
     }
   }
