@@ -339,7 +339,7 @@ def LoadModules( pyUWDict ):
     """
     import os
     # construct the required ld_library_path. not the prettiest solution.
-    pyUWDict["LD_LIBRARY_PATH"] = os.path.join(__file__[:-24],"lib")
+    pyUWDict["LD_LIBRARY_PATH"] = __file__[:-24]
     stgRootDict = libUnderworld.StGermain.Dictionary_New()
     SetStgDictionaryFromPyDict( pyUWDict, stgRootDict )
     libUnderworld.StGermain.ModulesManager_Load( libUnderworld.StGermain.GetToolboxManagerInstance(), stgRootDict, "" )
