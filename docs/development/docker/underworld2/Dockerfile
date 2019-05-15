@@ -12,36 +12,24 @@ USER root
 WORKDIR /tmp
 ENV UW2_TMP /tmp/underworld2
 ENV UW2_DIR /usr/local/underworld2
-ENV PYTHONPATH $PYTHONPATH:$UW2_DIR:$UW2_DIR/lib
+ENV PYTHONPATH $PYTHONPATH:$UW2_DIR/lib
 RUN mkdir -p $UW2_TMP 
 
 # install lavavu
 RUN pip3 install --no-cache-dir lavavu
 
 # COPY UW - unfortunately, the version of docker at docker cloud does not support chown yet.
-COPY --chown=jovyan:users . $UW2_DIR
+COPY --chown=jovyan:users . $UW2_TMP
 COPY --chown=jovyan:users ./docs/ $NB_WORK/
 
 # get underworld, compile and install underworld libs
-RUN cd $UW2_DIR/libUnderworld && \
-    ./configure.py --with-debugging=0  && \
-    ./compile.py                 && \
-    rm -fr h5py_ext              && \
-    rm .sconsign.dblite          && \
-    rm -fr .sconf_temp           && \
-    cd build                     && \
-    rm -fr libUnderworldPy       && \
-    rm -fr StGermain             && \
-    rm -fr gLucifer              && \
-    rm -fr Underworld            && \
-    rm -fr StgFEM                && \
-    rm -fr StgDomain             && \
-    rm -fr PICellerator          && \
-    rm -fr Solvers               && \
-    cd $UW2_DIR                  && \
-    find . -name \*.os |xargs rm -f                                  && \
-    env > build_environment.txt                                      && \
-    rm -fr .git                                                      && \
+RUN cd $UW2_TMP/libUnderworld && \
+    ./configure.py --with-debugging=0 --prefix=$UW2_DIR && \
+    ./compile.py                      && \
+    scons install                     && \
+    env > build_environment.txt       && \
+    cd /tmp                           && \
+    rm -rf *                          && \
     chown -R $NB_USER:users $UW2_DIR
 
 # clone UWGeodyanamics, install 

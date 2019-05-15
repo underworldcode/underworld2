@@ -46,7 +46,7 @@ pipeline {
       post {
         always {
               sh '''
-                  docker cp ${CNAME}:/home/jovyan/docs/development/testResults ./testResults
+                  docker cp ${CNAME}:/home/jovyan/development/testResults ./testResults
               '''
         }
       }
