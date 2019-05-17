@@ -1,4 +1,6 @@
-ignorelist = ['json', 'os', 'libUnderworld', 'glob', 'numpy', 'sys', 'os', 'time', 'control', 'LavaVuPython', 'lavavu', 're']
+ignorelist = ['underworld', 'glucifer', 'json', 'os', 'libUnderworld', 'glob', 'numpy', 'sys', 'os', 'time', 'control', 'LavaVuPython', 'lavavu', 're']
+
+done_mods = set()
 
 def doc_module(module, modname):
     filename = modname+'.rst'
@@ -13,7 +15,12 @@ def doc_module(module, modname):
             if guy not in ignorelist:  # don't grab these
                 obj = getattr(module,guy)
                 if inspect.ismodule(obj):
-                    modules[guy] = obj
+                    if obj.__file__ not in done_mods: 
+                        print(obj.__file__)
+                        done_mods.add(obj.__file__)
+                        modules[guy] = obj
+                    # else:
+                    #     return
                 elif inspect.isclass(obj):
                     classes[guy] = obj
                 elif inspect.isfunction(obj):
@@ -110,9 +117,5 @@ def doc_module(module, modname):
 import underworld
 doc_module(underworld, 'underworld')
 
-# (re)init lavavu submodule
-import subprocess
-subp = subprocess.Popen('git submodule update --init', shell=True)
-subp.wait()
 import glucifer
 doc_module(glucifer, 'glucifer')
