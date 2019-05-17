@@ -107,9 +107,9 @@ class SolA(_SolBaseFreeSlipBc):
         Viscosity.
 
     """
-    eqn_bodyforce = "(0,-\sigma_0 \cos(k_x x) \sin(k_z z))"
+    eqn_bodyforce = "(0,-\sigma_0 \cos(\pi n_x x) \sin(\pi n_z z))"
     eqn_viscosity = "\eta_0"
-    def __init__(self, sigma_0=1., n_x=1, n_z=1., eta_0=1., *args, **kwargs):
+    def __init__(self, sigma_0=1., n_x=3, n_z=2., eta_0=1., *args, **kwargs):
         if eta_0<=0:
             raise TypeError("'eta_0' parameter must be positive." )
         if sigma_0<=0:
@@ -140,9 +140,9 @@ class SolB(_SolBaseFreeSlipBc):
         Viscosity.
 
     """
-    eqn_bodyforce = "(0,-\sigma_0 \cos(k_x x) \sinh(k_z z))"
+    eqn_bodyforce = "(0,-\sigma_0 \cos(\pi n_x x) \sinh(\pi n_z z))"
     eqn_viscosity = "\eta_0"
-    def __init__(self, sigma_0=1., n_x=1, n_z=1.5, eta_0=1., *args, **kwargs):
+    def __init__(self, sigma_0=1., n_x=3, n_z=2., eta_0=1., *args, **kwargs):
         if eta_0<=0:
             raise TypeError("'eta_0' parameter must be positive." )
         if sigma_0<=0:
@@ -205,19 +205,19 @@ class SolCx(_SolBaseFreeSlipBc):
         Viscosity step location.
 
     """
-    eqn_bodyforce = "(0,-\cos(k_x x) \sin(k_z z))"
+    eqn_bodyforce = "(0,-\cos(\pi x) \sin(\pi n_z z))"
     eqn_viscosity = "\mathrm{step}(\eta_A,\eta_B,x_c; x)"
-    def __init__(self, n_x=1, eta_A=1., eta_B=100000., x_c=0.75, *args, **kwargs):
+    def __init__(self, n_z=3, eta_A=1., eta_B=100000., x_c=0.75, *args, **kwargs):
         if not isinstance(eta_A, float) or eta_A<=0:
             raise TypeError("'eta_A' must be a positive float." )
         if not isinstance(eta_B, float) or eta_B<=0:
             raise TypeError("'eta_B' must be a positive float." )
         if not isinstance(x_c, float):
             raise TypeError("'x_c' parameter must be of type 'float'." )
-        if not isinstance(n_x, int):
-            raise TypeError("'n_x' parameter must be of type 'int'." )
+        if not isinstance(n_z, int):
+            raise TypeError("'n_z' parameter must be of type 'int'." )
 
-        self._ckeep = _cfn.SolCx(eta_A,eta_B,x_c,n_x)
+        self._ckeep = _cfn.SolCx(eta_A,eta_B,x_c,n_z)
         super(SolCx,self).__init__(_cfn.SolCxCRTP(self._ckeep,2), **kwargs)
 
 class SolDA(_SolBaseFreeSlipBc):
@@ -293,7 +293,7 @@ class SolH(_SolBaseFreeSlipBc):
     """
     eqn_bodyforce = "(0, 0, -\sigma_0 \mathrm{step}(1, 0, x_c; x) \mathrm{step}(1, 0, y_c; y) )"
     eqn_viscosity = "\eta_0"
-    def __init__(self, sigma_0=1., x_c=0.5, y_c=0.5, eta_0=1., nmodes=30, *args, **kwargs):
+    def __init__(self, sigma_0=1000., x_c=0.5, y_c=0.5, eta_0=1., nmodes=30, *args, **kwargs):
         if not isinstance(sigma_0, float):
             raise TypeError("'sigma_0' must be a float." )
         if not isinstance(eta_0, float) or eta_0<=0:
@@ -376,10 +376,10 @@ class SolKx(_SolBaseFreeSlipBc):
     B : float
         Viscosity parameter.
     """
-    eqn_bodyforce = "(0,-\sigma_0 \cos(k_x x) \sin(k_z z))"
+    eqn_bodyforce = "(0,-\sigma_0 \cos(\pi n_x x) \sin(\pi n_z z))"
     eqn_viscosity = "\exp(2Bx)"
     
-    def __init__(self, sigma_0=1., n_x=1, n_z=1., B=1.1512925465, *args, **kwargs):
+    def __init__(self, sigma_0=1., n_x=3, n_z=2., B=2.302585092994046, *args, **kwargs):
         if not isinstance(sigma_0, float):
             raise TypeError("'sigma_0' must be a float." )
         if not isinstance(n_x, int):
@@ -410,10 +410,10 @@ class SolKz(_SolBaseFreeSlipBc):
         Viscosity parameter.
 
     """
-    eqn_bodyforce = "(0,-\sigma_0 \cos(k_x x) \sin(k_z z))"
+    eqn_bodyforce = "(0,-\sigma_0 \cos(\pi n_x x) \sin(\pi n_z z))"
     eqn_viscosity = "\exp(2Bz)"
 
-    def __init__(self, sigma_0=1., n_x=1, n_z=1., B=1.1512925465, *args, **kwargs):
+    def __init__(self, sigma_0=1., n_x=3, n_z=2., B=2.302585092994046, *args, **kwargs):
         if not isinstance(sigma_0, float) or sigma_0!=1.:
             raise TypeError("'sigma_0' can be any float as long as it's 1." )
         if not isinstance(n_x, int):
@@ -438,25 +438,25 @@ class SolM(_SolBaseFreeSlipBc):
         Velocity wavenumber parameter (in x).
     n_z : int
         Velocity wavenumber parameter (in z).
-    r : float
-        Viscosity parameter.
+    m_x : float
+        Viscosity wavenumber parameter (in x).
 
     """
     eqn_bodyforce = ""
-    eqn_viscosity = "1 + \eta_0(1+\cos{k_r x})"
+    eqn_viscosity = "1 + \eta_0(1+\cos{\pi m_x x})"
 
-    def __init__(self, eta_0=1., n_x=1, n_z=1, r=1.5, *args, **kwargs):
+    def __init__(self, eta_0=1., n_x=3, n_z=2, m_x=4., *args, **kwargs):
         if not isinstance(eta_0, float) or eta_0 <= 0.:
             raise TypeError("'eta_0' can be any positive float." )
         if not isinstance(n_x, int):
             raise TypeError("'n_x' must be an int." )
         if not isinstance(n_z, int):
             raise TypeError("'n_z' must be an int." )
-        if not isinstance(r, float):
-            raise TypeError("'r' parameter must be a 'float' and != 'n_z'." )
-        if abs(float(n_z)-r) < 1e-5:
-            raise TypeError("'r' must be different than 'n_z'." )
-        self._ckeep = _cfn.SolM(eta_0, n_x, n_z, r)
+        if not isinstance(m_x, float):
+            raise TypeError("'m_x' parameter must be a 'float' and != 'n_z'." )
+        if abs(float(n_z)-m_x) < 1e-5:
+            raise TypeError("'m_x' must be different than 'n_z'." )
+        self._ckeep = _cfn.SolM(eta_0, n_x, n_z, m_x)
         super(SolM,self).__init__(_cfn.SolMCRTP(self._ckeep,2), **kwargs)
 
 class SolNL(_SolBase):
