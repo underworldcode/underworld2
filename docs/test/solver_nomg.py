@@ -36,12 +36,22 @@ solver.print_stats()
 from libUnderworld import petsc
 petsc.OptionsPrint()
 
-if 4 != stats.pressure_its:
-    raise RuntimeError("Test returned wrong number of pressure iterations.")
-if 27 != stats.velocity_presolve_its:
-    raise RuntimeError("Test returned wrong number of velocity pre solve iterations.")
+# if 4 != stats.pressure_its:
+#     raise RuntimeError("Test returned wrong number of pressure iterations.")
+# if 27 != stats.velocity_presolve_its:
+#     raise RuntimeError("Test returned wrong number of velocity pre solve iterations.")
+# if -1 != stats.velocity_pressuresolve_its:  # -1 will be returned if this stat isn't supported.
+#     if stats.velocity_pressuresolve_its < 80:
+#         raise RuntimeError("Test returned wrong number of velocity pressure solve iterations.")
+# if 24 != stats.velocity_backsolve_its:
+#     raise RuntimeError("Test returned wrong number of velocity back solve iterations.")
+
+if stats.pressure_its > 5:
+    raise RuntimeError("Test appears to require too many pressure iterations. Iteration count = {}.".format(stats.pressure_its))
+if stats.velocity_presolve_its > 24:
+    raise RuntimeError("Test appears to require too many velocity pre solve iterations. Iteration count = {}.".format(stats.velocity_presolve_its))
 if -1 != stats.velocity_pressuresolve_its:  # -1 will be returned if this stat isn't supported.
-    if stats.velocity_pressuresolve_its < 80:
-        raise RuntimeError("Test returned wrong number of velocity pressure solve iterations.")
-if 24 != stats.velocity_backsolve_its:
-    raise RuntimeError("Test returned wrong number of velocity back solve iterations.")
+    if stats.velocity_pressuresolve_its > 80 :
+        raise RuntimeError("Test appears to require too many velocity pressure solve iterations. Iteration count = {}.".format(stats.velocity_pressuresolve_its))
+if stats.velocity_backsolve_its > 30:
+    raise RuntimeError("Test appears to require too many velocity back solve iterations. Iteration count = {}.".format(stats.velocity_backsolve_its))
