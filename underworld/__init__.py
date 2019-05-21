@@ -59,15 +59,16 @@ _warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
 import os as _os
 from pathlib import Path as _Path
 _results = 0
-for _dir in _os.environ["PYTHONPATH"].split(":"):
-    for _result in _Path(_dir).glob("_StGermain.*"):
-        if _result:
-            _results+=1
-if _results < 1:
-    raise RuntimeError("Unable to find required libraries.\n"
-                   "Note that your PYTHONPATH must now also indicate "
-                   "the directory containing the required compiled "
-                   "libraries. For example, `your_uw_directory/libUnderworld/build/lib`.")
+if "PYTHONPATH" in _os.environ:
+    for _dir in _os.environ["PYTHONPATH"].split(":"):
+        for _result in _Path(_dir).glob("_StGermain.*"):
+            if _result:
+                _results+=1
+    if _results < 1:
+        raise RuntimeError("Unable to find required libraries.\n"
+                    "Note that your PYTHONPATH must now also indicate "
+                    "the directory containing the required compiled "
+                    "libraries. For example, `your_uw_directory/libUnderworld/build/lib`.")
 
 import sys as _sys
 from . import timing

@@ -667,12 +667,11 @@ def _add_doc_info():
         guy[1].__doc__ += "    .. |{}_pressure|  image:: ../../underworld/function/images/{}_pressure.png\n".format(guy[0],guy[0])
         
         guy[1].__doc__ += """
+    
+    .. csv-table::
+        :header-rows: 1
+        :align: center
 
-        .. csv-table::
-            :header-rows: 1
-            :align: center
-
-            "Viscosity", "\|Body Force\|", "Pressure", "\|Velocity\|"
-        """
-        guy[1].__doc__ += "    |{}_viscosity|, |{}_bodyforce|, |{}_velocity|, |{}_pressure|".format(guy[0],guy[0],guy[0],guy[0])
+        "Viscosity", "\|Body Force\|", "\|Velocity\|", "Pressure" \n"""
+        guy[1].__doc__ += "        |{}_viscosity|, |{}_bodyforce|, |{}_velocity|, |{}_pressure|".format(guy[0],guy[0],guy[0],guy[0])
 _add_doc_info()
