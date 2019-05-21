@@ -16,7 +16,6 @@ def doc_module(module, modname):
                 obj = getattr(module,guy)
                 if inspect.ismodule(obj):
                     if obj.__file__ not in done_mods: 
-                        print(obj.__file__)
                         done_mods.add(obj.__file__)
                         modules[guy] = obj
                     # else:
@@ -26,6 +25,13 @@ def doc_module(module, modname):
                 elif inspect.isfunction(obj):
                     functions[guy] = obj
     
+    #    everything alphabetically
+    from collections import OrderedDict
+    modules   = OrderedDict(sorted(modules.items()))
+    classes   = OrderedDict(sorted(classes.items()))
+    functions = OrderedDict(sorted(functions.items()))
+
+
     # create a new file for each module
     with open(filename, 'w') as f:
         # write title
