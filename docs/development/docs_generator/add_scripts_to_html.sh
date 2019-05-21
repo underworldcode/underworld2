@@ -2,12 +2,12 @@
 
 
 set -e
-cd ${1}/user_guide
+cd ${1}/build/user_guide
 find . -name \*.html | xargs sed -i -e 's/<\/body>//g'
 find . -name \*.html | xargs sed -i -e 's/<\/html>//g'
 # make bash variable to append to html
 VAR=$(cat <<'END_HEREDOC'
-        <script src="../_static/juniper.min.js"></script>
+        <script src="../../_static/juniper.min.js"></script>
         <script>
             new Juniper({
                 repo: 'underworldcode/underworld2',
@@ -19,7 +19,7 @@ VAR=$(cat <<'END_HEREDOC'
         </script>
 </body>
 <head>
-  <link rel="stylesheet" href="../_static/css/material.css" />
+  <link rel="stylesheet" href="../../_static/css/material.css" />
 </head>
 </html>
 END_HEREDOC

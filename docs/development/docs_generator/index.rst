@@ -46,8 +46,8 @@ Moresi, L., Quenette, S., Lemiale, V., Mériaux, C., Appelbe, W., Mühlhaus, 200
     Installation <Installation>
     User Guide <UserGuide>
 
-    API Reference: Underworld <underworld>
-    API Reference: Glucifer <glucifer>
+    API Reference: Underworld <build/underworld>
+    API Reference: Glucifer <build/glucifer>
 
     UW2 Github  <https://github.com/underworldcode/underworld2>
     UW2 Website <http://www.underworldcode.org>

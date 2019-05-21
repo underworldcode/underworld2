@@ -661,10 +661,10 @@ def _add_doc_info():
 
         # add images
         guy[1].__doc__ += "\n\n"
-        guy[1].__doc__ += "    .. |{}_viscosity| image:: ../../underworld/function/images/{}_viscosity.png\n".format(guy[0],guy[0])
-        guy[1].__doc__ += "    .. |{}_bodyforce| image:: ../../underworld/function/images/{}_bodyforce.png\n".format(guy[0],guy[0])
-        guy[1].__doc__ += "    .. |{}_velocity|  image:: ../../underworld/function/images/{}_velocity.png\n".format(guy[0],guy[0])
-        guy[1].__doc__ += "    .. |{}_pressure|  image:: ../../underworld/function/images/{}_pressure.png\n".format(guy[0],guy[0])
+        guy[1].__doc__ += "    .. |{}_viscosity| image:: images/{}_viscosity.png\n".format(guy[0],guy[0])
+        guy[1].__doc__ += "    .. |{}_bodyforce| image:: images/{}_bodyforce.png\n".format(guy[0],guy[0])
+        guy[1].__doc__ += "    .. |{}_velocity|  image:: images/{}_velocity.png\n".format(guy[0],guy[0])
+        guy[1].__doc__ += "    .. |{}_pressure|  image:: images/{}_pressure.png\n".format(guy[0],guy[0])
         
         guy[1].__doc__ += """
     

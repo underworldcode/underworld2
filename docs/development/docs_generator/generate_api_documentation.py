@@ -1,10 +1,31 @@
 ignorelist = ['underworld', 'glucifer', 'json', 'os', 'libUnderworld', 'glob', 'numpy', 'sys', 'os', 'time', 'control', 'LavaVuPython', 'lavavu', 're']
 
+import os
+builddir="build"
+imagedir=os.path.join(builddir,"images")
+try:
+    os.mkdir(builddir)
+except FileExistsError:
+    pass
+try:
+    os.mkdir(imagedir)
+except FileExistsError:
+    pass
+
+# copy images in
+import shutil
+import os
+import glob
+for filename in glob.glob(os.path.join("../../../underworld/function/images/", '*.png')):
+    shutil.copy(filename, imagedir)
+
 done_mods = set()
 
 def doc_module(module, modname):
     filename = modname+'.rst'
-    print("Generating {} for module {}".format(filename,modname))
+    filepath = os.path.join(builddir,filename)
+
+    print("Generating {} for module {}".format(filepath,modname))
     import inspect
     # first gather info
     modules = {}
@@ -33,7 +54,7 @@ def doc_module(module, modname):
 
 
     # create a new file for each module
-    with open(filename, 'w') as f:
+    with open(filepath, 'w') as f:
         # write title
         title = modname + " module\n"
         f.write(title)
