@@ -79,7 +79,7 @@ RUN pip3 install -U setuptools  && \
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.5 1
 
 WORKDIR /tmp/petsc-build
-ARG PETSC_VERSION="3.11.1"
+ARG PETSC_VERSION="3.11.2"
 RUN wget http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-${PETSC_VERSION}.tar.gz && \
     tar zxf petsc-lite-${PETSC_VERSION}.tar.gz && cd petsc-${PETSC_VERSION}   && \
     ./configure --with-debugging=0 --prefix=/usr/local/petsc                     \
