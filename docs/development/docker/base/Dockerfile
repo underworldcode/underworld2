@@ -86,6 +86,8 @@ RUN wget http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-${PETSC_V
                 --COPTFLAGS="-g -O3" --CXXOPTFLAGS="-g -O3" --FOPTFLAGS="-g -O3" \
                 --with-zlib=1                   \
                 --download-fblaslapack=1        \
+                --download-ctetgen=1            \
+                --download-triangle=1           \
                 --download-hdf5=1               \
                 --download-mumps=1              \
                 --download-parmetis=1           \
