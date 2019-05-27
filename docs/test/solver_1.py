@@ -24,7 +24,7 @@ freeslip = uw.conditions.DirichletCondition(velocityField, (IWalls, JWalls))
 # We are going to make use of one of the existing analytic solutions so that we may easily
 # obtain functions for a viscosity profile and forcing terms.
 # Exact solution solCx with defaults
-sol = fn.analytic.SolCx()
+sol = fn.analytic.SolCx(eta_B=100000.)
 stokesSystem = uw.systems.Stokes(velocityField,pressureField,sol.fn_viscosity,sol.fn_bodyforce,conditions=[freeslip,])
 #Run the BSSCR Solver
 # can optionally set penalty this way

@@ -226,7 +226,7 @@ class SolCx(_SolBaseFreeSlipBc):
     """
     eqn_bodyforce = "(0,-\cos(\pi x) \sin(n_z \pi z))"
     eqn_viscosity = "\operatorname{step}(\eta_A,\eta_B,x_c; x)"
-    def __init__(self, n_z=3, eta_A=1., eta_B=100000., x_c=0.75, *args, **kwargs):
+    def __init__(self, n_z=3, eta_A=1., eta_B=1.e8, x_c=0.75, *args, **kwargs):
         if not isinstance(eta_A, float) or eta_A<=0:
             raise TypeError("'eta_A' must be a positive float." )
         if not isinstance(eta_B, float) or eta_B<=0:
