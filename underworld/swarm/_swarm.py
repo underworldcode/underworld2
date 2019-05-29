@@ -593,7 +593,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
 
         """
         orig_total_particles = self.particleGlobalCount
-        libUnderworld.StgDomain.Swarm_UpdateAllParticleOwners( self._cself );
+        libUnderworld.StgDomain.Swarm_UpdateAllParticleOwners( self._cself )
         libUnderworld.PICellerator.EscapedRoutine_RemoveFromSwarm(self._escapedRoutine, self._cself)
         new_total_particles = self.particleGlobalCount
         if (uw.mpi.rank==0) and (not self.particleEscape) and (orig_total_particles != new_total_particles):
@@ -602,5 +602,6 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
                                "`particleEscape` swarm constructor parameter to True to allow escape.")
 
 
-        libUnderworld.PICellerator.GeneralSwarm_ClearSwarmMaps( self._cself );
+        libUnderworld.PICellerator.GeneralSwarm_ClearSwarmMaps( self._cself )
+        libUnderworld.PICellerator.GeneralSwarm_DeleteIndex( self._cself )
         self._toggle_state()

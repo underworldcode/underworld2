@@ -11,6 +11,10 @@
 #ifndef __PICellerator_MaterialPoints_GeneralSwarm_h__
 #define __PICellerator_MaterialPoints_GeneralSwarm_h__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define NO_IMPORT_ARRAY
 #define PY_ARRAY_UNIQUE_SYMBOL stg_ARRAY_API
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
@@ -32,8 +36,10 @@ extern const Type GeneralSwarm_Type;
 		SwarmAdvector*                        swarmAdvector;        \
 		EscapedRoutine*                       escapedRoutine;       \
 		SwarmVariable*                        particleCoordVariable; /** Set only if a global coord system swarm. */ \
-        SwarmMap*                             previousIntSwarmMap; \
-        List*                                 intSwarmMapList;
+      SwarmMap*                             previousIntSwarmMap; \
+      List*                                 intSwarmMapList;  \
+      void*                                 index;            \
+      void*                                 index_int; 
  
 struct GeneralSwarm
 {
@@ -88,4 +94,16 @@ int GeneralSwarm_AddParticle( void* swarm, Index dim, double xI, double xJ, doub
 unsigned GeneralSwarm_IntegrationPointMap( void* _self, void* intSwarm, unsigned elementId, unsigned intPtCellId );
 
 void GeneralSwarm_ClearSwarmMaps( void* swarm ) ;
+
+#ifdef __cplusplus
+}
+#endif
+
+#ifdef __cplusplus
+extern "C++" {
+void GeneralSwarm_DeleteIndex( void* swarm );
+size_t GeneralSwarm_GetClosestParticles( void* swarm, const double* coord, int num_parts );
+}
+#endif
+
 #endif

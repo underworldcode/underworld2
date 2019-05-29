@@ -66,9 +66,7 @@ Fn::SwarmVariableFn::func Fn::SwarmVariableFn::getFunction( IOsptr sample_input 
         _output->_iotype = FunctionIO::Array;
 
 
-    const FEMCoordinate*      meshCoord = dynamic_cast<const FEMCoordinate*>(sample_input);
-    const ParticleCoordinate* partCoord = dynamic_cast<const ParticleCoordinate*>(sample_input);
-    
+    const FEMCoordinate*  meshCoord = dynamic_cast<const FEMCoordinate*>(sample_input);    
     if( meshCoord )
     {
         const ParticleInCellCoordinate* partCoord = dynamic_cast<const ParticleInCellCoordinate*>(meshCoord->localCoord());
@@ -105,7 +103,8 @@ Fn::SwarmVariableFn::func Fn::SwarmVariableFn::getFunction( IOsptr sample_input 
             return debug_dynamic_cast<const FunctionIO*>(_output);
         };
     }
-    
+
+    const ParticleCoordinate* partCoord = dynamic_cast<const ParticleCoordinate*>(sample_input);
     if (partCoord)
     {
         if (((SwarmVariable*)partCoord->object())->swarm != swarmvar->swarm)
@@ -123,17 +122,33 @@ Fn::SwarmVariableFn::func Fn::SwarmVariableFn::getFunction( IOsptr sample_input 
             return debug_dynamic_cast<const FunctionIO*>(_output);
         };
     }
-    
-    throw std::invalid_argument( _pyfnerrorheader+"Unable to evaluate function using provided input. \n"
-                                 "Note that your function is constructed using a SwarmVariable. We do not \n"
-                                 "currently support interpolation of SwarmVariables, so where you wish to \n"
-                                 "`evaluate()` a SwarmVariable based function, you may only do so using \n"
-                                 "the swarm itself as the input to the function evaluation, resulting in \n"
-                                 "evaluation at each particle location. Note also that for evaluation, \n"
-                                 "you must use the Swarm object from which the SwarmVariable was derived. \n"
-                                 "Alternatively, you may wish to project your function onto a MeshVariable \n"
-                                 "(using a MeshVariable_Projection object) and then perform interpolation \n"
-                                 "on the MeshVariable object.");
+
+    // if neither of the above worked, try plain old global coord
+    const IO_double* iodouble = dynamic_cast<const IO_double*>(sample_input);
+    if ( iodouble ){
+        if ( iodouble->size() != swarmvar->swarm->dim )
+        {
+            std::stringstream streamguy;
+            streamguy << "Function input dimensionality (" << iodouble->size() << ") ";
+            streamguy << "does not appear to match swarm variable dimensionality (" << swarmvar->swarm->dim << ").";
+            throw std::runtime_error(_pyfnerrorheader+streamguy.str());
+        }
+        return [_output,_output_sp,swarmvar,this](IOsptr input)->IOsptr {
+            const IO_double* iodouble = debug_dynamic_cast<const IO_double*>(input);
+            
+            // get nearest particle
+            size_t part_index = GeneralSwarm_GetClosestParticles( swarmvar->swarm, iodouble->data(), 1 );
+
+            // find the position into the swarmvar array we need to copy from
+            void* dataPtr = __StgVariable_GetStructPtr( swarmvar->variable, part_index );
+
+            // copy swarmvariable datum into output
+            memcpy( _output->dataRaw(), dataPtr, StgVariable_SizeOfDataType(swarmvar->variable->dataTypes[0]) * swarmvar->dofCount );
+ 
+            return debug_dynamic_cast<const FunctionIO*>(_output);
+        };
+    }
+    throw std::invalid_argument( _pyfnerrorheader+"Unable to evaluate SwarmVariable using provided input. );");
     
 }
 
