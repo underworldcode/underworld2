@@ -50,6 +50,16 @@ RUN cd underworld2/libUnderworld && \
     rm -fr .git                                                      && \
     chown -R $NB_USER:users $NB_WORK $UW2_DIR /home/$NB_USER
 
+RUN git clone https://github.com/underworldcode/UWGeodynamics.git && \
+    pip install --no-cache-dir UWGeodynamics/ && \
+    mkdir /workspace/UWGeodynamics && \
+    mv ./UWGeodynamics/examples /workspace/UWGeodynamics/. && \
+    mv ./UWGeodynamics/tutorials /workspace/UWGeodynamics/. && \
+    mv ./UWGeodynamics/benchmarks /workspace/UWGeodynamics/. && \
+    mv ./UWGeodynamics/docs /workspace/UWGeodynamics/ && \
+    rm -rf UWGeodynamics && \
+    chown -R $NB_USER:users /workspace/UWGeodynamics
+
 # expose notebook port
 EXPOSE 8888
 # expose glucifer port
