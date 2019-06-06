@@ -67,7 +67,7 @@ Fn::SwarmVariableFn::func Fn::SwarmVariableFn::getFunction( IOsptr sample_input 
 
 
     const FEMCoordinate*  meshCoord = dynamic_cast<const FEMCoordinate*>(sample_input);    
-    if( meshCoord )
+    if( meshCoord && !swarmvar->useKDTree )
     {
         const ParticleInCellCoordinate* partCoord = dynamic_cast<const ParticleInCellCoordinate*>(meshCoord->localCoord());
         if (!partCoord)

@@ -38,7 +38,8 @@
       double                                    magnitudeMin;  \
       double                                    magnitudeMax;  \
       Bool                                      useCacheMaxMin; \
-      Bool                                      addToSwarmParticleExtension;
+      Bool                                      useKDTree; \
+	  Bool                                      addToSwarmParticleExtension;
 
 	struct SwarmVariable { __SwarmVariable };	
 
