@@ -1,6 +1,19 @@
 CHANGES: Underworld2
 =======================
 
+Release 2.9.0b []
+---------------------------
+New:
+* Experimental `pip install` functionality.
+ 
+API changes:
+* `glucifer` module moved inside `underworld` and 
+   renamed `visualisation`.
+   Access as `import underworld.visualisation`
+* `GLUCIFER_USE_XVFB` -> `UW_USE_XVFB`.
+* --prefix=/SOME/DIR now installs to /SOME/DIR/underworld
+* `test_basic.py` no longer sets PYTHONPATH
+
 Release 2.8.0b [2019-07-18]
 ---------------------------
 New:

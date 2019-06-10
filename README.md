@@ -52,15 +52,12 @@ Getting Underworld2
 -------------------
 The Underworld2 Docker container is the recommended method of installation on Windows, Mac OSX and Linux. Native compilation is generally not recommended for personal computers, although may be necessary in HPC environments which do not support containerisation. 
 
-Please refer to the documentation site for further information.
-
+Please refer `Installation.rst` or our documentation site for further information.
 
 Directories
 -----------
 - **underworld**                 - Underworld python modules.
-- **glucifer**                   - gLucifer python modules.
 - **docs**                       - Various documentation.
-- **libUnderworld**              - Backend library
 
 Privacy
 -------

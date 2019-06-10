@@ -1,0 +1,118 @@
+<?xml version="1.0"?>
+<!--
+   "VaryingCornerAttractors" advection, a modification of
+   the singleAttractor, where the particles are periodically attracted
+   to the different corners, and thus end up as a tight bunch moving
+   between all processors - another extreme test to see if procs
+   can successfully pass a big tight bunch of processors to each other
+
+   - PatrickSunter - 11 May 2006
+   -->
+<StGermainData xmlns="http://www.vpac.org/StGermain/XML_IO_Handler/Jun2003">
+
+	<list name="plugins" mergeType="merge">
+		<param>StGermain_VaryingCornerAttractors</param>
+	</list>
+
+	<param name="journal.info.Context-verbose">true</param>
+	<param name="journal-level.info.Stg_ComponentFactory">0</param>
+	<param name="journal.info.Stg_ComponentFactory">False</param>
+
+	<include>testParticleCoords.xml</include>
+
+	<struct name="components" mergeType="merge">
+		<struct name="particleLayout">
+			<param name="Type">RandomParticleLayout</param>
+			<param name="cellParticleCount">8</param>
+			<param name="seed">13</param>
+		</struct>
+	</struct>
+	<param name="dim">2</param>
+	<param name="maxTimeSteps">50</param> 
+	<param name="minX">0.0</param> 
+	<param name="minY">0.0</param> 
+	<param name="minZ">0.0</param>
+	<param name="maxX">1.0</param> 
+	<param name="maxY">1.0</param>
+	<param name="maxZ">1.0</param>
+	<param name="elementResI">10</param>
+	<param name="elementResJ">10</param>
+	<param name="elementResK">10</param>
+
+<!--
+<list name="import" mergeType="merge"><param>gLucifer</param></list>
+
+	<struct name="components" mergeType="merge">
+		<struct name="camera">
+			<param name="Type">lucCamera</param>
+			<param name="coordX">0.5</param>
+			<param name="coordY">0.5</param>
+			<param name="coordZ">1.6</param>
+			<param name="focalPointX">0.5</param>
+			<param name="focalPointY">0.5</param>
+			<param name="focalPointZ">0.5</param>
+		</struct>
+		<struct name="particles">
+			<param name="Type">lucSwarmViewer</param>
+			<param name="Swarm">swarm</param>
+			<param name="pointSize">5.0</param>
+			<param name="ColourVariable">swarm-RandomColour</param>
+			<param name="ColourMap">ParticleColourMap</param>
+		</struct>	
+		<struct name="ParticleColourMap">
+			<param name="Type">lucColourMap</param>
+			<param name="colours">Red Orange Yellow Green Blue Indigo Violet</param>
+			<param name="minimum">0.0</param>
+			<param name="maximum">1.0</param>
+			<param name="dynamicRange">t</param>
+		</struct>
+		<struct name="particleDirs">
+			<param name="Type">lucSwarmVectors</param>
+			<param name="Swarm">swarm</param>
+			<param name="ColourVariable">swarm-RandomColour</param>
+			<param name="ColourMap">ParticleColourMap</param>
+			<param name="DirectionVariable">swarm-Velocity</param>
+			<param name="arrowHeadSize">0.1</param>
+			<param name="length">2</param>
+		</struct>	
+		<struct name="meshView">
+			<param name="Type">lucMeshViewer</param>
+			<param name="Mesh">mesh-linear</param>
+			<param name="colour">blue</param>	
+		</struct>	
+		<struct name="particlesViewport">
+			<param name="Type">lucViewport</param>
+			<param name="Camera">camera</param>
+			<list name="DrawingObject">
+				<param>particles</param>
+				<param>particleDirs</param>
+				<param>meshView</param>
+			</list>
+		</struct>
+		<struct name="renderingEngine">
+			<param name="Type">lucRenderingEngineGL</param>
+		</struct>
+		<struct name="imageOutput">
+			<param name="Type">lucOutputPNG</param>
+		</struct>
+		<struct name="window">
+			<param name="Type">lucDefaultWindow</param>
+			<param name="Viewport">particlesViewport</param>
+			<param name="RenderingEngine">renderingEngine</param>
+			<list name="OutputFormat">
+				<param>imageOutput</param>
+			</list>
+			<param name="height">640</param>
+			<param name="width">640</param>
+			<param name="backgroundColour">white</param>
+		</struct>
+		<struct name="movie">
+			<param name="Type">lucEncoderLibfame</param>
+			<param name="Window">window</param>
+		</struct>	
+	</struct>
+	
+	<param name="interactive">true</param>
+-->	
+
+</StGermainData>

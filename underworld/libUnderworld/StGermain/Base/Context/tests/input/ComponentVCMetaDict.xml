@@ -1,0 +1,121 @@
+<?xml version="1.0"?>
+<StGermainData xmlns="http://www.vpac.org/StGermain/XML_IO_Handler/Jun2003">
+  <element type="param" name="xml">&lt;?xml version="1.0" ?&gt;
+&lt;meta xmlns="urn:stgermainmeta-schema" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://purl.org/dc/elements/1.1/ dc.xsd http://www.w3.org/2001/XMLSchema XMLSchema.xsd urn:stgermainmeta-schema stgermainmeta.xsd"&gt;
+	&lt;info&gt;
+		&lt;dc:title&gt;
+			CompositeVC
+		&lt;/dc:title&gt;
+		&lt;dc:creator&gt;
+			VPAC
+		&lt;/dc:creator&gt;
+		&lt;dc:publisher&gt;
+			VPAC
+		&lt;/dc:publisher&gt;
+		&lt;dc:rights&gt;
+			The Gnu Lesser General Public License v2.1 - http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
+		&lt;/dc:rights&gt;
+		&lt;dc:source&gt;
+			./StGermain/Base/Automation/src/
+		&lt;/dc:source&gt;
+		&lt;dc:subject&gt;
+			StGermain
+		&lt;/dc:subject&gt;
+		&lt;dc:description&gt;
+&lt;![CDATA[
+    CompositeVC is used as a container to combine multiple variable conditions.
+]]&gt;		&lt;/dc:description&gt;
+	&lt;/info&gt;
+	&lt;code&gt;
+		&lt;xsd:annotation&gt;
+			&lt;xsd:documentation/&gt;
+			&lt;xsd:appinfo&gt;
+&lt;![CDATA[
+    Refer to ./StgFEM/Apps/StokesMomentumUzawa/lidDrivenBCs.xml
+]]&gt;			&lt;/xsd:appinfo&gt;
+		&lt;/xsd:annotation&gt;
+		&lt;inherits&gt;
+			VariableCondition
+		&lt;/inherits&gt;
+	&lt;/code&gt;
+	&lt;implements&gt;
+		&lt;reference/&gt;
+		&lt;equation/&gt;
+	&lt;/implements&gt;
+	&lt;parameters&gt;
+		&lt;xsd:element default="self-&amp;gt;name" name="vcName" type="xsd:string"&gt;
+			&lt;xsd:annotation&gt;
+				&lt;xsd:documentation&gt;
+&lt;![CDATA[
+        Deprecated; should not be used.
+      ]]&gt;				&lt;/xsd:documentation&gt;
+			&lt;/xsd:annotation&gt;
+		&lt;/xsd:element&gt;
+		&lt;xsd:element default="" name="vcList" type="stg:list"&gt;
+			&lt;xsd:annotation&gt;
+				&lt;xsd:documentation&gt;
+&lt;![CDATA[
+        A list of other VariableCondition definitions.
+      ]]&gt;				&lt;/xsd:documentation&gt;
+			&lt;/xsd:annotation&gt;
+		&lt;/xsd:element&gt;
+	&lt;/parameters&gt;
+	&lt;associations&gt;
+		&lt;xsd:element name="Data" nillable="true" type="Stg_Component"&gt;
+			&lt;xsd:annotation&gt;
+				&lt;xsd:documentation&gt;
+&lt;![CDATA[
+        User defined data in the form of a Stg_Component.
+      ]]&gt;				&lt;/xsd:documentation&gt;
+			&lt;/xsd:annotation&gt;
+		&lt;/xsd:element&gt;
+	&lt;/associations&gt;
+&lt;/meta&gt;
+</element>
+  <element type="struct" name="info">
+    <element type="param" name="title">CompositeVC</element>
+    <element type="param" name="creator">VPAC</element>
+    <element type="param" name="publisher">VPAC</element>
+    <element type="param" name="rights">The Gnu Lesser General Public License v2.1 - http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html</element>
+    <element type="param" name="source">./StGermain/Base/Automation/src/</element>
+    <element type="param" name="subject">StGermain</element>
+    <element type="param" name="description">
+    CompositeVC is used as a container to combine multiple variable conditions.
+</element>
+  </element>
+  <element type="struct" name="code">
+    <element type="param" name="example-code">
+    Refer to ./StgFEM/Apps/StokesMomentumUzawa/lidDrivenBCs.xml
+</element>
+    <element type="param" name="inherits">VariableCondition</element>
+  </element>
+  <element type="struct" name="implements"/>
+  <element type="struct" name="parameters">
+    <element type="struct" name="vcName">
+      <element type="param" name="name">vcName</element>
+      <element type="param" name="type">xsd:string</element>
+      <element type="param" name="default">self-&gt;name</element>
+      <element type="param" name="documentation">
+        Deprecated; should not be used.
+      </element>
+    </element>
+    <element type="struct" name="vcList">
+      <element type="param" name="name">vcList</element>
+      <element type="param" name="type">stg:list</element>
+      <element type="param" name="default"></element>
+      <element type="param" name="documentation">
+        A list of other VariableCondition definitions.
+      </element>
+    </element>
+  </element>
+  <element type="struct" name="associations">
+    <element type="struct" name="Data">
+      <element type="param" name="name">Data</element>
+      <element type="param" name="type">Stg_Component</element>
+      <element type="param" name="nillable">true</element>
+      <element type="param" name="documentation">
+        User defined data in the form of a Stg_Component.
+      </element>
+    </element>
+  </element>
+</StGermainData>

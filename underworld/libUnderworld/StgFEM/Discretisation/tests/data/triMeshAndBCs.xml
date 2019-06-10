@@ -1,0 +1,359 @@
+<?xml version="1.0"?>
+<!DOCTYPE StGermainData SYSTEM "stgermain.dtd">
+<!-- A StGermain input file -->
+<!-- DTD to validate against -->
+<StGermainData xmlns="http://www.vpac.org/StGermain/XML_IO_Handler/Jun2003">
+	
+	<!-- using an <asciidata> tag without specifying syntax:- will read in
+	according to the data structure already defined in the code, or else just
+	add as a set of strings-->
+	<list name="imElementNeighbours">
+		<list>
+			<param> 0 </param>
+			<param> 5 </param>
+			<param> 4 </param>
+		</list>
+		<list>
+			<param> 0 </param>
+			<param> 1 </param>
+			<param> 5 </param>
+		</list>
+		<list>
+			<param> 1 </param>
+			<param> 2 </param>
+			<param> 5 </param>
+		</list>
+		<list>
+			<param> 2 </param>
+			<param> 6 </param>
+			<param> 5 </param>
+		</list>
+		<list>
+			<param> 2 </param>
+			<param> 3 </param>
+			<param> 6 </param>
+		</list>
+		<list>
+			<param> 3 </param>
+			<param> 7 </param>
+			<param> 6 </param>
+		</list>
+
+		<list>
+			<param> 4 </param>
+			<param> 5 </param>
+			<param> 8 </param>
+		</list>
+		<list>
+			<param> 5 </param>
+			<param> 9 </param>
+			<param> 8 </param>
+		</list>
+		<list>
+			<param> 5 </param>
+			<param> 6 </param>
+			<param> 9 </param>
+		</list>
+		<list>
+			<param> 6 </param>
+			<param> 10 </param>
+			<param> 9 </param>
+		</list>
+		<list>
+			<param> 6 </param>
+			<param> 7 </param>
+			<param> 10 </param>
+		</list>
+		<list>
+			<param> 7 </param>
+			<param> 11 </param>
+			<param> 10 </param>
+		</list>
+
+		<list>
+			<param> 8 </param>
+			<param> 9 </param>
+			<param> 12 </param>
+		</list>
+		<list>
+			<param> 9 </param>
+			<param> 13 </param>
+			<param> 12 </param>
+		</list>
+		<list>
+			<param> 9 </param>
+			<param> 10 </param>
+			<param> 13 </param>
+		</list>
+		<list>
+			<param> 10 </param>
+			<param> 14 </param>
+			<param> 13 </param>
+		</list>
+		<list>
+			<param> 10 </param>
+			<param> 15 </param>
+			<param> 14 </param>
+		</list>
+		<list>
+			<param> 10 </param>
+			<param> 11 </param>
+			<param> 15 </param>
+		</list>
+	</list>
+	
+	
+	<list name="imNodeNeighbours">
+		<list>
+			<param> 0 </param>
+			<param> 5 </param>
+			<param> 4 </param>
+		</list>
+		<list>
+			<param> 0 </param>
+			<param> 1 </param>
+			<param> 5 </param>
+		</list>
+		<list>
+			<param> 1 </param>
+			<param> 2 </param>
+			<param> 5 </param>
+		</list>
+		<list>
+			<param> 2 </param>
+			<param> 6 </param>
+			<param> 5 </param>
+		</list>
+		
+		<list>
+			<param> 2 </param>
+			<param> 3 </param>
+			<param> 6 </param>
+		</list>
+		<list>
+			<param> 3 </param>
+			<param> 7 </param>
+			<param> 6 </param>
+		</list>
+		<list>
+			<param> 4 </param>
+			<param> 5 </param>
+			<param> 8 </param>
+		</list>
+		<list>
+			<param> 5 </param>
+			<param> 9 </param>
+			<param> 8 </param>
+		</list>
+		
+		<list>
+			<param> 5 </param>
+			<param> 6 </param>
+			<param> 9 </param>
+		</list>
+		<list>
+			<param> 6 </param>
+			<param> 10 </param>
+			<param> 9 </param>
+		</list>
+		<list>
+			<param> 6 </param>
+			<param> 7 </param>
+			<param> 10 </param>
+		</list>
+		<list>
+			<param> 7 </param>
+			<param> 11 </param>
+			<param> 10 </param>
+		</list>
+
+		<list>
+			<param> 8 </param>
+			<param> 9 </param>
+			<param> 12 </param>
+		</list>
+		<list>
+			<param> 9 </param>
+			<param> 13 </param>
+			<param> 12 </param>
+		</list>
+		<list>
+			<param> 9 </param>
+			<param> 10 </param>
+			<param> 13 </param>
+		</list>
+		<list>
+			<param> 10 </param>
+			<param> 14 </param>
+			<param> 13 </param>
+		</list>
+	</list>
+	
+	
+	<list name="imGeometry">
+		<asciidata>
+			<columnDefinition name="x" type="double"/>
+			<columnDefinition name="y" type="double"/>
+			<columnDefinition name="z" type="double"/>
+0.0 0.0 0.0
+33.3333333333333333 0.0 0.0 
+66.6666666666666666 0.0 0.0
+100.0 0.0 0.0
+
+0.0 66.6666666666666666 0.0
+33.3333333333333333 66.6666666666666666 0.0 
+66.6666666666666666 66.6666666666666666 0.0
+100.0 66.6666666666666666 0.0
+
+0.0 133.3333333333333333 0.0
+33.3333333333333333 133.3333333333333333 0.0 
+66.6666666666666666 133.3333333333333333 0.0
+100.0 133.3333333333333333 0.0
+
+0.0 200.0 0.0
+33.3333333333333333 200.0 0.0 
+66.6666666666666666 200.0 0.0
+100.0 200.0 0.0
+		</asciidata>
+	</list>
+
+	<!-- with types -->
+	<struct name="imElements">
+		<param name="elementCornerCount"> 3 </param>
+		<list name="elementList">
+			<list>
+				<param> 0 </param>
+				<param> 5 </param>
+				<param> 4 </param>
+			</list>
+			<list>
+				<param> 0 </param>
+				<param> 1 </param>
+				<param> 5 </param>
+			</list>
+			<list>
+				<param> 1 </param>
+				<param> 2 </param>
+				<param> 5 </param>
+			</list>
+			<list>
+				<param> 2 </param>
+				<param> 6 </param>
+				<param> 5 </param>
+			</list>
+			<list>
+				<param> 2 </param>
+				<param> 3 </param>
+				<param> 6 </param>
+			</list>
+			<list>
+				<param> 3 </param>
+				<param> 7 </param>
+				<param> 6 </param>
+			</list>
+
+			<list>
+				<param> 4 </param>
+				<param> 5 </param>
+				<param> 8 </param>
+			</list>
+			<list>
+				<param> 5 </param>
+				<param> 9 </param>
+				<param> 8 </param>
+			</list>
+			<list>
+				<param> 5 </param>
+				<param> 6 </param>
+				<param> 9 </param>
+			</list>
+			<list>
+				<param> 6 </param>
+				<param> 10 </param>
+				<param> 9 </param>
+			</list>
+			<list>
+				<param> 6 </param>
+				<param> 7 </param>
+				<param> 10 </param>
+			</list>
+			<list>
+				<param> 7 </param>
+				<param> 11 </param>
+				<param> 10 </param>
+			</list>
+
+			<list>
+				<param> 8 </param>
+				<param> 9 </param>
+				<param> 12 </param>
+			</list>
+			<list>
+				<param> 9 </param>
+				<param> 13 </param>
+				<param> 12 </param>
+			</list>
+			<list>
+				<param> 9 </param>
+				<param> 10 </param>
+				<param> 13 </param>
+			</list>
+			<list>
+				<param> 10 </param>
+				<param> 14 </param>
+				<param> 13 </param>
+			</list>
+			<list>
+				<param> 10 </param>
+				<param> 15 </param>
+				<param> 14 </param>
+			</list>
+			<list>
+				<param> 10 </param>
+				<param> 11 </param>
+				<param> 15 </param>
+			</list>
+		</list>
+	</struct>
+
+	<!-- set up bcs -->
+	<struct name="bcs">
+		<param name="type">CompositeVC</param>
+		<list name="vcList">
+			<struct>
+				<param name="type">SetVC</param>
+				<list name="variables">
+					<struct>
+						<param name="name">temp</param>
+						<param name="type">double</param>
+						<param name="value">1.0</param>
+					</struct>
+				</list>
+				<param name="indexCount">16</param>
+				<list name="indices">
+					<param>0</param>
+					<param>1</param>
+					<param>2</param>
+					<param>3</param>
+				</list>
+			</struct>
+			<struct>
+				<param name="type">SetVC</param>
+				<list name="variables">
+					<struct>
+						<param name="name">temp</param>
+						<param name="type">double</param>
+						<param name="value">0.0</param>
+					</struct>
+				</list>
+				<param name="indexCount">16</param>
+				<list name="indices">
+					<param>12</param>
+					<param>13</param>
+					<param>14</param>
+					<param>15</param>
+				</list>
+			</struct>
+		</list>
+	</struct>
+</StGermainData>

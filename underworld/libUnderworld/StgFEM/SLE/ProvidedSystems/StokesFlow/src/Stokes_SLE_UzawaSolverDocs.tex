@@ -1,0 +1,227 @@
+\documentclass[a4paper]{article}
+\usepackage{alltt,amsmath,pifont}
+\usepackage{amssymb,multicol}
+\usepackage{subfigure,epsfig,wrapfig}
+
+% For Algorithms
+%\usepackage{algorithmicx}
+\usepackage{algpseudocode}
+%\usepackage{algpascal}
+%\usepackage{algc}
+\usepackage[ruled]{algorithm}
+
+
+% page layout
+\evensidemargin=0.0in
+\oddsidemargin=0.0in
+\setlength{\textheight}{220mm}
+\setlength{\textwidth}{160mm}
+\setlength{\columnsep}{6.5mm}
+\setlength{\hoffset}{0.0mm}
+\addtolength{\voffset}{-5.0mm}
+
+% shortcuts
+\newcommand{\bs}[1]{\boldsymbol{#1}}				% boldsymbol
+\newcommand{\pc}{\mbox{${\boldsymbol Q}_{\hat K}$}}	% preconditioner
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+%\alglanguage{pseudocode}
+
+\begin{center}
+{\bf \LARGE{An Iterative Saddle Point Solver for Symmetric Problems}}\\
+\vspace{4.0mm}
+{\Large David A. May } \\
+{\small Louis Moresi}\\
+\vspace{4.0mm}
+{\large School of Mathematical Sciences\\
+Monash University } \\
+\vspace{2.0mm}
+{\it Last revised on Jan 20, 2006} \\
+\end{center}
+
+
+\section{Introduction}
+Written in block matrix form, we seek to solve
+\begin{equation}
+\left( \begin{array}{cc}
+ {\boldsymbol K}   & {\boldsymbol G} \\
+ {\boldsymbol D}     & {\boldsymbol M}
+\end{array} \right)
+\left( \begin{array}{c}
+{\boldsymbol u} \\
+{\boldsymbol q}
+\end{array} \right)
+= \left( \begin{array}{c}
+{\boldsymbol f} \\
+{\boldsymbol h}
+\end{array} \right),
+\label{saddle}
+\end{equation}
+%%
+where ${\boldsymbol K}$ is symmetric and positive definite. Systems such as \eqref{saddle} arise in the discretisation of the Stokes equations. In the context of fluid dynamics  ${\boldsymbol K}$ is the discrete stress tensor, ${\boldsymbol u} = ( u_0, v_0, w_0, u_1, v_1, w_1, \dots )^T $ is the vector discrete velocities and ${\boldsymbol q} = (q_0, q_1, \dots)^T$ contains the discrete pressure-like unknowns. ${\boldsymbol G} = \left(  G_x, G_y, G_z  \right)^T $ is the discrete gradient operator and ${\boldsymbol D} = \left(  D_x , D_y , D_z  \right)$ is the discrete divergence operator. In the problem we consider, $ {\boldsymbol D} =  {\boldsymbol G}^T$. 
+Furthermore, the matrix ${\boldsymbol M}$ can also be identically equal to the zero matrix. The algorithms we consider are valid should ${\boldsymbol M}={\boldsymbol 0}$. Standard mixed Galerkin finite element formulations of the Stokes equation generate a symmetric, positive definite ${\boldsymbol K}$. An aside regarding our choice of terminology: in the case where ${\boldsymbol M}={\boldsymbol 0}$, ${\boldsymbol q}$ corresponds to the pressure, but in the general (compressible) formulation the pressure consists of ${\boldsymbol q}$ plus a contribution from the (non-zero trace of the) strain-rate tensor.
+
+\section{Conjugate Gradient Solver}
+
+Much attention has been focused on the solution of \eqref{saddle} when ${\boldsymbol K}$ is symmetric. \cite{atanga} \cite{ramage} \cite{moresi} In this case, the proposed solution consists of a two-level pressure corrected Uzawa scheme. The method decouples the variables ${\boldsymbol u}$ and ${\boldsymbol q}$ by re-writing \eqref{saddle} as
+\begin{equation}
+	\left( {\boldsymbol G^T} {\boldsymbol K}^{-1} {\boldsymbol G} - {\boldsymbol M} \right) {\boldsymbol q}  =
+	{\boldsymbol G^T} {\boldsymbol K}^{-1} {\boldsymbol f} - {\boldsymbol h}
+\label{decouple1}
+\end{equation}
+which we represent by 
+\begin{equation}
+\widehat{{\boldsymbol K}} {\boldsymbol  q}  = \widehat{ {\boldsymbol  f}}. 
+\label{decouple2}
+\end{equation}
+and then a standard preconditioned conjugate gradient algorithm is applied to this transformed problem. It should be noted that the algorithm is constructed in a manner which avoids the need to explicitly calculate ${\boldsymbol K}^{-1}$. This algorithm is described below.
+
+
+\newpage
+
+\section{Uzawa based PCG}
+The following algorithm derives from the standard preconditioned conjugate gradient (PCG) scheme. The solution utilises a preconditioner $\pc \approx \widehat{\boldsymbol K}$ to solve \eqref{decouple2} and requires that an initial guess for $q_0$ be provided. The guess can always be $\boldsymbol q_0 = 0$ or it can come from the previous timestep . A maximum number of allowable iterations $k_{\textrm{Max}}$ is placed on the iterative scheme and a convergence tolerance of $\epsilon << 1$ is set.
+
+\begin{algorithm}
+\caption{Preconditioned Conjugate Gradient Based Uzawa Scheme. Assume that  ${\boldsymbol q}_0$ is the pressure solution from the previous timestep or
+the zero vector if this is the first time. \label{PCG_alg}}
+\begin{algorithmic}[1]
+%	\State ${\boldsymbol q}_0 = {\boldsymbol 0}$		% initialise vector
+	\State ${\boldsymbol u}_0 = {\boldsymbol K}^{-1} \left( {\boldsymbol f} - {\boldsymbol G}{\boldsymbol q}_0 \right)$
+	\Comment{solve for initial velocity}
+	%	
+	\State ${\boldsymbol r}_0 = { \boldsymbol G}^T {\boldsymbol u}_0 + {\boldsymbol M}{\boldsymbol q}_0 - {\boldsymbol h}$  	% calculate initial residual
+	\Comment{calculate the residual}
+	%
+	\State $k=1$		
+	\Comment{initialise iteration counter}
+	\For{$k=1,2, \dots$}
+		\State $\pc {\boldsymbol  z}_{k-1} = {\boldsymbol r}_{k-1}$ 		
+		\Comment{solve for ${\boldsymbol z}_{k-1}$}
+		\If{$k=1$}
+			\State ${\boldsymbol s}_1 = {\boldsymbol z}_0$
+			\Comment{set the initial pressure search direction}
+		\Else{ }
+			\State $\beta = \dfrac{{\boldsymbol z}_{k-1}^T {\boldsymbol r}_{k-1}}{{\boldsymbol z}_{k-2}^T {\boldsymbol r}_{k-2}}$
+			\State ${\boldsymbol s}_k ={\boldsymbol  r}_{k-1} + \beta {\boldsymbol s}_{k-1}$
+			\Comment{set the pressure search direction}			
+		\EndIf
+		\State ${\boldsymbol u}^* = {\boldsymbol K} ^{-1}{\boldsymbol G}{\boldsymbol s}_k$ \label{u_star}	
+		\Comment{solve for the velocity search direction ${\boldsymbol u}^*$}
+		%
+		\State Note that: ${\boldsymbol G}^T {\boldsymbol u}^* = {\boldsymbol G}^T {\boldsymbol K}^{-1} {\boldsymbol G} {\boldsymbol s}_k$	
+		%\Comment{Form $\widehat{\bs K} \bs s_k$}
+		%
+		\State $\alpha:
+			= \dfrac{   {\boldsymbol  z}_{k-1}^T  {\boldsymbol r}_{k-1}    } {   {\boldsymbol  s}_{k}^T \widehat{\bs K} \bs s_k }
+			=\dfrac{   {\boldsymbol  z}_{k-1}^T  {\boldsymbol r}_{k-1}    } {   {\boldsymbol  s}_{k}^T    \left(   {\boldsymbol G}^T {\boldsymbol u}^* - {\boldsymbol M} {\boldsymbol s}_{k}    \right) }$
+		\Comment{set step length}
+		%
+		\State ${\boldsymbol q}_k = {\boldsymbol q}_{k-1} + \alpha {\boldsymbol s}_k$ \label{q_update}
+		\Comment{update pressure}
+		%
+		\State ${\boldsymbol u}_k = {\boldsymbol u}_{k-1} - \alpha {\boldsymbol u}^*$ \label{v_update}
+		\Comment{update velocity}
+		%
+		\State ${\boldsymbol r}_k = {\boldsymbol r}_{k-1} - \alpha \left( {\boldsymbol G}^T{\boldsymbol u}^* - {\boldsymbol M}{\boldsymbol s}_k   \right)$ \label{formal_residual}		
+		\Comment{update residual}
+		%
+		\State $k = k +1$ 
+		\State Check for convergence. Continue if necessary.
+	\EndFor
+\end{algorithmic}
+\end{algorithm}
+
+
+\section{Notes}
+\begin{itemize}
+	\item The solution of ``inner'' systems like ${\boldsymbol K} u^* = {\boldsymbol G} \bar q$ and ${\boldsymbol K} v^* = {\boldsymbol G} \bar a$ need to be obtained to the full accuracy required for the ``outer'' system. This means that the efficiency of this inner solver is critical to the time scaling behaviour of the algorithm as a whole and warrants proper attention. 	
+%%
+The vectors $u^*$ and $v^*$
+%% and those with overbars %% aren't any ??!
+are auxillary variables which are reused during each iteration cycle. The history of these vectors' values from the previous iterations is not required. Vectors which are required in later iterations have a subscript $k$. 
+	\item The formal residual $\bs r_{k}$ (line \ref{formal_residual}) is equivalent to the residual $\bs r_{k} = \widehat{\bs f} - \widehat{\bs K} \bs q_{k}$.   %% Templates, pg. 15. ??
+	\item The term $\alpha {\bs s}_k$ in line \ref{q_update} is a pressure correction, $\Delta \bs q$. The velocity update (line \ref{v_update}) comes from considering the change in solution between the momentum equation at iterations
+	$k$ and $k-1$. If we subtract the momentum equations at we get
+	\begin{align}
+		&\bs K \bs u_k + \bs G \bs q_k - \bs K \bs u_{k-1} + \bs G \bs q_{k-1} = \bs f_k - \bs f_{k-1}	\\
+		&\bs K \left( \bs u_k - \bs u_{k-1} \right) + \bs G \left( \bs q_k - \bs q_{k-1} \right) = 0 
+	\end{align}
+	thus
+	$$
+		\bs u_k = \bs u_{k-1} - \bs K^{-1} \bs G \Delta \bs q.
+	$$
+	In the update of the velocity, we use $\alpha {\boldsymbol u}^*$ as the velocity increment as we have that ${\boldsymbol u}^* = {\boldsymbol K} ^{-1}{\boldsymbol G}{\boldsymbol s}_k$ from line \ref{u_star}.
+\end{itemize}
+
+
+
+\subsection{Preconditioner}
+In the above, $\pc$ is the preconditioning matrix. In its simplest form we could set the preconditioner to be the identity matrix
+\begin{equation*}
+	\pc = {\boldsymbol I }.
+\end{equation*}
+With this preconditioner the algorithm reverts back to the standard conjugate gradient algorithm.
+
+The preconditioner which we use is given by
+\begin{equation}
+	\pc
+		=  {\boldsymbol G}^T \medspace \left[ \text{diag} ( {\boldsymbol K}) \right]^{-1}  \medspace  {\boldsymbol G} 
+		\approx  \widehat{  {\boldsymbol  K }  }
+	\label{pc1}
+\end{equation}
+a simpler version might be to use only the diagonal part of the above result. Thus
+\begin{equation}
+ \pc  =   \text{diag}\left(   
+  	{\boldsymbol G}^T \medspace \left[ \text{diag} ( {\boldsymbol K}) \right]^{-1}  \medspace  {\boldsymbol G} - \bs M
+	\right)
+\label{pc2}
+\end{equation}
+
+In the case of the finite element method, if the pressure space is discontinuous, then the preconditioners above can
+be constructed element-by-element. Thus 
+\begin{equation}
+	 \pc =  \mathop{      \text{ {\huge A} }       }_{e=1}^{n_e}   \left( \bs Q ^e \right)
+\end{equation}
+where $\bs Q^e$ is
+\begin{equation}
+	\bs Q^e
+	= ( {\boldsymbol g^e})^T \medspace \left[ \text{diag} ( {\boldsymbol k^e}) \right]^{-1}  \medspace  {\boldsymbol g^e} 
+\end{equation}
+To make $\pc$ trival to invert, we could make the element preconditioner $\bs Q^e$
+\begin{equation}
+	\bs Q^e
+	= \text{diag} \left[ ( {\boldsymbol g^e})^T \medspace \left[ \text{diag} ( {\boldsymbol k^e}) \right]^{-1}  \medspace  {\boldsymbol g^e}  \right]
+\end{equation}
+to make $\pc$ diagonal.
+
+It should be noted the following element-by-element variations of the preconditioner will not work. Those which involve computing
+either the inverse or ``lumped'' form of ${\boldsymbol k^e}$. This is entirely due to the nature of the finite element method. The 
+individual element stiffness matrices are ill posed without the presence of the boundary conditions. Removal of the degrees of freedoms
+which have boundary conditions applied could alleviate this problem (yet to be tried). It should also be pointed out that the
+preconditioners \eqref{pc1} and \eqref{pc2} are equivalent when the billinear-constant velcoity pressure shape function combination is used.
+This is a result of $ {\boldsymbol g^e}$ being a vector since each element $e$ has only one pressure degree of freedom which is not coupled to another pressure 
+degrees of freedom.
+
+
+%-------------------------------------------------
+%-------------------------------------------------
+%     REFERNCES
+%-------------------------------------------------
+%-------------------------------------------------
+
+
+\begin{thebibliography}{5000}
+\bibitem{atanga} Atanga J. \& Silvester D., {\it Iterative methods for stabilized mixed velocity-pressure finite elements.},
+	Int. J. Num. Meth. Fluids. {\bf 14}, (1992), pp 71-81.
+\bibitem{ramage} Ramage A. \& Wathen J., {\it Iterative solution techniques for the stokes and navier-stokes equations.}, 
+	Int. J. Num. Meth. Fluids. {\bf 19}, (1994), pp 67-83.		
+\bibitem{moresi} Moresi L. \& Solomatov V.S., {\it Numerical investigations of 2D convection in a fluid with extremely large viscosity variations.},
+	Phys. Fluids. {\bf 7}, (1995), pp 2154-2162.
+\end{thebibliography}
+
+
+\end{document}
+

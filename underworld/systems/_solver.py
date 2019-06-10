@@ -9,9 +9,9 @@
 import underworld as uw
 import underworld._stgermain as _stgermain
 from . import sle
-import libUnderworld
-from libUnderworld import petsc
-from libUnderworld import Solvers
+import underworld.libUnderworld as libUnderworld
+from underworld.libUnderworld import petsc
+from underworld.libUnderworld import Solvers
 from . import _bsscr
 from . import _energy_solver
 

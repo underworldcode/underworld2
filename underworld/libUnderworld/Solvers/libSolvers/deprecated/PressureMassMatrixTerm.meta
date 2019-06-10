@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!DOCTYPE StGermainData SYSTEM "stgermain.dtd">
+<StGermainData xmlns="http://www.vpac.org/StGermain/XML_IO_Handler/Jun2003">
+
+<param name="Name">PressMassMatrixTerm</param>
+<param name="Author">Mirko Velic</param>
+<param name="Organisation">Auscope</param>
+<param name="Project">Solvers</param>
+<param name="Location"></param>
+<param name="Project Web"></param>
+<param name="Copyright"></param>
+<param name="License">The Gnu Lesser General Public License v2.1 - http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html</param>
+<param name="Parent">StiffnessMatrixTerm</param>
+<param name="Reference"></param>
+<param name="Summary"></param>
+<param name="Description"></param>
+
+
+</StGermainData>

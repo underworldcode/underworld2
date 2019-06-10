@@ -1,0 +1,14 @@
+****************    Test Eigenvector 3   *********************
+3D Case -tested on 3/11/04, against: 
+http://www.arndt-bruenner.de/mathe/scripts/engl_eigenwert.htm
+Matrix to solve for eigenvectors is:
+symmTensor - 
+      2           7          11     
+      7           3          13     
+     11          13           5     
+eigenvectorList[0].eigenvalue = -9.9685
+eigenvectorList[1].eigenvalue = -4.4597
+eigenvectorList[2].eigenvalue = 24.428
+eigenvectorList[0].vector = { 0.3641, 0.55398, -0.74869 }
+eigenvectorList[1].vector = { 0.78647, -0.61348, -0.071456 }
+eigenvectorList[2].vector = { 0.49889, 0.56281, 0.65906 }

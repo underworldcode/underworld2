@@ -166,9 +166,9 @@ RUN git clone -b development https://github.com/underworldcode/UWGeodynamics.git
     mv ./UWGeodynamics/docs       $NB_WORK/UWGeodynamics/  && \
     rm -rf UWGeodynamics
 
-# environment variable will internally run xvfb when glucifer is imported,
-# see /opt/underworld2/glucifer/__init__.py
-ENV GLUCIFER_USE_XVFB 1
+# environment variable will internally run xvfb when uw.visualisation is imported,
+# see /opt/underworld2/visualisation/__init__.py
+ENV UW_USE_XVFB 1
 
 WORKDIR $NB_WORK
 

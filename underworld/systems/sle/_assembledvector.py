@@ -8,7 +8,7 @@
 ##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
 import underworld as uw
 import underworld._stgermain as _stgermain
-import libUnderworld
+import underworld.libUnderworld as libUnderworld
 from ._svector import SolutionVector
 
 class AssembledVector(SolutionVector):

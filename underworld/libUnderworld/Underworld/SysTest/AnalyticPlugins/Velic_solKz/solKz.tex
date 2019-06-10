@@ -1,0 +1,30 @@
+\documentclass{article}
+\usepackage{rotating}
+\usepackage{epsfig}
+\usepackage{sidecap}
+\usepackage{bm}
+\oddsidemargin=-1cm
+\evensidemargin=1cm
+\textwidth=17cm
+
+\topmargin=-1.0cm
+\textheight=23.5cm
+\parindent=0cm
+
+\newcommand\fontB{\usefont{T1}{phvv}{b}{n}}
+\DeclareTextFontCommand{\textfontB}{\fontB}
+
+
+\begin{document}
+  \begin{center} 
+    {\Large \fontB Stokes' Flow Analytic Solution: (solKz)}
+  \end{center}
+  
+  \input ../Doc/eqs_common.tex
+
+  \input solKz_main.tex
+   
+
+\end{document}
+
+

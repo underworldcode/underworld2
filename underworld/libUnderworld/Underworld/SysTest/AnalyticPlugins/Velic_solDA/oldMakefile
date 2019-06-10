@@ -1,0 +1,20 @@
+solDA:solDA.o
+	gcc -Wall -o solDA solDA.c -lm
+pdf:doc
+	dvipdf -f solDA > solDA.pdf
+ps:doc
+	dvips -f solDA > solDA.ps
+doc:
+	latex solDA
+	latex solDA
+clean:
+	rm -f *.o
+	rm -f *~
+	rm -f *.aux *.dvi *.log
+vclean:
+	rm -f solDA solDA.o solDA.ps solDA.pdf
+	rm -f *~
+	rm -f *.aux *.dvi *.log
+solDA.o: solDA.c
+
+

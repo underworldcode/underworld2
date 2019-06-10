@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!DOCTYPE StGermainData SYSTEM "stgermain.dtd">
+
+<StGermainData xmlns="http://www.vpac.org/StGermain/XML_IO_Handler/Jun2003">
+ 	
+   <list name="import" mergeType="merge">
+      <param>gLucifer</param>
+   </list>
+
+	<struct name="components" mergeType="merge">
+		<struct name="database">
+			<param name="Type">lucDatabase</param>
+			<param name="Context">context</param>
+		</struct>
+		<struct name="window">
+			<param name="Type">lucWindow</param>
+			<param name="Database">database</param>
+		</struct>
+	</struct>
+
+</StGermainData>

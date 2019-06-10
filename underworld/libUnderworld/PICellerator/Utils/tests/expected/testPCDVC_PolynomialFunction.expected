@@ -1,0 +1,8 @@
+0.001000 0.0092
+0.001000 0.0022
+#the above numbers are
+#first line
+# mean tolerance for the relative mean and the relative mean itself
+#second line
+# mean std dev tolerance and the expected std dev
+

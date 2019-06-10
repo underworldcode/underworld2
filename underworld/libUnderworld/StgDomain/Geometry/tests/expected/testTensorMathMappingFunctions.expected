@@ -1,0 +1,73 @@
+****************************************
+Test Mapping functions
+
+2-D
+The full tensor:
+tensorArray - 
+    0.5          10     
+     20          30     
+The tensor Mapping using enumerated types:
+tensorArray[FT2D_00] = 0.5
+tensorArray[FT2D_01] = 10
+ ---
+tensorArray[FT2D_10] = 20
+tensorArray[FT2D_11] = 30
+The symmetric tensor:
+symmTensor - 
+     40          60     
+     60          50     
+The symmetric tensor Mapping using enumerated types:
+symmTensor[ST2D_00] = 40
+symmTensor[ST2D_01] = 60
+ ---
+symmTensor[ST2D_11] = 50
+Test Mapping functions for Full Tensor using TensorArray_TensorMap
+
+(0,0): 0  = 0  (0,1): 1  = 1
+(1,0): 2  = 2  (1,1): 3  = 3
+Test Mapping functions for Symmetric Tensor using SymmetricTensor_TensorMap
+
+(0,0): 0  = 0  (0,1): 2  = 2
+(1,0): 2  = 2  (1,1): 1  = 1
+3-D
+The full tensor:
+tensorArray - 
+      0           1           2     
+      3           4           5     
+      6           7           8     
+The tensor Mapping using enumerated types:
+tensorArray[FT3D_00] = 0
+tensorArray[FT3D_01] = 1
+tensorArray[FT3D_02] = 2
+ ---
+tensorArray[FT3D_10] = 3
+tensorArray[FT3D_11] = 4
+tensorArray[FT3D_12] = 5
+ ---
+tensorArray[FT3D_20] = 6
+tensorArray[FT3D_21] = 7
+tensorArray[FT3D_22] = 8
+The symmetric tensor:
+symmTensor - 
+     90         120         130     
+    120         100         140     
+    130         140         110     
+The symmetric tensor Mapping using enumerated types:
+symmTensor[ST3D_00] = 90
+symmTensor[ST3D_01] = 120
+symmTensor[ST3D_02] = 130
+ ---
+symmTensor[ST3D_11] = 100
+symmTensor[ST3D_12] = 140
+ ---
+symmTensor[ST3D_22] = 110
+Test Mapping functions for Full Tensor using TensorArray_TensorMap
+
+(0,0): 0  = 0  (0,1): 1  = 1  (0,2): 2  = 2
+(1,0): 3  = 3  (1,1): 4  = 4  (1,2): 5  = 5
+(2,0): 6  = 6  (2,1): 7  = 7  (2,2): 8  = 8
+Test Mapping functions for Symmetric Tensor using SymmetricTensor_TensorMap
+
+(0,0): 0  = 0  (0,1): 3  = 3  (0,2): 4  = 4
+(1,0): 3  = 3  (1,1): 1  = 1  (1,2): 5  = 5
+(2,0): 4  = 4  (2,1): 5  = 5  (2,2): 2  = 2

@@ -1,4 +1,4 @@
-ignorelist = ['underworld', 'glucifer', 'json', 'os', 'libUnderworld', 'glob', 'numpy', 'sys', 'os', 'time', 'control', 'LavaVuPython', 'lavavu', 're']
+ignorelist = ['underworld', 'json', 'os', 'libUnderworld', 'glob', 'numpy', 'sys', 'os', 'time', 'control', 'LavaVuPython', 'lavavu', 're']
 
 import os
 builddir="build"
@@ -143,6 +143,3 @@ def doc_module(module, modname):
 
 import underworld
 doc_module(underworld, 'underworld')
-
-import glucifer
-doc_module(glucifer, 'glucifer')

@@ -9,10 +9,10 @@
 import underworld as uw
 import underworld._stgermain as _stgermain
 import underworld.mesh as mesh
-import libUnderworld.libUnderworldPy.Function as _cfn
+import underworld.libUnderworld.libUnderworldPy.Function as _cfn
 from . import _assembledvector
 from . import _assembledmatrix
-import libUnderworld
+import underworld.libUnderworld as libUnderworld
 
 class AssemblyTerm(_stgermain.StgCompoundComponent):
     _objectsDict = { "_assemblyterm": None }

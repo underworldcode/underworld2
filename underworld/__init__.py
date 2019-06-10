@@ -59,8 +59,11 @@ import ctypes as _ctypes
 _oldflags = _sys.getdlopenflags()
 _sys.setdlopenflags( _oldflags | _ctypes.RTLD_GLOBAL )
 
-__version__ = "2.9.0-dev"
+from ._version import __version__
 
+# insert directory for binaries in python search path
+import os as _os
+_sys.path.append(_os.path.join(__file__[:-11],'lib'))
 # squelch h5py/numpy future warnings
 import warnings as _warnings
 _warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -69,28 +72,11 @@ _warnings.simplefilter(action='ignore', category=FutureWarning)
 _warnings.filterwarnings("ignore", message="numpy.dtype size changed")
 _warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
 
-# DEPRECATE
-# let's check PYTHONPATH includes path to lib directory, as this will probably
-# catch people out.
-import os as _os
-from pathlib import Path as _Path
-_results = 0
-if "PYTHONPATH" in _os.environ:
-    for _dir in _os.environ["PYTHONPATH"].split(":"):
-        for _result in _Path(_dir).glob("_StGermain.*"):
-            if _result:
-                _results+=1
-    if _results < 1:
-        raise RuntimeError("Unable to find required libraries.\n"
-                    "Note that your PYTHONPATH must now also indicate "
-                    "the directory containing the required compiled "
-                    "libraries. For example, `your_uw_directory/libUnderworld/build/lib`.")
-
 import sys as _sys
 from . import timing
-import libUnderworld
+from . import libUnderworld as _libUnderworld
 from . import _stgermain
-_data =  libUnderworld.StGermain_Tools.StgInit( _sys.argv )
+_data =  _libUnderworld.StGermain_Tools.StgInit( _sys.argv )
 _stgermain.LoadModules( {"import":["StgDomain","StgFEM","PICellerator","Underworld","gLucifer","Solvers"]} )
 
 class _del_uw_class:
@@ -115,7 +101,7 @@ class _del_uw_class:
        except:
            pass
 
-_delclassinstance = _del_uw_class(libUnderworld.StGermain_Tools.StgFinalise, _data)
+_delclassinstance = _del_uw_class(_libUnderworld.StGermain_Tools.StgFinalise, _data)
 
 def _set_init_sig_as_sig(mod):
     '''
@@ -254,7 +240,7 @@ if isinstance(underworld.mpi.size, int) and underworld.mpi.size > 1:
         sys.stdout.flush()
         sys.stderr.flush()
         time.sleep(1) # give all procs a chance to write outputs  
-        libUnderworld.StGermain_Tools.StgAbort( _data )
+        _libUnderworld.StGermain_Tools.StgAbort( _data )
     _sys.excepthook = _uw_uncaught_exception_handler
 
 def _prepend_message_to_exception(e, message):

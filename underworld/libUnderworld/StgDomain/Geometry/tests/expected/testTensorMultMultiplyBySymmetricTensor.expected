@@ -1,0 +1,26 @@
+*******************    Test 9   ************************
+Test function TensorArray_MultiplyBySymmetricTensor 
+
+Solutions tested against: http://www.uni-bonn.de/~manfear/matrixcalc.php2-D
+tensorArray - 
+      1           2     
+      3           4     
+symmTensor - 
+      5           6     
+      6           7     
+tensorResult - 
+     17          20     
+     39          46     
+3-D
+tensorArray - 
+      1           2           3     
+      4           5           6     
+      7           8           9     
+symmTensor - 
+     10          11          12     
+     11          13          14     
+     12          14          15     
+tensorResult - 
+     68          79          85     
+    167         193         208     
+    266         307         331     

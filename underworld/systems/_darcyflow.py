@@ -9,7 +9,7 @@
 import underworld as uw
 import underworld._stgermain as _stgermain
 from . import sle
-import libUnderworld
+import underworld.libUnderworld as libUnderworld
 import numpy
 
 class SteadyStateDarcyFlow(_stgermain.StgCompoundComponent):

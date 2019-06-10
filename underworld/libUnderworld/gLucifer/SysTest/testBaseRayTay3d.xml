@@ -1,0 +1,122 @@
+<!--	Rayleigh-Taylor app input file -->
+<!--	Rayleigh-Taylor convection benchmark as detailed in
+		P.E. van Keken et al, 'A comparison of methods for 
+		the modelling of thermochemical convection', JGR, 1997	-->
+
+<!-- DTD to validate against -->
+<StGermainData xmlns="http://www.vpac.org/StGermain/XML_IO_Handler/Jun2003">
+
+	<list name="import">
+  		<param> Underworld </param>
+  		<param> gLucifer </param>
+	</list>
+
+	<include>Underworld/BaseApps/RayleighTaylor.xml</include>
+
+	<list name="plugins" mergeType="merge">
+		<struct>
+			<param name="Type">StgFEM_FrequentOutput</param>
+			<param name="Context">context</param>
+		</struct>
+		<struct>
+			<param name="Type">Underworld_Vrms</param>
+			<param name="Context">context</param>
+			<param name="GaussSwarm">gaussSwarm</param>
+			<param name="VelocityField">VelocityField</param>
+		</struct>
+		<struct>
+			<param name="Type">StgFEM_CPUTime</param>
+			<param name="Context">context</param>
+		</struct>
+	</list>
+
+	<struct name="components" mergeType="merge">
+		<struct name="context">
+			<param name="Type">UnderworldContext</param>
+		</struct>
+		<struct name="backgroundViscosity">
+			<param name="Type">MaterialViscosity</param>
+			<param name="eta0">1.0</param>
+		</struct>
+		<struct name="backgroundShape">
+			<param name="Type">Everywhere</param>
+		</struct>	
+		<struct name="background">
+			<param name="Type">RheologyMaterial</param>
+			<param name="Shape">backgroundShape</param>
+			<param name="density">1.0</param>
+			<param name="Rheology">backgroundViscosity</param>
+		</struct>
+		<struct name="lightLayerShape">
+			<param name="Type">BelowCosinePlane</param>
+			<param name="offset">0.2</param>
+			<param name="amplitude">0.02</param>
+			<param name="wavelength"> 1.8284 </param>
+			<param name="phase"> 0.0 </param>
+		</struct>		
+		<struct name="lightLayerViscosity">
+			<param name="Type">MaterialViscosity</param>
+			<param name="eta0">1.0</param>
+		</struct>
+		<struct name="lightLayer">
+			<param name="Type">RheologyMaterial</param>
+			<param name="Shape">lightLayerShape</param>
+			<param name="density">0.0</param>
+			<param name="Rheology">lightLayerViscosity</param>
+		</struct>
+	</struct>
+
+	<param name="journal.info.Context-verbose">true</param>
+	<param name="journal.debug">f</param>
+	<param name="journal-level.info.Stg_ComponentFactory">2</param>
+	<param name="journal-enable-branch.debug.StgFEM">f</param>
+	<param name="journal-level-branch.debug.StgFEM"> 2 </param>
+	<param name="journal-enable-branch.debug.Swarm">f</param>
+	<param name="journal-level-branch.debug.Swarm"> 2 </param>
+
+	<!-- general simulation parameters -->
+	<param name="maxTimeSteps"> 10 </param>
+	<param name="dumpEvery"> 1 </param>
+	<param name="outputPath"> ./output/ </param>
+	<param name="gravity"> 1.0 </param>
+	<param name="checkpointEvery"> 0 </param>
+	<param name="visualOnly"> 0 </param>
+
+	<!--   choose what to checkpoint
+	<list name="FieldVariablesToCheckpoint">
+		<param>VelocityField</param>
+		<param>VelocityGradientsField</param>
+	</list>
+	-->
+
+	<!-- general decomposition parameters -->
+	<param name="dim"> 3 </param>
+	<!-- mesh parameters -->
+	<param name="elementResI"> 8 </param>
+	<param name="elementResJ"> 8 </param>
+	<param name="elementResK"> 8 </param>
+
+	<param name="shadowDepth"> 1 </param>
+	<param name="minX"> 0.0 </param>
+	<param name="minY"> 0.0 </param>
+	<param name="minZ"> 0.0 </param>
+	<param name="maxX"> 0.9142 </param>
+	<param name="maxY"> 1.0 </param>
+	<param name="maxZ"> 1.0 </param>
+	<param name="allowUnbalancing"> True </param>
+	<param name="buildElementNodeTbl"> True </param>
+	
+	<!-- gauss integration point swarm parameters -->
+
+	<!-- Swarm parameters -->
+	<param name="particleLayoutType"> random </param>
+	<param name="particlesPerCell"> 20 </param>
+	<param name="seed"> 13 </param>
+
+	<!-- Boundary conditions -->
+	<include>Underworld/VariableConditions/velocityBCs.freeslipSides.xml</include>
+
+	
+	<param name="CentroidMaterial">ball</param>
+
+</StGermainData>	

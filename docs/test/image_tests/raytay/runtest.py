@@ -4,7 +4,7 @@ import numpy as np
 import underworld as uw
 import math
 from underworld import function as fn
-import glucifer
+import underworld.visualisation as vis
 import os
 
 # Setup parameters for Rayleigh Taylor Benchmark
@@ -69,8 +69,8 @@ materialVariable.data[:] = fn.branching.conditional( conditions ).evaluate(swarm
 
 
 # **Plot the particles by material**
-fig1 = glucifer.Figure(figsize=(250,250), margin=0)
-fig1.append( glucifer.objects.Points(swarm, materialVariable, pointSize=2, colourBar=False) )
+fig1 = vis.Figure(figsize=(250,250), margin=0)
+fig1.append( vis.objects.Points(swarm, materialVariable, pointSize=2, colourBar=False) )
 
 # Here we set a density of '0.' for the lightMaterial, and '1.' for the heavymaterial.
 densityMap   = { lightIndex:0., denseIndex:1. }
@@ -171,6 +171,6 @@ doOutput()
 
 #Check the image results
 if uw.mpi.rank == 0:
-    lv = glucifer.lavavu.Viewer(quality=1)
+    lv = vis.lavavu.Viewer(quality=1)
     lv.testimages(tolerance=1e-3)
 

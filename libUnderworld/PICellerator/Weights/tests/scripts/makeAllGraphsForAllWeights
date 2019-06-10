@@ -1,6 +1,0 @@
-#!/bin/bash
-
-for weights in ConstantWeights MomentBalanceWeights IterativeWeights DiscreteVoronoiWeights IterativeVoronoiWeights ; do
-	echo "Creating all graphs for weights routine ${weights}"
-	./makeAllGraphs $weights
-done

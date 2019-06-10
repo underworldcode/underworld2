@@ -10,11 +10,11 @@ import underworld as uw
 import underworld._stgermain as _stgermain
 import underworld.mesh as mesh
 import numpy as np
-import libUnderworld
+import underworld.libUnderworld as libUnderworld
 from . import _swarmabstract as sab
 from . import _swarm
 import underworld.function as function
-import libUnderworld.libUnderworldPy.Function as _cfn
+import underworld.libUnderworld.libUnderworldPy.Function as _cfn
 from mpi4py import MPI
 import h5py
 import os

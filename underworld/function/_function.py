@@ -13,7 +13,7 @@ function construction capabilities.
 """
 
 import underworld
-import libUnderworld.libUnderworldPy.Function as _cfn
+import underworld.libUnderworld.libUnderworldPy.Function as _cfn
 from abc import ABCMeta,abstractmethod
 import numpy as np
 import weakref

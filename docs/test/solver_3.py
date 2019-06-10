@@ -44,7 +44,7 @@ solver.options.main.restore_K=True
 solver.solve()
 stats=solver.get_stats()
 solver.print_stats()
-from libUnderworld import petsc
+from underworld.libUnderworld import petsc
 petsc.OptionsPrint()
 
 def check():

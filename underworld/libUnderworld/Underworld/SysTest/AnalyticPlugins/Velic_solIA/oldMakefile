@@ -1,0 +1,20 @@
+solIA:solIA.o
+	gcc -Wall -o solIA solIA.c -lm
+pdf:doc
+	dvipdf -f solIA > solIA.pdf
+ps:doc
+	dvips -f solIA > solIA.ps
+doc:
+	latex solIA
+	latex solIA
+clean:
+	rm -f *.o
+	rm -f *~
+	rm -f *.aux *.dvi *.log
+vclean:
+	rm -f solIA solIA.o solIA.ps solIA.pdf
+	rm -f *~
+	rm -f *.aux *.dvi *.log
+solIA.o: solIA.c
+
+

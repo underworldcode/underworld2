@@ -11,7 +11,7 @@ This module includes functions which provide views into the results of
 function queries.  These functions never modify query data. 
 """
 
-import libUnderworld.libUnderworldPy.Function as _cfn
+import underworld.libUnderworld.libUnderworldPy.Function as _cfn
 from . import _function
 
 class min_max(_function.Function):

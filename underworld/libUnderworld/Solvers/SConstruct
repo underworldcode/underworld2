@@ -1,0 +1,89 @@
+import sys, os, subprocess
+
+EnsureSConsVersion(0, 98)
+
+#
+# CUSTOMISE THE ENVIRONMENT HERE.
+#
+
+env = Environment(ENV=os.environ,
+                  tools=['default', 'pcutest', 'stg', 'dist'],
+                  toolpath=['script'])
+
+# Needed for Darwin.
+env['_abspath'] = lambda x: File(x).abspath
+
+# Ludicrous-speed!
+env.Decider("MD5-timestamp")
+
+# Load configuration.
+values = {}
+execfile("config.cfg", globals(), values)
+env._dict.update(values)
+
+# Need to manipulate the build directory to keep SCons happy. Because of SCons' target
+# rules we need to make the build directory a default target.
+env["build_dir"] = os.path.join(env.GetLaunchDir(), env["build_dir"])
+env["prefix"] = os.path.join(env.GetLaunchDir(), env["prefix"])
+env["INST_BUILD_DIR"] = env["build_dir"]
+env["INST_PREFIX"] = env["prefix"]
+env.Default(env["build_dir"])
+
+# Scan command line targets to see if the user has specified any directories
+# they want singled out to be built alone.<
+env['dir_target'] = ARGUMENTS.get('target', '')
+if len(env['dir_target']) and env['dir_target'][-1] == os.path.sep:
+    env['dir_target'] = env['dir_target'][:-1]
+
+# Add the build directory's include path.
+env.AppendUnique(CPPPATH=env['build_dir'] + '/include')
+
+# Need to define the extension for shared libraries as well
+# as the library directory.
+ext = env['ESCAPE']('"' + env['SHLIBSUFFIX'][1:] + '"')
+lib_dir = env['ESCAPE']('"' + os.path.abspath(env['build_dir']) + '/lib' + '"')
+env.AppendUnique(CPPDEFINES=[('MODULE_EXT', ext), ('LIB_DIR', lib_dir)])
+
+# Include the library path.
+env.AppendUnique(LIBPATH=env['build_dir'] + '/lib')
+env.AppendUnique(RPATH=env.Dir(env['build_dir'] + '/lib').abspath)
+
+# If we have no shared libraries, include a pre-processor definition to
+# prevent modules from trying to load dynamically.
+if not env['shared_libs']:
+    env.AppendUnique(CPPDEFINES=['NOSHARED', 'SINGLE_EXE'])
+
+# Need to extract some kind of hg version number.
+subp = subprocess.Popen("hg identify",
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        shell=True)
+out, err = subp.communicate()
+res = subp.wait()
+if res:
+    print "Failed to extract hg revision number."
+    hg_ver = 'unknown'
+else:
+    hg_ver = out.split()[0].strip()
+env.AppendUnique(CPPDEFINES=[("VERSION", env["ESCAPE"]('"' + hg_ver + '"'))])
+
+# Need to insert some 'HAVE_*' definitions based on what packages we
+# found during configuration.
+if 'HAVE_HDF5' in env['CPPDEFINES']:
+    env.AppendUnique(CPPDEFINES=["READ_HDF5", "WRITE_HDF5"])
+
+#
+# Make sure 'install' has a proper target.
+#
+
+env.Alias("install", env["prefix"])
+
+#
+# INSERT TARGETS HERE.
+#
+
+Export('env')
+
+SConscript('SConscript',
+           variant_dir=env['build_dir'] + '/Solvers',
+           duplicate=0)

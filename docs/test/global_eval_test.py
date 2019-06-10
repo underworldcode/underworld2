@@ -16,9 +16,9 @@ uw.libUnderworld.StgFEM._FeVariable_SyncShadowValues( var._cself )
 
 # In[12]:
 
-# import glucifer
-# fig = glucifer.Figure()
-# fig.append(glucifer.objects.Surface(mesh,var[0]))
+# import underworld.visualisation as vis
+# fig = vis.Figure()
+# fig.append(vis.objects.Surface(mesh,var[0]))
 # fig.show()
 
 

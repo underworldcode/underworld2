@@ -1,0 +1,20 @@
+solCA:solCA.o
+	gcc -Wall -o solCA solCA.c -lm
+pdf:doc
+	dvipdf -f solCA > solCA.pdf
+ps:doc
+	dvips -f solCA > solCA.ps
+doc:
+	latex solCA
+	latex solCA
+clean:
+	rm -f *.o
+	rm -f *~
+	rm -f *.aux *.dvi *.log
+vclean:
+	rm -f solCA solCA.o solCA.ps solCA.pdf
+	rm -f *~
+	rm -f *.aux *.dvi *.log
+solCA.o: solCA.c
+
+

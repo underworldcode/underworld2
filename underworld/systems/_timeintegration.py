@@ -8,7 +8,7 @@
 ##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
 import underworld as uw
 import underworld._stgermain as _stgermain
-import libUnderworld
+import underworld.libUnderworld as libUnderworld
 
 class TimeIntegration(_stgermain.StgCompoundComponent):
     """

@@ -36,6 +36,7 @@ Example
 >>> uw.timing.stop()
 >>> # uw.print_table()   # This will print the data.
 >>>                      # Commented out as not doctest friendly.
+>>> del os.environ["UW_ENABLE_TIMING"]  # remove to prevent timing for future doctests
 
 '''
 

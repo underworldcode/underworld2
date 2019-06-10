@@ -30,8 +30,8 @@ RUN cd $UW2_TMP/libUnderworld && \
     env > build_environment.txt       && \
     cd /tmp                           && \
     rm -rf *                          && \
-    python3 -c "import underworld"     && \
-    python3 -c "import glucifer"       && \
+    python3 -c "import underworld"    && \
+    python3 -c "import underworld.visualisation"       && \
     chown -R $NB_USER:users $UW2_DIR
 
 # clone UWGeodynamics, install 
@@ -45,13 +45,13 @@ RUN git clone -b development https://github.com/underworldcode/UWGeodynamics.git
     rm -rf UWGeodynamics                                   && \
     chown -R $NB_USER:users $NB_WORK/UWGeodynamics
 
-# expose glucifer port
+# expose vis port
 EXPOSE 9999
 
 # DISABLE FOLLOWING. We've reverted xvfb via entrypoint.
-# environment variable will internally run xvfb when glucifer is imported,
-# see /opt/underworld2/glucifer/__init__.py
-# ENV GLUCIFER_USE_XVFB 1
+# environment variable will internally run xvfb when uw.visualisation is imported,
+# see /opt/underworld2/visualisation/__init__.py
+# ENV UW_USE_XVFB 1
 
 USER $NB_USER
 WORKDIR $NB_WORK

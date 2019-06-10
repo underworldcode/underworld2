@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+<!DOCTYPE StGermainData SYSTEM "stgermain.dtd">
+
+<StGermainData xmlns="http://www.vpac.org/StGermain/XML_IO_Handler/Jun2003">
+	
+	<include>StgFEM/LinearMesh.xml</include>
+	<include>StgFEM/VelocityField.xml</include>
+	<include>StgFEM/TimeIntegrator.xml</include>
+	
+	<struct name="components" mergeType="merge">
+		<struct name="everywhere">
+			<param name="Type">Everywhere</param>
+		</struct>
+		<struct name="material">
+			<param name="Type">Material</param>
+			<param name="Shape">everywhere</param>
+		</struct>
+		<struct name="elementCellLayout">
+			<param name="Type">ElementCellLayout</param>
+			<param name="Mesh">linearMesh</param>
+		</struct>
+		<struct name="localLayout">
+			<param name="Type">MappedParticleLayout</param>
+		</struct>
+		<struct name="integrationSwarm">
+			<param name="Type">IntegrationPointsSwarm</param>
+			<param name="CellLayout">elementCellLayout</param>
+			<param name="ParticleLayout">localLayout</param>
+			<param name="FeMesh">linearMesh</param>
+			<param name="WeightsCalculator">weights</param>
+			<param name="TimeIntegrator">timeIntegrator</param>
+			<param name="IntegrationPointMapper">mapper</param>
+			
+			<param name="VelocityField">VelocityField</param>
+		</struct>
+		<struct name="mapper">
+			<param name="Type">CoincidentMapper</param>
+			<param name="IntegrationPointsSwarm">integrationSwarm</param>
+			<param name="MaterialPointsSwarm">materialPoints</param>
+		</struct>
+		<struct name="particleLayout">
+			<param name="Type">RandomParticleLayout</param>
+			<param name="cellParticleCount">particleCount</param>
+		</struct>
+		<struct name="pMovementHandler"> 
+			<param name="Type">ParticleMovementHandler</param>
+		</struct>
+		<struct name="materialPoints">
+			<param name="Type">MaterialPointsSwarm</param>
+			<param name="CellLayout">elementCellLayout</param>
+			<param name="ParticleLayout">particleLayout</param>
+			<param name="FeMesh">linearMesh</param>
+			<list name="ParticleCommHandlers">
+				<param>pMovementHandler</param>
+			</list>
+		</struct>
+	</struct>
+	
+	<param name="dim"> 2 </param>
+	<param name="particleCount"> 20 </param>
+
+	<param name="maxTimeSteps"> 1 </param>
+	<param name="dumpEvery"> 1 </param>
+	<param name="outputPath"> ./output </param>
+
+	<!-- Mesh Stuff -->
+	<param name="elementResI"> 2 </param>
+	<param name="elementResJ"> 2 </param>
+	<param name="elementResK"> 1 </param>
+	
+	<param name="shadowDepth"> 1 </param>
+	<param name="minX"> 0.0 </param>
+	<param name="minY"> 0.0 </param>
+	<param name="minZ"> 0.0 </param>
+	<param name="maxX"> 4.0 </param>
+	<param name="maxY"> 4.0 </param>
+	<param name="maxZ"> 1.0 </param>
+	<param name="allowUnbalancing"> True </param>
+	<param name="buildElementNodeTbl"> True </param>
+	
+</StGermainData>

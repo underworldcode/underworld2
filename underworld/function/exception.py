@@ -12,7 +12,7 @@ are encountered during function evaluations. Exception functions never modify
 query data.
 """
 
-import libUnderworld.libUnderworldPy.Function as _cfn
+import underworld.libUnderworld.libUnderworldPy.Function as _cfn
 from ._function import Function as _Function
 
 class SafeMaths(_Function):

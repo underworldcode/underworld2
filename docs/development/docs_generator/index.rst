@@ -28,8 +28,7 @@ Underworld is an open-source project.
     Installation <Installation>
     User Guide <UserGuide>
 
-    API Reference: Underworld <build/underworld>
-    API Reference: Glucifer <build/glucifer>
+    Underworld API Reference <build/underworld>
 
     UW2 Github  <https://github.com/underworldcode/underworld2>
     UW2 Website <http://www.underworldcode.org>

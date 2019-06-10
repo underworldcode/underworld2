@@ -1,0 +1,6 @@
+StGermain Framework revision 4190. Copyright (C) 2003-2005 VPAC.
+StGermain Domain Library revision 3. Copyright (C) 2003-2007 VPAC.
+StGermain FEM Discretisation Framework revision 962. Copyright (C) 2003-2005 VPAC.
+   Running test 'interpolation'... passed
+   Running test 'save and load'... passed
+   Running test 'integration'... passed

@@ -1,0 +1,20 @@
+solG:solG.o
+	gcc -Wall -o solG solG.c -lm
+pdf:doc
+	dvipdf -f solG > solG.pdf
+ps:doc
+	dvips -f solG > solG.ps
+doc:
+	latex solG
+	latex solG
+clean:
+	rm -f *.o
+	rm -f *~
+	rm -f *.aux *.dvi *.log
+vclean:
+	rm -f solG solG.o solG.ps solG.pdf
+	rm -f *~
+	rm -f *.aux *.dvi *.log
+solG.o: solG.c
+
+

@@ -1,8 +1,0 @@
-Error: resource ./StGermain/Base/IO/input/WrongNS.xml of the wrong type, unknown namespace wasn't expected value of http://www.vpac.org/StGermain/XML_IO_Handler/Jun2003.
-
-
------------------------------STGERMAIN-ERROR-----------------------------
-Error: File ./StGermain/Base/IO/input/WrongNS.xml is empty or either its namespace or root node is invalid.
--------------------------------------------------------------------------
-
-
