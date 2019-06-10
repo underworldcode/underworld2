@@ -1,9 +1,0 @@
-#!/bin/bash
-
-weights=$1
-
-for function in ConstantFunction LinearFunction ShapeFunction PolynomialFunction QuadraticFunction ExponentialFunction ExponentialInterface CircleInterface ; do
-	echo "Creating Graph for function $function and weights routine ${weights}"
-	./makeGraph ./test${weights}.xml --FunctionName=$function
-	mv output/graph.dat graphs/$function-$weights.dat
-done

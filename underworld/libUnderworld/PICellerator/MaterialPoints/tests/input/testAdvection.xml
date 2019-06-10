@@ -1,0 +1,115 @@
+<?xml version="1.0"?>
+<!DOCTYPE StGermainData SYSTEM "stgermain.dtd">
+
+<StGermainData xmlns="http://www.vpac.org/StGermain/XML_IO_Handler/Jun2003">
+	
+	<include>StgFEM/LinearMesh.xml</include>
+	<include>StgFEM/VelocityField.xml</include>
+	<include>StgFEM/TimeIntegrator.xml</include>
+
+	<param name="timeIntegratorOrder">1</param>
+	
+	<struct name="components" mergeType="merge">
+		<struct name="everywhere">
+			<param name="Type">Everywhere</param>
+		</struct>
+		<struct name="genericMaterial">
+			<param name="Type">Material</param>
+			<param name="Shape">everywhere</param>
+		</struct>
+		<struct name="elementCellLayout">
+			<param name="Type">ElementCellLayout</param>
+			<param name="Mesh">linearMesh</param>
+		</struct>
+		<struct name="particleShape">
+			<param name="Type">Sphere</param>
+			<param name="radius">1.00</param> 
+			<param name="CentreX">0.0</param> 
+			<param name="CentreY">0.0</param> 
+			<param name="CentreZ">0.0</param> 
+		</struct>		
+		<struct name="particleLayout">
+			<param name="Type">WithinShapeParticleLayout</param>
+			<param name="shape">particleShape</param>
+			<param name="totalInitialParticles">4000</param>
+		</struct>
+		<struct name="weights">
+			<param name="Type">ConstantWeights</param>
+		</struct>	
+		<struct name="pMovementHandler"> 
+			<param name="Type">ParticleMovementHandler</param>
+		</struct>		
+		<struct name="materialPointsSwarm">
+			<param name="Type">MaterialPointsSwarm</param>
+			<param name="CellLayout">elementCellLayout</param>
+			<param name="ParticleLayout">particleLayout</param>
+			<param name="FeMesh">linearMesh</param>
+			<param name="WeightsCalculator">weights</param>
+			<param name="TimeIntegrator">timeIntegrator</param>
+			<list name="ParticleCommHandlers">
+				<param>pMovementHandler</param>
+			</list>
+
+		</struct>
+		<struct name="materialPointsAdvector">
+			<param name="Type">SwarmAdvector</param>
+			<param name="Swarm">materialPointsSwarm</param>
+			<param name="TimeIntegrator">timeIntegrator</param>
+			<param name="VelocityField">VelocityField</param>
+		</struct>		
+	</struct>
+
+	<list name="plugins" mergeType="merge">
+		<struct>
+			<param name="Type">StgFEM_StandardConditionFunctions</param>
+			<param name="Context">context</param>
+		</struct>
+	</list>
+	
+	<param name="journal.info.Context-verbose">f</param>
+	<param name="journal-level.info.Stg_ComponentFactory"> 0 </param>
+	<param name="journal.info.lucInfo">f</param>
+	<param name="journal-level.info.lucInfo"> 2 </param>
+	<param name="journal.debug">f</param>
+	<param name="journal-enable-branch.debug.StgFEM">f</param>
+	<param name="journal-level-branch.debug.StgFEM"> 0 </param>
+
+	<param name="maxTimeSteps"> 10 </param>
+	<param name="dumpEvery"> 1 </param>
+	<param name="outputPath"> ./output </param>
+	<param name="dim"> 2 </param>
+	
+	<!-- Mesh Stuff -->
+	<param name="elementResI"> 20 </param>
+	<param name="elementResJ"> 20 </param>
+	<param name="elementResK"> 1 </param>
+	
+	<param name="shadowDepth"> 1 </param>
+	<!-- Need to allow a little space for error, esp. in the euler case -->
+	<param name="minX"> -1.1 </param>
+	<param name="minY"> -1.1 </param>
+	<param name="minZ"> -1.1 </param>
+	<param name="maxX"> 1.1 </param>
+	<param name="maxY"> 1.1 </param>
+	<param name="maxZ"> 1.1 </param>
+	<param name="allowUnbalancing"> True </param>
+	<param name="buildElementNodeTbl"> True </param>
+	
+	<struct name="velocityICs" mergeType="replace">
+		<param name="type">CompositeVC</param>
+		<list name="vcList">
+			<struct>
+				<param name="type"> AllNodesVC </param>
+				<list name="variables">
+					<struct>
+						<param name="name">velocity</param>
+						<param name="type">func</param>
+						<param name="value"> Velocity_SolidBodyRotation </param>
+					</struct>
+				</list>
+					
+			</struct>
+		</list>
+	</struct>
+
+</StGermainData>

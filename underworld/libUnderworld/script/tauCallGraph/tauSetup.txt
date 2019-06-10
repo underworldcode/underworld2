@@ -1,0 +1,53 @@
+Setting up tau with Underworld.
+
+1: Get tau:
+   wget http://tau.uoregon.edu/tau.tgz
+2: To configure tau
+   ./configure -prefix=$HOME/opt/tau -mpi -mpilib=$HOME/$MPI_DIR/lib -mpiinc=$HOME/$MPI_DIR/include -bfd=download -LINUXTIMERS -PROFILE -PROFILECALLPATH -COMPENSATE
+3: make and install
+
+4: set environment variables
+   set TAU_MAKEFILE to the Makefile created by the tau install in the tau lib installation directory
+
+5: make sure tau_cc.sh is in your $PATH
+
+6: Configure Underworld with debugging off (suggested but not necessary)
+   ./configure.py --with-debugging=0
+
+7: before compiling with scons, edit the config.cfg file to look like e.g.
+   i.e. Note the CC and CFLAGS options; everything else is left as-is from configure.py
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+prefix = '/home/MirkoVelic/stgUnderworld_tau'
+build_dir = 'build'
+with_debugging = 0
+with_warnings = 1
+lib_type = 'shared'
+CC = 'tau_cc.sh -g -optCompInst'
+CFLAGS = ['-O3', '-Wall']
+with_glucifer = 1
+with_experimental = True
+with_spmodel = False
+with_osmesa = 1
+with_sdl = 1
+with_x11 = 1
+with_carbon = 1
+with_png = 1
+with_jpeg = 1
+with_fame = 1
+eptiming = 0
+with_cautious_mode = 0
+CPPPATH = ['/usr/include/libxml2', '/home/MirkoVelic/mpich2-opt/include', '/usr/include/GL', '/home/MirkoVelic/petsc2-opt/include', '/home/MirkoVelic/petsc2-opt/bmake/linux-gnu-c-debug']
+LIBPATH = ['/home/MirkoVelic/mpich2-opt/lib', '/home/MirkoVelic/petsc2-opt/lib', '/home/MirkoVelic/petsc2-opt/lib/linux-gnu-c-debug', '/home/MirkoVelic/MC2/petsc-2.3.3-p15/externalpackages/hypre-2.0.0/linux-gnu-c-debug/lib', '/home/MirkoVelic/MC2/petsc-2.3.3-p15/externalpackages/ml-5.0/linux-gnu-c-debug/lib']
+RPATH = ['/home/MirkoVelic/mpich2-opt/lib', '/home/MirkoVelic/petsc2-opt/lib', '/home/MirkoVelic/petsc2-opt/lib/linux-gnu-c-debug']
+LIBS = ['petscsnes', 'petscksp', 'petscdm', 'petscmat', 'petscvec', 'petsc', 'fame', 'jpeg', 'png', 'OSMesa', 'GLU', 'mpich', 'rt', 'xml2', 'X11', 'HYPRE', 'mpichcxx', 'stdc++', 'ml', 'lapack', 'blas']
+CPPDEFINES = ['NDEBUG', 'HAVE_LIBXML2', 'HAVE_MPI', 'HAVE_GL', 'HAVE_OSMESA', 'HAVE_LIBPNG', 'HAVE_LIBJPEG', 'HAVE_LIBFAME', 'HAVE_PETSC']
+CFLAGS = []
+CCFLAGS = ['-O3', '-Wall']
+FRAMEWORKS = []
+shared_libs = 1
+static_libs = 0
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+
+8: Run a tau profiled Underworld job on an xml to profile the code for that run.
+   This will create a profile.N.0.0 for each cpu (N=0,1,2,...) for a parallel job.
+

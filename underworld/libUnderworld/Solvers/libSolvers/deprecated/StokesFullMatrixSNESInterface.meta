@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<!DOCTYPE StGermainData SYSTEM "stgermain.dtd">
+<StGermainData xmlns="http://www.vpac.org/StGermain/XML_IO_Handler/Jun2003">
+
+<param name="Name">StokesFullMatrixSNESInterface</param>
+<param name="Author">Mirko Velic</param>
+<param name="Organisation">Auscope</param>
+<param name="Project">Solvers</param>
+<param name="Location">Solvers/KSPSolvers/src</param>
+<param name="Project Web"></param>
+<param name="Copyright">Copyright (C) 2010 Auscope</param>
+<param name="License">The Gnu Lesser General Public License v2.1 - http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html</param>
+<param name="Parent">SLE_Solver</param>
+<param name="Reference">...</param>
+<param name="Summary">...</param>
+<param name="Description">
+	<![CDATA[
+            Provides a SNES interface for a full matrix system constructed from sub matrices
+            provided from Underworld.
+	]]>
+</param>
+
+<list name="Dependencies">
+	<struct>
+		<param name="Name">      Preconditioner  </param>
+		<param name="Type">      StiffnessMatrix </param>
+		<param name="Essential"> No              </param>
+		<param name="Description"> Not used here yet.</param>
+	</struct>
+</list>
+
+<!-- Add an example XML if possible -->
+
+  <struct name="components" mergeType="merge">
+
+     <!-- Assuming the stokesEqn struct is already exists with the usual uzawa solver by default -->
+     <!-- Don't build the uzawa solver -->
+     <struct name="uzawa" mergeType="replace">
+         <param name="Type"> DummyComponent </param>
+     </struct>
+
+     <struct name="snesfullinterface" mergeType="replace">
+         <param name="Type">StokesFullMatrixSNESInterface</param>
+         <param name="Preconditioner">preconditioner</param>
+     </struct>
+
+     <!-- Assuming the stokesEqn struct is already exists -->
+     <struct name="stokesEqn" mergeType="merge">
+         <param name="SLE_Solver" mergeType="replace">snesfullinterface</param>
+     </struct>
+
+  </struct>
+
+</StGermainData>

@@ -1,0 +1,22 @@
+CstreamSuite_TestPrintf() {
+   Stream_Printf( myStream, "Blah Blah Blah\n" );
+   Stream_Printf( myStream, "Integer:%d\n", integer );
+   Stream_Printf( myStream, "Float:%f\n", floatValue );
+   Stream_Printf( myStream, "Char:%c\n", 's' );
+   Stream_Printf( myStream, "String:%s\n", "myString" );
+   Stream_Printf( myStream, "Double:%lf\n", 0.88 );
+}
+
+
+CStreamSuite_TestIndent() {
+   Stream_Printf( debugStream, "1 " );
+   Stream_Indent( debugStream );
+   Stream_Printf( debugStream, "\n2 " );
+   Stream_Printf( debugStream, "3 \n" );
+   Stream_UnIndent( debugStream );
+}
+
+CStreamSuite_TestRedirectFile() {
+   Stream_RedirectFile( fileStream, "data/testRedirect.txt" );
+   Stream_Printf( fileStream, "Hello world\n" );
+}

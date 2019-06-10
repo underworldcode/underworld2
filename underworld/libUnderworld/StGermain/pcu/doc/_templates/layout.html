@@ -1,0 +1,10 @@
+{% extends "!layout.html" %}
+
+{% block relbar1 %}
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="{{ pathto('index') }}"><img src="{{
+pathto("_static/auscope_header.jpg", 1) }}" border="0" alt="AuScope PCU"/></a>
+</div>
+{{ super() }}
+{% endblock %}

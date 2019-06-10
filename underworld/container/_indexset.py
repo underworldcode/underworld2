@@ -13,7 +13,7 @@ This module contains the IndexSet class and related functions.
 import underworld as uw
 import underworld._stgermain as _stgermain
 import numpy as np
-import libUnderworld
+import underworld.libUnderworld as libUnderworld
 import copy
 import numbers
 

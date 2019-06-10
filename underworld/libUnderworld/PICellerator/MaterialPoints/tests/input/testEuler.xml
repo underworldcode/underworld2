@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<!DOCTYPE StGermainData SYSTEM "stgermain.dtd">
+
+<StGermainData xmlns="http://www.vpac.org/StGermain/XML_IO_Handler/Jun2003">
+
+	<include>testAdvection.xml</include>
+	
+	<param name="timeIntegratorOrder">1</param>
+	<param name="depthErrorTolerance">1.0e-10</param>
+	<param name="radiusErrorTolerance">0.005</param>
+	<param name="thetaErrorTolerance">1.0e-5</param>
+
+</StGermainData>

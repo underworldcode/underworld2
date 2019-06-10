@@ -1,0 +1,48 @@
+<!-- Rayleigh-Taylor lucifer viewports -->
+<!-- DTD to validate against -->
+<StGermainData xmlns="http://www.vpac.org/StGermain/XML_IO_Handler/Jun2003">
+
+   <struct name="components" mergeType="merge">
+
+      <!-- Drawing Objects -->
+      <struct name="textureImage">
+         <param name="Type">lucTextureMap</param>
+         <param name="image">Bathymetry.ppm</param>
+         <param name="bottomLeftX">minX</param>
+         <param name="bottomLeftY">minY</param>
+         <param name="bottomLeftZ">minZ</param>
+         
+         <param name="bottomRightX">maxX</param>
+         <param name="bottomRightY">minY</param>
+         <param name="bottomRightZ">minZ</param>
+         
+         <param name="topRightX">maxX</param>
+         <param name="topRightY">maxY</param>
+         <param name="topRightZ">minZ</param>         
+         
+         <param name="topLeftX">minX</param>
+         <param name="topLeftY">maxY</param>
+         <param name="topLeftZ">minZ</param>         
+      </struct>   
+
+      <!-- Viewport -->
+      <struct name="lucTextureTestVP">
+         <param name="Type">lucViewport</param>
+         <param name="Camera">camera</param>
+         <list name="DrawingObject">
+            <param>textureImage</param>
+         </list>
+      </struct>
+
+      <struct name="windowTexture">
+			<param name="Type">lucDefaultWindow</param>
+			<param name="Database">database</param>
+			<param name="antialias">false</param>
+         <list name="Viewport">
+            <param>lucTextureTestVP</param>
+         </list>
+      </struct>
+
+   </struct>
+
+</StGermainData>

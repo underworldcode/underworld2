@@ -9,9 +9,9 @@
 import underworld as uw
 import underworld._stgermain as _stgermain
 from . import sle
-import libUnderworld
-from libUnderworld import petsc
-from libUnderworld import Solvers
+import underworld.libUnderworld as libUnderworld
+from underworld.libUnderworld import petsc
+from underworld.libUnderworld import Solvers
 from ._options import Options
 from mpi4py import MPI
 import numpy as np

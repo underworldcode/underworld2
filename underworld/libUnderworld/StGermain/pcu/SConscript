@@ -1,0 +1,23 @@
+#
+# This SCons file is intended for use with Luke's configuration scripts
+# and 'dist' tool.
+#
+
+import os
+Import('env')
+
+# Need to add header directory.
+env = env.Clone()
+env.Append(CPPPATH=env['build_dir'] + '/include/pcu')
+
+# Move headers to our build directory.
+env.Install(os.path.join(env['build_dir'],'include/pcu'), Glob('src/*.h'))
+
+# Build our source files.
+objs = env.SharedObject(Glob('src/*.c'))
+
+# Build a library (if needed) and register destination.
+if env['static_libs']:
+    env.Library(env['build_dir'] + '/lib/pcu', objs)
+if env['shared_libs']:
+    env.SharedLibrary('lib/pcu', objs)

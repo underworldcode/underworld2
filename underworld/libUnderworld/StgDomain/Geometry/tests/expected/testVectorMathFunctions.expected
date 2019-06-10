@@ -1,0 +1,30 @@
+****************************
+K Rotated 1.000 degrees around I axis -  0.000 -0.841 0.540
+K Rotated 1.000 degrees around I axis -  0.000 -0.841 0.540
+Angle between vectors = 1.000
+I Rotated 2.300 degrees around J axis -  -0.666 0.000 -0.746
+I Rotated 2.300 degrees around J axis -  -0.666 0.000 -0.746
+Angle between vectors = 2.300
+J Rotated 1.800 degrees around K axis -  -0.974 -0.227 0.000
+J Rotated 1.800 degrees around K axis -  -0.974 -0.227 0.000
+Angle between vectors = 1.800
+
+****************************
+vector = A + B
+vector - {<NON_POSITIVE DIMENSION 0>}
+vector - {11.400000}
+vector - {11.400000, 4.300000}
+vector - {11.400000, 4.300000, 10.800000}
+vector - {11.400000, 4.300000, 10.800000, 7.000000}
+vector - {11.400000, 4.300000, 10.800000, 7.000000, -9.000000}
+vector - {11.400000, 4.300000, 10.800000, 7.000000, -9.000000, 39247.000000}
+
+****************************
+vector = A - B
+vector - {<NON_POSITIVE DIMENSION 0>}
+vector - {3.400000}
+vector - {3.400000, -0.300000}
+vector - {3.400000, -0.300000, -0.800000}
+vector - {3.400000, -0.300000, -0.800000, -5.000000}
+vector - {3.400000, -0.300000, -0.800000, -5.000000, 15.000000}
+vector - {3.400000, -0.300000, -0.800000, -5.000000, 15.000000, -39331.000000}

@@ -12,7 +12,7 @@ This module contains conditions used for applying constraints on model dynamics.
 
 import underworld as uw
 import underworld._stgermain as _stgermain
-import libUnderworld
+import underworld.libUnderworld as libUnderworld
 import abc
 
 class SystemCondition(_stgermain.StgCompoundComponent, metaclass = abc.ABCMeta):

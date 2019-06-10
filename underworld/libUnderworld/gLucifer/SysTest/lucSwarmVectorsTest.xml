@@ -1,0 +1,46 @@
+<!-- Rayleigh-Taylor lucifer viewports -->
+<!-- DTD to validate against -->
+<StGermainData xmlns="http://www.vpac.org/StGermain/XML_IO_Handler/Jun2003">
+
+   <struct name="components" mergeType="merge">
+
+      <!-- Drawing Objects -->
+      <struct name="SwarmVectors">
+         <param name="Type">lucSwarmVectors</param>
+         <param name="Swarm">materialSwarm</param>
+         <!--param name="thickness">0.1</param-->
+         <param name="length">10000</param>
+         <param name="arrowHeadSize">0.2</param>   
+         <!--param name="arrowHeadSize">0.2</param>   
+         <param name="thickness">0.3</param>   
+         <param name="length">0.00011</param-->
+         <!--param name="OpacityVariable">materialSwarm-MaterialIndex</param-->
+         <param name="ColourVariable">strainRateParticleVariable</param>
+         <param name="ColourMap">strainRateInvColourMap</param>
+         <!--param name="NormalVariable"></param-->
+         <param name="DirectionVariable">velocityParticleVariable</param>
+         <param name="LengthVariable">velocityMagParticleVariable</param>
+         <!--param name="ThicknessVariable">materialSwarm-MaterialIndex</param-->
+      </struct>
+
+      <!-- Viewport -->
+      <struct name="lucSwarmVectorsTestVP">
+         <param name="Type">lucViewport</param>
+         <param name="Camera">camera</param>
+         <list name="DrawingObject">
+            <param>SwarmVectors</param>
+         </list>
+      </struct>
+
+      <struct name="windowSwarmVectors">
+			<param name="Type">lucDefaultWindow</param>
+			<param name="Database">database</param>
+			<param name="antialias">false</param>
+         <list name="Viewport">
+            <param>lucSwarmVectorsTestVP</param>
+         </list>
+      </struct>
+
+   </struct>
+
+</StGermainData>

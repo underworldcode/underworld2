@@ -9,7 +9,7 @@
 import underworld as uw
 import underworld._stgermain as _stgermain
 from . import sle
-import libUnderworld
+import underworld.libUnderworld as libUnderworld
 from mpi4py import MPI
 
 

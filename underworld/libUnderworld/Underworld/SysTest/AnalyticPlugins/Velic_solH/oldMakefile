@@ -1,0 +1,20 @@
+solH:solH.o
+	gcc -Wall -o solH solH.c -lm
+pdf:doc
+	dvipdf -f solH > solH.pdf
+ps:doc
+	dvips -f solH > solH.ps
+doc:
+	latex solH
+	latex solH
+clean:
+	rm -f *.o
+	rm -f *~
+	rm -f *.aux *.dvi *.log
+vclean:
+	rm -f solH solH.o solH.ps solH.pdf
+	rm -f *~
+	rm -f *.aux *.dvi *.log
+solH.o: solH.c
+
+

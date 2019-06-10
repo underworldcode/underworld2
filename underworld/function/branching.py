@@ -12,7 +12,7 @@ Typically, these functions will select other user provided functions when
 certain conditions are met (with the condition also described by a function!).
 
 """
-import libUnderworld.libUnderworldPy.Function as _cfn
+import underworld.libUnderworld.libUnderworldPy.Function as _cfn
 from ._function import Function as _Function
 
 

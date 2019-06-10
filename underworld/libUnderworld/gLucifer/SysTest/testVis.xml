@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+<!DOCTYPE StGermainData SYSTEM "stgermain.dtd">
+
+<StGermainData xmlns="http://www.vpac.org/StGermain/XML_IO_Handler/Jun2003">
+ 	
+	<list name="import" mergeType="merge">
+  		<param>gLucifer</param>
+	</list>
+
+	<struct name="components" mergeType="merge">
+  
+      <!-- Required vis components -->
+		<struct name="camera" mergeType="replace">
+			<param name="Type">lucCamera</param>
+			<param name="CentreFieldVariable">VelocityField</param>
+		</struct>
+
+		<struct name="database">
+			<param name="Type">lucDatabase</param>
+			<param name="Context">context</param>
+		</struct>
+
+      <!-- Colour maps -->
+      <struct name="strainRateInvColourMap">
+         <param name="Type">lucColourMap</param>
+         <param name="colours">DarkRed FireBrick Red OrangeRed Yellow</param>
+         <param name="dynamicRange">True</param>
+      </struct>
+      <struct name="velocityMagnitudeColourMap" mergeType="replace">
+         <param name="Type">lucColourMap</param>
+         <param name="colours">Purple Blue Green Yellow Orange Red</param>
+         <param name="dynamicRange">true</param>
+      </struct>
+		<struct name="densityColourMap">
+			<param name="Type">lucColourMap</param>
+			<param name="colours">Red Blue</param>
+			<param name="dynamicRange">False</param>
+			<param name="discrete">True</param>
+		</struct>
+
+      <struct name="particleVelocityColourMap">
+         <param name="Type">lucColourMap</param>
+         <param name="colours">Purple Blue Green Yellow Orange Red</param>
+         <param name="dynamicRange">true</param>
+      </struct>
+
+      <struct name="particleStrainRateInvColourMap">
+         <param name="Type">lucColourMap</param>
+         <param name="colours">Yellow OrangeRed Red FireBrick DarkRed</param>
+         <param name="dynamicRange">True</param>
+         <param name="logScale">true</param>
+      </struct>
+
+      <!-- Get particle variables -->
+      <struct name="velocityParticleVariable">
+         <param name="Type">FeSwarmVariable</param>
+         <param name="Swarm">materialSwarm</param>
+         <param name="FeVariable">VelocityField</param>
+      </struct>
+      <struct name="velocityMagParticleVariable">
+         <param name="Type">FeSwarmVariable</param>
+         <param name="Swarm">materialSwarm</param>
+         <param name="FeVariable">VelocityMagnitudeField</param>
+      </struct>
+      <struct name="strainRateParticleVariable">
+         <param name="Type">FeSwarmVariable</param>
+         <param name="FeVariable">StrainRateInvariantField</param>
+         <param name="Swarm">materialSwarm</param>
+      </struct>
+
+      <!-- Material Field -->
+      <struct name="lightLayerField">
+         <param name="Type">MaterialFeVariable</param>
+         <param name="Swarm">picIntegrationPoints</param>
+         <param name="Material">lightLayer</param>
+         <param name="Context">context</param>
+         <param name="Mesh">linearMesh</param>
+      </struct>
+	</struct>
+	
+</StGermainData>

@@ -465,7 +465,7 @@ sys.path.append(os.path.join(os.path.dirname(__name__),'../../..'))
 
 try:
     import underworld
-    import glucifer
+    import underworld.visualisation as vis
 except:
     from mock import Mock as MagicMock
     class Mock(MagicMock):
@@ -477,7 +477,7 @@ except:
                     '_StGermain_Tools', '_petsc', 'mpi4py', 'libUnderworld.libUnderworldPy.StGermain', 'libUnderworld.libUnderworldPy.StgDomain', 'libUnderworld.libUnderworldPy.StgFEM',
                     'libUnderworld.libUnderworldPy.PICellerator', 'libUnderworld.libUnderworldPy.Underworld', 'libUnderworld.libUnderworldPy.Solvers', 'libUnderworld.libUnderworldPy.gLucifer', 'libUnderworld.libUnderworldPy.c_arrays', 'libUnderworld.libUnderworldPy.c_pointers',
                     'libUnderworld.libUnderworldPy.Function', 'libUnderworld.libUnderworldPy.petsc', 'libUnderworld.libUnderworldPy.StGermain_Tools',
-                    'libUnderworld.libUnderworldPy.Function', '_LavaVuPython', 'glucifer.LavaVuPython', 'lavavu', 'lavavu.Viewer']
+                    'libUnderworld.libUnderworldPy.Function', '_LavaVuPython', 'lavavu', 'lavavu.Viewer']
     sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 import generate_api_documentation

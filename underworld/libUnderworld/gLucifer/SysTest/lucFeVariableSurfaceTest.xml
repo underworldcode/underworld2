@@ -1,0 +1,45 @@
+<!-- Rayleigh-Taylor lucifer viewports -->
+<!-- DTD to validate against -->
+<StGermainData xmlns="http://www.vpac.org/StGermain/XML_IO_Handler/Jun2003">
+
+   <struct name="components" mergeType="merge">
+
+      <struct name="FeVariableSurface">
+         <param name="Type">lucFeVariableSurface</param>
+         <param name="FieldVariable">StrainRateInvariantField</param>
+         <param name="ColourMap">strainRateInvColourMap</param>
+         <param name="scaleHeight">20</param>
+         <param name="wireframe">true</param>
+         <param name="lineWidth">1.2</param> 
+      </struct> 
+
+      <struct name="cameraTop">
+         <param name="Type">lucCamera</param>
+         <param name="rotateX">-90</param>
+         <param name="rotateZ">45</param>
+         <param name="focalPointX">0.457100</param>
+         <param name="focalPointY">0.5</param>
+         <param name="focalPointZ">0</param>
+      </struct>
+
+      <!-- Viewport -->
+      <struct name="lucFeVariableSurfaceTestVP">
+         <param name="Type">lucViewport</param>
+         <param name="Camera">cameraTop</param>
+         <list name="DrawingObject">
+            <param>FeVariableSurface</param>
+         </list>
+      </struct>
+
+		<struct name="windowFeVariableSurface">
+			<param name="Type">lucDefaultWindow</param>
+			<param name="Database">database</param>
+			<param name="antialias">false</param>
+   		<list name="Viewport">
+			   <param>lucFeVariableSurfaceTestVP</param>
+   		</list>
+		</struct>
+
+   </struct>
+
+</StGermainData>

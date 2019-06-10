@@ -1,0 +1,103 @@
+Constitutive Matrix after initialisation.
+constitutiveMatrix = (ptr)0x807e5b8
+	StiffnessMatrixTerm (ptr): 0x807e5b8
+	Stg_Component (ptr): 0x807e5b8
+	Stg_Object (ptr): 0x807e5b8
+		Stg_Class (ptr): 0x807e5b8
+			sizeOfSelf: 176
+			_deleteSelf: Yes
+			type: ConstitutiveMatrixCartesian
+			_delete (func ptr): 0x400287be
+			_print (func ptr): 0x400287ea
+			_copy (func ptr): (nil)
+		name: constitutiveMatrix
+		nameAllocationType: NON_GLOBAL
+		_defaultConstructor (func ptr): 0x40028819
+		_construct (func ptr): 0x400288b8
+		_build (func ptr): 0x400288f5
+		_initialise (func ptr): 0x40028924
+		_execute (func ptr): 0x40028953
+		_destroy (func ptr): 0x4002897c
+		isConstructed: True
+		isBuilt: True
+		isInitialised: True
+		hasExecuted: False
+		isDestroyed: False
+		constructor function name: constitutiveMatrix-Construct
+		build function name: constitutiveMatrix-Build
+		initialise function name: constitutiveMatrix-Initialise
+		execute function name: constitutiveMatrix-Execute
+		destroy function name: constitutiveMatrix-Destroy
+		integrationSwarm (ptr): 0x806b308
+		extraInfo (ptr): (nil)
+	self->_setValue = (ptr)0x40029207
+	self->_getViscosity = (ptr)0x40029769
+	self->_isotropicCorrection = (ptr)0x4002982f
+	self->_setSecondViscosity = (ptr)0x400299e8
+	self->_assemble_D_B = (ptr)0x4002a557
+	self->_calculateStress = (ptr)0x4002ae66
+	self->debug = (ptr)0x8096520
+	matrixData[ 0 ][ 0 ] = 0; 	matrixData[ 0 ][ 1 ] = 0; 	matrixData[ 0 ][ 2 ] = 0; 	matrixData[ 0 ][ 3 ] = 0; 	matrixData[ 0 ][ 4 ] = 0; 	matrixData[ 0 ][ 5 ] = 0; 	
+	matrixData[ 1 ][ 0 ] = 0; 	matrixData[ 1 ][ 1 ] = 0; 	matrixData[ 1 ][ 2 ] = 0; 	matrixData[ 1 ][ 3 ] = 0; 	matrixData[ 1 ][ 4 ] = 0; 	matrixData[ 1 ][ 5 ] = 0; 	
+	matrixData[ 2 ][ 0 ] = 0; 	matrixData[ 2 ][ 1 ] = 0; 	matrixData[ 2 ][ 2 ] = 0; 	matrixData[ 2 ][ 3 ] = 0; 	matrixData[ 2 ][ 4 ] = 0; 	matrixData[ 2 ][ 5 ] = 0; 	
+	matrixData[ 3 ][ 0 ] = 0; 	matrixData[ 3 ][ 1 ] = 0; 	matrixData[ 3 ][ 2 ] = 0; 	matrixData[ 3 ][ 3 ] = 0; 	matrixData[ 3 ][ 4 ] = 0; 	matrixData[ 3 ][ 5 ] = 0; 	
+	matrixData[ 4 ][ 0 ] = 0; 	matrixData[ 4 ][ 1 ] = 0; 	matrixData[ 4 ][ 2 ] = 0; 	matrixData[ 4 ][ 3 ] = 0; 	matrixData[ 4 ][ 4 ] = 0; 	matrixData[ 4 ][ 5 ] = 0; 	
+	matrixData[ 5 ][ 0 ] = 0; 	matrixData[ 5 ][ 1 ] = 0; 	matrixData[ 5 ][ 2 ] = 0; 	matrixData[ 5 ][ 3 ] = 0; 	matrixData[ 5 ][ 4 ] = 0; 	matrixData[ 5 ][ 5 ] = 0; 	
+	self->isDiagonal = True
+	self->dim = 3
+	self->columnSize = 6
+	self->rowSize = 6
+	self->previousSolutionExists = False
+Constitutive Matrix after func 'SetMatrixWithThrees'.
+matrixData[ 0 ][ 0 ] = 3; 	matrixData[ 0 ][ 1 ] = 3; 	matrixData[ 0 ][ 2 ] = 3; 	matrixData[ 0 ][ 3 ] = 3; 	matrixData[ 0 ][ 4 ] = 3; 	matrixData[ 0 ][ 5 ] = 3; 	
+matrixData[ 1 ][ 0 ] = 3; 	matrixData[ 1 ][ 1 ] = 3; 	matrixData[ 1 ][ 2 ] = 3; 	matrixData[ 1 ][ 3 ] = 3; 	matrixData[ 1 ][ 4 ] = 3; 	matrixData[ 1 ][ 5 ] = 3; 	
+matrixData[ 2 ][ 0 ] = 3; 	matrixData[ 2 ][ 1 ] = 3; 	matrixData[ 2 ][ 2 ] = 3; 	matrixData[ 2 ][ 3 ] = 3; 	matrixData[ 2 ][ 4 ] = 3; 	matrixData[ 2 ][ 5 ] = 3; 	
+matrixData[ 3 ][ 0 ] = 3; 	matrixData[ 3 ][ 1 ] = 3; 	matrixData[ 3 ][ 2 ] = 3; 	matrixData[ 3 ][ 3 ] = 3; 	matrixData[ 3 ][ 4 ] = 3; 	matrixData[ 3 ][ 5 ] = 3; 	
+matrixData[ 4 ][ 0 ] = 3; 	matrixData[ 4 ][ 1 ] = 3; 	matrixData[ 4 ][ 2 ] = 3; 	matrixData[ 4 ][ 3 ] = 3; 	matrixData[ 4 ][ 4 ] = 3; 	matrixData[ 4 ][ 5 ] = 3; 	
+matrixData[ 5 ][ 0 ] = 3; 	matrixData[ 5 ][ 1 ] = 3; 	matrixData[ 5 ][ 2 ] = 3; 	matrixData[ 5 ][ 3 ] = 3; 	matrixData[ 5 ][ 4 ] = 3; 	matrixData[ 5 ][ 5 ] = 3; 	
+constitutiveMatrix->isDiagonal = False
+strainRate - 
+      1           4           5     
+      4           2           6     
+      5           6           3     
+stress - 
+    108         108         108     
+    108         108         108     
+    108         108         108     
+Constitutive Matrix after func 'SetMatrixWithViscosity7'.
+matrixData[ 0 ][ 0 ] = 14; 	matrixData[ 0 ][ 1 ] = 0; 	matrixData[ 0 ][ 2 ] = 0; 	matrixData[ 0 ][ 3 ] = 0; 	matrixData[ 0 ][ 4 ] = 0; 	matrixData[ 0 ][ 5 ] = 0; 	
+matrixData[ 1 ][ 0 ] = 0; 	matrixData[ 1 ][ 1 ] = 14; 	matrixData[ 1 ][ 2 ] = 0; 	matrixData[ 1 ][ 3 ] = 0; 	matrixData[ 1 ][ 4 ] = 0; 	matrixData[ 1 ][ 5 ] = 0; 	
+matrixData[ 2 ][ 0 ] = 0; 	matrixData[ 2 ][ 1 ] = 0; 	matrixData[ 2 ][ 2 ] = 14; 	matrixData[ 2 ][ 3 ] = 0; 	matrixData[ 2 ][ 4 ] = 0; 	matrixData[ 2 ][ 5 ] = 0; 	
+matrixData[ 3 ][ 0 ] = 0; 	matrixData[ 3 ][ 1 ] = 0; 	matrixData[ 3 ][ 2 ] = 0; 	matrixData[ 3 ][ 3 ] = 7; 	matrixData[ 3 ][ 4 ] = 0; 	matrixData[ 3 ][ 5 ] = 0; 	
+matrixData[ 4 ][ 0 ] = 0; 	matrixData[ 4 ][ 1 ] = 0; 	matrixData[ 4 ][ 2 ] = 0; 	matrixData[ 4 ][ 3 ] = 0; 	matrixData[ 4 ][ 4 ] = 7; 	matrixData[ 4 ][ 5 ] = 0; 	
+matrixData[ 5 ][ 0 ] = 0; 	matrixData[ 5 ][ 1 ] = 0; 	matrixData[ 5 ][ 2 ] = 0; 	matrixData[ 5 ][ 3 ] = 0; 	matrixData[ 5 ][ 4 ] = 0; 	matrixData[ 5 ][ 5 ] = 7; 	
+constitutiveMatrix->isDiagonal = True
+Viscosity =    7
+strainRate - 
+      1           4           5     
+      4           2           6     
+      5           6           3     
+stress - 
+     14          56          70     
+     56          28          84     
+     70          84          42     
+stress - 
+     14          56          70     
+     56          28          84     
+     70          84          42     
+Constitutive Matrix after func 'SetMatrixWithSecondViscosity2'.
+matrixData[ 0 ][ 0 ] = 13.47; 	matrixData[ 0 ][ 1 ] = 0.1633; 	matrixData[ 0 ][ 2 ] = 0.3673; 	matrixData[ 0 ][ 3 ] = -0.4898; 	matrixData[ 0 ][ 4 ] = -0.7347; 	matrixData[ 0 ][ 5 ] = 0.2449; 	
+matrixData[ 1 ][ 0 ] = 0.1633; 	matrixData[ 1 ][ 1 ] = 12.37; 	matrixData[ 1 ][ 2 ] = 1.469; 	matrixData[ 1 ][ 3 ] = -0.2449; 	matrixData[ 1 ][ 4 ] = 0.4898; 	matrixData[ 1 ][ 5 ] = -0.7347; 	
+matrixData[ 2 ][ 0 ] = 0.3673; 	matrixData[ 2 ][ 1 ] = 1.469; 	matrixData[ 2 ][ 2 ] = 12.16; 	matrixData[ 2 ][ 3 ] = 0.7347; 	matrixData[ 2 ][ 4 ] = 0.2449; 	matrixData[ 2 ][ 5 ] = 0.4898; 	
+matrixData[ 3 ][ 0 ] = -0.4898; 	matrixData[ 3 ][ 1 ] = -0.2449; 	matrixData[ 3 ][ 2 ] = 0.7347; 	matrixData[ 3 ][ 3 ] = 6.449; 	matrixData[ 3 ][ 4 ] = -0.6122; 	matrixData[ 3 ][ 5 ] = 0.06122; 	
+matrixData[ 4 ][ 0 ] = -0.7347; 	matrixData[ 4 ][ 1 ] = 0.4898; 	matrixData[ 4 ][ 2 ] = 0.2449; 	matrixData[ 4 ][ 3 ] = -0.6122; 	matrixData[ 4 ][ 4 ] = 5.939; 	matrixData[ 4 ][ 5 ] = 0.449; 	
+matrixData[ 5 ][ 0 ] = 0.2449; 	matrixData[ 5 ][ 1 ] = -0.7347; 	matrixData[ 5 ][ 2 ] = 0.4898; 	matrixData[ 5 ][ 3 ] = 0.06122; 	matrixData[ 5 ][ 4 ] = 0.449; 	matrixData[ 5 ][ 5 ] = 6.612; 	
+constitutiveMatrix->isDiagonal = False
+strainRate - 
+      1           4           5     
+      4           2           6     
+      5           6           3     
+stress - 
+ 6.5714      47.429      60.857     
+ 47.429      23.429      84.571     
+ 60.857      84.571          54     

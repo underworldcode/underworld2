@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+<!DOCTYPE StGermainData SYSTEM "stgermain.dtd">
+
+<StGermainData xmlns="http://www.vpac.org/StGermain/XML_IO_Handler/Jun2003">
+	
+	<list name="import" mergeType="merge">
+		<param>PICellerator</param>
+	</list>
+
+	<include>StgFEM/LinearMesh.xml</include>
+
+	<struct name="components" mergeType="merge">
+		<struct name="context">
+			<param name="Type">PICelleratorContext</param>
+		</struct>
+
+		<struct name="elementCellLayout">
+			<param name="Type">ElementCellLayout</param>
+			<param name="Mesh">elementMesh</param>
+		</struct>
+		<struct name="boxShape">
+			<param name="Type">Box</param>
+         <param name="startX">0.01</param> <param name="endX">0.09</param>
+         <param name="startY">0.0</param> <param name="endY">1.0</param>
+		</struct>
+		<struct name="particleLayout">
+			<param name="Type">WithinShapeParticleLayout</param>
+         <param name="shape">boxShape</param>
+         <param name="totalInitialParticles">10</param>
+		</struct>
+		<struct name="swarm">
+			<param name="Type">Swarm</param>
+			<param name="CellLayout">elementCellLayout</param>
+			<param name="ParticleLayout">particleLayout</param>
+		</struct>
+      <!-- important for this test - where we set up the Periodic BCs manager -->
+		<struct name="perBCsManager">
+			<param name="Type">PeriodicBoundariesManager</param>
+			<param name="mesh">elementMesh</param>
+			<param name="Swarm">swarm</param>
+         <list name="PeriodicBoundaries">
+            <param>I_AXIS</param>
+         </list>
+		</struct>
+	</struct>
+
+	<param name="journal.info.Context-verbose">false</param>
+	<param name="journal-level.info.Stg_ComponentFactory"> 0 </param>
+	<param name="journal.debug">f</param>
+   <!-- for the purpose of testing, reduce output as much as possible. If the test fails,
+    comment out the line below to help diagnose source of error -->
+	<param name="journal.info">f</param>
+
+	<param name="maxTimeSteps"> 1 </param>
+	<param name="dumpEvery"> 1 </param>
+	<param name="outputPath"> ./output </param>
+	
+	<!-- General decomp stuff -->
+	<param name="dim"> 2 </param>
+	<!-- Mesh Stuff -->
+	<param name="elementMesh"> linearMesh </param>
+	<param name="elementResI"> 10 </param>
+	<param name="elementResJ"> 10 </param>
+	<param name="elementResK"> 1 </param>
+	
+	<param name="shadowDepth"> 0 </param>
+	<param name="minX"> 0 </param>
+	<param name="minY"> 0 </param>
+	<param name="minZ"> 0 </param>
+	<param name="maxX"> 1.0 </param>
+	<param name="maxY"> 1.0 </param>
+	<param name="maxZ"> 1.0 </param>
+	<param name="allowUnbalancing"> True </param>
+	<param name="buildElementNodeTbl"> True </param>
+
+</StGermainData>

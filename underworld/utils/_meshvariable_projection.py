@@ -9,7 +9,7 @@
 import underworld as uw
 import underworld._stgermain as _stgermain
 import underworld.systems.sle as sle
-import libUnderworld
+import underworld.libUnderworld as libUnderworld
 
 
 class SolveLinearSystem(_stgermain.StgCompoundComponent):

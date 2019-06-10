@@ -7,12 +7,12 @@
 ##                                                                                   ##
 ##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
 import underworld._stgermain as _stgermain
-import libUnderworld.libUnderworldPy.Function as _cfn
+import underworld.libUnderworld.libUnderworldPy.Function as _cfn
 import numpy as np
 from . import _swarmabstract
 from . import _swarmvariable as svar
 import underworld.function as function
-import libUnderworld
+import underworld.libUnderworld as libUnderworld
 import underworld as uw
 from mpi4py import MPI
 import h5py

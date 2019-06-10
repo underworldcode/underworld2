@@ -7,7 +7,7 @@ import os
 os.environ['UW_ENABLE_TIMING'] = '1'
 import underworld as uw
 from underworld import function as fn
-import glucifer
+import underworld.visualisation as vis
 import math
 import numpy as np
 from collections import defaultdict
@@ -99,12 +99,12 @@ matdat = fnc.evaluate(swarm)
 add_timing("Function.evaluate()", time()-ts)
 materialIndex.data[:] = matdat
 
-store = glucifer.Store('RT')
+store = vis.Store('RT')
 
-fig = glucifer.Figure( store, name="firstFig" )
-fig.append( glucifer.objects.Points(swarm, materialIndex, pointSize=2, colourBar=False) )
-fig.append( glucifer.objects.Surface(mesh, pressureField))
-fig.append( glucifer.objects.VectorArrows( mesh, velocityField, scaling=1.0e2))
+fig = vis.Figure( store, name="firstFig" )
+fig.append( vis.objects.Points(swarm, materialIndex, pointSize=2, colourBar=False) )
+fig.append( vis.objects.Surface(mesh, pressureField))
+fig.append( vis.objects.VectorArrows( mesh, velocityField, scaling=1.0e2))
 
 
 # Set a density of '0.' for light material, '1.' for dense material.

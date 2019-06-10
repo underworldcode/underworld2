@@ -1,0 +1,39 @@
+<!-- Rayleigh-Taylor lucifer viewports -->
+<!-- DTD to validate against -->
+<StGermainData xmlns="http://www.vpac.org/StGermain/XML_IO_Handler/Jun2003">
+
+   <struct name="components" mergeType="merge">
+      <struct name="contours" mergeType="replace">
+         <param name="Type">lucContour</param>
+         <param name="FieldVariable">StrainRateInvariantField</param>
+         <param name="ColourMap">strainRateInvColourMap</param>
+         <param name="ColourField">StrainRateInvariantField</param>
+         <param name="interval">0.002</param>
+         <param name="minIsovalue">0</param>
+         <param name="maxIsovalue">0.03</param>
+         <param name="resolution">24</param>
+         <param name="lineWidth">2</param>
+         <param name="showValues">True</param>
+         <param name="lit">False</param>
+         <param name="printUnits">False</param>
+      </struct>
+
+      <!-- Viewport -->
+      <struct name="lucContourTestVP">
+         <param name="Type">lucViewport</param>
+         <param name="Camera">camera</param>
+         <list name="DrawingObject">
+            <param>contours</param>
+         </list>
+      </struct>
+		<struct name="windowContours">
+			<param name="Type">lucDefaultWindow</param>
+			<param name="Database">database</param>
+			<param name="antialias">false</param>
+   		<list name="Viewport">
+			   <param>lucContourTestVP</param>
+   		</list>
+		</struct>
+   </struct>
+
+</StGermainData>

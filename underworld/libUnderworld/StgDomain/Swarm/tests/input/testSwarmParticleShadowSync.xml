@@ -1,0 +1,110 @@
+<?xml version="1.0"?>
+<!--
+   "single attractor" or "reverse big bang" test: attracts all
+   the particles towards a central point, but after a user-specified
+   timestep reverse this to the original positions, then repeats this
+   periodically. While unrealistic for Snark, this is a useful "extreme"
+   test to see if one processor can temporarily handle all the
+   particles, then free the memory again.
+
+   PatrickSunter - 11 May 2006
+-->
+<StGermainData xmlns="http://www.vpac.org/StGermain/XML_IO_Handler/Jun2003">
+	<list name="import">
+		<param> StgDomain </param>
+	</list>
+
+	<struct name="components">
+		<struct name="mesh-linear">
+			<param name="Type">Mesh</param>
+			<param name="ElementSize">8</param>
+			<param name="NodeSize">0</param>
+		</struct>
+		<struct name="cartesianGenerator">
+			<param name="Type"> CartesianGenerator </param>
+			<param name="mesh"> mesh-linear </param>
+			<param name="dims"> dim </param>
+			<list name="size">
+				<param> elementResI </param>
+				<param> elementResJ </param>
+				<param> elementResK </param>
+			</list>
+			<param name="maxDecomposedDims"> 1 </param>
+			<list name="maxDecompositions">
+				<param> 0 </param>
+				<param> 1 </param>
+				<param> 1 </param>
+			</list>
+			<list name="minCoord">
+				<param> minX </param>
+				<param> minY </param>
+				<param> minZ </param>
+			</list>
+			<list name="maxCoord">
+				<param> maxX </param>
+				<param> maxY </param>
+				<param> maxZ </param>
+			</list>
+		</struct>
+ 
+		<struct name="elementCellLayout"> 
+			<param name="Type">ElementCellLayout</param>
+			<param name="Mesh">mesh-linear</param>
+		</struct>
+
+		<struct name="pShadowSync"> 
+			<param name="Type">ParticleShadowSync</param>
+		</struct>
+		
+		<struct name="swarm">
+			<param name="Type">Swarm</param>
+			<param name="CellLayout">elementCellLayout</param>
+			<param name="ParticleLayout">particleLayout</param>
+			<!--<list name="ParticleCommHandlers">
+				<param>pShadowSync</param>
+			</list>-->			
+		</struct>
+	</struct>
+ 
+	<param name="journal.info.lucInfo">true</param>
+	<param name="journal-level.info.lucInfo">2</param>
+	<param name="maxTimeSteps">1</param> 
+	<param name="dumpEvery">1</param>
+
+	<param name="outputPath">./output</param> 
+	<param name="dim">2</param>
+	<param name="elementResI">10</param>
+	<param name="elementResJ">10</param> 
+	<param name="elementResK">1</param> 
+	<param name="minX">0.0</param> 
+	<param name="minY">0.0</param> 
+	<param name="minZ">0.0</param>
+	<param name="maxX">100.0</param> 
+	<param name="maxY">100.0</param>
+	<param name="maxZ">100.0</param>
+
+	<struct name="components" mergeType="merge">
+		<struct name="context">
+			<param name="Type">DomainContext</param>
+		</struct>
+		<struct name="particleLayout">
+			<param name="Type">RandomParticleLayout</param>
+			<!--<param name="cellParticleCount">8</param>-->
+			<param name="cellParticleCount">1</param>
+			<param name="seed">13</param>
+		</struct>
+	</struct>
+
+	<param name="dim">3</param>
+	<param name="maxTimeSteps">5</param> 
+	<param name="minX">0.0</param> 
+	<param name="minY">0.0</param> 
+	<param name="minZ">0.0</param>
+	<param name="maxX">1.0</param> 
+	<param name="maxY">1.0</param>
+	<param name="maxZ">1.0</param>
+	<param name="elementResI">12</param>
+	<param name="elementResJ">12</param>
+	<param name="elementResK">12</param>
+
+</StGermainData>

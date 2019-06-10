@@ -1,0 +1,6 @@
+	EP: testEntryPoint
+		H: "TestHook0" (testCode)
+		H: "TestHook1" (testCode)
+		H: "TestHook2" (testCode)
+		H: "TestHook3" (testCode)
+		H: "TestHook4" (testCode)

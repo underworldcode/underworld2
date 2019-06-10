@@ -1,0 +1,21 @@
+*******************    Test 7   ************************
+Test function TensorArray_MultiplyByRightTranspose 
+
+Solutions tested against: http://www.uni-bonn.de/~manfear/matrixcalc.php2-D
+tensorArray - 
+      1           2     
+      3           4     
+The answer, A * A^T = 
+symmTensorResult - 
+      5          11     
+     11          25     
+3-D
+tensorArray - 
+      1           2           3     
+      4           5           6     
+      7           8           9     
+The answer, A * A^T = 
+symmTensorResult - 
+     14          32          50     
+     32          77         122     
+     50         122         194     

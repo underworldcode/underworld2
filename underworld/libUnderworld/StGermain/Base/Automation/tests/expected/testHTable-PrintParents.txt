@@ -1,0 +1,13 @@
+Type 'A' inherits from:
+Type 'B' inherits from:
+	A
+Type 'C' inherits from:
+	B
+	A
+Type 'D' inherits from:
+	C
+	B
+	A
+Type 'AA' inherits from:
+Type 'BB' inherits from:
+	AA

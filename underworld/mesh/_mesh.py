@@ -14,7 +14,7 @@ This module contains FeMesh classes, and associated implementation.
 import underworld as uw
 import underworld._stgermain as _stgermain
 import weakref
-import libUnderworld
+import underworld.libUnderworld as libUnderworld
 from . import _specialSets_Cartesian
 import underworld.function as function
 import contextlib

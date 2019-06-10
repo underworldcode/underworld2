@@ -15,7 +15,7 @@ the 'exp' class generates a function with uses std::exp(double).
 All functions operate on and return 'double' type data (or
 'float' from python).
 """
-import libUnderworld.libUnderworldPy.Function as _cfn
+import underworld.libUnderworld.libUnderworldPy.Function as _cfn
 from ._function import Function as _Function
 import underworld as _uw
 
