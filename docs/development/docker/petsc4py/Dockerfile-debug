@@ -1,4 +1,4 @@
-FROM python:3.7-slim
+FROM python:3.5-slim
 MAINTAINER https://github.com/underworldcode/
 
 # install things
@@ -33,9 +33,14 @@ RUN apt-get update -qq && \
         wget \
         gfortran \
         gdb \
+	strace \ 
+	python3.5-dbg \
         valgrind && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
+
+RUN ln -fs /usr/lib/python3.5/plat-x86_64-linux-gnu/_sysconfigdata_m.py /usr/lib/python3.5/
+
 
 ARG MPICH_VERSION="3.3"
 ARG MPICH_CONFIGURE_OPTIONS="--enable-fast=all,O3 --prefix=/opt/mpich"
@@ -148,6 +153,7 @@ ENV NB_USER jovyan
 RUN useradd -m -s /bin/bash -N jovyan
 USER $NB_USER
 ENV NB_WORK /home/$NB_USER
+RUN cat "source /usr/share/gdb/auto-load/usr/bin/python3.5-gdb.py" >> .gdbinit 
 
 
 # RUN ipython profile create --parallel --profile=mpi && \
