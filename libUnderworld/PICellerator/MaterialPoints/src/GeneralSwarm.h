@@ -31,11 +31,11 @@ extern const Type GeneralSwarm_Type;
 
 /* GeneralSwarm information */
 #define __GeneralSwarm \
-		__Swarm \
-		\
-		SwarmAdvector*                        swarmAdvector;        \
-		EscapedRoutine*                       escapedRoutine;       \
-		SwarmVariable*                        particleCoordVariable; /** Set only if a global coord system swarm. */ \
+      __Swarm \
+      \
+      SwarmAdvector*                        swarmAdvector;        \
+      EscapedRoutine*                       escapedRoutine;       \
+      SwarmVariable*                        particleCoordVariable; /** Set only if a global coord system swarm. */ \
       SwarmMap*                             previousIntSwarmMap; \
       List*                                 intSwarmMapList;  \
       void*                                 index;            \
@@ -65,9 +65,9 @@ GeneralSwarm* _GeneralSwarm_New(  GENERALSWARM_DEFARGS  );
 
 void _GeneralSwarm_Delete( void* swarm );
 #define GeneralSwarm_Copy( self ) \
-		(GeneralSwarm*) Stg_Class_Copy( self, NULL, False, NULL, NULL )
+   (GeneralSwarm*) Stg_Class_Copy( self, NULL, False, NULL, NULL )
 #define GeneralSwarm_DeepCopy( self ) \
-		(GeneralSwarm*) Stg_Class_Copy( self, NULL, True, NULL, NULL )
+   (GeneralSwarm*) Stg_Class_Copy( self, NULL, True, NULL, NULL )
 
 void* _GeneralSwarm_DefaultNew( Name name ) ;
 
