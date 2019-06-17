@@ -432,7 +432,7 @@ unsigned GeneralSwarm_IntegrationPointMap( void* _self, void* _intSwarm, unsigne
 
 
 void GeneralSwarm_ClearSwarmMaps( void* swarm ) {
-	GeneralSwarm* self = (GeneralSwarm*) swarm;
+    GeneralSwarm* self = (GeneralSwarm*) swarm;
     SwarmMap* map = NULL;
 
     int ii;
@@ -445,20 +445,20 @@ void GeneralSwarm_ClearSwarmMaps( void* swarm ) {
 struct GeneralSwarm_nanoflann_interface
 {
     GeneralSwarm* swarm;
-	// Must return the number of data points
-	inline size_t kdtree_get_point_count() const { return swarm->particleLocalCount; }
+    // Must return the number of data points
+    inline size_t kdtree_get_point_count() const { return swarm->particleLocalCount; }
 
-	// Returns the dim'th component of the idx'th point in the class:
-	// Since this is inlined and the "dim" argument is typically an immediate value, the
-	//  "if/else's" are actually solved at compile time.
-	inline double kdtree_get_pt(const size_t idx, const size_t dim) const
-	{
+    // Returns the dim'th component of the idx'th point in the class:
+    // Since this is inlined and the "dim" argument is typically an immediate value, the
+    //  "if/else's" are actually solved at compile time.
+    inline double kdtree_get_pt(const size_t idx, const size_t dim) const
+    {
         return (((GlobalParticle*)Swarm_ParticleAt( swarm, idx ))->coord)[dim];
-	}
+    }
 
-	// Optional bounding-box computation: return false to default to a standard bbox computation loop.
-	//   Return true if the BBOX was already computed by the class and returned in "bb" so it can be avoided to redo it again.
-	//   Look at bb.size() to find out the expected dimensionality (e.g. 2 or 3 for point clouds)
+    // Optional bounding-box computation: return false to default to a standard bbox computation loop.
+    //   Return true if the BBOX was already computed by the class and returned in "bb" so it can be avoided to redo it again.
+    //   Look at bb.size() to find out the expected dimensionality (e.g. 2 or 3 for point clouds)
     template <class BBOX>
     bool kdtree_get_bbox(BBOX &bb) const
     {
@@ -487,13 +487,13 @@ void GeneralSwarm_DeleteIndex( void* swarm ) {
 
     if(self->dim==2)
     {
-	    my_kd_tree_t_2d* index = (my_kd_tree_t_2d*)self->index;
+        my_kd_tree_t_2d* index = (my_kd_tree_t_2d*)self->index;
         if(index!=NULL)
             delete(index);
     }
     else
     {
-	    my_kd_tree_t_3d* index = (my_kd_tree_t_3d*)self->index;
+        my_kd_tree_t_3d* index = (my_kd_tree_t_3d*)self->index;
         if(index!=NULL)
             delete(index);
     }
@@ -535,13 +535,13 @@ size_t GeneralSwarm_GetClosestParticles( void* swarm, const double* coord, int n
     bool found;
     if(self->dim==2)
     {
-	    my_kd_tree_t_2d* index = (my_kd_tree_t_2d*)self->index;
+        my_kd_tree_t_2d* index = (my_kd_tree_t_2d*)self->index;
         found = index->findNeighbors(resultSet, &coord[0], nanoflann::SearchParams(10)); // note that I believe the value 10 here is ignored.. i'll retain it as it's used in the examples
         Journal_Firewall( found, NULL, "Unable to find any particles near coordinate (%f,%f).", coord[0], coord[1]);
     }
     else
     {
-	    my_kd_tree_t_3d* index = (my_kd_tree_t_3d*)self->index;
+        my_kd_tree_t_3d* index = (my_kd_tree_t_3d*)self->index;
         found = index->findNeighbors(resultSet, &coord[0], nanoflann::SearchParams(10)); 
         Journal_Firewall( found, NULL, "Unable to find any particles near coordinate (%f,%f,%f).", coord[0], coord[1], coord[2]);
     }
