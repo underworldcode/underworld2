@@ -31,7 +31,10 @@ StgData* StgInit( int argc, char* argv[] ) {
    }
    data->argvCpy[argc] = NULL;  //add sentinel
 
-   MPI_Init( &argc, &argv );
+   int is_inited;
+   MPI_Initialized( &is_inited );
+   if(!is_inited)
+      MPI_Init( &argc, &argv );
    MPI_Comm_dup( MPI_COMM_WORLD, &data->comm );
    MPI_Comm_size( data->comm, &data->nProcs );
    MPI_Comm_rank( data->comm, &data->rank );
