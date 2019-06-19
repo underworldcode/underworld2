@@ -133,6 +133,23 @@ Fn::SwarmVariableFn::func Fn::SwarmVariableFn::getFunction( IOsptr sample_input 
             streamguy << "does not appear to match swarm variable dimensionality (" << swarmvar->swarm->dim << ").";
             throw std::runtime_error(_pyfnerrorheader+streamguy.str());
         }
+        int size;
+        MPI_Comm_size( MPI_COMM_WORLD, &size );
+        if( (size>1) && !swarmvar->swarm->allow_parallel_nn)
+        {
+            std::stringstream streamguy;
+            streamguy << "Error: Attempting to evaluate SwarmVariable using nearest neighbour search in parallel. \n";
+            streamguy << "This operation will not return the true nearest neighbour where this neighbour actually \n";
+            streamguy << "resides on a different process. \n";
+            streamguy << "For dense swarms (swarms with particles in all elements), results may be similar if not \n";
+            streamguy << "identical. For sparse swarms, results will probably not be consistent for different     \n";
+            streamguy << "process counts. \n";
+            streamguy << "Note also that shadow particles are not currently indexed for NN search. \n";
+            streamguy << "If you would like to proceed anyhow, please set the `allow_parallel_nn` attribute to    \n";
+            streamguy << "`True` on the swarm object.";
+            throw std::runtime_error(_pyfnerrorheader+streamguy.str());
+            
+        }
         return [_output,_output_sp,swarmvar,this](IOsptr input)->IOsptr {
             const IO_double* iodouble = debug_dynamic_cast<const IO_double*>(input);
             

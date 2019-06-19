@@ -482,6 +482,19 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
             self._voronoi_swarm_private = uw.swarm.VoronoiIntegrationSwarm(self)
         return self._voronoi_swarm_private
 
+    @property
+    def allow_parallel_nn(self):
+        """
+        By default, parallel nearest neighbour search is disabled as consistent
+        results are not currently guaranteed. Set this attribute to `True` to 
+        allow parallel NN.
+        """
+        return self._cself.allow_parallel_nn
+    @allow_parallel_nn.setter
+    def allow_parallel_nn(self,val):
+        self._cself.allow_parallel_nn = val
+
+
     @contextlib.contextmanager
     def deform_swarm(self, update_owners=True):
         """

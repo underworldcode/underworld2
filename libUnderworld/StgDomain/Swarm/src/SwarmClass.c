@@ -92,8 +92,9 @@ Swarm* _Swarm_New(  SWARM_DEFARGS  )
 	self->owningCellVariable = NULL;
 	self->globalIdVariable = NULL;
 	self->gidExtHandle = (unsigned)-1;
-   self->ics = ics;
-   self->isAdvecting = False;
+	self->ics = ics;
+	self->isAdvecting = False;
+	self->allow_parallel_nn = False;
 
 	return self;
 }

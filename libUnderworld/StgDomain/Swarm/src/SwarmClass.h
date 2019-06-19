@@ -99,9 +99,10 @@
 						\
 		IArray*				incArray; \
 								 \
-	        int                             expanding;  \
-      Bool                             isAdvecting;     \
-      Swarm*                                mirroredSwarm;          /* swarm this swarm mirrors (if any) */
+		int                             expanding;  \
+		Bool                            isAdvecting;     \
+		Swarm*                          mirroredSwarm;          /* swarm this swarm mirrors (if any) */ \
+		Bool                            allow_parallel_nn;
 
 	struct Swarm { __Swarm };
 	
