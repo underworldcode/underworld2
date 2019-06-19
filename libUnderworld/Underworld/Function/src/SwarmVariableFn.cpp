@@ -143,7 +143,7 @@ Fn::SwarmVariableFn::func Fn::SwarmVariableFn::getFunction( IOsptr sample_input 
             streamguy << "resides on a different process. \n";
             streamguy << "For dense swarms (swarms with particles in all elements), results may be similar if not \n";
             streamguy << "identical. For sparse swarms, results will probably not be consistent for different     \n";
-            streamguy << "process counts. \n";
+            streamguy << "process counts, and a failure will occur if no neighbouring particle is found.  \n";
             streamguy << "Note also that shadow particles are not currently indexed for NN search. \n";
             streamguy << "If you would like to proceed anyhow, please set the `allow_parallel_nn` attribute to    \n";
             streamguy << "`True` on the swarm object.";
