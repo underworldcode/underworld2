@@ -1,12 +1,14 @@
 TACC/Stampede2 Singularity Usage
 ================================
 
-The `Dockerfile` here builds an Underworld Docker image based upon the TACC image 
-which provides an optimal MPI configuration (MPI library and associated software 
-for Infiniband hardware). 
+The `Dockerfile` here builds an Underworld Docker image using MPI implementation
+and hardware drivers required for stampede2.
 
-Note that the standard Underworld image also operates correctly on Stampede2, 
-although will not utilise Infiniband interconnects.
+Note that MPI linked apps (UW,mpi4py,h5py,etc) within this image will only run 
+correctly on stampede2. 
+
+The standard Underworld image also operates correctly on Stampede2, although it 
+will not utilise Infiniband interconnects.
 
 
 Pulling down the required image
@@ -20,7 +22,7 @@ module, and then you can pull down the required image:
 ```bash
 $ idev
 $ module load tacc-singularity/2.6.0
-$ singularity pull docker://underworldcode/underworld2:2.7.1b_stampede2
+$ singularity pull docker://underworldcode/underworld2:2.7.1b_stampede2_psm2
 ```
 
 or for the standard Underworld image:
@@ -46,7 +48,7 @@ Once you have obtained the required image, you are ready to run your model via t
 `singularity exec` command:
 
 ```bash
-$ mpirun singularity exec $SINGULARITY_CACHEDIR/underworld2-2.7.1b_stampede2 python YourScript.py
+$ mpirun singularity exec $SINGULARITY_CACHEDIR/underworld2-2.7.1b_stampede2_psm2 python YourScript.py
 ```
 
 The usual queued job submission instructions apply.
@@ -55,7 +57,7 @@ Note finally that you can actually point `singularity exec` directly at a docker
 and it will pull it down automatically if it does not exist locally:
 
 ```bash
-$ singularity exec docker://underworldcode/underworld2:2.7.1b python YourScript.py
+$ singularity exec docker://underworldcode/underworld2:2.7.1b_psm2 python YourScript.py
 ```
 
 However, this will perform the image extraction process (~120 seconds) each time you
