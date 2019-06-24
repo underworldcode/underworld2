@@ -57,7 +57,7 @@ for d in dirs:
     hdrs = env.Install(os.path.join(env['build_dir'],inc_dir), Glob(src_dir + '/*.h'))
 
     # Build our source files.
-    srcs = Glob(src_dir + '/*.c')
+    srcs = Glob(src_dir + '/*.c**')
     for src in srcs:
         stg_cpp_defs = cpp_defs + [('SOURCE_FILE', '"\\"' + src.name + '\\""')]
         objs += env.SharedObject(src, CPPDEFINES=stg_cpp_defs)
