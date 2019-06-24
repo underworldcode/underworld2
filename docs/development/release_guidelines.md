@@ -47,6 +47,7 @@ Testing
 * High resolution production tests on raijin, magnus run to completion with 
   correct results.
 * Ensure jenkins and docker are working correctly.
+* Ensure metrics are being dispatched.
 
 Creating the release
 ====================

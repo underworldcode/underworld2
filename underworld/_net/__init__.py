@@ -101,7 +101,7 @@ def PostGAEvent( category, action, label=None, value=None ):
         if "UW_MACHINE" in os.environ:
             form_fields["cd6"] = os.environ["UW_MACHINE"]
 
-        params = urllib.urlencode(form_fields)
+        params = urllib.parse.urlencode(form_fields)
         connection.connect()
         connection.request('POST', '/collect?%s' % params, '', { "Content-Type": "application/x-www-form-urlencoded" })
     except:
