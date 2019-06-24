@@ -674,8 +674,13 @@ class AnnulusConvection(Model):
         vBC    = self.dirichletBCs['velocity_freeSlip']
 
         self.system = dict()
-        self.system['heat'] = uw.systems.AdvectionDiffusion(tField, tDot, vField,
-                                    fn_diffusivity=1.0, conditions=tBC, fn_sourceTerm = self.fn_source)
+        self.system['heat'] = uw.systems.AdvectionDiffusion(
+                                phiField       = tField, 
+                                phiDotField    = tDot,
+                                velocityField  = vField, 
+                                fn_diffusivity = 1.0, 
+                                conditions     = tBC, 
+                                fn_sourceTerm  = self.fn_source)
 
         self.system['stokes'] = uw.systems.Stokes(vField, pField,
                                   fn_viscosity = self.fn_eta,

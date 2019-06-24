@@ -146,7 +146,6 @@ void AXequalsY( StiffnessMatrix* a, SolutionVector* x, SolutionVector* y, Bool t
     MatMult(Amat,X,Y);
 
   SolutionVector_UpdateSolutionOntoNodes( y );
-  FeVariable_SyncShadowValues( y->feVariable );
 }
 
 PetscErrorCode AXequalsX( StiffnessMatrix* a, SolutionVector* x, Bool transpose ) {
@@ -167,13 +166,12 @@ PetscErrorCode AXequalsX( StiffnessMatrix* a, SolutionVector* x, Bool transpose 
     ierr = MatMult(Amat,X,Y);
   }
   // check for non-zero error code manually
-  Journal_Firewall(ierr==0, NULL, "Error in AXequalsX(), see terminal command line\n");
+  Journal_Firewall(ierr==0, NULL, (char *)"Error in AXequalsX(), see terminal command line\n");
 
   VecCopy(Y, X);
   VecDestroy(&Y);
 
   SolutionVector_UpdateSolutionOntoNodes( x );
-  FeVariable_SyncShadowValues( x->feVariable );
   PetscFunctionReturn(0);
 }
 
@@ -195,14 +193,12 @@ void _MatrixAssemblyTerm_RotationDof_AssembleElement(
    const IO_double *e1_fnout, *e2_fnout, *e3_fnout; // the unit vector uw function ptrs
    const double *e1ptr, *e2ptr, *e3ptr;
    IArray       *inc = self->inc;
-   double       crossproduct[3];
-   int          nNbr, *nbr, n_i, row_i, col_i, d_i, dofsPerNode;
+   int          nNbr, *nbr, n_i, row_i, col_i;
 
    // get this element's nodes, using IArray
    Mesh_GetIncidence( mesh, (MeshTopology_Dim)dim, (unsigned)lElement_I, MT_VERTEX, inc );
    nNbr = IArray_GetSize( inc );
    nbr = IArray_GetPtr( inc );
-   dofsPerNode = variable_row->fieldComponentCount;
 
    // loop over element's nodes
    for( n_i=0 ; n_i<nNbr ; n_i++ ){
@@ -227,7 +223,6 @@ void _MatrixAssemblyTerm_RotationDof_AssembleElement(
 
     } else {
        // assume we can always calulate the 3rd basis vector from the cross product of e1 & e2
-       //StGermain_VectorCrossProduct(crossproduct, (double*)e1ptr, (double*)e2ptr);
       
        // get the e2 unit vector
        e3_fnout = debug_dynamic_cast<const IO_double*>(cppdata->eVecFn[2](rawPtr));

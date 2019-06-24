@@ -12,7 +12,135 @@ from . import sle
 import libUnderworld
 from mpi4py import MPI
 
-class SLCN_AdvectionDiffusion(object):
+
+class AdvectionDiffusion(object):
+    """
+    This class provides functionality for a discrete representation
+    of an advection-diffusion equation.
+
+    .. math::
+        \\frac{\\partial\\phi}{\\partial t}  + {\\bf u } \\cdot \\nabla \\phi= \\nabla { ( k  \\nabla \\phi ) } + H
+
+    Two methods are available to integrate the scalar :math:`\phi` through time:
+    1) SUPG - The Streamline Upwind Petrov Galerkin method.
+       paper ref
+    2) SLCN - The Semi-Lagrangian Crank-Nicholson method.
+       Implements the Spiegelman & Katz. Semi-lagrangian Advection / Crank
+       Nicholson Diffusion algorithm
+
+    Currently the integration method can only be defined at class
+    instanciation.
+    SLADE is the preferred method for Q1, regular cartesian meshes. It is
+    quicker, less diffusive and less restrictive
+    on the timestep size. SUPG is the legacy method for and used for deformed meshes.
+
+    Parameters
+    ----------
+    phiField : underworld.mesh.MeshVariable
+        The concentration field, typically the temperature field
+    velocityField : underworld.mesh.MeshVariable
+        The velocity field.
+    fn_diffusivity : underworld.function.Function
+        A function that defines the diffusivity within the domain.
+    fn_sourceTerm : underworld.function.Function
+        A function that defines the heating within the domain. Optional.
+    conditions : underworld.conditions.SystemCondition
+        Numerical conditions to impose on the system. This should be supplied as
+        the condition itself, or a list object containing the conditions.
+    phiDotField [SUPG only]: underworld.mesh.MeshVariable
+        A MeshVariable that defines the initial time derivative of the phiField.
+        Typically 0 at the beginning of a model, e.g. phiDotField.data[:]=0
+        When using a phiField loaded from disk one should also load the phiDotField to ensure
+        the solving method has the time derivative information for a smooth restart.
+        No dirichlet conditions are required for this field as the phiField degrees of freedom
+        map exactly to this field's dirichlet conditions, the value of which ought to be 0
+        for constant values of phi.
+    allow_non_q1 : Bool (default False)
+        Allow the integration to perform over a non Q1 element mesh. (Under Q2
+        elements instabilities have been observed as the implementation is only
+        for Q1 elements)
+
+
+    Notes
+    -----
+    Constructor must be called by collectively all processes.
+    """
+
+    def __init__(self, phiField=None, velocityField=None, fn_diffusivity=None,
+                 fn_sourceTerm=None, method="SUPG", conditions=[],
+                 phiDotField=None, allow_non_q1=False, **kwargs):
+
+        if not isinstance(method, str) or method.upper() not in ("SUPG","SLCN"):
+            raise ValueError("'method' parameter must be 'SUPG' or 'SLCN'")
+        self.method = method.upper()
+
+        if self.method == "SLCN" and phiDotField:
+            import warnings
+            warnings.warn("'phiDotField' doesn't influence the 'SLCN' method."+
+                          " It's only required for the 'SUPG' method")
+        if self.method == "SUPG" and not phiDotField:
+            raise ValueError("'phiDotField' is required for the 'SUPG' method")
+
+        # check phiField, velocity, diff, source, conditions
+        if not isinstance( phiField, uw.mesh.MeshVariable):
+            raise TypeError( "Provided 'phiField' must be of 'MeshVariable' class." )
+        if phiField.data.shape[1] != 1:
+            raise TypeError( "Provided 'phiField' must be a scalar" )
+
+        if velocityField.data.shape[1] != phiField.mesh.dim:
+            raise TypeError( "Provided 'velocityField' must be the same dimensionality as the phiField's mesh" )
+
+        if phiField.mesh.elementType != 'Q1':
+            import warnings
+            warnings.warn("The 'phiField' is discretised on a {} mesh. ".format(phiField.mesh.elementType) +
+                          "This 'uw.system.AdvectionDiffusion' implementation is" +
+                          "only stable for a phiField discretised with a Q1 mesh. Either create a Q1 mesh for the 'phiField' or, if you know " +
+                          "what you're doing, override this error with the argument 'allow_non_q1=True' in the constructor", category=RuntimeWarning)
+            if allow_non_q1 == False:
+                raise ValueError( "Error as provided 'phiField' discretisation is unstable")
+
+        if self.method == "SUPG":
+            self.system = _SUPG_AdvectionDiffusion(
+                                phiField, phiDotField, velocityField, 
+                                fn_diffusivity, fn_sourceTerm, conditions)
+        elif self.method == "SLCN":
+            self.system = _SLCN_AdvectionDiffusion(
+                                phiField, velocityField, fn_diffusivity, 
+                                fn_sourceTerm, conditions)
+
+    @property
+    def velocityField(self):
+        return self.system.velocityField
+
+    @property
+    def phiField(self):
+        return self.system.phiField
+
+    def integrate(self, dt=0.0, **kwargs):
+        """
+        Integrates the advection diffusion system through time, dt
+        Must be called collectively by all processes.
+
+        Parameters
+        ----------
+        dt : float
+            The timestep interval to use
+        """
+        self.system.integrate(dt, **kwargs)
+
+    def get_max_dt(self):
+        """
+        Returns a timestep size for the current system.
+
+        Returns
+        -------
+        float
+         The timestep size.
+        """
+        return self.system.get_max_dt()
+
+
+class _SLCN_AdvectionDiffusion(object):
     def __init__(self, phiField, velocityField, fn_diffusivity, fn_sourceTerm=None, conditions=[]):
         """Implements the Spiegelman / Katz   Semi-lagrangian Advection / Crank Nicholson Diffusion algorithm"""
 
@@ -25,7 +153,7 @@ class SLCN_AdvectionDiffusion(object):
         # uw.functions for diffusivity and a source term
         self.fn_diffusivity = uw.function.Function.convert(fn_diffusivity)
         self.fn_sourceTerm  = uw.function.Function.convert(fn_sourceTerm)
-        self.fn_dt          = uw.function.misc.constant(1.0) # dummy value
+        self.fn_dt          = uw.function.misc.constant(1.0)  # dummy value
 
         # build a grid field, phiStar, for the information at departure points
         self._phiStar = phiField.copy()
@@ -35,7 +163,7 @@ class SLCN_AdvectionDiffusion(object):
         self._mswarm_advector = None
 
         # check input 'conditions' list is valid
-        if not isinstance(conditions,(list,tuple)):
+        if not isinstance(conditions, (list, tuple)):
             conditionslist = []
             conditionslist.append(conditions)
             conditions = conditionslist
@@ -65,50 +193,55 @@ class SLCN_AdvectionDiffusion(object):
         K    = self._K    = uw.systems.sle.AssembledMatrix(solv, solv, f)
 
         # create quadrature swarm
-        intSwarm = uw.swarm.GaussIntegrationSwarm(mesh,particleCount=5)
+        intSwarm = uw.swarm.GaussIntegrationSwarm(mesh, particleCount=5)
 
         fn_dt = self.fn_dt
 
         # take sourceTerm into account - implementation doesn't track from departure points so is less accurate in time
         if fn_sourceTerm is not None:
-            rhs_term = self._phiStar + fn_dt*self.fn_sourceTerm
+            rhs_term = self._phiStar + fn_dt * self.fn_sourceTerm
         else:
             rhs_term = self._phiStar
 
-        self._mv_term = uw.systems.sle.VectorAssemblyTerm_NA__Fn( integrationSwarm = intSwarm,
-                                                                assembledObject    = f,
-                                                                mesh = mesh,
-                                                                fn   = 1.*rhs_term )
+        self._mv_term = uw.systems.sle.VectorAssemblyTerm_NA__Fn( 
+                            integrationSwarm = intSwarm,
+                            assembledObject    = f,
+                            mesh = mesh,
+                            fn   = 1. * rhs_term )
 
-        self._kv_term = uw.systems.sle.VectorAssemblyTerm_NA_i__Fn_i( integrationSwarm = intSwarm,
-                                                                    assembledObject    = f,
-                                                                    mesh = mesh,
-                                                                    fn   = -0.5 * fn_dt * self.fn_diffusivity * self._phiStar.fn_gradient )
+        self._kv_term = uw.systems.sle.VectorAssemblyTerm_NA_i__Fn_i( 
+                            integrationSwarm = intSwarm,
+                            assembledObject  = f,
+                            mesh = mesh,
+                            fn   = -0.5 * fn_dt * self.fn_diffusivity * self._phiStar.fn_gradient )
 
         if nbc is not None:
-            ### -VE flux because of the FEM discretisation method of the initial equation
-            negativeCond = uw.conditions.NeumannCondition( fn_flux  = fn_dt * nbc.fn_flux,
-                                                           variable = nbc.variable,
-                                                           indexSetsPerDof = nbc.indexSetsPerDof )
+            # -VE flux because of the FEM discretisation method of the initial equation
+            negativeCond = uw.conditions.NeumannCondition( 
+                            fn_flux  = fn_dt * nbc.fn_flux,
+                            variable = nbc.variable,
+                            indexSetsPerDof = nbc.indexSetsPerDof )
 
-            #NOTE many NeumannConditions can be used but the _sufaceFluxTerm only records the last
+            # NOTE many NeumannConditions can be used but the _sufaceFluxTerm only records the last
             self._surfaceFluxTerm = sle.VectorSurfaceAssemblyTerm_NA__Fn__ni(
-                                                            assembledObject    = f,
-                                                            surfaceGaussPoints = 2,
-                                                            nbc         = negativeCond )
+                                        assembledObject    = f,
+                                        surfaceGaussPoints = 2,
+                                        nbc         = negativeCond )
 
-        self._k_term = uw.systems.sle.MatrixAssemblyTerm_NA_i__NB_i__Fn(assembledObject  = K,
-                                                                        integrationSwarm = intSwarm,
-                                                                        fn = 0.5 * fn_dt * self.fn_diffusivity)
+        self._k_term = uw.systems.sle.MatrixAssemblyTerm_NA_i__NB_i__Fn(
+                        assembledObject  = K,
+                        integrationSwarm = intSwarm,
+                        fn = 0.5 * fn_dt * self.fn_diffusivity)
 
-        self._m_term = uw.systems.sle.MatrixAssemblyTerm_NA__NB__Fn(assembledObject  = K,
-                                                                    integrationSwarm = intSwarm,
-                                                                    fn   = 1.,
-                                                                    mesh = mesh)
+        self._m_term = uw.systems.sle.MatrixAssemblyTerm_NA__NB__Fn(
+                        assembledObject  = K,
+                        integrationSwarm = intSwarm,
+                        fn   = 1.,
+                        mesh = mesh)
 
         # functions used to calculate the timestep, see function get_max_dt()
 
-        self._maxVsq  = uw.function.view.min_max(velocityField, fn_norm = uw.function.math.dot(velocityField,velocityField) )
+        self._maxVsq  = uw.function.view.min_max(velocityField, fn_norm = uw.function.math.dot(velocityField, velocityField) )
         self._maxDiff = uw.function.view.min_max(self.fn_diffusivity)
 
         # Note that the c level minSep on the mesh is for the local domain
@@ -129,17 +262,15 @@ class SLCN_AdvectionDiffusion(object):
 
         try:
             import stripy
-            self._have_stripy=True
+            self._have_stripy = True
         except ImportError:
-            self._have_stripy=False
+            self._have_stripy = False
 
         try:
             from scipy.interpolate import Rbf
-            self._have_rbf=True
+            self._have_rbf = True
         except ImportError:
-            self._have_rbf=False
-
-
+            self._have_rbf = False
 
     def _integrate_original_version(self, dt, solve=True):
 
@@ -164,7 +295,6 @@ class SLCN_AdvectionDiffusion(object):
 
         return
 
-
     def _phiStar_stripy_old(self, dt):
 
         import stripy
@@ -177,7 +307,7 @@ class SLCN_AdvectionDiffusion(object):
         phiNorm = mesh.add_variable(dataType="double", nodeDofCount=1)
 
         if self._mesh_interpolator_stripy == None:
-            self._mesh_interpolator_stripy = stripy.Triangulation(mesh.data[:,0], mesh.data[:,1], permute=True)
+            self._mesh_interpolator_stripy = stripy.Triangulation(mesh.data[:, 0], mesh.data[:, 1], permute=True)
 
         mesh_interpolator = self._mesh_interpolator_stripy
 
@@ -186,7 +316,6 @@ class SLCN_AdvectionDiffusion(object):
         mswarm_map = mswarm.add_variable(dataType="int", count=1)
         mswarm_home_pts = mswarm.add_variable(dataType="double", count=mesh.dim)
         mcoords = mesh.data.copy()
-
 
         # layout = uw.swarm.layouts.PerCellGaussLayout(mswarm, gaussPointCount=5)
         # mswarm.populate_using_layout(layout)
@@ -197,13 +326,13 @@ class SLCN_AdvectionDiffusion(object):
 
         element_centroids = mesh.data[local_nId[mesh.data_elementNodes]].mean(axis=1)
         element_centroids2 = element_centroids.reshape(tuple((*element_centroids.shape, 1)))
-        element_coords = mesh.data[local_nId[mesh.data_elementNodes]].transpose(0,2,1)
+        element_coords = mesh.data[local_nId[mesh.data_elementNodes]].transpose(0, 2, 1)
         swarm_coords   = (element_coords - element_centroids2) * 0.8 + element_centroids2
-        swarm_coords2  = swarm_coords.transpose(0,2,1).reshape(-1, 2)
+        swarm_coords2  = swarm_coords.transpose(0, 2, 1).reshape(-1, 2)
         localID = mswarm.add_particles_with_coordinates(swarm_coords2)
 
         accepted = np.where(localID != -1)
-        mswarm_map.data[:] = mesh.data_elementNodes.reshape(-1,1)[accepted]
+        mswarm_map.data[:] = mesh.data_elementNodes.reshape(-1, 1)[accepted]
         mswarm_home_pts.data[:] = mswarm.particleCoordinates.data[accepted]
 
         # mcoords[surface,:] *= 0.9999
@@ -222,7 +351,6 @@ class SLCN_AdvectionDiffusion(object):
 
         print("B{}: mswarm has {} particles ({} local)".format(uw.mpi.rank, mswarm.particleGlobalCount, mswarm.particleLocalCount))
 
-
         # mswarm_Tstar.data[:,0], err = mesh_interpolator.interpolate_cubic(mswarm.particleCoordinates.data[:,0],
         #                                 mswarm.particleCoordinates.data[:,1],
         #                                 self.phiField.data)
@@ -231,31 +359,29 @@ class SLCN_AdvectionDiffusion(object):
         mswarm_Tstar.data[:] = self.phiField.evaluate(mswarm)
         ## mswarm_Tstar.data[:,0] = mswarm.particleCoordinates.data[:,0]
 
-        ## Restore
+        # Restore
         with mswarm.deform_swarm():
             mswarm.particleCoordinates.data[:] = mswarm_home_pts.data[:]
-
 
         phiStar.data[:] = 0.0
         phiNorm.data[:] = 0.0
 
         # Surely this can be optimised (maybe the kdTree (cached) would be quicker / less storage ?)
-        for i, gnode in enumerate(mswarm_map.data[:,0]):
+        for i, gnode in enumerate(mswarm_map.data[:, 0]):
             node = np.where(mesh.data_nodegId == gnode)[0]
             phiStar.data[node] += mswarm_Tstar.data[i]
             phiNorm.data[node] += 1.0
 
         if uw.mpi.size > 1:
             mswarm.shadow_particles_fetch()
-            for i, gnode in enumerate(mswarm_map.data_shadow[:,0]):
+            for i, gnode in enumerate(mswarm_map.data_shadow[:, 0]):
                 node = np.where(mesh.data_nodegId == gnode)[0]
-                phiStar.data[node] += mswarm_Tstar.data_shadow[i,0]
+                phiStar.data[node] += mswarm_Tstar.data_shadow[i, 0]
                 phiNorm.data[node] += 1.0
 
         phiStar.data[np.where(phiNorm.data > 0.0)] /= phiNorm.data[np.where(phiNorm.data > 0.0)]
 
         return phiStar
-
 
     def _build_phiStar_swarm(self, ratio=0.9):
 
@@ -278,28 +404,27 @@ class SLCN_AdvectionDiffusion(object):
             layout = uw.swarm.layouts.PerCellRandomLayout(mswarm, particlesPerCell=mesh.data_elementNodes[0].shape[0])
             mswarm.populate_using_layout(layout)
 
-
             # element_centroids = mesh.data[local_nId[mesh.data_elementNodes]].mean(axis=1)
             # element_centroids2 = element_centroids.reshape(tuple((*element_centroids.shape, 1)))
             # element_coords = mesh.data[local_nId[mesh.data_elementNodes]].transpose(0,2,1)
             # swarm_coords   = (element_coords - element_centroids2) * ratio + element_centroids2
             # swarm_coords2  = swarm_coords.transpose(0,2,1).reshape(-1, mesh.dim)
 
-            ## This is not optimised for the element loop
-            ## But there eliminates the initial search issues
-            ## associated with adding points to an empty swarm.
+            # This is not optimised for the element loop
+            # But there eliminates the initial search issues
+            # associated with adding points to an empty swarm.
 
             ## print("{} - adding {} particles".format(uw.mpi.rank, swarm_coords2.shape[0]), flush=True )
 
             with mswarm.deform_swarm(update_owners=True):
-                for el in range(0,mesh.elementsLocal):
+                for el in range(0, mesh.elementsLocal):
                     element_centroid = mesh.data[local_nId[mesh.data_elementNodes[el]]].mean(axis=0)
                     node_rel_coords  = mesh.data[local_nId[mesh.data_elementNodes[el]]] - element_centroid
                     particle_coords  = node_rel_coords * ratio + element_centroid
 
                     particles = np.where(mswarm.owningCell.data == el)[0]
                     mswarm.particleCoordinates.data[particles] = particle_coords
-                    mswarm_map.data[particles,0] = mesh.data_elementNodes[el]
+                    mswarm_map.data[particles, 0] = mesh.data_elementNodes[el]
 
             #
             # localID = mswarm.add_particles_with_coordinates(swarm_coords2)
@@ -313,7 +438,7 @@ class SLCN_AdvectionDiffusion(object):
             # if np.any(localID == -1):
             #     print("{} - particles missing: {}".format(uw.mpi.rank, np.where(localID == -1).shape[0]), flush=True )
 
-            ## Make these variables accessible
+            # Make these variables accessible
 
             self._mswarm = mswarm
             self._mswarm_global_particles = mswarm.particleGlobalCount
@@ -360,44 +485,41 @@ class SLCN_AdvectionDiffusion(object):
         mswarm = self._mswarm
 
         if self._mesh_interpolator_stripy == None:
-            self._mesh_interpolator_stripy = stripy.Triangulation(mesh.data[:,0], mesh.data[:,1], permute=True)
+            self._mesh_interpolator_stripy = stripy.Triangulation(mesh.data[:, 0], mesh.data[:, 1], permute=True)
 
         mesh_interpolator = self._mesh_interpolator_stripy
 
         # Consider doing this in 2 half steps ...
         self._mswarm_advector.integrate(-dt, update_owners=True)
 
-        mswarm_phiStar.data[:,0], err = mesh_interpolator.interpolate_cubic(mswarm.particleCoordinates.data[:,0],
-                                        mswarm.particleCoordinates.data[:,1],
-                                        self.phiField.data)
+        mswarm_phiStar.data[:, 0], err = mesh_interpolator.interpolate_cubic(mswarm.particleCoordinates.data[:, 0],
+                                                                             mswarm.particleCoordinates.data[:, 1],
+                                                                             self.phiField.data)
 
-        ## Restore
+        # Restore
         self._reset_phiStar_swarm()
 
         phiStar.data[:] = 0.0
         phiNorm.data[:] = 0.0
 
         # Surely this can be optimised (maybe the kdTree (cached) would be quicker / less storage ?)
-        for i, gnode in enumerate(self._mswarm_map.data[:,0]):
+        for i, gnode in enumerate(self._mswarm_map.data[:, 0]):
             node = np.where(mesh.data_nodegId == gnode)[0]
             phiStar.data[node] += mswarm_phiStar.data[i]
             phiNorm.data[node] += 1.0
 
         if uw.mpi.size > 1:
             mswarm.shadow_particles_fetch()
-            for i, gnode in enumerate(self._mswarm_map.data_shadow[:,0]):
+            for i, gnode in enumerate(self._mswarm_map.data_shadow[:, 0]):
                 node = np.where(mesh.data_nodegId == gnode)[0]
-                phiStar.data[node] += mswarm_phiStar.data_shadow[i,0]
+                phiStar.data[node] += mswarm_phiStar.data_shadow[i, 0]
                 phiNorm.data[node] += 1.0
 
         phiStar.data[np.where(phiNorm.data > 0.0)] /= phiNorm.data[np.where(phiNorm.data > 0.0)]
 
-
         self._phiStar_dirichlet_conditions(phiStar)
 
         return phiStar
-
-
 
     def _phiStar_dirichlet_conditions(self, phiStar):
 
@@ -409,7 +531,6 @@ class SLCN_AdvectionDiffusion(object):
 
         return
 
-
     def _phiStar_rbf(self, dt, smooth=0.9):
 
         import numpy as np
@@ -420,9 +541,7 @@ class SLCN_AdvectionDiffusion(object):
         if self._mswarm == None:
             self._build_phiStar_swarm(ratio=smooth)
 
-
         walltime = time.process_time()
-
 
         mesh = self.phiField.mesh
         phiStar = mesh.add_variable(dataType="double", nodeDofCount=1)
@@ -450,24 +569,23 @@ class SLCN_AdvectionDiffusion(object):
         #                                                  mswarm.particleCoordinates.data[:,2] )
         #
 
-        ## EBE version - global RBF is impractical in nearly every case
-        ## We need to know the element size and mesh dimension to do this interpolation
-        ## correctly ... first, the 3D, Q1 version ...
+        # EBE version - global RBF is impractical in nearly every case
+        # We need to know the element size and mesh dimension to do this interpolation
+        # correctly ... first, the 3D, Q1 version ...
 
         if "Q1" in mesh.elementType:
             stencil_size = 6**mesh.dim
         elif "Q2" in mesh.elementType:
             stencil_size = 7**mesh.dim
-        else: # No idea
+        else:  # No idea
             stencil_size = 7**mesh.dim
-
 
         # I think this can be eliminated at some stage ...
         local_nId = -1 * np.ones(mesh.nodesGlobal, dtype=np.int)
         for i, gId in enumerate(mesh.data_nodegId):
             local_nId[gId] = i
 
-        for el in range(0,mesh.elementsLocal):
+        for el in range(0, mesh.elementsLocal):
             # if el%1000 == 0:
             #     print("{}: Element: {}".format(uw.mpi.rank, el), flush=True)
             element_centroid = mesh.data[local_nId[mesh.data_elementNodes[el]]].mean(axis=0)
@@ -476,39 +594,38 @@ class SLCN_AdvectionDiffusion(object):
             particles = np.where(mswarm.owningCell.data == el)[0]
 
             if mesh.dim == 2:
-                mesh_interpolator = Rbf(mesh.data[local_nodes,0],
-                                        mesh.data[local_nodes,1],
+                mesh_interpolator = Rbf(mesh.data[local_nodes, 0],
+                                        mesh.data[local_nodes, 1],
                                         self.phiField.data[local_nodes], smooth=0.0, function='thin_plate' )
                 locations_x, locations_y = mswarm.particleCoordinates.data[particles].T
-                mswarm_phiStar.data[particles,0] = mesh_interpolator(locations_x, locations_y)
+                mswarm_phiStar.data[particles, 0] = mesh_interpolator(locations_x, locations_y)
 
             else:
-                mesh_interpolator = Rbf(mesh.data[local_nodes,0],
-                                        mesh.data[local_nodes,1],
-                                        mesh.data[local_nodes,2],
+                mesh_interpolator = Rbf(mesh.data[local_nodes, 0],
+                                        mesh.data[local_nodes, 1],
+                                        mesh.data[local_nodes, 2],
                                         self.phiField.data[local_nodes], smooth=0.0, function='thin_plate' )
 
                 locations_x, locations_y, locations_z = mswarm.particleCoordinates.data[particles].T
-                mswarm_phiStar.data[particles,0] = mesh_interpolator(locations_x, locations_y, locations_z)
+                mswarm_phiStar.data[particles, 0] = mesh_interpolator(locations_x, locations_y, locations_z)
 
-
-        ## Restore
+        # Restore
         self._reset_phiStar_swarm()
 
         phiStar.data[:] = 0.0
         phiNorm.data[:] = 0.0
 
         # Surely this can be optimised (maybe the kdTree (cached) would be quicker / less storage ?)
-        for i, gnode in enumerate(self._mswarm_map.data[:,0]):
+        for i, gnode in enumerate(self._mswarm_map.data[:, 0]):
             node = np.where(mesh.data_nodegId == gnode)[0]
             phiStar.data[node] += mswarm_phiStar.data[i]
             phiNorm.data[node] += 1.0
 
         if uw.mpi.size > 1:
             mswarm.shadow_particles_fetch()
-            for i, gnode in enumerate(self._mswarm_map.data_shadow[:,0]):
+            for i, gnode in enumerate(self._mswarm_map.data_shadow[:, 0]):
                 node = np.where(mesh.data_nodegId == gnode)[0]
-                phiStar.data[node] += mswarm_phiStar.data_shadow[i,0]
+                phiStar.data[node] += mswarm_phiStar.data_shadow[i, 0]
                 phiNorm.data[node] += 1.0
 
         phiStar.data[np.where(phiNorm.data > 0.0)] /= phiNorm.data[np.where(phiNorm.data > 0.0)]
@@ -520,7 +637,6 @@ class SLCN_AdvectionDiffusion(object):
 
         return phiStar
 
-
     def _phiStar_fe(self, dt, smooth=0.9):
 
         import numpy as np
@@ -530,7 +646,6 @@ class SLCN_AdvectionDiffusion(object):
         if self._mswarm == None:
             self._build_phiStar_swarm(ratio=smooth)
 
-
         mesh = self.phiField.mesh
         phiStar = mesh.add_variable(dataType="double", nodeDofCount=1)
         phiNorm = mesh.add_variable(dataType="double", nodeDofCount=1)
@@ -539,10 +654,10 @@ class SLCN_AdvectionDiffusion(object):
 
         self._mswarm_advector.integrate(-dt, update_owners=True)
 
-        ## FE variable based interpolator
+        # FE variable based interpolator
         mswarm_phiStar.data[:] = self.phiField.evaluate(mswarm)
 
-        ## Restore
+        # Restore
         walltime = time.process_time()
         self._reset_phiStar_swarm()
 
@@ -550,16 +665,16 @@ class SLCN_AdvectionDiffusion(object):
         phiNorm.data[:] = 0.0
 
         # Surely this can be optimised (maybe the kdTree (cached) would be quicker / less storage ?)
-        for i, gnode in enumerate(self._mswarm_map.data[:,0]):
+        for i, gnode in enumerate(self._mswarm_map.data[:, 0]):
             node = np.where(mesh.data_nodegId == gnode)[0]
             phiStar.data[node] += mswarm_phiStar.data[i]
             phiNorm.data[node] += 1.0
 
         if uw.mpi.size > 1:
             mswarm.shadow_particles_fetch()
-            for i, gnode in enumerate(self._mswarm_map.data_shadow[:,0]):
+            for i, gnode in enumerate(self._mswarm_map.data_shadow[:, 0]):
                 node = np.where(mesh.data_nodegId == gnode)[0]
-                phiStar.data[node] += mswarm_phiStar.data_shadow[i,0]
+                phiStar.data[node] += mswarm_phiStar.data_shadow[i, 0]
                 phiNorm.data[node] += 1.0
 
         phiStar.data[np.where(phiNorm.data > 0.0)] /= phiNorm.data[np.where(phiNorm.data > 0.0)]
@@ -568,8 +683,7 @@ class SLCN_AdvectionDiffusion(object):
 
         return phiStar
 
-
-    def integrate(self,  dt=0.0, phiStar=None, interpolator="rbf", solve=True, phiStarCopy=None, smooth=0.9, substeps=1):
+    def integrate(self, dt=0.0, phiStar=None, interpolator="", solve=True, phiStarCopy=None, smooth=0.9, substeps=1):
         """SLCN integration in time. In a regular mesh, the update
         of the field can be calculated directly, but in an irregular
         mesh, it is necessary to supply phiStar (the T at launch points)"""
@@ -577,7 +691,7 @@ class SLCN_AdvectionDiffusion(object):
         import warnings
 
         dts = dt / float(substeps)
-        for substep in range(0,substeps):
+        for substep in range(0, substeps):
 
             # use the given timestep
             self.fn_dt.value = dts
@@ -606,9 +720,8 @@ class SLCN_AdvectionDiffusion(object):
                 phiStar = self._phiStar_fe(dts, smooth=smooth)
                 warnings.warn("fe is a low-order method for debugging use only", category=RuntimeWarning)
 
-
             if phiStar is None:
-                ## Extremely unreliable !!
+                # Extremely unreliable !!
                 uw.libUnderworld.StgFEM.SemiLagrangianIntegrator_SolveNew(
                     self.phiField._cself,
                     dt,
@@ -623,14 +736,12 @@ class SLCN_AdvectionDiffusion(object):
 
             # Solve the update problem
             if solve:
-                    self.sle.solve()
+                self.sle.solve()
 
         self.fn_dt.value = dt
         return
 
-
-
-    def launchPts(self,  dt=0.0):
+    def launchPts(self, dt=0.0):
         """SLCN integration in time. In a regular mesh, the update
         of the field can be calculated directly, but in an irregular
         mesh, it is necessary to supply phiStar (the T at launch points)"""
@@ -648,12 +759,11 @@ class SLCN_AdvectionDiffusion(object):
         depPointsField = self.vField.copy()
 
         uw.libUnderworld.StgFEM.SemiLagrangianIntegrator_FindLaunchPts(
-                dt,
-                self.vField._cself,
-                depPointsField._cself)
+            dt,
+            self.vField._cself,
+            depPointsField._cself)
 
         return depPointsField
-
 
     def get_max_dt(self):
         """
@@ -687,19 +797,19 @@ class SLCN_AdvectionDiffusion(object):
         maxDiffusion = self._maxDiff.max_global()
 
         # the minimum separation of the mesh (globally)
-        # dx = self._minDx
-        dx = self.vField.mesh._typicalDx
+        dx = self._minDx
+        #dx = self.vField.mesh._typicalDx # from LM implementation
 
         # Note, if dx is not constant, these tests are potentially
         # overly pessimistic
 
-        diff_dt = dx*dx / maxDiffusion
+        diff_dt = dx * dx / maxDiffusion
         adv_dt  = dx / vmax
 
-        return  min(adv_dt, diff_dt)
+        return min(adv_dt, diff_dt)
 
 
-class AdvectionDiffusion(_stgermain.StgCompoundComponent):
+class _SUPG_AdvectionDiffusion(_stgermain.StgCompoundComponent):
     """
     This class provides functionality for a discrete representation
     of an advection-diffusion equation.
@@ -732,17 +842,16 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
     conditions : underworld.conditions.SystemCondition
         Numerical conditions to impose on the system. This should be supplied as
         the condition itself, or a list object containing the conditions.
-
-    Notes
+        Notes
     -----
     Constructor must be called by collectively all processes.
 
     """
-    _objectsDict = {  "_system" : "AdvectionDiffusionSLE",
-                      "_solver" : "AdvDiffMulticorrector" }
+    _objectsDict = {  "_system": "AdvectionDiffusionSLE",
+                      "_solver": "AdvDiffMulticorrector" }
     _selfObjectName = "_system"
 
-    def __init__(self, phiField, phiDotField, velocityField, fn_diffusivity, fn_sourceTerm=None, conditions=[], _allow_non_q1=False, **kwargs):
+    def __init__(self, phiField, phiDotField, velocityField, fn_diffusivity, fn_sourceTerm=None, conditions=[]):
 
         self._diffusivity   = fn_diffusivity
         self._source        = fn_sourceTerm
@@ -752,14 +861,6 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
         if phiField.data.shape[1] != 1:
             raise TypeError( "Provided 'phiField' must be a scalar" )
         self._phiField = phiField
-        if self._phiField.mesh.elementType != 'Q1':
-            import warnings
-            warnings.warn("The 'phiField' is discretised on a {} mesh. This 'uw.system.AdvectionDiffusion' implementation is ".format(self._phiField.mesh.elementType)+
-                          "only stable for a phiField discretised with a Q1 mesh. Either create a Q1 mesh for the 'phiField' or, if you know "+
-                          "what you're doing, override this error with the argument '_allow_non_q1=True' in the constructor", category=RuntimeWarning)
-            if _allow_non_q1 == False:
-                raise ValueError( "Error as provided 'phiField' discretisation is unstable")
-
         if not isinstance( phiDotField, (uw.mesh.MeshVariable, type(None))):
             raise TypeError( "Provided 'phiDotField' must be 'None' or of 'MeshVariable' class." )
         if self._phiField.data.shape != phiDotField.data.shape:
@@ -771,7 +872,7 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
             raise TypeError( "Provided 'velocityField' must be the same dimensionality as the phiField's mesh" )
         self._velocityField = velocityField
 
-        if not isinstance(conditions,(list,tuple)):
+        if not isinstance(conditions, (list, tuple)):
             conditionslist = []
             conditionslist.append(conditions)
             conditions = conditionslist
@@ -808,15 +909,14 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
         # create swarm
         self._gaussSwarm = uw.swarm.GaussIntegrationSwarm(self._phiField.mesh)
 
-        super(AdvectionDiffusion, self).__init__(**kwargs)
+        super(_SUPG_AdvectionDiffusion, self).__init__()
 
         self._cself.phiVector = self._phiSolution._cself
         self._cself.phiDotVector = self._phiDotSolution._cself
 
-
-    def _add_to_stg_dict(self,componentDictionary):
+    def _add_to_stg_dict(self, componentDictionary):
         # call parents method
-        super(AdvectionDiffusion,self)._add_to_stg_dict(componentDictionary)
+        super(_SUPG_AdvectionDiffusion, self)._add_to_stg_dict(componentDictionary)
 
         componentDictionary[ self._cself.name ][   "SLE_Solver"] = self._solver.name
         componentDictionary[ self._cself.name ][     "PhiField"] = self._phiField._cself.name
@@ -831,31 +931,30 @@ class AdvectionDiffusion(_stgermain.StgCompoundComponent):
         # in particular, the residualTerm requires and tries to build _system, so if created in __init__
         # this causes a conflict.
         self._lumpedMassTerm = sle.LumpedMassMatrixVectorTerm( integrationSwarm = self._gaussSwarm,
-                                                                assembledObject = self._massVector  )
+                                                               assembledObject = self._massVector  )
         self._residualTerm   = sle.AdvDiffResidualVectorTerm(     velocityField = self._velocityField,
-                                                                    diffusivity = self._diffusivity,
-                                                                     sourceTerm = self._source,
-                                                               integrationSwarm = self._gaussSwarm,
-                                                                assembledObject = self._residualVector,
-                                                                      extraInfo = self._cself.name )
+                                                                  diffusivity = self._diffusivity,
+                                                                  sourceTerm = self._source,
+                                                                  integrationSwarm = self._gaussSwarm,
+                                                                  assembledObject = self._residualVector,
+                                                                  extraInfo = self._cself.name )
         for cond in self._conditions:
             if isinstance( cond, uw.conditions.NeumannCondition ):
 
-                ### -VE flux because of the FEM discretisation method of the initial equation
+                # -VE flux because of the FEM discretisation method of the initial equation
                 negativeCond = uw.conditions.NeumannCondition( fn_flux=cond.fn_flux,
                                                                variable=cond.variable,
                                                                indexSetsPerDof=cond.indexSetsPerDof )
 
-                #NOTE many NeumannConditions can be used but the _sufaceFluxTerm only records the last
+                # NOTE many NeumannConditions can be used but the _sufaceFluxTerm only records the last
                 self._surfaceFluxTerm = sle.VectorSurfaceAssemblyTerm_NA__Fn__ni(
-                                                                assembledObject  = self._residualVector,
-                                                                surfaceGaussPoints = 2,
-                                                                nbc         = negativeCond )
+                    assembledObject  = self._residualVector,
+                    surfaceGaussPoints = 2,
+                    nbc         = negativeCond )
 
         self._cself.advDiffResidualForceTerm = self._residualTerm._cself
-
-
-    def integrate(self,dt):
+    
+    def integrate(self, dt, **kwargs):
         """
         Integrates the advection diffusion system through time, dt
         Must be called collectively by all processes.
