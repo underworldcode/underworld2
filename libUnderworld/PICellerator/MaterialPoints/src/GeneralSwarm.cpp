@@ -7,7 +7,14 @@
 **                                                                                  **
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 
+#include <assert.h>
+#include <string.h>
+#include <math.h>
+#include <float.h>
+
 #include <mpi.h>
+#include <petsc.h>
+extern "C" {
 #include <StGermain/StGermain.h>
 #include <StgDomain/StgDomain.h>
 #include <StgFEM/StgFEM.h>
@@ -16,11 +23,8 @@
 #include <PICellerator/Weights/Weights.h>
 
 #include "MaterialPoints.h"
-#include <assert.h>
-#include <string.h>
-#include <math.h>
-#include <float.h>
-
+}
+#include "nanoflann.hpp"
 
 /* Textual name of this class */
 const Type GeneralSwarm_Type = "GeneralSwarm";
@@ -37,6 +41,8 @@ GeneralSwarm* _GeneralSwarm_New(  GENERALSWARM_DEFARGS  )
    ics = NULL;
 
    self = (GeneralSwarm*)_Swarm_New(  SWARM_PASSARGS  );
+   self->index = NULL;
+   self->index_int = NULL;
    
    return self;
 }
@@ -64,7 +70,7 @@ void _GeneralSwarm_Init(
    /* init members */
    self->previousIntSwarmMap = NULL;
    /* lets init this guy with one spot for convenience */
-   self->intSwarmMapList = List_New("intSwarmMapList");
+   self->intSwarmMapList = List_New();
    List_SetItemSize(self->intSwarmMapList, sizeof(SwarmMap*));
 
 }
@@ -200,6 +206,8 @@ void _GeneralSwarm_Destroy( void* swarm, void* data )
    {
       Stg_Component_Destroy( self->swarmVars[var_I], data , False );
    }
+
+   GeneralSwarm_DeleteIndex(swarm);
 
    _Swarm_Destroy( self, data );
 
@@ -424,7 +432,7 @@ unsigned GeneralSwarm_IntegrationPointMap( void* _self, void* _intSwarm, unsigne
 
 
 void GeneralSwarm_ClearSwarmMaps( void* swarm ) {
-	GeneralSwarm* self = (GeneralSwarm*) swarm;
+    GeneralSwarm* self = (GeneralSwarm*) swarm;
     SwarmMap* map = NULL;
 
     int ii;
@@ -434,3 +442,110 @@ void GeneralSwarm_ClearSwarmMaps( void* swarm ) {
     }
 }
 
+struct GeneralSwarm_nanoflann_interface
+{
+    GeneralSwarm* swarm;
+    // Must return the number of data points
+    inline size_t kdtree_get_point_count() const { return swarm->particleLocalCount; }
+
+    // Returns the dim'th component of the idx'th point in the class:
+    // Since this is inlined and the "dim" argument is typically an immediate value, the
+    //  "if/else's" are actually solved at compile time.
+    inline double kdtree_get_pt(const size_t idx, const size_t dim) const
+    {
+        return (((GlobalParticle*)Swarm_ParticleAt( swarm, idx ))->coord)[dim];
+    }
+
+    // Optional bounding-box computation: return false to default to a standard bbox computation loop.
+    //   Return true if the BBOX was already computed by the class and returned in "bb" so it can be avoided to redo it again.
+    //   Look at bb.size() to find out the expected dimensionality (e.g. 2 or 3 for point clouds)
+    template <class BBOX>
+    bool kdtree_get_bbox(BBOX &bb) const
+    {
+    //    bb[0].low = 0.; bb[0].high = 10.;  // 0th dimension limits
+    //    bb[2].low = 0.; bb[1].high = 10.;  // 1th dimension limits
+    //    bb[1].low = 0.; bb[2].high = 10.;  // 2th dimension limits
+    return false;
+    }
+};
+
+// construct a kd-tree index
+typedef nanoflann::KDTreeSingleIndexAdaptor<
+    nanoflann::L2_Simple_Adaptor<double, GeneralSwarm_nanoflann_interface > ,
+    GeneralSwarm_nanoflann_interface,
+    2 /* dim */
+    > my_kd_tree_t_2d;
+typedef nanoflann::KDTreeSingleIndexAdaptor<
+    nanoflann::L2_Simple_Adaptor<double, GeneralSwarm_nanoflann_interface > ,
+    GeneralSwarm_nanoflann_interface,
+    3 /* dim */
+    > my_kd_tree_t_3d;
+
+
+void GeneralSwarm_DeleteIndex( void* swarm ) {
+    GeneralSwarm* self = (GeneralSwarm*) swarm;
+
+    if(self->dim==2)
+    {
+        my_kd_tree_t_2d* index = (my_kd_tree_t_2d*)self->index;
+        if(index!=NULL)
+            delete(index);
+    }
+    else
+    {
+        my_kd_tree_t_3d* index = (my_kd_tree_t_3d*)self->index;
+        if(index!=NULL)
+            delete(index);
+    }
+    self->index = NULL;
+
+    GeneralSwarm_nanoflann_interface* cloud = (GeneralSwarm_nanoflann_interface*) self->index_int;
+    delete(cloud);
+    self->index_int = NULL;
+
+}
+
+size_t GeneralSwarm_GetClosestParticles( void* swarm, const double* coord, int num_parts ){
+    GeneralSwarm* self = (GeneralSwarm*) swarm;
+    
+    if(self->index==NULL)
+    {
+        GeneralSwarm_nanoflann_interface* cloud = new(GeneralSwarm_nanoflann_interface);
+        cloud->swarm = self;
+        self->index_int = (void*) cloud;
+
+        if(self->dim==2)
+        {
+            my_kd_tree_t_2d* index = new(my_kd_tree_t_2d)(self->dim, *cloud, nanoflann::KDTreeSingleIndexAdaptorParams(10 /* max leaf */) );
+            index->buildIndex();
+            self->index = (void*)index;
+        }
+        else
+        {
+            my_kd_tree_t_3d* index = new(my_kd_tree_t_3d)(self->dim, *cloud, nanoflann::KDTreeSingleIndexAdaptorParams(10 /* max leaf */) );
+            index->buildIndex();
+            self->index = (void*)index;
+        }	
+    }
+
+    size_t ret_index;
+    double out_dist_sqr;
+    nanoflann::KNNResultSet<double> resultSet(num_parts);
+    resultSet.init(&ret_index, &out_dist_sqr );
+    bool found;
+    if(self->dim==2)
+    {
+        my_kd_tree_t_2d* index = (my_kd_tree_t_2d*)self->index;
+        found = index->findNeighbors(resultSet, &coord[0], nanoflann::SearchParams(10)); // note that I believe the value 10 here is ignored.. i'll retain it as it's used in the examples
+        Journal_Firewall( found, NULL, "Unable to find any particles near coordinate (%f,%f).", coord[0], coord[1]);
+    }
+    else
+    {
+        my_kd_tree_t_3d* index = (my_kd_tree_t_3d*)self->index;
+        found = index->findNeighbors(resultSet, &coord[0], nanoflann::SearchParams(10)); 
+        Journal_Firewall( found, NULL, "Unable to find any particles near coordinate (%f,%f,%f).", coord[0], coord[1], coord[2]);
+    }
+
+
+    return ret_index;
+}

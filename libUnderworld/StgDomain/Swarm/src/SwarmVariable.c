@@ -73,6 +73,7 @@ SwarmVariable* _SwarmVariable_New(  SWARMVARIABLE_DEFARGS  ) {
 	self->_valueAt						= _valueAt;
 	self->_getMinGlobalMagnitude	= _getMinGlobalMagnitude;
 	self->_getMaxGlobalMagnitude	= _getMaxGlobalMagnitude;
+	self->useKDTree                 = False;
 
 	return self;
 }

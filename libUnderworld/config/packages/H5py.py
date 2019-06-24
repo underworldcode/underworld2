@@ -10,6 +10,8 @@ class H5py(Package):
 
     def _importtest(self):
         # next check for mpi compat
+        if self.notest:
+            return True
         self._logfile.write("\nChecking if h5py is available.")
         self._logfile.flush()
 
@@ -24,6 +26,7 @@ class H5py(Package):
         return True
 
     def check(self, conf, env):
+        self.notest = self.get_option('notest')
         self.launcher = self.get_option('launcher')
         if self.launcher is None:
             self.launcher = ""
@@ -43,5 +46,6 @@ class H5py(Package):
         yield ('', [''], [''])
 
     def setup_options(self):
+        AddOption('--h5py-notest', dest='notest', nargs=1, type='int', action='store', help='Do not perform h5py tests.')
         AddOption('--h5py-launcher', dest='launcher', nargs=1, type='string',
                   action='store', help='Launcher application within which to launch build and test executables.')

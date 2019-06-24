@@ -481,6 +481,19 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
             self._voronoi_swarm_private = uw.swarm.VoronoiIntegrationSwarm(self)
         return self._voronoi_swarm_private
 
+    @property
+    def allow_parallel_nn(self):
+        """
+        By default, parallel nearest neighbour search is disabled as consistent
+        results are not currently guaranteed. Set this attribute to `True` to 
+        allow parallel NN.
+        """
+        return self._cself.allow_parallel_nn
+    @allow_parallel_nn.setter
+    def allow_parallel_nn(self,val):
+        self._cself.allow_parallel_nn = val
+
+
     @contextlib.contextmanager
     def deform_swarm(self, update_owners=True):
         """
@@ -592,7 +605,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
 
         """
         orig_total_particles = self.particleGlobalCount
-        libUnderworld.StgDomain.Swarm_UpdateAllParticleOwners( self._cself );
+        libUnderworld.StgDomain.Swarm_UpdateAllParticleOwners( self._cself )
         libUnderworld.PICellerator.EscapedRoutine_RemoveFromSwarm(self._escapedRoutine, self._cself)
         new_total_particles = self.particleGlobalCount
         if (uw.mpi.rank==0) and (not self.particleEscape) and (orig_total_particles != new_total_particles):
@@ -601,5 +614,6 @@ Original count was {}, but after advection count is {}.
 Check your velocity field or your particle relocation routines, or set the 
 `particleEscape` swarm constructor parameter to True to allow escape.""".format(orig_total_particles,new_total_particles))
 
-        libUnderworld.PICellerator.GeneralSwarm_ClearSwarmMaps( self._cself );
+        libUnderworld.PICellerator.GeneralSwarm_ClearSwarmMaps( self._cself )
+        libUnderworld.PICellerator.GeneralSwarm_DeleteIndex( self._cself )
         self._toggle_state()

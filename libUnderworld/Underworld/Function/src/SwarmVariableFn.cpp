@@ -66,10 +66,8 @@ Fn::SwarmVariableFn::func Fn::SwarmVariableFn::getFunction( IOsptr sample_input 
         _output->_iotype = FunctionIO::Array;
 
 
-    const FEMCoordinate*      meshCoord = dynamic_cast<const FEMCoordinate*>(sample_input);
-    const ParticleCoordinate* partCoord = dynamic_cast<const ParticleCoordinate*>(sample_input);
-    
-    if( meshCoord )
+    const FEMCoordinate*  meshCoord = dynamic_cast<const FEMCoordinate*>(sample_input);    
+    if( meshCoord && !swarmvar->useKDTree )
     {
         const ParticleInCellCoordinate* partCoord = dynamic_cast<const ParticleInCellCoordinate*>(meshCoord->localCoord());
         if (!partCoord)
@@ -105,7 +103,8 @@ Fn::SwarmVariableFn::func Fn::SwarmVariableFn::getFunction( IOsptr sample_input 
             return debug_dynamic_cast<const FunctionIO*>(_output);
         };
     }
-    
+
+    const ParticleCoordinate* partCoord = dynamic_cast<const ParticleCoordinate*>(sample_input);
     if (partCoord)
     {
         if (((SwarmVariable*)partCoord->object())->swarm != swarmvar->swarm)
@@ -123,17 +122,50 @@ Fn::SwarmVariableFn::func Fn::SwarmVariableFn::getFunction( IOsptr sample_input 
             return debug_dynamic_cast<const FunctionIO*>(_output);
         };
     }
-    
-    throw std::invalid_argument( _pyfnerrorheader+"Unable to evaluate function using provided input. \n"
-                                 "Note that your function is constructed using a SwarmVariable. We do not \n"
-                                 "currently support interpolation of SwarmVariables, so where you wish to \n"
-                                 "`evaluate()` a SwarmVariable based function, you may only do so using \n"
-                                 "the swarm itself as the input to the function evaluation, resulting in \n"
-                                 "evaluation at each particle location. Note also that for evaluation, \n"
-                                 "you must use the Swarm object from which the SwarmVariable was derived. \n"
-                                 "Alternatively, you may wish to project your function onto a MeshVariable \n"
-                                 "(using a MeshVariable_Projection object) and then perform interpolation \n"
-                                 "on the MeshVariable object.");
+
+    // if neither of the above worked, try plain old global coord
+    const IO_double* iodouble = dynamic_cast<const IO_double*>(sample_input);
+    if ( iodouble ){
+        if ( iodouble->size() != swarmvar->swarm->dim )
+        {
+            std::stringstream streamguy;
+            streamguy << "Function input dimensionality (" << iodouble->size() << ") ";
+            streamguy << "does not appear to match swarm variable dimensionality (" << swarmvar->swarm->dim << ").";
+            throw std::runtime_error(_pyfnerrorheader+streamguy.str());
+        }
+        int size;
+        MPI_Comm_size( MPI_COMM_WORLD, &size );
+        if( (size>1) && !swarmvar->swarm->allow_parallel_nn)
+        {
+            std::stringstream streamguy;
+            streamguy << "Error: Attempting to evaluate SwarmVariable using nearest neighbour search in parallel. \n";
+            streamguy << "This operation will not return the true nearest neighbour where this neighbour actually \n";
+            streamguy << "resides on a different process. \n";
+            streamguy << "For dense swarms (swarms with particles in all elements), results may be similar if not \n";
+            streamguy << "identical. For sparse swarms, results will probably not be consistent for different     \n";
+            streamguy << "process counts, and a failure will occur if no neighbouring particle is found.  \n";
+            streamguy << "Note also that shadow particles are not currently indexed for NN search. \n";
+            streamguy << "If you would like to proceed anyhow, please set the `allow_parallel_nn` attribute to    \n";
+            streamguy << "`True` on the swarm object.";
+            throw std::runtime_error(_pyfnerrorheader+streamguy.str());
+            
+        }
+        return [_output,_output_sp,swarmvar,this](IOsptr input)->IOsptr {
+            const IO_double* iodouble = debug_dynamic_cast<const IO_double*>(input);
+            
+            // get nearest particle
+            size_t part_index = GeneralSwarm_GetClosestParticles( swarmvar->swarm, iodouble->data(), 1 );
+
+            // find the position into the swarmvar array we need to copy from
+            void* dataPtr = __StgVariable_GetStructPtr( swarmvar->variable, part_index );
+
+            // copy swarmvariable datum into output
+            memcpy( _output->dataRaw(), dataPtr, StgVariable_SizeOfDataType(swarmvar->variable->dataTypes[0]) * swarmvar->dofCount );
+ 
+            return debug_dynamic_cast<const FunctionIO*>(_output);
+        };
+    }
+    throw std::invalid_argument( _pyfnerrorheader+"Unable to evaluate SwarmVariable using provided input. );");
     
 }
 
