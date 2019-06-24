@@ -5,4 +5,4 @@ User Guide
     :maxdepth: 1
     :glob:
 
-    user_guide/*
+    build/user_guide/*

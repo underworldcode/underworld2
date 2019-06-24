@@ -177,7 +177,7 @@ class Integral(_stgermain.StgCompoundComponent):
         result = []
         for ii in range(0,val.size()):
             result.append(val.value(ii))
-        return result
+        return np.array(result)
 
     @property
     def fn(self):

@@ -55,7 +55,7 @@ for d in dirs:
     tst_install_dir = 'tests/StGermain/' + d
 
     # Install the headers
-    hdrs = env.Install(inc_dir, Glob(src_dir + '/*.h'))
+    hdrs = env.Install(os.path.join(env['build_dir'],inc_dir), Glob(src_dir + '/*.h'))
 
     # Build our source files.
     srcs = Glob(src_dir + '/*.c') +  Glob(src_dir + '/*.cpp')
@@ -64,14 +64,14 @@ for d in dirs:
         objs += env.SharedObject(src, CPPDEFINES=stg_cpp_defs )
 
     # Build any test suites we might find.
-    suites += env.Object(Glob(tst_dir + '/*Suite.c'))
+    # suites += env.Object(Glob(tst_dir + '/*Suite.c'))
 
     # Install any test expected and input files
-    tst_exp += env.Install(tst_install_dir + '/expected', Glob(tst_exp_dir + '/*'))
-    tst_input += env.Install(tst_install_dir + '/input', Glob(tst_input_dir + '/*'))
+    # tst_exp += env.Install(os.path.join(env['build_dir'],tst_install_dir,'/expected'), Glob(tst_exp_dir + '/*'))
+    # tst_input += env.Install(os.path.join(env['build_dir'],tst_install_dir,'/input'), Glob(tst_input_dir + '/*'))
 
 # Need to install headers from libStGermain.
-hdrs = env.Install('include/StGermain', Glob('libStGermain/src/*.h'))
+hdrs = env.Install(os.path.join(env['build_dir'],'include/StGermain'), Glob('libStGermain/src/*.h'))
 
 #
 # Build shared library.

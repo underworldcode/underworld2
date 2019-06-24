@@ -63,7 +63,7 @@ class StgClass(LeftOverParamsChecker):
     fly by passing the _cself parameter to the constructor.
     
     """
-    _live_objects = set()
+    # _live_objects = set()
     def __init__(self, _cself=None, delSelf=True, **kwargs):
         if _cself:
             self._cself = _cself
@@ -80,7 +80,7 @@ class StgClass(LeftOverParamsChecker):
         self._Stg_Class_Unlock = libUnderworld.StGermain.Stg_Class_Unlock
         self._Stg_Class_Delete = libUnderworld.StGermain.Stg_Class_Delete
         
-        self._live_objects.add(self._cself.name)
+        # self._live_objects.add(self._cself.name)
 #        print("creating {},{}".format(self._cself.name,self._cself.type))
 #        import ipdb
 #        ipdb.set_trace()
@@ -89,11 +89,12 @@ class StgClass(LeftOverParamsChecker):
     
     def __del__(self):
         if hasattr(self, "_delSelf") and self._delSelf:
-            self._live_objects.remove(self._cself.name)
+            # self._live_objects.remove(self._cself.name)
 #            print("deleting {},{}".format(self._cself.name,self._cself.type))
 #            print("deleting {},{}".format(self._cself.name,self._cself.type))
-            self._Stg_Class_Unlock(self._cself)
-            self._Stg_Class_Delete(self._cself)
+            if (uw._delclassinstance) and (uw._delclassinstance.exited == False):  # only deleted if we haven't called MPI_Finalize/PetscFinalize
+                self._Stg_Class_Unlock(self._cself)
+                self._Stg_Class_Delete(self._cself)
 
 class _SetupClass(abc.ABCMeta):
     '''
@@ -336,6 +337,9 @@ def LoadModules( pyUWDict ):
        Returns:
            Nothing.
     """
+    import os
+    # construct the required ld_library_path. not the prettiest solution.
+    pyUWDict["LD_LIBRARY_PATH"] = __file__[:-24]
     stgRootDict = libUnderworld.StGermain.Dictionary_New()
     SetStgDictionaryFromPyDict( pyUWDict, stgRootDict )
     libUnderworld.StGermain.ModulesManager_Load( libUnderworld.StGermain.GetToolboxManagerInstance(), stgRootDict, "" )

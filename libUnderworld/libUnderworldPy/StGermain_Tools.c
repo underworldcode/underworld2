@@ -19,7 +19,7 @@ const Type StGermain_Type = "StGermain";
 
 StgData* StgInit( int argc, char* argv[] ) {
    StgData* data = (StgData*) malloc(sizeof(StgData));
-   *data = (StgData){.comm = NULL, .rank=-1, .nProcs=-1, .dictionary=NULL, .argcCpy=NULL, .argvCpy=NULL }; 
+   *data = (StgData){.comm = NULL, .rank=-1, .nProcs=-1, .dictionary=NULL, .argcCpy=0, .argvCpy=NULL };
 
    //lets copy all this data for safety
    data->argcCpy = argc;
@@ -31,6 +31,10 @@ StgData* StgInit( int argc, char* argv[] ) {
    }
    data->argvCpy[argc] = NULL;  //add sentinel
 
+   int is_inited;
+   MPI_Initialized( &is_inited );
+   if(!is_inited)
+      MPI_Init( &argc, &argv );
    MPI_Comm_dup( MPI_COMM_WORLD, &data->comm );
    MPI_Comm_size( data->comm, &data->nProcs );
    MPI_Comm_rank( data->comm, &data->rank );
@@ -41,9 +45,9 @@ StgData* StgInit( int argc, char* argv[] ) {
 
 int StgFinalise(StgData* data){
    /* Close off everything */
-//   StGermain_Finalise();
-    PetscFinalize();
-   MPI_Finalize();
+//   StGermain_Finalise();   // avoid this finalise, as py interpreter has its own ideas about when it will destroy objects.
+   PetscFinalize();
+//   MPI_Finalize();
 
    /* free up these guys created earlier */
    int ii;

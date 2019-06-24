@@ -1,8 +1,31 @@
-ignorelist = ['json', 'os', 'libUnderworld', 'glob', 'numpy', 'sys', 'os', 'time', 'control', 'LavaVuPython', 'lavavu', 're']
+ignorelist = ['underworld', 'glucifer', 'json', 'os', 'libUnderworld', 'glob', 'numpy', 'sys', 'os', 'time', 'control', 'LavaVuPython', 'lavavu', 're']
+
+import os
+builddir="build"
+imagedir=os.path.join(builddir,"images")
+try:
+    os.mkdir(builddir)
+except FileExistsError:
+    pass
+try:
+    os.mkdir(imagedir)
+except FileExistsError:
+    pass
+
+# copy images in
+import shutil
+import os
+import glob
+for filename in glob.glob(os.path.join("../../../underworld/function/images/", '*.png')):
+    shutil.copy(filename, imagedir)
+
+done_mods = set()
 
 def doc_module(module, modname):
     filename = modname+'.rst'
-    print("Generating {} for module {}".format(filename,modname))
+    filepath = os.path.join(builddir,filename)
+
+    print("Generating {} for module {}".format(filepath,modname))
     import inspect
     # first gather info
     modules = {}
@@ -13,14 +36,25 @@ def doc_module(module, modname):
             if guy not in ignorelist:  # don't grab these
                 obj = getattr(module,guy)
                 if inspect.ismodule(obj):
-                    modules[guy] = obj
+                    if obj.__file__ not in done_mods: 
+                        done_mods.add(obj.__file__)
+                        modules[guy] = obj
+                    # else:
+                    #     return
                 elif inspect.isclass(obj):
                     classes[guy] = obj
                 elif inspect.isfunction(obj):
                     functions[guy] = obj
     
+    #    everything alphabetically
+    from collections import OrderedDict
+    modules   = OrderedDict(sorted(modules.items()))
+    classes   = OrderedDict(sorted(classes.items()))
+    functions = OrderedDict(sorted(functions.items()))
+
+
     # create a new file for each module
-    with open(filename, 'w') as f:
+    with open(filepath, 'w') as f:
         # write title
         title = modname + " module\n"
         f.write(title)
@@ -110,9 +144,5 @@ def doc_module(module, modname):
 import underworld
 doc_module(underworld, 'underworld')
 
-# (re)init lavavu submodule
-import subprocess
-subp = subprocess.Popen('git submodule update --init', shell=True)
-subp.wait()
 import glucifer
 doc_module(glucifer, 'glucifer')

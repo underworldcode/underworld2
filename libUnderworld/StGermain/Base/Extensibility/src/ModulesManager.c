@@ -365,7 +365,7 @@ void ModulesManager_AddDirectory( Name name, char* directory ) {
    }
    
    if( !found ) {
-      Stg_ObjectList_PointerAppend( moduleDirectories, StG_Strdup( directory ), name, 0, 0, 0 ); 
+      Stg_ObjectList_PointerPrepend( moduleDirectories, StG_Strdup( directory ), name, 0, 0, 0 ); 
    }
 }
 

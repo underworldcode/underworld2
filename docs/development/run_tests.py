@@ -10,10 +10,14 @@ Usage: `run_tests.py --prepend="mpirun -np 2" foo.py [bar.ipynb [...]]`
 
 
 """
-import os, sys, subprocess, string, argparse, shutil
+import os, sys, subprocess, string, argparse
+import time
 
 # this global just increments as tests are run
 testnumber = 0
+
+# dictionary for results
+results = {}
 
 # lets disable metrics for tests
 os.environ["UW_NO_USAGE_METRICS"] = "1"
@@ -77,7 +81,7 @@ def convert_ipynb_to_py(fname):
     os.remove(outName)
     return fname.replace('.ipynb', '.py')   # return new the python file
 
-def run_file(fname, dir, exe):
+def run_file(fname, dir, exe, job):
     """
     Runs a test and records stdout and stderr to givin directory.
     Accepted input file format is .ipynb or .py.
@@ -96,7 +100,6 @@ def run_file(fname, dir, exe):
     -------
         bool:  True = pass, False = fail.
     """
-    global testnumber
     # create the test directory if needed
     try:
         os.stat(dir)
@@ -105,18 +108,19 @@ def run_file(fname, dir, exe):
 
     exe.append(os.path.basename(fname))  # append filename
 
-    testnumber += 1
     out = dir+"test_"+str(testnumber)+"__"+os.path.basename(fname)
 
     try:
         outFile = open(out+".out", "w")
         errFile = open(out+".err", "w")
         script_dir = os.path.dirname(fname)  # get script directory to run from
+        if not script_dir:
+            script_dir="."
         subprocess.check_call( exe, stdout=outFile, stderr=errFile, cwd=script_dir )
     except subprocess.CalledProcessError:
-        return False
+        results[job] = False
     else:
-        return True
+        results[job] = True
     finally:
         outFile.close()
         errFile.close()
@@ -128,6 +132,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--prepend", help="Command to prepend before test executable. Useful for mpi tests (currently broken).", type=str, default=None)
     parser.add_argument("--recursive", help="Recurse directories for files.", type=bool, default=False)
+    parser.add_argument("--jobs", help="Number of processes to use for concurrent test running.", type=int, default=1)
     parser.add_argument("files", nargs="+", help="the input file list")
     args = parser.parse_args()
 
@@ -139,10 +144,10 @@ if __name__ == '__main__':
     # initialise test counters
     nfails=0
     list_fails=[]
-    cleanup=False
 
     # create the test directory if needed
-    dir = os.path.join(os.path.dirname(os.path.realpath(__file__)),"./testResults/")
+
+    dir = os.path.join(os.getcwd(),"./testResults/")
     try:
        os.stat(dir)
     except:
@@ -151,6 +156,9 @@ if __name__ == '__main__':
     # create test log file
     logFileName = "testing.log"
     logFile = open(dir+logFileName, "w")
+
+    maxjobs = args.jobs
+    jobthreads = {}
 
     # loop though tests given as input, ie args.files
     for fname in get_files(args.files, recursive=args.recursive):
@@ -166,11 +174,11 @@ if __name__ == '__main__':
         if args.prepend:
             exe = args.prepend.split() + exe
 
+        cleanup=False
         # if prefix args found and it's an ipynb, use 'jupyter nbconvert --execute'
         if is_ipynb and not args.prepend:
             exe = ['jupyter', 'nbconvert', '--ExecutePreprocessor.kernel_name="python3"',
                    '--ExecutePreprocessor.timeout=360','--execute', '--stdout']
-
         elif is_ipynb and args.prepend:
             # convert ipynb to py and run with python
             print("Converting test {} to .py".format(fname));
@@ -185,22 +193,54 @@ if __name__ == '__main__':
             cleanup=True
 
         # log and run test
-        print("Running test {}: {}".format(testnumber+1," ".join(exe)+" "+fname));
-        logFile.write("\nRunning "+ " ".join(exe)+" "+fname);
-        result = run_file( fname, dir, exe )
-        if result:
-            print(" .... PASS\n");
-            logFile.write(" .... PASS\n"); logFile.flush()
-        else:
-            out = dir+"test_"+str(testnumber)+"__"+os.path.basename(fname)+"*"
-            print(" .... ERROR (see "+out+" for details)\n")
-            logFile.write(" .... ERROR (see "+out+" for details)\n"); logFile.flush()
-            nfails = nfails+1
-            list_fails.append(fname)
+        import threading
+        import string
+        import random
+        def random_string():
+            return ''.join(random.choice(string.ascii_letters) for m in range(8))
 
-        if cleanup:   # clean up if required
-            os.remove(fname)
-            cleanup=False
+        testnumber += 1
+        print("Running test {}: {}".format(testnumber," ".join(exe)+" "+fname));
+        logFile.write("\nRunning "+ " ".join(exe)+" "+fname);
+        import threading
+        jobname = random_string()
+        jobthreads[jobname] = (threading.Thread(target=run_file, args=( fname, dir, exe, jobname )), fname, testnumber, cleanup)
+        jobthreads[jobname][0].start()
+
+        def check():
+            global nfails
+            rmlist = []
+            for key,value in jobthreads.items():
+                if not value[0].is_alive():
+                    rmlist.append(key)
+                    result = results[key]
+                    if result:
+                        text = "PASS : {}".format(value[1])
+                        print(text);
+                        logFile.write(text); logFile.flush()
+                    else:
+                        out = dir+"test_"+str(value[2])+"__"+os.path.basename(value[1])+"*"
+                        print("\nERROR (see "+out+" for details)\n")
+                        logFile.write("\nERROR (see "+out+" for details)\n"); logFile.flush()
+                        nfails = nfails+1
+                        list_fails.append(value[1])
+
+                    if value[3]:   # clean up if required
+                        os.remove(value[1])
+            # remove completed jobs
+            for key in rmlist:
+                del jobthreads[key]
+
+        # halt here while at max jobs
+        while( len(jobthreads)==maxjobs ):
+            time.sleep(1)
+            check()
+
+    # check remaining jobs
+    while( len(jobthreads)>0 ):
+        time.sleep(1)
+        check()
+
 
     # Report in testing.log
     logFile.write("\nNumber of fails " + str(nfails) +":\n"); logFile.flush()
@@ -210,6 +250,10 @@ if __name__ == '__main__':
     # Report to stdout
     print("\n\nTotal: Number of fails " + str(nfails))
     print(list_fails)
+    if len(list_fails) > 0:
+        with open("fail_list.txt", 'w') as f:
+            for failure in list_fails:
+                f.write("{} ".format(failure))
 
     # Return appropriate error code
     if nfails == 0:

@@ -129,14 +129,26 @@ dir = Dir(env['build_dir']).abspath
 if not os.path.exists(dir):
    os.makedirs(dir)
 
-env.Install(env['build_dir'], 'config.log')
-env.Install(env['build_dir'], 'config.cfg')
-env.Install(os.path.join(env['build_dir'],'share/StGermain/scripts'), Glob('script/*.py*'))
-if env['prefix'] != env.GetLaunchDir():
-   env.Install(env['prefix'], 'config.log')
-   env.Install(env['prefix'], 'config.cfg')
-   env.Install(os.path.join(env['prefix'],'share/StGermain/scripts'), Glob('script/*.py*'))
+env.Install('share/underworld', 'config.log')
+env.Install('share/underworld', 'config.cfg')
 
+import os
+# install python API files
+from itertools import chain
+for root, dirs, files in chain(os.walk("../underworld"),os.walk("../glucifer")):
+    path = root.split(os.sep)
+    basepath = os.sep.join(path[1:])
+    for file in files:
+        if file.endswith(".py"):
+            env.Install(os.path.join(env["prefix"],'lib',basepath), os.path.join(root, file))
+# install python bindings C-API files
+for root, dirs, files in os.walk("./libUnderworldPy"):
+    path = root.split(os.sep)
+    basepath = os.sep.join(path[1:])
+    for file in files:
+        if file.endswith(".py"):
+            env.Install(os.path.join(env["prefix"],'lib','libUnderworld','libUnderworldPy'), os.path.join(root, file))
+env.Install(os.path.join(env["prefix"],'lib','libUnderworld'), '__init__.py')
 Export('env')
 
 SConscript('StGermain/SConscript',
@@ -206,7 +218,3 @@ SConscript('libUnderworldPy/SConscript',
            variant_dir=env['build_dir'] + '/libUnderworldPy',
            duplicate=0)
 env.Prepend(LIBS=['libUnderworldPy'])
-
-
-
-
