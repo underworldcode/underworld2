@@ -411,9 +411,12 @@ class Figure(dict):
         #Setup default properties
         self.update({"resolution" : (640, 480), "title" : str(title), 
             "axis" : axis, "antialias" : True,
-            "background" : facecolour, "margin" : 34, 
+            "background" : facecolour, "margin" : 40, 
             "border" : (1 if edgecolour else 0), "bordercolour" : edgecolour, 
             "rulers" : False, "zoomstep" : 0})
+
+        #    "size" : (0.75,0.02), 
+        #    "margin" : 0.05})
 
         #User-defined props in kwargs
         self.update(kwargs)
