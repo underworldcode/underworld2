@@ -1,15 +1,16 @@
 TACC/Stampede2 Singularity Usage
 ================================
 
-The `Dockerfile` here builds an Underworld Docker image using MPI implementation
-and hardware drivers required for stampede2.
+The recommended method for running underworld2 simulations on stampede2 is via
+Singularity. Singularity provides containerised HPC operation. 
 
-Note that MPI linked apps (UW,mpi4py,h5py,etc) within this image will only run 
-correctly on stampede2. 
+We publish a specific docker image for usage on stampede2 at dockerhub. This image 
+contains the required MPI implementation and hardware drivers for stampede2. The 
+`Dockerfile` used to create it is located at `/docs/development/docker/stampede2`.
 
-The standard Underworld image also operates correctly on Stampede2, although it 
-will not utilise Infiniband interconnects.
-
+Note that the standard Underworld image also operates correctly on Stampede2, although it 
+will not utilise Infiniband interconnects and is therefore not recommended for large 
+simulations.
 
 Pulling down the required image
 -------------------------------
@@ -45,18 +46,24 @@ Using an image to run your model
 --------------------------------
 
 Once you have obtained the required image, you are ready to run your model via the
-`singularity exec` command:
+`singularity exec` command. Note you will also need to load the required host modules:
 
 ```bash
+$ module purge
+$ module load intel/18.0.2
+$ module load mvapich2/2.3
 $ mpirun singularity exec $SINGULARITY_CACHEDIR/underworld2-2.7.1b_stampede2_psm2 python YourScript.py
 ```
 
-The usual queued job submission instructions apply.
+The usual queued job submission instructions apply, but remember to load required modules there too.
 
 Note finally that you can actually point `singularity exec` directly at a docker image
 and it will pull it down automatically if it does not exist locally:
 
 ```bash
+$ module purge
+$ module load intel/18.0.2
+$ module load mvapich2/2.3
 $ singularity exec docker://underworldcode/underworld2:2.7.1b_psm2 python YourScript.py
 ```
 
