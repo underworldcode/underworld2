@@ -177,41 +177,15 @@ SConscript('Underworld/SConscript',
            duplicate=0)
 env.Prepend(LIBS=['Underworld'])
 
-if env['with_glucifer']:
-    SConscript('gLucifer/SConscript',
-               variant_dir=env['build_dir'] + '/gLucifer',
-               duplicate=0)
-    env.Prepend(LIBS=['gLucifer'])
+SConscript('gLucifer/SConscript',
+       variant_dir=env['build_dir'] + '/gLucifer',
+       duplicate=0)
+env.Prepend(LIBS=['gLucifer'])
 
-if env['with_geothermal']:
-    SConscript('Geothermal/SConscript',
-               variant_dir=env['build_dir'] + '/Geothermal',
-               duplicate=0)
-    env.Prepend(LIBS=['Geothermal'])
-
-if env['with_importers']:
-    SConscript('ImportersToolbox/SConscript',
-               variant_dir=env['build_dir'] + '/ImportersToolbox',
-               duplicate=0)
-    env.Prepend(LIBS=['ImportersToolbox'])
-
-if env['with_solvers']:
-    SConscript('Solvers/SConscript',
-               variant_dir=env['build_dir'] + '/Solvers',
-               duplicate=0)
-    env.Prepend(LIBS=['Solvers'])
-
-if env['with_spherical']:
-    SConscript('Spherical/SConscript',
-               variant_dir=env['build_dir'] + '/Spherical',
-               duplicate=0)
-    env.Prepend(LIBS=['Spherical'])
-
-if env['with_viscoelastic']:
-    SConscript('Viscoelastic/SConscript',
-               variant_dir=env['build_dir'] + '/Viscoelastic',
-               duplicate=0)
-    env.Prepend(LIBS=['Viscoelastic'])
+SConscript('Solvers/SConscript',
+       variant_dir=env['build_dir'] + '/Solvers',
+       duplicate=0)
+env.Prepend(LIBS=['Solvers'])
 
 # lets finally build the wrappers
 SConscript('libUnderworldPy/SConscript',
