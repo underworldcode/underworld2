@@ -43,7 +43,7 @@ import ctypes as _ctypes
 _oldflags = _sys.getdlopenflags()
 _sys.setdlopenflags( _oldflags | _ctypes.RTLD_GLOBAL )
 
-__version__ = "2.8.0-dev"
+__version__ = "2.8.0b"
 
 # squelch h5py/numpy future warnings
 import warnings as _warnings
