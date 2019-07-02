@@ -46,9 +46,10 @@ RUN git clone -b development https://github.com/underworldcode/UWGeodynamics.git
 # expose glucifer port
 EXPOSE 9999
 
+# DISABLE FOLLOWING. We've reverted xvfb via entrypoint.
 # environment variable will internally run xvfb when glucifer is imported,
 # see /opt/underworld2/glucifer/__init__.py
-ENV GLUCIFER_USE_XVFB 1
+# ENV GLUCIFER_USE_XVFB 1
 
 USER $NB_USER
 WORKDIR $NB_WORK
