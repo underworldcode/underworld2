@@ -60,3 +60,6 @@ EXPOSE 9999
 USER $NB_USER
 WORKDIR $NB_WORK
 
+# launch notebook
+CMD ["jupyter", "notebook", "--ip='0.0.0.0'", "--no-browser"]
+
