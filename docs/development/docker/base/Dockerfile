@@ -122,15 +122,11 @@ EXPOSE 8888
 # Setup ipyparallel for mpi profile
 RUN ipcluster nbextension enable
 
-# script for xvfb-run.  all docker commands will effectively run under this via the entrypoint
-RUN printf "#\041/bin/sh \n rm -f /tmp/.X99-lock && xvfb-run -s '-screen 0 1600x1200x16' \$@" >> /usr/local/bin/xvfbrun.sh && \
-chmod +x /usr/local/bin/xvfbrun.sh
-
 # Install Tini.. sedd https://github.com/ipython/ipython/issues/7062, https://github.com/jupyter/notebook/issues/334
 ENV TINI_VERSION v0.18.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
 RUN chmod +x /tini
-ENTRYPOINT ["/tini", "--", "/usr/local/bin/xvfbrun.sh"]
+ENTRYPOINT ["/tini", "--"]
 
 # add default user jovyan and change permissions on NB_WORK
 ENV NB_USER jovyan

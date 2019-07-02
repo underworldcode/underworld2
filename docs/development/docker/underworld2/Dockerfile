@@ -8,6 +8,12 @@ MAINTAINER https://github.com/underworldcode/
 
 USER root
 
+# script for xvfb-run.  all docker commands will effectively run under this via the entrypoint
+RUN printf "#\041/bin/sh \n rm -f /tmp/.X99-lock && xvfb-run -s '-screen 0 1600x1200x16' \$@" >> /usr/local/bin/xvfbrun.sh && \
+chmod +x /usr/local/bin/xvfbrun.sh
+ENTRYPOINT ["/tini", "--", "/usr/local/bin/xvfbrun.sh"]
+
+
 # install underworld under /tmp.
 WORKDIR /tmp
 ENV UW2_TMP /tmp/underworld2
