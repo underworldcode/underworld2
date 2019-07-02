@@ -26,7 +26,6 @@ wrapperDict = {}
 
 wrapperDict['StGermain_Tools'] = ['StGermain_Tools.c', 'StGermain_Tools_wrap.cxx']
 wrapperDict['gLucifer'] = ['gLucifer_wrap.cxx']
-# wrapperDict['ImportersToolbox'] = ['ImportersToolbox_wrap.cxx']
 wrapperDict['petsc'] = ['petsc_wrap.cxx']
 wrapperDict['c_arrays'] = ['c_arrays_wrap.cxx']
 wrapperDict['c_pointers'] = ['c_pointers_wrap.cxx']
