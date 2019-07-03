@@ -7,27 +7,43 @@
 ##                                                                                   ##
 ##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
 """
-Underworld2 is a python-friendly version of the Underworld geodynamics
-code which provides a programmable and flexible front end to all the
-functionality of the code running in a parallel HPC environment. This
-gives signficant advantages to the user, with access to the power of
-python libraries for setup of complex problems, analysis at runtime,
-problem steering, and coupling of multiple problems.
+Underworld2 is a Python API (Application Programming Interface) which provides 
+functionality for the modelling of geodynamics processes, and is designed to 
+work (almost) seamlessly across PC, cloud and HPC infrastructure. Primarily 
+the API consists of a set of Python classes from which numerical geodynamics 
+models may be constructed. The API also provides the tools required for inline
+analysis and data management. For scalability across multiprocessor platforms, 
+MPI (Message Passing Interface) is leveraged, and for performant operation all
+heavy computations are executed within a statically typed layer. 
 
-Underworld2 is integrated with the literate programming environment of
-the jupyter notebook system for tutorials and as a teaching tool for
-solid Earth geoscience.
+Underworld2 provides capacity for modelling 2- and 3-dimensional geodynamics 
+processes, utilising a particle-in-cell finite element approach  
+for solution to Stokes flow type configurations. In Underworld, the finite 
+element mesh can be static or dynamic, but it is not constrained to move in 
+lock-step with the evolving geometry of the fluid. This hybrid approach allows 
+Underworld to obtain accurate velocity solutions (on the mesh) for a given 
+material configuration, while simultaneously ensuring the accurate time
+advection of material interfaces and history information (using particle swarms).
 
-Underworld is an open-source, particle-in-cell finite element code
-tuned for large-scale geodynamics simulations. The numerical algorithms
-allow the tracking of history information through the high-strain
-deformation associated with fluid flow (for example, transport of the
-stress tensor in a viscoelastic, convecting medium, or the advection of
-fine-scale damage parameters by the large-scale flow). The finite
-element mesh can be static or dynamic, but it is not contrained to move
-in lock-step with the evolving geometry of the fluid. This hybrid approach
-is very well suited to complex fluids which is how the solid Earth behaves
-on a geological timescale.
+A primary aim of Underworld2 is to enable rapid prototyping of models, and to 
+this end embedded visualisation (LavaVu) and modern development environments 
+such as Jupyter Notebooks have been embraced, with the latter also providing 
+a path to cloud computing amenability. The Jupyter Notebook front end 
+provisioned across cloud facilities has also proven to be an appropriate 
+environment for the use of Underworld as a teaching tool for solid Earth 
+geoscience.
+
+Underworld2 provides a minimal set of highly flexible core functionality,
+with user domain concerns left to the users themselves to construct. At the centre
+of this design is the Function class, which aims to provide a natural interface
+from which users can describe their problem mathematics. For example, the user may
+describe a viscosity which is piecewise constant, temperature dependent, or 
+visco-elasto-plastic in behaviour. Simulation chronology is also fully exposed 
+and the user is expected to explicitly specify when events should occur. This 
+approach allows users to specify exactly their modelling requirements and provides
+transparency.
+
+Underworld is an open-source project. 
 """
 
 # first import h5py. this is due to the dlopen changes which follow.
