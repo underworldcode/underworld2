@@ -8,4 +8,4 @@
 #################################################################
 
 
-jupyter nbconvert --to python --template=python.tpl $*
+jupyter nbconvert --to python --template=python.tpl "$@"

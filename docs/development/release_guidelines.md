@@ -37,7 +37,7 @@ Documentation review
 * Review cheat sheet contents.
 * Increment version number within ``underworld/__init__.py``
   (check `guidelines.md` for details on version numbering).
-* Update `FROM` tag in top level Dockerfile.
+* Update `FROM` tag in top level (binder) Dockerfile.
 
 Testing
 =======
