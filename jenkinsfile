@@ -40,8 +40,7 @@ pipeline {
       // Run inside docker continer created
       steps {
               sh '''
-              docker run -i --name ${CNAME} ${INAME} \
-                  bash -c 'cd development/;  ./test_suite.sh'
+              docker run -i -w /home/jovyan/development --name ${CNAME} ${INAME} ./test_suite.sh'
               '''
       }
       post {
