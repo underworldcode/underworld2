@@ -18,6 +18,7 @@ pipeline {
   }
 
   options {
+    timeout(time: 2, unit: 'HOURS')
     disableConcurrentBuilds()
     timestamps()
   }
@@ -105,6 +106,7 @@ pipeline {
     cleanup {
       // force container removal
       sh 'docker rm -f ${CNAME}'
+      sh 'docker rmi ${INAME}'
     }
   }
 }
