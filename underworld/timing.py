@@ -56,12 +56,13 @@ def start():
     global _currentDepth
     _maxdepth = 1
     _currentDepth = 0
-    if _uw.mpi.rank == 0 and ("UW_ENABLE_TIMING" in _os.environ):
-        timing = True
-    else:
-        import warnings
-        warnings.warn("Timing unable to start. You must set the `UW_ENABLE_TIMING` environment variable before "
-                      "importing `underworld`. See `underworld.timing` module documentation for further info.")
+    if _uw.mpi.rank == 0:
+        if "UW_ENABLE_TIMING" in _os.environ:
+            timing = True
+        else
+            import warnings
+            warnings.warn("Timing unable to start. You must set the `UW_ENABLE_TIMING` environment variable before "
+                        "importing `underworld`. See `underworld.timing` module documentation for further info.")
 
     global _starttime
     _starttime = _time.time()
