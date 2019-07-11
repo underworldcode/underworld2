@@ -214,6 +214,10 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         Any submesh will also be appropriately updated on return from the context
         manager, as will various mesh metrics.
 
+        Note that this method must be called collectively by all processes, 
+        irrespective of whether any given process does or does not need to 
+        deform any mesh nodes.
+
         Parameters
         ----------
         isRegular : bool
@@ -221,6 +225,10 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
             (orthonormal), and more general but less efficient algorithms will be
             selected via this context manager. To over-ride this behaviour, set
             this parameter to True.
+
+        Notes
+        -----
+        This method must be called collectively by all processes.
 
 
         Example

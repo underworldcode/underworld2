@@ -36,6 +36,8 @@ RUN cd $UW2_TMP/libUnderworld && \
     env > build_environment.txt       && \
     cd /tmp                           && \
     rm -rf *                          && \
+    python -c "import underworld"     && \
+    python -c "import glucifer"       && \
     chown -R $NB_USER:users $UW2_DIR
 
 # clone UWGeodynamics, install 

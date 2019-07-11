@@ -501,6 +501,9 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         Any particle location modifications must occur within this python 
         context manager. This is necessary as it is critical that certain
         internal objects are updated when particle locations are modified.
+        Note that this method must be called collectively by all processes, 
+        irrespective of whether any given process does or does not need to 
+        locate any particles. 
 
         Parameters
         ----------
@@ -509,6 +512,11 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
             particular particle) is not updated at the conclusion of the context
             manager. This is often necessary when both the mesh and particles 
             are advecting simutaneously.
+
+        Notes
+        -----
+        This method must be called collectively by all processes.
+
 
         Example
         -------
