@@ -345,9 +345,6 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         filename : str
             The filename for the saved file. Relative or absolute paths may be
             used, but all directories must exist.
-        swarmHandle :uw.utils.SavedFileData , optional
-            The saved swarm file handle. If provided, a reference to the swarm file
-            is made.
         collective : bool
             If True, variable is saved MPI collective. This is usually faster, but
             currently is problematic for passive type swarms which may not have

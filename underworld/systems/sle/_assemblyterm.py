@@ -449,9 +449,3 @@ class AdvDiffResidualVectorTerm(VectorAssemblyTerm):
             self.fn_diffusivity = self._fn_diffusivity
         if self._set_fn_source_function:
             self.fn_source = self._fn_source
-"""
-    def _setup(self):
-        # lets override parent _setup definition because we use 2 function objects
-        libUnderworld.Underworld._SUPGVectorTerm_NA__Fn_SetDiffusivityFn( self._cself, self._diffFn._fncself )
-        libUnderworld.Underworld._SUPGVectorTerm_NA__Fn_SetSourceFn( self._cself, self._sourceFn._fncself )
-"""
