@@ -8,6 +8,12 @@ MAINTAINER https://github.com/underworldcode/
 
 USER root
 
+# script for xvfb-run.  all docker commands will effectively run under this via the entrypoint
+RUN printf "#\041/bin/sh \n rm -f /tmp/.X99-lock && xvfb-run -s '-screen 0 1600x1200x16' \$@" >> /usr/local/bin/xvfbrun.sh && \
+chmod +x /usr/local/bin/xvfbrun.sh
+ENTRYPOINT ["/tini", "--", "/usr/local/bin/xvfbrun.sh"]
+
+
 # install underworld under /tmp.
 WORKDIR /tmp
 ENV UW2_TMP /tmp/underworld2
@@ -30,6 +36,8 @@ RUN cd $UW2_TMP/libUnderworld && \
     env > build_environment.txt       && \
     cd /tmp                           && \
     rm -rf *                          && \
+    python -c "import underworld"     && \
+    python -c "import glucifer"       && \
     chown -R $NB_USER:users $UW2_DIR
 
 # clone UWGeodynamics, install 
@@ -46,10 +54,14 @@ RUN git clone -b development https://github.com/underworldcode/UWGeodynamics.git
 # expose glucifer port
 EXPOSE 9999
 
+# DISABLE FOLLOWING. We've reverted xvfb via entrypoint.
 # environment variable will internally run xvfb when glucifer is imported,
 # see /opt/underworld2/glucifer/__init__.py
-ENV GLUCIFER_USE_XVFB 1
+# ENV GLUCIFER_USE_XVFB 1
 
 USER $NB_USER
 WORKDIR $NB_WORK
+
+# launch notebook
+CMD ["jupyter", "notebook", "--ip='0.0.0.0'", "--no-browser"]
 
