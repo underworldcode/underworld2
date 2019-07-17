@@ -18,6 +18,7 @@ pipeline {
   }
 
   options {
+    timeout(time: 2, unit: 'HOURS')
     disableConcurrentBuilds()
     timestamps()
   }
@@ -39,8 +40,7 @@ pipeline {
       // Run inside docker continer created
       steps {
               sh '''
-              docker run -i --name ${CNAME} ${INAME} \
-                  bash -c 'cd development/;  ./test_suite.sh'
+              docker run -i -w /home/jovyan/development --name ${CNAME} ${INAME} ./test_suite.sh
               '''
       }
       post {
@@ -105,6 +105,7 @@ pipeline {
     cleanup {
       // force container removal
       sh 'docker rm -f ${CNAME}'
+      sh 'docker rmi ${INAME}'
     }
   }
 }
