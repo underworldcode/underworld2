@@ -91,13 +91,11 @@ class AdvectionDiffusion(object):
             raise TypeError( "Provided 'velocityField' must be the same dimensionality as the phiField's mesh" )
 
         if phiField.mesh.elementType != 'Q1':
-            import warnings
-            warnings.warn("The 'phiField' is discretised on a {} mesh. ".format(phiField.mesh.elementType) +
-                          "This 'uw.system.AdvectionDiffusion' implementation is" +
-                          "only stable for a phiField discretised with a Q1 mesh. Either create a Q1 mesh for the 'phiField' or, if you know " +
-                          "what you're doing, override this error with the argument 'allow_non_q1=True' in the constructor", category=RuntimeWarning)
             if allow_non_q1 == False:
-                raise ValueError( "Error as provided 'phiField' discretisation is unstable")
+                raise ValueError("The 'phiField' is discretised on a {} mesh. This 'uw.system.AdvectionDiffusion' "
+                                 "implementation is only stable for a phiField discretised with a Q1 mesh. Either "
+                                 "create a Q1 mesh for the 'phiField' or, if you know what you're doing, override "
+                                 "this error with the argument 'allow_non_q1=True' in the constructor.".format(phiField.mesh.elementType))
 
         if self.method == "SUPG":
             self.system = _SUPG_AdvectionDiffusion(

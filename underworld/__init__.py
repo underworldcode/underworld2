@@ -220,9 +220,33 @@ def matplotlib_inline():
 if isinstance(underworld.mpi.size, int) and underworld.mpi.size > 1:
     _origexcepthook = _sys.excepthook
     def _uw_uncaught_exception_handler(exctype, value, tb):
-        print('An uncaught exception was encountered on processor {}.'.format(underworld.mpi.rank))
-        # pass through to original handler
-        _origexcepthook(exctype, value, tb)
+        allmessages = "UW_ALL_MESSAGES" in _os.environ
+        if not allmessages:
+            # see if we can barrier
+            from mpi4py import MPI
+            comm = MPI.COMM_WORLD
+            barrier = comm.Ibarrier() # non-blocking
+            import time
+            count = 0
+            max = 5  # max seconds to wait
+            while count<max:
+                count+=1
+                time.sleep(1) 
+                all_procs_raised_exception = barrier.Get_status()  # if all procs here, barrier should have succeeded by now
+                if all_procs_raised_exception: break # get out if done
+            if all_procs_raised_exception:
+                if comm.rank==0:
+                    print("An uncaught exception was raised by all processes. "
+                        "Set the 'UW_ALL_MESSAGES' environment variable to see all messages. "
+                        "Rank 0 message is:")
+                    _origexcepthook(exctype, value, tb)
+                else:
+                    time.sleep(1)  # allow time for rank 0 to race ahead for clean message
+
+        if allmessages or not all_procs_raised_exception:
+            print('An uncaught exception was encountered on processor {}.'.format(underworld.mpi.rank))
+            _origexcepthook(exctype, value, tb)
+            
         import sys
         sys.stdout.flush()
         sys.stderr.flush()
