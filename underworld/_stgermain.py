@@ -81,9 +81,6 @@ class StgClass(LeftOverParamsChecker):
         self._Stg_Class_Delete = libUnderworld.StGermain.Stg_Class_Delete
         
         # self._live_objects.add(self._cself.name)
-#        print("creating {},{}".format(self._cself.name,self._cself.type))
-#        import ipdb
-#        ipdb.set_trace()
         super(StgClass, self).__init__(**kwargs)
 
     

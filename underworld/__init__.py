@@ -220,36 +220,44 @@ def matplotlib_inline():
 if isinstance(underworld.mpi.size, int) and underworld.mpi.size > 1:
     _origexcepthook = _sys.excepthook
     def _uw_uncaught_exception_handler(exctype, value, tb):
+        import time
         allmessages = "UW_ALL_MESSAGES" in _os.environ
         if not allmessages:
-            # see if we can barrier
+            # What follows is a test to ensure all processes raised.
+            # The test does a reduce sum over all procs and confirms
+            # the expected result.
             from mpi4py import MPI
             comm = MPI.COMM_WORLD
-            barrier = comm.Ibarrier() # non-blocking
-            import time
+            import numpy as np
+            data_send = np.array([1]) 
+            data_reci = np.array([0])
+            allred = comm.Iallreduce(data_send,data_reci,MPI.SUM) # non-blocking
             count = 0
-            max = 5  # max seconds to wait
+            max = 10  # max seconds to wait
+            all_raised = False
             while count<max:
+                reduce_complete = allred.Get_status()  # if all procs raise, reduce should succeeded eventually.
+                if reduce_complete:
+                    if( data_reci[0] == comm.size ): # ensure we get correct result.
+                        all_raised = True
+                        comm.Barrier()  # barrier here to ensure other's have time succeed. 
+                        break # get out if done
                 count+=1
                 time.sleep(1) 
-                all_procs_raised_exception = barrier.Get_status()  # if all procs here, barrier should have succeeded by now
-                if all_procs_raised_exception: break # get out if done
-            if all_procs_raised_exception:
-                if comm.rank==0:
-                    print("An uncaught exception was raised by all processes. "
-                        "Set the 'UW_ALL_MESSAGES' environment variable to see all messages. "
-                        "Rank 0 message is:")
-                    _origexcepthook(exctype, value, tb)
-                else:
-                    time.sleep(1)  # allow time for rank 0 to race ahead for clean message
+            if all_raised and (comm.rank==0):
+                print("An uncaught exception was raised by all processes. "
+                    "Set the 'UW_ALL_MESSAGES' environment variable to see all messages. "
+                    "Rank 0 message is:")
+                _origexcepthook(exctype, value, tb)
 
-        if allmessages or not all_procs_raised_exception:
+        if allmessages or not all_raised:
             print('An uncaught exception was encountered on processor {}.'.format(underworld.mpi.rank))
             _origexcepthook(exctype, value, tb)
             
         import sys
         sys.stdout.flush()
         sys.stderr.flush()
+        time.sleep(1) # give all procs a chance to write outputs  
         libUnderworld.StGermain_Tools.StgAbort( _data )
     _sys.excepthook = _uw_uncaught_exception_handler
 
