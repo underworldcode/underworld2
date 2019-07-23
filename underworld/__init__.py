@@ -240,13 +240,13 @@ if isinstance(underworld.mpi.size, int) and underworld.mpi.size > 1:
                 count+=1
                 time.sleep(1) 
             if all_raised and (comm.rank==0):
-                print("An uncaught exception was raised by all processes. "
+                print("An uncaught exception appears to have been raised by all processes. "
                     "Set the 'UW_ALL_MESSAGES' environment variable to see all messages. "
-                    "Rank 0 message is:")
+                    "Rank 0 message is:", file=_sys.stderr)
                 _origexcepthook(exctype, value, tb)
 
         if allmessages or not all_raised:
-            print('An uncaught exception was encountered on processor {}.'.format(underworld.mpi.rank))
+            print('An uncaught exception was encountered on processor {}.'.format(underworld.mpi.rank), file=_sys.stderr)
             _origexcepthook(exctype, value, tb)
             
         import sys
