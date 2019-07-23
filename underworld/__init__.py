@@ -224,24 +224,19 @@ if isinstance(underworld.mpi.size, int) and underworld.mpi.size > 1:
         allmessages = "UW_ALL_MESSAGES" in _os.environ
         if not allmessages:
             # What follows is a test to ensure all processes raised.
-            # The test does a reduce sum over all procs and confirms
-            # the expected result.
+            # Simply perform non-blocking barrier.
             from mpi4py import MPI
             comm = MPI.COMM_WORLD
-            import numpy as np
-            data_send = np.array([1]) 
-            data_reci = np.array([0])
-            allred = comm.Iallreduce(data_send,data_reci,MPI.SUM) # non-blocking
+            baz = comm.Ibarrier()
             count = 0
-            max = 10  # max seconds to wait
+            max = 15  # max seconds to wait
             all_raised = False
             while count<max:
-                reduce_complete = allred.Get_status()  # if all procs raise, reduce should succeeded eventually.
-                if reduce_complete:
-                    if( data_reci[0] == comm.size ): # ensure we get correct result.
-                        all_raised = True
-                        comm.Barrier()  # barrier here to ensure other's have time succeed. 
-                        break # get out if done
+                baz_complete = baz.Get_status()  # if all procs raise, should succeeded eventually.
+                if baz_complete:
+                    all_raised = True
+                    comm.Barrier()  # barrier here to ensure other's have time succeed. 
+                    break # get out if done
                 count+=1
                 time.sleep(1) 
             if all_raised and (comm.rank==0):
