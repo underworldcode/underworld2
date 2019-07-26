@@ -225,25 +225,26 @@ if isinstance(underworld.mpi.size, int) and underworld.mpi.size > 1:
         if not allmessages:
             # What follows is a test to ensure all processes raised.
             # Simply perform non-blocking barrier.
-            from mpi4py import MPI
-            comm = MPI.COMM_WORLD
-            baz = comm.Ibarrier()
-            count = 0
-            max = 15  # max seconds to wait
             all_raised = False
-            while count<max:
-                baz_complete = baz.Get_status()  # if all procs raise, should succeeded eventually.
-                if baz_complete:
-                    all_raised = True
-                    comm.Barrier()  # barrier here to ensure other's have time succeed. 
-                    break # get out if done
-                count+=1
-                time.sleep(1) 
-            if all_raised and (comm.rank==0):
-                print("An uncaught exception appears to have been raised by all processes. "
-                    "Set the 'UW_ALL_MESSAGES' environment variable to see all messages. "
-                    "Rank 0 message is:", file=_sys.stderr)
-                _origexcepthook(exctype, value, tb)
+            try:
+                from mpi4py import MPI
+                comm = MPI.COMM_WORLD
+                baz = comm.Ibarrier()
+                time_in = time.time()
+                while time.time()<(time_in+15):
+                    baz_complete = baz.Test()  # if all procs raise, should succeeded eventually.
+                    if baz_complete:
+                        all_raised = True
+                        comm.Barrier()  # barrier here to ensure other's have time succeed. 
+                        break # get out if done
+                    time.sleep(0.0001) 
+                if all_raised and (comm.rank==0):
+                    print("An uncaught exception appears to have been raised by all processes. "
+                        "Set the 'UW_ALL_MESSAGES' environment variable to see all messages. "
+                        "Rank 0 message is:", file=_sys.stderr)
+                    _origexcepthook(exctype, value, tb)
+            except:
+                pass
 
         if allmessages or not all_raised:
             print('An uncaught exception was encountered on processor {}.'.format(underworld.mpi.rank), file=_sys.stderr)
