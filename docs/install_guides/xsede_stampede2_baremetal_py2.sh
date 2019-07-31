@@ -1,0 +1,14 @@
+#!/bin/sh
+git clone https://github.com/underworldcode/underworld2.git
+cd underworld2/libUnderworld
+module load petsc/3.11-nohdf5
+module load phdf5/1.10.4
+pip install --user scons
+pip install --user pint
+export PATH=$PATH:$HOME/.local/bin
+export HDF5_DIR=/opt/apps/intel18/impi18_0/phdf5/1.10.4/x86_64
+export PYTHONPATH=$HOME/.local/lib/python2.7/site-packages:$PYTHONPATH
+CC=h5pcc HDF5_MPI="ON" pip  install --no-binary=h5py --user --force h5py
+./configure.py --python-dir=/opt/apps/intel18/python2/2.7.15 --with-debugging=0
+module load swig
+./compile.py
