@@ -1,8 +1,9 @@
 TACC/Stampede2 Singularity Usage
 ================================
 
-The recommended method for running underworld2 simulations on stampede2 is via
-Singularity. Singularity provides containerised HPC operation. 
+You can run Underworld2 on Stampede2 using Singularity. Singularity provides 
+containerised HPC operation, although should still be considered experimental 
+on Stampede2. 
 
 We publish a specific docker image for usage on stampede2 at dockerhub. This image 
 contains the required MPI implementation and hardware drivers for stampede2. The 

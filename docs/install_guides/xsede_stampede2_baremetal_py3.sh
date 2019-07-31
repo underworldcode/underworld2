@@ -1,4 +1,11 @@
 #!/bin/sh
+
+# This script is for UW versions 2.8.0b and newer, as these versions 
+# of UW used Python3. 
+# Don't forget to update your PYTHONPATH as necessary after the build is 
+# complete. You can do this by running `source updatePyPath.sh` from the 
+# top level UW directory.
+
 git clone https://github.com/underworldcode/underworld2.git
 cd underworld2/libUnderworld 
 module load petsc/3.11-nohdf5

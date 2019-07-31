@@ -1,5 +1,12 @@
 #!/bin/sh
-git clone https://github.com/underworldcode/underworld2.git
+
+# This script is for UW versions 2.7.1b and older, as these versions 
+# of UW used Python2. 
+# Don't forget to update your PYTHONPATH as necessary after the build is 
+# complete. You can do this by running `source updatePyPath.sh` from the 
+# top level UW directory. 
+
+git clone --single-branch --branch v2.7.1b https://github.com/underworldcode/underworld2.git
 cd underworld2/libUnderworld
 module load petsc/3.11-nohdf5
 module load phdf5/1.10.4
