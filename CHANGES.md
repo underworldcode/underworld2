@@ -1,6 +1,33 @@
 CHANGES: Underworld2
 =======================
 
+Release 2.8.0b [2019-07-18]
+---------------------------
+New:
+* MOVE TO PYTHON3. PYTHON2 NO LONGER SUPPORTED.
+* New Examples & tests.
+* New Semi-Lagrangian Crank Nicolson advection diffusion scheme.
+* Collective H5 read/write for faster parallel IO operations. 
+* Arbitrary coordinate `evaluate()` for swarm data using nearest 
+  neighbouring (kdtree) algorithm. See function section of user guide.
+* XDMF for subMesh element types.
+* Async test runner. 
+
+Enhancements:
+* Move all mpi functionality into `uw.mpi` submodule. 
+* Non-parallel h5py is now sufficient for UW, although 
+  parallel h5py is recommended for larger parallel simulations.
+* Integral returns numpy array results (as opposed to Py natives).
+* `GlobalSpaceFillerLayout` deprecated.
+* Other tweaks & bug fixes.
+
+Documentation:
+* Many class docstrings updates.
+* Function user guide section updated. 
+* Improved error messaging in parallel.
+* Stampede2 build & usage instructions. 
+* Update for NCI/Raijin build instructions.
+
 Release 2.7.1b [2019-02-19]
 ---------------------------
 Documentation:

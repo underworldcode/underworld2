@@ -96,6 +96,12 @@ class Store(_stgermain.StgCompoundComponent):
     just call save() without a filename
     
     >>> fig.save()
+
+    To create a timeseries of each figure you must increment the stores's internal
+    'timestep' manually before calling the next save()/show().
+
+    >>> store.step += 1
+    >>> fig.save()
     
     Save the database (only necessary if no filename provided when created)
     

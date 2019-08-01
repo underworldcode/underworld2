@@ -74,10 +74,11 @@ def convert_ipynb_to_py(fname):
     using the script `ipynb_to_py.sh`
     """
 
+    dirpath = os.path.dirname(__file__)+'/'
     # create error files for reporting
     outName = "./convert_"+os.path.basename(fname)+".out"
     with open(outName, "w") as outFile:
-        subprocess.check_call(['sh', 'ipynb_to_py.sh', fname], stdout=outFile, stderr=outFile )
+        subprocess.check_call(['sh', dirpath+'ipynb_to_py.sh', fname], stdout=outFile, stderr=outFile )
     os.remove(outName)
     return fname.replace('.ipynb', '.py')   # return new the python file
 
@@ -187,7 +188,7 @@ if __name__ == '__main__':
             try:
                 fname = convert_ipynb_to_py(fname) # convert
             except subprocess.CalledProcessError:
-                print("Error: unable to convert. Skipping.")
+                print("Error: unable to convert (see convert*.out). Skipping.")
                 continue
 
             cleanup=True

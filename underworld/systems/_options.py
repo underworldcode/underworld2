@@ -56,7 +56,7 @@ class Options(object):
         self.ksp_type="preonly"
         self.pc_type=pc_type
         self._mg_active=False
-        self.pc_factor_mat_solver_package="mumps"
+        self.pc_factor_mat_solver_type="mumps"
         # An issue with MUMPS is that it requires preallocation of arrays, and as
         # such occasionally it will report errors when the arrays are not big
         # enough. Add in this line to increase the array size, and if errors are still
@@ -74,7 +74,7 @@ class Options(object):
         self.ksp_type="preonly"
         self.pc_type="lu"
         self._mg_active=False
-        self.pc_factor_mat_solver_package="superlu_dist"
+        self.pc_factor_mat_solver_type="superlu_dist"
 
     def set_superlu(self):
         """
@@ -85,4 +85,4 @@ class Options(object):
         self.ksp_type="preonly"
         self.pc_type="lu"
         self._mg_active=False
-        self.pc_factor_mat_solver_package="superlu"
+        self.pc_factor_mat_solver_type="superlu"

@@ -39,31 +39,31 @@ Bool Underworld_Init( int* argc, char** argv[] ) {
     * (compiled in and loaded through a toolbox).
     */
    if( !ToolboxesManager_IsInitialised( stgToolboxesManager, "Underworld" ) ) {
-      char* argString;
-      int   arg_I;
-      int   tmp;
-      Bool  useSignalHandler = True;
+      // char* argString;
+      // int   arg_I;
+      // int   tmp;
+      // Bool  useSignalHandler = True;
       char* directory;
 
-      for( arg_I = 0; argc && arg_I < *argc; arg_I++ ) {
-         argString = (*argv)[arg_I];
-         /* Leverage from PETSC's no signal flag */
-         if( strcmp( argString, "-no_signal_handler" ) == 0 ) 
-            useSignalHandler = False;
-      }
+      // for( arg_I = 0; argc && arg_I < *argc; arg_I++ ) {
+      //    argString = (*argv)[arg_I];
+      //    /* Leverage from PETSC's no signal flag */
+      //    if( strcmp( argString, "-no_signal_handler" ) == 0 ) 
+      //       useSignalHandler = False;
+      // }
 
-      if( useSignalHandler ) {
-         signal( SIGSEGV, Underworld_SignalHandler );
-         signal( SIGTERM, Underworld_SignalHandler );
-         signal( SIGINT,  Underworld_SignalHandler );
-      }
+      // if( useSignalHandler ) {
+      //    signal( SIGSEGV, Underworld_SignalHandler );
+      //    signal( SIGTERM, Underworld_SignalHandler );
+      //    signal( SIGINT,  Underworld_SignalHandler );
+      // }
 
       Underworld_Rheology_Init( argc, argv );
       Underworld_Utils_Init( argc, argv );
       Underworld_AdvectionDiffusion_Init( argc, argv );
 
       Stream_Flush( Journal_Register( InfoStream_Type, (Name)"Context" ) );
-      Stream_SetPrintingRank( Journal_Register( InfoStream_Type, (Name)"Context" ), tmp );
+      // Stream_SetPrintingRank( Journal_Register( InfoStream_Type, (Name)"Context" ), tmp );
 
       /* Create Streams */
       Underworld_Debug = Journal_Register( Debug_Type, (Name)"Context" );

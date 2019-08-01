@@ -81,9 +81,6 @@ class StgClass(LeftOverParamsChecker):
         self._Stg_Class_Delete = libUnderworld.StGermain.Stg_Class_Delete
         
         # self._live_objects.add(self._cself.name)
-#        print("creating {},{}".format(self._cself.name,self._cself.type))
-#        import ipdb
-#        ipdb.set_trace()
         super(StgClass, self).__init__(**kwargs)
 
     
@@ -92,9 +89,12 @@ class StgClass(LeftOverParamsChecker):
             # self._live_objects.remove(self._cself.name)
 #            print("deleting {},{}".format(self._cself.name,self._cself.type))
 #            print("deleting {},{}".format(self._cself.name,self._cself.type))
-            if (uw._delclassinstance) and (uw._delclassinstance.exited == False):  # only deleted if we haven't called MPI_Finalize/PetscFinalize
-                self._Stg_Class_Unlock(self._cself)
-                self._Stg_Class_Delete(self._cself)
+            try:
+                if (uw._delclassinstance) and (uw._delclassinstance.exited == False):  # only delete if we haven't called MPI_Finalize/PetscFinalize
+                    self._Stg_Class_Unlock(self._cself)
+                    self._Stg_Class_Delete(self._cself)
+            except:
+                pass
 
 class _SetupClass(abc.ABCMeta):
     '''

@@ -21,13 +21,6 @@ options = [
     ('--cxx', 'CXX', 'C++ compiler', None),
     ('--cflags', 'CFLAGS', 'Flags for the C compiler', None),
     ('--cxxflags', 'CXXFLAGS', 'Flags for the C compiler', '-std=c++11'),
-    ('--with-credo', 'with_credo', 'Enable the CREDO sys test system (default 1)', eval(os.getenv('WITH_CREDO','1')), 'int'),
-    ('--with-glucifer', 'with_glucifer', 'Enable gLucifer (default 1)', eval(os.getenv('WITH_GLUCIFER','1')), 'int'),
-    ('--with-geothermal', 'with_geothermal', 'Enable Geothermal repository compile', os.path.isdir("Geothermal"), 'int'),
-    ('--with-solvers', 'with_solvers', 'Enable Solvers repository compile', os.path.isdir("Solvers"), 'int'),
-    ('--with-importers', 'with_importers', 'Enable importer toolbox compile', os.path.isdir("ImportersToolbox"), 'int'),
-    ('--with-spherical', 'with_spherical', 'Enable Spherical repository compile', os.path.isdir("Spherical"), 'int'),
-    ('--with-viscoelastic', 'with_viscoelastic', 'Enable Viscoelastic repository compile', os.path.isdir("Viscoelastic"), 'int'),
     ('--eptiming', 'eptiming', 'Enable Entry point timings: \'1\' will enable profiling for proc 0 only \'2\' will enable profiling per proc (previous setup)', 0, 'int'),
     ('--with-cautious-mode', 'with_cautious_mode', 'Enable extra checking on heavily used functions', 0, 'int'),
 ]

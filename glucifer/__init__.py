@@ -60,8 +60,11 @@ class _xvfb_runner(object):
         self._xvfb.start()
 
     def __del__(self):
-        if not self._xvfb is None :
-            self._xvfb.stop()
+        try:
+            if not self._xvfb is None :
+                self._xvfb.stop()
+        except:
+            pass
 
 import os as _os
 # disable collection of data if requested

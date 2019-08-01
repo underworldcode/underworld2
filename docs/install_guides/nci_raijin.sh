@@ -2,13 +2,10 @@
 # This script installs underworld on raijin.nci.org.au
 # 
 # Usage:
-#  ./nci_raijin.sh <branch>
+#  sh ./nci_raijin.sh <branch>
 #
-#  branch: 
-#     for branch to checkout, ie 'master'(default), 'development', 'x.y.z'
-#
-# Tested successfully 11/2/2019
-#
+#  branch (optional): 
+#     branch name to checkout, i.e. 'master'(default), 'development', 'x.y.z'
 
 # exit when any command fails
 set -e
@@ -22,31 +19,32 @@ git checkout $1  # checkout the requested version
 
 # setup modules
 module purge
-RUN_MODS='pbs dot python/2.7.11 python/2.7.11-matplotlib openmpi/3.1.2 mpi4py/3.0.0-py2-ompi3'
-module load hdf5/1.10.2p petsc/3.9.4 gcc/5.2.0 swig/3.0.12 $RUN_MODS
+RUN_MODS='pbs dot mpi4py/3.0.2-py36-ompi3'
+module load hdf5/1.10.2p petsc/3.9.4 gcc/5.2.0 mesa/11.2.2 swig/3.0.12 scons/3.0.1 $RUN_MODS
+echo "*** The module list is: ***"
+module list -t
 
-# setup environment
-H5PY_DIR=/apps/underworld/opt/h5py/2.8.0-python_2.7/lib/python2.7/site-packages
-LAVU_DIR=/apps/underworld/opt/lavavu/1.2.55
-MYPYPGK=$H5PY_DIR:$LAVU_DIR
-PYTHONPATH=$MYPYPGK:$PYTHONPATH
+# setup python environment with preinstalled packages (h5py, lavavu, pint)
+export PYTHONPATH=/apps/underworld/opt/h5py/2.9.0-py36-ompi3/lib/python3.6/site-packages/h5py-2.9.0-py3.6-linux-x86_64.egg/:/apps/underworld/opt/lavavu/1.4.1_rc/:/apps/underworld/opt/pint/0.9_py36/lib/python3.6/site-packages/:$PYTHONPATH
+echo "*** New PYTHONPATH: $PYTHONPATH ***"
 
 # build and install code
 cd libUnderworld
-./configure.py --python-dir=$PYTHON_ROOT --with-debugging=0
+CONFIG="./configure.py  --python-dir=`python3-config --prefix` --with-debugging=0"
+echo "*** The config line is: ***"
+echo "$CONFIG"
+echo ""
+
+$CONFIG
 ./compile.py -j4
 cd .. ; source updatePyPath.sh 
 
 # some messages
-echo "#############################################"
-echo "Underworld2 built successfully.              "
-echo "Remember to set the required environment     "
-echo "before running Underworld2.                  "
-echo "   module load $RUN_MODS                     "
-echo "   export PYTHONPATH=$PYTHONPATH             "
-echo "   source $UW_DIR/updatePyPath.sh            "
-echo ""
-echo "You will also need the following for         "
-echo "glucifer output in your job script:          "
-echo "  Xvfb :0 -screen 0 1600x1200x16&            "
-echo "#############################################"
+echo "#####################################################################"
+echo "Underworld2 built successfully at:                                   "
+echo "  $UW_DIR                                                            "
+echo "Remember to set the required environment before running Underworld2. "
+echo "   module load $RUN_MODS                                             "
+echo "   export PYTHONPATH=$PYTHONPATH                                     "
+echo "   export LD_PRELOAD=$OPENMPI_ROOT/lib/libmpi.so                     "
+echo "#####################################################################"
