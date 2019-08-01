@@ -128,7 +128,12 @@ RUN ipcluster nbextension enable
 ENV TINI_VERSION v0.18.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
 RUN chmod +x /tini
-ENTRYPOINT ["/tini", "--"]
+
+# script for xvfb-run.  all docker commands will effectively run under this via the entrypoint
+RUN printf "#\041/bin/sh \n rm -f /tmp/.X99-lock && xvfb-run -s '-screen 0 1600x1200x16' \$@" >> /usr/local/bin/xvfbrun.sh && \
+chmod +x /usr/local/bin/xvfbrun.sh
+ENTRYPOINT ["/tini", "--", "/usr/local/bin/xvfbrun.sh"]
+
 
 # add default user jovyan and change permissions on NB_WORK
 ENV NB_USER jovyan
