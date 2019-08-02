@@ -3,7 +3,7 @@
 #    $  docker build -f docs/development/docker/underworld2/Dockerfile .
 
 
-FROM underworldcode/base@sha256:e022c04b6bbaddf7447b89dd187bdd31958d403db3677adc3b21c7ca6560202e
+FROM underworldcode/base@sha256:a49b6fd56575be1a4afbb5d4aa00c4fffeb7201806aed7b7d368bc4ca474ced4
 MAINTAINER https://github.com/underworldcode/
 
 USER root
@@ -18,7 +18,7 @@ RUN mkdir -p $UW2_TMP
 # install lavavu
 RUN pip3 install --no-cache-dir lavavu
 
-# COPY UW - unfortunately, the version of docker at docker cloud does not support chown yet.
+# COPY UW
 COPY --chown=jovyan:users . $UW2_TMP
 COPY --chown=jovyan:users ./docs/ $NB_WORK/
 

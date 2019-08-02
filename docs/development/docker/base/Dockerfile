@@ -75,14 +75,11 @@ RUN pip3 install -U setuptools  && \
         mpi4py \
         scons
 
-# update python to py3
-RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.5 1
-
 WORKDIR /tmp/petsc-build
-ARG PETSC_VERSION="3.11.2"
+ARG PETSC_VERSION="3.11.3"
 RUN wget http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-${PETSC_VERSION}.tar.gz && \
     tar zxf petsc-lite-${PETSC_VERSION}.tar.gz && cd petsc-${PETSC_VERSION}   && \
-    ./configure --with-debugging=0 --prefix=/usr/local/petsc                     \
+    python3 ./configure --with-debugging=0 --prefix=/usr/local/petsc                     \
                 --COPTFLAGS="-g -O3" --CXXOPTFLAGS="-g -O3" --FOPTFLAGS="-g -O3" \
                 --with-zlib=1                   \
                 --download-fblaslapack=1        \
@@ -110,9 +107,6 @@ RUN wget http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-${PETSC_V
 
 ENV PETSC_DIR=/usr/local/petsc
 ENV PATH=${PETSC_DIR}/bin:$PATH
-
-# Hack for scons.. should be able to remove in future.
-ENV SCONS_LIB_DIR /usr/local/lib/python3.5/dist-packages/scons-3.0.1
 
 ENV PYTHONPATH $PYTHONPATH:/usr/lib
 RUN CC=h5pcc HDF5_MPI="ON" HDF5_DIR=${PETSC_DIR} pip3 install --no-cache-dir --no-binary=h5py h5py && \
