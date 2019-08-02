@@ -26,7 +26,7 @@ COPY --chown=jovyan:users ./docs/ $NB_WORK/
 RUN cd $UW2_TMP/libUnderworld && \
     ./configure.py --with-debugging=0 --prefix=$UW2_DIR && \
     ./compile.py                      && \
-    scons install                     && \
+    ./scons install                     && \
     env > build_environment.txt       && \
     cd /tmp                           && \
     rm -rf *                          && \
