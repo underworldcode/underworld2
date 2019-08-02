@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import os, sys, subprocess
 build_success_file='.build_success'
 # remove 'success' file

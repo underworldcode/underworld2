@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import sys, subprocess, shutil, os, glob	
 
 dir = os.path.join( '..', 'build')
