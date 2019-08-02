@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 ## taken from https://gist.github.com/minrk/6176788#file-nbstripout
 
