@@ -26,7 +26,8 @@ More specifically:
 
 2. Add the original Underworld repository as `upstream` and branch your contribution off its development branch.
 
-  .. code-block:: 
+  .. code-block::
+  
     git remote add upstream https://github.com/underworldcode/underworld2
     git checkout upstream/development ; git checkout -b newFeature
      
