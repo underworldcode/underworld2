@@ -11,8 +11,6 @@ USER root
 # install underworld under /tmp.
 WORKDIR /tmp
 ENV UW2_TMP /tmp/underworld2
-ENV UW2_DIR /usr/local/underworld2
-ENV PYTHONPATH $PYTHONPATH:$UW2_DIR/lib
 RUN mkdir -p $UW2_TMP 
 
 # install lavavu
@@ -23,16 +21,10 @@ COPY --chown=jovyan:users . $UW2_TMP
 COPY --chown=jovyan:users ./docs/ $NB_WORK/
 
 # get underworld, compile and install underworld libs
-RUN cd $UW2_TMP/underworld/libUnderworld && \
-    ./configure.py --with-debugging=0 --prefix=$UW2_DIR && \
-    ./compile.py                      && \
-    ./scons.py install                && \
-    env > build_environment.txt       && \
+RUN cd $UW2_TMP && \
+    pip3 install -vvv . && \ 
     cd /tmp                           && \
-    rm -rf *                          && \
-    python3 -c "import underworld"    && \
-    python3 -c "import underworld.visualisation"       && \
-    chown -R $NB_USER:users $UW2_DIR
+    rm -rf *
 
 # clone UWGeodynamics, install 
 RUN git clone -b development https://github.com/underworldcode/UWGeodynamics.git && \
@@ -44,9 +36,6 @@ RUN git clone -b development https://github.com/underworldcode/UWGeodynamics.git
     mv ./UWGeodynamics/docs       $NB_WORK/UWGeodynamics/  && \
     rm -rf UWGeodynamics                                   && \
     chown -R $NB_USER:users $NB_WORK/UWGeodynamics
-
-# expose vis port
-EXPOSE 9999
 
 # DISABLE FOLLOWING. We've reverted xvfb via entrypoint.
 # environment variable will internally run xvfb when uw.visualisation is imported,

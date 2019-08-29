@@ -113,7 +113,7 @@ def build(dry_run=False):
     # Run UW build
     if dry_run: return
     python = find_executable('python3')
-    command = [python, './compile.py']
+    command = [python, './compile.py --jobs=4']
     status = os.system(" ".join(command))
     if status != 0: raise RuntimeError(status)
 
