@@ -23,7 +23,7 @@ COPY --chown=jovyan:users . $UW2_TMP
 COPY --chown=jovyan:users ./docs/ $NB_WORK/
 
 # get underworld, compile and install underworld libs
-RUN cd $UW2_TMP/libUnderworld && \
+RUN cd $UW2_TMP/underworld/libUnderworld && \
     ./configure.py --with-debugging=0 --prefix=$UW2_DIR && \
     ./compile.py                      && \
     ./scons.py install                && \
