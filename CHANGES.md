@@ -6,7 +6,7 @@ Release 2.8.1b [2019-09-02]
 Documentation:
 * Fix broken live documentation generator.
 * Fix broken and incomplete docstrings.
-* Update advection-diffusion test. 
+* Update advection-diffusion test, see `./docs/test/2DCosineHillAdvection.ipynb`. 
 * Update README.md to mention pip. 
 
 Release 2.8.0b [2019-07-18]
