@@ -54,6 +54,11 @@ The Underworld2 Docker container is the recommended method of installation on Wi
 
 Please refer to the documentation site for further information.
 
+Note that we now have experimental support for `pip` installation on the dev branch, as well as extended installation documentation. 
+You can switch to the `development` branch of this repo via the GitHub interface above. Also note that the `development` branch has significant API changes, so please refer to the corresponding documentation and examples if using a `development` installation:
+
+https://underworld2.readthedocs.io/en/development/
+
 
 Directories
 -----------
