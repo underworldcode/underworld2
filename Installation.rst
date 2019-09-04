@@ -1,7 +1,7 @@
 Underworld Installation
 =======================
 
-Underworld may be installed via a number of mechanisms, although note that usage via Docker is currently the recommended option. 
+Underworld may be installed via a number of mechanisms: Docker, pip or native install. The recommended option is using Docker as it is quick to get started.
 
 Detailed instructions for supported HPC platforms may be found at `docs/install_guides
 <https://github.com/underworldcode/underworld2/tree/master/docs/install_guides>`_. You may also find useful usage information (on docker/shifter/compilation/other) on the Underworld blog.
@@ -11,7 +11,7 @@ We welcome feedback and support requests at our `github issue tracker` <https://
 Docker
 ------
 
-Docker is a type of lightweight virtualisation, and is the preferred method for Underworld usage on personal computers. You will first need to install Docker on your system, and then you may install Underworld via Docker. Docker may be driven from the command line, but new users may wish to use the Docker Kitematic GUI instead for ease. Simply search for 'underworldcode/underworld2' within Kitematic, and then click 'CREATE' to launch a container. You will eventually wish to modify your container settings (again through Kitematic) to enable local folder volume mapping, which will allow you to access your local drives within your container.
+Docker is a type of lightweight virtualisation, and is the preferred method for Underworld usage on personal computers. You will first need to install Docker on your system (see `Notes on Installing Docker`_) and then you may install Underworld via Docker. Docker can be driven from the command line, but new users may wish to use the Docker Kitematic GUI instead for ease. Simply search for 'underworldcode/underworld2' within Kitematic, and then click 'CREATE' to launch a container. You will eventually wish to modify your container settings (again through Kitematic) to enable local folder volume mapping, which will allow you to access your local drives from within your container.
 
 For Linux users, and those who prefer the command line, the following minimal command should be sufficient to access the Underworld2 Jupyter Notebook examples:
 
@@ -27,13 +27,18 @@ Navigate to `localhost:8888 <localhost:8888>`_ to see the notebooks. A number of
 
 By default (ie, if no tag is provided), docker will use the latest stable release. A list of available tags may be found on `our DockerHub page <https://hub.docker.com/r/underworldcode/underworld2/tags>`_. Tags can also be accessed in Kitematic via the ellipsis button on container search results. 
 
-Windows users should note that for *Windows 10 Home* you should install *Docker Toolbox*, while for *Windows 10 Professional* you should install *Docker Desktop*.  All users on Apple OS X should use *Docker Desktop* (not *Docker Toolbox*). The *Docker Toolbox* edition utilised VirtualBox for virtualisation, and therefore to access any running Jupyter servers you must browse to the virtual machine address (instead of *localhost*). To find the VM address, you will generally execute
+Notes on Installing Docker
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code:: bash
+- Linux users should be able to install *docker* using the distributions's standard package manager. 
+- Windows users should note that for *Windows 10 Home* you should install *Docker Toolbox*, while for *Windows 10 Professional* you should install *Docker Desktop*.  
+- All users on Apple OS X should use *Docker Desktop* (not *Docker Toolbox*). The *Docker Toolbox* edition utilised VirtualBox for virtualisation, and therefore to access any running Jupyter servers you must browse to the virtual machine address (instead of *localhost*). To find the VM address, you will generally execute
 
-   docker-machine ip default
+  .. code:: bash
 
-but note that this will only work correctly from the *Docker Quickstart Terminal*.
+     docker-machine ip default
+
+  but note that this will only work correctly from the *Docker Quickstart Terminal*.
 
 Native
 ------
@@ -107,4 +112,4 @@ A script to run a suite of tests may be found at the top level of the project. S
 
    ./test_basic.sh
 
-Those using `pip` installation will of course need to download the project first. 
+Those using `pip` installation will of course need to download the repository first. 
