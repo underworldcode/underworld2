@@ -36,8 +36,9 @@ try:
     import __main__
     __main__.lavavu = lavavu
 except Exception as e:
-    print(e,": module not found! disabling inline visualisation")
-    import lavavu_null as lavavu
+    if uw.mpi.rank == 0:
+        print(e,": module not found! disabling inline visualisation")
+    from . import lavavu_null as lavavu
 
 # lets create somewhere to dump data for this session
 try:
