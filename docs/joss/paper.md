@@ -25,9 +25,6 @@ authors:
   - name: Rebecca Farrington  
     orcid: 0000-0002-2594-6965
     affiliation: 2
-  - name: Mirko Velic
-    orcid: 
-    affiliation: 
   - name: Steve Quenette
     orcid: 0000-0002-0368-7341
     affiliation: 1
@@ -49,6 +46,11 @@ bibliography: paper.bib
 ---
 
 # Summary
+
+<!--
+TODO:
+* add Mirko to authors
+-->
 
 The modelling of long time-scale solid-Earth processes presents challenges on many fronts. Typically a large range of length scales must be resolved, and computational requirements can easily go beyond a desktop machine's capability, even in 2-dimensions. 
 Rheological behaviours are diverse and modellers often wish to investigate a spectrum of dynamics. With this also comes the requirement of robust solution strategies capable of capturing a system of large dynamic range. Time dependent aspects of a model also require careful consideration such that numerical artefacts do not subsume the required signal. ``Underworld2`` is a Python API which seeks to meet these challenges, while also providing a friendly and intuitive interface to model development. 
