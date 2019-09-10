@@ -996,7 +996,7 @@ static void _XML_IO_Handler_ParseNodes(
 
    if(source == NULL)
       Stg_asprintf( &source, "Buffer" );
-   if( !FindFileInPathList( (char*)absoluteSource, (char*)source, self->searchPaths, self->searchPathsSize ) ) {
+   else if ( !FindFileInPathList( (char*)absoluteSource, (char*)source, self->searchPaths, self->searchPathsSize ) ) {
       /* Let IO_Handler_ReadAllFromFile() display the errors for opening the file. */
       strcpy( (char*)absoluteSource, (char*)source );
    }

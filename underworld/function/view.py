@@ -100,6 +100,7 @@ class min_max(_function.Function):
     Traceback (most recent call last):
     ...
     RuntimeError: Issue utilising function of class 'min_max' constructed at:
+    <BLANKLINE>
        --- CONSTRUCTION TIME STACK ---
     Error message:
     Argument function does not return scalar results. You must also provide a function which calculates the required norm like quantity via the `fn_norm` parameter.
