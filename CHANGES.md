@@ -15,6 +15,16 @@ API changes:
 * --prefix=/SOME/DIR now installs to /SOME/DIR/underworld
 * `test_basic.py` no longer sets PYTHONPATH
 
+Enhancements:
+* By default, UW was creating significant filesystem chatter in
+  generating debug messages for functions. This has been 
+  significantly reduced through judicious usage of Python
+  inspection tool. Also, as default, only root proc now generates
+  messages. Users can set the UW_WORLD_FUNC_MESSAGES (`export UW_WORLD_FUNC_MESSAGES=1`)
+  environment variable to have all procs report, or can set UW_NO_FUNC_MESSAGES
+  (`export UW_NO_FUNC_MESSAGES=1`) to disable these messages altogether
+  for minimal filesystem noise. 
+
 Release 2.8.1b [2019-09-02]
 ---------------------------
 Documentation:

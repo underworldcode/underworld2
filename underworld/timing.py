@@ -277,7 +277,7 @@ def _decrementDepth():
         global _currentDepth
         _currentDepth -= 1
 
-def log_result( time, name ):
+def log_result( time, name, foffset=1 ):
     """
     Allows the user to manually add entries to data.
     
@@ -288,12 +288,20 @@ def log_result( time, name ):
     name: str
         Name to record to dataset. Note that the current stack information
         is generated internally and recorded.
+    foffset: int
+        Frame offset. This is useful when you want to record this measurement
+        against a call up the stack list. Defaults to 1.
     """
     global _currentDepth
     if timing:
         if _currentDepth < _maxdepth:
-            stk = _inspect.stack(0)
-            data = _hit_count[(name,stk[2][1],stk[2][2],_currentDepth+1)]
+            frame =_inspect.currentframe()
+            count=0
+            while count < foffset:
+                count += 1
+                frame = frame.f_back
+            f_info = _inspect.getframeinfo(frame,0)
+            data = _hit_count[(name,f_info[0], f_info[1],_currentDepth+1)]
             data[0]+=1
             data[1]+=time
 
@@ -313,12 +321,13 @@ def _routine_timer_decorator(routine, class_name=None):
         if timing:
             _currentDepth += 1
             if _currentDepth <= _maxdepth:
-                stk = _inspect.stack(0)
+                frame =_inspect.currentframe().f_back # get frame above this one
+                f_info = _inspect.getframeinfo(frame,0)
                 ts = _time.time()
                 result = routine(*args, **kwargs)
                 # print(ts)
                 te = _time.time()
-                data = _hit_count[(recname,stk[1][1],stk[1][2],_currentDepth)]
+                data = _hit_count[(recname,f_info[0],f_info[1],_currentDepth)]
                 data[0]+= 1
                 data[1]+= (te - ts)
                 _currentDepth -= 1

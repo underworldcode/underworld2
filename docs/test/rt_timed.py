@@ -50,8 +50,12 @@ add_timing("MeshVariable.__init__()", time()-ts)
 velocityField.data[:] = [0.,0.,0.]
 pressureField.data[:] = 0.
 
+ts = time()
 for index, coord in enumerate(mesh.data):
     temperatureField.data[index] = coord[2]
+tt = time()-ts
+add_timing("initialise_temp_field", tt)
+uw.timing.log_result(tt, "initialise_temp_field")
 
 temperatureFieldDeriv.data[:] = 0.
 
