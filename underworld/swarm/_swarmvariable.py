@@ -165,7 +165,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         numpy.ndarray
             Numpy proxy array to underlying variable data. Note that the 
             returned array is a proxy for all the *local* particle data. As 
-            numpy arrays are simply proxys to the underlying memory structures,
+            numpy arrays are simply proxies to the underlying memory structures,
             no data copying is required.
 
         Example

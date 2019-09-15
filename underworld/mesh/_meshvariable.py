@@ -121,7 +121,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         identical on all processors.
 
 
-        As these arrays are simply proxys to the underlying memory structures,
+        As these arrays are simply proxies to the underlying memory structures,
         no data copying is required.
 
         Returns
