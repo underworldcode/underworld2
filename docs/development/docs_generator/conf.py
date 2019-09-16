@@ -472,12 +472,12 @@ except:
         @classmethod
         def __getattr__(cls, name):
                 return MagicMock()
-    MOCK_MODULES = ['pint', 'numpy',  '_StGermain', '_StgDomain', '_PICellerator', '_StgFEM', '_Solvers',
+    MOCK_MODULES = ['pint', 'numpy',  '_StGermain', 'StGermain', '_StgDomain', '_PICellerator', '_StgFEM', '_Solvers',
                     '_Underworld', 'h5py', '_Function', '_gLucifer', '_c_arrays', '_c_pointers',
-                    '_StGermain_Tools', '_petsc', 'mpi4py', 'libUnderworld.libUnderworldPy.StGermain', 'libUnderworld.libUnderworldPy.StgDomain', 'libUnderworld.libUnderworldPy.StgFEM',
-                    'libUnderworld.libUnderworldPy.PICellerator', 'libUnderworld.libUnderworldPy.Underworld', 'libUnderworld.libUnderworldPy.Solvers', 'libUnderworld.libUnderworldPy.gLucifer', 'libUnderworld.libUnderworldPy.c_arrays', 'libUnderworld.libUnderworldPy.c_pointers',
-                    'libUnderworld.libUnderworldPy.Function', 'libUnderworld.libUnderworldPy.petsc', 'libUnderworld.libUnderworldPy.StGermain_Tools',
-                    'libUnderworld.libUnderworldPy.Function', '_LavaVuPython', 'lavavu', 'lavavu.Viewer']
+                    '_StGermain_Tools', '_petsc', 'mpi4py', 'underworld.libUnderworld.libUnderworldPy.StGermain', 'underworld.libUnderworld.libUnderworldPy.StgDomain', 'underworld.libUnderworld.libUnderworldPy.StgFEM',
+                    'underworld.libUnderworld.libUnderworldPy.PICellerator', 'underworld.libUnderworld.libUnderworldPy.Underworld', 'underworld.libUnderworld.libUnderworldPy.Solvers', 'underworld.libUnderworld.libUnderworldPy.gLucifer', 'underworld.libUnderworld.libUnderworldPy.c_arrays', 'underworld.libUnderworld.libUnderworldPy.c_pointers',
+                    'underworld.libUnderworld.libUnderworldPy.Function', 'underworld.libUnderworld.libUnderworldPy.petsc', 'underworld.libUnderworld.libUnderworldPy.StGermain_Tools',
+                    'underworld.libUnderworld.libUnderworldPy.Function', '_LavaVuPython', 'lavavu', 'lavavu.Viewer']
     sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 import generate_api_documentation
