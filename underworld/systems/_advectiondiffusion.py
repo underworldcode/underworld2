@@ -22,17 +22,13 @@ class AdvectionDiffusion(object):
         \\frac{\\partial\\phi}{\\partial t}  + {\\bf u } \\cdot \\nabla \\phi= \\nabla { ( k  \\nabla \\phi ) } + H
 
     Two methods are available to integrate the scalar :math:`\phi` through time:
-    1) SUPG - The Streamline Upwind Petrov Galerkin method.
-       paper ref
-    2) SLCN - The Semi-Lagrangian Crank-Nicholson method.
-       Implements the Spiegelman & Katz. Semi-lagrangian Advection / Crank
-       Nicholson Diffusion algorithm
+    
+    1. SUPG - The Streamline Upwind Petrov Galerkin method. [1]_
+    2. SLCN - The Semi-Lagrangian Crank-Nicholson method. [2]_
 
-    Currently the integration method can only be defined at class
-    instanciation.
-    SLADE is the preferred method for Q1, regular cartesian meshes. It is
-    quicker, less diffusive and less restrictive
-    on the timestep size. SUPG is the legacy method for and used for deformed meshes.
+    SLCN is the preferred method for Q1, regular cartesian meshes. It is
+    quicker, less diffusive and unconditionally stable. SUPG is the legacy 
+    method is is currently more robust for deformed meshes.
 
     Parameters
     ----------
@@ -47,13 +43,14 @@ class AdvectionDiffusion(object):
     conditions : underworld.conditions.SystemCondition
         Numerical conditions to impose on the system. This should be supplied as
         the condition itself, or a list object containing the conditions.
-    phiDotField [SUPG only]: underworld.mesh.MeshVariable
+    phiDotField : underworld.mesh.MeshVariable
+        Only used for SUPG. 
         A MeshVariable that defines the initial time derivative of the phiField.
         Typically 0 at the beginning of a model, e.g. phiDotField.data[:]=0
         When using a phiField loaded from disk one should also load the phiDotField to ensure
         the solving method has the time derivative information for a smooth restart.
-        No dirichlet conditions are required for this field as the phiField degrees of freedom
-        map exactly to this field's dirichlet conditions, the value of which ought to be 0
+        No Dirichlet conditions are required for this field as the phiField degrees of freedom
+        map exactly to this field's Dirichlet conditions, the value of which ought to be 0
         for constant values of phi.
     allow_non_q1 : Bool (default False)
         Allow the integration to perform over a non Q1 element mesh. (Under Q2
@@ -64,6 +61,13 @@ class AdvectionDiffusion(object):
     Notes
     -----
     Constructor must be called by collectively all processes.
+
+    .. [1] Brooks, A. N. and Hughes, T. J. R., "Streamline Upwind/Petrov-Galerkin Formulations for 
+       Convection Dominated Flows with Particular Emphasis on the Incompressible Navier-Stokes 
+       Equations", Comput. Methods Appl. Mech. Eng., Aug 1990, 199-259.
+    .. [2] Spiegelman, M. and Katz, R.F., "A semi-Lagrangian Crank-Nicolson algorithm for the 
+       numerical solution of advection-diffusion problems", Geochemistry, Geophysics, Geosystems, 
+       7(4), 2006.
     """
 
     def __init__(self, phiField=None, velocityField=None, fn_diffusivity=None,

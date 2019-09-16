@@ -4,8 +4,8 @@ import re
 for arg in argv[1:]:
     with open(arg,'r') as fileg:
         text = fileg.read()
-        pattern = r"(.. code:: ipython2)((\n +.*|\s)+)"
-        # pattern = r"(.. code:: ipython2\s+$)((\n +.*|\s)+)"  # not working
+        pattern = r"(.. code:: ipython3)((\n +.*|\s)+)"
+        # pattern = r"(.. code:: ipython3\s+$)((\n +.*|\s)+)"  # not working
 
         p = re.compile(pattern)
 
