@@ -41,7 +41,7 @@ RUN cd $UW2_TMP/libUnderworld && \
     chown -R $NB_USER:users $UW2_DIR
 
 # clone UWGeodynamics, install 
-RUN git clone -b development https://github.com/underworldcode/UWGeodynamics.git && \
+RUN git clone https://github.com/underworldcode/UWGeodynamics.git && \
     pip3 install --no-cache-dir UWGeodynamics/ && \
     mkdir $NB_WORK/UWGeodynamics && \
     mv ./UWGeodynamics/examples   $NB_WORK/UWGeodynamics/. && \
