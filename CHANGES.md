@@ -5,6 +5,7 @@ Release 2.9.0b []
 ---------------------------
 New:
 * Experimental `pip install` functionality.
+* Move to Python 3.7, from Python 3.5.
  
 API changes:
 * `glucifer` module moved inside `underworld` and 
