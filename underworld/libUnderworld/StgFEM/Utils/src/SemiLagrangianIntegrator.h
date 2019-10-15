@@ -75,11 +75,12 @@
    void SemiLagrangianIntegrator_UpdatePreviousVelocityField( void* slIntegrator, void* data );
 
    /* --- Public functions --- */
-   void BicubicInterpolator( FeVariable* feVariable, double* coord, double* delta, unsigned* nNodes, double* result );
+   Bool BicubicInterpolator( FeVariable* feVariable, double* coord, double* delta, unsigned* nNodes, double* result );
    Bool PeriodicUpdate( double* pos, double* min, double* max, unsigned dim, Bool isPeriodic );
-   void InterpLagrange( double x, double* coords, double** values, unsigned numdofs, double* result );
+   void InterpLagrange( double x, double* coords, double (*values)[3], unsigned numdofs, double* result );
    void IntegrateRungeKutta( FeVariable* velocityField, double dt, double* origin, double* position );
    void IntegrateRungeKutta_StgVariableVelocity( FeVariable* velocityField, FeVariable* prevVelField, double dt, double* origin, double* position );
+    Bool SemiLagrangianIntegrator_PointsAreClose( double* p1, double* p2, int dim, double rtol, double atol );
 
    /** Does any required solver setup beyond assembly of the matrices to be solved: e.g. priming the Matrix solvers
    etc. */
