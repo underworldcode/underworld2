@@ -19,6 +19,10 @@ class EqNumber(_stgermain.StgClass):
     meshVariable : uw.mesh.MeshVariable
         MeshVariable object for which this equation numbering corresponds.
 
+    removeBCs : Bool, optional
+        Determines if the MeshVariable's boundary conditions are included in the ordering.
+        Hence it effects the size of the matrix or vector and the algorithm used to handle boundary conditions.
+
     Example
     -------
     >>> linearMesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(4,4), minCoord=(0.,0.), maxCoord=(1.,1.) )

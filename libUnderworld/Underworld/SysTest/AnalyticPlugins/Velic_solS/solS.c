@@ -9,17 +9,9 @@
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "solS.h"
 
-
-void _Velic_solS( 
-		double pos[],
-		int _n, double _eta,
-		double vel[], double* presssure, 
-		double total_stress[], double strain_rate[] );
-
-
-#ifndef NOSHARED
-/*
+#if 0
 int main( int argc, char **argv )
 {
 	int i,j;
@@ -48,7 +40,6 @@ int main( int argc, char **argv )
 	
 	return 0;
 }
-*/
 #endif 
 
 void _Velic_solS( 
@@ -74,10 +65,10 @@ void _Velic_solS(
 	Z = _eta;
 	n = _n;
 	
-	if( n == 0 ) {
-		printf("n must be non-zero \n" );
-		abort();
-	}
+//    if( n == 0 ) {
+//        printf("n must be non-zero \n" );
+//        abort();
+//    }
 	
 	
 	/* Constants */

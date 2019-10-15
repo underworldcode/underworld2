@@ -32,7 +32,7 @@ class IArrayClass
 
 Fn::GradFeVariableFn::GradFeVariableFn( void* fevariable ):Function(), _fevariable(fevariable){
     if(!Stg_Class_IsInstance( _fevariable, FeVariable_Type ))
-        throw std::invalid_argument("Provided variable does not appear to be of 'MeshVariable' type.");
+        throw std::invalid_argument(_pyfnerrorheader+"Provided variable does not appear to be of 'MeshVariable' type.");
 
 
 }
@@ -101,9 +101,9 @@ Fn::GradFeVariableFn::func Fn::GradFeVariableFn::getFunction( IOsptr sample_inpu
             std::stringstream streamguy;
             streamguy << "Function input dimensionality (" << iodouble->size() << ") ";
             streamguy << "does not appear to match mesh variable dimensionality (" << fevar->dim << ").";
-            throw std::runtime_error(streamguy.str());
+            throw std::runtime_error(_pyfnerrorheader+streamguy.str());
         }
-        return [_output,_output_sp,fevar](IOsptr input)->IOsptr {
+        return [_output,_output_sp,fevar,this](IOsptr input)->IOsptr {
             const IO_double* iodouble = debug_dynamic_cast<const IO_double*>(input);            
 
             InterpolationResult retval = FeVariable_InterpolateDerivativesAt( (void*)fevar, (double*)iodouble->data(), (double*) _output->data() );
@@ -115,7 +115,7 @@ Fn::GradFeVariableFn::func Fn::GradFeVariableFn::getFunction( IOsptr sample_inpu
                     streamguy << ", "<< iodouble->at(ii);
                 streamguy << ") does not appear to be valid.\nLocation is probably outside local domain.";
                 
-                throw std::range_error(streamguy.str());
+                throw std::range_error(_pyfnerrorheader+streamguy.str());
             }
 
 
@@ -124,7 +124,7 @@ Fn::GradFeVariableFn::func Fn::GradFeVariableFn::getFunction( IOsptr sample_inpu
     }
     
     // if we get here, something aint right
-    throw std::invalid_argument("'GradFeVariableFn' does not appear to be compatible with provided input type.");
+    throw std::invalid_argument(_pyfnerrorheader+"'GradFeVariableFn' does not appear to be compatible with provided input type.");
 
     
 }

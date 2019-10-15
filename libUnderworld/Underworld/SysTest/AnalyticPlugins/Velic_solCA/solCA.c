@@ -13,45 +13,35 @@
 
 #define PI 3.14159265358979323846264338328
 
-
-void _Velic_solCA( 
-		double pos[], 
-		double _sigma, double _eta, double _dx, double _x_0,
-		double vel[], double* presssure, 
-		double total_stress[], double strain_rate[] );
-
-
-#ifndef NOSHARED
-/*
+#if 0
 int main( int argc, char **argv )
 {
-	int i,j;
-	double pos[2], vel[2], pressure, total_stress[3], strain_rate[3];
-	double x,z;
-	
-	for (i=0;i<101;i++){
-		for(j=0;j<101;j++){
-			x = i/100.0;
-			z = j/100.0;
-			
-			pos[0] = x;
-			pos[1] = z;
-			_Velic_solCA( pos, 1.0, 1.0, 0.2, 0.4, 
-					vel, &pressure, total_stress, strain_rate );
-			
-			printf("t_xz, e_xz look funny \n");
-			printf("%0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f \n",
-					pos[0],pos[1],
-					vel[0],vel[1], pressure, 
-					total_stress[0], total_stress[1], total_stress[2], 
-					strain_rate[0], strain_rate[1], strain_rate[2] );
-		}
-		printf("\n");
-	}
-	
-	return 0;
+    int i,j;
+    double pos[2], vel[2], pressure, total_stress[3], strain_rate[3];
+    double x,z;
+    
+    for (i=0;i<101;i++){
+        for(j=0;j<101;j++){
+            x = i/100.0;
+            z = j/100.0;
+ 
+            pos[0] = x;
+            pos[1] = z;
+            _Velic_solCA( pos, 1.0, 1.0, 0.2, 0.4,
+                    vel, &pressure, total_stress, strain_rate );
+ 
+            printf("t_xz, e_xz look funny \n");
+            printf("%0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f \n",
+                    pos[0],pos[1],
+                    vel[0],vel[1], pressure,
+                    total_stress[0], total_stress[1], total_stress[2], 
+                    strain_rate[0], strain_rate[1], strain_rate[2] );
+        }
+        printf("\n");
+    }
+ 
+    return 0;
 }
-*/
 #endif
 
 void _Velic_solCA(
@@ -63,7 +53,7 @@ void _Velic_solCA(
 {
 	double Z,u1,u2,u3,u4,u5,u6;
 	double _C1,_C2,_C3,_C4;
-	double sum1,sum2,sum3,sum4,sum5,sum6,sum7,mag,x,z;
+	double sum1,sum2,sum3,sum4,sum5,sum6,sum7,x,z;
 	double sigma,del_rho,k,x0,dx;
 	int n;
 	
@@ -169,8 +159,8 @@ void _Velic_solCA(
 	 sum5 += sigma*dx*(0.5-z); /* now have total pressure */
 	 sum3 += -sum5; /* now have total zz stress */
 	 sum6 += -sum5; /* now have total xx stress */
-	 mag=sqrt(sum1*sum1+sum2*sum2);
-        /*printf("%0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f\n",x,z,sum1,sum2,sum3,sum4,sum5,sum6,mag,sum7);*/
+	 //mag=sqrt(sum1*sum1+sum2*sum2);
+     /*printf("%0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f\n",x,z,sum1,sum2,sum3,sum4,sum5,sum6,mag,sum7);*/
 
 		
 	

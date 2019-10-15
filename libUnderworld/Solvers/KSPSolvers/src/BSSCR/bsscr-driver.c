@@ -91,7 +91,7 @@ PetscErrorCode BSSCR_DRIVER_flex( KSP ksp, Mat stokes_A, Vec stokes_x, Vec stoke
     PetscScalar uNorm, pNorm, rNorm, fNorm;
     PetscInt  uSize, pSize;
     PetscInt    lmin,lmax;
-    PetscInt  iterations;
+    PetscInt  iterations, rhs_iterations;
     PetscReal   min,max;
     PetscReal p_sum;
 
@@ -99,7 +99,7 @@ PetscErrorCode BSSCR_DRIVER_flex( KSP ksp, Mat stokes_A, Vec stokes_x, Vec stoke
     PC shellPC;
 
     double t0, t1;
-    double mgSetupTime, scrSolveTime, a11SingleSolveTime, solutionAnalysisTime;
+    double mgSetupTime, rhsSolveTime, problemBuildTime, scrSolveTime, a11SingleSolveTime, solutionAnalysisTime;
     Index nx,ny,nz;
     PetscInt j,start,end;
 
@@ -123,6 +123,10 @@ PetscErrorCode BSSCR_DRIVER_flex( KSP ksp, Mat stokes_A, Vec stokes_x, Vec stoke
     /* VecNorm( p, NORM_2, &pNorm ); */
     /* PetscPrintf( PETSC_COMM_WORLD,  "\t p Norm is %.6e in %s: addres is %p\n",pNorm,__func__,p); */
     /* Create Schur complement matrix */
+
+
+    problemBuildTime = MPI_Wtime();
+
 
     //MatCreateSchurFromBlock( stokes_A, 0.0, "MatSchur_A11", &S );
     MatCreateSchurComplement(K,K,G,D,C, &S);
@@ -166,13 +170,19 @@ PetscErrorCode BSSCR_DRIVER_flex( KSP ksp, Mat stokes_A, Vec stokes_x, Vec stoke
 
     /* create right hand side */
     /* h_hat = G'*inv(K)*f - h */
+
     MatGetVecs(K,PETSC_NULL,&t);
     MatGetVecs( S, PETSC_NULL, &h_hat );
 
     KSPSetOptionsPrefix( ksp_inner, "A11_" );
     KSPSetFromOptions( ksp_inner );
 
+    problemBuildTime = MPI_Wtime() - problemBuildTime;
+
+    rhsSolveTime = MPI_Wtime();
     KSPSolve(ksp_inner,f,t);/* t=f/K */
+    rhsSolveTime = MPI_Wtime() - rhsSolveTime;
+    KSPGetIterationNumber( ksp_inner, &rhs_iterations);
 
     //bsscr_writeVec( t, "ts", "Writing t vector");
     MatMult(D,t,h_hat);/* G'*t */
@@ -230,6 +240,7 @@ PetscErrorCode BSSCR_DRIVER_flex( KSP ksp, Mat stokes_A, Vec stokes_x, Vec stoke
     /* if h_hat needs to be fixed up ..take out any nullspace vectors here */
     /* we want to check that there is no "noise" in the null-space in the h vector */
     /* this causes problems when we are trying to solve a Jacobian system when the Residual is almost converged */
+
     if(bsscrp_self->check_pressureNS){
         bsscrp_self->buildPNS(ksp);/* build and set nullspace vectors on bsscr - which is on ksp (function pointer is set in KSPSetUp_BSSCR */
     }
@@ -292,6 +303,8 @@ PetscErrorCode BSSCR_DRIVER_flex( KSP ksp, Mat stokes_A, Vec stokes_x, Vec stoke
     if(bsscrp_self->mg)
         PetscPrintf( PETSC_COMM_WORLD, "  Multigrid setup:        = %.4g secs \n", mgSetupTime);
 
+
+    PetscPrintf( PETSC_COMM_WORLD,     "  RHS / Pre Solve:        = %.4g secs / %d its\n", rhsSolveTime, rhs_iterations);
     KSPGetIterationNumber( ksp_S, &iterations);
     PetscPrintf( PETSC_COMM_WORLD,     "  Pressure Solve:         = %.4g secs / %d its\n", scrSolveTime, iterations);
     KSPGetIterationNumber( ksp_inner, &iterations);

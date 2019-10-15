@@ -150,8 +150,9 @@ This class generates a regular cartesian mesh.\\
 \vspace{1mm}
 \textit{Useful methods}:\\
 \begin{addmargin}[1em]{2em}
+\textbf{add\_variable()}: Add a MeshVariable to the mesh.\\
 \textbf{data}: (Property) Access mesh vertex coordinate data.\\
-\textbf{deform\_mesh()}: (Context manager) Allow mesh deformation.\\
+\textbf{deform\_mesh()}: (Context manager) Deform mesh within this manager.\\
 \textbf{reset()}: Reset the mesh to its original configuration.\\
 \textbf{specialSets}: (Dict) Dictionary of special vertex sets associated with the mesh.\\
 \end{addmargin}
@@ -176,7 +177,7 @@ import underworld as uw
 mesh = uw.mesh.FeMesh_Cartesian(elementRes=( 4, 4 ),
                                 minCoord=( 0., 0. ),
                                 maxCoord=( 1., 1. ))
-meshvar = uw.mesh.MeshVariable(mesh, 1)
+meshvar = mesh.add_variable(1)
 meshvar.data[:] = 0.      # initialise data to zero
 with mesh.deform_mesh():  # deform mesh
     mesh.data[0] = (-0.1,-0.1)
@@ -193,12 +194,13 @@ The Swarm class provides a container for particles.\\
 \vspace{1mm}
 \textit{Useful methods}:\\
 \begin{addmargin}[1em]{2em}
-\textbf{particleLocalCount}: (Property) Returns the swarm local particle count.\\
-\textbf{particleGlobalCount}: (Property) Returns the swarm global particle count.\\
-\textbf{populate\_using\_layout()}: Populate the swarm globally using provided layout object.\\
 \textbf{add\_particles\_with\_coordinates()}: Populate the swarm using provided coordinates array.\\
 \textbf{add\_variable()}: Adds a SwarmVariable to the swarm. Returns the SwarmVariable object.\\
-\textbf{particleCoordinates}: (Property) Handle to the swarm's particle coordinates SwarmVariable.\\
+\textbf{data}: (Property) Handle to the swarm's particle coordinates SwarmVariable.\\
+\textbf{deform\_swarm()}: (Context manager) Explicitly move swarm particles within this manager.\\
+\textbf{particleGlobalCount}: (Property) Returns the swarm global particle count.\\
+\textbf{particleLocalCount}: (Property) Returns the swarm local particle count.\\
+\textbf{populate\_using\_layout()}: Populate the swarm globally using provided layout object.\\
 \end{addmargin}
 \end{addmargin}
 \vspace{2mm}
@@ -294,7 +296,7 @@ This class implements a Neumann condition at the specified nodes.
 \begin{lstlisting}
 import underworld as uw
 mesh = uw.mesh.FeMesh_Cartesian()
-temp_var = uw.mesh.MeshVariable( mesh, 1 )
+temp_var = mesh.add_variable( 1 )
 bISet = mesh.specialSets["MinJ_VertexSet"]  # grab bottom set
 tISet = mesh.specialSets["MaxJ_VertexSet"]  # grab top set
 bcs = uw.conditions.DirichletCondition(temp_var,

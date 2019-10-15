@@ -13,7 +13,7 @@ import underworld.swarm as _swarmMod
 import underworld.mesh as _uwmesh
 from underworld.function import Function as _Function
 import libUnderworld as _libUnderworld
-import numpy
+import json as _json
 
 #TODO: Drawing Objects to implement
 # HistoricalSwarmTrajectory
@@ -51,16 +51,13 @@ class ColourMap(_stgermain.StgCompoundComponent):
         if not hasattr(self, "properties"):
             self.properties = {}
 
-        if not isinstance(colours,(str,list)):
-            raise TypeError("'colours' object passed in must be of python type 'str' or 'list'")
-        if isinstance(colours,(list)):
-            self.properties.update({"colours" : ' '.join(colours)})
-        else:
-            self.properties.update({"colours" : colours})
+        if not isinstance(colours,(str,list,tuple)):
+            raise TypeError("'colours' object passed in must be of python type 'str', 'list' or 'tuple'")
+        self.properties.update({"colours" : _json.dumps(colours)})
 
         #User-defined props in kwargs
         self.properties.update(kwargs)
-        dict((k.lower(), v) for k, v in self.properties.iteritems())
+        dict((k.lower(), v) for k, v in self.properties.items())
 
         if valueRange != None:
             # is valueRange correctly defined, ie list of length 2 made of numbers
@@ -108,7 +105,7 @@ class ColourMap(_stgermain.StgCompoundComponent):
 
     def _getProperties(self):
         #Convert properties to string
-        return '\n'.join(['%s=%s' % (k,v) for k,v in self.properties.iteritems()]);
+        return '\n'.join(['%s=%s' % (k,v) for k,v in self.properties.items()]);
 
 class Drawing(_stgermain.StgCompoundComponent):
     """
@@ -165,7 +162,7 @@ class Drawing(_stgermain.StgCompoundComponent):
 
         #User-defined props in kwargs
         self.properties.update(kwargs)
-        dict((k.lower(), v) for k, v in self.properties.iteritems())
+        dict((k.lower(), v) for k, v in self.properties.items())
 
         if not isinstance(colourBar, bool):
             raise TypeError("'colourBar' parameter must be of 'bool' type.")
@@ -205,7 +202,7 @@ class Drawing(_stgermain.StgCompoundComponent):
 
     def _getProperties(self):
         #Convert properties to string
-        return '\n'.join(['%s=%s' % (k,v) for k,v in self.properties.iteritems()]);
+        return '\n'.join(['%s=%s' % (k,v) for k,v in self.properties.items()]);
 
     def render(self, viewer):
         #Place any custom geometry output in this method, called after database creation
@@ -215,8 +212,8 @@ class Drawing(_stgermain.StgCompoundComponent):
         try:
             obj = viewer.objects[self.properties["name"]]
             if not obj: raise KeyError("Object not found")
-        except KeyError,e:
-            print self.properties["name"] + " Object lookup error: " + str(e)
+        except KeyError as e:
+            print(self.properties["name"] + " Object lookup error: " + str(e))
             return
 
         obj["geometry"] = self.geomType
@@ -393,6 +390,11 @@ class CrossSection(Drawing):
                        *args, **kwargs):
 
         self._onMesh = onMesh
+        #Check the mesh has a valid vertGridId, if not then we can't use onMesh
+        #(Invalid should be -1, but is read as unsigned (4294967295) from python for some reason
+        # valid value should be small, so just treat any large integer as invalid)
+        if mesh._mesh.vertGridId > 1000 or mesh._mesh.vertGridId < 0:
+            self._onMesh = False
 
         self._fn = _underworld.function.Function.convert(fn)
         
@@ -467,15 +469,24 @@ class Surface(CrossSection):
     _objectsDict = {  "_dr"  : "lucScalarField" }
 
     def __init__(self, mesh, fn, drawSides="xyzXYZ",
-                       colourBar=True,
+                       colourBar=True, onMesh=None,
                        *args, **kwargs):
+
+        if onMesh is None:
+            #Default onMesh=True for faster drawing and accuracy
+            #(Will be disabled in CrossSection if mesh does not support it)
+            onMesh = True
+            #Default onMesh=False if less than 64 nodes
+            #(Smooth/better output on interpolated mesh for low res meshes)
+            if mesh.nodesGlobal < 64 or "resolution" in kwargs:
+                onMesh = False
 
         if not isinstance(drawSides,str):
             raise ValueError("'drawSides' parameter must be of python type 'str'")
         self._drawSides = drawSides
 
         # build parent
-        super(Surface,self).__init__( mesh=mesh, fn=fn, colourBar=colourBar, *args, **kwargs)
+        super(Surface,self).__init__( mesh=mesh, fn=fn, colourBar=colourBar, onMesh=onMesh, *args, **kwargs )
 
         #Merge with default properties
         is3d = len(self._crossSection) == 0
@@ -651,33 +662,10 @@ class _GridSampler3D(CrossSection):
 
     resolution : list(unsigned)
         Number of samples in the I,J,K directions.
-    resolutionI : unsigned
-        DEPRECATED: Number of samples in the I direction.
-    resolutionJ : unsigned
-        DEPRECATED: Number of samples in the J direction.
-    resolutionK : unsigned
-        DEPRECATED: Number of samples in the K direction.
     """
     _objectsDict = { "_dr": None } #Abstract class, Set by child
 
-    def __init__(self, resolution=[16,16,16], resolutionI=None, resolutionJ=None, resolutionK=None, *args, **kwargs):
-
-        #Convert deprecated parameters
-        if resolutionI:
-            print "Parameter 'resolutionI' is deprecated, please use resolution=[I,J,K]"
-            if not isinstance(resolutionI,int):
-                raise TypeError("'resolutionI' must be of python type 'int'")
-            resolution[0] = resolutionI
-        if resolutionJ:
-            print "Parameter 'resolutionJ' is deprecated, please use resolution=[I,J,K]"
-            if not isinstance(resolutionJ,int):
-                raise TypeError("'resolutionJ' must be of python type 'int'")
-            resolution[1] = resolutionJ
-        if resolutionK:
-            print "Parameter 'resolutionK' is deprecated, please use resolution=[I,J,K]"
-            if not isinstance(resolutionK,int):
-                raise TypeError("'resolutionK' must be of python type 'int'")
-            resolution[2] = resolutionK
+    def __init__(self, resolution=[16,16,16], *args, **kwargs):
 
         self._resolution = resolution
 
@@ -830,6 +818,7 @@ class Sampler(Drawing):
 
     def sample(self, vertices):
         sz = len(vertices)/3*self._cself.fieldComponentCount
+        import numpy
         values = numpy.zeros(sz, dtype='float32')
         _libUnderworld.gLucifer.lucSampler_SampleField( self._cself, vertices, values)
         return values
@@ -900,7 +889,7 @@ class IsoSurface(Volume):
             #Generate isosurface in same object, convert and delete volume, update db
             isobj.isosurface(name=None, convert=True, updatedb=True)
         else:
-            print "Object not found: " + self.properties["name"]
+            print("Object not found: " + self.properties["name"])
 
     def parallel_render(self, viewer, rank):
         #If this method defined, is run by all procs to process
@@ -961,7 +950,7 @@ class Mesh(Drawing):
         self._segmentsPerEdge = segmentsPerEdge
 
         #Default properties
-        self.properties = {"linesmooth" : False, "lit" : False, "font" : "small", "fontscale" : 0.5,
+        self.properties = {"lit" : False, "font" : "small", "fontscale" : 0.5,
                            "pointsize" : 5 if self._nodeNumbers else 1, 
                            "pointtype" : 2 if self._nodeNumbers else 4}
         

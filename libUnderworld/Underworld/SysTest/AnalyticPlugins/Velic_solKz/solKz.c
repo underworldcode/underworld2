@@ -8,7 +8,7 @@
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 #include "solKz.h"
 
-#ifdef MAIN
+#if 0
 int main( int argc, char **argv )
 {
     int i,j;
@@ -53,7 +53,7 @@ void _Velic_solKz(
 {
     double Z;
     double u1,u2,u3,u4,u5,u6,SS;
-    double sum1,sum2,sum3,sum4,sum5,sum6,mag,sum7,x,z;
+    double sum1,sum2,sum3,sum4,sum5,sum6,sum7,x,z;
     double sigma;
     int n;
     double kn;
@@ -506,7 +506,7 @@ void _Velic_solKz(
     SS = exp(UU*z)*(_C1*cos(Rm*z)+_C2*sin(Rm*z)) +exp(-VV*z)*(_C3*cos(Rm*z)+_C4*sin(Rm*z)) + exp(-2*z*B)*(AA*cos(km*z)+BB*sin(km*z));
     SS *= sin(kn*x); /* stream function */
 	
-    mag=sqrt(u1*u1+u2*u2);
+    //mag=sqrt(u1*u1+u2*u2);
     /*printf("%0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f\n",x,z,sum1,sum2,sum3,sum4,sum5,sum6,mag,sum7,SS);*/
 	
 	
@@ -531,9 +531,9 @@ void _Velic_solKz(
 	strain_rate[2] = (sum4)/(2.0*Z);
     }
     /* Value checks, could be cleaned up if needed. Julian Giordani 9-Oct-2006*/
-    if( fabs( sum5 - ( -0.5*(sum6+sum3) ) ) > 1e-5 ) {
-	assert(0);
-    }
+//    if( fabs( sum5 - ( -0.5*(sum6+sum3) ) ) > 1e-5 ) {
+//    assert(0);
+//    }
 }
 
 

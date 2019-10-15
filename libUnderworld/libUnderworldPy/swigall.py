@@ -3,7 +3,7 @@ import sys, subprocess, shutil, os, glob
 
 dir = os.path.join( '..', 'build')
 
-swigcommandbase = 'swig -v -Wextra -python -ignoremissing -O -c++ -DSWIG_DO_NOT_WRAP'
+swigcommandbase = 'swig -v -Wextra -python -py3 -ignoremissing -O -c++ -DSWIG_DO_NOT_WRAP'
 swigheaders  =  ' -I'+os.path.join( dir, 'include')
 swigheaders +=  ' -I'+os.path.join( dir, 'include', 'StGermain')
 swigheaders +=  ' -I'+os.path.join( dir, 'include', 'StgDomain')
@@ -31,10 +31,10 @@ swigfiles = [
              ]
 #
 for swigfile in swigfiles:
-    print ""
-    print "executing command:"
-    print swigcommandbase + swigheaders + ' ' + swigfile
-    print ""
+    print("")
+    print("executing command:")
+    print(swigcommandbase + swigheaders + ' ' + swigfile)
+    print("")
     subp = subprocess.Popen(swigcommandbase + swigheaders + ' ' + swigfile, shell=True )
     if subp.wait() != 0 :
         raise RuntimeError("Error generating swig bindings.")

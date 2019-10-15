@@ -79,12 +79,12 @@
    Bool PeriodicUpdate( double* pos, double* min, double* max, unsigned dim, Bool isPeriodic );
    void InterpLagrange( double x, double* coords, double** values, unsigned numdofs, double* result );
    void IntegrateRungeKutta( FeVariable* velocityField, double dt, double* origin, double* position );
-   void IntegrateRungeKutta_VariableVelocity( FeVariable* velocityField, FeVariable* prevVelField, double dt, double* origin, double* position );
+   void IntegrateRungeKutta_StgVariableVelocity( FeVariable* velocityField, FeVariable* prevVelField, double dt, double* origin, double* position );
 
    /** Does any required solver setup beyond assembly of the matrices to be solved: e.g. priming the Matrix solvers
    etc. */
 
    /** Solve:- calculate the new values for all solution vectors in the system. */
    void SemiLagrangianIntegrator_Solve( void* slIntegrator, FeVariable* variableField, FeVariable* variableFieldPrime );
+   void SemiLagrangianIntegrator_SolveNew( FeVariable* variableField, double dt, FeVariable* velocityField, FeVariable* varStarField  );
 #endif
-

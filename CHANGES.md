@@ -1,6 +1,95 @@
 CHANGES: Underworld2
 =======================
 
+Release 2.8.1b [2019-09-02]
+---------------------------
+Documentation:
+* Fix broken live documentation generator.
+* Fix broken and incomplete docstrings.
+* Update advection-diffusion test, see `./docs/test/2DCosineHillAdvection.ipynb`. 
+* Update README.md to mention pip. 
+
+Release 2.8.0b [2019-07-18]
+---------------------------
+New:
+* MOVE TO PYTHON3. PYTHON2 NO LONGER SUPPORTED.
+* New Examples & tests.
+* New Semi-Lagrangian Crank Nicolson advection diffusion scheme.
+* Collective H5 read/write for faster parallel IO operations. 
+* Arbitrary coordinate `evaluate()` for swarm data using nearest 
+  neighbouring (kdtree) algorithm. See function section of user guide.
+* XDMF for subMesh element types.
+* Async test runner. 
+
+Enhancements:
+* Move all mpi functionality into `uw.mpi` submodule. 
+* Non-parallel h5py is now sufficient for UW, although 
+  parallel h5py is recommended for larger parallel simulations.
+* Integral returns numpy array results (as opposed to Py natives).
+* `GlobalSpaceFillerLayout` deprecated.
+* Other tweaks & bug fixes.
+
+Documentation:
+* Many class docstrings updates.
+* Function user guide section updated. 
+* Improved error messaging in parallel.
+* Stampede2 build & usage instructions. 
+* Update for NCI/Raijin build instructions.
+
+Release 2.7.1b [2019-02-19]
+---------------------------
+Documentation:
+* Dockerfile for TACC/Stampede2
+* New build instructions for NCI/Raijin.
+* Add dev Binder to README.md
+
+Release 2.7.0b [2019-02-06]
+---------------------------
+
+New functionality: 
+* Timing module for high level profiling.
+* Scaling module for numerical value scaling.
+* Index set objects can now directly index numpy arrays.
+* `show_grid()` image rendering.
+
+Changes:
+* glucifer Surface defaults to use onMesh=True.
+* added `data` handle to swarm as shortcut to particle coordinates data.
+* Adding aliases for mesh vertex sets (left,right,etc)
+* Removed `unsupported` subrepo.
+* Docker images switch to MPICH for Shifter compatibility at magnus.
+
+Documentation:
+* Examples reorganised.
+* All examples now include quantitative tests.
+* Moved many examples to models library repo.
+    https://github.com/underworldcode/model_library
+* Added new example, 08_Uplift_TractionBCs.ipynb.
+* Moved benchmarks and tutorials to models library repo.
+* Relocated defunct models:
+    https://github.com/underworldcode/model_graveyard
+* Big overhaul of user guide.
+* User guide rendered to html for Readthedocs page.
+* Updates for docstrings and doctests.
+* Improved error messaging.
+
+Fixes:
+* Fix incorrect particle outside domain issue #335
+* Other stability improvements.
+
+Release 2.6.1b [2018-10-31]
+---------------------------
+* Remove `warning` module visibility from top level underworld 
+  module.
+
+Release 2.6.0b [2018-09-27]
+---------------------------
+Enhancements:
+* Removed submodules in favour of direct access.
+* Petsc-3.9.x compatible.
+* Support for nested SafeMaths operations.
+* Improved function error messaging.
+
 Release 2.5.1b [2018-04-13]
 ---------------------------
 Documentation:

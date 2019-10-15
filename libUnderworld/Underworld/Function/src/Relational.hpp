@@ -47,7 +47,7 @@ namespace Fn {
                         // test evaluation
                         ioguy[ii] = dynamic_cast<const FunctionIO *>(_func[ii](sample_input));
                         if (!ioguy[ii])
-                            throw std::invalid_argument("Operand in relational function does not appear to return a supported type.");
+                            throw std::invalid_argument(_pyfnerrorheader+"Operand in relational function does not appear to return a supported type.");
                     }
                     
                     if( ioguy[0]->size() != ioguy[1]->size() ){
@@ -55,7 +55,7 @@ namespace Fn {
                         ss << "Inputs to relational function should return objects of identical size.\n";
                         ss << "Function one returns object of size " << ioguy[0]->size() << ".\n";
                         ss << "Function two returns object of size " << ioguy[1]->size() << ".\n";
-                        throw std::invalid_argument(ss.str());
+                        throw std::invalid_argument(_pyfnerrorheader+ss.str());
                     }
                    
                     // allocate memory for our output

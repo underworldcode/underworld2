@@ -71,6 +71,9 @@ class IndexSet(object):
             raise ValueError("The 'size' parameter must be positive.")
         self._size = size
         
+        # keep record of this function incase libUnderworld disappears before __del__
+        self._Stg_Class_Delete = libUnderworld.StGermain.Stg_Class_Delete
+        
         # ok, let's do a cheeky, and if the object passed in is a native stg guy,
         # we'll take ownership        
         if isinstance(fromObject,libUnderworld.StGermain.IndexSet):
@@ -82,10 +85,13 @@ class IndexSet(object):
 
             if fromObject is not None:
                 self.add(fromObject)
+        
+        # create handle for corresponding numpy array
+        self._data = None
 
     def __del__(self):
         # delete stg class
-        libUnderworld.StGermain.Stg_Class_Delete(self._cself)
+        self._Stg_Class_Delete(self._cself)
     
     @property
     def size(self):
@@ -128,7 +134,7 @@ class IndexSet(object):
         IndexSet([ 3,  5,  7,  8, 10, 11])
         
         """
-        
+        self._data = None  # clear handle
         self._addremove(indices,True);
         
     def remove(self, indices):
@@ -158,11 +164,13 @@ class IndexSet(object):
         IndexSet([])
 
         """
+        self._data = None  # clear handle
         self._addremove(indices,False);
     
         
     def _addremove(self, indices, isadding):
         # note we use numbers.Integral here which also catches numpy int types
+        self._data = None  # clear handle
         if isinstance(indices, numbers.Integral):
             indices = int(indices)
             if indices >= self.size or indices < 0:
@@ -211,6 +219,7 @@ class IndexSet(object):
 
         """
         self._checkCompatWith(indices)
+        self._data = None  # clear handle
         libUnderworld.StGermain.IndexSet_Merge_AND(self._cself,indices._cself)
     
     
@@ -248,6 +257,7 @@ class IndexSet(object):
         adding: bool
             If True, we are adding to the set. Else we are removing.
         """
+        self._data = None  # clear handle
         if not isinstance(ndarray,np.ndarray):
             raise TypeError("Object must be of 'ndarray' type")
         
@@ -274,6 +284,14 @@ class IndexSet(object):
                     except TypeError:
                         raise TypeError("Incompatible array type ({}) provided. Must be of integer type.".format(ndarray.dtype))
 
+    def __getitem__(self,index):
+        # This method is required so that we can index into numpy
+        # arrays using IndexSet objects directly (ie, without using
+        # `obj.data`). However, while it needs to be defined, it 
+        # isn't usually called, unless the IndexSet object only 
+        # contains a single object 
+        return self.data[index]
+    
     @property
     def data(self):
         """
@@ -294,18 +312,21 @@ class IndexSet(object):
         array([ 3,  9, 10], dtype=uint32)
 
         """
-        # get member count
-        memberCount = libUnderworld.StGermain.IndexSet_UpdateMembersCount(self._cself)
-        # create un-initialised array of required size
-        arr = np.ndarray(memberCount, dtype='uint32')
-        # pass into routine to set values
-        self._cself.GetAsNumpyArray(arr)
-        arr.flags.writeable = False
-        return arr
+        if self._data is None:
+            # get member count
+            memberCount = libUnderworld.StGermain.IndexSet_UpdateMembersCount(self._cself)
+            # create un-initialised array of required size
+            arr = np.ndarray(memberCount, dtype='uint32')
+            # pass into routine to set values
+            self._cself.GetAsNumpyArray(arr)
+            arr.flags.writeable = False
+            self._data = arr
+        return self._data
 
-    @property
-    def count(self):
+    def __len__(self):
         """
+        Overload for Python `len` usage.
+        
         Returns
         -------
         int: member count
@@ -314,12 +335,14 @@ class IndexSet(object):
         Example
         -------
         >>> someSet = uw.container.IndexSet( 15, [3,9,10] )
-        >>> someSet.count
+        >>> len(someSet)
         3
 
         """
         # get member count
         return libUnderworld.StGermain.IndexSet_UpdateMembersCount(self._cself)
+    
+    
     
     def invert(self):
         """
@@ -333,6 +356,7 @@ class IndexSet(object):
         IndexSet([ 0,  2,  4,  6,  8, 10, 12, 14])
 
         """
+        self._data = None  # clear handle
         libUnderworld.StGermain.IndexSet_Invert(self._cself)
     
     def addAll(self):
@@ -348,6 +372,7 @@ class IndexSet(object):
         >>> someSet
         IndexSet([0, 1, 2, 3, 4])
         """
+        self._data = None  # clear handle
         libUnderworld.StGermain.IndexSet_AddAll(self._cself)
 
     def clear(self):
@@ -364,6 +389,7 @@ class IndexSet(object):
         IndexSet([])
 
         """
+        self._data = None  # clear handle
         libUnderworld.StGermain.IndexSet_RemoveAll(self._cself)
 
     def __repr__(self):
@@ -414,6 +440,7 @@ class IndexSet(object):
         IndexSet([ 1,  3,  9, 10, 12])
         
         """
+        self._data = None  # clear handle
         self.add(other)
         return self
 
@@ -460,6 +487,7 @@ class IndexSet(object):
         IndexSet([ 3, 10])
 
         """
+        self._data = None  # clear handle
         self.remove(other)
         return self
 
@@ -507,6 +535,7 @@ class IndexSet(object):
         IndexSet([9])
 
         """
+        self._data = None  # clear handle
         self.AND(other)
         return self
 
@@ -552,6 +581,7 @@ class IndexSet(object):
         IndexSet([ 1,  3,  9, 10, 12])
 
         """
+        self._data = None  # clear handle
         self.add(other)
         return self
 

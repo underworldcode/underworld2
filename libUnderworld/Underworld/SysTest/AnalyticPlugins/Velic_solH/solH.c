@@ -10,16 +10,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
+#include "solH.h"
 
-void _Velic_solH( 
-		double pos[],
-		double _sigma,
-		double _eta, 
-		double _dx, double _dy,
-		double vel[], double* presssure, 
-		double total_stress[], double strain_rate[] );
-
-#ifndef NOSHARED
+#if 0
 int main( int argc, char **argv )
 {
 	int i,j;
@@ -40,7 +33,7 @@ int main( int argc, char **argv )
 					1.0,
 					1.0,
 					0.4,0.6,
-					vel, &pressure, total_stress, strain_rate );
+					vel, &pressure, total_stress, strain_rate, 45 );
 		}
 	}
 	
@@ -51,16 +44,16 @@ int main( int argc, char **argv )
 
 
 void _Velic_solH(
-		double pos[],
+		const double pos[],
 		double _sigma,
 		double _eta,
 		double _dx, double _dy,
 		double vel[], double* presssure, 
-		double total_stress[], double strain_rate[] )
+		double total_stress[], double strain_rate[], int nmodes )
 {
 	
 	double Z,u1,u2,u3,u4,u5,u6;
-	double sum1,sum2,sum3,sum4,sum5,sum6,mag,sum7,sum8,sum9,sum10,sum11,x,y,z;
+	double sum1,sum2,sum3,sum4,sum5,sum6,sum7,sum8,sum9,sum10,sum11,x,y,z;
 	double sigma,dx,dy;
 	double del_rho;
 	int n,m;
@@ -90,8 +83,8 @@ void _Velic_solH(
 	sum10=0.0;
 	sum11=0.0;
 	
-	for(n=0;n<45;n++){
-		for(m=0;m<45;m++){
+	for(n=0;n<nmodes;n++){
+		for(m=0;m<nmodes;m++){
 			
 			if ( n!=0 && m!=0 ){
 				del_rho = 4.0*sigma*sin((double)n*M_PI*dx)*sin((double)m*M_PI*dy)/(double)n/M_PI/(double)m/M_PI;
@@ -167,7 +160,7 @@ void _Velic_solH(
 			
 		}/* n */
 	}/* m */
-	mag=sqrt(sum1*sum1+sum2*sum2+sum3*sum3);
+	//mag=sqrt(sum1*sum1+sum2*sum2+sum3*sum3);
 	
 	//printf("%0.7g %0.7g %0.7g %0.7g %0.7g %0.7g %0.7g %0.7g %0.7g %0.7g %0.7g %0.7g %0.7g %0.7g\n",x,y,sum1,sum2,sum3,sum4,sum5,sum6,sum7,sum8,sum9,sum10,mag,sum11);
 	/************************************************************************************
@@ -222,7 +215,7 @@ void _Velic_solH(
 		strain_rate[5] = (sum5)/(2.0*Z);
 	}
 	/* Value checks, could be cleaned up if needed. Julian Giordani 9-Oct-2006*/
-	assert ( fabs( 3.0 * sum7 + sum8+sum9+sum4 ) <= 1e-5 );	
+	//assert ( fabs( 3.0 * sum7 + sum8+sum9+sum4 ) <= 1e-5 );	
 	
 	
 }

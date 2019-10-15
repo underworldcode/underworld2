@@ -24,7 +24,6 @@
 #include <string.h>
 #include <math.h>
 
-
 /* Textual name of this class */
 const Type SwarmAdvector_Type = "SwarmAdvector";
 
@@ -246,7 +245,7 @@ Bool _SwarmAdvector_TimeDeriv( void* swarmAdvector, Index array_I, double* timeD
   InterpolationResult result;
 
   /* Get Coordinate of Object using Variable */
-  coord = Variable_GetPtrDouble( self->variable, array_I );
+  coord = StgVariable_GetPtrDouble( self->variable, array_I );
 
   // if a non regular mesh and ElementCellLayout use the particle and mesh information to optimise search
   if( !mesh->isRegular &&
@@ -283,6 +282,29 @@ Bool _SwarmAdvector_TimeDeriv( void* swarmAdvector, Index array_I, double* timeD
   if ( result == OTHER_PROC || result == OUTSIDE_GLOBAL || isinf(timeDeriv[0]) || isinf(timeDeriv[1]) ||
      ( swarm->dim == 3 && isinf(timeDeriv[2]) ) )
   {
+    /* construct error message */
+    int rank;
+    MPI_Comm_rank( MPI_COMM_WORLD, &rank );
+
+    char* coordchar;
+    if ( swarm->dim == 2 )
+        Stg_asprintf(&coordchar, "(%f,%f)", coord[0], coord[1] );
+    else
+        Stg_asprintf(&coordchar, "(%f,%f,%f)", coord[0], coord[1], coord[2] );
+
+    char* message;
+    if ( result == OTHER_PROC )
+        Stg_asprintf( &message, "Coordinate appears to belong to another process's domain" );
+    else if ( result == OUTSIDE_GLOBAL )
+        Stg_asprintf( &message, "Coordinate appears to be outside the global domain" );
+    else
+        Stg_asprintf( &message, "Velocity appears infinite" );
+
+    free(self->error_msg);
+    Stg_asprintf(&self->error_msg, "Unable to determine valid velocity for particle of local id %i "
+                                          "with coordinate %s on process rank %i. %s.", array_I, coordchar, rank, message );
+    free(message);
+    free(coordchar);
     return False;
   }
 

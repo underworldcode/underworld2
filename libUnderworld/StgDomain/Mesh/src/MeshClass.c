@@ -65,8 +65,6 @@ Mesh* _Mesh_New(  MESH_DEFARGS  ) {
     self->elgid = NULL;
     self->eGlobalIdsVar = NULL;
 
-	self->vars = List_New();
-	List_SetItemSize( self->vars, sizeof(MeshVariable*) );
 
 	self->minSep = 0.0;
 	self->minAxialSep = NULL;
@@ -207,7 +205,6 @@ void _Mesh_Destroy( void* mesh, void* data ) {
    Mesh_Destruct( self );
    Stg_Component_Destroy( self->algorithms, NULL, False );
    Stg_Class_Delete( self->info );
-   Stg_Class_Delete( self->vars );
    Stg_Class_Delete( self->topoDataSizes );
 
 	for( d_i = 0; d_i < Mesh_GetDimSize( self ); d_i++ ) {
@@ -622,7 +619,7 @@ void Mesh_DeformationUpdate( void* mesh ) {
 	}
 }
 
-Variable* Mesh_GenerateNodeGlobalIdVar( void* mesh ) {
+StgVariable* Mesh_GenerateNodeGlobalIdVar( void* mesh ) {
     /* Returns a Variable that stores the global node indices.
      * Assumes the number of mesh nodes never changes.
      */
@@ -637,7 +634,7 @@ Variable* Mesh_GenerateNodeGlobalIdVar( void* mesh ) {
     self->dVerts = Mesh_GetDomainSize( self, 0 );
     self->verticesgid = Memory_Alloc_Array( int, self->dVerts, "Mesh::vertsgid" );
     Stg_asprintf( &name, "%s-%s", self->name, "verticesGlobalIds" );
-    self->vGlobalIdsVar = Variable_NewScalar( name, NULL, Variable_DataType_Int, &self->dVerts, NULL, (void**)&self->verticesgid, NULL );
+    self->vGlobalIdsVar = StgVariable_NewScalar( name, NULL, StgVariable_DataType_Int, &self->dVerts, NULL, (void**)&self->verticesgid, NULL );
     Stg_Component_Build(self->vGlobalIdsVar, NULL, False);
     Stg_Component_Initialise(self->vGlobalIdsVar, NULL, False);
     free(name);
@@ -646,14 +643,14 @@ Variable* Mesh_GenerateNodeGlobalIdVar( void* mesh ) {
     int ii, gid;
     for( ii=0; ii<self->dVerts; ii++ ) {
         gid = Mesh_DomainToGlobal( self, MT_VERTEX, ii );
-        Variable_SetValue( self->vGlobalIdsVar, ii, (void*)&gid );
+        StgVariable_SetValue( self->vGlobalIdsVar, ii, (void*)&gid );
     }
 
     // return new variable
     return self->vGlobalIdsVar;
 }
 
-Variable* Mesh_GenerateElGlobalIdVar( void* mesh ) {
+StgVariable* Mesh_GenerateElGlobalIdVar( void* mesh ) {
     /* Returns a Variable that stores the global element indices.
      * Assumes the number of mesh elements never changes.
      */
@@ -670,7 +667,7 @@ Variable* Mesh_GenerateElGlobalIdVar( void* mesh ) {
     self->dEls = Mesh_GetDomainSize( self, dim );
     self->elgid = Memory_Alloc_Array( int, self->dEls, "Mesh::vertsgid" );
     Stg_asprintf( &name, "%s-%s", self->name, "verticesGlobalIds" );
-    self->eGlobalIdsVar = Variable_NewScalar( name, NULL, Variable_DataType_Int, &self->dEls, NULL, (void**)&self->elgid, NULL );
+    self->eGlobalIdsVar = StgVariable_NewScalar( name, NULL, StgVariable_DataType_Int, &self->dEls, NULL, (void**)&self->elgid, NULL );
     Stg_Component_Build(self->eGlobalIdsVar, NULL, False);
     Stg_Component_Initialise(self->eGlobalIdsVar, NULL, False);
     free(name);
@@ -679,7 +676,7 @@ Variable* Mesh_GenerateElGlobalIdVar( void* mesh ) {
     int ii, gid;
     for( ii=0; ii<self->dEls; ii++ ) {
         gid = Mesh_DomainToGlobal( self, dim, ii );
-        Variable_SetValue( self->eGlobalIdsVar, ii, (void*)&gid );
+        StgVariable_SetValue( self->eGlobalIdsVar, ii, (void*)&gid );
     }
 
     // return new variable
@@ -687,7 +684,7 @@ Variable* Mesh_GenerateElGlobalIdVar( void* mesh ) {
 }
 
 
-Variable* Mesh_GenerateENMapVar( void* mesh ) {
+StgVariable* Mesh_GenerateENMapVar( void* mesh ) {
     /* Returns a Variable that stores the mapping of 
      * [local element] [global node indices]
      * Assumes the mapping never changes.
@@ -725,7 +722,7 @@ Variable* Mesh_GenerateENMapVar( void* mesh ) {
      * needs to know how to parse it. */ 
     self->e_n = Memory_Alloc_Array( int, self->localtotalNodes, "Mesh::nodeConn" );
     Stg_asprintf( &name, "%s-%s", self->name, "nodeConn" );
-    self->enMapVar = Variable_NewScalar( name, NULL, Variable_DataType_Int, &self->localtotalNodes, NULL, (void**)&self->e_n, NULL );
+    self->enMapVar = StgVariable_NewScalar( name, NULL, StgVariable_DataType_Int, &self->localtotalNodes, NULL, (void**)&self->e_n, NULL );
     Stg_Component_Build(self->enMapVar, NULL, False);
     Stg_Component_Initialise(self->enMapVar, NULL, False);
     free(numberNodesPerEl);
@@ -739,7 +736,7 @@ Variable* Mesh_GenerateENMapVar( void* mesh ) {
         nbr = IArray_GetPtr( inc );
         for( n_i=0; n_i< nNbr; n_i++ ) {
             buffy_tvs = Mesh_DomainToGlobal( self, MT_VERTEX, nbr[n_i] );
-            Variable_SetValue( self->enMapVar, localtotal, (void*)&buffy_tvs );
+            StgVariable_SetValue( self->enMapVar, localtotal, (void*)&buffy_tvs );
             localtotal++;
         }
     }
@@ -762,7 +759,7 @@ void Mesh_GenerateVertices( void* mesh, unsigned nVerts, unsigned nDims ){
     /* Create name for normal variable */
     Stg_asprintf( &name, "%s-%s", self->name, "vertices" );
     self->nverts = nVerts;
-    self->verticesVariable = Variable_NewVector( name, NULL, Variable_DataType_Double, nDims, &self->nverts, NULL, (void**)&self->vertices, NULL, "vert_i", "vert_j", "vert_j" );
+    self->verticesVariable = StgVariable_NewVector( name, NULL, StgVariable_DataType_Double, nDims, &self->nverts, NULL, (void**)&self->vertices, NULL, "vert_i", "vert_j", "vert_j" );
     Stg_Component_Build(self->verticesVariable, NULL, False);
     Stg_Component_Initialise(self->verticesVariable, NULL, False);
     free(name);
@@ -826,13 +823,4 @@ void Mesh_Destruct( Mesh* self ) {
 	self->generator = NULL;
 	self->emReg = NULL;
 
-	/*
-	for( v_i = 0; v_i < List_GetSize( self->vars ); v_i++ ) {
-		MeshVariable*	var;
-
-		var = *(MeshVariable**)List_GetItem( self->vars, v_i );
-		MeshVariable_SetMesh( var, NULL );
-	}
-	List_Clear( self->vars );
-	*/
 }

@@ -14,7 +14,7 @@ colours['end']    = '\033[0m'
 
 # If the output is not a terminal, remove the colours.
 if not sys.stdout.isatty():
-   for key, value in colours.iteritems():
+   for key, value in colours.items():
       colours[key] = ''
 
 compile_source_message = '%sCompiling %s==> %s$SOURCE%s' % \
@@ -65,10 +65,10 @@ env.Decider("MD5-timestamp")
 # Load configuration.
 values = {}
 if(not os.path.isfile('config.cfg')):
-   print 'Error: \'config.cfg\' file not found.  The configuration script (configure.py) must be run successfully before you can build (via scons.py).'
+   print('Error: \'config.cfg\' file not found.  The configuration script (configure.py) must be run successfully before you can build (via scons.py).')
    sys.exit()
 
-execfile("config.cfg", globals(), values)
+exec(open("config.cfg").read(), globals(), values)
 env._dict.update(values)
 
 # Set LIBPATH and RPATH for libraries
@@ -129,19 +129,26 @@ dir = Dir(env['build_dir']).abspath
 if not os.path.exists(dir):
    os.makedirs(dir)
 
-env.Install(env['build_dir'], 'config.log')
-env.Install(env['build_dir'], 'config.cfg')
-env.Install(os.path.join(env['build_dir'],'share/StGermain/scripts'), Glob('script/*.py*'))
-if env['prefix'] != env.GetLaunchDir():
-   env.Install(env['prefix'], 'config.log')
-   env.Install(env['prefix'], 'config.cfg')
-   env.Install(os.path.join(env['prefix'],'share/StGermain/scripts'), Glob('script/*.py*'))
+env.Install('share/underworld', 'config.log')
+env.Install('share/underworld', 'config.cfg')
 
-if env['with_graphics']:
-   if not os.path.exists(dir+'/gLucifer/Viewer'):
-      os.makedirs(dir+'/gLucifer/Viewer')
-   Execute(Copy(File(env['build_dir']+'/gLucifer/Viewer/graphics.cfg'), File('graphics.cfg')))
-
+import os
+# install python API files
+from itertools import chain
+for root, dirs, files in chain(os.walk("../underworld"),os.walk("../glucifer")):
+    path = root.split(os.sep)
+    basepath = os.sep.join(path[1:])
+    for file in files:
+        if file.endswith(".py"):
+            env.Install(os.path.join(env["prefix"],'lib',basepath), os.path.join(root, file))
+# install python bindings C-API files
+for root, dirs, files in os.walk("./libUnderworldPy"):
+    path = root.split(os.sep)
+    basepath = os.sep.join(path[1:])
+    for file in files:
+        if file.endswith(".py"):
+            env.Install(os.path.join(env["prefix"],'lib','libUnderworld','libUnderworldPy'), os.path.join(root, file))
+env.Install(os.path.join(env["prefix"],'lib','libUnderworld'), '__init__.py')
 Export('env')
 
 SConscript('StGermain/SConscript',
@@ -170,53 +177,18 @@ SConscript('Underworld/SConscript',
            duplicate=0)
 env.Prepend(LIBS=['Underworld'])
 
-if env['with_glucifer']:
-    SConscript('gLucifer/SConscript',
-               variant_dir=env['build_dir'] + '/gLucifer',
-               duplicate=0)
-    env.Prepend(LIBS=['gLucifer'])
+SConscript('gLucifer/SConscript',
+       variant_dir=env['build_dir'] + '/gLucifer',
+       duplicate=0)
+env.Prepend(LIBS=['gLucifer'])
 
-if env['with_graphics']:
-    SConscript('gLucifer/Viewer/SConscript',
-               variant_dir=env['build_dir'] + '/gLucifer/Viewer',
-               duplicate=0)
-
-if env['with_geothermal']:
-    SConscript('Geothermal/SConscript',
-               variant_dir=env['build_dir'] + '/Geothermal',
-               duplicate=0)
-    env.Prepend(LIBS=['Geothermal'])
-
-if env['with_importers']:
-    SConscript('ImportersToolbox/SConscript',
-               variant_dir=env['build_dir'] + '/ImportersToolbox',
-               duplicate=0)
-    env.Prepend(LIBS=['ImportersToolbox'])
-
-if env['with_solvers']:
-    SConscript('Solvers/SConscript',
-               variant_dir=env['build_dir'] + '/Solvers',
-               duplicate=0)
-    env.Prepend(LIBS=['Solvers'])
-
-if env['with_spherical']:
-    SConscript('Spherical/SConscript',
-               variant_dir=env['build_dir'] + '/Spherical',
-               duplicate=0)
-    env.Prepend(LIBS=['Spherical'])
-
-if env['with_viscoelastic']:
-    SConscript('Viscoelastic/SConscript',
-               variant_dir=env['build_dir'] + '/Viscoelastic',
-               duplicate=0)
-    env.Prepend(LIBS=['Viscoelastic'])
+SConscript('Solvers/SConscript',
+       variant_dir=env['build_dir'] + '/Solvers',
+       duplicate=0)
+env.Prepend(LIBS=['Solvers'])
 
 # lets finally build the wrappers
 SConscript('libUnderworldPy/SConscript',
            variant_dir=env['build_dir'] + '/libUnderworldPy',
            duplicate=0)
 env.Prepend(LIBS=['libUnderworldPy'])
-
-
-
-

@@ -72,9 +72,9 @@ void _lucDrawingObject_Init(
    self->opacity = opacity;        /* Transparency override, -1 to disable */
 
    /* Write property string */
-   self->properties = Memory_Alloc_Array(char, 4096, "properties");
-   memset(self->properties, 0, 4086);
-   strncpy(self->properties, properties, 4096);
+   self->properties = Memory_Alloc_Array(char, MAX_PROPERTY_LEN, "properties");
+   memset(self->properties, 0, MAX_PROPERTY_LEN);
+   strncpy(self->properties, properties, MAX_PROPERTY_LEN);
 
    self->id = 0;
 }
@@ -249,7 +249,7 @@ void lucDrawingObject_SyncShadowValues( void* drawingObject, void* field )
 void lucDrawingObject_SetProperties(void* drawingObject, char *props)
 {
    lucDrawingObject* self = (lucDrawingObject*)drawingObject ;
-   strncpy(self->properties, props, 4096);
+   strncpy(self->properties, props, MAX_PROPERTY_LEN);
 }
 
 

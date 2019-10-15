@@ -17,13 +17,13 @@ discrete data (such as meshvariables) may be utilised.
 
 """
 
-from _function import Function, FunctionInput, input, coord
+from ._function import Function, FunctionInput, input, coord
 from . import math
-import analytic
-import misc
-import tensor
-import exception
-import view
-import shape
-import branching
-import rheology
+from . import analytic
+from . import misc
+from . import tensor
+from . import exception
+from . import view
+from . import shape
+from . import branching
+from . import rheology

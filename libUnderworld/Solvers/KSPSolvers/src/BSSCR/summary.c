@@ -23,9 +23,14 @@
 
 #define KSPBSSCR         "bsscr"
 
+
 void bsscr_summary(KSP_BSSCR * bsscrp_self, KSP ksp_S, KSP ksp_inner,
 		   Mat K,Mat K2,Mat D,Mat G,Mat C,Vec u,Vec p,Vec f,Vec h,Vec t,
-		   double penaltyNumber,PetscTruth KisJustK,double mgSetupTime,double scrSolveTime,double a11SingleSolveTime){
+		   double penaltyNumber,PetscTruth KisJustK,
+			 double mgSetupTime,
+			 double RHSSolveTime,
+			 double scrSolveTime,
+			 double a11SingleSolveTime){
     PetscTruth flg, found;
     PetscInt   uSize, pSize, lmax, lmin, iterations;
     PetscReal  rNorm, fNorm, uNorm, uNormInf, pNorm, pNormInf, p_sum, min, max;
@@ -34,19 +39,24 @@ void bsscr_summary(KSP_BSSCR * bsscrp_self, KSP ksp_S, KSP ksp_inner,
 
       PetscPrintf( PETSC_COMM_WORLD,  "\n\nSCR Solver Summary:\n\n");
       if(bsscrp_self->mg)
-	    PetscPrintf( PETSC_COMM_WORLD, "  Multigrid setup:        = %.4g secs \n", mgSetupTime);
+	    PetscPrintf( PETSC_COMM_WORLD,     "  Multigrid setup:        = %.4g secs \n", mgSetupTime);
+
+			iterations = bsscrp_self->solver->stats.velocity_presolve_its;
+      PetscPrintf( PETSC_COMM_WORLD,     "  RHS V Solve:            = %.4g secs / %d its\n", RHSSolveTime, iterations);
 
       KSPGetIterationNumber( ksp_S, &iterations);
       bsscrp_self->solver->stats.pressure_its = iterations;
+
       PetscPrintf( PETSC_COMM_WORLD,     "  Pressure Solve:         = %.4g secs / %d its\n", scrSolveTime, iterations);
       KSPGetIterationNumber( ksp_inner, &iterations);
+
       bsscrp_self->solver->stats.velocity_backsolve_its = iterations;
       PetscPrintf( PETSC_COMM_WORLD,     "  Final V Solve:          = %.4g secs / %d its\n\n", a11SingleSolveTime, iterations);
 
       /***************************************************************************************************************/
 
       flg = PETSC_FALSE; /* Off by default */
-	  PetscOptionsGetTruth( PETSC_NULL, "-scr_ksp_solution_summary", &flg, &found );
+	    PetscOptionsGetTruth( PETSC_NULL, "-scr_ksp_solution_summary", &flg, &found );
 
       if(flg) {
 	    PetscScalar KuNorm;

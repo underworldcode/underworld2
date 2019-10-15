@@ -27,11 +27,12 @@
 		TimeIntegrand_IntermediateFunction*       _intermediate;  \
 		/* Other info */ \
 		TimeIntegrator*                            timeIntegrator;       \
-		Variable*                                  variable;             \
+		StgVariable*                                  variable;             \
 		Index                                      dataCount;            \
 		Stg_Component**                            data;                 \
 		Bool                                       allowFallbackToFirstOrder; \
 		Stream*                                    debug;                \
+		char*                                      error_msg;
 		
 	struct TimeIntegrand { __TimeIntegrand };
 	
@@ -40,7 +41,7 @@
 		Name                                   name,
 		DomainContext*                         context,
 		TimeIntegrator*                        timeIntegrator, 
-		Variable*                              variable, 
+		StgVariable*                              variable, 
 		Index                                  dataCount, 
 		Stg_Component**                        data,
 		Bool                                   allowFallbackToFirstOrder );
@@ -66,7 +67,7 @@ void _TimeIntegrand_Init(
 		void*                                      timeIntegrand,
 		DomainContext*                             context,
 		TimeIntegrator*                            timeIntegrator, 
-		Variable*                                  variable, 
+		StgVariable*                                  variable, 
 		Index                                      dataCount, 
 		Stg_Component**                            data,
 		Bool                                       allowFallbackToFirstOrder );
@@ -107,13 +108,13 @@ void _TimeIntegrand_Init(
 		Index           array_I );
 
 	/* +++ Public Functions +++ */
-	void TimeIntegrand_FirstOrder( void* timeIntegrator, Variable* startValue, double dt );
-	void TimeIntegrand_SecondOrder( void* timeIntegrator, Variable* startValue, double dt );
-	void TimeIntegrand_FourthOrder( void* timeIntegrator, Variable* startValue, double dt );
+	void TimeIntegrand_FirstOrder( void* timeIntegrator, StgVariable* startValue, double dt );
+	void TimeIntegrand_SecondOrder( void* timeIntegrator, StgVariable* startValue, double dt );
+	void TimeIntegrand_FourthOrder( void* timeIntegrator, StgVariable* startValue, double dt );
 
-	void TimeIntegrand_StoreTimeDeriv( void* timeIntegrand, Variable* timeDeriv ) ;
-	void TimeIntegrand_Add2TimesTimeDeriv( void* timeIntegrand, Variable* timeDerivVariable ) ;
-	void TimeIntegrand_FourthOrderFinalStep( void* timeIntegrand, Variable* startData, Variable* timeDerivVariable, double dt ) ;
+	void TimeIntegrand_StoreTimeDeriv( void* timeIntegrand, StgVariable* timeDeriv ) ;
+	void TimeIntegrand_Add2TimesTimeDeriv( void* timeIntegrand, StgVariable* timeDerivVariable ) ;
+	void TimeIntegrand_FourthOrderFinalStep( void* timeIntegrand, StgVariable* startData, StgVariable* timeDerivVariable, double dt ) ;
 
 	#define TimeIntegrand_GetTime( timeIntegrand ) \
 		TimeIntegrator_GetTime( ((TimeIntegrand*) timeIntegrand)->timeIntegrator ) 

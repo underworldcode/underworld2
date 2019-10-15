@@ -24,9 +24,9 @@ void Fn::Binary::initGetFunction( IOsptr sample_input, const IO_double* doubleio
         // test evaluation
         doubleio[ii] = dynamic_cast<const IO_double*>(_func[ii](sample_input));
         if (!doubleio[ii])
-            throw std::invalid_argument("Operand in binary function does not appear to return a 'double' type value, as required. "
-                                        "Note that where the operand Function you have constructed uses Python numeric objects, those objects "
-                                        "must be of 'float' type (so for example '2.' instead of '2').");
+            throw std::invalid_argument(_pyfnerrorheader+"Operand in binary function does not appear to return a 'double' type value, as required. "
+                                                         "Note that where the operand Function you have constructed uses Python numeric objects, those objects "
+                                                         "must be of 'float' type (so for example '2.' instead of '2').");
     }
 }
 
@@ -37,7 +37,7 @@ Fn::Add::func Fn::Add::getFunction( IOsptr sample_input )
     initGetFunction( sample_input, doubleio, _func );
     
     if (doubleio[0]->size() != doubleio[1]->size())
-        throw std::invalid_argument("Added functions must return identical sized objects.");
+        throw std::invalid_argument(_pyfnerrorheader+"Added functions must return identical sized objects.");
 
     // allocate memory for our output
     auto _output_sp = std::make_shared<IO_double>(doubleio[0]->size(), doubleio[0]->iotype());
@@ -65,7 +65,7 @@ Fn::Subtract::func Fn::Subtract::getFunction( IOsptr sample_input )
     initGetFunction( sample_input, doubleio, _func );
     
     if (doubleio[0]->size() != doubleio[1]->size())
-        throw std::invalid_argument("Subtracted functions must return identical sized objects.");
+        throw std::invalid_argument(_pyfnerrorheader+"Subtracted functions must return identical sized objects.");
 
     // allocate memory for our output
     auto _output_sp = std::make_shared<IO_double>(doubleio[0]->size(), doubleio[0]->iotype());
@@ -96,8 +96,8 @@ Fn::Multiply::func  Fn::Multiply::getFunction( IOsptr sample_input )
     bool _identicalSize = ( _minGuy == _maxGuy );
     
     if ( !_identicalSize && (doubleio[_minGuy]->size()!=1) )
-        throw std::invalid_argument("Function multiplication is only possible between functions of identical " \
-                                    "size (pointwise) or where one function is scalar.");
+        throw std::invalid_argument(_pyfnerrorheader+"Function multiplication is only possible between functions of identical " \
+                                                     "size (for pointwise operation) or where one function is scalar.");
     // allocate memory for our output
     auto _output_sp = std::make_shared<IO_double>(doubleio[_maxGuy]->size(), doubleio[_maxGuy]->iotype());
     auto _output    = _output_sp.get();
@@ -144,8 +144,8 @@ Fn::Divide::func  Fn::Divide::getFunction( IOsptr sample_input )
     bool _identicalSize = _minGuy == _maxGuy;
     
     if ( !_identicalSize && (doubleio[1]->size()!=1) )
-        throw std::invalid_argument("Function division is only possible between functions of identical " \
-                                    "size (pointwise) or where denominator function returns scalars.");
+        throw std::invalid_argument(_pyfnerrorheader+"Function division is only possible between functions of identical " \
+                                                     "size (for pointwise operation) or where the denominator function returns scalars.");
     // allocate memory for our output
     auto _output_sp = std::make_shared<IO_double>(doubleio[_maxGuy]->size(), doubleio[_maxGuy]->iotype());
     auto _output    = _output_sp.get();
@@ -219,7 +219,7 @@ Fn::Pow::func Fn::Pow::getFunction( IOsptr sample_input )
     initGetFunction( sample_input, doubleio, _func );
     
     if (doubleio[1]->size() != 1 )
-        throw std::invalid_argument("Power function exponent must be a scalar.");
+        throw std::invalid_argument(_pyfnerrorheader+"Power function exponent must be a scalar.");
 
     // allocate memory for our output
     auto _output_sp = std::make_shared<IO_double>(doubleio[0]->size(), doubleio[0]->iotype());
@@ -248,7 +248,7 @@ Fn::Min::func Fn::Min::getFunction( IOsptr sample_input )
     initGetFunction( sample_input, doubleio, _func );
     
     if ( (doubleio[0]->size()!=1) || (doubleio[1]->size()!=1) )
-        throw std::invalid_argument("Min function requires scalar inputs.");
+        throw std::invalid_argument(_pyfnerrorheader+"Min function requires scalar inputs.");
 
     // allocate memory for our output
     auto _output_sp = std::make_shared<IO_double>(doubleio[0]->size(), doubleio[0]->iotype());
@@ -273,7 +273,7 @@ Fn::Max::func Fn::Max::getFunction( IOsptr sample_input )
     initGetFunction( sample_input, doubleio, _func );
     
     if ( (doubleio[0]->size()!=1) || (doubleio[1]->size()!=1) )
-        throw std::invalid_argument("Max function requires scalar inputs.");
+        throw std::invalid_argument(_pyfnerrorheader+"Max function requires scalar inputs.");
 
     // allocate memory for our output
     auto _output_sp = std::make_shared<IO_double>(doubleio[0]->size(), doubleio[0]->iotype());

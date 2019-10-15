@@ -26,7 +26,6 @@ wrapperDict = {}
 
 wrapperDict['StGermain_Tools'] = ['StGermain_Tools.c', 'StGermain_Tools_wrap.cxx']
 wrapperDict['gLucifer'] = ['gLucifer_wrap.cxx']
-# wrapperDict['ImportersToolbox'] = ['ImportersToolbox_wrap.cxx']
 wrapperDict['petsc'] = ['petsc_wrap.cxx']
 wrapperDict['c_arrays'] = ['c_arrays_wrap.cxx']
 wrapperDict['c_pointers'] = ['c_pointers_wrap.cxx']
@@ -44,7 +43,10 @@ objs = []
 # Process each directory uniformly.
 #
 
-for key,value in wrapperDict.iteritems():
+# drop the shlibprefix for these as there's a particular name expected by the py modules,
+# for example _StGermain.so
+env['SHLIBPREFIX'] = '_'
+for key,value in wrapperDict.items():
     # Build our source files.
     objs = []
     for file in value:
@@ -55,38 +57,17 @@ for key,value in wrapperDict.iteritems():
     # Build shared library.
     #
     if env['shared_libs']:
-        env.SharedLibrary('lib/'+key+'_swig', objs)
+        env.SharedLibrary('lib/'+key, objs)
 
-#Build LavaVu interface without other libs
-if env.get('with_graphics', None):
-    env = env.Clone()
-    env["LIBS"] = ['LavaVu']
-    objs = []
-    srcs = Glob('../gLucifer/Viewer/src/LavaVuPython_wrap.cxx')
-    objs += env.SharedObject(srcs, CPPDEFINES=env.get('CPPDEFINES', []))
-    # Build shared library.
-    if env['shared_libs']:
-        swiglib = env.SharedLibrary('lib/LavaVuPython_swig', objs)
-        env.InstallAs(env['build_dir'] + '/lavavu/_LavaVuPython.so', swiglib)
-
-    # add the lavavu guy here
-    wrapperDict['LavaVuPython'] = ['LavaVuPython_wrap.cxx']
-
-else:
-    path = Dir('.').srcnode().abspath
-    lvpy = os.path.join(path, 'LavaVuPython.py')
-    if os.path.exists(lvpy):
-        os.remove(lvpy)
-    lvwrap = os.path.join(path, 'LavaVuPython_wrap.cxx')
-    if os.path.exists(lvwrap):
-        os.remove(lvwrap)
-
-# if on osx, create symlink for python modules
+# add symlinks for osx.. 
 import os
 if env['SHLIBSUFFIX'] == '.dylib':
     def SymLink(target, source, env):
         os.symlink(os.path.abspath(str(source[0])), os.path.abspath(str(target[0])))
-    for key,value in wrapperDict.iteritems():
-        destLink = os.path.join('..', env["build_dir"],'lib', 'lib'+key+'_swig.so')
-        sourceFile = os.path.join('..', env["build_dir"],'lib', 'lib'+key+'_swig.dylib')
+    for key,value in wrapperDict.items():
+        destLink   = os.path.join(env["build_dir"],'lib', '_'+key+'.so')
+        sourceFile = os.path.join(env["build_dir"],'lib', '_'+key+'.dylib')
+        env.Command(destLink, sourceFile, SymLink)
+        destLink   = os.path.join(env["prefix"],'lib', '_'+key+'.so')
+        sourceFile = os.path.join(env["prefix"],'lib', '_'+key+'.dylib')
         env.Command(destLink, sourceFile, SymLink)

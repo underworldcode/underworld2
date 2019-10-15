@@ -12,43 +12,42 @@ import underworld as uw
 import errno
 import underworld._stgermain as _stgermain
 import os
-import urllib2
+import urllib
 import time
 import json
 from base64 import b64encode
 import libUnderworld
 import subprocess
 from subprocess import Popen, PIPE, STDOUT
-from . import objects
+import glucifer.objects as objects
 import libUnderworld as _libUnderworld
 import sys
 import os
 from mpi4py import MPI
 
+#Ignore SIGPIPE, required to prevent abort by petsc signal handler
+from signal import signal, SIGPIPE, SIG_IGN
+signal(SIGPIPE, SIG_IGN)
+
 #Attempt to import lavavu module
-if 'lavavu' in sys.modules:
+try:
     import lavavu
-    # ok, we have 'lavavu', but let's check if it's actually a Mocked lavavu (as we use for the sphinx dox gen)
-    if not hasattr(lavavu, "only_a_mocked_lavavu_would_act_like_it_has_this_attribute"):
-        #Already imported, some paths issue causes double import to load separate instances
-        raise RuntimeError("LavaVu module exists, must not be imported before glucifer")
-        #lavavu = sys.modules['lavavu']
-else:
-    try:
-        import lavavu
-        #Import into main too so can be accessed there
-        #(necessary for interactive viewer/controls)
-        import __main__
-        __main__.lavavu = lavavu
-    except Exception as e:
-        print e,"LavaVu module not found! disabling inline visualisation"
+    #Import into main too so can be accessed there
+    #(necessary for interactive viewer/controls)
+    import __main__
+    __main__.lavavu = lavavu
+except Exception as e:
+    print(e,": module not found! disabling inline visualisation")
+    import lavavu_null as lavavu
 
 # lets create somewhere to dump data for this session
 try:
     tmpdir = os.environ['TMPDIR']
 except:
     tmpdir = "/tmp"
+
 os.path.join(tmpdir,"glucifer")
+
 try:
     os.makedirs(tmpdir)
 except OSError as exception:
@@ -67,12 +66,14 @@ class Store(_stgermain.StgCompoundComponent):
     Parameters
     ----------
     filename: str
-        Filename to use for a disk database, default is in memory only unless saved.
+        Filename to use for a disk database, default is to create a temporary database filename.
     split: bool
         Set to true to write a separate database file for each timestep visualised
     view: bool
         Set to true and pass filename if loading a saved database for revisualisation
-            
+    compress: bool
+        Set to true to enable database compression.
+
     Example
     -------
         
@@ -95,6 +96,12 @@ class Store(_stgermain.StgCompoundComponent):
     just call save() without a filename
     
     >>> fig.save()
+
+    To create a timeseries of each figure you must increment the stores's internal
+    'timestep' manually before calling the next save()/show().
+
+    >>> store.step += 1
+    >>> fig.save()
     
     Save the database (only necessary if no filename provided when created)
     
@@ -105,17 +112,19 @@ class Store(_stgermain.StgCompoundComponent):
     _selfObjectName = "_db"
     viewer = None
 
-    def __init__(self, filename=None, split=False, **kwargs):
+    def __init__(self, filename=None, split=False, compress=True, **kwargs):
 
         self.step = 0
-        if filename and not filename.lower().endswith('.gldb') and not filename.lower().endswith('.db'):
+        if filename is None:
+            filename = os.path.join(tmpdir,"tmpDB_"+self._db.name+".gldb")
+        elif filename and not filename.lower().endswith('.gldb') and not filename.lower().endswith('.db'):
             filename += ".gldb"
         self.filename = filename
         self._objects = []
         #Don't split on timestep unless filename provided
         if not self.filename: split = False
         self._split = split
-
+        self.compress = compress
         super(Store,self).__init__(**kwargs)
 
     def _add_to_stg_dict(self,componentDictionary):
@@ -136,19 +145,9 @@ class Store(_stgermain.StgCompoundComponent):
         componentDictionary[self._db.name].update( {
                             "filename"          :filename,
                             "splitTransactions" :True,
-                            "singleFile"        :not self._split
+                            "singleFile"        :not self._split,
+                            "compressed"        :self.compress,
         } )
-
-    def _setup(self):
-        # Detect if viewer was built by finding executable...
-        # (even though no longer needed as using libLavaVu 
-        #  will keep this for now as is useful to know if the executable was built
-        #  and to pass it as first command line arg or if needed to get html path)
-        self._lvpath = self._db.bin_path
-        self._lvbin = os.path.join(self._db.bin_path, "LavaVu")
-        if not os.path.isfile(self._lvbin):
-            print("LavaVu rendering engine does not appear to exist. Perhaps it was not compiled.\n"
-                  "Please check your configuration, or contact developers.")
 
     def save(self,filename):
         """  
@@ -159,12 +158,13 @@ class Store(_stgermain.StgCompoundComponent):
         filename :str
             Filename to save file to.  May include an absolute or relative path.
         """
-        if uw.rank() == 0:
+        if uw.mpi.rank == 0:
             if not isinstance(filename, str):
                 raise TypeError("Provided parameter 'filename' must be of type 'str'. ")
             if not filename.lower().endswith('.gldb') and not filename.lower().endswith('.db'):
                 filename += '.gldb'
-            libUnderworld.gLucifer.lucDatabase_BackupDbFile(self._db, filename)
+            if filename != self.filename:
+                libUnderworld.gLucifer.lucDatabase_BackupDbFile(self._db, filename)
             return filename
 
     def lvget(self, db=None, *args, **kwargs):
@@ -174,14 +174,14 @@ class Store(_stgermain.StgCompoundComponent):
         else:
             if not db:
                 db = self._db.path
-            self.viewer.setup(cache=False, database=db, timestep=self.step, *args, **kwargs)
+            self.viewer.setup(cache=False, clearstep=True, database=db, timestep=self.step, *args, **kwargs)
 
         return self.viewer
 
     def lvrun(self, db=None, *args, **kwargs):
         if not db:
             db = self._db.path
-        return lavavu.Viewer(cache=False, binpath=self._lvpath, database=db, timestep=self.step, *args, **kwargs)
+        return lavavu.Viewer(cache=False, clearstep=True, database=db, timestep=self.step, *args, **kwargs)
 
     def _generate(self, figname, objects, props):
         #First merge object list with active
@@ -237,7 +237,7 @@ class Store(_stgermain.StgCompoundComponent):
         libUnderworld.gLucifer.lucDatabase_WriteState(self._db, figname, self._get_state(self._objects, props))
 
         #Output any custom geometry on objects
-        if lavavu and uw.rank() == 0 and any(x.geomType is not None for x in self._objects):
+        if lavavu and uw.mpi.rank == 0 and any(x.geomType is not None for x in self._objects):
             lv = self.lvget() #Open the viewer
             for obj in self._objects:
                 #Create/Transform geometry by object
@@ -247,42 +247,32 @@ class Store(_stgermain.StgCompoundComponent):
         if lavavu and any(hasattr(x, "parallel_render") for x in self._objects):
             #In case no external file has been written we need to create a temporary
             #database on root so the other procs can load it
-            tmpdb = None
-            if not self.filename:
-                tmpdb = os.path.join(tmpdir,"tmpDB_"+figname+".gldb")
-                if uw.rank() == 0:
-                    libUnderworld.gLucifer.lucDatabase_BackupDbFile(self._db, tmpdb)
-                else:
-                    self.filename = tmpdb
             #Wait for temporary db to be written if not already using an external store
-            uw.barrier()
-            #print uw.rank(),self.filename
+            comm = MPI.COMM_WORLD
+            rank = uw.mpi.rank
+            self.filename = comm.bcast(self.filename, root=0)
+            #print uw.mpi.rank,self.filename
             #Open the viewer with db filename
             lv = self.lvget(self.filename)
             #Loop through objects and run their parallel_render method if present
             for obj in self._objects:
                 if hasattr(obj, "parallel_render"):
-                    obj.parallel_render(lv, uw.rank())
+                    obj.parallel_render(lv, uw.mpi.rank)
             #Delete the viewer instance on non-root procs
-            uw.barrier()
-            if uw.rank() > 0:
+            uw.mpi.barrier()
+            if uw.mpi.rank > 0:
                 lv = None
                 self.viewer = None
-            elif tmpdb is not None:
-                #Remove tmp db
-                os.remove(tmpdb)
 
 #        if not lavavu.is_ipython():
 #            endtime = MPI.Wtime()
-#            print "Visualisation export took %10.2fs on proc %d" % (endtime-starttime, uw.rank())
+#            print("Visualisation export took %10.2fs on proc %d" % (endtime-starttime, uw.mpi.rank))
 
     def _get_state(self, objects, props):
         #Get current state as string for export
         export = dict()
         #Global properties passed from figure
         export["properties"] = props
-        #View properties passed from figure
-        export["views"] = [props] #[viewprops]
         #Objects passed from figure
         objlist = []
         for obj in objects:
@@ -295,7 +285,7 @@ class Store(_stgermain.StgCompoundComponent):
 
     def _read_state(self):
         #Read state from database (DEPRECATED)
-        if uw.rank() > 0:
+        if uw.mpi.rank > 0:
             return
         if not self._db.db:
             libUnderworld.gLucifer.lucDatabase_OpenDatabase(self._db)
@@ -305,8 +295,8 @@ class Store(_stgermain.StgCompoundComponent):
             self.timesteps = json.loads(lv.app.getTimeSteps())
             #Get figures/states
             return lv.app.figures
-        except RuntimeError,e:
-            print "LavaVu error: " + str(e)
+        except RuntimeError as e:
+            print("LavaVu error: " + str(e))
             import traceback
             traceback.print_exc()
             pass
@@ -367,12 +357,12 @@ class Figure(dict):
 
     Add drawing objects:
     
-    >>> fig.Surface( mesh, 1.)
+    >>> fig.append(glucifer.objects.Surface( mesh, 1.))
 
-    Draw image (note, in a Jupyter notebook, this will render the image within the notebook).
+    Draw image. Note that if called from within a Jupyter notebook, image
+    will be rendered inline. Otherwise, image will be saved to disk.
     
     >>> fig.show()
-    <IPython.core.display.HTML object>
     
     Save the image
     
@@ -389,7 +379,7 @@ class Figure(dict):
     _id = 1
 
     def __init__(self, store=None, name=None, figsize=None, boundingBox=None, facecolour="white",
-                 edgecolour="black", title="", axis=False, quality=1, *args, **kwargs):
+                 edgecolour="black", title="", axis=False, quality=3, *args, **kwargs):
 
         #Create a default database just for this figure if none provided
         if store and isinstance(store, Store):
@@ -427,13 +417,16 @@ class Figure(dict):
         #Setup default properties
         self.update({"resolution" : (640, 480), "title" : str(title), 
             "axis" : axis, "antialias" : True,
-            "background" : facecolour, "margin" : 34, 
+            "background" : facecolour, "margin" : 40, 
             "border" : (1 if edgecolour else 0), "bordercolour" : edgecolour, 
             "rulers" : False, "zoomstep" : 0})
 
+        #    "size" : (0.75,0.02), 
+        #    "margin" : 0.05})
+
         #User-defined props in kwargs
         self.update(kwargs)
-        dict((k.lower(), v) for k, v in self.iteritems())
+        dict((k.lower(), v) for k, v in self.items())
 
         if boundingBox:
             #Add 3rd dimension if missing
@@ -480,7 +473,7 @@ class Figure(dict):
 
     def _getProperties(self):
         #Convert properties to string
-        return '\n'.join(['%s=%s' % (k,v) for k,v in self.iteritems()]);
+        return '\n'.join(['%s=%s' % (k,v) for k,v in self.items()]);
 
     def _setProperties(self, newProps):
         #Update the properties values (merge)
@@ -553,26 +546,105 @@ class Figure(dict):
 
         """
         try:
-            if lavavu.is_notebook():
+            if type.lower() != "webgl" and lavavu.is_notebook():
                 self._generate_DB()
-                if uw.rank() > 0:
+                if uw.mpi.rank > 0:
                     return
                 from IPython.display import display,Image,HTML
-                if type.lower() == "webgl":
-                    display(self._generate_HTML())
-                else:
-                    #Return inline image result
-                    filename = self._generate_image()
-                    display(HTML("<img src='%s'>" % filename))
+                #Return inline image result
+                filename = self._generate_image()
+                display(HTML("<img src='%s'>" % filename))
             else:
-                #Fallback to export image
+                #Fallback to export image or call viewer webgl export
                 self.save(filename=self.name, type=type)
-        except RuntimeError, e:
-            print "Error creating image: "
-            print e
+        except RuntimeError as e:
+            print("Error creating image: ", e)
             pass
         except:
             raise
+
+    @staticmethod
+    def show_grid( *rows ):
+        """
+        Shows a set of Figure objects in a grid. Note that this method
+        currently only supports rendering images within a Jupyter Notebook,
+        and saving gridded images to a file is not currently supported.
+        
+        Parameters
+        ----------
+        rows: set of tuples
+            Each provided tuple represents a row of Figures,
+            and should only contain Figure class objects.
+
+        Example
+        -------
+        Create a bunch of figures:
+        >>> import glucifer
+        >>> fig1 = glucifer.Figure()
+        >>> fig2 = glucifer.Figure()
+        >>> fig3 = glucifer.Figure()
+        >>> fig4 = glucifer.Figure()
+        >>> fig5 = glucifer.Figure()
+        >>> fig6 = glucifer.Figure()
+
+        We need a mesh
+        >>> import underworld as uw
+        >>> mesh = uw.mesh.FeMesh_Cartesian()
+
+        Add drawing objects as usual:
+        >>> r = uw.function.input()
+        >>> fig1.append(glucifer.objects.Surface( mesh, 1.))
+        >>> fig2.append(glucifer.objects.Mesh( mesh ))
+        >>> fig3.append(glucifer.objects.Mesh( mesh, nodeNumbers=True ))
+        >>> fig4.append(glucifer.objects.Surface( mesh, r[0]))
+        >>> fig5.append(glucifer.objects.Surface( mesh, r[1]))
+        >>> fig6.append(glucifer.objects.VectorArrows( mesh, r ))
+
+        Draw images in a grid. Note that in a Jupyter notebook,
+        this will render the image within the notebook, though it will
+        not be rendered in this example. Also note that `show_grid()`
+        is a static method, and so we call it directly as below (instead
+        of as a method on a `Figure` instance).
+        
+        >>> glucifer.Figure.show_grid( (fig1,fig2,fig3),
+        ...                            (fig4,fig5,fig6)  )
+        <IPython.core.display.HTML object>
+        
+        The above should generate a 2x3 (row x col) grid. For a 3x2 grid
+        we would instead call:
+        
+        >>> glucifer.Figure.show_grid( (fig1,fig2),
+        ...                            (fig3,fig4),
+        ...                            (fig5,fig6)  )
+        <IPython.core.display.HTML object>
+
+        """
+        try:
+            from IPython.display import HTML, display
+        except:
+            return
+        htmlstr ="""
+            <style>
+            table,td,tr,th {border:none!important}
+            </style>
+            """
+        htmlstr = "<table  style=\" border:none!important; background-repeat:no-repeat; width:900px;margin:0;\">"
+        
+        for row in rows:
+            if not isinstance( row, (list,tuple) ):
+                raise ValueError("You must provide a 'list' type object for each row.")
+            htmlstr += "<tr>"
+            for cell in row:
+                if not isinstance( cell, Figure ):
+                    raise ValueError("Only 'Figure' class objects should be provided.")
+                cell._generate_DB()
+                htmlstr += "<td>"
+                htmlstr += "<img src='%s'>" % cell._generate_image()
+                htmlstr += "</td>"
+            htmlstr += "</tr>"
+        htmlstr += "</table>"
+        display(HTML(htmlstr))
+
 
     def save_image(self, filename="", size=(0,0)):
         # For back compatibility
@@ -604,7 +676,7 @@ class Figure(dict):
             anything.
         """
         self._generate_DB()
-        if filename is None or uw.rank() > 0:
+        if filename is None or uw.mpi.rank > 0:
             return
         if not isinstance(filename, str):
             raise TypeError("Provided parameter 'filename' must be of type 'str'. ")
@@ -613,12 +685,12 @@ class Figure(dict):
 
         try:
             if type.lower() == "webgl":
-                lv = self.db.lvget()
-                return lv.app.web(True)
+                lv = self.db.lvget(script=self._script)
+                return lv.webgl(filename + '.html')
             else:
                 return self._generate_image(filename, size)
-        except RuntimeError,e:
-            print "LavaVu error: " + str(e)
+        except RuntimeError as e:
+            print("LavaVu error: ", e)
             import traceback
             traceback.print_exc()
             pass
@@ -631,7 +703,7 @@ class Figure(dict):
         self.db._generate(self.name, objects, self)
 
     def _generate_image(self, filename="", size=(0,0)):
-        if uw.rank() > 0:
+        if uw.mpi.rank > 0:
             return
         try:
             #Render with viewer
@@ -639,34 +711,8 @@ class Figure(dict):
             imagestr = lv.image(filename, resolution=size)
             #Return the generated filename
             return imagestr
-        except RuntimeError,e:
-            print "LavaVu error: " + str(e)
-            import traceback
-            traceback.print_exc()
-            pass
-        return ""
-
-    def _generate_HTML(self):
-        if uw.rank() > 0:
-            return
-        try:
-            #Export encoded json string
-            lv = self.db.lvget(script=self._script)
-            #Create link to web content directory
-            if not os.path.isdir("html"):
-                os.symlink(os.path.join(self.db._lvpath, 'html'), 'html')
-            jsonstr = lv.app.web()
-            #Write files to disk first, can be passed directly on url but is slow for large datasets
-            filename = "input_" + self.db._db.name + ".json"
-            text_file = open("html/" + filename, "w")
-            text_file.write(jsonstr);
-            text_file.close()
-            from IPython.display import IFrame
-            return IFrame("html/viewer.html#" + filename, width=self["resolution"][0], height=self["resolution"][1])
-            #import base64
-            #return IFrame("html/index.html#" + base64.b64encode(jsonstr), width=self["resolution"][0], height=self["resolution"][1])
-        except RuntimeError,e:
-            print "LavaVu error: " + str(e)
+        except RuntimeError as e:
+            print("LavaVu error: ", e)
             import traceback
             traceback.print_exc()
             pass
@@ -698,7 +744,7 @@ class Figure(dict):
         and opens it as an interactive viewing window.
         """
         #Open a new viewer instance and display window
-        if uw.rank() == 0:
+        if uw.mpi.rank == 0:
             v = self.viewer(new=True, *args, **kwargs)
             #Ensure correct figure selected
             v.figure(self.name)
@@ -716,7 +762,7 @@ class Figure(dict):
             Otherwise the existing instance will be used if available
         """
         #Open/get viewer instance
-        if uw.rank() == 0:
+        if uw.mpi.rank == 0:
             #Generate db if doesn't exist
             if not self.db._db.path:
                 self._generate_DB()
@@ -737,10 +783,10 @@ class Figure(dict):
         if self._viewerProc and self._viewerProc.poll() == None:
             return
 
-        if uw.rank() == 0:
+        if uw.mpi.rank == 0:
             #Open viewer with local web server for interactive/iterative use
             if background:
-                self._viewerProc = subprocess.Popen([self.db._lvbin, "-" + str(self.db.step), "-p9999", "-q90", fname] + self._script + args,
+                self._viewerProc = subprocess.Popen(["LV", "-" + str(self.db.step), "-p9999", "-q90", fname] + self._script + args,
                                                     stdout=PIPE, stdin=PIPE, stderr=STDOUT)
                 from IPython.display import HTML
                 return HTML('''<a href='#' onclick='window.open("http://" + location.hostname + ":9999");'>Open Viewer Interface</a>''')
@@ -765,7 +811,7 @@ class Figure(dict):
         cmd: str
             Command to send to open viewer.
         """
-        if uw.rank() == 0:
+        if uw.mpi.rank == 0:
             self.open_viewer()
             url = "http://localhost:9999/command=" + urllib2.quote(cmd)
             try:
@@ -773,26 +819,15 @@ class Figure(dict):
                 response = urllib2.urlopen(url).read()
                 #print response
             except:
-                print "Send command '" + cmd + "' failed, no response"
+                print("Send command '" + cmd + "' failed, no response")
                 if retry:
                     #Wait a few seconds so server has time to start then try again
-                    print "... retrying in 1s ..."
+                    print("... retrying in 1s ...")
                     time.sleep(1)
                     self.send_command(cmd, False)
                 else:
-                    print "... failed, skipping ..."
+                    print("... failed, skipping ...")
                     pass
-
-    def clear(self):
-        # DEPRECATE, remove for v2.4.0
-        raise RuntimeError("This method is now deprecated.\n" \
-                           "To obtain an empty figure just create a new one")
-
-    def __add__(self,drawing_object):
-        # DEPRECATE, remove for v2.4.0
-        raise RuntimeError("This method is now deprecated.\n" \
-                           "To add drawing objects to figures, use the append() method:\n" \
-                           "    someFigure.append(someDrawingObject)")
     
     def append(self,drawingObject):
         """
@@ -837,31 +872,39 @@ class Viewer(lavavu.Viewer):
             
     Example
     -------
-        
-    Open an existing database:
+    Create database to use
     
     >>> import glucifer
-    >>> saved = glucifer.Viewer('vis.gldb')
+    >>> store = glucifer.Store('myvis')
+    >>> fig = glucifer.Figure(store, name="myfigure")
+    >>> import underworld as uw
+    >>> mesh = uw.mesh.FeMesh_Cartesian()
+    >>> fig.append(glucifer.objects.Mesh(mesh))
+    >>> fig.save()
+
+    Now reopen database:
+    
+    >>> viewer = glucifer.Viewer('myvis')
 
     Iterate over the figures, print their names
     
-    >>> for name in saved.figures():
-    >>>     print(name)
-
+    >>> for name in viewer.figures:
+    ...     print(name)
+    myfigure
+    
     Get a figure by name and display
     (A chosen name can be provided when creating the figures to make this easier)
     
-    >>> figures = saved.figures()
-    >>> saved.figure("myfig")
-    >>> saved.show()
+    >>> viewer.figure("myfig")
+    >>> viewer.show()
 
     Display all figures at each timestep
     
-    >>> for step in saved.timesteps():
-    >>>    saved.timestep(step)
-    >>>    for name in figures:
-    >>>        saved.figure(name)
-    >>>        saved.show()
+    >>> for step in viewer.steps:
+    ...    viewer.step = step
+    ...    for name in viewer.figures:
+    ...        viewer.figure(name)
+    ...        viewer.show()
 
     """
 
@@ -883,7 +926,7 @@ class Viewer(lavavu.Viewer):
         self.display()
 
     def showall(self):
-        for fig in self.figures():
+        for fig in self.figures:
             self.figure(fig)
             self.display()
 

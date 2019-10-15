@@ -9,8 +9,8 @@
 import underworld._stgermain as _stgermain
 import libUnderworld.libUnderworldPy.Function as _cfn
 import numpy as np
-import _swarmabstract
-import _swarmvariable as svar
+from . import _swarmabstract
+from . import _swarmvariable as svar
 import underworld.function as function
 import libUnderworld
 import underworld as uw
@@ -55,7 +55,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
     >>> swarm.populate_using_layout(layout)
     >>> swarm.particleLocalCount
     1024
-    >>> swarm.particleCoordinates.data[0]
+    >>> swarm.data[0]
     array([ 0.0132078,  0.0132078])
     >>> swarm.owningCell.data[0]
     array([0], dtype=int32)
@@ -87,7 +87,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
     >>> swarm.particleGlobalCount
     1024
     >>> with swarm.deform_swarm():
-    ...     swarm.particleCoordinates.data[:] -= (0.5,0.)
+    ...     swarm.data[:] -= (0.5,0.)
     >>> swarm.particleGlobalCount
     512
 
@@ -134,9 +134,8 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         componentDictionary[ self._swarm.name ][          "CellLayout"] = self._cellLayout.name
         componentDictionary[ self._swarm.name ][      "createGlobalId"] = False
         componentDictionary[ self._swarm.name ]["ParticleCommHandlers"] = [self._pMovementHandler.name,]
-        if self.particleEscape:
-            componentDictionary[ self._swarm.name ][  "EscapedRoutine"] = self._escapedRoutine.name
-            componentDictionary[ self._escapedRoutine.name][ "particlesToRemoveDelta" ] = 1000
+        componentDictionary[ self._swarm.name ][  "EscapedRoutine"]     = self._escapedRoutine.name
+        componentDictionary[ self._escapedRoutine.name][ "particlesToRemoveDelta" ] = 1000
 
         componentDictionary[ self._cellLayout.name ]["Mesh"]            = self._mesh._cself.name
 
@@ -177,7 +176,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         array([ 0,  1,  2, -1,  3], dtype=int32)
         >>> swarm.particleLocalCount
         4
-        >>> swarm.particleCoordinates.data
+        >>> swarm.data
         array([[ 0.1,  0.1],
                [ 0.2,  0.1],
                [ 0.1,  0.2],
@@ -221,7 +220,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         """
         return libUnderworld.Function.SwarmInput(self._particleCoordinates._cself)
 
-    def save(self, filename):
+    def save(self, filename, collective=False):
         """
         Save the swarm to disk.
 
@@ -230,6 +229,10 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         filename : str
             The filename for the saved file. Relative or absolute paths may be
             used, but all directories must exist.
+        collective : bool
+            If True, swarm is saved MPI collective. This is usually faster, but
+            currently is problematic for passive swarms which may not have
+            representation on all processes.
 
         Returns
         -------
@@ -261,11 +264,11 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         Now check for equality:
 
         >>> import numpy as np
-        >>> np.allclose(swarm.particleCoordinates.data,clone_swarm.particleCoordinates.data)
+        >>> np.allclose(swarm.data,clone_swarm.data)
         True
 
         >>> # clean up:
-        >>> if uw.rank() == 0:
+        >>> if uw.mpi.rank == 0:
         ...     import os;
         ...     os.remove( "saved_swarm.h5" )
 
@@ -275,20 +278,27 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
             raise TypeError("Expected filename to be provided as a string")
 
         # just save the particle coordinates SwarmVariable
-        self.particleCoordinates.save(filename)
+        self.particleCoordinates.save(filename, collective)
 
         return uw.utils.SavedFileData( self, filename )
 
-    def load( self, filename, try_optimise=True, verbose=False ):
+    def load( self, filename, collective=False, try_optimise=True ):
         """
         Load a swarm from disk. Note that this must be called before any SwarmVariable
-        members are loaded.
+        members are loaded. Note also that this method will not replace the currently
+        existing particles, but will instead *add* all the particles from the provided
+        h5 file to the current swarm. Usually you will want to call this method when
+        the swarm is still empty.
 
         Parameters
         ----------
         filename : str
             The filename for the saved file. Relative or absolute paths may be
             used.
+        collective : bool
+            If True, swarm is loaded MPI collective. This is usually faster, but
+            currently is problematic for passive swarms which may not have
+            representation on all processes.
         try_optimise : bool, Default=True
             Will speed up the swarm load time but warning - this algorithm assumes the 
             previously saved swarm data was made on an identical mesh and mesh partitioning 
@@ -296,8 +306,6 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
             the reloaded particle ordering will be broken, leading to an invalid swarms.
             One can disable this optimisation and revert to a brute force algorithm, much slower,
             by setting this option to False.
-        verbose : bool
-            Prints a swarm load progress bar.
 
         Notes
         -----
@@ -308,77 +316,78 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         Refer to example provided for 'save' method.
 
         """
+        from ..utils._io import h5File, h5_get_dataset
 
         if not isinstance(filename, str):
             raise TypeError("Expected 'filename' to be provided as a string")
-        
+
+        rank = uw.mpi.rank
+        nProcs = uw.mpi.size
+
         # open hdf5 file
-        h5f = h5py.File(name=filename, mode="r", driver='mpio', comm=MPI.COMM_WORLD)
+        with h5File(name=filename, mode="r") as h5f:
+            dset = h5_get_dataset(h5f, 'data')
+            if dset.shape[1] != self.data.shape[1]:
+                raise RuntimeError("Cannot load file data on current swarm. Data in file '{0}', " \
+                                   "has {1} components -the particlesCoords has {2} components".format(filename, dset.shape[1], self.data.shape[1]))
 
-        dset = h5f.get('data')
-        if dset == None:
-            raise RuntimeError("Can't find 'data' in file '{0}'.\n".format(filename))
-        if dset.shape[1] != self.particleCoordinates.data.shape[1]:
-            raise RuntimeError("Cannot load file data on current swarm. Data in file '{0}', " \
-                               "has {1} components -the particlesCoords has {2} components".format(filename, dset.shape[1], self.particleCoordinates.data.shape[1]))
-        comm = MPI.COMM_WORLD
-        rank = comm.Get_rank()
-        nProcs = comm.Get_size()
-        
-        if rank == 0 and verbose:
-            bar = uw.utils._ProgressBar( start=0, end=dset.shape[0]-1, title="loading "+filename)
-        
-        # try and read the procCount attribute & assume that if nProcs in .h5 file
-        # is equal to the current no. procs then the particles will be distributed the 
-        # same across the processors. (Danger if different discretisations are used... i think)
-        # else try and load the whole .h5 file.
-        # we set the 'offset' & 'size' variables to achieve the above 
-        
-        offset = 0
-        totalsize = size = dset.shape[0] # number of particles in h5 file
-        
-        if try_optimise:
-            procCount = h5f.attrs.get('proc_offset')
-            if procCount is not None and nProcs == len(procCount):
-                for p_i in xrange(rank):
-                    offset += procCount[p_i]
-                size = procCount[rank]
-            
-        valid = np.zeros(0, dtype='i') # array for read in
-        chunk=int(1e4) # read in this many points at a time
+            # try and read the procCount attribute & assume that if nProcs in .h5 file
+            # is equal to the current no. procs then the particles will be distributed the
+            # same across the processors. (Danger if different discretisations are used... i think)
+            # else try and load the whole .h5 file.
+            # we set the 'offset' & 'size' variables to achieve the above
 
-        (multiples, remainder) = divmod( size, chunk )
-        for ii in xrange(multiples+1):
-            # setup the points to begin and end reading in
-            chunkStart = offset + ii*chunk
-            if ii == multiples:
-                chunkEnd = chunkStart + remainder
-                if remainder == 0: # in the case remainder is 0
-                    break
-            else:
-                chunkEnd = chunkStart + chunk
+            offset = 0
+            size = dset.shape[0] # number of particles in h5 file
 
-            # add particles to swarm, ztmp is the corresponding local array
-            # non-local particles are not added and their ztmp index is -1
-            ztmp = self.add_particles_with_coordinates(dset[ chunkStart : chunkEnd ])
-            tmp = np.copy(ztmp) # copy because ztmp is 'readonly'
+            if try_optimise:
+                procCount = h5f.attrs.get('proc_offset')
+                if procCount is not None and nProcs == len(procCount):
+                    for p_i in range(rank):
+                        offset += procCount[p_i]
+                    size = procCount[rank]
 
-            # slice out -neg bits and make the local indices global
-            it = np.nditer(tmp, op_flags=['readwrite'], flags=['f_index'])
-            while not it.finished:
-                if it[0] >= 0:
-                    it[0] = chunkStart+it.index # local to global
-                it.iternext()
+            valid = np.zeros(0, dtype='i') # array for read in
+            chunk=int(2e7) # read in max this many points at a time
 
-            # slice out -neg bits
-            tmp = tmp[tmp[:]>=0]
-            # append to valid
-            valid = np.append(valid, tmp)
+            firstChunk = True
+            (multiples, remainder) = divmod( size, chunk )
+            for ii in range(multiples+1):
+                # setup the points to begin and end reading in
+                chunkStart = offset + ii*chunk
+                if ii == multiples:
+                    chunkEnd = chunkStart + remainder
+                    if remainder == 0: # in the case remainder is 0
+                        break
+                else:
+                    chunkEnd = chunkStart + chunk
 
-            if rank == 0 and verbose:
-                bar.update(chunkEnd)
+                # Add particles to swarm, ztmp is the corresponding local array
+                # non-local particles are not added and their ztmp index is -1.
+                # Note that for the first chunk, we do collective read, as this
+                # is the only time that we can guaranteed that all procs will
+                # take part, and usually most (if not all) particles are loaded
+                # in this step.
+                if firstChunk and collective:
+                    with dset.collective:
+                        ztmp = self.add_particles_with_coordinates(dset[ chunkStart : chunkEnd ])
+                        firstChunk = False
+                else:
+                    ztmp = self.add_particles_with_coordinates(dset[ chunkStart : chunkEnd ])
+                tmp = np.copy(ztmp) # copy because ztmp is 'readonly'
 
-        h5f.close()
+                # slice out -neg bits and make the local indices global
+                it = np.nditer(tmp, op_flags=['readwrite'], flags=['f_index'])
+                while not it.finished:
+                    if it[0] >= 0:
+                        it[0] = chunkStart+it.index # local to global
+                    it.iternext()
+
+                # slice out -neg bits
+                tmp = tmp[tmp[:]>=0]
+                # append to valid
+                valid = np.append(valid, tmp)
+
         self._local2globalMap = valid
         # record which swarm state this corresponds to
         self._checkpointMapsToState = self.stateId
@@ -419,9 +428,9 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         to obtain pi/4.  First eject particles:
         
         >>> with swarm.deform_swarm():
-        ...    for ind,coord in enumerate(swarm.particleCoordinates.data):
+        ...    for ind,coord in enumerate(swarm.data):
         ...        if np.dot(coord,coord)>1.:
-        ...            swarm.particleCoordinates.data[ind] = (99999.,99999.)
+        ...            swarm.data[ind] = (99999.,99999.)
         
         Now integrate and test
         
@@ -459,12 +468,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
 
         # setup mpi basic vars
         comm = MPI.COMM_WORLD
-        rank = comm.Get_rank()
-        nProcs = comm.Get_size()
-
-        # allgather the number of particles each proc has
-        procCount = comm.allgather(self.particleLocalCount)
-        return sum(procCount)
+        return comm.allreduce(self.particleLocalCount, op=MPI.SUM)
 
     @property
     def _voronoi_swarm(self):
@@ -478,12 +482,28 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
             self._voronoi_swarm_private = uw.swarm.VoronoiIntegrationSwarm(self)
         return self._voronoi_swarm_private
 
+    @property
+    def allow_parallel_nn(self):
+        """
+        By default, parallel nearest neighbour search is disabled as consistent
+        results are not currently guaranteed. Set this attribute to `True` to 
+        allow parallel NN.
+        """
+        return self._cself.allow_parallel_nn
+    @allow_parallel_nn.setter
+    def allow_parallel_nn(self,val):
+        self._cself.allow_parallel_nn = val
+
+
     @contextlib.contextmanager
     def deform_swarm(self, update_owners=True):
         """
         Any particle location modifications must occur within this python 
         context manager. This is necessary as it is critical that certain
         internal objects are updated when particle locations are modified.
+        Note that this method must be called collectively by all processes, 
+        irrespective of whether any given process does or does not need to 
+        locate any particles. 
 
         Parameters
         ----------
@@ -493,18 +513,23 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
             manager. This is often necessary when both the mesh and particles 
             are advecting simutaneously.
 
+        Notes
+        -----
+        This method must be called collectively by all processes.
+
+
         Example
         -------
         >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
         >>> swarm = uw.swarm.Swarm(mesh)
         >>> layout = uw.swarm.layouts.PerCellGaussLayout(swarm,2)
         >>> swarm.populate_using_layout(layout)
-        >>> swarm.particleCoordinates.data[0]
+        >>> swarm.data[0]
         array([ 0.0132078,  0.0132078])
         
         Attempted modification without using deform_swarm() should fail:
         
-        >>> swarm.particleCoordinates.data[0] = [0.2,0.2]
+        >>> swarm.data[0] = [0.2,0.2]
         Traceback (most recent call last):
         ...
         ValueError: assignment destination is read-only
@@ -512,8 +537,8 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         Within the deform_swarm() context manager, modification is allowed:
         
         >>> with swarm.deform_swarm():
-        ...     swarm.particleCoordinates.data[0] = [0.2,0.2]
-        >>> swarm.particleCoordinates.data[0]
+        ...     swarm.data[0] = [0.2,0.2]
+        >>> swarm.data[0]
         array([ 0.2,  0.2])
 
         """
@@ -562,7 +587,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
     def update_particle_owners(self):
         """
         This routine will update particles owners after particles have been
-        moved. This is both in terms of the cell/element the the
+        moved. This is both in terms of the cell/element that the
         particle resides within, and also in terms of the parallel processor
         decomposition (particles belonging on other processors will be sent across).
         
@@ -578,19 +603,26 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
         >>> swarm = uw.swarm.Swarm(mesh)
         >>> swarm.populate_using_layout(uw.swarm.layouts.PerCellGaussLayout(swarm,2))
-        >>> swarm.particleCoordinates.data[0]
+        >>> swarm.data[0]
         array([ 0.0132078,  0.0132078])
         >>> swarm.owningCell.data[0]
         array([0], dtype=int32)
         >>> with swarm.deform_swarm():
-        ...     swarm.particleCoordinates.data[0] = [0.1,0.1]
+        ...     swarm.data[0] = [0.1,0.1]
         >>> swarm.owningCell.data[0]
         array([17], dtype=int32)
 
         """
-        libUnderworld.StgDomain.Swarm_UpdateAllParticleOwners( self._cself );
-        if self.particleEscape:
-            libUnderworld.PICellerator.EscapedRoutine_RemoveFromSwarm( self._escapedRoutine, self._cself )
+        orig_total_particles = self.particleGlobalCount
+        libUnderworld.StgDomain.Swarm_UpdateAllParticleOwners( self._cself )
+        libUnderworld.PICellerator.EscapedRoutine_RemoveFromSwarm(self._escapedRoutine, self._cself)
+        new_total_particles = self.particleGlobalCount
+        if (uw.mpi.rank==0) and (not self.particleEscape) and (orig_total_particles != new_total_particles):
+            raise RuntimeError("Particles appear to have left the domain, but swarm flag `particleEscape` is False. "
+                               "Check your velocity field or your particle relocation routines, or set the "
+                               "`particleEscape` swarm constructor parameter to True to allow escape.")
 
-        libUnderworld.PICellerator.GeneralSwarm_ClearSwarmMaps( self._cself );
+
+        libUnderworld.PICellerator.GeneralSwarm_ClearSwarmMaps( self._cself )
+        libUnderworld.PICellerator.GeneralSwarm_DeleteIndex( self._cself )
         self._toggle_state()

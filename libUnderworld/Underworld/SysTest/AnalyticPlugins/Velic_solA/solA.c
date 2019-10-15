@@ -11,25 +11,16 @@
 #include <stdio.h>
 #include <assert.h>
 
-void _Velic_solA(
-   double* pos, 
-   double  sigma,
-   double  Z,
-   int     n,
-   double  km,
-   double* velocity,
-   double* pressure,
-   double* Tstress,
-   double* strainRate );
+#include "solA.h"
 
-#ifndef NOSHARED
+#if 0
 int main() {
    double sigma = 1.0;
    double Z = 1.0;
    double km = M_PI;
    int    n = 1;
    double pos[2], velocity[2], pressure, Tstress[3], strainRate[3],jp;
-   int    i, j;   
+   int    i, j;
 
    for (i=0;i<101;i++){
       for(j=0;j<101;j++){
@@ -52,7 +43,7 @@ int main() {
             pos[0], pos[1],
             velocity[0], velocity[1],
             pressure,
-            jp, 
+            jp,
             strainRate[0], strainRate[1], strainRate[2],
             Tstress[0], Tstress[1], Tstress[2] );
       }
@@ -62,7 +53,7 @@ int main() {
 #endif
 
 void _Velic_solA(
-   double* pos, 
+   const double* pos,
    double  sigma,
    double  Z,
    int     n,
@@ -74,7 +65,7 @@ void _Velic_solA(
    
    double u1,u2,u3,u4,pp,txx;
    double _C1,_C2,_C3,_C4;
-   double sum1,sum2,sum3,sum4,sum5,sum6,sum7,mag,x,z;
+   double sum1,sum2,sum3,sum4,sum5,sum6,x,z;
    double ss,ss_z,ss_zz,ss_zzz,e_zz,e_xx,e_xz;
    double t1,t3,t4,t5,t6,t7,t9,t10,t14,t15;
    double t16,t17,t18,t19,t20,t21,t23,t24,t25,t26,t27,t29;
@@ -90,7 +81,7 @@ void _Velic_solA(
    sum4=0.0;
    sum5=0.0;
    sum6=0.0;
-   sum7=0.0;
+//   sum7=0.0;
 
    t1 = sin(km);
    t3 = kn * kn;
@@ -183,10 +174,10 @@ void _Velic_solA(
    e_xx = -e_zz;  /* xx rate of strain */
    e_xz = -0.5*(ss_zz+kn*kn*ss)*sin(kn*x); /* xz rate of strain */
 
-   ss *= sin(kn*x); /* stream function */
+//   ss *= sin(kn*x); /* stream function */
    /* density/temp */
-   sum7 += -sin(km*z)*cos(kn*x);
-   mag=sqrt(sum1*sum1+sum2*sum2);
+//   sum7 += -sin(km*z)*cos(kn*x);
+//   mag=sqrt(sum1*sum1+sum2*sum2);
 
    // printf("%0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f\n",x,z,sum1,sum2,sum3,sum4,sum5,sum6,mag,sum7,e_zz,e_xx,e_xz,ss);
 

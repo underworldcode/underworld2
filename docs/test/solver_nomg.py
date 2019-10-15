@@ -24,24 +24,34 @@ freeslip = uw.conditions.DirichletCondition(velocityField, (IWalls, JWalls))
 # We are going to make use of one of the existing analytic solutions so that we may easily
 # obtain functions for a viscosity profile and forcing terms.
 # Exact solution solCx with defaults
-sol = fn.analytic.SolCx()
+sol = fn.analytic.SolCx(eta_B=100000.)
 stokesSystem = uw.systems.Stokes(velocityField,pressureField,sol.fn_viscosity,sol.fn_bodyforce,conditions=[freeslip,])
 #Run the BSSCR Solver
 solver=uw.systems.Solver(stokesSystem)
 solver.set_inner_method("nomg")
-print solver.options.A11._mg_active
+print(solver.options.A11._mg_active)
 solver.solve()
 stats=solver.get_stats()
 solver.print_stats()
 from libUnderworld import petsc
 petsc.OptionsPrint()
 
-if 4 != stats.pressure_its:
-    raise RuntimeError("Test returned wrong number of pressure iterations.")
-if 28 != stats.velocity_presolve_its:
-    raise RuntimeError("Test returned wrong number of velocity pre solve iterations.")
+# if 4 != stats.pressure_its:
+#     raise RuntimeError("Test returned wrong number of pressure iterations.")
+# if 27 != stats.velocity_presolve_its:
+#     raise RuntimeError("Test returned wrong number of velocity pre solve iterations.")
+# if -1 != stats.velocity_pressuresolve_its:  # -1 will be returned if this stat isn't supported.
+#     if stats.velocity_pressuresolve_its < 80:
+#         raise RuntimeError("Test returned wrong number of velocity pressure solve iterations.")
+# if 24 != stats.velocity_backsolve_its:
+#     raise RuntimeError("Test returned wrong number of velocity back solve iterations.")
+
+if stats.pressure_its > 5:
+    raise RuntimeError("Test appears to require too many pressure iterations. Iteration count = {}.".format(stats.pressure_its))
+if stats.velocity_presolve_its > 24:
+    raise RuntimeError("Test appears to require too many velocity pre solve iterations. Iteration count = {}.".format(stats.velocity_presolve_its))
 if -1 != stats.velocity_pressuresolve_its:  # -1 will be returned if this stat isn't supported.
-    if stats.velocity_pressuresolve_its < 100:
-        raise RuntimeError("Test returned wrong number of velocity pressure solve iterations.")
-if 30 != stats.velocity_backsolve_its:
-    raise RuntimeError("Test returned wrong number of velocity back solve iterations.")
+    if stats.velocity_pressuresolve_its > 80 :
+        raise RuntimeError("Test appears to require too many velocity pressure solve iterations. Iteration count = {}.".format(stats.velocity_pressuresolve_its))
+if stats.velocity_backsolve_its > 30:
+    raise RuntimeError("Test appears to require too many velocity back solve iterations. Iteration count = {}.".format(stats.velocity_backsolve_its))

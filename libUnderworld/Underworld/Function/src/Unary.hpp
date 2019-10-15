@@ -32,7 +32,7 @@ namespace Fn {
                         const IO_double* doubleio;
                         doubleio = dynamic_cast<const IO_double*>(_func(sample_input));
                         if (!doubleio)
-                            throw std::invalid_argument("Math function expects functions to return a 'double' type object.");
+                            throw std::invalid_argument(_pyfnerrorheader+"Argument function is expected to return 'double' type object.");
                         outsize = doubleio->size();
                     }
                     // allocate memory for our output

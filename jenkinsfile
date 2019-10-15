@@ -1,0 +1,111 @@
+#!groovy
+
+/* A Jenkins "Declarative" Pipeline file.
+See http://130.56.252.251:32779
+*/
+
+pipeline {
+  
+  agent {
+    // special label to jenkins config. See http://130.56.252.251:32779/computer/
+    label 'slave'
+  }
+  
+  environment {
+    // define environment variable active within pipeline
+    CNAME = "test_uw2_container"
+    INAME = "underworld2:jdev"
+  }
+
+  options {
+    timeout(time: 2, unit: 'HOURS')
+    disableConcurrentBuilds()
+    timestamps()
+  }
+
+  stages {
+      
+    // Build stage: compile the code
+    stage('Build Image') {
+      steps {
+        // print environment variables
+        sh 'printenv'
+        // build the docker
+        sh 'docker build --force-rm --no-cache -t ${INAME} -f ./docs/development/docker/underworld2/Dockerfile .'
+      }
+    }
+    
+    // Test stage: runs the basic tests
+    stage('Basic Tests') {
+      // Run inside docker continer created
+      steps {
+              sh '''
+              docker run -i -w /home/jovyan/development --name ${CNAME} ${INAME} ./test_suite.sh
+              '''
+      }
+      post {
+        always {
+              sh '''
+                  docker cp ${CNAME}:/home/jovyan/development/testResults ./testResults
+              '''
+        }
+      }
+    }
+    
+    // Run image_test.py separately, if it fails mark build 'UNSTABLE'
+    /*stage('image_tests') {
+      steps {
+        script {
+          try{
+            dir("./utils") {
+              sh './run_tests.py ../doc/test/image_tests.py'
+            }
+          }
+          catch(exc) {
+            currentBuild.result = 'UNSTABLE'
+            echo 'The image test phase failed. Not critical'
+          }
+        }
+      }
+    }*/
+  }
+  
+  /* For post build analysis */
+  post {
+    failure {
+      // notify users when the Pipeline fails
+      emailext (
+          subject: "Failed Pipeline: ${currentBuild.fullDisplayName}",
+          body: "Something is wrong with ${env.BUILD_URL}",
+          // mimeType: 'text/html',
+          to: 'underworlddev@googlegroups.com'
+        )
+    }
+    unstable {
+      // notify users when the Pipeline fails
+      emailext (
+          subject: "Unstable Pipeline: ${currentBuild.fullDisplayName}",
+          body: "Something is unstable with ${env.BUILD_URL}",
+          // mimeType: 'text/html',
+          to: 'underworlddev@googlegroups.com'
+        )
+    }
+    success {
+      script {
+        if (currentBuild.previousBuild != null && currentBuild.previousBuild.result != 'SUCCESS') {
+          emailext (
+            subject: "Back to normal: ${currentBuild.fullDisplayName}",
+            body: "Project is back to normal",
+            // mimeType: 'text/html',
+            to: 'underworlddev@googlegroups.com'
+          )
+        }
+      }
+    }
+    cleanup {
+      // force container removal
+      sh 'docker rm -f ${CNAME}'
+      sh 'docker rmi ${INAME}'
+    }
+  }
+}

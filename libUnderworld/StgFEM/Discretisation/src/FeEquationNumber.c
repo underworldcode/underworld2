@@ -383,7 +383,7 @@ FeEquationNumber* _FeEquationNumber_Create( void* _self, Bool removeBCs ) {
   FeEquationNumber* eqNum=NULL;
   Stg_Component_Build( feVar, NULL, False );
   Stg_Component_Initialise( feVar, NULL, False );
-  eqNum = FeEquationNumber_New( "MrMoon",
+  eqNum = FeEquationNumber_New( "",
                                   feVar->context,
                                   feVar->feMesh,
                                   feVar->dofLayout,

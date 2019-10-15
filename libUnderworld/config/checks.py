@@ -105,7 +105,8 @@ return 0;
 """ % (call or "")
 
     if call:
-        i = string.find(call, "\n")
+#        i = string.find(call, "\n")
+        i = call.find("\n")
         if i > 0:
             calltext = call[:i] + ".."
         elif call[-1] == ';':

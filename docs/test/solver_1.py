@@ -24,7 +24,7 @@ freeslip = uw.conditions.DirichletCondition(velocityField, (IWalls, JWalls))
 # We are going to make use of one of the existing analytic solutions so that we may easily
 # obtain functions for a viscosity profile and forcing terms.
 # Exact solution solCx with defaults
-sol = fn.analytic.SolCx()
+sol = fn.analytic.SolCx(eta_B=100000.)
 stokesSystem = uw.systems.Stokes(velocityField,pressureField,sol.fn_viscosity,sol.fn_bodyforce,conditions=[freeslip,])
 #Run the BSSCR Solver
 # can optionally set penalty this way
@@ -42,12 +42,12 @@ solver.solve()
 stats=solver.get_stats()
 solver.print_stats()
 
-if 3 != stats.pressure_its:
-    raise RuntimeError("Test returned wrong number of pressure iterations: should be 3")
-if 7 != stats.velocity_presolve_its:
-    raise RuntimeError("Test returned wrong number of velocity pre solve iterations: should be 6")
+if stats.pressure_its > 5:
+    raise RuntimeError("Test appears to require too many pressure iterations. Iteration count = {}.".format(stats.pressure_its))
+if stats.velocity_presolve_its > 8:
+    raise RuntimeError("Test appears to require too many velocity pre solve iterations. Iteration count = {}.".format(stats.velocity_presolve_its))
 if -1 != stats.velocity_pressuresolve_its:  # -1 will be returned if this stat isn't supported.
-    if 18 != stats.velocity_pressuresolve_its:
-        raise RuntimeError("Test returned wrong number of velocity pressure solve iterations: should be 15")
-if 7 != stats.velocity_backsolve_its:
-    raise RuntimeError("Test returned wrong number of velocity back solve iterations: should be 6")
+    if stats.velocity_pressuresolve_its > 30 :
+        raise RuntimeError("Test appears to require too many velocity pressure solve iterations. Iteration count = {}.".format(stats.velocity_pressuresolve_its))
+if stats.velocity_backsolve_its > 8:
+    raise RuntimeError("Test appears to require too many velocity back solve iterations. Iteration count = {}.".format(stats.velocity_backsolve_its))

@@ -8,7 +8,7 @@
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 /* -*- C -*-  (not really, but good for syntax highlighting) */
 
-%module Underworld
+%module (package="libUnderworld.libUnderworldPy") Underworld
 
 %include "exception.i"
 %import "StGermain.i"
@@ -23,6 +23,8 @@
 #include <functional>
 #include <Underworld/Function/FunctionIO.hpp>
 #include <Underworld/Function/Function.hpp>
+#include <Underworld/Function/SafeMaths.hpp>
+#include <Underworld/Function/CustomException.hpp>
 #include <Underworld/Function/MinMax.hpp>
 #include <Underworld/Function/Constant.hpp>
 #include <Underworld/Function/SwarmVariableFn.hpp>

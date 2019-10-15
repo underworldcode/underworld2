@@ -1,4 +1,4 @@
-FROM debian@sha256:0a5fcee6f52d5170f557ee2447d7a10a5bdcf715dd7f0250be0b678c556a501b
+FROM debian:latest
 MAINTAINER https://github.com/underworldcode/
 
 # install things
@@ -7,11 +7,9 @@ RUN apt-get update -qq && \
         bash-completion \
         build-essential \
         git \
-        python \
-        python-dev \
-        petsc-dev \
-        libhdf5-openmpi-dev \
-        python-pip \
+        python3-minimal \
+        python3-dev \
+        python3-pip \
         libxml2-dev \
         xorg-dev \
         ssh \
@@ -24,69 +22,128 @@ RUN apt-get update -qq && \
         freeglut3-dev \
         libgl1-mesa-dri \
         libgl1-mesa-glx \
+        python3-tk \
         rsync \
         vim \
         less \
         xauth \
-        python-tk \
         swig \
         gdb-minimal \
-        python2.7-dbg && \
+        python3-dbg \
+        cmake \
+        python3-setuptools \
+        wget \
+        gfortran  && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    \
+    rm -rf /var/lib/apt/lists/*
+
+ARG MPICH_VERSION="3.1.4"
+ARG MPICH_CONFIGURE_OPTIONS="--enable-fast=all,O3 --prefix=/usr"
+ARG MPICH_MAKE_OPTIONS="-j4"
+WORKDIR /tmp/mpich-build
+RUN wget http://www.mpich.org/static/downloads/${MPICH_VERSION}/mpich-${MPICH_VERSION}.tar.gz && \
+    tar xvzf mpich-${MPICH_VERSION}.tar.gz && \
+    cd mpich-${MPICH_VERSION}              && \
+    ./configure ${MPICH_CONFIGURE_OPTIONS} && \
+    make ${MPICH_MAKE_OPTIONS}             && \
+    make install                           && \
+    ldconfig                               && \
+    cd /tmp                                && \
+    rm -fr *
+
+ENV LANG=C.UTF-8
 # Install setuptools and wheel first, needed by plotly
-    pip install setuptools wheel && \
-    pip install packaging \
+RUN pip3 install -U setuptools  && \
+    pip3 install -U wheel       && \
+    pip3 install --no-cache-dir packaging \
         appdirs \
         numpy \
         jupyter \
         plotly \
-        mpi4py \
         matplotlib \
-        runipy \
         pillow \
         pyvirtualdisplay \
+        ipython \
         ipyparallel \
         pint \
         sphinx \
         sphinx_rtd_theme \
         sphinxcontrib-napoleon \
         mock \
-        scipy && \
-    pip install 'ipython==4.2.0' --force-reinstall && \
-    pip install six --upgrade
+        scipy \ 
+        tabulate \
+        mpi4py \
+        scons
 
-# ^^^ Note we choose an older version of ipython because it's tooltips work better.
-#     Also, the system six is too old, so we upgrade for the pip version
+# update python to py3
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.5 1
 
-# Install Tini.. this is required because CMD (below) doesn't play nice with notebooks for some reason: https://github.com/ipython/ipython/issues/7062, https://github.com/jupyter/notebook/issues/334
-RUN curl -L https://github.com/krallin/tini/releases/download/v0.10.0/tini > tini && \
-    echo "1361527f39190a7338a0b434bd8c88ff7233ce7b9a4876f3315c22fce7eca1b0 *tini" | sha256sum -c - && \
-    mv tini /usr/local/bin/tini && \
-    chmod +x /usr/local/bin/tini
+WORKDIR /tmp/petsc-build
+ARG PETSC_VERSION="3.11.2"
+RUN wget http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-${PETSC_VERSION}.tar.gz && \
+    tar zxf petsc-lite-${PETSC_VERSION}.tar.gz && cd petsc-${PETSC_VERSION}   && \
+    ./configure --with-debugging=0 --prefix=/usr/local/petsc                     \
+                --COPTFLAGS="-g -O3" --CXXOPTFLAGS="-g -O3" --FOPTFLAGS="-g -O3" \
+                --with-zlib=1                   \
+                --download-fblaslapack=1        \
+                --download-ctetgen=1            \
+                --download-triangle=1           \
+                --download-hdf5=1               \
+                --download-mumps=1              \
+                --download-parmetis=1           \
+                --download-metis=1              \
+                --download-superlu=1            \
+                --download-hypre=1              \
+                --download-scalapack=1          \
+                --download-superlu_dist=1       \
+                --useThreads=1                  \
+                --download-superlu=1            \
+                --with-shared-libraries         \
+                --with-cxx-dialect=C++11     && \
+    make PETSC_DIR=/tmp/petsc-build/petsc-${PETSC_VERSION} PETSC_ARCH=arch-linux-c-opt all     && \
+    make PETSC_DIR=/tmp/petsc-build/petsc-${PETSC_VERSION} PETSC_ARCH=arch-linux-c-opt install && \
+    make PETSC_DIR=/usr/local/petsc PETSC_ARCH="" test && \
+    cd /tmp && \
+    rm -fr *
 
-# environment variable will internally run xvfb when glucifer is imported,
-#see /opt/underworld2/glucifer/__init__.py
-ENV GLUCIFER_USE_XVFB 1
+ENV PETSC_DIR=/usr/local/petsc
+ENV PATH=${PETSC_DIR}/bin:$PATH
 
-# Add a notebook profile.
-RUN mkdir -p -m 700 /root/.jupyter/ && \
-    echo "c.NotebookApp.ip = '*'" >> /root/.jupyter/jupyter_notebook_config.py
+# Hack for scons.. should be able to remove in future.
+ENV SCONS_LIB_DIR /usr/local/lib/python3.5/dist-packages/scons-3.0.1
 
-# Setup ipyparallel for mpi profile
-WORKDIR /root/.jupyter
-RUN ipcluster nbextension enable && \ 
-    ipython profile create --parallel --profile=mpi && \
-    echo "c.IPClusterEngines.engine_launcher_class = 'MPIEngineSetLauncher'" >> /root/.ipython/profile_mpi/ipcluster_config.py
-
-WORKDIR /
+ENV PYTHONPATH $PYTHONPATH:/usr/lib
+RUN CC=h5pcc HDF5_MPI="ON" HDF5_DIR=${PETSC_DIR} pip3 install --no-cache-dir --no-binary=h5py h5py && \
+    pip3 install --no-cache-dir petsc4py
 
 # expose notebook port
 EXPOSE 8888
 
+# Setup ipyparallel for mpi profile
+RUN ipcluster nbextension enable
 
+# Install Tini.. sedd https://github.com/ipython/ipython/issues/7062, https://github.com/jupyter/notebook/issues/334
+ENV TINI_VERSION v0.18.0
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
+RUN chmod +x /tini
+ENTRYPOINT ["/tini", "--"]
 
-# note we also use xvfb which is required for viz
-ENTRYPOINT ["/usr/local/bin/tini", "--"]
+# add default user jovyan and change permissions on NB_WORK
+ENV NB_USER jovyan
+RUN useradd -m -s /bin/bash -N jovyan
+USER $NB_USER
+ENV NB_WORK /home/$NB_USER
+
+RUN ipython profile create --parallel --profile=mpi && \
+    echo "c.IPClusterEngines.engine_launcher_class = 'MPIEngineSetLauncher'" >> $NB_WORK/.ipython/profile_mpi/ipcluster_config.py
+
+# copy this file over so that no password is required
+COPY --chown=jovyan:users ./docs/development/docker/base/jupyter_notebook_config.json $NB_WORK/.jupyter/jupyter_notebook_config.json
+
+# create a volume
+VOLUME $NB_WORK/workspace
+WORKDIR $NB_WORK
+
+# launch notebook
+CMD ["jupyter", "notebook", "--ip='0.0.0.0'", "--no-browser"]
 

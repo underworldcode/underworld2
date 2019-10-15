@@ -99,9 +99,10 @@
 						\
 		IArray*				incArray; \
 								 \
-	        int                             expanding;  \
-      Bool                             isAdvecting;     \
-      Swarm*                                mirroredSwarm;          /* swarm this swarm mirrors (if any) */
+		int                             expanding;  \
+		Bool                            isAdvecting;     \
+		Swarm*                          mirroredSwarm;          /* swarm this swarm mirrors (if any) */ \
+		Bool                            allow_parallel_nn;
 
 	struct Swarm { __Swarm };
 	
@@ -259,13 +260,13 @@
 		void*                           swarm,
 		Name                            nameExt,
 		int                             dataOffset,
-		Variable_DataType               dataType );
+		StgVariable_DataType               dataType );
 	
 	SwarmVariable* Swarm_NewVectorVariable( 
 		void*                           _swarm,
 		Name                            nameExt,
 		int                             dataOffset,
-		Variable_DataType               dataType,
+		StgVariable_DataType               dataType,
 		Index                           dataTypeCount,
 		...                         /* vector component names */ );
 
@@ -273,7 +274,7 @@
 
 	void Swarm_CheckCoordsAreFinite( void* swarm ) ;
 
-	void Swarm_AssignIndexWithinShape( void* swarm, void* _shape, Variable* variableToAssign, Index indexToAssign ) ;
+	void Swarm_AssignIndexWithinShape( void* swarm, void* _shape, StgVariable* variableToAssign, Index indexToAssign ) ;
 
 	/* --- Private Functions --- */
 	
@@ -302,7 +303,7 @@
 
     /** This function simply returns a variable wrapping the shadow particle swarm variable data */
     /** No new memory will be allocated. */
-    Variable* Swarm_GetShadowVariable( void* _swarm, Variable* variable );
+    StgVariable* Swarm_GetShadowVariable( void* _swarm, StgVariable* variable );
 
 #endif /* __StgDomain_Swarm_SwarmClass_h__ */
 

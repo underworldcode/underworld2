@@ -8,7 +8,7 @@
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 /* -*- C -*-  (not really, but good for syntax highlighting) */
 
-%module StGermain
+%module (package="libUnderworld.libUnderworldPy") StGermain
 
 %{
 /* Includes the header in the wrapper code */
@@ -24,10 +24,10 @@ extern "C" {
 
 %include "StGermain_Typemaps.i"
 
-int    Variable_GetValueAtInt(   Variable*, unsigned int, unsigned int);
-long   Variable_GetValueAtLong(  Variable*, unsigned int, unsigned int);
-float  Variable_GetValueAtFloat( Variable*, unsigned int, unsigned int);
-double Variable_GetValueAtDouble(Variable*, unsigned int, unsigned int);
+int    StgVariable_GetValueAtInt(   StgVariable*, unsigned int, unsigned int);
+long   StgVariable_GetValueAtLong(  StgVariable*, unsigned int, unsigned int);
+float  StgVariable_GetValueAtFloat( StgVariable*, unsigned int, unsigned int);
+double StgVariable_GetValueAtDouble(StgVariable*, unsigned int, unsigned int);
 
 %include "numpy.i"
 
@@ -45,6 +45,10 @@ import_array();
         SWIG_exception(SWIG_RuntimeError, e.what());
     }
 }
+
+
+%rename(CFalse) False;
+%rename(CTrue) True;
 
 %include "Base/Foundation/types.h"       
 %include "Base/Container/types.h"       

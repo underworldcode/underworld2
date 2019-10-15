@@ -31,19 +31,18 @@ types = {          'scalar' : ScalarType,
                    'tensor' : TensorType,
                     'array' : ArrayType   }
 
-class FunctionInput(underworld._stgermain.LeftOverParamsChecker):
+class FunctionInput(underworld._stgermain.LeftOverParamsChecker, metaclass = ABCMeta):
     """
     Objects that inherit from this class are able to act as inputs
     to function evaluation from python.
     """
-    __metaclass__ = ABCMeta
     @abstractmethod
     def _get_iterator(self):
         """ All children should define this method which returns the
         c iterator object """
         pass
 
-class Function(underworld._stgermain.LeftOverParamsChecker):
+class Function(underworld._stgermain.LeftOverParamsChecker, metaclass = ABCMeta):
     """
     Objects which inherit from this class provide user definable functions
     within Underworld.
@@ -57,13 +56,7 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
     * Provide an interface for users to evaluate functions directly within python, 
     utilising numpy arrays for input/output.
     """
-    __metaclass__ = ABCMeta
     def __init__(self, argument_fns, **kwargs):
-
-        # all of these guys must define a _fncself, as this will be expected by objects that receive functions.
-        if not hasattr(self, '_fncself'):
-            raise RuntimeError("Failure during object creation. Object with class \n'{}'\n".format(type(self)) \
-                             + "does not appear to have set a value for '_fncself'. Please contact developers.")
 
         self._underlyingDataItems = weakref.WeakSet()
         if argument_fns:
@@ -75,6 +68,52 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
 
         super(Function,self).__init__(**kwargs)
 
+    @property
+    def _fncself(self):
+        if not hasattr(self, '_fncselfpriv'):
+            return None
+        else:
+            return self._fncselfpriv
+    @_fncself.setter
+    def _fncself(self, _fncself):
+        self._fncselfpriv = _fncself
+        # now record the construction time stack to the c object so
+        # that if it fails, it can signal to the user where the
+        # constructor was called from (ie, which function failed).
+        # Walk stack in reversed order. Also, only list a few frames
+        # as ipython/jupyter stacks are quiet ugly.
+        # Construct within try context, as extracting stack info
+        # may not be robust, so better to continue quietly if things
+        # go awry.
+        import underworld as uw
+        from inspect import stack
+        rank = str(uw.mpi.rank)+'- '
+        strguy = "Issue utilising function of class '{}'".format(self.__class__.__name__)
+        try:
+            if uw._in_doctest():
+                # doctests don't play nice with stacks
+                stackstr = "   --- CONSTRUCTION TIME STACK ---"
+            else:
+                stackstr = ""
+                for item in stack()[2:7][::-1]:
+                    # if in notebook, just grab cell/line info
+                    if item[1][0:15] == '<ipython-input-':
+                        stackstr = "    Line {} of notebook cell {}".format(item[2], item[1].split("-")[2])
+                        if item[4]:
+                            stackstr += ":\n       " + item[4][0].lstrip()
+                        break
+                    stackstr += rank+item[1]+':'+str(item[2]) + ',\n'
+                    if item[4]:
+                        stackstr += "    " + item[4][0].lstrip()
+            strguy += " constructed at:\n{}\nError message:\n".format(str(stackstr))
+        except:
+            pass
+
+        self._fncself.set_pyfnerrorheader(strguy)
+
+
+
+    
     @staticmethod
     def convert(obj):
         """
@@ -124,7 +163,7 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
         if isinstance(obj, (Function, type(None)) ):
             return obj
         else:
-            import misc
+            import underworld.function.misc as misc
             try:
                 # first try convert directly to const type object
                 return misc.constant(obj)
@@ -174,7 +213,7 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
 
         Examples
         --------
-        >>> import misc
+        >>> import underworld.function.misc as misc
         >>> import numpy as np
         >>> three = misc.constant(3.)
         >>> four  = misc.constant(4.)
@@ -200,7 +239,7 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
 
         Examples
         --------
-        >>> import misc
+        >>> import underworld.function.misc as misc
         >>> import numpy as np
         >>> three = misc.constant(3.)
         >>> four  = misc.constant(4.)
@@ -224,7 +263,7 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
 
         Examples
         --------
-        >>> import misc
+        >>> import underworld.function.misc as misc
         >>> import numpy as np
         >>> four  = misc.constant(4.)
         >>> np.allclose( (5. - four).evaluate(0.), [[ 1.]]  )  # note we can evaluate anywhere because it's a constant
@@ -247,7 +286,7 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
 
         Examples
         --------
-        >>> import misc
+        >>> import underworld.function.misc as misc
         >>> import numpy as np
         >>> four = misc.constant(4.)
         >>> np.allclose( (-four).evaluate(0.), [[ -4.]]  )  # note we can evaluate anywhere because it's a constant
@@ -270,7 +309,7 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
 
         Examples
         --------
-        >>> import misc
+        >>> import underworld.function.misc as misc
         >>> import numpy as np
         >>> three = misc.constant(3.)
         >>> four  = misc.constant(4.)
@@ -281,7 +320,7 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
         return multiply( self, other )
     __rmul__ = __mul__
 
-    def __div__(self,other):
+    def __truediv__(self,other):
         """
         Operator overloading for '/' operation:
 
@@ -295,7 +334,7 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
 
         Examples
         --------
-        >>> import misc
+        >>> import underworld.function.misc as misc
         >>> import numpy as np
         >>> two  = misc.constant(2.)
         >>> four = misc.constant(4.)
@@ -305,7 +344,7 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
         """
         return divide( self, other )
 
-    def __rdiv__(self,other):
+    def __rtruediv__(self,other):
         return divide( other, self )
 
     def __pow__(self,other):
@@ -322,7 +361,7 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
 
         Examples
         --------
-        >>> import misc
+        >>> import underworld.function.misc as misc
         >>> import numpy as np
         >>> two  = misc.constant(2.)
         >>> four = misc.constant(4.)
@@ -347,7 +386,7 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
 
         Examples
         --------
-        >>> import misc
+        >>> import underworld.function.misc as misc
         >>> import numpy as np
         >>> two  = misc.constant(2.)
         >>> four = misc.constant(4.)
@@ -371,7 +410,7 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
 
         Examples
         --------
-        >>> import misc
+        >>> import underworld.function.misc as misc
         >>> import numpy as np
         >>> two  = misc.constant(2.)
         >>> (two <= two).evaluate()
@@ -394,7 +433,7 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
 
         Examples
         --------
-        >>> import misc
+        >>> import underworld.function.misc as misc
         >>> import numpy as np
         >>> two  = misc.constant(2.)
         >>> four = misc.constant(4.)
@@ -418,7 +457,7 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
 
         Examples
         --------
-        >>> import misc
+        >>> import underworld.function.misc as misc
         >>> import numpy as np
         >>> two  = misc.constant(2.)
         >>> (two >= two).evaluate()
@@ -441,7 +480,7 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
 
         Examples
         --------
-        >>> import misc
+        >>> import underworld.function.misc as misc
         >>> trueFn  = misc.constant(True)
         >>> falseFn = misc.constant(False)
         >>> (trueFn & falseFn).evaluate()
@@ -470,7 +509,7 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
 
         Examples
         --------
-        >>> import misc
+        >>> import underworld.function.misc as misc
         >>> trueFn  = misc.constant(True)
         >>> falseFn = misc.constant(False)
         >>> (trueFn | falseFn).evaluate()
@@ -502,7 +541,7 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
 
         Examples
         --------
-        >>> import misc
+        >>> import underworld.function.misc as misc
         >>> trueFn  = misc.constant(True)
         >>> falseFn = misc.constant(False)
         >>> (trueFn ^ falseFn).evaluate()
@@ -537,7 +576,7 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
 
         Examples
         --------
-        >>> import misc
+        >>> import underworld.function.misc as misc
         >>> fn  = misc.constant((2.,3.,4.))
         >>> np.allclose( fn[1].evaluate(0.), [[ 3.]]  )  # note we can evaluate anywhere because it's a constant
         True
@@ -732,19 +771,19 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
 
         Examples
         --------
-        >>> from . import _systemmath as math
+        >>> import math as sysmath
         >>> import underworld.function.math as fnmath
         >>> sinfn = fnmath.sin()
         
         Single evaluation:
         
-        >>> np.allclose( sinfn.evaluate(math.pi/4.), [[ 0.5*math.sqrt(2.)]]  )
+        >>> np.allclose( sinfn.evaluate(sysmath.pi/4.), [[ 0.5*sysmath.sqrt(2.)]]  )
         True
         
         Multiple evaluations
         
-        >>> input = (0.,math.pi/4.,2.*math.pi)
-        >>> np.allclose( sinfn.evaluate(input), [[ 0., 0.5*math.sqrt(2.), 0.]]  )
+        >>> input = (0.,sysmath.pi/4.,2.*sysmath.pi)
+        >>> np.allclose( sinfn.evaluate(input), [[ 0., 0.5*sysmath.sqrt(2.), 0.]]  )
         True
         
         
@@ -785,7 +824,16 @@ class Function(underworld._stgermain.LeftOverParamsChecker):
         
         >>> np.allclose( var.evaluate(mesh), var.evaluate(mesh.data))
         True
-        
+
+        Also note that if evaluating across an empty input, an empty output
+        is returned. Note that the shape and type of the output is always fixed
+        and may differ from the shape/type returned for an actual (non-empty)
+        evaluation. Usually this should not be an issue.
+        >>> var.evaluate(np.zeros((0,2)))
+        array([], shape=(0, 1), dtype=float64)
+        >>> var.evaluate(mesh.specialSets["Empty"])
+        array([], shape=(0, 1), dtype=float64)
+
         """
         if inputData is None:
             inputData = 0.
@@ -888,7 +936,7 @@ class multiply(Function):
 class divide(Function):
     """
     This class implements the quotient of two functions
-    It is invoked by the overload methods __div__ and __rdiv__.
+    It is invoked by the overload methods __truediv__ and __rdiv__.
     """
     def __init__(self, fn1, fn2, **kwargs):
         fn1fn = Function.convert( fn1 )

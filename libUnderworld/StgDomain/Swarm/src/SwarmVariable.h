@@ -30,7 +30,7 @@
 		\
 		/* Member info */ \
 		Swarm*											swarm; \
-		Variable*										variable; \
+		StgVariable*										variable; \
 		Index												dofCount; \
 		Dimension_Index								dim; \
 		SwarmVariable_Register*						swarmVariable_Register; \
@@ -38,7 +38,8 @@
       double                                    magnitudeMin;  \
       double                                    magnitudeMax;  \
       Bool                                      useCacheMaxMin; \
-      Bool                                      addToSwarmParticleExtension;
+      Bool                                      useKDTree; \
+	  Bool                                      addToSwarmParticleExtension;
 
 	struct SwarmVariable { __SwarmVariable };	
 
@@ -55,7 +56,7 @@
 		Name					name,
 		AbstractContext*	context,
 		Swarm*				swarm,
-		Variable*			variable,
+		StgVariable*			variable,
       Index					dofCount,
       Bool              addToSwarmParticleExtension);
 	
@@ -83,7 +84,7 @@
    void _SwarmVariable_Init( void* swarmVariable, 
                               AbstractContext* context, 
                               Swarm* swarm, 
-                              Variable* variable, 
+                              StgVariable* variable, 
                               Index dofCount,
                               Bool useCacheMaxMin,
                               Bool addToSwarmParticleExtension);

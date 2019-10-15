@@ -13,19 +13,20 @@ query data.
 """
 
 import libUnderworld.libUnderworldPy.Function as _cfn
-from _function import Function as _Function
+from ._function import Function as _Function
 
 class SafeMaths(_Function):
     """  
     This function checks if any of the following have been encountered during
-    the evaluation of its subject function:
+    the evaluation of its argument function:
     
     * Divide by zero
     * Invalid domain was used for evaluation
     * Value overflow errors
     * Value underflow errors
-    
-    If any of the above are encountered, and exception is thrown immediately. 
+
+    If any of the above are encountered, an exception is thrown at the conclusion
+    of the argument function evaluation.
     
     Parameters
     ----------
@@ -40,12 +41,14 @@ class SafeMaths(_Function):
     >>> zero  = fn.misc.constant(0.)
     >>> fn_dividebyzero = one/zero
     >>> safedividebyzero = fn.exception.SafeMaths(fn_dividebyzero)
-    >>> safedividebyzero.evaluate(0.)  # constant function, so eval anywhere
+    >>> safedividebyzero.evaluate()
     Traceback (most recent call last):
-    ...
-    RuntimeError: Divide by zero encountered while evaluating function.
-    
-    
+        ...
+    RuntimeError: Issue utilising function of class 'SafeMaths' constructed at:
+       --- CONSTRUCTION TIME STACK ---
+    Error message:
+    Floating point exception(s) encountered while evaluating SafeMaths argument function:
+       Divide by zero
     """
     
     def __init__(self, fn, *args, **kwargs):
@@ -94,21 +97,27 @@ class CustomException(_Function):
     >>> import underworld.function as fn
     >>> one = fn.misc.constant(1.)
     >>> passing_one = fn.exception.CustomException( one, (one < 2.) )
-    >>> passing_one.evaluate(0.) # constant function, so eval anywhere
+    >>> passing_one.evaluate()
     array([[ 1.]])
     >>> failing_one = fn.exception.CustomException( one, (one > 2.) )
-    >>> failing_one.evaluate(0.) # constant function, so eval anywhere
+    >>> failing_one.evaluate()
     Traceback (most recent call last):
     ...
-    RuntimeError: CustomException condition function has evaluated to False for current input!
+    RuntimeError: Issue utilising function of class 'CustomException' constructed at:
+       --- CONSTRUCTION TIME STACK ---
+    Error message:
+    CustomException condition function has evaluated to False for current input!
     
     Now with printing
 
     >>> failing_one_by_five = fn.exception.CustomException( one, (one*5. > 20.), one*5. )
-    >>> failing_one_by_five.evaluate(0.) # constant function, so eval anywhere
+    >>> failing_one_by_five.evaluate()
     Traceback (most recent call last):
     ...
-    RuntimeError: CustomException condition function has evaluated to False for current input!
+    RuntimeError: Issue utilising function of class 'CustomException' constructed at:
+       --- CONSTRUCTION TIME STACK ---
+    Error message:
+    CustomException condition function has evaluated to False for current input!
     Print function returns the following values (cast to double precision):
         ( 5 )
     

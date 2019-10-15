@@ -136,7 +136,6 @@ void _Mesh_CentroidAlgorithms_Destroy( void* _centroidAlgorithms, void* data ) {
     
     Mesh_CentroidAlgorithms* self = (Mesh_CentroidAlgorithms*)_centroidAlgorithms;
     
-    Stg_Component_Destroy( self->elMesh, data, False );  
     _Mesh_Algorithms_Destroy( self, data );
 }
 

@@ -8,7 +8,7 @@
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 #include "solKx.h"
 
-#ifdef MAIN
+#if 0
 int main( int argc, char **argv )
 {
 	int i,j;
@@ -43,24 +43,24 @@ int main( int argc, char **argv )
 
 
 
-/* this solution matches the stream function values in Zhong's paper for the few given viscosity constrasts */
+/* this solution matches the stream function values in Zhong's paper for the few given viscosity contrasts */
 void _Velic_solKx( 
 		const double pos[],
 		double _sigma, /* density */
-		int _m, double _n, /* wavelength in z, wavenumber in x */
+		double _n, double _m,  /* wavelength in z, wavenumber in x */
 		double _B, /* viscosity parameter */
 		double vel[], double* presssure, 
 		double total_stress[], double strain_rate[], double* viscosity )
 {
 	double Z;
 	double u1,u2,u3,u4,u5,u6;
-	double sum1,sum2,sum3,sum4,sum5,sum6,mag,sum7,x,z;
+	double sum1,sum2,sum3,sum4,sum5,sum6,sum7,x,z;
 	double sigma;
 	//int n;
 	double kn;
 	double _C1,_C2,_C3,_C4;
 	double B, Rp, UU, VV;
-	double rho,a,b,r,_aa,_bb,AA,BB,Rm,km,SS;
+	double rho,a,b,r,_aa,_bb,AA,BB,Rm,km;
         double num1,num2,num3,num4,den1;
 
         double t1,t2,t3,t4,t5,t6,t7,t8,t9,t10;
@@ -488,7 +488,7 @@ void _Velic_solKx(
         u6 = -((t18 * t20 + t34 * t35) * _C1 + (t34 * t20 - t18 * t35) * _C2 + (t51 * t20 + t61 * t35) * _C3 + (t61 * t20 - t51 * t35) * _C4 + (-0.4e1 * BB * B * t71 + 0.4e1 * AA * t74 * kn + t8 * AA * kn - AA * t80) * t84 + (-0.4e1 * AA * t71 * B - t8 * BB * kn - 0.4e1 * t74 * BB * kn - sigma + BB * t80) * t96) / km;
 	
 	
-	SS = sin(km*z)*(exp(UU*x)*(_C1*cos(Rm*x)+_C2*sin(Rm*x)) + exp(-VV*x)*(_C3*cos(Rm*x)+_C4*sin(Rm*x)) + exp(-2*x*B)*(AA*cos(kn*x)+BB*sin(kn*x)));
+//    SS = sin(km*z)*(exp(UU*x)*(_C1*cos(Rm*x)+_C2*sin(Rm*x)) + exp(-VV*x)*(_C3*cos(Rm*x)+_C4*sin(Rm*x)) + exp(-2*x*B)*(AA*cos(kn*x)+BB*sin(kn*x)));
 	
 	/* u1 = Vx, u2 = Vz, u3 = txx, u4 = tzx, u5 = pressure, u6 = tzz */
 	
@@ -509,9 +509,9 @@ void _Velic_solKx(
 	sum7 += rho;
 	
 	
-	mag=sqrt(u1*u1+u2*u2);
-	//printf("%0.7f %0.7f %0.7f %0.7f %0.7f %0.7f\n",x,z,u1,u2,mag,SS);
-	/*printf("%0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f\n",x,z,sum1,sum2,sum3,sum4,sum5,sum6,mag,sum7,SS);*/
+//    mag=sqrt(u1*u1+u2*u2);
+//    printf("%0.7f %0.7f %0.7f %0.7f %0.7f %0.7f\n",x,z,u1,u2,mag,SS);
+//    printf("%0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f\n",x,z,sum1,sum2,sum3,sum4,sum5,sum6,mag,sum7,SS);
 	
 	if ( viscosity != NULL ) {
 		*viscosity = Z;
@@ -536,10 +536,10 @@ void _Velic_solKx(
 		strain_rate[1] = (sum6+sum5)/(2.0*Z);
 		strain_rate[2] = (sum4)/(2.0*Z);
 	}
-	/* Value checks, could be cleaned up if needed. Julian Giordani 9-Oct-2006*/
-        if( fabs( sum5 - ( -0.5*(sum6+sum3) ) ) > 1e-5 ) {
-                assert(0);
-        }
+//    /* Value checks, could be cleaned up if needed. Julian Giordani 9-Oct-2006*/
+//        if( fabs( sum5 - ( -0.5*(sum6+sum3) ) ) > 1e-5 ) {
+//                assert(0);
+//        }
 }
 
 

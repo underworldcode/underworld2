@@ -7,7 +7,7 @@
 ##                                                                                   ##
 ##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
 import underworld._stgermain as _stgermain
-import _swarm
+from . import _swarm
 
 class DVC(_stgermain.StgCompoundComponent):
     """

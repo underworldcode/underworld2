@@ -20,6 +20,21 @@ import sys
 import shutil
 import os
 
+_dtypes_to_xdmf = {
+    '<f8': ("Float", "8"),
+    '<f4': ("Float", "4"),
+    '<f1': ("Float", "1"),
+    '<i8': ("Int", "8"),
+    '<i4': ("Int", "4"),
+    '<i2': ("Int", "2"),
+    '<i1': ("Int", "1"),
+    '<u8': ("UInt", "8"),
+    '<u4': ("UInt", "4"),
+    '<u2': ("UInt", "2"),
+    '<u1': ("UInt", "1"),
+}
+
+
 class Integral(_stgermain.StgCompoundComponent):
     """
     The `Integral` class constructs the volume integral
@@ -98,7 +113,7 @@ class Integral(_stgermain.StgCompoundComponent):
                 integrationSwarm = uw.swarm.GaussIntegrationSwarm(mesh)
             else:
                 self._cself.isSurfaceIntegral = True
-                if not surfaceIndexSet:
+                if surfaceIndexSet is None:
                     raise RuntimeError("For surface integration, you must provide a 'surfaceIndexSet'.")
                 if not isinstance(surfaceIndexSet, uw.mesh.FeMesh_IndexSet ):
                     raise TypeError("'surfaceIndexSet' must be of type 'FeMesh_IndexSet'.")
@@ -162,7 +177,7 @@ class Integral(_stgermain.StgCompoundComponent):
         result = []
         for ii in range(0,val.size()):
             result.append(val.value(ii))
-        return result
+        return np.array(result)
 
     @property
     def fn(self):
@@ -305,7 +320,7 @@ def _xdmfAttributeschema( varname, variableType, centering, globalcount, dof_cou
         
         out = "\t<Attribute Type=\"Tensor6\" Center=\"{0}\" Name=\"{1}\">\n".format(centering, varname)
         out += "\t<DataItem ItemType=\"Function\"  Dimensions=\"{0} 6\" Function=\"JOIN($0, $3, $4, $1, $5, $2)\">\n".format(globalcount)
-        for d_i in xrange(dof_count):
+        for d_i in range(dof_count):
             out += "\t\t<DataItem ItemType=\"HyperSlab\" Dimensions=\"{0} 1\" Name=\"x{1}\">\n".format(globalcount, d_i)
             out += "\t\t\t<DataItem Dimensions=\"3 2\" Format=\"XML\"> 0 {0} 1 1 {1} 1 </DataItem>\n".format(d_i, globalcount)
             out += "\t\t\t<DataItem Format=\"HDF\" Dimensions=\"{0} 1\">{1}:/data</DataItem>\n".format(globalcount, datafile )
@@ -318,7 +333,7 @@ def _xdmfAttributeschema( varname, variableType, centering, globalcount, dof_cou
         out += "\t</Attribute>\n"
     else:
         out = ""
-        for d_i in xrange(dof_count):
+        for d_i in range(dof_count):
             out += "\t<Attribute Type=\"Scalar\" Center=\"{0}\" Name=\"{1}-Component-{2}\">\n".format(centering, varname, d_i)
             out += "\t\t<DataItem ItemType=\"HyperSlab\" Dimensions=\"{0} 1\" >\n".format(globalcount)
             out += "\t\t\t<DataItem Dimensions=\"3 2\" Format=\"XML\"> 0 {0} 1 1 {1} 1 </DataItem>\n".format(offset, globalcount)
@@ -328,7 +343,25 @@ def _xdmfAttributeschema( varname, variableType, centering, globalcount, dof_cou
 
     return out
 
-def _swarmvarschema( varSavedData, varname ):
+def _xdmfAverageDiscontinuousElements(varname, variableType, globalCount,
+                                      nnodes, dataFile):
+
+    out = "\t<Attribute Type=\"Scalar\" Center=\"Cell\" Name=\"{0}\">\n".format(varname)
+    func = ["$" + str(val) + "/" + str(nnodes) for val in range(nnodes)]
+    func = "+".join(func)
+    out += "\t\t<DataItem ItemType=\"Function\" Dimensions=\"{0} 1\" Function=\"{1}\">\n".format(globalCount/nnodes, func)
+    for node in range(nnodes):
+        out += "\t\t\t<DataItem ItemType=\"HyperSlab\" Dimensions=\"{0} 1\" Name=\"P{1}\">\n".format(globalCount//nnodes, node)
+        out += "\t\t\t\t<DataItem Dimensions=\"3 2\" Format=\"XML\"> 0 0 {1} 1 {0} 1 </DataItem>\n".format(globalCount//nnodes, nnodes)
+        out += "\t\t\t\t\t<DataItem Format=\"HDF\" {0} Dimensions=\"{1} 1\">{2}:/data</DataItem>\n".format(variableType, globalCount//nnodes, dataFile)
+        out += "\t\t\t</DataItem>\n"
+    out += "\t\t</DataItem>\n"
+    out += "\t</Attribute>\n"
+
+    return out
+
+
+def _swarmvarschema(varSavedData, varname):
     """"
     Writes the attribute schema for a swarm variable xdmf file
 
@@ -353,18 +386,18 @@ def _swarmvarschema( varSavedData, varname ):
     # set parameters - serially open the varfilename
     h5f = h5py.File(name=varfilename, mode="r")
     dset = h5f.get('data')
-    if dset == None:
-        raise RuntimeError("Can't find 'data' in file '{}'.\n".format(filename))
+    if dset is None:
+        raise RuntimeError("Can't find 'data' in file '{}'.\n".format(varfilename))
     globalCount = len(dset)
     h5f.close()
 
     dof_count = var.data.shape[1]
-    variableType = "NumberType=\"Float\" Precision=\"8\""
+    vartype, precision = _dtypes_to_xdmf[var.data.dtype.str]
+    variableType = "NumberType=\"{0}\" Precision=\"{1}\"".format(vartype, precision)
 
-    out = _xdmfAttributeschema( varname, variableType, "Node", globalCount, dof_count, refName )
+    out = _xdmfAttributeschema(varname, variableType, "Node", globalCount, dof_count, refName )
 
     return out
-
 
 
 def _spacetimeschema( savedMeshFile, meshname, time ):
@@ -428,7 +461,7 @@ def _spacetimeschema( savedMeshFile, meshname, time ):
 
 
     # define each hyperslab element for the element-node map
-    for n_i in xrange(nodesPerElement):
+    for n_i in range(nodesPerElement):
         out += "\t\t<DataItem ItemType=\"HyperSlab\" Dimensions=\"{0} 1\" Name=\"C{1}\">\n".format( nGlobalEls, n_i )
         out += "\t\t\t\t<DataItem Dimensions=\"3 2\" Format=\"XML\"> 0 {0} 1 1 {1} 1 </DataItem>\n".format( n_i, nGlobalEls )
         out += "\t\t\t\t<DataItem Format=\"HDF\" NumberType=\"Int\" Dimensions=\"{0} 1\">{1}:/en_map</DataItem>\n".format( nGlobalEls, filename )
@@ -504,6 +537,13 @@ def _fieldschema(varSavedFile, varname ):
         centering = "Node"
     elif (nodesGlobal == mesh.elementsGlobal ):
         centering = "Cell"
+    elif field.mesh.elementType.upper() in ["DQ1", "DPC1"]:
+        nodes = {"DQ1": 4, "DPC1": 3}
+        nnodes = nodes[field.mesh.elementType.upper()]
+
+        return _xdmfAverageDiscontinuousElements(varname, variableType,
+                                                 nodesGlobal, nnodes,
+                                                 filename)
     else:
         raise RuntimeError("Can't output field '{}', unsupported elementType '{}'\n".format(varname, field.mesh.elementType) )
        # more conditions needed above for various pressure elementTypes???
@@ -633,7 +673,7 @@ def _nps_2norm( v, comm=MPI.COMM_WORLD ):
     lnorm_sq = np.linalg.norm(v)**2 # sq as this is 2-norm
 
     # comm all gather across procs
-    gnorm_sq = np.sum( comm.allgather(lnorm_sq) )
+    gnorm_sq = comm.allreduce(lnorm_sq,op=MPI.SUM)
 
     return np.sqrt(gnorm_sq)
 

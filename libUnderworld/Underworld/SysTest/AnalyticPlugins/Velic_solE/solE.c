@@ -10,17 +10,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
+#include "solE.h"
 
-
-void _Velic_solE( 
-		double pos[],
-		double _sigma,
-		double _eta_A, double _eta_B, 
-		double _z_c, double _km, int _n,
-		double vel[], double* presssure, 
-		double total_stress[], double strain_rate[] );
-
-#ifndef NOSHARED
+#if 0
 int main( int argc, char **argv )
 {
 	int i,j;
@@ -65,7 +57,7 @@ void _Velic_solE(
 {
 	double Z,ZA,ZB,u1,u2,u3,u4,pp,txx;
 	double u1a,u2a,u3a,u4a,u1b,u2b,u3b,u4b;
-	double sum1,sum2,sum3,sum4,sum5,sum6,mag,sum7,x,z;
+	double sum1,sum2,sum3,sum4,sum5,sum6,sum7,x,z;
 	double sigma;
 	int n;
 	double kn,km;
@@ -804,7 +796,7 @@ void _Velic_solE(
 	rho = -sigma*sin(km*z)*cos(n*M_PI*x); /* density */
 	sum7 += rho;
 	
-	mag=sqrt(sum1*sum1+sum2*sum2);
+	//mag=sqrt(sum1*sum1+sum2*sum2);
 	/****************************************************/
 	/****************************************************/
 //	printf("%0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f %0.7f\n",x,z,sum1,sum2,sum3,sum4,sum5,sum6,mag,sum7);
@@ -836,9 +828,9 @@ void _Velic_solE(
 		strain_rate[2] = (sum4)/(2.0*Z);
 	}
 	/* Value checks, could be cleaned up if needed. Julian Giordani 9-Oct-2006*/
-        if( fabs( sum5 - ( -0.5*(sum6+sum3) ) ) > 1e-5 ) {
-                assert(0);
-        }
+//        if( fabs( sum5 - ( -0.5*(sum6+sum3) ) ) > 1e-5 ) {
+//                assert(0);
+//        }
 	
 	
 	

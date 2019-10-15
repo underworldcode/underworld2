@@ -6,7 +6,7 @@
 #
 
 import re
-import conv, format
+from . import conv, format
 
 #
 # Class: OptionVariant
@@ -273,7 +273,7 @@ class OptionSet(object):
         opts += args
         for o in opts:
             if o.name in self.options:
-                raise RuntimeError, "Duplicate option name %s."%repr(o.name)
+                raise RuntimeError("Duplicate option name %s."%repr(o.name))
             self.options[o.name] = o
             self._order.append(o.name)
             for f in o._flg_to_var.iterkeys():

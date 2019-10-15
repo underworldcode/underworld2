@@ -1,1 +1,1 @@
-from Package import Package
+from .Package import Package

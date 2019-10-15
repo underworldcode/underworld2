@@ -10,16 +10,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
+#include "solHAy.h"
 
-void _Velic_solHAy( 
-		double pos[],
-		double _sigma, double _eta,
-		double _dx, double _dy,
-		double _x_0, double _y_0,
-		double vel[], double* presssure, 
-		double total_stress[], double strain_rate[] );
-
-#ifndef NOSHARED
+#if 0
 int main( int argc, char **argv )
 {
 	int i,j;
@@ -58,7 +51,7 @@ void _Velic_solHAy(
 		double total_stress[], double strain_rate[] )
 {
 	double Z,u1,u2,u3,u4,u5,u6;
-	double sum1,sum2,sum3,sum4,sum5,sum6,mag,sum7,sum8,sum9,sum10,x,y,z;
+	double sum1,sum2,sum3,sum4,sum5,sum6,sum7,sum8,sum9,sum10,x,y,z;
 	double sigma,dx,dy,x0,y0;
 	double del_rho;
 	int n,m;
@@ -189,8 +182,8 @@ void _Velic_solHAy(
 	//sum3 += -sigma*dx*(0.5-zc);/* n=0 (hydrostatic) tzz term */	    
 	//}
 	
-	mag=sqrt(sum1*sum1+sum2*sum2+sum3*sum3);
-	printf("%0.7g %0.7g %0.7g %0.7g %0.7g %0.7g %0.7g %0.7g %0.7g %0.7g %0.7g %0.7g %0.7g\n",x,z,sum1,sum2,sum3,sum4,sum5,sum6,sum7,sum8,sum9,sum10,mag);
+	//mag=sqrt(sum1*sum1+sum2*sum2+sum3*sum3);
+	//printf("%0.7g %0.7g %0.7g %0.7g %0.7g %0.7g %0.7g %0.7g %0.7g %0.7g %0.7g %0.7g %0.7g\n",x,z,sum1,sum2,sum3,sum4,sum5,sum6,sum7,sum8,sum9,sum10,mag);
 	
 	
 	/* Output */
@@ -220,9 +213,9 @@ void _Velic_solHAy(
 		strain_rate[5] = (sum5)/(2.0*Z);
 	}
 	/* Value checks, could be cleaned up if needed. Julian Giordani 9-Oct-2006*/
-        if( fabs( sum7 - ( -0.5*(sum8+sum9+sum4) ) ) > 1e-5 ) {
-                assert(0);
-        }
+//        if( fabs( sum7 - ( -0.5*(sum8+sum9+sum4) ) ) > 1e-5 ) {
+//                assert(0);
+//        }
 	
 	
 }

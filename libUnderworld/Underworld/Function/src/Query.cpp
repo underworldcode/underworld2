@@ -23,16 +23,22 @@ PyObject* Fn::Query::query( IOIterator& iterator )
     // get number of outputs
     iterator.reset();
     unsigned size = iterator.size();
-    if ( size == 0 )
-        return Py_None;
+    npy_intp dims[2];
+    if ( size == 0 )  // return empty numpy array if nothing to process
+    {
+        dims[0] = 0;
+        dims[1] = 1;
+        return PyArray_New(&PyArray_Type, 2, dims, NPY_DOUBLE, NULL, NULL, 8, (int)NULL, NULL);
+    }
     
     // grab the function and evaluate
     auto func = _function.getFunction( iterator.get() );
     auto io = func( iterator.get() );
     unsigned iosize = io->size();
 
-    npy_intp dims[2] = { size, iosize };
-    
+    dims[0] = size;
+    dims[1] = iosize;
+
     int numtype=-1;
     int sizeitem = io->_dataSize;
     if(         dynamic_cast<const IO_char*>(io) ){

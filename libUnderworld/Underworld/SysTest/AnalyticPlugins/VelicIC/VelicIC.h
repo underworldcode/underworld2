@@ -17,8 +17,8 @@ typedef struct {
 	__Codelet
 } Underworld_VelicIC;
 
-void Underworld_VelicIC_Sinusoidal( Node_LocalIndex node_lI, Variable_Index var_I, void* _context, void* _data, void* _result ) ;
-void Underworld_VelicIC_Hyperbolic( Node_LocalIndex node_lI, Variable_Index var_I, void* _context, void* _data, void* _result ) ;
+void Underworld_VelicIC_Sinusoidal( Node_LocalIndex node_lI, StgVariable_Index var_I, void* _context, void* _data, void* _result ) ;
+void Underworld_VelicIC_Hyperbolic( Node_LocalIndex node_lI, StgVariable_Index var_I, void* _context, void* _data, void* _result ) ;
 
 void _Underworld_VelicIC_AssignFromXML( void* component, Stg_ComponentFactory* cf, void* data ) ;
 void* _Underworld_VelicIC_DefaultNew( Name name ) ;

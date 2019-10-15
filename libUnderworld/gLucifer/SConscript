@@ -30,9 +30,6 @@ libs = ['gLucifer'] + env.get('LIBS', [])
 # afterwards.
 #
 
-#Database types header...
-env.Install('include/gLucifer/Viewer', 'Viewer/src/ViewerTypes.h')
-
 #
 # Process each directory uniformly.
 #
@@ -55,7 +52,7 @@ for d in dirs:
     inc_dir = 'include/gLucifer/' + d
 
     # Install the headers
-    hdrs = env.Install(inc_dir, Glob(src_dir + '/*.h'))
+    hdrs = env.Install(os.path.join(env['build_dir'],inc_dir), Glob(src_dir + '/*.h'))
 
     # Build our source files.
     srcs = Glob(src_dir + '/*.c') + Glob(src_dir + '/*.cpp')
@@ -64,7 +61,7 @@ for d in dirs:
         objs += env.SharedObject(src, CPPDEFINES=stg_cpp_defs)
 
 # Need to install headers from libgLucifer.
-env.Install('include/gLucifer', Glob('libgLucifer/src/*.h'))
+env.Install(os.path.join(env['build_dir'],'include/gLucifer'), Glob('libgLucifer/src/*.h'))
 
 #
 # Build plugins.
@@ -84,7 +81,7 @@ for d in dirs:
     mod_name = env['ESCAPE']('"' + ''.join(d.split('/')) + '"')
     cpp_defs = [('CURR_MODULE_NAME', mod_name)] + env.get('CPPDEFINES', []) 
 
-    env.Install('include/gLucifer/' + d.split('/')[-1], Glob(d + '/*.h'))
+    env.Install(os.path.join(env['build_dir'],'include/gLucifer/',d.split('/')[-1]), Glob(d + '/*.h'))
 
     srcs = Glob(d + '/*.c')
     cur_objs = env.SharedObject(srcs, CPPDEFINES=cpp_defs)

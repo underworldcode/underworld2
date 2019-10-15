@@ -10,10 +10,10 @@ import underworld as uw
 import underworld._stgermain as _stgermain
 import weakref
 import libUnderworld
-import _swarmvariable as svar
+from . import _swarmvariable as svar
 import abc
 
-class SwarmAbstract(_stgermain.StgCompoundComponent):
+class SwarmAbstract(_stgermain.StgCompoundComponent, metaclass = abc.ABCMeta):
     """
     The SwarmAbstract class supports particle like data structures. Each instance of 
     this class will store a set of unique particles. In this context, particles
@@ -35,7 +35,6 @@ class SwarmAbstract(_stgermain.StgCompoundComponent):
 
     _supportedDataTypes = ["char","short","int","float", "double"]
 
-    __metaclass__ = abc.ABCMeta
     def __init__(self, mesh, **kwargs):
 
         if not isinstance(mesh, uw.mesh.FeMesh):
@@ -178,7 +177,7 @@ class SwarmAbstract(_stgermain.StgCompoundComponent):
         
         Parameters
         ----------
-        layout: underworld.swarm.layouts.ParticleLayoutAbstract
+        layout: underworld.swarm.layouts._ParticleLayoutAbstract
             The layout which determines where particles are created and added.
 
         Example
@@ -193,7 +192,7 @@ class SwarmAbstract(_stgermain.StgCompoundComponent):
         """
         if self.particleLocalCount > 0:
             raise RuntimeError("Swarm appears to already have particles. \nLayouts can only be used with empty swarms.")
-        if not isinstance( layout, uw.swarm.layouts.ParticleLayoutAbstract ):
+        if not isinstance( layout, uw.swarm.layouts._ParticleLayoutAbstract ):
             raise TypeError("Provided layout does not appear to be a subclass of ParticleLayout")
 
         if not (self == layout.swarm):
@@ -261,4 +260,14 @@ class SwarmAbstract(_stgermain.StgCompoundComponent):
         for var in self._variables:
             var._clear_array()
 
-
+    @property
+    def data(self):
+        """
+        Returns
+        -------
+        numpy.ndarray
+            Numpy proxy array to underlying particle coordinate data. Note that
+            this is an alias to `swarm.particleCoordinates.data`.  Check
+            `SwarmVariable.data` for further info.
+        """
+        return self.particleCoordinates.data

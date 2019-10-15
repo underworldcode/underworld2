@@ -21,21 +21,6 @@ options = [
     ('--cxx', 'CXX', 'C++ compiler', None),
     ('--cflags', 'CFLAGS', 'Flags for the C compiler', None),
     ('--cxxflags', 'CXXFLAGS', 'Flags for the C compiler', '-std=c++11'),
-    ('--with-credo', 'with_credo', 'Enable the CREDO sys test system (default 1)', eval(os.getenv('WITH_CREDO','1')), 'int'),
-    ('--with-glucifer', 'with_glucifer', 'Enable gLucifer (default 1)', eval(os.getenv('WITH_GLUCIFER','1')), 'int'),
-    ('--with-graphics', 'with_graphics', 'Enable graphical output (default 1)', eval(os.getenv('WITH_GRAPHICS','1')), 'int'),
-    ('--with-geothermal', 'with_geothermal', 'Enable Geothermal repository compile', os.path.isdir("Geothermal"), 'int'),
-    ('--with-solvers', 'with_solvers', 'Enable Solvers repository compile', os.path.isdir("Solvers"), 'int'),
-    ('--with-importers', 'with_importers', 'Enable importer toolbox compile', os.path.isdir("ImportersToolbox"), 'int'),
-    ('--with-spherical', 'with_spherical', 'Enable Spherical repository compile', os.path.isdir("Spherical"), 'int'),
-    ('--with-viscoelastic', 'with_viscoelastic', 'Enable Viscoelastic repository compile', os.path.isdir("Viscoelastic"), 'int'),
-    ('--with-sdl', 'with_sdl', 'Enable SDL output (default 1)', eval(os.getenv('WITH_SDL','1')), 'int'),
-    ('--with-x11', 'with_x11', 'Enable X11 output (default 1)', eval(os.getenv('WITH_X11','1')), 'int'),
-    ('--with-cgl', 'with_cgl', 'Enable CGL output (default 1)', eval(os.getenv('WITH_CGL','1')), 'int'),
-    ('--with-glut', 'with_glut', 'Enable glut window (default 0)', eval(os.getenv('WITH_GLUT','0')), 'int'),
-    ('--with-png', 'with_png', 'Enable PNG output (default 1)', eval(os.getenv('WITH_PNG','1')), 'int'),
-    ('--with-avcodec', 'with_avcodec', 'Enable avcodec movie output (default 1)', eval(os.getenv('WITH_AVCODEC','0')), 'int'),
-    ('--with-gl2ps', 'with_gl2ps', 'Enable gl2ps vector output (default 1)', eval(os.getenv('WITH_GL2PS','1')), 'int'),
     ('--eptiming', 'eptiming', 'Enable Entry point timings: \'1\' will enable profiling for proc 0 only \'2\' will enable profiling per proc (previous setup)', 0, 'int'),
     ('--with-cautious-mode', 'with_cautious_mode', 'Enable extra checking on heavily used functions', 0, 'int'),
 ]
@@ -52,14 +37,15 @@ env.Tool('config', toolpath=['config'], options=options)
 #
 
 def UWExit( self ):
-   print '\n'
-   print '***************************************'
-   print 'If you require help, send the files:'
-   print '\tconfig.log'
-   print '\tconfig.cfg (if it exists)'
-   print 'to: development@underworldproject.org'
-   print '************************************'
-   env.Exit(1)
+    print('''
+*********************************************
+Error configuring Underworld2.
+If you require assistance, please create
+an issue at the Underworld github page:
+https://github.com/underworldcode/underworld2
+*********************************************
+    ''')
+    env.Exit(1)
 
 env.AddMethod( UWExit )
 
@@ -69,19 +55,10 @@ env.AddMethod( UWExit )
 
 env.UsePackage(packages.libm)
 env.UsePackage(packages.libXML2)
-env.UsePackage(packages.HDF5)
-env.UsePackage(packages.Mpi4py)
+env.UsePackage(packages.Mpi4pyPk)
 env.UsePackage(packages.H5py)
-env.UsePackage(packages.OpenGL)
-env.UsePackage(packages.SDL)
-env.UsePackage(packages.X11)
-env.UsePackage(packages.Glut)
-env.UsePackage(packages.CGL)
-env.UsePackage(packages.libPNG)
-env.UsePackage(packages.libavcodec)
-env.UsePackage(packages.gl2ps)
 env.UsePackage(packages.Python)
-env.UsePackage(packages.Numpy)
+env.UsePackage(packages.NumpyPk)
 env.UsePackage(packages.MPI)
 env.UsePackage(packages.PETSc)
 
@@ -171,9 +148,9 @@ if not (GetOption('help') or GetOption('clean')):
         #env.AppendUnique(LINKFLAGS=['-static'])
         Package.static = True
     else:
-        print 
-        print '****  ERROR ****'
-        print 'Invalid option \'--lib-type\''
+        print(""" 
+              **** ERROR ****
+              Invalid option \'--lib-type\' """)
         env.UWExit()
 
     # enable all warnings.
@@ -188,12 +165,14 @@ if not (GetOption('help') or GetOption('clean')):
     env.ConfigurePackage(packages.libm, required=False)
     env.ConfigurePackage(packages.libXML2)
     env.ConfigurePackage(packages.MPI)
-    env.ConfigurePackage(packages.HDF5, required=True)
     env.ConfigurePackage(packages.Python, required=True)
     env.ConfigurePackage(packages.PETSc)
-    env.ConfigurePackage(packages.Numpy, required=True)
-    env.ConfigurePackage(packages.Mpi4py, required=True)
+    env.ConfigurePackage(packages.NumpyPk, required=True)
+    env.ConfigurePackage(packages.Mpi4pyPk, required=True)
     env.ConfigurePackage(packages.H5py, required=True)
+
+    #Squelch swig memory warnings
+    env.MergeFlags('-DSWIG_PYTHON_SILENT_MEMLEAK')
 
     #Set debug and optimise settings last to override any from PETSc
     if env.get('optimisation_flag', None) == 'default':
@@ -213,61 +192,9 @@ if not (GetOption('help') or GetOption('clean')):
     # Save environment
     uw_env = env
 
-    # If we're building gLucifer viewer then we need some more packages.
-    viewer_env = 0
-    if env.get('with_graphics', None):
-
-        # Configure auxilliary gLucifer packages.
-        vis_env = base_env.Clone()
-        env = vis_env
-        if env.get('with_png'):
-            env.ConfigurePackage(packages.libPNG, required=False)
-        if env.get('with_avcodec'):
-            env.ConfigurePackage(packages.libavcodec, required=False)
-        if env.get('with_gl2ps'):
-            env.ConfigurePackage(packages.gl2ps, required=False)
-
-        #gLucifer output env
-        #Interactive capable viewer window
-        win = 0
-
-        # Try for CGL/Cocoa window if on Darwin...
-        cgl = 0
-        if platform.system() == 'Darwin' and env.get('with_cgl'):
-            cgl = win = env.ConfigurePackage(packages.CGL, required=False).result
-
-        #Try configuring X11
-        x11 = 0
-        if not win and env.get('with_x11'):
-            x11 = win = env.ConfigurePackage(packages.X11, required=False).result
-
-        # Try for Glut window
-        glut = 0
-        if not win and env.get('with_glut'):
-            glut = win = env.ConfigurePackage(packages.Glut, required=False).result
-
-        # Try for SDL window 
-        sdl = 0
-        if not win and env.get('with_sdl'):
-            sdl = win = env.ConfigurePackage(packages.SDL, required=False).result
-
-        #Configure OpenGL for X11
-        gl = 0
-        if x11 or platform.system() != 'Darwin':
-            gl = env.ConfigurePackage(packages.OpenGL, required=False).result
-
-        # OpenGL library required for viewer
-        if not (gl or cgl):
-            print '****  WARNING ****'
-            print 'OpenGL not found, graphics disabled, skipping LavaVu build'
-            uw_env['with_graphics'] = 0
-
     # Export the environments
     uw_env.SaveConfig()
     
-    if env.get('with_graphics'):
-        vis_env.SaveConfig('graphics.cfg')
-
 #
 # Create a test file. This file is the indicator of a successful build
 #
@@ -283,17 +210,16 @@ if not os.path.isfile(idfile):
     with open(idfile,"w+") as f:
         f.write("uwid = \'" + str(uuid.uuid4())  + "\'" )
 
-print
-print '*****************************************************************'
-print '* Successfully configured.                                      *'
-print '*                                                               *'
-print '* Note that basic usage metrics are dispatched when you use     *'
-print '* Underworld.                                                   *'
-print '* To opt out, set the UW_NO_USAGE_METRICS environment variable. *'
-print '* See PRIVACY.md for full details.                              *'
-print '*                                                               *'
-print '* Now run \'./compile.py\' to build.                                *'
-print '*****************************************************************'
-print
-
-
+print(
+'''
+*****************************************************************
+* Successfully configured.                                      *
+*                                                               *
+* Note that basic usage metrics are dispatched when you use     *
+* Underworld.                                                   *
+* To opt out, set the UW_NO_USAGE_METRICS environment variable. *
+* See PRIVACY.md for full details.                              *
+*                                                               *
+* Now run \'./compile.py\' to build.                            *
+*****************************************************************
+''')

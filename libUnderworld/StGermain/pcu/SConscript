@@ -11,7 +11,7 @@ env = env.Clone()
 env.Append(CPPPATH=env['build_dir'] + '/include/pcu')
 
 # Move headers to our build directory.
-env.Install('include/pcu', Glob('src/*.h'))
+env.Install(os.path.join(env['build_dir'],'include/pcu'), Glob('src/*.h'))
 
 # Build our source files.
 objs = env.SharedObject(Glob('src/*.c'))
