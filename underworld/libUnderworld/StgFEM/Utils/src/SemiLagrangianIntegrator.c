@@ -490,7 +490,9 @@ Bool BicubicInterpolator( FeVariable* feVariable, double* position, double* delt
       }
 
    }
-   else abort();
+   else { 
+     Journal_Firewall( 0, NULL, "Unable to process BicubicInterpolator() on the given element mesh");
+   }
 
    /* interpolate using Lagrange's formula */
    if( nDims == 2 ) {
@@ -599,45 +601,31 @@ void SemiLagrangianIntegrator_SolveNew( FeVariable* variableField, double dt, Fe
    
    Mesh_GetMinimumSeparation( feMesh, &minLength, delta );
 
-#if 0
-   FeMesh_GetElementNodes( feMesh, 0, variableField->inc );
-   nInc = IArray_GetSize( variableField->inc );
-
-   if( nInc % 3 == 0 ) /* quadratic elements */ {
-      for( dim_I = 0; dim_I < nDims; dim_I++ )
-         nNodes[dim_I] = 2 * sizes[dim_I] + 1;
-   } else {
-      for( dim_I = 0; dim_I < nDims; dim_I++ )
-         nNodes[dim_I] = sizes[dim_I] + 1;
-   }
-#endif
-
+   /* sync parallel field variables to get shadow values */
    FeVariable_SyncShadowValues( velocityField );
    FeVariable_SyncShadowValues( variableField );
    
    /* assume that the variable mesh is the same as the velocity mesh */
    for( node_I = 0; node_I < meshSize; node_I++ ) {
-      FeVariable_GetValueAtNode( variableField, node_I, var );
-
       /* find the position back in time (u*), x_i */
       x_0 = Mesh_GetVertex(feMesh, node_I);
       IntegrateRungeKutta( velocityField, dt, x_0, x_i );
 
       /* if the new x_i is "close" to original node, don't Bicubuic Interpolate, take original node value */
-      if( !SemiLagrangianIntegrator_PointsAreClose(x_i, x_0, nDims, 0, 1e-6*minLength) ) {
-        // if BicubicInerpolator returns false in means x_i was not in domain space
+      if( SemiLagrangianIntegrator_PointsAreClose(x_i, x_0, nDims, 0, 1e-6*minLength) ) {
+        FeVariable_GetValueAtNode( variableField, node_I, var );
+      } else {
         result = BicubicInterpolator(variableField, x_i, delta, nNodes, var);
 
-        // Commenting this out
-         if(result == False) {
-          printf("Interpolation failed, because position is not it domain space, using the original value on the vertex");
-         }
-        //
+        /* if BicubicInerpolator returns false, x_i was not found in domain space.
+         * Fallback to using the node value. */
+        if(result == False) { FeVariable_GetValueAtNode( variableField, node_I, var ); }
       }
 
       FeVariable_SetValueAtNode( varStarField, node_I, var );
    } 
 
+   /* sync interpolated values */
    FeVariable_SyncShadowValues( varStarField );
 }
 
