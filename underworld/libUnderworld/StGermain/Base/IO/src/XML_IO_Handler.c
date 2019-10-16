@@ -91,11 +91,7 @@ static const xmlChar* ROOT_NODE_NAME = (xmlChar*)"StGermainData";
 static const xmlChar* XML_VERSION = (xmlChar*)"1.0";
 
 static const xmlChar* SOURCE_ATTR = (const xmlChar*)"source";
-static const char* SOURCE_TAG = (const char*)"source";
 static const char* SOURCES_NAME = (const char*)"sources";
-static const xmlChar* VERSION_ATTR = (const xmlChar*)"version";
-static const xmlChar* BRANCH_ATTR = (const xmlChar*)"branch";
-static const xmlChar* PATH_ATTR = (const xmlChar*)"path";
 static const char* IDENTITY_NAME = (const char*)"identity";
 
 /* Column handling for ascii/binary data */
@@ -983,45 +979,13 @@ static void _XML_IO_Handler_ParseNodes(
    xmlChar*                _filename = NULL;
    xmlChar*                spaceStrippedFileName = NULL;
    xmlChar                 absolute[1024];
-   Index                   i, source_I;
+   Index                   i;
    char*                   dirTmp = NULL;
    char*                   dir = NULL;
    XML_IO_Handler*         newHandler = NULL;
-   char                    absoluteSource[1024];
-   char*                   sourceKey;
    char*                   processedSource = NULL;
-   Bool                    tooLong;
-   Dictionary_Entry_Value* entryValue = NULL;
-   Bool                    sourceFound = False;
 
-   if(source == NULL)
-      Stg_asprintf( &source, "Buffer" );
-   else if ( !FindFileInPathList( (char*)absoluteSource, (char*)source, self->searchPaths, self->searchPathsSize ) ) {
-      /* Let IO_Handler_ReadAllFromFile() display the errors for opening the file. */
-      strcpy( (char*)absoluteSource, (char*)source );
-   }
-
-   /* Make sure the source is not yet in the dictionary before adding it. */
-   for( source_I = 0; source_I < Dictionary_GetCount( self->currSources ); source_I++ ) {
-      entryValue = Dictionary_GetByIndex( self->currSources, source_I ); 
-
-      if( !strcmp( Dictionary_Entry_Value_AsString( entryValue ), absoluteSource ) ) {
-         sourceFound = True;
-      }
-   }
-
-   Stg_asprintf( &sourceKey, "%s-%d", SOURCE_TAG, (unsigned)Dictionary_GetCount( self->currSources ) );
-   tooLong = (strlen(absoluteSource) > 10) ;  // if too long, add to dictionary, else write in place
-
-   if( !tooLong )
-      Stg_asprintf( &processedSource, "%s", source );
-   else
-      Stg_asprintf( &processedSource, "%s", sourceKey );
-
-   /* Add the sources into the sources dictionary. */
-   if( !sourceFound && tooLong )
-      Dictionary_Add( self->currSources, sourceKey, Dictionary_Entry_Value_FromString( absoluteSource ) );
-
+   Stg_asprintf( &processedSource, "" );
    /* Process each node at this depth. Allow any order, and warn on unknown nodes. */
    while( cur != NULL ) {
       /* if parameter */
@@ -1123,6 +1087,7 @@ static void _XML_IO_Handler_ParseNodes(
       }
       cur = cur->next;
    }
+   free(processedSource);
 }
 
 static void _XML_IO_Handler_ParseElement(
@@ -2335,7 +2300,6 @@ static void _XML_IO_Handler_WriteMemberAscii( XML_IO_Handler* self, Dictionary_E
       case Dictionary_Entry_Value_Type_Bool:
          sprintf(buffer, "%*.*s", fw, precision, Dictionary_Entry_Value_AsString( member ) );   
          break;
-      
       default:
          Journal_Printf( 
             Journal_Register( Error_Type, XML_IO_Handler_Type ),
@@ -2343,6 +2307,7 @@ static void _XML_IO_Handler_WriteMemberAscii( XML_IO_Handler* self, Dictionary_E
             "Outputting as a string.\n", 
             self->resource );
          errorStr = Journal_Register( Error_Type, self->type );
+         string = Dictionary_Entry_Value_AsString( member );
          Journal_Firewall( ( strlen(string) + 1 < ASCII_LIST_STRING_BUFFER_SIZE ), errorStr,
             "Error- in %s: asked to write out a string of length %d, but this "
             "is greater than the max string buffer length of %d. Exiting.",
@@ -2350,7 +2315,7 @@ static void _XML_IO_Handler_WriteMemberAscii( XML_IO_Handler* self, Dictionary_E
          sprintf(buffer, "%*.*s ", self->writingFieldWidth[Dictionary_Entry_Value_Type_String],
             self->writingPrecision[Dictionary_Entry_Value_Type_String],
             Dictionary_Entry_Value_AsString( member ) );
-         break;
+         break;	 
    }
 }
 
