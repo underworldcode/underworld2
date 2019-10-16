@@ -391,6 +391,8 @@ Bool PeriodicUpdate( double* pos, double* min, double* max, unsigned dim, Bool i
   return False;
 }
 
+#define DBL_EPSILON = 2.2204460492503131e-016; /* smallest such that 1.0+DBL_EPSILON != 1.0 */
+
 Bool BicubicInterpolator( FeVariable* feVariable, double* position, double* delta, unsigned* nNodes, double* result ) {
   /* Calculated the BicubicInterpolation of the feVariable at position
    *
