@@ -16,13 +16,11 @@ The Underworld2 development is led by Louis Moresi and is a collaboration betwee
 
 Underworld is an open-source project licensed under LGPL-3. See `LICENSE.md` for details.
 
-[![Build Status](http://130.56.252.251:32779/buildStatus/icon?job=Underworld2/master)](http://130.56.252.251:32779/job/Underworld2/job/master/) Latest stable release (master branch) 
-
-[![Build Status](http://130.56.252.251:32779/buildStatus/icon?job=Underworld2/development)](http://130.56.252.251:32779/job/Underworld2/job/development/) Development branch
-
 The Underworld2 code can be cited via Zenodo. Details of the algorithms are citeable from the references listed at the bottom of this page.
  
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1436039.svg)](https://doi.org/10.5281/zenodo.1436039)
+
+Development branch [![Build Status](http://115.146.85.138:32779/buildStatus/icon?job=Underworld2%2Fdevelopment)](http://115.146.85.138:32779/job/Underworld2/job/development/)
 
 Documentation 
 -------------
