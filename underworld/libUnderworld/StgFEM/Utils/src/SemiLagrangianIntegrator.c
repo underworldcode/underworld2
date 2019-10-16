@@ -11,6 +11,7 @@
 #include <StGermain/StGermain.h>
 #include <StgDomain/StgDomain.h>
 #include <StgFEM/StgFEM.h>
+#include <petsc.h>
 
 #include "types.h"
 #include "SemiLagrangianIntegrator.h"
@@ -391,7 +392,6 @@ Bool PeriodicUpdate( double* pos, double* min, double* max, unsigned dim, Bool i
   return False;
 }
 
-#define DBL_EPSILON = 2.2204460492503131e-016; /* smallest such that 1.0+DBL_EPSILON != 1.0 */
 
 Bool BicubicInterpolator( FeVariable* feVariable, double* position, double* delta, unsigned* nNodes, double* result ) {
   /* Calculated the BicubicInterpolation of the feVariable at position
@@ -484,11 +484,11 @@ Bool BicubicInterpolator( FeVariable* feVariable, double* position, double* delt
       for( d_i=0; d_i<nDims; d_i++ ) {
         // if not in the left most cell 
         tmp = position[d_i] - (localMin[d_i]+delta[d_i]);
-        if( tmp > DBL_EPSILON ) ijk[d_i]--;
+        if( tmp > PETSC_MACHINE_EPSILON ) ijk[d_i]--;
         
         // if in the right most cell 
         tmp = position[d_i] - (localMax[d_i]-delta[d_i]);
-        if( tmp > DBL_EPSILON ) ijk[d_i]--;
+        if( tmp > PETSC_MACHINE_EPSILON ) ijk[d_i]--;
       }
 
    }
