@@ -4,7 +4,7 @@ Underworld is an open-source, parallel, particle-in-cell, finite element geodyna
 
 ### Licensing
 
-1) All Underworld source code is released under the LGPL-3 (See License-LGPLv3.md). This covers all
+1) All Underworld source code is released under the LGPL-3 (See LGPLv3.txt). This covers all
 files found in the `libUnderworld`, `underworld` and `glucifer` directories and any other material not explicitly
 identified under (2) below.
 
@@ -16,9 +16,10 @@ Underworld has been in development since 2003. It has always been released under
 
 ### Copyright holders
 
-Copyright Melbourne University, 2014-2015
-Copyright Monash University,    2003-2015
-Copyright VPAC,                 2003-2009
+Copyright Australian National University, 2019
+Copyright Melbourne University,           2014-2019
+Copyright Monash University,              2003-2019
+Copyright VPAC,                           2003-2009
 
 ### References
 

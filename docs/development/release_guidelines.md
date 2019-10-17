@@ -32,6 +32,7 @@ Documentation review
 	- make sure builds are passing
 	- review latest content
 * Review top level README.md.
+* Update the copyright information if necessary.
 ** Add new Binder link, and keep link to old Binder.
 * Generate/update change log (`CHANGES.md`).
 * Review cheat sheet contents.
