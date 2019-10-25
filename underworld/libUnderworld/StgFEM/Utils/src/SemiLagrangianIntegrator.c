@@ -392,7 +392,7 @@ Bool PeriodicUpdate( double* pos, double* min, double* max, unsigned dim, Bool i
   return False;
 }
 
-Bool New_BicubicInterpolator( FeVariable* feVariable, FeVariable* stencilField, double* position, unsigned* sizes, double* result ) {
+Bool BicubicInterpolatorNew( FeVariable* feVariable, FeVariable* stencilField, double* position, unsigned* sizes, double* result ) {
   /* Calculated the BicubicInterpolation of the feVariable at position
    *
    *
@@ -686,7 +686,7 @@ Bool SemiLagrangianIntegrator_PointsAreClose( double* p1, double* p2, int dim, d
 
 void SemiLagrangianIntegrator_BuildStaticStencils( FeVariable* stencilField ) {
   /* Function to build the node indices for cubic interpolation.
-   * The idea is to find a record the starting node indices for each interpolant stencil.
+   * The idea is to find a record the starting node indices (ijk) for each interpolant stencil.
    *
    * **NOTE**: We never want to Sync the stencilField FeVariable shadow values, ie.
    *  FeVariable_SyncShadowValues( stencilField ), because the field contains processor
@@ -704,43 +704,41 @@ void SemiLagrangianIntegrator_BuildStaticStencils( FeVariable* stencilField ) {
   nDims = Mesh_GetDimSize( feMesh );
   nNodes = Mesh_GetDomainSize( feMesh, MT_VERTEX );
   grid = (Grid**)ExtensionManager_Get( feMesh->info, feMesh, feMesh->vertGridId  );
+  sizes = Grid_GetSizes(*grid);
 
   for( n_i=0; n_i<nNodes; n_i++) {
+    /* For every domain node, build the stencil starting location, ijk */
     gNode_I = Mesh_DomainToGlobal( feMesh, MT_VERTEX, n_i );
-
     Grid_Lift( *grid, gNode_I, ijk );
-    sizes = Grid_GetSizes(*grid);
 
-    //if( strcmp(feMesh->feElFamily, "Q1") == 0 ) { /* only for a linear mesh */
-      /* for every dim try go one node back */
-      for(d_i=0; d_i<nDims; d_i++) {
-        if( ijk[d_i] == 0 ) { continue; } // skip if at 0
-        ijk[d_i]--;
-        try = Grid_Project( *grid, ijk );
-        // if not in domain space don't go back one
-        if( !Mesh_GlobalToDomain( feMesh, MT_VERTEX, try, &try ) ) {
-          ijk[d_i]++;
-        }
+    /* for every dim try go one node back */
+    for(d_i=0; d_i<nDims; d_i++) {
+      if( ijk[d_i] == 0 ) { continue; } // skip if at 0
+      ijk[d_i]--;
+      try = Grid_Project( *grid, ijk );
+      // if not in domain space don't go back one
+      if( !Mesh_GlobalToDomain( feMesh, MT_VERTEX, try, &try ) ) {
+        ijk[d_i]++;
       }
+    }
 
-      /* for every dim try go 3 forward */
-      for(d_i=0; d_i<nDims; d_i++) {
-        ijk[d_i]+=3;
+    /* for every dim try go 3 forward */
+    for(d_i=0; d_i<nDims; d_i++) {
+      ijk[d_i]+=3;
 
-        // if we go off the edge, go back one
-        if( ijk[d_i] >= sizes[d_i] ) {
-          ijk[d_i] -= 4;
-          continue;
-        }
-        try = Grid_Project( *grid, ijk );
-        // if not in domain space go back one, else reset
-        if( !Mesh_GlobalToDomain( feMesh, MT_VERTEX, try, &try ) ) {
-          ijk[d_i]-=4;
-        } else {
-          ijk[d_i]-=3;
-        }
+      // if we go off the edge, go back one
+      if( ijk[d_i] >= sizes[d_i] ) {
+        ijk[d_i] -= 4;
+        continue;
       }
-    //}
+      try = Grid_Project( *grid, ijk );
+      // if not in domain space go back one, else reset
+      if( !Mesh_GlobalToDomain( feMesh, MT_VERTEX, try, &try ) ) {
+        ijk[d_i]-=4;
+      } else {
+        ijk[d_i]-=3;
+      }
+    }
 
     double_ijk[0] = (double)ijk[0];
     double_ijk[1] = (double)ijk[1];
@@ -779,8 +777,7 @@ void SemiLagrangianIntegrator_SolveNew( FeVariable* variableField, double dt, Fe
       if( SemiLagrangianIntegrator_PointsAreClose(x_i, x_0, nDims, 0, 1e-6*minLength) ) {
         FeVariable_GetValueAtNode( variableField, node_I, var );
       } else {
-        result = New_BicubicInterpolator(variableField, stencilField, x_i, sizes, var);
-        //result = BicubicInterpolator(variableField, x_i, delta, sizes, var);
+        result = BicubicInterpolatorNew(variableField, stencilField, x_i, sizes, var);
 
         /* if BicubicInerpolator returns false, x_i was not found in domain space.
          * Fallback to using the node value. */
