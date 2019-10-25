@@ -36,7 +36,7 @@
    void* _SemiLagrangianIntegrator_DefaultNew( Name name );
 
     void SemiLagrangianIntegrator_BuildStaticStencils( FeVariable* stencilField );
-    Bool New_BicubicInterpolator( FeVariable* feVariable, FeVariable* stencilField, double* position, unsigned* sizes, double* result );
+    Bool BicubicInterpolatorNew( FeVariable* feVariable, FeVariable* stencilField, double* position, unsigned* sizes, double* result );
 
    /** Creation implementation */
 
