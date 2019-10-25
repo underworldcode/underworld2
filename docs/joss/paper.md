@@ -47,12 +47,6 @@ bibliography: paper.bib
 
 # Summary
 
---> This TODO needs to be resolved
-<!--
-TODO:
-* add Mirko to authors
--->
-
 The modelling of long time-scale solid-Earth processes presents challenges on many fronts. Typically a large range of length scales must be resolved, and computational requirements can easily go beyond a desktop machine's capability, even in 2-dimensions. 
 Rheological behaviours are diverse and modellers often wish to investigate a spectrum of dynamics. With this also comes the requirement of robust solution strategies capable of capturing a system of large dynamic range. Time dependent aspects of a model also require careful consideration such that numerical artefacts do not subsume the required signal. ``Underworld2`` is a Python API which seeks to meet these challenges, while also providing a friendly and intuitive interface to model development. 
 
@@ -66,7 +60,7 @@ A primary aim of `Underworld2` is to enable rapid and frictionless model develop
 <!-- It also prevents API bloat, helping to ensure the long term viability of the project. -->
 
 the second reference in the next paragraph does not work in the pdf
-Although not a requirement, `Underworld2` is very much at home within the Jupyter [@Kluyver:2016aa] environment. When coupled with the `lavavu` [owen_kaluza_2019_3348451] visualisation engine, users are able to interactively develop models piecemeal. Jupyter also provides a path to cloud amenability, with users accessing their model Notebooks via any standard web browser. Cloud based operation has been used successfully within teaching environments, and also enables our _live_ user documentation and examples. 
+Although not a requirement, `Underworld2` is very much at home within the Jupyter [@Kluyver:2016aa] environment. When coupled with the `lavavu` [@owen_kaluza_2019_3348451] visualisation engine, users are able to interactively develop models piecemeal. Jupyter also provides a path to cloud amenability, with users accessing their model Notebooks via any standard web browser. Cloud based operation has been used successfully within teaching environments, and also enables our _live_ user documentation and examples. 
 
 `Underworld2` is utilised by the `UWGeodynamics` Python module [@Beucher2019UWGeodynamics], which provides a more structured interface to geodynamics model construction. It has enabled numerous recent publications, including [@BeallEtAl2018], [@MeriauxEtAl2018] and [@SandifordMoresi2019].  
 
