@@ -164,6 +164,10 @@ class _SLCN_AdvectionDiffusion(object):
         self._mswarm = None
         self._mswarm_advector = None
 
+        # a data storage for the local node indices for cubic interpolation
+        # stencil.
+        self._stencilField = mesh.add_variable(nodeDofCount=3)
+
         # check input 'conditions' list is valid
         if not isinstance(conditions, (list, tuple)):
             conditionslist = []
@@ -257,7 +261,6 @@ class _SLCN_AdvectionDiffusion(object):
         self.sle = uw.utils.SolveLinearSystem(AMat=K, bVec=f, xVec=solv)
 
         # Check available interpolation packages
-
         self._mesh_interpolator_stripy = None
         self._mesh_interpolator_rbf = None
         self._cKDTree = None
@@ -274,8 +277,8 @@ class _SLCN_AdvectionDiffusion(object):
         except ImportError:
             self._have_rbf = False
 
-    def _integrate_original_version(self, dt, solve=True):
 
+    def _integrate_original_version(self, dt, solve=True):
         # use the given timestep
         self.fn_dt.value = dt
 
@@ -288,7 +291,8 @@ class _SLCN_AdvectionDiffusion(object):
             self.phiField._cself,
             dt,
             self.vField._cself,
-            self._phiStar._cself)
+            self._phiStar._cself,
+            self._stencilField )
 
         # solve T
 
@@ -723,12 +727,19 @@ class _SLCN_AdvectionDiffusion(object):
                 warnings.warn("fe is a low-order method for debugging use only", category=RuntimeWarning)
 
             if phiStar is None:
+                
+                if not hasattr(self, "_built_stencil"):
+                    uw.libUnderworld.StgFEM.SemiLagrangianIntegrator_BuildStaticStencils(self._stencilField._cself)
+                    self._built_stencil = True
+
+
                 # Extremely unreliable !!
                 uw.libUnderworld.StgFEM.SemiLagrangianIntegrator_SolveNew(
                     self.phiField._cself,
                     dt,
                     self.vField._cself,
-                    self._phiStar._cself)
+                    self._phiStar._cself,
+                    self._stencilField._cself )
 
             else:
                 self._phiStar.data[:] = phiStar.data[:]
