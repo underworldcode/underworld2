@@ -5,6 +5,7 @@ Release 2.9.0b []
 ---------------------------
 New:
 * Experimental `pip install` functionality.
+* The docker image is now built on Python 3.7 (previously Python 3.5).
  
 API changes:
 * `glucifer` module moved inside `underworld` and 
@@ -13,6 +14,16 @@ API changes:
 * `GLUCIFER_USE_XVFB` -> `UW_USE_XVFB`.
 * --prefix=/SOME/DIR now installs to /SOME/DIR/underworld
 * `test_basic.py` no longer sets PYTHONPATH
+
+Enhancements:
+* By default, UW was creating significant filesystem chatter in
+  generating debug messages for functions. This has been 
+  significantly reduced through judicious usage of Python
+  inspection tool. Also, as default, only root proc now generates
+  messages. Users can set the UW_WORLD_FUNC_MESSAGES (`export UW_WORLD_FUNC_MESSAGES=1`)
+  environment variable to have all procs report, or can set UW_NO_FUNC_MESSAGES
+  (`export UW_NO_FUNC_MESSAGES=1`) to disable these messages altogether
+  for minimal filesystem noise. 
 
 Release 2.8.1b [2019-09-02]
 ---------------------------

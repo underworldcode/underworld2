@@ -10,6 +10,16 @@
 Base module for the Function class. The Function class provides generic
 function construction capabilities.
 
+Note that often function objects are defined and used in different locations, 
+but function consistency is only able to be tested at usage time. As such, we
+record information about where a function was created to help direct the user 
+back to this definition during the debugging process. As default, this information
+is only recorded on the root process, although you may set the `UW_WORLD_FUNC_MESSAGES`
+environment variable if you require all processes to report this information. 
+Furthermore, you may disable messages altogether by setting `UW_NO_FUNC_MESSAGES`. This
+may be useful for production runs on large systems where the function messages can
+cause excessive filesystem chatter. 
+
 """
 
 import underworld
@@ -18,6 +28,20 @@ from abc import ABCMeta,abstractmethod
 import numpy as np
 import weakref
 import underworld as uw
+
+# grab snapshot of stack to compare with later
+# when trying to construct useful function debug info
+def _get_frame_list():
+    import inspect
+    frame = inspect.currentframe()
+    frames_list = []
+    while frame:
+        frames_list.append(frame)
+        frame = frame.f_back
+    return frames_list[1:]
+_frames_import = _get_frame_list()
+
+_stackdepth = -1
 
 ScalarType = _cfn.FunctionIO.Scalar
 VectorType = _cfn.FunctionIO.Vector
@@ -86,28 +110,71 @@ class Function(underworld._stgermain.LeftOverParamsChecker, metaclass = ABCMeta)
         # may not be robust, so better to continue quietly if things
         # go awry.
         import underworld as uw
-        from inspect import stack
-        rank = str(uw.mpi.rank)+'- '
+        from inspect import stack, getframeinfo
         strguy = "Issue utilising function of class '{}'".format(self.__class__.__name__)
-        try:
-            if uw._in_doctest():
-                # doctests don't play nice with stacks
-                stackstr = "   --- CONSTRUCTION TIME STACK ---"
-            else:
-                stackstr = ""
-                for item in stack()[2:7][::-1]:
-                    # if in notebook, just grab cell/line info
-                    if item[1][0:15] == '<ipython-input-':
-                        stackstr = "    Line {} of notebook cell {}".format(item[2], item[1].split("-")[2])
-                        if item[4]:
-                            stackstr += ":\n       " + item[4][0].lstrip()
-                        break
-                    stackstr += rank+item[1]+':'+str(item[2]) + ',\n'
-                    if item[4]:
-                        stackstr += "    " + item[4][0].lstrip()
-            strguy += " constructed at:\n{}\nError message:\n".format(str(stackstr))
-        except:
-            pass
+        import os
+        if 'UW_NO_FUNC_MESSAGES' in os.environ:
+            strguy += "\n\nFull function debug info disabled due to UW_NO_FUNC_MESSAGES environment flag.\n\nError message:\n"
+        else:
+            try:
+                if uw.mpi.rank == 0 or ('UW_WORLD_FUNC_MESSAGES' in os.environ):
+                    if uw._in_doctest():
+                        # doctests don't play nice with stacks
+                        stackstr = "   --- CONSTRUCTION TIME STACK ---"
+                    else:
+                        stackstr = ""
+
+                        # Determine interpreter base stack depth.
+                        # This will be >1 for ipython/jupyter
+                        frames = _get_frame_list()
+                        global _stackdepth
+                        if _stackdepth < 0:
+                            count = 0
+                            for index, frame in enumerate(frames[::-1]):
+                                if frame == _frames_import[::-1][index]:
+                                    count+=1
+                                else:
+                                    break
+                            _stackdepth = count
+
+                        # if in notebook, need better way to determine stack depth.
+                        # we'll walk the stack to find the first call from within IPy
+                        start = _stackdepth
+                        if uw.utils.is_kernel():
+                            import IPython
+                            ipyfile = IPython.__file__[:-11]
+                            newdepth = 0
+                            for frame in frames:
+                                frameinfo = getframeinfo(frame,0)  
+                                newdepth += 1
+                                if frameinfo[0].startswith(ipyfile): # find first ipy method depth
+                                    break
+                            start = len(frames) - newdepth + 2       # ok, set required start frame
+
+                        uwfile = uw.__file__[:-11]
+                        count = 0
+                        for frame in frames[-start::-1]:  # [ skip interpreter portion :: reverse order]
+                            frameinfo = getframeinfo(frame,0)  # get minimal info to avoid filesystem chatter via stat() calls
+                            # quit if inside UW API stack
+                            if frameinfo[0].startswith(uwfile):
+                                break 
+                            frameinfo = getframeinfo(frame,1)  # now get full info
+                            # if in notebook, just grab cell/line info
+                            if frameinfo[0][0:15] == '<ipython-input-':
+                                stackstr += "    Line {} of notebook cell {}".format(frameinfo[1], frameinfo[0].split("-")[2])
+                                if frameinfo[3]:
+                                    stackstr += ":\n       " + frameinfo[3][0].lstrip()
+                            else:
+                                stackstr += "{}- {}:{}:{}\n".format(uw.mpi.rank,count,frameinfo[0],str(frameinfo[1]))
+                                if frameinfo[3]:
+                                    stackstr += "    " + frameinfo[3][0].lstrip()
+                            count += 1
+                    strguy += " constructed at:\n\n{}\nError message:\n".format(str(stackstr))
+                else:
+                    strguy += "\n\nFor full func debug info on all processes, " \
+                            "set the UW_WORLD_FUNC_MESSAGES environment variable.\n\nError message:\n"
+            except:
+                raise
 
         self._fncself.set_pyfnerrorheader(strguy)
 

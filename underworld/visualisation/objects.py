@@ -216,7 +216,7 @@ class Drawing(_stgermain.StgCompoundComponent):
             print(self.properties["name"] + " Object lookup error: " + str(e))
             return
 
-        obj["geometry"] = self.geomType
+        obj["renderer"] = self.geomType
 
         output = False
         if len(self.vertices):

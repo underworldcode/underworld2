@@ -73,6 +73,9 @@ Bool FindFileInPathList( char* fullPath, char* filename, char** searchPaths, Ind
    
    assert( filename );
 
+   if( strcmp(filename, "Buffer")==0 )
+      return False;
+
    if( searchPaths && searchPathsSize > 0 && !(filename[0] == '/' || filename[0] == '~' || filename[0] == '.') ) {
       for( ii = searchPathsSize; ii > 0; ii-- ) {
          sprintf( fullPath, "%s/%s", searchPaths[ii-1], filename );

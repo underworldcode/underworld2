@@ -125,7 +125,7 @@ class _SetupClass(abc.ABCMeta):
 
         te = time.time()
         timing._decrementDepth()
-        timing.log_result( te-ts, cls.__name__+".__init__()")
+        timing.log_result( te-ts, cls.__name__+".__init__()", foffset=2)
         return self
 
 
@@ -321,7 +321,7 @@ def SetStgDictionaryFromPyDict( pyDict, stgDict ):
     root = _dictToUWElementTree(pyDict)
     xmlString = _ET.tostring(root, encoding = 'utf-8', method = 'xml').decode('utf-8')
     ioHandler = libUnderworld.StGermain.XML_IO_Handler_New()
-    libUnderworld.StGermain.IO_Handler_ReadAllFromBuffer( ioHandler, xmlString, stgDict, 'None' )
+    libUnderworld.StGermain.IO_Handler_ReadAllFromBuffer( ioHandler, xmlString, stgDict, None )
     libUnderworld.StGermain.Stg_Class_Delete( ioHandler )
 
     return

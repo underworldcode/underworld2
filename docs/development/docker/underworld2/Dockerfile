@@ -2,8 +2,7 @@
 # Typically:
 #    $  docker build -f docs/development/docker/underworld2/Dockerfile .
 
-
-FROM underworldcode/base@sha256:a49b6fd56575be1a4afbb5d4aa00c4fffeb7201806aed7b7d368bc4ca474ced4
+FROM underworldcode/base@sha256:ee52e70411e64a41ee1b0cd6853235c5937dbe3ab34325763dde9df0a2dfda61
 MAINTAINER https://github.com/underworldcode/
 
 USER root

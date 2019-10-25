@@ -29,7 +29,7 @@ export PYTHONPATH=/apps/underworld/opt/h5py/2.9.0-py36-ompi3/lib/python3.6/site-
 echo "*** New PYTHONPATH: $PYTHONPATH ***"
 
 # build and install code
-cd libUnderworld
+cd underworld/libUnderworld
 CONFIG="./configure.py  --python-dir=`python3-config --prefix` --with-debugging=0"
 echo "*** The config line is: ***"
 echo "$CONFIG"
@@ -37,7 +37,7 @@ echo ""
 
 $CONFIG
 ./compile.py -j4
-cd .. ; source updatePyPath.sh 
+cd ../.. ; source updatePyPath.sh 
 
 # some messages
 echo "#####################################################################"
