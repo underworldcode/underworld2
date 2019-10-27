@@ -3,6 +3,10 @@ Underworld 2
 
 ![Underworld Montage](docs/development/docs_generator/images/Montage.png)
 
+Security Update 
+---------------
+**Attention all Underworld Docker users**.  An important security update has been rolled out for all Underworld docker images. If you do not use Docker, this does not affect you. We urge all our Docker users to update their Underworld image. Image tags now refer to the updated images, so pulling `underworldcode/underworld2:2.8.1b` will replace your existing `underworldcode/underworld2:2.8.1b`. Users can therefore pull down a patched image for whichever Underworld version they are currently working with. However, as a matter of best practise, we recommend users update to the newest available Underworld image version whenever possible. Specifically, running Jupyter within Underworld containers will now require an authentication token. Please refer to the documentation pages for usage details. 
+
 
 [_Underworld 2_](http://www.underworldcode.org) is a Python API (Application Programming Interface) which provides functionality for the modelling of geodynamics processes, and is designed to work (almost) seamlessly across PC, cloud and HPC infrastructure. Primarily the API consists of a set of Python classes from which numerical geodynamics models may be constructed. The API also provides the tools required for inline analysis and data management. For scalability across multiprocessor platforms, MPI (Message Passing Interface) is leveraged, and for performant operation all heavy computations are executed within a statically typed layer. 
 
