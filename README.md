@@ -3,6 +3,10 @@ Underworld 2
 
 ![Underworld Montage](docs/development/docs_generator/images/Montage.png)
 
+Security Update 
+---------------
+**Attention all Underworld Docker users.  An important security update has been rolled out for all Underworld docker images. If you do not use Docker, this does not affect you. We urge all our Docker users to update their Underworld image. Image tags now refer to the updated images, so pulling `underworldcode/underworld2:2.8.1b` will replace your existing `underworldcode/underworld2:2.8.1b`. Users can therefore pull down a patched image for whichever Underworld version they are currently working with. However, as a matter of best practise, we recommend users update to the newest available Underworld image version whenever possible. Specifically, running Jupyter within Underworld containers will now require an authentication token. Please refer to the documentation pages ("User Guide"->"Getting Started") for usage details.**
+
 
 [_Underworld 2_](http://www.underworldcode.org) is a Python API (Application Programming Interface) which provides functionality for the modelling of geodynamics processes, and is designed to work (almost) seamlessly across PC, cloud and HPC infrastructure. Primarily the API consists of a set of Python classes from which numerical geodynamics models may be constructed. The API also provides the tools required for inline analysis and data management. For scalability across multiprocessor platforms, MPI (Message Passing Interface) is leveraged, and for performant operation all heavy computations are executed within a statically typed layer. 
 
@@ -16,7 +20,7 @@ The Underworld2 development is led by Louis Moresi and is a collaboration betwee
 
 Underworld is an open-source project licensed under LGPL-3. See `LICENSE.md` for details.
 
-[![Build Status](http://130.56.252.251:32779/buildStatus/icon?job=master)](http://130.56.252.251:32779/job/master/) Latest stable release (master branch) 
+[![Build Status](http://130.56.252.251:32779/buildStatus/icon?job=Underworld2/master)](http://130.56.252.251:32779/job/Underworld2/job/master/) Latest stable release (master branch) 
 
 [![Build Status](http://130.56.252.251:32779/buildStatus/icon?job=Underworld2/development)](http://130.56.252.251:32779/job/Underworld2/job/development/) Development branch
 
@@ -53,6 +57,11 @@ Getting Underworld2
 The Underworld2 Docker container is the recommended method of installation on Windows, Mac OSX and Linux. Native compilation is generally not recommended for personal computers, although may be necessary in HPC environments which do not support containerisation. 
 
 Please refer to the documentation site for further information.
+
+Note that we now have experimental support for `pip` installation on the dev branch, as well as extended installation documentation. 
+You can switch to the `development` branch of this repo via the GitHub interface above. Also note that the `development` branch has significant API changes, so please refer to the corresponding documentation and examples if using a `development` installation:
+
+https://underworld2.readthedocs.io/en/development/
 
 
 Directories

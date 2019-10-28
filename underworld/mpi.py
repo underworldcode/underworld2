@@ -12,11 +12,11 @@ the Message Passing Interface (MPI).
 
 Attributes
 ----------
-comm : mpi4py.MPI.Intracomm
+comm :: mpi4py.MPI.Intracomm
     The MPI communicator.
-rank : int
+rank :: int
     The rank of the current process.
-size : int
+size :: int
     The size of the pool of processes.
 
 """
@@ -42,8 +42,8 @@ class call_pattern():
     Parameters
     ----------
     pattern: str
-        'collective': Each process calls the block of code simultaneously.
-        'sequential': Processes call block of code in order of rank.
+        'collective', each process calls the block of code simultaneously.
+        'sequential', processes call block of code in order of rank.
 
     Example
     -------
