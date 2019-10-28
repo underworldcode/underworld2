@@ -1,7 +1,5 @@
 {
     "NotebookApp": {
-        "password": "",
-        "token": "",
 	"ip":"0.0.0.0"
     }
 }
