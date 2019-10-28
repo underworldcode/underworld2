@@ -22,7 +22,7 @@ ENV PYTHONPATH $PYTHONPATH:$UW2_DIR/lib
 RUN mkdir -p $UW2_TMP 
 
 # install lavavu
-RUN pip3 install --no-cache-dir lavavu
+RUN pip3 install --no-cache-dir lavavu==1.4.3
 
 # COPY UW - unfortunately, the version of docker at docker cloud does not support chown yet.
 COPY --chown=jovyan:users . $UW2_TMP
