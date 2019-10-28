@@ -1,6 +1,17 @@
 CHANGES: Underworld2
 =======================
 
+Release 2.8.2b [2019-10-28]
+---------------------------
+Docker:
+* Enable token authentication for Jupyter. 
+
+Documentation:
+* Update `README.md` to inform users of Jupter Authentication requirements. 
+* Update "Getting Started" page with info on how to use Authentication. 
+* Minor tweaks to documentation generator to handle static images.
+ 
+
 Release 2.8.1b [2019-09-02]
 ---------------------------
 Documentation:
