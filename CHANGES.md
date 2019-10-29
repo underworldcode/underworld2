@@ -1,6 +1,15 @@
 CHANGES: Underworld2
 =======================
 
+Release 2.8.3b [2019-10-29]
+---------------------------
+Docker:
+* Revert to compatible version of lavavu. 
+
+Documentation:
+* Update `README.md` to with new Jenkins url. 
+
+
 Release 2.8.2b [2019-10-28]
 ---------------------------
 Docker:
