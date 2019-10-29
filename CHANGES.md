@@ -4,7 +4,8 @@ CHANGES: Underworld2
 Release 2.8.3b [2019-10-29]
 ---------------------------
 Docker:
-* Revert to compatible version of lavavu. 
+* Revert to a compatible version of lavavu (v1.4.3).
+* Revert to a stable version of UWGeodynamics.
 
 Documentation:
 * Update `README.md` to with new Jenkins url. 
