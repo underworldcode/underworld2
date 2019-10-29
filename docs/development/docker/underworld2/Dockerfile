@@ -12,9 +12,6 @@ WORKDIR /tmp
 ENV UW2_TMP /tmp/underworld2
 RUN mkdir -p $UW2_TMP 
 
-# install lavavu
-RUN pip3 install --no-cache-dir lavavu
-
 # COPY UW
 COPY --chown=jovyan:users . $UW2_TMP
 COPY --chown=jovyan:users ./docs/ $NB_WORK/

@@ -73,7 +73,8 @@ RUN pip3 install -U setuptools  && \
         scipy \ 
         tabulate \
         mpi4py \
-        scons
+        scons \
+        lavavu
 
 WORKDIR /tmp/petsc-build
 ARG PETSC_VERSION="3.11.3"
