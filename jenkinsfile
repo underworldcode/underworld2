@@ -13,7 +13,7 @@ pipeline {
   
   environment {
     // define environment variable active within pipeline
-    CNAME = "${env.BRANCH_NAME}"
+    CNAME = "${env.GIT_COMMIT}"
     INAME = "${CNAME}"+"-container"
   }
 
