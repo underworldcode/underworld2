@@ -26,9 +26,9 @@ class AdvectionDiffusion(object):
     1. SUPG - The Streamline Upwind Petrov Galerkin method. [1]_
     2. SLCN - The Semi-Lagrangian Crank-Nicholson method. [2]_
 
-    SLCN is the preferred method for Q1, regular cartesian meshes. It is
-    quicker, less diffusive and unconditionally stable. SUPG is the legacy 
-    method is is currently more robust for deformed meshes.
+    SLCN is the preferred method for Q1 elements on a orthogonal cartesian meshes. It is
+    quicker, less diffusive and unconditionally stable. SUPG, the legacy method, is more robust 
+    for arbitrarily deformed meshes. Both methods are considered EXPERIMENTAL for non Q1 element meshes.
 
     Parameters
     ----------
@@ -96,9 +96,11 @@ class AdvectionDiffusion(object):
 
         if phiField.mesh.elementType != 'Q1':
             if allow_non_q1 == False:
-                raise ValueError("The 'phiField' is discretised on a {} mesh. This 'uw.system.AdvectionDiffusion' "
-                                 "implementation is only stable for a phiField discretised with a Q1 mesh. Either "
-                                 "create a Q1 mesh for the 'phiField' or, if you know what you're doing, override "
+                raise ValueError("The 'phiField' is discretised on a {} element mesh. The current 'uw.system.AdvectionDiffusion' "
+                                 "implementation is only stable for a phiField discretised with Q1 elements. "
+                                 "For non Q1 elements this implementation is EXPERIMENTAL, instability and implementation problems"
+                                 "have been observed." 
+                                 "Either create a Q1 mesh for the 'phiField' or, if you know what you're doing, override "
                                  "this error with the argument 'allow_non_q1=True' in the constructor.".format(phiField.mesh.elementType))
 
         if self.method == "SUPG":
@@ -308,7 +310,6 @@ class _SLCN_AdvectionDiffusion(object):
         from scipy.spatial import cKDTree
 
         mesh = self.phiField.mesh
-        surface = mesh.specialSets["surface_VertexSet"]
         phiStar = mesh.add_variable(dataType="double", nodeDofCount=1)
         phiNorm = mesh.add_variable(dataType="double", nodeDofCount=1)
 
@@ -341,6 +342,7 @@ class _SLCN_AdvectionDiffusion(object):
         mswarm_map.data[:] = mesh.data_elementNodes.reshape(-1, 1)[accepted]
         mswarm_home_pts.data[:] = mswarm.particleCoordinates.data[accepted]
 
+        #surface = mesh.specialSets["surface_VertexSet"]
         # mcoords[surface,:] *= 0.9999
         # localID = mswarm.add_particles_with_coordinates(mcoords)
         # not_accepted = np.where(localID == -1)
