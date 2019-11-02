@@ -64,7 +64,9 @@ WORKDIR /tmp/osmesa-build
 RUN wget ftp://ftp.freedesktop.org/pub/mesa/mesa-19.1.7.tar.xz
 RUN tar xvf mesa-19.1.7.tar.xz
 WORKDIR /tmp/osmesa-build/mesa-19.1.7
-RUN meson build/ -Dosmesa=gallium -Dgallium-drivers=swrast -Ddri-drivers= -Dvulkan-drivers= -Degl=false -Dgbm=false -Dgles1=false -Dgles2=false
+RUN meson build/ -Dosmesa=gallium -Dgallium-drivers=swrast -Ddri-drivers= \
+                 -Dvulkan-drivers= -Degl=false -Dgbm=false -Dgles1=false  \
+                 -Dgles2=false -Dbuildtype=release -Db_ndebug=true
 RUN meson configure build/ -Dprefix=/usr/local
 RUN ninja -C build/ -j5
 RUN ninja -C build/ install

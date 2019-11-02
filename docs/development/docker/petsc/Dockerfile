@@ -35,13 +35,13 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         cmake \ 
         libz-dev
 # build mpi
-ARG MPICH_VERSION="3.1.4"
-ARG MPICH_CONFIGURE_OPTIONS="--enable-fast=all,O3 --prefix=/usr/local"
-ARG MPICH_MAKE_OPTIONS="-j8"
 WORKDIR /tmp/mpich-build
+ARG MPICH_VERSION="3.1.4"
 RUN wget http://www.mpich.org/static/downloads/${MPICH_VERSION}/mpich-${MPICH_VERSION}.tar.gz 
 RUN  tar xvzf mpich-${MPICH_VERSION}.tar.gz 
 WORKDIR /tmp/mpich-build/mpich-${MPICH_VERSION}              
+ARG MPICH_CONFIGURE_OPTIONS="--prefix=/usr/local --enable-g=option=none --disable-debuginfo --enable-fast=O3,ndebug --without-timing --without-mpit-pvars"
+ARG MPICH_MAKE_OPTIONS="-j8"
 RUN ./configure ${MPICH_CONFIGURE_OPTIONS} 
 RUN make ${MPICH_MAKE_OPTIONS}             
 RUN make install                           
