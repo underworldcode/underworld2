@@ -86,15 +86,10 @@ RUN /usr/bin/pip3 freeze >/opt/requirements.txt
 RUN apt-mark showmanual >/opt/installed.txt
 
 FROM minimal
-# expose notebook port
 EXPOSE 8888
-# Setup ipyparallel for mpi profile
 RUN ipcluster nbextension enable
-# Install Tini.. sedd https://github.com/ipython/ipython/issues/7062, https://github.com/jupyter/notebook/issues/334
-ENV TINI_VERSION v0.18.0
-ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
+ADD https://github.com/krallin/tini/releases/download/v0.18.0/tini /tini
 RUN chmod +x /tini
-# # add default user jovyan and change permissions on NB_WORK
 ENV NB_USER jovyan
 RUN useradd -m -s /bin/bash -N jovyan
 USER $NB_USER
@@ -103,5 +98,4 @@ RUN ipython profile create --parallel --profile=mpi && \
     echo "c.IPClusterEngines.engine_launcher_class = 'MPIEngineSetLauncher'" >> $NB_WORK/.ipython/profile_mpi/ipcluster_config.py
 VOLUME $NB_WORK/workspace
 WORKDIR $NB_WORK
-# launch notebook
 CMD ["jupyter", "notebook", "--no-browser", "--ip='0.0.0.0'"]
