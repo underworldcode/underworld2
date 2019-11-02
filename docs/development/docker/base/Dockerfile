@@ -16,6 +16,7 @@ RUN apt-get update -qq \
         python3-tk \
         vim \
         less \
+        git
 &&  apt-get clean \
 &&  rm -rf /var/lib/apt/lists/*
 

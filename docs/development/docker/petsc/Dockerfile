@@ -32,7 +32,6 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         gfortran \
         python3-dev \
         libopenblas-dev \
-        cmake \ 
         libz-dev
 # build mpi
 WORKDIR /tmp/mpich-build
@@ -71,6 +70,8 @@ RUN python3 ./configure --with-debugging=0 --prefix=/usr/local \
                 --with-make-np=8
 RUN make PETSC_DIR=/tmp/petsc-build/petsc-${PETSC_VERSION} PETSC_ARCH=arch-linux-c-opt all
 RUN make PETSC_DIR=/tmp/petsc-build/petsc-${PETSC_VERSION} PETSC_ARCH=arch-linux-c-opt install
+# these aren't needed
+RUN rm -fr /usr/local/share/petsc 
 RUN pip3 install --no-cache-dir petsc4py
 # I don't think the petsc py package is needed. 
 RUN pip3 uninstall -y petsc  
