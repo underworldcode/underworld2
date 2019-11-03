@@ -1,13 +1,12 @@
 FROM debian:latest
 MAINTAINER https://github.com/underworldcode/
 ENV LANG=C.UTF-8
-ENV LANG=C.UTF-8
 # Setup some things in anticipation of virtualenvs
 ENV VIRTUAL_ENV=/opt/venv
 # The following ensures that the venv takes precedence if available
 ENV PATH=${VIRTUAL_ENV}/bin:$PATH
 # The following ensures that system packages are visible to venv Python, and vice versa
-ENV PYTHONPATH=$PYTHONPATH:/usr/lib/python3.7/site-packages:${VIRTUAL_ENV}/lib/python3.7/site-packages
+ENV PYTHONPATH=/usr/lib/python3.7/site-packages:${VIRTUAL_ENV}/lib/python3.7/site-packages
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/:/usr/local/lib/x86_64-linux-gnu/
 # install runtime requirements
 RUN apt-get update -qq \

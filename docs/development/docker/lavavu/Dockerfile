@@ -5,7 +5,7 @@ ENV VIRTUAL_ENV=/opt/venv
 # The following ensures that the venv takes precedence if available
 ENV PATH=${VIRTUAL_ENV}/bin:$PATH
 # The following ensures that system packages are visible to venv Python, and vice versa
-ENV PYTHONPATH=$PYTHONPATH:/usr/lib/python3.7/site-packages:${VIRTUAL_ENV}/lib/python3.7/site-packages
+ENV PYTHONPATH=/usr/lib/python3.7/site-packages:${VIRTUAL_ENV}/lib/python3.7/site-packages
 # install runtime requirements
 RUN apt-get update -qq \
 &&  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
@@ -75,7 +75,7 @@ ENV LV_INC_DIRS=/usr/local/include/
 ENV LV_OSMESA=1
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/x86_64-linux-gnu/
 # create a virtualenv to put new python modules
-RUN python3 -m virtualenv --python=/usr/bin/python3 ${VIRTUAL_ENV} 
+RUN /usr/bin/python3 -m virtualenv --python=/usr/bin/python3 ${VIRTUAL_ENV} 
 RUN pip3 install --no-cache-dir lavavu
 
 FROM base_runtime AS minimal

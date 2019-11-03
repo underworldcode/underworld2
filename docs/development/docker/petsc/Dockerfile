@@ -5,7 +5,7 @@ ENV VIRTUAL_ENV=/opt/venv
 # The following ensures that the venv takes precedence if available
 ENV PATH=${VIRTUAL_ENV}/bin:$PATH
 # The following ensures that system packages are visible to venv Python, and vice versa
-ENV PYTHONPATH=$PYTHONPATH:/usr/lib/python3.7/site-packages:${VIRTUAL_ENV}/lib/python3.7/site-packages
+ENV PYTHONPATH=/usr/lib/python3.7/site-packages:${VIRTUAL_ENV}/lib/python3.7/site-packages
 # install runtime requirements
 RUN apt-get update -qq \
 &&  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
@@ -46,7 +46,7 @@ RUN make ${MPICH_MAKE_OPTIONS}
 RUN make install                           
 RUN ldconfig
 # create venv now for forthcoming python packages
-RUN python3 -m virtualenv --python=/usr/bin/python3 ${VIRTUAL_ENV} 
+RUN /usr/lib/python3 -m virtualenv --python=/usr/bin/python3 ${VIRTUAL_ENV} 
 RUN pip3 install --no-cache-dir mpi4py
 # build petsc
 WORKDIR /tmp/petsc-build

@@ -19,8 +19,9 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         python3-dev \
         swig \
         libxml2-dev
-RUN pip3 install --no-cache-dir setuptools scons 
-RUN python3 -m virtualenv --python=/usr/bin/python3 ${VIRTUAL_ENV} 
+RUN PYTHONPATH= /usr/bin/pip3 install --no-cache-dir setuptools scons 
+# setup further virtualenv to avoid double copying back previous packages (h5py,mpi4py,etc)
+RUN /usr/bin/python3 -m virtualenv --python=/usr/bin/python3 ${VIRTUAL_ENV}
 WORKDIR /tmp
 COPY --chown=jovyan:users . /tmp/underworld2
 WORKDIR /tmp/underworld2
@@ -31,7 +32,7 @@ RUN git clone -b development https://github.com/underworldcode/UWGeodynamics.git
 RUN pip3 install --no-cache-dir UWGeodynamics/ 
 
 FROM base_runtime 
-COPY --from=build_base $VIRTUAL_ENV $VIRTUAL_ENV
+COPY --from=build_base ${VIRTUAL_ENV} ${VIRTUAL_ENV}
 # Record Python packages, but only record system packages! 
 # Not venv packages, which will be copied directly in.
 RUN PYTHONPATH= /usr/bin/pip3 freeze >/opt/requirements.txt
