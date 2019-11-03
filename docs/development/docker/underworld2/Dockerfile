@@ -8,10 +8,11 @@ MAINTAINER https://github.com/underworldcode/
 USER root
 RUN apt-get update -qq \
 &&  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
-        libxml2 
+        libxml2 \
+        libpython3.7
 
-# install build requirements
 FROM base_runtime AS build_base
+# install build requirements
 RUN apt-get update -qq 
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         build-essential \
@@ -33,14 +34,15 @@ FROM base_runtime
 COPY --from=build_base $VIRTUAL_ENV $VIRTUAL_ENV
 # Record Python packages, but only record system packages! 
 # Not venv packages, which will be copied directly in.
-RUN /usr/bin/pip3 freeze >/opt/requirements.txt
+RUN PYTHONPATH= /usr/bin/pip3 freeze >/opt/requirements.txt
 # Record manually install apt packages.
 RUN apt-mark showmanual >/opt/installed.txt
+# Copy in examples, tests, etc. 
 COPY --chown=jovyan:users ./docs/ $NB_WORK/
-COPY --from=build_base --chown=jovyan:users /tmp/UWGeodynamics/examples   $NB_WORK/UWGeodynamics/.
-COPY --from=build_base --chown=jovyan:users /tmp/UWGeodynamics/tutorials  $NB_WORK/UWGeodynamics/.
-COPY --from=build_base --chown=jovyan:users /tmp/UWGeodynamics/benchmarks $NB_WORK/UWGeodynamics/.
-COPY --from=build_base --chown=jovyan:users /tmp/UWGeodynamics/docs       $NB_WORK/UWGeodynamics/.
+COPY --from=build_base --chown=jovyan:users /tmp/UWGeodynamics/examples   $NB_WORK/UWGeodynamics/examples
+COPY --from=build_base --chown=jovyan:users /tmp/UWGeodynamics/tutorials  $NB_WORK/UWGeodynamics/tutorials
+COPY --from=build_base --chown=jovyan:users /tmp/UWGeodynamics/benchmarks $NB_WORK/UWGeodynamics/benchmarks
+COPY --from=build_base --chown=jovyan:users /tmp/UWGeodynamics/docs       $NB_WORK/UWGeodynamics/docs
 USER $NB_USER
 WORKDIR $NB_WORK
 

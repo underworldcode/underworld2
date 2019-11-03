@@ -1,10 +1,13 @@
 FROM debian:latest
 MAINTAINER https://github.com/underworldcode/
 ENV LANG=C.UTF-8
-# Put this here in anticipation of virtualenvs
+ENV LANG=C.UTF-8
+# Setup some things in anticipation of virtualenvs
 ENV VIRTUAL_ENV=/opt/venv
+# The following ensures that the venv takes precedence if available
 ENV PATH=${VIRTUAL_ENV}/bin:$PATH
-ENV PYTHONPATH=$PYTHONPATH:/usr/lib/python3.7/site-packages
+# The following ensures that system packages are visible to venv Python, and vice versa
+ENV PYTHONPATH=$PYTHONPATH:/usr/lib/python3.7/site-packages:${VIRTUAL_ENV}/lib/python3.7/site-packages
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/:/usr/local/lib/x86_64-linux-gnu/
 # install runtime requirements
 RUN apt-get update -qq \
@@ -42,8 +45,7 @@ RUN apt-get update \
 &&  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends $(awk '{print $1'} /opt/installed.txt) \
 &&  apt-get clean \
 &&  rm -rf /var/lib/apt/lists/* 
-RUN pip3 install -r /opt/requirements.txt
-ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/x86_64-linux-gnu/
+RUN PYTHONPATH= /usr/bin/pip3 install -r /opt/requirements.txt
 
 # mpi, petsc, mpi4py, petsc4py, h5py
 COPY --from=underworldcode/base:petsc /opt       /opt
@@ -52,7 +54,7 @@ RUN apt-get update \
 &&  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends $(awk '{print $1'} /opt/installed.txt) \
 &&  apt-get clean \
 &&  rm -rf /var/lib/apt/lists/* 
-RUN pip3 install -r /opt/requirements.txt
+RUN PYTHONPATH= /usr/bin/pip3 install -r /opt/requirements.txt
 
 EXPOSE 8888
 RUN ipcluster nbextension enable

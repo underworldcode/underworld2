@@ -1,9 +1,11 @@
 FROM debian:latest as base_runtime
 ENV LANG=C.UTF-8
-# Put this here in anticipation of virtualenvs
+# Setup some things in anticipation of virtualenvs
 ENV VIRTUAL_ENV=/opt/venv
+# The following ensures that the venv takes precedence if available
 ENV PATH=${VIRTUAL_ENV}/bin:$PATH
-ENV PYTHONPATH=$PYTHONPATH:/usr/lib/python3.7/site-packages
+# The following ensures that system packages are visible to venv Python, and vice versa
+ENV PYTHONPATH=$PYTHONPATH:/usr/lib/python3.7/site-packages:${VIRTUAL_ENV}/lib/python3.7/site-packages
 # install runtime requirements
 RUN apt-get update -qq \
 &&  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
@@ -12,7 +14,6 @@ RUN apt-get update -qq \
         python3-virtualenv \
         python3-pip \
         libopenblas-base
-# Install setuptools and wheel first, needed by plotly
 RUN pip3 install -U setuptools  \
 &&  pip3 install --no-cache-dir \
         packaging \
@@ -21,9 +22,8 @@ RUN pip3 install -U setuptools  \
         jupyter \
         ipyparallel 
 
-# install build requirements
 FROM base_runtime AS build_base
-RUN python3 -m virtualenv --python=/usr/bin/python3 ${VIRTUAL_ENV} 
+# install build requirements
 RUN apt-get update -qq 
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         build-essential \
@@ -45,6 +45,8 @@ RUN ./configure ${MPICH_CONFIGURE_OPTIONS}
 RUN make ${MPICH_MAKE_OPTIONS}             
 RUN make install                           
 RUN ldconfig
+# create venv now for forthcoming python packages
+RUN python3 -m virtualenv --python=/usr/bin/python3 ${VIRTUAL_ENV} 
 RUN pip3 install --no-cache-dir mpi4py
 # build petsc
 WORKDIR /tmp/petsc-build
@@ -72,6 +74,7 @@ RUN make PETSC_DIR=/tmp/petsc-build/petsc-${PETSC_VERSION} PETSC_ARCH=arch-linux
 RUN make PETSC_DIR=/tmp/petsc-build/petsc-${PETSC_VERSION} PETSC_ARCH=arch-linux-c-opt install
 # these aren't needed
 RUN rm -fr /usr/local/share/petsc 
+# build petsc4py
 RUN pip3 install --no-cache-dir petsc4py
 # I don't think the petsc py package is needed. 
 RUN pip3 uninstall -y petsc  
@@ -82,10 +85,11 @@ COPY --from=build_base $VIRTUAL_ENV $VIRTUAL_ENV
 COPY --from=build_base /usr/local /usr/local
 # Record Python packages, but only record system packages! 
 # Not venv packages, which will be copied directly in.
-RUN /usr/bin/pip3 freeze >/opt/requirements.txt
+RUN PYTHONPATH= /usr/bin/pip3 freeze >/opt/requirements.txt
 # Record manually install apt packages.
 RUN apt-mark showmanual >/opt/installed.txt
 
+# Add user environment
 FROM minimal
 EXPOSE 8888
 RUN ipcluster nbextension enable
