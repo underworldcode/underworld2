@@ -5,7 +5,13 @@ Release 2.9.0b []
 ---------------------------
 New:
 * Experimental `pip install` functionality.
-* The docker image is now built on Python 3.7 (previously Python 3.5).
+
+Docker:
+* Images now use Python 3.7 (previously Python 3.5).
+* Multi-stage builds used improved image creation.
+* Images minimised with unnecessary items removed. 
+* XVFB no longer required for image generation within
+  container.
  
 API changes:
 * `glucifer` module moved inside `underworld` and 
