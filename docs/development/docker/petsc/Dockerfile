@@ -46,7 +46,7 @@ RUN make ${MPICH_MAKE_OPTIONS}
 RUN make install                           
 RUN ldconfig
 # create venv now for forthcoming python packages
-RUN /usr/lib/python3 -m virtualenv --python=/usr/bin/python3 ${VIRTUAL_ENV} 
+RUN /usr/bin/python3 -m virtualenv --python=/usr/bin/python3 ${VIRTUAL_ENV} 
 RUN pip3 install --no-cache-dir mpi4py
 # build petsc
 WORKDIR /tmp/petsc-build
