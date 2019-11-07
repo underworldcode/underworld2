@@ -22,7 +22,7 @@ ENV PYTHONPATH $PYTHONPATH:$UW2_DIR/lib
 RUN mkdir -p $UW2_TMP 
 
 # install lavavu
-RUN pip3 install --no-cache-dir lavavu
+RUN pip3 install --no-cache-dir lavavu==1.4.3
 
 # COPY UW - unfortunately, the version of docker at docker cloud does not support chown yet.
 COPY --chown=jovyan:users . $UW2_TMP
@@ -41,7 +41,7 @@ RUN cd $UW2_TMP/libUnderworld && \
     chown -R $NB_USER:users $UW2_DIR
 
 # clone UWGeodynamics, install 
-RUN git clone -b development https://github.com/underworldcode/UWGeodynamics.git && \
+RUN git clone https://github.com/underworldcode/UWGeodynamics.git && \
     pip3 install --no-cache-dir UWGeodynamics/ && \
     mkdir $NB_WORK/UWGeodynamics && \
     mv ./UWGeodynamics/examples   $NB_WORK/UWGeodynamics/. && \

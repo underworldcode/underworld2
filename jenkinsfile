@@ -13,8 +13,8 @@ pipeline {
   
   environment {
     // define environment variable active within pipeline
-    CNAME = "test_uw2_container"
-    INAME = "underworld2:jdev"
+    CNAME = "${env.GIT_COMMIT}"
+    INAME = "${CNAME}"+"-container"
   }
 
   options {
