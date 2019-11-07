@@ -75,9 +75,10 @@ RUN make PETSC_DIR=/tmp/petsc-build/petsc-${PETSC_VERSION} PETSC_ARCH=arch-linux
 # these aren't needed
 RUN rm -fr /usr/local/share/petsc 
 # build petsc4py
+ENV PETSC_DIR=/usr/local
+ENV PETSC_ARCH=arch-linux-c-opt
 RUN pip3 install --no-cache-dir petsc4py
 # I don't think the petsc py package is needed. 
-RUN pip3 uninstall -y petsc  
 RUN CC=h5pcc HDF5_MPI="ON" HDF5_DIR=${PETSC_DIR} pip3 install --no-cache-dir --no-binary=h5py h5py
 
 FROM base_runtime AS minimal
