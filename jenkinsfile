@@ -31,7 +31,7 @@ pipeline {
         // print environment variables
         sh 'printenv'
         // build the docker
-        sh 'docker build --force-rm --no-cache -t ${INAME} -f ./docs/development/docker/underworld2/Dockerfile .'
+        sh 'docker build --pull --force-rm --no-cache -t ${INAME} -f ./docs/development/docker/underworld2/Dockerfile .'
       }
     }
     
