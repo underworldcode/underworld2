@@ -2,45 +2,48 @@
 # Typically:
 #    $  docker build -f docs/development/docker/underworld2/Dockerfile .
 
-FROM underworldcode/base@sha256:ee52e70411e64a41ee1b0cd6853235c5937dbe3ab34325763dde9df0a2dfda61
+FROM underworldcode/base as base_runtime
 MAINTAINER https://github.com/underworldcode/
-
+# install runtime requirements
 USER root
+RUN apt-get update -qq \
+&&  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
+        libxml2 \
+        libpython3.7
 
-# install underworld under /tmp.
+FROM base_runtime AS build_base
+# install build requirements
+RUN apt-get update -qq 
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
+        build-essential \
+        python3-dev \
+        swig \
+        libxml2-dev
+RUN PYTHONPATH= /usr/bin/pip3 install --no-cache-dir setuptools scons 
+# setup further virtualenv to avoid double copying back previous packages (h5py,mpi4py,etc)
+RUN /usr/bin/python3 -m virtualenv --python=/usr/bin/python3 ${VIRTUAL_ENV}
 WORKDIR /tmp
-ENV UW2_TMP /tmp/underworld2
-RUN mkdir -p $UW2_TMP 
-
-# install lavavu
-RUN pip3 install --no-cache-dir lavavu
-
-# COPY UW
-COPY --chown=jovyan:users . $UW2_TMP
-COPY --chown=jovyan:users ./docs/ $NB_WORK/
-
-# get underworld, compile and install underworld libs
-RUN cd $UW2_TMP && \
-    pip3 install -vvv . && \ 
-    cd /tmp                           && \
-    rm -rf *
-
+COPY --chown=jovyan:users . /tmp/underworld2
+WORKDIR /tmp/underworld2
+RUN pip3 install -vvv . 
 # clone UWGeodynamics, install 
-RUN git clone -b development https://github.com/underworldcode/UWGeodynamics.git && \
-    pip3 install --no-cache-dir UWGeodynamics/ && \
-    mkdir $NB_WORK/UWGeodynamics && \
-    mv ./UWGeodynamics/examples   $NB_WORK/UWGeodynamics/. && \
-    mv ./UWGeodynamics/tutorials  $NB_WORK/UWGeodynamics/. && \
-    mv ./UWGeodynamics/benchmarks $NB_WORK/UWGeodynamics/. && \
-    mv ./UWGeodynamics/docs       $NB_WORK/UWGeodynamics/  && \
-    rm -rf UWGeodynamics                                   && \
-    chown -R $NB_USER:users $NB_WORK/UWGeodynamics
+WORKDIR /tmp
+RUN git clone -b development https://github.com/underworldcode/UWGeodynamics.git 
+RUN pip3 install --no-cache-dir UWGeodynamics/ 
 
-# DISABLE FOLLOWING. We've reverted xvfb via entrypoint.
-# environment variable will internally run xvfb when uw.visualisation is imported,
-# see /opt/underworld2/visualisation/__init__.py
-# ENV UW_USE_XVFB 1
-
+FROM base_runtime 
+COPY --from=build_base ${VIRTUAL_ENV} ${VIRTUAL_ENV}
+# Record Python packages, but only record system packages! 
+# Not venv packages, which will be copied directly in.
+RUN PYTHONPATH= /usr/bin/pip3 freeze >/opt/requirements.txt
+# Record manually install apt packages.
+RUN apt-mark showmanual >/opt/installed.txt
+# Copy in examples, tests, etc. 
+COPY --chown=jovyan:users ./docs/ $NB_WORK/
+COPY --from=build_base --chown=jovyan:users /tmp/UWGeodynamics/examples   $NB_WORK/UWGeodynamics/examples
+COPY --from=build_base --chown=jovyan:users /tmp/UWGeodynamics/tutorials  $NB_WORK/UWGeodynamics/tutorials
+COPY --from=build_base --chown=jovyan:users /tmp/UWGeodynamics/benchmarks $NB_WORK/UWGeodynamics/benchmarks
+COPY --from=build_base --chown=jovyan:users /tmp/UWGeodynamics/docs       $NB_WORK/UWGeodynamics/docs
 USER $NB_USER
 WORKDIR $NB_WORK
 

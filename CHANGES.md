@@ -5,7 +5,13 @@ Release 2.9.0b []
 ---------------------------
 New:
 * Experimental `pip install` functionality.
-* The docker image is now built on Python 3.7 (previously Python 3.5).
+
+Docker:
+* Images now use Python 3.7 (previously Python 3.5).
+* Multi-stage builds used improved image creation.
+* Images minimised with unnecessary items removed. 
+* XVFB no longer required for image generation within
+  container.
  
 API changes:
 * `glucifer` module moved inside `underworld` and 
@@ -24,6 +30,16 @@ Enhancements:
   environment variable to have all procs report, or can set UW_NO_FUNC_MESSAGES
   (`export UW_NO_FUNC_MESSAGES=1`) to disable these messages altogether
   for minimal filesystem noise. 
+
+Release 2.8.2b [2019-10-28]
+---------------------------
+Docker:
+* Enable token authentication for Jupyter. 
+
+Documentation:
+* Update `README.md` to inform users of Jupter Authentication requirements. 
+* Update "Getting Started" page with info on how to use Authentication. 
+* Minor tweaks to documentation generator to handle static images.
 
 Release 2.8.1b [2019-09-02]
 ---------------------------
