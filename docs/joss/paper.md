@@ -16,11 +16,13 @@ authors:
   - name: Louis Moresi
     orcid: 0000-0003-3685-174X
     affiliation: "3,2"
+  - name: Romain Beucher  
+    orcid: 0000-0003-3891-5444
+    affiliation: 2
   - name: Owen Kaluza  
     orcid: 0000-0001-6303-5671
     affiliation: 1
-  - name: Romain Beucher  
-    orcid: 0000-0003-3891-5444
+  - name: Mirko Velic  
     affiliation: 2
   - name: Rebecca Farrington  
     orcid: 0000-0002-2594-6965
