@@ -35,6 +35,11 @@
    /* --- Constructor functions --- */
    void* _SemiLagrangianIntegrator_DefaultNew( Name name );
 
+   /* Functions for method update Nov2019 */
+   void SemiLagrangianIntegrator_BuildStaticStencils( FeVariable* stencilField );
+   Bool BicubicInterpolatorNew( FeVariable* feVariable, FeVariable* stencilField, double* position, unsigned* sizes, double* result );
+   void SemiLagrangianIntegrator_SolveNew( FeVariable* variableField, double dt, FeVariable* velocityField, FeVariable* varStarField, FeVariable* stencilField  );
+
    /** Creation implementation */
 
    #ifndef ZERO
@@ -87,5 +92,4 @@
 
    /** Solve:- calculate the new values for all solution vectors in the system. */
    void SemiLagrangianIntegrator_Solve( void* slIntegrator, FeVariable* variableField, FeVariable* variableFieldPrime );
-   void SemiLagrangianIntegrator_SolveNew( FeVariable* variableField, double dt, FeVariable* velocityField, FeVariable* varStarField  );
 #endif
