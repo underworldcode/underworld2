@@ -30,6 +30,8 @@ Enhancements:
   environment variable to have all procs report, or can set UW_NO_FUNC_MESSAGES
   (`export UW_NO_FUNC_MESSAGES=1`) to disable these messages altogether
   for minimal filesystem noise. 
+* Complete `long` type SwarmVariable implementation. Specifically, `evaluate()` 
+  methods now work for this data type. 
 
 Release 2.8.2b [2019-10-28]
 ---------------------------
