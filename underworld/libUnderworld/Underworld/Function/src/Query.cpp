@@ -53,6 +53,8 @@ PyObject* Fn::Query::query( IOIterator& iterator )
         numtype = NPY_DOUBLE;
     } else if ( dynamic_cast<const IO_bool*>(io) ){
         numtype = NPY_BOOL;
+    } else if ( dynamic_cast<const IO_long*>(io) ){
+        numtype = NPY_LONG;
     } else
         throw std::invalid_argument("Query function does not appear to produce a valid output.");
     

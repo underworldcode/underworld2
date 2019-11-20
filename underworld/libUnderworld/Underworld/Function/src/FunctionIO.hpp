@@ -60,6 +60,7 @@ class FunctionIO
         virtual const short    at( short    ignore, size_t idx ) const = 0;
         virtual const unsigned at( unsigned ignore, size_t idx ) const = 0;
         virtual const int      at( int      ignore, size_t idx ) const = 0;
+        virtual const long     at( long     ignore, size_t idx ) const = 0;
         virtual const float    at( float    ignore, size_t idx ) const = 0;
         virtual const double   at( double   ignore, size_t idx ) const = 0;
 };
@@ -121,6 +122,7 @@ class FunctionIOTyped : public FunctionIO
         virtual const short    at( short    ignore, size_t idx ) const { return (short   ) at(idx); };
         virtual const unsigned at( unsigned ignore, size_t idx ) const { return (unsigned) at(idx); };
         virtual const int      at( int      ignore, size_t idx ) const { return (int     ) at(idx); };
+        virtual const long     at( long     ignore, size_t idx ) const { return (long    ) at(idx); };
         virtual const float    at( float    ignore, size_t idx ) const { return (float   ) at(idx); };
         virtual const double   at( double   ignore, size_t idx ) const { return (double  ) at(idx); };
 };
@@ -131,6 +133,7 @@ typedef FunctionIOTyped<char,char>     IO_char;
 typedef FunctionIOTyped<short,short>    IO_short;
 typedef FunctionIOTyped<unsigned,unsigned> IO_unsigned;
 typedef FunctionIOTyped<int,int>      IO_int;
+typedef FunctionIOTyped<long,long>      IO_long;
 typedef FunctionIOTyped<float,float>    IO_float;
 typedef FunctionIOTyped<double,double>   IO_double;
 

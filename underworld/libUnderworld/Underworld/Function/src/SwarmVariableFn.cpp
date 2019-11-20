@@ -43,6 +43,9 @@ Fn::SwarmVariableFn::func Fn::SwarmVariableFn::getFunction( IOsptr sample_input 
 		case StgVariable_DataType_Int:
             _output_sp = std::make_shared<IO_int>(swarmvar->dofCount, FunctionIO::Array);
 			break;
+		case StgVariable_DataType_Long:
+            _output_sp = std::make_shared<IO_long>(swarmvar->dofCount, FunctionIO::Array);
+			break;
 		case StgVariable_DataType_Char:
             _output_sp = std::make_shared<IO_char>(swarmvar->dofCount, FunctionIO::Array);
 			break;
