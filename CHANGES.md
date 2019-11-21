@@ -5,6 +5,7 @@ Release 2.9.0b []
 ---------------------------
 New:
 * Experimental `pip install` functionality.
+* Installation instructions for NCI Gadi.
 
 Docker:
 * Images now use Python 3.7 (previously Python 3.5).
