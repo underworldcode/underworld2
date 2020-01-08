@@ -1,8 +1,6 @@
 #!/bin/sh
 # This script installs underworld on gadi.nci.org.au
-# Note that this script assumes petsc is installed somewhere, and that
-# the `PETSC_DIR` environment variable is set. 
-# Also, swig will need to be installed and in your path.
+# Note, swig will need to be installed and in your path.
 # Also, swig4 doesn't seem to work, so use swig3. 
 # 
 # Usage:
@@ -24,7 +22,7 @@ git checkout $1  # checkout the requested version
 
 # setup modules
 module purge
-RUN_MODS='pbs openmpi/3.1.4 hdf5/1.10.5p python3/3.7.4'
+RUN_MODS='pbs openmpi/3.1.4 hdf5/1.10.5p python3/3.7.4 petsc/3.12.2'
 module load scons/3.1.1 $RUN_MODS
 echo "*** The module list is: ***"
 module list -t
@@ -33,6 +31,7 @@ module list -t
 pip3 install --user mpi4py
 
 # build h5py
+export HDF5_VERSION=1.10.5
 CC=h5pcc HDF5_MPI="ON" pip3 install --user --no-cache-dir --global-option=build_ext --global-option="-L/apps/hdf5/1.10.5p/lib/ompi3/" --no-binary=h5py h5py
 
 # build and install code
