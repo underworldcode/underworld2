@@ -61,7 +61,7 @@ A primary aim of `Underworld2` is to enable rapid and frictionless model develop
 
 <!-- It also prevents API bloat, helping to ensure the long term viability of the project. -->
 
-Although not a requirement, `Underworld2` is very much at home within the Jupyter [@Kluyver:2016aa] environment. When coupled with the `lavavu` [@owen_kaluza_2019_3348451] visualisation engine, users are able to interactively develop models piecemeal. Jupyter also provides a path to cloud amenability, with users accessing their model Notebooks via any standard web browser. Cloud based operation has been used successfully within teaching environments, and also enables our _live_ user documentation and examples. 
+Although not a requirement, `Underworld2` is very much at home within the Jupyter [@Kluyver:2016aa] environment. When coupled with the `LavaVu` [@owen_kaluza_2019_3348451] visualisation engine, users are able to interactively develop models piecemeal. Jupyter also provides a path to cloud amenability, with users accessing their model Notebooks via any standard web browser. Cloud based operation has been used successfully within teaching environments, and also enables our _live_ user documentation and examples. 
 
 `Underworld2` is utilised by the `UWGeodynamics` Python module [@Beucher2019UWGeodynamics], which provides a more structured interface to geodynamics model construction. It has enabled numerous recent publications, including @BeallEtAl2018, @MeriauxEtAl2018 and @SandifordMoresi2019.  
 
