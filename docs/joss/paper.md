@@ -67,6 +67,6 @@ Although not a requirement, `Underworld2` is very much at home within the Jupyte
 
 # Acknowledgements
 
-Underworld development was financially supported by AuScope (https://www.auscope.org.au) and the Australian Government via the National Collaborative Research Infrastructure Strategy (NCRIS). Additional funding for specific improvements and additional functionality has come from the Australian Research Council (http://www.arc.gov.au). The Python tool-kit was funded by the NeCTAR e-research_tools program.
+Underworld development was financially supported by AuScope (https://www.auscope.org.au) and the Australian Government via the National Collaborative Research Infrastructure Strategy (NCRIS). Additional funding for specific improvements and additional functionality has come from the Australian Research Council (http://www.arc.gov.au). The Python tool-kit was funded by the NeCTAR eResearch Tools program.
 
 # References
