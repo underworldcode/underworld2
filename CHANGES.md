@@ -1,7 +1,7 @@
 CHANGES: Underworld2
 =======================
 
-Release 2.9.0b []
+Release 2.9.0 [2020-01-20]
 ---------------------------
 New:
 * Experimental `pip install` functionality.
@@ -33,6 +33,16 @@ Enhancements:
   for minimal filesystem noise. 
 * Complete `long` type SwarmVariable implementation. Specifically, `evaluate()` 
   methods now work for this data type. 
+
+
+Release 2.8.3b [2019-10-29]
+---------------------------
+Docker:
+* Revert to a compatible version of lavavu (v1.4.3).
+* Revert to a stable version of UWGeodynamics.
+
+Documentation:
+* Update `README.md` to with new Jenkins url. 
 
 Release 2.8.2b [2019-10-28]
 ---------------------------
