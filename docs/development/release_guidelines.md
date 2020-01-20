@@ -22,6 +22,8 @@ Review issue tracker
 
 Documentation review 
 ====================
+* Review this document.
+* Review `guidelines.md`.
 * Review docstrings updates for deprecation warnings.
 * Check for other DEPRECATE flags in the code.
 * Check autocomplete to ensure no garbage has slipped in. Non
@@ -35,24 +37,28 @@ Documentation review
 ** Add new Binder link, and keep link to old Binder.
 * Generate/update change log (`CHANGES.md`).
 * Review cheat sheet contents.
-* Increment version number within ``underworld/__init__.py``
+* Increment version number within ``underworld/_version.py``
   (check `guidelines.md` for details on version numbering).
 * Update `FROM` tag in top level (binder) Dockerfile.
 
 Testing
 =======
 * Ensure 'run_tests.py' script run to completion without raising an exception.
-* Test on docker, OSX, linux, NCI and Pawsey machines.
+* Test on
+** docker
+** OSX
+** linux
+** NCI
+** Pawsey
 * Scaling tests on NCI and Pawsey machines.
-* High resolution production tests on raijin, magnus run to completion with 
+* High resolution production tests on Raijin, Magnus run to completion with 
   correct results.
 * Ensure jenkins and docker are working correctly.
 * Ensure metrics are being dispatched.
 
 Creating the release
 ====================
-* Create the release from within Github. We will mark as pre-production
-  while still in beta.
+* Create the release from within Github.
 * Check `docker/docker.md` for docker image release information.
 * Add tagged documentation version at http://underworld2.readthedocs.io/  
 
@@ -62,7 +68,7 @@ Announce new version
 
 After the release
 ============
-* Increment version number within ``underworld/__init__.py`` on dev branch (eg 2.6.0-dev)
+* Increment version number within ``underworld/_version.py`` on dev branch (eg 2.6.0-dev)
 * Check `docker/docker.md` for docker related actions.
 
 
