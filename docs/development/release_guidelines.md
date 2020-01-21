@@ -33,7 +33,9 @@ Documentation review
 * Review docs generated at http://underworld2.readthedocs.io/
 	- make sure builds are passing
 	- review latest content
-* Review top level README.md.
+* Review top level `README.md`.
+* Review `LICENSE.md`.
+* Review `.zenodo.json`.
 * Update the copyright information if necessary.
 ** Add new Binder link, and keep link to old Binder.
 * Generate/update change log (`CHANGES.md`).

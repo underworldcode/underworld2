@@ -3,10 +3,10 @@ Underworld 2
 
 ![Underworld Montage](docs/development/docs_generator/images/Montage.png)
 
-Security Update 
----------------
-**Attention all Underworld Docker users.  An important security update has been rolled out for all Underworld docker images. If you do not use Docker, this does not affect you. We urge all our Docker users to update their Underworld image. Image tags now refer to the updated images, so pulling `underworldcode/underworld2:2.8.1b` will replace your existing `underworldcode/underworld2:2.8.1b`. Users can therefore pull down a patched image for whichever Underworld version they are currently working with. However, as a matter of best practise, we recommend users update to the newest available Underworld image version whenever possible. Specifically, running Jupyter within Underworld containers will now require an authentication token. Please refer to the documentation pages ("User Guide"->"Getting Started") for usage details.**
-
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1436039.svg)](https://doi.org/10.5281/zenodo.1436039)
+[![Build Status](http://115.146.85.138:32779/buildStatus/icon?job=Underworld2%2Fdevelopment)](http://115.146.85.138:32779/job/Underworld2/job/development/)
+[![Docs Status](https://readthedocs.org/projects/underworld2/badge/?version=latest)](https://underworld2.readthedocs.io/en/latest/?badge=latest)
+[![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/v2.9.0b)
 
 [_Underworld 2_](http://www.underworldcode.org) is a Python API (Application Programming Interface) which provides functionality for the modelling of geodynamics processes, and is designed to work (almost) seamlessly across PC, cloud and HPC infrastructure. Primarily the API consists of a set of Python classes from which numerical geodynamics models may be constructed. The API also provides the tools required for inline analysis and data management. For scalability across multiprocessor platforms, MPI (Message Passing Interface) is leveraged, and for performant operation all heavy computations are executed within a statically typed layer. 
 
@@ -18,17 +18,8 @@ Underworld2 provides a minimal set of highly flexible core functionality, with u
 
 The Underworld2 development is led by Louis Moresi and is a collaboration between University of Melbourne, Monash University and the Australian National University. This project was enabled by AuScope and the Australian Government via the National Collaborative Research Infrastructure Strategy (NCRIS): ([auscope.org.au](https://auscope.org.au)). Additional funding for specific improvements and additional functionality has come from the Australian Research Council (http://www.arc.gov.au). The Python toolkit was funded by the NeCTAR eresearch_tools program. Underworld was originally developed in collaboration with the Victorian Partnership for Advanced Computing.
 
-Underworld is an open-source project licensed under LGPL-3. See `LICENSE.md` for details.
-
-The Underworld2 code can be cited via Zenodo. Details of the algorithms are citeable from the references listed at the bottom of this page.
- 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1436039.svg)](https://doi.org/10.5281/zenodo.1436039)
-
-Development branch [![Build Status](http://115.146.85.138:32779/buildStatus/icon?job=Underworld2%2Fdevelopment)](http://115.146.85.138:32779/job/Underworld2/job/development/)
-
 Documentation 
 -------------
-
 Please visit the Underworld documentation site for an overview of installation, numerical methods, usage and the API reference. 
 
 https://underworld2.readthedocs.io
@@ -40,11 +31,10 @@ Trying out Underworld2
 
 You can try out the code immediately via a Jupyter Binder cloud instance. Be aware that it can take a little while for the site to fire up and that it will time-out after 30 minutes of inactivity and reset if you log back in. 
 
-[![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/v2.8.1b) v2.8.1 (Python 3)
-
-[![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/v2.7.1b) v2.7.1 (Python 2)
-
-[![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/development) Development (Python 3)
+| [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/v2.9.0b) | v2.9.0b (Py3) |
+| [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/v2.8.2b) | v2.8.2b (Py3) |
+| [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/v2.7.1b) | v2.7.1b (Py2) |
+| [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/development) | dev (Py3) |
 
 
 Note that the Binder environment is identical to that obtained through running an Underworld Docker image locally.
@@ -56,26 +46,37 @@ The Underworld2 Docker container is the recommended method of installation on Wi
 
 Please refer to the documentation site for further information.
 
-Note that we now have experimental support for `pip` installation on the dev branch, as well as extended installation documentation. 
-You can switch to the `development` branch of this repo via the GitHub interface above. Also note that the `development` branch has significant API changes, so please refer to the corresponding documentation and examples if using a `development` installation:
 
-https://underworld2.readthedocs.io/en/development/
-
-
-Directories
------------
+Where to find things
+--------------------
 - **underworld**                 - Underworld python modules.
-- **docs**                       - Various documentation.
+- **docs/examples**              - Basic usage examples.
+- **docs/user_guide**            - The user guide. 
+- **docs/cheatsheet**            - One pager with quick examples.
+- **docs/install_guides**        - HPC installation guides.
+- **docs/tests**                 - Development tests. 
 
 Privacy
 -------
 Note that basic usage metrics are dispatched when you use Underworld. To opt out, set the UW_NO_USAGE_METRICS environment variable. See `PRIVACY.md` for full details.                                   
 
-Bedtime reading
+Licensing
+---------
+Underworld is an open-source project licensed under LGPL-3. See `LICENSE.md` for details.
+
+Security Notice 
 ---------------
+Earlier versions of our Docker images disabled token authentication for Jupyter Notebook. This potentially left the user's container vulnerable, in particular where running on institution networks. All Docker images have now been updated to enable token authentication. Please ensure you are using an updated image by running `docker pull` for your given Underworld version (or better yet, updating to the latest release).
+
+Citing Underworld
+-----------------
+The Underworld2 code itself may be cited via our ([Zenodo DOI](https://doi.org/10.5281/zenodo.1436039)). 
+
+Details of the algorithms are citeable via the following references:
 
 Moresi, L., Dufour, F., and Muhlhaus, H.B., 2002, Mantle convection modeling with viscoelastic/brittle lithosphere: Numerical methodology and plate tectonic modeling: Pure And Applied Geophysics, v. 159, no. 10, p. 2335–2356, doi: 10.1007/s00024-002-8738-3.
 
 Moresi, L., Dufour, F., and Muhlhaus, H.B., 2003, A Lagrangian integration point finite element method for large deformation modeling of viscoelastic geomaterials: Journal of Computational Physics, v. 184, no. 2, p. 476–497.
 
 Moresi, L., Quenette, S., Lemiale, V., Mériaux, C., Appelbe, W., Mühlhaus, 2007, Computational approaches to studying non-linear dynamics of the crust and mantle: Phys. Earth Planet. Inter, v. 163, p. 69–82, doi: 10.1016/j.pepi.2007.06.009.
+

@@ -35,7 +35,7 @@ authors:
     affiliation: 4
 
 affiliations:
- - name: Monash eResearchCentre, Monash University, Clayton, Australia.
+ - name: Monash eResearch Centre, Monash University, Clayton, Australia.
    index: 1
  - name: School of Earth Science, The University of Melbourne, Melbourne, Australia.
    index: 2
@@ -43,7 +43,7 @@ affiliations:
    index: 3
  - name: School of Earth and Ocean Sciences, Cardiff University, Cardiff, UK.
    index: 4
-date: 03 September 2019
+date: 20 January 2020
 bibliography: paper.bib
 ---
 
