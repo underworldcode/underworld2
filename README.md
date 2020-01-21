@@ -31,6 +31,8 @@ Trying out Underworld2
 
 You can try out the code immediately via a Jupyter Binder cloud instance. Be aware that it can take a little while for the site to fire up and that it will time-out after 30 minutes of inactivity and reset if you log back in. 
 
+| | |
+|-|-|
 | [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/v2.9.0b) | v2.9.0b (Py3) |
 | [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/v2.8.2b) | v2.8.2b (Py3) |
 | [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/v2.7.1b) | v2.7.1b (Py2) |
