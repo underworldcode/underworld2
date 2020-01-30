@@ -4,7 +4,12 @@ Singularity Usage Instructions
 The recommended method for running Underworld on Magnus is through the use of 
 Singularity. Singularity allows docker images to be run on supporting HPC facilities.
 
-The basic method for using Singularity on Magnus is as follows.
+Basic instructions for Singularity usage on Magnus is provided below. Note that by default, 
+your home directory will not be mounted into your Singularity container. You should instead 
+run from `/scratch` or `/group`, which are by default mounted. Please review the Singularity 
+documentation at Pawsey for full usage instructions:
+https://support.pawsey.org.au/documentation/display/US/Singularity
+
 
 1. Load the Singularity module:
 ```shell
@@ -23,6 +28,4 @@ queue submission script. Don't forget to also load the Singularity module.
 user@magnus-1:~$ srun --export=all singularity exec /WHERE/TO/STORE/YOUR/IMAGE/IMAGENAME.sif python3 YOURSCRIPT.py
 ```
 
-Please review the Singularity documentation at Pawsey for full usage instructions:
-https://support.pawsey.org.au/documentation/display/US/Singularity
 
