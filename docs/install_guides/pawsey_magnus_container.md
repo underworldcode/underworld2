@@ -20,7 +20,7 @@ user@magnus-1:~$ singularity pull /WHERE/TO/STORE/YOUR/IMAGE/IMAGENAME.sif docke
 3. Use the image. Note that this will normally be a command line in your
 queue submission script. Don't forget to also load the Singularity module.
 ```shell
-user@magnus-1:~$ srun singularity exec /WHERE/TO/STORE/YOUR/IMAGE/IMAGENAME.sif python3 YOURSCRIPT.py
+user@magnus-1:~$ srun --export=all singularity exec /WHERE/TO/STORE/YOUR/IMAGE/IMAGENAME.sif python3 YOURSCRIPT.py
 ```
 
 Please review the Singularity documentation at Pawsey for full usage instructions:
