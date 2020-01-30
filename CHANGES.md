@@ -6,6 +6,7 @@ Release 2.9.0 [2020-01-20]
 New:
 * Experimental `pip install` functionality.
 * Installation instructions for NCI Gadi.
+* Singularity usage instruction Pawsey Magnus.
 
 Docker:
 * Images now use Python 3.7 (previously Python 3.5).
@@ -33,6 +34,9 @@ Enhancements:
   for minimal filesystem noise. 
 * Complete `long` type SwarmVariable implementation. Specifically, `evaluate()` 
   methods now work for this data type. 
+
+Deprecations:
+* Raijin install instructions removed. 
 
 
 Release 2.8.3b [2019-10-29]

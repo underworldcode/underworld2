@@ -4,9 +4,9 @@ Underworld Installation
 Underworld may be installed via a number of mechanisms: Docker, pip or native install. The recommended option is using Docker as it is quick to get started.
 
 Detailed instructions for supported HPC platforms may be found at `docs/install_guides
-<https://github.com/underworldcode/underworld2/tree/master/docs/install_guides>`_. You may also find useful usage information (on docker/shifter/compilation/other) on the Underworld blog.
+<https://github.com/underworldcode/underworld2/tree/master/docs/install_guides>`_. You may also find useful usage information (on docker/hpc/compilation/other) on the Underworld blog.
 
-We welcome feedback and support requests at our `github issue tracker` <https://github.com/underworldcode/underworld2/issues>`_.
+We welcome feedback and support requests at our `github issue tracker <https://github.com/underworldcode/underworld2/issues>`_.
 
 Docker
 ------
@@ -19,7 +19,7 @@ For Linux users, and those who prefer the command line, the following minimal co
 
    docker run -p 8888:8888 underworldcode/underworld2
 
-Navigate to `localhost:8888 <localhost:8888>`_ to see the notebooks. A number of useful docker commands are provided within the Underworld cheat-sheet (in 'docs/cheatsheet'). Note that you can also use particular versions of Underworld using any of the Docker image tags. For example:
+Navigate to `localhost:8888 <localhost:8888>`_ to see the notebooks. Note that you can also use particular versions of Underworld using any of the Docker image tags. For example:
 
 .. code:: bash
 
@@ -27,10 +27,12 @@ Navigate to `localhost:8888 <localhost:8888>`_ to see the notebooks. A number of
 
 By default (ie, if no tag is provided), docker will use the latest stable release. A list of available tags may be found on `our DockerHub page <https://hub.docker.com/r/underworldcode/underworld2/tags>`_. Tags can also be accessed in Kitematic via the ellipsis button on container search results. 
 
+A number of useful docker commands are provided within the `Underworld cheat-sheet <https://github.com/underworldcode/underworld2/tree/master/docs/cheatsheet/cheatsheet.pdf>`_.
+
 Notes on Installing Docker
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Linux users should be able to install *docker* using the distributions's standard package manager. 
+- Linux users should be able to install *docker* using the distribution's standard package manager. 
 - Windows users should note that for *Windows 10 Home* you should install *Docker Toolbox*, while for *Windows 10 Professional* you should install *Docker Desktop*.  
 - All users on Apple OS X should use *Docker Desktop* (not *Docker Toolbox*). The *Docker Toolbox* edition utilised VirtualBox for virtualisation, and therefore to access any running Jupyter servers you must browse to the virtual machine address (instead of *localhost*). To find the VM address, you will generally execute
 
@@ -101,7 +103,15 @@ or alternatively you might use `CC=h5pcc` (if available). Note that you will als
 
 **lavavu**: For rendering of visualisations, you will also need to install `lavavu` (via pip). Please check the `lavavu page <https://github.com/lavavu/LavaVu>`_ for further installation instructions. 
 
-**Other**: The following should also be installed via a system package manager (such as apt on Ubuntu): **swig**, **git** and  **libxml2-dev** (or equivalent). The following should be installed via pip: **scons** and **numpy**.
+**swig**: `swig` generates Python bindings and is a requirement. It should be installed via your system package management system (apt/yum/brew/etc), although it is straightforward to compile from source where necessary. Note that `swig4` is not currently supported, and you should instead use `swig3`. 
+
+**git**: It is generally easiest to obtain the code directly using `git`. It should be installed via your system package management system (apt/yum/brew/etc).
+
+**libxml2-dev**: This is a requirement for Underworld. The development files for `libxml2` may already be available on your system, though otherwise they should be installed via your system package management system (apt/yum/brew/etc). On some system, the development packages will be named `libxml2-devel`. 
+
+**scons**: `scons` is the build system used by Underworld. It is a requirement. It should be installable using `pip`. You should use `scons` versions 3.0.0 or later. 
+
+**numpy** `numpy` is a requirement and should be installable using `pip`. 
 
 Testing
 ~~~~~~~
