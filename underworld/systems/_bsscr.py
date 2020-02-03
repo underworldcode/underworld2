@@ -776,6 +776,3 @@ class StokesSolver(_stgermain.StgCompoundComponent):
         elif 0==uw.mpi.rank:
             print( "Invalid penalty number chosen. Penalty must be a positive float." )
             self.options.main.penalty = 0.0
-
-    def _debug(self):
-        import pdb; pdb.set_trace()

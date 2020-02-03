@@ -14,7 +14,6 @@ class Control(object):
     def __getattr__(self, key):
         #__getattr__ called if no attrib/method found
         def any_method(*args, **kwargs):
-            print("Null LavaVu.control function called")
             return None
 
         return any_method
@@ -29,7 +28,6 @@ class Viewer(dict):
     def __getattr__(self, key):
         #__getattr__ called if no attrib/method found
         def any_method(*args, **kwargs):
-            print("Null LavaVu function called")
             return None
 
         return any_method
@@ -56,7 +54,6 @@ class Objects(dict):
     def __getattr__(self, key):
         #__getattr__ called if no attrib/method found
         def any_method(*args, **kwargs):
-            print("Null LavaVu function called")
             return None
 
         return any_method

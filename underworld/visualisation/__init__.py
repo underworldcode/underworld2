@@ -24,8 +24,8 @@ configuration:
 Parameters
 ----------
 UW_USE_XVFB: bool
-    Set this flag to true to use XVFB for off-screen rendering. Xvfb will need to be 
-    installed, as will `pyvirtualdisplay`.   
+    Set this flag to true to use Xvfb for off-screen rendering. Xvfb will need to be 
+    installed, as will pyvirtualdisplay.   
 UW_VIS_PORT: int
     Set which port to use for rendering server. Set to zero to disable server. 
 """
