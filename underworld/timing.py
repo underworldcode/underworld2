@@ -218,7 +218,7 @@ def print_table(group_by="line_routine", sort_by="total", display_fraction=0.95,
         have_tab = False
 
     try:  # try using tabulate
-        if False: #_uw._run_from_ipython():
+        if False: #_uw.utils._run_from_ipython():
             from IPython.display import HTML, display
             display(HTML(tabulate( table_data[0:stop_row]+footerrow, row_title, tablefmt='html',floatfmt=".3f", **kwargs )))
         else:

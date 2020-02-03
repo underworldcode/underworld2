@@ -183,6 +183,8 @@ class Store(_stgermain.StgCompoundComponent):
             db = self._db.path
         if 'UW_VIS_PORT' in os.environ:
             kwargs['port'] = int(os.environ['UW_VIS_PORT'])
+
+        import pdb;pdb.set_trace()
         return lavavu.Viewer(cache=False, clearstep=True, database=db, timestep=self.step, *args, **kwargs)
 
     def _generate(self, figname, objects, props):
@@ -580,7 +582,9 @@ class Figure(dict):
 
         Example
         -------
+
         Create a bunch of figures:
+
         >>> import underworld.visualisation as vis
         >>> fig1 = vis.Figure()
         >>> fig2 = vis.Figure()
@@ -590,10 +594,12 @@ class Figure(dict):
         >>> fig6 = vis.Figure()
 
         We need a mesh
+
         >>> import underworld as uw
         >>> mesh = uw.mesh.FeMesh_Cartesian()
 
         Add drawing objects as usual:
+        
         >>> r = uw.function.input()
         >>> fig1.append(vis.objects.Surface( mesh, 1.))
         >>> fig2.append(vis.objects.Mesh( mesh ))
@@ -874,6 +880,7 @@ class Viewer(lavavu.Viewer):
             
     Example
     -------
+
     Create database to use
     
     >>> import underworld.visualisation as vis

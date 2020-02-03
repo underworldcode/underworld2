@@ -179,27 +179,10 @@ except:
     _id = str(_uuid.uuid4())
 from . import _net
 
-
-def _run_from_ipython():
-    """
-    Small routine to check if running from ipy/jupyter.s
-    """
-    try:
-        __IPYTHON__
-        return True
-    except NameError:
-        return False
-
+# DEPRECATE JM 20200203
 def matplotlib_inline():
-    """
-    This function simply enables Jupyter Notebook inlined matplotlib results.
-    This function should be called at the start of your notebooks as a 
-    replacement for the Jupyter Notebook *%matplotlib inline* magic. It provides
-    the same functionality, however it allows notebooks to be converted to
-    python without having to explicitly remove these calls.
-    """
-    if _run_from_ipython():
-        get_ipython().magic(u'matplotlib inline')
+    raise RuntimeError("This function has been moved to `underworld.utils.matplotlib_inline()`.")
+matplotlib_inline.DO_NOT_DOC = True   # this disables documentation of this function
 
 # lets handle exceptions differently in parallel to ensure we call.
 # add isinstance so that this acts correctly for Mocked classes used in sphinx docs generation

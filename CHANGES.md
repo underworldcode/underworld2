@@ -7,6 +7,7 @@ New:
 * Experimental `pip install` functionality.
 * Installation instructions for NCI Gadi.
 * Singularity usage instruction Pawsey Magnus.
+* `UW_VIS_PORT` environment variable flag added to set vis port.
 
 Docker:
 * Images now use Python 3.7 (previously Python 3.5).
@@ -22,6 +23,7 @@ API changes:
 * `GLUCIFER_USE_XVFB` -> `UW_USE_XVFB`.
 * --prefix=/SOME/DIR now installs to /SOME/DIR/underworld
 * `test_basic.py` no longer sets PYTHONPATH
+* `underworld.matplotlib_inline()` -> `underworld.utils.matplotlib_inline()`.
 
 Enhancements:
 * By default, UW was creating significant filesystem chatter in

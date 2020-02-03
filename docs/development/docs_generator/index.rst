@@ -22,6 +22,7 @@ Underworld is an open-source project.
 .. toctree::
     :hidden:
     :maxdepth: 1
+    :titlesonly:
 
     Geodynamics <Geodynamics>
     Numerical Methods <Numerics>

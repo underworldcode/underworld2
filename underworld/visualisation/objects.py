@@ -7,6 +7,11 @@
 ##                                                                                   ##
 ##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
 
+"""
+This module provides different drawing objects for visualisation in Underworld. 
+
+"""
+
 import underworld as _underworld
 import underworld._stgermain as _stgermain
 import underworld.swarm as _swarmMod

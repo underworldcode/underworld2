@@ -477,7 +477,7 @@ except:
                     '_StGermain_Tools', '_petsc', 'mpi4py', 'underworld.libUnderworld.libUnderworldPy.StGermain', 'underworld.libUnderworld.libUnderworldPy.StgDomain', 'underworld.libUnderworld.libUnderworldPy.StgFEM',
                     'underworld.libUnderworld.libUnderworldPy.PICellerator', 'underworld.libUnderworld.libUnderworldPy.Underworld', 'underworld.libUnderworld.libUnderworldPy.Solvers', 'underworld.libUnderworld.libUnderworldPy.gLucifer', 'underworld.libUnderworld.libUnderworldPy.c_arrays', 'underworld.libUnderworld.libUnderworldPy.c_pointers',
                     'underworld.libUnderworld.libUnderworldPy.Function', 'underworld.libUnderworld.libUnderworldPy.petsc', 'underworld.libUnderworld.libUnderworldPy.StGermain_Tools',
-                    'underworld.libUnderworld.libUnderworldPy.Function', '_LavaVuPython', 'lavavu', 'lavavu.Viewer']
+                    'underworld.libUnderworld.libUnderworldPy.Function' ]
     sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 import generate_api_documentation
