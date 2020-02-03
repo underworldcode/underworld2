@@ -18,6 +18,16 @@ Users may choose to render outputs to raster images, or save a database file for
 later rendering. For those working in the Jupyter environment, results may be 
 displayed inline.
 
+The following environment variables are available for the tuning of rendering 
+configuration:
+
+Parameters
+----------
+UW_USE_XVFB: bool
+    Set this flag to true to use XVFB for off-screen rendering. Xvfb will need to be 
+    installed, as will `pyvirtualdisplay`.   
+UW_VIS_PORT: int
+    Set which port to use for rendering server. Set to zero to disable server. 
 """
 import underworld as _uw
 from . import _glucifer

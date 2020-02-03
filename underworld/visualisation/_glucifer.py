@@ -181,6 +181,8 @@ class Store(_stgermain.StgCompoundComponent):
     def lvrun(self, db=None, *args, **kwargs):
         if not db:
             db = self._db.path
+        if 'UW_VIS_PORT' in os.environ:
+            kwargs['port'] = int(os.environ['UW_VIS_PORT'])
         return lavavu.Viewer(cache=False, clearstep=True, database=db, timestep=self.step, *args, **kwargs)
 
     def _generate(self, figname, objects, props):
@@ -919,6 +921,9 @@ class Viewer(lavavu.Viewer):
             filename += ".gldb"
 
         self.filename = filename
+
+        if 'UW_VIS_PORT' in os.environ:
+            kwargs['port'] = int(os.environ['UW_VIS_PORT'])
 
         super(Viewer, self).__init__(database=filename, *args, **kwargs)
 

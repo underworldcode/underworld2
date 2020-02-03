@@ -44,6 +44,7 @@ COPY --from=build_base --chown=jovyan:users /tmp/UWGeodynamics/examples   $NB_WO
 COPY --from=build_base --chown=jovyan:users /tmp/UWGeodynamics/tutorials  $NB_WORK/UWGeodynamics/tutorials
 COPY --from=build_base --chown=jovyan:users /tmp/UWGeodynamics/benchmarks $NB_WORK/UWGeodynamics/benchmarks
 COPY --from=build_base --chown=jovyan:users /tmp/UWGeodynamics/docs       $NB_WORK/UWGeodynamics/docs
+RUN  chown jovyan:users /home/jovyan/workspace /home/jovyan/UWGeodynamics
 USER $NB_USER
 WORKDIR $NB_WORK
 
