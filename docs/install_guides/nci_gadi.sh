@@ -42,7 +42,8 @@ pip3 install --user mpi4py
 export HDF5_VERSION=1.10.5
 CC=h5pcc HDF5_MPI="ON" pip3 install --user --no-cache-dir --global-option=build_ext --global-option="-L/apps/hdf5/1.10.5p/lib/ompi3/" --no-binary=h5py h5py
 
-pip3 install --user lavavu
+# lavavu not supported on Gadi currently. 
+#pip3 install --user lavavu
 
 # build and install underworld
 pip3 install --user -vvv .
