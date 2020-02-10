@@ -35,7 +35,7 @@ Documentation review
 	- review latest content
 * Review top level `README.md`.
 * Review `LICENSE.md`.
-* Review `.zenodo.json`.
+* Review `.zenodo.json` (and validate using `jsonlint`).
 * Update the copyright information if necessary.
 ** Add new Binder link, and keep link to old Binder.
 * Generate/update change log (`CHANGES.md`).
@@ -74,6 +74,7 @@ Announce new version
 After the release
 ============
 * Increment version number within ``underworld/_version.py`` on dev branch (eg 2.6.0-dev)
+* Update `FROM` tag in top level (binder) Dockerfile to use dev images.
 * Check `docker/docker.md` for docker related actions.
 
 
