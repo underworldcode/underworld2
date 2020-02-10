@@ -64,6 +64,8 @@ Creating the release
 * Create the release from within Github.
 * Check `docker/docker.md` for docker image release information.
 * Add tagged documentation version at http://underworld2.readthedocs.io/  
+* Package for PyPi: `python setup.py sdist`
+* Upload to PyPi: `twine upload dist/* -r pypi`
 
 Announce new version
 ====================

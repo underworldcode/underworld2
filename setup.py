@@ -13,38 +13,18 @@ Underworld
 
 Underworld is a python-friendly version of the Underworld geodynamics
 code which provides a programmable and flexible front end to all the
-functionality of the code running in a parallel HPC environment. This
-gives significant advantages to the user, with access to the power of
-python libraries for setup of complex problems, analysis at runtime,
-problem steering, and coupling of multiple problems.
-
-Underworld is integrated with the literate programming environment of
-the jupyter notebook system for tutorials and as a teaching tool for
-solid Earth geoscience.
-
-Underworld is an open-source, particle-in-cell finite element code
-tuned for large-scale geodynamics simulations. The numerical algorithms
-allow the tracking of history information through the high-strain
-deformation associated with fluid flow (for example, transport of the
-stress tensor in a viscoelastic, convecting medium, or the advection of
-fine-scale damage parameters by the large-scale flow). The finite
-element mesh can be static or dynamic, but it is not contrained to move
-in lock-step with the evolving geometry of the fluid. This hybrid approach
-is very well suited to complex fluids which is how the solid Earth behaves
-on a geological timescale.
+functionality of the code running in a parallel HPC environment.
 
 .. note::
 
    To install ``underworld`` use::
 
-     $ pip install scons numpy mpi4py h5py
      $ pip install underworld
 
 .. tip::
 
   You can also install the in-development versions with::
 
-    $ pip install scons numpy mpi4py h5py
     $ pip install git+https://github.com/underworldcode/underworld2@development
 
   To set the MPI compilers use the environmental variables ``MPICC``, ``MPICXX``, ``MPIF90``.
@@ -59,7 +39,7 @@ on a geological timescale.
 import sys, os
 from setuptools import setup
 from setuptools.command.install import install as _install
-from distutils.util import get_platform, split_quoted
+from distutils.util import split_quoted
 from distutils.spawn import find_executable
 from distutils import log
 
@@ -172,16 +152,13 @@ class cmd_install(_install):
         outputs += _install.get_outputs(self)
         return outputs
 
-description = __doc__.split('\n')[1:-1]; del description[1:3]
 classifiers = """
 Development Status :: 5 - Production/Stable
 Intended Audience :: Developers
 Intended Audience :: Science/Research
-License :: LGPL-3
 Operating System :: POSIX
 Programming Language :: C
 Programming Language :: C++
-Programming Language :: Fortran
 Programming Language :: Python
 Topic :: Scientific/Engineering
 Topic :: Software Development :: Libraries
@@ -194,24 +171,30 @@ if 'bdist_wheel' in sys.argv:
 version = {}
 with open("underworld/_version.py") as fp:
     exec(fp.read(), version)
+with open("README.md", "r") as fh:
+    long_description = fh.read()
 setup(name='underworld',
-      version=version['__version__'],
-      description=description.pop(0),
-      long_description='\n'.join(description),
-      classifiers= classifiers.split('\n')[1:-1],
-      keywords = ['Underworld', 'MPI', 'Geodynamics'],
-      platforms=['POSIX'],
-      license='BSD',
+    version=version['__version__'],
+    description="Underworld is a python-friendly version of the Underworld geodynamics \
+code which provides a programmable and flexible front end to all the \
+functionality of the code running in a parallel HPC environment.",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    classifiers= classifiers.split('\n')[1:-1],
+    keywords = ['Underworld', 'MPI', 'Geodynamics'],
+    platforms=['POSIX'],
+    license='LGPL-3',
 
-      url='https://github.com/underworldcode/underworld2',
-      download_url="",
+    url='https://github.com/underworldcode/underworld2',
+    download_url="",
 
-      author='Underworld Team',
-    #   author_email='',
-    #   maintainer='',
-    #   maintainer_email='',
+    author='Underworld Team',
+    author_email='help@underworldcode.org',
+    maintainer='Underworld Team',
+    maintainer_email='help@underworldcode.org',
+    include_package_data=False,
 
-      packages = ['underworld'],
+    packages = ['underworld'],
     #   package_dir = {'': 'config/pypi'},
-      cmdclass={'install': cmd_install},
-      **metadata)
+    cmdclass={'install': cmd_install},
+    **metadata)
