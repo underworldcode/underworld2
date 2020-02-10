@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-#!/bin/env python
+#!/usr/bin/env python3
 '''
 This script simply executes a solver, and ensures the expected number of iterations are performed. 
 An exception is thrown otherwise.
@@ -33,7 +32,7 @@ print(solver.options.A11._mg_active)
 solver.solve()
 stats=solver.get_stats()
 solver.print_stats()
-from libUnderworld import petsc
+from underworld.libUnderworld import petsc
 petsc.OptionsPrint()
 
 # if 4 != stats.pressure_its:

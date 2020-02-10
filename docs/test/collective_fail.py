@@ -20,7 +20,7 @@ if __name__ == '__main__':
             fail_single()
     else:
         import subprocess
-        command = "mpirun -np 2 python collective_fail.py"
+        command = "mpirun -np 2 python3 collective_fail.py"
         result = subprocess.run(command + " collective", stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         if not result.stderr.startswith(collective_msg):
             raise RuntimeError("Incorrect collective error message encountered. \n"

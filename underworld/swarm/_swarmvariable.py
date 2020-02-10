@@ -10,11 +10,11 @@ import underworld as uw
 import underworld._stgermain as _stgermain
 import underworld.mesh as mesh
 import numpy as np
-import libUnderworld
+import underworld.libUnderworld as libUnderworld
 from . import _swarmabstract as sab
 from . import _swarm
 import underworld.function as function
-import libUnderworld.libUnderworldPy.Function as _cfn
+import underworld.libUnderworld.libUnderworldPy.Function as _cfn
 from mpi4py import MPI
 import h5py
 import os
@@ -165,7 +165,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         numpy.ndarray
             Numpy proxy array to underlying variable data. Note that the 
             returned array is a proxy for all the *local* particle data. As 
-            numpy arrays are simply proxys to the underlying memory structures,
+            numpy arrays are simply proxies to the underlying memory structures,
             no data copying is required.
 
         Example

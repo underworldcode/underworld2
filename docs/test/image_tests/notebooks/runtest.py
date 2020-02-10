@@ -1,14 +1,14 @@
 #This test runs notebooks that produce image output and checks the images against expected output
 # coding: utf-8
 import underworld as uw
-import glucifer
+import underworld.visualisation as vis
 import os
 import glob
 import subprocess
 import shutil
 
 #Viewer instance for running image tests
-lv = glucifer.lavavu.Viewer(quality=1)
+lv = vis.lavavu.Viewer(quality=1)
 
 #files = glob.glob("*.ipynb")
 nbdir = "../../../user_guide/"

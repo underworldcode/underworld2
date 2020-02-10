@@ -23,7 +23,7 @@ FeMesh_IndexSet([0, 3, 6])
 """
 
 import underworld as _uw
-import libUnderworld as _libUnderworld
+import underworld.libUnderworld as _libUnderworld
 from functools import wraps as _wraps
 
 def _meshCheck(func):

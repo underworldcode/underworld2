@@ -10,8 +10,8 @@ import underworld as uw
 import underworld._stgermain as _stgermain
 import underworld.mesh as mesh
 import underworld.function
-import libUnderworld
-import libUnderworld.libUnderworldPy.Function as _cfn
+import underworld.libUnderworld as libUnderworld
+import underworld.libUnderworld.libUnderworldPy.Function as _cfn
 from timeit import default_timer as timer
 from mpi4py import MPI
 import h5py

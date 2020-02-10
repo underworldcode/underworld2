@@ -1,6 +1,46 @@
 CHANGES: Underworld2
 =======================
 
+Release 2.9.0 [2020-01-20]
+---------------------------
+New:
+* Experimental `pip install` functionality.
+* Installation instructions for NCI Gadi.
+* Singularity usage instruction Pawsey Magnus.
+* `UW_VIS_PORT` environment variable flag added to set vis port.
+
+Docker:
+* Images now use Python 3.7 (previously Python 3.5).
+* Multi-stage builds used improved image creation.
+* Images minimised with unnecessary items removed. 
+* XVFB no longer required for image generation within
+  container.
+ 
+API changes:
+* `glucifer` module moved inside `underworld` and 
+   renamed `visualisation`.
+   Access as `import underworld.visualisation`
+* `GLUCIFER_USE_XVFB` -> `UW_USE_XVFB`.
+* --prefix=/SOME/DIR now installs to /SOME/DIR/underworld
+* `test_basic.py` no longer sets PYTHONPATH
+* `underworld.matplotlib_inline()` -> `underworld.utils.matplotlib_inline()`.
+
+Enhancements:
+* By default, UW was creating significant filesystem chatter in
+  generating debug messages for functions. This has been 
+  significantly reduced through judicious usage of Python
+  inspection tool. Also, as default, only root proc now generates
+  messages. Users can set the UW_WORLD_FUNC_MESSAGES (`export UW_WORLD_FUNC_MESSAGES=1`)
+  environment variable to have all procs report, or can set UW_NO_FUNC_MESSAGES
+  (`export UW_NO_FUNC_MESSAGES=1`) to disable these messages altogether
+  for minimal filesystem noise. 
+* Complete `long` type SwarmVariable implementation. Specifically, `evaluate()` 
+  methods now work for this data type. 
+
+Deprecations:
+* Raijin install instructions removed. 
+
+
 Release 2.8.3b [2019-10-29]
 ---------------------------
 Docker:
@@ -9,7 +49,6 @@ Docker:
 
 Documentation:
 * Update `README.md` to with new Jenkins url. 
-
 
 Release 2.8.2b [2019-10-28]
 ---------------------------
@@ -20,7 +59,6 @@ Documentation:
 * Update `README.md` to inform users of Jupter Authentication requirements. 
 * Update "Getting Started" page with info on how to use Authentication. 
 * Minor tweaks to documentation generator to handle static images.
- 
 
 Release 2.8.1b [2019-09-02]
 ---------------------------

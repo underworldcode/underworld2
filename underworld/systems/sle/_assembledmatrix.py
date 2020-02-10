@@ -9,7 +9,7 @@
 import underworld as uw
 import underworld._stgermain as _stgermain
 from . import _assembledvector
-import libUnderworld
+import underworld.libUnderworld as libUnderworld
 
 class AssembledMatrix(_stgermain.StgCompoundComponent):
     """

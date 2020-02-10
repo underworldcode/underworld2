@@ -14,7 +14,7 @@ This module contains FeMesh classes, and associated implementation.
 import underworld as uw
 import underworld._stgermain as _stgermain
 import weakref
-import libUnderworld
+import underworld.libUnderworld as libUnderworld
 from . import _specialSets_Cartesian
 import underworld.function as function
 import contextlib
@@ -162,7 +162,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         returned array is a proxy for all the *local* vertices, and it is
         provided as 1d list.
 
-        As these arrays are simply proxys to the underlying memory structures,
+        As these arrays are simply proxies to the underlying memory structures,
         no data copying is required.
 
         Note that this property returns a read-only numpy array as default. If

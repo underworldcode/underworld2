@@ -59,8 +59,11 @@ import ctypes as _ctypes
 _oldflags = _sys.getdlopenflags()
 _sys.setdlopenflags( _oldflags | _ctypes.RTLD_GLOBAL )
 
-__version__ = "2.8.3b"
+from ._version import __version__
 
+# insert directory for binaries in python search path
+import os as _os
+_sys.path.append(_os.path.join(__file__[:-11],'lib'))
 # squelch h5py/numpy future warnings
 import warnings as _warnings
 _warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -69,28 +72,11 @@ _warnings.simplefilter(action='ignore', category=FutureWarning)
 _warnings.filterwarnings("ignore", message="numpy.dtype size changed")
 _warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
 
-# DEPRECATE
-# let's check PYTHONPATH includes path to lib directory, as this will probably
-# catch people out.
-import os as _os
-from pathlib import Path as _Path
-_results = 0
-if "PYTHONPATH" in _os.environ:
-    for _dir in _os.environ["PYTHONPATH"].split(":"):
-        for _result in _Path(_dir).glob("_StGermain.*"):
-            if _result:
-                _results+=1
-    if _results < 1:
-        raise RuntimeError("Unable to find required libraries.\n"
-                    "Note that your PYTHONPATH must now also indicate "
-                    "the directory containing the required compiled "
-                    "libraries. For example, `your_uw_directory/libUnderworld/build/lib`.")
-
 import sys as _sys
 from . import timing
-import libUnderworld
+from . import libUnderworld as _libUnderworld
 from . import _stgermain
-_data =  libUnderworld.StGermain_Tools.StgInit( _sys.argv )
+_data =  _libUnderworld.StGermain_Tools.StgInit( _sys.argv )
 _stgermain.LoadModules( {"import":["StgDomain","StgFEM","PICellerator","Underworld","gLucifer","Solvers"]} )
 
 class _del_uw_class:
@@ -115,7 +101,7 @@ class _del_uw_class:
        except:
            pass
 
-_delclassinstance = _del_uw_class(libUnderworld.StGermain_Tools.StgFinalise, _data)
+_delclassinstance = _del_uw_class(_libUnderworld.StGermain_Tools.StgFinalise, _data)
 
 def _set_init_sig_as_sig(mod):
     '''
@@ -193,27 +179,10 @@ except:
     _id = str(_uuid.uuid4())
 from . import _net
 
-
-def _run_from_ipython():
-    """
-    Small routine to check if running from ipy/jupyter.s
-    """
-    try:
-        __IPYTHON__
-        return True
-    except NameError:
-        return False
-
+# DEPRECATE JM 20200203
 def matplotlib_inline():
-    """
-    This function simply enables Jupyter Notebook inlined matplotlib results.
-    This function should be called at the start of your notebooks as a 
-    replacement for the Jupyter Notebook *%matplotlib inline* magic. It provides
-    the same functionality, however it allows notebooks to be converted to
-    python without having to explicitly remove these calls.
-    """
-    if _run_from_ipython():
-        get_ipython().magic(u'matplotlib inline')
+    raise RuntimeError("This function has been moved to `underworld.utils.matplotlib_inline()`.")
+matplotlib_inline.DO_NOT_DOC = True   # this disables documentation of this function
 
 # lets handle exceptions differently in parallel to ensure we call.
 # add isinstance so that this acts correctly for Mocked classes used in sphinx docs generation
@@ -254,7 +223,7 @@ if isinstance(underworld.mpi.size, int) and underworld.mpi.size > 1:
         sys.stdout.flush()
         sys.stderr.flush()
         time.sleep(1) # give all procs a chance to write outputs  
-        libUnderworld.StGermain_Tools.StgAbort( _data )
+        _libUnderworld.StGermain_Tools.StgAbort( _data )
     _sys.excepthook = _uw_uncaught_exception_handler
 
 def _prepend_message_to_exception(e, message):

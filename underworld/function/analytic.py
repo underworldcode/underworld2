@@ -50,7 +50,7 @@ and
 
 """
 
-import libUnderworld.libUnderworldPy.Function as _cfn
+import underworld.libUnderworld.libUnderworldPy.Function as _cfn
 from ._function import Function as _Function
 
 class _Sol_Function(_Function):
@@ -589,6 +589,26 @@ class _SolBaseFixedBc(_SolBase):
         # set vel as necessary
         wall_verts = mesh.specialSets["AllWalls_VertexSet"]
         velVar.data[wall_verts.data] = self.fn_velocity.evaluate(wall_verts)
+
+        # normalise walls to ensure required flux
+        sets = []
+        sets.append( (mesh.specialSets["MinI_VertexSet"], 0) )
+        sets.append( (mesh.specialSets["MaxI_VertexSet"], 0) )
+        sets.append( (mesh.specialSets["MinJ_VertexSet"], 1) )
+        sets.append( (mesh.specialSets["MaxJ_VertexSet"], 1) )
+        if self.dim==3:
+            sets.append( (mesh.specialSets["MinK_VertexSet"], 2) )
+            sets.append( (mesh.specialSets["MaxK_VertexSet"], 2) )
+        import underworld as uw
+        for setg in sets:
+            verts = setg[0]
+            ind   = setg[1]
+            # calc numerical wall flux
+            intvn = uw.utils.Integral(           velVar[ind], mesh, integrationType="Surface", surfaceIndexSet=verts).evaluate()
+            # calc analytic wall flux
+            intva = uw.utils.Integral( self.fn_velocity[ind], mesh, integrationType="Surface", surfaceIndexSet=verts).evaluate()
+            # normalise bcs
+            velVar.data[verts,ind] -= (intvn-intva)
 
         # now flag required nodes
         bcverts = []

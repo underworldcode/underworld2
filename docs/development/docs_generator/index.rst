@@ -22,14 +22,14 @@ Underworld is an open-source project.
 .. toctree::
     :hidden:
     :maxdepth: 1
+    :titlesonly:
 
     Geodynamics <Geodynamics>
     Numerical Methods <Numerics>
     Installation <Installation>
     User Guide <UserGuide>
 
-    API Reference: Underworld <build/underworld>
-    API Reference: Glucifer <build/glucifer>
+    Underworld API Reference <build/underworld>
 
     UW2 Github  <https://github.com/underworldcode/underworld2>
     UW2 Website <http://www.underworldcode.org>

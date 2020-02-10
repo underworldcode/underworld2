@@ -1,4 +1,4 @@
-ignorelist = ['underworld', 'glucifer', 'json', 'os', 'libUnderworld', 'glob', 'numpy', 'sys', 'os', 'time', 'control', 'LavaVuPython', 'lavavu', 're']
+ignorelist = ['underworld', 'json', 'os', 'libUnderworld', 'glob', 'numpy', 'sys', 'os', 'time', 'control', 'LavaVuPython', 'lavavu', 're', 'lavavu_null']
 
 import os
 builddir="build"
@@ -35,6 +35,8 @@ def doc_module(module, modname):
         if guy[0] != "_":  # don't grab private guys
             if guy not in ignorelist:  # don't grab these
                 obj = getattr(module,guy)
+                if hasattr(obj,"DO_NOT_DOC"):
+                    continue
                 if inspect.ismodule(obj):
                     if obj.__file__ not in done_mods: 
                         done_mods.add(obj.__file__)
@@ -59,27 +61,29 @@ def doc_module(module, modname):
         title = modname + " module\n"
         f.write(title)
         f.write("="*(len(title)-1)+"\n")
-        
+                
         # write out the modules docstring
         if module.__doc__:
             f.write(module.__doc__+"\n")
             f.write("\n")
 
-        f.write("Module Summary\n")
-        f.write("--------------\n")
-
         # write submodules brief
         if len(modules)>0:
-            f.write("submodules:\n")
+            f.write("Submodules\n")
             f.write("~~~~~~~~~~~\n")
             f.write("\n")
 
             f.write(".. toctree::\n")
-            f.write("    :maxdepth: 1\n")
+            f.write("    :titlesonly: \n")
+            # f.write("    :maxdepth: 1\n")
+            f.write("    :hidden: \n")
+            f.write("\n")
+            for key in modules.keys():
+                f.write("    "+ modname + "." + key+".rst\n")
+            f.write("\n")
 
-#            f.write(".. autosummary::\n")
-#            f.write("    :nosignatures:\n")
-#            f.write("    :toctree:\n")
+            f.write(".. autosummary::\n")
+            f.write("    :nosignatures:\n")
 
             f.write("\n")
             for key in modules.keys():
@@ -87,9 +91,12 @@ def doc_module(module, modname):
             f.write("\n")
 
 
+        f.write(".. module:: {}".format(modname))
+        f.write("\n\n")
+
         # write functions brief
         if len(functions)>0:
-            f.write("functions:\n")
+            f.write("Functions\n")
             f.write("~~~~~~~~~~\n")
             f.write("\n")
             f.write(".. autosummary::\n")
@@ -101,8 +108,8 @@ def doc_module(module, modname):
 
         # write classes brief
         if len(classes)>0:
-            f.write("classes:\n")
-            f.write("~~~~~~~~\n")
+            f.write("Classes\n")
+            f.write("~~~~~~~\n")
             f.write("\n")
             f.write(".. autosummary::\n")
             f.write("    :nosignatures:\n")
@@ -111,13 +118,8 @@ def doc_module(module, modname):
                 f.write("    "+ modname + "." + key+"\n")
             f.write("\n")
 
-        f.write("Module Details\n")
-        f.write("--------------\n")
-
         # write functions
         if len(functions)>0:
-            f.write("functions:\n")
-            f.write("~~~~~~~~~~\n")
             for key in functions.keys():
                 funcguy = getattr(module, key)
                 f.write(".. autofunction:: "+ modname + "." + key+"\n")
@@ -125,8 +127,6 @@ def doc_module(module, modname):
 
         # write classes
         if len(classes)>0:
-            f.write("classes:\n")
-            f.write("~~~~~~~~\n")
             for key in classes.keys():
                 classguy = getattr(module, key)
                 f.write(".. autoclass:: "+ modname + "." + key+"\n")
@@ -142,7 +142,5 @@ def doc_module(module, modname):
 
 
 import underworld
+import underworld.visualisation
 doc_module(underworld, 'underworld')
-
-import glucifer
-doc_module(glucifer, 'glucifer')

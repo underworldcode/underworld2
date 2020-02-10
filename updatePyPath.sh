@@ -4,4 +4,4 @@
 #  Usage:
 #    source ./updatePyPath.sh or . ./updatePyPath.sh
 
-export PYTHONPATH=$PWD:$PWD/libUnderworld/build/lib:$PWD/glucifer:$PYTHONPATH
+export PYTHONPATH=$PWD:$PWD/underworld/libUnderworld/build/lib:$PYTHONPATH

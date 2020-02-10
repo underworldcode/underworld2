@@ -4,7 +4,7 @@ Coding Style
 API Documentation
 -----------------
 Largely follow the numpy/scipy docstring conventions:
-`https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt#docstring-standard`
+`https://numpydoc.readthedocs.io/en/latest/format.html#docstring-standard`
 
 Note that class constructors should be document at the class level docstring,
 not the `__init__` method docstring.
@@ -14,8 +14,6 @@ Whitespace
 ----------
 PEP 8
 http://legacy.python.org/dev/peps/pep-0008/
-
-also check YAPF for python, and clang-format for c
 
 Most importantly:
 Spaces should be used for tabs.
@@ -57,6 +55,8 @@ once the following criterion are met:
    1. Any new functionality is sufficiently tested (via doctest or other means).
    2. Any new functionality is sufficiently documented.
    3. All tests pass.
+   4. Blog post update for significant changes. 
+   5. Update CHANGES.md.
    
 
 Bug reporting
@@ -123,10 +123,3 @@ if flux != None:
     "class has been replaced with 'fn_flux'. In the coming release 'flux' will be deprecated "+
     "please update your python code.")
 ```
-
-
-
-
-TODO for this document:
-======================
-* API changes  & deprections

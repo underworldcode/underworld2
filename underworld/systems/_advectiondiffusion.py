@@ -9,7 +9,7 @@
 import underworld as uw
 import underworld._stgermain as _stgermain
 from . import sle
-import libUnderworld
+import underworld.libUnderworld as libUnderworld
 from mpi4py import MPI
 
 
@@ -26,9 +26,9 @@ class AdvectionDiffusion(object):
     1. SUPG - The Streamline Upwind Petrov Galerkin method. [1]_
     2. SLCN - The Semi-Lagrangian Crank-Nicholson method. [2]_
 
-    SLCN is the preferred method for Q1, regular cartesian meshes. It is
-    quicker, less diffusive and unconditionally stable. SUPG is the legacy 
-    method is is currently more robust for deformed meshes.
+    SLCN is the preferred method for Q1 elements on a orthogonal cartesian meshes. It is
+    quicker, less diffusive and unconditionally stable. SUPG, the legacy method, is more robust 
+    for arbitrarily deformed meshes. Both methods are considered EXPERIMENTAL for non Q1 element meshes.
 
     Parameters
     ----------
@@ -96,9 +96,11 @@ class AdvectionDiffusion(object):
 
         if phiField.mesh.elementType != 'Q1':
             if allow_non_q1 == False:
-                raise ValueError("The 'phiField' is discretised on a {} mesh. This 'uw.system.AdvectionDiffusion' "
-                                 "implementation is only stable for a phiField discretised with a Q1 mesh. Either "
-                                 "create a Q1 mesh for the 'phiField' or, if you know what you're doing, override "
+                raise ValueError("The 'phiField' is discretised on a {} element mesh. The current 'uw.system.AdvectionDiffusion' "
+                                 "implementation is only stable for a phiField discretised with Q1 elements. "
+                                 "For non Q1 elements this implementation is EXPERIMENTAL, instability and implementation problems"
+                                 "have been observed." 
+                                 "Either create a Q1 mesh for the 'phiField' or, if you know what you're doing, override "
                                  "this error with the argument 'allow_non_q1=True' in the constructor.".format(phiField.mesh.elementType))
 
         if self.method == "SUPG":
@@ -163,6 +165,10 @@ class _SLCN_AdvectionDiffusion(object):
         # placeholder for swarm-based _mesh_interpolator_stripy
         self._mswarm = None
         self._mswarm_advector = None
+
+        # a data storage for the local node indices for cubic interpolation
+        # stencil.
+        self._stencilField = mesh.add_variable(nodeDofCount=3)
 
         # check input 'conditions' list is valid
         if not isinstance(conditions, (list, tuple)):
@@ -257,7 +263,6 @@ class _SLCN_AdvectionDiffusion(object):
         self.sle = uw.utils.SolveLinearSystem(AMat=K, bVec=f, xVec=solv)
 
         # Check available interpolation packages
-
         self._mesh_interpolator_stripy = None
         self._mesh_interpolator_rbf = None
         self._cKDTree = None
@@ -274,8 +279,8 @@ class _SLCN_AdvectionDiffusion(object):
         except ImportError:
             self._have_rbf = False
 
-    def _integrate_original_version(self, dt, solve=True):
 
+    def _integrate_original_version(self, dt, solve=True):
         # use the given timestep
         self.fn_dt.value = dt
 
@@ -288,7 +293,8 @@ class _SLCN_AdvectionDiffusion(object):
             self.phiField._cself,
             dt,
             self.vField._cself,
-            self._phiStar._cself)
+            self._phiStar._cself,
+            self._stencilField )
 
         # solve T
 
@@ -304,7 +310,6 @@ class _SLCN_AdvectionDiffusion(object):
         from scipy.spatial import cKDTree
 
         mesh = self.phiField.mesh
-        surface = mesh.specialSets["surface_VertexSet"]
         phiStar = mesh.add_variable(dataType="double", nodeDofCount=1)
         phiNorm = mesh.add_variable(dataType="double", nodeDofCount=1)
 
@@ -337,6 +342,7 @@ class _SLCN_AdvectionDiffusion(object):
         mswarm_map.data[:] = mesh.data_elementNodes.reshape(-1, 1)[accepted]
         mswarm_home_pts.data[:] = mswarm.particleCoordinates.data[accepted]
 
+        #surface = mesh.specialSets["surface_VertexSet"]
         # mcoords[surface,:] *= 0.9999
         # localID = mswarm.add_particles_with_coordinates(mcoords)
         # not_accepted = np.where(localID == -1)
@@ -723,12 +729,19 @@ class _SLCN_AdvectionDiffusion(object):
                 warnings.warn("fe is a low-order method for debugging use only", category=RuntimeWarning)
 
             if phiStar is None:
+                
+                if not hasattr(self, "_built_stencil"):
+                    uw.libUnderworld.StgFEM.SemiLagrangianIntegrator_BuildStaticStencils(self._stencilField._cself)
+                    self._built_stencil = True
+
+
                 # Extremely unreliable !!
                 uw.libUnderworld.StgFEM.SemiLagrangianIntegrator_SolveNew(
                     self.phiField._cself,
                     dt,
                     self.vField._cself,
-                    self._phiStar._cself)
+                    self._phiStar._cself,
+                    self._stencilField._cself )
 
             else:
                 self._phiStar.data[:] = phiStar.data[:]

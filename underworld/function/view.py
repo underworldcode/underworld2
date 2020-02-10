@@ -11,7 +11,7 @@ This module includes functions which provide views into the results of
 function queries.  These functions never modify query data. 
 """
 
-import libUnderworld.libUnderworldPy.Function as _cfn
+import underworld.libUnderworld.libUnderworldPy.Function as _cfn
 from . import _function
 
 class min_max(_function.Function):
@@ -100,6 +100,7 @@ class min_max(_function.Function):
     Traceback (most recent call last):
     ...
     RuntimeError: Issue utilising function of class 'min_max' constructed at:
+    <BLANKLINE>
        --- CONSTRUCTION TIME STACK ---
     Error message:
     Argument function does not return scalar results. You must also provide a function which calculates the required norm like quantity via the `fn_norm` parameter.

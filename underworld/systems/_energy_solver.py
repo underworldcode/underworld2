@@ -9,8 +9,8 @@
 import underworld as uw
 import underworld._stgermain as _stgermain
 from . import sle
-import libUnderworld
-from libUnderworld import petsc
+import underworld.libUnderworld as libUnderworld
+from underworld.libUnderworld import petsc
 from ._options import Options
 from mpi4py import MPI
 
@@ -50,7 +50,7 @@ class HeatSolver(_stgermain.StgCompoundComponent):
         nonLinearMaxIterations: int, Default=500
             Maximum number of non linear iteration to perform
             
-        callback_post_sovle: func, Default=None
+        callback_post_solve: func, Default=None
             Optional callback function to be performed at the end of a linear solve iteration.
             Commonly this will be used to perform operations between non linear iterations, for example,
             calibrating the solution or removing the system null space.

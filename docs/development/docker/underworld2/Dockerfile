@@ -2,66 +2,49 @@
 # Typically:
 #    $  docker build -f docs/development/docker/underworld2/Dockerfile .
 
-
-FROM underworldcode/base@sha256:e022c04b6bbaddf7447b89dd187bdd31958d403db3677adc3b21c7ca6560202e
+FROM underworldcode/base as base_runtime
 MAINTAINER https://github.com/underworldcode/
-
+# install runtime requirements
 USER root
+RUN apt-get update -qq \
+&&  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
+        libxml2 \
+        libpython3.7
 
-# script for xvfb-run.  all docker commands will effectively run under this via the entrypoint
-RUN printf "#\041/bin/sh \n rm -f /tmp/.X99-lock && xvfb-run -s '-screen 0 1600x1200x16' \$@" >> /usr/local/bin/xvfbrun.sh && \
-chmod +x /usr/local/bin/xvfbrun.sh
-ENTRYPOINT ["/tini", "--", "/usr/local/bin/xvfbrun.sh"]
-
-
-# install underworld under /tmp.
+FROM base_runtime AS build_base
+# install build requirements
+RUN apt-get update -qq 
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
+        build-essential \
+        python3-dev \
+        swig \
+        libxml2-dev
+RUN PYTHONPATH= /usr/bin/pip3 install --no-cache-dir setuptools scons 
+# setup further virtualenv to avoid double copying back previous packages (h5py,mpi4py,etc)
+RUN /usr/bin/python3 -m virtualenv --python=/usr/bin/python3 ${VIRTUAL_ENV}
 WORKDIR /tmp
-ENV UW2_TMP /tmp/underworld2
-ENV UW2_DIR /usr/local/underworld2
-ENV PYTHONPATH $PYTHONPATH:$UW2_DIR/lib
-RUN mkdir -p $UW2_TMP 
-
-# install lavavu
-RUN pip3 install --no-cache-dir lavavu==1.4.3
-
-# COPY UW - unfortunately, the version of docker at docker cloud does not support chown yet.
-COPY --chown=jovyan:users . $UW2_TMP
-COPY --chown=jovyan:users ./docs/ $NB_WORK/
-
-# get underworld, compile and install underworld libs
-RUN cd $UW2_TMP/libUnderworld && \
-    ./configure.py --with-debugging=0 --prefix=$UW2_DIR && \
-    ./compile.py                      && \
-    scons install                     && \
-    env > build_environment.txt       && \
-    cd /tmp                           && \
-    rm -rf *                          && \
-    python -c "import underworld"     && \
-    python -c "import glucifer"       && \
-    chown -R $NB_USER:users $UW2_DIR
-
+COPY --chown=jovyan:users . /tmp/underworld2
+WORKDIR /tmp/underworld2
+RUN pip3 install -vvv . 
 # clone UWGeodynamics, install 
-RUN git clone https://github.com/underworldcode/UWGeodynamics.git && \
-    pip3 install --no-cache-dir UWGeodynamics/ && \
-    mkdir $NB_WORK/UWGeodynamics && \
-    mv ./UWGeodynamics/examples   $NB_WORK/UWGeodynamics/. && \
-    mv ./UWGeodynamics/tutorials  $NB_WORK/UWGeodynamics/. && \
-    mv ./UWGeodynamics/benchmarks $NB_WORK/UWGeodynamics/. && \
-    mv ./UWGeodynamics/docs       $NB_WORK/UWGeodynamics/  && \
-    rm -rf UWGeodynamics                                   && \
-    chown -R $NB_USER:users $NB_WORK/UWGeodynamics
+WORKDIR /tmp
+RUN git clone -b development https://github.com/underworldcode/UWGeodynamics.git 
+RUN pip3 install --no-cache-dir UWGeodynamics/ 
 
-# expose glucifer port
-EXPOSE 9999
-
-# DISABLE FOLLOWING. We've reverted xvfb via entrypoint.
-# environment variable will internally run xvfb when glucifer is imported,
-# see /opt/underworld2/glucifer/__init__.py
-# ENV GLUCIFER_USE_XVFB 1
-
+FROM base_runtime 
+COPY --from=build_base ${VIRTUAL_ENV} ${VIRTUAL_ENV}
+# Record Python packages, but only record system packages! 
+# Not venv packages, which will be copied directly in.
+RUN PYTHONPATH= /usr/bin/pip3 freeze >/opt/requirements.txt
+# Record manually install apt packages.
+RUN apt-mark showmanual >/opt/installed.txt
+# Copy in examples, tests, etc. 
+COPY --chown=jovyan:users ./docs/ $NB_WORK/
+COPY --from=build_base --chown=jovyan:users /tmp/UWGeodynamics/examples   $NB_WORK/UWGeodynamics/examples
+COPY --from=build_base --chown=jovyan:users /tmp/UWGeodynamics/tutorials  $NB_WORK/UWGeodynamics/tutorials
+COPY --from=build_base --chown=jovyan:users /tmp/UWGeodynamics/benchmarks $NB_WORK/UWGeodynamics/benchmarks
+COPY --from=build_base --chown=jovyan:users /tmp/UWGeodynamics/docs       $NB_WORK/UWGeodynamics/docs
+RUN  chown jovyan:users /home/jovyan/workspace /home/jovyan/UWGeodynamics
 USER $NB_USER
 WORKDIR $NB_WORK
-
-# launch notebook
-CMD ["jupyter", "notebook", "--ip='0.0.0.0'", "--no-browser"]
 

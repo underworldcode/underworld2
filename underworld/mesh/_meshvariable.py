@@ -8,8 +8,8 @@
 ##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
 import underworld._stgermain as _stgermain
 import underworld as uw
-import libUnderworld.libUnderworldPy.Function as _cfn
-import libUnderworld
+import underworld.libUnderworld.libUnderworldPy.Function as _cfn
+import underworld.libUnderworld as libUnderworld
 from mpi4py import MPI
 import h5py
 import numpy as np
@@ -121,7 +121,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         identical on all processors.
 
 
-        As these arrays are simply proxys to the underlying memory structures,
+        As these arrays are simply proxies to the underlying memory structures,
         no data copying is required.
 
         Returns

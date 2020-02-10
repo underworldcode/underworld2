@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-#!/bin/env python
+#!/usr/bin/env python3
 '''
 This script simply executes a solver, and ensures the expected number of iterations are performed.
 It does 
@@ -45,7 +44,7 @@ solver.options.main.restore_K=True
 solver.solve()
 stats=solver.get_stats()
 solver.print_stats()
-from libUnderworld import petsc
+from underworld.libUnderworld import petsc
 petsc.OptionsPrint()
 
 def check():

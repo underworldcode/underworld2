@@ -1,14 +1,14 @@
 ### Summary
 
-Underworld is an open-source, parallel, particle-in-cell, finite element geodynamics code [1,2,3]. The development team is currently based at the University of Melbourne, and at Monash University with funding from [AuScope](http://www.auscope.org) and the [Australian Research Council](http://www.arc.gov.au).
+Underworld is an open-source, parallel, particle-in-cell, finite element geodynamics code [1,2,3]. Please refer to repository
+top level `README.md` for further information. 
 
 ### Licensing
 
-1) All Underworld source code is released under the LGPL-3 (See License-LGPLv3.md). This covers all
-files found in the `libUnderworld`, `underworld` and `glucifer` directories and any other material not explicitly
-identified under (2) below.
+1) All Underworld source code is released under the LGPL-3 (See LGPLv3.txt). This covers all
+files `underworld` constituting the Underworld Python library, and any other material not explicitly identified under (2) below.
 
-2) Notebooks, stand-alone documentation and python scripts which show how the code is used and run are licensed under the Creative Commons Attribution 4.0 International License. To view a copy of this license, visit http://creativecommons.org/licenses/by/4.0/ or send a letter to Creative Commons, PO Box 1866, Mountain View, CA 94042, USA.  We offer this licence to encourage you to modify and share the examples and use them to help you in your research. Where no individual creator is identified in these files, the appropriate attribution is "The Underworld Team". All the files covered by this license are found in the `UserGuide` directory.
+2) Notebooks, stand-alone documentation and Python scripts which show how the code is used and run are licensed under the Creative Commons Attribution 4.0 International License. To view a copy of this license, visit http://creativecommons.org/licenses/by/4.0/ or send a letter to Creative Commons, PO Box 1866, Mountain View, CA 94042, USA.  We offer this licence to encourage you to modify and share the examples and use them to help you in your research. Where no individual creator is identified in these files, the appropriate attribution is "The Underworld Team". All the files covered by this license are found in the `UserGuide` directory.
 
 ### History
 
@@ -16,9 +16,10 @@ Underworld has been in development since 2003. It has always been released under
 
 ### Copyright holders
 
-Copyright Melbourne University, 2014-2015
-Copyright Monash University,    2003-2015
-Copyright VPAC,                 2003-2009
+Copyright Australian National University, 2020
+Copyright Melbourne University,           2014-2020
+Copyright Monash University,              2003-2020
+Copyright VPAC,                           2003-2009
 
 ### References
 
