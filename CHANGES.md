@@ -1,6 +1,13 @@
 CHANGES: Underworld2
 =======================
 
+Release 2.9.1 [2020-02-18]
+---------------------------
+Enhancements:
+* Update base docker image & implement permission fixes.
+* Other docker tweaks and corrections.
+* Fixes for image tests
+
 Release 2.9.0 [2020-01-20]
 ---------------------------
 New:

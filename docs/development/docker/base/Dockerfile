@@ -28,12 +28,13 @@ RUN pip3 install -U setuptools  \
         appdirs \
         numpy \
         jupyter \
+        jupytext \
         plotly \
         matplotlib \
         pillow \
         ipython \
         ipyparallel \
-        pint \
+        pint==0.9 \
         scipy \ 
         tabulate 
 
@@ -55,16 +56,21 @@ RUN apt-get update \
 &&  rm -rf /var/lib/apt/lists/* 
 RUN PYTHONPATH= /usr/bin/pip3 install -r /opt/requirements.txt
 
+# add tini, joyvan user, volume mount and expose port 8888
 EXPOSE 8888
-RUN ipcluster nbextension enable
-ADD https://github.com/krallin/tini/releases/download/v0.18.0/tini /tini
-RUN chmod +x /tini
 ENV NB_USER jovyan
-RUN useradd -m -s /bin/bash -N jovyan
-USER $NB_USER
 ENV NB_WORK /home/$NB_USER
-RUN ipython profile create --parallel --profile=mpi && \
-    echo "c.IPClusterEngines.engine_launcher_class = 'MPIEngineSetLauncher'" >> $NB_WORK/.ipython/profile_mpi/ipcluster_config.py
+ADD https://github.com/krallin/tini/releases/download/v0.18.0/tini /tini
+RUN ipcluster nbextension enable \
+&&  chmod +x /tini \
+&&  useradd -m -s /bin/bash -N $NB_USER -g users \
+&&  mkdir -p /$NB_WORK/workspace \
+&&  chown -R $NB_USER:users $NB_WORK
 VOLUME $NB_WORK/workspace
+
+# jovyan user, finalise jupyter env
+USER $NB_USER
+RUN ipython profile create --parallel --profile=mpi \
+&&  echo "c.IPClusterEngines.engine_launcher_class = 'MPIEngineSetLauncher'" >> $NB_WORK/.ipython/profile_mpi/ipcluster_config.py
 WORKDIR $NB_WORK
 CMD ["jupyter", "notebook", "--no-browser", "--ip='0.0.0.0'"]
