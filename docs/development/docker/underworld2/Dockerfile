@@ -28,7 +28,7 @@ WORKDIR /tmp/underworld2
 RUN pip3 install -vvv . 
 # clone UWGeodynamics, install 
 WORKDIR /tmp
-RUN git clone -b development https://github.com/underworldcode/UWGeodynamics.git 
+RUN git clone -b v29 https://github.com/underworldcode/UWGeodynamics.git 
 RUN pip3 install --no-cache-dir UWGeodynamics/ 
 
 FROM base_runtime 
@@ -45,6 +45,6 @@ COPY --from=build_base --chown=jovyan:users /tmp/UWGeodynamics/tutorials  $NB_WO
 COPY --from=build_base --chown=jovyan:users /tmp/UWGeodynamics/benchmarks $NB_WORK/UWGeodynamics/benchmarks
 COPY --from=build_base --chown=jovyan:users /tmp/UWGeodynamics/docs       $NB_WORK/UWGeodynamics/docs
 RUN  chown jovyan:users /home/jovyan/workspace /home/jovyan/UWGeodynamics
+RUN jupyter serverextension enable --sys-prefix jupyter_server_proxy
 USER $NB_USER
 WORKDIR $NB_WORK
-
