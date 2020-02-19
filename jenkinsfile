@@ -1,20 +1,20 @@
 #!groovy
 
 /* A Jenkins "Declarative" Pipeline file.
-See http://130.56.252.251:32779
+See http://115.146.85.138:32779
 */
 
 pipeline {
   
   agent {
-    // special label to jenkins config. See http://130.56.252.251:32779/computer/
+    // special label to jenkins config. See http://115.146.85.138:32779/computer/
     label 'slave'
   }
   
   environment {
     // define environment variable active within pipeline
     CNAME = "${env.GIT_COMMIT}"
-    INAME = "${CNAME}"+"-container"
+    INAME = "${CNAME}"+"-image"
   }
 
   options {
@@ -31,7 +31,7 @@ pipeline {
         // print environment variables
         sh 'printenv'
         // build the docker
-        sh 'docker build --pull --rm --no-cache -t ${INAME} -f ./docs/development/docker/underworld2/Dockerfile .'
+        sh 'docker build --pull --rm --force-rm --no-cache -t ${INAME} -f ./docs/development/docker/underworld2/Dockerfile .'
       }
     }
     
@@ -106,6 +106,7 @@ pipeline {
       // force container removal
       sh 'docker rm -f ${CNAME}'
       sh 'docker rmi ${INAME}'
+      sh 'docker rmi $(docker images -f "dangling=true" -q)'
     }
   }
 }
