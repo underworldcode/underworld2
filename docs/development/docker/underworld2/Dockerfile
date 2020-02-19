@@ -2,7 +2,7 @@
 # Typically:
 #    $  docker build -f docs/development/docker/underworld2/Dockerfile .
 
-FROM underworldcode/base as base_runtime
+FROM underworldcode/base@sha256:50b6f1c5ddc1765d5480d8e465c369d8fc81530d7a6f3350a210cbe28ca03b10 as base_runtime
 MAINTAINER https://github.com/underworldcode/
 # install runtime requirements
 USER root
