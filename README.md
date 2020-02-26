@@ -33,7 +33,7 @@ You can try out the code immediately via a Jupyter Binder cloud instance. Be awa
 
 | | |
 |-|-|
-| [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/v2.9.1b) | v2.9.1b (Py3) |
+| [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/v2.9.2b) | v2.9.2b (Py3) |
 | [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/v2.8.2b) | v2.8.2b (Py3) |
 | [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/v2.7.1b) | v2.7.1b (Py2) |
 | [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/development) | dev (Py3) |
