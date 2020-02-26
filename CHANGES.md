@@ -1,6 +1,11 @@
 CHANGES: Underworld2
 =======================
 
+Release 2.9.2 [2020-02-26]
+---------------------------
+Changes:
+* Update Zenodo title. 
+
 Release 2.9.1 [2020-02-18]
 ---------------------------
 Enhancements:

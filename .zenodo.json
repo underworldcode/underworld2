@@ -46,7 +46,7 @@
         }
     ],
     "license": "lgpl-3.0",
-    "title": "underworld2",
+    "title": "Underworld2: Python Geodynamics Modelling for Desktop, HPC and Cloud",
     "upload_type": "software",
     "access_right": "open"
 }
