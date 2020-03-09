@@ -1,6 +1,12 @@
 CHANGES: Underworld2
 =======================
 
+Release 2.9.3 [2020-03-09]
+---------------------------
+Changes:
+* Update citation information in README.md.
+
+
 Release 2.9.2 [2020-02-26]
 ---------------------------
 Changes:
