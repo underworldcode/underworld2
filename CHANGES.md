@@ -1,6 +1,11 @@
 CHANGES: Underworld2
 =======================
 
+Release 2.10.0[]
+----------------
+Changes:
+* Check for compressibility/penalty clash. 
+
 Release 2.9.3 [2020-03-09]
 ---------------------------
 Changes:
