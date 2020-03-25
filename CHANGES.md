@@ -1,6 +1,12 @@
 CHANGES: Underworld2
 =======================
 
+Release 2.9.4 [2020-03-26]
+---------------------------
+Changes:
+* Updating Dockerfile to include UWGeodynamics-2.9.4.
+
+
 Release 2.9.3 [2020-03-09]
 ---------------------------
 Changes:
