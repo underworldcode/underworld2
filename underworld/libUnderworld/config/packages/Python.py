@@ -25,3 +25,7 @@ class Python(Package):
                 env.AppendUnique(CPPPATH=[os.path.join(self.location[1][0],'python3.7m')])
                 env.PrependUnique(LIBS=['python3.7m'])
                 yield env
+            if self.find_libraries(loc[2], 'python3.8'):
+                env.AppendUnique(CPPPATH=[os.path.join(self.location[1][0],'python3.8')])
+                env.PrependUnique(LIBS=['python3.8'])
+                yield env
