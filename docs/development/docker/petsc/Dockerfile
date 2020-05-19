@@ -1,4 +1,8 @@
 FROM debian:latest as base_runtime
+
+# get --build-arg WITH_DEBUG
+ARG WITH_DEBUG
+
 ENV LANG=C.UTF-8
 # Setup some things in anticipation of virtualenvs
 ENV VIRTUAL_ENV=/opt/venv
@@ -6,23 +10,39 @@ ENV VIRTUAL_ENV=/opt/venv
 ENV PATH=${VIRTUAL_ENV}/bin:$PATH
 # The following ensures that system packages are visible to venv Python, and vice versa
 ENV PYTHONPATH=/usr/lib/python3.7/site-packages:${VIRTUAL_ENV}/lib/python3.7/site-packages
+
 # install runtime requirements
-RUN apt-get update -qq \
+RUN if [ ! -z ${WITH_DEBUG+x} ]; then \
+      export DBPKG="valgrind cgdb python3-dbg" ; \
+    else \
+      export DBPKG="" ; \
+    fi \
+&&  apt-get update -qq \
 &&  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         bash-completion \
         python3-minimal \
         python3-virtualenv \
         python3-pip \
-        libopenblas-base
-RUN pip3 install -U setuptools  \
+        libopenblas-base ${DBPKG}
+
+RUN if [ ! -z ${WITH_DEBUG:+x} ]; then \
+      export DBPKG="ipdb" ; \
+    else \
+      export DBPKG="" ; \
+    fi \
+&&  pip3 install -U setuptools  \
 &&  pip3 install --no-cache-dir \
         packaging \
         appdirs \
         numpy \
         jupyter \
-        ipyparallel 
+        ipyparallel ${DBPKG}
 
 FROM base_runtime AS build_base
+
+# get --build-arg WITH_DEBUG
+ARG WITH_DEBUG
+
 # install build requirements
 RUN apt-get update -qq 
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
@@ -50,14 +70,29 @@ RUN /usr/bin/python3 -m virtualenv --python=/usr/bin/python3 ${VIRTUAL_ENV}
 RUN pip3 install --no-cache-dir mpi4py
 # build petsc
 WORKDIR /tmp/petsc-build
-ARG PETSC_VERSION="3.12.1"
+ARG PETSC_VERSION="3.13.1"
 RUN wget http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-${PETSC_VERSION}.tar.gz
+
+### 19May20 temporary force hdf5-1.10.0 as 1.12.0 isn't easily incompatible with h5py yet. 
+### This should be fixed soon and is depended on how petsc auto compiles hdf5-1.12.0 in future
+RUN wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.10/hdf5-1.10.6/src/hdf5-1.10.6.tar.gz
 RUN tar zxf petsc-lite-${PETSC_VERSION}.tar.gz
 WORKDIR /tmp/petsc-build/petsc-${PETSC_VERSION}
-RUN python3 ./configure --with-debugging=0 --prefix=/usr/local \
-                --COPTFLAGS="-g -O3" --CXXOPTFLAGS="-g -O3" --FOPTFLAGS="-g -O3" \
+RUN if [ ! -z ${WITH_DEBUG:+x} ]; then \
+      export DBFLAGS="--with-debugging=1 --with-valgrind=1"; \
+      export ARCH_NAME="arch-linux-c-debug" ; \
+    else \
+      export DBFLAGS="--with-debugging=0 --COPTFLAGS='-g -O3' --CXXOPTFLAGS='-g -O3' --FOPTFLAGS='-g -O3'" ; \
+      export ARCH_NAME="arch-linux-c-opt" ; \
+    fi \
+&& python3 ./configure --prefix=/usr/local      \
+                ${DBFLAGS}                      \
+                --PETSC_ARCH=${ARCH_NAME}       \
+                --with-shared-libraries         \
+                --with-cxx-dialect=C++11        \
+                --with-make-np=8                \
                 --with-zlib=1                   \
-                --download-hdf5=1               \
+                --download-hdf5=/tmp/petsc-build/hdf5-1.10.6.tar.gz \
                 --download-mumps=1              \
                 --download-parmetis=1           \
                 --download-metis=1              \
@@ -67,16 +102,12 @@ RUN python3 ./configure --with-debugging=0 --prefix=/usr/local \
                 --download-superlu_dist=1       \
                 --useThreads=0                  \
                 --download-superlu=1            \
-                --with-shared-libraries         \
-                --with-cxx-dialect=C++11        \
-                --with-make-np=8
-RUN make PETSC_DIR=/tmp/petsc-build/petsc-${PETSC_VERSION} PETSC_ARCH=arch-linux-c-opt all
-RUN make PETSC_DIR=/tmp/petsc-build/petsc-${PETSC_VERSION} PETSC_ARCH=arch-linux-c-opt install
+&& make PETSC_DIR=/tmp/petsc-build/petsc-${PETSC_VERSION} PETSC_ARCH=${ARCH_NAME} all \
+&& make PETSC_DIR=/tmp/petsc-build/petsc-${PETSC_VERSION} PETSC_ARCH=${ARCH_NAME} install
 # these aren't needed
 RUN rm -fr /usr/local/share/petsc 
 # build petsc4py
 ENV PETSC_DIR=/usr/local
-ENV PETSC_ARCH=arch-linux-c-opt
 RUN pip3 install --no-cache-dir petsc4py
 # I don't think the petsc py package is needed. 
 RUN CC=h5pcc HDF5_MPI="ON" HDF5_DIR=${PETSC_DIR} pip3 install --no-cache-dir --no-binary=h5py h5py
