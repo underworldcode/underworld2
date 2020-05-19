@@ -1,6 +1,13 @@
 CHANGES: Underworld2
 =======================
 
+Release 2.10.0 []
+----------------
+Fixes:
+* SWIG4 compatibility changes.
+* libxml2 ubuntu20.04 changes.
+
+
 Release 2.9.3 [2020-03-09]
 ---------------------------
 Changes:

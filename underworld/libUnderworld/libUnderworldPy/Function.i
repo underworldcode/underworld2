@@ -6,7 +6,11 @@
 ** located at the project root, or contact the authors.                             **
 **                                                                                  **
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
+#if (SWIG_VERSION <= 0x040000)
 %module (package="underworld.libUnderworld.libUnderworldPy") Function
+#else
+%module (package="underworld.libUnderworld.libUnderworldPy", moduleimport="import $module") Function
+#endif
 
 %include "exception.i"
 %import "StGermain.i"

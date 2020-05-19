@@ -8,7 +8,11 @@
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 /* -*- C -*-  (not really, but good for syntax highlighting) */
 
+#if (SWIG_VERSION <= 0x040000)
 %module (package="underworld.libUnderworld.libUnderworldPy") c_arrays
+#else
+%module (package="underworld.libUnderworld.libUnderworldPy", moduleimport="import $module") c_arrays
+#endif
 
 %{
 /* Includes the header in the wrapper code */

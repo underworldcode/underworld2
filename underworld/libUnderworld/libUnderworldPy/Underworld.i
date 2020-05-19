@@ -8,7 +8,11 @@
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 /* -*- C -*-  (not really, but good for syntax highlighting) */
 
+#if (SWIG_VERSION <= 0x040000)
 %module (package="underworld.libUnderworld.libUnderworldPy") Underworld
+#else
+%module (package="underworld.libUnderworld.libUnderworldPy", moduleimport="import $module") Underworld
+#endif
 
 %include "exception.i"
 %import "StGermain.i"
