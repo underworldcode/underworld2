@@ -1,4 +1,4 @@
-FROM python:3.5-slim
+FROM python:3.7-slim
 MAINTAINER https://github.com/underworldcode/
 
 # install things
@@ -74,8 +74,29 @@ RUN python3 -m pip install --no-cache-dir -U setuptools  && \
 # update python to py3
 # RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.5 1
 
+ARG HDF5_VERSION="1.12.0"
+ARG HDF5_CONFIGURE_OPTIONS="--enable-shared --enable-parallel --enable-fortran --enable-build-mode=production --prefix=/opt/hdf5"
+ENV H5_CFLAGS='-g -O3'
+WORKDIR /tmp/hdf5-build
+RUN wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.12/hdf5-${HDF5_VERSION}/src/hdf5-${HDF5_VERSION}.tar.gz && \
+    tar xvzf hdf5-${HDF5_VERSION}.tar.gz                                  && \
+    cd hdf5-${HDF5_VERSION}                                               && \
+    CC=mpicc FC=mpifort CXX=mpicxx ./configure ${HDF5_CONFIGURE_OPTIONS}  && \
+    make ${MPICH_MAKE_OPTIONS}                                            && \
+    make install                                                          && \
+    cd /tmp                                                               && \
+    rm -fr *
+
+ENV HDF5_DIR=/opt/hdf5
+ENV PATH=${HDF5_DIR}/bin:$PATH
+
+RUN python3 -m pip install --no-cache-dir -U Cython && \
+    CC=h5pcc FC=h5pfc HDF5_MPI="ON" HDF5_DIR=${HDF5_DIR} python3 -m pip install --no-cache-dir git+https://github.com/h5py/h5py
+
+
+
 WORKDIR /tmp/petsc-build
-ARG PETSC_VERSION="3.11.2"
+ARG PETSC_VERSION="3.13.2"
 RUN wget http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-${PETSC_VERSION}.tar.gz && \
     tar zxf petsc-lite-${PETSC_VERSION}.tar.gz && cd petsc-${PETSC_VERSION}   && \
     ./configure --with-debugging=0 --prefix=/opt/petsc                     \
@@ -84,7 +105,6 @@ RUN wget http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-${PETSC_V
                 --download-fblaslapack=1        \
                 --download-ctetgen=1            \
                 --download-triangle=1           \
-                --download-hdf5=1               \
                 --download-mumps=1              \
                 --download-parmetis=1           \
                 --download-metis=1              \
@@ -92,10 +112,12 @@ RUN wget http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-${PETSC_V
                 --download-scalapack=1          \
                 --useThreads=1                  \
                 --with-shared-libraries         \
+                --with-hdf5-dir=/opt/hdf5       \
+                --with-mpi-dir=/opt/mpich       \
                 --with-cxx-dialect=C++11     && \
     make PETSC_DIR=/tmp/petsc-build/petsc-${PETSC_VERSION} PETSC_ARCH=arch-linux-c-opt all     && \
     make PETSC_DIR=/tmp/petsc-build/petsc-${PETSC_VERSION} PETSC_ARCH=arch-linux-c-opt install && \
-    make PETSC_DIR=/opt/petsc PETSC_ARCH="" test && \
+    make PETSC_DIR=/opt/petsc PETSC_ARCH="" check && \
     cd /tmp && \
     rm -fr *
 
@@ -106,8 +128,7 @@ ENV PATH=${PETSC_DIR}/bin:$PATH
 ENV SCONS_LIB_DIR /usr/local/lib/python3.5/dist-packages/scons-3.0.1
 
 ENV PYTHONPATH $PYTHONPATH:/usr/lib
-RUN CC=h5pcc HDF5_MPI="ON" HDF5_DIR=${PETSC_DIR} python3 -m pip install --no-cache-dir --no-binary=h5py h5py && \
-    python3 -m pip install --no-cache-dir petsc4py
+RUN python3 -m pip install --no-cache-dir petsc4py
 
 
 # install extras in a new layer
