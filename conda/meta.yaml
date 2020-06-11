@@ -1,0 +1,52 @@
+{% set name = "underworld2" %}
+{% set version = "2.9.4" %}
+
+package:
+  name: "{{ name|lower }}"
+  version: "{{ version }}"
+
+source:
+    - git_url: https://github.com/underworldcode/underworld2.git
+    - git_rev: v2.9.4
+
+build:
+  number: 0
+
+requirements:
+  build:
+    - python
+    - swig>=4.0.0
+    - libxml2
+    - scons>=3.0.0
+
+  host:
+    - python
+    - pip
+    - numpy>=1.18.1
+    - scipy>=1.4.1
+    - mpi4py
+    - h5py==*==mpi*
+    - petsc==3.13
+    - {{ compiler('fortran')}}
+    - {{ compiler('c')}}
+
+  run:
+    - python
+    - numpy>=1.18.1
+
+
+about:
+  home: "https://github.com/underworldcode/underworld2"
+  license: UNKNOWN
+  license_family: OTHER
+  license_file: 
+  summary: "Geodynamics API"
+  doc_url: 
+  dev_url: 
+
+extra:
+  recipe-maintainers:
+    - rbeucher
+    - jmansour
+    - jgiordani
+    - lmoresi
