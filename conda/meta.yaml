@@ -6,7 +6,7 @@ package:
   version: "{{ version }}"
 
 source:
-    - git_url: https://github.com/underworldcode/underworld2.git
+    - git_url: https://github.com/underworldcode/underworld2.git@development
     - git_rev: v2.9.4
 
 build:
