@@ -23,7 +23,7 @@ requirements:
     - {{ compiler('c')}}
 
   host:
-    - python>=3.7<3.8
+    - python
     - pip
     - numpy>=1.18.1
     - scipy>=1.4.1
