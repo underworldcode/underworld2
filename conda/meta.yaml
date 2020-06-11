@@ -28,7 +28,7 @@ requirements:
     - numpy>=1.18.1
     - scipy>=1.4.1
     - mpi4py
-    - h5py==*="mpi*"
+    - h5py=*=mpi*
     - petsc==3.13
 
   run:
