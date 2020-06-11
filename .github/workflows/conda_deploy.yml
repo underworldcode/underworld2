@@ -23,7 +23,7 @@ jobs:
         shell: bash -l {0}
         run: |
             conda install --channel conda-forge conda-build anaconda-client conda-verify
-            comda config --add channels conda-forge
+            conda config --add channels conda-forge
             conda config --add channels underworldcode
             conda config --set anaconda_upload yes
             anaconda login --hostname github-actions-${{ matrix.os  }}-$RANDOM --username ${{ secrets.ANACONDA_USERNAME }} --password ${{ secrets.ANACONDA_PASSWORD }}
