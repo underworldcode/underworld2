@@ -15,7 +15,6 @@ build:
 requirements:
   build:
     - pkg-config
-    - python
     - swig>=4.0.0
     - libxml2
     - scons>=3.0.0
