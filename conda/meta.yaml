@@ -32,7 +32,7 @@ requirements:
     - petsc==3.13
 
   run:
-    - python>=3.7<3.8
+    - python
     - numpy>=1.18.1
 
 
