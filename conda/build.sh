@@ -1,6 +1,6 @@
 #!/bin/bash
 
 cd underworld/libUnderworld
-./configure.py --prefix=$PREFIX
+./configure.py --prefix=$PREFIX || (cat config.log && exit 1)
 ./compile.py
-./scons.py install || (cat configure.log && exit 1)
+./scons.py install 
