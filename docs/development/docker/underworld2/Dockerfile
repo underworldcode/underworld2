@@ -28,10 +28,10 @@ WORKDIR /tmp/underworld2
 RUN pip3 install -vvv . 
 # clone UWGeodynamics, install 
 WORKDIR /tmp
-RUN git clone -b v29 https://github.com/underworldcode/UWGeodynamics.git 
-RUN pip3 install --no-cache-dir UWGeodynamics/ 
+RUN git clone https://github.com/underworldcode/UWGeodynamics.git
+RUN pip3 install --no-cache-dir UWGeodynamics/
 
-FROM base_runtime 
+FROM base_runtime
 COPY --from=build_base ${VIRTUAL_ENV} ${VIRTUAL_ENV}
 # Record Python packages, but only record system packages! 
 # Not venv packages, which will be copied directly in.
