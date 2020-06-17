@@ -196,7 +196,7 @@ class SolC(_SolBaseFreeSlipBc):
     Fourier terms required.
 
     """
-    eqn_bodyforce = "(0,-\sigma_0 \operatorname{step}(1,0,x_c; x)"
+    eqn_bodyforce = "(0,-\sigma_0 \operatorname{step}(1,0,x_c; x))"
     eqn_viscosity = "\eta_0"
     def __init__(self, sigma_0=1., x_c=0.5, eta_0=1., nmodes=200, *args, **kwargs):
         if not isinstance(eta_0, float) or eta_0<=0:
