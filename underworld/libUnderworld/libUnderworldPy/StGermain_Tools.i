@@ -8,7 +8,7 @@
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 /* -*- C -*-  (not really, but good for syntax highlighting) */
 
-%module (package="underworld.libUnderworld.libUnderworldPy") StGermain_Tools
+%module (package="underworld.libUnderworld.libUnderworldPy", moduleimport="import $module") StGermain_Tools
 
 
 %{

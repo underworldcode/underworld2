@@ -124,7 +124,6 @@ def non_dimensionalise(dimValue):
     else:
         raise ValueError('Dimension Error')
 
-
 def dimensionalise(value, units):
     """
     Dimensionalise a value.
@@ -190,3 +189,19 @@ def dimensionalise(value, units):
     else:
         return (value * factor).to(units)
 
+
+def ndargs(f):
+    """ Decorator used to non-dimensionalise the arguments of a function"""
+
+    def convert(obj):
+        if isinstance(obj, (list, tuple)):
+            return type(obj)([convert(val) for val in obj])
+        else:
+            return non_dimensionalise(obj)
+
+    def new_f(*args, **kwargs):
+        nd_args = [convert(arg) for arg in args]
+        nd_kwargs = {name:convert(val) for name, val in kwargs.items()}
+        return f(*nd_args, **nd_kwargs)
+    new_f.__name__ = f.__name__
+    return new_f

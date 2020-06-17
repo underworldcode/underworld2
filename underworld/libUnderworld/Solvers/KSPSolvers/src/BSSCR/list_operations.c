@@ -201,10 +201,10 @@ PetscErrorCode BSSCR_MatListOperations( Mat A, PetscViewer v )
 	BSSCR_report_op( ops->getvecs, v,                 i++, "MatGetVec" );
 	
 	PetscViewerASCIIPrintf(v, "------------------------------------------------\n");
-	BSSCR_report_op( ops->matmult, v,         i++, "MatMatMult" );
+	// BSSCR_report_op( ops->matmult, v,         i++, "MatMatMult" );  removed for petsc 3.13.2 compat.
 	BSSCR_report_op( ops->matmultsymbolic, v, i++, "MatMatMultSymbolic" );
 	BSSCR_report_op( ops->matmultnumeric, v,  i++, "MatMatMultNumeric" );
-	BSSCR_report_op( ops->ptap, v,            i++, "MatPtAP" );
+	// BSSCR_report_op( ops->ptap, v,            i++, "MatPtAP" );     removed for petsc 3.13.2 compat.
 	BSSCR_report_op( ops->ptapsymbolic, v,    i++, "MatPtAPSymbolic" );
 	
 	BSSCR_report_op( ops->ptapnumeric, v,              i++, "MatPtAPNumeric" );
