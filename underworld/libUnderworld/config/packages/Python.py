@@ -1,9 +1,11 @@
 from config import Package
+from distutils.sysconfig import get_python_inc, get_python_lib
 import os
 
 class Python(Package):
 
     def gen_locations(self):
+        yield ( os.path.dirname(get_python_inc()), [get_python_inc(),], [get_python_lib()] )
         yield ('/usr/local', ['/usr/local/include'], ['/usr/local/lib'])
         yield ('/opt/local', ['/opt/local/include'], ['/opt/local/lib'])
 
