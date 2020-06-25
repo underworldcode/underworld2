@@ -18,15 +18,8 @@ class Python(Package):
             if self.find_libraries(loc[2], 'python'):
                 env.PrependUnique(LIBS=['python'])
                 yield env
-            if self.find_libraries(loc[2], 'python3.5m'):
-                env.AppendUnique(CPPPATH=[os.path.join(self.location[1][0],'python3.5m')])
-                env.PrependUnique(LIBS=['python3.5m'])
-                yield env
-            if self.find_libraries(loc[2], 'python3.6m'):
-                env.AppendUnique(CPPPATH=[os.path.join(self.location[1][0],'python3.6m')])
-                env.PrependUnique(LIBS=['python3.6m'])
-                yield env
-            if self.find_libraries(loc[2], 'python3.7m'):
-                env.AppendUnique(CPPPATH=[os.path.join(self.location[1][0],'python3.7m')])
-                env.PrependUnique(LIBS=['python3.7m'])
-                yield env
+            for ver in ['python3.5m','python3.6m','python3.7m','python3.8m']:
+                if self.find_libraries(loc[2], ver ):
+                    env.AppendUnique(CPPPATH=[os.path.join(self.location[1][0],ver)])
+                    env.PrependUnique(LIBS=[ver])
+                    yield env
