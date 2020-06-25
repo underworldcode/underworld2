@@ -6,8 +6,8 @@ package:
   version: "{{ version }}"
 
 source:
-    - git_url: https://github.com/underworldcode/underworld2.git
-    - git_tag: conda_build
+  git_url: https://github.com/underworldcode/underworld2.git
+  git_tag: conda_build
 
 build:
   number: 0
