@@ -1,5 +1,5 @@
 {% set name = "underworld2" %}
-{% set version = "2.9.4" %}
+{% set version = "conda_build" %}
 
 package:
   name: "{{ name|lower }}"
@@ -7,7 +7,7 @@ package:
 
 source:
     - git_url: https://github.com/underworldcode/underworld2.git
-    - git_rev: v2.9.4
+    - git_rev: conda_build
 
 build:
   number: 0
