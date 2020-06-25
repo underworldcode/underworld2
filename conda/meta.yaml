@@ -7,7 +7,7 @@ package:
 
 source:
   git_url: https://github.com/underworldcode/underworld2.git
-  git_tag: conda_build
+  git_tag: conda_deploy
 
 build:
   number: 0
