@@ -5,7 +5,10 @@ import os
 class Python(Package):
 
     def gen_locations(self):
-        yield ( os.path.dirname(get_python_inc()), [get_python_inc(),], [get_python_lib()] )
+        python_inc = get_python_inc()
+        python_base = os.path.dirname(get_python_inc())
+        python_lib = os.path.join(python_base,"lib")
+        yield ( python_base, [python_inc,], [python_lib,] )
         yield ('/usr/local', ['/usr/local/include'], ['/usr/local/lib'])
         yield ('/opt/local', ['/opt/local/include'], ['/opt/local/lib'])
 
