@@ -6,7 +6,7 @@ class Python(Package):
 
     def gen_locations(self):
         python_inc = get_python_inc()
-        python_base = os.path.dirname(get_python_inc())
+        python_base = os.path.dirname(os.path.dirname(get_python_inc()))
         python_lib = os.path.join(python_base,"lib")
         yield ( python_base, [python_inc,], [python_lib,] )
         yield ('/usr/local', ['/usr/local/include'], ['/usr/local/lib'])
