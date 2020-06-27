@@ -1,16 +1,12 @@
 from config import Package
 from distutils.sysconfig import get_python_inc, get_python_lib
 import os
-print(get_python_inc())
-print(get_python_lib())
 
-print(os.path.expandvars(get_python_inc()))
-print(os.path.expandvars(get_python_lib()))
 class Python(Package):
 
     def gen_locations(self):
-        python_inc = os.path.expandvars(get_python_inc())
-        python_base = os.path.dirname(python_inc)
+        python_inc = get_python_inc()
+        python_base = os.path.dirname(get_python_inc())
         python_lib = os.path.join(python_base,"lib")
         yield ( python_base, [python_inc,], [python_lib,] )
         yield ('/usr/local', ['/usr/local/include'], ['/usr/local/lib'])
