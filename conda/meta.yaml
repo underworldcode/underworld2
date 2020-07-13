@@ -25,6 +25,7 @@ requirements:
     - {{ mpi }}
     - {{ compiler('fortran')}}
     - {{ compiler('c')}}
+    - {{ compiler('cxx')}}
 
   host:
     - python
