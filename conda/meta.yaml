@@ -15,9 +15,9 @@ build:
 requirements:
   build:
     - {{ mpi }}
-    - {{ compiler('fortran')}}
-    - {{ compiler('c')}}
-    - {{ compiler('cxx')}}
+    - {{ compiler('fortran') }}
+    - {{ compiler('c') }}, {{ compiler('cxx') }}
+    - libxml2
     - pkg-config
     - swig>=4.0.0
     - scons>=3.0.0
@@ -25,7 +25,6 @@ requirements:
     - numpy>=1.18.1
     - h5py=*=mpi*
     - mpi4py
-    - libxml2
 
   host:
     - python
