@@ -18,6 +18,7 @@ requirements:
     - swig>=4.0.0
     - libxml2
     - scons>=3.0.0
+    - petsc==3.13
     - {{ mpi }}
     - {{ compiler('fortran')}}
     - {{ compiler('c')}}
@@ -29,7 +30,6 @@ requirements:
     - scipy>=1.4.1
     - mpi4py
     - h5py=*=mpi*
-    - petsc==3.13
 
   run:
     - python
