@@ -16,7 +16,7 @@ requirements:
   build:
     - {{ mpi }}
     - {{ compiler('fortran') }}
-    - {{ compiler('c') }}, {{ compiler('cxx') }}
+    - {{ compiler('cxx') }}
     - libxml2
     - pkg-config
     - swig>=4.0.0
