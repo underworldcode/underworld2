@@ -16,6 +16,7 @@ requirements:
   build:
     - {{ mpi }}
     - {{ compiler('fortran') }}
+    - {{ compiler('c') }}
     - {{ compiler('cxx') }}
     - libxml2
     - pkg-config
