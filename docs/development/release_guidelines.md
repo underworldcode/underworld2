@@ -30,6 +30,8 @@ Documentation review
    user relevant objects should be made private so they don't appear in
    autocomplete suggestions.
 * Review ``docs/`` for style, relevance and updates.
+* Review ``docs/install_guides``, in particular ensure that guides 
+  for Gadi & Magnus are up to date.
 * Review docs generated at http://underworld2.readthedocs.io/
 	- make sure builds are passing
 	- review latest content
@@ -49,8 +51,6 @@ Testing
 * Ensure 'run_tests.py' script run to completion without raising an exception.
 * Test on
 ** docker
-** OSX
-** linux
 ** NCI
 ** Pawsey
 * Scaling tests on NCI and Pawsey machines.
