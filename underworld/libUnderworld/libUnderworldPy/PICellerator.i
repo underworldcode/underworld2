@@ -39,19 +39,19 @@ extern "C" {
 
 %apply ( int DIM1, int DIM2, double* IN_ARRAY2 ) {(Index count, Index dim, double* array )};
 
-%include "<MaterialPoints/IntegrationPointsSwarm.h>"
-%include "<MaterialPoints/CoincidentMapper.h>"
-%include "<MaterialPoints/SwarmMap.h>"
-%include "<MaterialPoints/GeneralSwarm.h>"
-%include "<MaterialPoints/SwarmAdvector.h>"
-%include "<MaterialPoints/types.h>"
-%include "<PopulationControl/types.h>"
-%include "<PopulationControl/EscapedRoutine.h>"
-%include "<Weights/WeightsCalculator.h>"
-%include "<Weights/DVCWeights.h>"
-%include "<Weights/types.h>"
-%include "<Utils/PCDVC.h>"
-%include "<Utils/types.h>"
+%include "MaterialPoints/IntegrationPointsSwarm.h"
+%include "MaterialPoints/CoincidentMapper.h"
+%include "MaterialPoints/SwarmMap.h"
+%include "MaterialPoints/GeneralSwarm.h"
+%include "MaterialPoints/SwarmAdvector.h"
+%include "MaterialPoints/types.h"
+%include "PopulationControl/types.h"
+%include "PopulationControl/EscapedRoutine.h"
+%include "Weights/WeightsCalculator.h"
+%include "Weights/DVCWeights.h"
+%include "Weights/types.h"
+%include "Utils/PCDVC.h"
+%include "Utils/types.h"
 
 %extend GeneralSwarm
 {
