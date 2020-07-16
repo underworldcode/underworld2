@@ -21,15 +21,16 @@ requirements:
     - pkg-config
     - swig>=4.0.0
     - scons>=3.0.0
-
-  host:
     - libxml2
-    - petsc==3.13
-    - python
     - pip
-    - numpy>=1.18.1
     - h5py=*=mpi*
     - mpi4py
+    - python
+    - petsc==3.13
+
+  host:
+    - petsc==3.13
+    - numpy>=1.18.1
     - scipy>=1.4.1
 
   run:
