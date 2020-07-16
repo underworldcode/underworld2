@@ -37,6 +37,10 @@ requirements:
     - python
     - six
     - numpy x.x
+    - petsc==3.13
+    - mpi4py
+    - scipy>=1.4.1
+    - h5py=*=mpi*
 
 
 about:
