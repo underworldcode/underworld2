@@ -8,7 +8,11 @@
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 /* -*- C -*-  (not really, but good for syntax highlighting) */
 
+#if (SWIG_VERSION <= 0x040000)
 %module (package="underworld.libUnderworld.libUnderworldPy") StgFEM
+#else
+%module (package="underworld.libUnderworld.libUnderworldPy", moduleimport="import $module") StgFEM
+#endif
 
 
 %{

@@ -30,12 +30,14 @@ Documentation review
    user relevant objects should be made private so they don't appear in
    autocomplete suggestions.
 * Review ``docs/`` for style, relevance and updates.
+* Review ``docs/install_guides``, in particular ensure that guides 
+  for Gadi & Magnus are up to date.
 * Review docs generated at http://underworld2.readthedocs.io/
 	- make sure builds are passing
 	- review latest content
 * Review top level `README.md`.
 * Review `LICENSE.md`.
-* Review `.zenodo.json`.
+* Review `.zenodo.json` (and validate using `jsonlint`).
 * Update the copyright information if necessary.
 ** Add new Binder link, and keep link to old Binder.
 * Generate/update change log (`CHANGES.md`).
@@ -49,8 +51,6 @@ Testing
 * Ensure 'run_tests.py' script run to completion without raising an exception.
 * Test on
 ** docker
-** OSX
-** linux
 ** NCI
 ** Pawsey
 * Scaling tests on NCI and Pawsey machines.
@@ -74,6 +74,7 @@ Announce new version
 After the release
 ============
 * Increment version number within ``underworld/_version.py`` on dev branch (eg 2.6.0-dev)
+* Update `FROM` tag in top level (binder) Dockerfile to use dev images.
 * Check `docker/docker.md` for docker related actions.
 
 

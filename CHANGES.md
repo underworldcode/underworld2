@@ -1,11 +1,20 @@
 CHANGES: Underworld2
 =======================
 
+Release 2.10.0 []
+----------------
+Fixes:
+* SWIG4 compatibility changes.
+* libxml2 ubuntu20.04 changes.
+
+Changes:
+* Check for compressibility/penalty clash. 
+* Update example models for parallel usage. 
+
 Release 2.9.4 [2020-03-26]
 ---------------------------
 Changes:
 * Updating Dockerfile to include UWGeodynamics-2.9.4.
-
 
 Release 2.9.3 [2020-03-09]
 ---------------------------

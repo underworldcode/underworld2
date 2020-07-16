@@ -10,6 +10,8 @@ class libXML2(Package):
 
     def gen_envs(self, loc):
         for env in Package.gen_envs(self, loc):
+            # the following is required to force libxml2 to not use the cpp-api
+            env.AppendUnique(CPPDEFINES=["U_SHOW_CPLUSPLUS_API=0",])
             self.headers = [os.path.join('libxml', 'parser.h')]
             if self.find_libraries(loc[2], 'xml2'):
                 env.PrependUnique(LIBS=['xml2'])

@@ -179,11 +179,6 @@ except:
     _id = str(_uuid.uuid4())
 from . import _net
 
-# DEPRECATE JM 20200203
-def matplotlib_inline():
-    raise RuntimeError("This function has been moved to `underworld.utils.matplotlib_inline()`.")
-matplotlib_inline.DO_NOT_DOC = True   # this disables documentation of this function
-
 # lets handle exceptions differently in parallel to ensure we call.
 # add isinstance so that this acts correctly for Mocked classes used in sphinx docs generation
 if isinstance(underworld.mpi.size, int) and underworld.mpi.size > 1:

@@ -8,7 +8,7 @@
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 /* -*- C -*-  (not really, but good for syntax highlighting) */
 
-%module (package="underworld.libUnderworld.libUnderworldPy") c_pointers
+%module (package="underworld.libUnderworld.libUnderworldPy", moduleimport="import $module") c_pointers
 
 /* this guy is an interface to malloc */
 %include "cpointer.i"

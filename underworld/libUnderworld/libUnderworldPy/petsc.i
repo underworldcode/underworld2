@@ -8,7 +8,7 @@
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 /* -*- C -*-  (not really, but good for syntax highlighting) */
 
-%module (package="underworld.libUnderworld.libUnderworldPy") petsc
+%module (package="underworld.libUnderworld.libUnderworldPy", moduleimport="import $module") petsc
 
 %{
 /* Includes the header in the wrapper code */
