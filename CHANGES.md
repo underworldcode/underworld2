@@ -6,6 +6,7 @@ Release 2.10.0 []
 Fixes:
 * SWIG4 compatibility changes.
 * libxml2 ubuntu20.04 changes.
+* Numpu 1.19 compatability changes.
 
 Changes:
 * Check for compressibility/penalty clash. 
