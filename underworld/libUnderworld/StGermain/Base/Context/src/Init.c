@@ -39,10 +39,10 @@
 /* complain. This was encoutered first for `numpy` 1.19.0.    */
 /* Perhaps this call should go somewhere else altogether,     */
 /* like `main()`.                                             */
-void numpy_import(){
+void* numpy_import() {
    import_array();
-}
-
+   return NULL;
+};
 
 Bool BaseContext_Init( int* argc, char** argv[] ) {
    Stream* typedStream;
