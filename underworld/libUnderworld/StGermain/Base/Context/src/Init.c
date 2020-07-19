@@ -39,7 +39,7 @@
 /* complain. This was encoutered first for `numpy` 1.19.0.    */
 /* Perhaps this call should go somewhere else altogether,     */
 /* like `main()`.                                             */
-void* numpy_import() {
+void* import_numpy() {
    import_array();
    return NULL;
 };
