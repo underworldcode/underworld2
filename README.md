@@ -34,6 +34,7 @@ You can try out the code immediately via a Jupyter Binder cloud instance. Be awa
 
 | | |
 |-|-|
+| [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/v2.10.0b) | v2.10.0b (Py3) |
 | [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/v2.9.2b) | v2.9.2b (Py3) |
 | [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/v2.8.2b) | v2.8.2b (Py3) |
 | [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/v2.7.1b) | v2.7.1b (Py2) |
@@ -66,10 +67,6 @@ Note that basic usage metrics are dispatched when you use Underworld. To opt out
 Licensing
 ---------
 Underworld is an open-source project licensed under LGPL-3. See `LICENSE.md` for details.
-
-Security Notice 
----------------
-Earlier versions of our Docker images disabled token authentication for Jupyter Notebook. This potentially left the user's container vulnerable, in particular where running on institution networks. All Docker images have now been updated to enable token authentication. Please ensure you are using an updated image by running `docker pull` for your given Underworld version (or better yet, updating to the latest release).
 
 Citing Underworld
 -----------------
