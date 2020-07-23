@@ -8,7 +8,11 @@ import subprocess
 import shutil
 
 #Viewer instance for running image tests
-lv = vis.lavavu.Viewer(quality=1)
+
+kwargs = {}
+if 'UW_VIS_PORT' in os.environ:
+    kwargs['port'] = int(os.environ['UW_VIS_PORT'])
+lv = vis.lavavu.Viewer(quality=1,**kwargs)
 
 #files = glob.glob("*.ipynb")
 nbdir = "../../../user_guide/"

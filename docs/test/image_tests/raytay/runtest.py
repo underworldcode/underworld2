@@ -171,6 +171,9 @@ doOutput()
 
 #Check the image results
 if uw.mpi.rank == 0:
-    lv = vis.lavavu.Viewer(quality=1)
+    kwargs = {}
+    if 'UW_VIS_PORT' in os.environ:
+        kwargs['port'] = int(os.environ['UW_VIS_PORT'])
+    lv = vis.lavavu.Viewer(quality=1,**kwargs)
     lv.testimages(tolerance=1e-3)
 
