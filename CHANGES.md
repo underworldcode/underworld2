@@ -6,7 +6,9 @@ Release 2.10.0 []
 Fixes:
 * SWIG4 compatibility changes.
 * libxml2 ubuntu20.04 changes.
-* Numpu 1.19 compatability changes.
+* Numpy 1.19 compatability changes.
+* Fix `LGPLv3.txt` contents. File incorrect contained
+  GPLv3 text. 
 
 Changes:
 * Check for compressibility/penalty clash. 
