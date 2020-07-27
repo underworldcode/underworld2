@@ -1,6 +1,12 @@
 CHANGES: Underworld2
 =======================
 
+Release 2.9.5 [2020-07-27]
+---------------------------
+Changes:
+* Fix `LGPLv3.txt` contents. File incorrect contained
+  GPLv3 text.
+
 Release 2.9.4 [2020-03-26]
 ---------------------------
 Changes:
