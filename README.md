@@ -66,7 +66,9 @@ Note that basic usage metrics are dispatched when you use Underworld. To opt out
 
 Licensing
 ---------
-Underworld is an open-source project licensed under LGPL-3. See `LICENSE.md` for details.
+Underworld is an open-source project licensed under LGPL Version 3. See `LICENSE.md` and `LGPLv3.txt` for details.
+
+Note that for releases `2.9.0`, `2.9.1`, `2.9.2`, `2.9.3` and `2.9.4`, the incorrect text was erroneously included within `LGPLv3.txt`, although these releases must still to be considered as licensed under LGPL Version 3.
 
 Citing Underworld
 -----------------
