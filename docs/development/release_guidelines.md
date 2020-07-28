@@ -27,8 +27,8 @@ Documentation review
 * Review docstrings updates for deprecation warnings.
 * Check for other DEPRECATE flags in the code.
 * Check autocomplete to ensure no garbage has slipped in. Non
-   user relevant objects should be made private so they don't appear in
-   autocomplete suggestions.
+  user relevant objects should be made private so they don't appear in
+  autocomplete suggestions.
 * Review ``docs/`` for style, relevance and updates.
 * Review ``docs/install_guides``, in particular ensure that guides 
   for Gadi & Magnus are up to date.
@@ -39,7 +39,7 @@ Documentation review
 * Review `LICENSE.md`.
 * Review `.zenodo.json` (and validate using `jsonlint`).
 * Update the copyright information if necessary.
-** Add new Binder link, and keep link to old Binder.
+* Add new Binder link, and keep link to old Binder.
 * Generate/update change log (`CHANGES.md`).
 * Review cheat sheet contents.
 * Increment version number within ``underworld/_version.py``
@@ -48,16 +48,17 @@ Documentation review
 
 Testing
 =======
-* Ensure 'run_tests.py' script run to completion without raising an exception.
-* Test on
-** docker
-** NCI
-** Pawsey
-* Scaling tests on NCI and Pawsey machines.
-* High resolution production tests on Raijin, Magnus run to completion with 
-  correct results.
-* Ensure jenkins and docker are working correctly.
-* Ensure metrics are being dispatched.
+* Ensure 'test_long.py' script run to completion without raising an exception.
+  Test on Docker/NCI/Pawsey. Note that parallel jobs within script may need to be
+  executed by hand on NCI/Pawsey.
+* Large parallel tests (NCI/Pawsey).
+  Compare against previous for timing performance, and confirming expected convergence rates for SolDB3d.
+  - IO=0, JOBS="1 2 4 6 8 10 12 14 16 18 20 24", BASE=16, ORDER=2, RTOL=1e-11, PENALTY=-1, MODEL=SOLDB3d
+  - IO=0, JOBS="1 2 4 6 8 10 12 14 16 18 20 24", BASE=32, ORDER=1, RTOL=1e-6,  PENALTY=-1, MODEL=SOLH
+  - IO=1, JOBS="1 2 4 6 8 10",                   BASE=32, ORDER=1, RTOL=1e-6,  PENALTY=-1, MODEL=SOLH
+* Confirm Jenkins is running tests and tests are returning expected results. 
+* Confirm Docker images are being generated correctly.
+* Confirm metrics are being dispatched.
 
 Creating the release
 ====================
