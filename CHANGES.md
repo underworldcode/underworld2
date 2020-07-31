@@ -14,6 +14,9 @@ Changes:
 * Check for compressibility/penalty clash. 
 * Update example models for parallel usage. 
 
+New:
+* Add Dockerfile for Deepnote.
+
 Release 2.9.5 [2020-07-27]
 ---------------------------
 Changes:
