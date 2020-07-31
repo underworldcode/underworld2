@@ -83,6 +83,12 @@ class Stokes(_stgermain.StgCompoundComponent):
         utilised. The provided swarm is used as the basis for the voronoi
         integration. If no voronoi_swarm is provided, Gauss integration
         is used.
+    gauss_swarm : underworld.swarm.GaussIntegrationSwarm
+        If provided this gauss_swarm will be used for (gaussian) numerical 
+        integration rather than a default gauss integration swarm that is 
+        automatically generated and dependent on the element order of the mesh. 
+        NB: if a voronoi_swarm is defined it OVERRIDES this gauss_swarm as the
+        preferred integration swarm (quadrature method).
     conditions : underworld.conditions.SystemCondition
         Numerical conditions to impose on the system. This should be supplied as
         the condition itself, or a list object containing the conditions.
@@ -98,7 +104,7 @@ class Stokes(_stgermain.StgCompoundComponent):
 
 
     def __init__(self, velocityField, pressureField, fn_viscosity, fn_bodyforce=None, fn_one_on_lambda=None,
-                fn_source=None, voronoi_swarm=None, conditions=[],
+                fn_source=None, voronoi_swarm=None, conditions=[], gauss_swarm=None,
                 _removeBCs=True, _fn_viscosity2=None, _fn_director=None, fn_stresshistory=None, _fn_stresshistory=None,
                 _fn_v0=None, _fn_p0=None, _callback_post_solve=None, **kwargs):
 
@@ -193,6 +199,14 @@ class Stokes(_stgermain.StgCompoundComponent):
 
         self._conditions = conditions
 
+        # setup the gauss integration swarm
+        if gauss_swarm != None:
+            if type(gauss_swarm) != uw.swarm.GaussIntegrationSwarm:
+                raise RuntimeError( "Provided 'gauss_swarm' must be a GaussIntegrationSwarm object" )
+            gaussSwarm = gauss_swarm
+        else:
+            gaussSwarm = uw.swarm.GaussIntegrationSwarm(mesh)
+
         self._eqNums = dict()
         self._eqNums[velocityField] = sle.EqNumber( self._velocityField, self._removeBCs )
         self._eqNums[pressureField] = sle.EqNumber( self._pressureField, self._removeBCs )
@@ -228,7 +242,6 @@ class Stokes(_stgermain.StgCompoundComponent):
         self._preconditioner = sle.AssembledMatrix( self._pressureSol, self._pressureSol, rhs=self._hvector )
 
         # create assembly terms which always use gauss integration
-        gaussSwarm = uw.swarm.GaussIntegrationSwarm(mesh)
         self._gradStiffMatTerm = sle.GradientStiffnessMatrixTerm(   integrationSwarm=gaussSwarm,
           assembledObject=self._gmatrix)
         self._preCondMatTerm   = sle.PreconditionerMatrixTerm(  integrationSwarm=gaussSwarm,

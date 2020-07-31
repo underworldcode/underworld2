@@ -52,6 +52,10 @@ class AdvectionDiffusion(object):
         No Dirichlet conditions are required for this field as the phiField degrees of freedom
         map exactly to this field's Dirichlet conditions, the value of which ought to be 0
         for constant values of phi.
+    gauss_swarm : underworld.swarm.GaussIntegrationSwarm
+        If provided this gauss_swarm will be used for (gaussian) numerical 
+        integration rather than a default gauss integration swarm that is 
+        automatically generated and dependent on the element order of the mesh. 
     allow_non_q1 : Bool (default False)
         Allow the integration to perform over a non Q1 element mesh. (Under Q2
         elements instabilities have been observed as the implementation is only
@@ -72,7 +76,7 @@ class AdvectionDiffusion(object):
 
     def __init__(self, phiField=None, velocityField=None, fn_diffusivity=None,
                  fn_sourceTerm=None, method="SUPG", conditions=[],
-                 phiDotField=None, allow_non_q1=False, **kwargs):
+                 phiDotField=None, allow_non_q1=False, gauss_swarm=None, **kwargs):
 
         if not isinstance(method, str) or method.upper() not in ("SUPG","SLCN"):
             raise ValueError("'method' parameter must be 'SUPG' or 'SLCN'")
@@ -106,11 +110,13 @@ class AdvectionDiffusion(object):
         if self.method == "SUPG":
             self.system = _SUPG_AdvectionDiffusion(
                                 phiField, phiDotField, velocityField, 
-                                fn_diffusivity, fn_sourceTerm, conditions)
+                                fn_diffusivity, fn_sourceTerm, conditions, 
+                                gauss_swarm = gauss_swarm)
         elif self.method == "SLCN":
             self.system = _SLCN_AdvectionDiffusion(
                                 phiField, velocityField, fn_diffusivity, 
-                                fn_sourceTerm, conditions)
+                                fn_sourceTerm, conditions, 
+                                gauss_swarm = gauss_swarm)
 
     @property
     def velocityField(self):
@@ -145,7 +151,7 @@ class AdvectionDiffusion(object):
 
 
 class _SLCN_AdvectionDiffusion(object):
-    def __init__(self, phiField, velocityField, fn_diffusivity, fn_sourceTerm=None, conditions=[]):
+    def __init__(self, phiField, velocityField, fn_diffusivity, fn_sourceTerm=None, conditions=[], gauss_swarm=None):
         """Implements the Spiegelman / Katz   Semi-lagrangian Advection / Crank Nicholson Diffusion algorithm"""
 
         mesh = velocityField.mesh
@@ -194,14 +200,19 @@ class _SLCN_AdvectionDiffusion(object):
                 raise RuntimeError("Input condition type not recognised.")
         self._conditions = conditions
 
+        # setup the gauss integration swarm
+        if gauss_swarm != None:
+            if type(gauss_swarm) != uw.swarm.GaussIntegrationSwarm:
+                raise RuntimeError( "Provided 'gauss_swarm' must be a GaussIntegrationSwarm object" )
+            intSwarm = gauss_swarm
+        else:
+            intSwarm = uw.swarm.GaussIntegrationSwarm(mesh, particleCount=5)
+
         # build matrices and vectors
         phi_eqnums        = uw.systems.sle.EqNumber(phiField)
         solv = self._solv = uw.systems.sle.SolutionVector(phiField, phi_eqnums)
         f    = self._f    = uw.systems.sle.AssembledVector(phiField, phi_eqnums)
         K    = self._K    = uw.systems.sle.AssembledMatrix(solv, solv, f)
-
-        # create quadrature swarm
-        intSwarm = uw.swarm.GaussIntegrationSwarm(mesh, particleCount=5)
 
         fn_dt = self.fn_dt
 
@@ -213,7 +224,7 @@ class _SLCN_AdvectionDiffusion(object):
 
         self._mv_term = uw.systems.sle.VectorAssemblyTerm_NA__Fn( 
                             integrationSwarm = intSwarm,
-                            assembledObject    = f,
+                            assembledObject  = f,
                             mesh = mesh,
                             fn   = 1. * rhs_term )
 
@@ -854,10 +865,17 @@ class _SUPG_AdvectionDiffusion(_stgermain.StgCompoundComponent):
         A function that defines the diffusivity within the domain.
     fn_sourceTerm : underworld.function.Function
         A function that defines the heating within the domain. Optional.
+    gauss_swarm : underworld.swarm.GaussIntegrationSwarm
+        If provided this gauss_swarm will be used for (gaussian) numerical 
+        integration rather than a default gauss integration swarm that is 
+        automatically generated and dependent on the element type for the mesh. 
+        NB: if a voronoi_swarm is defined it OVERRIDES this gauss_swarm as the
+        preferred integration swarm (quadrature method).
     conditions : underworld.conditions.SystemCondition
         Numerical conditions to impose on the system. This should be supplied as
         the condition itself, or a list object containing the conditions.
-        Notes
+    
+    Notes
     -----
     Constructor must be called by collectively all processes.
 
@@ -866,7 +884,7 @@ class _SUPG_AdvectionDiffusion(_stgermain.StgCompoundComponent):
                       "_solver": "AdvDiffMulticorrector" }
     _selfObjectName = "_system"
 
-    def __init__(self, phiField, phiDotField, velocityField, fn_diffusivity, fn_sourceTerm=None, conditions=[]):
+    def __init__(self, phiField, phiDotField, velocityField, fn_diffusivity, fn_sourceTerm=None, conditions=[], gauss_swarm=None):
 
         self._diffusivity   = fn_diffusivity
         self._source        = fn_sourceTerm
@@ -910,6 +928,14 @@ class _SUPG_AdvectionDiffusion(_stgermain.StgCompoundComponent):
                 raise RuntimeError("Input condition type not recognised.")
         self._conditions = conditions
 
+        # setup the gauss integration swarm
+        if gauss_swarm != None:
+            if type(gauss_swarm) != uw.swarm.GaussIntegrationSwarm:
+                raise RuntimeError( "Provided 'gauss_swarm' must be a GaussIntegrationSwarm object" )
+            self._gaussSwarm = gauss_swarm
+        else:
+            self._gaussSwarm = uw.swarm.GaussIntegrationSwarm(self._phiField.mesh)
+
         # force removal of BCs as SUPG cannot handle leaving them in
         self._eqNumPhi    = sle.EqNumber( phiField, removeBCs=True )
         self._eqNumPhiDot = sle.EqNumber( phiDotField, removeBCs=True )
@@ -920,9 +946,6 @@ class _SUPG_AdvectionDiffusion(_stgermain.StgCompoundComponent):
         # create force vectors
         self._residualVector = sle.AssembledVector(phiField, self._eqNumPhi )
         self._massVector     = sle.AssembledVector(phiField, self._eqNumPhi )
-
-        # create swarm
-        self._gaussSwarm = uw.swarm.GaussIntegrationSwarm(self._phiField.mesh)
 
         super(_SUPG_AdvectionDiffusion, self).__init__()
 
