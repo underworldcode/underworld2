@@ -5,7 +5,6 @@ Underworld 2
 
 [![DOI](https://joss.theoj.org/papers/10.21105/joss.01797/status.svg)](https://doi.org/10.21105/joss.01797)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1436039.svg)](https://doi.org/10.5281/zenodo.1436039)
-[![Build Status](http://115.146.85.138:32779/buildStatus/icon?job=Underworld2%2Fdevelopment)](http://115.146.85.138:32779/job/Underworld2/job/development/)
 [![Docs Status](https://readthedocs.org/projects/underworld2/badge/?version=latest)](https://underworld2.readthedocs.io/en/latest/?badge=latest)
 [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/master)
 
