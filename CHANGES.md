@@ -1,7 +1,7 @@
 CHANGES: Underworld2
 =======================
 
-Release 2.10.0 []
+Release 2.10.0 [2020-08-07]
 ----------------
 Fixes:
 * SWIG4 compatibility changes.
