@@ -33,7 +33,7 @@ or for the standard Underworld image:
 $ singularity pull docker://underworldcode/underworld2:2.7.1b
 ```
 
-Available Underworld images are listed on [our DockerHub page](https://cloud.docker.com/u/underworldcode/repository/docker/underworldcode/underworld2/tags). Note that
+Available Underworld images are listed on [our DockerHub page](https://hub.docker.com/r/underworldcode/underworld2/tags). Note that
 only Underworld 2.7+ images will operate correctly on Stampede2.
 
 The location of the pulled down image will be reported at the conclusion of the `pull`

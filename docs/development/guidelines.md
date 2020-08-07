@@ -48,7 +48,7 @@ Version Control
 We follow the Gitflow Workflow:
 https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow/
 
-Features branches should be created for anything besides quick fixes. Once ready for
+Features branches must be created for all changes. Once ready for
 publishing to the development branch, a pull request should be created and another
 team member nominated to review the changes. Pull request should only be merged
 once the following criterion are met:

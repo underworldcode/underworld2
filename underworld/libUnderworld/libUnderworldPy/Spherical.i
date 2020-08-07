@@ -8,7 +8,7 @@
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 /* -*- C -*-  (not really, but good for syntax highlighting) */
 
-%module (package="underworld.libUnderworld.libUnderworldPy") Spherical
+%module (package="underworld.libUnderworld.libUnderworldPy", moduleimport="import $module") Spherical
 
 %import "StGermain.i"
 %import "StgDomain.i"

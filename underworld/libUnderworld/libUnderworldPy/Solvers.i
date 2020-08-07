@@ -8,7 +8,13 @@
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 /* -*- C -*-  (not really, but good for syntax highlighting) */
 
+
+#if (SWIG_VERSION <= 0x040000)
 %module (package="underworld.libUnderworld.libUnderworldPy") Solvers
+#else
+%module (package="underworld.libUnderworld.libUnderworldPy", moduleimport="import $module") Solvers
+#endif
+
 
 %{
 /* Includes the header in the wrapper code */

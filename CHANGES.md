@@ -1,11 +1,33 @@
 CHANGES: Underworld2
 =======================
 
+Release 2.10.0 []
+----------------
+Fixes:
+* SWIG4 compatibility changes.
+* libxml2 ubuntu20.04 changes.
+* Numpy 1.19 compatability changes.
+* Fix `LGPLv3.txt` contents. File incorrect contained
+  GPLv3 text. 
+
+Changes:
+* Check for compressibility/penalty clash. 
+* Update example models for parallel usage. 
+
+New:
+* Add Dockerfile for Deepnote.
+* Add `test_long.sh` long test runner.
+
+Release 2.9.5 [2020-07-27]
+---------------------------
+Changes:
+* Fix `LGPLv3.txt` contents. File incorrect contained
+  GPLv3 text.
+  
 Release 2.9.4 [2020-03-26]
 ---------------------------
 Changes:
 * Updating Dockerfile to include UWGeodynamics-2.9.4.
-
 
 Release 2.9.3 [2020-03-09]
 ---------------------------

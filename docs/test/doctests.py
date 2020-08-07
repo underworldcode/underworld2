@@ -16,7 +16,7 @@ for module in [uw,]:
 
     for itthing, modName, bs in modIter:
         mod=sys.modules.get(modName)
-        if modName.startswith("underworld.visualisation"):
+        if modName.startswith("underworld.visualisation") and (not test_vis):
             print("Not testing `{}` as `lavavu` not found.".format(modName))
             continue
         print("Testing "+modName)

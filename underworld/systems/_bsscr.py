@@ -317,6 +317,8 @@ class StokesSolver(_stgermain.StgCompoundComponent):
     ### the solve function
     ########################################################################
 
+    _warning_penalty_compressibility = "Stokes system appears to have set the `fn_one_on_lambda` parameter which is incompatible "\
+                                       "with the penalty method. If parameter is non-zero, erroneous results are likely to be generated."
     def solve(self, nonLinearIterate=None, nonLinearTolerance=1.0e-2,
               nonLinearKillNonConvergent=False,
               nonLinearMinIterations=1,
@@ -355,6 +357,9 @@ class StokesSolver(_stgermain.StgCompoundComponent):
 
         Solvers.SBKSP_SetSolver(self._cself, self._stokesSLE._cself)
         if isinstance(self.options.main.penalty,float) and self.options.main.penalty > 0.0:
+            if hasattr(self._stokesSLE, "_mmatrix") and (uw.mpi.rank==0):
+                import warnings
+                warnings.warn(self._warning_penalty_compressibility)
             Solvers.SBKSP_SetPenalty(self._cself, self.options.main.penalty)
             if self.options.main.ksp_k2_type == "NULL":
                 self.options.main.ksp_k2_type = "GMG"

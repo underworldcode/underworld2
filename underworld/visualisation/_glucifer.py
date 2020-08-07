@@ -167,23 +167,20 @@ class Store(_stgermain.StgCompoundComponent):
                 libUnderworld.gLucifer.lucDatabase_BackupDbFile(self._db, filename)
             return filename
 
-    def lvget(self, db=None, *args, **kwargs):
-        #Use a single LavaVu instance per db(store) to save resources
+    def lvget(self):
+        #Get existing viewer, if any, otherwuse create one
         if not self.viewer:
-            self.viewer = self.lvrun(db=db, *args, **kwargs)
-        else:
-            if not db:
-                db = self._db.path
-            self.viewer.setup(cache=False, clearstep=True, database=db, timestep=self.step, *args, **kwargs)
-
+            self.lvrun()
         return self.viewer
 
     def lvrun(self, db=None, *args, **kwargs):
+        #Create and execute a new viewer with passed args
         if not db:
             db = self._db.path
         if 'UW_VIS_PORT' in os.environ:
             kwargs['port'] = int(os.environ['UW_VIS_PORT'])
-        return lavavu.Viewer(cache=False, clearstep=True, database=db, timestep=self.step, *args, **kwargs)
+        self.viewer = lavavu.Viewer(cache=False, clearstep=True, database=db, timestep=self.step, *args, **kwargs)
+        return self.viewer
 
     def _generate(self, figname, objects, props):
         #First merge object list with active
@@ -240,7 +237,7 @@ class Store(_stgermain.StgCompoundComponent):
 
         #Output any custom geometry on objects
         if lavavu and uw.mpi.rank == 0 and any(x.geomType is not None for x in self._objects):
-            lv = self.lvget() #Open the viewer
+            lv = self.lvget() #Open/get the viewer
             for obj in self._objects:
                 #Create/Transform geometry by object
                 obj.render(lv)
@@ -255,7 +252,7 @@ class Store(_stgermain.StgCompoundComponent):
             self.filename = comm.bcast(self.filename, root=0)
             #print uw.mpi.rank,self.filename
             #Open the viewer with db filename
-            lv = self.lvget(self.filename)
+            lv = self.lvrun(self.filename)
             #Loop through objects and run their parallel_render method if present
             for obj in self._objects:
                 if hasattr(obj, "parallel_render"):
@@ -284,24 +281,6 @@ class Store(_stgermain.StgCompoundComponent):
         #TODO: ColourMap properties
 
         return json.dumps(export, indent=2)
-
-    def _read_state(self):
-        #Read state from database (DEPRECATED)
-        if uw.mpi.rank > 0:
-            return
-        if not self._db.db:
-            libUnderworld.gLucifer.lucDatabase_OpenDatabase(self._db)
-        try:
-            lv = self.lvget()
-            #Also save the step data
-            self.timesteps = json.loads(lv.app.getTimeSteps())
-            #Get figures/states
-            return lv.app.figures
-        except RuntimeError as e:
-            print("LavaVu error: " + str(e))
-            import traceback
-            traceback.print_exc()
-            pass
 
     def empty(self):
         """    Empties all the cached drawing objects
@@ -445,7 +424,6 @@ class Figure(dict):
         
         self.draw = objects.Drawing()
         self._drawingObjects = []
-        self._script = []
 
         #Types of all Drawing derived classes
         def all_subclasses(cls):
@@ -469,9 +447,6 @@ class Figure(dict):
             self.__setattr__(key, method)
 
         super(Figure, self).__init__(*args)
-
-    def __del__(self):
-        self.close_viewer()
 
     def _getProperties(self):
         #Convert properties to string
@@ -691,7 +666,7 @@ class Figure(dict):
 
         try:
             if type.lower() == "webgl":
-                lv = self.db.lvget(script=self._script)
+                lv = self.db.lvrun()
                 return lv.webgl(filename + '.html')
             else:
                 return self._generate_image(filename, size)
@@ -713,7 +688,7 @@ class Figure(dict):
             return
         try:
             #Render with viewer
-            lv = self.db.lvget(quality=self["quality"], script=self._script)
+            lv = self.db.lvrun(quality=self["quality"])
             imagestr = lv.image(filename, resolution=size)
             #Return the generated filename
             return imagestr
@@ -723,25 +698,6 @@ class Figure(dict):
             traceback.print_exc()
             pass
         return ""
-
-    def script(self, cmd=None):
-        """ 
-        Append to or get contents of the saved script.
-        
-        Parameters
-        ----------
-        cmd: str
-            Command to add to script.
-        """
-        if cmd:
-            if isinstance(cmd, list):
-                self._script += cmd
-            else:
-                self._script += [cmd]
-        else:
-            self._script = []
-        #Returns contents as newline separated string
-        return '\n'.join(self._script)
 
     def window(self, *args, **kwargs):
         """ Open an inline viewer.
@@ -777,36 +733,6 @@ class Figure(dict):
                 return self.db.lvrun(*args, **kwargs)
             else:
                 return self.db.lvget(*args, **kwargs)
-
-    def open_viewer(self, args=[], background=True):
-        """ Open the external viewer.
-        """
-        fname = self.db.filename
-        if not fname:
-            fname = os.path.join(tmpdir,"gluciferDB"+self.db._id+".gldb")
-            self.save_database(fname)
-        #Already open?
-        if self._viewerProc and self._viewerProc.poll() == None:
-            return
-
-        if uw.mpi.rank == 0:
-            #Open viewer with local web server for interactive/iterative use
-            if background:
-                self._viewerProc = subprocess.Popen(["LV", "-" + str(self.db.step), "-p9999", "-q90", fname] + self._script + args,
-                                                    stdout=PIPE, stdin=PIPE, stderr=STDOUT)
-                from IPython.display import HTML
-                return HTML('''<a href='#' onclick='window.open("http://" + location.hostname + ":9999");'>Open Viewer Interface</a>''')
-            else:
-                self.db.lvget(db=fname, port=9999)
-
-    def close_viewer(self):
-        """ Close the viewer.
-        """
-        #poll() returns None if the process is alive
-        if self._viewerProc and self._viewerProc.poll() == None:
-           self.send_command("quit")
-           self._viewerProc.kill()
-        self._viewerProc = None
 
     def send_command(self, cmd, retry=True):
         """ 

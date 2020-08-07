@@ -32,11 +32,22 @@
 #include <numpy/arrayobject.h>
 #define NUMPY_IMPORT_ARRAY_RETVAL False
 
+/* Note that the following is required as `import_array()` is */
+/* actually a macro which calls `return` under certain        */
+/* circumstances. In itself that is fine, but because         */
+/* `BaseContext_Init()` returns `Bool` some compilers         */
+/* complain. This was encoutered first for `numpy` 1.19.0.    */
+/* Perhaps this call should go somewhere else altogether,     */
+/* like `main()`.                                             */
+void* import_numpy() {
+   import_array();
+   return NULL;
+};
+
 Bool BaseContext_Init( int* argc, char** argv[] ) {
    Stream* typedStream;
    
-   import_array();
- 
+   import_numpy();
       
    Journal_Printf( Journal_Register( DebugStream_Type, (Name)"Context"  ), "In: %s\n", __func__ );
 

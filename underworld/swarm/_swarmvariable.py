@@ -21,10 +21,9 @@ import os
 import weakref
 
 class SwarmVariable(_stgermain.StgClass, function.Function):
-
     """
-    The SwarmVariable class allows users to add data to swarm particles.  The data
-	can be of type "char", "short", "int", "long, "float" or "double".
+    The SwarmVariable class allows users to add data to swarm particles. The data
+    can be of type "char", "short", "int", "long, "float" or "double".
 
     Note that the swarm allocates one block of contiguous memory for all the particles.
     The per particle variable datums is then interlaced across this memory block.
