@@ -16,6 +16,7 @@ Changes:
 
 New:
 * Add Dockerfile for Deepnote.
+* Add `test_long.sh` long test runner.
 
 Release 2.9.5 [2020-07-27]
 ---------------------------
