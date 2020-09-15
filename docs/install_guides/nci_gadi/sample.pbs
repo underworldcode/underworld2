@@ -9,7 +9,7 @@
 #PBS -l wd
 #PBS -lstorage=gdata/m18
 
-source /g/data/m18/UWGeodynamics_2.10.0.sh
+source /g/data/m18/codes/UWGeodynamics_2.10.0.sh
 
 MODELNAME="foobar"
 OUTPUTPATH=`pwd`
