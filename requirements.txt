@@ -9,4 +9,5 @@
 ##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
  
 # Forces pip to refer to setup.py for requirements
+pandas
 .
