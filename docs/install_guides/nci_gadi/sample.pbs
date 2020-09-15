@@ -7,7 +7,7 @@
 #PBS -l ncpus=384
 #PBS -l software=underworld
 #PBS -l wd
-#PBS -lstorage=gdata/m18
+#PBS -l storage=gdata/m18
 
 source /g/data/m18/codes/UWGeodynamics_2.10.0.sh
 
