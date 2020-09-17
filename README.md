@@ -1,8 +1,8 @@
 Underworld 2
 ============
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/Artshap/underworld2_unsw/master?filepath=examples%2FConvection_unsw.ipynb)
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/Artshap/underworld2_unsw/master?filepath=examples%2FRayleigh_UNSW.ipynb)
+Launch Convection Example[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/Artshap/underworld2_unsw/master?filepath=examples%2FConvection_unsw.ipynb)
+Launch Rayleigh-Taylor Example[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/Artshap/underworld2_unsw/master?filepath=examples%2FRayleigh_UNSW.ipynb)
 
 Documentation 
 -------------
@@ -11,43 +11,6 @@ Please visit the Underworld documentation site for an overview of installation, 
 https://underworld2.readthedocs.io
 
 In particular, the *Getting Started* section of the User Guide might be useful place to start.
-
-Trying out Underworld2
-----------------------
-
-You can try out the code immediately via a Jupyter Binder cloud instance. Be aware that it can take a little while for the site to fire up and that it will time-out after 30 minutes of inactivity and reset if you log back in. 
-
-| | |
-|-|-|
-| [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/v2.10.0b) | v2.10.0b (Py3) |
-| [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/v2.9.2b) | v2.9.2b (Py3) |
-| [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/v2.8.2b) | v2.8.2b (Py3) |
-| [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/v2.7.1b) | v2.7.1b (Py2) |
-| [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/development) | dev (Py3) |
-
-
-Note that the Binder environment is identical to that obtained through running an Underworld Docker image locally.
-
-
-Getting Underworld2
--------------------
-The Underworld2 Docker container is the recommended method of installation on Windows, Mac OSX and Linux. Native compilation is generally not recommended for personal computers, although may be necessary in HPC environments which do not support containerisation. 
-
-Please refer to the documentation site for further information.
-
-
-Where to find things
---------------------
-- **underworld**                 - Underworld python modules.
-- **docs/examples**              - Basic usage examples.
-- **docs/user_guide**            - The user guide. 
-- **docs/cheatsheet**            - One pager with quick examples.
-- **docs/install_guides**        - HPC installation guides.
-- **docs/tests**                 - Development tests. 
-
-Privacy
--------
-Note that basic usage metrics are dispatched when you use Underworld. To opt out, set the UW_NO_USAGE_METRICS environment variable. See `PRIVACY.md` for full details.                                   
 
 Licensing
 ---------
