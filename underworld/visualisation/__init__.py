@@ -74,7 +74,6 @@ class _xvfb_runner(object):
             pass
 
 import os as _os
-# disable collection of data if requested
 if "UW_USE_XVFB" in _os.environ:
     if _uw.mpi.rank == 0:
         _display = _xvfb_runner()

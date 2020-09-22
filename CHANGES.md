@@ -13,7 +13,8 @@ Fixes:
 * Fix bug where multiple solvers added multiple preconditioners. 
 
 Release 2.10.0 []
-----------------
+=======
+Release 2.10.0 [2020-08-07]
 Fixes:
 * SWIG4 compatibility changes.
 * libxml2 ubuntu20.04 changes.
@@ -24,6 +25,10 @@ Fixes:
 Changes:
 * Check for compressibility/penalty clash. 
 * Update example models for parallel usage. 
+
+New:
+* Add Dockerfile for Deepnote.
+* Add `test_long.sh` long test runner.
 
 Release 2.9.5 [2020-07-27]
 ---------------------------
