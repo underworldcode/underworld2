@@ -31,6 +31,7 @@
 #include <Underworld/Function/SafeMaths.hpp>
 #include <Underworld/Function/CustomException.hpp>
 #include <Underworld/Function/MinMax.hpp>
+#include <Underworld/Function/Count.hpp>
 #include <Underworld/Function/Constant.hpp>
 #include <Underworld/Function/SwarmVariableFn.hpp>
 #include <Underworld/Function/ParticleFound.hpp>
@@ -80,6 +81,7 @@ extern "C" {
 %include "Function/SafeMaths.hpp"
 %include "Function/CustomException.hpp"
 %include "Function/MinMax.hpp"
+%include "Function/Count.hpp"
 %include "Function/Unary.hpp"
 %include "Function/Binary.hpp"
 %include "Function/Constant.hpp"

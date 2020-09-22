@@ -1,8 +1,20 @@
 CHANGES: Underworld2
 =======================
 
+Release 2.11.0 []
+-----------------
+Changes
+* Enabled user defined Gauss integration swarms for all systems. 
+
+New:
+* Added `underworld.function.count()` method, which counts function calls. 
+
+Fixes:
+* Fix bug where multiple solvers added multiple preconditioners. 
+
+Release 2.10.0 []
+=======
 Release 2.10.0 [2020-08-07]
-----------------
 Fixes:
 * SWIG4 compatibility changes.
 * libxml2 ubuntu20.04 changes.

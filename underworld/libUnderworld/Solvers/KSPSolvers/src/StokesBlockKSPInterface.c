@@ -146,7 +146,8 @@ void _StokesBlockKSPInterface_Build( void* solver, void* sle ) {/* it is the sle
 	/* Build Preconditioner */
 	if ( self->preconditioner ) {
 		Stg_Component_Build( self->preconditioner, sle, False );
-		SystemLinearEquations_AddStiffnessMatrix( self->st_sle, self->preconditioner );
+		if(!SystemLinearEquations_GetStiffnessMatrix( self->st_sle, self->preconditioner->name ))  // only add if not already there. 
+			SystemLinearEquations_AddStiffnessMatrix( self->st_sle, self->preconditioner );
 
 	}
 	if( self->mg ){

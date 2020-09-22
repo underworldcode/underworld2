@@ -72,6 +72,12 @@ class SteadyStateDarcyFlow(_stgermain.StgCompoundComponent):
     conditions : underworld.conditions.SystemCondition
         Numerical conditions to impose on the system. This should be supplied as
         the condition itself, or a list object containing the conditions.
+    gauss_swarm : underworld.swarm.GaussIntegrationSwarm
+        If provided this gauss_swarm will be used for (gaussian) numerical 
+        integration rather than a default gauss integration swarm that is 
+        automatically generated and dependent on the element order of the mesh. 
+        NB: if a voronoi_swarm is defined it OVERRIDES this gauss_swarm as the
+        preferred integration swarm (quadrature method).
     velocityField : underworld.mesh.MeshVariable
         Solution field for darcy flow velocity. Optional.
     swarmVarVelocity : undeworld.swarm.SwarmVariable
@@ -88,7 +94,7 @@ class SteadyStateDarcyFlow(_stgermain.StgCompoundComponent):
     _objectsDict = {  "_system" : "SystemLinearEquations" }
     _selfObjectName = "_system"
 
-    def __init__(self, pressureField, fn_diffusivity, fn_bodyforce=None, voronoi_swarm=None, conditions=[], velocityField=None, swarmVarVelocity=None, _removeBCs=True, **kwargs):
+    def __init__(self, pressureField, fn_diffusivity, fn_bodyforce=None, voronoi_swarm=None, conditions=[], velocityField=None, swarmVarVelocity=None, _removeBCs=True, gauss_swarm=None, **kwargs):
 
         if not isinstance( pressureField, uw.mesh.MeshVariable):
             raise TypeError( "Provided 'pressureField' must be of 'MeshVariable' class." )
@@ -152,6 +158,22 @@ class SteadyStateDarcyFlow(_stgermain.StgCompoundComponent):
             else:
                 raise RuntimeError("Can't decide on input condition")
 
+        # setup the gauss integration swarm
+        if gauss_swarm != None:
+            if type(gauss_swarm) != uw.swarm.GaussIntegrationSwarm:
+                raise RuntimeError( "Provided 'gauss_swarm' must be a GaussIntegrationSwarm object" )
+            intswarm = gauss_swarm
+        else:
+            intswarm = uw.swarm.GaussIntegrationSwarm(mesh)
+
+        # we will use voronoi if that has been requested by the user, else use
+        # gauss integration.
+        if self._swarm:
+            intswarm = self._swarm._voronoi_swarm
+            # need to ensure voronoi is populated now, as assembly terms will call
+            # initial test functions which may require a valid voronoi swarm
+            self._swarm._voronoi_swarm.repopulate()
+
         # build the equation numbering for the temperature field discretisation
         tEqNums = self._tEqNums = sle.EqNumber( pressureField, removeBCs=self._removeBCs )
 
@@ -164,18 +186,6 @@ class SteadyStateDarcyFlow(_stgermain.StgCompoundComponent):
 
         # and matrices
         self._kmatrix = sle.AssembledMatrix( self._solutionVector, self._solutionVector, rhs=self._fvector )
-
-
-        # we will use voronoi if that has been requested by the user, else use
-        # gauss integration.
-        if self._swarm:
-            intswarm = self._swarm._voronoi_swarm
-            # need to ensure voronoi is populated now, as assembly terms will call
-            # initial test functions which may require a valid voronoi swarm
-            self._swarm._voronoi_swarm.repopulate()
-        else:
-            intswarm = uw.swarm.GaussIntegrationSwarm(mesh)
-
 
         self._kMatTerm = sle.MatrixAssemblyTerm_NA_i__NB_i__Fn(  integrationSwarm=intswarm,
                                                                  assembledObject=self._kmatrix,

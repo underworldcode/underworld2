@@ -30,6 +30,7 @@
 #include <Underworld/Function/SafeMaths.hpp>
 #include <Underworld/Function/CustomException.hpp>
 #include <Underworld/Function/MinMax.hpp>
+#include <Underworld/Function/Count.hpp>
 #include <Underworld/Function/Constant.hpp>
 #include <Underworld/Function/SwarmVariableFn.hpp>
 #include <Underworld/Function/ParticleFound.hpp>

@@ -98,6 +98,12 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
         utilised to integrate across elements. The provided swarm is used as the 
         basis for the voronoi integration. If no swarm is provided, Gauss 
         integration is used.
+    gauss_swarm : underworld.swarm.GaussIntegrationSwarm
+        If provided this gauss_swarm will be used for (gaussian) numerical 
+        integration rather than a default gauss integration swarm that is 
+        automatically generated and dependent on the element order of the mesh. 
+        NB: if a voronoi_swarm is defined it OVERRIDES this gauss_swarm as the
+        preferred integration swarm (quadrature method).
     type : int, default=0
         Projection type.  0:`weighted average`, 1:`weighted residual`
 
@@ -161,7 +167,7 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
     _objectsDict = {  "_system" : "SystemLinearEquations" }
     _selfObjectName = "_system"
         
-    def __init__(self, meshVariable=None, fn=None, voronoi_swarm=None, type=0, **kwargs):
+    def __init__(self, meshVariable=None, fn=None, voronoi_swarm=None, type=0, gauss_swarm=None, **kwargs):
 
         if not meshVariable:
             raise ValueError("You must specify a mesh variable via the 'meshVariable' parameter.")
@@ -183,8 +189,6 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
             import warnings
             warnings.warn("Voronoi integration may yield unsatisfactory results for Q2 mesh.")
             
-
-
         if not type in [0,1]:
             raise ValueError( "Provided 'type' must take a value of 0 (weighted average) or 1 (weighted residual)." )
         self.type = type
@@ -198,6 +202,14 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
         if hasattr(self._meshVariable.mesh.generator, 'geometryMesh'):
             geometryMesh = self._meshVariable.mesh.generator.geometryMesh
 
+        # setup the gauss integration swarm
+        if gauss_swarm != None:
+            if not isinstance(gauss_swarm,uw.swarm.GaussIntegrationSwarm):
+                raise RuntimeError( "Provided 'gauss_swarm' must be a GaussIntegrationSwarm object" )
+            intswarm = gauss_swarm
+        else:
+            intswarm = uw.swarm.GaussIntegrationSwarm(geometryMesh)
+
         # we will use voronoi if that has been requested by the user, else use
         # gauss integration.
         if self._swarm:
@@ -205,8 +217,6 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
             # need to ensure voronoi is populated now, as assembly terms will call
             # initial test functions which may require a valid voronoi swarm
             self._swarm._voronoi_swarm.repopulate()
-        else:
-            intswarm = uw.swarm.GaussIntegrationSwarm(geometryMesh)
 
         self._fn = _fn
 
