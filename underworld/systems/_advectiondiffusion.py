@@ -202,7 +202,7 @@ class _SLCN_AdvectionDiffusion(object):
 
         # setup the gauss integration swarm
         if gauss_swarm != None:
-            if type(gauss_swarm) != uw.swarm.GaussIntegrationSwarm:
+            if not isinstance(gauss_swarm,uw.swarm.GaussIntegrationSwarm):
                 raise RuntimeError( "Provided 'gauss_swarm' must be a GaussIntegrationSwarm object" )
             intSwarm = gauss_swarm
         else:
@@ -930,7 +930,7 @@ class _SUPG_AdvectionDiffusion(_stgermain.StgCompoundComponent):
 
         # setup the gauss integration swarm
         if gauss_swarm != None:
-            if type(gauss_swarm) != uw.swarm.GaussIntegrationSwarm:
+            if not isinstance(gauss_swarm,uw.swarm.GaussIntegrationSwarm):
                 raise RuntimeError( "Provided 'gauss_swarm' must be a GaussIntegrationSwarm object" )
             self._gaussSwarm = gauss_swarm
         else:

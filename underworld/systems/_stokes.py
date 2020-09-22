@@ -201,7 +201,7 @@ class Stokes(_stgermain.StgCompoundComponent):
 
         # setup the gauss integration swarm
         if gauss_swarm != None:
-            if type(gauss_swarm) != uw.swarm.GaussIntegrationSwarm:
+            if not isinstance(gauss_swarm,uw.swarm.GaussIntegrationSwarm):
                 raise RuntimeError( "Provided 'gauss_swarm' must be a GaussIntegrationSwarm object" )
             gaussSwarm = gauss_swarm
         else:

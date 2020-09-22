@@ -1,6 +1,17 @@
 CHANGES: Underworld2
 =======================
 
+Release 2.11.0 []
+-----------------
+Changes
+* Enabled user defined Gauss integration swarms for all systems. 
+
+New:
+* Added `underworld.function.count()` method, which counts function calls. 
+
+Fixes:
+* Fix bug where multiple solvers added multiple preconditioners. 
+
 Release 2.10.0 []
 ----------------
 Fixes:
