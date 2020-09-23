@@ -1,5 +1,36 @@
 #!/bin/bash
 
+usage="
+Usage:
+  A script to install and run an Underworld software stack.
+
+** To install **
+Review script details: modules, paths, repository urls / branches etc.
+ $ source <this_script_name>
+ $ install_full_stack
+see script for details, running $ install_petsc maybe required.
+
+** To run **
+Add the line
+ source <this_script_name>
+to your pbs file, make sure to include the absolute path.
+"
+
+while getopts ':h' option; do
+  case "$option" in
+    h) echo "$usage"
+       # safe script exit for sourced script
+       (return 0 2>/dev/null) && return 0 || exit 0
+       ;;
+    \?) # incorrect options
+       echo "Error: Incorrect options"
+       echo "$usage"
+       (return 0 2>/dev/null) && return 0 || exit 0
+       ;;
+  esac
+done
+
+
 module purge
 module load openmpi/4.0.2 hdf5/1.10.5p python3/3.7.4 scons/3.1.1 #petsc/3.12.2
 
