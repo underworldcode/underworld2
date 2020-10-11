@@ -5,6 +5,7 @@ Release 2.11.0 []
 -----------------
 Changes
 * Enabled user defined Gauss integration swarms for all systems. 
+* Cleaner Python compile time configuration. 
 
 New:
 * Added `underworld.function.count()` method, which counts function calls. 
