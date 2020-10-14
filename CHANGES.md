@@ -5,6 +5,7 @@ Release 2.11.0 []
 -----------------
 Changes
 * Enabled user defined Gauss integration swarms for all systems. 
+* Update docker base images: switch to ubuntu, update petsc & mpich, other tweaks. 
 
 New:
 * Added `underworld.function.count()` method, which counts function calls. 
