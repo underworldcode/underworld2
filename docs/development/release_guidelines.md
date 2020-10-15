@@ -67,6 +67,11 @@ Creating the release
 * Add tagged documentation version at http://underworld2.readthedocs.io/  
 * Package for PyPi: `python setup.py sdist`
 * Upload to PyPi: `twine upload dist/* -r pypi`
+- The url and sha256 fields must be updated in the `conda/meta.yaml`. We want the url not the git_url and
+  it should point to the tarball of the release.
+  The `.github/workflow/conda_deploy.yaml` actions will have to be triggered by the release create process.
+  For now the action build and push the conda package to our underworldcode channel.
+  Once we are on conda-forge, the package will have to be maintained using a conda-forge feedstock.
 
 Announce new version
 ====================

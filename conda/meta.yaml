@@ -1,0 +1,59 @@
+{% set name = "underworld2" %}
+{% set version = "2.10.0b" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  git_url: https://github.com/underworldcode/underworld2.git
+  git_tag: development
+  #url: https://github.com/underworldcode/underworld2/archive/v{{ version }}.tar.gz
+  #sha256: 7dd8d0f2cb8f0080e024be7c24faad21f2ab403458f13ad1312a1dd7f5487737
+
+build:
+  skip: true  # [win]
+  number: 0
+  script: {{ PYTHON }} -m pip install . -vv
+
+requirements:
+  host:
+    - {{ mpi }}
+    - {{ compiler('fortran') }}
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
+    - pkg-config
+    - swig>=4.0.0
+    - scons>=3.0.0
+    - libxml2
+    - python
+    - numpy>=1.18
+    - mpi4py
+    - h5py=*=mpi_*
+    - scipy>=1.4.1
+    - petsc>=3.13
+
+  run:
+    - python
+    - numpy>=1.18.1
+    - scipy>=1.4.1
+    - h5py
+    - mpi4py
+    - petsc
+
+
+about:
+  home: "https://github.com/underworldcode/underworld2"
+  license: LGPL-3.0-only
+  license_family: LGPL
+  license_file:  LICENSE.txt
+  summary: "Geodynamics API"
+  doc_url: https://underworld2.readthedocs.io
+  dev_url: https://github.com/underworldcode/underworld2/tree/development
+
+extra:
+  recipe-maintainers:
+    - rbeucher
+    - jmansour
+    - jgiordani
+    - lmoresi
