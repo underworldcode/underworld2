@@ -1,9 +1,14 @@
 from config import Package
+from distutils.sysconfig import get_python_inc, get_python_lib, get_python_version
 import os
 
 class Python(Package):
 
     def gen_locations(self):
+        python_inc = get_python_inc()
+        python_base = os.path.dirname(os.path.dirname(get_python_inc()))
+        python_lib = os.path.join(python_base,"lib")
+        yield ( python_base, [python_inc,], [python_lib,] )
         yield ('/usr/local', ['/usr/local/include'], ['/usr/local/lib'])
         yield ('/opt/local', ['/opt/local/include'], ['/opt/local/lib'])
 
@@ -13,19 +18,10 @@ class Python(Package):
             if self.find_libraries(loc[2], 'python'):
                 env.PrependUnique(LIBS=['python'])
                 yield env
-            if self.find_libraries(loc[2], 'python3.5m'):
-                env.AppendUnique(CPPPATH=[os.path.join(self.location[1][0],'python3.5m')])
-                env.PrependUnique(LIBS=['python3.5m'])
-                yield env
-            if self.find_libraries(loc[2], 'python3.6m'):
-                env.AppendUnique(CPPPATH=[os.path.join(self.location[1][0],'python3.6m')])
-                env.PrependUnique(LIBS=['python3.6m'])
-                yield env
-            if self.find_libraries(loc[2], 'python3.7m'):
-                env.AppendUnique(CPPPATH=[os.path.join(self.location[1][0],'python3.7m')])
-                env.PrependUnique(LIBS=['python3.7m'])
-                yield env
-            if self.find_libraries(loc[2], 'python3.8'):
-                env.AppendUnique(CPPPATH=[os.path.join(self.location[1][0],'python3.8')])
-                env.PrependUnique(LIBS=['python3.8'])
-                yield env
+            ver = "python"+ get_python_version()
+            for ver in [ver, ver+"m"]:
+                if self.find_libraries(loc[2], ver ):
+                    env.AppendUnique(CPPPATH=[os.path.join(self.location[1][0],ver)])
+                    env.PrependUnique(LIBS=[ver])
+                    yield env
+
