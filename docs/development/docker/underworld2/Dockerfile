@@ -2,14 +2,15 @@
 # Typically:
 #    $  docker build -f docs/development/docker/underworld2/Dockerfile .
 
-FROM underworldcode/base@sha256:50b6f1c5ddc1765d5480d8e465c369d8fc81530d7a6f3350a210cbe28ca03b10 as base_runtime
+FROM underworldcode/base@sha256:f194ce40ea602305141a6a95fad640c90dd7ae5fae7532cd164dc566ec465edb as base_runtime
 MAINTAINER https://github.com/underworldcode/
 # install runtime requirements
 USER root
+ENV PYVER=3.8
 RUN apt-get update -qq \
 &&  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         libxml2 \
-        libpython3.7
+        libpython${PYVER}
 
 FROM base_runtime AS build_base
 # install build requirements
@@ -21,7 +22,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         libxml2-dev
 RUN PYTHONPATH= /usr/bin/pip3 install --no-cache-dir setuptools scons 
 # setup further virtualenv to avoid double copying back previous packages (h5py,mpi4py,etc)
-RUN /usr/bin/python3 -m virtualenv --python=/usr/bin/python3 ${VIRTUAL_ENV}
+RUN /usr/bin/python3 -m virtualenv --system-site-packages --python=/usr/bin/python3 ${VIRTUAL_ENV}
 WORKDIR /tmp
 COPY --chown=jovyan:users . /tmp/underworld2
 WORKDIR /tmp/underworld2
@@ -39,9 +40,14 @@ RUN PYTHONPATH= /usr/bin/pip3 freeze >/opt/requirements.txt
 # Record manually install apt packages.
 RUN apt-mark showmanual >/opt/installed.txt
 # Copy in examples, tests, etc. 
-COPY --chown=jovyan:users ./docs/ $NB_WORK/
-COPY --from=build_base --chown=jovyan:users /tmp/UWGeodynamics/docs       $NB_WORK/UWGeodynamics/
-RUN chown jovyan:users /home/jovyan/workspace /home/jovyan/UWGeodynamics
+COPY --chown=jovyan:users ./docs/examples   $NB_WORK/Underworld/examples
+COPY --chown=jovyan:users ./docs/cheatsheet $NB_WORK/Underworld/cheatsheet
+COPY --chown=jovyan:users ./docs/user_guide $NB_WORK/Underworld/user_guide
+COPY --chown=jovyan:users ./docs/test       $NB_WORK/Underworld/test
+COPY --from=build_base --chown=jovyan:users /tmp/UWGeodynamics/docs/examples   $NB_WORK/UWGeodynamics/examples
+COPY --from=build_base --chown=jovyan:users /tmp/UWGeodynamics/docs/tutorials  $NB_WORK/UWGeodynamics/tutorials
+COPY --from=build_base --chown=jovyan:users /tmp/UWGeodynamics/docs/benchmarks $NB_WORK/UWGeodynamics/benchmarks
+RUN  chown jovyan:users /home/jovyan/workspace /home/jovyan/UWGeodynamics
 RUN jupyter serverextension enable --sys-prefix jupyter_server_proxy
 USER $NB_USER
 WORKDIR $NB_WORK
