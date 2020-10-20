@@ -40,11 +40,8 @@ RUN PYTHONPATH= /usr/bin/pip3 freeze >/opt/requirements.txt
 RUN apt-mark showmanual >/opt/installed.txt
 # Copy in examples, tests, etc. 
 COPY --chown=jovyan:users ./docs/ $NB_WORK/
-COPY --from=build_base --chown=jovyan:users /tmp/UWGeodynamics/examples   $NB_WORK/UWGeodynamics/examples
-COPY --from=build_base --chown=jovyan:users /tmp/UWGeodynamics/tutorials  $NB_WORK/UWGeodynamics/tutorials
-COPY --from=build_base --chown=jovyan:users /tmp/UWGeodynamics/benchmarks $NB_WORK/UWGeodynamics/benchmarks
-COPY --from=build_base --chown=jovyan:users /tmp/UWGeodynamics/docs       $NB_WORK/UWGeodynamics/docs
-RUN  chown jovyan:users /home/jovyan/workspace /home/jovyan/UWGeodynamics
+COPY --from=build_base --chown=jovyan:users /tmp/UWGeodynamics/docs       $NB_WORK/UWGeodynamics/
+RUN chown jovyan:users /home/jovyan/workspace /home/jovyan/UWGeodynamics
 RUN jupyter serverextension enable --sys-prefix jupyter_server_proxy
 USER $NB_USER
 WORKDIR $NB_WORK

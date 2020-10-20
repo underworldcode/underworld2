@@ -13,9 +13,13 @@ New:
 Fixes:
 * Fix bug where multiple solvers added multiple preconditioners. 
 
-Release 2.10.0 []
-=======
+Release 2.10.1 [2020-08-28]
+---------------------------
+Changes:
+* Updating Dockerfile to include UWGeodynamics new docs structure.
+
 Release 2.10.0 [2020-08-07]
+---------------------------
 Fixes:
 * SWIG4 compatibility changes.
 * libxml2 ubuntu20.04 changes.
