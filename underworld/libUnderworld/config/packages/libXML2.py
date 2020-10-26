@@ -3,6 +3,15 @@ from config import Package
 
 class libXML2(Package):
 
+    def gen_locations(self):
+        # add for conda
+        if 'CONDA_DEFAULT_ENV' in os.environ:
+            conda_env = os.environ['PREFIX']
+            incpath1 = os.path.join(conda_env,'include','libxml2')
+            incpath2 = os.path.join(conda_env,'include')
+            libpath = os.path.join(conda_env,'lib')
+            yield (conda_env, [incpath1,incpath2], [libpath])
+
     def gen_base_extensions(self):
         for e in Package.gen_base_extensions(self):
             yield e
