@@ -9,7 +9,8 @@ Changes
 * Cleaner Python compile time configuration. 
 
 New:
-* Added `underworld.function.count()` method, which counts function calls. 
+* Added `underworld.function.count()` method, which counts function calls.
+* Conda binaries available via underworldcode conda channel `conda install -c underworldcode underworld2`
 
 Fixes:
 * Fix bug where multiple solvers added multiple preconditioners. 
