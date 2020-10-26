@@ -9,8 +9,11 @@ Changes
 * Cleaner Python compile time configuration. 
 
 New:
+
 * Added `underworld.function.count()` method, which counts function calls.
 * Conda binaries available via underworldcode conda channel `conda install -c underworldcode underworld2`
+* Added `underworld.function.count()` method, which counts function calls. 
+* Added GADI install/run scripts @ ./docs/install_guides/nci_gadi/
 
 Fixes:
 * Fix bug where multiple solvers added multiple preconditioners. 
