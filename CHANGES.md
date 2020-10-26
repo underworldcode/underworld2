@@ -10,6 +10,7 @@ Changes
 
 New:
 * Added `underworld.function.count()` method, which counts function calls. 
+* Added GADI install/run scripts @ ./docs/install_guides/nci_gadi/
 
 Fixes:
 * Fix bug where multiple solvers added multiple preconditioners. 

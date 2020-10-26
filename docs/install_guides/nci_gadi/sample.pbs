@@ -1,0 +1,20 @@
+#!/bin/bash
+#PBS -P m18
+#PBS -q normal
+#PBS -l walltime=48:00:00
+#PBS -l mem=1100GB
+#PBS -l jobfs=100GB
+#PBS -l ncpus=384
+#PBS -l software=underworld
+#PBS -l wd
+#PBS -l storage=gdata/m18
+
+source /g/data/m18/codes/UWGeodynamics_2.10.0.sh
+
+MODELNAME="foobar"
+OUTPUTPATH=`pwd`
+SCRIPT="foobar.py"
+
+export OPENBLAS_NUM_THREADS=1
+# execution
+mpiexec python3 ./$SCRIPT 1> $OUTPUTPATH/$MODELNAME.$PBS_JOBID.log 2> $OUTPUTPATH/$MODELNAME.$PBS_JOBID.err
