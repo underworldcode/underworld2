@@ -12,7 +12,7 @@ see script for details, running $ install_petsc maybe required.
 
 ** To run **
 Add the line
- source <this_script_name>
+ source /path/gadi.pbs
 to your pbs file, make sure to include the absolute path.
 "
 

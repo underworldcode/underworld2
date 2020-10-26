@@ -6,10 +6,11 @@ Release 2.11.0 []
 Changes
 * Enabled user defined Gauss integration swarms for all systems. 
 * Update docker base images: switch to ubuntu(20.04), update petsc(3.1.4) & mpich(3.3.2), other tweaks. 
-* Cleaner Python compile time configuration. 
+* Cleaner Python compile time configuration.
 
 New:
 * Added `underworld.function.count()` method, which counts function calls. 
+* Added GADI install/run scripts @ ./docs/install_guides/nci_gadi/
 
 Fixes:
 * Fix bug where multiple solvers added multiple preconditioners. 
