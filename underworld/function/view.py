@@ -380,3 +380,74 @@ class min_max(_function.Function):
         """ Resets the minimum and maximum values.
         """
         return self._fncself.reset()
+
+
+class count(_function.Function):
+    """ 
+    This function simply records the number of times a function 
+    has been called.
+    
+    Example
+    -------
+    Create a simple function which returns two times its input:
+    
+    >>> import underworld as uw
+    >>> import underworld.function as fn
+    >>> import numpy as np
+    >>> fn_simple = fn.input()
+    >>> fn_count = fn.view.count(fn_simple)
+    
+    Now do an evaluation:
+    
+    >>> result = fn_count.evaluate(5.)
+    
+    Check count:
+
+    >>> fn_count.count()
+    1
+
+    Do a few more evaluations:
+
+    >>> result = fn_count.evaluate(5.)
+    >>> result = fn_count.evaluate(5.)
+    >>> result = fn_count.evaluate(5.)
+    >>> fn_count.count()
+    4
+
+    Reset and go again
+
+    >>> fn_count.reset()
+    >>> result = fn_count.evaluate(5.)
+    >>> result = fn_count.evaluate(5.)
+    >>> fn_count.count()
+    2
+
+    """
+    def __init__(self, fn):
+
+        _fn = _function.Function.convert(fn)
+        if _fn == None:
+            raise ValueError( "provided 'fn' must a 'Function' or convertible.")
+        self._fn = _fn
+
+        # create c instance
+        self._fncself = _cfn.Count( self._fn._fncself )
+
+        # build parent
+        super(count,self).__init__(argument_fns=[fn,])
+
+    def count(self):
+        """
+        Returns the function call count.
+        
+        Returns
+        -------
+        int: count
+        """
+        return self._fncself.count
+
+    def reset(self):
+        """
+        Resets the count.
+        """
+        return self._fncself.reset()

@@ -1,24 +1,29 @@
-FROM debian:latest
+FROM ubuntu:20.04 as base_runtime
 MAINTAINER https://github.com/underworldcode/
 ENV LANG=C.UTF-8
+ENV PYVER=3.8
 # Setup some things in anticipation of virtualenvs
 ENV VIRTUAL_ENV=/opt/venv
 # The following ensures that the venv takes precedence if available
 ENV PATH=${VIRTUAL_ENV}/bin:$PATH
-# The following ensures that system packages are visible to venv Python, and vice versa
-ENV PYTHONPATH=/usr/lib/python3.7/site-packages:${VIRTUAL_ENV}/lib/python3.7/site-packages
-ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/:/usr/local/lib/x86_64-linux-gnu/
+# The following ensures venv packages are available when using system python (such as from jupyter)
+ENV PYTHONPATH=${PYTHONPATH}:${VIRTUAL_ENV}/lib/python${PYVER}/site-packages
+
 # install runtime requirements
 RUN apt-get update -qq \
 &&  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         bash-completion \
-        python3-minimal \
+        bash-completion \
+        python${PYVER}-minimal \
         python3-virtualenv \
         python3-pip \
-        python3-tk \
+        python3-numpy \
+        python3-numpy-dbg \
         vim \
         less \
         git \
+        valgrind valgrind-dbg valgrind-mpi \
+        gdb cgdb \ 
 &&  apt-get clean \
 &&  rm -rf /var/lib/apt/lists/*
 
@@ -26,9 +31,9 @@ RUN pip3 install -U setuptools  \
 &&  pip3 install --no-cache-dir \
         packaging \
         appdirs \
-        numpy \
         jupyter \
         jupytext \
+        jupyterlab \
         plotly \
         matplotlib \
         pillow \
@@ -36,6 +41,7 @@ RUN pip3 install -U setuptools  \
         ipyparallel \
         pint==0.9 \
         scipy \ 
+        rise \
         tabulate 
 
 # Lets grab lavavu & requirements

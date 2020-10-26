@@ -1,24 +1,31 @@
-FROM debian:latest as base_runtime
+FROM ubuntu:20.04 as base_runtime
+MAINTAINER https://github.com/underworldcode/
 ENV LANG=C.UTF-8
+ENV PYVER=3.8
 # Setup some things in anticipation of virtualenvs
 ENV VIRTUAL_ENV=/opt/venv
 # The following ensures that the venv takes precedence if available
 ENV PATH=${VIRTUAL_ENV}/bin:$PATH
-# The following ensures that system packages are visible to venv Python, and vice versa
-ENV PYTHONPATH=/usr/lib/python3.7/site-packages:${VIRTUAL_ENV}/lib/python3.7/site-packages
+# The following ensures venv packages are available when using system python (such as from jupyter)
+ENV PYTHONPATH=${PYTHONPATH}:${VIRTUAL_ENV}/lib/python${PYVER}/site-packages
+
 # install runtime requirements
 RUN apt-get update -qq \
 &&  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         bash-completion \
-        python3-minimal \
+        python${PYVER}-minimal \
         python3-virtualenv \
         python3-pip \
-        libopenblas-base
+        python3-numpy \
+        python3-numpy-dbg \
+        libopenblas-base \
+&&  apt-get clean \
+&&  rm -rf /var/lib/apt/lists/*
+
 RUN pip3 install -U setuptools  \
 &&  pip3 install --no-cache-dir \
         packaging \
         appdirs \
-        numpy \
         jupyter \
         ipyparallel 
 
@@ -32,10 +39,11 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         gfortran \
         python3-dev \
         libopenblas-dev \
-        libz-dev
+        libz-dev \
+        git
 # build mpi
 WORKDIR /tmp/mpich-build
-ARG MPICH_VERSION="3.1.4"
+ARG MPICH_VERSION="3.3.2"
 RUN wget http://www.mpich.org/static/downloads/${MPICH_VERSION}/mpich-${MPICH_VERSION}.tar.gz 
 RUN  tar xvzf mpich-${MPICH_VERSION}.tar.gz 
 WORKDIR /tmp/mpich-build/mpich-${MPICH_VERSION}              
@@ -46,11 +54,12 @@ RUN make ${MPICH_MAKE_OPTIONS}
 RUN make install                           
 RUN ldconfig
 # create venv now for forthcoming python packages
-RUN /usr/bin/python3 -m virtualenv --python=/usr/bin/python3 ${VIRTUAL_ENV} 
+RUN /usr/bin/python3 -m virtualenv --system-site-packages --python=/usr/bin/python3 ${VIRTUAL_ENV}
+
 RUN pip3 install --no-cache-dir mpi4py
 # build petsc
 WORKDIR /tmp/petsc-build
-ARG PETSC_VERSION="3.12.1"
+ARG PETSC_VERSION="3.14.0"
 RUN wget http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-${PETSC_VERSION}.tar.gz
 RUN tar zxf petsc-lite-${PETSC_VERSION}.tar.gz
 WORKDIR /tmp/petsc-build/petsc-${PETSC_VERSION}
@@ -62,7 +71,7 @@ RUN python3 ./configure --with-debugging=0 --prefix=/usr/local \
                 --download-parmetis=1           \
                 --download-metis=1              \
                 --download-superlu=1            \
-                # --download-hypre=1              \ # issue with this.. something about difficulty inferring version number
+                --download-hypre=1              \
                 --download-scalapack=1          \
                 --download-superlu_dist=1       \
                 --useThreads=0                  \
@@ -78,8 +87,7 @@ RUN rm -fr /usr/local/share/petsc
 ENV PETSC_DIR=/usr/local
 ENV PETSC_ARCH=arch-linux-c-opt
 RUN pip3 install --no-cache-dir petsc4py
-# I don't think the petsc py package is needed. 
-RUN CC=h5pcc HDF5_MPI="ON" HDF5_DIR=${PETSC_DIR} pip3 install --no-cache-dir --no-binary=h5py h5py
+RUN CC=h5pcc HDF5_MPI="ON" HDF5_DIR=${PETSC_DIR} pip3 install --no-cache-dir --no-binary=h5py git+https://github.com/h5py/h5py@master
 
 FROM base_runtime AS minimal
 COPY --from=build_base $VIRTUAL_ENV $VIRTUAL_ENV

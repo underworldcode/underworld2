@@ -1,8 +1,26 @@
 CHANGES: Underworld2
 =======================
 
+Release 2.11.0 []
+-----------------
+Changes
+* Enabled user defined Gauss integration swarms for all systems. 
+* Update docker base images: switch to ubuntu(20.04), update petsc(3.1.4) & mpich(3.3.2), other tweaks. 
+* Cleaner Python compile time configuration. 
+
+New:
+* Added `underworld.function.count()` method, which counts function calls. 
+
+Fixes:
+* Fix bug where multiple solvers added multiple preconditioners. 
+
+Release 2.10.1 [2020-08-28]
+---------------------------
+Changes:
+* Updating Dockerfile to include UWGeodynamics new docs structure.
+
 Release 2.10.0 [2020-08-07]
-----------------
+---------------------------
 Fixes:
 * SWIG4 compatibility changes.
 * libxml2 ubuntu20.04 changes.
