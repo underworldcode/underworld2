@@ -3,6 +3,7 @@ name: Conda Deployment
 on:
   release:
     types: [created, edited]
+  workflow_dispatch:
 
 jobs:
 
@@ -16,7 +17,7 @@ jobs:
         python-version: ["3.7", "3.8"]
     steps:
       - uses: actions/checkout@v2
-      - uses: goanpeca/setup-miniconda@v1
+      - uses: conda-incubator/setup-miniconda@v2
         with:
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
@@ -28,5 +29,5 @@ jobs:
             conda config --add channels underworldcode
             conda config --set anaconda_upload yes
             anaconda login --hostname github-actions-${{ matrix.os  }}-$RANDOM --username ${{ secrets.ANACONDA_USERNAME }} --password ${{ secrets.ANACONDA_PASSWORD }}
-            conda-build --channel conda-forge --user underworldcode conda
+            conda-build --channel conda-forge --user geo-down-under conda
             anaconda logout
