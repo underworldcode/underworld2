@@ -36,7 +36,7 @@ module load openmpi/4.0.2 hdf5/1.10.5p python3/3.7.4 scons/3.1.1 #petsc/3.12.2
 
 export GROUP=m18
 export USER=
-export INSTALL_NAME=UWGeodynamics_2.10.0
+export INSTALL_NAME=UWGeodynamics_2.10
 
 export CODES_PATH=/g/data/$GROUP/$USER/codes
 export UW_OPT_DIR=$CODES_PATH/opt
@@ -100,7 +100,7 @@ install_python_dependencies(){
 	LV_OSMESA=1 pip3 install --no-binary :all: lavavu==1.4.14
 	pip3 install mpi4py
         export HDF5_VERSION=1.10.5
-        CC=h5pcc HDF5_MPI="ON" pip3 install --no-cache-dir --global-option=build_ext --global-option="-L/apps/hdf5/1.10.5p/lib/ompi3/" --no-binary=h5py h5py
+        CC=h5pcc HDF5_MPI="ON" pip3 install --no-cache-dir --global-option=build_ext --global-option="-L/apps/hdf5/1.10.5p/lib/ompi3/" --no-binary=h5py h5py==2.10.0
 
 }
 
@@ -119,7 +119,7 @@ install_underworld(){
 
 install_uwgeodynamics(){
 	source $INSTALL_PATH/bin/activate
-	pip install uwgeodynamics==2.10.1
+	pip install uwgeodynamics==2.10.2
 
 	# tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
 	# cd $tmp_dir
