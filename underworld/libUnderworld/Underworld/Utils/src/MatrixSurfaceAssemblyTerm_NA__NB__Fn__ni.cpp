@@ -1,0 +1,222 @@
+/*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*
+**                                                                                  **
+** This file forms part of the Underworld geophysics modelling application.         **
+**                                                                                  **
+** For full license and copyright information, please refer to the LICENSE.md file  **
+** located at the project root, or contact the authors.                             **
+**                                                                                  **
+**~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
+#include <assert.h>
+#include <string.h>
+#include<cstdlib>
+
+#include <mpi.h>
+#include <petsc.h>
+
+#include <Underworld/Function/FunctionIO.hpp>
+#include <Underworld/Function/FEMCoordinate.hpp>
+#include <Underworld/Function/ParticleInCellCoordinate.hpp>
+#include <Underworld/Function/Function.hpp>
+
+#include "MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni.h"
+
+
+/* Textual name of this class */
+const Type MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_Type = "MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni";
+
+/* Creation implementation / Virtual constructor */
+MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni* _MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_New(  MATRIXASSEMBLYTERM_NA__NB__FN_DEFARGS  ) {
+    MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni* self;
+    /* Allocate memory */
+    assert( _sizeOfSelf >= sizeof(MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni) );
+    self = (MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni*) _StiffnessMatrixTerm_New(  STIFFNESSMATRIXTERM_PASSARGS  );
+
+/* Virtual info */
+    self->cppdata = (void*) new MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_cppdata;
+    self->max_nElNodes = 0;
+    self->Ni = NULL;
+    self->geometryMesh = NULL;
+
+    return self;
+}
+
+void MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_SetFn( void* _self, Fn::Function* fn ){
+    MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni*  self = (MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni*)_self;
+
+    // record fn to struct
+    MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_cppdata* cppdata = (MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_cppdata*) self->cppdata;
+    cppdata->fn = fn;
+
+    // setup fn
+    IntegrationPointsSwarm* swarm = (IntegrationPointsSwarm*)self->integrationSwarm;
+    std::shared_ptr<ParticleInCellCoordinate> localCoord = std::make_shared<ParticleInCellCoordinate>( swarm->localCoordVariable );
+    cppdata->input = std::make_shared<FEMCoordinate>((void*)swarm->mesh, localCoord);
+    cppdata->func = fn->getFunction(cppdata->input.get());
+
+    // check output conforms
+    const IO_double* iodub = dynamic_cast<const IO_double*>(cppdata->func(cppdata->input.get()));
+    if( !iodub )
+        throw std::invalid_argument("MatrixAssemblyTerm routine expects functions to return 'double' type values.");
+    if( iodub->size() != 1 )
+        throw std::invalid_argument("MatrixAssemblyTerm matrix routine expects functions to scalar values.");
+
+}
+
+void _MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_Delete( void* matrixTerm ) {
+    MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni* self = (MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni*)matrixTerm;
+
+    _StiffnessMatrixTerm_Delete( self );
+}
+
+void _MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_Print( void* matrixTerm, Stream* stream ) {
+    MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni* self = (MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni*)matrixTerm;
+    _StiffnessMatrixTerm_Print( self, stream );
+    /* General info */
+}
+
+void* _MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_DefaultNew( Name name ) {
+    /* Variables set in this function */
+    SizeT                                                 _sizeOfSelf = sizeof(MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni);
+    Type                                                         type = MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_Type;
+    Stg_Class_DeleteFunction*                                 _delete = _MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_Delete;
+    Stg_Class_PrintFunction*                                   _print = _MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_Print;
+    Stg_Class_CopyFunction*                                     _copy = NULL;
+    Stg_Component_DefaultConstructorFunction*     _defaultConstructor = _MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_DefaultNew;
+    Stg_Component_ConstructFunction*                       _construct = _MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_AssignFromXML;
+    Stg_Component_BuildFunction*                               _build = _MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_Build;
+    Stg_Component_InitialiseFunction*                     _initialise = _MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_Initialise;
+    Stg_Component_ExecuteFunction*                           _execute = _MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_Execute;
+    Stg_Component_DestroyFunction*                           _destroy = _MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_Destroy;
+    StiffnessMatrixTerm_AssembleElementFunction*     _assembleElement = _MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_AssembleElement;
+    AllocationType  nameAllocationType = NON_GLOBAL /* default value NON_GLOBAL */;
+
+    return (void*)_MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_New(  MATRIXASSEMBLYTERM_NA__NB__FN_PASSARGS  );
+}
+
+void _MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_AssignFromXML( void* matrixTerm, Stg_ComponentFactory* cf, void* data ) {
+    MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni* self = (MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni*)matrixTerm;
+    /* Construct Parent */
+    _StiffnessMatrixTerm_AssignFromXML( self, cf, data );
+}
+
+void _MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_Build( void* matrixTerm, void* data ) {
+    MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni* self = (MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni*)matrixTerm;
+    _StiffnessMatrixTerm_Build( self, data );
+
+    self->Ni = (double*)malloc(sizeof(double)*4);
+}
+
+void _MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_Initialise( void* matrixTerm, void* data ) {
+    MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni* self = (MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni*)matrixTerm;
+    _StiffnessMatrixTerm_Initialise( self, data );
+}
+
+void _MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_Execute( void* matrixTerm, void* data ) {
+    _StiffnessMatrixTerm_Execute( matrixTerm, data );
+}
+
+void _MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_Destroy( void* matrixTerm, void* data ) {
+    MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni* self = (MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni*)matrixTerm;
+
+   delete (MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_cppdata*)self->cppdata;
+
+    _StiffnessMatrixTerm_Destroy( matrixTerm, data );
+}
+
+void _MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_AssembleElement(
+   void*                                              matrixTerm,
+   StiffnessMatrix*                                   stiffnessMatrix,
+   Element_LocalIndex                                 lElement_I,
+   SystemLinearEquations*                             sle,
+   FiniteElementContext*                              context,
+   double**                                           elStiffMat )
+{
+  
+   MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni* self = (MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni*)matrixTerm;
+   Swarm*                              swarm        = self->integrationSwarm;
+   FeVariable*                         variable     = stiffnessMatrix->rowVariable;
+   Dimension_Index                     dim          = stiffnessMatrix->dim;
+   Particle_InCellIndex                cParticle_I, cellParticleCount;
+   Node_ElementLocalIndex              nodesPerEl;
+
+   IntegrationPoint*                   intPoint;
+   ElementType*                        elementType;
+   const double                        *fn_vector;
+   double                              *xi, *Ni; 
+   double                              detJac, weight, localNormal[3], factor;
+   int                                 cell_I, dofPerNode, row, col, rowNode_I, colNode_I, g_I, n_I;
+
+   MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_cppdata* cppdata = (MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_cppdata*)self->cppdata;
+   debug_dynamic_cast<ParticleInCellCoordinate*>(cppdata->input->localCoord())->index() = lElement_I;  // set the elementId as the owning cell for the particleCoord
+   cppdata->input->index() = lElement_I;
+
+   FeMesh*                 geometryMesh = ( self->geometryMesh ? self->geometryMesh : variable->feMesh );
+   ElementType*            geometryElementType;
+
+   /* Set the element type */
+   geometryElementType = FeMesh_GetElementType( geometryMesh, lElement_I );
+
+   elementType = FeMesh_GetElementType( variable->feMesh, lElement_I );
+   nodesPerEl  = elementType->nodeCount;
+   dofPerNode  = variable->fieldComponentCount;
+
+   // allocate shape function array Ni
+   if( nodesPerEl > self->max_nElNodes ) {
+      if( self->Ni) free(self->Ni);
+      self->Ni = (double*)AllocArray(double, nodesPerEl );
+      self->max_nElNodes = nodesPerEl;
+   }
+   Ni = self->Ni;
+
+   cell_I = CellLayout_MapElementIdToCellId( swarm->cellLayout, lElement_I );
+   cellParticleCount = swarm->cellParticleCountTbl[ cell_I ];
+
+   for ( cParticle_I = 0 ; cParticle_I < cellParticleCount ; cParticle_I++ ) {
+      debug_dynamic_cast<ParticleInCellCoordinate*>(cppdata->input->localCoord())->particle_cellId(cParticle_I);  // set the particleCoord cellId
+      /* get integration point information */
+      intPoint = (IntegrationPoint*)Swarm_ParticleInCellAt( swarm, cell_I, cParticle_I );
+      xi = intPoint->xi;
+      weight = intPoint->weight;
+
+      /* evaluate shape function, surface normal and jacobian determinant */
+      ElementType_EvaluateShapeFunctionsAt( elementType, xi, Ni );
+      ElementType_SurfaceNormal( elementType, lElement_I, dim, xi, localNormal );
+      detJac = ElementType_JacobianDeterminant( geometryElementType, geometryMesh, lElement_I, xi, dim );
+
+      // /* evaluate function */
+      const IO_double* funcout = debug_dynamic_cast<const IO_double*>(cppdata->func(cppdata->input.get()));
+      fn_vector = funcout->data();
+
+      factor = weight*detJac;
+
+        /* 
+          per edge evaluation as per equation 19 - B.J.P Kaus et al. 2010
+          where: 
+            fn_vector is user input for, theta * pho * dT * g[]
+            localNormal is calculated from the border gauss swarm, n
+            Ni are the shape functions
+
+        elStiffMat[row  ][col  ] = fn_vector[0] * localNormal[0] * Ni[rowNode_I] * Ni[colNode_I]
+        elStiffMat[row  ][col+1] = fn_vector[0] * localNormal[1] * Ni[rowNode_I] * Ni[colNode_I]
+        elStiffMat[row+1][col  ] = fn_vector[1] * localNormal[0] * Ni[rowNode_I] * Ni[colNode_I]
+        elStiffMat[row+1][col+1] = fn_vector[1] * localNormal[1] * Ni[rowNode_I] * Ni[colNode_I]
+
+        */
+
+      /* build stiffness matrix */
+      for ( rowNode_I = 0; rowNode_I < nodesPerEl ; rowNode_I++ ) {
+        for ( colNode_I = 0; colNode_I < nodesPerEl; colNode_I++ ) {
+
+          for( g_I = 0; g_I < dim; g_I++ ) {
+            row = rowNode_I*dofPerNode + g_I;
+
+            for( n_I = 0; n_I < dim; n_I++ ) {
+              col = colNode_I*dofPerNode + n_I;
+              
+              elStiffMat[row][col] += factor * fn_vector[g_I] * localNormal[n_I] * Ni[rowNode_I] * Ni[colNode_I];
+            }
+          }
+        }
+      }
+   }
+}
