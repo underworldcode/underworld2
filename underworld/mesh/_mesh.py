@@ -21,6 +21,11 @@ import contextlib
 import time
 import abc
 import numpy as np
+from underworld.scaling import dimensionalise
+from underworld.scaling import non_dimensionalise
+from underworld.scaling import units as u
+from pint.errors import UndefinedUnitError
+
 
 class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
     """
@@ -142,7 +147,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         uw.libUnderworld.StgDomain.Mesh_GenerateElGlobalIdVar(self._cself)
         arr = uw.libUnderworld.StGermain.StgVariable_getAsNumpyArray(self._cself.eGlobalIdsVar)
         return arr.flatten()
-
+    
     @property
     def data_nodegId(self):
         """
@@ -158,6 +163,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
     @property
     def data(self):
         """
+
         Numpy proxy array proxy to underlying object vertex data. Note that the
         returned array is a proxy for all the *local* vertices, and it is
         provided as 1d list.
@@ -486,7 +492,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         iset.addAll()
         return iset._get_iterator()
 
-    def save( self, filename ):
+    def save(self, filename, units=None, **kwargs):
         """
         Save the mesh to disk
 
@@ -494,6 +500,12 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         ----------
         filename : string
             The name of the output file.
+        units : pint unit object (optional)
+            Define the units that must be used to save the data.
+            The data will be dimensionalised and saved with the defined units.
+            The units are saved as a HDF attribute.
+        
+        Additional keyword arguments are saved as string attributes.
 
         Returns
         -------
@@ -548,16 +560,23 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         if not isinstance(filename, str):
             raise TypeError("'filename', must be of type 'str'")
 
+
         with h5File(name=filename, mode="a") as h5f:
             # Save attributes and simple data.
             # This must be done in collectively for mpio driver.
             # Also, for sequential, this is performed redundantly.
+            fact = 1.0
+            if units:
+                fact = dimensionalise(1.0, units=units).magnitude
+                h5f.attrs['units'] = str(units)
             h5f.attrs['dimensions']      = self.dim
             h5f.attrs['mesh resolution'] = self.elementRes
-            h5f.attrs['max']             = self.maxCoord
-            h5f.attrs['min']             = self.minCoord
+            h5f.attrs['max']             = tuple([fact*x for x in self.maxCoord])
+            h5f.attrs['min']             = tuple([fact*x for x in self.minCoord])
             h5f.attrs['regular']         = self._cself.isRegular
             h5f.attrs['elementType']     = self.elementType
+            for kwarg, val in kwargs.items():
+                h5f.attrs[str(kwarg)] = str(val)
 
             # write the vertices
             globalShape = (self.nodesGlobal, self.data.shape[1])
@@ -566,7 +585,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
 
             # write to the dset using the local set of global node ids
             with dset.collective:
-                dset[self.data_nodegId[0:local],:] = self.data[0:local]
+                dset[self.data_nodegId[0:local], :] = self.data[0:local] * fact
 
             # write the element node connectivity
             globalShape = (self.elementsGlobal, self.data_elementNodes.shape[1])
@@ -576,7 +595,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
 
             # write to the dset using the local set of global node ids
             with dset.collective:
-                dset[self.data_elgId[0:local],:] = self.data_elementNodes[0:local]
+                dset[self.data_elgId[0:local], :] = self.data_elementNodes[0:local]
 
         # return our file handle
         return uw.utils.SavedFileData(self, filename)
@@ -628,6 +647,12 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
                 raise RuntimeError("Provided file mesh resolution does not appear to correspond to\n"\
                                    "resolution of mesh object.")
 
+            # get units if they have been defined
+            try:
+                units = u.Quantity(h5f.attrs["units"])
+            except (KeyError, UndefinedUnitError) as e:
+                units = None
+
             dset = h5_get_dataset(h5f, 'vertices')
 
             dof = dset.shape[1]
@@ -640,7 +665,10 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
                 vertcpy = dset[self.data_nodegId[0:self.nodesLocal],:].copy()
             isRegular = h5f.attrs['regular']
         with self.deform_mesh(isRegular=isRegular):
-            self.data[0:self.nodesLocal] = vertcpy[:]
+            if units:
+                self.data[0:self.nodesLocal] = non_dimensionalise(vertcpy[:] * units)
+            else:
+                self.data[0:self.nodesLocal] = vertcpy[:]
 
 
 class MeshGenerator(_stgermain.StgCompoundComponent):
