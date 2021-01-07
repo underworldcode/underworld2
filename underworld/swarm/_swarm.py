@@ -17,6 +17,9 @@ import underworld as uw
 from mpi4py import MPI
 import h5py
 import contextlib
+from underworld.scaling import non_dimensionalise
+from underworld.scaling import units as u 
+from pint.errors import UndefinedUnitError
 
 
 class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Save):
@@ -220,7 +223,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         """
         return libUnderworld.Function.SwarmInput(self._particleCoordinates._cself)
 
-    def save(self, filename, collective=False):
+    def save(self, filename, collective=False, units=None, **kwargs):
         """
         Save the swarm to disk.
 
@@ -233,6 +236,12 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
             If True, swarm is saved MPI collective. This is usually faster, but
             currently is problematic for passive swarms which may not have
             representation on all processes.
+        units : pint unit object (optional)
+            Define the units that must be used to save the data.
+            The data will be dimensionalised and saved with the defined units.
+            The units are saved as a HDF attribute.
+
+        Additional keyword arguments are saved as string attributes.
 
         Returns
         -------
@@ -278,7 +287,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
             raise TypeError("Expected filename to be provided as a string")
 
         # just save the particle coordinates SwarmVariable
-        self.particleCoordinates.save(filename, collective)
+        self.particleCoordinates.save(filename, collective, units=units, **kwargs)
 
         return uw.utils.SavedFileData( self, filename )
 
@@ -326,6 +335,12 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
 
         # open hdf5 file
         with h5File(name=filename, mode="r") as h5f:
+
+            try:
+                units = u.Quantity(h5f.attrs["units"])
+            except (KeyError, UndefinedUnitError) as e:
+                units = None
+
             dset = h5_get_dataset(h5f, 'data')
             if dset.shape[1] != self.data.shape[1]:
                 raise RuntimeError("Cannot load file data on current swarm. Data in file '{0}', " \
@@ -370,10 +385,18 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
                 # in this step.
                 if firstChunk and collective:
                     with dset.collective:
-                        ztmp = self.add_particles_with_coordinates(dset[ chunkStart : chunkEnd ])
+                        if units:
+                            vals = non_dimensionalise(dset[ chunkStart : chunkEnd ] * units)
+                            ztmp = self.add_particles_with_coordinates(vals)
+                        else:
+                            ztmp = self.add_particles_with_coordinates(dset[ chunkStart : chunkEnd ])
                         firstChunk = False
                 else:
-                    ztmp = self.add_particles_with_coordinates(dset[ chunkStart : chunkEnd ])
+                    if units:
+                        vals = non_dimensionalise(dset[ chunkStart : chunkEnd ] * units)
+                        ztmp = self.add_particles_with_coordinates(vals)
+                    else:
+                        ztmp = self.add_particles_with_coordinates(dset[ chunkStart : chunkEnd ])
                 tmp = np.copy(ztmp) # copy because ztmp is 'readonly'
 
                 # slice out -neg bits and make the local indices global
