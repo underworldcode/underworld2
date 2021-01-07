@@ -147,7 +147,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         uw.libUnderworld.StgDomain.Mesh_GenerateElGlobalIdVar(self._cself)
         arr = uw.libUnderworld.StGermain.StgVariable_getAsNumpyArray(self._cself.eGlobalIdsVar)
         return arr.flatten()
-    
+        
     @property
     def data_nodegId(self):
         """
