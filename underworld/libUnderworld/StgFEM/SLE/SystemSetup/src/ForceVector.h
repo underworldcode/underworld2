@@ -31,7 +31,11 @@
 		Stg_ObjectList*			forceTermList;  \
 		Stg_Component*				applicationDepExtraInfo; /**< Default is NULL: passed to elForceVec during assembly */\
 		IArray*						inc;  \
-
+    /* rotation matrix data structures */ \
+		int     totalDofsThisElement; /* assumes constant dofs per element */ \
+    double *rotMat;         \
+    double *tmpMat;         \
+    StiffnessMatrixTerm* rotMatTerm;
 
 	struct ForceVector { __ForceVector };
 
@@ -88,6 +92,9 @@
 	void _ForceVector_Execute( void* forceVector, void* data );
 
 	void _ForceVector_Destroy( void* forceVector, void* data );
+
+  /** set the rotation matrix term to act on this ForceVector */
+  void ForceVector_SetRotationTerm( void* _self, void* rotTerm );
 
 	/** Interface to assemble this Force Vector. Calls an entry point, meaning the user can specify if, and then how,
 	it should be assembled. */

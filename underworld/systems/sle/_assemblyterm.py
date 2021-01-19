@@ -344,6 +344,39 @@ class MatrixAssemblyTerm_NA__NB__Fn(MatrixAssemblyTerm):
         # call parents method
         super(MatrixAssemblyTerm_NA__NB__Fn,self)._add_to_stg_dict(componentDictionary)
 
+class  MatrixAssemblyTerm_RotationDof(MatrixAssemblyTerm):
+    _objectsDict = { "_assemblyterm": " MatrixAssemblyTerm_RotationDof" }
+
+    def __init__(self, fn_basis, mesh, **kwargs):
+        """
+        This assembly term rotates an elemental portion of an SLE.
+        The 2 (or 3) fn_e1 unit vectors
+        """
+        # build parent
+        super(MatrixAssemblyTerm_RotationDof,self).__init__(**kwargs)
+
+        dim = mesh.dim
+
+        # we disable these parent attributes
+        self._set_fn_function = None
+        self._fn = None
+
+        # save the rotated basis vectors
+        self._fn_basis = fn_basis
+
+        # set mesh directly
+        self._cself.geometryMesh = mesh._cself
+        self._geometryMesh = mesh
+
+        # attach fn_basis vectors to the cpp implementation
+        for i, fn_X in enumerate(fn_basis):
+            uw.libUnderworld.Underworld.MatrixAssemblyTerm_RotationDof_SetEFn(self._cself, i, fn_X._fncself)
+
+    def _add_to_stg_dict(self,componentDictionary):
+        # call parents method
+        super(MatrixAssemblyTerm_RotationDof,self)._add_to_stg_dict(componentDictionary)
+
+
 class LumpedMassMatrixVectorTerm(VectorAssemblyTerm):
     _objectsDict = { "_assemblyterm": "LumpedMassMatrixForceTerm" }
     pass

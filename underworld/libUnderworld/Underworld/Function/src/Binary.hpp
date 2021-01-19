@@ -93,6 +93,14 @@ namespace Fn {
             virtual ~Max(){};
     };
 
+    class Atan2: public Binary
+    {
+        public:
+            Atan2( Function *fn1, Function *fn2 ) : Binary( fn1, fn2) {};
+            virtual func getFunction( IOsptr sample_input );
+            virtual ~Atan2(){};
+    };
+ 
 }
 
 #endif /* __Underworld_Function_Binary_hpp__ */

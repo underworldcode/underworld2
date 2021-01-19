@@ -189,7 +189,7 @@ class Stokes(_stgermain.StgCompoundComponent):
             # set the bcs on here
             if not isinstance( cond, uw.conditions.SystemCondition ):
                 raise TypeError( "Provided 'conditions' must be 'SystemCondition' objects." )
-            elif type(cond) == uw.conditions.DirichletCondition:
+            elif isinstance(cond, uw.conditions.DirichletCondition):
                 if cond.variable == self._velocityField:
                     libUnderworld.StgFEM.FeVariable_SetBC( self._velocityField._cself, cond._cself )
                 elif cond.variable == self._pressureField:
@@ -301,6 +301,70 @@ class Stokes(_stgermain.StgCompoundComponent):
         self._aObjects['vdotv_fn'] = uw.function.math.dot( self._velocityField, self._velocityField )
         
         super(Stokes, self).__init__(**kwargs)
+
+        for cond in self._conditions:
+            if isinstance( cond, uw.conditions.CurvilinearDirichletCondition):
+                self.redefineVelocityDirichletBC(cond.basis_vectors)
+
+    def redefineVelocityDirichletBC(self, basis_vectors):
+        '''
+        Function to hide the implementation of rotating dirichlet boundary conditions.
+        Here we build a global rotation matrix and a local assembly term for it for 2 reasons.
+        1) The assembly term rotates local element contributions immediately after their local evaluation
+           for the stokes system. This supports the Engelman & Sani idea in,
+           THE IMPLEMENTATION OF NORMAL AND/OR TANGENTIAL BOUNDARY CONDITIONS IN FINITE
+           ELEMENT CODES FOR INCOMPRESSIBLE FLUID FLOW, 1982
+        2) The global rotation matrix allows us to rotate the whole velocity field when we like.
+           Advantagous for this development phase whilst we are designing the workflow of rotated BCS.
+
+        '''
+        from underworld import function as fn
+
+        if len(basis_vectors) != self._velocityField.nodeDofCount:
+            raise ValueError("Inconsistent number of 'basis_vectors' for the velocity field dimensionality")
+        # does rotMatTerm already exist
+        if self._kmatrix._cself.rotMatTerm is not None:
+            return
+            
+        mesh = self._velocityField.mesh
+
+        # build 'vns' (the velocity null space) MeshVariable and SolutionVector
+        vnsField = self._vnsField = self._velocityField.copy()
+        vnsEqNum = uw.systems.sle.EqNumber( vnsField, False )
+        self._vnsVec = uw.systems.sle.SolutionVector(vnsField, vnsEqNum) # store on class
+
+        # evaluate vnsField, check compatibility
+        if isinstance(mesh, uw.mesh.FeMesh_Annulus): # with FeMesh_Annulus we have the sbr_fn
+            self._vnsVec.meshVariable.data[:] = mesh.sbr_fn.evaluate(mesh)
+             
+        uw.libUnderworld.StgFEM.SolutionVector_LoadCurrentFeVariableValuesOntoVector(self._vnsVec._cself) # store in petsc vec
+
+        # must be done after vnsField creation
+        self._velocityField._cself.nonAABCs = 1
+
+        # build a global 're-rotate' matrix
+        # self._rot = uw.systems.sle.AssembledMatrix( self._velocitySol, self._velocitySol, rhs=None )
+        self._rot = uw.systems.sle.AssembledMatrix( self._vnsVec, self._vnsVec, rhs=None )
+        gaussSwarm = self._constitMatTerm._integrationSwarm
+        self._rot._cself.assembleOnNodes = 1 # important doesn't perform FEM integral
+        
+        term = self._term = uw.systems.sle.MatrixAssemblyTerm_RotationDof(integrationSwarm=gaussSwarm,
+                                                             assembledObject = self._rot,
+                                                             fn_basis=basis_vectors,
+                                                             mesh=mesh)
+
+        # self._eqNums[self._velocityField]._cself.removeBCs=True
+        vnsEqNum._cself.removeBCs = True
+        uw.libUnderworld.StgFEM.StiffnessMatrix_Assemble(
+            self._rot._cself,
+            None, None );
+        vnsEqNum._cself.removeBCs = False
+        # self._eqNums[self._velocityField]._cself.removeBCs=False
+
+        # add rotation matrix element terms using the following
+        uw.libUnderworld.StgFEM.StiffnessMatrix_SetRotationTerm(self._kmatrix._cself, term._cself)
+        uw.libUnderworld.StgFEM.StiffnessMatrix_SetRotationTerm(self._gmatrix._cself, term._cself)
+        uw.libUnderworld.StgFEM.ForceVector_SetRotationTerm(self._fvector._cself, term._cself)
 
 
     def _add_to_stg_dict(self,componentDictionary):
