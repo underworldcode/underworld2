@@ -178,8 +178,8 @@ if __name__ == '__main__':
         cleanup=False
         # if prefix args found and it's an ipynb, use 'jupyter nbconvert --execute'
         if is_ipynb and not args.prepend:
-            exe = ['jupyter', 'nbconvert', '--ExecutePreprocessor.kernel_name="python3"',
-                   '--ExecutePreprocessor.timeout=10000','--execute', '--stdout']
+            exe = ['jupyter', 'nbconvert', '--stdout', '--ExecutePreprocessor.kernel_name=\'python3\'',
+                    '--ExecutePreprocessor.timeout=10000','--to=script', '--execute']
         elif is_ipynb and args.prepend:
             # convert ipynb to py and run with python
             print("Converting test {} to .py".format(fname));

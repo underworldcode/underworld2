@@ -46,7 +46,7 @@ from distutils import log
 metadata = {
     'provides' : ['underworld'],
     'zip_safe' : False,
-    'install_requires' : ['scons','numpy','mpi4py>=1.2.2', 'h5py']
+    'install_requires' : ['scons==3.1.1','numpy','mpi4py>=1.2.2', 'h5py==2.10']
 }
 
 def config(prefix, dry_run=False):
