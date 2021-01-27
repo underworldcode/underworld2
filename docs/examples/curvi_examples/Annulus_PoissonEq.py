@@ -50,6 +50,21 @@ fn_r = annulus.fn_radial
 fn_analytic = fn.math.log( fn_r/rb ) * fac  + tb
 
 # %%
+from underworld.mesh import _specialSets_Cartesian
+
+# %%
+xx = _specialSets_Cartesian.MaxI_VertexSet
+
+# %%
+xx
+
+# %%
+xx(annulus)
+
+# %%
+annulus.specialSets["surfaces_e1_normal_VertexSet"]
+
+# %%
 fig = vis.Figure()
 fig.append(vis.objects.Mesh(annulus))
 fig.append(vis.objects.Surface(annulus, tField, onMesh=True))
