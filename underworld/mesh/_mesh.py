@@ -1438,10 +1438,6 @@ class FeMesh_Annulus(FeMesh_Cartesian):
         self.specialSets["upper_surface_VertexSet"] = _specialSets_Cartesian.MaxI_VertexSet
 
 
-        return
-
-
-
     @property
     def radialLengths(self):
         """
@@ -1552,13 +1548,13 @@ class FeMesh_Annulus(FeMesh_Cartesian):
         # Walls by relevant normal ...
 
         surfaces_e1i_normal_VertexSet = _specialSets_Cartesian.MaxI_VertexSet(self) + _specialSets_Cartesian.MinI_VertexSet(self)
-        self.specialSets["surfaces_e1_normal_VertexSet"] = lambda selfobject: surfaces_e1i_normal_VertexSet
+        self.specialSets["surfaces_e1_normal_VertexSet"] = surfaces_e1i_normal_VertexSet
 
         surfaces_e2_normal_VertexSet = self.specialSets["Empty"]
-        self.specialSets["surfaces_e2_normal_VertexSet"]  = lambda selfobject: surfaces_e2_normal_VertexSet
+        self.specialSets["surfaces_e2_normal_VertexSet"]  = surfaces_e2_normal_VertexSet
 
         surfaces_e3_normal_VertexSet = self.specialSets["Empty"]
-        self.specialSets["surfaces_e3_normal_VertexSet"]  = lambda selfobject: surfaces_e3_normal_VertexSet
+        self.specialSets["surfaces_e3_normal_VertexSet"]  = surfaces_e3_normal_VertexSet
 
         return
 
@@ -1601,5 +1597,186 @@ class FeMesh_Annulus(FeMesh_Cartesian):
         vField.data[:,:] -= null_space_v * (self.unitvec_theta_Fn * self.radiusFn * self.maskFn).evaluate(self)[:,:]
 
         return null_space_v
+
+class FeMesh_SRegion(FeMesh_Cartesian):
+    def __init__(self, elementRes=(16,16,10), radialLengths=(3.0,6.0), latExtent=90.0, longExtent=90.0, centroid=[0.0,0.0,0.0], **kwargs):
+        """
+        Create a Cubed-sphere sixth, centered on the 'centroid'.
+
+
+        MinI_VertexSet / MaxI_VertexSet -> longitudinal walls : [min/max] = [west/east]
+        MinJ_VertexSet / MaxJ_VertexSet -> latitudinal walls  : [min/max] = [south/north]
+        MinK_VertexSet / MaxK_VertexSet -> radial walls       : [min/max] = [inner/outer]
+
+        Refer to parent classes for parameters beyond those below.
+
+        Parameter
+        ---------
+        elementRes : tuple
+            Tuple determining number of elements (longitudinally, latitudinally, radially).
+        radialLengths : tuple
+            Tuple determining the (inner radialLengths, outer radialLengths).
+        longExtent : float
+            The angular extent of the domain between great circles of longitude.
+        latExtent : float
+            The angular extent of the domain between great circles of latitude.
+
+
+        Example
+        -------
+
+        >>> (radMin, radMax) = (4.0,8.0)
+        >>> mesh = uw.mesh.FeMesh_SRegion( elementRes=(20,20,14), radialLengths=(radMin, radMax) )
+        >>> integral = uw.utils.Integral( 1.0, mesh).evaluate()[0]
+        >>> exact = (4./3.)*np.pi*(radMax**3 - radMin**3) / 6.0
+        >>> np.isclose(integral, exact, rtol=0.02)
+        True
+        """
+
+        if not isinstance( latExtent, (float,int) ):
+            raise TypeError("Provided 'latExtent' must be a float or integer")
+        self._latExtent = latExtent
+        if not isinstance( longExtent, (float,int) ):
+            raise TypeError("Provided 'longExtent' must be a float or integer")
+        self._longExtent = longExtent
+        if not isinstance( radialLengths, (tuple,list)):
+            raise TypeError("Provided 'radialLengths' must be a tuple/list of 2 floats")
+        if len(radialLengths) != 2:
+            raise ValueError("Provided 'radialLengths' must be a tuple/list of 2 floats")
+        for el in radialLengths:
+            if not isinstance( el, (float,int)) :
+                raise TypeError("Provided 'radialLengths' must be a tuple/list of 2 floats")
+        self._radialLengths = radialLengths
+
+        lat_half = latExtent/2.0
+        long_half = longExtent/2.0
+
+        # build 3D mesh cartesian mesh centred on (0.0,0.0,0.0) - in _setup() we deform the mesh
+        # elementType="Q1/dQ0",
+        super(FeMesh_SRegion,self).__init__(elementRes=elementRes,
+                    minCoord=(radialLengths[0],-long_half,-lat_half),
+                    maxCoord=(radialLengths[1],long_half,lat_half), periodic=None, **kwargs)
+
+        self.specialSets["innerWall_VertexSet"] = _specialSets_Cartesian.MinI_VertexSet
+        self.specialSets["outerWall_VertexSet"] = _specialSets_Cartesian.MaxI_VertexSet
+        self.specialSets["northWall_VertexSet"] = _specialSets_Cartesian.MaxK_VertexSet
+        self.specialSets["southWall_VertexSet"] = _specialSets_Cartesian.MinK_VertexSet
+        self.specialSets["eastWall_VertexSet"]  = _specialSets_Cartesian.MaxJ_VertexSet
+        self.specialSets["westWall_VertexSet"]  = _specialSets_Cartesian.MinJ_VertexSet
+
+        self._centroid = centroid
+
+    def _setup(self):
+
+        with self.deform_mesh():
+            # perform Cubed-sphere projection on coordinates
+            # fac = np.pi/180.0
+            old = self.data
+            (x,y) = (np.tan(self.data[:,1]*np.pi/180.0), np.tan(self.data[:,2]*np.pi/180.0))
+            d = self.data[:,0] / np.sqrt( x**2 + y**2 + 1)
+            self.data[:,0] = self._centroid[0] + d*x
+            self.data[:,1] = self._centroid[1] + d*y
+            self.data[:,2] = self._centroid[2] + d
+
+        # add a boundary MeshVariable - 1 if nodes is on the boundary(ie 'AllWalls_VertexSet'), 0 if node is internal
+        self.bndMeshVariable = uw.mesh.MeshVariable(self, 1)
+        self.bndMeshVariable.data[:] = 0.
+        self.bndMeshVariable.data[self.specialSets["AllWalls_VertexSet"].data] = 1.0
+
+
+        # ASSUME the parent class builds the _boundaryNodeFn
+        # self.bndMeshVariable = uw.mesh.MeshVariable(self, 1)
+        # self.bndMeshVariable.data[:] = 0.
+        # # set a value 1.0 on provided vertices
+        # self.bndMeshVariable.data[self.specialSets["AllWalls_VertexSet"].data] = 1.0
+        # # note we use this condition to only capture border swarm particles
+        # # on the surface itself. for those directly adjacent, the deltaMeshVariable will evaluate
+        # # to non-zero (but less than 1.), so we need to remove those from the integration as well.
+        self._boundaryNodeFn = function.branching.conditional(
+                                        [  ( self.bndMeshVariable > 0.999, 1. ),
+                                        (                    True, 0. )   ] )
+
+        """
+        Rotation documentation.
+        We will create 3 basis vectors that will rotate the (x,y,z) problem to be a
+        (r,n,t) [radial, normal to cut, tangential to cut] problem.
+
+        The rotations are performed on the local element level using the existing machinery
+        provided by UW2. As such only elements on the domain boundary need rotation, all internal
+        elements can continue with the (x,y,z) representation.
+
+        This is implemented with rotations on all dofs such that:
+         1. If on the domain boundary - rotated to (r,n,t) and
+         2. If not on the domain boundary - rotated by identity matrix i.e. (NO rotation).
+        """
+
+        # initialiase bases vectors as meshVariables
+        self._e1 = self.add_variable(nodeDofCount=3)
+        self._e2 = self.add_variable(nodeDofCount=3)
+        self._e3 = self.add_variable(nodeDofCount=3)
+
+        # _x_or_radial, y_or_east, z_or_north functions
+        self._fn_x_or_radial = function.branching.conditional(
+                                    [ ( self.bndMeshVariable > 0.9, self.fn_unitvec_radial() ),
+                                      (               True, function.misc.constant(1.0)*(1.,0.,0.) ) ] )
+        self._fn_y_or_east   = function.branching.conditional(
+                                    [ ( self.bndMeshVariable > 0.9, self._getEWFn() ),
+                                      (               True, function.misc.constant(1.0)*(0.,1.,0.) ) ] )
+        self._fn_z_or_north  = function.branching.conditional(
+                                    [ ( self.bndMeshVariable > 0.9, self._getNSFn() ),
+                                      (               True, function.misc.constant(1.0)*(0.,0.,1.) ) ] )
+
+        # shorthand variables for the walls
+        inner = self.specialSets["innerWall_VertexSet"]
+        outer = self.specialSets["outerWall_VertexSet"]
+        W     = self.specialSets["westWall_VertexSet"]
+        E     = self.specialSets["eastWall_VertexSet"]
+        S     = self.specialSets["southWall_VertexSet"]
+        N     = self.specialSets["northWall_VertexSet"]
+
+        # evaluate the new bases
+        self._e1.data[:] = self._fn_x_or_radial.evaluate(self)
+        self._e2.data[:] = self._fn_y_or_east.evaluate(self) # only good on EW walls
+        self._e3.data[:] = self._fn_z_or_north.evaluate(self) # only good on NS walls
+
+        # build the correct e3 on EW, with e3 = e1 cross e2
+        walls = E+W
+        a = self._e1.data[walls.data]
+        b = self._e2.data[walls.data]
+        self._e3.data[walls.data] = np.cross(a,b)
+
+        # build the correct e2 on NS-EW
+        # note, at the side edges of the sixth a choice for the basis must be made
+        # as two non orthogonal side walls meet. We let the basis of the EW walls
+        # define the rotations required and don't correct them below.
+        walls = N+S - walls
+        a = self._e3.data[walls.data]
+        b = self._e1.data[walls.data]
+        self._e2.data[walls.data] = np.cross(a,b)
+
+    def fn_unitvec_radial(self):
+
+        pos = function.coord()
+        centre = self._centroid
+        r_vec = pos - centre
+        mag = function.math.sqrt(function.math.dot( r_vec, r_vec ))
+        r_vec = r_vec / mag
+        return r_vec
+
+    def _getEWFn(self):
+        pos = function.coord() - self._centroid
+        xi = function.math.atan(pos[0]/pos[2])
+        # vec = [ cos(xi), 0.0, -sin(xi) ]
+        vec =       function.math.cos(xi) * (1.,0.,0.)
+        vec = vec + function.math.sin(xi) * (0.,0.,-1.)
+        return vec
+
+    def _getNSFn(self):
+        pos = function.coord() - self._centroid
+        xi = function.math.atan(pos[1]/pos[2])
+        # vec = [ 0.0, cos(xi), -sin(xi) ]
+        vec =       function.math.cos(xi) * (0.,1.,0.)
+        vec = vec + function.math.sin(xi) * (0.,0.,-1.)
+        return vec
 
 
