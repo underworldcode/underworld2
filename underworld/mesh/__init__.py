@@ -12,5 +12,5 @@
 
 """
 
-from ._mesh import FeMesh, FeMesh_Cartesian, FeMesh_IndexSet, _FeMesh_Regional, FeMesh_Annulus, FeMesh_SRegion
+from ._mesh import FeMesh, FeMesh_Cartesian, FeMesh_IndexSet, FeMesh_Annulus, FeMesh_SRegion
 from ._meshvariable import MeshVariable
