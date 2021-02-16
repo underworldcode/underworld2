@@ -184,7 +184,14 @@ ignore = uw.libUnderworld.Underworld.AXequalsX( stokesSLE._rot._cself, stokesSLE
 vdotv = fn.math.dot(vField,vField)
 vrms = np.sqrt( mesh.integrate(vdotv)[0] / mesh.integrate(1.)[0] )
 if uw.mpi.rank == 0:
-    print("The vrms = {:.5e}\n".format(vrms))
+    rtol = 1e-3
+    expected = 6.89257e-02
+    error = np.abs(vrms - expected)
+    rerr = error / expected
+    print("Model vrms / Expected vrms: {:.5e} / {:.5e}".format(vrms,expected))
+    if rerr > rtol:
+        es = "Model vrms greater the test tolerance. {:.4e} > {:.4e}".format(error, rtol)
+        raise RuntimeError(es)
 
 # %%
 figV = vis.Figure()
@@ -193,7 +200,7 @@ figV.append(vis.objects.Surface(mesh, vdotv, onMesh=True))
 # figV.append(vis.objects.VectorArrows(mesh, vField, autoscale=True, onMesh=True))
 # figV.append(vis.objects.VectorArrows(mesh, vField, onMesh=True))
 
-figV.window()
+if uw.mpi.size == 1: figV.window()
 
 # %%
 # xdmf output

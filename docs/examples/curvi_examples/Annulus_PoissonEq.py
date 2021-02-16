@@ -50,21 +50,6 @@ fn_r = annulus.fn_radial
 fn_analytic = fn.math.log( fn_r/rb ) * fac  + tb
 
 # %%
-from underworld.mesh import _specialSets_Cartesian
-
-# %%
-xx = _specialSets_Cartesian.MaxI_VertexSet
-
-# %%
-xx
-
-# %%
-xx(annulus)
-
-# %%
-annulus.specialSets["surfaces_e1_normal_VertexSet"]
-
-# %%
 fig = vis.Figure()
 fig.append(vis.objects.Mesh(annulus))
 fig.append(vis.objects.Surface(annulus, tField, onMesh=True))
@@ -86,13 +71,18 @@ ssSolver.solve()
 
 # %%
 # error measurement - l2 norm
-fn_e = fn.math.pow(fn_analytic - tField, 2.)
+fn_l2 = fn.math.pow((fn_analytic - tField), 2.)
+fn_sol = fn.math.pow(fn_analytic, 2.)
 
-error = annulus.integrate(fn_e)[0]
-tolerance = 3.6e-4
-if error > tolerance:
-    es = "Model error greater the test tolerance. {:.4e} > {:.4e}".format(error, tolerance)
-    raise RuntimeError(es)
+norms = np.sqrt(annulus.integrate((fn_l2,fn_sol)))
+rerr = norms[0]/norms[1] * 100
+tolerance = 1e-1
+if uw.mpi.rank == 0:
+    print("Relative error norm: {:.3}%".format(rerr))
+    if rerr > tolerance:
+        es = "Model error greater the test tolerance. {:.4e} > {:.4e}".format(error, tolerance)
+        raise RuntimeError(es)
+
 
 # %%
 fig.show()

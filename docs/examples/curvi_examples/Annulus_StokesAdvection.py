@@ -79,7 +79,10 @@ layout   = uw.swarm.layouts.PerCellSpaceFillerLayout(swarm, particlesPerCell=10)
 swarm.populate_using_layout(layout)
 # get initial theta coordinates and save into tvar
 x,y = np.split(swarm.particleCoordinates.data, indices_or_sections=2,axis=1)
-tvar.data[:] = 180 / np.pi * np.arctan2(y,x)
+if uw.mpi.size == 1:
+    tvar.data[:] = 180 / np.pi * np.arctan2(y,x)
+else:
+    tvar.data[:] = uw.mpi.rank
 
 # add an advector
 advector = uw.systems.SwarmAdvector(velocityField=velocityField, swarm=swarm)
