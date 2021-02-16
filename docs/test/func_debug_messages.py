@@ -27,7 +27,7 @@ if __name__ == '__main__':
                                 "Expected:\n{}\n\n"
                                 "Encountered:\n{}\n\n".format(test,strmessage,strenderr))
         def do_test_jupyter(test,expected_message):
-            command = "jupyter nbconvert --execute {}".format(test)
+            command = "jupyter nbconvert --to python --execute {}".format(test)
             result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
             strmessage = expected_message.decode("utf-8")
             strenderr = result.stderr.decode("utf-8")[-len(strmessage)::]

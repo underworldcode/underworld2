@@ -20,7 +20,7 @@ randomNumber = swarm.add_variable('int',1)
 swarm.populate_using_layout(uw.swarm.layouts.PerCellSpaceFillerLayout(swarm,20))
 
 # init variables
-origOwningEl.data[:] = mesh.data_elgId[swarm.owningCell.data[:,0]] # global elementId where created
+origOwningEl.data[:] = mesh.data_elgId[swarm.owningCell.data[:]] # global elementId where created
 origCreatingProc.data[:] = uw.mpi.rank                               # rank where created
 origParticleIndex.data[:,0] = range(swarm.particleLocalCount)      # local index where created
 from random import randint
