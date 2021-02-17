@@ -10,6 +10,9 @@ Changes
 
 New:
 
+* Mesh/MeshVariable/Swarm/SwarmVariable objects now support loading and saving
+  of units information, as well as additional attributes. For usage examples, 
+  see `docs/test/mesh_aux.py` and `docs/test/swarm_aux.py`. 
 * Added `underworld.function.count()` method, which counts function calls.
 * Conda binaries available via underworldcode conda channel `conda install -c underworldcode underworld2`
 * Added `underworld.function.count()` method, which counts function calls. 
