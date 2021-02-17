@@ -15,6 +15,11 @@ any case as it doesn't make sense.
 '''
 import underworld as uw
 import numpy as np
+import h5py
+from underworld.scaling import get_coefficients
+from underworld.scaling import units as u
+from underworld.scaling import non_dimensionalise
+from underworld.scaling import dimensionalise
 
 def meshtest(res, partitioned):
     mesh = uw.mesh.FeMesh_Cartesian(elementRes=(res,res),partitioned=partitioned)
@@ -29,7 +34,18 @@ def meshtest(res, partitioned):
         mesh.data[:] *= 2.
 
     cpy = mesh.data.copy()
-    mesh.save('temp.h5')
+    mesh.save('temp.h5', units=u.m, attr1_name="attr1_val", attr2_name="attr2_val")
+
+    # Check that swarm attributes are properly saved to the h5 file.
+    attrs_list = ["units", "attr1_name", "attr2_name"]
+    attrs_vals = ["meter", "attr1_val", "attr2_val"]
+    with h5py.File("temp.h5") as f:
+        for ix, attr in enumerate(attrs_list):
+            if attr not in f.attrs:
+                raise RuntimeError("Attribute {} does not appear to have been saved to {}".format(attr, outFile))
+            if f.attrs[attr] != attrs_vals[ix]:
+                raise RuntimeError('Expecting value {} for attribute {} in {}, got {} instead'.format(attrs_vals[ix], attr, outFile, f.attrs[attr]))
+
     mesh.reset()
     if np.allclose(mesh.data, cpy):
         raise RuntimeError("These arrays should be different.")
