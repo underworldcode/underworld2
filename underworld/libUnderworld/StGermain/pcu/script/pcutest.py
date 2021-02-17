@@ -1,11 +1,6 @@
 from SCons.Script import *
 #from SCons.Builder import Builder
 
-class ToolPCUTestWarning(SCons.Warnings.Warning):
-    pass
-
-SCons.Warnings.enableWarningClass(ToolPCUTestWarning)
-
 def multiget(dicts, key, default=None):
     for d in dicts:
         if d.has_key(key):

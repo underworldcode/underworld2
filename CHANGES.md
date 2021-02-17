@@ -16,6 +16,7 @@ New:
 * Added GADI install/run scripts @ ./docs/install_guides/nci_gadi/
 
 Fixes:
+* Updates for SCons4.1.
 * Fix bug where multiple solvers added multiple preconditioners. 
 
 Release 2.10.1 [2020-08-28]
