@@ -7,9 +7,9 @@ Changes
 * Enabled user defined Gauss integration swarms for all systems. 
 * Update docker base images: switch to ubuntu(20.04), update petsc(3.1.4) & mpich(3.3.2), other tweaks. 
 * Cleaner Python compile time configuration. 
+* Documentation updates.
 
 New:
-
 * Mesh/MeshVariable/Swarm/SwarmVariable objects now support loading and saving
   of units information, as well as additional attributes. For usage examples, 
   see `docs/test/mesh_aux.py` and `docs/test/swarm_aux.py`. 
