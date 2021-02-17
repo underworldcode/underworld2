@@ -184,7 +184,7 @@ def dimensionalise(value, units):
        isinstance(value, uw.swarm._swarmvariable.SwarmVariable)):
 
         tempVar = value.copy()
-        tempVar.data[...] = (value.data[...] * factor).to(units)
+        tempVar.data[...] = (value.data[...] * factor).to(units).magnitude
         return tempVar
     else:
         return (value * factor).to(units)
