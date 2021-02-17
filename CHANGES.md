@@ -16,6 +16,7 @@ New:
 * Added GADI install/run scripts @ ./docs/install_guides/nci_gadi/
 
 Fixes:
+* Updates for SCons4.1.
 * Fix bug where multiple solvers added multiple preconditioners. 
 * H5py v3 is more strict in allowed indexing array shapes. Updated our 
   structures to accomodate. 
