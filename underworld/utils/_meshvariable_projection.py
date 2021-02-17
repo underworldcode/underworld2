@@ -159,7 +159,7 @@ class MeshVariable_Projection(_stgermain.StgCompoundComponent):
     >>> swarm.populate_using_layout(uw.swarm.layouts.PerCellSpaceFillerLayout(swarm,4))
     >>> projector = uw.utils.MeshVariable_Projection( U_submesh, swarm.owningCell, type=1 )
     >>> projector.solve()
-    >>> np.allclose(U_submesh.data, mesh.data_elgId)
+    >>> np.allclose(U_submesh.data[:,0], mesh.data_elgId)
     True
 
 

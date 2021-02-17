@@ -17,6 +17,10 @@ New:
 
 Fixes:
 * Fix bug where multiple solvers added multiple preconditioners. 
+* H5py v3 is more strict in allowed indexing array shapes. Updated our 
+  structures to accomodate. 
+* Tester uses `jupyter-nbconvert` which no longer defaults to Python. Update
+  to explicitly select Python.
 
 Release 2.10.1 [2020-08-28]
 ---------------------------
