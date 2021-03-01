@@ -54,12 +54,15 @@ void MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_SetFn( void* _self, Fn::Function* 
     cppdata->func = fn->getFunction(cppdata->input.get());
 
     // check output conforms
-    const IO_double* iodub = dynamic_cast<const IO_double*>(cppdata->func(cppdata->input.get()));
-    if( !iodub )
-        throw std::invalid_argument("MatrixAssemblyTerm routine expects functions to return 'double' type values.");
-    if( iodub->size() != 1 )
-        throw std::invalid_argument("MatrixAssemblyTerm matrix routine expects functions to scalar values.");
-
+    const IO_double* io = dynamic_cast<const IO_double*>(cppdata->func(cppdata->input.get()));
+    if( !io )
+        throw std::invalid_argument("MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni routine expects functions to return 'double' type values.");
+    if( io->size() != self->stiffnessMatrix->rowVariable->fieldComponentCount ) {
+        std::stringstream ss;
+        ss << "MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni term expects function to return array of size " << self->stiffnessMatrix->rowVariable->fieldComponentCount << ".\n";
+        ss << "Provided function returns array of size " << io->size() << ".";
+        throw std::invalid_argument( ss.str() );
+    }
 }
 
 void _MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_Delete( void* matrixTerm ) {
@@ -135,16 +138,15 @@ void _MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_AssembleElement(
    MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni* self = (MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni*)matrixTerm;
    Swarm*                              swarm        = self->integrationSwarm;
    FeVariable*                         variable     = stiffnessMatrix->rowVariable;
-   Dimension_Index                     dim          = stiffnessMatrix->dim;
    Particle_InCellIndex                cParticle_I, cellParticleCount;
-   Node_ElementLocalIndex              nodesPerEl;
+   int                                 dim = stiffnessMatrix->dim;
 
    IntegrationPoint*                   intPoint;
    ElementType*                        elementType;
    const double                        *fn_vector;
    double                              *xi, *Ni; 
    double                              detJac, weight, localNormal[3], factor;
-   int                                 cell_I, dofPerNode, row, col, rowNode_I, colNode_I, g_I, n_I;
+   int                                 nodesPerEl, cell_I, dofPerNode, row, col, rowNode_I, colNode_I, g_I, n_I;
 
    MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_cppdata* cppdata = (MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_cppdata*)self->cppdata;
    debug_dynamic_cast<ParticleInCellCoordinate*>(cppdata->input->localCoord())->index() = lElement_I;  // set the elementId as the owning cell for the particleCoord
