@@ -106,7 +106,7 @@ class Stokes(_stgermain.StgCompoundComponent):
     def __init__(self, velocityField, pressureField, fn_viscosity, fn_bodyforce=None, fn_one_on_lambda=None,
                 fn_source=None, voronoi_swarm=None, conditions=[], gauss_swarm=None,
                 _removeBCs=True, _fn_viscosity2=None, _fn_director=None, fn_stresshistory=None, _fn_stresshistory=None,
-                _fn_v0=None, _fn_p0=None, _callback_post_solve=None, **kwargs):
+                _fn_v0=None, _fn_p0=None, _fn_fssa=None, _callback_post_solve=None, **kwargs):
 
         if _fn_stresshistory:
             raise TypeError( "The parameter '_fn_stresshistory' has been updated to 'fn_stresshistory'." )
@@ -170,6 +170,12 @@ class Stokes(_stgermain.StgCompoundComponent):
             if not isinstance(_fn_v0, uw.function.misc.constant):
                 raise ValueError("Provided '_fn_v0' must be of type 'uw.function.misc.constant'")
         self._fn_v0 = _fn_v0
+
+        if _fn_fssa is not None:
+            _fn_fssa = uw.function.Function.convert(_fn_fssa)
+            if not isinstance( _fn_fssa, uw.function.Function):
+                raise TypeError( "Provided '_fn_fssa' must be of or convertible to 'Function' class." )
+
 
 
         if voronoi_swarm and not isinstance(voronoi_swarm, uw.swarm.Swarm):
@@ -266,6 +272,14 @@ class Stokes(_stgermain.StgCompoundComponent):
         self._forceVecTerm   = sle.VectorAssemblyTerm_NA__Fn(   integrationSwarm=intswarm,
                                                                 assembledObject=self._fvector,
                                                                 fn=_fn_bodyforce)
+
+        if _fn_fssa:
+            bgs = uw.swarm.GaussBorderIntegrationSwarm(mesh, particleCount=2) #TODO make a variable particleCount
+            self._fssa_term = uw.systems.sle.MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni( 
+                                            integrationSwarm = bgs, 
+                                            assembledObject  = self._kmatrix,
+                                            fn               = _fn_fssa,
+                                            mesh             = mesh )
 
         if fn_source != None:
             self._cforceVecTerm   = sle.VectorAssemblyTerm_NA__Fn(  integrationSwarm=intswarm,
