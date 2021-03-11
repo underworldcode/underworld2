@@ -31,7 +31,8 @@ ITOL=1e-6
 OTOL=1e-4
 
 # elementRes=(10,18,18)
-elementRes = (10,12,12)
+elementRes=(16,32,32)
+#elementRes = (10,12,12)
 mesh = uw.mesh.FeMesh_SRegion(elementRes=elementRes, 
                               radialLengths=(3.0,6.))
 
@@ -130,6 +131,7 @@ bodyForceFn = dField * z_hat
 # xdmf output
 fieldDict = {'velocity':vField,
              'density':dField,
+             'pressure':pField,
              'rank':rField}
 checkpoint(mesh, fieldDict, None, None, index=0, prefix='output')
 
@@ -180,10 +182,10 @@ stokesSLE = uw.systems.Stokes( vField, pField,
 
 # %%
 solver = uw.systems.Solver(stokesSLE)
-# monitor src iteration tolerance
 solver.options.scr.ksp_monitor=''
 solver.set_inner_rtol(ITOL)
 solver.set_outer_rtol(OTOL)
+#solver.options.src.(1e-8)
 # if uw.mpi.size == 1:
 #     solver.set_inner_method("mumps")
 
