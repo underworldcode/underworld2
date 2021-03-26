@@ -25,13 +25,17 @@ from underworld import function as fn
 # %%
 # boundary conditions available "BC_FREESLIP, "BC_NOSLIP, "BC_LIDDRIVEN"
 bc_wanted = 'BC_FREESLIP'
+output_path = 'pic_output'
+
+maxsteps = 5
+elementRes=(12,20,20)
+#elementRes = (16,24,24)
+
+# inner / outer stokes solve tolerances
+ITOL=1e-4
+OTOL=1e-3
 
 # %%
-ITOL=1e-6
-OTOL=1e-4
-
-# elementRes=(10,18,18)
-elementRes = (8,20,20)
 mesh = uw.mesh.FeMesh_SRegion(elementRes=elementRes, 
                               radialLengths=(3.0,6.))
 
@@ -57,7 +61,7 @@ E     = mesh.specialSets["eastWall_VertexSet"]
 S     = mesh.specialSets["southWall_VertexSet"]
 N     = mesh.specialSets["northWall_VertexSet"]
 
-allWalls = mesh.specialSets["AllWalls_VertexSet"]
+all_boundary_set = mesh.specialSets["AllWalls_VertexSet"]
 NS0 = N+S-(E+W)
 # build corner edges node indexset
 cEdge = (N&W)+(N&E)+(S&E)+(S&W)
@@ -134,18 +138,16 @@ def checkpoint( mesh, fieldDict, swarm, swarmDict, index,
 rField.data[:] = uw.mpi.rank
 rvar.data[:] = uw.mpi.rank
 
+# z_hat, the gravity unit vector
 z_hat  = -1.0*mesh.fn_unitvec_radial()
 
+# dvar is the density anomaly
 inds = (swarm.data[:,0]**2 + swarm.data[:,1]**2 + (swarm.data[:,2]-4.5)**2) < 0.75**2
 if inds.size != 0:
     dvar.data[inds] = 1.
-# inds = (mesh.data[:,0]**2 + mesh.data[:,1]**2 + (mesh.data[:,2]-4.5)**2) < 1.5**2
-# dField.data[inds] = 1.
 
 bodyForceFn = dvar * z_hat
 
-fvar     = swarm.add_variable(dataType="double", count=3)
-fvar.data[:] = bodyForceFn.evaluate(swarm)
 
 # %%
 # xdmf output
@@ -154,10 +156,7 @@ fieldDict = {'velocity':vField,
              'rank':rField}
 
 swarmDict = {'orank':rvar,
-             'density':dvar,
-             'force':fvar}
-
-# checkpoint(mesh, fieldDict, swarm, swarmDict, index=0, prefix='output')
+             'density':dvar}
 
 # %%
 fig = vis.Figure()
@@ -171,7 +170,7 @@ vField.data[...] = 0.
 
 if bc_wanted == "BC_NOSLIP":
     # no slip
-    vBC = uw.conditions.CurvilinearDirichletCondition( variable=vField, indexSetsPerDof=(allWalls,allWalls,allWalls))
+    vBC = uw.conditions.CurvilinearDirichletCondition( variable=vField, indexSetsPerDof=(all_boundary_set,all_boundary_set,all_boundary_set))
 
 elif bc_wanted == "BC_FREESLIP":
     # free-slip
@@ -209,8 +208,6 @@ solver = uw.systems.Solver(stokesSLE)
 solver.options.scr.ksp_monitor=''
 solver.set_inner_rtol(ITOL)
 solver.set_outer_rtol(OTOL)
-if uw.mpi.size == 1:
-    solver.set_inner_method("mumps")
 
 # %%
 solver.solve()
@@ -218,42 +215,42 @@ solver.solve()
 ignore = uw.libUnderworld.Underworld.AXequalsX( stokesSLE._rot._cself, stokesSLE._velocitySol._cself, False)
 
 # %%
-maxsteps=1
-time = 0
 # xdmf output
-checkpoint(mesh, fieldDict, swarm, swarmDict, index=0, prefix='output', time=0)
-
+checkpoint(mesh, fieldDict, swarm, swarmDict, index=0, prefix=output_path, time=0)
 # %%
-for step in range(maxsteps):
+step = 1
+time = 0
+while step < maxsteps:
     # advect particles
     dt = advector.get_max_dt()
     time = time + dt
     advector.integrate(dt)
+    vField.data[all_boundary_set] = (0.,0.,0.)
     solver.solve()
     # must re-orient boundary vectors
     ignore = uw.libUnderworld.Underworld.AXequalsX( stokesSLE._rot._cself, stokesSLE._velocitySol._cself, False)
-    checkpoint(mesh, fieldDict, swarm, swarmDict, index=step, time=time, prefix='output')
+    checkpoint(mesh, fieldDict, swarm, swarmDict, index=step, time=time, prefix=output_path)
+
+    step += 1
 
 # %%
 vdotv = fn.math.dot(vField,vField)
 vrms = np.sqrt( mesh.integrate(vdotv)[0] / mesh.integrate(1.)[0] )
-if uw.mpi.rank == 0:
+if uw.mpi.rank == 0 and step == 5:
     rtol = 1e-3
-    expected = 6.89257e-02
+    expected = 1.67223e-2
     error = np.abs(vrms - expected)
     rerr = error / expected
     print("Model vrms / Expected vrms: {:.5e} / {:.5e}".format(vrms,expected))
-#     if rerr > rtol:
-#         es = "Model vrms greater the test tolerance. {:.4e} > {:.4e}".format(error, rtol)
-#         raise RuntimeError(es)
+    if rerr > rtol:
+        es = "Model vrms greater the test tolerance. {:.4e} > {:.4e}".format(rerr, rtol)
+        raise RuntimeError(es)
 
 # %%
-figV = vis.Figure()
-figV.append(vis.objects.Mesh(mesh, segmentsPerEdge=1))
-figV.append(vis.objects.Surface(mesh, vdotv, onMesh=True))
-# figV.append(vis.objects.VectorArrows(mesh, vField, autoscale=True, onMesh=True))
-# figV.append(vis.objects.VectorArrows(mesh, vField, onMesh=True))
+# figV = vis.Figure()
+# figV.append(vis.objects.Mesh(mesh, segmentsPerEdge=1))
+# figV.append(vis.objects.Surface(mesh, vdotv, onMesh=True))
+# # figV.append(vis.objects.VectorArrows(mesh, vField, autoscale=True, onMesh=True))
+# # figV.append(vis.objects.VectorArrows(mesh, vField, onMesh=True))
 
-if uw.mpi.size == 1: figV.window()
-
-# %%
+# if uw.mpi.size == 1: figV.window()

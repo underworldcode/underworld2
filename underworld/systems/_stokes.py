@@ -309,8 +309,8 @@ class Stokes(_stgermain.StgCompoundComponent):
     def redefineVelocityDirichletBC(self, basis_vectors):
         '''
         Function to hide the implementation of rotating dirichlet boundary conditions.
-        Here we build a global rotation matrix and a local assembly term for it for 2 reasons.
-        1) The assembly term rotates local element contributions immediately after their local evaluation
+        Here we build a global rotation matrix (and required assembly term) for 2 reasons.
+        1) The assembly term rotates element contributions immediately after their element evaluation
            for the stokes system. This supports the Engelman & Sani idea in,
            THE IMPLEMENTATION OF NORMAL AND/OR TANGENTIAL BOUNDARY CONDITIONS IN FINITE
            ELEMENT CODES FOR INCOMPRESSIBLE FLUID FLOW, 1982
@@ -348,7 +348,7 @@ class Stokes(_stgermain.StgCompoundComponent):
         gaussSwarm = self._constitMatTerm._integrationSwarm
         self._rot._cself.assembleOnNodes = 1 # important doesn't perform FEM integral
         
-        term = self._term = uw.systems.sle.MatrixAssemblyTerm_RotationDof(integrationSwarm=gaussSwarm,
+        rterm = self._term = uw.systems.sle.MatrixAssemblyTerm_RotationDof(integrationSwarm=gaussSwarm,
                                                              assembledObject = self._rot,
                                                              fn_basis=basis_vectors,
                                                              mesh=mesh)
@@ -357,14 +357,14 @@ class Stokes(_stgermain.StgCompoundComponent):
         vnsEqNum._cself.removeBCs = True
         uw.libUnderworld.StgFEM.StiffnessMatrix_Assemble(
             self._rot._cself,
-            None, None );
+            None, None )
         vnsEqNum._cself.removeBCs = False
         # self._eqNums[self._velocityField]._cself.removeBCs=False
 
         # add rotation matrix element terms using the following
-        uw.libUnderworld.StgFEM.StiffnessMatrix_SetRotationTerm(self._kmatrix._cself, term._cself)
-        uw.libUnderworld.StgFEM.StiffnessMatrix_SetRotationTerm(self._gmatrix._cself, term._cself)
-        uw.libUnderworld.StgFEM.ForceVector_SetRotationTerm(self._fvector._cself, term._cself)
+        uw.libUnderworld.StgFEM.StiffnessMatrix_SetRotationTerm(self._kmatrix._cself, rterm._cself)
+        uw.libUnderworld.StgFEM.StiffnessMatrix_SetRotationTerm(self._gmatrix._cself, rterm._cself)
+        uw.libUnderworld.StgFEM.ForceVector_SetRotationTerm(self._fvector._cself, rterm._cself)
 
 
     def _add_to_stg_dict(self,componentDictionary):

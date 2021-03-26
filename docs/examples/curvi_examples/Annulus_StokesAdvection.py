@@ -23,20 +23,14 @@ import underworld.visualisation as vis
 import math, os
 import numpy as np
 from mpi4py import MPI
+comm = MPI.COMM_WORLD
 
 # %%
-# Set simulation box size.
-boxHeight = 1.0
-boxLength = 2.0
-# Set the resolution.
-res = 2
-# Set min/max temperatures.
-tempMin = 0.0
-tempMax = 1.0
-
-comm = MPI.COMM_WORLD
 outputDir = 'outputWithSwarm/'
-        
+nEls = (10,60)          # radial / tangential
+radialLengths = (4.,6.) # inner / outer radius lengths
+
+# %%
 if uw.mpi.rank == 0:
     step = 1
     while os.path.exists(outputDir):
@@ -49,7 +43,7 @@ if uw.mpi.rank == 0:
 store = vis.Store(outputDir+'/viz')
 
 # build annulus mesh - handles deforming a recangular mesh and applying periodic dofs
-mesh                = uw.mesh.FeMesh_Annulus(elementRes=(10,60), radialLengths=(4.,6.))
+mesh                = uw.mesh.FeMesh_Annulus(elementRes=nEls, radialLengths=radialLengths)
 velocityField       = mesh.add_variable( nodeDofCount=2 )
 pressureField       = mesh.subMesh.add_variable( nodeDofCount=1 )
 vmag                = fn.math.sqrt(fn.math.dot( velocityField, velocityField ))
@@ -65,9 +59,10 @@ lower = mesh.specialSets["MinI_VertexSet"]
 upper = mesh.specialSets["MaxI_VertexSet"]
 
 # (vx,vy) -> (vn,vt) (normal, tangential)
-velocityField.data[ upper.data ] = [0.0,10.0]
+velocityField.data[ lower ] = [0.0, 0.0]
+velocityField.data[ upper ] = [0.0,10.0]
 velBC = uw.conditions.CurvilinearDirichletCondition( variable    = velocityField,
-                                                indexSetsPerDof  = (lower+upper, upper),
+                                                indexSetsPerDof  = (lower+upper, upper+lower), 
                                                 basis_vectors    = (mesh.bnd_vec_normal, mesh.bnd_vec_tangent))
 
 
@@ -91,7 +86,7 @@ advector = uw.systems.SwarmAdvector(velocityField=velocityField, swarm=swarm)
 fig = vis.Figure(store=store)
 fig.append( vis.objects.Mesh( mesh ))
 fig.append(vis.objects.Points(swarm, fn_colour=tvar, fn_size=4, colours="blue red"))
-# fig.append( vis.objects.VectorArrows(mesh, velocityField))
+fig.append( vis.objects.VectorArrows(mesh, velocityField))
 fig.show()
 
 # %%
@@ -110,14 +105,23 @@ solver.solve() # results in velocity solution being mixed
 ierr = uw.libUnderworld.Underworld.AXequalsX( stokesSLE._rot._cself, stokesSLE._velocitySol._cself, False)
 
 # %%
+# pressure
+figp = vis.Figure()
+figp.append(vis.objects.Mesh(mesh))
+figp.append(vis.objects.Surface(mesh, pressureField, onMesh=True))
+figp.show()
+
+# %%
 fig.show()
 
 # %%
 i=0
+maxSteps = 30
 t0 = MPI.Wtime()
 t_adv = 0.;
 t_save = 0.;
-while i < 30:
+while i < maxSteps:
+      
     t_adv = MPI.Wtime()
     # advect particles and count
     advector.integrate(advector.get_max_dt())
