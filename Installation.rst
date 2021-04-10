@@ -55,7 +55,14 @@ Once you have satisfied the requirements below, you will need to obtain Underwor
 .. code:: bash
 
    git clone https://github.com/underworldcode/underworld2.git
+   cd underworld2
+   git checkout development
 
+Or just pull the development branch:
+
+.. code:: bash
+
+   git clone --single-branch --branch development https://github.com/underworldcode/underworld2.git
 You can then perform configuration & compilation as follows:
 
 .. code:: bash
