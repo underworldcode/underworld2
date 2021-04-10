@@ -1,6 +1,205 @@
 CHANGES: Underworld2
 =======================
 
+Release 2.10.1 [2020-08-28]
+----------------
+Changes:
+* Updating Dockerfile to include UWGeodynamics new docs structure.
+
+Release 2.10.0 [2020-08-07]
+----------------
+Fixes:
+* SWIG4 compatibility changes.
+* libxml2 ubuntu20.04 changes.
+* Numpy 1.19 compatability changes.
+* Fix `LGPLv3.txt` contents. File incorrect contained
+  GPLv3 text. 
+
+Changes:
+* Check for compressibility/penalty clash. 
+* Update example models for parallel usage. 
+
+New:
+* Add Dockerfile for Deepnote.
+* Add `test_long.sh` long test runner.
+
+Release 2.9.5 [2020-07-27]
+---------------------------
+Changes:
+* Fix `LGPLv3.txt` contents. File incorrect contained
+  GPLv3 text.
+  
+Release 2.9.4 [2020-03-26]
+---------------------------
+Changes:
+* Updating Dockerfile to include UWGeodynamics-2.9.4.
+
+Release 2.9.3 [2020-03-09]
+---------------------------
+Changes:
+* Update citation information in README.md.
+
+
+Release 2.9.2 [2020-02-26]
+---------------------------
+Changes:
+* Update Zenodo title. 
+
+Release 2.9.1 [2020-02-18]
+---------------------------
+Enhancements:
+* Update base docker image & implement permission fixes.
+* Other docker tweaks and corrections.
+* Fixes for image tests
+
+Release 2.9.0 [2020-01-20]
+---------------------------
+New:
+* Experimental `pip install` functionality.
+* Installation instructions for NCI Gadi.
+* Singularity usage instruction Pawsey Magnus.
+* `UW_VIS_PORT` environment variable flag added to set vis port.
+
+Docker:
+* Images now use Python 3.7 (previously Python 3.5).
+* Multi-stage builds used improved image creation.
+* Images minimised with unnecessary items removed. 
+* XVFB no longer required for image generation within
+  container.
+ 
+API changes:
+* `glucifer` module moved inside `underworld` and 
+   renamed `visualisation`.
+   Access as `import underworld.visualisation`
+* `GLUCIFER_USE_XVFB` -> `UW_USE_XVFB`.
+* --prefix=/SOME/DIR now installs to /SOME/DIR/underworld
+* `test_basic.py` no longer sets PYTHONPATH
+* `underworld.matplotlib_inline()` -> `underworld.utils.matplotlib_inline()`.
+
+Enhancements:
+* By default, UW was creating significant filesystem chatter in
+  generating debug messages for functions. This has been 
+  significantly reduced through judicious usage of Python
+  inspection tool. Also, as default, only root proc now generates
+  messages. Users can set the UW_WORLD_FUNC_MESSAGES (`export UW_WORLD_FUNC_MESSAGES=1`)
+  environment variable to have all procs report, or can set UW_NO_FUNC_MESSAGES
+  (`export UW_NO_FUNC_MESSAGES=1`) to disable these messages altogether
+  for minimal filesystem noise. 
+* Complete `long` type SwarmVariable implementation. Specifically, `evaluate()` 
+  methods now work for this data type. 
+
+Deprecations:
+* Raijin install instructions removed. 
+
+
+Release 2.8.3b [2019-10-29]
+---------------------------
+Docker:
+* Revert to a compatible version of lavavu (v1.4.3).
+* Revert to a stable version of UWGeodynamics.
+
+Documentation:
+* Update `README.md` to with new Jenkins url. 
+
+Release 2.8.2b [2019-10-28]
+---------------------------
+Docker:
+* Enable token authentication for Jupyter. 
+
+Documentation:
+* Update `README.md` to inform users of Jupter Authentication requirements. 
+* Update "Getting Started" page with info on how to use Authentication. 
+* Minor tweaks to documentation generator to handle static images.
+
+Release 2.8.1b [2019-09-02]
+---------------------------
+Documentation:
+* Fix broken live documentation generator.
+* Fix broken and incomplete docstrings.
+* Update advection-diffusion test, see `./docs/test/2DCosineHillAdvection.ipynb`. 
+* Update README.md to mention pip. 
+
+Release 2.8.0b [2019-07-18]
+---------------------------
+New:
+* MOVE TO PYTHON3. PYTHON2 NO LONGER SUPPORTED.
+* New Examples & tests.
+* New Semi-Lagrangian Crank Nicolson advection diffusion scheme.
+* Collective H5 read/write for faster parallel IO operations. 
+* Arbitrary coordinate `evaluate()` for swarm data using nearest 
+  neighbouring (kdtree) algorithm. See function section of user guide.
+* XDMF for subMesh element types.
+* Async test runner. 
+
+Enhancements:
+* Move all mpi functionality into `uw.mpi` submodule. 
+* Non-parallel h5py is now sufficient for UW, although 
+  parallel h5py is recommended for larger parallel simulations.
+* Integral returns numpy array results (as opposed to Py natives).
+* `GlobalSpaceFillerLayout` deprecated.
+* Other tweaks & bug fixes.
+
+Documentation:
+* Many class docstrings updates.
+* Function user guide section updated. 
+* Improved error messaging in parallel.
+* Stampede2 build & usage instructions. 
+* Update for NCI/Raijin build instructions.
+
+Release 2.7.1b [2019-02-19]
+---------------------------
+Documentation:
+* Dockerfile for TACC/Stampede2
+* New build instructions for NCI/Raijin.
+* Add dev Binder to README.md
+
+Release 2.7.0b [2019-02-06]
+---------------------------
+
+New functionality: 
+* Timing module for high level profiling.
+* Scaling module for numerical value scaling.
+* Index set objects can now directly index numpy arrays.
+* `show_grid()` image rendering.
+
+Changes:
+* glucifer Surface defaults to use onMesh=True.
+* added `data` handle to swarm as shortcut to particle coordinates data.
+* Adding aliases for mesh vertex sets (left,right,etc)
+* Removed `unsupported` subrepo.
+* Docker images switch to MPICH for Shifter compatibility at magnus.
+
+Documentation:
+* Examples reorganised.
+* All examples now include quantitative tests.
+* Moved many examples to models library repo.
+    https://github.com/underworldcode/model_library
+* Added new example, 08_Uplift_TractionBCs.ipynb.
+* Moved benchmarks and tutorials to models library repo.
+* Relocated defunct models:
+    https://github.com/underworldcode/model_graveyard
+* Big overhaul of user guide.
+* User guide rendered to html for Readthedocs page.
+* Updates for docstrings and doctests.
+* Improved error messaging.
+
+Fixes:
+* Fix incorrect particle outside domain issue #335
+* Other stability improvements.
+
+Release 2.6.1b [2018-10-31]
+---------------------------
+* Remove `warning` module visibility from top level underworld 
+  module.
+
+Release 2.6.0b [2018-09-27]
+---------------------------
+Enhancements:
+* Removed submodules in favour of direct access.
+* Petsc-3.9.x compatible.
+* Support for nested SafeMaths operations.
+* Improved function error messaging.
+
 Release 2.5.1b [2018-04-13]
 ---------------------------
 Documentation:

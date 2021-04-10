@@ -1,29 +1,10 @@
-Directory Structure
-==============
-
-This list is not exhaustive.
-
-   * libUnderworld              - Backend stack of tools (Underworld, StgFEM, etc).
-      * libUnderworldPy       - Swig generated wrappers for backend as well as auxiliary implementations (such as StGermain_Tools).
-   * underworld                  - Underworld python modules.
-   * glucifer                        - gLucifer python modules.
-   * docs                            - Various documentation including this file.
-     * development             - Documents relevant to developers.
-     * tests                          - Python type scripts which are mainly for regression testing underworld.
-     * examples                  - Python type example scripts for users.
-     * user_guide                - Jupyter notebook based user guide
-     * publications              - Models in published work
-   * utils                             - Utility files.
-  
-
-
 Coding Style
 ============
 
 API Documentation
 -----------------
 Largely follow the numpy/scipy docstring conventions:
-`https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt#docstring-standard`
+`https://numpydoc.readthedocs.io/en/latest/format.html#docstring-standard`
 
 Note that class constructors should be document at the class level docstring,
 not the `__init__` method docstring.
@@ -33,8 +14,6 @@ Whitespace
 ----------
 PEP 8
 http://legacy.python.org/dev/peps/pep-0008/
-
-also check YAPF for python, and clang-format for c
 
 Most importantly:
 Spaces should be used for tabs.
@@ -69,13 +48,15 @@ Version Control
 We follow the Gitflow Workflow:
 https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow/
 
-Features branches should be created for anything besides quick fixes. Once ready for
+Features branches must be created for all changes. Once ready for
 publishing to the development branch, a pull request should be created and another
 team member nominated to review the changes. Pull request should only be merged
 once the following criterion are met:
    1. Any new functionality is sufficiently tested (via doctest or other means).
    2. Any new functionality is sufficiently documented.
    3. All tests pass.
+   4. Blog post update for significant changes. 
+   5. Update CHANGES.md.
    
 
 Bug reporting
@@ -142,10 +123,3 @@ if flux != None:
     "class has been replaced with 'fn_flux'. In the coming release 'flux' will be deprecated "+
     "please update your python code.")
 ```
-
-
-
-
-TODO for this document:
-======================
-* API changes  & deprections

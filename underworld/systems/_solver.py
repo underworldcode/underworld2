@@ -8,12 +8,12 @@
 ##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
 import underworld as uw
 import underworld._stgermain as _stgermain
-import sle
-import libUnderworld
-from libUnderworld import petsc
-from libUnderworld import Solvers
-import _bsscr
-import _energy_solver
+from . import sle
+import underworld.libUnderworld as libUnderworld
+from underworld.libUnderworld import petsc
+from underworld.libUnderworld import Solvers
+from . import _bsscr
+from . import _energy_solver
 
 class Solver(_stgermain.StgCompoundComponent):
     _objectsDict = {  "_solver" : None  }
@@ -29,8 +29,7 @@ class Solver(_stgermain.StgCompoundComponent):
         """
         if isinstance(eqs, uw.systems.Stokes):
             return _bsscr.StokesSolver(eqs, *args, **kwargs)
-        elif isinstance(eqs, (uw.systems.SteadyStateHeat, uw.utils.MeshVariable_Projection, uw.systems.SteadyStateDarcyFlow)):
+        elif isinstance(eqs, (uw.systems.SteadyStateHeat, uw.utils.MeshVariable_Projection, uw.systems.SteadyStateDarcyFlow, uw.utils.SolveLinearSystem)):
             return _energy_solver.HeatSolver(eqs, *args, **kwargs)
         else:
             raise ValueError("Unable to create solver. Provided system not recognised.")
-

@@ -9,10 +9,10 @@
 import underworld as uw
 import underworld._stgermain as _stgermain
 import underworld.mesh as mesh
-import libUnderworld.libUnderworldPy.Function as _cfn
-import _assembledvector
-import _assembledmatrix
-import libUnderworld
+import underworld.libUnderworld.libUnderworldPy.Function as _cfn
+from . import _assembledvector
+from . import _assembledmatrix
+import underworld.libUnderworld as libUnderworld
 
 class AssemblyTerm(_stgermain.StgCompoundComponent):
     _objectsDict = { "_assemblyterm": None }
@@ -173,7 +173,7 @@ class VectorAssemblyTerm_NA_j__Fn_ij(VectorAssemblyTerm):
         # build parent
         super(VectorAssemblyTerm_NA_j__Fn_ij,self).__init__(**kwargs)
 
-        self._set_fn_function = libUnderworld.Underworld._VectorAssemblyTerm_NA_j__Fn_ij_SetFneForce
+        self._set_fn_function = libUnderworld.Underworld._VectorAssemblyTerm_NA_j__Fn_ij_SetFn
         self._fn = fn
 
         if mesh:
@@ -359,17 +359,26 @@ class AdvDiffResidualVectorTerm(VectorAssemblyTerm):
             raise TypeError( "Provided 'velocityField' must be of 'MeshVariable' class." )
         self._velocityField = velocityField
 
-        self._diffFn = uw.function.Function.convert(diffusivity)
-        if not isinstance( self._diffFn, uw.function.Function ):
+        # because supg takes 2 fn we don't use the '_fn' attribute
+        # instead we make '_fn_diffusivity' and '_fn_source'
+
+        self._fn_diffusivity= uw.function.Function.convert(diffusivity)
+        if not isinstance( self._fn_diffusivity, uw.function.Function ):
             raise TypeError( "Provided 'diffusivity' must be of the type, or convertible to, 'Function' class ")
 
         # if sourceTerm is None make it 0.0 fn object
-        self._sourceFn = uw.function.Function.convert(sourceTerm)
-        if self._sourceFn == None:
-            self._sourceFn = uw.function.misc.constant(0.0)
+        self._fn_source = uw.function.Function.convert(sourceTerm)
+        if self._fn_source == None:
+            self._fn_source = uw.function.misc.constant(0.0)
 
         self._set_fn_function = None
         self._fn = None
+
+        self._set_fn_diffusivity_function = \
+              libUnderworld.Underworld._SUPGVectorTerm_NA__Fn_SetDiffusivityFn
+        self._set_fn_source_function = \
+              libUnderworld.Underworld._SUPGVectorTerm_NA__Fn_SetSourceFn
+
 
     def _add_to_stg_dict(self,componentDictionary):
         # call parents method
@@ -378,7 +387,38 @@ class AdvDiffResidualVectorTerm(VectorAssemblyTerm):
         componentDictionary[ self._cself.name ][     "VelocityField"] = self._velocityField._cself.name
         componentDictionary[ self._cself.name ][  "UpwindXiFunction"] = "DoublyAsymptoticAssumption"
 
+    @property
+    def fn_diffusivity(self):
+        return self._fn_diffusivity
+
+    @fn_diffusivity.setter
+    def fn_diffusivity(self, value):
+        if not self._set_fn_diffusivity_function:
+            raise RuntimeError("You cannot set a function for this assembly term.")
+        _fn = uw.function._function.Function.convert(value)
+        if not isinstance( _fn, uw.function.Function):
+            raise ValueError( "Provided 'fn' must be of, or convertible to, 'Function' class." )
+        self._fn_diffusivity = _fn
+        self._set_fn_diffusivity_function( self._cself, self._fn_diffusivity._fncself )
+
+    @property
+    def fn_source(self):
+        return self._sourceFn
+
+    @fn_source.setter
+    def fn_source(self, value):
+        if not self._set_fn_source_function:
+            raise RuntimeError("You cannot set a function for this assembly term.")
+        _fn = uw.function._function.Function.convert(value)
+        if not isinstance( _fn, uw.function.Function):
+            raise ValueError( "Provided 'fn' must be of, or convertible to, 'Function' class." )
+        self._fn_source = _fn
+        self._set_fn_source_function( self._cself, self._fn_source._fncself )
+
+
     def _setup(self):
-        # lets override parent _setup definition because we use 2 function objects
-        libUnderworld.Underworld._SUPGVectorTerm_NA__Fn_SetDiffusivityFn( self._cself, self._diffFn._fncself )
-        libUnderworld.Underworld._SUPGVectorTerm_NA__Fn_SetSourceFn( self._cself, self._sourceFn._fncself )
+        # lets setup fn tings.. note that this uses the 'property' above
+        if self._set_fn_diffusivity_function:
+            self.fn_diffusivity = self._fn_diffusivity
+        if self._set_fn_source_function:
+            self.fn_source = self._fn_source

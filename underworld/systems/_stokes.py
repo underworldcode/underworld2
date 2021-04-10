@@ -8,8 +8,8 @@
 ##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
 import underworld as uw
 import underworld._stgermain as _stgermain
-import sle
-import libUnderworld
+from . import sle
+import underworld.libUnderworld as libUnderworld
 
 class Stokes(_stgermain.StgCompoundComponent):
     """
@@ -40,7 +40,7 @@ class Stokes(_stgermain.StgCompoundComponent):
     * :math:`u_i` is the velocity,
     * :math:`p`   is the pressure,
     * :math:`f_i` is a body force,
-    * :math:`\\lambda` is a bulk viscosity,
+    * :math:`\\lambda` is pseudo compressibility factor,
     * :math:`H` is the compressible equation source term,
     * :math:`g_i` are the velocity boundary conditions (DirichletCondition)
     * :math:`h_i` are the traction boundary conditions (NeumannCondition).
@@ -68,18 +68,13 @@ class Stokes(_stgermain.StgCompoundComponent):
         Function which reports a body force for the system.
         Function must return float values of identical dimensionality
         to the provided velocity variable.
-    fn_lambda : Removed use, fn_one_on_lambda instead
-    fn_minus_one_on_lambda: underworld.function.Function, Default = None
-        Function which defines a non solenoidal velocity field via the relationship
-        div(velocityField) = -fn_minus_one_on_lambda * pressurefield + fn_source
-        When this is left as None a incompressible formulation of the stokes equation is formed, ie, div(velocityField) = 0.
-        fn_minus_one_on_lambda is incompatible with the 'penalty' stokes solver, ensure a
-        'penalty' equal to 0 is used when fn_minus_one_on_lambda is used. By default this is the case.
+    fn_one_on_lambda : underworld.function.Function, Default = None
+        Pseudo-compressibility factor. Note that non-zero values are
+        incompatible with the 'penalty' stokes solver. Ensure a
+        'penalty' equal to 0 is used if this function is non-zero.
+        By default this is the case.
     fn_source : underworld.function.Function, Default = None
-        Function which defines a non solenoidal velocity field via the relationship
-        div(velocityField) = -fn_minus_one_on_lambda * pressurefield + fn_source.
-        fn_minus_one_on_lambda is incompatible with the 'penalty' stokes solver, ensure
-        the 'penalty' of 0, is used when fn_lambda is used. By default this is the case.
+        Mass source term. Check fn_one_on_lambda for usage caveats.
     fn_stresshistory : underworld.function.Function, Default = None
         Function which defines the stress history term used for viscoelasticity.
         Function is a vector of size 3 (dim=2) or 6 (dim=3) representing a symetric tensor.
@@ -103,13 +98,9 @@ class Stokes(_stgermain.StgCompoundComponent):
 
 
     def __init__(self, velocityField, pressureField, fn_viscosity, fn_bodyforce=None, fn_one_on_lambda=None,
-                 fn_lambda=None, fn_source=None, voronoi_swarm=None, conditions=[],
+                fn_source=None, voronoi_swarm=None, conditions=[],
                 _removeBCs=True, _fn_viscosity2=None, _fn_director=None, fn_stresshistory=None, _fn_stresshistory=None,
                 _fn_v0=None, _fn_p0=None, _callback_post_solve=None, **kwargs):
-
-        # DEPRECATION ERROR
-        if fn_lambda != None:
-            raise TypeError( "The parameter 'fn_lambda' has been deprecated. It has been replaced by 'fn_one_on_lambda', a simpler input parameter." )
 
         if _fn_stresshistory:
             raise TypeError( "The parameter '_fn_stresshistory' has been updated to 'fn_stresshistory'." )
@@ -151,7 +142,7 @@ class Stokes(_stgermain.StgCompoundComponent):
         if fn_one_on_lambda != None:
             self._fn_minus_one_on_lambda = uw.function.Function.convert(-1.0 * fn_one_on_lambda)
             if not isinstance(self._fn_minus_one_on_lambda, uw.function.Function):
-                raise ValueError("Provided 'fn_minus_one_on_lambda' must be of, or convertible to, the 'Function' class.")
+                raise ValueError("Provided 'fn_one_on_lambda' must be of, or convertible to, the 'Function' class.")
 
         if fn_source != None:
             self._fn_source = uw.function.Function.convert(fn_source)
@@ -263,10 +254,11 @@ class Stokes(_stgermain.StgCompoundComponent):
                                                                 assembledObject=self._fvector,
                                                                 fn=_fn_bodyforce)
 
-        if fn_source:
+        if fn_source != None:
             self._cforceVecTerm   = sle.VectorAssemblyTerm_NA__Fn(  integrationSwarm=intswarm,
                                                                     assembledObject=self._hvector,
-                                                                    fn=self.fn_source)
+                                                                    fn=self.fn_source,
+                                                                    mesh=mesh)
 
 
         for cond in self._conditions:
@@ -341,7 +333,7 @@ class Stokes(_stgermain.StgCompoundComponent):
         """
         A bulk viscosity parameter
         """
-        return self._fn_minus_one_on_lambda
+        return -self._fn_minus_one_on_lambda
 
     @fn_one_on_lambda.setter
     def fn_one_on_lambda(self, newFn):
@@ -423,7 +415,7 @@ class Stokes(_stgermain.StgCompoundComponent):
         # get the mesh and perform integrals over it
         mesh = self._velocityField.mesh
         
-        fn_2_integrate = ( 1., self._aObjects['vdotv_fn'] )
+        fn_2_integrate = ( self._aObjects['vdotv_fn'], 1. )
         (v2,vol)       = mesh.integrate( fn=fn_2_integrate )
         import math
         return math.sqrt(v2/vol)

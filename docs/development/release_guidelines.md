@@ -22,53 +22,60 @@ Review issue tracker
 
 Documentation review 
 ====================
-* Review docstrings updates for deprication warnings.
+* Review this document.
+* Review `guidelines.md`.
+* Review docstrings updates for deprecation warnings.
+* Check for other DEPRECATE flags in the code.
+* Check autocomplete to ensure no garbage has slipped in. Non
+  user relevant objects should be made private so they don't appear in
+  autocomplete suggestions.
 * Review ``docs/`` for style, relevance and updates.
-* Review ``docs/development/broken``, contents to be kept at a minimum.
-* Review ``docs/development/unsupported``, contents to be kept at a minimum.
+* Review ``docs/install_guides``, in particular ensure that guides 
+  for Gadi & Magnus are up to date.
 * Review docs generated at http://underworld2.readthedocs.io/
 	- make sure builds are passing
 	- review latest content
-* Review top level README.md.
-* Review lsheet contents.
+* Review top level `README.md`.
+* Review `LICENSE.md`.
+* Review `.zenodo.json` (and validate using `jsonlint`).
+* Update the copyright information if necessary.
+* Add new Binder link, and keep link to old Binder.
+* Generate/update change log (`CHANGES.md`).
+* Review cheat sheet contents.
+* Increment version number within ``underworld/_version.py``
+  (check `guidelines.md` for details on version numbering).
+* Update `FROM` tag in top level (binder) Dockerfile.
 
 Testing
 =======
-* Ensure 'run_tests.py' script run to completion without raising an exception.
-* Test on docker, OSX, linux, NCI and Pawsey machines.
-* Scaling tests on NCI and Pawsey machines.
-
-Final Science/Production testing
-================================
-* High resolution production tests on raijin, magnus run to completion with 
-  correct results. These should include models from ``docs/publications``, 
-  record overall condition and walltime with optimised code.  TODO: include 
-  detailed list of models, parameters and completion state.
-* Ensure jenkins and docker are working correctly.
-
-Document release
-================
-* Generate and review change log.
-
-Version numbers and tags
-========================
-* Increment version number within ``underworld/__init__.py``
-* Check `guidelines.md` for release numbering details.
+* Ensure 'test_long.py' script run to completion without raising an exception.
+  Test on Docker/NCI/Pawsey. Note that parallel jobs within script may need to be
+  executed by hand on NCI/Pawsey.
+* Large parallel tests (NCI/Pawsey).
+  Compare against previous for timing performance, and confirming expected convergence rates for SolDB3d.
+  - IO=0, JOBS="1 2 4 6 8 10 12 14 16 18 20 24", BASE=16, ORDER=2, RTOL=1e-11, PENALTY=-1, MODEL=SOLDB3d
+  - IO=0, JOBS="1 2 4 6 8 10 12 14 16 18 20 24", BASE=32, ORDER=1, RTOL=1e-6,  PENALTY=-1, MODEL=SOLH
+  - IO=1, JOBS="1 2 4 6 8 10",                   BASE=32, ORDER=1, RTOL=1e-6,  PENALTY=-1, MODEL=SOLH
+* Confirm Jenkins is running tests and tests are returning expected results. 
+* Confirm Docker images are being generated correctly.
+* Confirm metrics are being dispatched.
 
 Creating the release
 ====================
-* Create the release from within Github. We will mark as pre-production
-  while still in beta.
+* Create the release from within Github.
 * Check `docker/docker.md` for docker image release information.
 * Add tagged documentation version at http://underworld2.readthedocs.io/  
+* Package for PyPi: `python setup.py sdist`
+* Upload to PyPi: `twine upload dist/* -r pypi`
 
 Announce new version
 ====================
 * via blog & facebook.
 
-
 After the release
 ============
+* Increment version number within ``underworld/_version.py`` on dev branch (eg 2.6.0-dev)
+* Update `FROM` tag in top level (binder) Dockerfile to use dev images.
 * Check `docker/docker.md` for docker related actions.
 
 

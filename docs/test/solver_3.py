@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-#!/bin/env python
+#!/usr/bin/env python3
 '''
 This script simply executes a solver, and ensures the expected number of iterations are performed.
 It does 
@@ -26,7 +25,7 @@ freeslip = uw.conditions.DirichletCondition(velocityField, (IWalls, JWalls))
 # We are going to make use of one of the existing analytic solutions so that we may easily
 # obtain functions for a viscosity profile and forcing terms.
 # Exact solution solCx with defaults
-sol = fn.analytic.SolCx(viscosityA=1.0, viscosityB=10000.0, xc=0.478, nx=3)
+sol = fn.analytic.SolCx(eta_A=1.0, eta_B=10000.0, x_c=0.478, n_z=3)
 stokesSystem = uw.systems.Stokes(velocityField,pressureField,sol.fn_viscosity,sol.fn_bodyforce,conditions=[freeslip,])
 #Run the BSSCR Solver
 # can optionally set penalty this way
@@ -41,21 +40,25 @@ solver.options.mg_accel.mg_accelerating_smoothing_view=1
 #solver.options.main.penalty=1000.0
 #solver.options.main.help=''
 solver.options.main.penalty=10.0
+solver.options.main.restore_K=True
 solver.solve()
 stats=solver.get_stats()
 solver.print_stats()
-from libUnderworld import petsc
+from underworld.libUnderworld import petsc
 petsc.OptionsPrint()
 
-if 5 != stats.pressure_its:
-    raise RuntimeError("Test returned wrong number of pressure iterations: should be 3")
-if 9 != stats.velocity_presolve_its:
-    raise RuntimeError("Test returned wrong number of velocity pre solve iterations: should be 6")
-if -1 != stats.velocity_pressuresolve_its:  # -1 will be returned if this stat isn't supported.
-    if 35 != stats.velocity_pressuresolve_its:
-        raise RuntimeError("Test returned wrong number of velocity pressure solve iterations: should be 15")
-if 7 != stats.velocity_backsolve_its:
-    raise RuntimeError("Test returned wrong number of velocity back solve iterations: should be 6")
+def check():
+    if stats.pressure_its > 5:
+        raise RuntimeError("Test appears to require too many pressure iterations. Iteration count = {}.".format(stats.pressure_its))
+    if stats.velocity_presolve_its > 10:
+        raise RuntimeError("Test appears to require too many velocity pre solve iterations. Iteration count = {}.".format(stats.velocity_presolve_its))
+    if -1 != stats.velocity_pressuresolve_its:  # -1 will be returned if this stat isn't supported.
+        if stats.velocity_pressuresolve_its > 40 :
+            raise RuntimeError("Test appears to require too many velocity pressure solve iterations. Iteration count = {}.".format(stats.velocity_pressuresolve_its))
+    if stats.velocity_backsolve_its > 8:
+        raise RuntimeError("Test appears to require too many velocity back solve iterations. Iteration count = {}.".format(stats.velocity_backsolve_its))
+
+check()
 
 solver.set_inner_method("lu")
 solver.solve()
@@ -63,12 +66,5 @@ solver.set_inner_method("mg")
 solver.solve()
 solver.print_stats()
 petsc.OptionsPrint()
-if 5 != stats.pressure_its:
-    raise RuntimeError("Test returned wrong number of pressure iterations: should be 3")
-if 7 != stats.velocity_presolve_its:
-    raise RuntimeError("Test returned wrong number of velocity pre solve iterations: should be 6")
-if -1 != stats.velocity_pressuresolve_its:  # -1 will be returned if this stat isn't supported.
-    if 27 != stats.velocity_pressuresolve_its:
-        raise RuntimeError("Test returned wrong number of velocity pressure solve iterations: should be 15")
-if 6 != stats.velocity_backsolve_its:
-    raise RuntimeError("Test returned wrong number of velocity back solve iterations: should be 6")
+
+check()

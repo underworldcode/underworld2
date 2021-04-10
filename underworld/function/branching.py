@@ -12,8 +12,8 @@ Typically, these functions will select other user provided functions when
 certain conditions are met (with the condition also described by a function!).
 
 """
-import libUnderworld.libUnderworldPy.Function as _cfn
-from _function import Function as _Function
+import underworld.libUnderworld.libUnderworldPy.Function as _cfn
+from ._function import Function as _Function
 
 
 class map(_Function):
@@ -75,7 +75,7 @@ class map(_Function):
     >>> mesh = uw.mesh.FeMesh_Cartesian(elementRes=(8,8),minCoord=(-1.0, -1.0), maxCoord=(1.0, 1.0))
     >>> swarm = uw.swarm.Swarm(mesh)
     >>> svar = swarm.add_variable("int",1)
-    >>> swarm.populate_using_layout(uw.swarm.layouts.GlobalSpaceFillerLayout(swarm,20))
+    >>> swarm.populate_using_layout(uw.swarm.layouts.PerCellSpaceFillerLayout(swarm,20))
 
     For all particles in unit circle, set svar to 1
 
@@ -129,7 +129,7 @@ class map(_Function):
         
         self._map = {}
 
-        for key, value in mapping.iteritems():
+        for key, value in mapping.items():
             if not isinstance(key, int) or key < 0:
                 raise ValueError("Key '{}' not valid. Mapping keys must be unsigned integers.".format(key))
             funcVal = _Function.convert(value)

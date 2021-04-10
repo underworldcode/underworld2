@@ -150,8 +150,9 @@ This class generates a regular cartesian mesh.\\
 \vspace{1mm}
 \textit{Useful methods}:\\
 \begin{addmargin}[1em]{2em}
+\textbf{add\_variable()}: Add a MeshVariable to the mesh.\\
 \textbf{data}: (Property) Access mesh vertex coordinate data.\\
-\textbf{deform\_mesh()}: (Context manager) Allow mesh deformation.\\
+\textbf{deform\_mesh()}: (Context manager) Deform mesh within this manager.\\
 \textbf{reset()}: Reset the mesh to its original configuration.\\
 \textbf{specialSets}: (Dict) Dictionary of special vertex sets associated with the mesh.\\
 \end{addmargin}
@@ -176,7 +177,7 @@ import underworld as uw
 mesh = uw.mesh.FeMesh_Cartesian(elementRes=( 4, 4 ),
                                 minCoord=( 0., 0. ),
                                 maxCoord=( 1., 1. ))
-meshvar = uw.mesh.MeshVariable(mesh, 1)
+meshvar = mesh.add_variable(1)
 meshvar.data[:] = 0.      # initialise data to zero
 with mesh.deform_mesh():  # deform mesh
     mesh.data[0] = (-0.1,-0.1)
@@ -193,12 +194,13 @@ The Swarm class provides a container for particles.\\
 \vspace{1mm}
 \textit{Useful methods}:\\
 \begin{addmargin}[1em]{2em}
-\textbf{particleLocalCount}: (Property) Returns the swarm local particle count.\\
-\textbf{particleGlobalCount}: (Property) Returns the swarm global particle count.\\
-\textbf{populate\_using\_layout()}: Populate the swarm globally using provided layout object.\\
 \textbf{add\_particles\_with\_coordinates()}: Populate the swarm using provided coordinates array.\\
 \textbf{add\_variable()}: Adds a SwarmVariable to the swarm. Returns the SwarmVariable object.\\
-\textbf{particleCoordinates}: (Property) Handle to the swarm's particle coordinates SwarmVariable.\\
+\textbf{data}: (Property) Handle to the swarm's particle coordinates SwarmVariable.\\
+\textbf{deform\_swarm()}: (Context manager) Explicitly move swarm particles within this manager.\\
+\textbf{particleGlobalCount}: (Property) Returns the swarm global particle count.\\
+\textbf{particleLocalCount}: (Property) Returns the swarm local particle count.\\
+\textbf{populate\_using\_layout()}: Populate the swarm globally using provided layout object.\\
 \end{addmargin}
 \end{addmargin}
 \vspace{2mm}
@@ -294,7 +296,7 @@ This class implements a Neumann condition at the specified nodes.
 \begin{lstlisting}
 import underworld as uw
 mesh = uw.mesh.FeMesh_Cartesian()
-temp_var = uw.mesh.MeshVariable( mesh, 1 )
+temp_var = mesh.add_variable( 1 )
 bISet = mesh.specialSets["MinJ_VertexSet"]  # grab bottom set
 tISet = mesh.specialSets["MaxJ_VertexSet"]  # grab top set
 bcs = uw.conditions.DirichletCondition(temp_var,
@@ -365,10 +367,10 @@ This module contains functions for tensor relations.
 \vspace{1mm}
 
 \section{Visualisation}
-The Underworld visualisation engine is called \textbf{glucifer}.
+Underworld provides tools for visualisation in the \textbf{visualisation} submodule.
 \vspace{1mm}
 
-\noindent\textbf{glucifer.Figure}:
+\noindent\textbf{visualisation.Figure}:
 \begin{addmargin}[1em]{2em}
 The Figure class is the basic container object for visualisation.\\
 \vspace{1mm}
@@ -383,33 +385,33 @@ The Figure class is the basic container object for visualisation.\\
 
 \vspace{1mm}
 
-\noindent\textbf{glucifer.objects.Drawing}:
+\noindent\textbf{visualisation.objects.Drawing}:
 \begin{addmargin}[1em]{2em}
 Subclasses of this class provide the ingredients you will compose your visualisations with.
 This is an abstract class so you will never use it directly.
 \end{addmargin}
 
-\noindent\textbf{glucifer.objects.Mesh}:
+\noindent\textbf{visualisation.objects.Mesh}:
 \begin{addmargin}[1em]{2em}
 Draw the provided mesh object.
 \end{addmargin}
 
-\noindent\textbf{glucifer.objects.Surface}:
+\noindent\textbf{visualisation.objects.Surface}:
 \begin{addmargin}[1em]{2em}
 Draws the provided function across a mesh surface.
 \end{addmargin}
 
-\noindent\textbf{glucifer.objects.Points}:
+\noindent\textbf{visualisation.objects.Points}:
 \begin{addmargin}[1em]{2em}
 Draws the provided swarm, using functions to determine point attributes.
 \end{addmargin}
 
-\noindent\textbf{glucifer.objects.VectorArrows}:
+\noindent\textbf{visualisation.objects.VectorArrows}:
 \begin{addmargin}[1em]{2em}
 Draws the vector arrows across a mesh corresponding to a provided vector function.
 \end{addmargin}
 
-\noindent\textbf{glucifer.objects.Volume}:
+\noindent\textbf{visualisation.objects.Volume}:
 \begin{addmargin}[1em]{2em}
 Performs a volume render of the provided function within the provided mesh.
 \end{addmargin}
@@ -419,10 +421,10 @@ Performs a volume render of the provided function within the provided mesh.
 \noindent\textbf{\textit{Example}}:
 \begin{lstlisting}
 import underworld as uw
-import glucifer
-fig = glucifer.Figure()
+import underworld.visualisation as vis
+fig = vis.Figure()
 mesh = uw.mesh.FeMesh_Cartesian() # create something to draw
-fig.append( glucifer.objects.Mesh(mesh) )
+fig.append( vis.objects.Mesh(mesh) )
 fig.show()
 \end{lstlisting}
 

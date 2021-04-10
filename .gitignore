@@ -1,6 +1,10 @@
 # use glob syntax.
 syntax: glob
 
+out_*
+myvis.gldb
+.idea
+myfigure*
 _uwid.py
 *~
 h5py
@@ -21,24 +25,26 @@ testLogs
 */output/*
 Untitled*.ipynb
 */ignore/*
-libUnderworld/libUnderworldPy/*wrap.cxx
-libUnderworld/libUnderworldPy/Function.py
-libUnderworld/libUnderworldPy/PICellerator.py
-libUnderworld/libUnderworldPy/Solvers.py
-libUnderworld/libUnderworldPy/StGermain.py
-libUnderworld/libUnderworldPy/StGermain_Tools.py
-libUnderworld/libUnderworldPy/StgDomain.py
-libUnderworld/libUnderworldPy/StgFEM.py
-libUnderworld/libUnderworldPy/Underworld.py
-libUnderworld/libUnderworldPy/c_arrays.py
-libUnderworld/libUnderworldPy/c_pointers.py
-libUnderworld/libUnderworldPy/gLucifer.py
-libUnderworld/libUnderworldPy/petsc.py
-libUnderworld/libUnderworldPy/lavavu.py
+underworld/libUnderworld/libUnderworldPy/*wrap.cxx
+underworld/libUnderworld/libUnderworldPy/Function.py
+underworld/libUnderworld/libUnderworldPy/PICellerator.py
+underworld/libUnderworld/libUnderworldPy/Solvers.py
+underworld/libUnderworld/libUnderworldPy/StGermain.py
+underworld/libUnderworld/libUnderworldPy/StGermain_Tools.py
+underworld/libUnderworld/libUnderworldPy/StgDomain.py
+underworld/libUnderworld/libUnderworldPy/StgFEM.py
+underworld/libUnderworld/libUnderworldPy/Underworld.py
+underworld/libUnderworld/libUnderworldPy/c_arrays.py
+underworld/libUnderworld/libUnderworldPy/c_pointers.py
+underworld/libUnderworld/libUnderworldPy/gLucifer.py
+underworld/libUnderworld/libUnderworldPy/petsc.py
+underworld/libUnderworld/libUnderworldPy/lavavu.py
 testResults
 docs/scratch
 docs/test/*Output
-docs/examples/images/*
+*ipynb.out
+*ipynb.err
+myfigure*
 
 # We should probably not cache the output of all the examples -  if we are going to leave the
 # notebook output cells in place, then there is not much need.
@@ -48,6 +54,7 @@ docs/examples/PureShear2D
 docs/examples/Buckling2D
 docs/examples/SlabSubduction
 docs/examples/*Output
+docs/examples/*.pdf
 
 docs/Rheology/
 
@@ -56,6 +63,7 @@ docs/publications/TosiEtAl-2015/TosiOutput
 docs/development/TransIsoCompression
 docs/development/TransIsoShear
 
+docs/myvis.gldb
 
 # switch to regexp syntax.
 
@@ -69,7 +77,7 @@ syntax: regexp
 # To save the trouble of purging this for now.
 */.texpadtmp/*
 
-libUnderworld/Underworld/SysTest/AnalyticPlugins/Doc/.texpadtmp/*
+underworld/libUnderworld/Underworld/SysTest/AnalyticPlugins/Doc/.texpadtmp/*
 
 
 docs/examples/BBOutput2/summary.txt
@@ -94,6 +102,7 @@ docs/user_guide/deformedMesh.h5
 
 docs/user_guide/surf.gldb
 
-docs/test/image_tests/notebooks/*
-
 docs/test/Pressure_Error.png
+
+docs/test/uplift/buildMount.txt
+docs/test/temp.h5

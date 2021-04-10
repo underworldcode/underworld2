@@ -11,10 +11,10 @@
 This module contains routines relating to swarm type objects.
 """
 
-from _swarm import Swarm
-import _weights
-from _integration_swarm import IntegrationSwarm, VoronoiIntegrationSwarm, GaussIntegrationSwarm, GaussBorderIntegrationSwarm
-from _swarmabstract import SwarmAbstract
-from _swarmvariable import SwarmVariable
-from _population_control import PopulationControl
-import layouts
+from ._swarm import Swarm
+from . import _weights
+from ._integration_swarm import IntegrationSwarm, VoronoiIntegrationSwarm, GaussIntegrationSwarm, GaussBorderIntegrationSwarm
+from ._swarmabstract import SwarmAbstract
+from ._swarmvariable import SwarmVariable
+from ._population_control import PopulationControl
+from . import layouts

@@ -11,8 +11,8 @@ This module includes functions which provide views into the results of
 function queries.  These functions never modify query data. 
 """
 
-import libUnderworld.libUnderworldPy.Function as _cfn
-import _function
+import underworld.libUnderworld.libUnderworldPy.Function as _cfn
+from . import _function
 
 class min_max(_function.Function):
     """ 
@@ -99,7 +99,12 @@ class min_max(_function.Function):
     >>> fn_vec_mm.evaluate( 2. )
     Traceback (most recent call last):
     ...
-    RuntimeError: Function provided to `min_max` class does not return scalar results. You must also provide a function which calculates the required norm like quantity via the `fn_norm` parameter.
+    RuntimeError: Issue utilising function of class 'min_max' constructed at:
+    <BLANKLINE>
+       --- CONSTRUCTION TIME STACK ---
+    Error message:
+    Argument function does not return scalar results. You must also provide a function which calculates the required norm like quantity via the `fn_norm` parameter.
+
     >>> fn_vec_mm = fn.view.min_max(fn_vec, fn_norm=fn.math.dot(fn_vec,fn_vec))
     >>> fn_vec_mm.evaluate( 2. )
     array([[ 2.,  2.]])
@@ -300,7 +305,7 @@ class min_max(_function.Function):
         
         import underworld as uw
         # if we are the rank with the min result, extract result
-        if uw.rank() == self.min_rank():
+        if uw.mpi.rank == self.min_rank():
             auxout = self.min_local_auxiliary()
         else:
             auxout = None
@@ -331,7 +336,7 @@ class min_max(_function.Function):
         
         import underworld as uw
         # if we are the rank with the max result, extract result
-        if uw.rank() == self.max_rank():
+        if uw.mpi.rank == self.max_rank():
             auxout = self.max_local_auxiliary()
         else:
             auxout = None

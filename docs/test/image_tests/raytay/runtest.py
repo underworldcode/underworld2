@@ -4,7 +4,7 @@ import numpy as np
 import underworld as uw
 import math
 from underworld import function as fn
-import glucifer
+import underworld.visualisation as vis
 import os
 
 # Setup parameters for Rayleigh Taylor Benchmark
@@ -35,7 +35,7 @@ materialVariable = swarm.add_variable( dataType="int", count=1 )
 vectorVariable = swarm.add_variable( dataType="double", count=2 )
 
 # Create a layout object that will populate the swarm across the whole domain.
-swarmLayout = uw.swarm.layouts.GlobalSpaceFillerLayout( swarm=swarm, particlesPerCell=20 )
+swarmLayout = uw.swarm.layouts.PerCellSpaceFillerLayout( swarm=swarm, particlesPerCell=20 )
 
 # Populate.
 swarm.populate_using_layout( layout=swarmLayout )
@@ -69,8 +69,8 @@ materialVariable.data[:] = fn.branching.conditional( conditions ).evaluate(swarm
 
 
 # **Plot the particles by material**
-fig1 = glucifer.Figure(figsize=(250,250), margin=0)
-fig1.append( glucifer.objects.Points(swarm, materialVariable, pointSize=2, colourBar=False) )
+fig1 = vis.Figure(figsize=(250,250), margin=0)
+fig1.append( vis.objects.Points(swarm, materialVariable, pointSize=2, colourBar=False) )
 
 # Here we set a density of '0.' for the lightMaterial, and '1.' for the heavymaterial.
 densityMap   = { lightIndex:0., denseIndex:1. }
@@ -145,7 +145,7 @@ def doOutput():
 
     # print output
     if steps%outputEvery == 0:
-        print 'step = {0:6d}; time = {1:.3e}; v_rms = {2:.3e}'.format(steps,time,vrms)
+        print('step = {0:6d}; time = {1:.3e}; v_rms = {2:.3e}'.format(steps,time,vrms))
             
         # output snapshot of particles to figure.
         outputFilename = "image"+str(steps).zfill(4)
@@ -170,7 +170,10 @@ while steps<stepEnd:
 doOutput()
 
 #Check the image results
-if uw.rank() == 0:
-    lv = glucifer.lavavu.Viewer(quality=1)
+if uw.mpi.rank == 0:
+    kwargs = {}
+    if 'UW_VIS_PORT' in os.environ:
+        kwargs['port'] = int(os.environ['UW_VIS_PORT'])
+    lv = vis.lavavu.Viewer(quality=1,**kwargs)
     lv.testimages(tolerance=1e-3)
 

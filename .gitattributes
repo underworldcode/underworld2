@@ -1,0 +1,5 @@
+*ipynb linguist-language=python
+
+*.ipynb	diff=jupyternotebook
+
+*.ipynb	merge=jupyternotebook

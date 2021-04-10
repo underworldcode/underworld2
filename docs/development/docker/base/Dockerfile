@@ -1,92 +1,76 @@
-FROM debian@sha256:0a5fcee6f52d5170f557ee2447d7a10a5bdcf715dd7f0250be0b678c556a501b
+FROM debian:latest
 MAINTAINER https://github.com/underworldcode/
-
-# install things
-RUN apt-get update -qq && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
+ENV LANG=C.UTF-8
+# Setup some things in anticipation of virtualenvs
+ENV VIRTUAL_ENV=/opt/venv
+# The following ensures that the venv takes precedence if available
+ENV PATH=${VIRTUAL_ENV}/bin:$PATH
+# The following ensures that system packages are visible to venv Python, and vice versa
+ENV PYTHONPATH=/usr/lib/python3.7/site-packages:${VIRTUAL_ENV}/lib/python3.7/site-packages
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/:/usr/local/lib/x86_64-linux-gnu/
+# install runtime requirements
+RUN apt-get update -qq \
+&&  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         bash-completion \
-        build-essential \
-        git \
-        python \
-        python-dev \
-        petsc-dev \
-        libhdf5-openmpi-dev \
-        python-pip \
-        libxml2-dev \
-        xorg-dev \
-        ssh \
-        curl \
-        libfreetype6-dev \
-        libpng-dev \
-        libxft-dev \
-        xvfb \
-        freeglut3 \
-        freeglut3-dev \
-        libgl1-mesa-dri \
-        libgl1-mesa-glx \
-        rsync \
+        python3-minimal \
+        python3-virtualenv \
+        python3-pip \
+        python3-tk \
         vim \
         less \
-        xauth \
-        python-tk \
-        swig \
-        gdb-minimal \
-        python2.7-dbg && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    \
-# Install setuptools and wheel first, needed by plotly
-    pip install setuptools wheel && \
-    pip install packaging \
+        git \
+&&  apt-get clean \
+&&  rm -rf /var/lib/apt/lists/*
+
+RUN pip3 install -U setuptools  \
+&&  pip3 install --no-cache-dir \
+        packaging \
         appdirs \
         numpy \
         jupyter \
+        jupytext \
         plotly \
-        mpi4py \
         matplotlib \
-        runipy \
         pillow \
-        pyvirtualdisplay \
+        ipython \
         ipyparallel \
-        pint \
-        sphinx \
-        sphinx_rtd_theme \
-        sphinxcontrib-napoleon \
-        mock \
-        scipy && \
-    pip install 'ipython==4.2.0' --force-reinstall && \
-    pip install six --upgrade
+        pint==0.9 \
+        scipy \ 
+        tabulate 
 
-# ^^^ Note we choose an older version of ipython because it's tooltips work better.
-#     Also, the system six is too old, so we upgrade for the pip version
+# Lets grab lavavu & requirements
+COPY --from=underworldcode/base:lavavu /opt       /opt
+COPY --from=underworldcode/base:lavavu /usr/local /usr/local
+RUN apt-get update \
+&&  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends $(awk '{print $1'} /opt/installed.txt) \
+&&  apt-get clean \
+&&  rm -rf /var/lib/apt/lists/* 
+RUN PYTHONPATH= /usr/bin/pip3 install -r /opt/requirements.txt
 
-# Install Tini.. this is required because CMD (below) doesn't play nice with notebooks for some reason: https://github.com/ipython/ipython/issues/7062, https://github.com/jupyter/notebook/issues/334
-RUN curl -L https://github.com/krallin/tini/releases/download/v0.10.0/tini > tini && \
-    echo "1361527f39190a7338a0b434bd8c88ff7233ce7b9a4876f3315c22fce7eca1b0 *tini" | sha256sum -c - && \
-    mv tini /usr/local/bin/tini && \
-    chmod +x /usr/local/bin/tini
+# mpi, petsc, mpi4py, petsc4py, h5py
+COPY --from=underworldcode/base:petsc /opt       /opt
+COPY --from=underworldcode/base:petsc /usr/local /usr/local
+RUN apt-get update \
+&&  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends $(awk '{print $1'} /opt/installed.txt) \
+&&  apt-get clean \
+&&  rm -rf /var/lib/apt/lists/* 
+RUN PYTHONPATH= /usr/bin/pip3 install -r /opt/requirements.txt
 
-# environment variable will internally run xvfb when glucifer is imported,
-#see /opt/underworld2/glucifer/__init__.py
-ENV GLUCIFER_USE_XVFB 1
-
-# Add a notebook profile.
-RUN mkdir -p -m 700 /root/.jupyter/ && \
-    echo "c.NotebookApp.ip = '*'" >> /root/.jupyter/jupyter_notebook_config.py
-
-# Setup ipyparallel for mpi profile
-WORKDIR /root/.jupyter
-RUN ipcluster nbextension enable && \ 
-    ipython profile create --parallel --profile=mpi && \
-    echo "c.IPClusterEngines.engine_launcher_class = 'MPIEngineSetLauncher'" >> /root/.ipython/profile_mpi/ipcluster_config.py
-
-WORKDIR /
-
-# expose notebook port
+# add tini, joyvan user, volume mount and expose port 8888
 EXPOSE 8888
+ENV NB_USER jovyan
+ENV NB_WORK /home/$NB_USER
+ADD https://github.com/krallin/tini/releases/download/v0.18.0/tini /tini
+RUN ipcluster nbextension enable \
+&&  chmod +x /tini \
+&&  useradd -m -s /bin/bash -N $NB_USER -g users \
+&&  mkdir -p /$NB_WORK/workspace \
+&&  chown -R $NB_USER:users $NB_WORK
+VOLUME $NB_WORK/workspace
 
-
-
-# note we also use xvfb which is required for viz
-ENTRYPOINT ["/usr/local/bin/tini", "--"]
-
+# jovyan user, finalise jupyter env
+USER $NB_USER
+RUN ipython profile create --parallel --profile=mpi \
+&&  echo "c.IPClusterEngines.engine_launcher_class = 'MPIEngineSetLauncher'" >> $NB_WORK/.ipython/profile_mpi/ipcluster_config.py
+WORKDIR $NB_WORK
+CMD ["jupyter", "notebook", "--no-browser", "--ip='0.0.0.0'"]

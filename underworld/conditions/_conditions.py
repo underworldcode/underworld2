@@ -12,11 +12,10 @@ This module contains conditions used for applying constraints on model dynamics.
 
 import underworld as uw
 import underworld._stgermain as _stgermain
-import libUnderworld
+import underworld.libUnderworld as libUnderworld
 import abc
 
-class SystemCondition(_stgermain.StgCompoundComponent):
-    __metaclass__ = abc.ABCMeta
+class SystemCondition(_stgermain.StgCompoundComponent, metaclass = abc.ABCMeta):
     def _add_to_stg_dict(self,componentDict):
         pass
 
@@ -141,14 +140,7 @@ class NeumannCondition(SystemCondition):
     _objectsDict = { "_pyvc": "PythonVC" }
     _selfObjectName = "_pyvc"
 
-    # def __init__(self, variable, indexSetsPerDof, fn_flux=None ):
-    def __init__(self, variable, indexSetsPerDof=None, fn_flux=None, nodeIndexSet=None ):
-        if indexSetsPerDof is None and nodeIndexSet is not None:
-            # DEPRECATION, remove v2.5.0
-            import warnings
-            warnings.warn("Warning: The 'nodeIndexSet parameter in the NeumannCondition " +
-            "class has been replaced with 'indexSetsPerDof'. 'indexSetPerDof' takes a " +
-            "tuple of index sets, one per degree of freedom of the 'variable'" )
+    def __init__(self, variable, indexSetsPerDof=None, fn_flux=None ):
 
         # call parent
         super(NeumannCondition,self).__init__(variable, indexSetsPerDof)

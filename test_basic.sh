@@ -3,7 +3,7 @@
 # ensure we bail on errors
 set -e
 
-export PYTHONPATH=$PWD:$PYTHONPATH
+# update the PYTHONPATH
+. ./updatePyPath.sh
 
-cd utils
-./run_tests.py ../docs/examples/1_*.ipynb ../docs/user_guide/*.ipynb ../docs/test/*
+./docs/development/run_tests.py ./docs/examples/*.ipynb ./docs/user_guide/*.ipynb ./docs/test/*
