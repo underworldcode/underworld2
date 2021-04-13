@@ -21,7 +21,7 @@
 #include <mpi.h>
 #include <petsc.h>
 extern "C" {
-#include <StGermain/StGermain.h>
+#include <StGermain/libStGermain/src/StGermain.h>
 }
 
 %}
@@ -55,36 +55,36 @@ import_array();
 %rename(CFalse) False;
 %rename(CTrue) True;
 
-%include "Base/Foundation/types.h"       
-%include "Base/Container/types.h"       
-%include "Base/Automation/types.h"
-%include "Base/Context/types.h"
-%include "Base/Extensibility/types.h"
-%include "Base/Foundation/types.h"
-%include "Base/IO/types.h"
-%include "Utils/types.h"
-%include "Base/Foundation/Class.h"
-%include "Base/Foundation/Object.h"
-%include "Base/Foundation/NamedObject_Register.h"
-%include "Base/Automation/Stg_Component.h"
-%include "Base/Automation/LiveComponentRegister.h"       
-%include "Base/Automation/Stg_ComponentFactory.h"       
-%include "Base/Automation/Stg_ComponentRegister.h"
-%include "Base/Context/Variable.h"
-%include "Base/Context/types.h"
-%include "Base/Context/VariableCondition.h"
-%include "Base/Context/PythonVC.h"
-%include "Base/Extensibility/EntryPoint.h"
-%include "Base/Extensibility/Init.h"
-%include "Base/Extensibility/ModulesManager.h"
-%include "Base/Container/IndexSet.h"
-%include "Base/IO/IO_Handler.h"
-%include "Base/IO/XML_IO_Handler.h"
-%include "Base/IO/Dictionary.h"
-%include "Base/IO/DictionaryUtils.h"
-%include "Base/IO/Dictionary_Entry.h"
-%include "Base/IO/Dictionary_Entry_Value.h"
-%include "Base/Foundation/ObjectList.h"       
+%include "StGermain/Base/Foundation/src/types.h"       
+%include "StGermain/Base/Container/src/types.h"       
+%include "StGermain/Base/Automation/src/types.h"
+%include "StGermain/Base/Context/src/types.h"
+%include "StGermain/Base/Extensibility/src/types.h"
+%include "StGermain/Base/Foundation/src/types.h"
+%include "StGermain/Base/IO/src/types.h"
+%include "StGermain/Utils/src/types.h"
+%include "StGermain/Base/Foundation/src/Class.h"
+%include "StGermain/Base/Foundation/src/Object.h"
+%include "StGermain/Base/Foundation/src/NamedObject_Register.h"
+%include "StGermain/Base/Automation/src/Stg_Component.h"
+%include "StGermain/Base/Automation/src/LiveComponentRegister.h"       
+%include "StGermain/Base/Automation/src/Stg_ComponentFactory.h"       
+%include "StGermain/Base/Automation/src/Stg_ComponentRegister.h"
+%include "StGermain/Base/Context/src/Variable.h"
+%include "StGermain/Base/Context/src/types.h"
+%include "StGermain/Base/Context/src/VariableCondition.h"
+%include "StGermain/Base/Context/src/PythonVC.h"
+%include "StGermain/Base/Extensibility/src/EntryPoint.h"
+%include "StGermain/Base/Extensibility/src/Init.h"
+%include "StGermain/Base/Extensibility/src/ModulesManager.h"
+%include "StGermain/Base/Container/src/IndexSet.h"
+%include "StGermain/Base/IO/src/IO_Handler.h"
+%include "StGermain/Base/IO/src/XML_IO_Handler.h"
+%include "StGermain/Base/IO/src/Dictionary.h"
+%include "StGermain/Base/IO/src/DictionaryUtils.h"
+%include "StGermain/Base/IO/src/Dictionary_Entry.h"
+%include "StGermain/Base/IO/src/Dictionary_Entry_Value.h"
+%include "StGermain/Base/Foundation/src/ObjectList.h"       
 
 
 /* # The following allows us to add values to IndexSets from numpy arrays */

@@ -14,12 +14,12 @@
 #include "CrossSection.h"
 #include <iostream>
 
-#include <Underworld/Function/FunctionIO.hpp>
-#include <Underworld/Function/Function.hpp>
-#include <Underworld/Function/Binary.hpp>
-#include <Underworld/Function/Unary.hpp>
-#include <Underworld/Function/MinMax.hpp>
-#include <Underworld/Function/MeshCoordinate.hpp>
+#include <Underworld/Function/src/FunctionIO.hpp>
+#include <Underworld/Function/src/Function.hpp>
+#include <Underworld/Function/src/Binary.hpp>
+#include <Underworld/Function/src/Unary.hpp>
+#include <Underworld/Function/src/MinMax.hpp>
+#include <Underworld/Function/src/MeshCoordinate.hpp>
 extern "C" {
 #include <ctype.h>
 #include "ScalarField.h"
@@ -29,7 +29,7 @@ extern "C" {
 }
 
 /* Textual name of this class - This is a global pointer which is used for times when you need to refer to class and not a particular instance of a class */
-const Type lucCrossSection_Type = "lucCrossSection";
+const Type lucCrossSection_Type = (char*) "lucCrossSection";
 
 void _lucCrossSection_SetFn( void* _self, Fn::Function* fn ){
     lucCrossSection*  self = (lucCrossSection*)_self;
@@ -117,7 +117,7 @@ void _lucCrossSection_Init(
    Bool                    interpolate)
 {
    Journal_Firewall( resolutionA > 1 && resolutionB > 1, lucError,
-                     "Error - in %s(): Resolution below 2x2 ==> %d x %d\n", __func__, resolutionA, resolutionB);
+                     (char*) "Error - in %s(): Resolution below 2x2 ==> %d x %d\n", __func__, resolutionA, resolutionB);
    self->resolutionA = resolutionA;
    self->resolutionB = resolutionB;
    self->onMesh = onMesh;
@@ -299,7 +299,7 @@ void _lucCrossSection_Build( void* drawingObject, void* data )
       if ( self->vertexGridHandle == (ExtensionInfo_Index)-1 )
 
       Journal_Firewall( self->vertexGridHandle != (ExtensionInfo_Index )-1, lucError,
-                        "Error - in %s(): provided Mesh \"%s\" doesn't have a Vertex Grid.\n"
+                        (char*) "Error - in %s(): provided Mesh \"%s\" doesn't have a Vertex Grid.\n"
                         "Try visualising with lucScalarField instead.\n", __func__, self->mesh->name );
 
    }
@@ -478,12 +478,12 @@ void lucCrossSection_AllocateSampleData(void* drawingObject, int dims)
    if (dims <= 0) dims = self->fieldComponentCount;
 
    if ((!self->vertices && self->rank == 0) || !self->gatherData || self->onMesh)
-      self->vertices = Memory_Alloc_3DArray( float, self->resolutionA, self->resolutionB, 3, "quad vertices");
+      self->vertices = Memory_Alloc_3DArray( float, self->resolutionA, self->resolutionB, 3, (char*)"quad vertices");
    else
       self->vertices = NULL;
 
    if (!self->values) 
-      self->values = Memory_Alloc_3DArray( float, self->resolutionA, self->resolutionB, dims, "vertex values");
+      self->values = Memory_Alloc_3DArray( float, self->resolutionA, self->resolutionB, dims, (char*)"vertex values");
 
    //Flag empty values with Infinity, 
    //clear components of higher dimension values outside dim range (eg: 2d vectors are stored as 3d, z needs to be zero)
@@ -587,7 +587,7 @@ void lucCrossSection_SampleField(void* drawingObject, Bool reverse)
          {
             /* Receive */
             MPI_Status status;
-            float*** rvalues = Memory_Alloc_3DArray( float, self->resolutionA, self->resolutionB, dims, "received vertex values");
+            float*** rvalues = Memory_Alloc_3DArray( float, self->resolutionA, self->resolutionB, dims, (char*) "received vertex values");
             (void)MPI_Recv(&rvalues[0][0][0], count, MPI_FLOAT, r, r, self->comm, &status);
 
             /* If value provided, copy into final data (duplicates overwritten) */
@@ -725,7 +725,7 @@ void lucCrossSection_SampleMesh( void* drawingObject, Bool reverse)
    MPI_Barrier(self->comm);    /* Barrier required, prevent subsequent MPI calls from interfering with transfer */
    Journal_Printf(lucInfo, " Gather in %f sec.\n", MPI_Wtime() - time);
    Journal_Firewall(localcount == 0, lucError,
-                     "Error - in %s: count of values sampled compared to sent/received by mpi on proc %d does not match (balance = %d)\n",
+                    (char*) "Error - in %s: count of values sampled compared to sent/received by mpi on proc %d does not match (balance = %d)\n",
                      __func__, self->rank, localcount);
 
    // finally, record encountered min/max to colourmap

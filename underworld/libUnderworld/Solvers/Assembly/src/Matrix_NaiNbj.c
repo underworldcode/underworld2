@@ -7,15 +7,15 @@
 **                                                                                  **
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 #include <mpi.h>
-#include <StGermain/StGermain.h>
-#include <StgDomain/StgDomain.h>
-#include <StgFEM/StgFEM.h>
-#include <PICellerator/PICellerator.h>
-#include <Underworld/Underworld.h>
+#include <StGermain/libStGermain/src/StGermain.h>
+#include <StgDomain/libStgDomain/src/StgDomain.h>
+#include <StgFEM/libStgFEM/src/StgFEM.h>
+#include <PICellerator/libPICellerator/src/PICellerator.h>
+#include <Underworld/libUnderworld/src/Underworld.h>
 
 #include "types.h"
 //#include "Rheology_Register.h"
-#include "Underworld/Rheology/ConstitutiveMatrix.h"
+#include "Underworld/Rheology/src/ConstitutiveMatrix.h"
 #include "Matrix_NaiNbj.h"
 
 #include <stdio.h>

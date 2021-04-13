@@ -11,8 +11,8 @@
 #ifndef __PICellerator_MaterialPoints_IntegrationPointsSwarm_h__
 #define __PICellerator_MaterialPoints_IntegrationPointsSwarm_h__
 
-    #include <PICellerator/PopulationControl/PopulationControl.h>
-    #include <PICellerator/Weights/Weights.h>
+    #include <PICellerator/PopulationControl/src/PopulationControl.h>
+    #include <PICellerator/Weights/src/Weights.h>
 
 
 	/* Textual name of this class */

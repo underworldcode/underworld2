@@ -10,8 +10,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include "pcu/pcu.h"
-#include "StGermain/Base/Foundation/Foundation.h"
+#include <StGermain/pcu/src/pcu.h>
+#include <StGermain/Base/Foundation/src/Foundation.h>
 #include "types.h"
 #include "Iter.h"
 #include "IMapIter.h"

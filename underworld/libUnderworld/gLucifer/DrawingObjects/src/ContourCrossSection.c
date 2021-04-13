@@ -9,13 +9,13 @@
 
 
 #include <mpi.h>
-#include <StGermain/StGermain.h>
-#include <StgDomain/StgDomain.h>
+#include <StGermain/libStGermain/src/StGermain.h>
+#include <StgDomain/libStgDomain/src/StgDomain.h>
 
-#include <gLucifer/Base/Base.h>
+#include <gLucifer/Base/src/Base.h>
 
 #include "types.h"
-#include <gLucifer/Base/DrawingObject.h>
+#include <gLucifer/Base/src/DrawingObject.h>
 #include "ContourCrossSection.h"
 
 /* Textual name of this class - This is a global pointer which is used for times when you need to refer to class and not a particular instance of a class */

@@ -34,124 +34,238 @@ functionality of the code running in a parallel HPC environment.
   Provide any ``Underworld`` ./configure options using the environmental variable ``UW_CONFIGURE_OPTIONS``.
     
 """
-# NOTE:  This script has been adapted from the PETSc `setup.py` installation script.  
-
 import sys, os
-from setuptools import setup
-from setuptools.command.install import install as _install
-from distutils.util import split_quoted
-from distutils.spawn import find_executable
-from distutils import log
+import shutil
+import platform
+
+import importlib
+
+import subprocess
+
+from typing import List
+from pathlib import Path
+from setuptools import setup, Extension, find_packages
+from setuptools.command.build_ext import build_ext
+
+
+
+class CMakeExtension(Extension):
+    """
+    Custom setuptools extension that configures a CMake project.
+    Args:
+        name: The name of the extension.
+        install_prefix: The path relative to the site-package directory where the CMake
+            project is installed (typically the name of the Python package).
+        disable_editable: Skip this extension in editable mode.
+        source_dir: The location of the main CMakeLists.txt.
+        cmake_build_type: The default build type of the CMake project.
+        cmake_component: The name of component to install. Defaults to all
+            components.
+        cmake_depends_on: List of dependency packages containing required CMake projects.
+    """
+
+    def __init__(self,
+                 name: str,
+                 install_prefix: str,
+                 disable_editable: bool = False,
+                 cmake_configure_options: List[str] = (),
+                 source_dir: str = str(Path(".").absolute()),
+                 cmake_build_type: str = "Release",
+                 cmake_component: str = None,
+                 cmake_depends_on: List[str] = ()):
+
+        super().__init__(name=name, sources=[])
+
+        if not Path(source_dir).is_absolute():
+            source_dir = str(Path(".").absolute() / source_dir)
+
+        if not Path(source_dir).absolute().is_dir():
+            raise ValueError(f"Directory '{source_dir}' does not exist")
+
+        self.install_prefix = install_prefix
+        self.cmake_build_type = cmake_build_type
+        self.disable_editable = disable_editable
+        self.cmake_depends_on = cmake_depends_on
+        self.source_dir = str(Path(source_dir).absolute())
+        self.cmake_configure_options = cmake_configure_options
+        self.cmake_component = cmake_component
+
+
+class BuildExtension(build_ext):
+    """
+    Setuptools build extension handler.
+    It processes all the extensions listed in the 'ext_modules' entry.
+    """
+
+    def initialize_options(self):
+
+        # Initialize base class
+        build_ext.initialize_options(self)
+
+        # Override define. This is supposed to pass C preprocessor macros, but we use it
+        # to pass custom options to CMake.
+        self.define = None
+
+    def finalize_options(self):
+
+        # Parse the custom CMake options and store them in a new attribute
+        defines = self.define.split(";") if self.define is not None else []
+        self.cmake_defines = [f"-D{define}" for define in defines]
+
+        # Call base class
+        build_ext.finalize_options(self)
+
+    def run(self) -> None:
+        """
+        Process all the registered extensions executing only the CMakeExtension objects.
+        """
+
+        # Filter the CMakeExtension objects
+        cmake_extensions = [e for e in self.extensions if isinstance(e, CMakeExtension)]
+
+        if len(cmake_extensions) == 0:
+            raise ValueError("No CMakeExtension objects found")
+
+        # Check that CMake is installed
+        if shutil.which("cmake") is None:
+            raise RuntimeError("Required command 'cmake' not found")
+
+        # Check that Ninja is installed
+        if shutil.which("ninja") is None:
+            raise RuntimeError("Required command 'ninja' not found")
+
+        for ext in cmake_extensions:
+            self.build_extension(ext)
+
+    def build_extension(self, ext: CMakeExtension) -> None:
+        """
+        Build a CMakeExtension object.
+        Args:
+            ext: The CMakeExtension object to build.
+        """
+
+        if self.inplace and ext.disable_editable:
+            print(f"Editable install recognized. Extension '{ext.name}' disabled.")
+            return
+
+        # Export CMAKE_PREFIX_PATH of all the dependencies
+        for pkg in ext.cmake_depends_on:
+
+            try:
+                importlib.import_module(pkg)
+            except ImportError:
+                raise ValueError(f"Failed to import '{pkg}'")
+
+            init = importlib.util.find_spec(pkg).origin
+            BuildExtension.extend_cmake_prefix_path(path=str(Path(init).parent))
+
+        # The ext_dir directory can be thought as a temporary site-package folder.
+        #
+        # Case 1: regular installation.
+        #   ext_dir is the folder that gets compressed to make the wheel archive. When
+        #   installed, the archive is extracted in the active site-package directory.
+        # Case 2: editable installation.
+        #   ext_dir is the in-source folder containing the Python packages. In this case,
+        #   the CMake project is installed in-source.
+        ext_dir = Path(self.get_ext_fullpath(ext.name)).parent.absolute()
+        cmake_install_prefix = ext_dir / ext.install_prefix
+
+        # CMake configure arguments
+        configure_args = [
+            "-GNinja",
+            f"-DCMAKE_BUILD_TYPE={ext.cmake_build_type}",
+            f"-DCMAKE_INSTALL_PREFIX:PATH={cmake_install_prefix}",
+        ]
+
+        # Extend the configure arguments with those passed from the extension
+        configure_args += ext.cmake_configure_options
+
+        # CMake build arguments
+        build_args = [
+            '--config', ext.cmake_build_type
+        ]
+
+        # CMake install target
+        install_target = "install"
+
+        if platform.system() == "Windows":
+
+            configure_args += [
+            ]
+
+        elif platform.system() in {"Linux", "Darwin"}:
+
+            configure_args += [
+            ]
+
+        else:
+            raise RuntimeError(f"Unsupported '{platform.system()}' platform")
+
+        # Parse the optional CMake options. They can be passed as:
+        #
+        # python setup.py build_ext -D"BAR=Foo;VAR=TRUE"
+        # python setup.py bdist_wheel build_ext -D"BAR=Foo;VAR=TRUE"
+        # python setup.py install build_ext -D"BAR=Foo;VAR=TRUE"
+        # python setup.py install -e build_ext -D"BAR=Foo;VAR=TRUE"
+        # pip install --global-option="build_ext" --global-option="-DBAR=Foo;VAR=TRUE" .
+        #
+        configure_args += self.cmake_defines
+
+        # Get the absolute path to the build folder
+        build_folder = str(Path('.').absolute() / f"{self.build_temp}_{ext.name}")
+
+        # Make sure that the build folder exists
+        Path(build_folder).mkdir(exist_ok=True, parents=True)
+
+        # 1. Compose CMake configure command
+        configure_command = \
+            ['cmake', '-S', ext.source_dir, '-B', build_folder] + configure_args
+
+        # 2. Compose CMake build command
+        build_command = ['cmake', '--build', build_folder] + build_args
+
+        # 3. Compose CMake install command
+        install_command = ['cmake', '--install', build_folder]
+        if ext.cmake_component is not None:
+            install_command.extend(['--component', ext.cmake_component])
+
+        print("")
+        print("==> Configuring:")
+        print(f"$ {' '.join(configure_command)}")
+        print("")
+        print("==> Building:")
+        print(f"$ {' '.join(build_command)}")
+        print("")
+        print("==> Installing:")
+        print(f"$ {' '.join(install_command)}")
+        print("")
+
+        # Call CMake
+        subprocess.check_call(configure_command)
+        subprocess.check_call(build_command)
+        subprocess.check_call(install_command)
+
+    @staticmethod
+    def extend_cmake_prefix_path(path: str) -> None:
+
+        abs_path = Path(path).absolute()
+
+        if not abs_path.exists():
+            raise ValueError(f"Path {abs_path} does not exist")
+
+        if "CMAKE_PREFIX_PATH" in os.environ:
+            os.environ["CMAKE_PREFIX_PATH"] = \
+                f"{str(path)}:{os.environ['CMAKE_PREFIX_PATH']}"
+        else:
+            os.environ["CMAKE_PREFIX_PATH"] = str(path)
+
+
 
 metadata = {
     'provides' : ['underworld'],
     'zip_safe' : False,
-    'install_requires' : ['scons','numpy','mpi4py>=1.2.2', 'h5py', 'pint']
+    'install_requires' : ['numpy','mpi4py>=1.2.2', 'h5py', 'pint']
 }
-
-def config(prefix, dry_run=False):
-    log.info('UW: configure')
-    options = [
-        '--prefix=' + prefix,
-        '--with-debugging=0',
-        ]
-    try:
-        import mpi4py
-        conf = mpi4py.get_config()
-        mpicc  = conf.get('mpicc')
-        mpicxx = conf.get('mpicxx')
-    except AttributeError:
-        mpicc  = os.environ.get('MPICC')  or find_executable('mpicc')
-        mpicxx = os.environ.get('MPICXX') or find_executable('mpicxx')
-    if mpicc:
-        options.append('--cc='+mpicc)
-    if mpicxx:
-        options.append('--cxx='+mpicxx)
-    options.extend(split_quoted( os.environ.get('UW_CONFIGURE_OPTIONS', '')) )
-
-    if 'PETSC_DIR' in os.environ:
-        options.append('--petsc-dir='+os.environ['PETSC_DIR'])
-    else:
-        try:
-            import petsc
-            options.append('--petsc-dir='+petsc.get_config()['PETSC_DIR'])
-        except:
-            pass
-
-    log.info('configure options:')
-    for opt in options:
-        log.info(' '*4 + opt)
-    # Run UW configure
-    if dry_run: return
-    python = find_executable('python3')
-    command = [python, './configure.py'] + options
-    status = os.system(" ".join(command))
-    if status != 0: raise RuntimeError(status)
-
-def build(dry_run=False):
-    log.info('Underworld: build')
-    # Run UW build
-    if dry_run: return
-    python = find_executable('python3')
-    command = [python, './compile.py --jobs=4']
-    status = os.system(" ".join(command))
-    if status != 0: raise RuntimeError(status)
-
-def install(dry_run=False):
-    log.info('Underworld: install')
-    # Run UW installer
-    if dry_run: return
-    python = find_executable('python3')
-    command = [python, 'scons.py install']
-    status = os.system(" ".join(command))
-    if status != 0: raise RuntimeError(status)
-
-class context(object):
-    def __init__(self):
-        self.sys_argv = sys.argv[:]
-        self.wdir = os.getcwd()
-    def enter(self):
-        del sys.argv[1:]
-        pdir = os.path.join(os.getcwd(),'underworld/libUnderworld')
-        os.chdir(pdir)
-        return self
-    def exit(self):
-        sys.argv[:] = self.sys_argv
-        os.chdir(self.wdir)
-
-class cmd_install(_install):
-
-    def initialize_options(self):
-        _install.initialize_options(self)
-        self.optimize = 1
-
-    def finalize_options(self):
-        _install.finalize_options(self)
-        self.install_lib = self.install_platlib
-        self.install_libbase = self.install_lib
-
-    def run(self):
-        prefix = os.path.abspath(self.install_lib)
-        ctx = context().enter()
-        try:
-            config(prefix, self.dry_run)
-            build(self.dry_run)
-            install(self.dry_run)
-        finally:
-            ctx.exit()
-        #
-        self.outputs = []
-        for dirpath, _, filenames in os.walk(prefix):
-            for fn in filenames:
-                self.outputs.append(os.path.join(dirpath, fn))
-        #
-        _install.run(self)
-
-    def get_outputs(self):
-        outputs = getattr(self, 'outputs', [])
-        outputs += _install.get_outputs(self)
-        return outputs
-
 classifiers = """
 Development Status :: 5 - Production/Stable
 Intended Audience :: Developers
@@ -164,15 +278,14 @@ Topic :: Scientific/Engineering
 Topic :: Software Development :: Libraries
 """
 
-if 'bdist_wheel' in sys.argv:
-    sys.stderr.write("underworld: this package cannot be built as a wheel\n")
-    sys.exit(1)
-
 version = {}
 with open("underworld/_version.py") as fp:
     exec(fp.read(), version)
+
 with open("README.md", "r") as fh:
     long_description = fh.read()
+
+
 setup(name='underworld',
     version=version['__version__'],
     description="Underworld is a python-friendly version of the Underworld geodynamics \
@@ -193,8 +306,15 @@ functionality of the code running in a parallel HPC environment.",
     maintainer='Underworld Team',
     maintainer_email='help@underworldcode.org',
     include_package_data=False,
-
-    packages = ['underworld'],
-    #   package_dir = {'': 'config/pypi'},
-    cmdclass={'install': cmd_install},
+    packages=find_packages(),
+    ext_modules=[
+        CMakeExtension(name='libUnderworld',
+                       install_prefix="underworld",
+                       source_dir=str(Path("underworld/libUnderworld").absolute()),
+                       cmake_configure_options=[
+                           f"-DPython3_ROOT_DIR={Path(sys.prefix)}",
+                           "-DCALL_FROM_SETUP_PY:BOOL=ON"]
+                       ),
+    ],
+    cmdclass=dict(build_ext=BuildExtension),
     **metadata)

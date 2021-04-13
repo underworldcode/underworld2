@@ -9,10 +9,10 @@
 
 
 #include <stdarg.h>
-#include "Base/Foundation/Foundation.h"
-#include "Base/IO/IO.h"
-#include "Base/Container/Container.h"
-#include "Base/Automation/Automation.h"
+#include "StGermain/Base/Foundation/src/Foundation.h"
+#include "StGermain/Base/IO/src/IO.h"
+#include "StGermain/Base/Container/src/Container.h"
+#include "StGermain/Base/Automation/src/Automation.h"
 
 #include "types.h"
 #include "shortcuts.h"
@@ -42,7 +42,7 @@ void* Module_MapStaticSymbol(Module *self, const char *sym);
 
 const Type Module_Type = "Module";
 
-static const char* MODULE_SUFFIX = "module.";
+static const char* MODULE_SUFFIX = "module";
 static const char* MODULE_GETDEPS_SUFFIX = "_GetDeps";
 
 static const char* MODULE_FILENAME = "fileName";

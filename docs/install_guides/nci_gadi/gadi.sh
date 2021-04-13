@@ -128,7 +128,6 @@ install_underworld(){
 	#export PETSC_DIR=$UW_OPT_DIR/petsc-3.12.3 # disable when using petsc module
 
 	source $INSTALL_PATH/bin/activate 
-	pip3 install scons==3.1.1
 	pip3 install --no-binary :all: --no-cache-dir --no-build-isolation  underworld==2.10.1b0
 
 	# tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)

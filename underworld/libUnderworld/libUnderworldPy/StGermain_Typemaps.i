@@ -10,7 +10,7 @@
 
 %{
 /* Includes the header in the wrapper code */
-#include <StGermain/StGermain.h>
+#include <StGermain/libStGermain/src/StGermain.h>
 %}
 
 /* we include this rename for Variable.h which has a member 'as' which conflicts with the 'as' python builtin */

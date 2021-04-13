@@ -18,11 +18,11 @@
 #include <petscvec.h>
 
 extern "C" {
-#include <StGermain/StGermain.h>
-#include <StgDomain/StgDomain.h>
-#include <StgFEM/StgFEM.h>
-#include <PICellerator/PICellerator.h>
-#include <Underworld/Underworld.h>
+#include <StGermain/libStGermain/src/StGermain.h>
+#include <StgDomain/libStgDomain/src/StgDomain.h>
+#include <StgFEM/libStgFEM/src/StgFEM.h>
+#include <PICellerator/libPICellerator/src/PICellerator.h>
+#include <Underworld/libUnderworld/src/Underworld.h>
 }
 
 %}

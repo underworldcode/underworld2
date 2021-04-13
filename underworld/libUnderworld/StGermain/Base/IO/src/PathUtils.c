@@ -16,7 +16,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include "Base/Foundation/Foundation.h"
+#include "StGermain/Base/Foundation/src/Foundation.h"
 #include <libxml/parserInternals.h>
 
 #include "types.h"

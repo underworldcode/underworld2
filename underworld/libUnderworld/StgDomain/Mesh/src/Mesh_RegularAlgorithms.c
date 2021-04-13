@@ -13,8 +13,8 @@
 #include <assert.h>
 #include <mpi.h>
 
-#include <StGermain/StGermain.h>
-#include <StgDomain/Geometry/Geometry.h>
+#include <StGermain/libStGermain/src/StGermain.h>
+#include <StgDomain/Geometry/src/Geometry.h>
 #include "Mesh.h"
 
 

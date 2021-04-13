@@ -13,8 +13,8 @@
 #include <string.h>
 #include <math.h>
 
-#include "pcu/pcu.h"
-#include "StGermain/Base/Foundation/Foundation.h"
+#include "StGermain/pcu/src/pcu.h"
+#include "StGermain/Base/Foundation/src/Foundation.h"
 #include "StGermain/Base/Foundation/forwardDecl.h" /* For Journal stuff */
 #include "CommonRoutinesSuite.h"
 

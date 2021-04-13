@@ -15,10 +15,10 @@
 #include <mpi.h>
 #include <petsc.h>
 extern "C" {
-#include <StGermain/StGermain.h>
-#include <StgDomain/StgDomain.h>
-#include <StgFEM/StgFEM.h>
-#include <PICellerator/PICellerator.h>
+#include <StGermain/libStGermain/src/StGermain.h>
+#include <StgDomain/libStgDomain/src/StgDomain.h>
+#include <StgFEM/libStgFEM/src/StgFEM.h>
+#include <PICellerator/libPICellerator/src/PICellerator.h>
 }
 #include "FunctionIO.hpp"
 #include "Function.hpp"

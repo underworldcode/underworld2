@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "pcu/pcu.h"
+#include "StGermain/pcu/src/pcu.h"
 #include "StGermain.h"
 #include "LibStGermainSuite.h"
 

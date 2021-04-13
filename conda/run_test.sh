@@ -1,1 +1,1 @@
-mpirun -np 2 python -c "import underworld; underworld.mesh.FeMesh_Cartesian();"
+python -X faulthandler -c "import underworld; underworld.mesh.FeMesh_Cartesian();"

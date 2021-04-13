@@ -15,16 +15,16 @@
 #include <mpi.h>
 #include <petsc.h>
 
-#include <Underworld/Function/FunctionIO.hpp>
-#include <Underworld/Function/FEMCoordinate.hpp>
-#include <Underworld/Function/ParticleInCellCoordinate.hpp>
-#include <Underworld/Function/Function.hpp>
+#include <Underworld/Function/src/FunctionIO.hpp>
+#include <Underworld/Function/src/FEMCoordinate.hpp>
+#include <Underworld/Function/src/ParticleInCellCoordinate.hpp>
+#include <Underworld/Function/src/Function.hpp>
 
 #include "VectorAssemblyTerm_NA__Fn.h"
 #include "VectorSurfaceAssemblyTerm_NA__Fn__ni.h"
 
 /* Textual name of this class */
-const Type VectorSurfaceAssemblyTerm_NA__Fn__ni_Type = "VectorSurfaceAssemblyTerm_NA__Fn__ni";
+const Type VectorSurfaceAssemblyTerm_NA__Fn__ni_Type = (char*) "VectorSurfaceAssemblyTerm_NA__Fn__ni";
 
 
 /* Creation implementation / Virtual constructor */

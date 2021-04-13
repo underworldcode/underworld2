@@ -14,9 +14,9 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include "pcu/pcu.h"
-#include "StGermain/Base/Foundation/Foundation.h"
-#include "StGermain/Base/IO/IO.h"
+#include "StGermain/pcu/src/pcu.h"
+#include "StGermain/Base/Foundation/src/Foundation.h"
+#include "StGermain/Base/IO/src/IO.h"
 #include "PathUtilsSuite.h"
 
 typedef struct {

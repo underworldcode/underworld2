@@ -23,13 +23,13 @@
 
 *****************************************************************************************************************/
 
-#include <StGermain/StGermain.h>
+#include <StGermain/libStGermain/src/StGermain.h>
 #include <mpi.h>
-#include <StgDomain/StgDomain.h>
-#include <StgFEM/StgFEM.h>
-#include <PICellerator/PopulationControl/PopulationControl.h>
-#include <PICellerator/Weights/Weights.h>
-#include <PICellerator/MaterialPoints/MaterialPoints.h>
+#include <StgDomain/libStgDomain/src/StgDomain.h>
+#include <StgFEM/libStgFEM/src/StgFEM.h>
+#include <PICellerator/PopulationControl/src/PopulationControl.h>
+#include <PICellerator/Weights/src/Weights.h>
+#include <PICellerator/MaterialPoints/src/MaterialPoints.h>
 
 //#include <PICellerator/PICellerator.h>
 #include "types.h"

@@ -10,9 +10,9 @@
 #ifndef __Solvers_h__
 #define __Solvers_h__
 
-#include "SLE/SLE.h"
-#include "Assembly/Assembly.h"
-#include "KSPSolvers/KSPSolvers.h"
+#include "Solvers/SLE/src/SLE.h"
+#include "Solvers/Assembly/src/Assembly.h"
+#include "Solvers/KSPSolvers/src/KSPSolvers.h"
 
 #ifdef HAVE_PETScEXT
 	#include "petscext.h"

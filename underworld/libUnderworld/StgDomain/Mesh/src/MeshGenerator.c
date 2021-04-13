@@ -13,10 +13,10 @@
 #include <assert.h>
 
 #include <mpi.h>
-#include <StGermain/StGermain.h>
+#include <StGermain/libStGermain/src/StGermain.h>
 
-#include <StgDomain/Geometry/Geometry.h>
-#include <StgDomain/Shape/Shape.h>
+#include <StgDomain/Geometry/src/Geometry.h>
+#include <StgDomain/Shape/src/Shape.h>
 
 #include "types.h"
 #include "shortcuts.h"

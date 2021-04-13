@@ -15,9 +15,9 @@
 #include <sys/types.h>
 #include <mpi.h>
 
-#include "pcu/pcu.h"
-#include "StGermain/Base/Foundation/Foundation.h"
-#include "StGermain/Base/IO/IO.h"
+#include "StGermain/pcu/src/pcu.h"
+#include "StGermain/Base/Foundation/src/Foundation.h"
+#include "StGermain/Base/IO/src/IO.h"
 #include "DictionarySuite.h"  /* Because want to re-use sample dictionary structs/funcs */
 #include "IO_HandlerSuite.h"
 

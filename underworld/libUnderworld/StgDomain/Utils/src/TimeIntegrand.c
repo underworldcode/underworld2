@@ -8,11 +8,11 @@
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 
 #include <mpi.h>
-#include <StGermain/StGermain.h>
+#include <StGermain/libStGermain/src/StGermain.h>
 
-#include <StgDomain/Geometry/Geometry.h>
-#include <StgDomain/Shape/Shape.h>
-#include <StgDomain/Mesh/Mesh.h>
+#include <StgDomain/Geometry/src/Geometry.h>
+#include <StgDomain/Shape/src/Shape.h>
+#include <StgDomain/Mesh/src/Mesh.h>
 
 #include "types.h"
 #include "DomainContext.h"

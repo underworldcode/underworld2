@@ -45,8 +45,8 @@ Performs y = ( G^T G )^{-1} ( G^T K G ) ( G^T G )^{-1} x
 
 #include "pc_ScaledGtKG.h"
 
-#include <StGermain/StGermain.h>
-#include <StgDomain/StgDomain.h>
+#include <StGermain/libStGermain/src/StGermain.h>
+#include <StgDomain/libStgDomain/src/StgDomain.h>
 
 #define PCTYPE_SCGtKG "scgtkg"
 

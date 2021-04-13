@@ -29,13 +29,13 @@
   #include "private/kspimpl.h"   /*I "petscksp.h" I*/
 #endif
 
-#include <StGermain/StGermain.h>
-#include <StgDomain/StgDomain.h>
-#include <StgFEM/StgFEM.h>
-#include <PICellerator/PICellerator.h>
-#include <Underworld/Underworld.h>
-#include "Solvers/SLE/SLE.h" /* to give the AugLagStokes_SLE type */
-#include "Solvers/KSPSolvers/KSPSolvers.h"
+#include <StGermain/libStGermain/src/StGermain.h>
+#include <StgDomain/libStgDomain/src/StgDomain.h>
+#include <StgFEM/libStgFEM/src/StgFEM.h>
+#include <PICellerator/libPICellerator/src/PICellerator.h>
+#include <Underworld/libUnderworld/src/Underworld.h>
+#include "Solvers/SLE/src/SLE.h" /* to give the AugLagStokes_SLE type */
+#include "Solvers/KSPSolvers/src/KSPSolvers.h"
 
 #include "BSSCR.h"
 #include "createK2.h"

@@ -15,8 +15,8 @@
 
 extern "C++" {
 
-#include <Underworld/Function/Function.hpp>
-#include <Underworld/Function/FEMCoordinate.hpp>
+#include <Underworld/Function/src/Function.hpp>
+#include <Underworld/Function/src/FEMCoordinate.hpp>
 
 void _VectorSurfaceAssemblyTerm_NA__Fn__ni_SetFn( void* _self, Fn::Function* fn );
 
@@ -25,11 +25,11 @@ void _VectorSurfaceAssemblyTerm_NA__Fn__ni_SetFn( void* _self, Fn::Function* fn 
 extern "C" {
 #endif
 
-#include <StGermain/StGermain.h>
-#include <StgDomain/StgDomain.h>
-#include <StgFEM/StgFEM.h>
-#include <PICellerator/PICellerator.h>
-#include <Underworld/Underworld.h>
+#include <StGermain/libStGermain/src/StGermain.h>
+#include <StgDomain/libStgDomain/src/StgDomain.h>
+#include <StgFEM/libStgFEM/src/StgFEM.h>
+#include <PICellerator/libPICellerator/src/PICellerator.h>
+#include <Underworld/libUnderworld/src/Underworld.h>
 #include "types.h"
 
    /** Textual name of this class */

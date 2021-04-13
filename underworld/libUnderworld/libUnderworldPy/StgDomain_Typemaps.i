@@ -10,8 +10,8 @@
 
 %{
 /* Includes the header in the wrapper code */
-#include <StGermain/StGermain.h>
-#include <StgDomain/StgDomain.h>
+#include <StGermain/libStGermain/src/StGermain.h>
+#include <StgDomain/libStgDomain/src/StgDomain.h>
 
 %}
 

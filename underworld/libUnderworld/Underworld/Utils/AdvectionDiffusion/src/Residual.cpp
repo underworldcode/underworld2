@@ -16,10 +16,10 @@
 #include <mpi.h>
 #include <petsc.h>
 
-#include <Underworld/Function/FunctionIO.hpp>
-#include <Underworld/Function/FEMCoordinate.hpp>
-#include <Underworld/Function/ParticleInCellCoordinate.hpp>
-#include <Underworld/Function/Function.hpp>
+#include <Underworld/Function/src/FunctionIO.hpp>
+#include <Underworld/Function/src/FEMCoordinate.hpp>
+#include <Underworld/Function/src/ParticleInCellCoordinate.hpp>
+#include <Underworld/Function/src/Function.hpp>
 #include "Residual.h"
 
 #include <assert.h>
@@ -30,7 +30,7 @@
 #define SUPG_MIN_DIFFUSIVITY 1.0e-20
 
 /* Textual name of this class */
-Type AdvDiffResidualForceTerm_Type = "AdvDiffResidualForceTerm";
+Type AdvDiffResidualForceTerm_Type = (char*) "AdvDiffResidualForceTerm";
 
 AdvDiffResidualForceTerm* AdvDiffResidualForceTerm_New(
     Name                    name,
@@ -156,7 +156,7 @@ void _AdvDiffResidualForceTerm_AssignFromXML( void* residual, Stg_ComponentFacto
     else if ( strcasecmp( upwindParamFuncName, "Exact" ) == 0 )
         upwindFuncType = Exact;
     else
-        Journal_Firewall( False, Journal_Register( Error_Type, (Name)self->type  ), "Cannot understand '%s'\n", upwindParamFuncName );
+        Journal_Firewall( False, Journal_Register( Error_Type, (Name)self->type  ), (char*) "Cannot understand '%s'\n", upwindParamFuncName );
 
 
     _AdvDiffResidualForceTerm_Init( self, velocityField, upwindFuncType );
@@ -175,10 +175,10 @@ void _AdvDiffResidualForceTerm_Allocate( AdvDiffResidualForceTerm* self, int dim
   if (self->last_maxNodeCount < max_elementNodeCount) {
     _AdvDiffResidualForceTerm_FreeLocalMemory( self );
   }
-  self->GNx = Memory_Alloc_2DArray( double, dim, max_elementNodeCount, (Name)"(SUPG): Global Shape Function Derivatives" );
-  self->phiGrad = Memory_Alloc_Array(double, dim, "(SUPG): Gradient of the Advected Scalar");
-  self->Ni = Memory_Alloc_Array(double, max_elementNodeCount, "(SUPG): Gradient of the Advected Scalar");
-  self->SUPGNi = Memory_Alloc_Array(double, max_elementNodeCount, "(SUPG): Upwinded Shape Function");
+  self->GNx = Memory_Alloc_2DArray( double, dim, max_elementNodeCount, (Name)(char*)"(SUPG): Global Shape Function Derivatives" );
+  self->phiGrad = Memory_Alloc_Array(double, dim, (char*)"(SUPG): Gradient of the Advected Scalar");
+  self->Ni = Memory_Alloc_Array(double, max_elementNodeCount, (char*)"(SUPG): Gradient of the Advected Scalar");
+  self->SUPGNi = Memory_Alloc_Array(double, max_elementNodeCount, (char*)"(SUPG): Upwinded Shape Function");
   self->incarray=IArray_New();
 
   self->last_maxNodeCount = max_elementNodeCount;

@@ -15,15 +15,15 @@
 #include <mpi.h>
 #include <petsc.h>
 
-#include <Underworld/Function/FunctionIO.hpp>
-#include <Underworld/Function/FEMCoordinate.hpp>
-#include <Underworld/Function/ParticleInCellCoordinate.hpp>
-#include <Underworld/Function/Function.hpp>
+#include <Underworld/Function/src/FunctionIO.hpp>
+#include <Underworld/Function/src/FEMCoordinate.hpp>
+#include <Underworld/Function/src/ParticleInCellCoordinate.hpp>
+#include <Underworld/Function/src/Function.hpp>
 
 #include "VectorAssemblyTerm_NA_j__Fn_ij.h"
 
 /* Textual name of this class */
-const Type VectorAssemblyTerm_NA_j__Fn_ij_Type = "VectorAssemblyTerm_NA_j__Fn_ij";
+const Type VectorAssemblyTerm_NA_j__Fn_ij_Type = (char*) "VectorAssemblyTerm_NA_j__Fn_ij";
 
 /* Creation implementation / Virtual constructor */
 VectorAssemblyTerm_NA_j__Fn_ij* _VectorAssemblyTerm_NA_j__Fn_ij_New(  FORCEASSEMBLYTERM_NA__FN_DEFARGS  )
@@ -143,7 +143,7 @@ void _VectorAssemblyTerm_NA_j__Fn_ij_Initialise( void* forceTerm, void* data ) {
    // allocate GNx before assembly
    elementType = FeMesh_GetElementType( vector->feVariable->feMesh, 0 );
    self->maxNodesPerEl = elementType->nodeCount;
-   self->GNx   = Memory_Alloc_2DArray( double, vector->dim, self->maxNodesPerEl, (Name)"GNx" );
+   self->GNx   = Memory_Alloc_2DArray( double, vector->dim, self->maxNodesPerEl, (Name)(char*)"GNx" );
 }
 
 void _VectorAssemblyTerm_NA_j__Fn_ij_Execute( void* forceTerm, void* data ) {

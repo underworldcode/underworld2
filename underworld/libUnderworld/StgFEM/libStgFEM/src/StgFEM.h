@@ -11,10 +11,10 @@
 #ifndef __StgFEM_h__
 #define __StgFEM_h__
 	
-	#include "Discretisation/Discretisation.h"
-	#include "SLE/SLE.h"
-	#include "Assembly/Assembly.h"
-	#include "Utils/Utils.h"
+	#include "StgFEM/Discretisation/src/Discretisation.h"
+	#include "StgFEM/SLE/src/SLE.h"
+	#include "StgFEM/Assembly/src/Assembly.h"
+	#include "StgFEM/Utils/src/Utils.h"
 
 	#include "Init.h"
 	#include "Finalise.h"

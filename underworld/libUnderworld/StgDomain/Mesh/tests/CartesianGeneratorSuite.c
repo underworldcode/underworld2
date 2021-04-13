@@ -11,8 +11,8 @@
 #include <stdlib.h>
 
 #include "pcu/pcu.h"
-#include <StGermain/StGermain.h>
-#include <StgDomain/Mesh/Mesh.h>
+#include <StGermain/libStGermain/src/StGermain.h>
+#include <StgDomain/Mesh/src/Mesh.h>
 #include "CartesianGeneratorSuite.h"
 
 typedef struct {

@@ -11,8 +11,8 @@
 #ifndef __StgFEM_SLE_h__
 #define __StgFEM_SLE_h__
 	
-	#include "SystemSetup/SystemSetup.h"
-	#include "ProvidedSystems/ProvidedSystems.h"
+	#include "StgFEM/SLE/SystemSetup/src/SystemSetup.h"
+	#include "StgFEM/SLE/ProvidedSystems/src/ProvidedSystems.h"
 
 	#include "types.h"
 

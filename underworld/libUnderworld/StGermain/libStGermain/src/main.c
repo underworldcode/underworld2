@@ -8,8 +8,8 @@
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 
 #include <mpi.h>
-#include "StGermain/Base/Base.h"
-#include "StGermain/Utils/Utils.h"
+#include "StGermain/Base/src/Base.h"
+#include "StGermain/Utils/src/Utils.h"
 
 #include "main.h"
 

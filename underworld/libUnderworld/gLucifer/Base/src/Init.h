@@ -14,7 +14,7 @@ extern Stream* lucInfo;
 extern Stream* lucDebug;
 extern Stream* lucError;
 
-extern const Type lucRenderingEngineGL_Type;
+//extern const Type lucRenderingEngineGL_Type;
 
 Bool lucBase_Init() ;
 

@@ -21,9 +21,9 @@
 #include <mpi.h>
 #include <petsc.h>
 extern "C" {
-#include <StGermain/StGermain.h>
-#include <StgDomain/StgDomain.h>
-#include <StgFEM/StgFEM.h>
+#include <StGermain/libStGermain/src/StGermain.h>
+#include <StgDomain/libStgDomain/src/StgDomain.h>
+#include <StgFEM/libStgFEM/src/StgFEM.h>
 }
 %}
 
@@ -38,27 +38,27 @@ import_array();
 %import "StgDomain.i"
 
 
-%include "Discretisation/FeVariable.h"
-%include "Discretisation/C0Generator.h"
-%include "Discretisation/C2Generator.h"
-%include "Discretisation/FeEquationNumber.h"
-%include "Discretisation/FeMesh.h"
-%include "Discretisation/Inner2DGenerator.h"
-%include "Discretisation/dQ1Generator.h"
-%include "Discretisation/IrregularMeshGaussLayout.h"
-%include "Discretisation/types.h"
-%include "SLE/SystemSetup/ForceTerm.h"
-%include "SLE/SystemSetup/MGOpGenerator.h"
-%include "SLE/SystemSetup/PETScMGSolver.h"
-%include "SLE/SystemSetup/SLE_Solver.h"
-%include "SLE/SystemSetup/SolutionVector.h"
-%include "SLE/SystemSetup/SROpGenerator.h"
-%include "SLE/SystemSetup/StiffnessMatrix.h"
-%include "SLE/SystemSetup/StiffnessMatrixTerm.h"
-%include "SLE/SystemSetup/SystemLinearEquations.h"
-%include "SLE/SystemSetup/SolutionVector.h"
-%include "SLE/SystemSetup/ForceVector.h"
-%include "SLE/SystemSetup/types.h"
+%include "StgFEM/Discretisation/src/FeVariable.h"
+%include "StgFEM/Discretisation/src/C0Generator.h"
+%include "StgFEM/Discretisation/src/C2Generator.h"
+%include "StgFEM/Discretisation/src/FeEquationNumber.h"
+%include "StgFEM/Discretisation/src/FeMesh.h"
+%include "StgFEM/Discretisation/src/Inner2DGenerator.h"
+%include "StgFEM/Discretisation/src/dQ1Generator.h"
+%include "StgFEM/Discretisation/src/IrregularMeshGaussLayout.h"
+%include "StgFEM/Discretisation/src/types.h"
+%include "StgFEM/SLE/SystemSetup/src/ForceTerm.h"
+%include "StgFEM/SLE/SystemSetup/src/MGOpGenerator.h"
+%include "StgFEM/SLE/SystemSetup/src/PETScMGSolver.h"
+%include "StgFEM/SLE/SystemSetup/src/SLE_Solver.h"
+%include "StgFEM/SLE/SystemSetup/src/SolutionVector.h"
+%include "StgFEM/SLE/SystemSetup/src/SROpGenerator.h"
+%include "StgFEM/SLE/SystemSetup/src/StiffnessMatrix.h"
+%include "StgFEM/SLE/SystemSetup/src/StiffnessMatrixTerm.h"
+%include "StgFEM/SLE/SystemSetup/src/SystemLinearEquations.h"
+%include "StgFEM/SLE/SystemSetup/src/SolutionVector.h"
+%include "StgFEM/SLE/SystemSetup/src/ForceVector.h"
+%include "StgFEM/SLE/SystemSetup/src/types.h"
 /*
 %include "SLE/ProvidedSystems/AdvectionDiffusion/AdvectionDiffusionSLE.h"
 %include "SLE/ProvidedSystems/AdvectionDiffusion/LumpedMassMatrixForceTerm.h"
@@ -67,17 +67,17 @@ import_array();
 %include "SLE/ProvidedSystems/AdvectionDiffusion/Timestep.h"
 %include "SLE/ProvidedSystems/AdvectionDiffusion/types.h"
 */
-%include "SLE/ProvidedSystems/Energy/Energy_SLE_Solver.h"
-%include "SLE/ProvidedSystems/Energy/types.h"
-%include "SLE/ProvidedSystems/StokesFlow/Stokes_SLE.h"
-%include "SLE/ProvidedSystems/StokesFlow/Stokes_SLE_UzawaSolver.h"
-%include "SLE/ProvidedSystems/StokesFlow/types.h"
-%include "SLE/ProvidedSystems/StokesFlow/UzawaPreconditionerTerm.h"
-%include "SLE/types.h"
-%include "Assembly/DivergenceMatrixTerm.h"
-%include "Assembly/GradientStiffnessMatrixTerm.h"
-%include "Assembly/types.h"
-%include "Utils/IrregularMeshParticleLayout.h"
-%include "Utils/SemiLagrangianIntegrator.h"
-%include "Utils/MeshParticleLayout.h"
-%include "Utils/types.h"
+%include "StgFEM/SLE/ProvidedSystems/Energy/src/Energy_SLE_Solver.h"
+%include "StgFEM/SLE/ProvidedSystems/Energy/src/types.h"
+%include "StgFEM/SLE/ProvidedSystems/StokesFlow/src/Stokes_SLE.h"
+%include "StgFEM/SLE/ProvidedSystems/StokesFlow/src/Stokes_SLE_UzawaSolver.h"
+%include "StgFEM/SLE/ProvidedSystems/StokesFlow/src/types.h"
+%include "StgFEM/SLE/ProvidedSystems/StokesFlow/src/UzawaPreconditionerTerm.h"
+%include "StgFEM/SLE/src/types.h"
+%include "StgFEM/Assembly/src/DivergenceMatrixTerm.h"
+%include "StgFEM/Assembly/src/GradientStiffnessMatrixTerm.h"
+%include "StgFEM/Assembly/src/types.h"
+%include "StgFEM/Utils/src/IrregularMeshParticleLayout.h"
+%include "StgFEM/Utils/src/SemiLagrangianIntegrator.h"
+%include "StgFEM/Utils/src/MeshParticleLayout.h"
+%include "StgFEM/Utils/src/types.h"

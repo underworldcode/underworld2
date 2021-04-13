@@ -15,15 +15,15 @@
 #include <mpi.h>
 #include <petsc.h>
 
-#include <Underworld/Function/FunctionIO.hpp>
-#include <Underworld/Function/FEMCoordinate.hpp>
-#include <Underworld/Function/ParticleInCellCoordinate.hpp>
-#include <Underworld/Function/Function.hpp>
+#include <Underworld/Function/src/FunctionIO.hpp>
+#include <Underworld/Function/src/FEMCoordinate.hpp>
+#include <Underworld/Function/src/ParticleInCellCoordinate.hpp>
+#include <Underworld/Function/src/Function.hpp>
 
 #include "VectorAssemblyTerm_NA__Fn.h"
 
 /* Textual name of this class */
-const Type VectorAssemblyTerm_NA__Fn_Type = "VectorAssemblyTerm_NA__Fn";
+const Type VectorAssemblyTerm_NA__Fn_Type = (char*) "VectorAssemblyTerm_NA__Fn";
 
 /* Creation implementation / Virtual constructor */
 VectorAssemblyTerm_NA__Fn* _VectorAssemblyTerm_NA__Fn_New(  FORCEASSEMBLYTERM_NA__FN_DEFARGS  )

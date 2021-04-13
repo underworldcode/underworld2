@@ -8,10 +8,10 @@
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 
 #include <mpi.h>
-#include <StGermain/StGermain.h>
-#include <StgDomain/StgDomain.h>
-#include <StgFEM/Discretisation/Discretisation.h>
-#include <StgFEM/SLE/SLE.h>
+#include <StGermain/libStGermain/src/StGermain.h>
+#include <StgDomain/libStgDomain/src/StgDomain.h>
+#include <StgFEM/Discretisation/src/Discretisation.h>
+#include <StgFEM/SLE/src/SLE.h>
 
 #include "Assembly.h"
 
