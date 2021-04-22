@@ -19,6 +19,10 @@ from mpi4py import MPI
 import h5py
 import os
 import weakref
+from underworld.scaling import units as u
+from underworld.scaling import non_dimensionalise
+from underworld.scaling import dimensionalise
+from pint.errors import UndefinedUnitError
 
 class SwarmVariable(_stgermain.StgClass, function.Function):
     """
@@ -335,7 +339,16 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
                 with dset.collective:
                     self.data[0:0,:] = dset[0:0,:]
 
-    def save( self, filename, collective=False, swarmHandle=None  ):
+            # get units
+            try:
+                units = u.Quantity(h5f.attrs["units"])
+            except (KeyError, UndefinedUnitError) as e:
+                units = None
+            
+            if units:
+                self.data[:] = non_dimensionalise(self.data * units)
+
+    def save( self, filename, collective=False, swarmHandle=None, units=None, **kwargs):
         """
         Save the swarm variable to disk.
 
@@ -351,7 +364,12 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         swarmHandle :underworld.utils.SavedFileData
             The saved swarm file handle. If provided, a link is created within the
             swarmvariable file to this saved swarm file. Optional.
+        units : pint unit object (optional)
+            Define the units that must be used to save the data.
+            The data will be dimensionalise and saved with the defined units.
+            The units are saved as a HDF attribute.
 
+        Additional keyword arguments are saved as string attributes.
 
         Returns
         -------
@@ -428,11 +446,15 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
             globalShape = (particleGlobalCount, self.data.shape[1])
             dset = h5_require_dataset(h5f, "data", shape=globalShape, dtype=self.data.dtype)
 
+            fact=1.0
+            if units:
+                fact = dimensionalise(1.0, units=units).magnitude
+
             if collective:
                 with dset.collective:
-                    dset[offset:offset+swarm.particleLocalCount] = self.data[:]
+                    dset[offset:offset+swarm.particleLocalCount] = self.data[:] * fact
             else:
-                dset[offset:offset+swarm.particleLocalCount] = self.data[:]
+                dset[offset:offset+swarm.particleLocalCount] = self.data[:] * fact
 
 
             if swarmHandle is not None:
@@ -457,6 +479,11 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
 
             # also write proc offsets - used for loading from checkpoint
             h5f.attrs["proc_offset"] = procCount
+            h5f.attrs["units"] = str(units)
+
+            for kwarg, val in kwargs.items():
+                h5f.attrs[str(kwarg)] = str(val)
+
 
         return uw.utils.SavedFileData( self, filename )
 

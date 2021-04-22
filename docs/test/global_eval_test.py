@@ -10,8 +10,8 @@ var = uw.mesh.MeshVariable(mesh,2)
 
 # In[8]:
 
-var.data[:mesh.data_nodegId.shape[0],0] = mesh.data_nodegId[:,0]
-var.data[:mesh.data_nodegId.shape[0],1] = mesh.data_nodegId[:,0]
+var.data[:mesh.data_nodegId.shape[0],0] = mesh.data_nodegId[:]
+var.data[:mesh.data_nodegId.shape[0],1] = mesh.data_nodegId[:]
 uw.libUnderworld.StgFEM._FeVariable_SyncShadowValues( var._cself )
 
 # In[12]:

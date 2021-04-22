@@ -1,11 +1,6 @@
 import os, shutil
 from SCons.Script import *
 
-class ToolInstWarning(SCons.Warnings.Warning):
-    pass
-
-SCons.Warnings.enableWarningClass(ToolInstWarning)
-
 def to_list(var):
     if isinstance(var, str):
         return [var]
