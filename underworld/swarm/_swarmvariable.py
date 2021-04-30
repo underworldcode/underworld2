@@ -446,7 +446,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
             globalShape = (particleGlobalCount, self.data.shape[1])
             dset = h5_require_dataset(h5f, "data", shape=globalShape, dtype=self.data.dtype)
 
-            fact=1.0
+            fact = np.array(1.0, dtype=self.data.dtype)
             if units:
                 fact = dimensionalise(1.0, units=units).magnitude
 
