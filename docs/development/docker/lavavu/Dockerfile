@@ -1,5 +1,5 @@
 FROM ubuntu:20.04 as base_runtime
-MAINTAINER https://github.com/underworldcode/
+LABEL maintainer="https://github.com/underworldcode/"
 ENV LANG=C.UTF-8
 ENV PYVER=3.8
 # Setup some things in anticipation of virtualenvs
@@ -8,6 +8,19 @@ ENV VIRTUAL_ENV=/opt/venv
 ENV PATH=${VIRTUAL_ENV}/bin:$PATH
 # The following ensures venv packages are available when using system python (such as from jupyter)
 ENV PYTHONPATH=${PYTHONPATH}:${VIRTUAL_ENV}/lib/python${PYVER}/site-packages
+
+# add joyvan user, volume mount and expose port 8888
+EXPOSE 8888
+ENV NB_USER jovyan
+ENV NB_WORK /home/$NB_USER
+RUN useradd -m -s /bin/bash -N $NB_USER -g users \
+&&  mkdir -p /$NB_WORK/workspace \
+&&  chown -R $NB_USER:users $NB_WORK
+VOLUME $NB_WORK/workspace
+
+# make virtualenv directory and set permissions 
+RUN mkdir ${VIRTUAL_ENV} \
+&&  chmod ugo+rwx ${VIRTUAL_ENV}
 
 # install runtime requirements
 RUN apt-get update -qq \
@@ -45,8 +58,8 @@ RUN apt-get update -qq
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         build-essential \
         python3-setuptools \
-        libpython${PYVER}-dev \
-sudo apt-get install        libpng-dev \
+        libpython${PYVER}-dev \ 
+        libpng-dev \
         libjpeg-dev \
         libtiff-dev \
         mesa-utils \
@@ -63,6 +76,7 @@ sudo apt-get install        libpng-dev \
 
 # lavavu
 # create a virtualenv to put new python modules
+USER $NB_USER
 RUN /usr/bin/python3 -m virtualenv --system-site-packages --python=/usr/bin/python3 ${VIRTUAL_ENV}
 RUN LV_OSMESA=1 pip3 install --no-cache-dir --no-binary=lavavu lavavu
 
@@ -78,13 +92,6 @@ RUN apt-mark showmanual >/opt/installed.txt
 
 # Add user environment
 FROM minimal
-EXPOSE 8888
-ADD https://github.com/krallin/tini/releases/download/v0.18.0/tini /tini
-RUN chmod +x /tini
-ENV NB_USER jovyan
-RUN useradd -m -s /bin/bash -N jovyan
 USER $NB_USER
-ENV NB_WORK /home/$NB_USER
-VOLUME $NB_WORK/workspace
 WORKDIR $NB_WORK
 CMD ["jupyter", "notebook", "--no-browser", "--ip='0.0.0.0'"]
