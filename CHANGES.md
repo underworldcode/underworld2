@@ -23,6 +23,7 @@ New:
 * Conda binaries available via underworldcode conda channel `conda install -c underworldcode underworld2`
 * Added `underworld.function.count()` method, which counts function calls. 
 * Added GADI install/run scripts @ ./docs/install_guides/nci_gadi/
+* Updated pull request related documentation and added template.
 
 Fixes:
 * Updates for SCons4.1.
@@ -31,6 +32,9 @@ Fixes:
   structures to accomodate. 
 * Tester uses `jupyter-nbconvert` which no longer defaults to Python. Update
   to explicitly select Python.
+* Switched h5 file save to mode "w" instead of "a" as append mode resulted
+  in data from previous datasets (with identical name) not being removed from 
+  file, and file sizes therefore growing unnecessarily.  
 
 Release 2.10.1 [2020-08-28]
 ---------------------------

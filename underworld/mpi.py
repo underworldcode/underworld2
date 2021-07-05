@@ -21,7 +21,6 @@ size :: int
 
 """
 
-import underworld as _uw
 from mpi4py import MPI as _MPI
 comm = _MPI.COMM_WORLD
 size = comm.size
