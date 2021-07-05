@@ -15,23 +15,24 @@ For Bug reports and Suggestions / Requests please submit an Issue on the Underwo
 
 Click here to submit an Issue https://github.com/underworldcode/underworld2/issues
 
-
-For Code / Documentation changes please submit a GitHub Pull Request (PR). This allows us to review and discuss the contributions before merging it into our ``development`` branch.
-As part of the PR please provide a documentation change summary (for our ``Changes.md``) and a test where applicable.
-
-For creating Pull Request (PR) we recommend following the workflow outlined https://guides.github.com/activities/forking/.
+For Code / Documentation changes please submit a GitHub Pull Request (PR). This allows us to review and discuss the contributions before merging it into our ``development`` branch. For creating Pull Request (PR) we recommend following the workflow outlined https://guides.github.com/activities/forking/.
 More specifically:
 
 1. Fork Underworld via GitHub and clone it to your machine.
 
-2. Add the original Underworld repository as `upstream` and branch your contribution off its development branch.
+  .. code-block::
+  
+    git clone https://github.com/YOUR_GITHUB_ACCOUNT/underworld2
+
+2. Add the master Underworld repository as an additional remote source (named `uwmaster`) for your local repo and pull down its latest changesets. Checkout to the master/development repo state, and then create a new local branch which will contain your forthcoming changes.
 
   .. code-block::
   
-    git remote add upstream https://github.com/underworldcode/underworld2
-    git checkout upstream/development ; git checkout -b newFeature
+    git remote add uwmaster https://github.com/underworldcode/underworld2
+    git pull uwmaster
+    git checkout uwmaster/development
+    git checkout -b newFeature
      
-3. Make your changes! Remember to write comments, a test if applicable and follow the code style of the project (see    ``./docs/development/guidelines.md`` for details).
-   We ask that a short description be made in the commit message that is appropriate for our ``Changes.md`` summary. If the change is sizeable or adds news functionality we ask for an associated blog post which describes the contribution in its full glory. Your time to shine! Details on how to write a blog post are coming soon.
+3. Make your changes! Remember to write comments, a test if applicable and follow the code style of the project (see ``./docs/development/guidelines.md`` for details).
 
 4. Push your changes to your GitHub fork and then submit a PR to the ``development`` branch of Underworld via Github.
