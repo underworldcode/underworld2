@@ -472,7 +472,7 @@ except:
         @classmethod
         def __getattr__(cls, name):
                 return MagicMock()
-    MOCK_MODULES = ['pint', 'numpy',  '_StGermain', 'StGermain', '_StgDomain', '_PICellerator', '_StgFEM', '_Solvers',
+    MOCK_MODULES = ['pint', 'pint.errors', 'numpy',  '_StGermain', 'StGermain', '_StgDomain', '_PICellerator', '_StgFEM', '_Solvers',
                     '_Underworld', 'h5py', '_Function', '_gLucifer', '_c_arrays', '_c_pointers',
                     '_StGermain_Tools', '_petsc', 'mpi4py', 'underworld.libUnderworld.libUnderworldPy.StGermain', 'underworld.libUnderworld.libUnderworldPy.StgDomain', 'underworld.libUnderworld.libUnderworldPy.StgFEM',
                     'underworld.libUnderworld.libUnderworldPy.PICellerator', 'underworld.libUnderworld.libUnderworldPy.Underworld', 'underworld.libUnderworld.libUnderworldPy.Solvers', 'underworld.libUnderworld.libUnderworldPy.gLucifer', 'underworld.libUnderworld.libUnderworldPy.c_arrays', 'underworld.libUnderworld.libUnderworldPy.c_pointers',
