@@ -3,13 +3,19 @@ CHANGES: Underworld2
 
 Release 2.11.0 []
 -----------------
-Changes
+Changes:
 * Enabled user defined Gauss integration swarms for all systems. 
 * Update docker base images: switch to ubuntu(20.04), update petsc(3.1.4) & mpich(3.3.2), other tweaks. 
 * Cleaner Python compile time configuration. 
 
-New:
+Docker image changes:
+* Update base image.
+* Updated to PETSc 3.15.1
+* Updated to MPICH 3.4.2
+* Removed petsc4py.
+* Switched `/opt` to ugo+rwx to allow users to install Python packages.
 
+New:
 * Mesh/MeshVariable/Swarm/SwarmVariable objects now support loading and saving
   of units information, as well as additional attributes. For usage examples, 
   see `docs/test/mesh_aux.py` and `docs/test/swarm_aux.py`. 

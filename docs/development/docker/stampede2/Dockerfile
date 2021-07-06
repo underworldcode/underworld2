@@ -1,5 +1,5 @@
 FROM ubuntu:bionic
-MAINTAINER https://github.com/underworldcode/
+LABEL maintainer="https://github.com/underworldcode/"
 
 RUN  mkdir /home1 /work /scratch /gpfs /corral-repl /corral-tacc /data
 
