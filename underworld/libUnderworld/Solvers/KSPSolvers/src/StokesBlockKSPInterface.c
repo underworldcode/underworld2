@@ -425,7 +425,11 @@ PetscErrorCode _BlockSolve( void* solver, void* _stokesSLE ) {
     }
   }
 
-  ierr = KSPSolve( stokes_ksp, stokes_b, stokes_x );CHKERRQ(ierr);
+  ierr = KSPSolve( stokes_ksp, stokes_b, stokes_x );
+
+  Journal_Firewall( (ierr == 0), NULL, "An error was encountered during the PETSc solve. You should refer to the PETSc\n"
+                                       "error message for details. Note that if you are running within Jupyter, this error\n"
+                                       "message will only be visible in the console window." );
 
   Stg_KSPDestroy(&stokes_ksp );
   //if( ((StokesBlockKSPInterface*)stokesSLE->solver)->preconditioner )
