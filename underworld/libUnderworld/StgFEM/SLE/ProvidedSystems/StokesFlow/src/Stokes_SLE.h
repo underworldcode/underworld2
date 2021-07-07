@@ -32,6 +32,7 @@
 		SolutionVector*	pSolnVec;	/** pressure vector */\
 		ForceVector*		fForceVec;	/** forcing term vector */\
 		ForceVector*		hForceVec;	/** continuity force vector */\
+    StiffnessMatrix* rMat;     /** special rotation matrix */ \
 		/* the following are to help choose a "fudge" factor to remove null-space from Jacobian in rheology */\
 		double fnorm; /* current residual of rhs of Jacobian system J*dx=-F */\
 		double knorm; /* current norm of stiffness matrix from Jacobian */

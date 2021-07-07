@@ -28,6 +28,9 @@
 #include "SolutionVector.h"
 #include "ForceVector.h"
 
+#include <petscblaslapack.h>
+
+
 void __StiffnessMatrix_NewAssemble( void* stiffnessMatrix,void* _sle, void* _context );
 
 /* Textual name of this class */
@@ -178,10 +181,7 @@ void _StiffnessMatrix_Init(
     self->stiffnessMatrixTermList = Stg_ObjectList_New();
 
     /* Set default function for Global Stiffness Matrix Assembly */
-    if ( self->assembleOnNodes )
-      self->_assemblyFunction = __StiffnessMatrix_NewAssembleNodeWise;
-    else
-      self->_assemblyFunction = __StiffnessMatrix_NewAssemble;
+    self->_assemblyFunction = __StiffnessMatrix_NewAssemble;
 
     self->elStiffMat = NULL;
     self->bcVals = NULL;
@@ -191,6 +191,11 @@ void _StiffnessMatrix_Init(
 
     self->rowInc = IArray_New();
     self->colInc = IArray_New();
+
+    self->rotMat = NULL;
+    self->tmpMat = NULL;
+
+    self->rotMatTerm = NULL;
 
     self->matrix = PETSC_NULL;
 }
@@ -315,6 +320,10 @@ void _StiffnessMatrix_Build( void* stiffnessMatrix, void* data ) {
 
     StiffnessMatrix_RefreshMatrix( self );
 
+    // alloc some memory to these guys
+   self->rotMat = ReallocArray( self->rotMat, double, (24*24) );
+   self->tmpMat = ReallocArray( self->tmpMat, double, (24*24) );
+
 }
 
 
@@ -347,6 +356,9 @@ void _StiffnessMatrix_Destroy( void* stiffnessMatrix, void* data ) {
     FreeArray( self->diagonalNonZeroIndices );
     FreeArray( self->offDiagonalNonZeroIndices );
 
+    FreeArray( self->rotMat );
+    FreeArray( self->tmpMat );
+
     /* Don't delete entry points: E.P. register will delete them automatically */
     Stg_Class_Delete( self->rowInc );
     Stg_Class_Delete( self->colInc );
@@ -364,190 +376,12 @@ void StiffnessMatrix_Assemble( void* stiffnessMatrix, void* _sle, void* _context
 
 }
 
-
-void __StiffnessMatrix_NewAssembleNodeWise( void* stiffnessMatrix, void* _sle, void* _context ) {
-#if 0
-  const double one = 1.0;
-  StiffnessMatrix*          self = (StiffnessMatrix*)stiffnessMatrix;
-  SystemLinearEquations*		sle = (SystemLinearEquations*)_sle;
-  FeVariable			          *rowVar, *colVar;
-  FeMesh				            *rowMesh, *colMesh;
-  FeEquationNumber		      *rowEqNum, *colEqNum;
-  DofLayout			*rowDofs, *colDofs;
-  unsigned			nRowEls;
-  int			nRowNodes, *rowNodes;
-  int			nColNodes, *colNodes;
-  unsigned			maxDofs, maxRCDofs, nDofs, nRowDofs, nColDofs;
-  double**			nStiffMat;
-  double*				bcVals;
-  Mat                       matrix = self->matrix;
-  Vec				vector, transVector;
-  int nRowNodeDofs, nColNodeDofs;
-  int rowInd, colInd;
-  double bc;
-  unsigned                  e_i, n_i, dof_i, n_j, dof_j;
-
-  assert( self && Stg_CheckType( self, StiffnessMatrix ) );
-
-  rowVar = self->rowVariable;
-  colVar = self->columnVariable ? self->columnVariable : rowVar;
-  rowEqNum = rowVar->eqNum;  colEqNum = colVar->eqNum;
-  rowMesh = rowVar->feMesh;  colMesh = colVar->feMesh;
-  rowDofs = rowVar->dofLayout;  colDofs = colVar->dofLayout;
-
-  nRowNodes = FeMesh_GetNodeLocalSize( rowMesh );
-  assert( (rowVar == colVar) ? !self->transRHS : 1 );
-
-  vector = self->rhs ? self->rhs->vector : NULL;
-  transVector = self->transRHS ? self->transRHS->vector : NULL;
-  nStiffMat = NULL;
-  bcVals = NULL;
-  maxDofs = 0;
-
-  nStiffMat = ReallocArray2D( nStiffMat, double, nRowDofs, nColDofs );
-
-  /* Begin assembling each element. */
-  for( n_i = 0; n_i < nRowNodes; n_i++ ) {
-      /* Do we need more space to assemble this element? */
-      nRowDofs = rowDofs->dofCounts[n_i];
-      nColDofs = colDofs->dofCounts[n_i];
-      nDofs = nRowDofs * nColDofs;
-
-      if( nDofs > maxDofs ) {
-          maxRCDofs = (nRowDofs > nColDofs) ? nRowDofs : nColDofs;
-          nStiffMat = ReallocArray2D( nStiffMat, double, nRowDofs, nColDofs );
-          bcVals = ReallocArray( bcVals, double, maxRCDofs );
-          maxDofs = nDofs;
-          self->elStiffMat = nStiffMat;
-          self->bcVals = bcVals;
-      }
-
-      /* Assemble the element. */
-      memset( nStiffMat[0], 0, nDofs * sizeof(double) );
-      StiffnessMatrix_AssembleElement( self, n_i, sle, _context, nStiffMat );
-
-      MatSetValues( self->matrix,
-                    nRowDofs, rowEqNum->mapNodeDof2Eq[n_i],
-                    nColDofs, colEqNum->mapNodeDof2Eq[n_i],
-                    nStiffMat[0], INSERT_VALUES );
-      /* Correct for BCs providing I'm not keeping them in. */
-      // if( vector ) {
-      //     memset( bcVals, 0, nRowDofs * sizeof(double) );
-      //
-      //     rowInd = 0;
-      //     for( n_i = 0; n_i < nRowNodes; n_i++ ) {
-      //         nRowNodeDofs = rowDofs->dofCounts[rowNodes[n_i]];
-      //         for( dof_i = 0; dof_i < nRowNodeDofs; dof_i++ ) {
-      //             if( !FeVariable_IsBC( rowVar, rowNodes[n_i], dof_i ) ) {
-      //                 colInd = 0;
-      //                 for( n_j = 0; n_j < nColNodes; n_j++ ) {
-      //                     nColNodeDofs = colDofs->dofCounts[colNodes[n_j]];
-      //                     for( dof_j = 0; dof_j < nColNodeDofs; dof_j++ ) {
-      //                         if( FeVariable_IsBC( colVar, colNodes[n_j], dof_j ) ) {
-      //                             bc = DofLayout_GetValueDouble( colDofs, colNodes[n_j], dof_j );
-      //                             bcVals[rowInd] -= bc * elStiffMat[rowInd][colInd];
-      //                         }
-      //                         colInd++;
-      //                     }
-      //                 }
-      //             }
-      //             rowInd++;
-      //         }
-      //     }
-      //
-      //     VecSetValues( vector, nRowDofs, (int*)rowEqNum->locationMatrix[e_i][0], bcVals, ADD_VALUES );
-      // }
-      // if( transVector ) {
-      //     memset( bcVals, 0, nColDofs * sizeof(double) );
-      //
-      //     colInd = 0;
-      //     for( n_i = 0; n_i < nColNodes; n_i++ ) {
-      //         nColNodeDofs = colDofs->dofCounts[colNodes[n_i]];
-      //         for( dof_i = 0; dof_i < nColNodeDofs; dof_i++ ) {
-      //             if( !FeVariable_IsBC( colVar, colNodes[n_i], dof_i ) ) {
-      //                 rowInd = 0;
-      //                 for( n_j = 0; n_j < nRowNodes; n_j++ ) {
-      //                     nRowNodeDofs = rowDofs->dofCounts[rowNodes[n_j]];
-      //                     for( dof_j = 0; dof_j < nRowNodeDofs; dof_j++ ) {
-      //                         if( FeVariable_IsBC( rowVar, rowNodes[n_j], dof_j ) ) {
-      //                             bc = DofLayout_GetValueDouble( rowDofs, rowNodes[n_j], dof_j );
-      //                             bcVals[colInd] -= bc * elStiffMat[rowInd][colInd];
-      //                         }
-      //                         rowInd++;
-      //                     }
-      //                 }
-      //             }
-      //             colInd++;
-      //         }
-      //     }
-      //
-      //     VecSetValues( transVector, nColDofs, (int*)colEqNum->locationMatrix[e_i][0], bcVals, ADD_VALUES );
-      // }
-
-      /* If keeping BCs in, zero corresponding entries in the element stiffness matrix. */
-      // if( !rowEqNum->removeBCs || !colEqNum->removeBCs ) {
-      //     rowInd = 0;
-      //     for( n_i = 0; n_i < nRowNodes; n_i++ ) {
-      //         nRowNodeDofs = rowDofs->dofCounts[rowNodes[n_i]];
-      //         for( dof_i = 0; dof_i < nRowNodeDofs; dof_i++ ) {
-      //             if( FeVariable_IsBC( rowVar, rowNodes[n_i], dof_i ) ) {
-      //                 memset( nStiffMat[rowInd], 0, nColDofs * sizeof(double) );
-      //             }
-      //             else {
-      //                 colInd = 0;
-      //                 for( n_j = 0; n_j < nColNodes; n_j++ ) {
-      //                     nColNodeDofs = colDofs->dofCounts[colNodes[n_j]];
-      //                     for( dof_j = 0; dof_j < nColNodeDofs; dof_j++ ) {
-      //                         if( FeVariable_IsBC( colVar, colNodes[n_j], dof_j ) )
-      //                             nStiffMat[rowInd][colInd] = 0.0;
-      //                         colInd++;
-      //                     }
-      //                 }
-      //             }
-      //             rowInd++;
-      //         }
-      //     }
-      // }
-
-      /* Add to stiffness matrix. */
-      // MatSetValues( matrix,
-      //               nRowDofs, (int*)rowEqNum->locationMatrix[e_i][0],
-      //               nColDofs, (int*)colEqNum->locationMatrix[e_i][0],
-      //               nStiffMat[0], ADD_VALUES );
-  }
-
-  FreeArray( nStiffMat );
-  FreeArray( bcVals );
-
-  /* If keeping BCs in and rows and columnns use the same variable, put ones in all BC'd diagonals. */
-  // if( !colEqNum->removeBCs && rowVar == colVar ) {
-  //     for( n_i = 0; n_i < FeMesh_GetNodeLocalSize( colMesh ); n_i++ ) {
-  //         nColNodeDofs = colDofs->dofCounts[n_i];
-  //         for( dof_i = 0; dof_i < nColNodeDofs; dof_i++ ) {
-  //             if( FeVariable_IsBC( colVar, n_i, dof_i ) ) {
-  //                 MatSetValues( self->matrix,
-  //                               1, colEqNum->mapNodeDof2Eq[n_i] + dof_i,
-  //                               1, colEqNum->mapNodeDof2Eq[n_i] + dof_i,
-  //                               (double*)&one, ADD_VALUES );
-  //             }
-  //         }
-  //     }
-  // }
-
-  /* Reassemble the matrix and vectors. */
-  MatAssemblyBegin( matrix, MAT_FINAL_ASSEMBLY );
-  MatAssemblyEnd( matrix, MAT_FINAL_ASSEMBLY );
-  if( vector ) {
-      VecAssemblyBegin( vector );
-      VecAssemblyEnd( vector );
-  }
-  if( transVector) {
-      VecAssemblyBegin( transVector );
-      VecAssemblyEnd( transVector );
-  }
-
-#endif
+void StiffnessMatrix_SetRotationTerm( void* mat, void* rotTerm ) {
+    StiffnessMatrix* self = (StiffnessMatrix*)mat;
+    // set the ptr manually
+    self->rotMatTerm = (StiffnessMatrixTerm*)rotTerm;
 }
+
 /* Callback version */
 void __StiffnessMatrix_NewAssemble( void* stiffnessMatrix, void* _sle, void* _context ) {
     const double one = 1.0;
@@ -703,10 +537,18 @@ void __StiffnessMatrix_NewAssemble( void* stiffnessMatrix, void* _sle, void* _co
         }
 
         /* Add to stiffness matrix. */
-        MatSetValues( matrix,
-                      nRowDofs, (int*)rowEqNum->locationMatrix[e_i][0],
-                      nColDofs, (int*)colEqNum->locationMatrix[e_i][0],
-                      elStiffMat[0], ADD_VALUES );
+        if( self->assembleOnNodes ) {
+          MatSetValues( matrix,
+                        nRowDofs, (int*)rowEqNum->locationMatrix[e_i][0],
+                        nColDofs, (int*)colEqNum->locationMatrix[e_i][0],
+                        elStiffMat[0], INSERT_VALUES );
+        } else {
+          MatSetValues( matrix,
+                        nRowDofs, (int*)rowEqNum->locationMatrix[e_i][0],
+                        nColDofs, (int*)colEqNum->locationMatrix[e_i][0],
+                        elStiffMat[0], ADD_VALUES );
+
+        }
     }
 
     FreeArray( elStiffMat );
@@ -795,6 +637,28 @@ void _StiffnessMatrix_PrintElementStiffnessMatrix(
     }
 }
 
+void blasMatrixMult( double A[], double B[], int rowA, int colB, int colA, double *C )
+{
+   /*@
+   	Performs [C] = [A]*[B],
+
+   	where [A], [B], [C] are single arrays, with rowMajor ordering, so they can be vectors.
+        [C] must be pre allocated
+   @*/
+   char n='N';
+   PetscScalar zero=0.0;
+   PetscScalar alpha=1.0;
+
+   /* BLASgemm expects fortan memory chunks, so the problem is formed using
+   	 the matrix transpose formula [C]^T = [B]^T * [A]^T */
+
+   BLASgemm_( &n, &n,
+              &colB, &rowA, &colA,
+              &alpha, B, &colB,
+              A, &colA, &zero,
+              C, &colB );
+}
+
 void StiffnessMatrix_AssembleElement(
     void* stiffnessMatrix,
     Element_LocalIndex element_lI,
@@ -807,10 +671,93 @@ void StiffnessMatrix_AssembleElement(
     Index                   stiffnessMatrixTerm_I;
     StiffnessMatrixTerm*    stiffnessMatrixTerm;
 
+   FeVariable* rowVar=self->rowVariable;
+   FeVariable* colVar=self->columnVariable;
+
+   double* R = self->rotMat;
+   double* tmp = self->tmpMat;
+
     for ( stiffnessMatrixTerm_I = 0 ; stiffnessMatrixTerm_I < stiffnessMatrixTermCount ; stiffnessMatrixTerm_I++ ) {
         stiffnessMatrixTerm = (StiffnessMatrixTerm*) Stg_ObjectList_At( self->stiffnessMatrixTermList, stiffnessMatrixTerm_I );
         StiffnessMatrixTerm_AssembleElement( stiffnessMatrixTerm, self, element_lI, sle, context, elStiffMatToAdd );
     }
+
+  // if no rotation matrix term finish
+  if( !self->rotMatTerm ) return;
+
+  /* check if we need to PRE MULTIPLY with rotation matrix, [R] -
+  only if rowVariable has non axis aligned BCs and the element is on the mesh boundary */
+  if( rowVar->nonAABCs )
+  {
+
+     /*	Perform [tmp] = [R]^T * [elStiffMatToAdd]
+         but do it with BLAS (fortran column major ordered) memory layout
+         therefore compute: [tmp]^T = [elStiffMatToAdd]^T * [[R]^T]^T
+      */
+
+     int rowA = (self->nRowDofs > self->nColDofs) ? self->nRowDofs : self->nColDofs; // rows in [R]
+     int colA = rowA;              // cols in [R]
+     int colB = self->nColDofs;    // cols in [elStiffMatToAdd]
+
+     PetscScalar one=1.0;
+     PetscScalar zero=0.0;
+     char n='N';
+     char t='T';
+     double *rubbish[27];
+     int ii;
+
+     // initialise [R] and [tmp] memory
+     memset(R,0,rowA*rowA*sizeof(double));
+     // set up 2D ptr for StiffnessMatrixTerm_AssembleElement
+     for( ii=0; ii<rowA; ii++ ) {
+       rubbish[ii] = &R[rowA*ii];
+     }
+     memset(tmp,0,rowA*rowA*sizeof(double));
+
+     StiffnessMatrixTerm_AssembleElement( self->rotMatTerm, self, element_lI, sle, context, rubbish );
+
+     // [tmp]^T = [elStiffMatToAdd]^T * [R]
+     // only using BLASgemm_ [not blasMatrixMult()] because transposed matrices are used
+     BLASgemm_( &n, &t, &colB, &rowA, &colA, &one,elStiffMatToAdd[0], &colB, R, &colA, &zero, tmp, &colB );
+
+     // copy result into returned memory segment
+     memcpy( elStiffMatToAdd[0], tmp, rowA*colB*sizeof(double) );
+  }
+
+
+  /* check if we need to POST MULTIPLY with rotation matrix -
+    only if columnVariable has non axis aligned BCs and the element is on the mesh boundary */
+  if( colVar->nonAABCs )
+  {
+     /*
+        Perform [tmp] = [elStiffMatToAdd] * [R]
+        but do it with BLAS (fortran column major ordered) memory layout
+        therefore compute: [tmp]^T = [R]^T * [elStiffMatToAdd]^T
+      */
+
+     int rowA = self->nRowDofs; // rows in [elStiffMatToAdd]
+     int colB = (self->nRowDofs > self->nColDofs) ? self->nRowDofs : self->nColDofs; // colB in [R]
+     int colA = self->nColDofs;   // cols in [R]
+
+     double *rubbish[27];
+     int ii;
+
+     // initialise [R] and [tmp] memory
+     memset(R,0,rowA*rowA*sizeof(double));
+     // set up 2D ptr for StiffnessMatrixTerm_AssembleElement
+     for( ii=0; ii<rowA; ii++ ) {
+       rubbish[ii] = &R[rowA*ii];
+     }
+
+     // TODO: for the stiffness matrix we already have this
+     StiffnessMatrixTerm_AssembleElement( self->rotMatTerm, self, element_lI, sle, context, rubbish );
+     memset(tmp,0,rowA*rowA*sizeof(double));
+
+     // tmp = [elStiffMatToAdd] * [R]
+     blasMatrixMult( elStiffMatToAdd[0], R, rowA, colB, colA, tmp );
+
+     memcpy( elStiffMatToAdd[0], tmp, rowA*colB*sizeof(double) );
+  }
 }
 
 void StiffnessMatrix_AddStiffnessMatrixTerm( void* stiffnessMatrix, void* stiffnessMatrixTerm ) {

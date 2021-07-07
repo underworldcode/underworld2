@@ -10,19 +10,15 @@
 #include <mpi.h>
 #include <StGermain/StGermain.h>
 #include <StgDomain/StgDomain.h>
-#include "StgFEM/Discretisation/Discretisation.h"
+#include <StgFEM/StgFEM.h>
 
 #include "types.h"
-
-#include "SolutionVector.h"
-#include "ForceVector.h"
-#include "ForceTerm.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
-#include "EntryPoint.h"
+#include <petscblaslapack.h>
 
 /* Textual name of this class */
 const Type ForceVector_Type = "ForceVector";
@@ -98,6 +94,14 @@ void _ForceVector_Init( void* forceVector, Dimension_Index dim, EntryPoint_Regis
 
 	self->inc = IArray_New();
 
+  self->rotMat = NULL;
+  self->tmpMat = NULL;
+  self->rotMatTerm = NULL;
+}
+
+void ForceVector_SetRotationTerm( void* _self, void* rotTerm ) {
+  ForceVector *self = (ForceVector*)_self;
+  self->rotMatTerm = (StiffnessMatrixTerm*)Stg_CheckType( rotTerm, StiffnessMatrixTerm );
 }
 
 void _ForceVector_Delete( void* forceVector ) {
@@ -139,6 +143,10 @@ void _ForceVector_Build( void* forceVector, void* data ) {
    Journal_DPrintfL( self->debug, 2, "Allocating the L.A. Force Vector with %d local entries.\n", self->localSize );
    Stream_UnIndentBranch( StgFEM_Debug );
 
+   // alloc some memeory to rotation matrix
+   int defaultChunk = 24*24;
+   self->rotMat = ReallocArray( self->rotMat, double, defaultChunk );
+   self->tmpMat = ReallocArray( self->tmpMat, double, defaultChunk );
 }
 
 
@@ -156,6 +164,9 @@ void _ForceVector_Destroy( void* forceVector, void* data ) {
 
 	Memory_Free( self->_assembleForceVectorEPName );
 
+  FreeArray( self->rotMat );
+  FreeArray( self->tmpMat );
+
 	/* Don't delete entry point: E.P register will delete it automatically */
 	Stg_Class_Delete( self->forceTermList );
 
@@ -166,7 +177,6 @@ void _ForceVector_Destroy( void* forceVector, void* data ) {
 
 void ForceVector_Assemble( void* forceVector ) {
 	ForceVector* self = (ForceVector*)forceVector;
-    int ii;
 
 	((FeEntryPoint_AssembleForceVector_CallFunction*)EntryPoint_GetRun( self->assembleForceVector ))(
 		self->assembleForceVector,
@@ -272,7 +282,7 @@ void ForceVector_GlobalAssembly_General( void* forceVector ) {
 			/* work out number of dofs at the node, using LM */
 			/* Since: Number of entries in LM table for this element = (by defn.) Number of dofs this element */
 			dofCountLastNode = feVar->dofLayout->dofCounts[nodeIdsInCurrElement[nodeCountCurrElement-1]];
-			totalDofsThisElement = &elementLM[nodeCountCurrElement-1][dofCountLastNode-1] - &elementLM[0][0] + 1;
+			totalDofsThisElement = self->totalDofsThisElement = &elementLM[nodeCountCurrElement-1][dofCountLastNode-1] - &elementLM[0][0] + 1;
 
 			if ( totalDofsThisElement > totalDofsPrevElement ) {
 				if (elForceVecToAdd) Memory_Free( elForceVecToAdd );
@@ -363,16 +373,60 @@ void ForceVector_GlobalAssembly_General( void* forceVector ) {
 }
 
 void ForceVector_AssembleElement( void* forceVector, Element_LocalIndex element_lI, double* elForceVecToAdd ) {
-	ForceVector*            self                 = (ForceVector*) forceVector;
-	Index                   forceTermCount       = Stg_ObjectList_Count( self->forceTermList );
-	Index                   forceTerm_I;
-	ForceTerm*              forceTerm;
+  ForceVector*            self                 = (ForceVector*) forceVector;
+  Index                   forceTermCount       = Stg_ObjectList_Count( self->forceTermList );
+  Index                   forceTerm_I;
+  ForceTerm*              forceTerm;
 
-	for ( forceTerm_I = 0 ; forceTerm_I < forceTermCount ; forceTerm_I++ ) {
-		forceTerm = (ForceTerm*) Stg_ObjectList_At( self->forceTermList, forceTerm_I );
+  for ( forceTerm_I = 0 ; forceTerm_I < forceTermCount ; forceTerm_I++ ) {
+    forceTerm = (ForceTerm*) Stg_ObjectList_At( self->forceTermList, forceTerm_I );
 
-		ForceTerm_AssembleElement( forceTerm, self, element_lI, elForceVecToAdd );
-	}
+    ForceTerm_AssembleElement( forceTerm, self, element_lI, elForceVecToAdd );
+  }
+
+  if( self->feVariable->nonAABCs ) {
+      /*
+         Perform [tmp] = [R]^T * [elVecToAdd]
+         but do it with BLAS (fortran column major ordered) memory layout
+         therefore compute: [tmp]^T = [elVecToAdd]^T * [[R]^T]^T
+      */
+
+    double* R = self->rotMat;
+    double* tmp = self->tmpMat;
+
+    int rowA = self->totalDofsThisElement; // rows in [R]
+    int colA = rowA;              // cols in [R]
+    int colB = 1;    // cols in [elStiffMatToAdd]
+
+    PetscScalar one=1.0;
+    PetscScalar zero=0.0;
+    char t='T';
+    char n='N';
+
+    double *rubbish[27];
+    int ii;
+
+    // set up 2D ptr for StiffnessMatrixTerm_AssembleElement
+    for( ii=0; ii<rowA; ii++ ) {
+      rubbish[ii] = &R[rowA*ii];
+    }
+    // initialise [R] and [tmp] memory
+    memset(R,0,rowA*rowA*sizeof(double));
+    memset(tmp,0,rowA*rowA*sizeof(double));
+
+    StiffnessMatrixTerm_AssembleElement( self->rotMatTerm, self->rotMatTerm->stiffnessMatrix, element_lI, NULL, NULL, rubbish );
+
+    //blasMatrixMult( RT, elForceVecToAdd, 24, 1, 24, tmp );
+    // [tmp]^T = [elStiffMatToAdd]^T * [R]
+    BLASgemm_( &n, &t,
+          &colB, &rowA, &colA,
+          &one, elForceVecToAdd, &colB,
+          R, &rowA,
+          &zero, tmp, &colB );
+    // copy result into returned memory segment
+    memcpy( elForceVecToAdd, tmp, rowA*colB*sizeof(double) );
+
+  }
 }
 
 void ForceVector_AddForceTerm( void* forceVector, void* forceTerm ) {
