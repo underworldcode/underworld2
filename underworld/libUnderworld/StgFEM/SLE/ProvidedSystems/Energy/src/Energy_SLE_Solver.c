@@ -226,9 +226,14 @@ void _Energy_SLE_Solver_Solve( void* sleSolver, void* standardSLE ) {
 #endif
     }
     /*** Solve ***/
-	KSPSolve( self->ksp,
+	PetscErrorCode ierr;
+	ierr = KSPSolve( self->ksp,
 		    ((ForceVector*) sle->forceVectors->data[0])->vector, 
 		    ((SolutionVector*) sle->solutionVectors->data[0])->vector );
+    Journal_Firewall( (ierr == 0), NULL, "An error was encountered during the PETSc solve. You should refer to the PETSc\n"
+                                         "error message for details. Note that if you are running within Jupyter, this error\n"
+                                         "message will only be visible in the console window." );
+
 	KSPGetIterationNumber( self->ksp, &iterations );
 
 	Journal_DPrintf( self->debug, "Solved after %u iterations.\n", iterations );
