@@ -159,6 +159,7 @@ import underworld.utils
 _set_init_sig_as_sig(underworld.utils)
 timing._add_timing_to_mod(underworld.utils)
 
+import underworld.scaling
 
 # to allow our legacy doctest formats
 try:

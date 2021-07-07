@@ -138,7 +138,7 @@ class HeatSolver(_stgermain.StgCompoundComponent):
 
     def configure(self,solve_type=""):
         """
-        Configure velocity/inner solver (A11 PETSc prefix).
+        Configure solver.
 
         solve_type can be one of:
 
