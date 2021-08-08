@@ -561,7 +561,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
             raise TypeError("'filename', must be of type 'str'")
 
 
-        with h5File(name=filename, mode="a") as h5f:
+        with h5File(name=filename, mode="w") as h5f:
             # Save attributes and simple data.
             # This must be done in collectively for mpio driver.
             # Also, for sequential, this is performed redundantly.
