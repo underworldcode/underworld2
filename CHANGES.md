@@ -17,6 +17,7 @@ Docker image changes:
 * Switched `/opt` to ugo+rwx to allow users to install Python packages.
 
 New:
+* Model for EBA convection, based on King et al. (2010) benchmarks. See `docs/test/14_Convection_EBA.ipynb`
 * Mesh/MeshVariable/Swarm/SwarmVariable objects now support loading and saving
   of units information, as well as additional attributes. For usage examples, 
   see `docs/test/mesh_aux.py` and `docs/test/swarm_aux.py`. 
