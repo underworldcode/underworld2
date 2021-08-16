@@ -1,0 +1,27 @@
+name: docker image build and push to dockerhub
+
+on:
+  push:
+    branches:
+      - 'jgiordani/curvi-bits'
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: Login to DockerHub
+        uses: docker/login-action@v1 
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      -
+        name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: ./docs/development/docker/underworld2/
+          push: true
+          tags: julesg/curvi_bits:latest        
