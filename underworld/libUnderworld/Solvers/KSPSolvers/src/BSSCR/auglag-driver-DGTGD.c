@@ -322,12 +322,21 @@ PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec sto
 
 
     RHSSetupTime = MPI_Wtime();
-    KSPSetUp(ksp_inner);
+    ierr = KSPSetUp(ksp_inner);
+
+    Journal_Firewall( (ierr == 0), NULL, "An error was encountered during the PETSc solver setup. You should refer to the PETSc\n"
+                                         "error message for details. Note that if you are running within Jupyter, this error\n"
+                                         "message will only be visible in the console window." );
+
+
     RHSSetupTime = MPI_Wtime() - RHSSetupTime;
     bsscrp_self->solver->stats.velocity_presolve_setup_time = RHSSetupTime;
 
     RHSSolveTime = MPI_Wtime();
-    KSPSolve(ksp_inner, f, f_tmp);
+    ierr = KSPSolve(ksp_inner, f, f_tmp);
+    Journal_Firewall( (ierr == 0), NULL, "An error was encountered during the PETSc solve. You should refer to the PETSc\n"
+                                         "error message for details. Note that if you are running within Jupyter, this error\n"
+                                         "message will only be visible in the console window." );
     KSPGetConvergedReason( ksp_inner, &reason ); {if (reason < 0) bsscrp_self->solver->fhat_reason=(int)reason; }
     KSPGetIterationNumber( ksp_inner, &bsscrp_self->solver->stats.velocity_presolve_its );
     RHSSolveTime =  MPI_Wtime() - RHSSolveTime;

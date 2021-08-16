@@ -41,14 +41,17 @@ def non_dimensionalise(dimValue):
 
     Parameters
     ----------
-    dimValue : pint quantity
+    dimValue : pint.Quantity 
+        A pint quantity.
 
     Returns
     -------
-    float: The scaled value.
+    float 
+        The scaled value.
 
-    Example:
-    --------
+    Example
+    -------
+
     >>> import underworld as uw
     >>> u = uw.scaling.units
 

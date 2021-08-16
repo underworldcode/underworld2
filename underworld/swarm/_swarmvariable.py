@@ -440,13 +440,12 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         for i in range(comm.rank):
             offset += procCount[i]
 
-        # open parallel hdf5 file
-        with h5File(name=filename, mode="a") as h5f:
+        with h5File(name=filename, mode="w") as h5f:
             # write the entire local swarm to the appropriate offset position
             globalShape = (particleGlobalCount, self.data.shape[1])
             dset = h5_require_dataset(h5f, "data", shape=globalShape, dtype=self.data.dtype)
 
-            fact=1.0
+            fact = np.array(1.0, dtype=self.data.dtype)
             if units:
                 fact = dimensionalise(1.0, units=units).magnitude
 

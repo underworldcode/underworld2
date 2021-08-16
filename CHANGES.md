@@ -3,13 +3,21 @@ CHANGES: Underworld2
 
 Release 2.11.0 []
 -----------------
-Changes
+Changes:
 * Enabled user defined Gauss integration swarms for all systems. 
 * Update docker base images: switch to ubuntu(20.04), update petsc(3.1.4) & mpich(3.3.2), other tweaks. 
 * Cleaner Python compile time configuration. 
+* Add runtime check for solver availability (for example, 'mumps'). Also add test for check.
+
+Docker image changes:
+* Update base image.
+* Updated to PETSc 3.15.1
+* Updated to MPICH 3.4.2
+* Removed petsc4py.
+* Switched `/opt` to ugo+rwx to allow users to install Python packages.
 
 New:
-
+* Model for EBA convection, based on King et al. (2010) benchmarks. See `docs/test/14_Convection_EBA.ipynb`
 * Mesh/MeshVariable/Swarm/SwarmVariable objects now support loading and saving
   of units information, as well as additional attributes. For usage examples, 
   see `docs/test/mesh_aux.py` and `docs/test/swarm_aux.py`. 
@@ -17,6 +25,7 @@ New:
 * Conda binaries available via underworldcode conda channel `conda install -c underworldcode underworld2`
 * Added `underworld.function.count()` method, which counts function calls. 
 * Added GADI install/run scripts @ ./docs/install_guides/nci_gadi/
+* Updated pull request related documentation and added template.
 
 Fixes:
 * Updates for SCons4.1.
@@ -25,6 +34,9 @@ Fixes:
   structures to accomodate. 
 * Tester uses `jupyter-nbconvert` which no longer defaults to Python. Update
   to explicitly select Python.
+* Switched h5 file save to mode "w" instead of "a" as append mode resulted
+  in data from previous datasets (with identical name) not being removed from 
+  file, and file sizes therefore growing unnecessarily.  
 
 Release 2.10.1 [2020-08-28]
 ---------------------------
