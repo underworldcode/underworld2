@@ -78,3 +78,4 @@ extern "C" {
 %include "Utils/VectorAssemblyTerm_NA_j__Fn_ij.h"
 %include "Utils/MatrixAssemblyTerm_NA_i__NB_i__Fn.h"
 %include "Utils/MatrixAssemblyTerm_NA__NB__Fn.h"
+%include "Utils/MatrixAssemblyTerm_RotationDof.h"

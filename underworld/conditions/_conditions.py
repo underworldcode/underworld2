@@ -161,3 +161,87 @@ class NeumannCondition(SystemCondition):
         if not isinstance( _fn, uw.function.Function):
             raise ValueError( "Provided '_fn' must be of or convertible to 'Function' class." )
         self._fn_flux = _fn
+
+class CurvilinearDirichletCondition(DirichletCondition):
+    """
+    The CuvilinearDirichletCondition class provides the functionality to apply
+    variably defined vector dirichlet boundary conditions to a system.
+    
+    This is required for when the domain boundaries don't align to the numerical
+    coordinate system of the problem. For example, solving a problem in an annulus geometry
+    using cartesian coordinate system. The normal and tangential vectors change at every point 
+    along surface. 
+
+    Users are required to provide the `basis_vectors` for the rotation to be applied to each node/DOF.
+    The basis_vectors must be orthogonal and can be provided as underworld.functions.
+    See examples (TODO: link to examples) for details.
+
+    Parameters
+    ----------
+    variable : underworld.mesh.MeshVariable
+        This is the variable for which the Dirichlet condition applies.
+    indexSetsPerDof : list, tuple, IndexSet
+        The index set(s) which flag nodes/DOFs as Dirichlet conditions.
+        Note that the user must provide an index set for each degree of
+        freedom of the variable.  So for a vector variable of rank 2 (say Vx & Vy),
+        two index sets must be provided (say VxDofSet, VyDofSet).
+    basis_vectors : list or tuple of underworld.function.functions
+        A list (or tuple) of underworld.function.functions to define the local coodinates per
+        nodal vector dirichlet condition.
+        For a mesh of type uw.mesh.FeMesh_Annulus,...,  the underlying basis_vectors are
+        automatically extracted from the mesh and the users doesn't need to pass in 
+        the `basis_vectors`. To check if automatic basis_vectors can be extracted on a mesh
+        check the attributes ._e1, ._e2, etc. on a mesh.
+
+    Notes
+    -----
+    Note that it is necessary for the user to set the required value on the variable, possibly
+    via the numpy interface.
+
+    Constructor must be called collectively all processes.
+
+    Example
+    -------
+    TODO
+
+
+    """
+
+    _objectsDict = { "_pyvc": "PythonVC" }
+    _selfObjectName = "_pyvc"
+
+    def __init__(self, variable, indexSetsPerDof, basis_vectors=None):
+        super(CurvilinearDirichletCondition,self).__init__(variable, indexSetsPerDof)
+
+
+        mesh = variable.mesh
+
+        if basis_vectors is not None:
+            self.basis_vectors=basis_vectors
+        else:
+            try:
+                if mesh.dim == 2:
+                    self.basis_vectors=( mesh._e1, mesh._e2)
+                else:
+                    self.basis_vectors=( mesh._e1, mesh._e2, mesh._e3)
+
+            except:
+                raise("Problem with the basis vectors in CurvilinearDirichletCondition")
+
+        @property
+        def basis_vectors(self):
+            """ Get the basis_vectors """
+            return self._basis_vectors
+
+        @basis_vectors.setter
+        def basis_vectors(self, basis_vectors):
+            """ Set the basis_vectors, ensure they're valid """
+            if not isinstance(basis_vectors, (list,tuple)):
+                raise TypeError("'basis_vectors' must be of type list or tuple")
+            if len(basis_vectors) != self.variable.nodeDofCount:
+                raise ValueError("'variable' number of components must equal the number of 'basis_vectors'")
+            for vec in basis_vectors:
+                if not isinstance( vec, uw.function.Function):
+                    raise TypeError("'basis_vectors', must consist of 'uw.function.Function' types")
+
+            self._basis_vectors=basis_vectors

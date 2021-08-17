@@ -71,7 +71,7 @@
 
 	void* _SolutionVector_Copy( void* solutionVector, void* dest, Bool deep, Name nameExt, PtrMap* ptrMap );
 
-	void _SolutionVector_Build( void* solutionVector, void* data );
+  void _SolutionVector_Build( void* solutionVector, void* data );
 
 	void _SolutionVector_AssignFromXML( void* solutionVector, Stg_ComponentFactory* cf, void* data );
 
@@ -87,6 +87,8 @@
 
 	void SolutionVector_UpdateSolutionOntoNodes( void* solutionVector );
 
+  /** Remove a vector, nVec, from the vector, xVec. */
+  double SolutionVector_RemoveVectorSpace( SolutionVector* xVec, SolutionVector* nVec );
 	/** Loads the current value at each dof of the feVariable related to this solution vector onto the vector itself */
 	void SolutionVector_LoadCurrentFeVariableValuesOntoVector( void* solutionVector );
 
