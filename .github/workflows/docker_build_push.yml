@@ -22,6 +22,7 @@ jobs:
         name: Build and push
         uses: docker/build-push-action@v2
         with:
-          context: ./docs/development/docker/underworld2/
+          context: .
+          file: ./docs/development/docker/underworld2/Dockerfile
           push: true
           tags: julesg/curvi_bits:latest        
