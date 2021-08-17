@@ -233,7 +233,7 @@ class Option(object):
         elif v.type == "enum":
             help += v._pref_sep + "<%s>" % "|".join(v.enum.values())
         elif v.type == "bool":
-            if v._pref_true_flag is "":
+            if v._pref_true_flag == "":
                 help = "[" + help + "]"
             else:
                 help += v._pref_sep + "<" + v._pref_true_flag + \

@@ -1,5 +1,5 @@
 FROM ubuntu:20.04 as base_runtime
-MAINTAINER https://github.com/underworldcode/
+LABEL maintainer="https://github.com/underworldcode/"
 ENV LANG=C.UTF-8
 ENV PYVER=3.8
 # Setup some things in anticipation of virtualenvs
@@ -8,6 +8,19 @@ ENV VIRTUAL_ENV=/opt/venv
 ENV PATH=${VIRTUAL_ENV}/bin:$PATH
 # The following ensures venv packages are available when using system python (such as from jupyter)
 ENV PYTHONPATH=${PYTHONPATH}:${VIRTUAL_ENV}/lib/python${PYVER}/site-packages
+
+# add joyvan user, volume mount and expose port 8888
+EXPOSE 8888
+ENV NB_USER jovyan
+ENV NB_WORK /home/$NB_USER
+RUN useradd -m -s /bin/bash -N $NB_USER -g users \
+&&  mkdir -p /$NB_WORK/workspace \
+&&  chown -R $NB_USER:users $NB_WORK
+VOLUME $NB_WORK/workspace
+
+# make virtualenv directory and set permissions 
+RUN mkdir ${VIRTUAL_ENV} \
+&&  chmod ugo+rwx ${VIRTUAL_ENV}
 
 # install runtime requirements
 RUN apt-get update -qq \
@@ -43,23 +56,26 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         git
 # build mpi
 WORKDIR /tmp/mpich-build
-ARG MPICH_VERSION="3.3.2"
+ARG MPICH_VERSION="3.4.2"
 RUN wget http://www.mpich.org/static/downloads/${MPICH_VERSION}/mpich-${MPICH_VERSION}.tar.gz 
 RUN  tar xvzf mpich-${MPICH_VERSION}.tar.gz 
 WORKDIR /tmp/mpich-build/mpich-${MPICH_VERSION}              
-ARG MPICH_CONFIGURE_OPTIONS="--prefix=/usr/local --enable-g=option=none --disable-debuginfo --enable-fast=O3,ndebug --without-timing --without-mpit-pvars"
+ARG MPICH_CONFIGURE_OPTIONS="--prefix=/usr/local --enable-g=option=none --disable-debuginfo --enable-fast=O3,ndebug --without-timing --without-mpit-pvars --with-device=ch3"
 ARG MPICH_MAKE_OPTIONS="-j8"
 RUN ./configure ${MPICH_CONFIGURE_OPTIONS} 
 RUN make ${MPICH_MAKE_OPTIONS}             
 RUN make install                           
 RUN ldconfig
-# create venv now for forthcoming python packages
-RUN /usr/bin/python3 -m virtualenv --system-site-packages --python=/usr/bin/python3 ${VIRTUAL_ENV}
 
+# create venv now for forthcoming python packages
+USER $NB_USER
+RUN /usr/bin/python3 -m virtualenv --system-site-packages --python=/usr/bin/python3 ${VIRTUAL_ENV}
 RUN pip3 install --no-cache-dir mpi4py
+
+USER root
 # build petsc
 WORKDIR /tmp/petsc-build
-ARG PETSC_VERSION="3.14.0"
+ARG PETSC_VERSION="3.15.1"
 RUN wget http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-${PETSC_VERSION}.tar.gz
 RUN tar zxf petsc-lite-${PETSC_VERSION}.tar.gz
 WORKDIR /tmp/petsc-build/petsc-${PETSC_VERSION}
@@ -85,8 +101,7 @@ RUN make PETSC_DIR=/tmp/petsc-build/petsc-${PETSC_VERSION} PETSC_ARCH=arch-linux
 RUN rm -fr /usr/local/share/petsc 
 # build petsc4py
 ENV PETSC_DIR=/usr/local
-ENV PETSC_ARCH=arch-linux-c-opt
-RUN pip3 install --no-cache-dir petsc4py
+USER $NB_USER
 RUN CC=h5pcc HDF5_MPI="ON" HDF5_DIR=${PETSC_DIR} pip3 install --no-cache-dir --no-binary=h5py git+https://github.com/h5py/h5py@master
 
 FROM base_runtime AS minimal
@@ -100,16 +115,6 @@ RUN apt-mark showmanual >/opt/installed.txt
 
 # Add user environment
 FROM minimal
-EXPOSE 8888
-RUN ipcluster nbextension enable
-ADD https://github.com/krallin/tini/releases/download/v0.18.0/tini /tini
-RUN chmod +x /tini
-ENV NB_USER jovyan
-RUN useradd -m -s /bin/bash -N jovyan
 USER $NB_USER
-ENV NB_WORK /home/$NB_USER
-RUN ipython profile create --parallel --profile=mpi && \
-    echo "c.IPClusterEngines.engine_launcher_class = 'MPIEngineSetLauncher'" >> $NB_WORK/.ipython/profile_mpi/ipcluster_config.py
-VOLUME $NB_WORK/workspace
 WORKDIR $NB_WORK
 CMD ["jupyter", "notebook", "--no-browser", "--ip='0.0.0.0'"]

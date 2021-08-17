@@ -34,7 +34,7 @@ Example
 >>> with someMesh.deform_mesh():
 ...     someMesh.data[0] = [0.1,0.1]
 >>> uw.timing.stop()
->>> # uw.print_table()   # This will print the data.
+>>> # uw.timing.print_table()   # This will print the data.
 >>>                      # Commented out as not doctest friendly.
 >>> del os.environ["UW_ENABLE_TIMING"]  # remove to prevent timing for future doctests
 

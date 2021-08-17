@@ -23,7 +23,7 @@ Review issue tracker
 Documentation review 
 ====================
 * Review this document.
-* Review `guidelines.md`.
+* Review `development_guidelines.md`.
 * Review docstrings updates for deprecation warnings.
 * Check for other DEPRECATE flags in the code.
 * Check autocomplete to ensure no garbage has slipped in. Non
@@ -43,7 +43,7 @@ Documentation review
 * Generate/update change log (`CHANGES.md`).
 * Review cheat sheet contents.
 * Increment version number within ``underworld/_version.py``
-  (check `guidelines.md` for details on version numbering).
+  (check `development_guidelines.md` for details on version numbering).
 * Update `FROM` tag in top level (binder) Dockerfile.
 
 Testing

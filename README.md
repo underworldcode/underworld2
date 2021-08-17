@@ -29,18 +29,15 @@ In particular, the *Getting Started* section of the User Guide might be useful p
 Trying out Underworld2
 ----------------------
 
-You can try out the code immediately via a Jupyter Binder cloud instance. Be aware that it can take a little while for the site to fire up and that it will time-out after 30 minutes of inactivity and reset if you log back in. 
+You can try out the code immediately via a Jupyter Binder cloud instance. The Binder environment is identical to that obtained through running an Underworld Docker image locally.
+Note that it can take a while for the site to fire up and that it will time-out after 30 minutes of inactivity and reset if you log back in. 
 
 | | |
 |-|-|
-| [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/v2.10.0b) | v2.10.0b (Py3) |
-| [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/v2.9.2b) | v2.9.2b (Py3) |
-| [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/v2.8.2b) | v2.8.2b (Py3) |
-| [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/v2.7.1b) | v2.7.1b (Py2) |
-| [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/development) | dev (Py3) |
-
-
-Note that the Binder environment is identical to that obtained through running an Underworld Docker image locally.
+| [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/v2.11.0b) | v2.11.0b |
+| [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/v2.10.0b) | v2.10.0b |
+| [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/v2.9.2b) | v2.9.2b |
+| [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/development) | dev |
 
 
 Getting Underworld2

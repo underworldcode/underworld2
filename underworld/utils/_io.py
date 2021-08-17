@@ -90,6 +90,10 @@ class h5File(uw.mpi.call_pattern):
         h5py_mpi = h5py.get_config().mpi and (self.pattern=="collective")
         if h5py_mpi:
             self.kwargs.update( {"driver": 'mpio', "comm": MPI.COMM_WORLD} )
+        else:
+            # If writing sequential, non-root procs should use `append` mode.
+            if uw.mpi.rank != 0:
+                self.kwargs.update( {"mode": 'a'} )
 
         self.h5f = h5py.File(*self.args, **self.kwargs)
 
