@@ -24,4 +24,4 @@ jobs:
           context: .
           file: ./docs/development/docker/underworld2/Dockerfile
           push: true
-          tags: "underworldcode/underworld2:development"    
+          tags: "underworldcode/underworld2:dev"    
