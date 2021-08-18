@@ -24,4 +24,4 @@ jobs:
           context: .
           file: ./docs/development/docker/underworld2/Dockerfile
           push: true
-          tags: "underworldcode/underworld2:dev"    
+          tags: "underworldcode/underworld2:${GITHUB_REF#refs/heads/}" 
