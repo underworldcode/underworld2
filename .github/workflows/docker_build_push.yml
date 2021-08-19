@@ -27,5 +27,5 @@ jobs:
         with:
           context: .
           file: ./docs/development/docker/underworld2/Dockerfile
-          push: false
+          push: true
           tags: underworldcode/underworld2:${{ env.BRANCH }}
