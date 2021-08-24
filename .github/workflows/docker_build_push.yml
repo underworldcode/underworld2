@@ -3,7 +3,7 @@ name: docker image build and push to dockerhub
 on:
   push:
     branches:
-      - '*'
+      - jgiordani/fssa-algo
 
 jobs:
   docker:
