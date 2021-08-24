@@ -28,4 +28,4 @@ jobs:
           context: .
           file: ./docs/development/docker/underworld2/Dockerfile
           push: true
-          tags: julesg/underworld2:${{ env.BRANCH }}
+          tags: julesg/underworld2:fssa
