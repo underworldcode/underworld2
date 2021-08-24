@@ -22,6 +22,19 @@ VOLUME $NB_WORK/workspace
 RUN mkdir ${VIRTUAL_ENV} \
 &&  chmod ugo+rwx ${VIRTUAL_ENV}
 
+# add joyvan user, volume mount and expose port 8888
+EXPOSE 8888
+ENV NB_USER jovyan
+ENV NB_WORK /home/$NB_USER
+RUN useradd -m -s /bin/bash -N $NB_USER -g users \
+&&  mkdir -p /$NB_WORK/workspace \
+&&  chown -R $NB_USER:users $NB_WORK
+VOLUME $NB_WORK/workspace
+
+# make virtualenv directory and set permissions 
+RUN mkdir ${VIRTUAL_ENV} \
+&&  chmod ugo+rwx ${VIRTUAL_ENV}
+
 # install runtime requirements
 RUN apt-get update -qq \
 &&  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
