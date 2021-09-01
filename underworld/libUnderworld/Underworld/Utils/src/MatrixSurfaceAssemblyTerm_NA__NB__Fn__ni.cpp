@@ -153,7 +153,7 @@ void _MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_AssembleElement(
    const double                        *fn_vector;
    double                              *xi, *Ni; 
    double                              detJac, weight, localNormal[3], factor;
-   int                                 nodesPerEl, cell_I, dofPerNode, row, col, rowNode_I, colNode_I, g_I, d_i, n_I;
+   int                                 nodesPerEl, cell_I, dofPerNode, row, col, rowNode_I, colNode_I, g_I, d_i, n_i;
 
    MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_cppdata* cppdata = (MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_cppdata*)self->cppdata;
    debug_dynamic_cast<ParticleInCellCoordinate*>(cppdata->input->localCoord())->index() = lElement_I;  // set the elementId as the owning cell for the particleCoord
