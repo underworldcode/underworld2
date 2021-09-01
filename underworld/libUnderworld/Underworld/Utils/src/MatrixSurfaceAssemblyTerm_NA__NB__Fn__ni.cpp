@@ -126,6 +126,13 @@ void _MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_Destroy( void* matrixTerm, void* 
     _StiffnessMatrixTerm_Destroy( matrixTerm, data );
 }
 
+/* DEPRECATED
+void jZeroMem( void *buf, int c, size_t size ) {
+    // just for dubugging
+    memset( buf, c, size );
+}
+*/
+
 void _MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_AssembleElement(
    void*                                              matrixTerm,
    StiffnessMatrix*                                   stiffnessMatrix,
@@ -155,6 +162,11 @@ void _MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_AssembleElement(
    FeMesh*                 geometryMesh = ( self->geometryMesh ? self->geometryMesh : variable->feMesh );
    ElementType*            geometryElementType;
 
+   /* DEPRECATED
+   factor = 1;
+   if(factor == 1) { memset(&elStiffMat[0][0],0, 512); }
+   */
+
    /* Set the element type */
    geometryElementType = FeMesh_GetElementType( geometryMesh, lElement_I );
 
@@ -183,7 +195,7 @@ void _MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_AssembleElement(
       /* evaluate shape function, surface normal and jacobian determinant */
       ElementType_EvaluateShapeFunctionsAt( elementType, xi, Ni );
       ElementType_SurfaceNormal( elementType, lElement_I, dim, xi, localNormal );
-      detJac = ElementType_JacobianDeterminant( geometryElementType, geometryMesh, lElement_I, xi, dim );
+      detJac = ElementType_SurfaceJacobianDeterminant( geometryElementType, geometryMesh, lElement_I, xi, dim, localNormal );
 
       // /* evaluate function */
       const IO_double* funcout = debug_dynamic_cast<const IO_double*>(cppdata->func(cppdata->input.get()));
@@ -202,10 +214,22 @@ void _MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_AssembleElement(
         elStiffMat[row  ][col+1] = fn_vector[0] * localNormal[1] * Ni[rowNode_I] * Ni[colNode_I]
         elStiffMat[row+1][col  ] = fn_vector[1] * localNormal[0] * Ni[rowNode_I] * Ni[colNode_I]
         elStiffMat[row+1][col+1] = fn_vector[1] * localNormal[1] * Ni[rowNode_I] * Ni[colNode_I]
-
         */
 
-      /* build stiffness matrix */
+      /* The following is an assumption for 2D model testing eq.21.
+       * Using 2D linear quad element (non deformed)
+       * The resulting matrix will only have diagonal entries as per Kauss et al. FSSA2*/
+      for( rowNode_I = 0; rowNode_I < nodesPerEl; rowNode_I++ ) {
+          colNode_I = rowNode_I;
+          for( n_I = 0; n_I < dim; n_I++ ) {
+              row = rowNode_I*dofPerNode + n_I;
+              elStiffMat[row][row] += factor * fn_vector[n_I] * localNormal[n_I] * Ni[rowNode_I]*Ni[rowNode_I]; 
+          }
+
+      }
+
+      /* build full stiffness matrix */
+      /*
       for ( rowNode_I = 0; rowNode_I < nodesPerEl ; rowNode_I++ ) {
         for ( colNode_I = 0; colNode_I < nodesPerEl; colNode_I++ ) {
 
@@ -215,10 +239,12 @@ void _MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_AssembleElement(
             for( n_I = 0; n_I < dim; n_I++ ) {
               col = colNode_I*dofPerNode + n_I;
               
+              if(row != col) { continue; }
               elStiffMat[row][col] += factor * fn_vector[g_I] * localNormal[n_I] * Ni[rowNode_I] * Ni[colNode_I];
             }
           }
         }
       }
+      */
    }
 }
