@@ -153,7 +153,7 @@ void _MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_AssembleElement(
    const double                        *fn_vector;
    double                              *xi, *Ni; 
    double                              detJac, weight, localNormal[3], factor;
-   int                                 nodesPerEl, cell_I, dofPerNode, row, col, rowNode_I, colNode_I, g_I, n_I;
+   int                                 nodesPerEl, cell_I, dofPerNode, row, col, rowNode_I, colNode_I, g_I, d_i, n_I;
 
    MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_cppdata* cppdata = (MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_cppdata*)self->cppdata;
    debug_dynamic_cast<ParticleInCellCoordinate*>(cppdata->input->localCoord())->index() = lElement_I;  // set the elementId as the owning cell for the particleCoord
@@ -219,16 +219,13 @@ void _MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_AssembleElement(
       /* The following is an assumption for 2D model testing eq.21.
        * Using 2D linear quad element (non deformed)
        * The resulting matrix will only have diagonal entries as per Kauss et al. FSSA2*/
-      for( rowNode_I = 0; rowNode_I < nodesPerEl; rowNode_I++ ) {
-          colNode_I = rowNode_I;
-          for( n_I = 0; n_I < dim; n_I++ ) {
-              row = rowNode_I*dofPerNode + n_I;
-              elStiffMat[row][row] += factor * fn_vector[n_I] * localNormal[n_I] * Ni[rowNode_I]*Ni[rowNode_I]; 
+      for( n_i = 0; n_i < nodesPerEl; n_i++ ) {
+          for( d_i = 0; d_i < dim; d_i++ ) {
+              row = n_i*dofPerNode + d_i;
+              elStiffMat[row][row] += factor * fn_vector[d_i] * localNormal[d_i] * Ni[n_i]*Ni[n_i]; 
           }
 
-      }
-
-      /* build full stiffness matrix */
+      }      /* build full stiffness matrix */
       /*
       for ( rowNode_I = 0; rowNode_I < nodesPerEl ; rowNode_I++ ) {
         for ( colNode_I = 0; colNode_I < nodesPerEl; colNode_I++ ) {
