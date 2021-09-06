@@ -18,7 +18,7 @@
 
 	extern Stream* stgErrorStream;
 
-	Bool      IO_Init( int* argc, char** argv[] );
+	Bool      BaseIO_Init( int* argc, char** argv[] );
 	
 #endif /* __StGermain_Base_IO_Init_h__ */
 

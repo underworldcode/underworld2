@@ -91,7 +91,7 @@ PetscErrorCode KSPScale_BSSCR(KSP ksp)
 
     if( DEFAULT == bsscr->scaletype ){
 	if( BA->scaling_exists ){
-	    BSSCR_MatStokesBlockDefaultBuildScaling( BA, Amat );/* rebuild scaling vectors on struct */
+	    BSSCR_MatStokesBlockDefaultBuildScaling( BA, Amat);/* rebuild scaling vectors on struct */
 	    BA->scalings_have_been_inverted = PETSC_FALSE;
 	}else{
 	    BSSCR_MatBlock_ConstructScaling( BA, Amat, B, X );/* allocates scaling vectors then calls the above function */
@@ -107,10 +107,10 @@ PetscErrorCode KSPScale_BSSCR(KSP ksp)
 
     if( KONLY == bsscr->scaletype ){
 	if( BA->scaling_exists ){
-	    BSSCR_MatStokesKBlockDefaultBuildScaling( BA, Amat );/* rebuild scaling vectors on struct */
+	    BSSCR_MatStokesKBlockDefaultBuildScaling( BA, Amat, B, X, sym);/* rebuild scaling vectors on struct */
 	    BA->scalings_have_been_inverted = PETSC_FALSE;
 	}else{
-	    BSSCR_MatKBlock_ConstructScaling( BA, Amat, B, X );/* allocates scaling vectors then calls the above function */
+	    BSSCR_MatKBlock_ConstructScaling( BA, Amat, B, X, sym);/* allocates scaling vectors then calls the above function */
 	    BA->scalings_have_been_inverted = PETSC_FALSE;/* above function sets this but I am making it explicit here */
 	}
 	PetscPrintf( PETSC_COMM_WORLD, "Operator scales KONLY (pre-scaling)\n");

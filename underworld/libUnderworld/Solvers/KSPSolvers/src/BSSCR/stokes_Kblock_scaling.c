@@ -46,9 +46,7 @@ The solution u,p is recovered via
 #include "stokes_Kblock_scaling.h"
 
 /* private prototypes */
-PetscErrorCode BSSCR_MatStokesKBlockDefaultBuildScaling( MatStokesBlockScaling BA, Mat A, Vec b, Vec x, PetscTruth sym  );
 PetscErrorCode BSSCR_MatStokesKBlock_ApplyScaling( MatStokesBlockScaling BA, Mat A, Vec b, Vec x, Mat S, PetscTruth sym );
-PetscErrorCode BSSCR_MatKBlock_ConstructScaling( MatStokesBlockScaling BA, Mat A, Vec b, Vec x, PetscTruth sym  );
 PetscErrorCode BSSCR_mat_kblock_invert_scalings( MatStokesBlockScaling BA );
 
 

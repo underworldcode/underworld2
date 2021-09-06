@@ -50,18 +50,6 @@ else()
     # the RPATH to be used when installing, but only if it's not a system directory
     #set(CMAKE_INSTALL_RPATH "@loader_path")
 
-
-    # Implicit declaration of functions has been prohibited ever since the C99 standard was introduced decades ago,
-    # but compilers have allowed it with a warning. The reason it now becomes a problem (in the past year)
-    # is that the version of clang included with Xcode 12 and later considers implicit declaration of functions to be an error, 
-    # not a warning: It defaults to -Werror=implicit-function-declaration. 
-    # Turning this off by specifying -Wno-error=implicit-function-declaration is strongly discouraged. 
-    # Apple made this the default because they introduced new Mac models based on ARM processors, for which they use the brand name Apple Silicon.
-    # ARM processors use different calling conventions for variadic and non-variadic functions whereas Intel processors 
-    # used the same conventions (in most cases) so this was not a problem on Intel. 
-    # But for ARM the compiler must know before it writes a function invocation's machine code which type of function it is.
-    # To know this, it must see the function prototype. So please provide them.
-    add_compile_options(-Wno-error=implicit-function-declaration)
 endif()
 
 

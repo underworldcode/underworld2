@@ -240,7 +240,7 @@ void _Energy_SLE_Solver_Solve( void* sleSolver, void* standardSLE ) {
 	Stream_UnIndentBranch( StgFEM_SLE_ProvidedSystems_Energy_Debug );
     
     if(isNull)
-      Stg_MatNullSpaceDestroy(&nullsp);
+      MatNullSpaceDestroy(&nullsp);
     
     /* Destroys should be here */
     Stg_KSPDestroy(&self->ksp);

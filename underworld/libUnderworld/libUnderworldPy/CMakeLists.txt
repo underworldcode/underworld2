@@ -40,8 +40,6 @@ else()
     
     # the RPATH to be used when installing, but only if it's not a system directory
     #set(CMAKE_INSTALL_RPATH "@loader_path")
-
-    add_compile_options(-Wno-error=implicit-function-declaration)
 endif()
 
 add_compile_options(-DU_SHOW_CPLUSPLUS_API=0)

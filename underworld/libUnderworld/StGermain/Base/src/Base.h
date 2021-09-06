@@ -11,12 +11,12 @@
 #ifndef __StGermain_Base_h__
 #define __StGermain_Base_h__
 	
-	#include "../Foundation/src/Foundation.h"
-	#include "../IO/src/IO.h"
-	#include "../Container/src/Container.h"
-	#include "../Automation/src/Automation.h"
-	#include "../Extensibility/src/Extensibility.h"
-	#include "../Context/src/Context.h"
+	#include "StGermain/Base/Foundation/src/Foundation.h"
+	#include "StGermain/Base/IO/src/IO.h"
+	#include "StGermain/Base/Container/src/Container.h"
+	#include "StGermain/Base/Automation/src/Automation.h"
+	#include "StGermain/Base/Extensibility/src/Extensibility.h"
+	#include "StGermain/Base/Context/src/Context.h"
 	#include "Init.h"
 	#include "Finalise.h"
 	

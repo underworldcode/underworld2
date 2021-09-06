@@ -55,6 +55,7 @@ typedef struct {
 
 PetscErrorCode BSSCR_KSPNormInfMonitor( KSP ksp, PetscInt iteration, PetscReal residualNorm, void *dummy);
 PetscErrorCode BSSCR_KSPNormInfToNorm2Monitor( KSP ksp, PetscInt iteration, PetscReal residualNorm, void *dummy);
+PetscErrorCode BSSCR_KSPSetNormInfConvergenceTest(KSP ksp);
 
 
 

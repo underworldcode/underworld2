@@ -11,6 +11,6 @@
 #ifndef __StGermain_Base_Automation_Finalise_h__
 #define __StGermain_Base_Automation_Finalise_h__
 	
-	Bool Automation_Finalise( void );
+	Bool BaseAutomation_Finalise( void );
 	
 #endif /* __StGermain_Base_Automation_Finalise_h__ */

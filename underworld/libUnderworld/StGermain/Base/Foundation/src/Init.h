@@ -11,6 +11,6 @@
 #ifndef __StGermain_Base_Foundation_Init_h__
 #define __StGermain_Base_Foundation_Init_h__
 
-	Bool Foundation_Init( int* argc, char** argv[] );
+	Bool BaseFoundation_Init( int* argc, char** argv[] );
 
 #endif /* __StGermain_Base_Foundation_Init_h__ */
