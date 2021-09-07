@@ -30,7 +30,7 @@ endif()
 
 add_compile_options(-DU_SHOW_CPLUSPLUS_API=0)
 add_compile_options(-DSWIG_PYTHON_SILENT_MEMLEAK)
-SET(CMAKE_SWIG_FLAGS "-v" "-Wextra" "-python" "-py3" "-ignoremissing" "-O" "-c++" "-DSWIG_DO_NOT_WRAP")
+SET(CMAKE_SWIG_FLAGS "-v" "-Wextra" "-python" "-py3" "-O" "-c++" "-DSWIG_DO_NOT_WRAP")
 
 SET_SOURCE_FILES_PROPERTIES(Function.i PROPERTIES CPLUSPLUS ON)
 set_property(SOURCE Function.i PROPERTY SWIG_MODULE_NAME Function)
