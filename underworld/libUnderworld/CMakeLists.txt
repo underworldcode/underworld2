@@ -3,7 +3,6 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(Python_FIND_VIRTUALENV FIRST)
 cmake_policy(SET CMP0078 OLD)
-cmake_policy(SET CMP0086 OLD)
 
 project(Underworld)
 find_package(LibXml2 REQUIRED)
