@@ -274,7 +274,7 @@ class Stokes(_stgermain.StgCompoundComponent):
                                                                 fn=_fn_bodyforce)
 
         if _fn_fssa:
-            bgs = uw.swarm.GaussBorderIntegrationSwarm(mesh, particleCount=2) #TODO make a variable particleCount
+            bgs = uw.swarm.GaussBorderIntegrationSwarm(mesh, particleCount=gaussSwarm._particleCount)
             self._fssa_term = uw.systems.sle.MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni( 
                                             integrationSwarm = bgs, 
                                             assembledObject  = self._kmatrix,
