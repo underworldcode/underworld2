@@ -82,12 +82,13 @@
 	void _MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_Destroy( void* matrixTerm, void* data );
 
 	void _MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_AssembleElement(
-		void*							matrixTerm,
-		StiffnessMatrix*			stiffnessMatrix,
-		Element_LocalIndex		lElement_I,
-		SystemLinearEquations*	sle,
-		FiniteElementContext*	context,
-		double**						elStiffMat ) ;
+		void*                   matrixTerm,
+		StiffnessMatrix*        stiffnessMatrix,
+		Element_LocalIndex      lElement_I,
+		SystemLinearEquations*  sle,
+		FiniteElementContext*   context,
+		double**                elStiffMat ) ;
+    PetscErrorCode AXequalsX( StiffnessMatrix* a, SolutionVector* x, Bool transpose );
 
 #ifdef __cplusplus
    }
