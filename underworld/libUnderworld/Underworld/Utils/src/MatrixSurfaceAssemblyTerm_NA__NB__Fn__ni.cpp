@@ -133,6 +133,33 @@ void jZeroMem( void *buf, int c, size_t size ) {
 }
 */
 
+PetscErrorCode AXequalsX( StiffnessMatrix* a, SolutionVector* x, Bool transpose ) {
+  Mat Amat;
+  Vec X, Y;
+  PetscErrorCode ierr;
+
+  PetscFunctionBeginUser;
+  Amat = a->matrix;
+  X    = x->vector;
+  // create Y, duplicate vector of X
+  VecDuplicate(X, &Y);
+  VecCopy(X,Y);
+
+  if (transpose) {
+    ierr = MatMultTranspose(Amat,X,Y);
+  } else {
+    ierr = MatMult(Amat,X,Y);
+  }
+  // check for non-zero error code manually
+  Journal_Firewall(ierr==0, NULL, (char *)"Error in AXequalsX(), see terminal command line\n");
+
+  VecCopy(Y, X);
+  VecDestroy(&Y);
+
+  SolutionVector_UpdateSolutionOntoNodes( x );
+  PetscFunctionReturn(0);
+}
+
 void _MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_AssembleElement(
    void*                                              matrixTerm,
    StiffnessMatrix*                                   stiffnessMatrix,
@@ -219,13 +246,32 @@ void _MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_AssembleElement(
       /* The following is an assumption for 2D model testing eq.21.
        * Using 2D linear quad element (non deformed)
        * The resulting matrix will only have diagonal entries as per Kauss et al. FSSA2*/
-      for( n_i = 0; n_i < nodesPerEl; n_i++ ) {
-          for( d_i = 0; d_i < dim; d_i++ ) {
-              row = n_i*dofPerNode + d_i;
-              elStiffMat[row][row] += factor * fn_vector[d_i] * localNormal[d_i] * Ni[n_i]*Ni[n_i]; 
-          }
 
-      }      /* build full stiffness matrix */
+      /*
+      */
+      double Ai, Bi, fem;
+      for( rowNode_I = 0; rowNode_I < nodesPerEl ; rowNode_I++ ) {
+
+        Ai = Ni[rowNode_I]; // row shape funcs
+        row = rowNode_I * dofPerNode;
+
+        for( colNode_I = 0; colNode_I < nodesPerEl; colNode_I++ ) {
+          //if( colNode_I != rowNode_I ) continue; //skip
+          
+          Bi = Ni[colNode_I]; // col shape funcs
+          col = colNode_I * dofPerNode;
+
+          fem = Ai * Bi * factor; // build a fem factor
+
+          elStiffMat[row  ][row  ] += fn_vector[0] * localNormal[0] * fem;
+          // Remove cross terms
+          // elStiffMat[row  ][col+1] += fn_vector[0] * localNormal[1] * fem;
+          // elStiffMat[row+1][col  ] += fn_vector[1] * localNormal[0] * fem;
+          elStiffMat[row+1][row+1] += fn_vector[1] * localNormal[1] * fem;
+        }
+      }
+
+      /* build full stiffness matrix */
       /*
       for ( rowNode_I = 0; rowNode_I < nodesPerEl ; rowNode_I++ ) {
         for ( colNode_I = 0; colNode_I < nodesPerEl; colNode_I++ ) {
