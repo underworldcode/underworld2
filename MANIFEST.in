@@ -1,7 +1,0 @@
-recursive-include underworld *i
-recursive-include underworld *c
-recursive-include underworld *cpp
-recursive-include underworld *h
-recursive-include underworld *hpp
-recursive-include underworld *py
-recursive-include underworld SCon*
