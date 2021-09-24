@@ -1,7 +1,0 @@
-StGermain Framework revision 4190. Copyright (C) 2003-2005 VPAC.
-StGermain Domain Library revision 3. Copyright (C) 2003-2007 VPAC.
-StGermain FEM Discretisation Framework revision 962. Copyright (C) 2003-2005 VPAC.
-   Running test 'local destination array'... passed
-   Running test 'shadow destination array'... passed
-   Running test 'destination array with BCs'... passed
-   Running test 'linked dofs'... passed

@@ -1,5 +1,0 @@
-Component dictionary must have unique names
-Error found in given dictionary:
-The following keys were repeated:
-	"test_dict_string"
-Error in CheckDictionaryKeys with 1 entries in dictionary keys
