@@ -31,14 +31,14 @@ done
 
 
 module purge
-module load openmpi/4.0.3 hdf5/1.10.5p python3/3.7.4 petsc/3.12.2 
+module load openmpi/4.0.3 hdf5/1.10.5p python3/3.7.4 petsc/3.12.2 cmake
 
 # set all compiler wrappers to mpicc/mpicxx
 export CC='mpicc' CXX='mpicxx' F90='mpifort' F77='mpifort' LD='mpicc' LDSHARED='mpicc -shared'
 
 export GROUP=m18
 export USER=
-export INSTALL_NAME=UWGeodynamics_2.10.2
+export INSTALL_NAME=UWGeodynamics_2.12.0
 
 export CODES_PATH=/g/data/$GROUP/$USER/codes/
 export UW_OPT_DIR=$CODES_PATH/opt
@@ -128,7 +128,7 @@ install_underworld(){
 	#export PETSC_DIR=$UW_OPT_DIR/petsc-3.12.3 # disable when using petsc module
 
 	source $INSTALL_PATH/bin/activate 
-	pip3 install --no-binary :all: --no-cache-dir --no-build-isolation  underworld==2.10.1b0
+	pip3 install --no-binary :all: --no-cache-dir --no-build-isolation
 
 	# tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
 	# cd $tmp_dir
@@ -140,7 +140,7 @@ install_underworld(){
 
 install_uwgeodynamics(){
 	source $INSTALL_PATH/bin/activate
-	pip install --no-binary :all: --no-cache-dir uwgeodynamics==2.10.2
+	pip3 install --no-binary :all: --no-cache-dir uwgeodynamics==2.10.2
 
 	# tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
 	# cd $tmp_dir
