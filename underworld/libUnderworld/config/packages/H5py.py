@@ -22,7 +22,7 @@ class H5py(Package):
             return False
 
         # if we made it this far, all is probably good
-        self._logfile.write("\nh5py configuration succeeded.\n")
+        self._logfile.write("\nh5py is available.\n")
         return True
 
     def check(self, conf, env):
@@ -34,7 +34,6 @@ class H5py(Package):
             self.launcher = self.launcher + " "
 
         with open('config.log', 'a') as self._logfile:
-            self._logfile.write("\n\nCONFIGURE H5PY\n")
             if self._importtest():
                 return True
 
