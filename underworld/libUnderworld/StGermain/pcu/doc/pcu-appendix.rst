@@ -36,7 +36,7 @@ And now a template Suite C file::
    #include <stdlib.h>
 
    /* Add any additional necessary headers here */
-   #include "pcu/pcu.h"
+   #include "StGermain/pcu/src/pcu.h"
 
    /* Add appropriate StGermain/Project includes here */
    #include "TemplateSuite.h"

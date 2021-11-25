@@ -12,10 +12,10 @@
 #include <string.h>
 
 #include "pcu/pcu.h"
-#include <StGermain/StGermain.h>
-#include <StgDomain/StgDomain.h>
-#include <StgFEM/StgFEM.h>
-#include "PICellerator/PopulationControl/PopulationControl.h"
+#include <StGermain/libStGermain/src/StGermain.h>
+#include <StgDomain/libStgDomain/src/StgDomain.h>
+#include <StgFEM/libStgFEM/src/StgFEM.h>
+#include "PICellerator/PopulationControl/src/PopulationControl.h"
 
 struct _Particle {
    __GlobalParticle

@@ -7,7 +7,7 @@
 **                                                                                  **
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 
-#include "Base/Foundation/Foundation.h"
+#include <StGermain/Base/Foundation/src/Foundation.h>
 
 #include "types.h"
 #include "shortcuts.h"

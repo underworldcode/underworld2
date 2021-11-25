@@ -15,8 +15,8 @@
 
 extern "C++" {
 
-#include <Underworld/Function/Function.hpp>
-#include <Underworld/Function/FEMCoordinate.hpp>
+#include <Underworld/Function/src/Function.hpp>
+#include <Underworld/Function/src/FEMCoordinate.hpp>
 
 struct Fn_Integrate_cppdata
 {
@@ -35,11 +35,11 @@ IO_double* Fn_Integrate_Integrate( void* fn_integrate );
 extern "C" {
 #endif
 
-#include <StGermain/StGermain.h>
-#include <StgDomain/StgDomain.h>
-#include <StgFEM/StgFEM.h>
-#include <PICellerator/PICellerator.h>
-#include <Underworld/Underworld.h>
+#include <StGermain/libStGermain/src/StGermain.h>
+#include <StgDomain/libStgDomain/src/StgDomain.h>
+#include <StgFEM/libStgFEM/src/StgFEM.h>
+#include <PICellerator/libPICellerator/src/PICellerator.h>
+#include <Underworld/libUnderworld/src/Underworld.h>
 
    /** Textual name of this class */
    extern const Type Fn_Integrate_Type;

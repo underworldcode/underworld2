@@ -13,9 +13,9 @@
 #include <string.h>
 
 #include "pcu/pcu.h"
-#include <StGermain/StGermain.h>
+#include <StGermain/libStGermain/src/StGermain.h>
 
-#include "StgDomain/StgDomain.h"
+#include "StgDomain/libStgDomain/src/StgDomain.h"
 #include "StgFEM/StgFEM.h"
 
 #include "LibStgFEMSuite.h"

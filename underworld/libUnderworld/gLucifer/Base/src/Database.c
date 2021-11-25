@@ -10,9 +10,9 @@
 #include <mpi.h>
 #include <stdio.h>
 #include <float.h>
-#include <StGermain/StGermain.h>
-#include <StgDomain/StgDomain.h>
-#include <StgFEM/StgFEM.h>
+#include <StGermain/libStGermain/src/StGermain.h>
+#include <StgDomain/libStgDomain/src/StgDomain.h>
+#include <StgFEM/libStgFEM/src/StgFEM.h>
 
 #include "Base.h"
 
@@ -25,7 +25,7 @@
 #define MINIZ_HEADER_FILE_ONLY
 #include "miniz.c"
 
-#include <gLucifer/DrawingObjects/DrawingObjects.h>
+#include <gLucifer/DrawingObjects/src/DrawingObjects.h>
 
 #define MAX_QUERY_LEN 4096
 char SQL[MAX_QUERY_LEN];

@@ -11,7 +11,7 @@
 #ifndef __lucIsosurface_h__
 #define __lucIsosurface_h__
 
-#include <gLucifer/Base/Base.h>
+#include <gLucifer/Base/src/Base.h>
 #include "types.h"
 
 /** Textual name of this class - This is a global pointer which is used for times when you need to refer to class and not a particular instance of a class */

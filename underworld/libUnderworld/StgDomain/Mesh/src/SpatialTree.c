@@ -11,7 +11,7 @@
 #include <string.h>
 #include <math.h>
 #include <assert.h>
-#include <StGermain/StGermain.h>
+#include <StGermain/libStGermain/src/StGermain.h>
 #include "types.h"
 #include "Mesh.h"
 #include "SpatialTree.h"

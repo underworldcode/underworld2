@@ -16,8 +16,8 @@
 extern "C++" {
 
 
-#include <Underworld/Function/Function.hpp>
-#include <Underworld/Function/FEMCoordinate.hpp>
+#include <Underworld/Function/src/Function.hpp>
+#include <Underworld/Function/src/FEMCoordinate.hpp>
 
     struct SUPGVectorTerm_NA__Fn_cppdata
     {
@@ -32,10 +32,10 @@ extern "C" {
 #endif
 
 #include "mpi.h"
-#include <StGermain/StGermain.h>
-#include <StgDomain/StgDomain.h>
-#include <StgFEM/StgFEM.h>
-#include <PICellerator/PICellerator.h>
+#include <StGermain/libStGermain/src/StGermain.h>
+#include <StgDomain/libStgDomain/src/StgDomain.h>
+#include <StgFEM/libStgFEM/src/StgFEM.h>
+#include <PICellerator/libPICellerator/src/PICellerator.h>
 
 /*
 #include "StgFEM/Discretisation/Discretisation.h"

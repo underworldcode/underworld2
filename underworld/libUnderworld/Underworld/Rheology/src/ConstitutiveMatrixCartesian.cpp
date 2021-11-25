@@ -16,18 +16,18 @@
 #include <string>
 #include <sstream>
 
-#include <Underworld/Function/FunctionIO.hpp>
-#include <Underworld/Function/FEMCoordinate.hpp>
-#include <Underworld/Function/ParticleInCellCoordinate.hpp>
-#include <Underworld/Function/Function.hpp>
+#include <Underworld/Function/src/FunctionIO.hpp>
+#include <Underworld/Function/src/FEMCoordinate.hpp>
+#include <Underworld/Function/src/ParticleInCellCoordinate.hpp>
+#include <Underworld/Function/src/Function.hpp>
 
 #include <mpi.h>
 #include <petsc.h>
 extern "C" {
-#include <StGermain/StGermain.h>
-#include <StgDomain/StgDomain.h>
-#include <StgFEM/StgFEM.h>
-#include <PICellerator/PICellerator.h>
+#include <StGermain/libStGermain/src/StGermain.h>
+#include <StgDomain/libStgDomain/src/StgDomain.h>
+#include <StgFEM/libStgFEM/src/StgFEM.h>
+#include <PICellerator/libPICellerator/src/PICellerator.h>
 
 #include "types.h"
 #include "ConstitutiveMatrix.h"
@@ -36,7 +36,7 @@ extern "C" {
 
 
 /* Textual name of this class - This is a global pointer which is used for times when you need to refer to class and not a particular instance of a class */
-const Type ConstitutiveMatrixCartesian_Type = "ConstitutiveMatrixCartesian";
+const Type ConstitutiveMatrixCartesian_Type = (char*) "ConstitutiveMatrixCartesian";
 
 void _ConstitutiveMatrixCartesian_Set_Fn_Visc1( void* _self, Fn::Function* fn_visc1 ){
     ConstitutiveMatrixCartesian*  self = (ConstitutiveMatrixCartesian*)_self;
@@ -126,7 +126,7 @@ void _ConstitutiveMatrixCartesian_Init(
       ConstitutiveMatrixCartesian*                 self )
 {
    self->rowSize = self->columnSize = StGermain_nSymmetricTensorVectorComponents( self->dim );
-   self->Dtilda_B = Memory_Alloc_2DArray( double, self->rowSize, self->dim, (Name)"D~ times B matrix" );
+   self->Dtilda_B = Memory_Alloc_2DArray( double, self->rowSize, self->dim, (Name)(char*)"D~ times B matrix" );
 
    if( self->dim == 2 ) {
       self->_setValue = _ConstitutiveMatrixCartesian2D_SetValueInAllEntries;
@@ -290,7 +290,7 @@ void _ConstitutiveMatrixCartesian_AssembleElement(
 
    /* Determine whether this is the first solve for not */
    Journal_Firewall( sle != NULL, Journal_Register( Error_Type, (Name)ConstitutiveMatrix_Type  ),
-         "In func %s: SLE is NULL.\n", __func__ );
+         (char*) "In func %s: SLE is NULL.\n", __func__ );
 
    /* Note: we may have deliberately set the previousSolutionExists flag to true in the
       parent ConstitutiveMatrix constructor if in restart mode, even if the SLE hasn't executed yet

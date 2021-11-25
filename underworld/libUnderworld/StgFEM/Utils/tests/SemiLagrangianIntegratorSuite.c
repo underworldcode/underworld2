@@ -11,8 +11,8 @@
 #include <stdlib.h>
 
 #include "pcu/pcu.h"
-#include <StGermain/StGermain.h>
-#include <StgDomain/StgDomain.h>
+#include <StGermain/libStGermain/src/StGermain.h>
+#include <StgDomain/libStgDomain/src/StgDomain.h>
 #include <StgFEM/StgFEM.h>
 
 #include "SemiLagrangianIntegratorSuite.h"

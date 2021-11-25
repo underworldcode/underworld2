@@ -14,8 +14,8 @@
 
 extern "C++" {
 
-#include <Underworld/Function/Function.hpp>
-#include <Underworld/Function/FEMCoordinate.hpp>
+#include <Underworld/Function/src/Function.hpp>
+#include <Underworld/Function/src/FEMCoordinate.hpp>
 
 struct ConstitutiveMatrixCartesian_cppdata
 {

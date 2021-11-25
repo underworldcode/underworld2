@@ -11,15 +11,15 @@
 #include <mpi.h>
 #include <petsc.h>
 
-#include <Underworld/Function/FunctionIO.hpp>
-#include <Underworld/Function/FEMCoordinate.hpp>
-#include <Underworld/Function/ParticleInCellCoordinate.hpp>
-#include <Underworld/Function/Function.hpp>
+#include <Underworld/Function/src/FunctionIO.hpp>
+#include <Underworld/Function/src/FEMCoordinate.hpp>
+#include <Underworld/Function/src/ParticleInCellCoordinate.hpp>
+#include <Underworld/Function/src/Function.hpp>
 
 #include "MatrixAssemblyTerm_NA_i__NB_i__Fn.h"
 
 /* Textual name of this class */
-const Type MatrixAssemblyTerm_NA_i__NB_i__Fn_Type = "MatrixAssemblyTerm_NA_i__NB_i__Fn";
+const Type MatrixAssemblyTerm_NA_i__NB_i__Fn_Type = (char*) "MatrixAssemblyTerm_NA_i__NB_i__Fn";
 
 /* Creation implementation / Virtual constructor */
 MatrixAssemblyTerm_NA_i__NB_i__Fn* _MatrixAssemblyTerm_NA_i__NB_i__Fn_New(  MATRIXASSEMBLYTERM_NA_I__NB_I__FN_DEFARGS  )

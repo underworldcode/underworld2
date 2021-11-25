@@ -12,7 +12,7 @@
 #define __lucDrawingObjects_h__
 
 #include "types.h"
-#include <gLucifer/Base/DrawingObject.h>
+#include <gLucifer/Base/src/DrawingObject.h>
 #include "FieldSampler.h"
 #include "Isosurface.h"
 #include "CrossSection.h"

@@ -14,7 +14,7 @@
    #include <SDL/SDL.h>
 #endif
 #include <mpi.h>
-#include <StGermain/StGermain.h>
+#include <StGermain/libStGermain/src/StGermain.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <mpi.h>
-#include "StGermain/StGermain.h"
+#include "StGermain/libStGermain/src/StGermain.h"
 #include "types.h"
 #include "Decomp.h"
 

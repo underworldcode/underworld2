@@ -11,12 +11,12 @@
 #include <petscvec.h>
 #include <petscksp.h>
 #include <petscpc.h>
-#include <StGermain/StGermain.h>
-#include <StgDomain/StgDomain.h>
-#include <StgFEM/StgFEM.h>
-#include <PICellerator/PICellerator.h>
-#include <Underworld/Underworld.h>
-#include "Solvers/KSPSolvers/KSPSolvers.h"
+#include <StGermain/libStGermain/src/StGermain.h>
+#include <StgDomain/libStgDomain/src/StgDomain.h>
+#include <StgFEM/libStgFEM/src/StgFEM.h>
+#include <PICellerator/libPICellerator/src/PICellerator.h>
+#include <Underworld/libUnderworld/src/Underworld.h>
+#include "Solvers/KSPSolvers/src/KSPSolvers.h"
 
 #include "common-driver-utils.h"
 #include "BSSCR.h" /* includes StokesBlockKSPInterface.h */

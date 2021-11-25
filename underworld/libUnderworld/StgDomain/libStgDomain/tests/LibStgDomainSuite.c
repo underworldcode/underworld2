@@ -13,8 +13,8 @@
 #include <string.h>
 
 #include "pcu/pcu.h"
-#include <StGermain/StGermain.h>
-#include "StgDomain/StgDomain.h"
+#include <StGermain/libStGermain/src/StGermain.h>
+#include "StgDomain/src/StgDomain.h"
 
 #include "LibStgDomainSuite.h"
 

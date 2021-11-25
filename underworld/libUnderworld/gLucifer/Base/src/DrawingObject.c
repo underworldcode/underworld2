@@ -8,9 +8,9 @@
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 
 #include <mpi.h>
-#include <StGermain/StGermain.h>
-#include <StgDomain/StgDomain.h>
-#include <StgFEM/StgFEM.h>
+#include <StGermain/libStGermain/src/StGermain.h>
+#include <StgDomain/libStgDomain/src/StgDomain.h>
+#include <StgFEM/libStgFEM/src/StgFEM.h>
 #include <stdarg.h>
 #include <string.h>
 
@@ -19,7 +19,7 @@
 #include "DrawingObject.h"
 #include "Init.h"
 
-#include <gLucifer/Base/Base.h>
+#include <gLucifer/Base/src/Base.h>
 
 
 #ifndef MASTER

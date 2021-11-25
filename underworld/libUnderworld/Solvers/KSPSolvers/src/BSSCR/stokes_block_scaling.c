@@ -39,8 +39,8 @@ The solution u,p is recovered via
 #include <petscmat.h>
 #include <petscvec.h>
 
-#include <StGermain/StGermain.h>
-#include <StgDomain/StgDomain.h>
+#include <StGermain/libStGermain/src/StGermain.h>
+#include <StgDomain/libStgDomain/src/StgDomain.h>
 
 #include "common-driver-utils.h"
 #include "stokes_block_scaling.h"

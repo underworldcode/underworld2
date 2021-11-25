@@ -12,10 +12,10 @@
 #define __StGermain_StGermain_h__
 
 #ifdef HAVE_SCONS
-        #include "pcu/pcu.h"
+        #include "StGermain/pcu/src/pcu.h"
 #endif
-	#include "Base/Base.h"
-	#include "Utils/Utils.h"
+	#include "StGermain/Base/src/Base.h"
+	#include "StGermain/Utils/src/Utils.h"
 	#include "Init.h"
 	#include "main.h"
 	#include "Finalise.h"

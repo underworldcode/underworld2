@@ -11,10 +11,10 @@
 #include <string.h>
 
 #include "pcu/pcu.h"
-#include <StGermain/StGermain.h>
-#include <StgDomain/StgDomain.h>
-#include "StgFEM/Discretisation/Discretisation.h"
-#include "StgFEM/SLE/SystemSetup/SystemSetup.h"
+#include <StGermain/libStGermain/src/StGermain.h>
+#include <StgDomain/libStgDomain/src/StgDomain.h>
+#include "StgFEM/Discretisation/src/Discretisation.h"
+#include "StgFEM/SLE/StgFEM/SLE/SystemSetup/src/SystemSetup.h"
 
 typedef struct {
 	FiniteElementContext* context;

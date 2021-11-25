@@ -6,8 +6,8 @@
 ** located at the project root, or contact the authors.                             **
 **                                                                                  **
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
-#include <Base/Foundation/Foundation.h>
-#include <Base/IO/IO.h>
+#include <StGermain/Base/Foundation/src/Foundation.h>
+#include <StGermain/Base/IO/src/IO.h>
 
 #include "types.h"
 #include "BTreeNode.h"

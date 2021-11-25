@@ -10,8 +10,8 @@
 #ifndef __gLucifer_h__
 #define __gLucifer_h__
 
-#include "Base/Base.h"
-#include "DrawingObjects/DrawingObjects.h"
+#include "gLucifer/Base/src/Base.h"
+#include "gLucifer/DrawingObjects/src/DrawingObjects.h"
 
 #include "Init.h"
 #include "Finalise.h"

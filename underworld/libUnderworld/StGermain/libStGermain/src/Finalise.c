@@ -9,13 +9,13 @@
 
 #include <stdarg.h>
 #include <mpi.h>
-#include "Base/Foundation/Foundation.h"
-#include "Base/IO/IO.h"
-#include "Base/Container/Container.h"
-#include "Base/Automation/Automation.h"
-#include "Base/Extensibility/Extensibility.h"
-#include "Base/Context/Context.h"
-#include "Utils/Utils.h"
+#include "StGermain/Base/Foundation/src/Foundation.h"
+#include "StGermain/Base/IO/src/IO.h"
+#include "StGermain/Base/Container/src/Container.h"
+#include "StGermain/Base/Automation/src/Automation.h"
+#include "StGermain/Base/Extensibility/src/Extensibility.h"
+#include "StGermain/Base/Context/src/Context.h"
+#include "StGermain/Utils/src/Utils.h"
 
 #include "Finalise.h"
 

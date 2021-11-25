@@ -58,7 +58,7 @@
 
     /** Allocates a single instance of a given primitive or class. */
     #define Memory_Alloc( type, name ) \
-        (type*) _Memory_Alloc_Func( sizeof(type), #type, (name), __FILE__, __func__, __LINE__ )
+        (type*) _Memory_Alloc_Func( sizeof(type), (char*) #type, (name), __FILE__, __func__, __LINE__ )
 
 	/** Allocates a single instance of a given primitive or class, without assigning a name to the allocation. */
 	#define Memory_Alloc_Unnamed( type ) \
@@ -76,7 +76,7 @@
 
     /** Allocates a 1D array of a primitive or class. */
     #define Memory_Alloc_Array( type, arrayLength, name ) \
-        (type*) _Memory_Alloc_Array_Func( sizeof(type), (arrayLength), #type, (name), __FILE__, __func__, __LINE__ )
+        (type*) _Memory_Alloc_Array_Func( sizeof(type), (arrayLength), (char*) #type, (name), __FILE__, __func__, __LINE__ )
 
 	/** Allocates a 1D array of a primitive or class without a name. */
 	#define Memory_Alloc_Array_Unnamed( type, arrayLength ) \
@@ -92,7 +92,7 @@
 
 	/** Allocates a 2D array of any primative or class. */
 	#define Memory_Alloc_2DArray( type, xLength, yLength, name ) \
-		(type**) _Memory_Alloc_2DArray_Func( sizeof(type), (xLength), (yLength), #type, (name), __FILE__, __func__, __LINE__ )
+		(type**) _Memory_Alloc_2DArray_Func( sizeof(type), (xLength), (yLength), (char*) #type, (name), __FILE__, __func__, __LINE__ )
 
 	/** Allocates a 2D array of any primative or class without a name. */
 	#define Memory_Alloc_2DArray_Unnamed( type, xLength, yLength ) \
@@ -102,7 +102,7 @@
 	/** Allocates a 3D array of a primative or class. */
 	#define Memory_Alloc_3DArray( type, xLength, yLength, zLength, name ) \
 		(type***) _Memory_Alloc_3DArray_Func \
-			( sizeof(type), (xLength), (yLength), (zLength), #type, (name), __FILE__, __func__, __LINE__ )
+			( sizeof(type), (xLength), (yLength), (zLength), (char*) #type, (name), __FILE__, __func__, __LINE__ )
 	
 	/** Allocates a 3D array of a primative or class without a name. */
 	#define Memory_Alloc_3DArray_Unnamed( type, xLength, yLength, zLength ) \
@@ -112,7 +112,7 @@
 	/** Allocates a 4D array of a primative or class. */
 	#define Memory_Alloc_4DArray( type, xLength, yLength, zLength, wLength, name ) \
 		(type****) _Memory_Alloc_4DArray_Func \
-			( sizeof(type), (xLength), (yLength), (zLength), (wLength), #type, (name), __FILE__, __func__, __LINE__ )
+			( sizeof(type), (xLength), (yLength), (zLength), (wLength), (char*) #type, (name), __FILE__, __func__, __LINE__ )
 	
 	/** Allocates a 4D array of a primative or class without a name. */
 	#define Memory_Alloc_4DArray_Unnamed( type, xLength, yLength, zLength, wLength ) \
@@ -122,7 +122,7 @@
     /** Allocates a 2D array from a 1D array. Use in conjunction with the Memory_Access2D marco. */
     #define Memory_Alloc_2DArrayAs1D( type, xLength, yLength, name ) \
         (type*) _Memory_Alloc_2DArrayAs1D_Func \
-            ( sizeof(type), (xLength), (yLength), #type, (name), __FILE__, __func__, __LINE__ );
+            ( sizeof(type), (xLength), (yLength), (char*) #type, (name), __FILE__, __func__, __LINE__ );
 
 	/** Allocates a 2D array from a 1D array without a name. Use in conjunction with the Memory_Access2D marco. */
 	#define Memory_Alloc_2DArrayAs1D_Unnamed( type, xLength, yLength ) \
@@ -132,7 +132,7 @@
     /** Allocates a 3D array from a 1D array. Use in conjunction with the Memory_Access3D marco. */
     #define Memory_Alloc_3DArrayAs1D( type, xLength, yLength, zLength, name ) \
         (type*) _Memory_Alloc_3DArrayAs1D_Func \
-            ( sizeof(type), (xLength), (yLength), (zLength), #type, (name), __FILE__, __func__, __LINE__ )
+            ( sizeof(type), (xLength), (yLength), (zLength), (char*) #type, (name), __FILE__, __func__, __LINE__ )
 
 	/** Allocates a 3D array from a 1D array without a name. Use in conjunction with the Memory_Access3D marco. */
 	#define Memory_Alloc_3DArrayAs1D_Unnamed( type, xLength, yLength, zLength ) \
@@ -142,7 +142,7 @@
     /** Allocates a 4D array from a 1D array. Use in conjunction with the Memory_Access4D marco. */
     #define Memory_Alloc_4DArrayAs1D( type, xLength, yLength, zLength, wLength, name ) \
         (type*) _Memory_Alloc_4DArrayAs1D_Func \
-            ( sizeof(type), (xLength), (yLength), (zLength), (wLength), #type, (name), __FILE__, __func__, __LINE__ )
+            ( sizeof(type), (xLength), (yLength), (zLength), (wLength), (char*) #type, (name), __FILE__, __func__, __LINE__ )
 
 	/** Allocates a 4D array from a 1D array without a name. Use in conjunction with the Memory_Access4D marco. */
 	#define Memory_Alloc_4DArrayAs1D_Unnamed( type, xLength, yLength, zLength, wLength ) \
@@ -154,7 +154,7 @@
 	 ** @param yLengths A set of lengths for the 2nd dimension.
 	 **/
 	#define Memory_Alloc_2DComplex( type, xLength, yLengths, name ) \
-		(type**) _Memory_Alloc_2DComplex_Func( sizeof(type), (xLength), (yLengths), #type, (name), __FILE__, __func__, __LINE__ )
+		(type**) _Memory_Alloc_2DComplex_Func( sizeof(type), (xLength), (yLengths), (char*) #type, (name), __FILE__, __func__, __LINE__ )
 	
 	/** Allocates a 2D complex array without a name. Each array in the 2nd dimension may have varying lengths.
 	 **
@@ -179,7 +179,7 @@
 	 **/
 	#define Memory_Alloc_3DComplex( type, xLength, yLengths, zLengths, name ) \
 		(type***) _Memory_Alloc_3DComplex_Func \
-			( sizeof(type), (xLength), (yLengths), (zLengths), #type, (name), __FILE__, __func__, __LINE__ )
+			( sizeof(type), (xLength), (yLengths), (zLengths), (char*) #type, (name), __FILE__, __func__, __LINE__ )
 
 	/** Allocates a 3D complex array without a name. Each array in the 2nd and 3rd dimension may have varying lengths.
 	 **
@@ -196,7 +196,7 @@
 
     /** Resizes a 1D array. */
     #define Memory_Realloc_Array( ptr, type, newLength ) \
-        (type*) _Memory_Realloc_Array_Func( (ptr), sizeof(type), (newLength), #type, __FILE__, __func__, __LINE__ )
+        (type*) _Memory_Realloc_Array_Func( (ptr), sizeof(type), (newLength), (char*) #type, __FILE__, __func__, __LINE__ )
 
     /** Resizes a 1D array of items, where each item is of itemSize bytes. */
     #define Memory_Realloc_Array_Bytes( ptr, itemSize, newLength ) \
@@ -208,7 +208,7 @@
 	 **/
 	#define Memory_Realloc_2DArray( ptr, type, newX, newY ) \
 		(type**) _Memory_Realloc_2DArray_Func \
-			( (ptr), sizeof(type), 0, 0, (newX), (newY), #type, __FILE__, __func__, __LINE__ )
+			( (ptr), sizeof(type), 0, 0, (newX), (newY), (char*) #type, __FILE__, __func__, __LINE__ )
 
 	/** Resizes a 3D array.
 	 ** The integrity of the data is only maintained if enlarging the size of the array.
@@ -216,7 +216,7 @@
 	 **/
 	#define Memory_Realloc_3DArray( ptr, type, newX, newY, newZ ) \
 		(type***) _Memory_Realloc_3DArray_Func \
-			( (ptr), sizeof(type), 0, 0, 0, (newX), (newY), (newZ), #type, __FILE__, __func__, __LINE__ )
+			( (ptr), sizeof(type), 0, 0, 0, (newX), (newY), (newZ), (char*) #type, __FILE__, __func__, __LINE__ )
 
 	/** Resizes a 2D array.
 	 ** The integrity of the data is only maintained if enlarging the size of the array.
@@ -224,7 +224,7 @@
 	 **/
 	#define Memory_Realloc_2DArraySafe( ptr, type, oldX, oldY, newX, newY ) \
 		(type**) _Memory_Realloc_2DArray_Func \
-			( (ptr), sizeof(type), (oldX), (oldY), (newX), (newY), #type, __FILE__, __func__, __LINE__ )
+			( (ptr), sizeof(type), (oldX), (oldY), (newX), (newY), (char*) #type, __FILE__, __func__, __LINE__ )
 
 	/** Resizes a 3D array.
 	 ** The integrity of the data is only maintained if enlarging the size of the array.
@@ -232,7 +232,7 @@
 	 **/
 	#define Memory_Realloc_3DArraySafe( ptr, type, oldX, oldY, oldZ, newX, newY, newZ ) \
 		(type***) _Memory_Realloc_3DArray_Func \
-			( (ptr), sizeof(type), (oldX), (oldY), (oldZ), (newX), (newY), (newZ), #type, __FILE__, __func__, __LINE__ )
+			( (ptr), sizeof(type), (oldX), (oldY), (oldZ), (newX), (newY), (newZ), (char*) #type, __FILE__, __func__, __LINE__ )
 	
 
 
@@ -240,12 +240,12 @@
 	/** Resizes a 2D array in 1D form. */
 	#define Memory_Realloc_2DArrayAs1D( ptr, type, oldX, oldY, newX, newY ) \
 		(type*) _Memory_Realloc_2DArrayAs1D_Func \
-			( (ptr), sizeof(type), (oldX), (oldY), (newX), (newY), #type, __FILE__, __func__, __LINE__ )
+			( (ptr), sizeof(type), (oldX), (oldY), (newX), (newY), (char*) #type, __FILE__, __func__, __LINE__ )
 		
 	/** Resizes a 3D array in 1D form. */
 	#define Memory_Realloc_3DArrayAs1D( ptr, type, oldX, oldY, oldZ, newX, newY, newZ ) \
 		(type*) _Memory_Realloc_3DArrayAs1D_Func \
-			( (ptr), sizeof(type), (oldX), (oldY), (oldZ), (newX), (newY), (newZ), #type, __FILE__, __func__, __LINE__ )
+			( (ptr), sizeof(type), (oldX), (oldY), (oldZ), (newX), (newY), (newZ), (char*) #type, __FILE__, __func__, __LINE__ )
 
 		
     /** Deallocates the memory of any allocation. */

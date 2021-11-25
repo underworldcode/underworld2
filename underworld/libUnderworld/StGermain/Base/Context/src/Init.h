@@ -11,6 +11,6 @@
 #ifndef __StGermain_Base_Context_Init_h__
 #define __StGermain_Base_Context_Init_h__
 
-	Bool Context_Init( int* argc, char** argv[] );
+	Bool BaseContext_Init( int* argc, char** argv[] );
 	
 #endif /* __StGermain_Base_Context_Init_h__ */

@@ -11,9 +11,9 @@
 #ifndef __Underworld_h__
 #define __Underworld_h__
 	
-	#include "Rheology/Rheology.h"
-	#include "Utils/AdvectionDiffusion/AdvectionDiffusion.h"
-	#include "Utils/Utils.h"
+	#include "Underworld/Rheology/src/Rheology.h"
+	#include "Underworld/Utils/AdvectionDiffusion/src/AdvectionDiffusion.h"
+	#include "Underworld/Utils/src/Utils.h"
 
 	#include "Init.h"
 	#include "Finalise.h"

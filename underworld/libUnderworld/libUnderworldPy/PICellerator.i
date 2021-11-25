@@ -21,10 +21,10 @@
 #include <mpi.h>
 #include <petsc.h>
 extern "C" {
-#include <StGermain/StGermain.h>
-#include <StgDomain/StgDomain.h>
-#include <StgFEM/StgFEM.h>
-#include <PICellerator/PICellerator.h>
+#include <StGermain/libStGermain/src/StGermain.h>
+#include <StgDomain/libStgDomain/src/StgDomain.h>
+#include <StgFEM/libStgFEM/src/StgFEM.h>
+#include <PICellerator/libPICellerator/src/PICellerator.h>
 }
 %}
 
@@ -44,19 +44,19 @@ extern "C" {
 
 %apply ( int DIM1, int DIM2, double* IN_ARRAY2 ) {(Index count, Index dim, double* array )};
 
-%include "MaterialPoints/IntegrationPointsSwarm.h"
-%include "MaterialPoints/CoincidentMapper.h"
-%include "MaterialPoints/SwarmMap.h"
-%include "MaterialPoints/GeneralSwarm.h"
-%include "MaterialPoints/SwarmAdvector.h"
-%include "MaterialPoints/types.h"
-%include "PopulationControl/types.h"
-%include "PopulationControl/EscapedRoutine.h"
-%include "Weights/WeightsCalculator.h"
-%include "Weights/DVCWeights.h"
-%include "Weights/types.h"
-%include "Utils/PCDVC.h"
-%include "Utils/types.h"
+%include "PICellerator/MaterialPoints/src/IntegrationPointsSwarm.h"
+%include "PICellerator/MaterialPoints/src/CoincidentMapper.h"
+%include "PICellerator/MaterialPoints/src/SwarmMap.h"
+%include "PICellerator/MaterialPoints/src/GeneralSwarm.h"
+%include "PICellerator/MaterialPoints/src/SwarmAdvector.h"
+%include "PICellerator/MaterialPoints/src/types.h"
+%include "PICellerator/PopulationControl/src/types.h"
+%include "PICellerator/PopulationControl/src/EscapedRoutine.h"
+%include "PICellerator/Weights/src/WeightsCalculator.h"
+%include "PICellerator/Weights/src/DVCWeights.h"
+%include "PICellerator/Weights/src/types.h"
+%include "PICellerator/Utils/src/PCDVC.h"
+%include "PICellerator/Utils/src/types.h"
 
 %extend GeneralSwarm
 {

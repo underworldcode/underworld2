@@ -14,18 +14,18 @@
 #include "Sampler.h"
 #include <iostream>
 
-#include <Underworld/Function/FunctionIO.hpp>
-#include <Underworld/Function/Function.hpp>
-#include <Underworld/Function/Binary.hpp>
-#include <Underworld/Function/Unary.hpp>
-#include <Underworld/Function/MinMax.hpp>
-#include <Underworld/Function/MeshCoordinate.hpp>
+#include <Underworld/Function/src/FunctionIO.hpp>
+#include <Underworld/Function/src/Function.hpp>
+#include <Underworld/Function/src/Binary.hpp>
+#include <Underworld/Function/src/Unary.hpp>
+#include <Underworld/Function/src/MinMax.hpp>
+#include <Underworld/Function/src/MeshCoordinate.hpp>
 extern "C" {
 #include <ctype.h>
 }
 
 /* Textual name of this class - This is a global pointer which is used for times when you need to refer to class and not a particular instance of a class */
-const Type lucSampler_Type = "lucSampler";
+const Type lucSampler_Type = (char*) "lucSampler";
 
 void _lucSampler_SetFn( void* _self, Fn::Function* fn ){
     lucSampler*  self = (lucSampler*)_self;
@@ -237,7 +237,7 @@ void lucSampler_SampleField(void* drawingObject, float* vertices, int V, float* 
          {
             /* Receive */
             MPI_Status status;
-            float* rvalues = Memory_Alloc_Array( float, N, "received vertex values");
+            float* rvalues = Memory_Alloc_Array( float, N, (char*)"received vertex values");
             (void)MPI_Recv(&rvalues[0], N, MPI_FLOAT, r, r, self->comm, &status);
 
             /* If value provided, copy into final data (duplicates overwritten) */

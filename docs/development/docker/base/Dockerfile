@@ -35,6 +35,7 @@ RUN apt-get update -qq \
         vim \
         less \
         git \
+        cmake \
         valgrind valgrind-dbg valgrind-mpi \
         gdb cgdb \ 
 &&  apt-get clean \

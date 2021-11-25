@@ -10,16 +10,16 @@
 #include <petscmat.h>
 #include <petscvec.h>
 
-#include <StGermain/StGermain.h>
-#include <StgDomain/StgDomain.h>
+#include <StGermain/libStGermain/src/StGermain.h>
+#include <StgDomain/libStgDomain/src/StgDomain.h>
 
 #include "common-driver-utils.h"
 #include "stokes_block_scaling.h"
-#include <StgFEM/StgFEM.h>
-#include <PICellerator/PICellerator.h>
-#include <Underworld/Underworld.h>
-#include "Solvers/SLE/SLE.h" /* to give the AugLagStokes_SLE type */
-#include "Solvers/KSPSolvers/KSPSolvers.h" /* for __KSP_COMMON */
+#include <StgFEM/libStgFEM/src/StgFEM.h>
+#include <PICellerator/libPICellerator/src/PICellerator.h>
+#include <Underworld/libUnderworld/src/Underworld.h>
+#include "Solvers/SLE/src/SLE.h" /* to give the AugLagStokes_SLE type */
+#include "Solvers/KSPSolvers/src/KSPSolvers.h" /* for __KSP_COMMON */
 
 #include "BSSCR.h"
 #include "writeMatVec.h"

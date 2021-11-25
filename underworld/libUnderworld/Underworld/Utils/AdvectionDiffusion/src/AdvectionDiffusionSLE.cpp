@@ -17,8 +17,8 @@
 #include <petsc.h>
 /*
 #include "mpi.h"
-#include <StGermain/StGermain.h>
-#include <StgDomain/StgDomain.h>
+#include <StGermain/libStGermain/src/StGermain.h>
+#include <StgDomain/libStgDomain/src/StgDomain.h>
 #include "StgFEM/Discretisation/Discretisation.h"
 #include "StgFEM/SLE/SystemSetup/SystemSetup.h"
 
@@ -30,7 +30,7 @@
 */
 #include "AdvectionDiffusionSLE.h"
 
-const Type AdvectionDiffusionSLE_Type = "AdvectionDiffusionSLE";
+const Type AdvectionDiffusionSLE_Type = (char*) "AdvectionDiffusionSLE";
 #define SMALL_VALUE 1.0e-99
 
 AdvectionDiffusionSLE* AdvectionDiffusionSLE_New(
@@ -55,7 +55,7 @@ AdvectionDiffusionSLE* AdvectionDiffusionSLE_New(
 
 	self->isConstructed = True;
 	_SystemLinearEquations_Init( self, solver, NULL, context, False, isNonLinear, nonLinearTolerance,
-		nonLinearMaxIterations, killNonConvergent, 1, "", "", entryPoint_Register, comm );
+		nonLinearMaxIterations, killNonConvergent, 1, (char*) "", (char*) "", entryPoint_Register, comm );
 	_AdvectionDiffusionSLE_Init( self, phiField, residual, massMatrix, dim, courantFactor, variable_Register, fieldVariable_Register );
 
 	 return self;
@@ -93,9 +93,9 @@ void _AdvectionDiffusionSLE_Init(
 	self->courantFactor = courantFactor;
 
 	/* Solution Vectors are loaded up as part of the algorithm so we can remove this one */
-	EP_Remove( self->executeEP, "UpdateSolutionOntoNodes" );
-	EP_Remove( self->executeEP, "MatrixSetup" );
-	EP_Remove( self->executeEP, "VectorSetup" );
+	EP_Remove( self->executeEP, (char*) "UpdateSolutionOntoNodes" );
+	EP_Remove( self->executeEP, (char*) "MatrixSetup" );
+	EP_Remove( self->executeEP, (char*) "VectorSetup" );
 
 	/* Put Pointer of Solver onto vectors */
 	if (residual) {
@@ -184,7 +184,7 @@ void _AdvectionDiffusionSLE_AssignFromXML( void* sle, Stg_ComponentFactory* cf, 
 
 	courantFactor = Stg_ComponentFactory_GetDouble( cf, self->name, (Dictionary_Entry_Key)"courantFactor", 0.5  );
 	Journal_Firewall( 0.0 < courantFactor && courantFactor <= 1.0,
-		error, "In func %s: CourantFactor read in from dictionary = %2.4f - This must be from 0 - 1.\n",
+		error, (char*) "In func %s: CourantFactor read in from dictionary = %2.4f - This must be from 0 - 1.\n",
 		__func__, courantFactor );
 
         self->pureDiffusion = Stg_ComponentFactory_GetBool( cf, self->name, (Dictionary_Entry_Key)"pureDiffusion", False  );
@@ -249,8 +249,8 @@ void _AdvectionDiffusionSLE_Build( void* sle, void* data ) {
 	Index							forceTermCount = Stg_ObjectList_Count( self->residual->forceTermList );
 	ForceTerm*					forceTerm;
 
-  Journal_Firewall( (self->phiVector!=NULL), NULL, "PhiVector (SolutionVector) could not be found, python has not passed it in correctly.\nPlease contact developers." );
-  Journal_Firewall( (self->phiDotVector!=NULL), NULL, "PhiDotVector (SolutionVector) could not be found, python has not passed it in correctly.\nPlease contact developers." );
+  Journal_Firewall( (self->phiVector!=NULL), NULL, (char*) "PhiVector (SolutionVector) could not be found, python has not passed it in correctly.\nPlease contact developers." );
+  Journal_Firewall( (self->phiDotVector!=NULL), NULL, (char*) "PhiDotVector (SolutionVector) could not be found, python has not passed it in correctly.\nPlease contact developers." );
 
 	_SystemLinearEquations_Build( self, data );
 

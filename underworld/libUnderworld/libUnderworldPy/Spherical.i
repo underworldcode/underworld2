@@ -18,11 +18,11 @@
 
 %{
 /* Includes the header in the wrapper code */
-#include <StGermain/StGermain.h>
-#include <StgDomain/StgDomain.h>
-#include <StgFEM/StgFEM.h>
-#include <PICellerator/PICellerator.h>
-#include <Underworld/Underworld.h>
+#include <StGermain/libStGermain/StGermain.h>
+#include <StgDomain/libStgDomain/StgDomain.h>
+#include <StgFEM/libStgFEM/StgFEM.h>
+#include <PICellerator/libPICellerator/PICellerator.h>
+#include <Underworld/libUnderworld/Underworld.h>
 #include <Spherical/Spherical.h>
 %}
 

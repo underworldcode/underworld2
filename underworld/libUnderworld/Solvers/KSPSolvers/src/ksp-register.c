@@ -28,13 +28,13 @@
   #include "private/kspimpl.h"   /*I "petscksp.h" I*/
 #endif
 
-#include <StGermain/StGermain.h>
-#include <StgDomain/StgDomain.h>
-#include <StgFEM/StgFEM.h>
-#include <PICellerator/PICellerator.h>
-#include <Underworld/Underworld.h>
+#include <StGermain/libStGermain/src/StGermain.h>
+#include <StgDomain/libStgDomain/src/StgDomain.h>
+#include <StgFEM/libStgFEM/src/StgFEM.h>
+#include <PICellerator/libPICellerator/src/PICellerator.h>
+#include <Underworld/libUnderworld/src/Underworld.h>
 
-#include "Solvers/KSPSolvers/KSPSolvers.h"
+#include "Solvers/KSPSolvers/src/KSPSolvers.h"
 #include "BSSCR/petsccompat.h"
 
 #include "Test/TestKSP.h"

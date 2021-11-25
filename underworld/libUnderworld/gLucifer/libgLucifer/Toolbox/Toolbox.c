@@ -8,9 +8,9 @@
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 
 #include <mpi.h>
-#include <StGermain/StGermain.h>
-#include <StgDomain/StgDomain.h>
-#include <gLucifer/gLucifer.h>
+#include <StGermain/libStGermain/src/StGermain.h>
+#include <StgDomain/libStgDomain/src/StgDomain.h>
+#include <gLucifer/libgLucifer/src/gLucifer.h>
 #include "Toolbox.h"
 
 const Type gLucifer_Toolbox_Type = "gLucifer_Toolbox";

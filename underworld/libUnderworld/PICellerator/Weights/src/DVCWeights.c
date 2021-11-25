@@ -26,10 +26,10 @@
   to implement "diagonal" neighbourhood growth cycles. For this is an abomination unto me.
 *****************************************************************************************************************/
 
-#include <StGermain/StGermain.h>
+#include <StGermain/libStGermain/src/StGermain.h>
 #include <mpi.h>
-#include <StgDomain/StgDomain.h>
-#include <StgFEM/StgFEM.h>
+#include <StgDomain/libStgDomain/src/StgDomain.h>
+#include <StgFEM/libStgFEM/src/StgFEM.h>
 #include "types.h"
 #include "WeightsCalculator.h"
 #include "DVCWeights.h"

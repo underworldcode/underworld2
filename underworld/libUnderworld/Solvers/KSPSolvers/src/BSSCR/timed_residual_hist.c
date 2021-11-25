@@ -34,8 +34,8 @@ is required whenever you wish to extract the timing information.
 #include <petscmat.h>
 #include <petscksp.h>
 
-#include <StGermain/StGermain.h>
-#include <StgDomain/StgDomain.h>
+#include <StGermain/libStGermain/src/StGermain.h>
+#include <StgDomain/libStgDomain/src/StgDomain.h>
 
 #include "common-driver-utils.h"
 
