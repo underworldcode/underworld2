@@ -30,6 +30,9 @@ endif()
 
 add_compile_options(-DU_SHOW_CPLUSPLUS_API=0)
 add_compile_options(-DSWIG_PYTHON_SILENT_MEMLEAK)
+
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
 SET(CMAKE_SWIG_FLAGS "-v" "-Wextra" "-python" "-py3" "-O" "-c++" "-DSWIG_DO_NOT_WRAP")
 
 SET_SOURCE_FILES_PROPERTIES(Function.i PROPERTIES CPLUSPLUS ON)

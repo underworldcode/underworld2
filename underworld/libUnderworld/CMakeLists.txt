@@ -1,10 +1,11 @@
 cmake_minimum_required(VERSION 3.16)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(Python_FIND_VIRTUALENV FIRST)
+set(Python_FIND_VIRTUALENV ONLY)
 cmake_policy(SET CMP0078 OLD)
 
 project(Underworld)
+find_package(PkgConfig)
 find_package(LibXml2 REQUIRED)
 find_package(MPI REQUIRED)
 
@@ -15,17 +16,15 @@ find_package(Python3 COMPONENTS Interpreter Development NumPy)
 # You can check pkg-config search path using the following command:
 # pkg-config --variable pc_path pkg-config
 # This can be modified by prepending the PKG_CONFIG_PATH environment variable
-pkg_check_modules(PETSc PETSc)
+if(DEFINED ENV{PETSC_DIR})
+    set(ENV{PKG_CONFIG_PATH} "$ENV{PETSC_DIR}/lib/pkgconfig")
+endif()
+    
+pkg_check_modules(PETSc REQUIRED PETSc)
+
 if(NOT PETSc_FOUND)
-    message(WARNING "pkg-config could not find PETSc... Looking into PETSC_DIR")
-    if(DEFINED ENV{PETSC_DIR})
-        # Append PKG_CONFIG PATH and try again
-        set(ENV{PKG_CONFIG_PATH} "$ENV{PETSC_DIR}/lib/pkgconfig")
-        pkg_check_modules(PETSc REQUIRED PETSc)
-    else()
-        message(FATAL_ERROR "Cannot Find PETSc, please check that the PETSC_DIR environment variable is set and that
-                             the /lib/pkgconfig folder contains a PETSc.pc file.")
-    endif()
+    message(FATAL_ERROR "Cannot Find PETSc, please check that the PETSC_DIR environment variable is set and that
+                         the /lib/pkgconfig folder contains a PETSc.pc file.")
 endif()
 
 if(NOT APPLE)
@@ -36,6 +35,8 @@ else()
     set(CMAKE_INSTALL_RPATH "@loader_path")
 endif()
 
+# This is necessary when for example PETSc is installed in a custom directory...
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 include_directories(${Python3_INCLUDE_DIRS})
 include_directories(${Python3_NumPy_INCLUDE_DIRS})
@@ -64,7 +65,7 @@ target_compile_definitions(pcu PRIVATE LIB_DIR=".")
 add_subdirectory(StGermain/pcu)
 
 add_library(StGermain SHARED StGermain/src/main.c)
-target_link_libraries(StGermain ${LIBXML2_LIBRARIES} Python3::Python Python3::NumPy MPI::MPI_C pcu)
+target_link_libraries(StGermain ${LIBXML2_LIBRARIES} Python3::Python Python3::NumPy ${PETSc_LINK_LIBRARIES} MPI::MPI_C pcu)
 target_compile_definitions(StGermain PRIVATE CURR_MODULE_NAME="StGermain")
 target_compile_definitions(StGermain PRIVATE MODULE_EXT="${CMAKE_SHARED_LIBRARY_SUFFIX}")
 target_compile_definitions(StGermain PRIVATE LIB_DIR=".")
