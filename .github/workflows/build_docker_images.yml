@@ -27,7 +27,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
-          name: petsc
+          name: petsc_docker
           path: /tmp/petsc_docker.tar 
   
   build_lavavu_image:
@@ -49,7 +49,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
-          name: lavavu
+          name: lavavu_docker
           path: /tmp/lavavu_docker.tar 
   
   build_base_image:
@@ -65,19 +65,19 @@ jobs:
       - name: Download Petsc Image
         uses: actions/download-artifact@v2
         with:
-          name: petsc
+          name: petsc_docker
           path: /tmp
       
       - name: Download Lavavu Image
         uses: actions/download-artifact@v2
         with:
-          name: lavavu
+          name: lavavu_docker
           path: /tmp
       
       - name: Load images
         run: |
-          docker load --input /tmp/petsc.tar
-          docker load --input /tmp/lavavu.tar
+          docker load --input /tmp/petsc_docker.tar
+          docker load --input /tmp/lavavu_docker.tar
           docker image ls -a
       
       - name: Build Base Docker Image
@@ -90,7 +90,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
-          name: base
+          name: base_docker
           path: /tmp/base_docker.tar 
 
   build_underworld_image:
@@ -106,12 +106,12 @@ jobs:
       - name: Download Base Image
         uses: actions/download-artifact@v2
         with:
-          name: base
+          name: base_docker
           path: /tmp
 
       - name: Load images
         run: |
-          docker load --input /tmp/base.tar
+          docker load --input /tmp/base_docker.tar
           docker image ls -a
       
       - name: Build Underworld Docker Image
@@ -123,8 +123,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
-          name: underworld
-          path: /tmp/underworld.tar 
+          name: underworld_docker
+          path: /tmp/underworld_docker.tar 
 
   push_images_to_dockerhub:
     runs-on: ubuntu-latest
@@ -139,32 +139,33 @@ jobs:
       - name: Download Petsc Image
         uses: actions/download-artifact@v2
         with:
-          name: petsc
+          name: petsc_docker
           path: /tmp
       
       - name: Download Base Image
         uses: actions/download-artifact@v2
         with:
-          name: base
+          name: base_docker
           path: /tmp
       
       - name: Download Underworld Image
         uses: actions/download-artifact@v2
         with:
-          name: base
+          name: underworld_docker
           path: /tmp
       
       - name: Download Lavavu Image
         uses: actions/download-artifact@v2
         with:
-          name: lavavu
+          name: lavavu_docker
           path: /tmp
 
       - name: Load images
         run: |
-          docker load --input /tmp/petsc.tar
-          docker load --input /tmp/base.tar
-          docker load --input /tmp/lavavu.tar
+          docker load --input /tmp/petsc_docker.tar
+          docker load --input /tmp/base_docker.tar
+          docker load --input /tmp/lavavu_docker.tar
+          docker load --input /tmp/underworld_docker.tar
           docker image ls -a
 
       - name: Login to DockerHub
