@@ -127,6 +127,7 @@ jobs:
           path: /tmp/underworld.tar 
 
   push_images_to_dockerhub:
+    runs-on: ubuntu-latest
     needs: [build_petsc_image, build_base_image, build_underworld_image, build_lavavu_image]
     steps:
       - name: Checkout
