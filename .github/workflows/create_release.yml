@@ -1,11 +1,10 @@
 name: Create Release Branch
 on:
-  release
-#  workflow_dispatch:
-#    inputs:
-#      versionName:
-#        description: 'Name of version  (ie 2.12)'
-#        required: true
+  workflow_dispatch:
+    inputs:
+      versionName:
+        description: 'Name of version  (ie 2.12)'
+        required: true
 
 jobs:
   createrelease:
