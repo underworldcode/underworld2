@@ -1,0 +1,35 @@
+name: Create Release Branch
+on:
+  workflow_dispatch:
+    inputs:
+      versionName:
+        description: 'Name of version  (ie 2.12)'
+        required: true
+jobs:
+  createrelease:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v2
+
+    - name: Create release branch off the development branch
+      run: git checkout -b release/v${{ github.event.inputs.versionName }} development
+
+    - name: Initialize mandatory git config
+      run: |
+       git config user.name "GitHub Actions"
+       git config user.email noreply@github.com
+
+    - name: Merge the master branch into the release branch
+      run: git rebase master
+
+    - name: Change version number and name
+      run: printf 'ext.version_code = ${{ github.event.inputs.versionCode }}\next.version_name = "${{ github.event.inputs.versionName }}"\n' > app_versions.gradle
+
+    - name: Commit changelog and manifest files
+      id: make-commit
+      run: |
+        git add CHANGELOG.md
+        git commit --message "Prepare release ${{ github.event.inputs.versionName }}"
+        echo "::set-output name=commit::$(git rev-parse HEAD)"
