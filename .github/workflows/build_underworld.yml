@@ -13,7 +13,9 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Install mpi4py
-        run: pip install mpi4py
+        run:  |
+          apt-get install libmpich-dev
+          pip install mpi4py
 
       - name: Install Petsc
         run:  |
