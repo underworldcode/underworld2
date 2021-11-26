@@ -1,0 +1,16 @@
+name: Underworld Install
+
+on:
+  push:
+    branches:
+      - 'new_ci'
+
+jobs:
+  pip_install:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Run install
+        run: pip install -vvv .

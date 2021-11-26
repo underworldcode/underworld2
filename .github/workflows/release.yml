@@ -1,7 +1,7 @@
 name: Create Release Branch
 
 on:
-  push:
+  release:
     branches:
       - new_ci
 #  workflow_dispatch:
@@ -19,7 +19,7 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Create release branch off the development branch
-      run: git checkout -b release/v${{ github.event.inputs.versionName }} development
+      run: git checkout -b release/v${{ github.event.inputs.versionName }}
 
 #    - name: Initialize mandatory git config
 #      run: |
