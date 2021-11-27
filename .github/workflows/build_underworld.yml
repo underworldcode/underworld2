@@ -17,7 +17,7 @@ jobs:
 
       - name: Install PETSc
         run: | 
-          PETSC_CONFIGURE_OPTIONS="
+          PETSC_CONFIGURE_OPTIONS='
                 --with-debugging=0 \
                 --COPTFLAGS="-g -O3" --CXXOPTFLAGS="-g -O3" --FOPTFLAGS="-g -O3" \
                 --with-zlib=1                   \
@@ -33,7 +33,7 @@ jobs:
                 --download-superlu=1            \
                 --with-shared-libraries         \
                 --with-cxx-dialect=C++11        \
-                --with-make-np=8"
+                --with-make-np=8'
           export PETSC_CONFIGURE_OPTIONS
           pip install petsc
 
