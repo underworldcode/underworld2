@@ -4,6 +4,7 @@ on:
   release:
     branches:
       - new_ci
+      
   workflow_dispatch:
     inputs:
       versionName:
