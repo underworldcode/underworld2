@@ -21,11 +21,19 @@ jobs:
           export PETSC_CONFIGURE_OPTIONS
           pip install -vvv petsc
 
+      - name: Install H5py
+        run: CC=h5pcc HDF5_MPI="ON" HDF5_DIR=${PETSC_DIR} pip3 install --no-cache-dir --no-binary=h5py git+https://github.com/h5py/h5py@master
+
       - name: Checkout
         uses: actions/checkout@v2
 
       - name: Install Underworld
         run: pip install -vvv .
+
+      - name: Test Underworld
+        run: |
+          pip install pytest matplotlib
+          pytest -vvv docs/pytests
         
 
 
