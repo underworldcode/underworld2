@@ -4,11 +4,11 @@ on:
   release:
     branches:
       - new_ci
-#  workflow_dispatch:
-#    inputs:
-#      versionName:
-#        description: 'Name of version  (ie 2.12)'
-#        required: true
+  workflow_dispatch:
+    inputs:
+      versionName:
+        description: 'Name of version  (ie 2.12)'
+        required: true
 
 jobs:
   createrelease:
@@ -21,20 +21,49 @@ jobs:
     - name: Create release branch off the development branch
       run: git checkout -b release/v${{ github.event.inputs.versionName }}
 
-#    - name: Initialize mandatory git config
-#      run: |
-#       git config user.name "GitHub Actions"
-#       git config user.email noreply@github.com
-#
-#    - name: Merge the master branch into the release branch
-#      run: git rebase master
-#
-#    - name: Change version number and name
-#      run: printf 'ext.version_code = ${{ github.event.inputs.versionCode }}\next.version_name = "${{ github.event.inputs.versionName }}"\n' > app_versions.gradle
-#
-#    - name: Commit changelog and manifest files
-#      id: make-commit
-#      run: |
-#        git add CHANGELOG.md
-#        git commit --message "Prepare release ${{ github.event.inputs.versionName }}"
-#        echo "::set-output name=commit::$(git rev-parse HEAD)"
+    - name: Initialize mandatory git config
+      run: |
+       git config user.name "GitHub Actions"
+       git config user.email noreply@github.com
+
+    - name: Merge the master branch into the release branch
+      run: git rebase master
+
+    - name: Change version number and name
+      run: printf '__version__ = "${{ github.event.inputs.versionName }}"\n > underworld/_version.py
+
+    - name: Commit New _version.py file
+      id: make-commit
+      run: |
+        git add underworld/_version.py
+        git commit --message "Prepare release ${{ github.event.inputs.versionName }}"
+        echo "::set-output name=commit::$(git rev-parse HEAD)"
+
+    - name: Push new branch
+      run: git push origin release/v${{ github.event.inputs.versionName }}
+
+    - name: Create pull request into master
+      uses: thomaseizinger/create-pull-request@1.0.0
+      with:
+       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+       head: release/v${{ github.event.inputs.versionName }}
+       base: master
+       title: v${{ github.event.inputs.versionName }} into main
+       reviewers: ${{ github.event.issue.user.login }}
+       body: |
+           Hi!
+           This PR was created in response workflow running.
+           I've updated the version name and code commit: ${{ steps.make-commit.outputs.commit }}.
+
+    - name: Create pull request to develop
+      uses: thomaseizinger/create-pull-request@1.0.0
+      with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          head: release/v${{ github.event.inputs.versionName }}
+          base: develop
+          title: v${{ github.event.inputs.versionName }} into develop
+          reviewers: ${{ github.event.issue.user.login }}
+          body: |
+              Hi!
+              This PR was created in response workflow running.
+              I've updated the version name and code commit: ${{ steps.make-commit.outputs.commit }}.
