@@ -2,24 +2,23 @@ name: Underworld Install
 
 on:
   push:
-    branches:
-      - 'new_ci'
+    branch:
+      - new_ci
 
 jobs:
   pip_install:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
+      - name: Install MPICH
+        run: sudo apt-get install mpich
+      
       - name: Install mpi4py
-        run:  |
-          apt-get install libmpich-dev
-          pip install mpi4py
+        run: pip install mpi4py
 
-      - name: Install Petsc
-        run:  |
-          export PETSC_CONFIGURE_OPTIONS="--with-debugging=0 --prefix=/usr/local \
+      - name: Install PETSc
+        run: | 
+          PETSC_CONFIGURE_OPTIONS="
+                --with-debugging=0 \
                 --COPTFLAGS="-g -O3" --CXXOPTFLAGS="-g -O3" --FOPTFLAGS="-g -O3" \
                 --with-zlib=1                   \
                 --download-hdf5=1               \
@@ -35,7 +34,14 @@ jobs:
                 --with-shared-libraries         \
                 --with-cxx-dialect=C++11        \
                 --with-make-np=8"
+          export PETSC_CONFIGURE_OPTIONS
           pip install petsc
+
+      - name: Checkout
+        uses: actions/checkout@v2
 
       - name: Install Underworld
         run: pip install -vvv .
+        
+
+
