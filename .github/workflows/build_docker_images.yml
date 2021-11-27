@@ -23,6 +23,7 @@ jobs:
           context: .
           file: ./docs/development/docker/petsc/Dockerfile
           outputs: type=docker,dest=/tmp/petsc_docker.tar
+          tags: underworldcode/base:petsc
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2
@@ -45,6 +46,7 @@ jobs:
           context: .
           file: ./docs/development/docker/lavavu/Dockerfile
           outputs: type=docker,dest=/tmp/lavavu_docker.tar
+          tags: underworldcode/lavavu:petsc
       
       - name: Upload artifact
         uses: actions/upload-artifact@v2
@@ -86,6 +88,7 @@ jobs:
           context: .
           file: ./docs/development/docker/base/Dockerfile
           outputs: type=docker,dest=/tmp/base_docker.tar
+          tags: underworldcode/base
       
       - name: Upload artifact
         uses: actions/upload-artifact@v2
@@ -102,6 +105,9 @@ jobs:
       
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
+      
+      - name: Extract Branch name
+        run: echo "BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
 
       - name: Download Base Image
         uses: actions/download-artifact@v2
@@ -119,6 +125,8 @@ jobs:
         with:
           context: .
           file: ./docs/development/docker/base/Dockerfile
+          outputs: type=docker,dest=/tmp/underworld_docker.tar
+          tags: underworldcode/underworld2:${{ env.BRANCH }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2
@@ -135,6 +143,9 @@ jobs:
       
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
+
+      - name: Extract Branch name
+        run: echo "BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
 
       - name: Download Petsc Image
         uses: actions/download-artifact@v2
@@ -174,5 +185,36 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+#      - name: Push to DockerHub
+#        run: |
+#          docker push underworldcode/base:petsc
+#          docker push underworldcode/base:lavavu
+#          docker push underworldcode/base
+#          docker push underworldcode/underworld2:${{ env.BRANCH }}
+
+  conda_build:
+    name: Conda Build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ["ubuntu-latest", "macos-latest"]
+        python-version: ["3.7", "3.8", "3.9"]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          auto-update-conda: true
+          python-version: ${{ matrix.python-version }}
+      - name: Conda Upload
+        shell: bash -l {0}
+        run: |
+            conda install --channel conda-forge conda-build anaconda-client conda-verify
+            conda config --add channels conda-forge
+            conda config --add channels underworldcode
+            conda config --set anaconda_upload no
+            anaconda login --hostname github-actions-${{ matrix.os  }}-$RANDOM --username ${{ secrets.ANACONDA_USERNAME }} --password ${{ secrets.ANACONDA_PASSWORD }}
+            conda-build --channel conda-forge --user underworldcode conda
+            anaconda logout
       
 
