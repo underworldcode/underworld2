@@ -19,6 +19,8 @@ find_package(Python3 COMPONENTS Interpreter Development NumPy)
 if(DEFINED ENV{PETSC_DIR})
     set(ENV{PKG_CONFIG_PATH} "$ENV{PETSC_DIR}/lib/pkgconfig")
 endif()
+
+set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:${Python_SITELIB}:petsc/lib/pkgconfig")
     
 pkg_check_modules(PETSc REQUIRED PETSc)
 
