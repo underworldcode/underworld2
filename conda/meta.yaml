@@ -53,6 +53,8 @@ test:
 
   source_files:
     - docs/pytests
+    - docs/user_guide
+    - docs/examples
 
   commands:
     - python -X faulthandler -c "import underworld; underworld.mesh.FeMesh_Cartesian();"
