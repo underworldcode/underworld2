@@ -20,6 +20,8 @@ jobs:
           PETSC_CONFIGURE_OPTIONS='--with-debugging=0 --COPTFLAGS="-g -O3" --CXXOPTFLAGS="-g -O3" --FOPTFLAGS="-g -O3" --with-zlib=1 --download-hdf5=1 --download-mumps=1 --download-parmetis=1 --download-metis=1 --download-superlu=1 --download-hypre=1 --download-scalapack=1 --download-superlu_dist=1 --useThreads=0 --download-superlu=1 --with-shared-libraries --with-cxx-dialect=C++11 --with-make-np=8'
           export PETSC_CONFIGURE_OPTIONS
           pip install -vvv petsc
+          PYTHON_SITE=$(python -c "import sysconfig; print(sysconfig.get_path('purelib'))")
+          export PETSC_DIR=$PYTHON_SITE/petsc
 
       - name: Install H5py
         run: CC=h5pcc HDF5_MPI="ON" HDF5_DIR=${PETSC_DIR} pip3 install --no-cache-dir --no-binary=h5py git+https://github.com/h5py/h5py@master
