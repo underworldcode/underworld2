@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  pip_install:
+  local_pip_install:
     runs-on: ubuntu-latest
     steps:
       - name: Install MPICH
@@ -30,6 +30,40 @@ jobs:
           export PETSC_DIR=$PYTHON_SITE/petsc
           echo $PETSC_DIR         
           CC=h5pcc HDF5_MPI="ON" HDF5_DIR=$PETSC_DIR pip3 install --no-cache-dir --no-binary=h5py git+https://github.com/h5py/h5py@master
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install Underworld
+        run: pip install -vvv .
+
+      - name: Test Underworld
+        run: |
+          pip install pytest matplotlib
+          pytest -vvv docs/pytests
+
+  virtualenv_pip_install:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install MPICH
+        run: sudo apt-get install mpich
+
+      - name: Create virtualenv
+        run: |
+          python -m venv underworld_venv
+          python activate underworld_venv/bin/activate
+      
+      - name: Install mpi4py
+        run: pip install mpi4py
+
+      - name: Install PETSc
+        run: | 
+          PETSC_CONFIGURE_OPTIONS='--with-debugging=0 --COPTFLAGS="-g -O3" --CXXOPTFLAGS="-g -O3" --FOPTFLAGS="-g -O3" --with-zlib=1 --download-hdf5=1 --download-mumps=1 --download-parmetis=1 --download-metis=1 --download-superlu=1 --download-hypre=1 --download-scalapack=1 --download-superlu_dist=1 --useThreads=0 --download-superlu=1 --with-shared-libraries --with-cxx-dialect=C++11 --with-make-np=8'
+          export PETSC_CONFIGURE_OPTIONS
+          pip install -vvv petsc
+          PYTHON_SITE=$(python -c "import sysconfig; print(sysconfig.get_path('purelib'))")
+          export PETSC_DIR=$PYTHON_SITE/petsc
+          CC=h5pcc HDF5_MPI="ON" HDF5_DIR=${PETSC_DIR}/lib pip3 install --no-cache-dir --no-binary=h5py git+https://github.com/h5py/h5py@master
 
       - name: Checkout
         uses: actions/checkout@v2
