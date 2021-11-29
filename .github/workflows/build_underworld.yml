@@ -29,7 +29,7 @@ jobs:
           PYTHON_SITE=$(python -c "import sysconfig; print(sysconfig.get_path('purelib'))")
           export PETSC_DIR=$PYTHON_SITE/petsc
           echo $PETSC_DIR         
-          CC=h5pcc HDF5_MPI="ON" HDF5_DIR=$PETSC_DIR/lib pip3 install --no-cache-dir --no-binary=h5py git+https://github.com/h5py/h5py@master
+          CC=h5pcc HDF5_MPI="ON" HDF5_DIR=$PETSC_DIR pip3 install --no-cache-dir --no-binary=h5py git+https://github.com/h5py/h5py@master
 
       - name: Checkout
         uses: actions/checkout@v2
