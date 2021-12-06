@@ -6,7 +6,65 @@ on:
   workflow_dispatch:
 
 jobs:
+
+  check:
+    name: Check whether Docker files have changed
+    outputs:
+      run_petsc: ${{ steps.check_files.outputs.run_petsc }}
+      run_lavavu: ${{ steps.check_files.outputs.run_lavavu }}
+      run_base: ${{ steps.check_files.outputs.run_base }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 2
+
+      - name: check files
+        id: check_files
+        run: |
+          echo "=============== list changed files ==============="
+          git diff --name-only HEAD^ HEAD
+          
+          echo "========== check paths of changed files =========="
+          git diff --name-only HEAD^ HEAD > files.txt
+              
+          echo "::set-output name=run_base::false"
+          echo "::set-output name=run_petsc::false"
+          echo "::set-output name=run_lavavu::false"
+          
+          while IFS= read -r file
+          do
+            echo $file
+            if [[ $file == "docs/development/docker/petsc/Dockerfile" ]]; then
+              echo "Change to the Petsc Docker file have been detected."
+              echo "::set-output name=run_petsc::true"
+              echo "::set-output name=run_base::true"
+              continue
+            fi
+            if [[ $file == "docs/development/docker/lavavu/Dockerfile" ]]; then
+              echo "Change to the Lavavu Docker file have been detected."
+              echo "::set-output name=run_lavavu::true"
+              echo "::set-output name=run_base::true"
+              continue
+            fi
+            if [[ $file == "docs/development/docker/base/Dockerfile" ]]; then
+              echo "Change to the Base Docker file have been detected."
+              echo "::set-output name=run_base::true"
+              continue
+            fi
+          done < files.txt
+
+      - name: check again
+        run: |
+          echo ${{ steps.check_files.outputs.run_petsc }}
+          echo ${{ steps.check_files.outputs.run_lavavu }}
+          echo ${{ steps.check_files.outputs.run_base }}
+
   build_petsc_image:
+    name: Build PETSc Docker image
+    needs: check
+    if: needs.check.outputs.run_petsc == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -30,6 +88,9 @@ jobs:
           path: /tmp/petsc_docker.tar 
   
   build_lavavu_image:
+    name: Build Lavavu Docker image
+    needs: check
+    if: needs.check.outputs.run_lavavu == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -44,7 +105,7 @@ jobs:
           context: .
           file: ./docs/development/docker/lavavu/Dockerfile
           outputs: type=docker,dest=/tmp/lavavu_docker.tar
-          tags: underworldcode/lavavu:petsc
+          tags: underworldcode/base:lavavu
       
       - name: Upload artifact
         uses: actions/upload-artifact@v2
@@ -53,8 +114,10 @@ jobs:
           path: /tmp/lavavu_docker.tar 
   
   build_base_image:
+    name: Build Base Docker image
+    needs: [check, build_petsc_image, build_lavavu_image]
+    if: needs.check.outputs.run_base == 'true'
     runs-on: ubuntu-latest
-    needs: [build_petsc_image, build_lavavu_image]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -134,7 +197,7 @@ jobs:
 
   push_images_to_dockerhub:
     runs-on: ubuntu-latest
-    needs: [build_petsc_image, build_base_image, build_underworld_image, build_lavavu_image]
+    needs: [check, build_petsc_image, build_base_image, build_underworld_image, build_lavavu_image]
     if: github.event_name == 'release'
     steps:
       - name: Checkout
@@ -143,16 +206,15 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
-      - name: Extract Branch name
-        run: echo "BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
-
       - name: Download Petsc Image
+        if: needs.check.outputs.run_petsc == 'true'
         uses: actions/download-artifact@v2
         with:
           name: petsc_docker
           path: /tmp
       
       - name: Download Base Image
+        if: needs.check.outputs.run_base == 'true'
         uses: actions/download-artifact@v2
         with:
           name: base_docker
@@ -165,18 +227,11 @@ jobs:
           path: /tmp
       
       - name: Download Lavavu Image
+        if: needs.check.outputs.run_lavavu == 'true'
         uses: actions/download-artifact@v2
         with:
           name: lavavu_docker
           path: /tmp
-
-      - name: Load images
-        run: |
-          docker load --input /tmp/petsc_docker.tar
-          docker load --input /tmp/base_docker.tar
-          docker load --input /tmp/lavavu_docker.tar
-          docker load --input /tmp/underworld_docker.tar
-          docker image ls -a
 
       - name: Login to DockerHub
         uses: docker/login-action@v1 
@@ -184,11 +239,30 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Push to DockerHub
+      - name: Push Petsc image to DockerHub
+        if: needs.check.outputs.run_petsc == 'true'
         run: |
+          docker load --input /tmp/petsc_docker.tar
           docker push underworldcode/base:petsc
+      
+      - name: Push Lavavu image to DockerHub
+        if: needs.check.outputs.run_lavavu == 'true'
+        run: |
+          docker load --input /tmp/lavavu_docker.tar
           docker push underworldcode/base:lavavu
+
+      - name: Push Base image to DockerHub
+        if: needs.check.outputs.run_base == 'true'
+        run: |
+          docker load --input /tmp/base_docker.tar
           docker push underworldcode/base
+      
+      - name: Extract Branch name
+        run: echo "BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+      
+      - name: Push Underworld image to DockerHub
+        run: |
+          docker load --input /tmp/underworld_docker.tar
           docker push underworldcode/underworld2:${{ env.BRANCH }}
 
 
