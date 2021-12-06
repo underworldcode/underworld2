@@ -1,6 +1,8 @@
 Underworld 2
 ============
 
+![Underworld Montage](docs/development/docs_generator/images/logo_black.svg)
+
 ![Underworld Montage](docs/development/docs_generator/images/Montage.png)
 
 [![DOI](https://joss.theoj.org/papers/10.21105/joss.01797/status.svg)](https://doi.org/10.21105/joss.01797)
