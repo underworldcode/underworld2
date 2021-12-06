@@ -5,11 +5,12 @@ set(Python_FIND_VIRTUALENV ONLY)
 cmake_policy(SET CMP0078 OLD)
 
 project(Underworld)
-find_package(PkgConfig)
+find_package(PkgConfig REQUIRED)
 find_package(LibXml2 REQUIRED)
 find_package(MPI REQUIRED)
 
-find_package(Python3 COMPONENTS Interpreter Development NumPy)
+find_package(Python3 COMPONENTS Interpreter Development NumPy REQUIRED)
+find_package(SWIG 4.0 COMPONENTS python REQUIRED)
 
 # Look for PETSc installation. We use pkg-config which, on Linux look for the PETSc.pc
 # or petsc.pc file located in /usr/lib/pkgconfig or /usr/share/pkgconfig
