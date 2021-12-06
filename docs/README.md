@@ -10,6 +10,11 @@ test
 These are more developer domain scripts, but advanced users might also find them useful.
 
 
+pytests
+-------
+Root directory for pytest
+
+
 examples
 --------
 Examples generally demonstrate complete underworld model construction and usage.
