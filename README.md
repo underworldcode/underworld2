@@ -1,7 +1,9 @@
 Underworld 2
 ============
 
-![Underworld Montage](docs/development/docs_generator/images/logo_black.svg)
+<p align="center">
+  <img width="400" src="https://github.com/underworldcode/underworld2/blob/development/docs/development/docs_generator/images/logo_black.svg">
+</p>
 
 ![Underworld Montage](docs/development/docs_generator/images/Montage.png)
 
@@ -24,7 +26,7 @@ Documentation
 -------------
 Please visit the Underworld documentation site for an overview of installation, numerical methods, usage and the API reference. 
 
-https://underworld2.readthedocs.io
+https://underworld2.readthedocs.iogit
 
 In particular, the *Getting Started* section of the User Guide might be useful place to start.
 
