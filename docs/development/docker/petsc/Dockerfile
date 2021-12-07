@@ -66,6 +66,7 @@ RUN make ${MPICH_MAKE_OPTIONS}
 RUN make install                           
 RUN ldconfig
 
+
 # create venv now for forthcoming python packages
 USER $NB_USER
 RUN /usr/bin/python3 -m virtualenv --system-site-packages --python=/usr/bin/python3 ${VIRTUAL_ENV}

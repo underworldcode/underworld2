@@ -109,7 +109,7 @@ jobs:
   build_base_image:
     name: Build Base Docker image
     needs: [check, build_petsc_image, build_lavavu_image]
-    if: needs.check.outputs.run_base == 'true'
+    if: ${{ always() && contains(needs.*.result, 'success') && !(contains(needs.*.result, 'failure')) && (needs.check.outputs.run_base == 'true')}}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
