@@ -317,15 +317,27 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     container:
-      image: underworldcode/underworld2:latest
+      image: underworldcode/base
       options: --user root
     steps:
-      - name: Test in UW Container
+
+      - name: Build dependencies
         run: |
-          cd /home/jovyan/workspace
+          sudo apt-get update -qq 
+          sudo RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends build-essential pkg-config python3-dev swig libxml2-dev
+
+      - name: Runtime dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends libxml2 libpython3.8    
+
+      - name: Install Underworld
+        run: |
           git clone -b ${GITHUB_REF##*/} https://github.com/underworldcode/underworld2.git underworld2
           cd underworld2
           pip install -vvv .
+
+      - name: Run Tests
+        run: |
           pip install pytest
           python -m pytest -vvv docs/pytests
-
