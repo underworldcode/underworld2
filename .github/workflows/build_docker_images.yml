@@ -340,4 +340,5 @@ jobs:
       - name: Run Tests
         run: |
           pip install pytest
+          cd underworld2
           python -m pytest -vvv docs/pytests
