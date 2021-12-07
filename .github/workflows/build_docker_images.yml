@@ -154,7 +154,8 @@ jobs:
     name: Build Underworld Image
     runs-on: ubuntu-latest
     needs: [push_base_to_dockerhub]
-    if: always()
+    #if: always()
+    if: github.event_name == 'release'
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -309,4 +310,20 @@ jobs:
         run: |
           docker load --input /tmp/underworld_docker.tar
           docker push underworldcode/underworld2:${{ env.BRANCH }}
+
+  test_in_UW_Container:
+    name: Test in Docker Container
+    runs-on: ubuntu-latest
+    container:
+      image: underworldcode/underworld2:latest
+      options: --user root
+    steps:
+      - name: Test in UW Container
+        run: |
+          cd /home/jovyan/workspace
+          git clone -b ${GITHUB_REF##*/} https://github.com/underworldcode/underworld2.git underworld2
+          cd underworld2
+          pip install -vvv .
+          pip install pytest
+          python -m pytest -vvv docs/pytests
 
