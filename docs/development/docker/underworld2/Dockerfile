@@ -6,7 +6,7 @@ FROM underworldcode/base@sha256:27198726bedbe747889d4db096d5e15bf0c7cec5c9dc07c4
 LABEL maintainer="https://github.com/underworldcode/"
 # install runtime requirements
 USER root
-ENV PYVER=3.9
+ENV PYVER=3.8
 RUN apt-get update -qq \
 &&  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         libxml2 \

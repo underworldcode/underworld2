@@ -47,7 +47,6 @@ FROM base_runtime AS build_base
 RUN apt-get update -qq 
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         build-essential \
-        cmake \
         wget \
         gfortran \
         python3-dev \
@@ -94,6 +93,7 @@ RUN python3 ./configure --with-debugging=0 --prefix=/usr/local \
                 --download-superlu=1            \
                 --with-shared-libraries         \
                 --with-cxx-dialect=C++11        \
+                --download-cmake                \
                 --with-make-np=8
 RUN make PETSC_DIR=/tmp/petsc-build/petsc-${PETSC_VERSION} PETSC_ARCH=arch-linux-c-opt all
 RUN make PETSC_DIR=/tmp/petsc-build/petsc-${PETSC_VERSION} PETSC_ARCH=arch-linux-c-opt install
