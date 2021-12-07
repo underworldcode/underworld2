@@ -313,6 +313,8 @@ jobs:
 
   test_in_UW_Container:
     name: Test in Docker Container
+    needs: [push_base_to_dockerhub]
+    if: always()
     runs-on: ubuntu-latest
     container:
       image: underworldcode/underworld2:latest
