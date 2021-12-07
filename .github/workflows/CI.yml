@@ -108,7 +108,7 @@ jobs:
   
   build_base_image:
     name: Build Base Docker image
-    needs: [check, build_petsc_image, build_lavavu_image]
+    needs: [check, push_petsc_to_dockerhub, push_lavavu_to_dockerhub]
     if: ${{ always() && contains(needs.*.result, 'success') && !(contains(needs.*.result, 'failure')) && (needs.check.outputs.run_base == 'true')}}
     runs-on: ubuntu-latest
     steps:
@@ -117,24 +117,6 @@ jobs:
       
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
-      
-      - name: Download Petsc Image
-        uses: actions/download-artifact@v2
-        with:
-          name: petsc_docker
-          path: /tmp
-      
-      - name: Download Lavavu Image
-        uses: actions/download-artifact@v2
-        with:
-          name: lavavu_docker
-          path: /tmp
-      
-      - name: Load images
-        run: |
-          docker load --input /tmp/petsc_docker.tar
-          docker load --input /tmp/lavavu_docker.tar
-          docker image ls -a
       
       - name: Build Base Docker Image
         uses: docker/build-push-action@v2
