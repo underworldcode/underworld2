@@ -192,9 +192,6 @@ jobs:
     needs: [check, build_petsc_image]
     if: github.event_name == 'release'
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
@@ -223,9 +220,6 @@ jobs:
     needs: [check, build_base_image]
     if: github.event_name == 'release'
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
@@ -254,9 +248,6 @@ jobs:
     needs: [check, build_lavavu_image]
     if: github.event_name == 'release'
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
@@ -285,9 +276,6 @@ jobs:
     needs: [check, build_underworld_image]
     if: github.event_name == 'release'
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
@@ -331,14 +319,50 @@ jobs:
           apt-get update -qq
           DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends libxml2 libpython3.8    
 
+      - name: Checkout
+        uses: actions/checkout@v2
+      
       - name: Install Underworld
         run: |
-          git clone -b ${GITHUB_REF##*/} https://github.com/underworldcode/underworld2.git underworld2
-          cd underworld2
           pip install -vvv .
 
       - name: Run Tests
         run: |
           pip install pytest
-          cd underworld2
           python -m pytest -vvv docs/pytests
+
+  conda_build:
+      name: Conda Build (Python ${{matrix.python-version}} ${{ matrix.os }})
+      runs-on: ${{ matrix.os }}
+      strategy:
+        fail-fast: false
+        matrix:
+          os: ["ubuntu-latest", "macos-latest"]
+          python-version: ["3.7", "3.8", "3.9"]
+      steps:
+        - uses: actions/checkout@v2
+        - uses: conda-incubator/setup-miniconda@v2
+          with:
+            auto-update-conda: true
+            python-version: ${{ matrix.python-version }}
+        
+        - name: Config Conda
+          shell: bash -l {0}
+          run: |
+              conda install --channel conda-forge conda-build anaconda-client conda-verify
+              conda config --add channels conda-forge
+              conda config --add channels underworldcode
+              conda config --set anaconda_upload no
+  
+        - name: Config Conda For Upload
+          if: github.event_name == 'release'
+          shell: bash -l {0}
+          run: conda config --set anaconda_upload yes
+  
+        - name: Upload new Packages
+          if: github.event_name == 'release'
+          shell: bash -l {0}
+          run: |
+              anaconda login --hostname github-actions-${{ matrix.os  }}-$RANDOM --username ${{ secrets.ANACONDA_USERNAME }} --password ${{ secrets.ANACONDA_PASSWORD }}
+              conda-build --channel conda-forge --user underworldcode conda
+              anaconda logout
