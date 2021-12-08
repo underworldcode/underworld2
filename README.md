@@ -26,7 +26,7 @@ Documentation
 -------------
 Please visit the Underworld documentation site for an overview of installation, numerical methods, usage and the API reference. 
 
-https://underworld2.readthedocs.iogit
+https://underworld2.readthedocs.io
 
 In particular, the *Getting Started* section of the User Guide might be useful place to start.
 
