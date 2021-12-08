@@ -340,13 +340,37 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
                     self.data[0:0,:] = dset[0:0,:]
 
             # get units
+            '''
+            A try statement because some h5 file won't have a 'units' attribute.
+            '''
             try:
-                units = u.Quantity(h5f.attrs["units"])
-            except (KeyError, UndefinedUnitError) as e:
-                units = None
-            
-            if units:
-                self.data[:] = non_dimensionalise(self.data * units)
+                punits = u.Quantity(h5f.attrs["units"])
+            except (UndefinedUnitError) as e:
+                punits = None
+                
+            '''
+            a try statement because temperature units (offset units)
+            in pint raise expections on certain operations.
+            Here offset units are converted to base (absolute) units.
+            '''
+            try:
+                if punits:
+                    self.data[:] = non_dimensionalise(self.data * punits.m)
+            except (ValueError):
+                import warnings
+
+                if punits.units == "degree_Celsius":
+                    qunits = punits.to_base_units()
+                    offset = qunits.m
+                else:
+                    raise RuntimeError( f"Unexpected units in {punits} in {filename}")
+
+                estring = \
+                        f"Read in file {filename} with offset unit type {punits.units}. " \
+                        f"Converting values to {qunits.units} when loading from file. "
+                warnings.warn(estring)
+
+                self.data[:] = non_dimensionalise(self.data - offset)
 
     def save( self, filename, collective=False, swarmHandle=None, units=None, **kwargs):
         """
