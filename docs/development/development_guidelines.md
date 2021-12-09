@@ -41,6 +41,10 @@ License
 =======
 See LICENSE.md file in project top directory
 
+Continuous Integration
+======================
+
+TODO by Romain and Julian with 2.12 release.
 
 Version Control
 ===============
