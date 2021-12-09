@@ -5,7 +5,7 @@ set(Python_FIND_VIRTUALENV ONLY)
 cmake_policy(SET CMP0078 OLD)
 
 project(Underworld)
-find_package(PkgConfig REQUIRED)
+find_package(PkgConfig)
 find_package(LibXml2 REQUIRED)
 find_package(MPI REQUIRED)
 

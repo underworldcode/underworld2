@@ -17,6 +17,7 @@ FROM base_runtime AS build_base
 RUN apt-get update -qq 
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         build-essential \
+        pkg-config \
         python3-dev \
         swig \
         libxml2-dev
