@@ -62,24 +62,24 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-
+      
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
         
+      - name: Login to DockerHub
+        uses: docker/login-action@v1 
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      
       - name: Build Petsc Docker Image
         uses: docker/build-push-action@v2
         with:
           context: .
+          push: true
           file: ./docs/development/docker/petsc/Dockerfile
-          outputs: type=docker,dest=/tmp/petsc_docker.tar
-          tags: underworldcode/base:petsc
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: petsc_docker
-          path: /tmp/petsc_docker.tar 
-  
+          tags: underworldcode/petsc
+      
   build_lavavu_image:
     name: Build Lavavu Docker image
     needs: check
@@ -88,27 +88,31 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
+      
+      - name: Login to DockerHub
+        uses: docker/login-action@v1 
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
       
       - name: Build Lavavu Docker Image
         uses: docker/build-push-action@v2
         with:
           context: .
+          push: true
           file: ./docs/development/docker/lavavu/Dockerfile
-          outputs: type=docker,dest=/tmp/lavavu_docker.tar
-          tags: underworldcode/base:lavavu
-      
-      - name: Upload artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: lavavu_docker
-          path: /tmp/lavavu_docker.tar 
-  
+          tags: underworldcode/lavavu
+
+
   build_base_image:
     name: Build Base Docker image
-    needs: [check, push_petsc_to_dockerhub, push_lavavu_to_dockerhub]
+    needs: [check, build_lavavu_image, build_petsc_image]
     if: ${{ always() && contains(needs.*.result, 'success') && !(contains(needs.*.result, 'failure')) && (needs.check.outputs.run_base == 'true')}}
     runs-on: ubuntu-latest
     steps:
@@ -117,26 +121,26 @@ jobs:
       
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
+     
+      - name: Login to DockerHub
+        uses: docker/login-action@v1 
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
       
       - name: Build Base Docker Image
         uses: docker/build-push-action@v2
         with:
           context: .
+          push: true
           file: ./docs/development/docker/base/Dockerfile
-          outputs: type=docker,dest=/tmp/base_docker.tar
           tags: underworldcode/base
-      
-      - name: Upload artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: base_docker
-          path: /tmp/base_docker.tar 
+
 
   build_underworld_image:
     name: Build Underworld Image
     runs-on: ubuntu-latest
-    needs: [push_base_to_dockerhub]
-    #if: always()
+    needs: [build_base_image]
     if: github.event_name == 'release'
     steps:
       - name: Checkout
@@ -154,136 +158,24 @@ jobs:
           SHA256=$(docker inspect --format='{{index .RepoDigests 0}}' underworldcode/base)
           sed -i "/sha256/c\FROM ${SHA256} as base_runtime" ./docs/development/docker/underworld2/Dockerfile
 
+      - name: Login to DockerHub
+        uses: docker/login-action@v1 
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      
       - name: Build Underworld Docker Image
         uses: docker/build-push-action@v2
         with:
           context: .
+          push: true
           file: ./docs/development/docker/underworld2/Dockerfile
-          outputs: type=docker,dest=/tmp/underworld_docker.tar
           tags: underworldcode/underworld2:${{ env.BRANCH }}
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: underworld_docker
-          path: /tmp/underworld_docker.tar 
-
-  push_petsc_to_dockerhub:
-    name: Push Petsc Image to DockerHub
-    runs-on: ubuntu-latest
-    needs: [check, build_petsc_image]
-    if: github.event_name == 'release'
-    steps:
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-
-      - name: Download Petsc Image
-        if: needs.check.outputs.run_petsc == 'true'
-        uses: actions/download-artifact@v2
-        with:
-          name: petsc_docker
-          path: /tmp
-      
-      - name: Login to DockerHub
-        uses: docker/login-action@v1 
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Push
-        if: needs.check.outputs.run_petsc == 'true'
-        run: |
-          docker load --input /tmp/petsc_docker.tar
-          docker push underworldcode/base:petsc
-
-  push_base_to_dockerhub:
-    name: Push Base Image to DockerHub
-    runs-on: ubuntu-latest
-    needs: [check, build_base_image]
-    if: github.event_name == 'release'
-    steps:
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-
-      - name: Download Base Image
-        if: needs.check.outputs.run_base == 'true'
-        uses: actions/download-artifact@v2
-        with:
-          name: base_docker
-          path: /tmp
-      
-      - name: Login to DockerHub
-        uses: docker/login-action@v1 
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Push
-        if: needs.check.outputs.run_base == 'true'
-        run: |
-          docker load --input /tmp/base_docker.tar
-          docker push underworldcode/base
-      
-  push_lavavu_to_dockerhub:
-    name: Push Lavavu Image to DockerHub
-    runs-on: ubuntu-latest
-    needs: [check, build_lavavu_image]
-    if: github.event_name == 'release'
-    steps:
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-
-      - name: Download Lavavu Image
-        if: needs.check.outputs.run_lavavu == 'true'
-        uses: actions/download-artifact@v2
-        with:
-          name: lavavu_docker
-          path: /tmp
-
-      - name: Login to DockerHub
-        uses: docker/login-action@v1 
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Push Lavavu
-        if: needs.check.outputs.run_lavavu == 'true'
-        run: |
-          docker load --input /tmp/lavavu_docker.tar
-          docker push underworldcode/base:lavavu
-
-  push_underword_to_dockerhub:
-    name: Push Underworld Image to DockerHub
-    runs-on: ubuntu-latest
-    needs: [check, build_underworld_image]
-    if: github.event_name == 'release'
-    steps:
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-
-      - name: Download Underworld Image
-        uses: actions/download-artifact@v2
-        with:
-          name: underworld_docker
-          path: /tmp
-      
-      - name: Login to DockerHub
-        uses: docker/login-action@v1 
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Extract Branch name
-        run: echo "BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
-      
-      - name: Push Underworld image to DockerHub
-        run: |
-          docker load --input /tmp/underworld_docker.tar
-          docker push underworldcode/underworld2:${{ env.BRANCH }}
 
   test_in_UW_Container:
     name: Test in Docker Container
-    needs: [push_base_to_dockerhub]
+    needs: [build_base_image]
     if: always()
     runs-on: ubuntu-latest
     container:

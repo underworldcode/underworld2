@@ -60,8 +60,8 @@ RUN pip3 install -U setuptools  \
         tabulate 
 
 # Lets grab lavavu & requirements
-COPY --from=underworldcode/base:lavavu /opt       /opt
-COPY --from=underworldcode/base:lavavu /usr/local /usr/local
+COPY --from=underworldcode/lavavu /opt       /opt
+COPY --from=underworldcode/lavavu /usr/local /usr/local
 RUN apt-get update \
 &&  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends $(awk '{print $1'} /opt/installed.txt) \
 &&  apt-get clean \
@@ -69,8 +69,8 @@ RUN apt-get update \
 RUN PYTHONPATH= /usr/bin/pip3 install -r /opt/requirements.txt
 
 # mpi, petsc, mpi4py, petsc4py, h5py
-COPY --from=underworldcode/base:petsc /opt       /opt
-COPY --from=underworldcode/base:petsc /usr/local /usr/local
+COPY --from=underworldcode/petsc /opt       /opt
+COPY --from=underworldcode/petsc /usr/local /usr/local
 RUN apt-get update \
 &&  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends $(awk '{print $1'} /opt/installed.txt) \
 &&  apt-get clean \

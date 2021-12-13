@@ -6,9 +6,9 @@ ENV PYVER=3.9
 ENV VIRTUAL_ENV=/opt/venv
 # The following ensures that the venv takes precedence if available
 ENV PATH=${VIRTUAL_ENV}/bin:$PATH
+
 # The following ensures venv packages are available when using system python (such as from jupyter)
 ENV PYTHONPATH=${PYTHONPATH}:${VIRTUAL_ENV}/lib/python${PYVER}/site-packages
-
 # add joyvan user, volume mount and expose port 8888
 EXPOSE 8888
 ENV NB_USER jovyan
@@ -78,8 +78,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
 # create a virtualenv to put new python modules
 USER $NB_USER
 RUN /usr/bin/python3 -m virtualenv --system-site-packages --python=/usr/bin/python3 ${VIRTUAL_ENV}
-RUN LV_OSMESA=1 pip3 install --no-cache-dir --no-binary=lavavu lavavu
-
+RUN LV_OSMESA=1 pip3 install --no-cache-dir --no-binary=lavavu lavavu 
 FROM base_runtime AS minimal
 COPY --from=build_base $VIRTUAL_ENV $VIRTUAL_ENV
 COPY --from=build_base /usr/local /usr/local

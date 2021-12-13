@@ -6,9 +6,9 @@ ENV PYVER=3.9
 ENV VIRTUAL_ENV=/opt/venv
 # The following ensures that the venv takes precedence if available
 ENV PATH=${VIRTUAL_ENV}/bin:$PATH
+
 # The following ensures venv packages are available when using system python (such as from jupyter)
 ENV PYTHONPATH=${PYTHONPATH}:${VIRTUAL_ENV}/lib/python${PYVER}/site-packages
-
 # add joyvan user, volume mount and expose port 8888
 EXPOSE 8888
 ENV NB_USER jovyan
@@ -32,6 +32,7 @@ RUN apt-get update -qq \
         python3-numpy \
         python3-numpy-dbg \
         libopenblas-base \
+        gcc python3-dev \
 &&  apt-get clean \
 &&  rm -rf /var/lib/apt/lists/*
 
