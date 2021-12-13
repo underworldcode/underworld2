@@ -1,7 +1,7 @@
-FROM ubuntu:20.04 as base_runtime
+FROM ubuntu:impish as base_runtime
 LABEL maintainer="https://github.com/underworldcode/"
 ENV LANG=C.UTF-8
-ENV PYVER=3.8
+ENV PYVER=3.9
 # Setup some things in anticipation of virtualenvs
 ENV VIRTUAL_ENV=/opt/venv
 # The following ensures that the venv takes precedence if available
@@ -27,7 +27,7 @@ RUN apt-get update -qq \
 &&  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         bash-completion \
         bash-completion \
-        python${PYVER}-minimal \
+        python3-minimal \
         python3-virtualenv \
         python3-pip \
         python3-numpy \
@@ -36,6 +36,7 @@ RUN apt-get update -qq \
         less \
         git \
         cmake \
+        gcc python3-dev \
         valgrind valgrind-dbg valgrind-mpi \
         gdb cgdb \ 
 &&  apt-get clean \

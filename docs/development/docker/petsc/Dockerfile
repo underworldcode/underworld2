@@ -1,7 +1,7 @@
-FROM ubuntu:20.04 as base_runtime
+FROM ubuntu:impish as base_runtime
 LABEL maintainer="https://github.com/underworldcode/"
 ENV LANG=C.UTF-8
-ENV PYVER=3.8
+ENV PYVER=3.9
 # Setup some things in anticipation of virtualenvs
 ENV VIRTUAL_ENV=/opt/venv
 # The following ensures that the venv takes precedence if available
@@ -26,7 +26,7 @@ RUN mkdir ${VIRTUAL_ENV} \
 RUN apt-get update -qq \
 &&  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         bash-completion \
-        python${PYVER}-minimal \
+        python3-minimal \
         python3-virtualenv \
         python3-pip \
         python3-numpy \
@@ -47,11 +47,13 @@ FROM base_runtime AS build_base
 RUN apt-get update -qq 
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         build-essential \
+        cmake \
         wget \
         gfortran \
         python3-dev \
         libopenblas-dev \
         libz-dev \
+        cmake \
         git
 # build mpi
 WORKDIR /tmp/mpich-build
@@ -59,7 +61,7 @@ ARG MPICH_VERSION="3.4.2"
 RUN wget http://www.mpich.org/static/downloads/${MPICH_VERSION}/mpich-${MPICH_VERSION}.tar.gz 
 RUN  tar xvzf mpich-${MPICH_VERSION}.tar.gz 
 WORKDIR /tmp/mpich-build/mpich-${MPICH_VERSION}              
-ARG MPICH_CONFIGURE_OPTIONS="--prefix=/usr/local --enable-g=option=none --disable-debuginfo --enable-fast=O3,ndebug --without-timing --without-mpit-pvars --with-device=ch3"
+ARG MPICH_CONFIGURE_OPTIONS="--prefix=/usr/local --enable-g=option=none --disable-debuginfo --enable-fast=O3,ndebug --without-timing --without-mpit-pvars --with-device=ch3 FFLAGS=-fallow-argument-mismatch"
 ARG MPICH_MAKE_OPTIONS="-j8"
 RUN ./configure ${MPICH_CONFIGURE_OPTIONS} 
 RUN make ${MPICH_MAKE_OPTIONS}             
@@ -74,7 +76,7 @@ RUN pip3 install --no-cache-dir mpi4py
 USER root
 # build petsc
 WORKDIR /tmp/petsc-build
-ARG PETSC_VERSION="3.16.1"
+ARG PETSC_VERSION="3.15.1"
 RUN wget http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-${PETSC_VERSION}.tar.gz
 RUN tar zxf petsc-lite-${PETSC_VERSION}.tar.gz
 WORKDIR /tmp/petsc-build/petsc-${PETSC_VERSION}
@@ -93,7 +95,6 @@ RUN python3 ./configure --with-debugging=0 --prefix=/usr/local \
                 --download-superlu=1            \
                 --with-shared-libraries         \
                 --with-cxx-dialect=C++11        \
-                --download-cmake                \
                 --with-make-np=8
 RUN make PETSC_DIR=/tmp/petsc-build/petsc-${PETSC_VERSION} PETSC_ARCH=arch-linux-c-opt all
 RUN make PETSC_DIR=/tmp/petsc-build/petsc-${PETSC_VERSION} PETSC_ARCH=arch-linux-c-opt install
