@@ -16,7 +16,7 @@ jobs:
           SERVER: ${{ secrets.GB_SERVER }}
       - name: Connect to Kaiju
         run: |
-            sshpass -p ${{ secrets.KAIJU_PASSWORD }} ssh -oStrictHostKeyChecking=no ${{ secrets.KAIJU_USERNAME }}@kaiju.anu.edu.au
+            sshpass -p ${{ secrets.KAIJU_PASSWORD }} ssh -tt -oStrictHostKeyChecking=no ${{ secrets.KAIJU_USERNAME }}@kaiju.anu.edu.au
             mkdir this_was_created_by_action
       - name: Checkout
         uses: actions/checkout@v2
