@@ -1,0 +1,17 @@
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Global Protect
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Connect
+        uses: "./"
+        env:
+          USER: ${{ secrets.GB_USER }}
+          PASS: ${{ secrets.GB_PASSWORD }}
+          SERVER: ${{ secrets.GB_SERVER }}          

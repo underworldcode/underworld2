@@ -1,0 +1,32 @@
+# action name
+name: 'globalprotect'
+
+# action author
+author: 'Bhaskar KC <xlinkerz@gmail.com>'
+
+# action description
+description: 'GlobalProtect connection'
+
+# action input values
+inputs:
+  SERVER:
+      description: 'Global Protect Server URL.'
+      required: true
+      default: ''
+  USER:
+      description: 'Global Protect user.'
+      required: true
+      default: ''
+  PASS:
+      description: 'Global Protect Password.'
+      required: true
+      default: ''
+
+# action runner
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+
+# branding
+branding:
+  icon: terminal
