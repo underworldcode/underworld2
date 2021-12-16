@@ -2,7 +2,7 @@
 name: 'globalprotect'
 
 # action author
-author: 'Bhaskar KC <xlinkerz@gmail.com>'
+author: 'Romain Beucher <romain.beucher@anu.edu.au>'
 
 # action description
 description: 'GlobalProtect connection'
@@ -21,6 +21,15 @@ inputs:
       description: 'Global Protect Password.'
       required: true
       default: ''
+  KAIJUPASS:
+      description: 'Kaiju Password.'
+      required: true
+      default: ''
+  KAIJUUSER:
+      description: 'Kaiju User.'
+      required: true
+      default: ''
+  
 
 # action runner
 runs:

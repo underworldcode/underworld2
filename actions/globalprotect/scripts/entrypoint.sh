@@ -22,4 +22,12 @@ gvpn() {
         /bin/bash
 }
 
-gvpn
+
+kaiju_connect() {
+
+    sshpass -p ${{KAIJU_PASSWORD}} ssh -tt -oStrictHostKeyChecking=no ${{KAIJU_USERNAME}}@kaiju.anu.edu.au
+    mkdir this_was_created_by_action
+
+}
+
+gvpn && kaiju_connect
