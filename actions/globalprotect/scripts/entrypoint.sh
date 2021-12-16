@@ -25,7 +25,7 @@ gvpn() {
 
 kaiju_connect() {
 
-    sshpass -p ${{KAIJU_PASSWORD}} ssh -tt -oStrictHostKeyChecking=no ${{KAIJU_USERNAME}}@kaiju.anu.edu.au
+    sshpass -p ${{KAIJUPASS}} ssh -tt -oStrictHostKeyChecking=no ${{KAIJUUSER}}@kaiju.anu.edu.au
     mkdir this_was_created_by_action
 
 }
