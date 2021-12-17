@@ -225,7 +225,7 @@ jobs:
           run: |
               conda install --channel conda-forge conda-build anaconda-client conda-verify
               conda config --add channels conda-forge
-              conda config --add channels geo-down-under
+              conda config --add channels underworldcode
               conda config --set anaconda_upload no
   
         - name: Config Conda For Upload
