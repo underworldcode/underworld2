@@ -18,6 +18,9 @@ from pint import UnitRegistry
 u = UnitRegistry()
 
 COEFFICIENTS = None
+
+pint_degc_labels = ['degC', 'degreeC', 'degree_Celsius', 'celsius']
+
 def get_coefficients():
     """
     Returns the global scaling dictionary.

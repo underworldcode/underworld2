@@ -30,6 +30,7 @@
 #include <string.h>
 #include <math.h>
 #include <assert.h>
+#include <petsc.h>
 
 const Type GaussParticleLayout_Type = "GaussParticleLayout";
 
@@ -275,9 +276,14 @@ void _GaussParticleLayout_InitialiseParticlesOfCell( void* gaussParticleLayout, 
 }
 
 
-/* Values taken from table from:
- * Eric W. Weisstein. "Legendre-Gauss Quadrature." From MathWorld--A Wolfram Web Resource. http://mathworld.wolfram.com/Legendre-GaussQuadrature.html */
+/* We use petsc underlying functionality to get the locations and weights of the gaussSwarm, see.
+ * Eric W. Weisstein. "Legendre-Gauss Quadrature." From MathWorld--A Wolfram Web Resource. http://mathworld.wolfram.com/Legendre-GaussQuadrature.html
+ */
+
 void GaussParticleLayout_GetAbscissaAndWeights1D( double* weight, double* abscissa, Index pointCount ) {
+  
+  PetscDTGaussQuadrature( pointCount, -1, 1, abscissa, weight );
+  /*
 	switch ( pointCount ) {
 		case 1:
 			abscissa[0]  = 0.0;
@@ -331,6 +337,7 @@ void GaussParticleLayout_GetAbscissaAndWeights1D( double* weight, double* abscis
 				__func__, 
 				pointCount );
 	}
+  */
 }
 
 
