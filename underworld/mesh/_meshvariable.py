@@ -585,24 +585,25 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
                 # interpolate 'inputField' onto the self nodes
                 self.data[:] = inputField.evaluate(self.mesh.data)
 
-        # get units
-        try:
-            iunits = u.Quantity(h5f.attrs["units"])
-        except (KeyError, UndefinedUnitError) as e:
-            iunits = None
+            # get units
+            try:
+                iunits = u.Quantity(h5f.attrs["units"])
+            except (KeyError, UndefinedUnitError) as e:
+                iunits = None
 
-        if iunits:
-            if iunits.units in pint_degc_labels:
-                estring = \
-                        f"read in file {filename} with offset unit type {iunits.units}. " \
-                        f"converting values to when loading from file. "
-                warnings.warn(estring)
+            if iunits:
+                if iunits.units in pint_degc_labels:
+                    import warnings
+                    estring = \
+                            f"read in file {filename} with offset unit type {iunits.units}. " \
+                            f"converting values to when loading from file. "
+                    warnings.warn(estring)
 
-                # load as kelvin
-                xxx = self.data[:] * iunits 
-                self.data[:] = non_dimensionalise(xxx.to_base_units())
-            else:
-                self.data[:] = non_dimensionalise(self.data[:]*iunits)
+                    # load as kelvin
+                    xxx = self.data[:] * iunits 
+                    self.data[:] = non_dimensionalise(xxx.to_base_units())
+                else:
+                    self.data[:] = non_dimensionalise(self.data[:]*iunits)
 
         # add sync
         self.syncronise()

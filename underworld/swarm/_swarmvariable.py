@@ -347,6 +347,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
 
             # check for degree celcius scaling / offset
             if iunits.units in pint_degc_labels: 
+                import warnings
                 estring = \
                         f"read in file {filename} with offset unit type {iunits.units}. " \
                         f"converting values to when loading from file. "
