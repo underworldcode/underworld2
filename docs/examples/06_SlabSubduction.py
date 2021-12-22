@@ -6,9 +6,9 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.13.1
+#       jupytext_version: 1.13.0
 #   kernelspec:
-#     display_name: Python 3
+#     display_name: Python 3 (ipykernel)
 #     language: python
 #     name: python3
 # ---
@@ -204,7 +204,7 @@ try:
     # Try using "mumps" direct solve, best for 2D models.
     solver = uw.systems.Solver(stokes)
     solver.set_inner_method("mumps")
-    solver.solve()
+    solver.solve(nonLinearIterate=True)
 except RuntimeError:
     # If the above failed, most likely "mumps" isn't 
     # installed. Fallback to default solver. 
