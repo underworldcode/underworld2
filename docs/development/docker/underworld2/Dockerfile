@@ -2,11 +2,11 @@
 # Typically:
 #    $  docker build -f docs/development/docker/underworld2/Dockerfile .
 
-FROM underworldcode/base@sha256:27198726bedbe747889d4db096d5e15bf0c7cec5c9dc07c483b1d02acdfff543 as base_runtime
+FROM underworldcode/base as base_runtime
 LABEL maintainer="https://github.com/underworldcode/"
 # install runtime requirements
 USER root
-ENV PYVER=3.8
+ENV PYVER=3.9
 RUN apt-get update -qq \
 &&  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         libxml2 \
@@ -19,8 +19,12 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         build-essential \
         pkg-config \
         python3-dev \
+        cmake \
+        make \
         swig \
-        libxml2-dev
+        libxml2-dev \
+        g++ \
+        pkg-config
 # setup further virtualenv to avoid double copying back previous packages (h5py,mpi4py,etc)
 USER $NB_USER
 RUN /usr/bin/python3 -m virtualenv --system-site-packages --python=/usr/bin/python3 ${VIRTUAL_ENV}
