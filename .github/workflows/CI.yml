@@ -191,7 +191,7 @@ jobs:
       - name: Runtime dependencies
         run: |
           apt-get update -qq
-          DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends libxml2 libpython3.8    
+          DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends libxml2 libpython3.9
 
       - name: Checkout
         uses: actions/checkout@v2
