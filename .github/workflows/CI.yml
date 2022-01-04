@@ -60,8 +60,6 @@ jobs:
     if: needs.check.outputs.run_petsc == 'true'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
       
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
@@ -78,7 +76,13 @@ jobs:
           context: .
           push: true
           file: ./docs/development/docker/petsc/Dockerfile
-          tags: underworldcode/petsc
+          platform: linux/amd64
+          tags: underworldcode/petsc:amd64
+      
+      - name: Update manifest
+        run: |
+          docker manifest create underworldcode/petsc --amend underworldcode/petsc:amd64 --amend underworldcode/petsc:arm64
+          docker manifest push underworldcode/petsc
       
   build_lavavu_image:
     name: Build Lavavu Docker image
@@ -86,9 +90,6 @@ jobs:
     if: needs.check.outputs.run_lavavu == 'true'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
 
@@ -107,7 +108,13 @@ jobs:
           context: .
           push: true
           file: ./docs/development/docker/lavavu/Dockerfile
-          tags: underworldcode/lavavu
+          platform: linux/amd64
+          tags: underworldcode/lavavu:amd64
+      
+      - name: Update manifest
+        run: |
+          docker manifest create underworldcode/lavavu --amend underworldcode/lavavu:amd64 --amend underworldcode/lavavu:arm64
+          docker manifest push underworldcode/lavavu
 
 
   build_base_image:
@@ -116,9 +123,6 @@ jobs:
     if: ${{ always() && contains(needs.*.result, 'success') && !(contains(needs.*.result, 'failure')) && (needs.check.outputs.run_base == 'true')}}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
      
@@ -134,7 +138,13 @@ jobs:
           context: .
           push: true
           file: ./docs/development/docker/base/Dockerfile
-          tags: underworldcode/base
+          platform: linux/amd64
+          tags: underworldcode/base:amd64
+      
+      - name: Update manifest
+        run: |
+          docker manifest create underworldcode/base --amend underworldcode/base:amd64 --amend underworldcode/base:arm64
+          docker manifest push underworldcode/base
 
 
   build_underworld_image:
@@ -143,15 +153,9 @@ jobs:
     needs: [build_base_image]
     if: github.event_name == 'release'
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
       
-      - name: Extract Branch name
-        run: echo "BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
-
       - name: Update sha256
         run: |
           docker pull underworldcode/base
@@ -170,7 +174,13 @@ jobs:
           context: .
           push: true
           file: ./docs/development/docker/underworld2/Dockerfile
-          tags: underworldcode/underworld2:${{ env.BRANCH }}
+          platform: linux/amd64
+          tags: underworldcode/underworld2:amd64
+
+      - name: Update manifest
+        run: |
+          docker manifest create underworldcode/underworld2 --amend underworldcode/underworld2:amd64 --amend underworldcode/underworld2:arm64
+          docker manifest push underworldcode/underworld2
 
 
   test_in_UW_Container:
