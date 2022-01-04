@@ -1,0 +1,41 @@
+# action name
+name: 'globalprotect'
+
+# action author
+author: 'Romain Beucher <romain.beucher@anu.edu.au>'
+
+# action description
+description: 'GlobalProtect connection'
+
+# action input values
+inputs:
+  SERVER:
+      description: 'Global Protect Server URL.'
+      required: true
+      default: ''
+  USER:
+      description: 'Global Protect user.'
+      required: true
+      default: ''
+  PASS:
+      description: 'Global Protect Password.'
+      required: true
+      default: ''
+  KAIJUPASS:
+      description: 'Kaiju Password.'
+      required: true
+      default: ''
+  KAIJUUSER:
+      description: 'Kaiju User.'
+      required: true
+      default: ''
+  
+
+# action runner
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+
+# branding
+branding:
+  icon: terminal
