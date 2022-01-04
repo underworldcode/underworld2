@@ -77,7 +77,7 @@ RUN pip3 install --no-cache-dir mpi4py
 USER root
 # build petsc
 WORKDIR /tmp/petsc-build
-ARG PETSC_VERSION="3.15.1"
+ARG PETSC_VERSION="3.16.1"
 RUN wget http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-${PETSC_VERSION}.tar.gz
 RUN tar zxf petsc-lite-${PETSC_VERSION}.tar.gz
 WORKDIR /tmp/petsc-build/petsc-${PETSC_VERSION}
