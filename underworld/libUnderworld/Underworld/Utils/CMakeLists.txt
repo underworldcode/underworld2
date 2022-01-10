@@ -7,6 +7,7 @@ set(sources
     src/Fn_Integrate.cpp
     src/MatrixAssemblyTerm_NA_i__NB_i__Fn.cpp
     src/MatrixAssemblyTerm_NA__NB__Fn.cpp
+    src/MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni.cpp
     src/VectorAssemblyTerm_NA__Fn.cpp
     src/VectorAssemblyTerm_NA_i__Fn_i.cpp
     src/VectorAssemblyTerm_NA_j__Fn_ij.cpp
