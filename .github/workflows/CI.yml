@@ -61,6 +61,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       
+      - name: Checkout
+        uses: actions/checkout@v2
+      
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
         
@@ -76,7 +79,7 @@ jobs:
           context: .
           push: true
           file: ./docs/development/docker/petsc/Dockerfile
-          platform: linux/amd64
+          platforms: linux/amd64
           tags: underworldcode/petsc:amd64
       
       - name: Update manifest
@@ -90,6 +93,10 @@ jobs:
     if: needs.check.outputs.run_lavavu == 'true'
     runs-on: ubuntu-latest
     steps:
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
 
@@ -108,7 +115,7 @@ jobs:
           context: .
           push: true
           file: ./docs/development/docker/lavavu/Dockerfile
-          platform: linux/amd64
+          platforms: linux/amd64
           tags: underworldcode/lavavu:amd64
       
       - name: Update manifest
@@ -123,6 +130,10 @@ jobs:
     if: ${{ always() && contains(needs.*.result, 'success') && !(contains(needs.*.result, 'failure')) && (needs.check.outputs.run_base == 'true')}}
     runs-on: ubuntu-latest
     steps:
+      
+      - name: Checkout
+        uses: actions/checkout@v2
+      
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
      
@@ -138,7 +149,7 @@ jobs:
           context: .
           push: true
           file: ./docs/development/docker/base/Dockerfile
-          platform: linux/amd64
+          platforms: linux/amd64
           tags: underworldcode/base:amd64
       
       - name: Update manifest
@@ -153,6 +164,10 @@ jobs:
     needs: [build_base_image]
     if: github.event_name == 'release'
     steps:
+      
+      - name: Checkout
+        uses: actions/checkout@v2
+      
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
       
@@ -174,7 +189,7 @@ jobs:
           context: .
           push: true
           file: ./docs/development/docker/underworld2/Dockerfile
-          platform: linux/amd64
+          platforms: linux/amd64
           tags: underworldcode/underworld2:amd64
 
       - name: Update manifest
