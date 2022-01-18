@@ -44,8 +44,5 @@ Bool Underworld_Utils_Init( int* argc, char** argv[] ) {
     Stg_ComponentRegister_Add( componentRegister, VectorAssemblyTerm_NA_j__Fn_ij_Type, (Name)"0", _VectorAssemblyTerm_NA_j__Fn_ij_DefaultNew  );
     RegisterParent( VectorAssemblyTerm_NA_j__Fn_ij_Type, ForceTerm_Type );
 
-    Stg_ComponentRegister_Add( componentRegister, MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_Type, (Name)"0", _MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_DefaultNew  );
-    RegisterParent( MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_Type, StiffnessMatrixTerm_Type );
-
     return True;
 }

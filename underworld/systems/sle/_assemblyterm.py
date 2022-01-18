@@ -422,24 +422,3 @@ class AdvDiffResidualVectorTerm(VectorAssemblyTerm):
             self.fn_diffusivity = self._fn_diffusivity
         if self._set_fn_source_function:
             self.fn_source = self._fn_source
-
-class MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni(MatrixAssemblyTerm):
-    _objectsDict = { "_assemblyterm": "MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni" }
-
-    def __init__(self, fn, mesh, **kwargs):
-        # build parent
-        super(MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni,self).__init__(**kwargs)
-
-        self._set_fn_function = libUnderworld.Underworld.MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_SetFn
-        self._fn = fn
-
-        if not isinstance( mesh, uw.mesh.FeMesh_Cartesian ):
-            raise TypeError( "The provided mesh must be of FeMesh_Cartesian class.")
-        # set mesh directly
-        self._cself.geometryMesh = mesh._cself
-        self._geometryMesh = mesh
-
-    def _add_to_stg_dict(self,componentDictionary):
-        # call parents method
-        super(MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni,self)._add_to_stg_dict(componentDictionary)
-
