@@ -18,5 +18,6 @@
    typedef struct MatrixAssemblyTerm_NA_i__NB_i__Fn MatrixAssemblyTerm_NA_i__NB_i__Fn;
    typedef struct MatrixAssemblyTerm_NA__NB__Fn MatrixAssemblyTerm_NA__NB__Fn;
    typedef struct Fn_Integrate          Fn_Integrate;
+   typedef struct MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni;
 
 #endif
