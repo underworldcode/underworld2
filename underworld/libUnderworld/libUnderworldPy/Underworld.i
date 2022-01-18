@@ -78,3 +78,4 @@ extern "C" {
 %include "Underworld/Utils/src/VectorAssemblyTerm_NA_j__Fn_ij.h"
 %include "Underworld/Utils/src/MatrixAssemblyTerm_NA_i__NB_i__Fn.h"
 %include "Underworld/Utils/src/MatrixAssemblyTerm_NA__NB__Fn.h"
+%include "Underworld/Utils/src/MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni.h"
