@@ -108,7 +108,7 @@ void _MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_Build( void* matrixTerm, void* da
     _StiffnessMatrixTerm_Build( self, data );
 
     Journal_Firewall(
-        self->rowVariable==self->colVariable, NULL, 
+        self->stiffnessMatrix->rowVariable==self->stiffnessMatrix->columnVariable, NULL, 
         (char *)"MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni, can't handle rowVariable != colVariable, contact developers about this\n");
 
     self->Ni = (double*)malloc(sizeof(double)*4);
