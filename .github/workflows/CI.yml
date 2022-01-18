@@ -2,6 +2,7 @@ name: CI
 
 on:
   push:
+  release:
   workflow_dispatch:
 
 jobs:
@@ -57,7 +58,7 @@ jobs:
   build_petsc_image:
     name: Build PETSc Docker image
     needs: check
-    if: needs.check.outputs.run_petsc == 'true'
+    if: needs.check.outputs.run_petsc == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       
@@ -90,7 +91,7 @@ jobs:
   build_lavavu_image:
     name: Build Lavavu Docker image
     needs: check
-    if: needs.check.outputs.run_lavavu == 'true'
+    if: needs.check.outputs.run_lavavu == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
 
@@ -162,7 +163,7 @@ jobs:
     name: Build Underworld Image
     runs-on: ubuntu-latest
     needs: [build_base_image]
-    if: github.event_name == 'release'
+    if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
     steps:
       
       - name: Checkout
