@@ -107,6 +107,10 @@ void _MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_Build( void* matrixTerm, void* da
     MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni* self = (MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni*)matrixTerm;
     _StiffnessMatrixTerm_Build( self, data );
 
+    Journal_Firewall(
+        self->rowVariable==self->colVariable, NULL, 
+        (char *)"MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni, can't handle rowVariable != colVariable, contact developers about this\n");
+
     self->Ni = (double*)malloc(sizeof(double)*4);
 }
 
@@ -172,7 +176,7 @@ void _MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_AssembleElement(
   
    MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni* self = (MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni*)matrixTerm;
    Swarm*                              swarm        = self->integrationSwarm;
-   FeVariable*                         variable     = stiffnessMatrix->rowVariable;
+   FeVariable*                         rowVar       = stiffnessMatrix->rowVariable;
    Particle_InCellIndex                cParticle_I, cellParticleCount;
    int                                 dim = stiffnessMatrix->dim;
 
@@ -187,20 +191,15 @@ void _MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_AssembleElement(
    debug_dynamic_cast<ParticleInCellCoordinate*>(cppdata->input->localCoord())->index() = lElement_I;  // set the elementId as the owning cell for the particleCoord
    cppdata->input->index() = lElement_I;
 
-   FeMesh*                 geometryMesh = ( self->geometryMesh ? self->geometryMesh : variable->feMesh );
+   FeMesh*                 geometryMesh = ( self->geometryMesh ? self->geometryMesh : rowVar->feMesh );
    ElementType*            geometryElementType;
-
-   /* DEPRECATED
-   factor = 1;
-   if(factor == 1) { memset(&elStiffMat[0][0],0, 512); }
-   */
 
    /* Set the element type */
    geometryElementType = FeMesh_GetElementType( geometryMesh, lElement_I );
 
-   elementType = FeMesh_GetElementType( variable->feMesh, lElement_I );
+   elementType = FeMesh_GetElementType( rowVar->feMesh, lElement_I );
    nodesPerEl  = elementType->nodeCount;
-   dofPerNode  = variable->fieldComponentCount;
+   dofPerNode  = rowVar->fieldComponentCount;
 
    // allocate shape function array Ni
    if( nodesPerEl > self->max_nElNodes ) {
@@ -231,25 +230,26 @@ void _MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_AssembleElement(
 
       factor = weight*detJac;
 
-        /* 
-          per edge evaluation as per equation 19 - B.J.P Kaus et al. 2010
-          where: 
-            fn_vector is user input for, theta * pho * dT * g[]
-            localNormal is calculated from the border gauss swarm, n
-            Ni are the shape functions
+      /* 
+        per edge evaluation as per equation 19 - B.J.P Kaus et al. 2010
+        where: 
+          fn_vector is user input for, theta * pho * dT * g[]
+          localNormal is calculated from the border gauss swarm, n
+          Ni are the shape functions
 
-        elStiffMat[row  ][col  ] = fn_vector[0] * localNormal[0] * Ni[rowNode_I] * Ni[colNode_I]
-        elStiffMat[row  ][col+1] = fn_vector[0] * localNormal[1] * Ni[rowNode_I] * Ni[colNode_I]
-        elStiffMat[row+1][col  ] = fn_vector[1] * localNormal[0] * Ni[rowNode_I] * Ni[colNode_I]
-        elStiffMat[row+1][col+1] = fn_vector[1] * localNormal[1] * Ni[rowNode_I] * Ni[colNode_I]
+      elStiffMat[row  ][col  ] = fn_vector[0] * localNormal[0] * Ni[rowNode_I] * Ni[colNode_I]
+      elStiffMat[row  ][col+1] = fn_vector[0] * localNormal[1] * Ni[rowNode_I] * Ni[colNode_I]
+      elStiffMat[row+1][col  ] = fn_vector[1] * localNormal[0] * Ni[rowNode_I] * Ni[colNode_I]
+      elStiffMat[row+1][col+1] = fn_vector[1] * localNormal[1] * Ni[rowNode_I] * Ni[colNode_I]
+
+      We "lump" the matrix according to FSSA2 - Kaus, 2010.
+      The resulting matrix has 
+       * off-diagonal terms set to 0 
+       * is symmetric 
+
+      Below row and col nodes and dofs are both assumed to index the rowVariable only
         */
 
-      /* The following is an assumption for 2D model testing eq.21.
-       * Using 2D linear quad element (non deformed)
-       * The resulting matrix will only have diagonal entries as per Kauss et al. FSSA2*/
-
-      /*
-      */
       double Ai, Bi, fem;
       for( rowNode_I = 0; rowNode_I < nodesPerEl ; rowNode_I++ ) {
 
@@ -257,18 +257,21 @@ void _MatrixSurfaceAssemblyTerm_NA__NB__Fn__ni_AssembleElement(
         row = rowNode_I * dofPerNode;
 
         for( colNode_I = 0; colNode_I < nodesPerEl; colNode_I++ ) {
-          //if( colNode_I != rowNode_I ) continue; //skip
           
           Bi = Ni[colNode_I]; // col shape funcs
           col = colNode_I * dofPerNode;
 
           fem = Ai * Bi * factor; // build a fem factor
 
-          elStiffMat[row  ][row  ] += fn_vector[0] * localNormal[0] * fem;
+          elStiffMat[row  ][col  ] += fn_vector[0] * localNormal[0] * fem;
           // Remove cross terms
           // elStiffMat[row  ][col+1] += fn_vector[0] * localNormal[1] * fem;
           // elStiffMat[row+1][col  ] += fn_vector[1] * localNormal[0] * fem;
-          elStiffMat[row+1][row+1] += fn_vector[1] * localNormal[1] * fem;
+          elStiffMat[row+1][col+1] += fn_vector[1] * localNormal[1] * fem;
+
+          if (dim == 3) {
+            elStiffMat[row+2][col+2] += fn_vector[2] * localNormal[2] * fem;
+          }
         }
       }
 
