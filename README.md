@@ -38,9 +38,9 @@ Note that it can take a while for the site to fire up and that it will time-out 
 
 | | |
 |-|-|
+| [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/v2.12.0b) | v2.12.0b |
 | [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/v2.11.0b) | v2.11.0b |
 | [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/v2.10.0b) | v2.10.0b |
-| [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/v2.9.2b) | v2.9.2b |
 | [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/development) | dev |
 
 
