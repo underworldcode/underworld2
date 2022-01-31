@@ -1,12 +1,12 @@
 CHANGES: Underworld2
 =======================
 
-Upcoming release
-----------------
+Release 2.12.0 [2022-01-31]
+---------------------------
 New:
  * CMake based builder instead of Scons.
  * Added M1 (arm64) based docker.
-
+Upcoming release
 Changes:
  * GitHub actions for CI and docker publications.
  * Compatibility with petsc 3.16.

@@ -1,4 +1,4 @@
-FROM underworldcode/underworld2:dev
+FROM underworldcode/underworld2:2.12.0b
 
 # Set the UW_MACHINE env variable for metrics
 ENV UW_MACHINE binder
