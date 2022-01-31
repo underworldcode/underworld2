@@ -8,9 +8,9 @@
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 
 #include <mpi.h>
-#include <StGermain/StGermain.h>
-#include <StgDomain/StgDomain.h>
-#include "types.h"
+#include <StGermain/libStGermain/src/StGermain.h>
+#include <StgDomain/libStgDomain/src/StgDomain.h>
+#include "StgFEM/Discretisation/src/types.h"
 
 #include "ElementType.h"
 #include "ElementType_Register.h"
@@ -26,6 +26,18 @@
 #include <mpi.h>
 #include <petsc.h>
 #include <petscvec.h>
+
+
+// Private prototype
+int GenerateEquationNumbering(
+		int NX, int NY, int NZ,
+		int nlocal, int g_node_id[],
+		int dof, int nglobal,
+		PetscTruth periodic_x, PetscTruth periodic_y, PetscTruth periodic_z,
+		int npx, int npy, int npz,
+		int periodic_x_gnode_id[], int periodic_y_gnode_id[], int periodic_z_gnode_id[],
+		int eqnums[], int *neqnums );
+
 
 int stgCmpInt( const void *l, const void *r ) {
    return *(int*)l - *(int*)r;

@@ -41,36 +41,36 @@
 #include <vector>
 
 extern "C" {
-#include <StGermain/StGermain.h>
-#include <StgDomain/StgDomain.h>
-#include <StgFEM/StgFEM.h>
-#include <PICellerator/PICellerator.h>
-#include <gLucifer/gLucifer.h>
+#include <StGermain/libStGermain/src/StGermain.h>
+#include <StgDomain/libStgDomain/src/StgDomain.h>
+#include <StgFEM/libStgFEM/src/StgFEM.h>
+#include <PICellerator/libPICellerator/src/PICellerator.h>
+#include <gLucifer/libgLucifer/src/gLucifer.h>
 }
 %}
 
 
-%include "Base/types.h"
-%include "Base/ColourMap.h"
-%include "Base/DrawingObject.h"
-%include "Base/Database.h"
-%include "Base/Finalise.h"
-%include "Base/Init.h"
-%include "Base/ViewerTypes.h"
-%include "DrawingObjects/CrossSection.h"
-%include "DrawingObjects/SwarmViewer.h"
-%include "DrawingObjects/VectorArrows.h"
-%include "DrawingObjects/MeshViewer.h"
-%include "DrawingObjects/DrawingObjects.h"
-%include "DrawingObjects/Isosurface.h"
-%include "DrawingObjects/ContourCrossSection.h"
-%include "DrawingObjects/ScalarField.h"
-%include "DrawingObjects/FieldSampler.h"
-%include "DrawingObjects/Sampler.h"
-%include "DrawingObjects/types.h"
-%include "libgLucifer/Finalise.h"
-%include "libgLucifer/gLucifer.h"
-%include "libgLucifer/Init.h"
+%include "gLucifer/Base/src/types.h"
+%include "gLucifer/Base/src/ColourMap.h"
+%include "gLucifer/Base/src/DrawingObject.h"
+%include "gLucifer/Base/src/Database.h"
+%include "gLucifer/Base/src/Finalise.h"
+%include "gLucifer/Base/src/Init.h"
+%include "gLucifer/Base/src/ViewerTypes.h"
+%include "gLucifer/DrawingObjects/src/CrossSection.h"
+%include "gLucifer/DrawingObjects/src/SwarmViewer.h"
+%include "gLucifer/DrawingObjects/src/VectorArrows.h"
+%include "gLucifer/DrawingObjects/src/MeshViewer.h"
+%include "gLucifer/DrawingObjects/src/DrawingObjects.h"
+%include "gLucifer/DrawingObjects/src/Isosurface.h"
+%include "gLucifer/DrawingObjects/src/ContourCrossSection.h"
+%include "gLucifer/DrawingObjects/src/ScalarField.h"
+%include "gLucifer/DrawingObjects/src/FieldSampler.h"
+%include "gLucifer/DrawingObjects/src/Sampler.h"
+%include "gLucifer/DrawingObjects/src/types.h"
+%include "gLucifer/libgLucifer/src/Finalise.h"
+%include "gLucifer/libgLucifer/src/gLucifer.h"
+%include "gLucifer/libgLucifer/src/Init.h"
 
 
 

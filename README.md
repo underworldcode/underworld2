@@ -1,6 +1,10 @@
 Underworld 2
 ============
 
+<p align="center">
+  <img width="400" src="https://github.com/underworldcode/underworld2/blob/development/docs/development/docs_generator/images/logo_black.svg">
+</p>
+
 ![Underworld Montage](docs/development/docs_generator/images/Montage.png)
 
 [![DOI](https://joss.theoj.org/papers/10.21105/joss.01797/status.svg)](https://doi.org/10.21105/joss.01797)

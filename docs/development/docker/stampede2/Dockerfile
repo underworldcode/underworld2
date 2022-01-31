@@ -90,8 +90,7 @@ RUN pip3 install -U setuptools  && \
         mock \
         scipy \ 
         tabulate \
-        mpi4py \
-        scons
+        mpi4py
 
 # update python to py3
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.6 1
@@ -147,14 +146,7 @@ RUN mkdir -p $UW2_TMP
 
 COPY . $UW2_TMP/
 
-#ENV SCONS_LIB_DIR /usr/local/lib/python3.5/dist-packages/scons-3.0.1
-RUN cd $UW2_TMP/libUnderworld && \
-    ./configure.py --with-debugging=0 --h5py-notest=1 --prefix=$UW2_DIR && \
-    ./compile.py                      && \
-    scons install                     && \
-    env > build_environment.txt       && \
-    cd /tmp                           && \
-    rm -rf *
+RUN cd $UW2_TMP && pip3 install -vvv .    
 
 # clone UWGeodynamics, install 
 RUN git clone -b development https://github.com/underworldcode/UWGeodynamics.git && \

@@ -8,7 +8,7 @@
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 #include <mpi.h>
 #include <math.h>
-#include <StGermain/StGermain.h>
+#include <StGermain/libStGermain/src/StGermain.h>
 
 #include <stdlib.h>
 #include <stdio.h>

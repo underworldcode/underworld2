@@ -11,7 +11,7 @@
 #ifndef __StgDomain_Geometry_Simplex_h__
 #define __StgDomain_Geometry_Simplex_h__
 
-#include <StgDomain/Mesh/Mesh.h>
+#include <StgDomain/Mesh/src/Mesh.h>
 
 Bool Simplex_Search3D( Mesh* mesh, unsigned* inc,
                unsigned nSimplices, unsigned** inds, 

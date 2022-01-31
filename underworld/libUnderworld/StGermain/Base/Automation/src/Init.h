@@ -11,6 +11,6 @@
 #ifndef __StGermain_Base_Automation_Init_h__
 #define __StGermain_Base_Automation_Init_h__
 	
-	Bool Automation_Init( int* argc, char** argv[] );
+	Bool BaseAutomation_Init( int* argc, char** argv[] );
 	
 #endif /* __StGermain_Base_Automation_Init_h__ */

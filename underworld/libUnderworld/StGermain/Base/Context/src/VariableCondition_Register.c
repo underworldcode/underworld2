@@ -8,9 +8,9 @@
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 
 #include <stdarg.h>
-#include "Base/Foundation/Foundation.h"
-#include "Base/IO/IO.h"
-#include "Base/Container/Container.h"
+#include "StGermain/Base/Foundation/src/Foundation.h"
+#include "StGermain/Base/IO/src/IO.h"
+#include "StGermain/Base/Container/src/Container.h"
 
 #include "types.h"
 #include "shortcuts.h"

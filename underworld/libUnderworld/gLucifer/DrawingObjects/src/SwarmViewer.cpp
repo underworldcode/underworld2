@@ -11,23 +11,23 @@
 #include <mpi.h>
 #include <petsc.h>
 
-#include <Underworld/Function/FunctionIO.hpp>
-#include <Underworld/Function/ParticleCoordinate.hpp>
-#include <Underworld/Function/Function.hpp>
+#include <Underworld/Function/src/FunctionIO.hpp>
+#include <Underworld/Function/src/ParticleCoordinate.hpp>
+#include <Underworld/Function/src/Function.hpp>
 extern "C" {
-#include <StGermain/StGermain.h>
-#include <StgDomain/StgDomain.h>
-#include <StgFEM/StgFEM.h>
-#include <PICellerator/PICellerator.h>
-#include <gLucifer/Base/Base.h>
+#include <StGermain/libStGermain/src/StGermain.h>
+#include <StgDomain/libStgDomain/src/StgDomain.h>
+#include <StgFEM/libStgFEM/src/StgFEM.h>
+#include <PICellerator/libPICellerator/src/PICellerator.h>
+#include <gLucifer/Base/src/Base.h>
 #include "types.h"
-#include <gLucifer/Base/DrawingObject.h>
+#include <gLucifer/Base/src/DrawingObject.h>
 }
 
 #include "SwarmViewer.h"
 
 /* Textual name of this class - This is a global pointer which is used for times when you need to refer to class and not a particular instance of a class */
-const Type lucSwarmViewer_Type = "lucSwarmViewer";
+const Type lucSwarmViewer_Type = (char*) "lucSwarmViewer";
 
 
 void _lucSwarmViewer_SetFn( void* _self, Fn::Function* fn_colour, Fn::Function* fn_mask, Fn::Function* fn_size, Fn::Function* fn_opacity ){

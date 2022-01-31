@@ -21,7 +21,7 @@ import os
 import weakref
 from underworld.scaling import units as u
 from underworld.scaling import non_dimensionalise
-from underworld.scaling import dimensionalise
+from underworld.scaling import dimensionalise, pint_degc_labels
 from pint.errors import UndefinedUnitError
 
 class SwarmVariable(_stgermain.StgClass, function.Function):
@@ -339,14 +339,26 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
                 with dset.collective:
                     self.data[0:0,:] = dset[0:0,:]
 
-            # get units
             try:
-                units = u.Quantity(h5f.attrs["units"])
-            except (KeyError, UndefinedUnitError) as e:
-                units = None
-            
-            if units:
-                self.data[:] = non_dimensionalise(self.data * units)
+                iunits = u.Quantity(h5f.attrs['units'])
+            except (UndefinedUnitError) as e:
+                # if no units - don't scale amd finish
+                return
+
+            # check for degree celcius scaling / offset
+            if iunits.units in pint_degc_labels: 
+                import warnings
+                estring = \
+                        f"read in file {filename} with offset unit type {iunits.units}. " \
+                        f"converting values to when loading from file. "
+                warnings.warn(estring)
+
+                xxx = self.data[:] * iunits 
+                # load as kelvin
+                self.data[:] = non_dimensionalise(xxx.to_base_units())
+
+            else:
+                self.data[:] = non_dimensionalise(self.data * iunits)
 
     def save( self, filename, collective=False, swarmHandle=None, units=None, **kwargs):
         """
@@ -445,16 +457,19 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
             globalShape = (particleGlobalCount, self.data.shape[1])
             dset = h5_require_dataset(h5f, "data", shape=globalShape, dtype=self.data.dtype)
 
-            fact = np.array(1.0, dtype=self.data.dtype)
             if units:
-                fact = dimensionalise(1.0, units=units).magnitude
+                xxx = dimensionalise( self.data[:], units=units ).m
+                # if save in celsius then -273.15
+                if units in pint_degc_labels:
+                    xxx = xxx - 273.15
+            else:
+                xxx = self.data[:]
 
             if collective:
                 with dset.collective:
-                    dset[offset:offset+swarm.particleLocalCount] = self.data[:] * fact
+                    dset[offset:offset+swarm.particleLocalCount] = xxx
             else:
-                dset[offset:offset+swarm.particleLocalCount] = self.data[:] * fact
-
+                dset[offset:offset+swarm.particleLocalCount] = xxx
 
             if swarmHandle is not None:
                 # create an ExternalLink to the swarm - optional because intrinsic SwarmVariables
@@ -482,7 +497,6 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
 
             for kwarg, val in kwargs.items():
                 h5f.attrs[str(kwarg)] = str(val)
-
 
         return uw.utils.SavedFileData( self, filename )
 

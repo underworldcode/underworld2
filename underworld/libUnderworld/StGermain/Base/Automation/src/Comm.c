@@ -10,9 +10,9 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <mpi.h>
-#include "StGermain/Base/Foundation/Foundation.h"
-#include "StGermain/Base/IO/IO.h"
-#include "StGermain/Base/Container/Container.h"
+#include "StGermain/Base/Foundation/src/Foundation.h"
+#include "StGermain/Base/IO/src/IO.h"
+#include "StGermain/Base/Container/src/Container.h"
 #include "types.h"
 #include "Comm.h"
 

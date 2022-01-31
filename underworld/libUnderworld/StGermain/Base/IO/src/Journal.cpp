@@ -19,8 +19,8 @@
 #include <stdexcept>
 #include <mpi.h>
 extern "C" {
-#include "pcu/pcu.h"   /* We'll use pcu_assert in Firewall function */
-#include "Base/Foundation/Foundation.h"
+#include "StGermain/pcu/src/pcu.h"   /* We'll use pcu_assert in Firewall function */
+#include "StGermain/Base/Foundation/src/Foundation.h"
 
 #include "types.h"
 #include "shortcuts.h"
@@ -46,19 +46,19 @@ using namespace std;
 
 Journal* stJournal = NULL;
 
-const Type Journal_Type = "Journal";
+const Type Journal_Type = (char*) "Journal";
 
 /* String constants for default Journal typed streams. */
-const Type Info_Type = "info";
-const Type Debug_Type = "debug";
-const Type Dump_Type = "dump";
-const Type Error_Type = "error";
+const Type Info_Type = (char*) "info";
+const Type Debug_Type = (char*) "debug";
+const Type Dump_Type = (char*) "dump";
+const Type Error_Type = (char*) "error";
 
 /* Depricated string constants. */
-const Type InfoStream_Type = "info";
-const Type DebugStream_Type = "debug";
-const Type DumpStream_Type = "dump";
-const Type ErrorStream_Type = "error";
+const Type InfoStream_Type = (char*) "info";
+const Type DebugStream_Type = (char*) "debug";
+const Type DumpStream_Type = (char*) "dump";
+const Type ErrorStream_Type = (char*) "error";
 
 /* Parsing constants for Dictionary reading. */
 const char* JOURNAL_DELIMITER = ".";
@@ -85,7 +85,7 @@ static const int JOURNAL_DELTA_SIZE = 8;   /**< Number of elements to extend by 
 Stream* Journal_GetNamedStream( Stream* typedStream, const Name name );
 
 Journal* Journal_New() {
-   Journal* self = Memory_Alloc( Journal, "Singleton" );
+   Journal* self = Memory_Alloc( Journal, (char*)"Singleton");
    
    self->_files = Stg_ObjectList_New2( JOURNAL_START_SIZE, JOURNAL_DELTA_SIZE );
    self->_typedStreams = Stg_ObjectList_New2( JOURNAL_START_SIZE, JOURNAL_DELTA_SIZE );
@@ -435,7 +435,7 @@ void Journal_PrintConcise() {
       return;
    }
 
-   stream = Journal_Register( Info_Type, "Journal" );
+   stream = Journal_Register( Info_Type, (char*) "Journal" );
 
    Journal_Printf( stream, "\nSummary of Journal and Stream Status:\n" );
    Journal_Printf( stream, "Journal Enabled: %s\n", stJournal->enable ? "True" : "False" );

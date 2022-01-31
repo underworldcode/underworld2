@@ -22,12 +22,12 @@
 #include <mpi.h>
 #include <petsc.h>
 extern "C" {
-#include <StGermain/StGermain.h>
-#include <StgDomain/StgDomain.h>
-#include <StgFEM/StgFEM.h>
-#include <PICellerator/PICellerator.h>
-#include <Underworld/Underworld.h>
-#include <Solvers/Solvers.h>
+#include <StGermain/libStGermain/src/StGermain.h>
+#include <StgDomain/libStgDomain/src/StgDomain.h>
+#include <StgFEM/libStgFEM/src/StgFEM.h>
+#include <PICellerator/libPICellerator/src/PICellerator.h>
+#include <Underworld/libUnderworld/src/Underworld.h>
+#include <Solvers/libSolvers/src/Solvers.h>
 }
 %}
 
@@ -41,6 +41,6 @@ extern "C" {
 %import "Underworld.i"
 
 
-%include "KSPSolvers/StokesBlockKSPInterface.h"
-%include "KSPSolvers/BSSCR/writeMatVec.h"
-%include "KSPSolvers/types.h"
+%include "Solvers/KSPSolvers/src/StokesBlockKSPInterface.h"
+%include "Solvers/KSPSolvers/src/BSSCR/writeMatVec.h"
+%include "Solvers/KSPSolvers/src/types.h"

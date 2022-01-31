@@ -14,15 +14,15 @@
 #include <mpi.h>
 #include <petsc.h>
 
-#include <Underworld/Function/FunctionIO.hpp>
-#include <Underworld/Function/FEMCoordinate.hpp>
-#include <Underworld/Function/ParticleInCellCoordinate.hpp>
-#include <Underworld/Function/Function.hpp>
+#include <Underworld/Function/src/FunctionIO.hpp>
+#include <Underworld/Function/src/FEMCoordinate.hpp>
+#include <Underworld/Function/src/ParticleInCellCoordinate.hpp>
+#include <Underworld/Function/src/Function.hpp>
 
 #include "Fn_Integrate.h"
 
 /* Textual name of this class */
-const Type Fn_Integrate_Type = "Fn_Integrate";
+const Type Fn_Integrate_Type = (char*) "Fn_Integrate";
 
 /* Creation implementation / Virtual constructor */
 Fn_Integrate* _Fn_Integrate_New(  FN_INTEGRATE_DEFARGS  )

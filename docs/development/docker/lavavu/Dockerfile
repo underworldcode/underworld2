@@ -1,14 +1,14 @@
-FROM ubuntu:20.04 as base_runtime
+FROM ubuntu:impish as base_runtime
 LABEL maintainer="https://github.com/underworldcode/"
 ENV LANG=C.UTF-8
-ENV PYVER=3.8
+ENV PYVER=3.9
 # Setup some things in anticipation of virtualenvs
 ENV VIRTUAL_ENV=/opt/venv
 # The following ensures that the venv takes precedence if available
 ENV PATH=${VIRTUAL_ENV}/bin:$PATH
+
 # The following ensures venv packages are available when using system python (such as from jupyter)
 ENV PYTHONPATH=${PYTHONPATH}:${VIRTUAL_ENV}/lib/python${PYVER}/site-packages
-
 # add joyvan user, volume mount and expose port 8888
 EXPOSE 8888
 ENV NB_USER jovyan
@@ -25,7 +25,7 @@ RUN mkdir ${VIRTUAL_ENV} \
 # install runtime requirements
 RUN apt-get update -qq \
 &&  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
-        python${PYVER}-minimal \
+        python3-minimal \
         python3-virtualenv \
         python3-pip \
         python3-numpy \
@@ -58,7 +58,7 @@ RUN apt-get update -qq
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         build-essential \
         python3-setuptools \
-        libpython${PYVER}-dev \ 
+        libpython3.9-dev \ 
         libpng-dev \
         libjpeg-dev \
         libtiff-dev \
@@ -78,8 +78,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
 # create a virtualenv to put new python modules
 USER $NB_USER
 RUN /usr/bin/python3 -m virtualenv --system-site-packages --python=/usr/bin/python3 ${VIRTUAL_ENV}
-RUN LV_OSMESA=1 pip3 install --no-cache-dir --no-binary=lavavu lavavu
-
+RUN LV_OSMESA=1 pip3 install --no-cache-dir --no-binary=lavavu lavavu 
 FROM base_runtime AS minimal
 COPY --from=build_base $VIRTUAL_ENV $VIRTUAL_ENV
 COPY --from=build_base /usr/local /usr/local

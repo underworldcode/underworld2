@@ -11,11 +11,11 @@
 #ifndef __Domain_h__
 #define __Domain_h__
 	
-	#include "Geometry/Geometry.h"
-	#include "Shape/Shape.h"
-	#include "Mesh/Mesh.h"
-	#include "Utils/Utils.h"
-	#include "Swarm/Swarm.h"
+	#include "StgDomain/Geometry/src/Geometry.h"
+	#include "StgDomain/Shape/src/Shape.h"
+	#include "StgDomain/Mesh/src/Mesh.h"
+	#include "StgDomain/Utils/src/Utils.h"
+	#include "StgDomain/Swarm/src/Swarm.h"
 	
 	#include "Init.h"
 	#include "Finalise.h"

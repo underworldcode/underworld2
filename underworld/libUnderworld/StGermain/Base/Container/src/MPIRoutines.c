@@ -13,7 +13,7 @@
 #include <assert.h>
 #include <mpi.h>
 
-#include "Base/Foundation/Foundation.h"
+#include "StGermain/Base/Foundation/src/Foundation.h"
 
 #include "types.h"
 #include "MPIRoutines.h"

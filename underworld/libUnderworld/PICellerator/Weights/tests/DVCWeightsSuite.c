@@ -7,17 +7,17 @@
 **                                                                                  **
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 
-#include <StGermain/StGermain.h>
+#include <StGermain/libStGermain/src/StGermain.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "pcu/pcu.h"
-#include <StgDomain/StgDomain.h>
-#include <StgFEM/StgFEM.h>
-#include "PICellerator/PopulationControl/PopulationControl.h"
-#include "PICellerator/Weights/Weights.h"
+#include <StgDomain/libStgDomain/src/StgDomain.h>
+#include <StgFEM/libStgFEM/src/StgFEM.h>
+#include "PICellerator/PopulationControl/src/PopulationControl.h"
+#include "PICellerator/Weights/src/Weights.h"
 
 /* the ranges of the local coordinates of a FEM cell.*/
 const double BBXMIN = -1.0; 

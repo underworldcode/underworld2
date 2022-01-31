@@ -1,52 +1,75 @@
 {% set name = "underworld2" %}
-{% set version = "2.10.0b" %}
+{% set version = "2.12.0b" %}
 
 package:
   name: {{ name|lower }}
   version: {{ version }}
 
 source:
-  git_url: https://github.com/underworldcode/underworld2.git
-  git_tag: master
-  #url: https://github.com/underworldcode/underworld2/archive/v{{ version }}.tar.gz
-  #sha256: 7dd8d0f2cb8f0080e024be7c24faad21f2ab403458f13ad1312a1dd7f5487737
+  path: ../.
 
 build:
   skip: true  # [win]
   number: 0
-  script: {{ PYTHON }} -m pip install . -vv
+  script: {{ PYTHON }} -m pip install . -vv 
+  missing_dso_whitelist:
+    - libm.so.6 
+    - libc.so.6 
 
 requirements:
-  host:
-    - {{ mpi }}
+
+  build:
     - {{ compiler('fortran') }}
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
+    - {{ mpi }}
+
+  host:
     - pkg-config
-    - swig>=4.0.0
-    - scons>=3.0.0
-    - libxml2
+    - pip
     - python
+    - libxml2
     - numpy>=1.18
-    - mpi4py
-    - h5py=*=mpi_*
-    - scipy>=1.4.1
+    - cmake
+    - swig>=4.0.0
+    - ninja
     - petsc>=3.13
+    - {{ mpi }}
 
   run:
     - python
-    - numpy>=1.18.1
-    - scipy>=1.4.1
-    - h5py
-    - mpi4py
+    - {{ mpi }}
+    - numpy
     - petsc
+    - pint
+    - scipy
+    - mpi4py
+    - h5py
+
+test:
+  requires:
+    - pytest
+    - matplotlib
+
+  source_files:
+    - docs/pytests
+    - docs/user_guide
+    - docs/examples
+
+  commands:
+    - python -X faulthandler -c "import underworld; underworld.mesh.FeMesh_Cartesian();"
+    - pytest -vvv docs/pytests
 
 
 about:
   home: "https://github.com/underworldcode/underworld2"
   license: LGPL-3.0-only
   license_family: LGPL
+<<<<<<< HEAD
   license_file:  LICENSE.md
+=======
+  license_file:  LGPLv3.txt
+>>>>>>> v2.12_release
   summary: "Geodynamics API"
   doc_url: https://underworld2.readthedocs.io
   dev_url: https://github.com/underworldcode/underworld2/tree/development

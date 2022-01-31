@@ -13,8 +13,8 @@
 
 extern "C++" {
 
-#include <Underworld/Function/Function.hpp>
-#include <Underworld/Function/MinMax.hpp>
+#include <Underworld/Function/src/Function.hpp>
+#include <Underworld/Function/src/MinMax.hpp>
 
 struct lucSwarmViewer_cppdata
 {
@@ -35,12 +35,12 @@ void _lucSwarmViewer_SetFn( void* _self, Fn::Function* fn_colour, Fn::Function* 
 extern "C" {
 #endif
 
-#include <StGermain/StGermain.h>
-#include <StgDomain/StgDomain.h>
-#include <StgFEM/StgFEM.h>
-#include <PICellerator/PICellerator.h>
+#include <StGermain/libStGermain/src/StGermain.h>
+#include <StgDomain/libStgDomain/src/StgDomain.h>
+#include <StgFEM/libStgFEM/src/StgFEM.h>
+#include <PICellerator/libPICellerator/src/PICellerator.h>
 
-#include <gLucifer/Base/Base.h>
+#include <gLucifer/Base/src/Base.h>
 
 #include "types.h"
 

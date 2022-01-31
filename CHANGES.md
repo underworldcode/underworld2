@@ -1,11 +1,26 @@
 CHANGES: Underworld2
 =======================
 
+Upcoming release
+----------------
+New:
+ * CMake based builder instead of Scons.
+ * Added M1 (arm64) based docker.
+
+Changes:
+ * GitHub actions for CI and docker publications.
+ * Compatibility with petsc 3.16.
+ * Update Docker images: Ubuntu 21.10 and mpich 3.4.2, python 3.9.2, petsc 3.16
+ * Update install_docs/nci gadi
+
+Fixes:
+ * Unit fix for temperature saved in celcius.
+
 Release 2.11.0 []
 -----------------
 Changes:
 * Enabled user defined Gauss integration swarms for all systems. 
-* Update docker base images: switch to ubuntu(20.04), update petsc(3.1.4) & mpich(3.3.2), other tweaks. 
+* Update docker base images: switch to ubuntu(20.04), update petsc(3.14) & mpich(3.3.2), other tweaks. 
 * Cleaner Python compile time configuration. 
 * Add runtime check for solver availability (for example, 'mumps'). Also add test for check.
 

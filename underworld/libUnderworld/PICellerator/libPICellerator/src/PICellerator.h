@@ -11,10 +11,10 @@
 #ifndef __PICellerator_h__
 #define __PICellerator_h__
 	
-	#include "PopulationControl/PopulationControl.h"
-	#include "Weights/Weights.h"
-	#include "MaterialPoints/MaterialPoints.h"
-	#include "Utils/Utils.h"
+	#include "PICellerator/PopulationControl/src/PopulationControl.h"
+	#include "PICellerator/Weights/src/Weights.h"
+	#include "PICellerator/MaterialPoints/src/MaterialPoints.h"
+	#include "PICellerator/Utils/src/Utils.h"
 
 	#include "Init.h"
 	#include "Finalise.h"

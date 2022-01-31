@@ -11,7 +11,7 @@
 #include <string.h>
 #include <math.h>
 #include <assert.h>
-#include <StGermain/Base/Foundation/Foundation.h>
+#include <StGermain/Base/Foundation/src/Foundation.h>
 #include "types.h"
 #include "STree.h"
 

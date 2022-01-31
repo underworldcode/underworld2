@@ -15,19 +15,19 @@
 #include <mpi.h>
 #include <petsc.h>
 extern "C" {
-#include <StGermain/StGermain.h>
-#include <StgDomain/StgDomain.h>
-#include <StgFEM/StgFEM.h>
+#include <StGermain/libStGermain/src/StGermain.h>
+#include <StgDomain/libStgDomain/src/StgDomain.h>
+#include <StgFEM/libStgFEM/src/StgFEM.h>
 
-#include <PICellerator/PopulationControl/PopulationControl.h>
-#include <PICellerator/Weights/Weights.h>
+#include <PICellerator/PopulationControl/src/PopulationControl.h>
+#include <PICellerator/Weights/src/Weights.h>
 
 #include "MaterialPoints.h"
 }
 #include "nanoflann.hpp"
 
 /* Textual name of this class */
-const Type GeneralSwarm_Type = "GeneralSwarm";
+const Type GeneralSwarm_Type = (char*) "GeneralSwarm";
 
 GeneralSwarm* _GeneralSwarm_New(  GENERALSWARM_DEFARGS  )
 {
@@ -165,7 +165,7 @@ void _GeneralSwarm_Build( void* swarm, void* data )
    }
 
    Journal_Firewall( (Stg_ObjectList_Count(self->commHandlerList) >= 1) && (movementCommHandlerFound == True),
-                     NULL, "Error: for GeneralSwarm Swarms, at least one ParticleMovementHandler"
+                     NULL, (char*) "Error: for GeneralSwarm Swarms, at least one ParticleMovementHandler"
                      " commHandler must be registered. Please rectify this in your XML / code.\n" );
 
    for( var_I = 0 ; var_I < self->nSwarmVars ; var_I++ )
@@ -226,7 +226,7 @@ void* GeneralSwarm_GetExtensionAt( void* swarm, Index point_I, Index extHandle )
 PyObject* GeneralSwarm_AddParticlesFromCoordArray( void* swarm, Index count, Index dim, double* array )
 {
     GeneralSwarm* self  = (GeneralSwarm*)swarm;
-    unsigned* cellArray = Memory_Alloc_Array( unsigned, count, "GeneralSwarm_AddParticlesFromCoordArray_CellArray" );
+    unsigned* cellArray = Memory_Alloc_Array( unsigned, count, (char*) "GeneralSwarm_AddParticlesFromCoordArray_CellArray" );
     GlobalParticle localParticle;
     GlobalParticle* particle = &localParticle;
     int cellLocalCount  = self->cellLocalCount;
@@ -243,7 +243,7 @@ PyObject* GeneralSwarm_AddParticlesFromCoordArray( void* swarm, Index count, Ind
 
     }
     // alloc particle local index array (to be returned)
-    int* partLocalIndex = Memory_Alloc_Array( int, count, "GeneralSwarm_AddParticlesFromCoordArray_CellArray" );
+    int* partLocalIndex = Memory_Alloc_Array( int, count, (char*) "GeneralSwarm_AddParticlesFromCoordArray_CellArray" );
     // ok, lets add them to the swarm, now that we know how many are required
     self->particleLocalCount += totsLocalParticles;
     Swarm_Realloc( self );
@@ -377,14 +377,14 @@ unsigned GeneralSwarm_IntegrationPointMap( void* _self, void* _intSwarm, unsigne
         Journal_Firewall(
             Stg_Class_IsInstance( self->cellLayout, ElementCellLayout_Type ),
             NULL,
-            "Error In func %s: %s expects a materialSwarm with cellLayout of type ElementCellLayout.",
+            (char*) "Error In func %s: %s expects a materialSwarm with cellLayout of type ElementCellLayout.",
             __func__, self->type
         );
 
         Journal_Firewall(
             intSwarm->mesh==(FeMesh*)((ElementCellLayout*)self->cellLayout)->mesh,
             NULL,
-            "Error - in %s(): Mapper requires both the MaterialSwarm and\n"
+            (char*) "Error - in %s(): Mapper requires both the MaterialSwarm and\n"
             "the IntegrationSwarm to live on the same mesh.\n"
             "Here the MaterialSwarm %s lives in the mesh %s\n"
             "and the IntegrationSwarm %s lives in the mesh %s.",
@@ -407,7 +407,7 @@ unsigned GeneralSwarm_IntegrationPointMap( void* _self, void* _intSwarm, unsigne
         
         Journal_Firewall( cellPartCount,
             NULL,
-            "Error - in %s(): There doesn't appear to be any particles\n"
+            (char*)"Error - in %s(): There doesn't appear to be any particles\n"
             "within the current cell (%u).\n",
             self->name, cell_M );
 
@@ -537,13 +537,13 @@ size_t GeneralSwarm_GetClosestParticles( void* swarm, const double* coord, int n
     {
         my_kd_tree_t_2d* index = (my_kd_tree_t_2d*)self->index;
         found = index->findNeighbors(resultSet, &coord[0], nanoflann::SearchParams(10)); // note that I believe the value 10 here is ignored.. i'll retain it as it's used in the examples
-        Journal_Firewall( found, NULL, "Unable to find any particles near coordinate (%f,%f).", coord[0], coord[1]);
+        Journal_Firewall( found, NULL, (char*) "Unable to find any particles near coordinate (%f,%f).", coord[0], coord[1]);
     }
     else
     {
         my_kd_tree_t_3d* index = (my_kd_tree_t_3d*)self->index;
         found = index->findNeighbors(resultSet, &coord[0], nanoflann::SearchParams(10)); 
-        Journal_Firewall( found, NULL, "Unable to find any particles near coordinate (%f,%f,%f).", coord[0], coord[1], coord[2]);
+        Journal_Firewall( found, NULL, (char*) "Unable to find any particles near coordinate (%f,%f,%f).", coord[0], coord[1], coord[2]);
     }
 
 

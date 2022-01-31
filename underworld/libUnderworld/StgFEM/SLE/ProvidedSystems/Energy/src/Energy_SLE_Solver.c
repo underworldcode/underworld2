@@ -8,10 +8,10 @@
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 
 #include <mpi.h>
-#include <StGermain/StGermain.h>
-#include <StgDomain/StgDomain.h>
-#include "StgFEM/Discretisation/Discretisation.h"
-#include "StgFEM/SLE/SystemSetup/SystemSetup.h"
+#include <StGermain/libStGermain/src/StGermain.h>
+#include <StgDomain/libStgDomain/src/StgDomain.h>
+#include "StgFEM/Discretisation/src/Discretisation.h"
+#include "StgFEM/SLE/SystemSetup/src/SystemSetup.h"
 #include "types.h"
 #include "Energy_SLE_Solver.h"
 
@@ -240,7 +240,7 @@ void _Energy_SLE_Solver_Solve( void* sleSolver, void* standardSLE ) {
 	Stream_UnIndentBranch( StgFEM_SLE_ProvidedSystems_Energy_Debug );
     
     if(isNull)
-      Stg_MatNullSpaceDestroy(&nullsp);
+      MatNullSpaceDestroy(&nullsp);
     
     /* Destroys should be here */
     Stg_KSPDestroy(&self->ksp);

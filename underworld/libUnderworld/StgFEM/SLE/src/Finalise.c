@@ -8,11 +8,11 @@
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 
 #include <mpi.h>
-#include <StGermain/StGermain.h>
-#include <StgDomain/StgDomain.h>
-#include "StgFEM/Discretisation/Discretisation.h"
-#include "StgFEM/SLE/SystemSetup/SystemSetup.h"
-#include "StgFEM/SLE/ProvidedSystems/ProvidedSystems.h"
+#include <StGermain/libStGermain/src/StGermain.h>
+#include <StgDomain/libStgDomain/src/StgDomain.h>
+#include "StgFEM/Discretisation/src/Discretisation.h"
+#include "StgFEM/SLE/SystemSetup/src/SystemSetup.h"
+#include "StgFEM/SLE/ProvidedSystems/src/ProvidedSystems.h"
 #include "Finalise.h"
 
 #include <stdio.h>

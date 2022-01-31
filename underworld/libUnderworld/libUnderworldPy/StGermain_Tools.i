@@ -17,8 +17,8 @@
 #include <mpi.h>
 #include <petsc.h>
 extern "C" {
-#include <StGermain/StGermain.h>
-#include "StGermain_Tools.h"
+#include <StGermain/libStGermain/src/StGermain.h>
+#include "libUnderworldPy/StGermain_Tools.h"
 }
 
 %}

@@ -8,12 +8,12 @@
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 
 #include <mpi.h>
-#include <StGermain/StGermain.h>
-#include <StgDomain/StgDomain.h>
-#include "StgFEM/Discretisation/Discretisation.h"
-#include "StgFEM/SLE/SystemSetup/SystemSetup.h"
-#include "StgFEM/SLE/ProvidedSystems/Energy/Energy.h"
-#include "StgFEM/SLE/ProvidedSystems/StokesFlow/StokesFlow.h"
+#include <StGermain/libStGermain/src/StGermain.h>
+#include <StgDomain/libStgDomain/src/StgDomain.h>
+#include "StgFEM/Discretisation/src/Discretisation.h"
+#include "StgFEM/SLE/SystemSetup/src/SystemSetup.h"
+#include "StgFEM/SLE/ProvidedSystems/Energy/src/Energy.h"
+#include "StgFEM/SLE/ProvidedSystems/StokesFlow/src/StokesFlow.h"
 #include "Init.h"
 
 #include <stdio.h>

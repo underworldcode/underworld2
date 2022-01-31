@@ -14,7 +14,7 @@ from mpi4py import MPI
 import h5py
 import numpy as np
 import os
-from underworld.scaling import dimensionalise
+from underworld.scaling import dimensionalise, pint_degc_labels
 from underworld.scaling import non_dimensionalise
 from underworld.scaling import units as u
 from pint.errors import UndefinedUnitError
@@ -343,7 +343,9 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         units : pint unit object (optional)
             Define the units that must be used to save the data.
             The data will be dimensionalised and saved with the defined units.
-            The units are saved as a HDF attribute.
+            The units are saved as a HDF attribute. 
+            Note if units are in celsius (see scaling.pint_degc_labels) 
+            the data is scaled and save to degrees kelvin. 
 
         Additional keyword arguments are saved as string attributes.
 
@@ -416,24 +418,26 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
                                       shape=globalShape,
                                       dtype=self.data.dtype)
 
-            fact = 1.0
-            if units:
-                fact = dimensionalise(1.0, units=units).magnitude
-                if units == "degC":
-                    fact = dimensionalise(1.0, units=u.degK).magnitude
-                # Save unit type as attribute
-                h5f.attrs['units'] = str(units)
-
             for kwarg, val in kwargs.items():
                 h5f.attrs[str(kwarg)] = str(val)
 
             # write to the dset using the global node ids
             local = mesh.nodesLocal
+
+            if units:
+                xxx = dimensionalise( self.data[0:local], units ).m
+                # if values are celsius then convert to kelvin
+                if units in pint_degc_labels:
+                    units = 'degK'
+                    xxx = xxx + 273.15
+            else:
+                xxx = self.data[0:local]
+
             with dset.collective:
-                if units == "degC":
-                    dset[mesh.data_nodegId[0:local],:] = self.data[0:local] * fact - 273.15
-                else:
-                    dset[mesh.data_nodegId[0:local],:] = self.data[0:local] * fact
+                dset[mesh.data_nodegId[0:local],:] = xxx
+
+            # Save unit type as attribute
+            h5f.attrs['units'] = str(units)
 
             # save a hdf5 attribute to the elementType used for this field - maybe useful
             h5f.attrs["elementType"] = np.string_(mesh.elementType)
@@ -505,13 +509,6 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
         # get field and mesh information
         with h5File(name=filename, mode="r") as h5f:
             dset = h5_get_dataset(h5f,'data')
-
-            # get units
-            try:
-                units = u.Quantity(h5f.attrs["units"])
-            except (KeyError, UndefinedUnitError) as e:
-                units = None
-
             dof = dset.shape[1]
             if dof != self.data.shape[1]:
                 raise RuntimeError("Can't load hdf5 '{0}', incompatible data shape".format(filename))
@@ -588,12 +585,25 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
                 # interpolate 'inputField' onto the self nodes
                 self.data[:] = inputField.evaluate(self.mesh.data)
 
-        if units:
-            if units.units == "degC":
-                units = u.degK
-                self.data[:] = non_dimensionalise((self.data[:] + 273.15) * units)
-            else:
-                self.data[:] = non_dimensionalise(self.data[:]*units)
+            # get units
+            try:
+                iunits = u.Quantity(h5f.attrs["units"])
+            except (KeyError, UndefinedUnitError) as e:
+                iunits = None
+
+            if iunits:
+                if iunits.units in pint_degc_labels:
+                    import warnings
+                    estring = \
+                            f"read in file {filename} with offset unit type {iunits.units}. " \
+                            f"converting values to when loading from file. "
+                    warnings.warn(estring)
+
+                    # load as kelvin
+                    xxx = self.data[:] * iunits 
+                    self.data[:] = non_dimensionalise(xxx.to_base_units())
+                else:
+                    self.data[:] = non_dimensionalise(self.data[:]*iunits)
 
         # add sync
         self.syncronise()
