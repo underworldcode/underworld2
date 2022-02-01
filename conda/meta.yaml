@@ -1,5 +1,5 @@
 {% set name = "underworld2" %}
-{% set version = "2.12.0b" %}
+{% set version = "2.10.0b" %}
 
 package:
   name: {{ name|lower }}
@@ -65,11 +65,7 @@ about:
   home: "https://github.com/underworldcode/underworld2"
   license: LGPL-3.0-only
   license_family: LGPL
-<<<<<<< HEAD
-  license_file:  LICENSE.md
-=======
   license_file:  LGPLv3.txt
->>>>>>> v2.12_release
   summary: "Geodynamics API"
   doc_url: https://underworld2.readthedocs.io
   dev_url: https://github.com/underworldcode/underworld2/tree/development
