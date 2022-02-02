@@ -4,4 +4,4 @@ recursive-include underworld *cpp
 recursive-include underworld *h
 recursive-include underworld *hpp
 recursive-include underworld *py
-recursive-include underworld SCon*
+recursive-include underworld CMakeLists*

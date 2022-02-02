@@ -264,7 +264,7 @@ class BuildExtension(build_ext):
 metadata = {
     'provides' : ['underworld'],
     'zip_safe' : False,
-    'install_requires' : ['numpy','mpi4py>=1.2.2', 'h5py', 'pint']
+    'install_requires' : ['numpy>=1.22.1','mpi4py>=1.2.2', 'h5py', 'pint']
 }
 classifiers = """
 Development Status :: 5 - Production/Stable
