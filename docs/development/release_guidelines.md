@@ -2,7 +2,7 @@ Version Control
 ===============
 * Create a new branch off the `development` branch for the new release. This will
   allow development on the dev branch to proceed unhindered by changes required
-  for the release.
+  for the release. Naming convention example`v2.13.x`
 * Merge the `master` branch into the release branch immediately. This should 
   largely be a fast forward, except for changed version numbers (and Dockerfile
   related tags).
