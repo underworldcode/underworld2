@@ -282,17 +282,10 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - name: build wheel
-        if: ${{ matrix.os }} == 'ubuntu-latest'
+      - name: Package for Pypi
         run: |
-          pip install wheel
-          python setup.py bdist_wheel --universal
-      - name: build wheel
-        if: ${{ matrix.os }} == 'macos-latest'
-        run: |
-          pip install wheel
-          python setup.py bdist_wheel     
-      - name: upload wheel
+          python setup.py sdist
+      - name: Upload to Pypi
         if: github.event_name == 'release'
         run: |
           pip install twine
