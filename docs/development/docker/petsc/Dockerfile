@@ -83,6 +83,7 @@ RUN tar zxf petsc-lite-${PETSC_VERSION}.tar.gz
 WORKDIR /tmp/petsc-build/petsc-${PETSC_VERSION}
 RUN python3 ./configure --with-debugging=0 --prefix=/usr/local \
                 --COPTFLAGS="-g -O3" --CXXOPTFLAGS="-g -O3" --FOPTFLAGS="-g -O3" \
+                --with-petsc4py=1               \
                 --with-zlib=1                   \
                 --download-hdf5=1               \
                 --download-mumps=1              \
@@ -92,6 +93,9 @@ RUN python3 ./configure --with-debugging=0 --prefix=/usr/local \
                 --download-hypre=1              \
                 --download-scalapack=1          \
                 --download-superlu_dist=1       \
+                --download-ctetgen              \
+                --download-eigen                \
+                --download-triangle             \
                 --useThreads=0                  \
                 --download-superlu=1            \
                 --with-shared-libraries         \
