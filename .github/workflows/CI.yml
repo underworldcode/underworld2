@@ -266,3 +266,34 @@ jobs:
               anaconda login --hostname github-actions-${{ matrix.os  }}-$RANDOM --username ${{ secrets.ANACONDA_USERNAME }} --password ${{ secrets.ANACONDA_PASSWORD }}
               conda-build --channel conda-forge --user geo-down-under conda
               anaconda logout
+
+  pypi:
+    runs-on: ${{ matrix.os }}
+    env:
+      TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
+      TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python-version: [3.7, 3.8, 3.9]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: build wheel
+        if: ${{ matrix.os }} == 'ubuntu-latest'
+        run: |
+          pip install wheel
+          python setup.py bdist_wheel --universal
+      - name: build wheel
+        if: ${{ matrix.os }} == 'macos-latest'
+        run: |
+          pip install wheel
+          python setup.py bdist_wheel     
+      - name: upload wheel
+        if: github.event_name == 'release'
+        run: |
+          pip install twine
+          python -m twine upload dist/* -r pypi
