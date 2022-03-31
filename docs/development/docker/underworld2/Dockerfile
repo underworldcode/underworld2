@@ -32,10 +32,6 @@ WORKDIR /tmp
 COPY --chown=jovyan:users . /tmp/underworld2
 WORKDIR /tmp/underworld2
 RUN pip3 install -vvv . 
-# clone UWGeodynamics, install 
-WORKDIR /tmp
-RUN git clone https://github.com/underworldcode/UWGeodynamics.git
-RUN pip3 install --no-cache-dir UWGeodynamics/
 
 FROM base_runtime
 COPY --from=build_base ${VIRTUAL_ENV} ${VIRTUAL_ENV}
@@ -49,10 +45,7 @@ COPY --chown=jovyan:users ./docs/examples   $NB_WORK/Underworld/examples
 COPY --chown=jovyan:users ./docs/cheatsheet $NB_WORK/Underworld/cheatsheet
 COPY --chown=jovyan:users ./docs/user_guide $NB_WORK/Underworld/user_guide
 COPY --chown=jovyan:users ./docs/test       $NB_WORK/Underworld/test
-COPY --from=build_base --chown=jovyan:users /tmp/UWGeodynamics/docs/examples   $NB_WORK/UWGeodynamics/examples
-COPY --from=build_base --chown=jovyan:users /tmp/UWGeodynamics/docs/tutorials  $NB_WORK/UWGeodynamics/tutorials
-COPY --from=build_base --chown=jovyan:users /tmp/UWGeodynamics/docs/benchmarks $NB_WORK/UWGeodynamics/benchmarks
-RUN chown jovyan:users /home/jovyan/workspace /home/jovyan/UWGeodynamics
+RUN chown jovyan:users /home/jovyan/workspace
 RUN jupyter serverextension enable --sys-prefix jupyter_server_proxy
 USER $NB_USER
 WORKDIR $NB_WORK
