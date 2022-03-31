@@ -1,0 +1,255 @@
+{
+    "Huismans and Beaumont, 2007 (WeakCrust)": {
+        "citation": "Huismans, R. S., & Beaumont, C. (2007). Roles of lithospheric strain softening and heterogeneity in determining the geometry of rifts and continental margins. Geological Society, London, Special Publications, 282(1), 111-138. https://doi.org/10.1144/SP282.6",
+        "onlinePDF": "http://sp.lyellcollection.org/content/282/1/111.short",
+        "coefficients": {
+            "cohesion": {
+                "units": "megapascal",
+                "value": 20.0
+            },
+            "cohesionAfterSoftening": {
+                "units": "megapascal",
+                "value": 20.0
+            },
+            "frictionAfterSoftening": {
+                "units": "None",
+                "value": 0.017
+            },
+            "frictionCoefficient": {
+                "units": "None",
+                "value": 0.123
+            },
+            "epsilon1": {
+                "units": "None",
+                "value": 0.5
+            },
+            "epsilon2": {
+                "units": "None",
+                "value": 1.5
+            }
+        }
+    },
+    "Huismans et al. 2011, (Crust)": {
+        "coefficients": {
+            "cohesion": {
+                "units": "megapascal",
+                "value": 20.0
+            },
+            "cohesionAfterSoftening": {
+                "units": "megapascal",
+                "value": 20.0
+            },
+            "frictionAfterSoftening": {
+                "units": "None",
+                "value": 0.02
+            },
+            "frictionCoefficient": {
+                "units": "None",
+                "value": 0.12
+            },
+            "epsilon1": {
+                "units": "None",
+                "value": 0.5
+            },
+            "epsilon2": {
+                "units": "None",
+                "value": 1.5
+            }
+        }
+    },
+    "Rey and Muller, 2010 (LowerCrust)": {
+        "citation": "Rey, P., Muller, R. (2010). Fragmentation of active continental plate margins owing to the buoyancy of the mantle wedge. Nature Geoscience, 3(4), 257-261",
+        "onlinePDF": "http://earthbyte.org/Resources/Pdf/Rey_Muller_mantle_wedge_buyoancy_and_active_margin_fragmentation_NatGeosci2010.pdf",
+        "coefficients": {
+            "cohesion": {
+                "units": "megapascal",
+                "value": 20.0
+            },
+            "cohesionAfterSoftening": {
+                "units": "megapascal",
+                "value": 4.0
+            },
+            "frictionAfterSoftening": {
+                "units": "None",
+                "value": 0.1154
+            },
+            "frictionCoefficient": {
+                "units": "None",
+                "value": 0.577
+            },
+            "epsilon1": {
+                "units": "None",
+                "value": 0.0
+            },
+            "epsilon2": {
+                "units": "None",
+                "value": 0.2
+            }
+        }
+    },
+    "Rey et al., 2014 (LowerCrust)": {
+        "citation": "Rey, P. F., Coltice, N., & Flament, N. (2014). Spreading continents kick-started plate tectonics. Nature. https://doi.org/10.1038/nature13728", 
+        "onlinePDF": "https://www.researchgate.net/publication/273754982_Rey_Coltice_Flament_Nature14",
+        "coefficients": {
+            "cohesion": {
+                "units": "megapascal",
+                "value": 20.0
+            },
+            "cohesionAfterSoftening": {
+                "units": "megapascal",
+                "value": 0.8
+            },
+            "frictionAfterSoftening": {
+                "units": "None",
+                "value": 0.02308
+            },
+            "frictionCoefficient": {
+                "units": "None",
+                "value": 0.577
+            },
+            "epsilon1": {
+                "units": "None",
+                "value": 0.0
+            },
+            "epsilon2": {
+                "units": "None",
+                "value": 0.2
+            }
+        }
+    },
+    "Rey and Muller, 2010 (LithosphericMantle)": {
+        "citation": "Rey, P., Muller, R. (2010). Fragmentation of active continental plate margins owing to the buoyancy of the mantle wedge. Nature Geoscience, 3(4), 257-261",
+        "onlinePDF": "http://earthbyte.org/Resources/Pdf/Rey_Muller_mantle_wedge_buyoancy_and_active_margin_fragmentation_NatGeosci2010.pdf",
+        "coefficients": {
+            "cohesion": {
+                "units": "megapascal",
+                "value": 10.0
+            },
+            "cohesionAfterSoftening": {
+                "units": "megapascal",
+                "value": 2.0
+            },
+            "frictionAfterSoftening": {
+                "units": "None",
+                "value": 0.1154
+            },
+            "frictionCoefficient": {
+                "units": "None",
+                "value": 0.577
+            },
+            "epsilon1": {
+                "units": "None",
+                "value": 0.0
+            },
+            "epsilon2": {
+                "units": "None",
+                "value": 0.2
+            }
+        }
+    },
+    "Rey et al., 2014 (LithosphericMantle)": {
+        "citation": "Rey, P. F., Coltice, N., & Flament, N. (2014). Spreading continents kick-started plate tectonics. Nature. https://doi.org/10.1038/nature13728", 
+        "onlinePDF": "https://www.researchgate.net/publication/273754982_Rey_Coltice_Flament_Nature14",
+        "coefficients": {
+            "cohesion": {
+                "units": "megapascal",
+                "value": 10.0
+            },
+            "cohesionAfterSoftening": {
+                "units": "megapascal",
+                "value": 0.4
+            },
+            "frictionAfterSoftening": {
+                "units": "None",
+                "value": 0.02308
+            },
+            "frictionCoefficient": {
+                "units": "None",
+                "value": 0.577
+            },
+            "epsilon1": {
+                "units": "None",
+                "value": 0.0
+            },
+            "epsilon2": {
+                "units": "None",
+                "value": 0.2
+            }
+        }
+    },
+    "Watremez et al., 2013 (AsthenosphericMantle)": {
+        "citation": "Watremez, L., E.Burov, E.d'Acremont, S.Leroy, B.Huet, L.LePourhiet, and N.Bellahsen (2013), Buoyancy and localizing properties of continental mantle lithosphere: Insights from thermomechanical models of the eastern Gulf of Aden, Geochem. Geophys. Geosyst., 14, 2800-2817, doi: 10.1002/ggge.20179",
+        "onlinePDF": "https://agupubs.onlinelibrary.wiley.com/doi/abs/10.1002/ggge.20179",
+        "coefficients": {
+            "cohesion": {
+                "units": "megapascal",
+                "value": 300.0
+            },
+            "frictionCoefficient": {
+                "units": "None",
+                "value": 0.0349
+            }
+        }
+    },
+    "Rey and Muller, 2010 (UpperCrust)": {
+        "citation": "Rey, P., Muller, R. (2010). Fragmentation of active continental plate margins owing to the buoyancy of the mantle wedge. Nature Geoscience, 3(4), 257-261",
+        "onlinePDF": "http://earthbyte.org/Resources/Pdf/Rey_Muller_mantle_wedge_buyoancy_and_active_margin_fragmentation_NatGeosci2010.pdf",
+        "coefficients": {
+            "cohesion": {
+                "units": "megapascal",
+                "value": 10.0
+            },
+            "cohesionAfterSoftening": {
+                "units": "megapascal",
+                "value": 2.0
+            },
+            "frictionAfterSoftening": {
+                "units": "None",
+                "value": 0.1154
+            },
+            "frictionCoefficient": {
+                "units": "None",
+                "value": 0.577
+            },
+            "epsilon1": {
+                "units": "None",
+                "value": 0.0
+            },
+            "epsilon2": {
+                "units": "None",
+                "value": 0.2
+            }
+        }
+    },
+
+    "Rey et al., 2014 (UpperCrust)": {
+        "citation": "Rey, P. F., Coltice, N., & Flament, N. (2014). Spreading continents kick-started plate tectonics. Nature. https://doi.org/10.1038/nature13728", 
+        "onlinePDF": "https://www.researchgate.net/publication/273754982_Rey_Coltice_Flament_Nature14",
+        "coefficients": {
+            "cohesion": {
+                "units": "megapascal",
+                "value": 10.0
+            },
+            "cohesionAfterSoftening": {
+                "units": "megapascal",
+                "value": 0.4
+            },
+            "frictionAfterSoftening": {
+                "units": "None",
+                "value": 0.2308
+            },
+            "frictionCoefficient": {
+                "units": "None",
+                "value": 0.577
+            },
+            "epsilon1": {
+                "units": "None",
+                "value": 0.0
+            },
+            "epsilon2": {
+                "units": "None",
+                "value": 0.2
+            }
+        }
+    }
+}

@@ -1,0 +1,17 @@
+{
+  "@context": "https://raw.githubusercontent.com/codemeta/codemeta/master/codemeta.jsonld",
+  "@type": "Code",
+  "author": [
+
+  ],
+  "identifier": "DOI: 10.5281/zenodo.2008639",
+  "codeRepository": "https://github.com/underworldcode/UWGeodynamics",
+  "datePublished": "2018-12-07",
+  "dateModified": "2018-12-07",
+  "dateCreated": "2018-12-07",
+  "description": "Python package for geodynamic numerical modelling",
+  "keywords": "geodynamics, geophysics, geology, earth-science, tectonics, rift, subduction, basin evolution, orogenic collision, sandbox experiment, stokes",
+  "license": "GPL v3.0",
+  "title": "UWGeodynamics",
+  "version": "v1.0.0"
+}

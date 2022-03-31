@@ -1,0 +1,81 @@
+### MATPLOTLIBRC FORMAT
+
+# This is a sample UWGeodynamics configuration file - you can find a copy
+# of it on your system in
+# site-packages/uwgeodynamics/uwgeo-data/uwgeodynamicsrc.  If you edit it
+# there, please note that it will be overwritten in your next install.
+# If you want to keep a permanent local copy that will not be
+# overwritten, place it in the following location:
+# unix/linux:
+#     $HOME/.config/uwgeodynamics/uwgeodynamicsrc or
+#     $XDG_CONFIG_HOME/uwgeodynamics/uwgeodynamicsrc (if $XDG_CONFIG_HOME is set)
+# other platforms:
+#     $HOME/.uwgeodynamics/uwgeodynamicsrc
+
+#### CONFIGURATION BEGINS HERE
+
+# Name of the model output directory
+#
+#output.directory : outputs
+#
+#
+# Gravitational acceleration
+#gravity : 9.81 meter / u.second**2
+#
+# Range of viscosities
+#minimum.viscosity : 1e19 pascal * u.second
+#maximum.viscosity : 1e25 pascal * second
+#
+# List of swarm variables
+#swarm.variables  :  materialField ,  plasticStrain ,  viscosityField ,  densityField 
+
+# List of mesh variables
+#mesh.variables  :   velocityField ,  temperature ,  pressureField ,  strainRateField ,  projMaterialField ,  projViscosityField ,  projPlasticStrain ,  projDensityField 
+
+# List of fields to output
+#default.outputs  :  materialField ,  temperature ,  pressureField ,  plasticStrain ,  velocityField 
+#
+#
+# swarm-layout number of particle per cell
+#swarm.particles.per.cell : 50
+#
+# population control parameters
+#popcontrol.aggressive  : True
+#popcontrol.split.threshold  : 0.15
+#popcontrol.max.splits  : 10
+#popcontrol.particles.per.cell  : 50
+#
+# CFL condition
+# CFL : 0.1
+# Solver configuration
+#solver  : mg
+#penalty  : 0.0
+#nonlinear.tolerance : 1e-2
+#maximum.timestep  : 200000
+#nonlinear.min.iterations : 3
+#nonlinear.max.iterations : 500
+#
+# Scaling coefficients
+#scaling.length : 1.0 meter
+#scaling.mass : 1.0 kilogram
+#scaling.time : 1.0 second
+#scaling.temperature : 1.0 u.degK
+#scaling.substance : 1.0 u.mole
+#
+# Common field units
+#velocity.units  : centimeter / year
+#temperature.units    : degK
+#pressure.units  : pascal
+#strain.rate  : 1.0 / second
+#viscosity.units : pascal * second
+#density.units : kilogram / meter**3
+#
+# Output field units
+#viscosityField  : pascal * second
+#densityField  : kilogram / metre**3
+#velocityField  : centimeter / u.year
+#temperature  : degK
+#pressureField  : pascal
+#strainRateField  : 1.0 / second
+#projViscosityField   : pascal * second
+#projDensityField  : kilogram / u.metre**3
