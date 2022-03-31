@@ -1,0 +1,62 @@
+{
+    "Crustal Liquidus": {
+        "coefficients": {
+            "A1": {
+                "units": "kelvin", 
+                "value": 1493
+            }, 
+            "A2": {
+                "units": "kelvin / pascal", 
+                "value": -1.2e-07
+            }, 
+            "A3": {
+                "units": "kelvin / pascal ** 2", 
+                "value": 1.6e-16
+            }, 
+            "A4": {
+                "units": "None", 
+                "value": 0.0
+            }
+        }
+    }, 
+    "Mantle Liquidus": {
+        "coefficients": {
+            "A1": {
+                "units": "kelvin", 
+                "value": 2013
+            }, 
+            "A2": {
+                "units": "kelvin / pascal", 
+                "value": 6.15e-08
+            }, 
+            "A3": {
+                "units": "kelvin / pascal ** 2", 
+                "value": -3.12e-18
+            }, 
+            "A4": {
+                "units": "None", 
+                "value": 0.0
+            }
+        }
+    }, 
+    "Mid Crustal Liquidus": {
+        "coefficients": {
+            "A1": {
+                "units": "kelvin", 
+                "value": 1563
+            }, 
+            "A2": {
+                "units": "kelvin / pascal", 
+                "value": -1.2e-07
+            }, 
+            "A3": {
+                "units": "kelvin / pascal ** 2", 
+                "value": 1.6e-16
+            }, 
+            "A4": {
+                "units": "None", 
+                "value": 0.0
+            }
+        }
+    }
+}

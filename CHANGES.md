@@ -1,6 +1,9 @@
 CHANGES: Underworld2
 =======================
 Release 2.13-dev []
+
+New:
+ * UWGeodynamics (`from underworld import UWGeodynamics as GEO`)
 -------------------
 
 Release 2.12.0 [2022-01-31]

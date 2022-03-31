@@ -305,7 +305,10 @@ functionality of the code running in a parallel HPC environment.",
     author_email='help@underworldcode.org',
     maintainer='Underworld Team',
     maintainer_email='help@underworldcode.org',
-    include_package_data=False,
+    include_package_data=True,
+    package_data={
+        'UWGeodynamics': ['ressources/*', 'uwgeo-data/*'],
+    },
     packages=find_packages(),
     ext_modules=[
         CMakeExtension(name='libUnderworld',

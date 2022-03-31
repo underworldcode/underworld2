@@ -5,3 +5,5 @@ recursive-include underworld *h
 recursive-include underworld *hpp
 recursive-include underworld *py
 recursive-include underworld CMakeLists*
+recursive-include underworld/UWGeodynamics/ressources *.json
+recursive-include underworld/UWGeodynamics/uwgeo-data *
