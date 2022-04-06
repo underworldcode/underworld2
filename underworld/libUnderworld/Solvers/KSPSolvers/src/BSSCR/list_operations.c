@@ -177,8 +177,10 @@ PetscErrorCode BSSCR_MatListOperations( Mat A, PetscViewer v )
 	
 	BSSCR_report_op( ops->fdcoloringapply, v,              i++, "MatFDCloringApply" );
 	BSSCR_report_op( ops->setfromoptions, v,               i++, "MatSetFromOptions" );
+#if PETSC_VERSION_LT(3,17,0) 
 	BSSCR_report_op( ops->multconstrained, v,              i++, "MatMultConstrained" );
 	BSSCR_report_op( ops->multtransposeconstrained, v,     i++, "MatMultTransposeConstrained" );
+#endif
 	/* data member depreciated from PETSc v. 3.0.0 */
 #if( PETSC_VERSION_MAJOR <= 2 )
 	BSSCR_report_op( ops->ilufactorsymbolicconstrained, v, i++, "MatILUFactorSymbolicConstrained" );
