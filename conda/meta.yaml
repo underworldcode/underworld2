@@ -33,7 +33,7 @@ requirements:
     - cmake
     - swig>=4.0.0
     - ninja
-    - petsc>=3.13
+    - petsc {{ petsc }}
     - {{ mpi }}
 
   run:
