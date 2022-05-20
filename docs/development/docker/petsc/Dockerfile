@@ -58,7 +58,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         git
 # build mpi
 WORKDIR /tmp/mpich-build
-ARG MPICH_VERSION="3.4.2"
+ARG MPICH_VERSION="4.0.2"
 RUN wget http://www.mpich.org/static/downloads/${MPICH_VERSION}/mpich-${MPICH_VERSION}.tar.gz 
 RUN  tar xvzf mpich-${MPICH_VERSION}.tar.gz 
 WORKDIR /tmp/mpich-build/mpich-${MPICH_VERSION}              
@@ -77,7 +77,7 @@ RUN pip3 install --no-cache-dir mpi4py
 USER root
 # build petsc
 WORKDIR /tmp/petsc-build
-ARG PETSC_VERSION="3.16.1"
+ARG PETSC_VERSION="3.17.1"
 RUN wget http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-${PETSC_VERSION}.tar.gz
 RUN tar zxf petsc-lite-${PETSC_VERSION}.tar.gz
 WORKDIR /tmp/petsc-build/petsc-${PETSC_VERSION}
