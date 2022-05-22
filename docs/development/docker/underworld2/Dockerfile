@@ -6,7 +6,7 @@ FROM underworldcode/base as base_runtime
 LABEL maintainer="https://github.com/underworldcode/"
 # install runtime requirements
 USER root
-ENV PYVER=3.9
+ENV PYVER=3.10
 RUN apt-get update -qq \
 &&  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         libxml2 \
@@ -45,6 +45,9 @@ COPY --chown=jovyan:users ./docs/examples   $NB_WORK/Underworld/examples
 COPY --chown=jovyan:users ./docs/cheatsheet $NB_WORK/Underworld/cheatsheet
 COPY --chown=jovyan:users ./docs/user_guide $NB_WORK/Underworld/user_guide
 COPY --chown=jovyan:users ./docs/test       $NB_WORK/Underworld/test
+COPY --chown=jovyan:users ./docs/UWGeodynamics/examples  $NB_WORK/Underworld/UWGeodynamics/examples
+COPY --chown=jovyan:users ./docs/UWGeodynamics/benchmarks  $NB_WORK/Underworld/UWGeodynamics/benchmarks
+COPY --chown=jovyan:users ./docs/UWGeodynamics/tutorials  $NB_WORK/Underworld/UWGeodynamics/tutorials
 RUN chown jovyan:users /home/jovyan/workspace
 RUN jupyter serverextension enable --sys-prefix jupyter_server_proxy
 USER $NB_USER

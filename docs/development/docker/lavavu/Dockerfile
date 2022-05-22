@@ -1,7 +1,7 @@
-FROM ubuntu:impish as base_runtime
+FROM ubuntu:22.04 as base_runtime
 LABEL maintainer="https://github.com/underworldcode/"
 ENV LANG=C.UTF-8
-ENV PYVER=3.9
+ENV PYVER=3.10
 # Setup some things in anticipation of virtualenvs
 ENV VIRTUAL_ENV=/opt/venv
 # The following ensures that the venv takes precedence if available
@@ -58,7 +58,7 @@ RUN apt-get update -qq
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         build-essential \
         python3-setuptools \
-        libpython3.9-dev \ 
+        libpython${PYVER}-dev \ 
         libpng-dev \
         libjpeg-dev \
         libtiff-dev \
