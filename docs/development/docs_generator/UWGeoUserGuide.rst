@@ -46,7 +46,7 @@ The visualisation module can be imported as follow
 
 .. code:: python
 
-   >>> from UWGeodynamics import visualisation as vis
+   >>> from underworld import visualisation as vis
 
 .. warning::
 
@@ -68,7 +68,7 @@ viscosityField, densityField etc.):
 
 .. code:: python
 
-   >>> from UWGeodynamics import visualisation as vis
+   >>> from underworld import visualisation as vis
    >>> Model = GEO.Model()
    >>> Fig = vis.Figure(figsize=(1200,400), title="Material Field")
    >>> Fig.Points(Model.swarm, Model.materialField, fn_size=3.0)
@@ -84,7 +84,7 @@ variables (e.g. projMaterialField, projViscosityField etc.)
 .. code:: python
 
    >>> from underworld import UWGeodynamics as GEO
-   >>> from UWGeodynamics import visualisation as vis
+   >>> from underworld import visualisation as vis
 
    >>> u = GEO.u
    >>> Model = GEO.Model()
@@ -480,7 +480,7 @@ There are a range of available/pre-defined shapes
 .. code:: python
 
    >>> from underworld import UWGeodynamics as GEO
-   >>> from UWGeodynamics import visualisation as vis
+   >>> from underworld import visualisation as vis
 
    >>> u = GEO.u
    >>> Model = GEO.Model()
@@ -499,7 +499,7 @@ There are a range of available/pre-defined shapes
 .. code:: python
 
    >>> from underworld import UWGeodynamics as GEO
-   >>> from UWGeodynamics import visualisation as vis
+   >>> from underworld import visualisation as vis
 
    >>> u = GEO.u
    >>> Model = GEO.Model()
@@ -519,7 +519,7 @@ There are a range of available/pre-defined shapes
 .. code:: python
 
    >>> from underworld import UWGeodynamics as GEO
-   >>> from UWGeodynamics import visualisation as vis
+   >>> from underworld import visualisation as vis
 
    >>> u = GEO.u
    >>> Model = GEO.Model()
@@ -538,7 +538,7 @@ There are a range of available/pre-defined shapes
 .. code:: python
 
    >>> from underworld import UWGeodynamics as GEO
-   >>> from UWGeodynamics import visualisation as vis
+   >>> from underworld import visualisation as vis
 
    >>> u = GEO.u
    >>> Model = GEO.Model()
@@ -572,7 +572,7 @@ There are a range of available/pre-defined shapes
 .. code:: python
 
    >>> from underworld import UWGeodynamics as GEO
-   >>> from UWGeodynamics import visualisation as vis
+   >>> from underworld import visualisation as vis
 
    >>> u = GEO.u
    >>> Model = GEO.Model()
@@ -595,7 +595,7 @@ Several shapes can be combined to form a material shape:
 .. code:: python
 
    >>> from underworld import UWGeodynamics as GEO
-   >>> from UWGeodynamics import visualisation as vis
+   >>> from underworld import visualisation as vis
 
    >>> u = GEO.u
    >>> Model = GEO.Model()
@@ -618,7 +618,7 @@ You can also take the intersection of some shapes:
 .. code:: python
 
   >>> from underworld import UWGeodynamics as GEO
-  >>> from UWGeodynamics import visualisation as vis
+  >>> from underworld import visualisation as vis
 
   >>> u = GEO.u
   >>> Model = GEO.Model()
@@ -651,7 +651,7 @@ defined by the normal vector.
 .. code:: python
 
    >>> from underworld import UWGeodynamics as GEO
-   >>> from UWGeodynamics import visualisation as vis
+   >>> from underworld import visualisation as vis
 
    >>> u = GEO.UnitRegistry
 
@@ -687,7 +687,7 @@ You can add as many materials as needed:
 .. code:: python
 
   >>> from underworld import UWGeodynamics as GEO
-  >>> from UWGeodynamics import visualisation as vis
+  >>> from underworld import visualisation as vis
 
   >>> u = GEO.u
   >>> Model = GEO.Model()

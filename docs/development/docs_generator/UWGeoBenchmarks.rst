@@ -21,9 +21,9 @@ Averaging Viscosity Method
 2. `Subduction Case 2`_   
 
 
-.. _Indentor Benchmark: http://nbviewer.jupyter.org/github/rbeucher/UWGeodynamics/blob/master/docs/benchmarks/1_22_Indentor_Benchmark.ipynb
-.. _Brick Benchmark in compression: http://nbviewer.jupyter.org/github/rbeucher/UWGeodynamics/blob/master/docs/benchmarks/Kaus_BrickBenchmark-Compression.ipynb
-.. _Brick Benchmark in extension: http://nbviewer.jupyter.org/github/rbeucher/UWGeodynamics/blob/master/docs/benchmarks/Kaus_BrickBenchmark_Extension.ipynb
-.. _Subduction Case 1: http://nbviewer.jupyter.org/github/rbeucher/UWGeodynamics/blob/master/docs/benchmarks/2D_Self_Subduction_Case1.ipynb
-.. _Subduction Case 2: http://nbviewer.jupyter.org/github/rbeucher/UWGeodynamics/blob/master/docs/benchmarks/2D_Self_Subduction_Case2.ipynb
-.. _Slab Detachment: http://nbviewer.jupyter.org/github/rbeucher/UWGeodynamics/blob/master/docs/benchmarks/1_12_Slab_Detachment_Benchmark.ipynb
+.. _Indentor Benchmark: http://nbviewer.jupyter.org/github/rbeucher/underworld2/blob/master/docs/UWGeodynamics/benchmarks/1_22_Indentor_Benchmark.ipynb
+.. _Brick Benchmark in compression: http://nbviewer.jupyter.org/github/rbeucher/underworld2/blob/master/docs/UWGeodynamics/benchmarks/Kaus_BrickBenchmark-Compression.ipynb
+.. _Brick Benchmark in extension: http://nbviewer.jupyter.org/github/rbeucher/underworld2/blob/master/docs/UWGeodynamics/benchmarks/Kaus_BrickBenchmark_Extension.ipynb
+.. _Subduction Case 1: http://nbviewer.jupyter.org/github/rbeucher/underworld2/blob/master/docs/UWGeodynamics/benchmarks/2D_Self_Subduction_Case1.ipynb
+.. _Subduction Case 2: http://nbviewer.jupyter.org/github/rbeucher/underworld2/blob/master/docs/UWGeodynamics/benchmarks/2D_Self_Subduction_Case2.ipynb
+.. _Slab Detachment: http://nbviewer.jupyter.org/github/rbeucher/underworld2/blob/master/docs/UWGeodynamics/benchmarks/1_12_Slab_Detachment_Benchmark.ipynb

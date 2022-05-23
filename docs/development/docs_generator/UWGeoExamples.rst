@@ -22,18 +22,18 @@ available in **UWGeodynamics**.
 15. `Hot Canon Ball`_ (Internal boundary condition)  
 
 
-.. _Steady State heat: http://nbviewer.jupyter.org/github/rbeucher/UWGeodynamics/blob/master/docs/examples/1_01_Steady_State_Heat.ipynb
-.. _Convection: http://nbviewer.jupyter.org/github/rbeucher/UWGeodynamics/blob/master/docs/examples/1_02_Convection_Example.ipynb
-.. _Blankenbach Benchmark: http://nbviewer.jupyter.org/github/rbeucher/UWGeodynamics/blob/master/docs/examples/1_03_BlankenbachBenchmark.ipynb
-.. _Stokes sinker: http://nbviewer.jupyter.org/github/rbeucher/UWGeodynamics/blob/master/docs/examples/1_05_StokesSinker.ipynb
-.. _Hypnic Jerk: http://nbviewer.jupyter.org/github/rbeucher/UWGeodynamics/blob/master/docs/examples/1_06_HypnicJerk.ipynb
-.. _Slab Subduction: http://nbviewer.jupyter.org/github/rbeucher/UWGeodynamics/blob/master/docs/examples/1_07_SlabSubduction.ipynb
-.. _Pure Shear example: http://nbviewer.jupyter.org/github/rbeucher/UWGeodynamics/blob/master/docs/examples/2_09_ShearBandsPureShear.ipynb
-.. _Visco-elastic half space: http://nbviewer.jupyter.org/github/rbeucher/UWGeodynamics/blob/master/docs/examples/1_08_ViscoElasticHalfSpace.ipynb
-.. _Visco-elasto-plasticity in simple shear: http://nbviewer.jupyter.org/github/rbeucher/UWGeodynamics/blob/master/docs/examples/1_10_Viscoelastoplasticity-in-simple-shear.ipynb
-.. _3D Stokes Sinker: http://nbviewer.jupyter.org/github/rbeucher/UWGeodynamics/blob/master/docs/examples/1_11_StokesSinker3D.ipynb
-.. _2D Bottom Traction condition: http://nbviewer.jupyter.org/github/rbeucher/UWGeodynamics/blob/master/docs/examples/1_20_ColumnsTractionBottom.ipynb
-.. _3D Bottom Traction condition: http://nbviewer.jupyter.org/github/rbeucher/UWGeodynamics/blob/master/docs/examples/1_21_3D_ColumnsTractionBottom.ipynb
-.. _Free surface simple example: http://nbviewer.jupyter.org/github/rbeucher/UWGeodynamics/blob/master/docs/examples/1_23_FreeSurface_Simple_Example.ipynb
-.. _Hot Canon Ball: http://nbviewer.jupyter.org/github/rbeucher/UWGeodynamics/blob/master/docs/examples/1_25_Hot_Canon_Ball.ipynb
-.. _Rayleigh Taylor: http://nbviewer.jupyter.org/github/rbeucher/UWGeodynamics/blob/master/docs/examples/2_15_Rayleigh-Taylor_van_Keken_et_al_1997.ipynb
+.. _Steady State heat: http://nbviewer.jupyter.org/github/rbeucher/underworld2/blob/master/docs/UWGeodynamics/examples/1_01_Steady_State_Heat.ipynb
+.. _Convection: http://nbviewer.jupyter.org/github/rbeucher/underworld2/blob/master/docs/UWGeodynamics/examples/1_02_Convection_Example.ipynb
+.. _Blankenbach Benchmark: http://nbviewer.jupyter.org/github/rbeucher/underworld2/blob/master/docs/UWGeodynamics/examples/1_03_BlankenbachBenchmark.ipynb
+.. _Stokes sinker: http://nbviewer.jupyter.org/github/rbeucher/underworld2/blob/master/docs/UWGeodynamics/examples/1_05_StokesSinker.ipynb
+.. _Hypnic Jerk: http://nbviewer.jupyter.org/github/rbeucher/underworld2/blob/master/docs/UWGeodynamics/examples/1_06_HypnicJerk.ipynb
+.. _Slab Subduction: http://nbviewer.jupyter.org/github/rbeucher/underworld2/blob/master/docs/UWGeodynamics/examples/1_07_SlabSubduction.ipynb
+.. _Pure Shear example: http://nbviewer.jupyter.org/github/rbeucher/underworld2/blob/master/docs/UWGeodynamics/examples/2_09_ShearBandsPureShear.ipynb
+.. _Visco-elastic half space: http://nbviewer.jupyter.org/github/rbeucher/underworld2/blob/master/docs/UWGeodynamics/examples/1_08_ViscoElasticHalfSpace.ipynb
+.. _Visco-elasto-plasticity in simple shear: http://nbviewer.jupyter.org/github/rbeucher/underworld2/blob/master/docs/UWGeodynamics/examples/1_10_Viscoelastoplasticity-in-simple-shear.ipynb
+.. _3D Stokes Sinker: http://nbviewer.jupyter.org/github/rbeucher/underworld2/blob/master/docs/UWGeodynamics/examples/1_11_StokesSinker3D.ipynb
+.. _2D Bottom Traction condition: http://nbviewer.jupyter.org/github/rbeucher/underworld2/blob/master/docs/UWGeodynamics/examples/1_20_ColumnsTractionBottom.ipynb
+.. _3D Bottom Traction condition: http://nbviewer.jupyter.org/github/rbeucher/underworld2/blob/master/docs/UWGeodynamics/examples/1_21_3D_ColumnsTractionBottom.ipynb
+.. _Free surface simple example: http://nbviewer.jupyter.org/github/rbeucher/underworld2/blob/master/docs/UWGeodynamics/examples/1_23_FreeSurface_Simple_Example.ipynb
+.. _Hot Canon Ball: http://nbviewer.jupyter.org/github/rbeucher/underworld2/blob/master/docs/UWGeodynamics/examples/1_25_Hot_Canon_Ball.ipynb
+.. _Rayleigh Taylor: http://nbviewer.jupyter.org/github/rbeucher/underworld2/blob/master/docs/UWGeodynamics/examples/2_15_Rayleigh-Taylor_van_Keken_et_al_1997.ipynb
