@@ -71,8 +71,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'The Underworld Geodynamics Modelling Code'
-copyright = u'2016, Melbourne University, Monash University.'
-author = u'Melbourne University, Monash University.'
+copyright = u'2022, The Australian National University, Melbourne University, Monash University.'
+author = u'The Australian National University, Melbourne University, Monash University.'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

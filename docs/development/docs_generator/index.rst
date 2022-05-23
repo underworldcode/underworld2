@@ -28,6 +28,7 @@ Underworld is an open-source project.
     Numerical Methods <Numerics>
     Installation <Installation>
     User Guide <UserGuide>
+    UWGeodynamics <UWGeodynamics>
 
     Underworld API Reference <build/underworld>
 

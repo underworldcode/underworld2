@@ -1,5 +1,5 @@
-User Guide
-==========
+UWGeodynamics User Guide
+=========================
 
 The Jupyter notebook
 --------------------
@@ -106,7 +106,7 @@ The example below plots a temperature field with the velocity vectors on top:
 .. code:: python
 
    >>> from underworld import UWGeodynamics as GEO
-   >>> from UWGeodynamics import visualisation as vis
+   >>> from underworld import visualisation as vis
 
    >>> u = GEO.u
    >>> Model = GEO.Model()

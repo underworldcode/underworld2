@@ -5,6 +5,16 @@ Welcome to UWGeodynamics's documentation!
 
 .. image:: ./img/collision_wedge.gif
 
+.. toctree::
+   :hidden:
+   :maxdepth: 1
+
+   User Guide <UWGeoUserGuide>
+
+   Examples <UWGeoExamples>
+   Benchmarks <UWGeoBenchmarks>
+   Tutorials <UWGeoTutorials>
+
 The UWGeodynamics module intents to facilitate rapid prototyping of geodynamics
 models using Underworld. It can be seen as a set of high-level functions within
 the Underworld ecosystem. It is a means to quickly get the user into Underworld
@@ -70,13 +80,3 @@ The ressource are however limited and you should not try to run model with high 
 
 .. image:: ./img/SandboxCompression.gif
 
-.. toctree::
-   :maxdepth: 2
-
-   Installation
-   User Guide <UserGuide>
-   Troubleshoot
-
-   Examples
-   Benchmarks
-   Tutorials
