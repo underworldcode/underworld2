@@ -155,11 +155,6 @@ check_underworld_exists(){
 	return $(python3 -c "import underworld") 
 }
 
-check_uwgeodynamics_exists(){
-	source $INSTALL_PATH/bin/activate
-	return $(python3 -c "import UWGeodynamics") 
-}
-
 check_badlands_exists(){
 	source $INSTALL_PATH/bin/activate
 	return $(python3 -c "import badlands") 

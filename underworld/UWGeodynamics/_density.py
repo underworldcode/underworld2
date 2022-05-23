@@ -1,7 +1,7 @@
 from __future__ import print_function,  absolute_import
 import underworld.function as fn
-from UWGeodynamics import non_dimensionalise as nd
-from UWGeodynamics import UnitRegistry as u
+from underworld import non_dimensionalise as nd
+from underworld import UnitRegistry as u
 
 
 class Density(object):

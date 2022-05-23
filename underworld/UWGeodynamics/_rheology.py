@@ -5,8 +5,8 @@ import json
 import abc
 import underworld.function as fn
 import numpy as np
-from UWGeodynamics import UnitRegistry as u
-from UWGeodynamics import non_dimensionalise as nd
+from underworld import UnitRegistry as u
+from underworld import non_dimensionalise as nd
 from copy import copy
 from collections import OrderedDict
 

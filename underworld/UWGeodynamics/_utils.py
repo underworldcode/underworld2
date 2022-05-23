@@ -5,9 +5,9 @@ import underworld.function as fn
 import h5py
 import os
 import operator as op
-from UWGeodynamics import non_dimensionalise as nd
-from UWGeodynamics import dimensionalise
-from UWGeodynamics import UnitRegistry as u
+from underworld import non_dimensionalise as nd
+from underworld import dimensionalise
+from underworld import UnitRegistry as u
 from underworld.utils import _swarmvarschema
 from underworld.swarm import Swarm, SwarmVariable
 from scipy import spatial
@@ -693,7 +693,7 @@ def remesh(mesh, xcoords=None, xelements=None, ycoords=None, yelements=None):
        xnodes = GEO.nd(np.array([-600, -120, 0.]) * u.km)
        ynodes = GEO.nd(np.array([-600, 600]) * u.km)
 
-       from UWGeodynamics import remesh
+       from underworld.UWGeodynamics import remesh
        remesh(Model.mesh, xnodes, np.array([2, 30]), ynodes, np.array([128])) 
         
     """

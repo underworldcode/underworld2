@@ -1,6 +1,6 @@
 # Configuration file
 from __future__ import print_function,  absolute_import
-from UWGeodynamics import u
+from underworld import UnitRegistry as u
 from ._validate import *
 
 

@@ -8,12 +8,12 @@ import underworld as uw
 import underworld.function as fn
 from underworld.function.exception import SafeMaths as Safe
 from mpi4py import MPI as _MPI
-import UWGeodynamics.shapes as shapes
-import UWGeodynamics.surfaceProcesses as surfaceProcesses
+import underworld.UWGeodynamics.shapes as shapes
+import underworld.UWGeodynamics.surfaceProcesses as surfaceProcesses
 from . import rcParams
-from UWGeodynamics import dimensionalise
-from UWGeodynamics import non_dimensionalise as nd
-from UWGeodynamics import UnitRegistry as u
+from underworld import dimensionalise
+from underworld import non_dimensionalise as nd
+from underworld import UnitRegistry as u
 from .lithopress import Lithostatic_pressure
 from ._utils import PressureSmoother, PassiveTracers
 from ._rheology import Viscosity_limiter, Stress_limiter

@@ -1,6 +1,6 @@
 from __future__ import print_function,  absolute_import
 import underworld as uw
-from UWGeodynamics import non_dimensionalise as nd
+from underworld import non_dimensionalise as nd
 import numpy as np
 from scipy import spatial
 

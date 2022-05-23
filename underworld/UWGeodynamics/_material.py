@@ -4,7 +4,7 @@ from copy import copy
 from collections import OrderedDict
 import json
 import pkg_resources
-from UWGeodynamics import u
+from underworld import UnitRegistry as u
 from ._utils import PhaseChange
 from ._rheology import ConstantViscosity
 from ._density import ConstantDensity
@@ -374,7 +374,7 @@ def get_viscosity_from_registry(rheology_name):
     An UWGeodynamics ViscousCreepRheology object.
     """
 
-    from UWGeodynamics import ViscousCreepRegistry
+    from underworld.UWGeodynamics import ViscousCreepRegistry
     rh = ViscousCreepRegistry()
     name = rheology_name.replace(",", "").replace(".", "")
     name = [word.strip() for word in name.split()
@@ -397,7 +397,7 @@ def get_plasticity_from_registry(plasticity_name):
     An UWGeodynamics DruckerPrager object
     """
 
-    from UWGeodynamics import PlasticityRegistry
+    from underworld.UWGeodynamics import PlasticityRegistry
     pl = PlasticityRegistry()
     name = plasticity_name.replace(" ", "_").replace(",", "").replace(".", "")
     name = name.replace(")", "").replace("(", "")

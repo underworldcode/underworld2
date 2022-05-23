@@ -1,5 +1,5 @@
 from __future__ import print_function, absolute_import
-from UWGeodynamics import u
+from underworld import UnitRegistry as u
 from pint import UndefinedUnitError
 import six
 try:
@@ -111,7 +111,7 @@ def validate_viscosity(s):
         s = u.Quantity(s)
     except UndefinedUnitError:
         try:
-            from UWGeodynamics import rheologies
+            from underworld.UWGeodynamics import rheologies
             s = s.replace(" ", "_")
             s = s.replace(",", "")
             s = s.replace(".", "")

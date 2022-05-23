@@ -1,7 +1,7 @@
 from __future__ import print_function,  absolute_import
-from UWGeodynamics import non_dimensionalise as nd
-from UWGeodynamics import UnitRegistry as u
-from UWGeodynamics import dimensionalise
+from underworld import non_dimensionalise as nd
+from underworld import UnitRegistry as u
+from underworld import dimensionalise
 import json
 from copy import copy
 
