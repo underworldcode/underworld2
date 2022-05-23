@@ -30,7 +30,6 @@ RUN apt-get update -qq \
         python3-virtualenv \
         python3-pip \
         python3-numpy \
-        python3-numpy-dbg \
         libopenblas-base \
         gcc python3-dev \
 &&  apt-get clean \
