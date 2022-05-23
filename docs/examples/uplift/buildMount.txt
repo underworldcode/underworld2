@@ -1,0 +1,4 @@
+steps, timestep, vrms, peak height
+0, 8.309e+01 kiloyear, 2.607e-01 centimeter / year, 3.015e+02 meter
+1, 8.309e+01 kiloyear, 2.386e-01 centimeter / year, 2.719e+02 meter
+2, 8.309e+01 kiloyear, 2.210e-01 centimeter / year, 2.426e+02 meter
