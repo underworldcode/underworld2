@@ -6,9 +6,9 @@ import sys
 import math
 from scipy.ndimage.filters import gaussian_filter
 from scipy.interpolate import griddata, interp1d
-from underworld import non_dimensionalise as nd
-from underworld import dimensionalise
-from underworld import UnitRegistry as u
+from underworld.scaling import non_dimensionalise as nd
+from underworld.scaling import dimensionalise
+from underworld.scaling import units as u
 from mpi4py import MPI as _MPI
 from tempfile import gettempdir
 

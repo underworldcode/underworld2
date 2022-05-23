@@ -4,7 +4,7 @@ from copy import copy
 from collections import OrderedDict
 import json
 import pkg_resources
-from underworld import UnitRegistry as u
+from underworld.scaling import units as u
 from ._utils import PhaseChange
 from ._rheology import ConstantViscosity
 from ._density import ConstantDensity

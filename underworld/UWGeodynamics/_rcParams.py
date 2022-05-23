@@ -1,6 +1,6 @@
 # Configuration file
 from __future__ import print_function,  absolute_import
-from underworld import UnitRegistry as u
+from underworld.scaling import units as u
 from ._validate import *
 
 

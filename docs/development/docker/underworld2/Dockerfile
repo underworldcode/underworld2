@@ -11,6 +11,7 @@ RUN apt-get update -qq \
 &&  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         libxml2 \
         libpython${PYVER}
+        
 
 FROM base_runtime AS build_base
 # install build requirements
@@ -20,6 +21,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         pkg-config \
         python3-dev \
         cmake \
+        ninja-build \
         make \
         swig \
         libxml2-dev \

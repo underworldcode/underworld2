@@ -2,6 +2,7 @@ import subprocess
 from shutil import copyfile
 import os
 import json
+import sys
 
 
 def _check_setup_only(nb):
@@ -31,7 +32,7 @@ def _notebook_run(script, check_setup_only=True):
     
     pyfile = outpath.split(".")[0] + ".py"
     os.remove(outpath)
-    args = ["python", pyfile]
+    args = [sys.executable, pyfile]
     subprocess.check_call(args)
     os.remove(pyfile)
 

@@ -212,12 +212,12 @@ jobs:
       - name: Build dependencies
         run: |
           apt-get update -qq 
-          DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends build-essential pkg-config python3-dev swig libxml2-dev
+          DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends build-essential pkg-config python3-dev swig libxml2-dev cmake ninja-build
 
       - name: Runtime dependencies
         run: |
           apt-get update -qq
-          DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends libxml2 libpython3.9
+          DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends libxml2 libpython3.10
 
       - name: Checkout
         uses: actions/checkout@v2
@@ -229,7 +229,9 @@ jobs:
       - name: Run Tests
         run: |
           pip install pytest
-          python -m pytest -vvv docs/pytests
+          pytest -vvv docs/pytests
+          cd docs/test
+          pytest -vvv UWGeodynamics
 
   conda_build:
       name: Conda Build (Python ${{matrix.python-version}} ${{ matrix.os }})
@@ -266,3 +268,24 @@ jobs:
               anaconda login --hostname github-actions-${{ matrix.os  }}-$RANDOM --username ${{ secrets.ANACONDA_USERNAME }} --password ${{ secrets.ANACONDA_PASSWORD }}
               conda-build --channel conda-forge --user geo-down-under conda
               anaconda logout
+
+  pypi:
+    name: Pypi Source Distribution
+    runs-on: ubuntu-latest
+    env:
+      TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
+      TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Package for Pypi
+        run: |
+          python setup.py sdist
+      - name: Push to Pypi
+        if: github.event_name == 'release'
+        run: |
+          pip install twine
+          python -m twine upload dist/* -r

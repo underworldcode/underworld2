@@ -31,12 +31,9 @@ RUN apt-get update -qq \
         python3-virtualenv \
         python3-pip \
         python3-numpy \
-        python3-numpy-dbg \
         vim \
         less \
         git \
-        cmake \
-        gcc python3-dev \
         valgrind valgrind-dbg valgrind-mpi \
         gdb cgdb \ 
 &&  apt-get clean \

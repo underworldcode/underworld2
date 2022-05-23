@@ -1,12 +1,7 @@
 from __future__ import print_function,  absolute_import
 import warnings
 
-try:
-    import underworld
-    uw = underworld
-except ImportError:
-    raise ImportError("Can not find Underworld, please check your installation")
-
+from underworld import __version__
 from underworld.scaling import get_coefficients
 from underworld.scaling import units as UnitRegistry
 from underworld.scaling import non_dimensionalise
@@ -16,15 +11,6 @@ scaling_coefficients = get_coefficients()
 nd = non_dimensionalise
 dim = dimensionalise
 u = UnitRegistry
-
-try:
-    import underworld.visualisation as visualisation
-except ImportError:
-    try:
-        import glucifer as visualisation
-    except ImportError:
-        print("No visualisation module found")
-        pass
 
 import sys
 import os

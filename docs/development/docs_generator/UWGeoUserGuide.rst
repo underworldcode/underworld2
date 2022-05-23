@@ -23,7 +23,7 @@ appending the method, variable or function with ``?``.
 Design principles
 -----------------
 
-.. image:: /img/Design.svg
+.. image:: /images/UWGeo/Design.svg
 
 
 import *UWGeodynamics*
@@ -146,7 +146,7 @@ or simply
 You can have a quick overview of all the units available by hitting tab
 after the ``.`` of the u object.
 
-.. image:: img/tabtab.gif
+.. image:: images/UWGeo/tabtab.gif
 
 Quantities can then be defined as follow:
 
@@ -314,7 +314,7 @@ MaterialRegistry object:
    materials_database = GEO.MaterialRegistry()
 
 
-.. image:: /img/MaterialRegistry.gif
+.. image:: /images/UWGeo/MaterialRegistry.gif
 
 .. note::
 
@@ -340,7 +340,7 @@ Materials are defined using the **Material** object as follow:
 Typing the name of the material in an empty cell will return a table
 which summarizes the property of the material:
 
-.. image:: img/Material1.png
+.. image:: images/UWGeo/Material1.png
 
 As you can see, most of the property are undefined.
 
@@ -492,7 +492,7 @@ There are a range of available/pre-defined shapes
    ...
    >>> Fig.show()
 
-.. image:: /img/layers.png
+.. image:: /images/UWGeo/layers.png
 
 **Polygon**
 
@@ -512,7 +512,7 @@ There are a range of available/pre-defined shapes
    >>> Fig.Points(Model.swarm, Model.materialField)
    >>> Fig.show()
 
-.. image:: /img/polygon.png
+.. image:: /images/UWGeo/polygon.png
 
 **Box**
 
@@ -531,7 +531,7 @@ There are a range of available/pre-defined shapes
    >>> Fig.Points(Model.swarm, Model.materialField)
    >>> Fig.show()
 
-.. image:: /img/box.png
+.. image:: /images/UWGeo/box.png
 
 **Disk**
 
@@ -550,7 +550,7 @@ There are a range of available/pre-defined shapes
    >>> Fig.Points(Model.swarm, Model.materialField)
    >>> Fig.show()
 
-.. image:: /img/disk.png
+.. image:: /images/UWGeo/disk.png
 
 
 **Sphere (3D)**
@@ -585,7 +585,7 @@ There are a range of available/pre-defined shapes
    >>> Fig.Points(Model.swarm, Model.materialField)
    >>> Fig.show()
 
-.. image:: /img/annulus.png
+.. image:: /images/UWGeo/annulus.png
 
 
 **CombinedShape**
@@ -611,7 +611,7 @@ Several shapes can be combined to form a material shape:
    >>> Fig.Points(Model.swarm, Model.materialField)
    >>> Fig.show()
 
-.. image:: /img/multishape.png
+.. image:: /images/UWGeo/multishape.png
 
 You can also take the intersection of some shapes:
 
@@ -634,7 +634,7 @@ You can also take the intersection of some shapes:
   >>> Fig.Points(Model.swarm, Model.materialField)
   >>> Fig.show()
 
-.. image:: /img/multishape-1.png
+.. image:: /images/UWGeo/multishape-1.png
 
 **HalfSpace**
 
@@ -646,7 +646,7 @@ defined by the normal vector.
 
    HalfSpaces can be combined to define 3D shapes / volumes.
 
-.. image:: /img/3D_halfspaces.png
+.. image:: /images/UWGeo/3D_halfspaces.png
 
 .. code:: python
 
@@ -678,7 +678,7 @@ defined by the normal vector.
    >>> viewer.window()
 
 
-.. image:: /img/3D_halfspaces2.png
+.. image:: /images/UWGeo/3D_halfspaces2.png
 
 **Multiple materials**
 
@@ -770,7 +770,7 @@ activation energy, `P` the pressure, `V` the activation volume, `n` the stress e
 *UWGeodynamics* provides a library of commonly used Viscous Creep Flow Laws.
 These can be accessed using the `GEO.ViscousCreepRegistry`:
 
-.. image:: /img/ViscousCreepRegistry.gif
+.. image:: /images/UWGeo/ViscousCreepRegistry.gif
 
 
 .. note::
@@ -909,7 +909,7 @@ As with Viscous Creep, we also provide a registry of commmonly used
 plastic behaviors.
 They can be accessed using the `GEO.PlasticityRegistry` registry.
 
-.. image:: /img/PlasticityRegistry.gif
+.. image:: /images/UWGeo/PlasticityRegistry.gif
 
 .. note::
 
@@ -1128,7 +1128,7 @@ vertically along the side walls.
    ...                       top=[None,0.])
    ...
 
-.. image:: /img/mechanicalBCs1.png
+.. image:: /images/UWGeo/mechanicalBCs1.png
 
 3D
 ^^
@@ -1182,7 +1182,7 @@ the part of the left wall below 32 kilometre. Velocity is set to be
    ...                       top=[None,0.])
    ...
 
-.. image:: /img/mechanicalBCs2.png
+.. image:: /images/UWGeo/mechanicalBCs2.png
 
 
 Stress Conditions

@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import
 from scipy.interpolate import interp1d
 import underworld as uw
-from underworld import non_dimensionalise as nd
+from underworld.scaling import non_dimensionalise as nd
 from mpi4py import MPI as _MPI
 
 comm = _MPI.COMM_WORLD

@@ -3,7 +3,6 @@ import underworld as uw
 import numpy as np
 from mpi4py import MPI
 from scipy.interpolate import interp1d, interp2d
-from UWGeodynamics._material import Material
 
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()

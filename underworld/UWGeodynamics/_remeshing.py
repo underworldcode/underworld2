@@ -1,5 +1,5 @@
 import numpy as np
-from underworld import non_dimensionalise as nd
+from underworld.scaling import non_dimensionalise as nd
 from underworld.mesh import MeshVariable
 from scipy.interpolate import interp1d
 import copy

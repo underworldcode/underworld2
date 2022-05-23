@@ -5,9 +5,9 @@ import underworld.function as fn
 import h5py
 import os
 import operator as op
-from underworld import non_dimensionalise as nd
-from underworld import dimensionalise
-from underworld import UnitRegistry as u
+from underworld.scaling import non_dimensionalise as nd
+from underworld.scaling import dimensionalise
+from underworld.scaling import units as u
 from underworld.utils import _swarmvarschema
 from underworld.swarm import Swarm, SwarmVariable
 from scipy import spatial

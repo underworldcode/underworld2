@@ -5,7 +5,7 @@ import pytest
 import glob
 import ntpath
 
-scripts = [pytest.param(path, id=ntpath.basename(path)) for path in sorted(glob.glob("docs/tutorials/*.ipynb")) if "Badlands" not in path]
+scripts = [pytest.param(path, id=ntpath.basename(path)) for path in sorted(glob.glob("docs/UWGeodynamics/tutorials/*.ipynb")) if "Badlands" not in path]
 
 @pytest.mark.parametrize('script', scripts)
 def test_script_execution(script):

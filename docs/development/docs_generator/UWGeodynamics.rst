@@ -1,9 +1,9 @@
 Welcome to UWGeodynamics's documentation!
 =========================================
 
-.. image:: ./img/Tutorial1.gif
+.. image:: ./images/UWGeo/Tutorial1.gif
 
-.. image:: ./img/collision_wedge.gif
+.. image:: ./images/UWGeo/collision_wedge.gif
 
 .. toctree::
    :hidden:
@@ -78,5 +78,5 @@ software can actually be useful to you.
 The ressource are however limited and you should not try to run model with high resolution.
 3D models can not be run in the binder.
 
-.. image:: ./img/SandboxCompression.gif
+.. image:: ./images/UWGeo/SandboxCompression.gif
 

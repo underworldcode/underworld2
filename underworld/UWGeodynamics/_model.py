@@ -11,9 +11,9 @@ from mpi4py import MPI as _MPI
 import underworld.UWGeodynamics.shapes as shapes
 import underworld.UWGeodynamics.surfaceProcesses as surfaceProcesses
 from . import rcParams
-from underworld import dimensionalise
-from underworld import non_dimensionalise as nd
-from underworld import UnitRegistry as u
+from underworld.scaling import dimensionalise
+from underworld.scaling import non_dimensionalise as nd
+from underworld.scaling import units as u
 from .lithopress import Lithostatic_pressure
 from ._utils import PressureSmoother, PassiveTracers
 from ._rheology import Viscosity_limiter, Stress_limiter

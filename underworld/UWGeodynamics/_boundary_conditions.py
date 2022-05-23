@@ -2,8 +2,8 @@ from __future__ import print_function,  absolute_import
 import numpy as np
 import underworld as uw
 import underworld.function as fn
-from underworld import non_dimensionalise as nd
-from underworld import UnitRegistry as u
+from underworld.scaling import non_dimensionalise as nd
+from underworld.scaling import units as u
 from .LecodeIsostasy import LecodeIsostasy
 from ._material import Material
 from ._utils import Balanced_InflowOutflow

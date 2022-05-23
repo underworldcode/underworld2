@@ -6,7 +6,7 @@ We provide a series of docs/tutorials as Jupyter notebook:
 
 1. `Tutorial 1 Simple Rift`_
 
-.. image:: img/Tutorial1.gif
+.. image:: images/UWGeo/Tutorial1.gif
    :target: http://nbviewer.jupyter.org/github/underworldcode/underworld2/blob/master/docs/UWGeodynamics/tutorials/Tutorial_1_ThermoMechanical_Model.ipynb
 
 [Output Data](https://www.dropbox.com/s/3gy3boh9mf9s807/Tutorial1_BGH.zip?dl=0)
@@ -17,14 +17,14 @@ We provide a series of docs/tutorials as Jupyter notebook:
 
 3. `Tutorial 3 Sandbox Extension`_
 
-.. image:: img/underworld.png
+.. image:: images/UWGeo/underworld.png
    :target: http://nbviewer.jupyter.org/github/underworldcode/underworld2/blob/master/docs/UWGeodynamics/tutorials/Tutorial_3_SandboxExtension_static_mesh.ipynb
 
 [Output Data](https://www.dropbox.com/s/9j24v5ex1eanro2/Tutorial3_BGH.zip?dl=0)
 
 4. `Tutorial 4 Sandbox Compression`_
 
-.. image:: img/Tutorial4.png
+.. image:: images/UWGeo/Tutorial4.png
    :target: http://nbviewer.jupyter.org/github/underworldcode/underworld2/blob/master/docs/UWGeodynamics/tutorials/Tutorial_4_NumericalSandboxCompression.ipynb
 
 [Output Data](https://www.dropbox.com/s/4wlp3cociwysz3l/Tutorial4_BGH.zip?dl=0)
@@ -43,7 +43,7 @@ We provide a series of docs/tutorials as Jupyter notebook:
 
 9. `Tutorial 9 Passive Margins`_
 
-.. image:: img/Tutorial_9.gif
+.. image:: images/UWGeo/Tutorial_9.gif
    :target: http://nbviewer.jupyter.org/github/underworldcode/underworld2/blob/master/docs/UWGeodynamics/tutorials/Tutorial_9_passive_margins.ipynb
 
 [Output Data](https://www.dropbox.com/s/g1ocpse0mld4tiy/Tutorial9_BGH.zip?dl=0)
@@ -56,7 +56,7 @@ We provide a series of docs/tutorials as Jupyter notebook:
 
 [Output Data](https://www.dropbox.com/s/qpzrxp9fcf35w38/Tutorial11_BGH.zip?dl=0)
 
-.. image:: img/Tutorial11.gif
+.. image:: images/UWGeo/Tutorial11.gif
    :target: http://nbviewer.jupyter.org/github/underworldcode/underworld2/blob/master/docs/UWGeodynamics/tutorials/Tutorial_11_Coupling_with_Badlands.ipynb
 
 .. _Tutorial 1 Simple Rift: http://nbviewer.jupyter.org/github/underworldcode/underworld2/blob/master/docs/UWGeodynamics/tutorials/Tutorial_1_ThermoMechanical_Model.ipynb

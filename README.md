@@ -25,10 +25,10 @@ The Underworld development is led by Louis Moresi and is a collaboration between
 Underworld Geodynamics High-level API
 --------------------------------------
 
-[![image](docs/UWGeodynamics/readthedocs/src/img/logos.png)](https://www.earthbyte.org/the-basin-genesis-hub)
+[![image](docs/development/docs_generator/images/UWGeo/logos.png)](https://www.earthbyte.org/the-basin-genesis-hub)
 
 ![image](docs/UWGeodynamics/tutorials/images/Tutorial1.gif)
-![image](docs/UWGeodynamics/readthedocs/src/img/collision_wedge.gif)
+![image](docs/development/docs_generator/images/UWGeo/collision_wedge.gif)
 
 The UWGeodynamics module (`from underworld import UWGoedynamics`) facilitates prototyping of geodynamics models using Underworld. It can be seen as a set of high-level functions within the Underworld ecosystem. It is a means to quickly get the user into Underworld modelling and assumes very little knowledge in coding. The module make some assumptions based on how the user defines the boundary conditions and the properties of the materials (rocks, phases). Its simplicity comes with a relatively more rigid workflow (compared to the classic Underworld functions). However, the user can easily break the high level objects and get back to core Underworld function at any step of model design.
 
