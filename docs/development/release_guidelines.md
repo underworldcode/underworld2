@@ -37,7 +37,7 @@ Documentation review
 	- review latest content
 * Review top level `README.md`.
 * Review `LICENSE.md`.
-* Review `.zenodo.json` (and validate using `jsonlint`).
+* Review `.zenodo.json` (and validate using `jsonlint`, https://jsonlint.com/).
 * Update the copyright information if necessary.
 * Add new Binder link, and keep link to old Binder.
 * Generate/update change log (`CHANGES.md`).
@@ -62,6 +62,8 @@ Testing
 
 Creating the release
 ====================
+
+* Tag the release in git.
 * Create the release from within Github.
 * Check `docker/docker.md` for docker image release information.
 * Add tagged documentation version at http://underworld2.readthedocs.io/  

@@ -38,7 +38,7 @@ export CC='mpicc' CXX='mpicxx' F90='mpifort' F77='mpifort' LD='mpicc' LDSHARED='
 
 export GROUP=m18
 export USER=
-export INSTALL_NAME=UWGeodynamics_2.12.0
+export INSTALL_NAME=Underworld_2.13.0
 
 export CODES_PATH=/g/data/$GROUP/$USER/codes/
 export UW_OPT_DIR=$CODES_PATH/opt
@@ -138,18 +138,6 @@ install_underworld(){
 	# cd $CDIR
 }
 
-install_uwgeodynamics(){
-	source $INSTALL_PATH/bin/activate
-	pip3 install --no-binary :all: --no-cache-dir uwgeodynamics==2.10.2
-
-	# tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
-	# cd $tmp_dir
-        # git clone -b v2.10.0 https://github.com/underworldcode/uwgeodynamics.git $tmp_dir
-        # pip3 install .
-        # rm -rf $tmp_dir	
-	# cd $CDIR
-}
-
 check_underworld_exists(){
 	source $INSTALL_PATH/bin/activate
 	return $(python3 -c "import underworld") 
@@ -176,10 +164,6 @@ install_full_stack(){
     
     if ! check_underworld_exists; then
           install_underworld
-    fi
-    
-    if ! check_uwgeodynamics_exists; then
-          install_uwgeodynamics
     fi
     
     if ! check_badlands_exists; then

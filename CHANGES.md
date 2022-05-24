@@ -1,10 +1,15 @@
 CHANGES: Underworld2
 =======================
-Release 2.13 [2022-05-30]
+
+Release 2.13-0 [2022-05-25]
+-----------------------------
 
 New:
- * UWGeodynamics (`from underworld import UWGeodynamics as GEO`) functionlity and models added. See https://www.underworldcode.org/articles/uwgeodynamics-and-underworld-merge/
--------------------
+ * Merge UWGeodynamics into Underworld (`from underworld import UWGeodynamics as GEO`)
+ * Compatibility with petsc 3.17.
+ * Update Docker images: Ubuntu 22.04LTS and mpich 4.0.2, python 3.10, petsc 3.17.1
+ * Update install_docs/nci gadi
+
 
 Release 2.12.0 [2022-01-31]
 ---------------------------

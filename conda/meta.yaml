@@ -1,5 +1,5 @@
 {% set name = "underworld2" %}
-{% set version = "2.10.0b" %}
+{% set version = "2.13.0" %}
 
 package:
   name: {{ name|lower }}
