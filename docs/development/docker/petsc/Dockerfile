@@ -71,7 +71,6 @@ RUN ldconfig
 # create venv now for forthcoming python packages
 USER $NB_USER
 RUN /usr/bin/python3 -m virtualenv --system-site-packages --python=/usr/bin/python3 ${VIRTUAL_ENV}
-RUN pip3 install --no-cache-dir Cython git+https://github.com/mpi4py/mpi4py@3.1.0
 
 USER root
 # build petsc
@@ -103,7 +102,7 @@ RUN rm -fr /usr/local/share/petsc
 # build petsc4py
 ENV PETSC_DIR=/usr/local
 USER $NB_USER
-RUN CC=h5pcc HDF5_MPI="ON" HDF5_DIR=${PETSC_DIR} pip3 install --no-cache-dir --no-binary=h5py git+https://github.com/h5py/h5py@master
+RUN CC=h5pcc HDF5_MPI="ON" HDF5_DIR=${PETSC_DIR} pip3 install --no-cache-dir --no-binary=h5py
 
 FROM base_runtime AS minimal
 COPY --from=build_base $VIRTUAL_ENV $VIRTUAL_ENV
