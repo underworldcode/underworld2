@@ -1,7 +1,6 @@
 from __future__ import print_function, absolute_import
 from underworld.scaling import units as u
 from pint import UndefinedUnitError
-import six
 try:
     import collections.abc as abc
 except ImportError:
@@ -15,7 +14,7 @@ def validate_gravity(s):
 
 def _listify_validator(scalar_validator, allow_stringlist=False):
     def f(s):
-        if isinstance(s, six.string_types):
+        if isinstance(s, str):
             try:
                 return [scalar_validator(v.strip()) for v in s.split(',')
                         if v.strip()]
@@ -36,7 +35,7 @@ def _listify_validator(scalar_validator, allow_stringlist=False):
             # from the original validate_stringlist()), while allowing
             # any non-string/text scalar values such as numbers and arrays.
             return [scalar_validator(v) for v in s
-                    if not isinstance(v, six.string_types) or v]
+                    if not isinstance(v, str) or v]
         else:
             msg = "{0!r} must be of type: string or non-dictionary iterable.".format(s)
             raise ValueError(msg)
@@ -88,7 +87,7 @@ def validate_path(s):
 
 def validate_bool(b):
     """Convert b to a boolean or raise"""
-    if isinstance(b, six.string_types):
+    if isinstance(b, str):
         b = b.lower()
     if b in ('t', 'y', 'yes', 'on', 'true', '1', 1, True):
         return True
@@ -136,5 +135,5 @@ def validate_averaging(s):
 
     return options[s]
 
-validate_stringlist = _listify_validator(six.text_type)
+validate_stringlist = _listify_validator(str)
 validate_stringlist.__doc__ = 'return a list'
