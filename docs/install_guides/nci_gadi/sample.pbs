@@ -9,7 +9,8 @@
 #PBS -l wd
 #PBS -l storage=gdata/m18
 
-source /g/data/m18/codes/UWGeodynamics_2.10.0.sh
+export MODULEPATH=/g/data/m18/modulefiles/:$MODULEPATH​
+module load underworld/2.13 
 
 MODELNAME="foobar"
 OUTPUTPATH=`pwd`
