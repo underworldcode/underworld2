@@ -71,7 +71,7 @@ RUN ldconfig
 # create venv now for forthcoming python packages
 USER $NB_USER
 RUN /usr/bin/python3 -m virtualenv --system-site-packages --python=/usr/bin/python3 ${VIRTUAL_ENV}
-RUN pip3 install --no-cache-dir cython Cython git+https://github.com/mpi4py/mpi4py@3.1.0
+RUN pip3 install --no-cache-dir Cython git+https://github.com/mpi4py/mpi4py@3.1.0
 
 USER root
 # build petsc
@@ -80,6 +80,7 @@ ARG PETSC_VERSION="3.17.1"
 RUN wget http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-${PETSC_VERSION}.tar.gz
 RUN tar zxf petsc-lite-${PETSC_VERSION}.tar.gz
 WORKDIR /tmp/petsc-build/petsc-${PETSC_VERSION}
+RUN python3 -m pip install cython
 RUN python3 ./configure --with-debugging=0 --prefix=/usr/local \
                 --COPTFLAGS="-g -O3" --CXXOPTFLAGS="-g -O3" --FOPTFLAGS="-g -O3" \
                 --with-petsc4py=1               \
