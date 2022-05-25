@@ -71,6 +71,7 @@ RUN ldconfig
 # create venv now for forthcoming python packages
 USER $NB_USER
 RUN /usr/bin/python3 -m virtualenv --system-site-packages --python=/usr/bin/python3 ${VIRTUAL_ENV}
+RUN pip3 install --no-cache-dir Cython git+https://github.com/mpi4py/mpi4py@3.1.0
 
 USER root
 # build petsc
