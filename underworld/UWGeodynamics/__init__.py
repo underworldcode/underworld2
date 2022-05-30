@@ -44,6 +44,8 @@ from ._utils import remesh
 from . import postprocessing
 
 rank = uw.mpi.rank
+size = uw.mpi.size
+nProcs = size
 
 __author__ = "Romain Beucher"
 __copyright__ = "Copyright 2022, The Australian National University"
