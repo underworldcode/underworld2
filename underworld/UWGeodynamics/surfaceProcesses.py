@@ -1,5 +1,6 @@
 from __future__ import print_function,  absolute_import
 import abc
+import underworld as uw
 import underworld.function as fn
 import numpy as np
 import sys
@@ -9,12 +10,11 @@ from scipy.interpolate import griddata, interp1d
 from underworld.scaling import non_dimensionalise as nd
 from underworld.scaling import dimensionalise
 from underworld.scaling import units as u
-from mpi4py import MPI as _MPI
 from tempfile import gettempdir
 
-comm = _MPI.COMM_WORLD
-rank = comm.rank
-size = comm.size
+comm = uw.mpi.comm
+rank = uw.mpi.rank
+size = uw.mpi.size
 
 ABC = abc.ABCMeta('ABC', (object,), {})
 _tempdir = gettempdir()

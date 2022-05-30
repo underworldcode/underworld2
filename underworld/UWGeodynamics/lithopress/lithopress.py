@@ -3,11 +3,10 @@ from __future__ import print_function,  absolute_import
 import underworld as uw
 import underworld.function as fn
 import numpy as np
-from mpi4py import MPI
 
-comm = MPI.COMM_WORLD
-size = comm.Get_size()
-rank = comm.Get_rank()
+comm = uw.mpi.comm
+size = uw.mpi.size
+rank = uw.mpi.rank
 
 supported_elem_mesh = ["Q1", "Q2"]
 supported_elem_subMesh = ["DQ1", "DQ0", "DPC1"]

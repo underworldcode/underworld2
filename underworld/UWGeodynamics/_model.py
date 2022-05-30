@@ -7,7 +7,6 @@ import h5py
 import underworld as uw
 import underworld.function as fn
 from underworld.function.exception import SafeMaths as Safe
-from mpi4py import MPI as _MPI
 import underworld.UWGeodynamics.shapes as shapes
 import underworld.UWGeodynamics.surfaceProcesses as surfaceProcesses
 from . import rcParams
@@ -33,9 +32,9 @@ from ._freesurface import FreeSurfaceProcessor
 from ._remeshing import ReMesher
 from ._density import Density
 
-comm = _MPI.COMM_WORLD
-rank = comm.rank
-size = comm.size
+comm = uw.mpi.comm
+rank = uw.mpi.rank
+size = uw.mpi.size
 
 _dim_gravity = {'[length]': 1.0, '[time]': -2.0}
 _dim_time = {'[time]': 1.0}

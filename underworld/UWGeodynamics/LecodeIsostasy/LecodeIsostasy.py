@@ -1,11 +1,10 @@
 from __future__ import print_function,  absolute_import
 import underworld as uw
 import numpy as np
-from mpi4py import MPI
 from scipy.interpolate import interp1d, interp2d
 
-comm = MPI.COMM_WORLD
-rank = comm.Get_rank()
+comm = uw.mpi.comm
+rank = uw.mpi.rank
 
 
 class LecodeIsostasy(object):
