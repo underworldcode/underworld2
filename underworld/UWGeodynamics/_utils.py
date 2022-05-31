@@ -11,11 +11,10 @@ from underworld.scaling import units as u
 from underworld.utils import _swarmvarschema
 from underworld.swarm import Swarm, SwarmVariable
 from scipy import spatial
-from mpi4py import MPI as _MPI
 
-comm = _MPI.COMM_WORLD
-rank = comm.rank
-size = comm.size
+comm = uw.mpi.comm
+rank = uw.mpi.rank
+size = uw.mpi.size
 
 class PhaseChange(object):
 

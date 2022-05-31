@@ -5,10 +5,9 @@ import numpy as np
 import sys
 from mpi4py import MPI as _MPI
 
-comm = _MPI.COMM_WORLD
-size = comm.Get_size()
-rank = comm.Get_rank()
-
+comm = uw.mpi.comm
+size = uw.mpi.size
+rank = uw.mpi.rank
 
 class Mesh_advector(object):
     """Mesh_advector class"""

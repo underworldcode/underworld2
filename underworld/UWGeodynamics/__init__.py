@@ -1,6 +1,7 @@
 from __future__ import print_function,  absolute_import
 import warnings
 
+import underworld as uw
 from underworld import __version__
 from underworld.scaling import get_coefficients
 from underworld.scaling import units as UnitRegistry
@@ -20,7 +21,6 @@ import locale
 import uuid as _uuid
 from itertools import chain
 import six
-from mpi4py import MPI as _MPI
 from . import shapes
 from . import surfaceProcesses
 from . import utilities
@@ -43,9 +43,8 @@ from ._utils import extract_profile
 from ._utils import remesh
 from . import postprocessing
 
-comm = _MPI.COMM_WORLD
-rank = comm.rank
-size = comm.size
+rank = uw.mpi.rank
+size = uw.mpi.size
 nProcs = size
 
 __author__ = "Romain Beucher"
