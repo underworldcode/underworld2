@@ -37,6 +37,14 @@ https://hub.docker.com/u/underworldcode/
 Releases
 -----------
 
+Note that because we cannot yet build ARM images automatically using github actions.
+We need to build and push them manually from the mac mini (M1) making sure that we properly tag and create the docker manifest.
+
+    ```
+    $ docker manifest create underworldcode/petsc --amend underworldcode/petsc:amd64 --amend underworldcode/petsc:arm64
+    $ docker manifest push underworldcode/petsc
+    ```
+
 Example, if `2.5` release:
 
 ** Tag the release locally:

@@ -20,7 +20,7 @@ import tempfile
 import locale
 import uuid as _uuid
 from itertools import chain
-import six
+from mpi4py import MPI as _MPI
 from . import shapes
 from . import surfaceProcesses
 from . import utilities
@@ -78,16 +78,7 @@ def mkdirs(newdir, mode=0o777):
         > mkdir -p NEWDIR
         > chmod MODE NEWDIR
     """
-    # this functionality is now in core python as of 3.2
-    # LPY DROP
-    if six.PY3:
-        os.makedirs(newdir, mode=mode, exist_ok=True)
-    else:
-        try:
-            os.makedirs(newdir, mode=mode)
-        except OSError as exception:
-            if exception.errno != errno.EEXIST:
-                raise
+    os.makedirs(newdir, mode=mode, exist_ok=True)
 
 
 def _is_writable_dir(p):
@@ -126,10 +117,7 @@ def get_home():
         http://mail.python.org/pipermail/python-list/2005-February/325395.html
     """
     try:
-        if six.PY2 and sys.platform == 'win32':
-            path = os.path.expanduser(b"~").decode(sys.getfilesystemencoding())
-        else:
-            path = os.path.expanduser("~")
+        path = os.path.expanduser("~")
     except ImportError:
         # This happens on Google App Engine (pwd module is not present).
         pass
@@ -282,10 +270,7 @@ def uwgeodynamics_fname():
     - Lastly, it looks in `$UWGEODYNAMICSDATA/uwgeodynamicsrc` for a
       system-defined copy.
     """
-    if six.PY2:
-        cwd = os.getcwdu()
-    else:
-        cwd = os.getcwd()
+    cwd = os.getcwd()
     fname = os.path.join(cwd, 'uwgeodynamicsrc')
     if os.path.exists(fname):
         return fname
