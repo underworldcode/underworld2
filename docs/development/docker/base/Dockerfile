@@ -34,6 +34,9 @@ RUN apt-get update -qq \
         vim \
         less \
         git \
+        cmake \
+        g++ \
+        gcc python3-dev \
         valgrind valgrind-dbg valgrind-mpi \
         gdb cgdb \ 
 &&  apt-get clean \
