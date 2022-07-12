@@ -264,4 +264,3 @@ if (underworld.mpi.rank == 0) and not _in_doctest():
         _sendData()
     except: # continue quietly if something above failed
         pass
-

@@ -1,0 +1,143 @@
+{
+"Air":{
+    "density": {
+         "value": 1.0 ,
+         "units": "kilogram / metre**3"},
+    "diffusivity": {
+         "value": 1.0e-6,
+         "units": "metre**2 / second"},
+    "capacity":{
+         "value": 100.0 ,
+         "units": "joule / kelvin / kilogram"},
+    "radiogenicHeatProd":{
+         "value": 0.0,
+         "units": "milliwatts / metre**3"},
+    "viscosity": {
+         "value": 1e19,
+         "units": "pascal * second"}
+    },
+"Sticky Air":{
+    "density": {
+         "value": 1.0 ,
+         "units": "kilogram / metre**3"},
+    "diffusivity": {
+         "value": 1.0e-6,
+         "units": "metre**2 / second"},
+    "capacity":{
+         "value": 100.0 ,
+         "units": "joule / kelvin / kilogram"},
+    "radiogenicHeatProd":{
+         "value": 0.0,
+         "units": "milliwatts / metre**3"},
+    "viscosity": {
+         "value": 1e20,
+         "units": "pascal * second"}
+    },
+"Wet Quartz Upper crust":{
+    "density": {
+         "reference_density": {
+             "value": 2620.0,
+             "units": "kilogram / metre**3"},
+         "thermalExpansivity":{
+             "value": 3e-5,
+             "units": "kelvin**-1"}},
+    "diffusivity": {
+         "value": 1.0e-6,
+         "units": "metre**2 / second"},
+    "capacity":{
+         "value": 1000.0 ,
+         "units": "joule / kelvin / kilogram"},
+    "radiogenicHeatProd":{
+         "value": 0.7,
+         "units": "milliwatts / metre**3"},
+    "viscosity": "Wet Quartz, Viscous Dislocation Creep, Gleason and Tullis, 1995",
+    "plasticity": "Rey and Muller, 2010 (UpperCrust)"
+    },
+
+
+"Mid crust":{
+    "density": {
+         "value": 2900.0 ,
+         "units": "kilogram / metre**3"},
+    "diffusivity": {
+         "value": 1.0e-6,
+         "units": "metre**2 / second"},
+    "capacity":{
+         "value": 1000.0 ,
+         "units": "joule / kelvin / kilogram"},
+    "radiogenicHeatProd":{
+         "value": 0.6,
+         "units": "milliwatts / metre**3"},
+    "viscosity": null  ,
+    "plasticity": null
+    },
+
+"Wet Quartz Lower crust":{
+    "density": {
+         "value": 2800.0 ,
+         "units": "kilogram / metre**3"},
+    "diffusivity": {
+         "value": 1.0e-6,
+         "units": "metre**2 / second"},
+    "capacity":{
+         "value": 1000.0 ,
+         "units": "joule / kelvin / kilogram"},
+    "radiogenicHeatProd":{
+         "value": 0.4,
+         "units": "milliwatts / metre**3"},
+    "viscosity": "Wet Quartz, Viscous Dislocation Creep, Goetze et al., 1978" ,
+    "plasticity": "Rey and Muller, 2010 (LowerCrust)"
+    },
+
+"Oceanic crust":{
+    "density": {
+         "value": 2900.0 ,
+         "units": "kilogram / metre**3"},
+    "diffusivity": {
+         "value": 1.0e-6,
+         "units": "metre**2 / second"},
+    "capacity":{
+         "value": 1000.0 ,
+         "units": "joule / kelvin / kilogram"},
+    "radiogenicHeatProd":{
+         "value": 0.0,
+         "units": "milliwatts / metre**3"},
+    "viscosity": null  ,
+    "plasticity": null
+    },
+
+"Dry Olivine Lithospheric Mantle":{
+    "density": {
+         "value": 3370.0 ,
+         "units": "kilogram / metre**3"},
+    "diffusivity": {
+         "value": 1.0e-6,
+         "units": "metre**2 / second"},
+    "capacity":{
+         "value": 1000.0 ,
+         "units": "joule / kelvin / kilogram"},
+    "radiogenicHeatProd":{
+         "value": 0.02,
+         "units": "milliwatts / metre**3"},
+    "viscosity": "Dry Olivine, Viscous Dislocation Creep, Karato and Wu, 1990",
+    "plasticity": "Rey and Muller, 2010 (LithosphericMantle)"
+    },
+
+
+"Dry Olivine Asthenosphere":{
+    "density": {
+         "value": 3395.0 ,
+         "units": "kilogram / metre**3"},
+    "diffusivity": {
+         "value": 1.0e-6,
+         "units": "metre**2 / second"},
+    "capacity":{
+         "value": 1000.0 ,
+         "units": "joule / kelvin / kilogram"},
+    "radiogenicHeatProd":{
+         "value": 0.7,
+         "units": "milliwatts / metre**3"},
+    "viscosity": "Dry Olivine, Viscous Dislocation Creep, Karato and Wu, 1990"
+    }
+
+}

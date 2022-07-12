@@ -3,7 +3,7 @@ import sys
 from credo.systest import *
 
 compareStep = 5;
-print "Comparing image results every %d timesteps" % compareStep
+print("Comparing image results every %d timesteps" % compareStep)
 
 testSuite = SysTestSuite("gLucifer", "RegressionTests-Images")
 

@@ -148,16 +148,6 @@ COPY . $UW2_TMP/
 
 RUN cd $UW2_TMP && pip3 install -vvv .    
 
-# clone UWGeodynamics, install 
-RUN git clone -b development https://github.com/underworldcode/UWGeodynamics.git && \
-    pip3 install --no-cache-dir UWGeodynamics/ && \
-    mkdir $NB_WORK/UWGeodynamics && \
-    mv ./UWGeodynamics/examples   $NB_WORK/UWGeodynamics/. && \
-    mv ./UWGeodynamics/tutorials  $NB_WORK/UWGeodynamics/. && \
-    mv ./UWGeodynamics/benchmarks $NB_WORK/UWGeodynamics/. && \
-    mv ./UWGeodynamics/docs       $NB_WORK/UWGeodynamics/  && \
-    rm -rf UWGeodynamics
-
 # environment variable will internally run xvfb when uw.visualisation is imported,
 # see /opt/underworld2/visualisation/__init__.py
 ENV UW_USE_XVFB 1

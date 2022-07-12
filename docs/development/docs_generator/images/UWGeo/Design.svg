@@ -1,0 +1,425 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="731.534"
+   height="599.51221"
+   viewBox="0 0 193.5517 158.62094"
+   version="1.1"
+   id="svg8"
+   inkscape:version="0.92.2 2405546, 2018-03-11"
+   sodipodi:docname="Design.svg">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.7"
+     inkscape:cx="129.25262"
+     inkscape:cy="116.13235"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1920"
+     inkscape:window-height="1016"
+     inkscape:window-x="0"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1"
+     units="px"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0" />
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-2.9812471,-122.83889)">
+    <g
+       id="g4804"
+       transform="matrix(0.55734291,0,0,0.54574941,48.091987,53.75398)">
+      <rect
+         style="opacity:1;fill:#fff7f7;fill-opacity:1;stroke:#000000;stroke-width:2.22350621;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:13.34103786, 2.22350632;stroke-dashoffset:0;stroke-opacity:1"
+         id="rect4684"
+         width="345.05228"
+         height="288.42444"
+         x="-79.827179"
+         y="127.69899"
+         ry="37.836323" />
+      <rect
+         ry="28.528711"
+         y="133.8951"
+         x="13.048946"
+         height="217.47295"
+         width="241.99669"
+         id="rect3713"
+         style="opacity:1;fill:#c2daff;fill-opacity:1;stroke:#000000;stroke-width:1.61661112;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+      <text
+         id="text3719"
+         y="153.68292"
+         x="35.780563"
+         style="font-style:normal;font-weight:normal;font-size:12.46071339px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.46727675"
+         xml:space="preserve"><tspan
+           style="stroke-width:0.46727675"
+           y="153.68292"
+           x="35.780563"
+           id="tspan3717"
+           sodipodi:role="line">Model object</tspan></text>
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-weight:normal;font-size:12.46071339px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.46727675"
+         x="-64.185928"
+         y="151.06146"
+         id="text4540"><tspan
+           sodipodi:role="line"
+           id="tspan4538"
+           x="-64.185928"
+           y="151.06146"
+           style="stroke-width:0.46727675">Scaling</tspan></text>
+      <g
+         transform="translate(-8.4612945,108.34622)"
+         id="g4682">
+        <text
+           xml:space="preserve"
+           style="font-style:normal;font-weight:normal;font-size:7.05555534px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.46727675"
+           x="-61.467953"
+           y="177.20804"
+           id="text4544"><tspan
+             sodipodi:role="line"
+             id="tspan4542"
+             x="-61.467953"
+             y="183.45055"
+             style="font-size:7.05555534px;stroke-width:0.46727675" /><tspan
+             sodipodi:role="line"
+             x="-61.467953"
+             y="192.26999"
+             style="font-size:7.05555534px;stroke-width:0.46727675"
+             id="tspan4550">1- Kinematic</tspan><tspan
+             sodipodi:role="line"
+             x="-61.467953"
+             y="201.08945"
+             style="font-size:7.05555534px;stroke-width:0.46727675"
+             id="tspan4557">2- Stress</tspan><tspan
+             sodipodi:role="line"
+             x="-61.467953"
+             y="209.90889"
+             style="font-size:7.05555534px;stroke-width:0.46727675"
+             id="tspan4559">3- [Thermal]</tspan></text>
+        <text
+           xml:space="preserve"
+           style="font-style:normal;font-weight:normal;font-size:12.46071339px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.46727675"
+           x="-62.269749"
+           y="163.57729"
+           id="text4563"><tspan
+             sodipodi:role="line"
+             id="tspan4561"
+             x="-62.269749"
+             y="163.57729"
+             style="stroke-width:0.46727675">Boundary</tspan><tspan
+             sodipodi:role="line"
+             x="-62.269749"
+             y="179.15318"
+             style="stroke-width:0.46727675"
+             id="tspan4565">Conditions:</tspan></text>
+      </g>
+      <rect
+         style="opacity:1;fill:#ffeb9c;fill-opacity:1;stroke:#000000;stroke-width:0.94108444;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         id="rect4571"
+         width="115.14286"
+         height="154.89009"
+         x="134.52803"
+         y="138.19881"
+         ry="20.31892" />
+      <text
+         id="text4569"
+         y="148.20619"
+         x="144.83318"
+         style="font-style:normal;font-weight:normal;font-size:7.05555534px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+         xml:space="preserve"><tspan
+           style="stroke-width:0.26458332"
+           y="148.20619"
+           x="144.83318"
+           id="tspan4567"
+           sodipodi:role="line">Materials Objects:</tspan><tspan
+           id="tspan4573"
+           style="stroke-width:0.26458332"
+           y="157.02563"
+           x="144.83318"
+           sodipodi:role="line" /><tspan
+           id="tspan4575"
+           style="stroke-width:0.26458332"
+           y="165.84508"
+           x="144.83318"
+           sodipodi:role="line">Material specific </tspan><tspan
+           id="tspan4613"
+           style="stroke-width:0.26458332"
+           y="174.66452"
+           x="144.83318"
+           sodipodi:role="line">Mechanical and/or Thermal</tspan><tspan
+           id="tspan4577"
+           style="stroke-width:0.26458332"
+           y="183.48396"
+           x="144.83318"
+           sodipodi:role="line">properties.</tspan></text>
+      <text
+         id="text4581"
+         y="388.85086"
+         x="22.717911"
+         style="font-style:normal;font-weight:normal;font-size:7.05555534px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+         xml:space="preserve"><tspan
+           style="stroke-width:0.26458332"
+           y="388.85086"
+           x="22.717911"
+           id="tspan4579"
+           sodipodi:role="line">Model.pressureField, Model.velocityField, [Model.temperature]</tspan></text>
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-weight:normal;font-size:7.05555534px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+         x="22.717911"
+         y="402.36865"
+         id="text4585"><tspan
+           sodipodi:role="line"
+           id="tspan4583"
+           x="22.717911"
+           y="402.36865"
+           style="stroke-width:0.26458332">Model.strainRateField, Model.viscosityField etc.</tspan></text>
+      <text
+         id="text4589"
+         y="167.64154"
+         x="19.377701"
+         style="font-style:normal;font-weight:normal;font-size:7.05555534px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+         xml:space="preserve"><tspan
+           style="stroke-width:0.26458332"
+           y="167.64154"
+           x="19.377701"
+           id="tspan4587"
+           sodipodi:role="line">Model = GEO.Model(...)</tspan></text>
+      <text
+         id="text4593"
+         y="181.80685"
+         x="19.655712"
+         style="font-style:normal;font-weight:normal;font-size:7.05555534px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+         xml:space="preserve"><tspan
+           id="tspan4595"
+           style="stroke-width:0.26458332"
+           y="181.80685"
+           x="19.655712"
+           sodipodi:role="line">Global properties </tspan><tspan
+           id="tspan4688"
+           style="stroke-width:0.26458332"
+           y="190.6263"
+           x="19.655712"
+           sodipodi:role="line">(Mechanical and/or Thermal)</tspan><tspan
+           id="tspan4597"
+           style="stroke-width:0.26458332"
+           y="199.44574"
+           x="19.655712"
+           sodipodi:role="line" /><tspan
+           id="tspan4599"
+           style="stroke-width:0.26458332"
+           y="208.26518"
+           x="19.655712"
+           sodipodi:role="line">Model.diffusivity = ...</tspan><tspan
+           id="tspan4601"
+           style="stroke-width:0.26458332"
+           y="217.08463"
+           x="19.655712"
+           sodipodi:role="line">Model.density = ...</tspan><tspan
+           id="tspan4603"
+           style="stroke-width:0.26458332"
+           y="225.90407"
+           x="19.655712"
+           sodipodi:role="line">etc.</tspan><tspan
+           id="tspan4607"
+           style="stroke-width:0.26458332"
+           y="234.72353"
+           x="19.655712"
+           sodipodi:role="line" /><tspan
+           id="tspan4611"
+           style="stroke-width:0.26458332"
+           y="243.54297"
+           x="19.655712"
+           sodipodi:role="line">mat1 = Model.add_material(...)</tspan><tspan
+           id="tspan4644"
+           style="stroke-width:0.26458332"
+           y="252.36241"
+           x="19.655712"
+           sodipodi:role="line">mat2 = Model.add_material(...)</tspan><tspan
+           id="tspan4646"
+           style="stroke-width:0.26458332"
+           y="261.18185"
+           x="19.655712"
+           sodipodi:role="line">...</tspan><tspan
+           id="tspan4701"
+           style="stroke-width:0.26458332"
+           y="270.00128"
+           x="19.655712"
+           sodipodi:role="line" /><tspan
+           id="tspan4703"
+           style="stroke-width:0.26458332"
+           y="278.82074"
+           x="19.655712"
+           sodipodi:role="line" /><tspan
+           id="tspan4705"
+           style="stroke-width:0.26458332"
+           y="287.6402"
+           x="19.655712"
+           sodipodi:role="line" /><tspan
+           id="tspan4707"
+           style="stroke-width:0.26458332"
+           y="296.45963"
+           x="19.655712"
+           sodipodi:role="line">Model.set_VelocityBCs(...)</tspan><tspan
+           id="tspan4709"
+           style="stroke-width:0.26458332"
+           y="305.27908"
+           x="19.655712"
+           sodipodi:role="line">Model.set_StressBCs(...)</tspan><tspan
+           id="tspan4711"
+           style="stroke-width:0.26458332"
+           y="314.09851"
+           x="19.655712"
+           sodipodi:role="line">Model.set_TemperatureBCs(...)</tspan></text>
+      <rect
+         ry="3.6119802"
+         y="189.0271"
+         x="141.91264"
+         height="27.533937"
+         width="100.93229"
+         id="rect4615"
+         style="opacity:1;fill:#e4ff7a;fill-opacity:1;stroke:#000000;stroke-width:0.37149039;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+      <text
+         id="text4650"
+         y="195.97212"
+         x="147.03589"
+         style="font-style:normal;font-weight:normal;font-size:7.05555534px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+         xml:space="preserve"><tspan
+           id="tspan4654"
+           style="font-size:5.64444447px;stroke-width:0.26458332"
+           y="195.97212"
+           x="147.03589"
+           sodipodi:role="line"><tspan
+   style="font-size:5.64444447px;stroke-width:0.26458332"
+   id="tspan4660"
+   dy="0">mat1.density = ...</tspan></tspan><tspan
+           id="tspan4662"
+           style="font-size:5.64444447px;stroke-width:0.26458332"
+           y="204.79156"
+           x="147.03589"
+           sodipodi:role="line">mat1.viscosity = ...</tspan><tspan
+           id="tspan4658"
+           style="font-size:5.64444447px;stroke-width:0.26458332"
+           y="213.61101"
+           x="147.03589"
+           sodipodi:role="line">mat1.plasticity = ...</tspan></text>
+      <text
+         id="text4692"
+         y="342.21808"
+         x="96.484299"
+         style="font-style:normal;font-weight:normal;font-size:7.05555534px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+         xml:space="preserve"><tspan
+           style="font-size:8.46666622px;stroke-width:0.26458332"
+           y="342.21808"
+           x="96.484299"
+           id="tspan4690"
+           sodipodi:role="line">Model.run_for(...)</tspan></text>
+      <path
+         inkscape:connector-curvature="0"
+         id="rect4694"
+         d="m 0.29480287,299.43157 v 3.41044 H -6.4088001 v 8.94277 h 6.70360297 v 3.41044 l 3.34315603,-3.94082 3.343157,-3.94082 -3.343157,-3.94119 z"
+         style="opacity:1;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.87286741;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+      <path
+         style="opacity:1;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.87286741;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         d="m 135.70864,362.378 h -3.41044 v -6.7036 h -8.94277 v 6.7036 h -3.41044 l 3.94082,3.34316 3.94082,3.34315 3.94119,-3.34315 z"
+         id="path4699"
+         inkscape:connector-curvature="0" />
+      <rect
+         style="opacity:1;fill:#e4ff7a;fill-opacity:1;stroke:#000000;stroke-width:0.37149039;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         id="rect4713"
+         width="100.93229"
+         height="27.533937"
+         x="141.3781"
+         y="221.90125"
+         ry="3.6119802" />
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-weight:normal;font-size:7.05555534px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+         x="146.50134"
+         y="228.84627"
+         id="text4723"><tspan
+           sodipodi:role="line"
+           x="146.50134"
+           y="228.84627"
+           style="font-size:5.64444447px;stroke-width:0.26458332"
+           id="tspan4717"><tspan
+   dy="0"
+   id="tspan4715"
+   style="font-size:5.64444447px;stroke-width:0.26458332">mat2.density = ...</tspan></tspan><tspan
+           sodipodi:role="line"
+           x="146.50134"
+           y="237.66571"
+           style="font-size:5.64444447px;stroke-width:0.26458332"
+           id="tspan4719">mat2.viscosity = ...</tspan><tspan
+           sodipodi:role="line"
+           x="146.50134"
+           y="246.48515"
+           style="font-size:5.64444447px;stroke-width:0.26458332"
+           id="tspan4721">mat2.plasticity = ...</tspan></text>
+      <rect
+         ry="3.6119802"
+         y="255.04266"
+         x="140.30902"
+         height="27.533937"
+         width="100.93229"
+         id="rect4725"
+         style="opacity:1;fill:#e4ff7a;fill-opacity:1;stroke:#000000;stroke-width:0.37149039;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+      <text
+         id="text4735"
+         y="261.9877"
+         x="145.43227"
+         style="font-style:normal;font-weight:normal;font-size:7.05555534px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+         xml:space="preserve"><tspan
+           id="tspan4729"
+           style="font-size:5.64444447px;stroke-width:0.26458332"
+           y="261.9877"
+           x="145.43227"
+           sodipodi:role="line"><tspan
+   style="font-size:5.64444447px;stroke-width:0.26458332"
+   id="tspan4727"
+   dy="0">mat3.density = ...</tspan></tspan><tspan
+           id="tspan4731"
+           style="font-size:5.64444447px;stroke-width:0.26458332"
+           y="270.80716"
+           x="145.43227"
+           sodipodi:role="line">mat3.viscosity = ...</tspan><tspan
+           id="tspan4733"
+           style="font-size:5.64444447px;stroke-width:0.26458332"
+           y="279.62659"
+           x="145.43227"
+           sodipodi:role="line">mat3.plasticity = ...</tspan></text>
+    </g>
+  </g>
+</svg>

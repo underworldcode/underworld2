@@ -1,3 +1,6 @@
  mpi:
     - mpich
     - openmpi [linux]
+ petsc:
+    - 3.16
+    - 3.17

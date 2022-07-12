@@ -6,11 +6,12 @@ FROM underworldcode/base as base_runtime
 LABEL maintainer="https://github.com/underworldcode/"
 # install runtime requirements
 USER root
-ENV PYVER=3.9
+ENV PYVER=3.10
 RUN apt-get update -qq \
 &&  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         libxml2 \
         libpython${PYVER}
+        
 
 FROM base_runtime AS build_base
 # install build requirements
@@ -20,6 +21,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         pkg-config \
         python3-dev \
         cmake \
+        ninja-build \
         make \
         swig \
         libxml2-dev \
@@ -27,15 +29,11 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         pkg-config
 # setup further virtualenv to avoid double copying back previous packages (h5py,mpi4py,etc)
 USER $NB_USER
-RUN /usr/bin/python3 -m virtualenv --system-site-packages --python=/usr/bin/python3 ${VIRTUAL_ENV}
+RUN /usr/bin/python3 -m venv --system-site-packages ${VIRTUAL_ENV}
 WORKDIR /tmp
 COPY --chown=jovyan:users . /tmp/underworld2
 WORKDIR /tmp/underworld2
 RUN pip3 install -vvv . 
-# clone UWGeodynamics, install 
-WORKDIR /tmp
-RUN git clone https://github.com/underworldcode/UWGeodynamics.git
-RUN pip3 install --no-cache-dir UWGeodynamics/
 
 FROM base_runtime
 COPY --from=build_base ${VIRTUAL_ENV} ${VIRTUAL_ENV}
@@ -49,10 +47,10 @@ COPY --chown=jovyan:users ./docs/examples   $NB_WORK/Underworld/examples
 COPY --chown=jovyan:users ./docs/cheatsheet $NB_WORK/Underworld/cheatsheet
 COPY --chown=jovyan:users ./docs/user_guide $NB_WORK/Underworld/user_guide
 COPY --chown=jovyan:users ./docs/test       $NB_WORK/Underworld/test
-COPY --from=build_base --chown=jovyan:users /tmp/UWGeodynamics/docs/examples   $NB_WORK/UWGeodynamics/examples
-COPY --from=build_base --chown=jovyan:users /tmp/UWGeodynamics/docs/tutorials  $NB_WORK/UWGeodynamics/tutorials
-COPY --from=build_base --chown=jovyan:users /tmp/UWGeodynamics/docs/benchmarks $NB_WORK/UWGeodynamics/benchmarks
-RUN chown jovyan:users /home/jovyan/workspace /home/jovyan/UWGeodynamics
+COPY --chown=jovyan:users ./docs/UWGeodynamics/examples  $NB_WORK/Underworld/UWGeodynamics/examples
+COPY --chown=jovyan:users ./docs/UWGeodynamics/benchmarks  $NB_WORK/Underworld/UWGeodynamics/benchmarks
+COPY --chown=jovyan:users ./docs/UWGeodynamics/tutorials  $NB_WORK/Underworld/UWGeodynamics/tutorials
+RUN chown jovyan:users /home/jovyan/workspace
 RUN jupyter serverextension enable --sys-prefix jupyter_server_proxy
 USER $NB_USER
 WORKDIR $NB_WORK

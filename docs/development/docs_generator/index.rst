@@ -6,6 +6,11 @@
 Underworld
 ==========
 
+.. raw:: html
+   <p align="center">
+     <img width="400" src="https://github.com/underworldcode/underworld2/blob/development/docs/development/docs_generator/images/logo_black.svg">
+   </p>
+
 .. image:: ./images/Montage.png
 
 Underworld2 is a Python API (Application Programming Interface) which provides functionality for the modelling of geodynamics processes, and is designed to work (almost) seamlessly across PC, cloud and HPC infrastructure. Primarily the API consists of a set of Python classes from which numerical geodynamics models may be constructed. The API also provides the tools required for inline analysis and data management. For scalability across multiprocessor platforms, MPI (Message Passing Interface) is leveraged, and for performant operation all heavy computations are executed within a statically typed layer.
@@ -28,6 +33,7 @@ Underworld is an open-source project.
     Numerical Methods <Numerics>
     Installation <Installation>
     User Guide <UserGuide>
+    UWGeodynamics <UWGeodynamics>
 
     Underworld API Reference <build/underworld>
 

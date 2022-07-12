@@ -2,7 +2,7 @@ Version Control
 ===============
 * Create a new branch off the `development` branch for the new release. This will
   allow development on the dev branch to proceed unhindered by changes required
-  for the release.
+  for the release. Naming convention example`v2.13.x`
 * Merge the `master` branch into the release branch immediately. This should 
   largely be a fast forward, except for changed version numbers (and Dockerfile
   related tags).
@@ -37,7 +37,7 @@ Documentation review
 	- review latest content
 * Review top level `README.md`.
 * Review `LICENSE.md`.
-* Review `.zenodo.json` (and validate using `jsonlint`).
+* Review `.zenodo.json` (and validate using `jsonlint`, https://jsonlint.com/).
 * Update the copyright information if necessary.
 * Add new Binder link, and keep link to old Binder.
 * Generate/update change log (`CHANGES.md`).
@@ -62,6 +62,8 @@ Testing
 
 Creating the release
 ====================
+
+* Tag the release in git.
 * Create the release from within Github.
 * Check `docker/docker.md` for docker image release information.
 * Add tagged documentation version at http://underworld2.readthedocs.io/  

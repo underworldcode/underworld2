@@ -1,7 +1,7 @@
-FROM ubuntu:impish as base_runtime
+FROM ubuntu:22.04 as base_runtime
 LABEL maintainer="https://github.com/underworldcode/"
 ENV LANG=C.UTF-8
-ENV PYVER=3.9
+ENV PYVER=3.10
 # Setup some things in anticipation of virtualenvs
 ENV VIRTUAL_ENV=/opt/venv
 # The following ensures that the venv takes precedence if available
@@ -26,7 +26,7 @@ RUN mkdir ${VIRTUAL_ENV} \
 RUN apt-get update -qq \
 &&  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         python3-minimal \
-        python3-virtualenv \
+        python3-venv \
         python3-pip \
         python3-numpy \
         libpng16-16 \
@@ -58,7 +58,7 @@ RUN apt-get update -qq
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         build-essential \
         python3-setuptools \
-        libpython3.9-dev \ 
+        libpython${PYVER}-dev \ 
         libpng-dev \
         libjpeg-dev \
         libtiff-dev \
@@ -77,8 +77,9 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
 # lavavu
 # create a virtualenv to put new python modules
 USER $NB_USER
-RUN /usr/bin/python3 -m virtualenv --system-site-packages --python=/usr/bin/python3 ${VIRTUAL_ENV}
+RUN /usr/bin/python3 -m venv --system-site-packages ${VIRTUAL_ENV}
 RUN LV_OSMESA=1 pip3 install --no-cache-dir --no-binary=lavavu lavavu 
+
 FROM base_runtime AS minimal
 COPY --from=build_base $VIRTUAL_ENV $VIRTUAL_ENV
 COPY --from=build_base /usr/local /usr/local

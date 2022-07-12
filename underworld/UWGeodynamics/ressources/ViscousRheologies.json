@@ -1,0 +1,602 @@
+{
+  "Wet Dunite, Viscous Dislocation Creep, Brace and Kohlstedt, 1980": {
+    "citation": "Brace, W. F., & Kohlstedt, D. L. (1980). Limits on lithospheric stress imposed by laboratory experiments. Journal of Geophysical Research: Solid Earth, 85(B11), 6248-6252.",
+    "onlinePDF": "https://agupubs.onlinelibrary.wiley.com/doi/pdf/10.1029/JB085iB11p06248",
+    "Mineral": "Wet Dunite",
+    "Type": "Viscous Dislocation Creep",
+    "coefficients": {
+      "activationEnergy": {
+        "units": "kilojoule / mole",
+        "value": 520.0
+      },
+      "activationVolume": {
+        "units": "meter ** 3 / mole",
+        "value": 0.0
+      },
+      "preExponentialFactor": {
+        "units": "1 / megapascal ** 3 / second",
+        "value": 70000.0
+      },
+      "stressExponent": {
+        "units": "None",
+        "value": 3.0
+      }
+    }
+  },
+  "Wet Quartz, Viscous Dislocation Creep, Gleason and Tullis, 1995": {
+    "citation": "Gleason, G. C., & Tullis, J. (1995). A flow law for dislocation creep of quartz aggregates determined with the molten salt cell. Tectonophysics, 247(1-4), 1-23.",
+    "onlinePDF": "https://www.sciencedirect.com/science/article/pii/004019519500011B",
+    "Mineral": "Wet Quartz",
+    "Type": "Viscous Dislocation Creep",
+    "coefficients": {
+      "activationEnergy": {
+        "units": "kilojoule / mole",
+        "value": 223.0
+      },
+      "activationVolume": {
+        "units": "meter ** 3 / mole",
+        "value": 0.0000031
+      },
+      "preExponentialFactor": {
+        "units": "1 / pascal ** 4 / second",
+        "value": 1.1e-28
+      },
+      "stressExponent": {
+        "units": "None",
+        "value": 4.0
+      }
+    }
+  },
+  "Dry Quartz, Viscous Dislocation Creep, Brace and Kohlstedt, 1980": {
+    "citation": "Brace, W. F., & Kohlstedt, D. L. (1980). Limits on lithospheric stress imposed by laboratory experiments. Journal of Geophysical Research: Solid Earth, 85(B11), 6248-6252.",
+    "onlinePDF": "https://agupubs.onlinelibrary.wiley.com/doi/pdf/10.1029/JB085iB11p06248",
+    "Mineral": "Dry Quartz",
+    "Type": "Viscous Dislocation Creep",
+    "coefficients": {
+      "activationEnergy": {
+        "units": "kilojoule / mole",
+        "value": 190.0
+      },
+      "activationVolume": {
+        "units": "meter ** 3 / mole",
+        "value": 0.0
+      },
+      "preExponentialFactor": {
+        "units": "1 / megapascal ** 3 / second",
+        "value": 0.000005
+      },
+      "stressExponent": {
+        "units": "None",
+        "value": 3.0
+      }
+    }
+  },
+  "Wet Olivine, Viscous Dislocation Creep, Goetze et al., 1978": {
+    "citation": "Goetze, C. (1978). The mechanisms of creep in olivine. Phil. Trans. R. Soc. Lond. A, 288(1350), 99-119.",
+    "onlinePDF": "http://rsta.royalsocietypublishing.org/content/288/1350/99.short",
+    "Mineral": "Wet Olivine",
+    "Type": "Viscous Dislocation Creep",
+    "coefficients": {
+      "activationEnergy": {
+        "units": "kilojoule / mole",
+        "value": 523
+      },
+      "activationVolume": {
+        "units": "meter ** 3 / mole",
+        "value": 0.0
+      },
+      "preExponentialFactor": {
+        "units": "1 / megapascal ** 3 / second",
+        "value": 70000
+      },
+      "stressExponent": {
+        "units": "None",
+        "value": 3.0
+      }
+    }
+  },
+  "Dry Olivine, Viscous Dislocation Creep, Hirth and Kohlstedt, 2003": {
+    "citation": "Hirth, G., & Kohlstedt, D. (2004). Rheology of the upper mantle and the mantle wedge: A view from the experimentalists. Inside the subduction Factory, 138, 83-105.",
+    "onlinePDF": "https://agupubs.onlinelibrary.wiley.com/doi/abs/10.1029/138GM06",
+    "Mineral": "Dry Olivine",
+    "Type": "Viscous Dislocation Creep",
+    "coefficients": {
+      "activationEnergy": {
+        "units": "kilojoule / mole",
+        "value": 530.0
+      },
+      "activationVolume": {
+        "units": "meter ** 3 / mole",
+        "value": 0.000006
+      },
+      "grainSize": {
+        "units": "None",
+        "value": 10000
+      },
+      "grainSizeExponent": {
+        "units": "None",
+        "value": 0.0
+      },
+      "preExponentialFactor": {
+        "units": "1 / megapascal ** 3.5 / second",
+        "value": 110000
+      },
+      "stressExponent": {
+        "units": "None",
+        "value": 3.5
+      }
+    }
+  },
+  "Dry Olivine, Viscous Diffusion Creep, Hirth and Kohlstedt, 2003": {
+    "citation": "Hirth, G., & Kohlstedt, D. (2004). Rheology of the upper mantle and the mantle wedge: A view from the experimentalists. Inside the subduction Factory, 138, 83-105.",
+    "onlinePDF": "https://agupubs.onlinelibrary.wiley.com/doi/abs/10.1029/138GM06",
+    "Mineral": "Dry Olivine",
+    "Type": "Viscous Diffusion Creep",
+    "coefficients": {
+      "activationEnergy": {
+        "units": "kilojoule / mole",
+        "value": 375.0
+      },
+      "activationVolume": {
+        "units": "meter ** 3 / mole",
+        "value": 0.000006
+      },
+      "grainSize": {
+        "units": "None",
+        "value": 10000
+      },
+      "grainSizeExponent": {
+        "units": "None",
+        "value": 3.0
+      },
+      "preExponentialFactor": {
+        "units": "1 / megapascal / second",
+        "value": 1500000000
+      },
+      "stressExponent": {
+        "units": "None",
+        "value": 1.0
+      },
+      "waterFugacity": {
+        "units": "None",
+        "value": 1000.0
+      },
+      "waterFugacityExponent": {
+        "units": "None",
+        "value": 0.0
+      }
+    }
+  },
+  "Wet Olivine, Viscous Dislocation Creep, Hirth and Kohlstedt, 2003": {
+    "citation": "Hirth, G., & Kohlstedt, D. (2004). Rheology of the upper mantle and the mantle wedge: A view from the experimentalists. Inside the subduction Factory, 138, 83-105.",
+    "onlinePDF": "https://agupubs.onlinelibrary.wiley.com/doi/abs/10.1029/138GM06",
+    "Mineral": "Wet Olivine",
+    "Type": "Viscous Dislocation Creep",
+    "coefficients": {
+      "activationEnergy": {
+        "units": "kilojoule / mole",
+        "value": 520.0
+      },
+      "activationVolume": {
+        "units": "meter ** 3 / mole",
+        "value": 0.000023
+      },
+      "grainSize": {
+        "units": "None",
+        "value": 10000
+      },
+      "grainSizeExponent": {
+        "units": "None",
+        "value": 0.0
+      },
+      "preExponentialFactor": {
+        "units": "1 / megapascal ** 3.5 / second",
+        "value": 1600
+      },
+      "stressExponent": {
+        "units": "None",
+        "value": 3.5
+      },
+      "waterFugacity": {
+        "units": "None",
+        "value": 1000.0
+      },
+      "waterFugacityExponent": {
+        "units": "None",
+        "value": 1.2
+      }
+    }
+  },
+  "Wet Olivine, Viscous Diffusion Creep, Hirth and Kohlstedt, 2003": {
+    "citation": "Hirth, G., & Kohlstedt, D. (2004). Rheology of the upper mantle and the mantle wedge: A view from the experimentalists. Inside the subduction Factory, 138, 83-105.",
+    "onlinePDF": "https://agupubs.onlinelibrary.wiley.com/doi/abs/10.1029/138GM06",
+    "Mineral": "Wet Olivine",
+    "Type": "Viscous Diffusion Creep",
+    "coefficients": {
+      "activationEnergy": {
+        "units": "kilojoule / mole",
+        "value": 375.0
+      },
+      "activationVolume": {
+        "units": "meter ** 3 / mole",
+        "value": 0.00001
+      },
+      "grainSize": {
+        "units": "None",
+        "value": 10000
+      },
+      "grainSizeExponent": {
+        "units": "None",
+        "value": 3.0
+      },
+      "preExponentialFactor": {
+        "units": "1 / megapascal / second",
+        "value": 25000000
+      },
+      "stressExponent": {
+        "units": "None",
+        "value": 1.0
+      },
+      "waterFugacity": {
+        "units": "None",
+        "value": 1000
+      },
+      "waterFugacityExponent": {
+        "units": "None",
+        "value": 1.0
+      }
+    }
+  },
+  "Wet Olivine, Viscous Diffusion Creep, Faul and Jackson, 2007": {
+    "citation": "Faul, U. H., & Jackson, I. (2007). Diffusion creep of dry, melt-free olivine. Journal of Geophysical Research: Solid Earth, 112(B4).",
+    "onlinePDF": "https://onlinelibrary.wiley.com/doi/full/10.1029/2006JB004586",
+    "Mineral": "Wet Olivine",
+    "Type": "Viscous Diffusion Creep",
+    "coefficients": {
+      "activationEnergy": {
+        "units": "kilojoule / mole",
+        "value": 484.0
+      },
+      "activationVolume": {
+        "units": "meter ** 3 / mole",
+        "value": 0.0
+      },
+      "grainSize": {
+        "units": "None",
+        "value": 5.0
+      },
+      "grainSizeExponent": {
+        "units": "None",
+        "value": 3.0
+      },
+      "preExponentialFactor": {
+        "units": "1 / megapascal**1.3 / second",
+        "value": 20000000000
+      },
+      "stressExponent": {
+        "units": "None",
+        "value": 1.3
+      },
+      "waterFugacity": {
+        "units": "None",
+        "value": 1000.0
+      },
+      "waterFugacityExponent": {
+        "units": "None",
+        "value": 0.0
+      }
+    }
+  },
+  "Dry Olivine, Viscous Diffusion Creep, Petersen, 2010": {
+    "citation": "Petersen, K. D., Nielsen, S. B., Clausen, O. R., Stephenson, R., & Gerya, T. (2010). Small-scale mantle convection produces stratigraphic sequences in sedimentary basins. Science, 329(5993), 827-830.",
+    "onlinePDF": "www.sciencemag.org/cgi/content/full/329/5993/827/DC1",
+    "Mineral": "Dry Olivine",
+    "Type": "Viscous Diffusion Creep",
+    "coefficients": {
+      "activationEnergy": {
+        "units": "kilojoule / mole",
+        "value": 300.0
+      },
+      "activationVolume": {
+        "units": "meter ** 3 / mole",
+        "value": 0.000006
+      },
+      "preExponentialFactor": {
+        "units": "1 / pascal / second",
+        "value": 1.49e-9
+      },
+      "stressExponent": {
+        "units": "None",
+        "value": 1.0
+      }
+    }
+  },
+  "Dry Olivine, Viscous Dislocation Creep, Karato and Wu, 1993": {
+    "citation": "Karato, S., & Wu, P. (1993). Rheology of the Upper Mantle: A Synthesis. Science, 260(5109), 771-778.0",
+    "onlinePDF": "http://www.jstor.org.vu-nl.idm.oclc.org/stable/288116",
+    "Mineral": "Dry Olivine",
+    "Type": "Viscous Dislocation Creep",
+    "coefficients": {
+      "activationEnergy": {
+        "units": "kilojoule / mole",
+        "value": 540.0
+      },
+      "activationVolume": {
+        "units": "meter ** 3 / mole",
+        "value": 20e-6
+      },
+      "preExponentialFactor": {
+        "units": "1 / pascal ** 3.5 / second",
+        "value": 2.42e-16
+      },
+      "stressExponent": {
+        "units": "None",
+        "value": 3.5
+      }
+    }
+  },
+  "Wet Olivine, Viscous Dislocation Creep, Karato and Wu, 1993": {
+    "citation": "Karato, S., & Wu, P. (1993). Rheology of the Upper Mantle: A Synthesis. Science, 260(5109), 771-778.0",
+    "onlinePDF": "http://www.jstor.org.vu-nl.idm.oclc.org/stable/288116",
+    "Mineral": "Wet Olivine",
+    "Type": "Viscous Dislocation Creep",
+    "coefficients": {
+      "activationEnergy": {
+        "units": "kilojoule / mole",
+        "value": 430
+      },
+      "activationVolume": {
+        "units": "meter ** 3 / mole",
+        "value": 15e-6
+      },
+      "preExponentialFactor": {
+        "units": "1 / pascal ** 3.0 / second",
+        "value": 3.9e-15
+      },
+      "stressExponent": {
+        "units": "None",
+        "value": 3.0
+      }
+    }
+  },
+  "Olivine, Viscous Dislocation Creep, Kirby and Kronenberg, 1987": {
+    "citation": "Kirby, S. H., & Kronenberg, A. K. (1987). Rheology of the lithosphere: selected topics. Reviews of Geophysics, 25(6), 1219-1244.",
+    "onlinePDF": "http://science.sciencemag.org/content/260/5109/771.short",
+    "Mineral": "Olivine",
+    "Type": "Viscous Dislocation Creep",
+    "coefficients": {
+      "activationEnergy": {
+        "units": "kilojoule / mole",
+        "value": 500
+      },
+      "activationVolume": {
+        "units": "meter ** 3 / mole",
+        "value": 0.0
+      },
+      "preExponentialFactor": {
+        "units": "1 / pascal ** 3 / second",
+        "value": 1e-15
+      },
+      "stressExponent": {
+        "units": "None",
+        "value": 3.0
+      }
+    }
+  },
+  "Dry Quartz, Viscous Dislocation Creep, Koch et al., 1983": {
+    "citation": "",
+    "onlinePDF": "",
+    "Mineral": "Dry Quartz",
+    "Type": "Viscous Dislocation Creep",
+    "coefficients": {
+      "activationEnergy": {
+        "units": "kilojoule / mole",
+        "value": 149.0
+      },
+      "activationVolume": {
+        "units": "meter ** 3 / mole",
+        "value": 0.0
+      },
+      "preExponentialFactor": {
+        "units": "1 / pascal ** 3 / second",
+        "value": 5e-25
+      },
+      "stressExponent": {
+        "units": "None",
+        "value": 3.0
+      }
+    }
+  },
+  "Dry Olivine, Viscous Dislocation Creep, Korenaga and Karato, 2008": {
+    "citation": "Korenaga, J., and S.I. Karato (2008), A new analysis of experimental data on olivine rheology, J. Geophys. Res., 113, B02403, doi: 10.1029/2007JB005100.",
+    "onlinePDF": "https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2007JB005100",
+    "Mineral": "Dry Olivine",
+    "Type": "Viscous Dislocation Creep",
+    "coefficients": {
+      "activationEnergy": {
+        "units": "kilojoule / mole",
+        "value": 610.0
+      },
+      "activationVolume": {
+        "units": "meter ** 3 / mole",
+        "value": 0.0
+      },
+      "preExponentialFactor": {
+        "units": "1 / megapascal ** 4.94 / second",
+        "value": 1230268.770812381
+      },
+      "stressExponent": {
+        "units": "None",
+        "value": 4.94
+      }
+    }
+  },
+  "Wet Quartz, Viscous Dislocation Creep, Kronenberg and Tullis, 1984": {
+    "citation": "Kronenberg, A. K., & Tullis, J. (1984). Flow strengths of quartz aggregates: grain size and pressure effects due to hydrolytic weakening. Journal of Geophysical Research: Solid Earth, 89(B6), 4281-4297.",
+    "onlinePDF": "https://onlinelibrary.wiley.com/doi/pdf/10.1029/JB089iB06p04281",
+    "Mineral": "Wet Quartz",
+    "Type": "Viscous Dislocation Creep",
+    "coefficients": {
+      "activationEnergy": {
+        "units": "kilojoule / mole",
+        "value": 134.0
+      },
+      "activationVolume": {
+        "units": "meter ** 3 / mole",
+        "value": 0.0
+      },
+      "preExponentialFactor": {
+        "units": "1 / pascal ** 2.4 / second",
+        "value": 1.3e-20
+      },
+      "stressExponent": {
+        "units": "None",
+        "value": 2.4
+      }
+    }
+  },
+  "Wet Quartz, Viscous Dislocation Creep, Paterson and Luan, 1990": {
+    "citation": "Paterson, M. S., & Luan, F. C. (1990). Quartzite rheology under geological conditions. Geological Society, London, Special Publications, 54(1), 299-307.",
+    "onlinePDF": "http://sp.lyellcollection.org/content/54/1/299.short",
+    "Mineral": "Wet Quartz",
+    "Type": "Viscous Dislocation Creep",
+    "coefficients": {
+      "activationEnergy": {
+        "units": "kilojoule / mole",
+        "value": 135.0
+      },
+      "activationVolume": {
+        "units": "meter ** 3 / mole",
+        "value": 0.0
+      },
+      "preExponentialFactor": {
+        "units": "1 / megapascal ** 3.1 / second",
+        "value": 6.60693448e-8
+      },
+      "stressExponent": {
+        "units": "None",
+        "value": 3.1
+      }
+    }
+  },
+  "Wet Anorthite, Viscous Dislocation Creep, Ribacki et al., 2000": {
+    "citation": "Rybacki, E., & Dresen, G. (2000). Dislocation and diffusion creep of synthetic anorthite aggregates. Journal of Geophysical Research: Solid Earth, 105(B11), 26017-26036.",
+    "onlinePDF": "https://onlinelibrary.wiley.com/doi/pdf/10.1029/2005JB003663",
+    "Mineral": "Wet Anorthite",
+    "Type": "Viscous Dislocation Creep",
+    "coefficients": {
+      "activationEnergy": {
+        "units": "kilojoule / mole",
+        "value": 356.0
+      },
+      "activationVolume": {
+        "units": "meter ** 3 / mole",
+        "value": 0.0
+      },
+      "preExponentialFactor": {
+        "units": "1 / pascal ** 3 / second",
+        "value": 3.9810717e-16
+      },
+      "stressExponent": {
+        "units": "None",
+        "value": 3.0
+      }
+    }
+  },
+  "Wet Quartz, Viscous Dislocation Creep, Tullis et al, 2002": {
+    "citation": "",
+    "onlinePDF": "",
+    "Mineral": "Wet Quartz",
+    "Type": "Viscous Dislocation Creep",
+    "coefficients": {
+      "activationEnergy": {
+        "units": "kilojoule / mole",
+        "value": 223.0
+      },
+      "activationVolume": {
+        "units": "meter ** 3 / mole",
+        "value": 0.0
+      },
+      "preExponentialFactor": {
+        "units": "1 / pascal ** 4 / second",
+        "value": 1.1e-28
+      },
+      "stressExponent": {
+        "units": "None",
+        "value": 4.0
+      }
+    }
+  },
+  "Dry Mafic Granulite, Viscous Dislocation Creep, Wang et al., 2012": {
+    "citation": "Wang, Y. F., Zhang, J. F., Jin, Z. M., & Green Ii, H. W. (2012). Mafic granulite rheology: Implications for a weak continental lower crust. Earth and Planetary Science Letters, 353, 99-107.",
+    "onlinePDF": "https://www.sciencedirect.com/science/article/pii/S0012821X12004311",
+    "Mineral": "Dry Mafic Granulite",
+    "Type": "Viscous Dislocation Creep",
+    "coefficients": {
+      "activationEnergy": {
+        "units": "kilojoule / mole",
+        "value": 244.0
+      },
+      "activationVolume": {
+        "units": "meter ** 3 / mole",
+        "value": 0.0
+      },
+      "preExponentialFactor": {
+        "units": "1 / megapascal ** 3.2 / second",
+        "value": 0.1
+      },
+      "stressExponent": {
+        "units": "None",
+        "value": 3.2
+      }
+    }
+  },
+  "Dry Maryland Diabase, Viscous Dislocation Creep, Mackwell et al., 1998": {
+    "citation": "Mackwell, S. J., Zimmerman, M. E., & Kohlstedt, D. L. (1998). High-temperature deformation of dry diabase with application to tectonics on Venus. Journal of Geophysical Research: Solid Earth, 103(B1), 975-984.",
+    "onlinePDF": "https://onlinelibrary.wiley.com/doi/pdf/10.1029/97JB02671",
+    "Mineral": "Dry Maryland Diabase",
+    "Type": "Viscous Dislocation Creep",
+    "coefficients": {
+      "activationEnergy": {
+        "units": "kilojoule / mole",
+        "value": 485
+      },
+      "activationVolume": {
+        "units": "meter ** 3 / mole",
+        "value": 0.0
+      },
+      "preExponentialFactor": {
+        "units": "1 / pascal ** 4.7 / second",
+        "value": 5.0476587558415345e-28
+      },
+      "stressExponent": {
+        "units": "None",
+        "value": 4.7
+      }
+    }
+  },
+  "Dry Columbia Diabase, Viscous Dislocation Creep, Mackwell et al., 1998": {
+    "citation": "Mackwell, S. J., Zimmerman, M. E., & Kohlstedt, D. L. (1998). High-temperature deformation of dry diabase with application to tectonics on Venus. Journal of Geophysical Research: Solid Earth, 103(B1), 975-984.",
+    "onlinePDF": "https://onlinelibrary.wiley.com/doi/pdf/10.1029/97JB02671",
+    "Mineral": "Dry Columbia Diabase",
+    "Type": "Viscous Dislocation Creep",
+    "coefficients": {
+      "activationEnergy": {
+        "units": "kilojoule / mole",
+        "value": 485
+      },
+      "activationVolume": {
+        "units": "meter ** 3 / mole",
+        "value": 0.0
+      },
+      "preExponentialFactor": {
+        "units": "1 / pascal ** 4.7 / second",
+        "value": 1.1988189545123645e-26
+      },
+      "stressExponent": {
+        "units": "None",
+        "value": 4.7
+      }
+    }
+  }
+}
