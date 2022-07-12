@@ -28,12 +28,15 @@ RUN apt-get update -qq \
         bash-completion \
         bash-completion \
         python3-minimal \
-        python3-virtualenv \
+        python3-venv \
         python3-pip \
         python3-numpy \
         vim \
         less \
         git \
+        cmake \
+        g++ \
+        gcc python3-dev \
         valgrind valgrind-dbg valgrind-mpi \
         gdb cgdb \ 
 &&  apt-get clean \
