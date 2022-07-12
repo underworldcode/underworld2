@@ -29,7 +29,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         pkg-config
 # setup further virtualenv to avoid double copying back previous packages (h5py,mpi4py,etc)
 USER $NB_USER
-RUN /usr/bin/python3 -m virtualenv --system-site-packages --python=/usr/bin/python3 ${VIRTUAL_ENV}
+RUN /usr/bin/python3 -m venv --system-site-packages ${VIRTUAL_ENV}
 WORKDIR /tmp
 COPY --chown=jovyan:users . /tmp/underworld2
 WORKDIR /tmp/underworld2
