@@ -15,8 +15,8 @@ RUN apt-get update -qq \
 
 FROM base_runtime AS build_base
 # install build requirements
-RUN apt-get update -qq 
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
+RUN apt-get update -qq \
+&&  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         build-essential \
         pkg-config \
         python3-dev \
