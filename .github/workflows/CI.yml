@@ -82,15 +82,24 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       
-      - name: Build Petsc Docker Image
+      - name: Build Petsc Docker Image arm64
         uses: docker/build-push-action@v3.1.0
         with:
           context: .
           push: true
           file: ./docs/development/docker/petsc/Dockerfile
-          platforms: linux/amd64, linux/arm64
+          platforms: linux/arm64
           tags: underworldcode/petsc
-      
+
+      - name: Build Petsc Docker Image amd64
+        uses: docker/build-push-action@v3.1.0
+        with:
+          context: .
+          push: true
+          file: ./docs/development/docker/petsc/Dockerfile
+          platforms: linux/amd64
+          tags: underworldcode/petsc
+          
   build_lavavu_image:
     name: Build Lavavu Docker image
     needs: check
