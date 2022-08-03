@@ -63,10 +63,18 @@ jobs:
     steps:
       
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+        
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        id: buildx
+        uses: docker/setup-buildx-action@v2
+        
+      # List available platforms
+      - name: Available platforms
+        run: echo ${{ steps.buildx.outputs.platforms }}
         
       - name: Login to DockerHub
         uses: docker/login-action@v1 
@@ -75,18 +83,13 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       
       - name: Build Petsc Docker Image
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3.1.0
         with:
           context: .
           push: true
           file: ./docs/development/docker/petsc/Dockerfile
-          platforms: linux/amd64
-          tags: underworldcode/petsc:amd64
-      
-      - name: Update manifest
-        run: |
-          docker manifest create underworldcode/petsc --amend underworldcode/petsc:amd64 --amend underworldcode/petsc:arm64
-          docker manifest push underworldcode/petsc
+          platforms: linux/amd64, linux/arm64
+          tags: underworldcode/petsc
       
   build_lavavu_image:
     name: Build Lavavu Docker image
@@ -96,13 +99,14 @@ jobs:
     steps:
 
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v2
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        id: buildx
+        uses: docker/setup-buildx-action@v2
       
       - name: Login to DockerHub
         uses: docker/login-action@v1 
@@ -111,19 +115,13 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       
       - name: Build Lavavu Docker Image
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3.1.0
         with:
           context: .
           push: true
           file: ./docs/development/docker/lavavu/Dockerfile
-          platforms: linux/amd64
-          tags: underworldcode/lavavu:amd64
-      
-      - name: Update manifest
-        run: |
-          docker manifest create underworldcode/lavavu --amend underworldcode/lavavu:amd64 --amend underworldcode/lavavu:arm64
-          docker manifest push underworldcode/lavavu
-
+          platforms: linux/amd64, linux/arm64
+          tags: underworldcode/lavavu
 
   build_base_image:
     name: Build Base Docker image
@@ -133,31 +131,29 @@ jobs:
     steps:
       
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+        
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        id: buildx
+        uses: docker/setup-buildx-action@v2
      
       - name: Login to DockerHub
-        uses: docker/login-action@v1 
+        uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       
       - name: Build Base Docker Image
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3.1.0
         with:
           context: .
           push: true
           file: ./docs/development/docker/base/Dockerfile
-          platforms: linux/amd64
-          tags: underworldcode/base:amd64
-      
-      - name: Update manifest
-        run: |
-          docker manifest create underworldcode/base --amend underworldcode/base:amd64 --amend underworldcode/base:arm64
-          docker manifest push underworldcode/base
-
+          platforms: linux/amd64, linx/arm64
+          tags: underworldcode/base
 
   build_underworld_image:
     name: Build Underworld Image
@@ -167,10 +163,13 @@ jobs:
     steps:
       
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+        
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v2
       
       - name: Update sha256
         run: |
@@ -179,24 +178,19 @@ jobs:
           sed -i "/sha256/c\FROM ${SHA256} as base_runtime" ./docs/development/docker/underworld2/Dockerfile
 
       - name: Login to DockerHub
-        uses: docker/login-action@v1 
+        uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       
       - name: Build Underworld Docker Image
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3.1.0
         with:
           context: .
           push: true
           file: ./docs/development/docker/underworld2/Dockerfile
-          platforms: linux/amd64
-          tags: underworldcode/underworld2:amd64
-
-      - name: Update manifest
-        run: |
-          docker manifest create underworldcode/underworld2 --amend underworldcode/underworld2:amd64 --amend underworldcode/underworld2:arm64
-          docker manifest push underworldcode/underworld2
+          platforms: linux/amd64, linux/arm64
+          tags: underworldcode/underworld2
 
 
   test_in_UW_Container:
