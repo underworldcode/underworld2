@@ -40,6 +40,8 @@ RUN apt-get update -qq \
         libswscale5 \
         zlib1g \
         libopenblas0 \
+        gcc \
+        python3-dev \
 &&  apt-get clean \
 &&  rm -rf /var/lib/apt/lists/*
 
