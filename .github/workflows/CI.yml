@@ -134,7 +134,7 @@ jobs:
   build_base_image:
     name: Build Base Docker image
     needs: [check, build_lavavu_image, build_petsc_image]
-    if: ${{ always() && contains(needs.*.result, 'success') && !(contains(needs.*.result, 'failure')) && (needs.check.outputs.run_base == 'true')}}
+    if: ${{ always() && contains(needs.*.result, 'success') && !(contains(needs.*.result, 'failure')) && (needs.check.outputs.run_base == 'true')}} || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       
