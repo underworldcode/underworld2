@@ -54,7 +54,7 @@ RUN pip3 install -U setuptools  \
         pillow \
         ipython \
         ipyparallel \
-        pint==0.9 \
+        pint==0.19.2 \
         scipy \ 
         rise \
         tabulate 
