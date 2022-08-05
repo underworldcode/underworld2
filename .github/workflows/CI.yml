@@ -88,17 +88,16 @@ jobs:
           context: .
           push: true
           file: ./docs/development/docker/petsc/Dockerfile
-          platforms: linux/arm64
-          tags: underworldcode/petsc
-
-      - name: Build Petsc Docker Image amd64
-        uses: docker/build-push-action@v3.1.0
-        with:
-          context: .
-          push: true
-          file: ./docs/development/docker/petsc/Dockerfile
           platforms: linux/amd64
-          tags: underworldcode/petsc
+          tags: underworldcode/petsc:amd64
+      
+      # because petsc arm64 exceeds 6hours build time we only build amd here and push
+      # developers must build and push arm64 before running this workflow, see docker.md
+      
+      - name: Update manifest
+        run: | 
+          docker manifest create underworldcode/petsc --amend underworldcode/petsc:amd64 --amend underworldcode/petsc:arm64
+          docker manifest push underworldcode/petsc
           
   build_lavavu_image:
     name: Build Lavavu Docker image
