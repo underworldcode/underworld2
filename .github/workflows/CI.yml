@@ -82,7 +82,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       
-      - name: Build Petsc Docker Image arm64
+      - name: Build Petsc Docker Image
         uses: docker/build-push-action@v3.1.0
         with:
           context: .
