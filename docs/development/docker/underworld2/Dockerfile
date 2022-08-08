@@ -2,7 +2,7 @@
 # Typically:
 #    $  docker build -f docs/development/docker/underworld2/Dockerfile .
 
-FROM underworldcode/base --platform=$BUILDPLATFORM as base_runtime
+FROM underworldcode/base --platform=$TARGETPLATFORM as base_runtime
 LABEL maintainer="https://github.com/underworldcode/"
 # install runtime requirements
 USER root
