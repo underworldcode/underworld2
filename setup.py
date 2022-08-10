@@ -285,6 +285,12 @@ with open("underworld/_version.py") as fp:
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+# Create uwid if it doesn't exist
+idfile = './underworld/_uwid.py'
+if not os.path.isfile(idfile):
+    import uuid
+    with open(idfile, "w+") as f:
+        f.write("uwid = \'" + str(uuid.uuid4())  + "\'" )
 
 setup(name='underworld',
     version=version['__version__'],
