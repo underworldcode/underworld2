@@ -2,6 +2,11 @@
 import os
 import importlib
 import imp
+import ntpath
+from inspect import getsourcefile
+# change dir to where this test lives
+ntpath.os.chdir(ntpath.dirname(getsourcefile(lambda:0)))
+
 path = os.path.abspath('./image_tests/')
 
 #Check if the viewer is working

@@ -4,7 +4,9 @@ import glob
 import ntpath
 import sys
 import underworld as uw
-wdir = ntpath.dirname(str(uw.__path__[0]))+"/docs/user_guide/"
+from inspect import getsourcefile
+
+wdir = ntpath.dirname(getsourcefile(lambda:0))+"/../user_guide/"
 
 scripts = [pytest.param(path, id=ntpath.basename(path)) for path in sorted(glob.glob(wdir+"/*.ipynb"))]
 

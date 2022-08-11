@@ -3,9 +3,10 @@ import pytest
 import glob
 import ntpath
 import sys
-
 import underworld as uw
-wdir = ntpath.dirname(str(uw.__path__[0]))+"/docs/examples/"
+from inspect import getsourcefile
+
+wdir = ntpath.dirname(getsourcefile(lambda:0))+"/../examples/"
 
 scripts = [pytest.param(path, id=ntpath.basename(path)) for path in sorted(glob.glob(wdir+"/*.ipynb"))]
 

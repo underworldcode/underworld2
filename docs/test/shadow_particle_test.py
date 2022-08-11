@@ -3,7 +3,7 @@ if h5py.get_config().mpi == False:
     import warnings
     warnings.warn("h5py not MPI enabled. Discontinuing test.")
     import sys
-    sys.exit(0)
+    sys.exit(1)
 import underworld as uw
 import numpy as np
 
