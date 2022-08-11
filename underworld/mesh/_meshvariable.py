@@ -588,7 +588,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
             # get units
             try:
                 iunits = u.Quantity(h5f.attrs["units"])
-            except (KeyError, UndefinedUnitError) as e:
+            except (RuntimeError, KeyError, UndefinedUnitError) as e:
                 iunits = None
 
             if iunits:

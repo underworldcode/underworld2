@@ -650,7 +650,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
             # get units if they have been defined
             try:
                 units = u.Quantity(h5f.attrs["units"])
-            except (KeyError, UndefinedUnitError) as e:
+            except (RuntimeError, KeyError, UndefinedUnitError) as e:
                 units = None
 
             dset = h5_get_dataset(h5f, 'vertices')
