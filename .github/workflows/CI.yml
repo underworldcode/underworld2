@@ -228,7 +228,7 @@ jobs:
 
       - name: Run Tests
         run: |
-          pip install pytest
+          pip install pytest nbmake
           cd docs
           pytest -vvv pytests/*
           cd test
