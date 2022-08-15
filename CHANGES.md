@@ -1,7 +1,13 @@
 CHANGES: Underworld2
 =======================
 
-Release 2.13-0 [2022-05-25]
+Release 2.13.1 [2022-08-15]
+---------------------------
+Fixes:
+ * Improved CMAKE workflow.
+ * Fixes to failing unit tests.
+
+Release 2.13.0 [2022-05-25]
 -----------------------------
 
 New:
