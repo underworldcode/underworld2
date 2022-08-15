@@ -228,9 +228,10 @@ jobs:
 
       - name: Run Tests
         run: |
-          pip install pytest
-          pytest -vvv docs/pytests
-          cd docs/test
+          pip install pytest nbmake
+          cd docs
+          pytest -vvv pytests/*
+          cd test
           cp -rf ../UWGeodynamics/examples UWGeodynamics/.
           cp -rf ../UWGeodynamics/tutorials UWGeodynamics/.
           cp -rf ../UWGeodynamics/benchmarks UWGeodynamics/.

@@ -296,13 +296,13 @@ PetscErrorCode KSPSetFromOptions_BSSCR(Stg_PetscOptions *PetscOptionsObject, KSP
     KSP_BSSCR  *bsscr = (KSP_BSSCR *)ksp->data;
     PetscErrorCode ierr;
     PetscFunctionBegin;
-    ierr = PetscOptionsHead(PetscOptionsObject,"KSP BSSCR options");CHKERRQ(ierr);
+    PetscOptionsHead(PetscOptionsObject,"KSP BSSCR options");
     /* if this ksp has a prefix "XXX_" it will be automatically added to the options. e.g. -ksp_test -> -XXX_ksp_test */
     /* ierr = PetscOptionsTruth("-ksp_test","Test KSP flag","nil",PETSC_FALSE,&test,PETSC_NULL);CHKERRQ(ierr); */
     /* if(test){ PetscPrintf( PETSC_COMM_WORLD,  "\n\n-----  test flag set  ------\n\n"); } */
     ierr = PetscOptionsEnum("-ksp_k2_type","Augmented Lagrangian matrix type","",K2Types, bsscr->k2type,(PetscEnum*)&bsscr->k2type,&flg);CHKERRQ(ierr);
     //if(flg){  PetscPrintf( PETSC_COMM_WORLD,  "-----  k2 type is  ------\n"); }
-    ierr = PetscOptionsTail();CHKERRQ(ierr);
+    PetscOptionsTail();
     PetscFunctionReturn(0);
 }
 #endif

@@ -23,8 +23,8 @@ with warnings.catch_warnings(record=True) as w:
     # Trigger warning.
     solver.solve()
     # Verify message exists
-    assert len(w) == 1
+    assert len(w) >= 1
     # Verify message is correct
-    assert uw.systems._bsscr.StokesSolver._warning_penalty_compressibility == str(w[-1].message)
+    assert uw.systems._bsscr.StokesSolver._warning_penalty_compressibility == str(w[0].message.args[0])
     # if broken, check the generated message:
     # print(str(w[-1].message))

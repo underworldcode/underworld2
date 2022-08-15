@@ -1,3 +1,6 @@
+import ntpath
+from inspect import getsourcefile
+ntpath.os.chdir(ntpath.dirname(getsourcefile(lambda:0))) # change dir to where this test lives
 
 def outside_domain():
     import underworld as uw
@@ -6,7 +9,7 @@ def outside_domain():
         return mesh.add_variable(1)
     var = create_var()
     var.evaluate((10.,10.))   # evaluate outside the domain
-outside_domain_message  = b'ValueError: Issue utilising function of class \'MeshVariable\' constructed at:\n\n0- 0:func_debug_messages.py:7\n    var = create_var()\n0- 1:func_debug_messages.py:6\n    return mesh.add_variable(1)\n\nError message:\nFeVariable interpolation at location (10, 10) does not appear to be valid.\nLocation is probably outside local domain.\n' 
+outside_domain_message  = 'ValueError: Issue utilising function of class \'MeshVariable\' constructed at:\n\n0- 0:{0}/func_debug_messages.py:10\n    var = create_var()\n0- 1:{0}/func_debug_messages.py:9\n    return mesh.add_variable(1)\n\nError message:\nFeVariable interpolation at location (10, 10) does not appear to be valid.\nLocation is probably outside local domain.\n'.format(ntpath.os.getcwd()).encode('UTF-8')
 outside_domain_message2 = b'ValueError: Issue utilising function of class \'MeshVariable\'\n\nFull function debug info disabled due to UW_NO_FUNC_MESSAGES environment flag.\n\nError message:\nFeVariable interpolation at location (10, 10) does not appear to be valid.\nLocation is probably outside local domain.\n' 
 outside_domain_message_jupyter= b'ValueError: Issue utilising function of class \'MeshVariable\' constructed at:\n\n    Line 5 of notebook cell 1:\n       var = create_var()\n    Line 4 of notebook cell 1:\n       return mesh.add_variable(1)\n\nError message:\nFeVariable interpolation at location (10, 10) does not appear to be valid.\nLocation is probably outside local domain.\n\n'
 
@@ -30,8 +33,8 @@ if __name__ == '__main__':
             command = "jupyter nbconvert --to python --execute {}".format(test)
             result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
             strmessage = expected_message.decode("utf-8")
-            strenderr = result.stderr.decode("utf-8")[-len(strmessage)::]
-            if not (strmessage==strenderr):
+            strenderr = result.stderr.decode("utf-8")
+            if not (strmessage[-165::]==strenderr[-165::]):
                 raise RuntimeError("Incorrect error message encountered for {}. \n"
                                 "Expected:\n{}\n\n"
                                 "Encountered:\n{}\n\n".format(test,strmessage,strenderr))

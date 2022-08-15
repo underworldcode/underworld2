@@ -17,17 +17,17 @@ find_package(SWIG 4.0 COMPONENTS python REQUIRED)
 # You can check pkg-config search path using the following command:
 # pkg-config --variable pc_path pkg-config
 # This can be modified by prepending the PKG_CONFIG_PATH environment variable
-if(DEFINED ENV{PETSC_DIR})
-    set(ENV{PKG_CONFIG_PATH} "$ENV{PETSC_DIR}/lib/pkgconfig")
+if(DEFINED ENV{PETSC_DIR} AND DEFINED ENV{PETSC_ARCH})
+  set(ENV{PKG_CONFIG_PATH} "$ENV{PETSC_DIR}/$ENV{PETSC_ARCH}/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
+else(DEFINED ENV{PETSC_DIR})
+  set(ENV{PKG_CONFIG_PATH} "$ENV{PETSC_DIR}/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
 endif()
-
-set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:${Python_SITELIB}:petsc/lib/pkgconfig")
+message(STATUS "Checking for PETSc using $PKG_CONFIG_PATH=$ENV{PKG_CONFIG_PATH}")
     
-pkg_check_modules(PETSc REQUIRED PETSc)
-
+pkg_check_modules(PETSc PETSc)
 if(NOT PETSc_FOUND)
-    message(FATAL_ERROR "Cannot Find PETSc, please check that the PETSC_DIR environment variable is set and that
-                         the /lib/pkgconfig folder contains a PETSc.pc file.")
+    message(FATAL_ERROR "Cannot find PETSc, please check that the PETSC_DIR environment " 
+      "variable is set and that the $PETSC_DIR/lib/pkgconfig folder contains a PETSc.pc file.")
 endif()
 
 if(NOT APPLE)
