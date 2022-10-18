@@ -64,6 +64,7 @@ PetscErrorCode BSSCR_KSPSetNormInfConvergenceTest(KSP ksp);
 PetscErrorCode BSSCR_DRIVER_auglag( KSP ksp, Mat stokes_A, Vec stokes_x, Vec stokes_b, Mat approxS,
                                           MatStokesBlockScaling BA, PetscTruth sym, KSP_BSSCR * bsscrp_self )
 {
+    PetscFunctionBegin;
     PetscTruth uzawastyle, KisJustK=PETSC_TRUE, restorek, change_A11rhspresolve;
     PetscTruth usePreviousGuess, useNormInfStoppingConditions, useNormInfMonitor, found, forcecorrection;
     PetscTruth change_backsolve, mg_active, get_flops;

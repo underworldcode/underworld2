@@ -274,36 +274,36 @@ static const char *K2Types[] = {"NULL","DGMGD","GMG","GG","SLE","K2Type","K2_",0
 #if ( (PETSC_VERSION_MAJOR >= 3) && (PETSC_VERSION_MINOR <6) )
 PetscErrorCode KSPSetFromOptions_BSSCR(KSP ksp)
 {
-
+    PetscFunctionBeginUser;
     PetscTruth  flg;
-    KSP_BSSCR  *bsscr = (KSP_BSSCR *)ksp->data;
+    KSP_BSSCR  *bsscr;
     PetscErrorCode ierr;
-    PetscFunctionBegin;
+
+    bsscr = (KSP_BSSCR *)ksp->data;
+  
     ierr = PetscOptionsHead("KSP BSSCR options");CHKERRQ(ierr);
     /* if this ksp has a prefix "XXX_" it will be automatically added to the options. e.g. -ksp_test -> -XXX_ksp_test */
     /* ierr = PetscOptionsTruth("-ksp_test","Test KSP flag","nil",PETSC_FALSE,&test,PETSC_NULL);CHKERRQ(ierr); */
     /* if(test){ PetscPrintf( PETSC_COMM_WORLD,  "\n\n-----  test flag set  ------\n\n"); } */
-    ierr = PetscOptionsEnum("-ksp_k2_type","Augmented Lagrangian matrix type","",K2Types, bsscr->k2type,(PetscEnum*)&bsscr->k2type,&flg);CHKERRQ(ierr);
+    PetscOptionsEnum("-ksp_k2_type","Augmented Lagrangian matrix type","",K2Types, bsscr->k2type,(PetscEnum*)&bsscr->k2type,&flg);
     //if(flg){  PetscPrintf( PETSC_COMM_WORLD,  "-----  k2 type is  ------\n"); }
-    ierr = PetscOptionsTail();CHKERRQ(ierr);
+    PetscOptionsTail();
     PetscFunctionReturn(0);
 }
 #else
-PetscErrorCode KSPSetFromOptions_BSSCR(Stg_PetscOptions *PetscOptionsObject, KSP ksp)
+PetscErrorCode KSPSetFromOptions_BSSCR(KSP ksp, Stg_PetscOptions *PetscOptionsObject)
 {
-
     PetscTruth  flg;
     KSP_BSSCR  *bsscr = (KSP_BSSCR *)ksp->data;
-    PetscErrorCode ierr;
-    PetscFunctionBegin;
+
     PetscOptionsHead(PetscOptionsObject,"KSP BSSCR options");
     /* if this ksp has a prefix "XXX_" it will be automatically added to the options. e.g. -ksp_test -> -XXX_ksp_test */
     /* ierr = PetscOptionsTruth("-ksp_test","Test KSP flag","nil",PETSC_FALSE,&test,PETSC_NULL);CHKERRQ(ierr); */
     /* if(test){ PetscPrintf( PETSC_COMM_WORLD,  "\n\n-----  test flag set  ------\n\n"); } */
-    ierr = PetscOptionsEnum("-ksp_k2_type","Augmented Lagrangian matrix type","",K2Types, bsscr->k2type,(PetscEnum*)&bsscr->k2type,&flg);CHKERRQ(ierr);
+    PetscOptionsEnum("-ksp_k2_type","Augmented Lagrangian matrix type","",K2Types, (PetscEnum)bsscr->k2type,(PetscEnum*)&bsscr->k2type,&flg);
     //if(flg){  PetscPrintf( PETSC_COMM_WORLD,  "-----  k2 type is  ------\n"); }
     PetscOptionsTail();
-    PetscFunctionReturn(0);
+    return 0;
 }
 #endif
 

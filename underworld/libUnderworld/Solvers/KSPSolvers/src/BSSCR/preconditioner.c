@@ -51,7 +51,7 @@ PetscErrorCode BSSCR_BSSCR_StokesReadPCSchurMat_binary( MPI_Comm comm, Mat *S )
 		Stg_PetscViewerDestroy(&mat_view_file );
 	}
 
-	PetscFunctionReturn(0);
+	return 0;
 }
 
 PetscErrorCode BSSCR_BSSCR_StokesReadPCSchurMat_ascii( MPI_Comm comm, Mat *S )
@@ -67,7 +67,7 @@ PetscErrorCode BSSCR_BSSCR_StokesReadPCSchurMat_ascii( MPI_Comm comm, Mat *S )
 		//MatAIJLoad_MatrixMarket( comm, op_name, S );
 	}
 
-	PetscFunctionReturn(0);
+	return 0;
 }
 
 
@@ -85,7 +85,7 @@ PetscErrorCode BSSCR_StokesReadPCSchurMat( MPI_Comm comm, Mat *S )
 		BSSCR_BSSCR_StokesReadPCSchurMat_binary( comm, S );
 	}
 
-	PetscFunctionReturn(0);
+	return 0;
 }
 
 
@@ -130,7 +130,7 @@ PetscErrorCode BSSCR_StokesCreatePCSchur( Mat K, Mat G, PC pc_S )
 		Stg_SETERRQ( PETSC_ERR_SUP, "OPTION: -seg_schur_pc_type is not valid" );
 	}
 
-	PetscFunctionReturn(0);
+	return 0;
 }
 
 
@@ -220,7 +220,7 @@ PetscErrorCode BSSCR_BSSCR_StokesCreatePCSchur2(
 		Stg_SETERRQ( PETSC_ERR_SUP, "OPTION: -Q22_pc_type is not valid" );
 	}
 
-	PetscFunctionReturn(0);
+	return 0;
 }
 
 
@@ -271,7 +271,7 @@ PetscErrorCode BSSCR_FormSchurApproximation1( Mat A11, Mat A12, Mat A21, Mat A22
    Stg_MatDestroy(&A21_cpy);
    Stg_VecDestroy(&diag);
 
-   PetscFunctionReturn(0);
+   return 0;
 }
 
 PetscErrorCode BSSCR_FormSchurApproximationDiag( Mat A11, Mat A12, Mat A21, Mat A22, Mat *_Shat, PetscTruth sym )
@@ -315,5 +315,5 @@ PetscErrorCode BSSCR_FormSchurApproximationDiag( Mat A11, Mat A12, Mat A21, Mat 
 
    Stg_VecDestroy(&diag);
 
-   PetscFunctionReturn(0);
+   return 0;
 }

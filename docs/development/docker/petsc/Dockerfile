@@ -57,11 +57,13 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         git
 # build mpi
 WORKDIR /tmp/mpich-build
-ARG MPICH_VERSION="4.0.2"
+ARG MPICH_VERSION="3.4.3"
 RUN wget http://www.mpich.org/static/downloads/${MPICH_VERSION}/mpich-${MPICH_VERSION}.tar.gz 
 RUN  tar xvzf mpich-${MPICH_VERSION}.tar.gz 
 WORKDIR /tmp/mpich-build/mpich-${MPICH_VERSION}              
-ARG MPICH_CONFIGURE_OPTIONS="--prefix=/usr/local --enable-g=option=none --disable-debuginfo --enable-fast=O3,ndebug --without-timing --without-mpit-pvars --with-device=ch3 FFLAGS=-fallow-argument-mismatch FCFLAGS=-fallow-argument-mismatch"
+# take from https://github.com/PawseySC/pawsey-containers/blob/master/mpi/mpich-base/Dockerfile
+ARG MPICH_CONFIGURE_OPTIONS="--enable-fast=all,O3 --prefix=/usr/local --with-device=ch4:ofi FFLAGS=-fallow-argument-mismatch FCFLAGS=-fallow-argument-mismatch"
+#ARG MPICH_CONFIGURE_OPTIONS="--prefix=/usr/local --enable-g=option=none --disable-debuginfo --enable-fast=O3,ndebug --without-timing --without-mpit-pvars --with-device=ch3 FFLAGS=-fallow-argument-mismatch FCFLAGS=-fallow-argument-mismatch"
 ARG MPICH_MAKE_OPTIONS="-j8"
 RUN ./configure ${MPICH_CONFIGURE_OPTIONS} 
 RUN make ${MPICH_MAKE_OPTIONS}             
