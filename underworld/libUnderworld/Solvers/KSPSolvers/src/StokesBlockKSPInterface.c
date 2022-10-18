@@ -290,6 +290,7 @@ void _StokesBlockKSPInterface_Solve( void* solver, void* _stokesSLE ) {
     self->stats.total_flops=(double)(flopsB-flopsA); }
 }
 PetscErrorCode _BlockSolve( void* solver, void* _stokesSLE ) {
+  PetscFunctionBegin;
   Stokes_SLE*  stokesSLE  = (Stokes_SLE*)_stokesSLE;
   StokesBlockKSPInterface* Solver    = (StokesBlockKSPInterface*)solver;
 
@@ -410,7 +411,7 @@ PetscErrorCode _BlockSolve( void* solver, void* _stokesSLE ) {
     Doing this so the KSP Solver has access to the StgFEM Multigrid struct (PETScMGSolver).
     As well as any custom stuff on the Stokes_SLE struct
   */
-  if( stokes_ksp->data ){/* then ksp->data has been created in a KSpSetUp_XXX function */
+  if( stokes_ksp->data ) {/* then ksp->data has been created in a KSpSetUp_XXX function */
     /* testing for our KSP types that need the data that is on Solver... */
     /* for the moment then, this function not completely agnostic about our KSPs */
     //if(!strcmp("bsscr",stokes_ksp->type_name)){/* if is bsscr then set up the data on the ksp */

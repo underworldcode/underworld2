@@ -663,6 +663,7 @@ void SROpGenerator_Simple( SROpGenerator *self, Mat* pOps, Mat* rOps ) {
 
 PetscErrorCode _VecGetOwnershipRanges( Vec X, PetscInt **_ranges )
 {
+  PetscFunctionBegin;
   PetscInt start,end;
   PetscMPIInt nproc,rank;
   MPI_Comm comm;
