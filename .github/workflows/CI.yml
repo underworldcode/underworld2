@@ -92,7 +92,7 @@ jobs:
     name: Build PETSc Docker image
     needs: [check, build_ompi_image]
     #if: ${{ always() && contains(needs.*.result, 'success') && !(contains(needs.*.result, 'failure')) && (env.run_ompi == 'true')}}
-    if: ${{ env.run_ompi == 'true' }}
+    if: env.run_ompi == 'true'
     runs-on: ubuntu-latest
     steps:
       
