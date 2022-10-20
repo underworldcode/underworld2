@@ -5,6 +5,11 @@ on:
   release:
   workflow_dispatch:
 
+env:
+  run_ompi: false
+  run_petsc: false
+  run_lavavu: false
+
 jobs:
 
   check:
@@ -52,7 +57,7 @@ jobs:
   build_ompi_image:
     name: Build Base Docker image
     needs: check
-    if: $${{ env.run_ompi == 'true' }} || github.event_name == 'workflow_dispatch'
+    if: env.run_ompi == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       
@@ -87,7 +92,7 @@ jobs:
     name: Build PETSc Docker image
     needs: [check, build_ompi_image]
     #if: ${{ always() && contains(needs.*.result, 'success') && !(contains(needs.*.result, 'failure')) && (env.run_ompi == 'true')}}
-    if: ${{ env.run_ompi == 'true' }
+    if: ${{ env.run_ompi == 'true' }}
     runs-on: ubuntu-latest
     steps:
       
