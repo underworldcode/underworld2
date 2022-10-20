@@ -54,7 +54,7 @@ jobs:
           done < files.txt
   
   build_ompi_image:
-    name: Build Base Docker image
+    name: Build OpenMPI Docker image
     needs: check
     if: $${{ needs.outputs.run_ompi == 'true' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
@@ -81,11 +81,10 @@ jobs:
           platforms: linux/amd64
           tags: julesg/openmpi:amd64
       
-      - name: Update manifest
-        run: |
-          docker manifest create julesg/openmpi --amend julesg/openmpi:amd64 --amend julesg/openmpi:arm64
-          docker manifest push julesg/openmpi
-
+#       - name: Update manifest
+#         run: |
+#           docker manifest create julesg/openmpi --amend julesg/openmpi:amd64 --amend julesg/openmpi:arm64
+#           docker manifest push julesg/openmpi
 
   build_petsc_image:
     name: Build PETSc Docker image
@@ -116,10 +115,10 @@ jobs:
           platforms: linux/amd64
           tags: julesg/petsc:amd64
       
-      - name: Update manifest
-        run: |
-          docker manifest create julesg/petsc --amend julesg/petsc:amd64 --amend julesg/petsc:arm64
-          docker manifest push julesg/petsc
+#       - name: Update manifest
+#         run: |
+#           docker manifest create julesg/petsc --amend julesg/petsc:amd64 --amend julesg/petsc:arm64
+#           docker manifest push julesg/petsc
       
   build_lavavu_image:
     name: Build Lavavu Docker image
@@ -150,12 +149,12 @@ jobs:
           push: true
           file: ./docs/development/docker/lavavu/Dockerfile
           platforms: linux/amd64
-          tags: underworldcode/lavavu:amd64
+          tags: julesg/lavavu:amd64
       
-      - name: Update manifest
-        run: |
-          docker manifest create underworldcode/lavavu --amend underworldcode/lavavu:amd64 --amend underworldcode/lavavu:arm64
-          docker manifest push underworldcode/lavavu
+#       - name: Update manifest
+#         run: |
+#           docker manifest create underworldcode/lavavu --amend underworldcode/lavavu:amd64 --amend underworldcode/lavavu:arm64
+#           docker manifest push underworldcode/lavavu
 
 
   build_underworld_image:
@@ -186,10 +185,10 @@ jobs:
           platforms: linux/amd64
           tags: julesg/underworld2:amd64
 
-      - name: Update manifest
-        run: |
-          docker manifest create julesg/underworld2 --amend julesg/underworld2:amd64 --amend julesg/underworld2:arm64
-          docker manifest push julesg/underworld2
+#       - name: Update manifest
+#         run: |
+#           docker manifest create julesg/underworld2 --amend julesg/underworld2:amd64 --amend julesg/underworld2:arm64
+#           docker manifest push julesg/underworld2
 
 
   test_in_UW_Container:
@@ -231,62 +230,62 @@ jobs:
           pytest -vvv UWGeodynamics
 
 
-  conda_build:
-      name: Conda Build (Python ${{matrix.python-version}} ${{ matrix.os }})
-      runs-on: ${{ matrix.os }}
-      strategy:
-        fail-fast: false
-        matrix:
-          os: ["ubuntu-latest", "macos-latest"]
-          python-version: ["3.8", "3.9", "3.10"]
-      steps:
-        - uses: actions/checkout@v2
-        - uses: conda-incubator/setup-miniconda@v2
-          with:
-            auto-update-conda: true
-            python-version: ${{ matrix.python-version }}
+#   conda_build:
+#       name: Conda Build (Python ${{matrix.python-version}} ${{ matrix.os }})
+#       runs-on: ${{ matrix.os }}
+#       strategy:
+#         fail-fast: false
+#         matrix:
+#           os: ["ubuntu-latest", "macos-latest"]
+#           python-version: ["3.8", "3.9", "3.10"]
+#       steps:
+#         - uses: actions/checkout@v2
+#         - uses: conda-incubator/setup-miniconda@v2
+#           with:
+#             auto-update-conda: true
+#             python-version: ${{ matrix.python-version }}
         
-        - name: Config Conda
-          shell: bash -l {0}
-          run: |
-              conda install --channel conda-forge conda-build anaconda-client conda-verify
-              conda config --add channels conda-forge
-              conda config --add channels underworldcode
-              conda config --set anaconda_upload no
+#         - name: Config Conda
+#           shell: bash -l {0}
+#           run: |
+#               conda install --channel conda-forge conda-build anaconda-client conda-verify
+#               conda config --add channels conda-forge
+#               conda config --add channels underworldcode
+#               conda config --set anaconda_upload no
   
-        - name: Config Conda For Upload
-          if: github.event_name == 'release'
-          shell: bash -l {0}
-          run: conda config --set anaconda_upload yes
+#         - name: Config Conda For Upload
+#           if: github.event_name == 'release'
+#           shell: bash -l {0}
+#           run: conda config --set anaconda_upload yes
   
-        - name: Upload new Packages
-          if: github.event_name == 'release'
-          shell: bash -l {0}
-          run: |
-              anaconda login --hostname github-actions-${{ matrix.os  }}-$RANDOM --username ${{ secrets.ANACONDA_USERNAME }} --password ${{ secrets.ANACONDA_PASSWORD }}
-              conda-build --channel conda-forge --user geo-down-under conda
-              anaconda logout
+#         - name: Upload new Packages
+#           if: github.event_name == 'release'
+#           shell: bash -l {0}
+#           run: |
+#               anaconda login --hostname github-actions-${{ matrix.os  }}-$RANDOM --username ${{ secrets.ANACONDA_USERNAME }} --password ${{ secrets.ANACONDA_PASSWORD }}
+#               conda-build --channel conda-forge --user geo-down-under conda
+#               anaconda logout
 
-  pypi:
-    runs-on: ${{ matrix.os }}
-    env:
-      TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
-      TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
-    strategy:
-      matrix:
-        os: ["ubuntu-latest", "macos-latest"]
-        python-version: ["3.8", "3.9", "3.10"]
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Package for Pypi
-        run: |
-          python setup.py sdist
-      - name: Upload to Pypi
-        if: github.event_name == 'release'
-        run: |
-          pip install twine
-          python -m twine upload dist/* -r pypi
+#   pypi:
+#     runs-on: ${{ matrix.os }}
+#     env:
+#       TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
+#       TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
+#     strategy:
+#       matrix:
+#         os: ["ubuntu-latest", "macos-latest"]
+#         python-version: ["3.8", "3.9", "3.10"]
+#     steps:
+#       - uses: actions/checkout@v2
+#       - name: Set up Python
+#         uses: actions/setup-python@v2
+#         with:
+#           python-version: ${{ matrix.python-version }}
+#       - name: Package for Pypi
+#         run: |
+#           python setup.py sdist
+#       - name: Upload to Pypi
+#         if: github.event_name == 'release'
+#         run: |
+#           pip install twine
+#           python -m twine upload dist/* -r pypi
