@@ -12,7 +12,7 @@ jobs:
     outputs:
       run_petsc: ${{ steps.check_files.outputs.run_petsc }}
       run_lavavu: ${{ steps.check_files.outputs.run_lavavu }}
-      run_base: ${{ steps.check_files.outputs.run_base }}
+      run_ompi: ${{ steps.check_files.outputs.run_ompi }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -29,7 +29,7 @@ jobs:
           echo "========== check paths of changed files =========="
           git diff --name-only HEAD^ HEAD > files.txt
               
-          echo "::set-output name=run_base::false"
+          echo "::set-output name=run_ompi::false"
           echo "::set-output name=run_petsc::false"
           echo "::set-output name=run_lavavu::false"
           
@@ -39,26 +39,26 @@ jobs:
             if [[ $file == "docs/development/docker/petsc/Dockerfile" ]]; then
               echo "Change to the Petsc Docker file have been detected."
               echo "::set-output name=run_petsc::true"
-              echo "::set-output name=run_base::true"
+              echo "::set-output name=run_ompi::true"
               continue
             fi
             if [[ $file == "docs/development/docker/lavavu/Dockerfile" ]]; then
               echo "Change to the Lavavu Docker file have been detected."
               echo "::set-output name=run_lavavu::true"
-              echo "::set-output name=run_base::true"
+              echo "::set-output name=run_ompi::true"
               continue
             fi
-            if [[ $file == "docs/development/docker/base/Dockerfile" ]]; then
+            if [[ $file == "docs/development/docker/mpi/Dockerfile.openmpi" ]]; then
               echo "Change to the Base Docker file have been detected."
-              echo "::set-output name=run_base::true"
+              echo "::set-output name=run_ompi::true"
               continue
             fi
           done < files.txt
 
   build_petsc_image:
     name: Build PETSc Docker image
-    needs: check
-    if: needs.check.outputs.run_petsc == 'true' || github.event_name == 'workflow_dispatch'
+    needs: [check, build_ompi_image]
+    if: ${{ always() && contains(needs.*.result, 'success') && !(contains(needs.*.result, 'failure')) && (needs.check.outputs.run_ompi == 'true')}}
     runs-on: ubuntu-latest
     steps:
       
@@ -81,12 +81,12 @@ jobs:
           push: true
           file: ./docs/development/docker/petsc/Dockerfile
           platforms: linux/amd64
-          tags: underworldcode/petsc:amd64
+          tags: julesg/petsc:amd64
       
       - name: Update manifest
         run: |
-          docker manifest create underworldcode/petsc --amend underworldcode/petsc:amd64 --amend underworldcode/petsc:arm64
-          docker manifest push underworldcode/petsc
+          docker manifest create julesg/petsc --amend julesg/petsc:amd64 --amend julesg/petsc:arm64
+          docker manifest push julesg/petsc
       
   build_lavavu_image:
     name: Build Lavavu Docker image
@@ -125,10 +125,10 @@ jobs:
           docker manifest push underworldcode/lavavu
 
 
-  build_base_image:
+  build_ompi_image:
     name: Build Base Docker image
-    needs: [check, build_lavavu_image, build_petsc_image]
-    if: ${{ always() && contains(needs.*.result, 'success') && !(contains(needs.*.result, 'failure')) && (needs.check.outputs.run_base == 'true')}}
+    needs: check
+    if: needs.check.outputs.run_petsc == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       
@@ -149,20 +149,20 @@ jobs:
         with:
           context: .
           push: true
-          file: ./docs/development/docker/base/Dockerfile
+          file: ./docs/development/docker/mpi/Dockerfile.openmpi
           platforms: linux/amd64
-          tags: underworldcode/base:amd64
+          tags: julesg/openmpi:amd64
       
       - name: Update manifest
         run: |
-          docker manifest create underworldcode/base --amend underworldcode/base:amd64 --amend underworldcode/base:arm64
-          docker manifest push underworldcode/base
+          docker manifest create julesg/openmpi --amend julesg/openmpi:amd64 --amend julesg/openmpi:arm64
+          docker manifest push julesg/openmpi
 
 
   build_underworld_image:
     name: Build Underworld Image
     runs-on: ubuntu-latest
-    needs: [build_base_image]
+    needs: [build_mpi_image]
     if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
     steps:
       
@@ -172,12 +172,6 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
       
-      - name: Update sha256
-        run: |
-          docker pull underworldcode/base
-          SHA256=$(docker inspect --format='{{index .RepoDigests 0}}' underworldcode/base)
-          sed -i "/sha256/c\FROM ${SHA256} as base_runtime" ./docs/development/docker/underworld2/Dockerfile
-
       - name: Login to DockerHub
         uses: docker/login-action@v1 
         with:
@@ -191,21 +185,21 @@ jobs:
           push: true
           file: ./docs/development/docker/underworld2/Dockerfile
           platforms: linux/amd64
-          tags: underworldcode/underworld2:amd64
+          tags: julesg/underworld2:amd64
 
       - name: Update manifest
         run: |
-          docker manifest create underworldcode/underworld2 --amend underworldcode/underworld2:amd64 --amend underworldcode/underworld2:arm64
-          docker manifest push underworldcode/underworld2
+          docker manifest create julesg/underworld2 --amend julesg/underworld2:amd64 --amend julesg/underworld2:arm64
+          docker manifest push julesg/underworld2
 
 
   test_in_UW_Container:
     name: Test in Docker Container
-    needs: [build_base_image]
+    needs: [build_mpi_image]
     if: always()
     runs-on: ubuntu-latest
     container:
-      image: underworldcode/base
+      image: julesg/underworld2
       options: --user root
     steps:
 
