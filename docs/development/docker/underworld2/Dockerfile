@@ -1,4 +1,4 @@
-#####################################################################
+###################################################################
 # Multi stage Dockerfile structure:
 # 1. runtime 
 # 2. build
@@ -9,7 +9,7 @@
 # are consistent accross all layer of this Dockerfile. 
 # The final image is a composite for the runtime layer and 
 # minimal sections of the build layer.
-#####################################################################
+###################################################################
 
 FROM ubuntu:22.04 as runtime
 LABEL maintainer="https://github.com/underworldcode/"
