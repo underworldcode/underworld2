@@ -116,6 +116,7 @@ RUN pip3 freeze >/opt/requirements.txt
 RUN apt-mark showmanual >/opt/installed.txt
 
 
+# Build the final image, a combination of the runtime and build stages
 FROM runtime as final
 
 COPY --from=build --chown=$NB_USER:users /opt /opt
