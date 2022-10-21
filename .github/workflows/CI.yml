@@ -38,17 +38,17 @@ jobs:
             echo $file
             if [[ $file == "docs/development/docker/petsc/Dockerfile" ]]; then
               echo "Change to the Petsc Docker file have been detected."
-              echo "{run_petsc}={true}" >> $GITHUB_ENV
+              echo "{run_petsc}={true}" >> $GITHUB_OUTPUT
               continue
             fi
             if [[ $file == "docs/development/docker/lavavu/Dockerfile" ]]; then
               echo "Change to the Lavavu Docker file have been detected."
-              echo "{run_lavavu}={true}" >> $GITHUB_ENV
+              echo "{run_lavavu}={true}" >> $GITHUB_OUTPUT
               continue
             fi
             if [[ $file == "docs/development/docker/mpi/Dockerfile.openmpi" ]]; then
               echo "Change to the Base Docker file have been detected."
-              echo "{run_ompi}={yellow}" >> $GITHUB_ENV
+              echo "{run_ompi}={yellow}" >> $GITHUB_OUTPUT
               continue
             fi
           done < files.txt
