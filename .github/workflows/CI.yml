@@ -11,9 +11,9 @@ jobs:
     name: Check if Docker files have changed
     runs-on: ubuntu-latest
     outputs:
-      run_ompi: ${{ steps.check_files.run_ompi }}
-      run_petsc: ${{ steps.check_files.run_petsc }}
-      run_lavavu: ${{ steps.check_files.run_lavavu }}
+      run_ompi: ${{ steps.check_files.outputs.run_ompi }}
+      run_petsc: ${{ steps.check_files.outputs.run_petsc }}
+      run_lavavu: ${{ steps.check_files.outputs.run_lavavu }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -57,12 +57,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: check
     steps:
-      - run: echo ${{ needs.outputs.run_ompi }} ${{needs.outputs.run_petsc}} ${{needs.outputs.run_lavavu}}
+      - run: echo ${{ needs.check.outputs.run_ompi }} ${{needs.check.outputs.run_petsc}} ${{needs.check.outputs.run_lavavu}}
   
   build_ompi_image:
     name: Build OpenMPI Docker image
     needs: check
-    if: ${{ needs.outputs.run_ompi == 'yellow' }}
+    if: ${{ needs.check.outputs.run_ompi == 'yellow' }}
     runs-on: ubuntu-latest
     steps:
       
@@ -96,7 +96,7 @@ jobs:
     name: Build PETSc Docker image
     needs: [check, build_ompi_image]
     #if: ${{ always() && contains(needs.*.result, 'success') && !(contains(needs.*.result, 'failure')) && (env.run_ompi == 'true')}}
-    if: ${{ needs.outputs.run_ompi == 'true' }}
+    if: ${{ needs.check.outputs.run_ompi == 'true' }}
     runs-on: ubuntu-latest
     steps:
       
@@ -129,7 +129,7 @@ jobs:
   build_lavavu_image:
     name: Build Lavavu Docker image
     needs: check
-    if: ${{ needs.outputs.run_lavavu == 'true' }}
+    if: ${{ needs.check.outputs.run_lavavu == 'true' }}
     runs-on: ubuntu-latest
     steps:
 
@@ -167,7 +167,7 @@ jobs:
     name: Build Underworld Image
     runs-on: ubuntu-latest
     needs: [build_ompi_image, build_petsc_image]
-    if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'release' #|| github.event_name == 'workflow_dispatch'
     steps:
       
       - name: Checkout
