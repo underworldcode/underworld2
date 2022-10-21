@@ -33,7 +33,7 @@ jobs:
           echo "run_ompi=false" >> $GITHUB_OUTPUT
           echo "run_petsc=false" >> $GITHUB_OUTPUT
           echo "run_lavavu=false" >> $GITHUB_OUTPUT
-          echo "run_uw=true" >> $GITHUB_OUTPUT
+          echo "run_uw=false" >> $GITHUB_OUTPUT
           
           while IFS= read -r file
           do
