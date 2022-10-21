@@ -57,7 +57,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: check
     steps:
-      - run: echo ${{ needs.output.run_ompi }} ${{needs.output.run_petsc}} ${{needs.output.run_lavavu}}
+      - run: echo ${{ needs.outputs.run_ompi }} ${{needs.outputs.run_petsc}} ${{needs.outputs.run_lavavu}}
   
   build_ompi_image:
     name: Build OpenMPI Docker image
