@@ -11,9 +11,9 @@ jobs:
     name: Check if Docker files have changed
     runs-on: ubuntu-latest
     outputs:
-      run_ompi: $${{ steps.check_files.run_ompi }}
-      run_petsc: $${{ steps.check_files.run_petsc }}
-      run_lavavu: $${{ steps.check_files.run_lavavu }}
+      run_ompi: ${{ steps.check_files.run_ompi }}
+      run_petsc: ${{ steps.check_files.run_petsc }}
+      run_lavavu: ${{ steps.check_files.run_lavavu }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
