@@ -25,6 +25,7 @@ ENV PYVER=3.10
 ENV PYOPT=/opt/venv
 ENV PATH=$PYOPT/bin:$PATH
 ENV PYTHONPATH=$PYTHONPATH:$PYOPT/lib/python${PYVER}/site-packages
+# take from PETSC images
 ENV PETSC_DIR=/usr/local
 ENV PYTHONPATH=$PYTHONPATH:$PETSC_DIR/lib
 
