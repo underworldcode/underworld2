@@ -585,11 +585,11 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
                 # interpolate 'inputField' onto the self nodes
                 self.data[:] = inputField.evaluate(self.mesh.data)
 
-            # get units
-            try:
-                iunits = u.Quantity(h5f.attrs["units"])
-            except (RuntimeError, KeyError, UndefinedUnitError) as e:
-                iunits = None
+            # get units if they have been defined
+            if "units" in h5f.attrs.keys():
+                units = u.Quantity(h5f.attrs["units"])
+            else:
+                units = None
 
             if iunits:
                 if iunits.units in pint_degc_labels:
