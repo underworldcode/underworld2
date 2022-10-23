@@ -44,6 +44,7 @@ RUN apt-get update -qq \
         libopenblas-base \
         python3-venv \
         libxml2 \
+        vim \
         git \
         gdb \
         libpng16-16 \
