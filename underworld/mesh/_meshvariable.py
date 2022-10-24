@@ -590,7 +590,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
             if "units" in h5f.attrs.keys():
                 try:
                     units = u.Quantity(h5f.attrs["units"])
-                except (RuntimeError, KeyError, UnderfinedUnitError) as e:
+                except (RuntimeError, KeyError, UndefinedUnitError) as e:
                     units = None
 
             if iunits:

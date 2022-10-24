@@ -66,7 +66,7 @@ RUN python3 -m venv $PYOPT \
 &&  pip3 install -U setuptools \
 &&  pip3 install --no-cache-dir matplotlib \
          scipy \
-         pint==0.9 \
+         pint \
          rise \
          pytest \
          nbmake \
