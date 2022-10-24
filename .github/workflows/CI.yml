@@ -178,7 +178,8 @@ jobs:
   build_underworld_image:
     name: Build Underworld Image
     needs: [check, build_petsc_image, build_lavavu_image]    
-    if: always() && ( needs.check.outputs.run_uw == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'release' )
+    if: always()
+      #    if: always() && ( needs.check.outputs.run_uw == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'release' )
     runs-on: ubuntu-latest
     steps:
       
