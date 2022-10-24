@@ -227,7 +227,7 @@ jobs:
         run: |
           apt-get update -qq 
           DEBIAN_FRONTEND=noninteractive xargs -a /opt/installed.txt apt-get install -yq --no-install-recommends
-          pip install -r /opt/requirements.txt
+          # Note all python dependencies should be in the runtime container
 
       - name: Remove existing Underworld from container
         run: |
