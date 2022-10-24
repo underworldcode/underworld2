@@ -226,8 +226,8 @@ jobs:
       - name: Build dependencies
         run: |
           apt-get update -qq 
-          xargs -a /opt/installed.txt DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends
-          pip install -r /opt/requirements.txt
+          DEBIAN_FRONTEND=noninteractive xargs -a /opt/installed.txt apt-get install -yq --no-install-recommends
+          # Note all python dependencies should be in the runtime container
 
       - name: Remove existing Underworld from container
         run: |
