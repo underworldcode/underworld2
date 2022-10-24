@@ -178,8 +178,8 @@ jobs:
   build_underworld_image:
     name: Build Underworld Image
     needs: [check, build_petsc_image, build_lavavu_image]    
-    if: always()
-      #    if: always() && ( needs.check.outputs.run_uw == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'release' )
+      # if: always()
+    if: always() && ( needs.check.outputs.run_uw == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'release' )
     runs-on: ubuntu-latest
     steps:
       
@@ -216,7 +216,7 @@ jobs:
   test_in_UW_Container:
     name: Test in Docker Container
     needs: build_underworld_image
-    if: github.event_name == 'release' #TODO always()
+    if: always()
     runs-on: ubuntu-latest
     container:
       image: julesg/underworld2
@@ -226,12 +226,12 @@ jobs:
       - name: Build dependencies
         run: |
           apt-get update -qq 
-          DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends build-essential pkg-config python3-dev swig libxml2-dev cmake ninja-build
+          xargs -a /opt/installed.txt DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends
+          pip install -r /opt/requirements.txt
 
-      - name: Runtime dependencies
+      - name: Remove existing Underworld from container
         run: |
-          apt-get update -qq
-          DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends libxml2 libpython3.10
+          pip uninstall -y underworld
 
       - name: Checkout
         uses: actions/checkout@v2
@@ -242,14 +242,13 @@ jobs:
 
       - name: Run Tests
         run: |
-          pip install pytest nbmake
           cd docs
           pytest -vvv pytests/*
-          cd test
-          cp -rf ../UWGeodynamics/examples UWGeodynamics/.
-          cp -rf ../UWGeodynamics/tutorials UWGeodynamics/.
-          cp -rf ../UWGeodynamics/benchmarks UWGeodynamics/.
-          pytest -vvv UWGeodynamics
+          #cd test
+          #cp -rf ../UWGeodynamics/examples UWGeodynamics/.
+          #cp -rf ../UWGeodynamics/tutorials UWGeodynamics/.
+          #cp -rf ../UWGeodynamics/benchmarks UWGeodynamics/.
+          #pytest -vvv UWGeodynamics
 
 
 #   conda_build:
