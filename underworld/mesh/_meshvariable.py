@@ -586,10 +586,12 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
                 self.data[:] = inputField.evaluate(self.mesh.data)
 
             # get units if they have been defined
+            units = None
             if "units" in h5f.attrs.keys():
-                units = u.Quantity(h5f.attrs["units"])
-            else:
-                units = None
+                try:
+                    units = u.Quantity(h5f.attrs["units"])
+                except (RuntimeError, KeyError, UnderfinedUnitError) as e:
+                    units = None
 
             if iunits:
                 if iunits.units in pint_degc_labels:
