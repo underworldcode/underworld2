@@ -7,10 +7,11 @@
 # It begins with layers for runtime execution. 
 # The runtime environment (packages, permissions, ENV vars.) 
 # are consistent accross all layer of this Dockerfile. 
-# The final image is a composite for the runtime layer and 
+# The build layer takes the runtime layer and builds the software
+# stack in /usr/local.
+# The final image is a composite of the runtime layer and 
 # minimal sections of the build layer.
 #####################################################################
-
 
 FROM ubuntu:22.04 as runtime
 LABEL maintainer="https://github.com/underworldcode/"

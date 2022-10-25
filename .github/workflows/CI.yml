@@ -94,13 +94,13 @@ jobs:
           context: .
           push: true
           file: ./docs/development/docker/mpi/Dockerfile.openmpi
-          platforms: linux/amd64 #, linux/arm64
+          platforms: linux/amd64, linux/arm64
           tags: julesg/openmpi-4.1.4
       
-#       - name: Update manifest
-#         run: |
-#           docker manifest create julesg/openmpi-4.1.4 --amend julesg/openmpi-4.1.4:amd64 --amend julesg/openmpi-4.1.4:arm64
-#           docker manifest push julesg/openmpi-4.1.4
+      - name: Update manifest
+        run: |
+          docker manifest create julesg/openmpi-4.1.4 --amend julesg/openmpi-4.1.4:amd64 --amend julesg/openmpi-4.1.4:arm64
+          docker manifest push julesg/openmpi-4.1.4
 
   build_petsc_image:
     name: Build PETSc Docker image
@@ -130,13 +130,13 @@ jobs:
           context: .
           push: true
           file: ./docs/development/docker/petsc/Dockerfile
-          platforms: linux/amd64 #, linux/arm64
+          platforms: linux/amd64, linux/arm64
           tags: julesg/petsc-3.18.0
       
-#       - name: Update manifest
-#         run: |
-#           docker manifest create julesg/petsc --amend julesg/petsc:amd64 --amend julesg/petsc:arm64
-#           docker manifest push julesg/petsc
+      - name: Update manifest
+        run: |
+          docker manifest create julesg/petsc-3.18.0 --amend julesg/petsc-3.18.0:amd64 --amend julesg/petsc-3.18.0:arm64
+          docker manifest push julesg/petsc-3.18.0
       
   build_lavavu_image:
     name: Build Lavavu Docker image
@@ -166,13 +166,13 @@ jobs:
           context: .
           push: true
           file: ./docs/development/docker/lavavu/Dockerfile
-          platforms: linux/amd64
+          platforms: linux/amd64, linux/arm64
           tags: julesg/lavavu
       
-#       - name: Update manifest
-#         run: |
-#           docker manifest create underworldcode/lavavu --amend underworldcode/lavavu:amd64 --amend underworldcode/lavavu:arm64
-#           docker manifest push underworldcode/lavavu
+      - name: Update manifest
+        run: |
+          docker manifest create underworldcode/lavavu --amend underworldcode/lavavu:amd64 --amend underworldcode/lavavu:arm64
+          docker manifest push underworldcode/lavavu
 
 
   build_underworld_image:
@@ -207,10 +207,10 @@ jobs:
           platforms: linux/amd64
           tags: julesg/underworld2
 
-#       - name: Update manifest
-#         run: |
-#           docker manifest create julesg/underworld2 --amend julesg/underworld2:amd64 --amend julesg/underworld2:arm64
-#           docker manifest push julesg/underworld2
+      - name: Update manifest
+        run: |
+          docker manifest create julesg/underworld2 --amend julesg/underworld2:amd64 --amend julesg/underworld2:arm64
+          docker manifest push julesg/underworld2
 
 
   test_in_UW_Container:

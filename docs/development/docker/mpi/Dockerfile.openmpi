@@ -7,7 +7,9 @@
 # It begins with layers for runtime execution. 
 # The runtime environment (packages, permissions, ENV vars.) 
 # are consistent accross all layer of this Dockerfile. 
-# The final image is a composite for the runtime layer and 
+# The build layer takes the runtime layer and builds the software
+# stack in /usr/local.
+# The final image is a composite of the runtime layer and 
 # minimal sections of the build layer.
 #####################################################################
 
@@ -15,7 +17,10 @@
 FROM ubuntu:22.04 as runtime
 LABEL maintainer="https://github.com/underworldcode/"
 
-#### Dockerfile ENV vars - for all image stages
+################
+## 1. Runtime ##
+################
+# Dockerfile ENV vars - for all image stages
 ENV LANG=C.UTF-8
 # openmpi lib will be install at /usr/local/lib
 ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
@@ -33,6 +38,9 @@ RUN apt-get update -qq \
 &&  rm -rf /var/lib/apt/lists/*
 
 
+################
+## 2. Build   ##
+################
 FROM runtime as build
 
 # Build options for for openmpi
@@ -68,7 +76,9 @@ RUN ./configure ${OMPI_CONFIGURE_OPTIONS} \
 RUN apt-mark showmanual > /opt/installed.txt
 
 
-# Build smaller image
+################
+## 2. Final   ##
+################
 FROM runtime as final
 
 COPY --from=build /usr/local /usr/local
