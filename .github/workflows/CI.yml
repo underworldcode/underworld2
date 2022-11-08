@@ -95,7 +95,7 @@ jobs:
           push: true
           file: ./docs/development/docker/mpi/Dockerfile.openmpi
           platforms: linux/amd64, linux/arm64
-          tags: julesg/openmpi-4.1.4
+          tags: julesg/openmpi:4.1.4
       
   build_petsc_image:
     name: Build PETSc Docker image
@@ -126,16 +126,16 @@ jobs:
           push: true
           file: ./docs/development/docker/petsc/Dockerfile
           platforms: linux/amd64
-          tags: julesg/petsc-3.18.0:amd64
+          tags: julesg/petsc:3.18.0-amd64
       
             ## Github action's times out building petsc multi arch, so manifest commands
             ## must be manually applied, below is an example of the commands
             # - name: Update manifest
             #   run: |
-            #     docker build -f ./docs/development/petsc/Dockerfile -t julesg/petsc-3.18.0:arm64
+            #     docker build -f ./docs/development/petsc/Dockerfile -t julesg/petsc:3.18.0-arm64
             #     docker push julesg/petsc-3.18.0:arm64
-            #     docker manifest create julesg/petsc-3.18.0 --amend julesg/petsc-3.18.0:amd64 --amend julesg/petsc-3.18.0:arm64
-            #     docker manifest push julesg/petsc-3.18.0
+            #     docker manifest create julesg/petsc:3.18.0 --amend julesg/petsc:3.18.0-amd64 --amend julesg/petsc:3.18.0-arm64
+            #     docker manifest push julesg/petsc:3.18.0
       
   build_lavavu_image:
     name: Build Lavavu Docker image
