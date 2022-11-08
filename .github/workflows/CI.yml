@@ -55,7 +55,7 @@ jobs:
             fi
             if [[ $file == "docs/development/docker/underworld2/Dockerfile" ]]; then
               echo "Change to the Underworld Docker file have been detected."
-              echo "run_uw=true" >> $GITHUB_OUTPUT
+              echo "run_uw=false" >> $GITHUB_OUTPUT
               continue
             fi
           done < files.txt
@@ -97,11 +97,6 @@ jobs:
           platforms: linux/amd64, linux/arm64
           tags: julesg/openmpi-4.1.4
       
-      - name: Update manifest
-        run: |
-          docker manifest create julesg/openmpi-4.1.4 --amend julesg/openmpi-4.1.4:amd64 --amend julesg/openmpi-4.1.4:arm64
-          docker manifest push julesg/openmpi-4.1.4
-
   build_petsc_image:
     name: Build PETSc Docker image
     needs: [check, build_ompi_image]
@@ -130,13 +125,17 @@ jobs:
           context: .
           push: true
           file: ./docs/development/docker/petsc/Dockerfile
-          platforms: linux/amd64, linux/arm64
-          tags: julesg/petsc-3.18.0
+          platforms: linux/amd64
+          tags: julesg/petsc-3.18.0:amd64
       
-      - name: Update manifest
-        run: |
-          docker manifest create julesg/petsc-3.18.0 --amend julesg/petsc-3.18.0:amd64 --amend julesg/petsc-3.18.0:arm64
-          docker manifest push julesg/petsc-3.18.0
+            ## Github action's times out building petsc multi arch, so manifest commands
+            ## must be manually applied, below is an example of the commands
+            # - name: Update manifest
+            #   run: |
+            #     docker build -f ./docs/development/petsc/Dockerfile -t julesg/petsc-3.18.0:arm64
+            #     docker push julesg/petsc-3.18.0:arm64
+            #     docker manifest create julesg/petsc-3.18.0 --amend julesg/petsc-3.18.0:amd64 --amend julesg/petsc-3.18.0:arm64
+            #     docker manifest push julesg/petsc-3.18.0
       
   build_lavavu_image:
     name: Build Lavavu Docker image
@@ -168,12 +167,6 @@ jobs:
           file: ./docs/development/docker/lavavu/Dockerfile
           platforms: linux/amd64, linux/arm64
           tags: julesg/lavavu
-      
-      - name: Update manifest
-        run: |
-          docker manifest create underworldcode/lavavu --amend underworldcode/lavavu:amd64 --amend underworldcode/lavavu:arm64
-          docker manifest push underworldcode/lavavu
-
 
   build_underworld_image:
     name: Build Underworld Image
@@ -204,14 +197,8 @@ jobs:
           context: .
           push: true
           file: ./docs/development/docker/underworld2/Dockerfile
-          platforms: linux/amd64
+          platforms: linux/amd64, linux/arm64
           tags: julesg/underworld2
-
-      - name: Update manifest
-        run: |
-          docker manifest create julesg/underworld2 --amend julesg/underworld2:amd64 --amend julesg/underworld2:arm64
-          docker manifest push julesg/underworld2
-
 
   test_in_UW_Container:
     name: Test in Docker Container

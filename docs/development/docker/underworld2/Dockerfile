@@ -62,18 +62,10 @@ RUN apt-get update -qq \
 &&  apt-get clean \
 &&  rm -rf /var/lib/apt/lists/*
 
-# start a virtual environment and install runtime modules
+# start a virtual environment install runtime modules in 'build' as some
+# packages need gcc
 RUN python3 -m venv $PYOPT \
-&&  chmod ugo+rwx $PYOPT \
-&&  pip3 install -U setuptools \
-&&  pip3 install --no-cache-dir matplotlib \
-         scipy \
-         pint \
-         rise \
-         pytest \
-         nbmake \
-         tabulate 
-
+&&  chmod ugo+rwx $PYOPT
 
 FROM runtime as build
 
@@ -90,6 +82,19 @@ RUN apt-get update -qq \
         ninja-build \
 &&  apt-get clean \
 &&  rm -rf /var/lib/apt/lists/*
+
+# 
+RUN pip3 install -U setuptools \
+&&  pip3 install --no-cache-dir \
+         matplotlib \
+         scipy \
+         pint \
+         rise \
+         pytest \
+         nbmake \
+         gFlex \
+         tabulate 
+
 
 # Lets grab lavavu & requirements
 COPY --from=underworldcode/lavavu /opt       /opt
@@ -113,7 +118,9 @@ WORKDIR /tmp
 COPY --chown=$NB_USER:users . /tmp/underworld2
 WORKDIR /tmp/underworld2
 RUN pip3 install -vvv .
-RUN pip3 install --no-cache-dir badlands 
+RUN pip3 install --no-cache-dir \
+        git+https://github.com/drufat/triangle.git \
+        badlands
 
 RUN pip3 freeze >/opt/requirements.txt
 # Record manually install apt packages.
