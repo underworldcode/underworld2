@@ -260,7 +260,7 @@ jobs:
               conda config --add channels conda-forge
               conda config --add channels underworldcode
               conda config --set anaconda_upload no
-
+              
         - name: Config Conda For Upload
           #if: github.event_name == 'release'
           shell: bash {0}
@@ -270,6 +270,7 @@ jobs:
           #if: github.event_name == 'release'
           shell: bash {0}
           run: |
+              conda info
               anaconda login --hostname github-actions-${{ matrix.os  }}-$RANDOM --username ${{ secrets.ANACONDA_USERNAME }} --password ${{ secrets.ANACONDA_PASSWORD }}
               #conda-build --channel conda-forge --user geo-down-under conda
               conda-build --channel conda-forge --user jgiordani conda
