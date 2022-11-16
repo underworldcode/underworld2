@@ -256,7 +256,7 @@ jobs:
             python-version: ${{ matrix.python-version }}
       
         - name: Config Conda
-          shell: bash {0}
+          shell: bash -l {0}
           run: |
               conda install --channel conda-forge conda-build anaconda-client conda-verify
               conda config --add channels conda-forge
@@ -266,12 +266,12 @@ jobs:
               
         - name: Config Conda For Upload
           #if: github.event_name == 'release'
-          shell: bash {0}
+          shell: bash -l {0}
           run: conda config --set anaconda_upload yes
 
         - name: Upload new Packages
           #if: github.event_name == 'release'
-          shell: bash {0}
+          shell: bash -l {0}
           run: |
               conda info
               anaconda login --hostname github-actions-${{ matrix.os  }}-$RANDOM --username ${{ secrets.ANACONDA_USERNAME }} --password ${{ secrets.ANACONDA_PASSWORD }}
