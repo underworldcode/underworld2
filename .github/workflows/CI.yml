@@ -203,7 +203,7 @@ jobs:
   test_in_UW_Container:
     name: Test in Docker Container
     needs: build_underworld_image
-    if: always()
+    if: false && always() # TODO: disabling tests
     runs-on: ubuntu-latest
     container:
       image: julesg/underworld2
@@ -238,62 +238,63 @@ jobs:
           #pytest -vvv UWGeodynamics
 
 
-#   conda_build:
-#       name: Conda Build (Python ${{matrix.python-version}} ${{ matrix.os }})
-#       runs-on: ${{ matrix.os }}
-#       strategy:
-#         fail-fast: false
-#         matrix:
-#           os: ["ubuntu-latest", "macos-latest"]
-#           python-version: ["3.8", "3.9", "3.10"]
-#       steps:
-#         - uses: actions/checkout@v3
-#         - uses: conda-incubator/setup-miniconda@v2
-#           with:
-#             auto-update-conda: true
-#             python-version: ${{ matrix.python-version }}
-        
-#         - name: Config Conda
-#           shell: bash -l {0}
-#           run: |
-#               conda install --channel conda-forge conda-build anaconda-client conda-verify
-#               conda config --add channels conda-forge
-#               conda config --add channels underworldcode
-#               conda config --set anaconda_upload no
-  
-#         - name: Config Conda For Upload
-#           if: github.event_name == 'release'
-#           shell: bash -l {0}
-#           run: conda config --set anaconda_upload yes
-  
-#         - name: Upload new Packages
-#           if: github.event_name == 'release'
-#           shell: bash -l {0}
-#           run: |
-#               anaconda login --hostname github-actions-${{ matrix.os  }}-$RANDOM --username ${{ secrets.ANACONDA_USERNAME }} --password ${{ secrets.ANACONDA_PASSWORD }}
-#               conda-build --channel conda-forge --user geo-down-under conda
-#               anaconda logout
+  conda_build:
+      name: Conda Build (Python ${{matrix.python-version}} ${{ matrix.os }})
+      runs-on: ${{ matrix.os }}
+      strategy:
+        fail-fast: false
+        matrix:
+          os: ["ubuntu-latest", "macos-latest"]
+          python-version: ["3.8", "3.9", "3.10"]
+      steps:
+        - uses: actions/checkout@v3
+        - uses: conda-incubator/setup-miniconda@v2
+          with:
+            auto-update-conda: true
+            python-version: ${{ matrix.python-version }}
+      
+        - name: Config Conda
+          shell: bash -l {0}
+          run: |
+              conda install --channel conda-forge conda-build anaconda-client conda-verify
+              conda config --add channels conda-forge
+              conda config --add channels underworldcode
+              conda config --set anaconda_upload no
 
-#   pypi:
-#     runs-on: ${{ matrix.os }}
-#     env:
-#       TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
-#       TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
-#     strategy:
-#       matrix:
-#         os: ["ubuntu-latest", "macos-latest"]
-#         python-version: ["3.8", "3.9", "3.10"]
-#     steps:
-#       - uses: actions/checkout@v3
-#       - name: Set up Python
-#         uses: actions/setup-python@v2
-#         with:
-#           python-version: ${{ matrix.python-version }}
-#       - name: Package for Pypi
-#         run: |
-#           python setup.py sdist
-#       - name: Upload to Pypi
-#         if: github.event_name == 'release'
-#         run: |
-#           pip install twine
-#           python -m twine upload dist/* -r pypi
+        - name: Config Conda For Upload
+          if: github.event_name == 'release'
+          shell: bash -l {0}
+          run: conda config --set anaconda_upload yes
+
+        - name: Upload new Packages
+          if: github.event_name == 'release'
+          shell: bash -l {0}
+          run: |
+              anaconda login --hostname github-actions-${{ matrix.os  }}-$RANDOM --username ${{ secrets.ANACONDA_USERNAME }} --password ${{ secrets.ANACONDA_PASSWORD }}
+              #conda-build --channel conda-forge --user geo-down-under conda
+              conda-build --channel conda-forge --user jgiordani conda
+              anaconda logout
+
+  pypi:
+    runs-on: ${{ matrix.os }}
+    env:
+      TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
+      TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
+    strategy:
+      matrix:
+        os: ["ubuntu-latest", "macos-latest"]
+        python-version: ["3.8", "3.9", "3.10"]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Package for Pypi
+        run: |
+          python setup.py sdist
+      - name: Upload to Pypi
+        if: github.event_name == 'release'
+        run: |
+          pip install twine
+          python -m twine upload dist/* -r pypi
