@@ -2,5 +2,4 @@
     - mpich
     - openmpi [linux]
  petsc:
-    - 3.17
     - 3.18.1

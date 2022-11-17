@@ -5,6 +5,9 @@ on:
   release:
   workflow_dispatch:
 
+env:
+  PETSC_VERSION: 3.18.1
+
 jobs:
 
   check:
@@ -124,9 +127,10 @@ jobs:
         with:
           context: .
           push: true
+          build-args: PETSC_VERSION=${{ env.PETSC_VERSION }}
           file: ./docs/development/docker/petsc/Dockerfile
           platforms: linux/amd64
-          tags: julesg/petsc:3.18.0-amd64
+          tags: julesg/petsc:${{ env.PETSC_VERSION }}-amd64
       
             ## Github action's times out building petsc multi arch, so manifest commands
             ## must be manually applied, below is an example of the commands
@@ -196,6 +200,7 @@ jobs:
         with:
           context: .
           push: true
+          build-args: PETSC_VERSION=${{ env.PETSC_VERSION }}
           file: ./docs/development/docker/underworld2/Dockerfile
           platforms: linux/amd64, linux/arm64
           tags: julesg/underworld2
@@ -203,7 +208,8 @@ jobs:
   test_in_UW_Container:
     name: Test in Docker Container
     needs: build_underworld_image
-    if: false && always() # TODO: disabling tests
+    if: always()
+      #if: false() # DEBUG: disabling tests
     runs-on: ubuntu-latest
     container:
       image: julesg/underworld2
@@ -244,10 +250,8 @@ jobs:
       strategy:
         fail-fast: false
         matrix:
-          #os: ["ubuntu-latest", "macos-latest"]
-          #python-version: ["3.8", "3.9", "3.10"]
-          os: ["ubuntu-latest"]
-          python-version: ["3.10"]
+          os: ["ubuntu-latest", "macos-latest"]
+          python-version: ["3.8", "3.9", "3.10"]
       steps:
         - uses: actions/checkout@v3
         - uses: conda-incubator/setup-miniconda@v2
@@ -265,18 +269,17 @@ jobs:
               anaconda logout
               
         - name: Config Conda For Upload
-          #if: github.event_name == 'release'
+          if: github.event_name == 'release'
           shell: bash -l {0}
           run: conda config --set anaconda_upload yes
 
         - name: Upload new Packages
-          #if: github.event_name == 'release'
+          if: github.event_name == 'release'
           shell: bash -l {0}
           run: |
               conda info
               anaconda login --hostname github-actions-${{ matrix.os  }}-$RANDOM --username ${{ secrets.ANACONDA_USERNAME }} --password ${{ secrets.ANACONDA_PASSWORD }}
-              #conda-build --channel conda-forge --user geo-down-under conda
-              conda-build --channel conda-forge --user jgiordani conda
+              conda-build --channel conda-forge --user geo-down-under conda
               anaconda logout
 
   pypi:

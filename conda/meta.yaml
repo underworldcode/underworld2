@@ -8,10 +8,10 @@ package:
   version: {{ version }}
 
 source:
-  git_url: https://github.com/julesghub/underworld2.git
-  git_rev: dockerfile-updates
-    #  url: https://github.com/underworldcode/underworld2/archive/refs/tags/v{{ version }}b.tar.gz
-    #  sha256: {{ sha256 }}
+  # git_url: https://github.com/julesghub/underworld2.git
+  # git_rev: dockerfile-updates
+  url: https://github.com/underworldcode/underworld2/archive/refs/tags/v{{ version }}b.tar.gz
+  sha256: {{ sha256 }}
 
 build:
   skip: true  # [win]

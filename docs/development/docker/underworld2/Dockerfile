@@ -21,6 +21,10 @@ ENV LANG=C.UTF-8
 # mpi lib will be install at /usr/local/lib
 ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 
+# This is passed in via github actions on the underworld repo but
+# has a default value of 3.18.1
+ARG PETSC_VERSION="3.18.1"
+
 # python env vars. 
 # prepappending on PATH means all pip install will goto the PYOPT
 ENV PYVER=3.10
@@ -106,8 +110,8 @@ RUN apt-get update \
 RUN pip3 install -r /opt/requirements.txt
 
 # mpi, petsc, mpi4py, petsc4py, h5py
-COPY --from=julesg/petsc:3.18.0 /opt       /opt
-COPY --from=julesg/petsc:3.18.0 /usr/local /usr/local
+COPY --from=julesg/petsc:$PETSC_VERSION /opt       /opt
+COPY --from=julesg/petsc:$PETSC_VERSION /usr/local /usr/local
 RUN apt-get update \
 &&  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends $(awk '{print $1'} /opt/installed.txt) \
 &&  apt-get clean \
