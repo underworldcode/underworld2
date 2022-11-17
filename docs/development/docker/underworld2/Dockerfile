@@ -21,7 +21,7 @@ ENV LANG=C.UTF-8
 # mpi lib will be install at /usr/local/lib
 ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 
-# PETSC_VERSION passed in via build-args
+# PETSC_VERSION passed in via --build-args
 # Used for github actions on the underworld repo
 # Has a default value of 3.18.1
 ARG PETSC_VERSION="3.18.1"

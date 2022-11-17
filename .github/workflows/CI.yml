@@ -59,7 +59,7 @@ jobs:
             fi
             if [[ $file == "docs/development/docker/underworld2/Dockerfile" ]]; then
               echo "Change to the Underworld Docker file have been detected."
-              echo "run_uw=false" >> $GITHUB_OUTPUT
+              echo "run_uw=true" >> $GITHUB_OUTPUT
               continue
             fi
           done < files.txt
