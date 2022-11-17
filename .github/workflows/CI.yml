@@ -203,7 +203,7 @@ jobs:
           push: true
           build-args: PETSC_VERSION=${{ env.PETSC_VERSION }}
           file: ./docs/development/docker/underworld2/Dockerfile
-          platforms: linux/amd64, linux/arm64
+          platforms: linux/amd64
           tags: julesg/underworld2:${{ env.UW_VERSION }}b
 
   test_in_UW_Container:
