@@ -13,6 +13,14 @@
 # minimal sections of the build layer.
 #####################################################################
 
+# PETSC_VERSION passed in via --build-args
+# Used for github actions on the underworld repo
+# Must go before the 1st FROM see
+# https://docs.docker.com/engine/reference/builder/#understand-how-arg-and-from-interact
+ARG PETSC_VERSION=3.18.1
+# 'petsc-image' will be used later on in build stage COPY command 
+FROM julesg/petsc:${PETSC_VERSION} as petsc-image
+
 FROM ubuntu:22.04 as runtime
 LABEL maintainer="https://github.com/underworldcode/"
 
@@ -20,11 +28,6 @@ LABEL maintainer="https://github.com/underworldcode/"
 ENV LANG=C.UTF-8
 # mpi lib will be install at /usr/local/lib
 ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
-
-# PETSC_VERSION passed in via --build-args
-# Used for github actions on the underworld repo
-# Has a default value of 3.18.1
-ARG PETSC_VERSION="3.18.1"
 
 # python env vars. 
 # prepappending on PATH means all pip install will goto the PYOPT
@@ -111,8 +114,8 @@ RUN apt-get update \
 RUN pip3 install -r /opt/requirements.txt
 
 # mpi, petsc, mpi4py, petsc4py, h5py
-COPY --from=julesg/petsc:$PETSC_VERSION /opt       /opt
-COPY --from=julesg/petsc:$PETSC_VERSION /usr/local /usr/local
+COPY --from=petsc-image /opt       /opt
+COPY --from=petsc-image /usr/local /usr/local
 RUN apt-get update \
 &&  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends $(awk '{print $1'} /opt/installed.txt) \
 &&  apt-get clean \
