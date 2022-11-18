@@ -142,8 +142,6 @@ FROM runtime as final
 COPY --from=build --chown=$NB_USER:users /opt /opt
 COPY --from=build --chown=$NB_USER:users /usr/local /usr/local
 
-# Record Python packages, but only record system packages!
-# Not venv packages, which will be copied directly in.
 # Copy in examples, tests, etc.
 COPY --chown=jovyan:users ./docs/examples   $NB_HOME/Underworld/examples
 COPY --chown=jovyan:users ./docs/cheatsheet $NB_HOME/Underworld/cheatsheet
