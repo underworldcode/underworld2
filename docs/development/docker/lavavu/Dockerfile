@@ -6,7 +6,6 @@ ENV PYVER=3.10
 ENV VIRTUAL_ENV=/opt/venv
 # The following ensures that the venv takes precedence if available
 ENV PATH=${VIRTUAL_ENV}/bin:$PATH
-
 # The following ensures venv packages are available when using system python (such as from jupyter)
 ENV PYTHONPATH=${PYTHONPATH}:${VIRTUAL_ENV}/lib/python${PYVER}/site-packages
 # add joyvan user, volume mount and expose port 8888
