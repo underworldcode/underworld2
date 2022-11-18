@@ -94,6 +94,7 @@ RUN apt-get update -qq \
 # 
 RUN pip3 install -U setuptools \
 &&  pip3 install --no-cache-dir \
+         psutil==5.9.2 \
          matplotlib \
          scipy \
          pint \
