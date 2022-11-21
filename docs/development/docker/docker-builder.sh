@@ -15,7 +15,7 @@ docker build . --pull -f ./docs/development/docker/mpi/Dockerfile.openmpi -t jul
 
 docker build . --pull -f ./docs/development/docker/petsc/Dockerfile -t julesg/petsc:3.18.1-$ARCH
 
-docker build . --pull -f ./docs/development/docker/lavavu/Dockerfile -t julesg/lavavu-$ARCH
+docker build . --pull -f ./docs/development/docker/lavavu/Dockerfile -t julesg/lavavu:$ARCH
 
 docker build .  -f ./docs/development/docker/underworld2/Dockerfile -t julesg/underworld2:2.14.1-$ARCH
 
