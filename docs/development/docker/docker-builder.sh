@@ -17,5 +17,4 @@ docker build . --pull -f ./docs/development/docker/petsc/Dockerfile -t julesg/pe
 
 docker build . --pull -f ./docs/development/docker/lavavu/Dockerfile -t julesg/lavavu:$ARCH
 
-docker build .  -f ./docs/development/docker/underworld2/Dockerfile -t julesg/underworld2:2.14.1-$ARCH
-
+docker build .  -f ./docs/development/docker/underworld2/Dockerfile -t julesg/underworld2:2.14.0b-$ARCH
