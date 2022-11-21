@@ -74,9 +74,7 @@ RUN apt-get update -qq \
 &&  apt-get clean \
 &&  rm -rf /var/lib/apt/lists/*
 
-# requirements for petsc4py force psutil==5.9.2 for upcoming jupyter installation
 RUN pip3 install --no-cache-dir \
-      psutil==5.9.3 \
       cython \
       numpy \
       mpi4py

@@ -47,6 +47,7 @@ RUN useradd -m -s /bin/bash -N $NB_USER
 # runtime packages
 RUN apt-get update -qq \
 &&  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
+        ca-certificates \
         bash-completion \
         ssh \
         python3-venv \
@@ -91,10 +92,10 @@ RUN apt-get update -qq \
 &&  apt-get clean \
 &&  rm -rf /var/lib/apt/lists/*
 
-# 
-RUN pip3 install -U setuptools \
+# Remove this for future versions
+# setuptools=65.6.0 has a unfixed error, so forcing version
+RUN pip3 install setuptools==65.5.1 --force-reinstall --no-cache \
 &&  pip3 install --no-cache-dir \
-         psutil==5.9.3 \
          matplotlib \
          scipy \
          pint \
@@ -106,8 +107,8 @@ RUN pip3 install -U setuptools \
 
 
 # Lets grab lavavu & requirements
-COPY --from=underworldcode/lavavu /opt       /opt
-COPY --from=underworldcode/lavavu /usr/local /usr/local
+COPY --from=julesg/lavavu /opt       /opt
+COPY --from=julesg/lavavu /usr/local /usr/local
 RUN apt-get update \
 &&  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends $(awk '{print $1'} /opt/installed.txt) \
 &&  apt-get clean \
@@ -127,9 +128,10 @@ WORKDIR /tmp
 COPY --chown=$NB_USER:users . /tmp/underworld2
 WORKDIR /tmp/underworld2
 RUN pip3 install -vvv .
-RUN pip3 install --no-cache-dir \
-        git+https://github.com/drufat/triangle.git \
-        badlands
+RUN pip3 install setuptools==65.5.1 --force-reinstall --no-cache-dir \
+&&  pip3 install --no-cache-dir \
+       git+https://github.com/drufat/triangle.git \
+       badlands
 
 RUN pip3 freeze >/opt/requirements.txt
 # Record manually install apt packages.
