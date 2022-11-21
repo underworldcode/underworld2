@@ -1074,6 +1074,7 @@ Assumptions:
 
 PetscErrorCode _VecScatterBeginEnd( VecScatter vscat, Vec FROM, Vec TO, InsertMode addv,ScatterMode mode )
 {
+  PetscFunctionBeginUser;
 #if( (PETSC_VERSION_MAJOR==2) && (PETSC_VERSION_MINOR==3) && (PETSC_VERSION_SUBMINOR==2) )
 	// 2.3.2 ordering of args
 	VecScatterBegin( FROM, TO, addv, mode, vscat );

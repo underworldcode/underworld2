@@ -19,7 +19,8 @@
 
 PetscErrorCode BSSCR_PetscExtStokesSolversInitialize( void )
 {
-    Stg_PCRegister( "gtkg", "Solvers/KSPSolvers/src/BSSCR", "BSSCR_PCCreate_GtKG", BSSCR_PCCreate_GtKG );
+  PetscFunctionBegin;
+  Stg_PCRegister( "gtkg", "Solvers/KSPSolvers/src/BSSCR", "BSSCR_PCCreate_GtKG", BSSCR_PCCreate_GtKG );
 	//Stg_PCRegister( "bfbt", "Solvers/KSPSolvers/src/BSSCR", "BSSCR_PCCreate_GtKG", BSSCR_PCCreate_GtKG );
 	PetscFunctionReturn(0);
 }
@@ -28,6 +29,7 @@ PetscErrorCode BSSCR_PetscExtStokesSolversInitialize( void )
 PetscErrorCode BSSCR_PetscExtStokesSolversFinalize( void )
 {
 	
+  PetscFunctionBegin;
 #if ((PETSC_VERSION_MAJOR==3) && (PETSC_VERSION_MINOR>=4))
 //  PCFinalizePackage();
 #else

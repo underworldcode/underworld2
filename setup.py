@@ -323,6 +323,7 @@ functionality of the code running in a parallel HPC environment.",
                        cmake_configure_options=[
                            f"-DPython3_ROOT_DIR={Path(sys.prefix)}",
                            "-DCALL_FROM_SETUP_PY:BOOL=ON"]
+                       #, cmake_build_type="Debug" ## Uncomment for debug
                        ),
     ],
     cmdclass=dict(build_ext=BuildExtension),
