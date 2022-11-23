@@ -1,6 +1,18 @@
 CHANGES: Underworld2
 =======================
 
+Release 2.14-dev []
+---------------------------
+New:
+ * Multiple MPI base dockers available at underworldcode/openmpi and underworldcode/mpich
+
+Changes:
+ * Dockerfile rework, smaller docker images.
+ * Multiple mpi implementation images for HPC usage (Gadi and Setonix).
+
+Fixes:
+ * Revert to HDF5 1.10.
+
 Release 2.13.1 [2022-08-15]
 ---------------------------
 Fixes:
