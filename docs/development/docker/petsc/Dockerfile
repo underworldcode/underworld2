@@ -67,8 +67,8 @@ RUN apt-get update -qq \
 &&  rm -rf /var/lib/apt/lists/*
 
 # copy in from mpi container
-COPY --from=julesg/openmpi:4.1.4 /opt/installed.txt /opt/installed.txt
-COPY --from=julesg/openmpi:4.1.4 /usr/local /usr/local
+COPY --from=underworldcode/openmpi:4.1.4 /opt/installed.txt /opt/installed.txt
+COPY --from=underworldcode/openmpi:4.1.4 /usr/local /usr/local
 RUN apt-get update -qq \
 &&  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends $(awk '{print $1'} /opt/installed.txt) \
 &&  apt-get clean \

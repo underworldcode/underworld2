@@ -19,7 +19,7 @@
 # https://docs.docker.com/engine/reference/builder/#understand-how-arg-and-from-interact
 ARG PETSC_VERSION=3.18.1
 # 'petsc-image' will be used later on in build stage COPY command 
-FROM julesg/petsc:${PETSC_VERSION} as petsc-image
+FROM underworldcode/petsc:${PETSC_VERSION} as petsc-image
 
 FROM ubuntu:22.04 as runtime
 LABEL maintainer="https://github.com/underworldcode/"
@@ -107,8 +107,8 @@ RUN pip3 install setuptools==65.5.1 --force-reinstall --no-cache \
 
 
 # Lets grab lavavu & requirements
-COPY --from=julesg/lavavu /opt       /opt
-COPY --from=julesg/lavavu /usr/local /usr/local
+COPY --from=underworldcode/lavavu /opt       /opt
+COPY --from=underworldcode/lavavu /usr/local /usr/local
 RUN apt-get update \
 &&  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends $(awk '{print $1'} /opt/installed.txt) \
 &&  apt-get clean \
