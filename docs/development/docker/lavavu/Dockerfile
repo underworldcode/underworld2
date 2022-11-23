@@ -6,7 +6,6 @@ ENV PYVER=3.10
 ENV VIRTUAL_ENV=/opt/venv
 # The following ensures that the venv takes precedence if available
 ENV PATH=${VIRTUAL_ENV}/bin:$PATH
-
 # The following ensures venv packages are available when using system python (such as from jupyter)
 ENV PYTHONPATH=${PYTHONPATH}:${VIRTUAL_ENV}/lib/python${PYVER}/site-packages
 # add joyvan user, volume mount and expose port 8888
@@ -43,14 +42,6 @@ RUN apt-get update -qq \
 &&  apt-get clean \
 &&  rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install -U setuptools  \
-&&  pip3 install --no-cache-dir \
-        packaging \
-        appdirs \
-        jupyter \
-        pillow \
-        ipython
-
 FROM base_runtime AS build_base
 # FROM base_runtime AS build_base
 # install build requirements
@@ -72,7 +63,17 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         zlib1g-dev \
         cmake \
         libopenblas-dev \
-        libz-dev
+        libz-dev \
+        gcc \
+        python3-dev
+
+RUN pip3 install -U setuptools  \
+&&  pip3 install --no-cache-dir \
+        packaging \
+        appdirs \
+        jupyter \
+        pillow \
+        ipython
 
 # lavavu
 # create a virtualenv to put new python modules

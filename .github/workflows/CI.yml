@@ -5,18 +5,24 @@ on:
   release:
   workflow_dispatch:
 
+env:
+  PETSC_VERSION: 3.18.1
+  UW_VERSION: 2.14.0
+  OMPI_VERSION: 4.1.4
+
 jobs:
 
   check:
     name: Check if Docker files have changed
+    runs-on: ubuntu-latest
     outputs:
+      run_ompi: ${{ steps.check_files.outputs.run_ompi }}
       run_petsc: ${{ steps.check_files.outputs.run_petsc }}
       run_lavavu: ${{ steps.check_files.outputs.run_lavavu }}
-      run_base: ${{ steps.check_files.outputs.run_base }}
-    runs-on: ubuntu-latest
+      run_uw: ${{ steps.check_files.outputs.run_uw }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 2
 
@@ -29,47 +35,92 @@ jobs:
           echo "========== check paths of changed files =========="
           git diff --name-only HEAD^ HEAD > files.txt
               
-          echo "::set-output name=run_base::false"
-          echo "::set-output name=run_petsc::false"
-          echo "::set-output name=run_lavavu::false"
+          echo "run_ompi=false" >> $GITHUB_OUTPUT
+          echo "run_petsc=false" >> $GITHUB_OUTPUT
+          echo "run_lavavu=false" >> $GITHUB_OUTPUT
+          echo "run_uw=false" >> $GITHUB_OUTPUT
           
           while IFS= read -r file
           do
             echo $file
             if [[ $file == "docs/development/docker/petsc/Dockerfile" ]]; then
               echo "Change to the Petsc Docker file have been detected."
-              echo "::set-output name=run_petsc::true"
-              echo "::set-output name=run_base::true"
+              echo "run_petsc=true" >> $GITHUB_OUTPUT
               continue
             fi
             if [[ $file == "docs/development/docker/lavavu/Dockerfile" ]]; then
               echo "Change to the Lavavu Docker file have been detected."
-              echo "::set-output name=run_lavavu::true"
-              echo "::set-output name=run_base::true"
+              echo "run_lavavu=true" >> $GITHUB_OUTPUT
               continue
             fi
-            if [[ $file == "docs/development/docker/base/Dockerfile" ]]; then
+            if [[ $file == "docs/development/docker/mpi/Dockerfile.openmpi" ]]; then
               echo "Change to the Base Docker file have been detected."
-              echo "::set-output name=run_base::true"
+              echo "run_ompi=true" >> $GITHUB_OUTPUT
+              continue
+            fi
+            if [[ $file == "docs/development/docker/underworld2/Dockerfile" ]]; then
+              echo "Change to the Underworld Docker file have been detected."
+              echo "run_uw=true" >> $GITHUB_OUTPUT
               continue
             fi
           done < files.txt
-
-  build_petsc_image:
-    name: Build PETSc Docker image
+  
+  debug_check:
+    runs-on: ubuntu-latest
     needs: check
-    if: needs.check.outputs.run_petsc == 'true' || github.event_name == 'workflow_dispatch'
+    steps:
+      - run: echo ${{ needs.check.outputs.run_ompi }} ${{needs.check.outputs.run_petsc}} ${{needs.check.outputs.run_lavavu}} ${{needs.check.outputs.run_uw}}
+  
+  build_ompi_image:
+    name: Build OpenMPI Docker image
+    needs: check
+    if: needs.check.outputs.run_ompi == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-        
+        uses: docker/setup-buildx-action@v2
+     
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
       - name: Login to DockerHub
-        uses: docker/login-action@v1 
+        uses: docker/login-action@v2 
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      
+      - name: Build Base Docker Image
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: true
+          build-args: OMPI_VERSION = ${{ env.OMPI_VERSION }}
+          file: ./docs/development/docker/mpi/Dockerfile.openmpi
+          platforms: linux/amd64, linux/arm64
+          tags: julesg/openmpi:${{ env.OMPI_VERSION }}
+      
+  build_petsc_image:
+    name: Build PETSc Docker image
+    needs: [check, build_ompi_image]
+    if: always() && (needs.check.outputs.run_petsc == 'true' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    steps:
+      
+      - name: Checkout
+        uses: actions/checkout@v3
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+        
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v2 
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -79,14 +130,19 @@ jobs:
         with:
           context: .
           push: true
+          build-args: PETSC_VERSION=${{ env.PETSC_VERSION }}
           file: ./docs/development/docker/petsc/Dockerfile
           platforms: linux/amd64
-          tags: underworldcode/petsc:amd64
+          tags: julesg/petsc:${{ env.PETSC_VERSION }}-amd64
       
-      - name: Update manifest
-        run: |
-          docker manifest create underworldcode/petsc --amend underworldcode/petsc:amd64 --amend underworldcode/petsc:arm64
-          docker manifest push underworldcode/petsc
+            ## Github action's times out building petsc multi arch, so manifest commands
+            ## must be manually applied, below is an example of the commands
+            # - name: Update manifest
+            #   run: |
+            #     docker build -f ./docs/development/petsc/Dockerfile -t julesg/petsc:3.18.0-arm64
+            #     docker push julesg/petsc-3.18.0:arm64
+            #     docker manifest create julesg/petsc:3.18.0 --amend julesg/petsc:3.18.0-amd64 --amend julesg/petsc:3.18.0-arm64
+            #     docker manifest push julesg/petsc:3.18.0
       
   build_lavavu_image:
     name: Build Lavavu Docker image
@@ -96,128 +152,82 @@ jobs:
     steps:
 
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v2
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v2
       
       - name: Login to DockerHub
-        uses: docker/login-action@v1 
+        uses: docker/login-action@v2 
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       
       - name: Build Lavavu Docker Image
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
           context: .
           push: true
           file: ./docs/development/docker/lavavu/Dockerfile
-          platforms: linux/amd64
-          tags: underworldcode/lavavu:amd64
-      
-      - name: Update manifest
-        run: |
-          docker manifest create underworldcode/lavavu --amend underworldcode/lavavu:amd64 --amend underworldcode/lavavu:arm64
-          docker manifest push underworldcode/lavavu
-
-
-  build_base_image:
-    name: Build Base Docker image
-    needs: [check, build_lavavu_image, build_petsc_image]
-    if: ${{ always() && contains(needs.*.result, 'success') && !(contains(needs.*.result, 'failure')) && (needs.check.outputs.run_base == 'true')}}
-    runs-on: ubuntu-latest
-    steps:
-      
-      - name: Checkout
-        uses: actions/checkout@v2
-      
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-     
-      - name: Login to DockerHub
-        uses: docker/login-action@v1 
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      
-      - name: Build Base Docker Image
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          push: true
-          file: ./docs/development/docker/base/Dockerfile
-          platforms: linux/amd64
-          tags: underworldcode/base:amd64
-      
-      - name: Update manifest
-        run: |
-          docker manifest create underworldcode/base --amend underworldcode/base:amd64 --amend underworldcode/base:arm64
-          docker manifest push underworldcode/base
-
+          platforms: linux/amd64, linux/arm64
+          tags: julesg/lavavu
 
   build_underworld_image:
     name: Build Underworld Image
+    needs: [check, build_petsc_image, build_lavavu_image]    
+      # if: always()
+    if: always() && ( needs.check.outputs.run_uw == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'release' )
     runs-on: ubuntu-latest
-    needs: [build_base_image]
-    if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
     steps:
       
       - name: Checkout
-        uses: actions/checkout@v2
-      
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-      
-      - name: Update sha256
-        run: |
-          docker pull underworldcode/base
-          SHA256=$(docker inspect --format='{{index .RepoDigests 0}}' underworldcode/base)
-          sed -i "/sha256/c\FROM ${SHA256} as base_runtime" ./docs/development/docker/underworld2/Dockerfile
+        uses: actions/checkout@v3
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      
       - name: Login to DockerHub
-        uses: docker/login-action@v1 
+        uses: docker/login-action@v2 
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       
       - name: Build Underworld Docker Image
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
           context: .
           push: true
+          build-args: PETSC_VERSION=${{ env.PETSC_VERSION }}
           file: ./docs/development/docker/underworld2/Dockerfile
           platforms: linux/amd64
-          tags: underworldcode/underworld2:amd64
-
-      - name: Update manifest
-        run: |
-          docker manifest create underworldcode/underworld2 --amend underworldcode/underworld2:amd64 --amend underworldcode/underworld2:arm64
-          docker manifest push underworldcode/underworld2
-
+          tags: julesg/underworld2:${{ env.UW_VERSION }}b
 
   test_in_UW_Container:
     name: Test in Docker Container
-    needs: [build_base_image]
+    needs: build_underworld_image
     if: always()
+      #if: false() # DEBUG: disabling tests
     runs-on: ubuntu-latest
     container:
-      image: underworldcode/base
+      image: julesg/underworld2:2.14.0b
       options: --user root
     steps:
 
       - name: Build dependencies
         run: |
           apt-get update -qq 
-          DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends build-essential pkg-config python3-dev swig libxml2-dev cmake ninja-build
+          DEBIAN_FRONTEND=noninteractive xargs -a /opt/installed.txt apt-get install -yq --no-install-recommends
+          # Note all python dependencies should be in the runtime container
 
-      - name: Runtime dependencies
+      - name: Remove existing Underworld from container
         run: |
-          apt-get update -qq
-          DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends libxml2 libpython3.10
+          pip uninstall -y underworld
 
       - name: Checkout
         uses: actions/checkout@v2
@@ -228,14 +238,13 @@ jobs:
 
       - name: Run Tests
         run: |
-          pip install pytest nbmake
           cd docs
-          pytest -vvv pytests/*
-          cd test
-          cp -rf ../UWGeodynamics/examples UWGeodynamics/.
-          cp -rf ../UWGeodynamics/tutorials UWGeodynamics/.
-          cp -rf ../UWGeodynamics/benchmarks UWGeodynamics/.
-          pytest -vvv UWGeodynamics
+          pytest -vvv pytests/test.py pytests/test_examples.py pytests/test_user_guide.py
+          #cd test
+          #cp -rf ../UWGeodynamics/examples UWGeodynamics/.
+          #cp -rf ../UWGeodynamics/tutorials UWGeodynamics/.
+          #cp -rf ../UWGeodynamics/benchmarks UWGeodynamics/.
+          #pytest -vvv UWGeodynamics
 
 
   conda_build:
@@ -247,12 +256,12 @@ jobs:
           os: ["ubuntu-latest", "macos-latest"]
           python-version: ["3.8", "3.9", "3.10"]
       steps:
-        - uses: actions/checkout@v2
+        - uses: actions/checkout@v3
         - uses: conda-incubator/setup-miniconda@v2
           with:
             auto-update-conda: true
             python-version: ${{ matrix.python-version }}
-        
+      
         - name: Config Conda
           shell: bash -l {0}
           run: |
@@ -260,16 +269,18 @@ jobs:
               conda config --add channels conda-forge
               conda config --add channels underworldcode
               conda config --set anaconda_upload no
-  
+              anaconda logout
+              
         - name: Config Conda For Upload
           if: github.event_name == 'release'
           shell: bash -l {0}
           run: conda config --set anaconda_upload yes
-  
+
         - name: Upload new Packages
           if: github.event_name == 'release'
           shell: bash -l {0}
           run: |
+              conda info
               anaconda login --hostname github-actions-${{ matrix.os  }}-$RANDOM --username ${{ secrets.ANACONDA_USERNAME }} --password ${{ secrets.ANACONDA_PASSWORD }}
               conda-build --channel conda-forge --user geo-down-under conda
               anaconda logout
@@ -284,7 +295,7 @@ jobs:
         os: ["ubuntu-latest", "macos-latest"]
         python-version: ["3.8", "3.9", "3.10"]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up Python
         uses: actions/setup-python@v2
         with:

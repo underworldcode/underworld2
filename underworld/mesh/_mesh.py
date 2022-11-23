@@ -648,10 +648,12 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
                                    "resolution of mesh object.")
 
             # get units if they have been defined
-            try:
-                units = u.Quantity(h5f.attrs["units"])
-            except (RuntimeError, KeyError, UndefinedUnitError) as e:
-                units = None
+            units = None
+            if "units" in h5f.attrs.keys():
+                try:
+                    units = u.Quantity(h5f.attrs["units"])
+                except (RuntimeError, KeyError, UndefinedUnitError) as e:
+                    units = None
 
             dset = h5_get_dataset(h5f, 'vertices')
 
@@ -664,6 +666,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
             with dset.collective:
                 vertcpy = dset[self.data_nodegId[0:self.nodesLocal],:].copy()
             isRegular = h5f.attrs['regular']
+
         with self.deform_mesh(isRegular=isRegular):
             if units:
                 self.data[0:self.nodesLocal] = non_dimensionalise(vertcpy[:] * units)
