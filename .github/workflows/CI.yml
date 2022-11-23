@@ -106,7 +106,8 @@ jobs:
   build_petsc_image:
     name: Build PETSc Docker image
     needs: [check, build_ompi_image]
-    if: always() && (needs.check.outputs.run_petsc == 'true' || github.event_name == 'workflow_dispatch')
+    #if: always() && (needs.check.outputs.run_petsc == 'true' || github.event_name == 'workflow_dispatch')
+    if: false # disable petsc github action
     runs-on: ubuntu-latest
     steps:
       
@@ -205,7 +206,7 @@ jobs:
           push: true
           build-args: PETSC_VERSION=${{ env.PETSC_VERSION }}
           file: ./docs/development/docker/underworld2/Dockerfile
-          platforms: linux/amd64
+          platforms: linux/amd64, linux/arm64
           tags: julesg/underworld2:${{ env.UW_VERSION }}b
 
   test_in_UW_Container:
