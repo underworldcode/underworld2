@@ -13,6 +13,8 @@
 # minimal sections of the build layer.
 #####################################################################
 
+# https://docs.docker.com/engine/reference/builder/#understand-how-arg-and-from-interact
+ARG OMPI_VERSION=4.1.4
 
 FROM ubuntu:22.04 as runtime
 LABEL maintainer="https://github.com/underworldcode/"
@@ -45,7 +47,6 @@ FROM runtime as build
 
 # Build options for for openmpi
 ARG OMPI_MAJOR_VERSION="v4.1"
-ARG OMPI_VERSION="4.1.4"
 ARG OMPI_CONFIGURE_OPTIONS="--prefix=/usr/local"
 ARG OMPI_MAKE_OPTIONS="-j4"
 

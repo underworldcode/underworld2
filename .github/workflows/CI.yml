@@ -8,6 +8,7 @@ on:
 env:
   PETSC_VERSION: 3.18.1
   UW_VERSION: 2.14.0
+  OMPI_VERSION: 4.1.4
 
 jobs:
 
@@ -97,9 +98,10 @@ jobs:
         with:
           context: .
           push: true
+          build-args: OMPI_VERSION = ${{ env.OMPI_VERSION }}
           file: ./docs/development/docker/mpi/Dockerfile.openmpi
           platforms: linux/amd64, linux/arm64
-          tags: julesg/openmpi:4.1.4
+          tags: julesg/openmpi:${{ env.OMPI_VERSION }}
       
   build_petsc_image:
     name: Build PETSc Docker image
