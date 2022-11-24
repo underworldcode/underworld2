@@ -21,6 +21,7 @@ ARG PETSC_VERSION=3.18.1
 # 'petsc-image' will be used later on in build stage COPY command 
 FROM underworldcode/petsc:${PETSC_VERSION} as petsc-image
 
+
 FROM ubuntu:22.04 as runtime
 LABEL maintainer="https://github.com/underworldcode/"
 
@@ -104,7 +105,6 @@ RUN pip3 install setuptools==65.5.1 --force-reinstall --no-cache \
          nbmake \
          gFlex \
          tabulate 
-
 
 # Lets grab lavavu & requirements
 COPY --from=underworldcode/lavavu /opt       /opt
