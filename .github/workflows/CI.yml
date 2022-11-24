@@ -101,7 +101,7 @@ jobs:
           build-args: OMPI_VERSION = ${{ env.OMPI_VERSION }}
           file: ./docs/development/docker/mpi/Dockerfile.openmpi
           platforms: linux/amd64, linux/arm64
-          tags: julesg/openmpi:${{ env.OMPI_VERSION }}
+          tags: underworldcode/openmpi:${{ env.OMPI_VERSION }}
       
   build_petsc_image:
     name: Build PETSc Docker image
@@ -134,16 +134,16 @@ jobs:
           build-args: PETSC_VERSION=${{ env.PETSC_VERSION }}
           file: ./docs/development/docker/petsc/Dockerfile
           platforms: linux/amd64
-          tags: julesg/petsc:${{ env.PETSC_VERSION }}-amd64
+          tags: underworldcode/petsc:${{ env.PETSC_VERSION }}-amd64
       
             ## Github action's times out building petsc multi arch, so manifest commands
             ## must be manually applied, below is an example of the commands
             # - name: Update manifest
             #   run: |
-            #     docker build -f ./docs/development/petsc/Dockerfile -t julesg/petsc:3.18.0-arm64
-            #     docker push julesg/petsc-3.18.0:arm64
-            #     docker manifest create julesg/petsc:3.18.0 --amend julesg/petsc:3.18.0-amd64 --amend julesg/petsc:3.18.0-arm64
-            #     docker manifest push julesg/petsc:3.18.0
+            #     docker build -f ./docs/development/petsc/Dockerfile -t underworldcode/petsc:3.18.0-arm64
+            #     docker push underworldcode/petsc-3.18.0:arm64
+            #     docker manifest create underworldcode/petsc:3.18.0 --amend underworldcode/petsc:3.18.0-amd64 --amend underworldcode/petsc:3.18.0-arm64
+            #     docker manifest push underworldcode/petsc:3.18.0
       
   build_lavavu_image:
     name: Build Lavavu Docker image
@@ -174,7 +174,7 @@ jobs:
           push: true
           file: ./docs/development/docker/lavavu/Dockerfile
           platforms: linux/amd64, linux/arm64
-          tags: julesg/lavavu
+          tags: underworldcode/lavavu
 
   build_underworld_image:
     name: Build Underworld Image
@@ -207,7 +207,7 @@ jobs:
           build-args: PETSC_VERSION=${{ env.PETSC_VERSION }}
           file: ./docs/development/docker/underworld2/Dockerfile
           platforms: linux/amd64, linux/arm64
-          tags: julesg/underworld2:${{ env.UW_VERSION }}b
+          tags: underworldcode/underworld2:${{ env.UW_VERSION }}b
 
   test_in_UW_Container:
     name: Test in Docker Container
@@ -216,7 +216,7 @@ jobs:
       #if: false() # DEBUG: disabling tests
     runs-on: ubuntu-latest
     container:
-      image: julesg/underworld2:2.14.0b
+      image: underworldcode/underworld2:2.14.0b
       options: --user root
     steps:
 
