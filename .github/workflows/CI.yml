@@ -109,7 +109,7 @@ jobs:
           platforms: linux/amd64, linux/arm64
           tags: underworldcode/mpich:${{ env.MPICH_VERSION }}
 
-   build_ompi_image:
+  build_ompi_image:
     name: Build OpenMPI Docker image
     needs: check
     if: needs.check.outputs.run_ompi == 'true' || github.event_name == 'workflow_dispatch'
