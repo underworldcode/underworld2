@@ -17,10 +17,9 @@
 # Used for github actions on the underworld repo
 # Must go before the 1st FROM see
 # https://docs.docker.com/engine/reference/builder/#understand-how-arg-and-from-interact
-ARG PETSC_VERSION=3.18.1
+ARG PETSC_IMAGE="underworldcode/petsc:3.18.1"
 # 'petsc-image' will be used later on in build stage COPY command 
-FROM underworldcode/petsc:${PETSC_VERSION} as petsc-image
-
+FROM ${PETSC_IMAGE} as petsc-image
 
 FROM ubuntu:22.04 as runtime
 LABEL maintainer="https://github.com/underworldcode/"

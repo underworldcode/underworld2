@@ -13,6 +13,10 @@
 # minimal sections of the build layer.
 #####################################################################
 
+ARG MPI_IMAGE="underworldcode/openmpi:4.1.4"
+
+FROM ${MPI_IMAGE} as mpi-image
+
 FROM ubuntu:22.04 as runtime
 LABEL maintainer="https://github.com/underworldcode/"
 
@@ -67,8 +71,8 @@ RUN apt-get update -qq \
 &&  rm -rf /var/lib/apt/lists/*
 
 # copy in from mpi container
-COPY --from=underworldcode/openmpi:4.1.4 /opt/installed.txt /opt/installed.txt
-COPY --from=underworldcode/openmpi:4.1.4 /usr/local /usr/local
+COPY --from=mpi-image /opt/installed.txt /opt/installed.txt
+COPY --from=mpi-image /usr/local /usr/local
 RUN apt-get update -qq \
 &&  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends $(awk '{print $1'} /opt/installed.txt) \
 &&  apt-get clean \
