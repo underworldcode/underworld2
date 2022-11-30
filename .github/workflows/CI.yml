@@ -257,7 +257,7 @@ jobs:
       #if: false() # DEBUG: disabling tests
     runs-on: ubuntu-latest
     container:
-      image: underworldcode/underworld2:${{env.UW_VERSION}}b
+      image: underworldcode/underworld2:2.14.0b
       options: --user root
     steps:
 
