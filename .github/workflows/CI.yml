@@ -17,6 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       run_ompi: ${{ steps.check_files.outputs.run_ompi }}
+      run_mpich: ${{ steps.check_files.outputs.run_mpich }}
       run_petsc: ${{ steps.check_files.outputs.run_petsc }}
       run_lavavu: ${{ steps.check_files.outputs.run_lavavu }}
       run_uw: ${{ steps.check_files.outputs.run_uw }}
@@ -36,6 +37,7 @@ jobs:
           git diff --name-only HEAD^ HEAD > files.txt
               
           echo "run_ompi=false" >> $GITHUB_OUTPUT
+          echo "run_mpich=false" >> $GITHUB_OUTPUT
           echo "run_petsc=false" >> $GITHUB_OUTPUT
           echo "run_lavavu=false" >> $GITHUB_OUTPUT
           echo "run_uw=false" >> $GITHUB_OUTPUT
@@ -45,7 +47,7 @@ jobs:
             echo $file
             if [[ $file == "docs/development/docker/petsc/Dockerfile" ]]; then
               echo "Change to the Petsc Docker file have been detected."
-              echo "run_petsc=true" >> $GITHUB_OUTPUT
+              echo "run_petsc=false" >> $GITHUB_OUTPUT
               continue
             fi
             if [[ $file == "docs/development/docker/lavavu/Dockerfile" ]]; then
@@ -58,9 +60,14 @@ jobs:
               echo "run_ompi=true" >> $GITHUB_OUTPUT
               continue
             fi
+            if [[ $file == "docs/development/docker/mpi/Dockerfile.mpich" ]]; then
+              echo "Change to the Base Docker file have been detected."
+              echo "run_mpich=true" >> $GITHUB_OUTPUT
+              continue
+            fi
             if [[ $file == "docs/development/docker/underworld2/Dockerfile" ]]; then
               echo "Change to the Underworld Docker file have been detected."
-              echo "run_uw=true" >> $GITHUB_OUTPUT
+              echo "run_uw=false" >> $GITHUB_OUTPUT
               continue
             fi
           done < files.txt
@@ -69,9 +76,41 @@ jobs:
     runs-on: ubuntu-latest
     needs: check
     steps:
-      - run: echo ${{ needs.check.outputs.run_ompi }} ${{needs.check.outputs.run_petsc}} ${{needs.check.outputs.run_lavavu}} ${{needs.check.outputs.run_uw}}
+      - run: echo ${{ needs.check.outputs.run_ompi }} ${{ needs.check.outputs.run_mpich }}${{needs.check.outputs.run_petsc}} ${{needs.check.outputs.run_lavavu}} ${{needs.check.outputs.run_uw}}
   
-  build_ompi_image:
+  build_mpich_image:
+    name: Build MPICH Docker image
+    needs: check
+    if: needs.check.outputs.run_mpich == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      
+      - name: Checkout
+        uses: actions/checkout@v3
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+     
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v2 
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      
+      - name: Build Base Docker Image
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: true
+          build-args: MPICH_VERSION = ${{ env.MPICH_VERSION }}
+          file: ./docs/development/docker/mpi/Dockerfile.mpich
+          platforms: linux/amd64, linux/arm64
+          tags: underworldcode/mpich:${{ env.MPICH_VERSION }}
+
+   build_ompi_image:
     name: Build OpenMPI Docker image
     needs: check
     if: needs.check.outputs.run_ompi == 'true' || github.event_name == 'workflow_dispatch'
@@ -131,7 +170,10 @@ jobs:
         with:
           context: .
           push: true
-          build-args: PETSC_VERSION=${{ env.PETSC_VERSION }}
+          build-args: | 
+            PETSC_VERSION=${{ env.PETSC_VERSION }}
+            MPI_IMAGE=underworldcode/openmpi:${{env.OMPI_VERSION}}
+          
           file: ./docs/development/docker/petsc/Dockerfile
           platforms: linux/amd64
           tags: underworldcode/petsc:${{ env.PETSC_VERSION }}-amd64
@@ -204,7 +246,7 @@ jobs:
         with:
           context: .
           push: true
-          build-args: PETSC_VERSION=${{ env.PETSC_VERSION }}
+          build-args: PETSC_IMAGE=underworldcode/petsc:${{ env.PETSC_VERSION }}
           file: ./docs/development/docker/underworld2/Dockerfile
           platforms: linux/amd64, linux/arm64
           tags: underworldcode/underworld2:${{ env.UW_VERSION }}b
@@ -216,7 +258,7 @@ jobs:
       #if: false() # DEBUG: disabling tests
     runs-on: ubuntu-latest
     container:
-      image: underworldcode/underworld2:2.14.0b
+      image: underworldcode/underworld2:${{env.UW_VERSION}}b
       options: --user root
     steps:
 
