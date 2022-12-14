@@ -1533,6 +1533,8 @@ class Model(Material):
         self._heatFlux.data[...] = 0.
         self.mesh_variables["temperature"] = self._temperature
         self.restart_variables["temperature"] = self._temperature
+        self.mesh_variables["temperatureDot"] = self._temperatureDot
+        self.restart_variables["temperatureDot"] = self._temperatureDot
 
     def init_model(self, temperature="steady-state", pressure="lithostatic",
                    defaultStrainRate=1e-15 / u.second):
@@ -2839,6 +2841,25 @@ class _RestartFunction(object):
         for field in Model.restart_variables:
             obj = getattr(Model, field)
             path = os.path.join(self.restartDir, field + "-%s.h5" % step)
+            if field == "temperatureDot":
+                """
+                Because version 2.13 and lower didn't save the temperatureDot field
+                by default it's treated optionally here"
+                """
+                if not os.path.exist(path):
+                    if rank == 0:
+                        os = \
+                    """*******************************************************
+                    Warning, couldn't find temperatureDot field to reload for
+                    the SUPG solver. This may cause temperature instabilities
+                    after the restart solve. Please check the restart
+                    temperature field closely.
+                    To avoid this message please ensure a 'temperatureDot'
+                    .h5 file is available at restart."
+                    *******************************************************"""
+                    print(os)
+                    continue # don't try load, continue to the next restart_variable
+
             obj.load(str(path))
             if rank == 0:
                 now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')

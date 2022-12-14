@@ -17,6 +17,7 @@ rcParams =  {
     "nonlinear.max.iterations": [500, validate_int],
 
     "default.outputs" : [["temperature",
+                          "temperatureDot",
                           "pressureField",
                           "strainRateField",
                           "velocityField",
