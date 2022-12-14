@@ -58,6 +58,8 @@ Note this routine actually modifies the matrix and rhs b.
 // updated
 PetscErrorCode BSSCR_MatStokesBlock_ApplyScaling( MatStokesBlockScaling BA, Mat A, Vec b, Vec x, Mat S, PetscTruth sym )
 {
+  PetscFunctionBegin;
+
 	Mat K,G,D,C;
 	Vec L1,L2, R1,R2;
 	Vec f,h, u,p;
@@ -105,6 +107,8 @@ PetscErrorCode BSSCR_MatStokesBlock_ApplyScaling( MatStokesBlockScaling BA, Mat 
 }
 PetscErrorCode BSSCR_MatStokesBlock_ApplyScaling2( MatStokesBlockScaling BA, Mat A, Vec b, Vec x, Mat S, Mat M, PetscTruth sym )
 {
+  PetscFunctionBegin;
+
 	Mat K,G,D,C;
 	Vec L1,L2, R1,R2;
 	Vec f,h, u,p;
@@ -155,6 +159,8 @@ PetscErrorCode BSSCR_MatStokesBlock_ApplyScaling2( MatStokesBlockScaling BA, Mat
 // updated
 PetscErrorCode BSSCR_MatStokesBlockScalingCreate( MatStokesBlockScaling *_BA )
 {
+  PetscFunctionBegin;
+
 	MatStokesBlockScaling BA;
 	
 	PetscMalloc( sizeof(struct _p_MatStokesBlockScaling), &BA );
@@ -174,6 +180,7 @@ PetscErrorCode BSSCR_MatStokesBlockScalingCreate( MatStokesBlockScaling *_BA )
 // updated
 PetscErrorCode BSSCR_MatStokesBlockScalingDestroy( MatStokesBlockScaling BA )
 {
+  PetscFunctionBegin;
 	
 	if( BA->scaling_exists == PETSC_FALSE ) PetscFunctionReturn(0); 
 	
@@ -199,6 +206,7 @@ b and x are 2x1 block vectors
 // updated
 PetscErrorCode BSSCR_MatBlock_ConstructScaling( MatStokesBlockScaling BA, Mat A, Vec b, Vec x )
 {
+  PetscFunctionBegin;
     if( BA->scaling_exists == PETSC_FALSE ) {
 		
 	VecDuplicate( x, &BA->Lz ); 
@@ -215,6 +223,7 @@ PetscErrorCode BSSCR_MatBlock_ConstructScaling( MatStokesBlockScaling BA, Mat A,
 // updated
 PetscErrorCode BSSCR_mat_block_invert_scalings( MatStokesBlockScaling BA )
 {
+  PetscFunctionBegin;
 	Vec L1,L2, R1,R2;
 	
 	VecNestGetSubVec( BA->Lz, 0, &L1 );
@@ -238,6 +247,7 @@ PetscErrorCode BSSCR_mat_block_invert_scalings( MatStokesBlockScaling BA )
 /* updated */
 PetscErrorCode BSSCR_MatStokesBlockScaleSystem( MatStokesBlockScaling BA, Mat A, Vec b, Vec x, Mat S, PetscTruth sym )
 {
+  PetscFunctionBegin;
 	if( BA->scaling_exists == PETSC_FALSE ) {
 		BSSCR_MatBlock_ConstructScaling( BA,A,b,x );
 	}
@@ -258,6 +268,7 @@ PetscErrorCode BSSCR_MatStokesBlockScaleSystem( MatStokesBlockScaling BA, Mat A,
 }
 PetscErrorCode BSSCR_MatStokesBlockScaleSystem2( MatStokesBlockScaling BA, Mat A, Vec b, Vec x, Mat S, Mat M, PetscTruth sym )
 {
+  PetscFunctionBegin;
 	if( BA->scaling_exists == PETSC_FALSE ) {
 		BSSCR_MatBlock_ConstructScaling( BA,A,b,x );
 	}
@@ -281,6 +292,7 @@ PetscErrorCode BSSCR_MatStokesBlockScaleSystem2( MatStokesBlockScaling BA, Mat A
 PetscErrorCode BSSCR_MatStokesBlockUnScaleSystem( MatStokesBlockScaling BA, Mat A, Vec b, Vec x, Mat S, PetscTruth sym )
 {
 	
+  PetscFunctionBegin;
 	if( BA->system_has_been_scaled == PETSC_FALSE ) {
 		printf("Warning: MatBlock has not been scaled !! \n");
 		PetscFunctionReturn(0);
@@ -299,6 +311,7 @@ PetscErrorCode BSSCR_MatStokesBlockUnScaleSystem( MatStokesBlockScaling BA, Mat 
 
 PetscErrorCode BSSCR_MatStokesBlockReportOperatorScales( Mat A, PetscTruth sym )
 {
+  PetscFunctionBegin;
 	Vec rA, rG;
 	PetscInt loc;
 	PetscReal min, max;
@@ -379,6 +392,7 @@ PetscErrorCode BSSCR_MatStokesBlockReportOperatorScales( Mat A, PetscTruth sym )
 // updated
 PetscErrorCode BSSCR_MatStokesBlockDefaultBuildScaling( MatStokesBlockScaling BA, Mat A )
 {
+  PetscFunctionBegin;
 	Mat K,G,D,C;
 	Vec rG;
 	PetscScalar rg2, rg, ra;  

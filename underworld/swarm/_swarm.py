@@ -336,10 +336,13 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         # open hdf5 file
         with h5File(name=filename, mode="r") as h5f:
 
-            try:
-                units = u.Quantity(h5f.attrs["units"])
-            except (KeyError, UndefinedUnitError) as e:
-                units = None
+            # get units if they have been defined
+            units = None
+            if "units" in h5f.attrs.keys():
+                try:
+                    units = u.Quantity(h5f.attrs["units"])
+                except (RuntimeError, KeyError, UndefinedUnitError) as e:
+                    units = None
 
             dset = h5_get_dataset(h5f, 'data')
             if dset.shape[1] != self.data.shape[1]:

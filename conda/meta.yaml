@@ -1,5 +1,5 @@
 {% set name = "underworld" %}
-{% set version = "2.13.0" %}
+{% set version = "2.14.0" %}
 {% set sha256 = "fdc6c7ae1034b5bd6159b465ae44d75a19ca9bb44021e9d16c9eafb6bced2e12" %}
 {% set build = 0 %}
 
@@ -8,6 +8,8 @@ package:
   version: {{ version }}
 
 source:
+  # git_url: https://github.com/julesghub/underworld2.git
+  # git_rev: dockerfile-updates
   url: https://github.com/underworldcode/underworld2/archive/refs/tags/v{{ version }}b.tar.gz
   sha256: {{ sha256 }}
 
