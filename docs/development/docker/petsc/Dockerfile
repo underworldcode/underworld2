@@ -107,6 +107,7 @@ RUN PETSC_DIR=`pwd` ./configure --with-debugging=0 --prefix=/usr/local \
                 --download-hypre=1              \
                 --download-scalapack=1          \
                 --download-superlu_dist=1       \
+                --download-pragmatic=1          \
                 --download-ctetgen              \
                 --download-eigen                \
                 --download-superlu=1            \
