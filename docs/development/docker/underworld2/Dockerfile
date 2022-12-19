@@ -143,20 +143,22 @@ FROM runtime as final
 COPY --from=build --chown=$NB_USER:users /opt /opt
 COPY --from=build --chown=$NB_USER:users /usr/local /usr/local
 
-# Copy in examples, tests, etc.
-COPY --chown=jovyan:users ./docs/examples   $NB_HOME/Underworld/examples
-COPY --chown=jovyan:users ./docs/cheatsheet $NB_HOME/Underworld/cheatsheet
-COPY --chown=jovyan:users ./docs/user_guide $NB_HOME/Underworld/user_guide
-COPY --chown=jovyan:users ./docs/test       $NB_HOME/Underworld/test
-COPY --chown=jovyan:users ./docs/UWGeodynamics/examples  $NB_HOME/Underworld/UWGeodynamics/examples
-COPY --chown=jovyan:users ./docs/UWGeodynamics/benchmarks  $NB_HOME/Underworld/UWGeodynamics/benchmarks
-COPY --chown=jovyan:users ./docs/UWGeodynamics/tutorials  $NB_HOME/Underworld/UWGeodynamics/tutorials
-RUN mkdir -p $NB_HOME/workspace \
-&&  chown jovyan:users /home/jovyan/workspace
-RUN jupyter serverextension enable --sys-prefix jupyter_server_proxy
+# must make directory before COPY into it for permissions to work (!!!)
+RUN mkdir -p $NB_HOME/workspace $NB_HOME/Underworld/UWGeodynamics \
+&&  chown $NB_USER:users -R $NB_HOME \
+&& jupyter serverextension enable --sys-prefix jupyter_server_proxy
+
+#Copy in examples, tests, etc.
+COPY --chown=$NB_USER:users ./docs/examples   $NB_HOME/Underworld/examples
+COPY --chown=$NB_USER:users ./docs/cheatsheet $NB_HOME/Underworld/cheatsheet
+COPY --chown=$NB_USER:users ./docs/user_guide $NB_HOME/Underworld/user_guide
+COPY --chown=$NB_USER:users ./docs/test       $NB_HOME/Underworld/test
+COPY --chown=$NB_USER:users ./docs/UWGeodynamics/examples  $NB_HOME/Underworld/UWGeodynamics/examples
+COPY --chown=$NB_USER:users ./docs/UWGeodynamics/benchmarks  $NB_HOME/Underworld/UWGeodynamics/benchmarks
+COPY --chown=$NB_USER:users ./docs/UWGeodynamics/tutorials  $NB_HOME/Underworld/UWGeodynamics/tutorials
 
 EXPOSE 8888
-USER $NB_USER
 WORKDIR $NB_HOME
+USER $NB_USER
 
 CMD ["jupyter-lab", "--no-browser", "--ip='0.0.0.0'"]
