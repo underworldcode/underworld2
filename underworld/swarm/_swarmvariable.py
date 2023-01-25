@@ -8,11 +8,9 @@
 ##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
 import underworld as uw
 import underworld._stgermain as _stgermain
-import underworld.mesh as mesh
 import numpy as np
 import underworld.libUnderworld as libUnderworld
 from . import _swarmabstract as sab
-from . import _swarm
 import underworld.function as function
 import underworld.libUnderworld.libUnderworldPy.Function as _cfn
 from mpi4py import MPI
@@ -23,6 +21,7 @@ from underworld.scaling import units as u
 from underworld.scaling import non_dimensionalise
 from underworld.scaling import dimensionalise, pint_degc_labels
 from pint.errors import UndefinedUnitError
+
 
 class SwarmVariable(_stgermain.StgClass, function.Function):
     """
