@@ -341,7 +341,7 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
 
             try:
                 iunits = u.Quantity(h5f.attrs['units'])
-            except (UndefinedUnitError) as e:
+            except (UndefinedUnitError, RuntimeError, KeyError):
                 # if no units - don't scale amd finish
                 return
 
