@@ -1523,18 +1523,23 @@ class Model(Material):
             self._solver = False
 
     def _init_temperature_variables(self):
+        """
+         Mesh variables definitions for temperature, tempertaureDot (time
+            derivative of temperature ) and heatFlux along boundaries walls.
+        """
+        # called '_temperature' because of getter/setter usage in Model class
         self._temperature = MeshVariable(mesh=self.mesh,
                                          nodeDofCount=1)
-        self._temperatureDot = MeshVariable(mesh=self.mesh,
-                                            nodeDofCount=1)
-        self._heatFlux = MeshVariable(mesh=self.mesh,
-                                      nodeDofCount=1)
-        self._temperatureDot.data[...] = 0.
-        self._heatFlux.data[...] = 0.
         self.mesh_variables["temperature"] = self._temperature
         self.restart_variables["temperature"] = self._temperature
-        self.mesh_variables["temperatureDot"] = self._temperatureDot
-        self.restart_variables["temperatureDot"] = self._temperatureDot
+
+        self._temperatureDot = self.add_mesh_variable(name="temperatureDot",
+                                                      nodeDofCount=1,
+                                                      restart_variable=True)
+
+        self._heatFlux = self.add_mesh_variable(name="_heatFlux",
+                                                nodeDofCount=1,
+                                                restart_variable=False)
 
     def init_model(self, temperature="steady-state", pressure="lithostatic",
                    defaultStrainRate=1e-15 / u.second):
@@ -2524,7 +2529,7 @@ class _CheckpointFunction(object):
         comm.Barrier()
 
         for field in fields:
-            if field == "temperature" and not Model.temperature:
+            if (field in ["temperature", "temperatureDot"]) and not Model.temperature:
                 continue
             if field in Model.mesh_variables.keys():
                 field = str(field)
@@ -2838,6 +2843,8 @@ class _RestartFunction(object):
 
         Model = self.Model
 
+        import os
+
         for field in Model.restart_variables:
             obj = getattr(Model, field)
             path = os.path.join(self.restartDir, field + "-%s.h5" % step)
@@ -2846,7 +2853,7 @@ class _RestartFunction(object):
                 Because version 2.13 and lower didn't save the temperatureDot field
                 by default it's treated optionally here"
                 """
-                if not os.path.exist(path):
+                if not os.path.exists(path):
                     if rank == 0:
                         os = \
                     """*******************************************************
