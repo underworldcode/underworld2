@@ -338,7 +338,7 @@ class _SLCN_AdvectionDiffusion(object):
         # layout = uw.swarm.layouts.PerCellGaussLayout(mswarm, gaussPointCount=5)
         # mswarm.populate_using_layout(layout)
 
-        local_nId = -1 * np.ones(mesh.nodesGlobal, dtype=np.int)
+        local_nId = -1 * np.ones(mesh.nodesGlobal, dtype=int)
         for i, gId in enumerate(mesh.data_nodegId):
             local_nId[gId] = i
 
@@ -414,7 +414,7 @@ class _SLCN_AdvectionDiffusion(object):
             mswarm_home_pts = mswarm.add_variable(dataType="double", count=mesh.dim)
             mswarm_phiStar = mswarm.add_variable(dataType="float", count=1)
 
-            local_nId = -1 * np.ones(mesh.nodesGlobal, dtype=np.int)
+            local_nId = -1 * np.ones(mesh.nodesGlobal, dtype=int)
             for i, gId in enumerate(mesh.data_nodegId):
                 local_nId[gId] = i
 
@@ -600,7 +600,7 @@ class _SLCN_AdvectionDiffusion(object):
             stencil_size = 7**mesh.dim
 
         # I think this can be eliminated at some stage ...
-        local_nId = -1 * np.ones(mesh.nodesGlobal, dtype=np.int)
+        local_nId = -1 * np.ones(mesh.nodesGlobal, dtype=int)
         for i, gId in enumerate(mesh.data_nodegId):
             local_nId[gId] = i
 

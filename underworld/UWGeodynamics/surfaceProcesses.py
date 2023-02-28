@@ -161,8 +161,8 @@ class Badlands(SurfaceProcesses):
         """
 
         # Calculate number of nodes from required resolution.
-        nx = np.int((self.maxCoord[0] - self.minCoord[0]) / self.resolution)
-        ny = np.int((self.maxCoord[1] - self.minCoord[1]) / self.resolution)
+        nx = np.int32((self.maxCoord[0] - self.minCoord[0]) / self.resolution)
+        ny = np.int32((self.maxCoord[1] - self.minCoord[1]) / self.resolution)
         nx += 1
         ny += 1
 

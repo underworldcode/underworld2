@@ -198,7 +198,7 @@ class IndexSet(object):
             except:
                 raise RuntimeError("An unknown error occurred relating to the object passed in.")
 
-            self._AddOrRemoveWithNumpyArray( np.fromiter(indices, np.int), isadding )
+            self._AddOrRemoveWithNumpyArray( np.fromiter(indices, int), isadding )
 
     def AND(self, indices):
         """
