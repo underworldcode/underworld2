@@ -282,7 +282,7 @@ jobs:
       - name: Run Tests
         run: |
           cd docs
-          pytest -vvv pytests/test.py pytests/test_examples.py pytests/test_user_guide.py
+          pytest -vvv pytests/tests.py pytests/test_examples.py pytests/test_user_guide.py
           #cd test
           #cp -rf ../UWGeodynamics/examples UWGeodynamics/.
           #cp -rf ../UWGeodynamics/tutorials UWGeodynamics/.
