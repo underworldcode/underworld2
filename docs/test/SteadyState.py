@@ -5,9 +5,9 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.13.1
+#       jupytext_version: 1.14.5
 #   kernelspec:
-#     display_name: Python 3
+#     display_name: Python 3 (ipykernel)
 #     language: python
 #     name: python3
 # ---
@@ -56,10 +56,6 @@ def exactDeriv(y, h, k, c0):
 import underworld as uw
 import underworld.visualisation as vis
 import numpy as np
-uw.utils.matplotlib_inline()
-import matplotlib.pyplot as pyplot
-import matplotlib.pylab as pylab
-pyplot.ion() # needed to ensure pure python jobs do now hang on show()
 
 rank = uw.mpi.rank
 
@@ -69,6 +65,12 @@ if uw.utils.is_kernel():
     make_graphs = True
     try:
         import matplotlib
+        import matplotlib.pyplot as pyplot
+        uw.utils.matplotlib_inline()
+
+        import matplotlib.pylab as pylab
+        pyplot.ion() # needed to ensure pure python jobs do now hang on show()
+
     except ImportError:
         make_graphs=False
 
@@ -437,7 +439,7 @@ if rank == 0:
     if relerr > threshold:
         raise RuntimeError("The numerical solution is outside the error threshold of the analytic solution." \
                            "The Relative error was ", relerr," the threshold is ", threshold)  
-        
+
 
 # +
 

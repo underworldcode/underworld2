@@ -29,6 +29,7 @@ if __name__ == '__main__':
                 raise RuntimeError("Incorrect error message encountered for {}. \n"
                                 "Expected:\n{}\n\n"
                                 "Encountered:\n{}\n\n".format(test,strmessage,strenderr))
+        
         def do_test_jupyter(test,expected_message):
             command = "jupyter nbconvert --to python --execute {}".format(test)
             result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
@@ -42,7 +43,14 @@ if __name__ == '__main__':
 
         # default messages
         do_test_py("outside_domain",outside_domain_message)
-        do_test_jupyter("func_debug_messages_notebook.ipynb_do_not_run_direct", outside_domain_message_jupyter)
+        can_nbconvert = True
+        try:
+            import jupyter
+            import nbconvert
+        except ModuleNotFoundError:
+            can_nbconvert = False
+        if can_nbconvert:
+            do_test_jupyter("func_debug_messages_notebook.ipynb_do_not_run_direct", outside_domain_message_jupyter)
 
         # no func messages
         import os
@@ -54,3 +62,5 @@ if __name__ == '__main__':
         # is difficult due to different MPI implementations giving 
         # different error messages, and also due to arbitrary
         # ordering of messages. 
+
+

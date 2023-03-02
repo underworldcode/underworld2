@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import os
-import importlib
 import imp
 import ntpath
 from inspect import getsourcefile
@@ -13,6 +12,11 @@ path = os.path.abspath('./image_tests/')
 import underworld.visualisation as vis
 if not vis.lavavu:
     print("Image tests skipped, Viewer disabled")
+    exit()
+try:
+    import nbconvert
+except ModuleNotFoundError:
+    print("Skipping image_test.py as nbconvert can't be found")
     exit()
 
 for d in os.listdir(path):
