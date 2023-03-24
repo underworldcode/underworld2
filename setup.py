@@ -259,8 +259,12 @@ class BuildExtension(build_ext):
 metadata = {
     'provides': ['underworld'],
     'zip_safe': False,
-    'install_requires': ['numpy>=1.22.1', 'mpi4py>=1.2.2', 'h5py', 'pint', 'scipy']
+    'install_requires': ['numpy>=1.20.3', 'mpi4py>=1.2.2', 'h5py', 'pint', 'scipy'],
+    'extras_require': {
+        'full': ["badlands","lavavu","matplotlib","nbmake"],  # for all 3rd party packages
+    },
 }
+
 classifiers = """
 Development Status :: 5 - Production/Stable
 Intended Audience :: Developers
