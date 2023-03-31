@@ -2499,7 +2499,7 @@ class _CheckpointFunction(object):
         if isinstance(time, u.Quantity) and self.output_units:
             time = time.to(self.output_units)
 
-        if Model._advector or Model._freeSurface:
+        if Model._advector or Model.freeSurface:
             mesh_name = 'mesh-%s' % checkpointID
             mesh_prefix = os.path.join(outputDir, mesh_name)
             mH = Model.mesh.save('%s.h5' % mesh_prefix,
@@ -2816,7 +2816,7 @@ class _RestartFunction(object):
 
         Model = self.Model
 
-        if Model._advector:
+        if Model._advector or Model._freeSurface:
             Model.mesh.load(os.path.join(self.restartDir, 'mesh-%s.h5' % step))
         else:
             Model.mesh.load(os.path.join(self.restartDir, "mesh.h5"))
@@ -2868,6 +2868,7 @@ class _RestartFunction(object):
                     continue # don't try load, continue to the next restart_variable
 
             obj.load(str(path))
+
             if rank == 0:
                 now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 print("{0} loaded".format(field) + '(' + now + ')')
