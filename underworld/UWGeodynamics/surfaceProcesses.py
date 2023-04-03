@@ -975,3 +975,313 @@ class velocitySurface_2D(SurfaceProcesses):
         comm.barrier()
 
         return
+
+
+class velocitySurface3D(SurfaceProcesses):
+    """velocity surface erosion
+    """
+
+    def __init__(self, airIndex, sedimentIndex,
+                    vs_condition, ve_condition,
+                    surfaceArray,
+                    method='nearest',
+                    surfaceElevation=0.*u.kilometer,
+                    updateSurfaceLB=0.*u.kilometer, updateSurfaceRB=0.*u.kilometer,
+                     updateSurfaceTB=0.*u.kilometer, updateSurfaceBB=0.*u.kilometer,
+                    Model=None, timeField=None):
+        """
+        Parameters
+        ----------
+
+            airIndex :
+                air index
+            sedimentIndex :
+                sediment Index
+            
+            ve_condition :
+                Condition that contains the erosion rate based on the x and y coord
+            vs_condition :
+                Condition that contains the sedimentation rate based on the x and y coord
+            
+            surfaceArray :
+                coords at which the surface will be construced (x, y, z)
+            surfaceElevation :
+                boundary between air and crust/material, unit length of y coord to be given
+
+            method :
+                Interpolation method for scipy griddata function to use for the surface, default is 'nearest', which is quicker at high res
+
+            updateSurfaceLB :
+                Distance to update surface from left boundary, default is 0 for free slip, unit length required
+            updateSurfaceRB :
+                Distance to update surface from right boundary, default is 0 for free slip, unit length required    
+                
+            updateSurfaceTB :
+                Distance to update surface from top boundary, default is 0 for free slip, unit length required
+            updateSurfaceBB :
+                Distance to update surface from bottom boundary, default is 0 for free slip, unit length required
+        
+
+            ***All units are converted under the hood***
+
+            ***
+            usage:
+            x = np.linspace(Model.minCoord[0], Model.maxCoord[0], 100)
+            y = np.linspace(Model.minCoord[1], Model.maxCoord[1], 100)
+
+            xi, yi = np.meshgrid(x, y)
+
+            coords = np.zeros(shape=(xi.flatten().shape[0], 3))
+            coords[:,0] = xi.flatten()
+            coords[:,1] = yi.flatten()
+            coords[:,2] = np.zeros_like(coords[:,0]) ### or any array with same shape as x and y coords with the initial height
+
+            coords = coords * u.kilometer
+
+            ve_conditions = fn.branching.conditional([((Model.x >= 0.5) & (Model.y >=0.5), GEO.nd(1 * u.millimeter/u.year)),
+                                          (True, GEO.nd(0.5 * u.millimeter/u.year))])
+
+            vs_conditions = fn.branching.conditional([(True, GEO.nd(0.05 * u.millimeter/u.year))])
+
+            Model.surfaceProcesses = velocitySurface3D(airIndex=air.index,
+                                                       sedimentIndex=Sediment.index,
+                                                       surfaceArray = coords,                ### grid with surface points (x, y, z)
+                                                       vs_condition = vs_conditions,         ### sedimentation rate at each grid point
+                                                       ve_condition = ve_conditions,         ### erosion rate at each grid point
+                                                       surfaceElevation=air.bottom)
+            ***
+
+        """
+
+        self.airIndex = airIndex
+        self.sedimentIndex = sedimentIndex
+        self.timeField = timeField
+
+        self.ve_condition = ve_condition
+        self.vs_condition = vs_condition
+
+        self.method = method
+
+        ### a conversion, will throw an error if units are neglected
+        self.surfaceArray = surfaceArray.to(u.kilometer)
+        self.updateSurfaceLB = updateSurfaceLB.to(u.kilometer)
+        self.updateSurfaceRB = updateSurfaceRB.to(u.kilometer)
+        
+        self.updateSurfaceTB = updateSurfaceTB.to(u.kilometer)
+        self.updateSurfaceBB = updateSurfaceBB.to(u.kilometer)
+        
+        self.surfaceElevation = surfaceElevation.to(u.kilometer)
+        self.Model = Model
+
+        self.originalSurface = None
+        self.z_new = None 
+        self.min_dist = None
+        self.nd_coords = None
+
+
+        ''' function to create grid for surface '''
+
+
+    def _init_model(self):
+        '''  creates a PT output '''
+        ### automatically non-dimensionalises the imput coords if they have a dim
+        self.Model.add_passive_tracers(name="surface", vertices=self.surfaceArray, advect=False)
+
+        self.Model.surface_tracers.allow_parallel_nn = True
+
+        self.nd_coords = nd(self.surfaceArray)
+
+        ### get distance between 1st and 2nd x coord and y coords to determine min distance between grid points
+        x = np.sort(np.unique(self.nd_coords[:,0]))
+        y = np.sort(np.unique(self.nd_coords[:,1]))
+        dx = np.diff(x).min()
+        dy = np.diff(y).min()
+
+        self.min_dist = min(dx, dy)
+
+        ### create copy of original surface
+        self.originalZ  = self.nd_coords[:,2]
+
+        #### add variables for tracking that aren't included in UWGeo
+        self.Model.surface_tracers.z_coord = self.Model.surface_tracers.add_variable( dataType="double", count=1 )
+        
+        self.Model.surface_tracers.ve = self.Model.surface_tracers.add_variable( dataType="double", count=1 )
+        self.Model.surface_tracers.vs = self.Model.surface_tracers.add_variable( dataType="double", count=1 )
+
+        if self.Model.surface_tracers.data.size != 0:
+            ### erosion is downward (negative)
+            self.Model.surface_tracers.ve.data[:] = -1. * abs(self.ve_condition.evaluate(self.Model.surface_tracers.data))
+            ### sedimentation is upward (positive)
+            self.Model.surface_tracers.vs.data[:] =  1. * abs(self.vs_condition.evaluate(self.Model.surface_tracers.data))
+            
+            self.Model.surface_tracers.z_coord.data[:,0] = self.Model.surface_tracers.data[:,2]
+
+        comm.barrier()
+
+
+
+
+        ### add fields to track
+
+        ### track velocity field on tracers
+        self.Model.surface_tracers.add_tracked_field(self.Model.velocityField,
+                                       name="surface_vel",
+                                       units=u.centimeter/u.year,
+                                       dataType="float", count=self.Model.mesh.dim)
+
+        self.Model.surface_tracers.add_tracked_field(self.Model.surface_tracers.particleCoordinates,
+                                       name="coords",
+                                       units=u.centimeter/u.year,
+                                       dataType="float", count=self.Model.mesh.dim)
+
+        ## track the surface coordinates (could change to only show the height)
+        self.Model.surface_tracers.add_tracked_field(self.Model.surface_tracers.z_coord,
+                                name="topo_height",
+                                units=u.kilometer,
+                                dataType="float", count=1)
+
+        ### track the erosion rate
+        self.Model.surface_tracers.add_tracked_field(self.Model.surface_tracers.ve,
+                                name="erosion_rate",
+                                units=u.millimeter/u.year,
+                                dataType="float", count=1)
+        ### track the sedimentation rate
+        self.Model.surface_tracers.add_tracked_field(self.Model.surface_tracers.vs,
+                                name="sedimentation_rate",
+                                units=u.millimeter/u.year,
+                                dataType="float", count=1)
+
+        comm.barrier()
+
+    def solve(self, dt):
+
+
+
+        ### evaluate on all nodes and get the tracer velocity on root proc
+        tracer_velocity = self.Model.velocityField.evaluate_global(self.nd_coords)
+
+        ### utilises the evaluate_global to get values that are across multiple CPUs on root CPU
+        ve = (self.ve_condition.evaluate_global(self.nd_coords))
+        vs = (self.vs_condition.evaluate_global(self.nd_coords))
+
+
+        comm.barrier()
+
+
+        if rank == 0:
+
+            ve = -1. * abs(ve) ### erode down(negative)
+            vs =  1. * abs(vs) ### sed up    (positive)
+
+            # # Advect top surface
+            x_new = (self.nd_coords[:,0] + (tracer_velocity[:,0]*dt))
+            y_new = (self.nd_coords[:,1] + (tracer_velocity[:,1]*dt))
+            z_new = (self.nd_coords[:,2] + (tracer_velocity[:,2]*dt))
+
+
+            ''' interpolate new surface back onto original grid '''
+            #### griddata seems to be okay, rbf was causing issues with memory usage in parallel
+            z_nd = griddata((x_new, y_new), z_new, (self.nd_coords[:,0], self.nd_coords[:,1]), method=self.method).ravel()
+
+
+            ### Ve and Vs for loop to preserve original values
+            Ve_loop  = np.zeros_like(z_nd, dtype='float64')
+            Vs_loop  = np.zeros_like(z_nd, dtype='float64')
+
+
+            ### time to diffuse surface based on Model dt
+            total_time = dt
+
+            '''Velocity surface process'''
+
+            '''erosion dt for vel model'''
+            Vel_for_surface = max(abs(vs).max(), abs(ve).max(), abs(tracer_velocity).max())
+
+            surface_dt_vel = (0.2 *  (self.min_dist / Vel_for_surface) )
+
+            surf_time = min(surface_dt_vel, total_time)
+
+            nts = math.ceil(total_time/surf_time)
+            
+            surf_dt = (total_time / nts)
+
+            print('SP total time:', dimensionalise(total_time, u.year), 'timestep:', dimensionalise(surf_dt, u.year), 'No. of its:', nts, flush=True)
+
+
+            ### Velocity erosion/sedimentation rates for the surface
+            for i in range(nts):
+                ''' determine if particle is above or below the original surface elevation '''
+                ''' erosion function '''
+                Ve_loop[:] = nd(0. * u.kilometer/u.year)
+                Ve_loop[(z_nd > nd(self.surfaceElevation))] = ve[:,0][(z_nd > nd(self.surfaceElevation))]
+
+                ''' sedimentation function '''
+                Vs_loop[:] = nd(0. * u.kilometer/u.year)
+                Vs_loop[(z_nd <= nd(self.surfaceElevation))] = vs[:,0][(z_nd <= nd(self.surfaceElevation))]
+
+
+                dzdt =  Vs_loop + Ve_loop
+
+                z_nd += (dzdt[:]*surf_dt)
+
+
+            ''' creates no movement condition near boundary '''
+            ''' important when imposing a velocity as particles are easily deformed near the imposed condition'''
+            ''' This changes the height to the points original height '''
+            resetArea_x = (self.nd_coords[:,0] < nd(self.updateSurfaceLB)) | (self.nd_coords[:,0] > (nd(self.Model.maxCoord[0]) - (nd(self.updateSurfaceRB))))
+            
+            resetArea_y = (self.nd_coords[:,1] < nd(self.updateSurfaceBB)) | (self.nd_coords[:,1] > (nd(self.Model.maxCoord[1]) - (nd(self.updateSurfaceTB))))
+
+
+            z_nd[resetArea_x | resetArea_y] = self.originalZ[resetArea_x | resetArea_y]
+        
+
+            self.z_new = z_nd
+
+
+        comm.barrier()
+
+        '''broadcast the new surface'''
+        ### broadcast function for the surface
+        self.z_new = comm.bcast(self.z_new, root=0)
+        
+
+        comm.barrier()
+
+        ### update the z coord of the surface array
+        self.nd_coords[:,2] = self.z_new #griddata((self.nd_coords[:,0], self.nd_coords[:,1]), self.z_new, (self.nd_coords[:,0], self.nd_coords[:,1]), method=self.method).ravel()
+
+        comm.barrier()
+
+
+        if self.Model.surface_tracers.data.size != 0:
+            ### update the surface only on procs that have the tracers
+            self.Model.surface_tracers.z_coord.data[:,0] = self.Model.surface_tracers.data[:,2]
+
+        comm.barrier()
+
+
+        ### has to be done on all procs due to an internal comm barrier in deform swarm (?)
+        with self.Model.surface_tracers.deform_swarm():
+            self.Model.surface_tracers.data[:,2] = griddata((self.nd_coords[:,0], self.nd_coords[:,1]), self.z_new, (self.Model.surface_tracers.data[:,0], self.Model.surface_tracers.data[:,1]), method=self.method).ravel()
+
+        comm.barrier()
+
+
+        ### cacluate surface for swarm particles
+        # z_new_surface = rbf1(self.Model.swarm.data[:,0], self.Model.swarm.data[:,1]) 
+        z_new_surface = griddata((self.nd_coords[:,0], self.nd_coords[:,1]), self.z_new, (self.Model.swarm.data[:,0], self.Model.swarm.data[:,1]), method=self.method).ravel()
+
+        comm.barrier()
+
+
+        '''Erode surface/deposit sed based on the surface'''
+        ### update the material on each node according to the spline function for the surface
+        self.Model.materialField.data[(self.Model.swarm.data[:,2] >= z_new_surface) & (self.Model.materialField.data[:,0] != self.airIndex) ] = self.airIndex
+        self.Model.materialField.data[(self.Model.swarm.data[:,2] < z_new_surface) & (self.Model.materialField.data[:,0] == self.airIndex) ] = self.sedimentIndex
+
+        comm.barrier()
+
+
+
+        return
