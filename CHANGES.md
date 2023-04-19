@@ -1,6 +1,18 @@
 CHANGES: Underworld2
 =======================
 
+Release 2.15.0 [2022-04-19]
+---------------------------
+New:
+ * Move to Petsc-3.19.0
+ * New 3D free surface implementation. (Note fully tested).
+ * new install guides for Gadi and setonix.
+
+Changes:
+
+Fixes:
+
+
 Release 2.14 [2022-11-29]
 ---------------------------
 New:
