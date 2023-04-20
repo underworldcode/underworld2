@@ -723,6 +723,11 @@ class diffusiveSurface_2D(SurfaceProcesses):
         with self.Model.surface_tracers.deform_swarm():
             self.Model.surface_tracers.data[:,1] = f1(self.Model.surface_tracers.data[:,0])
 
+        ### If material that was previously air is below the surface then reset time to 0 (to set the deposition time)
+        if self.timeField:
+            self.Model.timeField.data[(self.Model.swarm.data[:,1] < f1(self.Model.swarm.data[:,0])) & (self.Model.materialField.data[:,0] == self.airIndex)] = 0.
+
+
         '''Erode surface/deposit sed based on the surface'''
         ### update the material on each node according to the spline function for the surface
         self.Model.materialField.data[(self.Model.swarm.data[:,1] > f1(self.Model.swarm.data[:,0])) & (self.Model.materialField.data[:,0] != self.airIndex)] = self.airIndex
@@ -965,6 +970,10 @@ class velocitySurface_2D(SurfaceProcesses):
         ### update the global surface tracers
         with self.Model.surface_tracers.deform_swarm():
             self.Model.surface_tracers.data[:,1] = f1(self.Model.surface_tracers.data[:,0])
+
+        ### If material that was previously air is below the surface then reset time to 0 (to set the deposition time)
+        if self.timeField:
+            self.Model.timeField.data[(self.Model.swarm.data[:,1] < f1(self.Model.swarm.data[:,0])) & (self.Model.materialField.data[:,0] == self.airIndex)] = 0.
 
         '''Erode surface/deposit sed based on the surface'''
         ### update the material on each node according to the spline function for the surface
@@ -1273,6 +1282,10 @@ class velocitySurface3D(SurfaceProcesses):
         z_new_surface = griddata((self.nd_coords[:,0], self.nd_coords[:,1]), self.z_new, (self.Model.swarm.data[:,0], self.Model.swarm.data[:,1]), method=self.method).ravel()
 
         comm.barrier()
+
+        ### If material that was previously air is below the surface then reset time to 0 (to set the deposition time)
+        if self.timeField:
+            self.Model.tim.data[(self.Model.swarm.data[:,2] < z_new_surface) & (self.Model.materialField.data[:,0] == self.airIndex) ] = 0.
 
 
         '''Erode surface/deposit sed based on the surface'''
