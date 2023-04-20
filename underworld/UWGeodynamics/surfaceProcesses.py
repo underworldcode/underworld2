@@ -723,10 +723,12 @@ class diffusiveSurface_2D(SurfaceProcesses):
         with self.Model.surface_tracers.deform_swarm():
             self.Model.surface_tracers.data[:,1] = f1(self.Model.surface_tracers.data[:,0])
 
-        ### If material that was previously air is below the surface then reset time to 0 (to set the deposition time)
+        ### update the time of the sediment and air material as sed & erosion occurs
         if self.timeField:
+            ### Set newly deposited sediment time to 0 (to record deposition time)
             self.Model.timeField.data[(self.Model.swarm.data[:,1] < f1(self.Model.swarm.data[:,0])) & (self.Model.materialField.data[:,0] == self.airIndex)] = 0.
-
+            ### reset air material time back to the model time
+            self.Model.timeField.data[(self.Model.swarm.data[:,1] < f1(self.Model.swarm.data[:,0])) & (self.Model.materialField.data[:,0] == self.airIndex)] = self.Model.timeField.data.max()
 
         '''Erode surface/deposit sed based on the surface'''
         ### update the material on each node according to the spline function for the surface
@@ -971,9 +973,12 @@ class velocitySurface_2D(SurfaceProcesses):
         with self.Model.surface_tracers.deform_swarm():
             self.Model.surface_tracers.data[:,1] = f1(self.Model.surface_tracers.data[:,0])
 
-        ### If material that was previously air is below the surface then reset time to 0 (to set the deposition time)
+        ### update the time of the sediment and air material as sed & erosion occurs
         if self.timeField:
+            ### Set newly deposited sediment time to 0 (to record deposition time)
             self.Model.timeField.data[(self.Model.swarm.data[:,1] < f1(self.Model.swarm.data[:,0])) & (self.Model.materialField.data[:,0] == self.airIndex)] = 0.
+            ### reset air material time back to the model time
+            self.Model.timeField.data[(self.Model.swarm.data[:,1] < f1(self.Model.swarm.data[:,0])) & (self.Model.materialField.data[:,0] == self.airIndex)] = self.Model.timeField.data.max()
 
         '''Erode surface/deposit sed based on the surface'''
         ### update the material on each node according to the spline function for the surface
@@ -1283,10 +1288,12 @@ class velocitySurface3D(SurfaceProcesses):
 
         comm.barrier()
 
-        ### If material that was previously air is below the surface then reset time to 0 (to set the deposition time)
+        ### update the time of the sediment and air material as sed & erosion occurs
         if self.timeField:
-            self.Model.tim.data[(self.Model.swarm.data[:,2] < z_new_surface) & (self.Model.materialField.data[:,0] == self.airIndex) ] = 0.
-
+            ### Set newly deposited sediment time to 0 (to record deposition time)
+            self.Model.timeField.data[(self.Model.swarm.data[:,2] < z_new_surface) & (self.Model.materialField.data[:,0] == self.airIndex) ] = 0.
+            ### reset air material time back to the model time
+            self.Model.timeField.data[(self.Model.swarm.data[:,2] >= z_new_surface) & (self.Model.materialField.data[:,0] != self.airIndex) ] = self.Model.timeField.data.max()
 
         '''Erode surface/deposit sed based on the surface'''
         ### update the material on each node according to the spline function for the surface
