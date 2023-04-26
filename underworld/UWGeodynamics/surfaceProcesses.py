@@ -633,6 +633,11 @@ class diffusiveSurface_2D(SurfaceProcesses):
 
         comm.barrier()
 
+        ### store the surface spline on each node
+        f1 = None
+
+        comm.barrier()
+
 
         if rank == 0:
 
@@ -879,6 +884,11 @@ class velocitySurface_2D(SurfaceProcesses):
 
         ### evaluate on all nodes and get the tracer velocity on root proc
         tracer_velocity = self.Model.velocityField.evaluate_global(self.nd_coords)
+
+        comm.barrier()
+
+        ### store the surface spline on each node
+        f1 = None
 
         comm.barrier()
 
