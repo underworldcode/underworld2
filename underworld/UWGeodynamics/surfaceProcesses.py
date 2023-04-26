@@ -536,192 +536,190 @@ class diffusiveSurface_2D(SurfaceProcesses):
                 surfaceArray = coords
             )
             ***
-        """
 
+        """
 
         self.airIndex = airIndex
         self.sedimentIndex = sedimentIndex
         self.timeField = timeField
-        self.updateSurfaceLB = updateSurfaceLB.to(u.kilometer).magnitude
-        self.updateSurfaceRB = updateSurfaceRB.to(u.kilometer).magnitude
-        # self.surfaceElevation = surfaceElevation.to(u.kilometer).magnitude
-        self.D  = D.to(u.kilometer**2 / u.year).magnitude
+        
+        self.D  = D.to(u.kilometer**2 / u.year)
+
+
+        ### a conversion, will throw an error if units are neglected
+        self.surfaceArray    = surfaceArray
+        self.updateSurfaceLB = updateSurfaceLB.to(u.kilometer)
+        self.updateSurfaceRB = updateSurfaceRB.to(u.kilometer)
+    
+        
         self.Model = Model
-        self.surfaceArray = surfaceArray
-        self.surface_dt_diffusion = None
+
+        self.originalZ = None
+        self.min_dist = None
+        self.nd_coords = None
         self.dx = None
 
-        self.surface_data_local = None
-        self.original_surface  = None
+
+        ''' function to create grid for surface '''
+
 
     def _init_model(self):
+        '''  creates a PT output '''
+        ### automatically non-dimensionalises the imput coords if they have a dim
+        self.Model.add_passive_tracers(name="surface", vertices=nd(self.surfaceArray), advect=False)
 
-        self.Model.add_passive_tracers(name="surface", vertices=self.surfaceArray, advect=False)
+        self.Model.surface_tracers.allow_parallel_nn = True
 
-        self.dx = dimensionalise((self.surfaceArray[:,0][1] - self.surfaceArray[:,0][0]), u.kilometer).magnitude
+        self.nd_coords = nd(self.surfaceArray)
 
-        '''set up custom tracers for surface'''
-        x_min_local = self.Model.mesh.data[:self.Model.mesh.nodesLocal,0].min()
-        x_max_local = self.Model.mesh.data[:self.Model.mesh.nodesLocal,0].max()
+        ### get distance between 1st and 2nd x coord and y coords to determine min distance between grid points
+        x = np.sort(np.unique(self.nd_coords[:,0]))
 
-        ''' create surface tracers to advect on each node'''
-        self.surface_data_local = np.zeros_like(self.surfaceArray[(self.surfaceArray[:,0] >= x_min_local) & (self.surfaceArray[:,0] <= x_max_local)])
+        self.min_dist = np.diff(x).min()
 
-        self.surface_data_local[:,0] = self.surfaceArray[:,0][(self.surfaceArray[:,0] >= x_min_local) & (self.surfaceArray[:,0] <= x_max_local)]
-        self.surface_data_local[:,1] = self.surfaceArray[:,1][(self.surfaceArray[:,0] >= x_min_local) & (self.surfaceArray[:,0] <= x_max_local)]
+        # self.dx = np.diff(x).min()
 
-        # # Spline original surface for no slip condition near boundary
-        self.original_surface = interp1d(self.surfaceArray[:,0], self.surfaceArray[:,1], kind='cubic', fill_value='extrapolate')
+        ### create copy of original surface
+        self.originalZ  = self.nd_coords[:,1]
+
+        #### add variables for tracking that aren't included in UWGeo
+        self.Model.surface_tracers.z_coord = self.Model.surface_tracers.add_variable( dataType="double", count=1 )
+        
+        self.Model.surface_tracers.D = self.Model.surface_tracers.add_variable( dataType="double", count=1 )
+
+        if self.Model.surface_tracers.data.size != 0:
+            ### erosion is downward (negative)
+            self.Model.surface_tracers.D.data[:,0] = abs( np.repeat( nd(self.D), self.Model.surface_tracers.data.shape[0] ) )
+
+            self.Model.surface_tracers.z_coord.data[:,0] = self.Model.surface_tracers.data[:,1]
+
+        comm.barrier()
 
 
-        self.surface_dt_diffusion = (0.2 * (self.dx * self.dx / self.D))
+        ### add fields to track
 
+        ### track velocity field on tracers
+        self.Model.surface_tracers.add_tracked_field(self.Model.velocityField,
+                                       name="surface_vel",
+                                       units=u.centimeter/u.year,
+                                       dataType="float", count=self.Model.mesh.dim)
+
+        self.Model.surface_tracers.add_tracked_field(self.Model.surface_tracers.particleCoordinates,
+                                       name="coords",
+                                       units=u.centimeter/u.year,
+                                       dataType="float", count=self.Model.mesh.dim)
+
+        ## track the surface coordinates (could change to only show the height)
+        self.Model.surface_tracers.add_tracked_field(self.Model.surface_tracers.z_coord,
+                                name="topo_height",
+                                units=u.kilometer,
+                                dataType="float", count=1)
+
+        ### track the diffusive surface rate
+        self.Model.surface_tracers.add_tracked_field(self.Model.surface_tracers.D,
+                                name="Diffusive rate",
+                                units=u.meter**2/u.year,
+                                dataType="float", count=1)
+
+
+        comm.barrier()
 
     def solve(self, dt):
 
-        root_proc = 0
-
-        z_max_local = self.Model.mesh.data[:self.Model.mesh.nodesLocal,1].max()
-        z_min_local = self.Model.mesh.data[:self.Model.mesh.nodesLocal,1].min()
-
-        ### collect surface data on each node
-        if z_max_local >= self.surface_data_local[:,1].min():
-            ### gets the x and z data of the surface tracers
-            x_data = np.ascontiguousarray(self.surface_data_local[:,0].copy())
-            z_data = np.ascontiguousarray(self.surface_data_local[:,1].copy())
-
-            ### Get the velocity of the surface tracers
-            tracer_velocity = self.Model.velocityField.evaluate(self.surface_data_local)
-            vx = np.ascontiguousarray(tracer_velocity[:,0])
-            vz = np.ascontiguousarray(tracer_velocity[:,1])
-        else:
-            ### creates dummy data on nodes without the surface
-            x_data = np.array([None], dtype='float64')
-            z_data = np.array([None], dtype='float64')
-            vx = np.array([None], dtype='float64')
-            vz = np.array([None], dtype='float64')
 
 
-
-        ### Collect local array sizes using the high-level mpi4py gather
-        sendcounts = np.array(comm.gather(len(x_data), root=root_proc))
+        ### evaluate on all nodes and get the tracer velocity on root proc
+        tracer_velocity = self.Model.velocityField.evaluate_global(self.nd_coords)
 
         comm.barrier()
 
-        if rank == root_proc:
-        ### creates dummy data on all nodes to store the surface
-            # surface_data = np.zeros((npoints,2))
-            x_surface_data = np.zeros((sum(sendcounts)), dtype='float64')
-            z_surface_data = np.zeros((sum(sendcounts)), dtype='float64')
-            vx_data = np.zeros((sum(sendcounts)), dtype='float64')
-            vz_data = np.zeros((sum(sendcounts)), dtype='float64')
-            surface_data = np.zeros((sum(sendcounts), 4), dtype='float64')
-        else:
-            x_surface_data = None
-            z_surface_data = None
-            vx_data = None
-            vz_data = None
-            surface_data = None
 
-        ### store the surface spline on each node
-        f1 = None
+        if rank == 0:
 
-        comm.barrier()
-
-        ## gather x values, can't do them together
-        comm.Gatherv(sendbuf=x_data, recvbuf=(x_surface_data, sendcounts), root=root_proc)
-        ## gather z values
-        comm.Gatherv(sendbuf=z_data, recvbuf=(z_surface_data, sendcounts), root=root_proc)
-
-        ### gather velocity values
-        comm.Gatherv(sendbuf=vx, recvbuf=(vx_data, sendcounts), root=root_proc)
-
-        comm.Gatherv(sendbuf=vz, recvbuf=(vz_data, sendcounts), root=root_proc)
-
-
-
-        if rank == root_proc:
-            ### Put back into combined array
-            surface_data[:,0] = x_surface_data
-            surface_data[:,1] = z_surface_data
-            surface_data[:,2] = vx_data
-            surface_data[:,3] = vz_data
-
-            ### remove dummy data
-            surface_data = surface_data[~np.isnan(surface_data[:,0])]
-
-            ### sort by x values
-            surface_data = surface_data[np.argsort(surface_data[:, 0])]
-
+            nd_D = nd( self.D )
 
             # # Advect top surface
-            x2 = surface_data[:,0] + (surface_data[:,2] * dt)
-            z2 = surface_data[:,1] + (surface_data[:,3] * dt)
+            x_new = (self.nd_coords[:,0] + (tracer_velocity[:,0]*dt))
+            y_new = (self.nd_coords[:,1] + (tracer_velocity[:,1]*dt))
 
-
-            # # Spline top surface
-            f = interp1d(x2, z2, kind='cubic', fill_value='extrapolate')
-
-            ### update surface tracer position
-            # surface_data[:,0] = (surface_data[:,0])
-            surface_data[:,1] = f(surface_data[:,0])
-
-
-            ### gets the x and y coordinates from the tracers
-            x = dimensionalise(surface_data[:,0], u.kilometer).magnitude
-            z = dimensionalise(surface_data[:,1], u.kilometer).magnitude
-
+            ## Spline top surface
+            f = interp1d(x_new, y_new, kind='cubic', fill_value='extrapolate')
+            
+            ''' interpolate new surface back onto original grid '''
+            x_nd = self.nd_coords[:,0]
+            z_nd = f(x_nd)
 
             ### time to diffuse surface based on Model dt
-            total_time = (dimensionalise(dt, u.year)).magnitude
+            total_time = dt
 
-            '''Diffusion surface process'''
-            '''erosion dt for diffusion surface'''
-            surface_time = min(self.surface_dt_diffusion, total_time)
+            '''Velocity surface process'''
 
-            nts = math.ceil(total_time/surface_time)
+            '''erosion dt for vel model'''
+            surface_dt_diffusion = ( 0.2 * ( (self.min_dist**2) / nd_D ) )
 
-            surface_dt = total_time / nts
-            print('SP total time:', round(total_time,2), 'years, timestep:', round(surface_dt,2), 'years, No. of its:', nts, flush=True)
+            vel_for_surface = abs(tracer_velocity).max()
+
+            surface_dt_vel = (0.2 *  ( self.min_dist / vel_for_surface) )
+
+            surface_dt = min(surface_dt_diffusion, surface_dt_vel)
+
+            surf_time = min(surface_dt, total_time)
+
+            nts = math.ceil(total_time/surf_time)
+            
+            surf_dt = (total_time / nts)
+
+            print('SP total time:', dimensionalise(total_time, u.year), 'timestep:', dimensionalise(surf_dt, u.year), 'No. of its:', nts, flush=True)
+
 
             ### Basic Hillslope diffusion
             for i in range(nts):
-                qs = -self.D * np.diff(z)/self.dx
-                dzdt = -np.diff(qs)/self.dx
+                qs = -nd_D * np.diff(z_nd)/np.diff(x_nd)
+                dzdt = -np.diff(qs)/np.diff(x_nd[:-1])
 
 
-                z[1:-1] += dzdt*surface_dt
+                z_nd[1:-1] += dzdt*surface_dt
 
 
-            x_nd = nd(x*u.kilometer)
 
-            z_nd = nd(z*u.kilometer)
 
-            ''' updates material near to boundary back to original coordinates '''
-            z_original_surface = self.original_surface(x_nd)
-            z_nd[(x_nd < nd(self.updateSurfaceLB * u.kilometer)) | (x_nd > (nd(self.Model.maxCoord[0]) - (nd(self.updateSurfaceRB * u.kilometer))))] = z_original_surface[(x_nd < nd(self.updateSurfaceLB * u.kilometer)) | (x_nd > (nd(self.Model.maxCoord[0]) - (nd(self.updateSurfaceRB * u.kilometer))))]
+            ''' creates no movement condition near boundary '''
+            ''' important when imposing a velocity as particles are easily deformed near the imposed condition'''
+            ''' This changes the height to the points original height '''
+            resetArea_x = (self.nd_coords[:,0] < nd(self.updateSurfaceLB)) | (self.nd_coords[:,0] > (nd(self.Model.maxCoord[0]) - (nd(self.updateSurfaceRB))))
 
+
+            z_nd[resetArea_x] = self.originalZ[resetArea_x]
+        
 
             ### creates function for the new surface that has eroded, to be broadcast back to nodes
-            f1 = interp1d(x_nd, z_nd, fill_value='extrapolate', kind='cubic')
-
-
-            # print('finished surface process on global rank:', rank, flush= True)
+            f1 = interp1d(self.nd_coords[:,0], z_nd, fill_value='extrapolate', kind='cubic')
 
         comm.barrier()
 
         '''broadcast the new surface'''
         ### broadcast function for the surface
-        f1 = comm.bcast(f1, root=root_proc)
+        f1 = comm.bcast(f1, root=0)
+
+
+
+        ### update the z coord of the surface array
+        self.nd_coords[:,1] = f1(self.nd_coords[:,0])
 
         comm.barrier()
 
-        ''' replaces the new diffused surface data, only changes z as x values don't change '''
-        ### update the surface on individual nodes
-        self.surface_data_local[:,1] = f1(self.surface_data_local[:,0])
-        ### update the global surface tracers
+
+        ### has to be done on all procs due to an internal comm barrier in deform swarm (?)
         with self.Model.surface_tracers.deform_swarm():
             self.Model.surface_tracers.data[:,1] = f1(self.Model.surface_tracers.data[:,0])
+
+        comm.barrier()
+
+        if self.Model.surface_tracers.data.size != 0:
+            ### update the surface only on procs that have the tracers
+            self.Model.surface_tracers.z_coord.data[:,0] = self.Model.surface_tracers.data[:,1]
+
+        comm.barrier()
 
         ### update the time of the sediment and air material as sed & erosion occurs
         if self.timeField:
@@ -736,7 +734,6 @@ class diffusiveSurface_2D(SurfaceProcesses):
         self.Model.materialField.data[(self.Model.swarm.data[:,1] < f1(self.Model.swarm.data[:,0])) & (self.Model.materialField.data[:,0] == self.airIndex)] = self.sedimentIndex
 
 
-        comm.barrier()
 
         return
 
@@ -768,8 +765,6 @@ class velocitySurface_2D(SurfaceProcesses):
                 Distance to update surface from right boundary, default is 0 km which results in a free slip boundary
 
 
-
-
             ***All units are converted under the hood***
 
             ***
@@ -789,189 +784,198 @@ class velocitySurface_2D(SurfaceProcesses):
         self.airIndex = airIndex
         self.sedimentIndex = sedimentIndex
         self.timeField = timeField
-        self.dx = None
-        self.updateSurfaceLB = updateSurfaceLB.to(u.kilometer).magnitude
-        self.updateSurfaceRB = updateSurfaceRB.to(u.kilometer).magnitude
-        self.surfaceElevation = surfaceElevation.to(u.kilometer).magnitude
-        self.sedimentationRate  = abs(sedimentationRate.to(u.kilometer / u.year).magnitude)
-        self.erosionRate  = -1. * abs(erosionRate.to(u.kilometer / u.year).magnitude)
-        self.Model = Model
-        self.surfaceArray = surfaceArray
 
-        self.surface_data_local = None
-        self.original_surface = None
+        self.ve  = sedimentationRate.to(u.kilometer / u.year)
+        self.vs  = erosionRate.to(u.kilometer / u.year)
+
+        ### a conversion, will throw an error if units are neglected
+        self.surfaceArray    = surfaceArray
+        self.updateSurfaceLB = updateSurfaceLB.to(u.kilometer)
+        self.updateSurfaceRB = updateSurfaceRB.to(u.kilometer)
+    
+        
+        self.surfaceElevation = surfaceElevation.to(u.kilometer)
+        self.Model = Model
+
+        self.originalZ = None
+        self.min_dist = None
+        self.nd_coords = None
+
+
+        ''' function to create grid for surface '''
+
 
     def _init_model(self):
-        self.Model.add_passive_tracers(name="surface", vertices=self.surfaceArray, advect=False)
+        '''  creates a PT output '''
+        ### automatically non-dimensionalises the imput coords if they have a dim
+        self.Model.add_passive_tracers(name="surface", vertices=nd(self.surfaceArray), advect=False)
 
-        self.dx = dimensionalise((self.surfaceArray[:,0][1] - self.surfaceArray[:,0][0]), u.kilometer).magnitude
+        self.Model.surface_tracers.allow_parallel_nn = True
 
-        '''set up custom tracers for surface'''
-        x_min_local = self.Model.mesh.data[:self.Model.mesh.nodesLocal,0].min()
-        x_max_local = self.Model.mesh.data[:self.Model.mesh.nodesLocal,0].max()
+        self.nd_coords = nd(self.surfaceArray)
 
-        ''' create surface tracers to advect on each node'''
-        self.surface_data_local = np.zeros_like(self.surfaceArray[(self.surfaceArray[:,0] >= x_min_local) & (self.surfaceArray[:,0] <= x_max_local)])
+        ### get distance between 1st and 2nd x coord and y coords to determine min distance between grid points
+        x = np.sort(np.unique(self.nd_coords[:,0]))
 
-        self.surface_data_local[:,0] = self.surfaceArray[:,0][(self.surfaceArray[:,0] >= x_min_local) & (self.surfaceArray[:,0] <= x_max_local)]
-        self.surface_data_local[:,1] = self.surfaceArray[:,1][(self.surfaceArray[:,0] >= x_min_local) & (self.surfaceArray[:,0] <= x_max_local)]
+        self.min_dist = np.diff(x).min()
 
-        # # Spline original surface for no slip condition near boundary
-        self.original_surface = interp1d(self.surfaceArray[:,0], self.surfaceArray[:,1], kind='cubic', fill_value='extrapolate')
+        ### create copy of original surface
+        self.originalZ  = self.nd_coords[:,1]
 
+        #### add variables for tracking that aren't included in UWGeo
+        self.Model.surface_tracers.z_coord = self.Model.surface_tracers.add_variable( dataType="double", count=1 )
+        
+        self.Model.surface_tracers.ve = self.Model.surface_tracers.add_variable( dataType="double", count=1 )
+        self.Model.surface_tracers.vs = self.Model.surface_tracers.add_variable( dataType="double", count=1 )
+
+        if self.Model.surface_tracers.data.size != 0:
+            ### erosion is downward (negative)
+            self.Model.surface_tracers.ve.data[:,0] = -1. * abs( np.repeat( nd(self.ve), self.Model.surface_tracers.data.shape[0] ) )
+            ### sedimentation is upward (positive)
+            self.Model.surface_tracers.vs.data[:,0] =  1. * abs( np.repeat( nd(self.vs), self.Model.surface_tracers.data.shape[0] ) )
+            
+            self.Model.surface_tracers.z_coord.data[:,0] = self.Model.surface_tracers.data[:,1]
+
+        comm.barrier()
+
+
+
+
+        ### add fields to track
+
+        ### track velocity field on tracers
+        self.Model.surface_tracers.add_tracked_field(self.Model.velocityField,
+                                       name="surface_vel",
+                                       units=u.centimeter/u.year,
+                                       dataType="float", count=self.Model.mesh.dim)
+
+        self.Model.surface_tracers.add_tracked_field(self.Model.surface_tracers.particleCoordinates,
+                                       name="coords",
+                                       units=u.centimeter/u.year,
+                                       dataType="float", count=self.Model.mesh.dim)
+
+        ## track the surface coordinates (could change to only show the height)
+        self.Model.surface_tracers.add_tracked_field(self.Model.surface_tracers.z_coord,
+                                name="topo_height",
+                                units=u.kilometer,
+                                dataType="float", count=1)
+
+        ### track the erosion rate
+        self.Model.surface_tracers.add_tracked_field(self.Model.surface_tracers.ve,
+                                name="erosion_rate",
+                                units=u.millimeter/u.year,
+                                dataType="float", count=1)
+        ### track the sedimentation rate
+        self.Model.surface_tracers.add_tracked_field(self.Model.surface_tracers.vs,
+                                name="sedimentation_rate",
+                                units=u.millimeter/u.year,
+                                dataType="float", count=1)
+
+        comm.barrier()
 
     def solve(self, dt):
 
-        root_proc = 0
-
-        z_max_local = self.Model.mesh.data[:self.Model.mesh.nodesLocal,1].max()
-        z_min_local = self.Model.mesh.data[:self.Model.mesh.nodesLocal,1].min()
-
-        ### collect surface data on each node
-        if z_max_local >= self.surface_data_local[:,1].min():
-            ### gets the x and z data of the surface tracers
-            x_data = np.ascontiguousarray(self.surface_data_local[:,0].copy())
-            z_data = np.ascontiguousarray(self.surface_data_local[:,1].copy())
-
-            ### Get the velocity of the surface tracers
-            tracer_velocity = self.Model.velocityField.evaluate(self.surface_data_local)
-            vx = np.ascontiguousarray(tracer_velocity[:,0])
-            vz = np.ascontiguousarray(tracer_velocity[:,1])
-        else:
-            ### creates dummy data on nodes without the surface
-            x_data = np.array([None], dtype='float64')
-            z_data = np.array([None], dtype='float64')
-            vx = np.array([None], dtype='float64')
-            vz = np.array([None], dtype='float64')
 
 
-
-        ### Collect local array sizes using the high-level mpi4py gather
-        sendcounts = np.array(comm.gather(len(x_data), root=root_proc))
+        ### evaluate on all nodes and get the tracer velocity on root proc
+        tracer_velocity = self.Model.velocityField.evaluate_global(self.nd_coords)
 
         comm.barrier()
 
-        if rank == root_proc:
-        ### creates dummy data on all nodes to store the surface
-            # surface_data = np.zeros((npoints,2))
-            x_surface_data = np.zeros((sum(sendcounts)), dtype='float64')
-            z_surface_data = np.zeros((sum(sendcounts)), dtype='float64')
-            vx_data = np.zeros((sum(sendcounts)), dtype='float64')
-            vz_data = np.zeros((sum(sendcounts)), dtype='float64')
-            surface_data = np.zeros((sum(sendcounts), 4), dtype='float64')
-        else:
-            x_surface_data = None
-            z_surface_data = None
-            vx_data = None
-            vz_data = None
-            surface_data = None
 
-        ### store the surface spline on each node
-        f1 = None
+        if rank == 0:
 
-        comm.barrier()
-
-        ## gather x values, can't do them together
-        comm.Gatherv(sendbuf=x_data, recvbuf=(x_surface_data, sendcounts), root=root_proc)
-        ## gather z values
-        comm.Gatherv(sendbuf=z_data, recvbuf=(z_surface_data, sendcounts), root=root_proc)
-
-        ### gather velocity values
-        comm.Gatherv(sendbuf=vx, recvbuf=(vx_data, sendcounts), root=root_proc)
-
-        comm.Gatherv(sendbuf=vz, recvbuf=(vz_data, sendcounts), root=root_proc)
-
-
-
-        if rank == root_proc:
-            ### Put back into combined array
-            surface_data[:,0] = x_surface_data
-            surface_data[:,1] = z_surface_data
-            surface_data[:,2] = vx_data
-            surface_data[:,3] = vz_data
-
-
-            ### remove dummy data
-            surface_data = surface_data[~np.isnan(surface_data[:,0])]
-
-            ### sort by x values
-            surface_data = surface_data[np.argsort(surface_data[:, 0])]
-
+            nd_ve = -1. * abs( nd(self.ve) ) ### erode down(negative)
+            nd_vs =  1. * abs( nd(self.vs) ) ### sed up    (positive)
 
             # # Advect top surface
-            x2 = surface_data[:,0] + (surface_data[:,2] * dt)
-            z2 = surface_data[:,1] + (surface_data[:,3] * dt)
+            x_new = (self.nd_coords[:,0] + (tracer_velocity[:,0]*dt))
+            y_new = (self.nd_coords[:,1] + (tracer_velocity[:,1]*dt))
 
+            ## Spline top surface
+            f = interp1d(x_new, y_new, kind='cubic', fill_value='extrapolate')
+            
+            ''' interpolate new surface back onto original grid '''
+            z_nd = f(self.nd_coords[:,0])
 
-            # # Spline top surface
-            f = interp1d(x2, z2, kind='cubic', fill_value='extrapolate')
-
-            ### update surface tracer position
-            # surface_data[:,0] = (surface_data[:,0])
-            surface_data[:,1] = f(surface_data[:,0])
-
-
-            ### gets the x and y coordinates from the tracers
-            x = dimensionalise(surface_data[:,0], u.kilometer).magnitude
-            z = dimensionalise(surface_data[:,1], u.kilometer).magnitude
+            ### Ve and Vs for loop to preserve original values
+            Ve_loop  = np.zeros_like(z_nd, dtype='float64')
+            Vs_loop  = np.zeros_like(z_nd, dtype='float64')
 
 
             ### time to diffuse surface based on Model dt
-            total_time = (dimensionalise(dt, u.year)).magnitude
+            total_time = dt
 
             '''Velocity surface process'''
 
             '''erosion dt for vel model'''
+            Vel_for_surface = max(abs(nd_ve), abs(nd_ve), abs(tracer_velocity).max())
 
-            Vel_for_surface = max(abs(self.erosionRate * u.kilometer / u.year),abs(self.sedimentationRate*u.kilometer / u.year), abs(dimensionalise(self.Model.velocityField.data.max(), u.kilometer/u.year)))
+            surface_dt_vel = (0.2 *  (self.min_dist / Vel_for_surface) )
 
+            surf_time = min(surface_dt_vel, total_time)
 
-            surface_dt_vel = (0.2 *  (self.dx / Vel_for_surface.magnitude))
+            nts = math.ceil(total_time/surf_time)
+            
+            surf_dt = (total_time / nts)
 
-            surface_time = min(surface_dt_vel, total_time)
-
-            nts = math.ceil(total_time/surface_time)
-            surface_dt = total_time / nts
-
-            print('SP total time:', round(total_time,2), 'years, timestep:', round(surface_dt,2), 'years, No. of its:', nts, flush=True)
+            print('SP total time:', dimensionalise(total_time, u.year), 'timestep:', dimensionalise(surf_dt, u.year), 'No. of its:', nts, flush=True)
 
 
             ### Velocity erosion/sedimentation rates for the surface
             for i in range(nts):
-                Ve_loop = np.where(z <= 0., 0., self.erosionRate)
-                Vs_loop = np.where(z >= 0., 0., self.sedimentationRate)
+                ''' determine if particle is above or below the original surface elevation '''
+                ''' erosion function '''
+                Ve_loop[:] = nd(0. * u.kilometer/u.year)
+                Ve_loop[(z_nd > nd(self.surfaceElevation))] = nd_ve
+
+                ''' sedimentation function '''
+                Vs_loop[:] = nd(0. * u.kilometer/u.year)
+                Vs_loop[(z_nd <= nd(self.surfaceElevation))] = nd_vs
+
 
                 dzdt =  Vs_loop + Ve_loop
 
-                z[:] += dzdt*surface_dt
+                z_nd += (dzdt[:]*surf_dt)
 
 
-            x_nd = nd(x*u.kilometer)
+            ''' creates no movement condition near boundary '''
+            ''' important when imposing a velocity as particles are easily deformed near the imposed condition'''
+            ''' This changes the height to the points original height '''
+            resetArea_x = (self.nd_coords[:,0] < nd(self.updateSurfaceLB)) | (self.nd_coords[:,0] > (nd(self.Model.maxCoord[0]) - (nd(self.updateSurfaceRB))))
 
-            z_nd = nd(z*u.kilometer)
 
-            ''' updates material near to boundary back to original coordinates '''
-            z_original_surface = self.original_surface(x_nd)
-            z_nd[(x_nd < nd(self.updateSurfaceLB * u.kilometer)) | (x_nd > (nd(self.Model.maxCoord[0]) - (nd(self.updateSurfaceRB * u.kilometer))))] = z_original_surface[(x_nd < nd(self.updateSurfaceLB * u.kilometer)) | (x_nd > (nd(self.Model.maxCoord[0]) - (nd(self.updateSurfaceRB * u.kilometer))))]
+            z_nd[resetArea_x] = self.originalZ[resetArea_x]
+        
 
             ### creates function for the new surface that has eroded, to be broadcast back to nodes
-            f1 = interp1d(x_nd, z_nd, fill_value='extrapolate', kind='cubic')
-
+            f1 = interp1d(self.nd_coords[:,0], z_nd, fill_value='extrapolate', kind='cubic')
 
         comm.barrier()
 
         '''broadcast the new surface'''
         ### broadcast function for the surface
-        f1 = comm.bcast(f1, root=root_proc)
+        f1 = comm.bcast(f1, root=0)
+
+
+
+        ### update the z coord of the surface array
+        self.nd_coords[:,1] = f1(self.nd_coords[:,0])
 
         comm.barrier()
 
-        ''' replaces the new diffused surface data, only changes z as x values don't change '''
-        ### update the surface on individual nodes
-        self.surface_data_local[:,1] = f1(self.surface_data_local[:,0])
-        ### update the global surface tracers
+
+        ### has to be done on all procs due to an internal comm barrier in deform swarm (?)
         with self.Model.surface_tracers.deform_swarm():
             self.Model.surface_tracers.data[:,1] = f1(self.Model.surface_tracers.data[:,0])
+
+        comm.barrier()
+
+        if self.Model.surface_tracers.data.size != 0:
+            ### update the surface only on procs that have the tracers
+            self.Model.surface_tracers.z_coord.data[:,0] = self.Model.surface_tracers.data[:,1]
+
+        comm.barrier()
 
         ### update the time of the sediment and air material as sed & erosion occurs
         if self.timeField:
@@ -986,7 +990,6 @@ class velocitySurface_2D(SurfaceProcesses):
         self.Model.materialField.data[(self.Model.swarm.data[:,1] < f1(self.Model.swarm.data[:,0])) & (self.Model.materialField.data[:,0] == self.airIndex)] = self.sedimentIndex
 
 
-        comm.barrier()
 
         return
 
@@ -1087,7 +1090,7 @@ class velocitySurface3D(SurfaceProcesses):
         self.surfaceElevation = surfaceElevation.to(u.kilometer)
         self.Model = Model
 
-        self.originalSurface = None
+        self.originalZ = None
         self.z_new = None 
         self.min_dist = None
         self.nd_coords = None
@@ -1263,14 +1266,7 @@ class velocitySurface3D(SurfaceProcesses):
         comm.barrier()
 
         ### update the z coord of the surface array
-        self.nd_coords[:,2] = self.z_new #griddata((self.nd_coords[:,0], self.nd_coords[:,1]), self.z_new, (self.nd_coords[:,0], self.nd_coords[:,1]), method=self.method).ravel()
-
-        comm.barrier()
-
-
-        if self.Model.surface_tracers.data.size != 0:
-            ### update the surface only on procs that have the tracers
-            self.Model.surface_tracers.z_coord.data[:,0] = self.Model.surface_tracers.data[:,2]
+        self.nd_coords[:,2] = self.z_new
 
         comm.barrier()
 
@@ -1281,9 +1277,14 @@ class velocitySurface3D(SurfaceProcesses):
 
         comm.barrier()
 
+        if self.Model.surface_tracers.data.size != 0:
+            ### update the surface only on procs that have the tracers
+            self.Model.surface_tracers.z_coord.data[:,0] = self.Model.surface_tracers.data[:,2]
+
+        comm.barrier()
+
 
         ### cacluate surface for swarm particles
-        # z_new_surface = rbf1(self.Model.swarm.data[:,0], self.Model.swarm.data[:,1]) 
         z_new_surface = griddata((self.nd_coords[:,0], self.nd_coords[:,1]), self.z_new, (self.Model.swarm.data[:,0], self.Model.swarm.data[:,1]), method=self.method).ravel()
 
         comm.barrier()
