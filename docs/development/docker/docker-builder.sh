@@ -13,11 +13,14 @@ ARCH=$(uname -m)
 echo "Will build docker image locally for architecture type: $ARCH"
 echo "************************************************************\n"
 
-## The mpi and lavavu images should be automatically made via github actions
-docker build . --pull -f ./docs/development/docker/mpi/Dockerfile.openmpi -t underworldcode/openmpi:4.1.4-$ARCH
-docker build . --pull -f ./docs/development/docker/lavavu/Dockerfile -t underworldcode/lavavu:$ARCH
+# Get the ubuntu image
+docker pull ubuntu:22.04
 
-docker build . --pull \
+## The mpi and lavavu images should be automatically made via github actions
+docker build . -f ./docs/development/docker/mpi/Dockerfile.openmpi -t underworldcode/openmpi:4.1.4-$ARCH
+docker build . -f ./docs/development/docker/lavavu/Dockerfile -t underworldcode/lavavu:$ARCH
+
+docker build . \
   -f ./docs/development/docker/petsc/Dockerfile \
   --build-arg MPI_IMAGE="underworldcode/openmpi:4.1.4-$ARCH" \
   -t underworldcode/petsc:3.19.4-$ARCH
