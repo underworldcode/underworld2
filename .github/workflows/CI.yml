@@ -6,8 +6,8 @@ on:
   workflow_dispatch:
 
 env:
-  PETSC_VERSION: 3.18.1
-  UW_VERSION: 2.14.0
+  PETSC_VERSION: 3.19.4
+  UW_VERSION: 2.15.0
   OMPI_VERSION: 4.1.4
   MPICH_VERSION: 3.4.3
 
