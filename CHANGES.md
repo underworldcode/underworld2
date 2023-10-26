@@ -1,7 +1,7 @@
 CHANGES: Underworld2
 =======================
 
-Release 2.15.0 [2022-04-19]
+Release 2.15.0 [2023-04-19]
 ---------------------------
 New:
  * Move to Petsc-3.19.0
@@ -11,6 +11,8 @@ New:
 Changes:
 
 Fixes:
+* UWGeo - add dynamic heating back into the advection diffusion solver,
+  https://github.com/underworldcode/underworld2/issues/669
 
 
 Release 2.14 [2022-11-29]
