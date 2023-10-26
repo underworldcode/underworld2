@@ -4,15 +4,16 @@ CHANGES: Underworld2
 Release 2.15.0 [2023-04-19]
 ---------------------------
 New:
- * Move to Petsc-3.19.0
- * New 3D free surface implementation. (Note fully tested).
+ * Move to Petsc-3.19.4
+ * New 3D free surface implementation. (Not fully tested).
  * new install guides for Gadi and setonix.
 
 Changes:
 
 Fixes:
-* UWGeo - add dynamic heating back into the advection diffusion solver,
+ * UWGeodynamics - add dynamic heating back into the advection diffusion solver,
   https://github.com/underworldcode/underworld2/issues/669
+ * Using updated Badlands-2.2.3 without license issue. 
 
 
 Release 2.14 [2022-11-29]
