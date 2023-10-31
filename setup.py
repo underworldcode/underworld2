@@ -32,9 +32,9 @@ functionality of the code running in a parallel HPC environment.
   To set the required PETSc, set the ``PETSC_DIR`` environment variable (or install the ``petsc`` Python package).
 
   Provide any ``Underworld`` ./configure options using the environmental variable ``UW_CONFIGURE_OPTIONS``.
-    
 """
-import sys, os
+import sys
+import os
 import shutil
 import platform
 
@@ -46,7 +46,6 @@ from typing import List
 from pathlib import Path
 from setuptools import setup, Extension, find_packages
 from setuptools.command.build_ext import build_ext
-
 
 
 class CMakeExtension(Extension):
@@ -185,9 +184,6 @@ class BuildExtension(build_ext):
             '--config', ext.cmake_build_type
         ]
 
-        # CMake install target
-        install_target = "install"
-
         if platform.system() == "Windows":
 
             configure_args += [
@@ -260,12 +256,15 @@ class BuildExtension(build_ext):
             os.environ["CMAKE_PREFIX_PATH"] = str(path)
 
 
-
 metadata = {
-    'provides' : ['underworld'],
-    'zip_safe' : False,
-    'install_requires' : ['numpy>=1.22.1','mpi4py>=1.2.2', 'h5py', 'pint', 'scipy']
+    'provides': ['underworld'],
+    'zip_safe': False,
+    'install_requires': ['numpy>=1.20.3', 'mpi4py>=1.2.2', 'h5py', 'pint', 'scipy'],
+    'extras_require': {
+        'full': ["badlands","lavavu","matplotlib","nbmake"],  # for all 3rd party packages
+    },
 }
+
 classifiers = """
 Development Status :: 5 - Production/Stable
 Intended Audience :: Developers
@@ -290,7 +289,7 @@ idfile = './underworld/_uwid.py'
 if not os.path.isfile(idfile):
     import uuid
     with open(idfile, "w+") as f:
-        f.write("uwid = \'" + str(uuid.uuid4())  + "\'" )
+        f.write("uwid = \'" + str(uuid.uuid4()) + "\'")
 
 setup(name='underworld',
     version=version['__version__'],
@@ -299,8 +298,8 @@ code which provides a programmable and flexible front end to all the \
 functionality of the code running in a parallel HPC environment.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    classifiers= classifiers.split('\n')[1:-1],
-    keywords = ['Underworld', 'MPI', 'Geodynamics'],
+    classifiers=classifiers.split('\n')[1:-1],
+    keywords=['Underworld', 'MPI', 'Geodynamics'],
     platforms=['POSIX'],
     license='LGPL-3',
 

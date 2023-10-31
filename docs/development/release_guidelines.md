@@ -26,6 +26,7 @@ Documentation review
 * Review `development_guidelines.md`.
 * Review docstrings updates for deprecation warnings.
 * Check for other DEPRECATE flags in the code.
+  - `find . -name '*.py' -exec grep -i deprecate {} +`
 * Check autocomplete to ensure no garbage has slipped in. Non
   user relevant objects should be made private so they don't appear in
   autocomplete suggestions.
@@ -63,7 +64,7 @@ Testing
 Creating the release
 ====================
 
-* Tag the release in git.
+* Tag the release branch in git.
 * Create the release from within Github.
 * Check `docker/docker.md` for docker image release information.
 * Add tagged documentation version at http://underworld2.readthedocs.io/  

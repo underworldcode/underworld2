@@ -4,8 +4,8 @@ import imp
 path = os.path.abspath('./image_tests/')
 
 #Check if the viewer is working
-import glucifer
-if not glucifer.lavavu:
+import underworld.visualisation as vis
+if not vis.lavavu:
     print("Image tests skipped, Viewer disabled")
     exit()
 

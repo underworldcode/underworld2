@@ -95,6 +95,11 @@ class h5File(uw.mpi.call_pattern):
             if uw.mpi.rank != 0:
                 self.kwargs.update( {"mode": 'a'} )
 
+        ## check if File exists if we aren't writing to disk
+        if self.kwargs["mode"] != 'w' and not os.path.exists(self.kwargs["name"]):
+            fname = self.kwargs["name"]
+            raise RuntimeError(f"Can't open file \' {fname} \' ")
+
         self.h5f = h5py.File(*self.args, **self.kwargs)
 
         return self.h5f

@@ -6,7 +6,6 @@ import h5py
 import os
 import operator as op
 from underworld.scaling import non_dimensionalise as nd
-from underworld.scaling import dimensionalise
 from underworld.scaling import units as u
 from underworld.utils import _swarmvarschema
 from underworld.swarm import Swarm, SwarmVariable
@@ -597,7 +596,7 @@ class MovingWall(object):
 
         # Return new indexSet for the wall
         mesh = self.Model.mesh
-        nodes = np.arange(mesh.nodesLocal).astype(np.int)
+        nodes = np.arange(mesh.nodesLocal).astype(int)
         mask = self.wallFn.evaluate(mesh)
         mask = mask[:mesh.nodesLocal]
         nodes = nodes[mask.flatten()]

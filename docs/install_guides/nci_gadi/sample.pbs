@@ -9,7 +9,7 @@
 #PBS -l wd
 #PBS -l storage=gdata/m18
 
-export MODULEPATH=/g/data/m18/modulefiles/:$MODULEPATH​
+export MODULEPATH=/g/data/m18/modulefiles/:$MODULEPATH
 module load underworld/2.13 
 
 MODELNAME="foobar"

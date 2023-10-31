@@ -17,7 +17,7 @@
 # Used for github actions on the underworld repo
 # Must go before the 1st FROM see
 # https://docs.docker.com/engine/reference/builder/#understand-how-arg-and-from-interact
-ARG PETSC_IMAGE="underworldcode/petsc:3.18.1"
+ARG PETSC_IMAGE="underworldcode/petsc:3.19.4"
 # 'petsc-image' will be used later on in build stage COPY command 
 FROM ${PETSC_IMAGE} as petsc-image
 
@@ -94,7 +94,7 @@ RUN apt-get update -qq \
 
 # Remove this for future versions
 # setuptools=65.6.0 has a unfixed error, so forcing version
-RUN pip3 install setuptools==65.5.1 --force-reinstall --no-cache \
+RUN pip3 install setuptools --force-reinstall --no-cache \
 &&  pip3 install --no-cache-dir \
          matplotlib \
          scipy \
@@ -127,10 +127,11 @@ WORKDIR /tmp
 COPY --chown=$NB_USER:users . /tmp/underworld2
 WORKDIR /tmp/underworld2
 RUN pip3 install -vvv .
-RUN pip3 install setuptools==65.5.1 --force-reinstall --no-cache-dir \
+RUN pip3 install setuptools --force-reinstall --no-cache-dir \
 &&  pip3 install --no-cache-dir \
        git+https://github.com/drufat/triangle.git \
-       badlands
+       badlands==2.2.4 \
+       jupyter_contrib_nbextensions
 
 RUN pip3 freeze >/opt/requirements.txt
 # Record manually install apt packages.
@@ -143,20 +144,25 @@ FROM runtime as final
 COPY --from=build --chown=$NB_USER:users /opt /opt
 COPY --from=build --chown=$NB_USER:users /usr/local /usr/local
 
-# Copy in examples, tests, etc.
-COPY --chown=jovyan:users ./docs/examples   $NB_HOME/Underworld/examples
-COPY --chown=jovyan:users ./docs/cheatsheet $NB_HOME/Underworld/cheatsheet
-COPY --chown=jovyan:users ./docs/user_guide $NB_HOME/Underworld/user_guide
-COPY --chown=jovyan:users ./docs/test       $NB_HOME/Underworld/test
-COPY --chown=jovyan:users ./docs/UWGeodynamics/examples  $NB_HOME/Underworld/UWGeodynamics/examples
-COPY --chown=jovyan:users ./docs/UWGeodynamics/benchmarks  $NB_HOME/Underworld/UWGeodynamics/benchmarks
-COPY --chown=jovyan:users ./docs/UWGeodynamics/tutorials  $NB_HOME/Underworld/UWGeodynamics/tutorials
-RUN mkdir -p $NB_HOME/workspace \
-&&  chown jovyan:users /home/jovyan/workspace
-RUN jupyter serverextension enable --sys-prefix jupyter_server_proxy
+# must make directory before COPY into it for permissions to work (!!!)
+RUN mkdir -p $NB_HOME/workspace $NB_HOME/Underworld/UWGeodynamics \
+&&  chown $NB_USER:users -R $NB_HOME \
+&& jupyter serverextension enable --sys-prefix jupyter_server_proxy
+
+#Copy in examples, tests, etc.
+COPY --chown=$NB_USER:users ./docs/examples   $NB_HOME/Underworld/examples
+COPY --chown=$NB_USER:users ./docs/cheatsheet $NB_HOME/Underworld/cheatsheet
+COPY --chown=$NB_USER:users ./docs/user_guide $NB_HOME/Underworld/user_guide
+COPY --chown=$NB_USER:users ./docs/test       $NB_HOME/Underworld/test
+COPY --chown=$NB_USER:users ./docs/UWGeodynamics/examples  $NB_HOME/Underworld/UWGeodynamics/examples
+COPY --chown=$NB_USER:users ./docs/UWGeodynamics/benchmarks  $NB_HOME/Underworld/UWGeodynamics/benchmarks
+COPY --chown=$NB_USER:users ./docs/UWGeodynamics/tutorials  $NB_HOME/Underworld/UWGeodynamics/tutorials
 
 EXPOSE 8888
-USER $NB_USER
 WORKDIR $NB_HOME
+USER $NB_USER
+
+# Declare a volume space
+VOLUME $NB_HOME/workspace
 
 CMD ["jupyter-lab", "--no-browser", "--ip='0.0.0.0'"]

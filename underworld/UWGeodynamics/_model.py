@@ -839,6 +839,12 @@ class Model(Material):
             else:
                 HeatProdMap[material.index] = 0.
 
+            # Melt heating effects if enabled
+            if material.latentHeatFusion and self.dt.value:
+                dynamicHeating = self._get_dynamic_heating(material)
+                HeatProdMap[material.index] += dynamicHeating
+
+
         self.HeatProdFn = fn.branching.map(fn_key=self.materialField,
                                            mapping=HeatProdMap)
 
@@ -1523,16 +1529,23 @@ class Model(Material):
             self._solver = False
 
     def _init_temperature_variables(self):
+        """
+         Mesh variables definitions for temperature, tempertaureDot (time
+            derivative of temperature ) and heatFlux along boundaries walls.
+        """
+        # called '_temperature' because of getter/setter usage in Model class
         self._temperature = MeshVariable(mesh=self.mesh,
                                          nodeDofCount=1)
-        self._temperatureDot = MeshVariable(mesh=self.mesh,
-                                            nodeDofCount=1)
-        self._heatFlux = MeshVariable(mesh=self.mesh,
-                                      nodeDofCount=1)
-        self._temperatureDot.data[...] = 0.
-        self._heatFlux.data[...] = 0.
         self.mesh_variables["temperature"] = self._temperature
         self.restart_variables["temperature"] = self._temperature
+
+        self._temperatureDot = self.add_mesh_variable(name="temperatureDot",
+                                                      nodeDofCount=1,
+                                                      restart_variable=True)
+
+        self._heatFlux = self.add_mesh_variable(name="_heatFlux",
+                                                nodeDofCount=1,
+                                                restart_variable=False)
 
     def init_model(self, temperature="steady-state", pressure="lithostatic",
                    defaultStrainRate=1e-15 / u.second):
@@ -2492,7 +2505,7 @@ class _CheckpointFunction(object):
         if isinstance(time, u.Quantity) and self.output_units:
             time = time.to(self.output_units)
 
-        if Model._advector or Model._freeSurface:
+        if Model._advector or Model.freeSurface:
             mesh_name = 'mesh-%s' % checkpointID
             mesh_prefix = os.path.join(outputDir, mesh_name)
             mH = Model.mesh.save('%s.h5' % mesh_prefix,
@@ -2522,7 +2535,7 @@ class _CheckpointFunction(object):
         comm.Barrier()
 
         for field in fields:
-            if field == "temperature" and not Model.temperature:
+            if (field in ["temperature", "temperatureDot"]) and not Model.temperature:
                 continue
             if field in Model.mesh_variables.keys():
                 field = str(field)
@@ -2809,7 +2822,7 @@ class _RestartFunction(object):
 
         Model = self.Model
 
-        if Model._advector:
+        if Model._advector or Model._freeSurface:
             Model.mesh.load(os.path.join(self.restartDir, 'mesh-%s.h5' % step))
         else:
             Model.mesh.load(os.path.join(self.restartDir, "mesh.h5"))
@@ -2836,10 +2849,32 @@ class _RestartFunction(object):
 
         Model = self.Model
 
+        import os
+
         for field in Model.restart_variables:
             obj = getattr(Model, field)
             path = os.path.join(self.restartDir, field + "-%s.h5" % step)
+            if field == "temperatureDot":
+                """
+                Because version 2.13 and lower didn't save the temperatureDot field
+                by default it's treated optionally here"
+                """
+                if not os.path.exists(path):
+                    if rank == 0:
+                        os = \
+                    """*******************************************************
+                    Warning, couldn't find temperatureDot field to reload for
+                    the SUPG solver. This may cause temperature instabilities
+                    after the restart solve. Please check the restart
+                    temperature field closely.
+                    To avoid this message please ensure a 'temperatureDot'
+                    .h5 file is available at restart."
+                    *******************************************************"""
+                    print(os)
+                    continue # don't try load, continue to the next restart_variable
+
             obj.load(str(path))
+
             if rank == 0:
                 now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 print("{0} loaded".format(field) + '(' + now + ')')

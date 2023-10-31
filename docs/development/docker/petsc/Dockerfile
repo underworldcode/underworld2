@@ -52,7 +52,8 @@ RUN apt-get update -qq \
 # build and open virtual environment
 RUN python3 -m venv $PYOPT \
 &&  chmod ugo+rwx $PYOPT \
-&&  pip3 install -U setuptools
+&&  pip3 install -U setuptools \
+                    wheel
 
 FROM runtime as build
 
@@ -79,12 +80,12 @@ RUN apt-get update -qq \
 &&  rm -rf /var/lib/apt/lists/*
 
 RUN pip3 install --no-cache-dir \
-      cython \
+      cython==0.29.36 \
       numpy \
       mpi4py
 
 # get petsc
-ARG PETSC_VERSION="3.18.1"
+ARG PETSC_VERSION="3.19.4"
 RUN mkdir -p /tmp/src
 WORKDIR /tmp/src
 RUN wget http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-${PETSC_VERSION}.tar.gz --no-check-certificate \ 
@@ -107,6 +108,7 @@ RUN PETSC_DIR=`pwd` ./configure --with-debugging=0 --prefix=/usr/local \
                 --download-hypre=1              \
                 --download-scalapack=1          \
                 --download-superlu_dist=1       \
+                --download-pragmatic=1          \
                 --download-ctetgen              \
                 --download-eigen                \
                 --download-superlu=1            \
@@ -117,7 +119,7 @@ RUN PETSC_DIR=`pwd` ./configure --with-debugging=0 --prefix=/usr/local \
 &&  rm -rf /usr/local/share/petsc
 
 # install h5py with MPI enabled
-RUN CC=h5pcc HDF5_MPI="ON" HDF5_DIR=${PETSC_DIR} pip3 install --no-cache-dir --no-binary=h5py h5py \
+RUN CC=mpicc HDF5_MPI="ON" HDF5_DIR=${PETSC_DIR} pip3 install --no-cache-dir --no-build-isolation --no-binary=h5py h5py \
 && pip install --no-cache-dir jupyterlab
 
 # record builder stage packages used

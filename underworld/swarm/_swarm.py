@@ -1,11 +1,11 @@
-##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
+# ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~d~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
 ##                                                                                   ##
 ##  This file forms part of the Underworld geophysics modelling application.         ##
 ##                                                                                   ##
 ##  For full license and copyright information, please refer to the LICENSE.md file  ##
 ##  located at the project root, or contact the authors.                             ##
 ##                                                                                   ##
-##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
+# ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
 import underworld._stgermain as _stgermain
 import underworld.libUnderworld.libUnderworldPy.Function as _cfn
 import numpy as np
@@ -15,10 +15,9 @@ import underworld.function as function
 import underworld.libUnderworld as libUnderworld
 import underworld as uw
 from mpi4py import MPI
-import h5py
 import contextlib
 from underworld.scaling import non_dimensionalise
-from underworld.scaling import units as u 
+from underworld.scaling import units as u
 from pint.errors import UndefinedUnitError
 
 
@@ -42,7 +41,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
     Example
     -------
     Create a swarm with some variables:
-    
+
     >>> # First we need a mesh:
     >>> mesh = uw.mesh.FeMesh_Cartesian( elementType='Q1/dQ0', elementRes=(16,16), minCoord=(0.,0.), maxCoord=(1.,1.) )
     >>> # Create empty swarm:
@@ -96,12 +95,13 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
 
     """
 
-    _objectsDict = {            "_swarm": "GeneralSwarm",
-                          "_cellLayout" : "ElementCellLayout",
-                    "_pMovementHandler" : "ParticleMovementHandler",
-                      "_escapedRoutine" : "EscapedRoutine",
-                  "_particleShadowSync" : "ParticleShadowSync"
-                    }
+    _objectsDict = {
+                    "_swarm": "GeneralSwarm",
+               "_cellLayout": "ElementCellLayout",
+         "_pMovementHandler": "ParticleMovementHandler",
+           "_escapedRoutine": "EscapedRoutine",
+       "_particleShadowSync": "ParticleShadowSync"
+       }
 
     def __init__(self, mesh, particleEscape=False, **kwargs):
 
@@ -111,6 +111,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         # any particles that are found wanting are culled accordingly.
         import weakref
         wkref = weakref.ref(self)  # use weakref to avoid circular dependency here
+
         def _update_owners():
             selfguy = wkref()
             if selfguy:  # if for some reason the swarm is gone, this will be none, in which case we're done here.
@@ -119,19 +120,18 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
 
         # init this to -1 to signify no mapping has occurred
         self._checkpointMapsToState = -1
-        
+
         # build parent
-        super(Swarm,self).__init__(mesh, **kwargs)
+        super(Swarm, self).__init__(mesh, **kwargs)
 
     def _setup(self):
         if self._cself.particleCoordVariable:
             self._particleCoordinates = svar.SwarmVariable(self, "double", self.mesh.dim, _cself=self._cself.particleCoordVariable, writeable=False)
 
-
-    def _add_to_stg_dict(self,componentDictionary):
+    def _add_to_stg_dict(self, componentDictionary):
         # call parents method
 
-        super(Swarm,self)._add_to_stg_dict(componentDictionary)
+        super(Swarm, self)._add_to_stg_dict(componentDictionary)
 
         componentDictionary[ self._swarm.name ][                 "dim"] = self._mesh.dim
         componentDictionary[ self._swarm.name ][          "CellLayout"] = self._cellLayout.name
