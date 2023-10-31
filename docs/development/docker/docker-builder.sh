@@ -29,7 +29,7 @@ docker build . \
 docker build . \
   --build-arg PETSC_IMAGE="underworldcode/petsc:3.19.4-$ARCH" \
   -f ./docs/development/docker/underworld2/Dockerfile \
-  -t underworldcode/underworld2:2.15.0b-$ARCH
+  -t underworldcode/underworld2:2.15.1b-$ARCH
 
 
 #docker push underworldcode/petsc:3.19.4-$ARCH 
