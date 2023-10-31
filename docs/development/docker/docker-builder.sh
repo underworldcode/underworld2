@@ -13,24 +13,27 @@ ARCH=$(uname -m)
 echo "Will build docker image locally for architecture type: $ARCH"
 echo "************************************************************\n"
 
+# Get the ubuntu image
+docker pull ubuntu:22.04
+
 ## The mpi and lavavu images should be automatically made via github actions
-#docker build . --pull -f ./docs/development/docker/mpi/Dockerfile.openmpi -t underworldcode/openmpi:4.1.4-$ARCH
-#docker build . --pull -f ./docs/development/docker/lavavu/Dockerfile -t underworldcode/lavavu:$ARCH
+docker build . -f ./docs/development/docker/mpi/Dockerfile.openmpi -t underworldcode/openmpi:4.1.4-$ARCH
+docker build . -f ./docs/development/docker/lavavu/Dockerfile -t underworldcode/lavavu:$ARCH
 
-docker build . --pull \
-  -f ./docs/development/docker/petsc/Dockerfile \
-  --build-arg MPI_IMAGE="underworldcode/openmpi:4.1.4" \
-  -t underworldcode/petsc:3.18.1-$ARCH
-
-# don't use pull here as we want the petsc image above
 docker build . \
-  --build-arg PETSC_IMAGE="underworldcode/petsc:3.18.1-$ARCH" \
+  -f ./docs/development/docker/petsc/Dockerfile \
+  --build-arg MPI_IMAGE="underworldcode/openmpi:4.1.4-$ARCH" \
+  -t underworldcode/petsc:3.19.4-$ARCH
+
+## don't use pull here as we want the petsc image above
+docker build . \
+  --build-arg PETSC_IMAGE="underworldcode/petsc:3.19.4-$ARCH" \
   -f ./docs/development/docker/underworld2/Dockerfile \
-  -t underworldcode/underworld2:2.14.0b-$ARCH
+  -t underworldcode/underworld2:2.15.0b-$ARCH
 
 
-docker push underworldcode/petsc:3.18.1-$ARCH 
-docker push underworldcode/underworld2:2.14.0b-$ARCH
+#docker push underworldcode/petsc:3.19.4-$ARCH 
+#docker push underworldcode/underworld2:2.15.0b-$ARCH
 
 #### if updates for both arm64 and x86_64 build manifest, ie
 # docker manifest create underworldcode/petsc:3.18.1 \

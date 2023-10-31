@@ -80,12 +80,12 @@ RUN apt-get update -qq \
 &&  rm -rf /var/lib/apt/lists/*
 
 RUN pip3 install --no-cache-dir \
-      cython \
+      cython==0.29.36 \
       numpy \
       mpi4py
 
 # get petsc
-ARG PETSC_VERSION="3.18.1"
+ARG PETSC_VERSION="3.19.4"
 RUN mkdir -p /tmp/src
 WORKDIR /tmp/src
 RUN wget http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-${PETSC_VERSION}.tar.gz --no-check-certificate \ 

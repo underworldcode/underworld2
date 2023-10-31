@@ -24,8 +24,8 @@ class _Polynom(object):
 
     def plot(self, pressure):
         import pylab as plt
-        temperature = dimensionalise(self.temperature(pressure), u.kelvin)
-        pressure = dimensionalise(pressure, u.pascal)
+        temperature = dimensionalise(self.temperature(pressure), u.kelvin).m
+        pressure = dimensionalise(pressure, u.pascal).m
         plt.plot(temperature, pressure)
         plt.gca().invert_yaxis()
         plt.show()

@@ -17,7 +17,7 @@
 # Used for github actions on the underworld repo
 # Must go before the 1st FROM see
 # https://docs.docker.com/engine/reference/builder/#understand-how-arg-and-from-interact
-ARG PETSC_IMAGE="underworldcode/petsc:3.18.1"
+ARG PETSC_IMAGE="underworldcode/petsc:3.19.4"
 # 'petsc-image' will be used later on in build stage COPY command 
 FROM ${PETSC_IMAGE} as petsc-image
 
@@ -94,7 +94,7 @@ RUN apt-get update -qq \
 
 # Remove this for future versions
 # setuptools=65.6.0 has a unfixed error, so forcing version
-RUN pip3 install setuptools==65.5.1 --force-reinstall --no-cache \
+RUN pip3 install setuptools --force-reinstall --no-cache \
 &&  pip3 install --no-cache-dir \
          matplotlib \
          scipy \
@@ -127,10 +127,11 @@ WORKDIR /tmp
 COPY --chown=$NB_USER:users . /tmp/underworld2
 WORKDIR /tmp/underworld2
 RUN pip3 install -vvv .
-RUN pip3 install setuptools==65.5.1 --force-reinstall --no-cache-dir \
+RUN pip3 install setuptools --force-reinstall --no-cache-dir \
 &&  pip3 install --no-cache-dir \
        git+https://github.com/drufat/triangle.git \
-       badlands
+       badlands==2.2.4 \
+       jupyter_contrib_nbextensions
 
 RUN pip3 freeze >/opt/requirements.txt
 # Record manually install apt packages.
@@ -160,5 +161,8 @@ COPY --chown=$NB_USER:users ./docs/UWGeodynamics/tutorials  $NB_HOME/Underworld/
 EXPOSE 8888
 WORKDIR $NB_HOME
 USER $NB_USER
+
+# Declare a volume space
+VOLUME $NB_HOME/workspace
 
 CMD ["jupyter-lab", "--no-browser", "--ip='0.0.0.0'"]
