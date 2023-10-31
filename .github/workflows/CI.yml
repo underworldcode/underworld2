@@ -107,7 +107,7 @@ jobs:
           push: true
           build-args: MPICH_VERSION = ${{ env.MPICH_VERSION }}
           file: ./docs/development/docker/mpi/Dockerfile.mpich
-          platforms: linux/amd64, linux/arm64
+          platforms: linux/amd64
           tags: underworldcode/mpich:${{ env.MPICH_VERSION }}
 
   build_ompi_image:
@@ -139,7 +139,7 @@ jobs:
           push: true
           build-args: OMPI_VERSION = ${{ env.OMPI_VERSION }}
           file: ./docs/development/docker/mpi/Dockerfile.openmpi
-          platforms: linux/amd64, linux/arm64
+          platforms: linux/amd64
           tags: underworldcode/openmpi:${{ env.OMPI_VERSION }}
       
   build_petsc_image:
@@ -248,7 +248,7 @@ jobs:
           push: true
           build-args: PETSC_IMAGE=underworldcode/petsc:${{ env.PETSC_VERSION }}
           file: ./docs/development/docker/underworld2/Dockerfile
-          platforms: linux/amd64, linux/arm64
+          platforms: linux/amd64
           tags: underworldcode/underworld2:${{ env.UW_VERSION }}b
 
   test_in_UW_Container:
