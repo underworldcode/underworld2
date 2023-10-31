@@ -854,16 +854,18 @@ class velocitySurface_2D(SurfaceProcesses):
         self.min_dist = None
         self.nd_coords = None
 
-
-        ''' function to create grid for surface '''
+        self.tkey = self.__class__.__name__+"_surface"
 
 
     def _init_model(self):
         '''  creates a PT output '''
         ### automatically non-dimensionalises the imput coords if they have a dim
-        self.Model.add_passive_tracers(name="surface", vertices=nd(self.surfaceArray), advect=False)
+        ## TODO: Fix naming for internal passive tracer swarm
+        self.Model.add_passive_tracers(name=self.tkey, vertices=nd(self.surfaceArray), advect=False)
 
-        self.Model.surface_tracers.allow_parallel_nn = True
+        st = self.Model.passive_tracers[self.tkey]
+        assert( st != None, f"Error getting passive tracer {self.tkey}")
+        st.allow_parallel_nn = True
 
         self.nd_coords = nd(self.surfaceArray)
 
@@ -875,64 +877,34 @@ class velocitySurface_2D(SurfaceProcesses):
         ### create copy of original surface
         self.originalZ  = self.nd_coords[:,1]
 
-        #### add variables for tracking that aren't included in UWGeo
-        self.Model.surface_tracers.z_coord = self.Model.surface_tracers.add_variable( dataType="double", count=1 )
-        
-        self.Model.surface_tracers.ve = self.Model.surface_tracers.add_variable( dataType="double", count=1 )
-        self.Model.surface_tracers.vs = self.Model.surface_tracers.add_variable( dataType="double", count=1 )
-
-        if self.Model.surface_tracers.data.size != 0:
-            ### erosion is downward (negative)
-            self.Model.surface_tracers.ve.data[:,0] = -1. * abs( np.repeat( nd(self.ve), self.Model.surface_tracers.data.shape[0] ) )
-            ### sedimentation is upward (positive)
-            self.Model.surface_tracers.vs.data[:,0] =  1. * abs( np.repeat( nd(self.vs), self.Model.surface_tracers.data.shape[0] ) )
-            
-            self.Model.surface_tracers.z_coord.data[:,0] = self.Model.surface_tracers.data[:,1]
-
         comm.barrier()
-
 
 
 
         ### add fields to track
 
         ### track velocity field on tracers
-        self.Model.surface_tracers.add_tracked_field(self.Model.velocityField,
-                                       name="surface_vel",
-                                       units=u.centimeter/u.year,
-                                       dataType="float", count=self.Model.mesh.dim)
-
-        self.Model.surface_tracers.add_tracked_field(self.Model.surface_tracers.particleCoordinates,
-                                       name="coords",
-                                       units=u.centimeter/u.year,
-                                       dataType="float", count=self.Model.mesh.dim)
-
-        ## track the surface coordinates (could change to only show the height)
-        self.Model.surface_tracers.add_tracked_field(self.Model.surface_tracers.z_coord,
-                                name="topo_height",
-                                units=u.kilometer,
-                                dataType="float", count=1)
-
-        ### track the erosion rate
-        self.Model.surface_tracers.add_tracked_field(self.Model.surface_tracers.ve,
-                                name="erosion_rate",
-                                units=u.millimeter/u.year,
-                                dataType="float", count=1)
-        ### track the sedimentation rate
-        self.Model.surface_tracers.add_tracked_field(self.Model.surface_tracers.vs,
-                                name="sedimentation_rate",
-                                units=u.millimeter/u.year,
-                                dataType="float", count=1)
+#        st.add_tracked_field(self.Model.velocityField,
+#                                       name="surface_vel",
+#                                       units=u.centimeter/u.year,
+#                                       dataType="float", count=self.Model.mesh.dim)
+#
+#        st.add_tracked_field(st.particleCoordinates,
+#                                       name="coords",
+#                                       units=u.centimeter/u.year,
+#                                       dataType="float", count=self.Model.mesh.dim)
 
         comm.barrier()
 
     def solve(self, dt):
 
-        if self.Model.surface_tracers.data.shape[0] > 0:
+        st = self.Model.passive_tracers[self.tkey]
+        assert( st != None, f"Error getting passive tracer {self.tkey}")
+        if st.data.shape[0] > 0:
             ### evaluate on all nodes and get the tracer velocity on root proc
-            tracer_velocity_local = self.Model.velocityField.evaluate(self.Model.surface_tracers.data)
-            x_local = nd(self.Model.x.evaluate(self.Model.surface_tracers.data))
-            y_local = nd(self.Model.y.evaluate(self.Model.surface_tracers.data))
+            tracer_velocity_local = self.Model.velocityField.evaluate(st.data)
+            x_local = nd(self.Model.x.evaluate(st.data))
+            y_local = nd(self.Model.y.evaluate(st.data))
 
             x  = np.ascontiguousarray(x_local)
             y  = np.ascontiguousarray(y_local)
@@ -1071,14 +1043,8 @@ class velocitySurface_2D(SurfaceProcesses):
 
 
         ### has to be done on all procs due to an internal comm barrier in deform swarm (?)
-        with self.Model.surface_tracers.deform_swarm():
-            self.Model.surface_tracers.data[:,1] = f1(self.Model.surface_tracers.data[:,0])
-
-        comm.barrier()
-
-        if self.Model.surface_tracers.data.size != 0:
-            ### update the surface only on procs that have the tracers
-            self.Model.surface_tracers.z_coord.data[:,0] = self.Model.surface_tracers.data[:,1]
+        with st.deform_swarm():
+            st.data[:,1] = f1(st.data[:,0])
 
         comm.barrier()
 
@@ -1200,16 +1166,18 @@ class velocitySurface_3D(SurfaceProcesses):
         self.min_dist = None
         self.nd_coords = None
 
-
-        ''' function to create grid for surface '''
+        # we save the key of the passive tracer swarm, rather than the instance, because
+        # upon restarts the instance can be replaced
+        self.tkey = self.__class__.__name__+"_surface"
 
 
     def _init_model(self):
-        '''  creates a PT output '''
         ### automatically non-dimensionalises the imput coords if they have a dim
-        self.Model.add_passive_tracers(name="surface", vertices=self.surfaceArray, advect=False)
+        self.Model.add_passive_tracers(name=self.tkey, vertices=self.surfaceArray, advect=False)
 
-        self.Model.surface_tracers.allow_parallel_nn = True
+        st = self.Model.passive_tracers[self.tkey]
+        assert( st != None, f"Error getting passive tracer {self.tkey}")
+        st.allow_parallel_nn = True
 
         self.nd_coords = nd(self.surfaceArray)
 
@@ -1224,20 +1192,6 @@ class velocitySurface_3D(SurfaceProcesses):
         ### create copy of original surface
         self.originalZ  = self.nd_coords[:,2]
 
-        #### add variables for tracking that aren't included in UWGeo
-        self.Model.surface_tracers.z_coord = self.Model.surface_tracers.add_variable( dataType="double", count=1 )
-        
-        self.Model.surface_tracers.ve = self.Model.surface_tracers.add_variable( dataType="double", count=1 )
-        self.Model.surface_tracers.vs = self.Model.surface_tracers.add_variable( dataType="double", count=1 )
-
-        if self.Model.surface_tracers.data.size != 0:
-            ### erosion is downward (negative)
-            self.Model.surface_tracers.ve.data[:] = -1. * abs(self.ve_condition.evaluate(self.Model.surface_tracers.data))
-            ### sedimentation is upward (positive)
-            self.Model.surface_tracers.vs.data[:] =  1. * abs(self.vs_condition.evaluate(self.Model.surface_tracers.data))
-            
-            self.Model.surface_tracers.z_coord.data[:,0] = self.Model.surface_tracers.data[:,2]
-
         comm.barrier()
 
 
@@ -1246,34 +1200,16 @@ class velocitySurface_3D(SurfaceProcesses):
         ### add fields to track
 
         ### track velocity field on tracers
-        self.Model.surface_tracers.add_tracked_field(self.Model.velocityField,
-                                       name="surface_vel",
-                                       units=u.centimeter/u.year,
-                                       dataType="float", count=self.Model.mesh.dim)
-
-        self.Model.surface_tracers.add_tracked_field(self.Model.surface_tracers.particleCoordinates,
-                                       name="coords",
-                                       units=u.centimeter/u.year,
-                                       dataType="float", count=self.Model.mesh.dim)
-
-        ## track the surface coordinates (could change to only show the height)
-        self.Model.surface_tracers.add_tracked_field(self.Model.surface_tracers.z_coord,
-                                name="topo_height",
-                                units=u.kilometer,
-                                dataType="float", count=1)
-
-        ### track the erosion rate
-        self.Model.surface_tracers.add_tracked_field(self.Model.surface_tracers.ve,
-                                name="erosion_rate",
-                                units=u.millimeter/u.year,
-                                dataType="float", count=1)
-        ### track the sedimentation rate
-        self.Model.surface_tracers.add_tracked_field(self.Model.surface_tracers.vs,
-                                name="sedimentation_rate",
-                                units=u.millimeter/u.year,
-                                dataType="float", count=1)
-
-        comm.barrier()
+#        self.Model.surface_tracers.add_tracked_field(self.Model.velocityField,
+#                                       name="surface_vel",
+#                                       units=u.centimeter/u.year,
+#                                       dataType="float", count=self.Model.mesh.dim)
+#
+#        self.Model.surface_tracers.add_tracked_field(self.Model.surface_tracers.particleCoordinates,
+#                                       name="coords",
+#                                       units=u.centimeter/u.year,
+#                                       dataType="float", count=self.Model.mesh.dim)
+#
 
     # def solve(self, dt):
 
@@ -1411,20 +1347,22 @@ class velocitySurface_3D(SurfaceProcesses):
     #     return
 
     def solve(self, dt):
-        if self.Model.surface_tracers.data.shape[0] > 0:
-            x = np.ascontiguousarray(self.Model.surface_tracers.data[:,0])
-            y = np.ascontiguousarray(self.Model.surface_tracers.data[:,1])
-            z = np.ascontiguousarray(self.Model.surface_tracers.data[:,2])
+        st = self.Model.passive_tracers[self.tkey]
+        assert( st != None, f"Error getting passive tracer {self.tkey}")
+        if st.data.shape[0] > 0:
+            x = np.ascontiguousarray(st.data[:,0])
+            y = np.ascontiguousarray(st.data[:,1])
+            z = np.ascontiguousarray(st.data[:,2])
 
             ### evaluate to get the tracer velocity
-            tracer_velocity = self.Model.velocityField.evaluate(self.Model.surface_tracers.data)
+            tracer_velocity = self.Model.velocityField.evaluate(st.data)
             vx = np.ascontiguousarray(tracer_velocity[:,0])
             vy = np.ascontiguousarray(tracer_velocity[:,1])
             vz = np.ascontiguousarray(tracer_velocity[:,2])
             
             ### evaluate to get the ve and vs values
-            ve = np.ascontiguousarray(self.ve_condition.evaluate(self.Model.surface_tracers.data))
-            vs = np.ascontiguousarray(self.vs_condition.evaluate(self.Model.surface_tracers.data))
+            ve = np.ascontiguousarray(self.ve_condition.evaluate(st.data))
+            vs = np.ascontiguousarray(self.vs_condition.evaluate(st.data))
         else:
             x =  np.array([None], dtype='float64')
             y =  np.array([None], dtype='float64')
@@ -1586,14 +1524,14 @@ class velocitySurface_3D(SurfaceProcesses):
 
 
         ### has to be done on all procs due to an internal comm barrier in deform swarm (?)
-        with self.Model.surface_tracers.deform_swarm():
-            self.Model.surface_tracers.data[:,2] = griddata((self.nd_coords[:,0], self.nd_coords[:,1]), self.z_surf, (self.Model.surface_tracers.data[:,0], self.Model.surface_tracers.data[:,1]), method=self.method).ravel()
+        with st.deform_swarm():
+            st.data[:,2] = griddata((self.nd_coords[:,0], self.nd_coords[:,1]), self.z_surf, (st.data[:,0], st.data[:,1]), method=self.method).ravel()
 
         comm.barrier()
 
-        if self.Model.surface_tracers.data.size != 0:
+        if st.data.size != 0:
             ### update the surface only on procs that have the tracers
-            self.Model.surface_tracers.z_coord.data[:,0] = self.Model.surface_tracers.data[:,2]
+            st.z_coord.data[:,0] = st.data[:,2]
 
         comm.barrier()
 
