@@ -130,7 +130,7 @@ RUN pip3 install -vvv .
 RUN pip3 install setuptools --force-reinstall --no-cache-dir \
 &&  pip3 install --no-cache-dir \
        git+https://github.com/drufat/triangle.git \
-       badlands==2.2.4 \
+       git+https://github.com/badlands-model/badlands.git@6ec949472ddd4c012d8694ce5f994b37ef143029#subdirectory=badlands \
        jupyter_contrib_nbextensions
 
 RUN pip3 freeze >/opt/requirements.txt
@@ -147,7 +147,7 @@ COPY --from=build --chown=$NB_USER:users /usr/local /usr/local
 # must make directory before COPY into it for permissions to work (!!!)
 RUN mkdir -p $NB_HOME/workspace $NB_HOME/Underworld/UWGeodynamics \
 &&  chown $NB_USER:users -R $NB_HOME \
-&& jupyter serverextension enable --sys-prefix jupyter_server_proxy
+&& jupyter-server extension enable --sys-prefix jupyter_server_proxy
 
 #Copy in examples, tests, etc.
 COPY --chown=$NB_USER:users ./docs/examples   $NB_HOME/Underworld/examples
