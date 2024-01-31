@@ -11,16 +11,16 @@ This module implements some basic functionality for posting usage metrics
 to google analytics.
 """
 
-import json,urllib
-import http.client
-import urllib
-import uuid
+import urllib.request
+import json
 import underworld as uw
 
-GA_TRACKING_ID = "UA-35748138-7"
+# add information about where the following GA parameters are defined
+GA4_TRACKING_ID = "G-JQQHJRWD87"
+API_SECRET = "cC7EhGFMQZaWgVsGUT5Zow"
 GA_CLIENT_ID = uw._id
 
-def PostGAEvent( category, action, label=None, value=None ):
+def PostGA4Event( event_name, ev_params ):
     """ 
     Posts an Event Tracking message to Google Analytics.
     
@@ -28,7 +28,7 @@ def PostGAEvent( category, action, label=None, value=None ):
     is imported. This is effected by the calling of this function from
     underworld/__init__.py.
     
-    Google Analytics uses the client id (GA_CLIENT_ID) to determine unique users. In
+    Google Analytics uses the client id (GA4_CLIENT_ID) to determine unique users. In
     Underworld, we generate a random string for this id and record it in _uwid.py (the
     value is available via the uw._id attribute). If the file (_uwid.py) exists, it
     is not recreated, so generally it will only be created the first time you build
@@ -44,12 +44,6 @@ def PostGAEvent( category, action, label=None, value=None ):
     successfully. Unfortunately this means that most high proc count simulations
     will not be captured in GA data.
     
-    GA also reports on number of 'sessions'. The single session in GA is considered
-    to be usage where concurrent events occur within 30 minutes of each other. So if
-    you `import underworld` 5 times every 29 minutes, it will count as a single session.
-    However if you `import underworld` 5 times every 31 minutes it will count as 5
-    sessions.
-    
     Full GA parameter reference may be found here:
     https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters#ev
     
@@ -57,15 +51,10 @@ def PostGAEvent( category, action, label=None, value=None ):
     
     Parameters
     ----------
-    category: str
-        Textual name for event category.
-    action: str
-        Textual name for event action.
-    label: str
-        Optional label for event.
-    value: non-negative integer
-        Optional value for event.
-
+    event_name: str
+        Textual name for event_name. Can only contain alpha-numeric characters and underscores.
+    ev_params: dict
+        Optional paramerter dictionary for event.
 
     Add the following test here to ensure we're catching out when we're
     running from doctests to avoid dispatching metrics. 
@@ -74,36 +63,39 @@ def PostGAEvent( category, action, label=None, value=None ):
 
 
     """
-    try:
-        connection = http.client.HTTPSConnection('www.google-analytics.com')
-        form_fields = {
-        "v"  : "1",             # Version.
-        "aip": "1",             # Enable IP anonymizing.
-        "tid": GA_TRACKING_ID,  # Tracking ID / Web property / Property ID.
-        "ds" : "app",           # Data Source.
-        "cid": GA_CLIENT_ID,    # Anonymous Client ID.
-        "t"  : "event",         # Event hit type.
-        "an" : "underworld2",   # Application name.
-        "av" : uw.__version__,  # Application version.
-        "ec" : category,        # Event Category. Required.
-        "ea" : action,          # Event Action. Required.
-        "el" : label,           # Event label.
-        "ev" : value,           # Event value.
-        "cm2": uw.mpi.size,     # Number of processes used. Stored into custom metric 2.
-        "cd5": str(uw.mpi.size),# Number of processes used. Stored into custom dim 2. Not sure if necessary.
-        }
-        import os
-        # add user id if set
-        if "UW_USER_ID" in os.environ:
-            form_fields["uid"] = os.environ["UW_USER_ID"]
-            form_fields["cd4"] = os.environ["UW_USER_ID"]
-        
-        if "UW_MACHINE" in os.environ:
-            form_fields["cd6"] = os.environ["UW_MACHINE"]
 
-        params = urllib.parse.urlencode(form_fields)
-        connection.connect()
-        connection.request('POST', '/collect?%s' % params, '', { "Content-Type": "application/x-www-form-urlencoded" })
+    try:
+        url  =   "https://www.google-analytics.com/"
+        url += f"mp/collect?measurement_id={GA4_TRACKING_ID}&api_secret={API_SECRET}"
+
+        payload = {
+            "client_id": GA_CLIENT_ID,
+            "events": [
+                {
+                    "name": event_name,
+                    "params": {
+                        "session_id": GA_CLIENT_ID,
+                        "engagement_time_msec": 1,
+
+                    }
+                }
+            ]
+        }
+
+        # add the input dict to the event params
+        payload["events"][0]["params"].update(ev_params)
+
+        # convert data to btye string
+        jsondata = json.dumps(payload)
+        byte_data = jsondata.encode('utf-8')
+
+        req = urllib.request.Request(url)
+        req.add_header('Content-Type', 'application/json; charset=utf-8')
+        req.add_header('Content-Length', len(byte_data))
+        result = urllib.request.urlopen(req, byte_data)
+
+        if result.status not in [200, 204]:
+            print(f"Failed to post GA4 event. Status: {result.status}")
+
     except:
         pass
-
