@@ -1,5 +1,6 @@
 from __future__ import print_function, absolute_import
 from scipy.interpolate import interp1d
+from scipy.interpolate import CloughTocher2DInterpolator
 import underworld as uw
 from underworld.scaling import non_dimensionalise as nd
 
@@ -29,7 +30,7 @@ class FreeSurfaceProcessor(object):
                                      
         # Create the tools
         self.TField = self._init_mesh.add_variable(nodeDofCount=1)
-        self.TField.data[:, 0] = self._init_mesh.data[:, 1].copy()
+        self.TField.data[:, 0] = self._init_mesh.data[:, -1].copy()
 
         self.top = self.model.top_wall
         self.bottom = self.model.bottom_wall
@@ -53,22 +54,42 @@ class FreeSurfaceProcessor(object):
     def _advect_surface(self, dt):
 
         if self.top:
-            # Extract top surface
-            x = self.model.mesh.data[self.top.data][:, 0]
-            y = self.model.mesh.data[self.top.data][:, 1]
-
-            # Extract velocities from top
-            vx = self.model.velocityField.data[self.top.data][:, 0]
-            vy = self.model.velocityField.data[self.top.data][:, 1]
-
-            # Advect top surface
-            x2 = x + vx * nd(dt)
-            y2 = y + vy * nd(dt)
-
-            # Spline top surface
-            f = interp1d(x2, y2, kind='cubic', fill_value='extrapolate')
-
-            self.TField.data[self.top.data, 0] = f(x)
+            if self.model.mesh.dim == 2:
+                # Extract top surface
+                x = self.model.mesh.data[self.top.data][:, 0]
+                y = self.model.mesh.data[self.top.data][:, 1]
+    
+                # Extract velocities from top
+                vx = self.model.velocityField.data[self.top.data][:, 0]
+                vy = self.model.velocityField.data[self.top.data][:, 1]
+    
+                # Advect top surface
+                x2 = x + vx * nd(dt)
+                y2 = y + vy * nd(dt)
+    
+                # Spline top surface
+                f = interp1d(x2, y2, kind='cubic', fill_value='extrapolate')
+    
+                self.TField.data[self.top.data, 0] = f(x)
+            else:
+                # Extract top surface
+                x = self.model.mesh.data[self.top.data][:, 0]
+                y = self.model.mesh.data[self.top.data][:, 1]
+                z = self.model.mesh.data[self.top.data][:, -1]
+    
+                # Extract velocities from top
+                vx = self.model.velocityField.data[self.top.data][:, 0]
+                vy = self.model.velocityField.data[self.top.data][:, 1]
+                vz = self.model.velocityField.data[self.top.data][:, -1]
+    
+                # Advect top surface
+                x2 = x + vx * nd(dt)
+                y2 = y + vy * nd(dt)
+                z2 = z + vz * nd(dt)
+    
+                # Spline top surface
+                f = CloughTocher2DInterpolator((x2, y2), z2)
+                self.TField.data[self.top.data, 0] = f((x,y))
         uw.mpi.barrier()
         self.TField.syncronise()
 
