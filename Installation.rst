@@ -17,12 +17,13 @@ Build environment
 
 * cmake >= 3.16
 * MPICH or OPENMPI
-* PETSc (<= 3.16.1)
+* PETSc
 * HDF5  
 * SWIG (>= 4.0) 
 * LibXML (>= 2.0)
-* Python (>3.5, <= 3.9.9) 
+* Python (>3.5, <= 3.11) 
 * Numpy
+* Ninja
 
 Running Requirements
 ********************
