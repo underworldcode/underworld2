@@ -278,14 +278,14 @@ Topic :: Software Development :: Libraries
 """
 
 version = {}
-with open("underworld/_version.py") as fp:
+with open("src/underworld/_version.py") as fp:
     exec(fp.read(), version)
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 # Create uwid if it doesn't exist
-idfile = './underworld/_uwid.py'
+idfile = './src/underworld/_uwid.py'
 if not os.path.isfile(idfile):
     import uuid
     with open(idfile, "w+") as f:
@@ -317,8 +317,8 @@ functionality of the code running in a parallel HPC environment.",
     packages=find_packages(),
     ext_modules=[
         CMakeExtension(name='libUnderworld',
-                       install_prefix="underworld",
-                       source_dir=str(Path("underworld/libUnderworld").absolute()),
+                       install_prefix="src/underworld",
+                       source_dir=str(Path("src/underworld/libUnderworld").absolute()),
                        cmake_configure_options=[
                            f"-DPython3_ROOT_DIR={Path(sys.prefix)}",
                            "-DCALL_FROM_SETUP_PY:BOOL=ON"]
