@@ -59,6 +59,7 @@ include_directories(${PROJECT_SOURCE_DIR})
 # In the present case I chose to apply the flag to the current target (Underworld) and not pollute the
 # system
 add_compile_options(-DU_SHOW_CPLUSPLUS_API=0)
+add_compile_options(-Wno-incompatible-pointer-types -Wno-int-conversion)
 
 add_library(pcu SHARED)
 target_link_libraries(pcu ${LIBXML2_LIBRARIES} MPI::MPI_C)
