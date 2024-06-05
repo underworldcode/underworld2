@@ -247,16 +247,20 @@ if (underworld.mpi.rank == 0) and not _in_doctest():
         if "UW_NO_USAGE_METRICS" not in os.environ:
             # get platform info
             import platform
-            label  =        platform.system()
-            label += "__" + platform.release()
+            sysinfo  =        platform.system()
+            sysinfo += "__" + platform.machine()
             # check if docker
             import os.path
             if (os.path.isfile("/.dockerinit")):
-                label += "__docker"
+                machinfo += "__docker"
+
+            event_dict = { "version" : underworld.__version__,
+                           "platform" : sysinfo,
+                           "run_size" : underworld.mpi.size }
 
             # send info async
             import threading
-            thread = threading.Thread( target=_net.PostGAEvent, args=( "runtime", "import", label, underworld.mpi.size ) )
+            thread = threading.Thread( target=_net.PostGA4Event, args=("import_uw2", event_dict) )
             thread.daemon = True
             thread.start()
 
