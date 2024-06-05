@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import os
-import imp
+import runpy
+#import imp
 import ntpath
 from inspect import getsourcefile
 # change dir to where this test lives
@@ -23,13 +24,14 @@ for d in os.listdir(path):
     testd = os.path.join(path,d)
     if not os.path.isdir(testd): continue
     if str(d)[0] == '.': continue
-    modfile = os.path.join(path, str(d) + '/runtest.py')
-    if not os.path.isfile(modfile): continue;
+    filepath = os.path.join(path, str(d) + '/runtest.py')
+    if not os.path.isfile(filepath): continue;
     os.chdir(testd)
     print("Running tests in " + os.getcwd())
     print("===================================================")
-    #print modfile
-    testmod = imp.load_source('runtest', modfile)
+    #print filepath
+    runpy.run_path(filepath)
+    #testmod = imp.load_source('runtest', filepath)
     os.chdir(path)
     print("===================================================")
 
