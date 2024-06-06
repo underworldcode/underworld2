@@ -59,7 +59,6 @@
    #define SNESLogConvHistory SNESLogConvergenceHistory
    #define KSPDefaultBuildSolution KSPBuildSolutionDefault
    #define KSPDefaultBuildResidual KSPBuildResidualDefault
-   #define PETSC_NULL NULL
 #else
    #define Stg_PCMGDefaultResidual PCMGDefaultResidual
    #define Stg_VecRegister(a1,a2,a3,a4) VecRegister(a1,a2,a3,a4)
