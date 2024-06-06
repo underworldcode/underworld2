@@ -317,7 +317,7 @@ functionality of the code running in a parallel HPC environment.",
     packages=find_packages(),
     ext_modules=[
         CMakeExtension(name='libUnderworld',
-                       install_prefix="src/underworld",
+                       install_prefix="underworld",
                        source_dir=str(Path("src/underworld/libUnderworld").absolute()),
                        cmake_configure_options=[
                            f"-DPython3_ROOT_DIR={Path(sys.prefix)}",
