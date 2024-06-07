@@ -20,6 +20,25 @@ GA4_TRACKING_ID = "G-JQQHJRWD87"
 API_SECRET = "cC7EhGFMQZaWgVsGUT5Zow"
 GA_CLIENT_ID = uw._id
 
+
+# Function to get user's IP address and geographic information
+def get_geo_info():
+    url = 'https://ipinfo.io/json'
+    # try because connection to ipinfo ping may fail
+    try:
+        with urllib.request.urlopen(url) as response:
+            if response.status == 200:
+                data = response.json()
+                return {
+                    "country": data.get("country"),
+                    "region": data.get("region"),
+                    "city": data.get("city")
+                }
+    
+    except:
+        pass
+    return None
+
 def PostGA4Event( event_name, ev_params ):
     """ 
     Posts an Event Tracking message to Google Analytics.
@@ -63,10 +82,10 @@ def PostGA4Event( event_name, ev_params ):
 
 
     """
+    geo_info = get_geo_info()
 
     try:
-        url  =   "https://www.google-analytics.com/"
-        url += f"mp/collect?measurement_id={GA4_TRACKING_ID}&api_secret={API_SECRET}"
+        url  = f"https://www.google-analytics.com/mp/collect?measurement_id={GA4_TRACKING_ID}&api_secret={API_SECRET}"
 
         payload = {
             "client_id": GA_CLIENT_ID,
@@ -76,13 +95,13 @@ def PostGA4Event( event_name, ev_params ):
                     "params": {
                         "session_id": GA_CLIENT_ID,
                         "engagement_time_msec": 1,
-
-                    }
+                    },
                 }
             ]
         }
 
         # add the input dict to the event params
+        payload["events"][0]["params"].update(geo_info)
         payload["events"][0]["params"].update(ev_params)
 
         # convert data to btye string
