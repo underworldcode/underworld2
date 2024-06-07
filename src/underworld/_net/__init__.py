@@ -28,7 +28,8 @@ def get_geo_info():
     try:
         with urllib.request.urlopen(url) as response:
             if response.status == 200:
-                data = response.json()
+                tmp = response.read().decode('utf-8')
+                data = json.loads(tmp)
                 return {
                     "country": data.get("country"),
                     "region": data.get("region"),
