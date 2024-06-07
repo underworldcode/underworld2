@@ -34,7 +34,6 @@ def get_geo_info():
                     "region": data.get("region"),
                     "city": data.get("city")
                 }
-    
     except:
         pass
     return None
