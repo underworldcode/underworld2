@@ -91,7 +91,7 @@ def PostGA4Event( event_name, ev_params ):
             "client_id": GA_CLIENT_ID,
             "events": [
                 {
-                    "name": event_name,
+                    "name": geo_info["country"]+"_"+event_name,
                     "params": {
                         "session_id": GA_CLIENT_ID,
                         "engagement_time_msec": 1,
@@ -101,7 +101,6 @@ def PostGA4Event( event_name, ev_params ):
         }
 
         # add the input dict to the event params
-        payload["events"][0]["params"].update(geo_info)
         payload["events"][0]["params"].update(ev_params)
 
         # convert data to btye string
