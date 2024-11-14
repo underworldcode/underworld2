@@ -1,9 +1,10 @@
+recursive-include src/underworld *py
+recursive-include src/underworld/UWGeodynamics/resources *.json
+recursive-include src/underworld/UWGeodynamics/uwgeo-data *
+
 # recursive-include src/underworld *i
 # recursive-include src/underworld *c
 # recursive-include src/underworld *cpp
 # recursive-include src/underworld *h
 # recursive-include src/underworld *hpp
-#recursive-include src/underworld CMakeLists*
-recursive-include src/underworld *py
-recursive-include src/underworld/UWGeodynamics/ressources *.json
-recursive-include src/underworld/UWGeodynamics/uwgeo-data *
+# recursive-include src/underworld CMakeLists*

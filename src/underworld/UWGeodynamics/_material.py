@@ -304,7 +304,7 @@ class MaterialRegistry(object):
 
         if not filename:
             filename = pkg_resources.resource_filename(
-                __name__, "ressources/Materials.json")
+                __name__, "resources/Materials.json")
 
         def get_value(item):
             value = item["value"]
