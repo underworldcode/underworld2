@@ -59,7 +59,9 @@ include_directories(${PROJECT_SOURCE_DIR})
 # In the present case I chose to apply the flag to the current target (Underworld) and not pollute the
 # system
 add_compile_options(-DU_SHOW_CPLUSPLUS_API=0)
-add_compile_options(-Wno-incompatible-pointer-types -Wno-int-conversion)
+add_compile_options(-DPETSC_SILENCE_DEPRECATION_WARNINGS_3_19_0)
+add_compile_options($<$<COMPILE_LANGUAGE:C>:-Wno-incompatible-pointer-types$<SEMICOLON>-Wno-int-conversion>)
+#add_compile_options(-DNPY_NO_DEPRECATED_API=NPY_1_9_API_VERSION)
 
 add_library(pcu SHARED)
 target_link_libraries(pcu ${LIBXML2_LIBRARIES} MPI::MPI_C)

@@ -120,10 +120,6 @@
 	/** This function prints the types registered that are most similar to the 'name' passed in */
 	void Stg_ComponentRegister_PrintSimilar( void* componentRegister, Name name, void* _stream, unsigned int number ) ;
 
-	Stg_Component_DefaultConstructorFunction* Stg_ComponentRegister_AssertGet( 
-		Stg_ComponentRegister* self,
-		Name                   componentType,
-		Name                   version );
 	void Stg_ComponentRegister_PrintAllTypes( void* componentRegister, void* stream );
 
 	/* Functions for iterating through the component element list ---------------------------------------------------*/

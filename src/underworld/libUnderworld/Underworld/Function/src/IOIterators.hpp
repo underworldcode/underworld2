@@ -36,7 +36,7 @@ namespace Fn {
 class IOIterator
 {
     public:
-        virtual IOIterator& operator++(int){ _position++; _setNewIO(); return *this;};
+        virtual IOIterator& operator++(int) { _position++; _setNewIO(); return *this;};
         Function::IOsptr get(){ return debug_dynamic_cast<const FunctionIO*>(_io.get()); };
         virtual void reset(){};
         unsigned size() const{ return _size; };

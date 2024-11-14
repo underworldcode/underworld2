@@ -29,6 +29,7 @@
 #include <stdio.h>
 
 #define PY_ARRAY_UNIQUE_SYMBOL stg_ARRAY_API
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
 #define NUMPY_IMPORT_ARRAY_RETVAL False
 
