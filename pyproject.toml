@@ -10,7 +10,7 @@ requires = [
 
 [project]
 name    = "underworld"
-version = "2.16.0"
+dynamic = ["version"] # is dynamically taken from setuptools backend
 authors = [
   {name = "Louis Moresi", email="louis.moresi@anu.edu.au"},
   {name = "Julian Giordani", email="julian.giordnai@sydney.edu.au"},
@@ -27,6 +27,7 @@ dependencies = [
   "pint",
   "scipy",
 ]
+requires-python = ">=3.8"
 description = "Underworld2 is a python-friendly, parallel, scalable, easy-to-use toolkit for solving problems in solid and fluid mechanics."
 readme = "README.md"
 license = {file = "./LICENSE.md"}
@@ -42,6 +43,7 @@ classifiers = [
   "Topic :: Scientific/Engineering",
   "Topic :: Software Development :: Libraries",
 ]
+
 [project.optional-dependencies]
 full = [
   "badlands",
