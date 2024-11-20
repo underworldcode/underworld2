@@ -21,8 +21,8 @@ maintainers = [
   {name = "Underworld Team", email="help@underworldcode.org"},
 ]
 dependencies = [
-  "numpy>=1.20.3",
-  "mpi4py>=1.2.2",
+  "numpy<2.0",
+  "mpi4py",
   "h5py",
   "pint",
   "scipy",
