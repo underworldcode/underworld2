@@ -1,7 +1,16 @@
-FROM ubuntu:22.04 as base_runtime
+ARG UBUNTU_VERSION="24.04"
+ARG PYTHON_VERSION="3.12"
+
+FROM ubuntu:${UBUNTU_VERSION} as base_runtime
 LABEL maintainer="https://github.com/underworldcode/"
+
+# need to repeat ARGS after every FROM 
+ARG UBUNTU_VERSION
+ARG PYTHON_VERSION
+
 ENV LANG=C.UTF-8
-ENV PYVER=3.10
+ENV PYVER=${PYTHON_VERSION}
+
 # Setup some things in anticipation of virtualenvs
 ENV VIRTUAL_ENV=/opt/venv
 # The following ensures that the venv takes precedence if available
@@ -28,28 +37,32 @@ RUN apt-get update -qq \
         python3-venv \
         python3-pip \
         python3-numpy \
-        libpng16-16 \
+        libpng16-16t64 \
         libjpeg8 \
-        libtiff5 \ 
-        libglu1-mesa \
+        libtiff-dev \ 
+        libglu1-mesa-dev \
         libosmesa6 \
-        libavcodec58 \
-        libavformat58 \
-        libavutil56 \
-        libswscale5 \
-        zlib1g \
+        libavcodec-dev \
+        libavformat-dev \
+        libavutil-dev \
+        libswscale-dev \
+        zlib1g-dev \
         libopenblas0 \
 &&  apt-get clean \
 &&  rm -rf /var/lib/apt/lists/*
 
+
 FROM base_runtime AS build_base
-# FROM base_runtime AS build_base
+
+ARG UBUNTU_VERSION
+ARG PYTHON_VERSION
+
 # install build requirements
 RUN apt-get update -qq 
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         build-essential \
         python3-setuptools \
-        libpython${PYVER}-dev \ 
+        libpython${PYTHON_VERSION}-dev \ 
         libpng-dev \
         libjpeg-dev \
         libtiff-dev \
@@ -65,8 +78,13 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         libopenblas-dev \
         libz-dev \
         gcc \
-        python3-dev
+        python3-full
 
+
+# lavavu
+# create a virtualenv to put new python modules
+USER $NB_USER
+RUN /usr/bin/python3 -m venv --system-site-packages ${VIRTUAL_ENV}
 RUN pip3 install -U setuptools  \
 &&  pip3 install --no-cache-dir \
         packaging \
@@ -75,11 +93,9 @@ RUN pip3 install -U setuptools  \
         pillow \
         ipython
 
-# lavavu
-# create a virtualenv to put new python modules
-USER $NB_USER
-RUN /usr/bin/python3 -m venv --system-site-packages ${VIRTUAL_ENV}
-RUN LV_OSMESA=1 pip3 install --no-cache-dir --no-binary=lavavu lavavu 
+#RUN LV_OSMESA=1 pip3 install --no-cache-dir lavavu #--no-binary=lavavu lavavu 
+
+RUN pip3 install --no-cache-dir lavavu-osmesa
 
 FROM base_runtime AS minimal
 COPY --from=build_base $VIRTUAL_ENV $VIRTUAL_ENV

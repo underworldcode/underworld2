@@ -13,16 +13,26 @@
 # minimal sections of the build layer.
 #####################################################################
 
-# PETSC_VERSION passed in via --build-args
+# The following are passed in via --build-args
 # Used for github actions on the underworld repo
 # Must go before the 1st FROM see
 # https://docs.docker.com/engine/reference/builder/#understand-how-arg-and-from-interact
-ARG PETSC_IMAGE="underworldcode/petsc:3.19.4"
+ARG PETSC_IMAGE="underworldcode/petsc:3.22.2"
+ARG LAVAVU_IMAGE="none"
+ARG UBUNTU_VERSION="24.02"
+ARG PYTHON_VERSION="3.12"
+
 # 'petsc-image' will be used later on in build stage COPY command 
 FROM ${PETSC_IMAGE} as petsc-image
 
-FROM ubuntu:22.04 as runtime
+FROM ${LAVAVU_IMAGE} as lavavu-image
+
+FROM ubuntu:${UBUNTU_VERSION} as runtime
 LABEL maintainer="https://github.com/underworldcode/"
+
+# need to repeat ARGS after every FROM 
+ARG UBUNTU_VERSION
+ARG PYTHON_VERSION
 
 #### Dockerfile ENV vars - for all image stages
 ENV LANG=C.UTF-8
@@ -31,7 +41,7 @@ ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 
 # python env vars. 
 # prepappending on PATH means all pip install will goto the PYOPT
-ENV PYVER=3.10
+ENV PYVER=${PYTHON_VERSION}
 ENV PYOPT=/opt/venv
 ENV PATH=$PYOPT/bin:$PATH
 ENV PYTHONPATH=$PYTHONPATH:$PYOPT/lib/python${PYVER}/site-packages
@@ -52,21 +62,21 @@ RUN apt-get update -qq \
         ssh \
         python3-venv \
         python3-dev \
-        libopenblas-base \
-        python3-venv \
+        libopenblas0 \
+        python3-full \
         libxml2 \
         vim \
         git \
         gdb \
-        libpng16-16 \
+        libpng16-16t64 \
         libjpeg8 \
-        libtiff5 \ 
+        libtiff-dev \ 
         libglu1-mesa \
         libosmesa6 \
-        libavcodec58 \
-        libavformat58 \
-        libavutil56 \
-        libswscale5 \
+        libavcodec60 \
+        libavformat60 \
+        libavutil58 \
+        libswscale7 \
         zlib1g \
 &&  apt-get clean \
 &&  rm -rf /var/lib/apt/lists/*
@@ -77,6 +87,9 @@ RUN python3 -m venv $PYOPT \
 &&  chmod ugo+rwx $PYOPT
 
 FROM runtime as build
+
+ARG UBUNTU_VERSION
+ARG PYTHON_VERSION
 
 # install build packages
 RUN apt-get update -qq \
@@ -106,8 +119,8 @@ RUN pip3 install setuptools --force-reinstall --no-cache \
          tabulate 
 
 # Lets grab lavavu & requirements
-COPY --from=underworldcode/lavavu /opt       /opt
-COPY --from=underworldcode/lavavu /usr/local /usr/local
+COPY --from=lavavu-image /opt       /opt
+COPY --from=lavavu-image /usr/local /usr/local
 RUN apt-get update \
 &&  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends $(awk '{print $1'} /opt/installed.txt) \
 &&  apt-get clean \
@@ -129,8 +142,7 @@ WORKDIR /tmp/underworld2
 RUN pip3 install -vvv .
 RUN pip3 install setuptools --force-reinstall --no-cache-dir \
 &&  pip3 install --no-cache-dir \
-       git+https://github.com/drufat/triangle.git \
-       git+https://github.com/badlands-model/badlands.git@6ec949472ddd4c012d8694ce5f994b37ef143029#subdirectory=badlands \
+       "badlands @ git+https://github.com/julesghub/badlands.git@julesghub/meson-build#subdirectory=badlands" \
        jupyter_contrib_nbextensions
 
 RUN pip3 freeze >/opt/requirements.txt
@@ -140,6 +152,9 @@ RUN apt-mark showmanual >/opt/installed.txt
 
 # Build the final image, a combination of the runtime and build stages
 FROM runtime as final
+
+ARG UBUNTU_VERSION
+ARG PYTHON_VERSION
 
 COPY --from=build --chown=$NB_USER:users /opt /opt
 COPY --from=build --chown=$NB_USER:users /usr/local /usr/local
