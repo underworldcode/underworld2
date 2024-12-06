@@ -95,7 +95,7 @@ RUN pip3 install -U setuptools  \
 
 #RUN LV_OSMESA=1 pip3 install --no-cache-dir lavavu #--no-binary=lavavu lavavu 
 
-RUN pip3 install --no-cache-dir lavavu-osmesa --no-binary :lavavu-osmesa:
+RUN LV_OSMESA=1 pip3 install --no-cache-dir lavavu
 
 FROM base_runtime AS minimal
 COPY --from=build_base $VIRTUAL_ENV $VIRTUAL_ENV
