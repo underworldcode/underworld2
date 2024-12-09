@@ -36,7 +36,6 @@ RUN apt-get update -qq \
         python3-minimal \
         python3-venv \
         python3-pip \
-        python3-numpy \
         libpng16-16t64 \
         libjpeg8 \
         libtiff-dev \ 
@@ -87,6 +86,7 @@ USER $NB_USER
 RUN /usr/bin/python3 -m venv --system-site-packages ${VIRTUAL_ENV}
 RUN pip3 install -U setuptools  \
 &&  pip3 install --no-cache-dir \
+        "numpy<2" \
         packaging \
         appdirs \
         jupyter \

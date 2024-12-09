@@ -110,7 +110,9 @@ RUN apt-get update -qq \
 RUN pip3 install setuptools --force-reinstall --no-cache \
 &&  pip3 install --no-cache-dir \
          matplotlib \
-         scipy \
+         "cython==3.0.10" \
+         "scipy==1.13" \
+         "numpy<2" \
          pint \
          rise \
          pytest \

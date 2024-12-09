@@ -89,9 +89,9 @@ RUN apt-get update -qq \
 &&  rm -rf /var/lib/apt/lists/*
 
 RUN pip3 install --no-cache-dir \
-      cython \
+      "cython==3.0.10" \
+      "numpy<2"
       mpi4py \
-      'numpy<2'
 
 # get petsc
 ARG PETSC_VERSION="3.22.2"
