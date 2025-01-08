@@ -1,5 +1,5 @@
 {% set name = "underworld" %}
-{% set version = "2.14.0" %}
+{% set version = "2.16.0" %}
 {% set sha256 = "a9323209b0e36743bc953bf3b3d8e0a84d5e4e7f1911a1e78d1404a0ade6337d" %}
 {% set build = 0 %}
 
@@ -8,10 +8,10 @@ package:
   version: {{ version }}
 
 source:
-  # git_url: https://github.com/julesghub/underworld2.git
-  # git_rev: dockerfile-updates
-  url: https://github.com/underworldcode/underworld2/archive/refs/tags/v{{ version }}b.tar.gz
-  sha256: {{ sha256 }}
+  git_url: https://github.com/underworldcode/underworld2.git
+  git_rev: v2.16.x
+    #url: https://github.com/underworldcode/underworld2/archive/refs/tags/v{{ version }}b.tar.gz
+    #sha256: {{ sha256 }}
 
 build:
   skip: true  # [win]
@@ -34,7 +34,7 @@ requirements:
     - pip
     - python
     - libxml2
-    - numpy >=1.18
+    - numpy <2
     - cmake
     - swig >=4.0.0
     - ninja
@@ -77,6 +77,6 @@ about:
 
 extra:
   recipe-maintainers:
-    - rbeucher
     - julesghub
+    - rbeucher
     - lmoresi
