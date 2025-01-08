@@ -31,6 +31,9 @@ signal(SIGPIPE, SIG_IGN)
 #Attempt to import lavavu module
 try:
     import lavavu
+    # test if attribute exists - aka is lavavu valid
+    if not hasattr(lavavu, Viewer):
+        raise
     #Import into main too so can be accessed there
     #(necessary for interactive viewer/controls)
     import __main__
