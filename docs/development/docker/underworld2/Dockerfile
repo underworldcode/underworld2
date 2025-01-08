@@ -144,6 +144,7 @@ WORKDIR /tmp/underworld2
 RUN pip3 install -vvv .
 RUN pip3 install setuptools --force-reinstall --no-cache-dir \
 &&  pip3 install --no-cache-dir \
+       "git+https://github.com/drufat/triangle.git" \
        "badlands @ git+https://github.com/julesghub/badlands.git@julesghub/meson-build#subdirectory=badlands" \
        jupyter_contrib_nbextensions
 
