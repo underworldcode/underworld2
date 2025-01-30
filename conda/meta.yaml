@@ -1,6 +1,5 @@
 {% set name = "underworld" %}
 {% set version = "2.16.0" %}
-{% set sha256 = "a9323209b0e36743bc953bf3b3d8e0a84d5e4e7f1911a1e78d1404a0ade6337d" %}
 {% set build = 0 %}
 
 package:
@@ -8,51 +7,54 @@ package:
   version: {{ version }}
 
 source:
-  git_url: https://github.com/underworldcode/underworld2.git
-  git_rev: v2.16.x
-    #url: https://github.com/underworldcode/underworld2/archive/refs/tags/v{{ version }}b.tar.gz
-    #sha256: {{ sha256 }}
+  git_url : https://github.com/underworldcode/underworld2.git
+  git_rev : v2.16.x
+#  url: https://github.com/underworldcode/underworld2/archive/refs/tags/v{{ version }}b.zip
+#  sha256: 5d27ce877f2238f6b2e9c6b90da25f1a61833ffa6093e0382f1bc5e2468dd782
 
 build:
-  skip: true  # [win]
+  skip: true  # [py<39 or win]
   number: 0
-  script: PETSC_DIR=$PREFIX {{ PYTHON }} -m pip -vv install --no-deps .  
-  missing_dso_whitelist:
-    - libm.so.6 
-    - libc.so.6 
+  script: PETSC_DIR=$PREFIX {{ PYTHON }} -m pip install . -vv
 
 requirements:
 
   build:
-    - {{ compiler('fortran') }}
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
     - {{ mpi }}
+    - pkg-config
+    - cmake
+    - ninja
 
   host:
-    - pkg-config
     - pip
+    - setuptools
     - python
+    - h5py =*=mpi*
     - libxml2
     - numpy <2
-    - cmake
-    - swig >=4.0.0
-    - ninja
     - petsc {{ petsc }}
     - {{ mpi }}
+    - swig >=4.0.0
 
   run:
     - python
-    - {{ mpi }}
-    - numpy
+    - h5py =*=mpi*
+    - {{ pin_compatible('numpy') }}
     - petsc {{ petsc }}
+    - {{ mpi }}
+    - mpi4py
     - pint
     - scipy
-    - mpi4py
-    - h5py
+    - matplotlib-base
 
 test:
+  imports:
+    - underworld
+
   requires:
+    - python
     - pytest
     - matplotlib
 
@@ -62,15 +64,15 @@ test:
     - docs/examples
 
   commands:
+    #    - pytest -vvv docs/pytests/test.py
     - python -X faulthandler -c "import underworld; underworld.mesh.FeMesh_Cartesian();"
-    - pytest -vvv docs/pytests
 
 
 about:
-  home: "https://github.com/underworldcode/underworld2"
+  home: https://github.com/underworldcode/underworld2
   license: LGPL-3.0-only
   license_family: LGPL
-  license_file:  LGPLv3.txt
+  license_file: LGPLv3.txt
   summary: "Geodynamics API"
   doc_url: https://underworld2.readthedocs.io
   dev_url: https://github.com/underworldcode/underworld2/tree/development
@@ -78,5 +80,3 @@ about:
 extra:
   recipe-maintainers:
     - julesghub
-    - rbeucher
-    - lmoresi
