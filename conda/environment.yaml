@@ -1,0 +1,24 @@
+name: uw2-dev
+channels:
+  - conda-forge
+dependencies:
+  - python==3.12
+  - compilers
+  - pkg-config
+  - libxml2
+  - cmake
+  - swig>=4.0.0
+  - ninja
+  - pint
+  - mpich
+  - petsc==3.22.0
+  - mesalib
+  - numpy<2
+  - scipy
+  - mpi4py
+  - h5py=*=*mpi*
+  - pytest
+  - matplotlib
+  - jupyterlab
+  - jupytext
+  - pip
