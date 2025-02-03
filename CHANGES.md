@@ -10,6 +10,7 @@ New:
 
 Changes:
 * UWGeodynamics - 'ressources' folder is now 'resources' (but previous name is still supported).
+* Modify docker building script to allow changing MPI implementation. 
 
 Fixes:
 * Update UWGeoTutorials.rst #693.
