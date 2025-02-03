@@ -1,11 +1,10 @@
-ARG UBUNTU_VERSION="24.04"
 ARG PYTHON_VERSION="3.12"
+ARG BASE_IMAGE="python:$PYTHON_VERSION-slim-bookworm"
 
-FROM ubuntu:${UBUNTU_VERSION} as base_runtime
+FROM ${BASE_IMAGE} as base_runtime
 LABEL maintainer="https://github.com/underworldcode/"
 
 # need to repeat ARGS after every FROM 
-ARG UBUNTU_VERSION
 ARG PYTHON_VERSION
 
 ENV LANG=C.UTF-8
@@ -33,11 +32,13 @@ RUN mkdir ${VIRTUAL_ENV} \
 # install runtime requirements
 RUN apt-get update -qq \
 &&  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
-        python3-minimal \
-        python3-venv \
-        python3-pip \
-        libpng16-16t64 \
-        libjpeg8 \
+        # python3-minimal \
+        # python3-venv \
+        # python3-pip \
+        # libpng16-16t64 \
+        libpng16-16 \
+        #libjpeg8 \
+        libjpeg-dev \
         libtiff-dev \ 
         libglu1-mesa-dev \
         libosmesa6 \
@@ -53,15 +54,14 @@ RUN apt-get update -qq \
 
 FROM base_runtime AS build_base
 
-ARG UBUNTU_VERSION
 ARG PYTHON_VERSION
 
 # install build requirements
 RUN apt-get update -qq 
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         build-essential \
-        python3-setuptools \
-        libpython${PYTHON_VERSION}-dev \ 
+        # python3-setuptools \
+        # libpython${PYTHON_VERSION}-dev \ 
         libpng-dev \
         libjpeg-dev \
         libtiff-dev \
@@ -76,14 +76,14 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         cmake \
         libopenblas-dev \
         libz-dev \
-        gcc \
-        python3-full
+        gcc
+        # python3-full
 
 
 # lavavu
 # create a virtualenv to put new python modules
 USER $NB_USER
-RUN /usr/bin/python3 -m venv --system-site-packages ${VIRTUAL_ENV}
+RUN python3 -m venv --system-site-packages ${VIRTUAL_ENV}
 RUN pip3 install -U setuptools  \
 &&  pip3 install --no-cache-dir \
         "numpy<2" \
@@ -101,7 +101,7 @@ COPY --from=build_base /usr/local /usr/local
 # ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/x86_64-linux-gnu/
 # Record Python packages, but only record system packages! 
 # Not venv packages, which will be copied directly in.
-RUN PYTHONPATH= /usr/bin/pip3 freeze >/opt/requirements.txt
+RUN PYTHONPATH= pip3 freeze >/opt/requirements.txt
 # Record manually install apt packages.
 RUN apt-mark showmanual >/opt/installed.txt
 

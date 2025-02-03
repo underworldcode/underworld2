@@ -14,9 +14,10 @@
 #####################################################################
 
 ARG MPICH_VERSION="3.4.3"
-ARG UBUNTU_VERSION="24.04"
+ARG PYTHON_VERSION="3.12"
+ARG BASE_IMAGE="python:${PYTHON_VERSION}-slim-bookworm"
 
-FROM ubuntu:${UBUNTU_VERSION} as runtime
+FROM ${BASE_IMAGE} as runtime
 LABEL maintainer="https://github.com/underworldcode/"
 
 ################
@@ -46,7 +47,12 @@ FROM runtime as build
 
 ARG MPICH_VERSION
 # Build options for Dockerfile
-ARG MPICH_CONFIGURE_OPTIONS="--enable-fast=all,O3 --prefix=/usr/local --with-device=ch4:ofi FFLAGS=-fallow-argument-mismatch FCFLAGS=-fallow-argument-mismatch"
+# ARG MPICH_CONFIGURE_OPTIONS="--enable-fast=all,O3 --prefix=/usr/local --with-device=ch4:ofi FFLAGS=-fallow-argument-mismatch FCFLAGS=-fallow-argument-mismatch"
+
+### pawsey config from pawsey base image
+### from https://quay.io/repository/pawsey/mpich-base/manifest/sha256:ca1cf20a4f1a8793ec794b7f927a03289f4ad449b51bc821ac98c5a269ea5e8a
+ARG MPICH_CONFIGURE_OPTIONS="--enable-fast=all,O3 --enable-fortran --enable-romio --prefix=/usr/local --with-device=ch4:ofi CC=gcc CXX=g++ FC=gfortran FFLAGS=-fallow-argument-mismatch"
+
 ARG MPICH_MAKE_OPTIONS="-j4"
 
 RUN apt-get update -qq \
