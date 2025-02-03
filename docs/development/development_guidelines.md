@@ -127,3 +127,21 @@ if flux != None:
     "class has been replaced with 'fn_flux'. In the coming release 'flux' will be deprecated "+
     "please update your python code.")
 ```
+
+Build Process
+=============
+The underworld2 system is build system is old and reflects the various build technologies used to upgrade Underworld
+Below is a summary of the build system:
+Underworld as a python module uses setup.py to build c extensions that are python operable. The extensions are collectedand compiled together via CMake. Below we logically divide the steps up for the perspective of a pip install.
+
+A pip install kicks off the following technologies.
+Pip -> setup.py -> Cmake -> source code + swig
+
+Starting from CMake, the CMakeList.txt files show the order and compilation configuration for making c-code into .o and .so files representing each subdirectory, StGermain, PICellerator, Underworld, etc.
+The directory libUnderworldPy/CMakeList.txt is then run to wrapped the newly created .so files using `swig`. This is organised by the .i files. 
+
+Use `python setup build_ext` to only execute outside of pip and investigate pure compilation issues. 
+
+Current issues:
+Jan 2025: A linking error is being experienced for micromamba (conda) environment on arm64-osx. When wrapping full .so, vai swig, files such as _StGermain.so are not correctly linking in other dependency .so files and it's making broken builds. I.e. _StGermain.so is not linked against libgLucifer.so as it is under amd64-linux.
+
