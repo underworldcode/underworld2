@@ -14,16 +14,15 @@
 #####################################################################
 
 ARG MPI_IMAGE="underworldcode/openmpi:4.1.4"
-ARG UBUNTU_VERSION="24.02"
 ARG PYTHON_VERSION="3.12"
+ARG BASE_IMAGE="python:$PYTHON_VERSION-slim-bookworm"
 
 FROM ${MPI_IMAGE} as mpi-image
 
-FROM ubuntu:${UBUNTU_VERSION} as runtime
+FROM ${BASE_IMAGE} as runtime
 LABEL maintainer="https://github.com/underworldcode/"
 
 # need to repeat ARGS after every FROM 
-ARG UBUNTU_VERSION
 ARG PYTHON_VERSION
 
 #### Dockerfile ENV vars - for all image stages
@@ -50,8 +49,8 @@ RUN apt-get update -qq \
         bash-completion \
         ssh \
         libopenblas0 \
-        python3-full \
-        python3-dev \
+        # python3-full \
+        # python3-dev \
 && apt-get clean \
 && rm -rf /var/lib/apt/lists/*
 
@@ -63,7 +62,6 @@ RUN python3 -m venv $PYOPT \
 
 FROM runtime as build
 
-ARG UBUNTU_VERSION
 ARG PYTHON_VERSION
 
 RUN apt-get update -qq \
@@ -127,9 +125,10 @@ RUN PETSC_DIR=`pwd` ./configure --with-debugging=0 --prefix=/usr/local \
 &&  make PETSC_DIR=`pwd` PETSC_ARCH=arch-linux-c-opt install \
 &&  rm -rf /usr/local/share/petsc
 
-# install h5py with MPI enabled
-RUN CC=mpicc HDF5_MPI="ON" HDF5_DIR=${PETSC_DIR} pip3 install --no-cache-dir --no-build-isolation --no-binary=h5py h5py \
-&& pip install --no-cache-dir jupyterlab
+### move h5py install to UW script
+# # install h5py with MPI enabled
+# RUN CC=mpicc HDF5_MPI="ON" HDF5_DIR=${PETSC_DIR} pip3 install --no-cache-dir --no-build-isolation --no-binary=h5py h5py \
+# && pip install --no-cache-dir jupyterlab
 
 # record builder stage packages used
 RUN pip3 freeze > /opt/requirements.txt \

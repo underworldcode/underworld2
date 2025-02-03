@@ -19,19 +19,18 @@
 # https://docs.docker.com/engine/reference/builder/#understand-how-arg-and-from-interact
 ARG PETSC_IMAGE="underworldcode/petsc:3.22.2"
 ARG LAVAVU_IMAGE="none"
-ARG UBUNTU_VERSION="24.02"
 ARG PYTHON_VERSION="3.12"
+ARG BASE_IMAGE="python:$PYTHON_VERSION-slim-bookworm"
 
 # 'petsc-image' will be used later on in build stage COPY command 
 FROM ${PETSC_IMAGE} as petsc-image
 
 FROM ${LAVAVU_IMAGE} as lavavu-image
 
-FROM ubuntu:${UBUNTU_VERSION} as runtime
+FROM ${BASE_IMAGE} as runtime
 LABEL maintainer="https://github.com/underworldcode/"
 
 # need to repeat ARGS after every FROM 
-ARG UBUNTU_VERSION
 ARG PYTHON_VERSION
 
 #### Dockerfile ENV vars - for all image stages
@@ -60,23 +59,29 @@ RUN apt-get update -qq \
         ca-certificates \
         bash-completion \
         ssh \
-        python3-venv \
-        python3-dev \
+        # python3-venv \
+        # python3-dev \
         libopenblas0 \
-        python3-full \
+        # python3-full \
         libxml2 \
         vim \
         git \
         gdb \
-        libpng16-16t64 \
-        libjpeg8 \
+        # libpng16-16t64 \
+        libpng16-16 \
+        # libjpeg8 \
+        libjpeg-dev \
         libtiff-dev \ 
         libglu1-mesa \
         libosmesa6 \
-        libavcodec60 \
-        libavformat60 \
-        libavutil58 \
-        libswscale7 \
+        # libavcodec60 \
+        libavcodec-dev \
+        # libavformat60 \
+        libavformat-dev \
+        # libavutil58 \
+        libavutil-dev \
+        # libswscale7 \
+        libswscale-dev \ 
         zlib1g \
 &&  apt-get clean \
 &&  rm -rf /var/lib/apt/lists/*
@@ -88,7 +93,6 @@ RUN python3 -m venv $PYOPT \
 
 FROM runtime as build
 
-ARG UBUNTU_VERSION
 ARG PYTHON_VERSION
 
 # install build packages
@@ -98,7 +102,7 @@ RUN apt-get update -qq \
         cmake \
         make \
         gfortran \
-        python3-dev \
+        # python3-dev \
         pkg-config \
         libxml2-dev \
         ninja-build \
@@ -138,6 +142,10 @@ RUN apt-get update \
 &&  rm -rf /var/lib/apt/lists/*
 RUN pip3 install -r /opt/requirements.txt
 
+# install h5py with MPI enabled
+RUN CC=mpicc HDF5_MPI="ON" HDF5_DIR=${PETSC_DIR} pip3 install --no-cache-dir --no-build-isolation --no-binary=h5py h5py \
+&& pip install --no-cache-dir jupyterlab
+
 WORKDIR /tmp
 COPY --chown=$NB_USER:users . /tmp/underworld2
 WORKDIR /tmp/underworld2
@@ -156,7 +164,6 @@ RUN apt-mark showmanual >/opt/installed.txt
 # Build the final image, a combination of the runtime and build stages
 FROM runtime as final
 
-ARG UBUNTU_VERSION
 ARG PYTHON_VERSION
 
 COPY --from=build --chown=$NB_USER:users /opt /opt
