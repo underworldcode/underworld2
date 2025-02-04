@@ -33,7 +33,7 @@ requirements:
     - python
     - h5py =*=mpi*
     - libxml2
-    - numpy <2
+    - numpy <2.0.0
     - petsc {{ petsc }}
     - {{ mpi }}
     - swig >=4.0.0

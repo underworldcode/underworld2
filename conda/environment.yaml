@@ -23,3 +23,7 @@ dependencies:
   - jupyterlab
   - jupytext
   - pip
+  - pip:
+    - lavavu
+    - "badlands @ git+https://github.com/julesghub/badlands.git@julesghub/meson-build#subdirectory=badlands"
+
