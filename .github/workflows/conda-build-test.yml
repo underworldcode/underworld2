@@ -32,6 +32,6 @@ jobs:
           pip install .
 
       - name: Run tests
-        shell: micromamba-shell {0}
         run: |
-          pytest ./docs/pytest/tests.py ./docs/pytest/test_examples.py
+          ls
+          pytest ./docs/pytests/tests.py ./docs/pytests/test_examples.py
