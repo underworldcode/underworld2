@@ -24,14 +24,10 @@ jobs:
           cache-downloads: true
           init-shell: bash
           
-      - name: Compile the code
+      - name: Compile the code, run tests
         shell: micromamba-shell {0}
         run: | 
           micromamba list
           pip list
           pip install .
-
-      - name: Run tests
-        run: |
-          ls
           pytest ./docs/pytests/tests.py ./docs/pytests/test_examples.py
