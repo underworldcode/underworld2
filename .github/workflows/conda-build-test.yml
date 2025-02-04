@@ -29,8 +29,9 @@ jobs:
         run: | 
           micromamba list
           pip list
-          CC=mpicc CXX=mpicxx pip install . --no-build-isolation
+          pip install .
 
-          #name: Run tests
-          #  run: |
-          #    pytest ./docs/pytest/tests.py ./docs/pytest/test_examples.py
+      - name: Run tests
+        shell: micromamba-shell {0}
+        run: |
+          pytest ./docs/pytest/tests.py ./docs/pytest/test_examples.py
