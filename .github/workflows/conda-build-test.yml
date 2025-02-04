@@ -27,7 +27,7 @@ jobs:
       - name: Compile the code
         run: | 
           micromamba list 
-          pip install .
+          CC=mpicc CXX=mpicxx pip install . --no-build-isolation
 
           #name: Run tests
           #  run: |
