@@ -14,7 +14,8 @@ OMPI_VERSION=4.1.4
 MPICH_VERSION=3.4.3
 PETSC_VERSION=3.21.5
 
-MPI_IMPLEMENTATION=ompi
+#MPI_IMPLEMENTATION=ompi
+MPI_IMPLEMENTATION=MPICH
 
 BASE_IMAGE="python:$PYTHON_VERSION-slim-bookworm"
 
@@ -81,19 +82,18 @@ podman build . \
   -t underworldcode/underworld2:2.16.0-$ARCH-$mpi_lowercase
 
 
-#docker push underworldcode/petsc-$mpi_lowercase:$PETSC_VERSION-$ARCH
-#docker push underworldcode/underworld2-$mpi_lowercase:2.16.0b-$ARCH
+# examples push to docker.io 
+# 1st, find image id with podman list
+# podman push 2074948abfd1 docker.io/underworldcode/underworld2:2.16.0-arm64-mpich
 
 #### if updates for both arm64 and x86_64 build manifest, ie
-# docker manifest create underworldcode/petsc:3.18.1 \
-#  -a underworldcode/petsc:3.18.1-x86_64 \
-#  -a underworldcode/petsc:3.18.1-arm64
+# podman manifest create underworldcode/petsc:3.18.1 \
+#  -a underworldcode/petsc:3.18.1-x86_64-mpich \
+#  -a underworldcode/petsc:3.18.1-arm64-mpich
 #
-# docker manifest push underworldcode/petsc:3.18.1
+# podman manifest push underworldcode/petsc:3.18.1-mpich
 #
 # in future this should be automated
-
-
 
 ## How to use image on HPC with singularity/apptainer
 
