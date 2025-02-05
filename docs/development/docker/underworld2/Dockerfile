@@ -17,7 +17,7 @@
 # Used for github actions on the underworld repo
 # Must go before the 1st FROM see
 # https://docs.docker.com/engine/reference/builder/#understand-how-arg-and-from-interact
-ARG PETSC_IMAGE="underworldcode/petsc:3.22.2"
+ARG PETSC_IMAGE="underworldcode/petsc:3.22.2-ompi"
 ARG LAVAVU_IMAGE="none"
 ARG PYTHON_VERSION="3.12"
 ARG BASE_IMAGE="python:$PYTHON_VERSION-slim-bookworm"

@@ -1,18 +1,20 @@
 #!/usr/bin/env bash
 
-set -e
+set -e -x
 
 # Example Usage:
-#   - Run from underworld2 repository head
-#   - mpi and lavavu dockers are automatically generated via github actions
-#   - petsc and underworld2 must be created by runn the following script.
+#   - Run from underworld2 repository head.
+#   - ensure the podman VM (if using one) has sufficient RAM, eg 8Gb, 
+#     otherwise unexpected errors will occur.
+#   - (disabled) mpi and lavavu dockers are automatically generated via github actions.
+#   - (disabled) petsc and underworld2 must be created by runn the following script.
 
 PYTHON_VERSION=3.11
 OMPI_VERSION=4.1.4
 MPICH_VERSION=3.4.3
-PETSC_VERSION=3.22.2
+PETSC_VERSION=3.21.5
 
-MPI_IMPLEMENTATION=opmi
+MPI_IMPLEMENTATION=ompi
 
 BASE_IMAGE="python:$PYTHON_VERSION-slim-bookworm"
 
@@ -25,11 +27,17 @@ echo "************************************************************\n"
 # Get the base image
 podman pull $BASE_IMAGE
 
-## The mpi and lavavu images should be automatically made via github actions
+# Build lavavu docker
+podman build . \
+  --rm --squash-all \
+  -f ./docs/development/docker/lavavu/Dockerfile \
+  --build-arg BASE_IMAGE=$BASE_IMAGE \
+  --build-arg PYTHON_VERSION=$PYTHON_VERSION \
+  -t underworldcode/lavavu:$ARCH
 
 if [ "$MPI_IMPLEMENTATION" = "MPICH" ]
 then
-  ## Default is openmpi, but can be switched to mpich
+  # Default is openmpi, but can be switched to mpich
   podman build . \
     --rm --squash-all \
     -f ./docs/development/docker/mpi/Dockerfile.mpich \
@@ -41,24 +49,17 @@ then
   MPI_IMAGE=underworldcode/mpich:$MPICH_VERSION-$ARCH
   mpi_lowercase="mpich"
 else
-  podman build . \
-    --rm --squash-all \
-    -f ./docs/development/docker/mpi/Dockerfile.openmpi \
-    --build-arg BASE_IMAGE=$BASE_IMAGE \
-    --build-arg PYTHON_VERSION=$PYTHON_VERSION \
-    --build-arg OMPI_VERSION=$OMPI_VERSION \
-    -t underworldcode/openmpi:$OMPI_VERSION-$ARCH
-    
+   podman build . \
+     --rm --squash-all \
+     -f ./docs/development/docker/mpi/Dockerfile.openmpi \
+     --build-arg BASE_IMAGE=$BASE_IMAGE \
+     --build-arg PYTHON_VERSION=$PYTHON_VERSION \
+     --build-arg OMPI_VERSION=$OMPI_VERSION \
+     -t underworldcode/openmpi:$OMPI_VERSION-$ARCH
+   
   MPI_IMAGE=underworldcode/openmpi:$OMPI_VERSION-$ARCH
   mpi_lowercase="ompi"
 fi
-
-podman build . \
-  --rm --squash-all \
-  -f ./docs/development/docker/lavavu/Dockerfile \
-  --build-arg BASE_IMAGE=$BASE_IMAGE \
-  --build-arg PYTHON_VERSION=$PYTHON_VERSION \
-  -t underworldcode/lavavu:$ARCH
 
 podman build . \
   --rm --squash-all \
@@ -67,17 +68,17 @@ podman build . \
   --build-arg MPI_IMAGE=$MPI_IMAGE \
   --build-arg PYTHON_VERSION=$PYTHON_VERSION \
   --build-arg PETSC_VERSION=$PETSC_VERSION \
-  -t underworldcode/petsc-$mpi_lowercase:$PETSC_VERSION-$ARCH
+  -t underworldcode/petsc:$PETSC_VERSION-$ARCH-$mpi_lowercase
 
 ### don't use pull here as we want the petsc image above
 podman build . \
   --rm --squash-all \
   --build-arg BASE_IMAGE=$BASE_IMAGE \
   --build-arg PYTHON_VERSION=$PYTHON_VERSION \
-  --build-arg PETSC_IMAGE="underworldcode/petsc-$mpi_lowercase:$PETSC_VERSION-$ARCH" \
+  --build-arg PETSC_IMAGE="underworldcode/petsc:$PETSC_VERSION-$ARCH-$mpi_lowercase" \
   --build-arg LAVAVU_IMAGE="underworldcode/lavavu:$ARCH" \
   -f ./docs/development/docker/underworld2/Dockerfile \
-  -t underworldcode/underworld2-$mpi_lowercase:2.16.0b-$ARCH
+  -t underworldcode/underworld2:2.16.0-$ARCH-$mpi_lowercase
 
 
 #docker push underworldcode/petsc-$mpi_lowercase:$PETSC_VERSION-$ARCH
@@ -97,7 +98,7 @@ podman build . \
 ## How to use image on HPC with singularity/apptainer
 
 ### save the docker image
-# podman save -o underworld2-$mpi_lowercase-2.16.0b-$ARCH.tar underworldcode/underworld2-$mpi_lowercase:2.16.0b-$ARCH
+# podman save -o underworld2-$mpi_lowercase-2.16.0b-$ARCH.tar underworldcode/underworld2:2.16.0b-$ARCH-$mpi_lowercase
 ### upload to hpc
 # scp underworld2-$mpi_lowercase-2.16.0b-$ARCH.tar user@setonix.pawsey.org.au:/path/to/store/container
 ### extract using singularity/apptainer on HPC
