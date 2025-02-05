@@ -50,13 +50,13 @@ then
   MPI_IMAGE=underworldcode/mpich:$MPICH_VERSION-$ARCH
   mpi_lowercase="mpich"
 else
-   podman build . \
-     --rm --squash-all \
-     -f ./docs/development/docker/mpi/Dockerfile.openmpi \
-     --build-arg BASE_IMAGE=$BASE_IMAGE \
-     --build-arg PYTHON_VERSION=$PYTHON_VERSION \
-     --build-arg OMPI_VERSION=$OMPI_VERSION \
-     -t underworldcode/openmpi:$OMPI_VERSION-$ARCH
+  podman build . \
+    --rm --squash-all \
+    -f ./docs/development/docker/mpi/Dockerfile.openmpi \
+    --build-arg BASE_IMAGE=$BASE_IMAGE \
+    --build-arg PYTHON_VERSION=$PYTHON_VERSION \
+    --build-arg OMPI_VERSION=$OMPI_VERSION \
+    -t underworldcode/openmpi:$OMPI_VERSION-$ARCH
    
   MPI_IMAGE=underworldcode/openmpi:$OMPI_VERSION-$ARCH
   mpi_lowercase="ompi"
