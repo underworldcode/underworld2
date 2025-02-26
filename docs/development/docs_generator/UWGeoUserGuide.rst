@@ -322,7 +322,7 @@ MaterialRegistry object:
    from a json file by passing its path as argument.
    The `default json`__ file can be used as an example.
 
-.. _default json: https://github.com/underworldcode/UWGeodynamics/blob/master/UWGeodynamics/ressources/Materials.json_
+.. _default json: https://github.com/underworldcode/UWGeodynamics/blob/master/UWGeodynamics/resources/Materials.json_
 
 
 
@@ -779,7 +779,7 @@ These can be accessed using the `GEO.ViscousCreepRegistry`:
    from a json file by passing its path as argument.
    The `default json`__ file can be find here and can be used as an example.
 
-__ https://github.com/underworldcode/UWGeodynamics/blob/master/UWGeodynamics/ressources/ViscousRheologies.json_
+__ https://github.com/underworldcode/UWGeodynamics/blob/master/UWGeodynamics/resources/ViscousRheologies.json_
 
 **Example:**
 
@@ -917,7 +917,7 @@ They can be accessed using the `GEO.PlasticityRegistry` registry.
    from a json file by passing its path as argument.
    The `default json`__ file can be find here and can be used as an example.
 
-__ https://github.com/underworldcode/UWGeodynamics/blob/master/UWGeodynamics/ressources/PlasticRheologies.json_
+__ https://github.com/underworldcode/UWGeodynamics/blob/master/UWGeodynamics/resources/PlasticRheologies.json_
 
 Users can define their own parametres:
 
@@ -1792,7 +1792,7 @@ UWGeodynamics provides a way to couple an Underworld model to Badlands_.
    >>> sediment = GEO.Material()
    >>> Model.surfaceProcesses = GEO.surfaceProcesses.Badlands(
    ...     airIndex=[air.index], sedimentIndex=sediment.index,
-   ...     XML="ressources/badlands.xml", resolution=1. * u.kilometre,
+   ...     XML="resources/badlands.xml", resolution=1. * u.kilometre,
    ...     checkpoint_interval=0.01 * u.megayears)
 
 This will allow communication between the *UWGeodynamics* model and the *Badlands*
@@ -1823,7 +1823,7 @@ model than in the thermo-mechanical model.
 
 
 .. _documentation: https://github.com/badlands-model/badlands
-.. _XML example: ressources/badlands.xml
+.. _XML example: resources/badlands.xml
 
 Deforming Mesh
 --------------

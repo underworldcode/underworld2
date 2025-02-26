@@ -44,7 +44,7 @@ import subprocess
 
 from typing import List
 from pathlib import Path
-from setuptools import setup, Extension, find_packages
+from setuptools import setup, Extension, find_namespace_packages
 from setuptools.command.build_ext import build_ext
 
 
@@ -259,33 +259,22 @@ class BuildExtension(build_ext):
 metadata = {
     'provides': ['underworld'],
     'zip_safe': False,
-    'install_requires': ['numpy>=1.20.3', 'mpi4py>=1.2.2', 'h5py', 'pint', 'scipy'],
-    'extras_require': {
-        'full': ["badlands","lavavu","matplotlib","nbmake"],  # for all 3rd party packages
-    },
+#    'install_requires': ['numpy>=1.20.3', 'mpi4py>=1.2.2', 'h5py', 'pint', 'scipy'],
+#    'extras_require': {
+#        'full': ["badlands","lavavu","matplotlib","nbmake"],  # for all 3rd party packages
+#    },
 }
 
-classifiers = """
-Development Status :: 5 - Production/Stable
-Intended Audience :: Developers
-Intended Audience :: Science/Research
-Operating System :: POSIX
-Programming Language :: C
-Programming Language :: C++
-Programming Language :: Python
-Topic :: Scientific/Engineering
-Topic :: Software Development :: Libraries
-"""
 
 version = {}
-with open("underworld/_version.py") as fp:
+with open("src/underworld/_version.py") as fp:
     exec(fp.read(), version)
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 # Create uwid if it doesn't exist
-idfile = './underworld/_uwid.py'
+idfile = './src/underworld/_uwid.py'
 if not os.path.isfile(idfile):
     import uuid
     with open(idfile, "w+") as f:
@@ -298,31 +287,26 @@ code which provides a programmable and flexible front end to all the \
 functionality of the code running in a parallel HPC environment.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    classifiers=classifiers.split('\n')[1:-1],
-    keywords=['Underworld', 'MPI', 'Geodynamics'],
     platforms=['POSIX'],
     license='LGPL-3',
-
     url='https://github.com/underworldcode/underworld2',
     download_url="",
-
-    author='Underworld Team',
-    author_email='help@underworldcode.org',
-    maintainer='Underworld Team',
     maintainer_email='help@underworldcode.org',
-    include_package_data=True,
-    package_data={
-        'UWGeodynamics': ['ressources/*', 'uwgeo-data/*'],
-    },
-    packages=find_packages(),
+    include_package_data=True, # use the file './MANIFEST.in' for package data files
+    package_dir={"":"src"}, # directory containing underworld package
+    packages=find_namespace_packages(
+      where='src',
+      include = ['underworld*', 'UWGeodynamics*'],),
     ext_modules=[
         CMakeExtension(name='libUnderworld',
                        install_prefix="underworld",
-                       source_dir=str(Path("underworld/libUnderworld").absolute()),
+                       source_dir=str(Path("src/underworld/libUnderworld").absolute()),
                        cmake_configure_options=[
                            f"-DPython3_ROOT_DIR={Path(sys.prefix)}",
-                           "-DCALL_FROM_SETUP_PY:BOOL=ON"]
-                       #, cmake_build_type="Debug" ## Uncomment for debug
+                           "-DCALL_FROM_SETUP_PY:BOOL=ON",
+                           "--fresh",  # force no cache, important for python isolation builds as build tools will change location
+                           #"cmake_build_type="Debug" ## Uncomment for debug
+                       ],
                        ),
     ],
     cmdclass=dict(build_ext=BuildExtension),
