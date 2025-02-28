@@ -304,7 +304,9 @@ class DruckerPrager(object):
             cohesion = self.cohesionWeakeningFn(
                 self.plasticStrain,
                 Cohesion=nd(self.cohesion),
-                CohesionSw=nd(self.cohesionAfterSoftening))
+                CohesionSw=nd(self.cohesionAfterSoftening),
+                epsilon1=self.epsilon1,
+                epsilon2=self.epsilon2)
         else:
             cohesion = fn.misc.constant(self.cohesion)
         return cohesion
