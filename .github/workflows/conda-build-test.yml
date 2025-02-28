@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    runs-on: [ubuntu-latest, macos-13] #, macos-latest]
+    runs-on: [ubuntu-latest] #, macos-latest]
 
     steps:
       - name: Checkout repository
