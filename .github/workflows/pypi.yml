@@ -1,29 +1,30 @@
-name: PypiRelease
+name: PypiDeploy
 
 on:
   release:
   workflow_dispatch:
 
-pypi:
-  runs-on: ${{ matrix.os }}
-  env:
-    TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
-    TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
-  strategy:
-    matrix:
-      os: ["ubuntu-latest", "macos-latest"]
-      python-version: ["3.9", "3.10", "3.11"]
-  steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Package for Pypi
-      run: |
-        python setup.py sdist
-    - name: Upload to Pypi
-      if: github.event_name == 'release'
-      run: |
-        pip install twine
-        python -m twine upload --repository testtpypi dist/* -r pypi
+jobs:
+  pypi-deploy:
+    runs-on: ${{ matrix.os }}
+    env:
+      TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
+      TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
+    strategy:
+      matrix:
+        os: ["ubuntu-latest", "macos-latest"]
+        python-version: ["3.9", "3.10", "3.11"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Package for Pypi
+        run: |
+          python setup.py sdist
+      - name: Upload to Pypi
+        if: github.event_name == 'release'
+        run: |
+          pip install twine
+          python -m twine upload --repository testtpypi dist/* -r pypi

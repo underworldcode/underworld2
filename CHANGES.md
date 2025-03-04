@@ -1,6 +1,6 @@
 CHANGES: Underworld2
 =======================
-Release 2.16.0 [2024]
+Release 2.16 [2024]
 ---------------------------
 New:
 * New 3D free surface implementation (tested). The vertical coordinates of the mesh nodes are rebuilt by being advected and interpolated from the surface velocities, and then solving the steady state heat equation to get a uniform distribution. See the related example in docs/UWGeodynamics/examples
@@ -11,6 +11,7 @@ New:
 Changes:
 * UWGeodynamics - 'ressources' folder is now 'resources' (but previous name is still supported).
 * Modify docker building script to allow changing MPI implementation. 
+* Update github workflows files for automated testing and UW conda/pypi distribution.
 
 Fixes:
 * Update UWGeoTutorials.rst #693.
