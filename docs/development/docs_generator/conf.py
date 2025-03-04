@@ -461,7 +461,7 @@ import sys
 # add current directory for `generate_api_documentation`
 sys.path.append(os.path.dirname(__name__))
 # add top project directory as well
-sys.path.append(os.path.join(os.path.dirname(__name__),'../../..'))
+sys.path.append(os.path.join(os.path.dirname(__name__),'../../../src/'))
 
 try:
     import underworld
