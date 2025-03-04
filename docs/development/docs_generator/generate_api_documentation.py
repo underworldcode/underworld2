@@ -16,7 +16,7 @@ except FileExistsError:
 import shutil
 import os
 import glob
-for filename in glob.glob(os.path.join("../../../underworld/function/images/", '*.png')):
+for filename in glob.glob(os.path.join("../../../src/underworld/function/images/", '*.png')):
     shutil.copy(filename, imagedir)
 
 done_mods = set()
