@@ -1,7 +1,7 @@
-FROM ubuntu:22.04 as base_runtime
+FROM ubuntu:24.04 as base_runtime
 LABEL maintainer="https://github.com/underworldcode/"
 ENV LANG=C.UTF-8
-ENV PYVER=3.10
+ENV PYVER=3.12
 # Setup some things in anticipation of virtualenvs
 ENV VIRTUAL_ENV=/opt/venv
 # The following ensures that the venv takes precedence if available

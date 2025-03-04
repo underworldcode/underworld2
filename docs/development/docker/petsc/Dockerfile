@@ -14,11 +14,16 @@
 #####################################################################
 
 ARG MPI_IMAGE="underworldcode/openmpi:4.1.4"
+ARG PYTHON_VERSION="3.12"
+ARG BASE_IMAGE="python:$PYTHON_VERSION-slim-bookworm"
 
 FROM ${MPI_IMAGE} as mpi-image
 
-FROM ubuntu:22.04 as runtime
+FROM ${BASE_IMAGE} as runtime
 LABEL maintainer="https://github.com/underworldcode/"
+
+# need to repeat ARGS after every FROM 
+ARG PYTHON_VERSION
 
 #### Dockerfile ENV vars - for all image stages
 ENV LANG=C.UTF-8
@@ -27,7 +32,7 @@ ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 
 # python env vars. 
 # prepappending on PATH means all pip install will goto the PYOPT
-ENV PYVER=3.10
+ENV PYVER=${PYTHON_VERSION}
 ENV PYOPT=/opt/venv
 ENV PATH=$PYOPT/bin:$PATH
 ENV PYTHONPATH=$PYTHONPATH:$PYOPT/lib/python${PYVER}/site-packages
@@ -43,9 +48,9 @@ RUN apt-get update -qq \
 &&  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         bash-completion \
         ssh \
-        libopenblas-base \
-        python3-venv \
-        python3-dev \
+        libopenblas0 \
+        # python3-full \
+        # python3-dev \
 && apt-get clean \
 && rm -rf /var/lib/apt/lists/*
 
@@ -56,6 +61,8 @@ RUN python3 -m venv $PYOPT \
                     wheel
 
 FROM runtime as build
+
+ARG PYTHON_VERSION
 
 RUN apt-get update -qq \
 &&  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
@@ -80,15 +87,15 @@ RUN apt-get update -qq \
 &&  rm -rf /var/lib/apt/lists/*
 
 RUN pip3 install --no-cache-dir \
-      cython==0.29.36 \
-      numpy \
+      "cython==3.0.10" \
+      "numpy<2" \
       mpi4py
 
 # get petsc
-ARG PETSC_VERSION="3.19.4"
+ARG PETSC_VERSION="3.22.2"
 RUN mkdir -p /tmp/src
 WORKDIR /tmp/src
-RUN wget http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-${PETSC_VERSION}.tar.gz --no-check-certificate \ 
+RUN wget https://web.cels.anl.gov/projects/petsc/download/release-snapshots/petsc-lite-${PETSC_VERSION}.tar.gz --no-check-certificate \
 && tar -zxf petsc-lite-${PETSC_VERSION}.tar.gz 
 WORKDIR /tmp/src/petsc-${PETSC_VERSION}              
 
@@ -118,9 +125,10 @@ RUN PETSC_DIR=`pwd` ./configure --with-debugging=0 --prefix=/usr/local \
 &&  make PETSC_DIR=`pwd` PETSC_ARCH=arch-linux-c-opt install \
 &&  rm -rf /usr/local/share/petsc
 
-# install h5py with MPI enabled
-RUN CC=mpicc HDF5_MPI="ON" HDF5_DIR=${PETSC_DIR} pip3 install --no-cache-dir --no-build-isolation --no-binary=h5py h5py \
-&& pip install --no-cache-dir jupyterlab
+### move h5py install to UW script
+# # install h5py with MPI enabled
+# RUN CC=mpicc HDF5_MPI="ON" HDF5_DIR=${PETSC_DIR} pip3 install --no-cache-dir --no-build-isolation --no-binary=h5py h5py \
+# && pip install --no-cache-dir jupyterlab
 
 # record builder stage packages used
 RUN pip3 freeze > /opt/requirements.txt \

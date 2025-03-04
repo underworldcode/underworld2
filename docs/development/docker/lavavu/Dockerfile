@@ -1,7 +1,15 @@
-FROM ubuntu:22.04 as base_runtime
+ARG PYTHON_VERSION="3.12"
+ARG BASE_IMAGE="python:$PYTHON_VERSION-slim-bookworm"
+
+FROM ${BASE_IMAGE} as base_runtime
 LABEL maintainer="https://github.com/underworldcode/"
+
+# need to repeat ARGS after every FROM 
+ARG PYTHON_VERSION
+
 ENV LANG=C.UTF-8
-ENV PYVER=3.10
+ENV PYVER=${PYTHON_VERSION}
+
 # Setup some things in anticipation of virtualenvs
 ENV VIRTUAL_ENV=/opt/venv
 # The following ensures that the venv takes precedence if available
@@ -24,32 +32,36 @@ RUN mkdir ${VIRTUAL_ENV} \
 # install runtime requirements
 RUN apt-get update -qq \
 &&  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
-        python3-minimal \
-        python3-venv \
-        python3-pip \
-        python3-numpy \
+        # python3-minimal \
+        # python3-venv \
+        # python3-pip \
+        # libpng16-16t64 \
         libpng16-16 \
-        libjpeg8 \
-        libtiff5 \ 
-        libglu1-mesa \
+        #libjpeg8 \
+        libjpeg-dev \
+        libtiff-dev \ 
+        libglu1-mesa-dev \
         libosmesa6 \
-        libavcodec58 \
-        libavformat58 \
-        libavutil56 \
-        libswscale5 \
-        zlib1g \
+        libavcodec-dev \
+        libavformat-dev \
+        libavutil-dev \
+        libswscale-dev \
+        zlib1g-dev \
         libopenblas0 \
 &&  apt-get clean \
 &&  rm -rf /var/lib/apt/lists/*
 
+
 FROM base_runtime AS build_base
-# FROM base_runtime AS build_base
+
+ARG PYTHON_VERSION
+
 # install build requirements
 RUN apt-get update -qq 
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         build-essential \
-        python3-setuptools \
-        libpython${PYVER}-dev \ 
+        # python3-setuptools \
+        # libpython${PYTHON_VERSION}-dev \ 
         libpng-dev \
         libjpeg-dev \
         libtiff-dev \
@@ -64,22 +76,24 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
         cmake \
         libopenblas-dev \
         libz-dev \
-        gcc \
-        python3-dev
+        gcc
+        # python3-full
 
+
+# lavavu
+# create a virtualenv to put new python modules
+USER $NB_USER
+RUN python3 -m venv --system-site-packages ${VIRTUAL_ENV}
 RUN pip3 install -U setuptools  \
 &&  pip3 install --no-cache-dir \
+        "numpy<2" \
         packaging \
         appdirs \
         jupyter \
         pillow \
         ipython
 
-# lavavu
-# create a virtualenv to put new python modules
-USER $NB_USER
-RUN /usr/bin/python3 -m venv --system-site-packages ${VIRTUAL_ENV}
-RUN LV_OSMESA=1 pip3 install --no-cache-dir --no-binary=lavavu lavavu 
+RUN LV_OSMESA=1 pip3 install --no-cache-dir lavavu --no-binary :lavavu:
 
 FROM base_runtime AS minimal
 COPY --from=build_base $VIRTUAL_ENV $VIRTUAL_ENV
@@ -87,7 +101,7 @@ COPY --from=build_base /usr/local /usr/local
 # ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/x86_64-linux-gnu/
 # Record Python packages, but only record system packages! 
 # Not venv packages, which will be copied directly in.
-RUN PYTHONPATH= /usr/bin/pip3 freeze >/opt/requirements.txt
+RUN PYTHONPATH= pip3 freeze >/opt/requirements.txt
 # Record manually install apt packages.
 RUN apt-mark showmanual >/opt/installed.txt
 

@@ -1,5 +1,20 @@
 CHANGES: Underworld2
 =======================
+Release 2.16.0 [2024]
+---------------------------
+New:
+* New 3D free surface implementation (tested). The vertical coordinates of the mesh nodes are rebuilt by being advected and interpolated from the surface velocities, and then solving the steady state heat equation to get a uniform distribution. See the related example in docs/UWGeodynamics/examples
+* Build changes PEP 621, pyproject.toml, and all source code now under `src`.
+* Move to Petsc-3.20.0.
+* New G4A stats module for user statics measurements.
+
+Changes:
+* UWGeodynamics - 'ressources' folder is now 'resources' (but previous name is still supported).
+* Modify docker building script to allow changing MPI implementation. 
+
+Fixes:
+* Update UWGeoTutorials.rst #693.
+* Fix for cohesion bug in Druker-Prager rheology. #707
 
 Release 2.15.0 [2023-04-19]
 ---------------------------
@@ -12,7 +27,7 @@ Changes:
 
 Fixes:
  * UWGeodynamics - add dynamic heating back into the advection diffusion solver,
-  https://github.com/underworldcode/underworld2/issues/669
+    https://github.com/underworldcode/underworld2/issues/669
  * Using updated Badlands-2.2.3 without license issue. 
 
 
@@ -162,7 +177,7 @@ Docker:
 * Images minimised with unnecessary items removed. 
 * XVFB no longer required for image generation within
   container.
- 
+
 API changes:
 * `glucifer` module moved inside `underworld` and 
    renamed `visualisation`.

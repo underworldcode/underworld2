@@ -1,3 +1,58 @@
 [build-system]
 build-backend = "setuptools.build_meta"
-requires = ["setuptools","numpy>=1.20.3","swig>=4.0.0","cmake>=0.29.24"]
+requires = [
+  "setuptools",
+  "numpy<2.0",       # as per petsc
+  "swig>=4.0.0",
+  "cmake>=0.29.24", 
+  "ninja"
+]
+
+[project]
+name    = "underworld"
+dynamic = ["version"] # is dynamically taken from setuptools backend
+authors = [
+  {name = "Louis Moresi", email="louis.moresi@anu.edu.au"},
+  {name = "Julian Giordani", email="julian.giordnai@sydney.edu.au"},
+  {name = "John Mansour", email="john.mansour@gmail.com"},
+  {name = "Romain Beaucher", email="romain.beucher@anu.edu.au"},
+]
+maintainers = [
+  {name = "Underworld Team", email="help@underworldcode.org"},
+]
+dependencies = [
+  "numpy<2.0",
+  "mpi4py",
+  "h5py",
+  "pint",
+  "scipy",
+]
+requires-python = ">=3.8"
+description = "Underworld2 is a python-friendly, parallel, scalable, easy-to-use toolkit for solving problems in solid and fluid mechanics."
+readme = "README.md"
+license = {file = "./LICENSE.md"}
+keywords = ["Underworld", "MPI", "Geodynamics"]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "Operating System :: POSIX",
+  "Programming Language :: C",
+  "Programming Language :: C++",
+  "Programming Language :: Python",
+  "Topic :: Scientific/Engineering",
+  "Topic :: Software Development :: Libraries",
+]
+
+[project.optional-dependencies]
+full = [
+  "badlands",
+  "lavavu",
+  "matplotlib",
+  "nbmake",
+]
+
+[project.urls]
+homepage      = "https://www.underworldcode.org"
+repository    = "https://github.com/underworldcode/underworld2"
+documentation = "https://underworld2.readthedocs.io/en/latest/"

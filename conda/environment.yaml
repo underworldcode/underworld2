@@ -1,0 +1,29 @@
+name: uw2-dev
+channels:
+  - conda-forge
+dependencies:
+  - python==3.11
+  - compilers
+  - pkg-config
+  - libxml2
+  - cmake
+  - swig>=4.0.0
+  - ninja
+  - pint
+  - mpich
+  - petsc==3.21.5
+  - mesalib
+  - numpy<2
+  - scipy
+  - mpi4py
+  - h5py=*=mpi*
+  - pytest
+  - nbmake
+  - matplotlib
+  - jupyterlab
+  - jupytext
+  - pip
+  - pip:
+    - lavavu
+    - "badlands @ git+https://github.com/julesghub/badlands.git@julesghub/meson-build#subdirectory=badlands"
+

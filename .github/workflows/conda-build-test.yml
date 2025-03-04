@@ -1,0 +1,33 @@
+name: Conda Test Environment, with micromamba
+
+on:
+  push:
+    branches:
+      - v2.16.x
+  pull_request:
+    branches:
+      - v2.16.x
+
+jobs:
+  test:
+    runs-on: [ubuntu-latest] #, macos-latest]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Micromamba
+        uses: mamba-org/setup-micromamba@v2
+        with:
+          environment-file: conda/environment.yaml
+          cache-environment: true
+          cache-downloads: true
+          init-shell: bash
+          
+      - name: Compile the code, run tests
+        shell: micromamba-shell {0}
+        run: | 
+          micromamba list
+          pip list
+          pip install .
+          pytest ./docs/pytests/tests.py ./docs/pytests/test_examples.py
