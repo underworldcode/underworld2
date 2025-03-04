@@ -3,10 +3,11 @@ name: Conda Test Environment, with micromamba
 on:
   push:
     branches:
-      - v2.16.x
+      - main
+      - developmemt
   pull_request:
     branches:
-      - v2.16.x
+      - '**'
 
 jobs:
   test:
@@ -30,4 +31,4 @@ jobs:
           micromamba list
           pip list
           pip install .
-          pytest ./docs/pytests/tests.py ./docs/pytests/test_examples.py
+          pytest ./docs/pytests/tests.py ./docs/pytests/test_examples.py ./docs/pytests/test_user_guide.py
