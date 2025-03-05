@@ -1,6 +1,9 @@
 name: PypiDeploy
 
 on:
+  push:
+    branches:
+      - v2.16.x
   release:
   workflow_dispatch:
 
