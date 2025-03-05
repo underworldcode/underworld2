@@ -1,6 +1,9 @@
 name: conda package build and push
 
-on:
+on: 
+  push:
+    branches:
+      - v2.16.x
   release:
   workflow_dispatch:
 
@@ -10,19 +13,19 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-      os: ["ubuntu-latest", "macos-latest"]
-      python-version: ["3.9", "3.10"]
+        os: ["ubuntu-latest", "macos-latest"]
+        python-version: ["3.9", "3.10"]
       fail-fast: false
 
     steps:
       - uses: actions/checkout@v3
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
 
       - name: Config Conda
-        shell: bash -l {0}
+        shell: bash -el {0}
         run: |
             conda install --channel conda-forge conda-build anaconda-client conda-verify
             conda config --add channels conda-forge
@@ -32,12 +35,12 @@ jobs:
 
       - name: Config Conda For Upload
         if: github.event_name == 'release'
-        shell: bash -l {0}
+        shell: bash -el {0}
         run: conda config --set anaconda_upload yes
 
       - name: Upload new conda package
         if: github.event_name == 'release'
-        shell: bash -l {0}
+        shell: bash -el {0}
         run: |
             conda info
             anaconda login --hostname github-actions-${{ matrix.os  }}-$RANDOM --username ${{ secrets.ANACONDA_USERNAME }} --password ${{ secrets.ANACONDA_PASSWORD }}
