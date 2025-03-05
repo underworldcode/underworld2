@@ -28,6 +28,7 @@ jobs:
         shell: bash -el {0}
         run: |
             conda install --channel conda-forge conda-build anaconda-client conda-verify
+            conda config --add channels defaults
             conda config --add channels conda-forge
             conda config --add channels underworldcode
             conda config --set anaconda_upload no
@@ -39,7 +40,7 @@ jobs:
         run: conda config --set anaconda_upload yes
 
       - name: Upload new conda package
-        if: github.event_name == 'release'
+        #if: github.event_name == 'release'
         shell: bash -el {0}
         run: |
             conda info
