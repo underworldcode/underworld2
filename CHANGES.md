@@ -1,6 +1,6 @@
 CHANGES: Underworld2
 =======================
-Release 2.16 [2024]
+Release 2.16 [2025-03-03]
 ---------------------------
 New:
 * New 3D free surface implementation (tested). The vertical coordinates of the mesh nodes are rebuilt by being advected and interpolated from the surface velocities, and then solving the steady state heat equation to get a uniform distribution. See the related example in docs/UWGeodynamics/examples
