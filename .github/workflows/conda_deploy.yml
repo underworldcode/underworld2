@@ -1,4 +1,4 @@
-name: conda deploy
+name: Conda Deploy
 
 on: 
   release:

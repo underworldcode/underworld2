@@ -1,4 +1,4 @@
-name: Conda Test Environment, with micromamba
+name: CI unit test
 
 on:
   push:
