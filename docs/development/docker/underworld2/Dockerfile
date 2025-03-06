@@ -122,7 +122,8 @@ RUN pip3 install setuptools --force-reinstall --no-cache \
          pytest \
          nbmake \
          gFlex \
-         tabulate 
+         tabulate \
+         jupytext
 
 # Lets grab lavavu & requirements
 COPY --from=lavavu-image /opt       /opt
@@ -146,8 +147,10 @@ RUN pip3 install -r /opt/requirements.txt
 RUN CC=mpicc HDF5_MPI="ON" HDF5_DIR=${PETSC_DIR} pip3 install --no-cache-dir --no-build-isolation --no-binary=h5py h5py \
 && pip install --no-cache-dir jupyterlab
 
-WORKDIR /tmp
-COPY --chown=$NB_USER:users . /tmp/underworld2
+# for development, uncomment the following lines and comment out `git clone`
+# WORKDIR /tmp
+# COPY --chown=$NB_USER:users . /tmp/underworld2
+RUN git clone --depth 1 --branch v2.16.x https://github.com/underworldcode/underworld2.git /tmp/underworld2
 WORKDIR /tmp/underworld2
 RUN pip3 install -vvv .
 RUN pip3 install setuptools --force-reinstall --no-cache-dir \
@@ -169,10 +172,12 @@ ARG PYTHON_VERSION
 COPY --from=build --chown=$NB_USER:users /opt /opt
 COPY --from=build --chown=$NB_USER:users /usr/local /usr/local
 
-# must make directory before COPY into it for permissions to work (!!!)
+# must make directory before COPY into it for permissions to work ()
+# set default viewer to a notebook see https://jupytext.readthedocs.io/en/latest/text-notebooks.html#with-a-double-click
 RUN mkdir -p $NB_HOME/workspace $NB_HOME/Underworld/UWGeodynamics \
 &&  chown $NB_USER:users -R $NB_HOME \
-&& jupyter-server extension enable --sys-prefix jupyter_server_proxy
+&& jupyter-server extension enable --sys-prefix jupyter_server_proxy \
+&& jupytext-config set-default-viewer 
 
 #Copy in examples, tests, etc.
 COPY --chown=$NB_USER:users ./docs/examples   $NB_HOME/Underworld/examples

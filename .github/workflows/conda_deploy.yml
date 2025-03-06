@@ -1,9 +1,6 @@
-name: conda package build and push
+name: conda deploy
 
 on: 
-  push:
-    branches:
-      - v2.16.x
   release:
   workflow_dispatch:
 
@@ -40,7 +37,7 @@ jobs:
         run: conda config --set anaconda_upload yes
 
       - name: Upload new conda package
-        #if: github.event_name == 'release'
+        if: github.event_name == 'release'
         shell: bash -el {0}
         run: |
             conda info

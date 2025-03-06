@@ -1,9 +1,6 @@
-name: PypiDeploy
+name: pypi Deploy
 
 on:
-  push:
-    branches:
-      - v2.16.x
   release:
   workflow_dispatch:
 
@@ -15,7 +12,7 @@ jobs:
       TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
     strategy:
       matrix:
-        os: ["ubuntu-latest", "macos-latest"]
+        os: ["ubuntu-latest"]
         python-version: ["3.9", "3.10", "3.11"]
     steps:
       - uses: actions/checkout@v4
