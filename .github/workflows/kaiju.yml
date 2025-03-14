@@ -1,3 +1,5 @@
+name: Docker container on Kaiju
+
 on:
   workflow_dispatch:
 

@@ -175,6 +175,9 @@ class BuildExtension(build_ext):
             f"-DCMAKE_BUILD_TYPE={ext.cmake_build_type}",
             f"-DCMAKE_INSTALL_PREFIX:PATH={cmake_install_prefix}",
         ]
+        # if debug, enable verbose CMAKE compilation
+        if ext.cmake_build_type.lower() == "debug":
+            configure_args.append("-DCMAKE_VERBOSE_MAKEFILE:BOOL=ON")
 
         # Extend the configure arguments with those passed from the extension
         configure_args += ext.cmake_configure_options
@@ -305,8 +308,8 @@ functionality of the code running in a parallel HPC environment.",
                            f"-DPython3_ROOT_DIR={Path(sys.prefix)}",
                            "-DCALL_FROM_SETUP_PY:BOOL=ON",
                            "--fresh",  # force no cache, important for python isolation builds as build tools will change location
-                           #"cmake_build_type="Debug" ## Uncomment for debug
                        ],
+                       #cmake_build_type="Debug", ## Uncomment for debug
                        ),
     ],
     cmdclass=dict(build_ext=BuildExtension),
