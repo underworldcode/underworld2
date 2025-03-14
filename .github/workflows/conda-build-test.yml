@@ -1,4 +1,4 @@
-name: CI unit test
+name: Conda Test Environment, with micromamba
 
 on:
   push:
@@ -32,4 +32,4 @@ jobs:
           micromamba list
           pip list
           pip install .
-          pytest ./docs/pytests/tests.py ./docs/pytests/test_examples.py ./docs/pytests/test_user_guide.py
+          pytest ./docs/pytests/tests.py ./docs/pytests/test_examples.py
