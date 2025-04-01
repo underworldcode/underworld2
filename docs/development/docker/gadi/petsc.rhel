@@ -13,18 +13,14 @@
 # minimal sections of the build layer.
 #####################################################################
 
-ARG MPI_IMAGE="underworldcode/openmpi:4.1.4"
-ARG PYTHON_VERSION="3.12"
+ARG PYTHON_VERSION="3.11"
 ARG BASE_IMAGE="rockylinux:8.9"
-
-#FROM ${MPI_IMAGE} as mpi-image
+ARG PETSC_VERSION="3.22.4"
 
 FROM ${BASE_IMAGE} as runtime
 LABEL maintainer="https://github.com/underworldcode/"
-
 # need to repeat ARGS after every FROM 
 ARG PYTHON_VERSION
-
 #### Dockerfile ENV vars - for all image stages
 ENV LANG=C.UTF-8
 # mpi lib will be install at /usr/local/lib
@@ -49,8 +45,8 @@ RUN yum update -y \
         bash-completion \
         openssh \
         openblas \
-        python3.11-pip \
-        python3.11-devel \
+        python${PYVER}-pip \
+        python${PYVER}-devel \
         openmpi \
         findutils \
 && yum clean all \
@@ -65,6 +61,7 @@ RUN python3 -m venv $PYOPT \
 
 FROM runtime as build
 
+ARG PETSC_VERSION
 ARG PYTHON_VERSION
 
 RUN yum update -yq \
@@ -92,7 +89,6 @@ RUN pip3 install --no-cache-dir \
       mpi4py
 
 # get petsc
-ARG PETSC_VERSION="3.22.2"
 RUN mkdir -p /tmp/src
 WORKDIR /tmp/src
 RUN wget https://web.cels.anl.gov/projects/petsc/download/release-snapshots/petsc-lite-${PETSC_VERSION}.tar.gz --no-check-certificate \
@@ -129,7 +125,6 @@ RUN PETSC_DIR=`pwd` ./configure --with-debugging=0 --prefix=/usr/local \
 # record builder stage packages used
 RUN pip3 freeze > /opt/requirements.txt \
 &&  dnf history userinstalled > /opt/packages.txt
-
 
 FROM runtime as minimal
 
