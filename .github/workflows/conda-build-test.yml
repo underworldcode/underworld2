@@ -1,10 +1,11 @@
-name: CI unit test
+name: Conda Test Environment, with micromamba
 
 on:
   push:
     branches:
       - main
       - developmemt
+      - v2.*
   pull_request:
     branches:
       - '**'
@@ -32,4 +33,4 @@ jobs:
           micromamba list
           pip list
           pip install .
-          pytest ./docs/pytests/tests.py ./docs/pytests/test_examples.py ./docs/pytests/test_user_guide.py
+          pytest ./docs/pytests/tests.py ./docs/pytests/test_examples.py

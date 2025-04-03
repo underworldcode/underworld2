@@ -1,11 +1,11 @@
-##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
-##                                                                                   ##
-##  This file forms part of the Underworld geophysics modelling application.         ##
-##                                                                                   ##
-##  For full license and copyright information, please refer to the LICENSE.md file  ##
-##  located at the project root, or contact the authors.                             ##
-##                                                                                   ##
-##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
+# #~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
+# #                                                                                   ##
+# #  This file forms part of the Underworld geophysics modelling application.         ##
+# #                                                                                   ##
+# #  For full license and copyright information, please refer to the LICENSE.md file  ##
+# #  located at the project root, or contact the authors.                             ##
+# #                                                                                   ##
+# #~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~##
 
 """
 Various utility classes & functions.
@@ -39,4 +39,5 @@ def matplotlib_inline():
     python without having to explicitly remove these calls.
     """
     if _run_from_ipython():
-        get_ipython().magic(u'matplotlib inline')
+        get_ipython().run_line_magic('matplotlib', 'inline')
+        #get_ipython().magic(u'matplotlib inline')

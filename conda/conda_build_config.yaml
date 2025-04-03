@@ -2,4 +2,4 @@ mpi:
   - mpich
   #- openmpi [linux]
 petsc:
-  - 3.21.5
+  - <3.22

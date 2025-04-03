@@ -309,8 +309,7 @@ functionality of the code running in a parallel HPC environment.",
                            "-DCALL_FROM_SETUP_PY:BOOL=ON",
                            "--fresh",  # force no cache, important for python isolation builds as build tools will change location
                        ],
-                       #cmake_build_type="Debug", ## Uncomment for debug
-                       ),
+                      ),
     ],
     cmdclass=dict(build_ext=BuildExtension),
     **metadata)

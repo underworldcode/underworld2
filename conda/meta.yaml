@@ -7,15 +7,20 @@ package:
   version: {{ version }}
 
 source:
-  git_url : https://github.com/underworldcode/underworld2.git
-  git_rev : v2.16.x
-#  url: https://github.com/underworldcode/underworld2/archive/refs/tags/v{{ version }}b.zip
-#  sha256: 5d27ce877f2238f6b2e9c6b90da25f1a61833ffa6093e0382f1bc5e2468dd782
+   url: https://github.com/underworldcode/underworld2/archive/refs/tags/v{{ version }}b.tar.gz
+   sha256: b829b44ae2f5acc87bee88da5f38d49b647964c22f42fbce0153c4417e643791
+#  git_url : https://github.com/underworldcode/underworld2.git
+#  git_rev : v2.16.x
 
 build:
   skip: true  # [py<39 or win]
   number: 0
   script: PETSC_DIR=$PREFIX {{ PYTHON }} -m pip install . -vv
+  ignore_run_exports:
+    - mpi4py
+    - hdf5
+    - h5py
+    - numpy
 
 requirements:
 
@@ -26,21 +31,24 @@ requirements:
     - pkg-config
     - cmake
     - ninja
+    - numpy<2
 
   host:
     - pip
     - setuptools
-    - python
+    - python <3.12
+    - hdf5 =*=mpi*
     - h5py =*=mpi*
     - libxml2
-    - numpy <2.0.0
+    - numpy<2
     - petsc {{ petsc }}
     - {{ mpi }}
     - swig >=4.0.0
 
   run:
     - python
-    - h5py =*=mpi*
+    - {{ pin_compatible('h5py') }}
+    - {{ pin_compatible('hdf5') }}
     - {{ pin_compatible('numpy') }}
     - petsc {{ petsc }}
     - {{ mpi }}
