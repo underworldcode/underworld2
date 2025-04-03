@@ -40,4 +40,3 @@ def matplotlib_inline():
     """
     if _run_from_ipython():
         get_ipython().run_line_magic('matplotlib', 'inline')
-        #get_ipython().magic(u'matplotlib inline')
