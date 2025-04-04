@@ -1,5 +1,5 @@
 {% set name = "underworld" %}
-{% set version = "2.16.0" %}
+{% set version = "2.16.4" %}
 {% set build = 0 %}
 
 package:
@@ -7,8 +7,8 @@ package:
   version: {{ version }}
 
 source:
-   url: https://github.com/underworldcode/underworld2/archive/refs/tags/v{{ version }}b.tar.gz
-   sha256: b829b44ae2f5acc87bee88da5f38d49b647964c22f42fbce0153c4417e643791
+   url: https://github.com/underworldcode/underworld2/archive/refs/tags/v{{ version }}.tar.gz
+   sha256: 70b2ccadc4917b82cf64819956acf2a0c8b69fcb3117188e801ef435da2c2f28
 #  git_url : https://github.com/underworldcode/underworld2.git
 #  git_rev : v2.16.x
 
