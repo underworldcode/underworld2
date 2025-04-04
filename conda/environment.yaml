@@ -2,7 +2,7 @@ name: uw2-dev
 channels:
   - conda-forge
 dependencies:
-  - python==3.11
+  - python==3.12
   - compilers
   - pkg-config
   - libxml2
