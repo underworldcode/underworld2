@@ -57,5 +57,11 @@ $ docker login
 $ docker push underworldcode/underworld2:2.5.0b
 ```
 
+Security
+---------
 
+All dockers are designed to be run as non-root user. So `apt-get install` won't function.
+Care has been taken to minimise optional packages, i.e. `wget`. This minimises the overall size of the docker image size,
+and diminishes potential security weaknesses.
+That said `pip` is enabled in every image, so python packages can be downloaded into a container runtime.
 
