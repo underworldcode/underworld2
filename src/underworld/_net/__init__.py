@@ -76,7 +76,7 @@ def PostPostHog( event_name, ev_dict ):
     event_name: str
         Textual name for event_name. Can only contain alpha-numeric characters and underscores.
     ev_dict: dict
-        Optional paramerter dictionary for event.
+        Optional parameter dictionary for event.
 
     Add the following test here to ensure we're catching out when we're
     running from doctests to avoid dispatching metrics. 
