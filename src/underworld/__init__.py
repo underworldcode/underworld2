@@ -242,6 +242,8 @@ def _in_doctest():
 # send metrics *only* if we are rank==0, and if we are not running inside a doctest.
 if (underworld.mpi.rank == 0) and not _in_doctest():
     def _sendData():
+
+        import requests
         import os
         # disable collection of data if requested
         if "UW_NO_USAGE_METRICS" not in os.environ:
@@ -252,15 +254,19 @@ if (underworld.mpi.rank == 0) and not _in_doctest():
             # check if docker
             import os.path
             if (os.path.isfile("/.dockerinit")):
-                machinfo += "__docker"
+                sysinfo += "__docker"
 
-            event_dict = { "version" : underworld.__version__,
-                           "platform" : sysinfo,
-                           "run_size" : underworld.mpi.size }
+            event_dict = { "properties": {
+                               "version"  : underworld.__version__,
+                               "platform" : sysinfo,
+                               "run_size" : underworld.mpi.size,
+                               "distinct_id" : _id, 
+                            }
+                         }
 
             # send info async
             import threading
-            thread = threading.Thread( target=_net.PostGA4Event, args=("import_uw2", event_dict) )
+            thread = threading.Thread( target=_net.PostPostHog, args=("import_uw2", event_dict) )
             thread.daemon = True
             thread.start()
 
