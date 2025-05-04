@@ -818,6 +818,7 @@ class Model(Material):
     def _advdiffSystem(self):
         """ Advection Diffusion System """
 
+        import pdb; pdb.set_trace
         DiffusivityMap = {}
         for material in self.materials:
             if material.diffusivity:
@@ -1549,12 +1550,15 @@ class Model(Material):
 
     def init_model(self, temperature="steady-state", pressure="lithostatic",
                    defaultStrainRate=1e-15 / u.second):
-        """ Initialise the Temperature Field as steady state,
+        """ 
+            Initialise the Temperature Field as steady state,
             Initialise the Pressure Field as Lithostatic
             Initialise the viscosity field based on default
             strain rate.
 
             Will only initialise the temperature field if diffusivity is defined in the model.
+
+            Use 'temperature' and/or 'pressure' ='None' to disable initialisations above.
 
         Parameters:
         -----------
