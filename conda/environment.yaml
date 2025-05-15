@@ -1,4 +1,4 @@
-name: uw2-dev
+name: uw2-2.16.x
 channels:
   - conda-forge
 dependencies:
