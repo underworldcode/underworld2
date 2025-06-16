@@ -22,7 +22,7 @@ jobs:
       - name: Set up Micromamba
         uses: mamba-org/setup-micromamba@v2
         with:
-          environment-file: conda/environment.yaml
+          environment-file: conda/environment.yml
           cache-environment: true
           cache-downloads: true
           init-shell: bash

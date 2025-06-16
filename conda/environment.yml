@@ -25,5 +25,6 @@ dependencies:
   - pip
   - pip:
     - lavavu
+    #- badlands comment out for the following for now
     - "badlands @ git+https://github.com/julesghub/badlands.git@julesghub/meson-build#subdirectory=badlands"
 
