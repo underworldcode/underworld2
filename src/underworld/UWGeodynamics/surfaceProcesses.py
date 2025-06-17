@@ -53,6 +53,43 @@ class Badlands(SurfaceProcesses):
                  surfElevation=0., verbose=True, Model=None, outputDir="outbdls",
                  restartFolder=None, restartStep=None, timeField=None,
                  minCoord=None, maxCoord=None, aspectRatio2d=1.):
+        """
+        Creates a SurfaceProcesses object to encapsulate a Badlands model.
+        The arguments for this function will override, or change the behaviour, of the
+        badlands .xml file that usually parametises a Badlands model.
+        Note Badlands is only made available on processor rank 0 in parallel. Information is sent
+        to proc 0, computed via Badlands, and then broadcast to all procs for Underworld processing.
+
+        Paramemters
+        -----------
+
+            XML : str
+                The xml file that parametrises the Badlands model to be coupled with UWGeo.
+                Note aguments defined here will override the values of the xml file.
+            resolution : int array
+                The resolution of the Badlands DEM.
+            checkpoint_interval : 
+            surfElevation : float, optional
+                Sets the initial Z coordinate of Badland's dem mesh to a given value.
+            verbose :
+            Model : UWGeo.Model, optional
+                The UWGeodynamics Model object
+            outputDir : str, default 'outbdls'
+                The output directory of the Badlands execution.
+            restartStep : int, optional 
+                If defined, it will activate Badlands to restart,
+                Using this value as the step number to restart from the `restartFoler` dir defined above. 
+            restartFolder : str
+                The restart folder when restart enabled.
+            timeField : Underworld Swarm variable fields
+                The time field used to measure sedimentation timing of underworld particles. (Check if actually used not used in coupling)
+            minCoord : float array, optional
+                The min coordinates of the Badland's dem, if `None` use the UWGeodynamics model
+            max Coord : float array, optional
+                The max coordinates of the Badland's dem, if `None` use the UWGeodynamics model
+            aspectRatio2D : float
+                Always used in 2D to set the seondary coordinate min/max as a mulitple of the first component.
+        """
         try:
             import badlands
 
@@ -101,6 +138,8 @@ class Badlands(SurfaceProcesses):
             self.badlands_model.load_xml(self.XML)
 
             if self.restartStep:
+                # this will kick off internal restart code in Badlands that overwrites the _demfile
+                # made below. See Badlands documentation for details.
                 self.badlands_model.input.restart = True
                 self.badlands_model.input.rstep = self.restartStep
                 self.badlands_model.input.rfolder = self.restartFolder
@@ -130,10 +169,9 @@ class Badlands(SurfaceProcesses):
             self.badlands_model.input.tStart = self.time_years
             self.badlands_model.tNow = self.time_years
 
-            # Override the checkpoint/display interval in the Badlands model to
-            # ensure BL and UW are synced
+            # Override the checkpoint/display interval in the Badlands xml file.
             self.badlands_model.input.tDisplay = (
-            dimensionalise(self.checkpoint_interval, u.years).magnitude)
+                dimensionalise(self.checkpoint_interval, u.years).magnitude)
 
             # Set Badlands minimal distance between nodes before regridding
             self.badlands_model.force.merge3d = (
@@ -181,6 +219,15 @@ class Badlands(SurfaceProcesses):
         return dimensionalise(dem, u.meter).magnitude
 
     def solve(self, dt, sigma=0):
+        """
+        Execute Badlands a badlands solve in the Underworld coupling.
+            1. Collect Badland's recGrid and broadcast to all procs.
+            2. Inerpolate Underworld velocity field on recGrid
+            3. Calculate overall displacement in meters by muliplying velocity (m/yr) with input dt (yr).
+            4. Using the displacement run badlands from currect time `t` to time `t+dt`.
+            5. Save final stratigraphic field from badlands.
+            6. Update Underworld particles depending on Badland tin. Another interpolation. 
+        """
         if rank == 0 and self.verbose:
             purple = "\033[0;35m"
             endcol = "\033[00m"
@@ -209,11 +256,22 @@ class Badlands(SurfaceProcesses):
         if rank == 0:
             tracer_disp = dimensionalise(tracer_velocity * dt, u.meter).magnitude
             self._inject_badlands_displacement(self.time_years,
-                                               dt_years,
-                                               tracer_disp, sigma)
+                                               dt_years,        # in years
+                                               tracer_disp,     # displacement in m/y 
+                                               sigma)           # controls gaussian filter smoothing
 
             # Run the Badlands model to the same time point
             self.badlands_model.run_to_time(self.time_years + dt_years)
+            bdm = self.badlands_model
+            # force a final stratigraphy step
+            _ = bdm.strata.buildStrata(
+                bdm.elevation,
+                bdm.cumdiff,
+                bdm.force.sealevel,
+                bdm.recGrid.boundsPt,
+                1,
+                bdm.outputStep,
+            )
 
         self.time_years += dt_years
 
@@ -863,8 +921,8 @@ class velocitySurface_2D(SurfaceProcesses):
         ## TODO: Fix naming for internal passive tracer swarm
         self.Model.add_passive_tracers(name=self.tkey, vertices=nd(self.surfaceArray), advect=False)
 
-        st = self.Model.passive_tracers[self.tkey]
-        assert( st != None, f"Error getting passive tracer {self.tkey}")
+        st = self.Model.passive_tracers.get(self.tkey)
+        assert st != None, f"Error getting passive tracer {self.tkey}"
         st.allow_parallel_nn = True
 
         self.nd_coords = nd(self.surfaceArray)
@@ -898,8 +956,8 @@ class velocitySurface_2D(SurfaceProcesses):
 
     def solve(self, dt):
 
-        st = self.Model.passive_tracers[self.tkey]
-        assert( st != None, f"Error getting passive tracer {self.tkey}")
+        st = self.Model.passive_tracers.get(self.tkey)
+        assert st != None, f"Error getting passive tracer {self.tkey}"
         if st.data.shape[0] > 0:
             ### evaluate on all nodes and get the tracer velocity on root proc
             tracer_velocity_local = self.Model.velocityField.evaluate(st.data)
@@ -1175,8 +1233,8 @@ class velocitySurface_3D(SurfaceProcesses):
         ### automatically non-dimensionalises the imput coords if they have a dim
         self.Model.add_passive_tracers(name=self.tkey, vertices=self.surfaceArray, advect=False)
 
-        st = self.Model.passive_tracers[self.tkey]
-        assert( st != None, f"Error getting passive tracer {self.tkey}")
+        st = self.Model.passive_tracers.get(self.tkey)
+        assert st != None, f"Error getting passive tracer {self.tkey}"
         st.allow_parallel_nn = True
 
         self.nd_coords = nd(self.surfaceArray)
@@ -1347,8 +1405,8 @@ class velocitySurface_3D(SurfaceProcesses):
     #     return
 
     def solve(self, dt):
-        st = self.Model.passive_tracers[self.tkey]
-        assert( st != None, f"Error getting passive tracer {self.tkey}")
+        st = self.Model.passive_tracers.get(self.tkey)
+        assert st != None, f"Error getting passive tracer {self.tkey}"
         if st.data.shape[0] > 0:
             x = np.ascontiguousarray(st.data[:,0])
             y = np.ascontiguousarray(st.data[:,1])
