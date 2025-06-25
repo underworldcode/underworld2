@@ -69,7 +69,8 @@ class Badlands(SurfaceProcesses):
             resolution : int array
                 The resolution of the Badlands DEM.
             checkpoint_interval : 
-            surfElevation : float, optional
+                Overwrites the tDisplay value in Badlands. 
+            surfElevation : underworld.function, defaults to 0
                 Sets the initial Z coordinate of Badland's dem mesh to a given value.
             verbose :
             Model : UWGeo.Model, optional
@@ -228,10 +229,13 @@ class Badlands(SurfaceProcesses):
             5. Save final stratigraphic field from badlands.
             6. Update Underworld particles depending on Badland tin. Another interpolation. 
         """
+
+        dt_years = dimensionalise(dt, u.years).magnitude
+
         if rank == 0 and self.verbose:
             purple = "\033[0;35m"
             endcol = "\033[00m"
-            print(purple + "Processing surface with Badlands" + endcol)
+            print(purple + f"Processing surface with Badlands {dt_years}:\n\t from {self.time_years} -> {self.time_years+dt_years}" + endcol)
             sys.stdout.flush()
 
         np_surface = None
@@ -251,27 +255,61 @@ class Badlands(SurfaceProcesses):
         nd_coords = nd(np_surface * u.meter)
         tracer_velocity = self.Model.velocityField.evaluate_global(nd_coords)
 
-        dt_years = dimensionalise(dt, u.years).magnitude
-
         if rank == 0:
             tracer_disp = dimensionalise(tracer_velocity * dt, u.meter).magnitude
+
             self._inject_badlands_displacement(self.time_years,
                                                dt_years,        # in years
                                                tracer_disp,     # displacement in m/y 
                                                sigma)           # controls gaussian filter smoothing
 
-            # Run the Badlands model to the same time point
-            self.badlands_model.run_to_time(self.time_years + dt_years)
+            # get badlands
             bdm = self.badlands_model
-            # force a final stratigraphy step
-            _ = bdm.strata.buildStrata(
-                bdm.elevation,
-                bdm.cumdiff,
-                bdm.force.sealevel,
-                bdm.recGrid.boundsPt,
-                1,
-                bdm.outputStep,
-            )
+
+            # force badlands checkpoint to align with UW
+            #bdm.force.tDisplay = dt_years # this or the following
+            run_until = self.time_years + dt_years
+            bdm.force.next_display = run_until
+
+            # Run the Badlands model to the same time point
+            bdm.run_to_time(run_until)
+
+            # # perform final checkpoint to syc 
+            # # time_uw = time_bdm
+            # # These save are criticle for checkpoint/restart
+            # # so save them somewhere else
+            # from badlands import checkPoints
+            # checkPoints.write_checkpoints(
+            #     bdm.input,
+            #     bdm.recGrid,
+            #     bdm.lGIDs,
+            #     bdm.inIDs,
+            #     bdm.tNow,
+            #     bdm.FVmesh,
+            #     bdm.force,
+            #     bdm.flow,
+            #     bdm.rain,
+            #     bdm.elevation,
+            #     bdm.fillH,
+            #     bdm.cumdiff,
+            #     bdm.cumhill,
+            #     bdm.cumfail,
+            #     bdm.wavediff,
+            #     bdm.outputStep,
+            #     bdm.prop,
+            #     bdm.mapero,
+            #     bdm.cumflex,
+            # )
+
+            # # force a final stratigraphy step
+            # _ = bdm.strata.buildStrata(
+            #     bdm.elevation,
+            #     bdm.cumdiff,
+            #     bdm.force.sealevel,
+            #     bdm.recGrid.boundsPt,
+            #     1,
+            #     bdm.outputStep,
+            # )
 
         self.time_years += dt_years
 
@@ -371,21 +409,23 @@ class Badlands(SurfaceProcesses):
 
         # What do the materials (in air/sediment terms) look like now?
         if self.Model.mesh.dim == 3:
-            material_flags = self._determine_particle_state()
+            under_bd_surface = self._determine_particle_state()
         if self.Model.mesh.dim == 2:
-            material_flags = self._determine_particle_state_2D()
+            under_bd_surface = self._determine_particle_state_2D()
 
         # If any materials changed state, update the Underworld material types
         mi = self.Model.materialField.data
 
         # convert air to sediment
         for air_material in self.airIndex:
-            sedimented_mask = np.logical_and(np.in1d(mi, air_material), material_flags)
+            # if material air, and we're below surface, make it sediment
+            sedimented_mask = np.logical_and(np.in1d(mi, air_material), under_bd_surface)
             mi[sedimented_mask] = self.sedimentIndex
 
         # convert sediment to air
         for air_material in self.airIndex:
-            eroded_mask = np.logical_and(~np.in1d(mi, air_material), ~material_flags)
+            # if material is not air, and above surface, make it air
+            eroded_mask = np.logical_and(~np.in1d(mi, air_material), ~under_bd_surface)
             mi[eroded_mask] = self.airIndex[0]
 
     def _inject_badlands_displacement(self, time, dt, disp, sigma):
