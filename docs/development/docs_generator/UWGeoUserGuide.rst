@@ -1436,11 +1436,11 @@ You have 2 options:
 
    Model.run_for(nstep=10)
 
-1. Specify an endTime
+2. Specify an end with *duration* argument:
 
 .. code:: python
 
-   Model.run_for(endTime=1.0* u.megayears)
+   Model.run_for(duration=1.0* u.megayears)
 
 which is equivalent to
 
