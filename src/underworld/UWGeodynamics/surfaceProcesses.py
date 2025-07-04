@@ -230,7 +230,7 @@ class Badlands(SurfaceProcesses):
             6. Update Underworld particles depending on Badland tin. Another interpolation. 
         """
 
-        dt_years = dimensionalise(dt, u.years).magnitude
+        dt_years = np.round(dimensionalise(dt, u.years).magnitude,6)  # fix pint scaling issue 
 
         if rank == 0 and self.verbose:
             purple = "\033[0;35m"
@@ -238,21 +238,48 @@ class Badlands(SurfaceProcesses):
             print(purple + f"Processing surface with Badlands {dt_years}:\n\t from {self.time_years} -> {self.time_years+dt_years}" + endcol)
             sys.stdout.flush()
 
-        np_surface = None
-        if rank == 0:
-            rg = self.badlands_model.recGrid
-            if self.Model.mesh.dim == 2:
-                zVals = rg.regZ.mean(axis=1)
-                np_surface = np.column_stack((rg.regX, zVals))
+        fact = dimensionalise(1.0, u.meter).magnitude
+        if self.Model.mesh.dim == 2:
+            if rank == 0:
+                known_xy = self.badlands_model.recGrid.tinMesh['vertices'] / fact 
+                known_z = self.badlands_model.elevation / fact
+                xs = self.badlands_model.recGrid.regX / fact
+                ys = self.badlands_model.recGrid.regY / fact
 
-            if self.Model.mesh.dim == 3:
-                np_surface = np.column_stack((rg.rectX, rg.rectY, rg.rectZ))
+            known_xy = comm.bcast(known_xy, root=0)
+            known_z = comm.bcast(known_z, root=0)
+            xs = comm.bcast(xs, root=0)
+            ys = comm.bcast(ys, root=0)
 
-        np_surface = comm.bcast(np_surface, root=0)
-        comm.Barrier()
+            comm.Barrier()
 
-        # Get Velocity Field at the surface
-        nd_coords = nd(np_surface * u.meter)
+            grid_x, grid_y = np.meshgrid(xs, ys)
+            interpolate_z = griddata(known_xy,
+                                     known_z,
+                                     (grid_x, grid_y),
+                                     method='nearest').T
+            interpolate_z = interpolate_z.mean(axis=1)
+            nd_coords = np.column_stack((xs, interpolate_z))
+
+        if self.Model.mesh.dim == 3:
+            if rank == 0:
+                known_xy = self.badlands_model.recGrid.tinMesh['vertices'] / fact
+                known_z = self.badlands_model.elevation / fact
+                rect_x = self.badlands_model.recGrid.rectX / fact
+                rect_y  = self.badlands_model.recGrid.rectY / fact
+
+            known_xy = comm.bcast(known_xy, root=0)
+            known_z = comm.bcast(known_z, root=0)
+            rect_x = comm.bcast(rect_x, root=0)
+            rect_y = comm.bcast(rect_y, root=0)
+
+            comm.Barrier()
+            interpolate_z = griddata(points=known_xy,
+                                     values=known_z,
+                                     xi=(rect_x, rect_y),
+                                     method='nearest')
+            nd_coords = np.column_stack((rect_x,rect_y, interpolate_z))
+
         tracer_velocity = self.Model.velocityField.evaluate_global(nd_coords)
 
         if rank == 0:
