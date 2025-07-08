@@ -1,5 +1,5 @@
 [workspace]
-authors = ["julian <house.of.jules@gmail.com>"]
+authors = ["Julian Giordani <julian.giordani@sydney.edu.au>"]
 channels = [
   "conda-forge",
   "https://prefix.dev/pixi-build-backends"
@@ -10,6 +10,7 @@ version = "2.17.9"
 
 [tasks]
 uw2-build = "pip install ."
+uw2-test = "pytest ./docs/pytests/tests.py ./docs/pytests/test_examples.py ./docs/pytests/test_user_guide.py"
 
 [dependencies]
 python = "3.11.*"
