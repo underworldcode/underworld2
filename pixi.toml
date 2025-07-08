@@ -1,0 +1,35 @@
+[workspace]
+authors = ["julian <house.of.jules@gmail.com>"]
+channels = [
+  "conda-forge",
+  "https://prefix.dev/pixi-build-backends"
+]
+name = "uw2-pixi"
+platforms = ["linux-64", "osx-arm64"]
+version = "2.17.9"
+
+[tasks]
+uw2-build = "pip install ."
+
+[dependencies]
+python = "3.11.*"
+petsc = "3.21.5.*"
+numpy = "<2"
+pint = ">=0.24.4,<0.25"
+cmake = ">=4.0.3,<5"
+swig = ">=4"
+pkg-config = ">=0.29.2,<0.30"
+compilers = ">=1.10.0,<2"
+scipy = ">=1.16.0,<2"
+mpi4py = ">=4.1.0,<5"
+libxml2 = ">=2.13.8,<3"
+ninja = ">=1.13.0,<2"
+pytest = ">=8.4.1,<9"
+nbmake = ">=1.5.5,<2"
+jupytext = ">=1.17.2,<2"
+jupyterlab = ">=4.4.4,<5"
+mesalib = ">=25.0.5,<26"
+mpich = ">=4.3.1,<5"
+hdf5 = { version = "*", build = "mpi*" }
+h5py = { version = "*", build = "mpi*" }
+pip = ">=25.1.1,<26"
