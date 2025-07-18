@@ -6,15 +6,14 @@ channels = [
 ]
 name = "uw2-pixi"
 platforms = ["linux-64", "osx-arm64"]
-version = "2.17.9"
 
 [tasks]
 uw2-build = "pip install ."
 uw2-test = "pytest ./docs/pytests/tests.py ./docs/pytests/test_examples.py ./docs/pytests/test_user_guide.py"
 
 [dependencies]
+petsc = "3.21.*"
 python = "3.11.*"
-petsc = "3.21.5.*"
 numpy = "<2"
 pint = ">=0.24.4,<0.25"
 cmake = ">=4.0.3,<5"
@@ -34,3 +33,9 @@ mpich = ">=4.3.1,<5"
 hdf5 = { version = "*", build = "mpi*" }
 h5py = { version = "*", build = "mpi*" }
 pip = ">=25.1.1,<26"
+
+[host-dependencies]
+c-compiler = "*"
+cxx-compiler = "*"
+cmake = "*"
+make = "*"

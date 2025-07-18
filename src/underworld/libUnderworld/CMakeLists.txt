@@ -1,14 +1,18 @@
 cmake_minimum_required(VERSION 3.16)
+cmake_policy(SET CMP0078 OLD)
+
+# Set some Global options for CMAKE 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(Python_FIND_VIRTUALENV ONLY)
-cmake_policy(SET CMP0078 OLD)
+option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
 
 project(Underworld)
+
+# Required dependencies
 find_package(PkgConfig REQUIRED)
 find_package(LibXml2 REQUIRED)
 find_package(MPI REQUIRED)
-
 find_package(Python3 COMPONENTS Interpreter Development NumPy REQUIRED)
 find_package(SWIG 4.0 COMPONENTS python REQUIRED)
 
@@ -24,6 +28,7 @@ else(DEFINED ENV{PETSC_DIR})
 endif()
 message(STATUS "Checking for PETSc using $PKG_CONFIG_PATH=$ENV{PKG_CONFIG_PATH}")
     
+# Get CMAKE to find PETSc
 pkg_check_modules(PETSc PETSc)
 if(NOT PETSc_FOUND)
     message(FATAL_ERROR "Cannot find PETSc, please check that the PETSC_DIR environment " 
@@ -204,4 +209,5 @@ install(TARGETS ${target_sources}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
+# Now build the UW Swig wrappers (after C-code has been built). All swig stuff are in libUnderworldPY
 add_subdirectory(libUnderworldPy)
