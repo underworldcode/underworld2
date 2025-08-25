@@ -1,6 +1,40 @@
 Underworld Installation
 =======================
 
+Underworld 2 can be installed in multiple ways, from container, source code or on HPC.
+Below we detail instructions on each of these installation methods.
+
+Container
+----------
+
+Containers provide a type of lightweight virtualisation for Underworld 2 with all the dependencies and is the preferred method of Underworld 2 usage on personal computers. 
+
+You will first need to install `podman` (preferred) or `docker` on your system. Both these tools can be used from the command line, but new users may wish to use the GUI Desktop versions to get started with it.
+
+Below are the minimal command lines we recommend for getting started with `podman`, if using docker one can simple substitute the 'podman' for 'docker' and the commands should be equivellent.
+
+.. code:: bash
+   ./docs/development/container/launch-container.sh
+
+This will setup a functioning Jupyterlab environment with the latest Underworld2 installed at `localhost:20000 <localhost:20000>`. A directory called `uw_space` will be create at the user's home directory which is volume mapped into the container, this acts as a tranfser directory for sending files to and from the container.
+
+.. podman run -p 8888:8888 -v uw2-vol:/home/jovyan/workspace underworldcode/underworld2
+.. 
+.. Navigate to `localhost:8888 <localhost:8888>`_ to see the notebooks. Note that you can also use particular versions of Underworld using any of the Docker image tags. For example:
+.. 
+.. .. code:: bash
+.. 
+..    docker run -p 8888:8888 underworldcode/underworld2:2.7.1b
+.. 
+.. By default (ie, if no tag is provided), docker will use the latest stable release. A list of available tags may be found on `our DockerHub page <https://hub.docker.com/r/underworldcode/underworld2/tags>`_. Tags can also be accessed in Kitematic via the ellipsis button on container search results. 
+.. 
+.. A number of useful docker commands are provided within the `Underworld cheat-sheet <https://github.com/underworldcode/underworld2/tree/master/docs/cheatsheet/cheatsheet.pdf>`_.
+.. 
+.. see old `Notes on Installing Docker`_) and then you may install Underworld via Docker. Docker can be driven from the command line, but new users may wish to use the Docker Kitematic GUI instead for ease. Simply search for 'underworldcode/underworld2' within Kitematic, and then click 'CREATE' to launch a container. You will eventually wish to modify your container settings (again through Kitematic) to enable local folder volume mapping, which will allow you to access your local drives from within your container.
+.. 
+.. For Linux users, and those who prefer the command line, the following minimal command should be sufficient to access the Underworld2 Jupyter Notebook examples:
+.. 
+
 Detailed instructions for supported HPC platforms may be found at `docs/install_guides
 <https://github.com/underworldcode/underworld2/tree/master/docs/install_guides>`_. You may also find useful usage information (on docker/hpc/compilation/other) on the Underworld blog.
 
@@ -69,27 +103,6 @@ Note that some tests also require *matplotlib*
 
    pytest -vvv ./docs/pytests
 
-
-Docker
-------
-
-Docker is a type of lightweight virtualisation, and is the preferred method for Underworld usage on personal computers. You will first need to install Docker on your system (see `Notes on Installing Docker`_) and then you may install Underworld via Docker. Docker can be driven from the command line, but new users may wish to use the Docker Kitematic GUI instead for ease. Simply search for 'underworldcode/underworld2' within Kitematic, and then click 'CREATE' to launch a container. You will eventually wish to modify your container settings (again through Kitematic) to enable local folder volume mapping, which will allow you to access your local drives from within your container.
-
-For Linux users, and those who prefer the command line, the following minimal command should be sufficient to access the Underworld2 Jupyter Notebook examples:
-
-.. code:: bash
-
-   docker run -p 8888:8888 underworldcode/underworld2
-
-Navigate to `localhost:8888 <localhost:8888>`_ to see the notebooks. Note that you can also use particular versions of Underworld using any of the Docker image tags. For example:
-
-.. code:: bash
-
-   docker run -p 8888:8888 underworldcode/underworld2:2.7.1b
-
-By default (ie, if no tag is provided), docker will use the latest stable release. A list of available tags may be found on `our DockerHub page <https://hub.docker.com/r/underworldcode/underworld2/tags>`_. Tags can also be accessed in Kitematic via the ellipsis button on container search results. 
-
-A number of useful docker commands are provided within the `Underworld cheat-sheet <https://github.com/underworldcode/underworld2/tree/master/docs/cheatsheet/cheatsheet.pdf>`_.
 
 Notes on Installing Docker
 ~~~~~~~~~~~~~~~~~~~~~~~~~~

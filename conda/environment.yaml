@@ -1,4 +1,4 @@
-name: uw-2.17.x
+name: uw-2.17
 channels:
   - conda-forge
 dependencies:
@@ -6,6 +6,7 @@ dependencies:
   - compilers
   - pkg-config
   - libxml2
+  - make
   - cmake
   - swig>=4.0.0
   - ninja
@@ -13,6 +14,7 @@ dependencies:
   - mpich
   - petsc==3.21.5
   - mesalib
+  - git
   - numpy<2
   - scipy
   - mpi4py
