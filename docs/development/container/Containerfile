@@ -37,10 +37,6 @@ RUN micromamba install -y -v -n base -f /tmp/env.yaml && \
 # activate mamba env during podman build
 ARG MAMBA_DOCKERFILE_ACTIVATE=1
 
-# pyvista - taken from pyvista docker files
-# see https://github.com/pyvista/pyvista/tree/main/docker
-RUN pip install --no-cache-dir --extra-index-url https://wheels.vtk.org vtk-osmesa
-
 # install UW3
 COPY --chown=$MAMBA_USER:$MAMBA_USER \
      --exclude=**/.git \
