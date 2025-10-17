@@ -30,7 +30,7 @@ dependencies = [
 requires-python = ">=3.8"
 description = "Underworld2 is a python-friendly, parallel, scalable, easy-to-use toolkit for solving problems in solid and fluid mechanics."
 readme = "README.md"
-license-file = ["./LICENSE.md"]
+license-files = ["./LICENSE.md"]
 keywords = ["Underworld", "MPI", "Geodynamics"]
 classifiers = [
   "Development Status :: 5 - Production/Stable",
