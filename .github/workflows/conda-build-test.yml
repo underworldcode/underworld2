@@ -24,6 +24,7 @@ jobs:
         with:
           environment-file: conda/environment.yaml
           init-shell: bash
+          environment-name: uw-2.17
           #cache-environment: true
           #cache-downloads: true
           
