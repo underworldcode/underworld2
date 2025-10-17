@@ -2,7 +2,8 @@ name: uw-2.17
 channels:
   - conda-forge
 dependencies:
-  - python==3.11
+  - python==3.12
+  - numpy<2
   - compilers
   - pkg-config
   - libxml2
@@ -15,7 +16,6 @@ dependencies:
   - petsc==3.21.5
   - mesalib
   - git
-  - numpy<2
   - scipy
   - mpi4py
   - h5py=*=mpi*

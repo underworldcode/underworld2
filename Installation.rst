@@ -1,22 +1,31 @@
 Underworld Installation
 =======================
 
-Underworld 2 can be installed in multiple ways, from container, source code or on HPC.
-Below we detail instructions on each of these installation methods.
+Underworld 2 can be installed in multiple ways, using the container (preferred), from source code (advanced). It can also be installed on HPC clusters. These installation methods are documented below.
 
 Container
 ----------
 
-Containers provide a type of lightweight virtualisation for Underworld 2 with all the dependencies and is the preferred method of Underworld 2 usage on personal computers. 
+Containers provide a type of lightweight virtualisation. The Underworld 2 container includes the latest version of Underworld 2 with all the dependencies packages and is the preferred method for usage on personal computers. 
 
-You will first need to install `podman` (preferred) or `docker` on your system. Both these tools can be used from the command line, but new users may wish to use the GUI Desktop versions to get started with it.
+You will first need to install *podman* (recommended) or *docker* on your system. Both these tools can be used from the command line, but new users may wish to use the GUI Desktop versions to get started with it.
 
-Below are the minimal command lines we recommend for getting started with `podman`, if using docker one can simple substitute the 'podman' for 'docker' and the commands should be equivellent.
+The following script is the recommended way for launching the container with *podman*.
 
 .. code:: bash
-   ./docs/development/container/launch-container.sh
 
-This will setup a functioning Jupyterlab environment with the latest Underworld2 installed at `localhost:20000 <localhost:20000>`. A directory called `uw_space` will be create at the user's home directory which is volume mapped into the container, this acts as a tranfser directory for sending files to and from the container.
+   sh ./docs/development/container/launch-container.sh
+
+This will take a moment to load up - be patient please. What you'll get is a container running a functioning Jupyterlab environment with the latest Underworld 2 installed at `localhost:20000 <localhost:20000>`_. A directory called **uw_space** will be create in the user's home directory which is (volume) mapped into the container, this acts as a tranfser directory for sending files to and from the container.
+
+Remember to take note of the Jupyterlab token from the start up messages. It will look something like.
+
+.. code:: bash
+   
+   http://127.0.0.1:8888/lab?token=e79006f4e441cf781440a9ea0cad8cf2a0dfd3b9c236a0ca
+
+The value must be copy-pasted into the jupyterlab launch page the first time.
+
 
 .. podman run -p 8888:8888 -v uw2-vol:/home/jovyan/workspace underworldcode/underworld2
 .. 
@@ -35,16 +44,20 @@ This will setup a functioning Jupyterlab environment with the latest Underworld2
 .. For Linux users, and those who prefer the command line, the following minimal command should be sufficient to access the Underworld2 Jupyter Notebook examples:
 .. 
 
-Detailed instructions for supported HPC platforms may be found at `docs/install_guides
-<https://github.com/underworldcode/underworld2/tree/master/docs/install_guides>`_. You may also find useful usage information (on docker/hpc/compilation/other) on the Underworld blog.
 
 We welcome feedback and support requests at our `github issue tracker <https://github.com/underworldcode/underworld2/issues>`_.
+
+HPC Installation
+----------------
+
+Detailed instructions for supported HPC platforms may be found at `docs/install_guides
+<https://github.com/underworldcode/underworld2/tree/master/docs/install_guides>`_. You may also find useful usage information (on docker/hpc/compilation/other) on the Underworld blog.
 
 Native Installation
 -------------------
 
 Requirements
-~~~~~~~~~~~~
+++++++++++++
 
 Build environment
 *****************
