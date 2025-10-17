@@ -258,6 +258,11 @@ class BuildExtension(build_ext):
         else:
             os.environ["CMAKE_PREFIX_PATH"] = str(path)
 
+        # if conda environment - append conda_prefix to CMAKE_prefix
+        if 'CONDA_PREFIX' in os.environ:
+            os.environ['CMAKE_PREFIX_PATH'] = \
+                os.environ['CONDA_PREFIX'] + os.pathsep + os.environ['CMAKE_PREFIX_PATH']
+
 
 metadata = {
     'provides': ['underworld'],
