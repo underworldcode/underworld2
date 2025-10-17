@@ -25,13 +25,13 @@ jobs:
           environment-file: conda/environment.yaml
           init-shell: bash
           environment-name: uw-2.17
-          #cache-environment: true
+          cache-environment: true
           #cache-downloads: true
           
       - name: Compile the code, run tests
-        shell: micromamba-shell {0}
         run: | 
           micromamba list
           pip list
           pip install .
           pytest ./docs/pytests/tests.py ./docs/pytests/test_examples.py
+        shell: micromamba-shell {0}
