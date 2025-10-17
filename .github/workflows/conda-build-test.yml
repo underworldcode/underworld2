@@ -23,9 +23,9 @@ jobs:
         uses: mamba-org/setup-micromamba@v2
         with:
           environment-file: conda/environment.yaml
-          cache-environment: true
-          cache-downloads: true
           init-shell: bash
+          #cache-environment: true
+          #cache-downloads: true
           
       - name: Compile the code, run tests
         shell: micromamba-shell {0}
