@@ -184,7 +184,8 @@ class BuildExtension(build_ext):
 
         # CMake build arguments
         build_args = [
-            '--config', ext.cmake_build_type
+            '--config', ext.cmake_build_type,
+            #'-DCMAKE_PREFIX_PATH='+os.environ['CONDA_PREFIX'],
         ]
 
         if platform.system() == "Windows":
@@ -314,6 +315,7 @@ functionality of the code running in a parallel HPC environment.",
                            "-DCALL_FROM_SETUP_PY:BOOL=ON",
                            "--fresh",  # force no cache, important for python isolation builds as build tools will change location
                        ],
+                       #cmake_build_type='debug', # uncomment for debugging build
                       ),
     ],
     cmdclass=dict(build_ext=BuildExtension),
