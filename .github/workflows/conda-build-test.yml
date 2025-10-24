@@ -25,13 +25,17 @@ jobs:
           environment-file: conda/environment.yaml
           generate-run-shell: true
           environment-name: uw-2.17
-          cache-environment: true
-          cache-downloads: true
+          # persist only for runs on this commit.
+          cache-environment-key: environment-${{ github.sha }}
+          cache-downloads-key: downloads-${{ github.sha }}
+          #cache-environment: true
+          #cache-downloads: true
           
       - run: |
-          micromamba env list
-          micromamba list
+          mamba env list
+          mamba list
           pip list
+          mamba info
           pip install . --no-build-isolation
           #pytest ./docs/pytests/tests.py ./docs/pytests/test_examples.py
         shell: micromamba-shell {0}
