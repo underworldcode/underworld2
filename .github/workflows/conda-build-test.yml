@@ -23,16 +23,17 @@ jobs:
         uses: mamba-org/setup-micromamba@v2
         with:
           environment-file: conda/environment.yaml
-          init-shell: bash
+          generate-run-shell: true
           environment-name: uw-2.17
           cache-environment: true
-          #cache-downloads: true
+          cache-downloads: true
           
-      - name: Compile the code, run tests
-        run: |
+      - run: |
           micromamba env list
           micromamba list
           pip list
           pip install . --no-build-isolation
           #pytest ./docs/pytests/tests.py ./docs/pytests/test_examples.py
         shell: micromamba-shell {0}
+# name: Compile the code, run tests
+        
