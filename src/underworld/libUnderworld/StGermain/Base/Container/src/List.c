@@ -27,7 +27,7 @@ const Type List_Type = "List";
 ** Constructors
 */
 
-List* List_New( Name name ) {
+List* List_New() {
 	/* Variables set in this function */
 	SizeT                     _sizeOfSelf = sizeof(List);
 	Type                             type = List_Type;

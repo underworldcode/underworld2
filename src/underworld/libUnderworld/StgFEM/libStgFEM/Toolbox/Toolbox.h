@@ -17,11 +17,11 @@
       __Codelet
    } StgFEM_Toolbox;
 
-   void StgFEM_Toolbox_Initialise();
+   void StgFEM_Toolbox_Initialise( ToolboxesManager* toolboxesManager, int* argc, char*** argv );
 
    Index StgFEM_Toolbox_Register( ToolboxesManager* toolboxesManager );
 
-   void StgFEM_Toolbox_Finalise();
+   void StgFEM_Toolbox_Finalise( ToolboxesManager* toolboxesManager );
 
    char* StgFEM_Toolbox_GetDeps() {return "StgDomain";};
 

@@ -109,7 +109,7 @@ void _IntegrationPointsSwarm_Init(
     */
    ExtensionManager_SetLockDown( self->particleExtensionMgr, True );
 
-   self->swarmsMappedTo = List_New("swarmsMappedTo");
+   self->swarmsMappedTo = List_New();
    List_SetItemSize(self->swarmsMappedTo, sizeof(SwarmMap*));
 
 }

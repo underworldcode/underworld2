@@ -55,7 +55,7 @@ Mesh* _Mesh_New(  MESH_DEFARGS  ) {
 	assert( _sizeOfSelf >= sizeof(Mesh) );
 	self = (Mesh*)_Stg_Component_New(  STG_COMPONENT_PASSARGS  );
 
-	self->topo = (MeshTopology*)IGraph_New( "" );
+	self->topo = (MeshTopology*)IGraph_New( );
 	self->vertices = NULL;
     self->verticesVariable = NULL;
     self->vGlobalIdsVar = NULL;

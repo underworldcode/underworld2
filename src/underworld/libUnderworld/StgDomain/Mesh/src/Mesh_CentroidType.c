@@ -34,7 +34,7 @@ const Type Mesh_CentroidType_Type = "Mesh_CentroidType";
 ** Constructors
 */
 
-Mesh_CentroidType* Mesh_CentroidType_New( Name name ) {
+Mesh_CentroidType* Mesh_CentroidType_New( ) {
 	/* Variables set in this function */
 	SizeT                                                    _sizeOfSelf = sizeof(Mesh_CentroidType);
 	Type                                                            type = Mesh_CentroidType_Type;
