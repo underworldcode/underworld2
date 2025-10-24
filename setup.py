@@ -185,7 +185,7 @@ class BuildExtension(build_ext):
         # CMake build arguments
         build_args = [
             '--config', ext.cmake_build_type,
-            #'-DCMAKE_PREFIX_PATH='+os.environ['CONDA_PREFIX'],
+            '-DCMAKE_PREFIX_PATH='+os.environ['CONDA_PREFIX'],
         ]
 
         if platform.system() == "Windows":
