@@ -39,8 +39,8 @@ jobs:
           micromamba activate uw-2.17 
           micromamba env list 
           micromamba list -v
-          pwd
-          #pip install . --no-build-isolation
+          env
+          pip install . --no-build-isolation
           #pytest ./docs/pytests/tests.py ./docs/pytests/test_examples.py
         shell: pwsh
         #shell: micromamba-shell {0}
