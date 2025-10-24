@@ -26,15 +26,13 @@ jobs:
           generate-run-shell: true
           environment-name: uw-2.17
           # persist only for runs on this commit.
-          cache-environment-key: environment-${{ github.sha }}
-          cache-downloads-key: downloads-${{ github.sha }}
+          #cache-environment-key: environment-${{ github.sha }}
+          #cache-downloads-key: downloads-${{ github.sha }}
           #cache-environment: true
           #cache-downloads: true
           
-      - run: |
-          mamba env list
-          mamba list -v
-          pip install . --no-build-isolation
+      - run: mamba env list ; mamba list -v | pwd
+          #pip install . --no-build-isolation
           #pytest ./docs/pytests/tests.py ./docs/pytests/test_examples.py
         shell: micromamba-shell {0}
 # name: Compile the code, run tests
