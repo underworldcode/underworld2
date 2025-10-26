@@ -21,26 +21,20 @@ jobs:
 
       - name: Set up Micromamba
         uses: mamba-org/setup-micromamba@v2
-        env:
-          ACTIONS_STEP_DEBUG: true
         with:
           environment-file: conda/environment.yaml
           environment-name: uw-2.17
           generate-run-shell: true
-          # persist only for runs on this commit.
-          #cache-environment-key: environment-${{ github.sha }}
-          #cache-downloads-key: downloads-${{ github.sha }}
-          #cache-environment: true
-          #cache-downloads: true
+          cache-environment: true
+          #cache-downloads: false
           
-      - name: lala
+      - name: compile and pytests
         run: | 
           micromamba env list 
           micromamba list -v
           env
           pip install . --no-build-isolation
-          #pytest ./docs/pytests/tests.py ./docs/pytests/test_examples.py
-        #shell: pwsh
+          pytest ./docs/pytests/tests.py ./docs/pytests/test_examples.py
         shell: micromamba-shell {0}
 # name: Compile the code, run tests
         
