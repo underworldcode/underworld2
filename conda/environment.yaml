@@ -6,7 +6,7 @@ dependencies:
   - numpy<2
   - compilers
   - pkg-config
-  - libxml2
+  - libxml2-devel
   - make
   - cmake
   - swig>=4.0.0
