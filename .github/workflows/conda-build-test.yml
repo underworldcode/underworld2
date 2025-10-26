@@ -40,7 +40,7 @@ jobs:
           micromamba env list 
           micromamba list -v
           env
-          pip install . --no-build-isolation
+          LIBXML2_LIBRARY=$CONDA_PREFIX/lib/libxml2.so LIBXML2_INCLUDE_DIR=$CONDA_PREFIX/include/libxml2 pip install . --no-build-isolation
           #pytest ./docs/pytests/tests.py ./docs/pytests/test_examples.py
         shell: pwsh
         #shell: micromamba-shell {0}
