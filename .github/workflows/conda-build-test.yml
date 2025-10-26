@@ -26,8 +26,7 @@ jobs:
         with:
           environment-file: conda/environment.yaml
           environment-name: uw-2.17
-          init-shell:
-            powershell
+          generate-run-shell: true
           # persist only for runs on this commit.
           #cache-environment-key: environment-${{ github.sha }}
           #cache-downloads-key: downloads-${{ github.sha }}
@@ -36,13 +35,12 @@ jobs:
           
       - name: lala
         run: | 
-          micromamba activate uw-2.17 
           micromamba env list 
           micromamba list -v
           env
-          LIBXML2_LIBRARY=$CONDA_PREFIX/lib/libxml2.so LIBXML2_INCLUDE_DIR=$CONDA_PREFIX/include/libxml2 pip install . --no-build-isolation
+          pip install . --no-build-isolation
           #pytest ./docs/pytests/tests.py ./docs/pytests/test_examples.py
-        shell: pwsh
-        #shell: micromamba-shell {0}
+        #shell: pwsh
+        shell: micromamba-shell {0}
 # name: Compile the code, run tests
         
