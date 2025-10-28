@@ -1,0 +1,25 @@
+# This is a Spack Environment file.
+#
+# It describes a set of packages to be installed, along with
+# configuration settings.
+spack:
+  # add package specs to the `specs` list
+  specs: 
+  - petsc@3.21+shared~hypre~superlu-dist #superlu-dist had installation issues so is was deactivated
+  - python@3.11
+  - swig
+  - py-setuptools
+  - py-numpy@1
+  - py-mpi4py
+  - py-h5py
+  - py-pip
+  - py-pint
+  - py-requests
+## For testing underworld2
+  #- py-pytest
+  #- py-nbmake
+  #- py-matplotlib
+
+  view: true
+  concretizer:
+    unify: true
