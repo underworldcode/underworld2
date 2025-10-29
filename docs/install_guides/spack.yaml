@@ -12,6 +12,7 @@ spack:
   - py-numpy@1
   - py-mpi4py
   - py-h5py
+  - py-scipy
   - py-pip
   - py-pint
   - py-requests
