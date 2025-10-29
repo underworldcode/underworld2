@@ -10,11 +10,33 @@ Version Control
   into `development` to capture release related changes. This step is also useful
   to ensure all docker images are being built correctly at Dockerhub before
   merging into master. Remember to switch dev branch version numbers and 
-  Dockerfiles back (as merge from master will change them). 
+  Dockerfiles back (as merge will change them). 
 * Finally, once satisfied that docker images on dev are being built correctly, 
   merge the release branch (not the dev branch!) into `master`. This should be a 
   fast forward, otherwise something has gone wrong.
 * The release branch may now be deleted.    
+
+### Ascii art release strategy
+
+Time goes left to right.
+
+
+main] v1 --              v2  |
+       \                 /   |
+v2.x]   \         x -- y     |
+         \       /      \    |
+dev ]     A -- B -- C -- D   |
+
+Notes:
+A, B, C, D, x, y, v1, v2 are commits
+main, v2.x, dev are branches
+\ and / indicate git mergers
+
+##### Example
+* v2.x in this example starts from B on dev and is called x.
+* v2.x once finalised with y, is merged into dev, so dev captures relevant changes made in v2.x.
+* then v2.x is merged into main and tag v2, other changes may be needed for this to become a release.
+* v2.x can be deleted when a v3.x branch starts. 
 
 Review issue tracker 
 ====================
