@@ -20,12 +20,13 @@ Version Control
 
 Time goes left to right.
 
-
+```text
 main] v1 --              v2  |
        \                 /   |
 v2.x]   \         x -- y     |
          \       /      \    |
 dev ]     A -- B -- C -- D   |
+```
 
 Notes:
 A, B, C, D, x, y, v1, v2 are commits
