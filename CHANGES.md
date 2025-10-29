@@ -1,5 +1,16 @@
 CHANGES: Underworld2
 =======================
+Release 2.17 [2025-07-08]
+-------------------------
+New:
+
+Changes:
+* UWGeodynamics - Badlands coupling imporvements. See documentation TODO: link
+
+Fixes:
+* Fix for Badlands coupling - Tectonic velocity now evaluated at surface, rather than Badlands basement recGrid. #725
+* UWGeo checkpoint times fix, e5d9ba1
+
 Release 2.16 [2025-03-03]
 ---------------------------
 New:

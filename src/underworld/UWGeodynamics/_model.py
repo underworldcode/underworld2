@@ -2434,7 +2434,7 @@ class _CheckpointFunction(object):
             dt1 = self.next_checkpoint - Model._ndtime
 
         if self.checkpoint_times:
-            tcheck = [val - Model._ndtime for val in self.checkpoint_times]
+            tcheck = [nd(val) - Model._ndtime for val in self.checkpoint_times]
             tcheck = [val for val in tcheck if val >= 0]
             tcheck.sort()
             dt2 = tcheck[0]
@@ -2962,11 +2962,14 @@ class _RestartFunction(object):
         XML = badlands_model.XML
         resolution = badlands_model.resolution
         checkpoint_interval = badlands_model.checkpoint_interval
+        aspectRatio2d = badlands_model.aspectRatio2d
+        surfElevation = badlands_model.surfElevation
 
         Model.surfaceProcesses = surfaceProcesses.Badlands(
             airIndex, sedimentIndex,
             XML, resolution,
             checkpoint_interval,
+            surfElevation=surfElevation,aspectRatio2d=aspectRatio2d,
             restartFolder=restartFolder,
             restartStep=restartStep)
 

@@ -17,11 +17,11 @@ extern const Type PICellerator_Toolbox_Type;
 	   __Codelet
    } PICellerator_Toolbox;
 
-   void PICellerator_Toolbox_Initialise();
+   void PICellerator_Toolbox_Initialise( ToolboxesManager* toolboxesManager, int* argc, char*** argv );
 
    Index PICellerator_Toolbox_Register( ToolboxesManager* toolboxesManager );
 
-   void PICellerator_Toolbox_Finalise();
+   void PICellerator_Toolbox_Finalise( ToolboxesManager* toolboxesManager );
 
    char* PICellerator_Toolbox_GetDeps() {return "StgDomain StgFEM";};
 

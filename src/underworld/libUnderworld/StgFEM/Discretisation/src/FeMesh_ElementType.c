@@ -26,7 +26,7 @@ const Type FeMesh_ElementType_Type = "FeMesh_ElementType";
 ** Constructors
 */
 
-FeMesh_ElementType* FeMesh_ElementType_New( Name name ) {
+FeMesh_ElementType* FeMesh_ElementType_New( ) {
    /* Variables set in this function */
    SizeT                                       _sizeOfSelf = sizeof(FeMesh_ElementType);
    Type                                             type = FeMesh_ElementType_Type;

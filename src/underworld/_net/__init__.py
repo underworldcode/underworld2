@@ -85,6 +85,7 @@ def PostPostHog( event_name, ev_dict ):
 
     """
     try:
+        import requests
         # build payload for PostHog comms
         payload = {
             "api_key": POSTHOG_API_KEY,
