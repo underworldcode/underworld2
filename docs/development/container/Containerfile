@@ -4,7 +4,7 @@
 ### MUST run from the underworld2 top directory
 #   podman build . --rm \
 #       --format docker \
-#       -f ./docs/developer/container/Containerfile \ 
+#       -f ./docs/development/container/Containerfile \ 
 #       -t underworldcode/underworld2:<version-id>
 #
 ### requires the '--format docker' to run on podman, but no under docker.
