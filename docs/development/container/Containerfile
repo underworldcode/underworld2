@@ -22,7 +22,8 @@ FROM docker.io/mambaorg/micromamba:2.3.0
 
 LABEL org.opencontainers.image.source=https://github.com/underworldcode/underworld2
 LABEL org.opencontainers.image.licenses=LGPL-3
-LABEL org.opencontainers.image.description="Underworld2 is an open-source, parallel, particle-in-cell, finite element geodynamics code"
+LABEL org.opencontainers.image.description="Underworld2 is an open-source, parallel, particle-in-cell, finite element geodynamics code. This container is build on top of micromamba-docker and we recommend using it with `podman`."
+
 # install os requirements for headless pyvista
 USER root
 RUN apt-get update && apt-get install -y --no-install-recommends \
