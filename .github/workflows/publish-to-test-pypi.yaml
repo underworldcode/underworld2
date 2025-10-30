@@ -11,10 +11,18 @@ jobs:
     - uses: actions/checkout@v4
       with:
         persist-credentials: false
-    - name: Set up Python
-      uses: actions/setup-python@v5
+    - name: Set up Micromamba
+      uses: mamba-org/setup-micromamba@v2
       with:
-        python-version: "3.11"
+        environment-file: conda/environment.yaml
+        environment-name: uw-2.17
+        generate-run-shell: true
+        cache-environment: true
+        #cache-downloads: false
+    #- name: Set up Python
+    #  uses: actions/setup-python@v5
+    #  with:
+    #    python-version: "3.11"
     - name: Install pypa/build
       run: >-
         python3 -m
