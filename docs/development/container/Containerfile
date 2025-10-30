@@ -18,6 +18,10 @@
 # subgidSize=$(( $(podman info --format "{{ range .Host.IDMappings.GIDMap }}+{{.Size }}{{end }}" ) - 1 ))
 # podman run   -it --rm   -p 20000:8888   -v "${HOME}/uw_space":/home/mambauser/host   --uidmap $uid:0:1 --uidmap 0:1:$uid --uidmap $(($uid+1)):$(($uid+1)):$(($subuidSize-$uid))   --gidmap $gid:0:1 --gidmap 0:1:$gid --gidmap $(($gid+1)):$(($gid+1)):$(($subgidSize-$gid)) underworldcode/underworld2:<version-id>
 
+LABEL org.opencontainers.image.source https://github.com/underworldcode/underworld2
+LABEL org.opencontainers.image.description="Underworld2 is an open-source, parallel, particle-in-cell, finite element geodynamics code"
+LABEL org.opencontainers.image.licenses=LGPL-3
+
 FROM docker.io/mambaorg/micromamba:2.3.0
 
 # install os requirements for headless pyvista
