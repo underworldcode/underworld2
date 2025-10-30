@@ -29,9 +29,10 @@ dev ]     A -- B -- C -- D   |
 ```
 
 Notes:
-A, B, C, D, x, y, v1, v2 are commits
-main, v2.x, dev are branches
-\ and / indicate git mergers
+
+* A, B, C, D, x, y, v1, v2 are commits
+* main, v2.x, dev are branches         
+* \ and / indicate git mergers
 
 ##### Example
 * v2.x in this example starts from B on dev and is called x.
