@@ -91,7 +91,7 @@ Creating the release
 * Tag the release branch in git.
 * Create the release from within Github.
 * Check `docker/docker.md` for docker image release information.
-* Add tagged documentation version at http://underworld2.readthedocs.io/  
+* Add tagged documentation version at http://underworld2.readthedocs.io/, login to readthedocs point to new release.
 * Package for PyPi: `python setup.py sdist`
 * Upload to PyPi: `twine upload dist/* -r pypi`
 - The url and sha256 fields must be updated in the `conda/meta.yaml`. We want the url not the git_url and

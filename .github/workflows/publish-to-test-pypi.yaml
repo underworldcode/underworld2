@@ -19,18 +19,14 @@ jobs:
         generate-run-shell: true
         cache-environment: true
         #cache-downloads: false
-    #- name: Set up Python
-    #  uses: actions/setup-python@v5
-    #  with:
-    #    python-version: "3.11"
-    - name: Install pypa/build
-      run: >-
-        python3 -m
-        pip install
-        build
-        --user
-    - name: Build a binary wheel and a source tarball
-      run: python3 -m build
+    - name: Form tarball and wheel to publish
+      run: | 
+        micromamba env list 
+        micromamba list -v
+        env
+        pip install build --user
+        python3 -m build
+      shell: micromamba-shell {0}
     - name: Store the distribution packages
       uses: actions/upload-artifact@v4
       with:
