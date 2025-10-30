@@ -63,7 +63,7 @@ jobs:
 
     environment:
       name: testpypi
-      url: https://test.pypi.org/p/underworld
+      url: https://test.pypi.org/p/testuw
 
     permissions:
       id-token: write  # IMPORTANT: mandatory for trusted publishing
@@ -75,7 +75,7 @@ jobs:
         name: python-package-distributions
         path: dist/
     - name: Publish distribution 📦 to TestPyPI
-      uses: pypa/gh-action-pypi-publish@v1.13.0
+      uses: pypa/gh-action-pypi-publish@release/v1
       with:
         repository-url: https://test.pypi.org/legacy/
-        password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+        #password: ${{ secrets.TEST_PYPI_API_TOKEN }}
