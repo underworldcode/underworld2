@@ -36,7 +36,7 @@ const Type Mesh_HexType_Type = "Mesh_HexType";
 ** Constructors
 */
 
-Mesh_HexType* Mesh_HexType_New( Name name ) {
+Mesh_HexType* Mesh_HexType_New( ) {
 	/* Variables set in this function */
 	SizeT                                                    _sizeOfSelf = sizeof(Mesh_HexType);
 	Type                                                            type = Mesh_HexType_Type;

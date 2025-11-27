@@ -16,7 +16,8 @@ Underworld has been in development since 2003. It has always been released under
 
 ### Copyright holders
 
-Copyright Australian National University, 2020-2023
+Copyright Australian National University, 2020-2025
+Copyright The University of Sydney,       2020-2025
 Copyright Melbourne University,           2014-2021
 Copyright Monash University,              2003-2021
 Copyright VPAC,                           2003-2009

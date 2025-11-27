@@ -267,6 +267,8 @@ class Badlands(SurfaceProcesses):
 
         fact = dimensionalise(1.0, u.meter).magnitude
         if self.Model.mesh.dim == 2:
+            xs = None
+            ys = None
             if rank == 0:
                 xs = self.badlands_model.recGrid.regX / fact # 1D simple
                 ys = self.badlands_model.recGrid.regY / fact
@@ -287,6 +289,8 @@ class Badlands(SurfaceProcesses):
             return np.column_stack((xs, interpolate_z))
 
         if self.Model.mesh.dim == 3:
+            rect_x = None
+            rect_y = None
             if rank == 0:
                 rect_x = self.badlands_model.recGrid.rectX / fact # 1D, every point
                 rect_y  = self.badlands_model.recGrid.rectY / fact

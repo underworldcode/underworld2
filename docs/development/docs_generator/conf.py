@@ -71,7 +71,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'The Underworld Geodynamics Modelling Code'
-copyright = u'2022, The Australian National University, Melbourne University, Monash University.'
+copyright = u'2025, The Australian National University, Melbourne University, Monash University.'
 author = u'The Australian National University, Melbourne University, Monash University.'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -146,7 +146,7 @@ import sphinx_rtd_theme
 
 html_theme = "sphinx_rtd_theme"
 
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+#html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
@@ -496,7 +496,7 @@ def process_build_finished(app, exception):
     #     target_files.append(target_uri_wapath)
     # print(target_files)
     # print(app.outdir)
-    subprocess.call("./add_scripts_to_html.sh " + app.outdir, shell=True)
+    subprocess.call("./add_scripts_to_html.sh " + str(app.outdir), shell=True)
 
 
 html_static_path = ['_static']
