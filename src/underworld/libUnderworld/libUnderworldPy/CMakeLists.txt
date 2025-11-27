@@ -54,9 +54,6 @@ target_link_libraries(${SWIG_MODULE_Function_REAL_NAME}
     PRIVATE ${UW_LIBRARIES}
     PRIVATE ${PETSc_LIBRARIES})
 
-SWIG_LINK_LIBRARIES(Function PRIVATE ${UW_LIBRARIES})
-SWIG_LINK_LIBRARIES(Function PRIVATE ${PETSc_LIBRARIES})
-
 set_source_files_properties(c_arrays.i PROPERTIES 
     CPLUSPLUS ON
     SWIG_MODULE_NAME c_arrays)
