@@ -1,11 +1,13 @@
-name: uw-2.17.x
+name: uw-2.17
 channels:
   - conda-forge
 dependencies:
-  - python==3.11
+  - python==3.12
+  - numpy<2
   - compilers
   - pkg-config
-  - libxml2
+  - libxml2-devel
+  - make
   - cmake
   - swig>=4.0.0
   - ninja
@@ -13,7 +15,7 @@ dependencies:
   - mpich
   - petsc==3.21.5
   - mesalib
-  - numpy<2
+  - git
   - scipy
   - mpi4py
   - h5py=*=mpi*
@@ -25,6 +27,7 @@ dependencies:
   - pip
   - pip:
     - lavavu
+    - lavavu-osmesa
     #- badlands comment out for the following for now
     - "badlands @ git+https://github.com/julesghub/badlands.git@julesghub/meson-build#subdirectory=badlands"
 

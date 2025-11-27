@@ -17,11 +17,11 @@
 	   __Codelet
    } gLucifer_Toolbox;
 
-   void gLucifer_Toolbox_Initialise();
+   void gLucifer_Toolbox_Initialise( ToolboxesManager* toolboxesManager, int* argc, char*** argv );
 
    Index gLucifer_Toolbox_Register( ToolboxesManager* toolboxesManager );
 
-   void gLucifer_Toolbox_Finalise();
+   void gLucifer_Toolbox_Finalise( ToolboxesManager* toolboxesManager ); 
 
    char* gLucifer_Toolbox_GetDeps() {return "StgDomain StgFEM";};
 

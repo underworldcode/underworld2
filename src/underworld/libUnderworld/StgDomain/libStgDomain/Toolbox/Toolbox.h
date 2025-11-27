@@ -17,11 +17,10 @@
    __Codelet
    } StgDomain_Toolbox;
 
-   void StgDomain_Toolbox_Initialise();
+   void StgDomain_Toolbox_Initialise( ToolboxesManager* toolboxesManager, int* argc, char*** argv );
+   void StgDomain_Toolbox_Finalise( ToolboxesManager* toolboxesManager );
 
    Index StgDomain_Toolbox_Register( ToolboxesManager* toolboxesManager );
-
-   void StgDomain_Toolbox_Finalise();
 
    char* StgDomain_Toolbox_GetDeps() {return "";};
 

@@ -1,0 +1,57 @@
+# syntax=docker/dockerfile:1.7-labs
+
+### how to build Underworld2 image
+### MUST run from the underworld2 top directory
+#   podman build . --rm \
+#       --format docker \
+#       -f ./docs/development/container/Containerfile \ 
+#       -t underworldcode/underworld2:<version-id>
+#
+### requires the '--format docker' to run on podman, but no under docker.
+#
+#
+### Example usage (taken from - https://jupyter-docker-stacks.readthedocs.io/en/latest/using/running.html#using-the-podman-cli )
+# uid=57439
+# gid=57439
+
+# subuidSize=$(( $(podman info --format "{{ range .Host.IDMappings.UIDMap }}+{{.Size }}{{end }}" ) - 1 ))
+# subgidSize=$(( $(podman info --format "{{ range .Host.IDMappings.GIDMap }}+{{.Size }}{{end }}" ) - 1 ))
+# podman run   -it --rm   -p 20000:8888   -v "${HOME}/uw_space":/home/mambauser/host   --uidmap $uid:0:1 --uidmap 0:1:$uid --uidmap $(($uid+1)):$(($uid+1)):$(($subuidSize-$uid))   --gidmap $gid:0:1 --gidmap 0:1:$gid --gidmap $(($gid+1)):$(($gid+1)):$(($subgidSize-$gid)) underworldcode/underworld2:<version-id>
+
+FROM docker.io/mambaorg/micromamba:2.3.0
+
+LABEL org.opencontainers.image.source=https://github.com/underworldcode/underworld2
+LABEL org.opencontainers.image.licenses=LGPL-3
+LABEL org.opencontainers.image.description="Underworld2 is an open-source, parallel, particle-in-cell, finite element geodynamics code. This container is build on top of micromamba-docker and we recommend using it with `podman`."
+
+# install os requirements for headless pyvista
+USER root
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    xvfb \
+    libgl1-mesa-dev \
+    && rm -rf /var/lib/apt/lists/*
+USER $MAMBA_USER
+
+# create the conda environment with all dependencies 
+# see https://micromamba-docker.readthedocs.io/en/latest/quick_start.html#quick-start
+COPY --chown=$MAMBA_USER:$MAMBA_USER ./conda/environment.yaml /tmp/env.yaml
+RUN micromamba install -y -v -n base -f /tmp/env.yaml && \
+    micromamba clean --all --yes
+
+# activate mamba env during podman build
+ARG MAMBA_DOCKERFILE_ACTIVATE=1
+
+# git clone the latest tag
+RUN git clone --depth 1 --branch=v2.17.0 https://github.com/underworldcode/underworld2.git /home/$MAMBA_USER/underworld2 && \
+    cd /home/$MAMBA_USER/underworld2 && \
+    pip install --no-build-isolation --no-cache-dir .
+
+# allow jupyterlab for ipyvtk
+ENV PYVISTA_OFF_SCREEN=true
+ENV JUPYTER_ENABLE_LAB=yes
+ENV PYVISTA_TRAME_SERVER_PROXY_PREFIX='/proxy/'
+
+WORKDIR /home/$MAMBA_USER/
+
+EXPOSE 8888
+CMD ["jupyter-lab", "--no-browser", "--ip=0.0.0.0"]
