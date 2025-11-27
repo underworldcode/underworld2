@@ -106,3 +106,7 @@ docs/test/Pressure_Error.png
 
 docs/test/uplift/buildMount.txt
 docs/test/temp.h5
+
+# pixi environments
+.pixi
+*.egg-info

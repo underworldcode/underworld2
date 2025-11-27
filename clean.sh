@@ -3,6 +3,7 @@
 set -x  # show commands
 
 rm -fr build
+
 find src -name '*.so' -exec rm {} +
 find src -name '*.__pycache__' -exec rm -r {} +
 find src -name '*.egg-info' -exec rm -r {} +
