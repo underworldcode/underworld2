@@ -29,14 +29,14 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 SET(CMAKE_SWIG_FLAGS "-v" "-Wextra" "-O" "-c++" "-DSWIG_DO_NOT_WRAP")
 
-message("This is Jules:")
+message("Swig diagnostics:")
 get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
 foreach(dir ${dirs})
   message(STATUS "dir='${dir}'")
 endforeach()
 message(STATUS "UW_LIBRARIES=${UW_LIBRARIES}")
 message(STATUS "PETSc_LIBRARIES=${PETSc_LIBRARIES}")
-message("End Jules:")
+message("End Swig diagnostics:")
 
 set_source_files_properties(Function.i PROPERTIES
     CPLUSPLUS ON
