@@ -29,98 +29,86 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 SET(CMAKE_SWIG_FLAGS "-v" "-Wextra" "-O" "-c++" "-DSWIG_DO_NOT_WRAP")
 
-message("Swig diagnostics:")
+message("Swig section diagnostics:")
 get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
+message(STATUS "INCLUDE_DIRECTORIES")
 foreach(dir ${dirs})
-  message(STATUS "dir='${dir}'")
+  message(STATUS "  '${dir}'")
 endforeach()
 message(STATUS "UW_LIBRARIES=${UW_LIBRARIES}")
 message(STATUS "PETSc_LIBRARIES=${PETSc_LIBRARIES}")
 message("End Swig diagnostics:")
 
-set_source_files_properties(Function.i PROPERTIES
-    CPLUSPLUS ON
-    SWIG_MODULE_NAME Function)
+set_source_files_properties(Function.i PROPERTIES CPLUSPLUS ON SWIG_MODULE_NAME Function) 
 # This create swig module target, SWIG_MODULE_Function_REAL_NAME with CMP0078 != NEW
-swig_add_library(Function
-    TYPE SHARED
-    LANGUAGE python
-    SOURCES Function.i
-)
-set_target_properties(${SWIG_MODULE_Function_REAL_NAME} PROPERTIES 
-    SUFFIX ".so" )
+swig_add_library(Function TYPE SHARED LANGUAGE python SOURCES Function.i)
+set_target_properties(${SWIG_MODULE_Function_REAL_NAME} PROPERTIES SUFFIX ".so" )
+target_link_libraries(${SWIG_MODULE_Function_REAL_NAME} PRIVATE ${UW_LIBRARIES} PRIVATE ${PETSc_LIBRARIES} PRIVATE Python3::Module)
 
-target_link_libraries(${SWIG_MODULE_Function_REAL_NAME}
-    PRIVATE ${UW_LIBRARIES}
-    PRIVATE ${PETSc_LIBRARIES})
-
-set_source_files_properties(c_arrays.i PROPERTIES 
-    CPLUSPLUS ON
-    SWIG_MODULE_NAME c_arrays)
+set_source_files_properties(c_arrays.i PROPERTIES CPLUSPLUS ON SWIG_MODULE_NAME c_arrays)
 swig_add_library(c_arrays TYPE SHARED LANGUAGE python SOURCES c_arrays.i)
 set_target_properties(${SWIG_MODULE_c_arrays_REAL_NAME} PROPERTIES SUFFIX ".so")
-target_link_libraries(${SWIG_MODULE_c_arrays_REAL_NAME} PRIVATE ${UW_LIBRARIES} PRIVATE ${PETSc_LIBRARIES})
+target_link_libraries(${SWIG_MODULE_c_arrays_REAL_NAME} PRIVATE ${UW_LIBRARIES} PRIVATE ${PETSc_LIBRARIES} PRIVATE Python3::Module)
 
-set_source_files_properties(c_pointers.i PROPERTIES
-    CPLUSPLUS ON
-    SWIG_MODULE_NAME c_pointers)
+set_source_files_properties(c_pointers.i PROPERTIES CPLUSPLUS ON SWIG_MODULE_NAME c_pointers)
 swig_add_library(c_pointers TYPE SHARED LANGUAGE python SOURCES c_pointers.i)
 set_target_properties(${SWIG_MODULE_c_pointers_REAL_NAME} PROPERTIES SUFFIX ".so")
-target_link_libraries(${SWIG_MODULE_c_pointers_REAL_NAME} PRIVATE ${UW_LIBRARIES} PRIVATE ${PETSc_LIBRARIES})
+target_link_libraries(${SWIG_MODULE_c_pointers_REAL_NAME} PRIVATE ${UW_LIBRARIES} PRIVATE ${PETSc_LIBRARIES} PRIVATE Python3::Module)
 
-set_source_files_properties(gLucifer.i PROPERTIES CPLUSPLUS ON)
-set_property(SOURCE gLucifer.i PROPERTY SWIG_MODULE_NAME gLucifer)
+set_source_files_properties(gLucifer.i PROPERTIES CPLUSPLUS ON SWIG_MODULE_NAME gLucifer)
+#set_property(SOURCE gLucifer.i PROPERTY SWIG_MODULE_NAME gLucifer)
 swig_add_library(gLucifer TYPE SHARED LANGUAGE python SOURCES gLucifer.i)
 set_target_properties(${SWIG_MODULE_gLucifer_REAL_NAME} PROPERTIES SUFFIX ".so")
-target_link_libraries(${SWIG_MODULE_gLucifer_REAL_NAME} PRIVATE ${UW_LIBRARIES} PRIVATE ${PETSc_LIBRARIES})
+target_link_libraries(${SWIG_MODULE_gLucifer_REAL_NAME} PRIVATE ${UW_LIBRARIES} PRIVATE ${PETSc_LIBRARIES} PRIVATE Python3::Module)
 
-set_source_files_properties(petsc.i PROPERTIES CPLUSPLUS ON)
-set_property(SOURCE petsc.i PROPERTY SWIG_MODULE_NAME petsc)
+
+set_source_files_properties(petsc.i PROPERTIES CPLUSPLUS ON SWIG_MODULE_NAME petsc)
+#set_property(SOURCE petsc.i PROPERTY SWIG_MODULE_NAME petsc)
 swig_add_library(petsc TYPE SHARED LANGUAGE python SOURCES petsc.i)
 set_target_properties(${SWIG_MODULE_petsc_REAL_NAME} PROPERTIES SUFFIX ".so")
-target_link_libraries(${SWIG_MODULE_petsc_REAL_NAME} PRIVATE ${UW_LIBRARIES} PRIVATE ${PETSc_LIBRARIES})
+target_link_libraries(${SWIG_MODULE_petsc_REAL_NAME} PRIVATE ${UW_LIBRARIES} PRIVATE ${PETSc_LIBRARIES} PRIVATE Python3::Module)
 
-set_source_files_properties(PICellerator.i PROPERTIES CPLUSPLUS ON)
-set_property(SOURCE PICellerator.i PROPERTY SWIG_MODULE_NAME PICellerator)
+set_source_files_properties(PICellerator.i PROPERTIES CPLUSPLUS ON SWIG_MODULE_NAME PICellerator)
+#set_property(SOURCE PICellerator.i PROPERTY SWIG_MODULE_NAME PICellerator)
 swig_add_library(PICellerator TYPE SHARED LANGUAGE python SOURCES PICellerator.i)
 set_target_properties(${SWIG_MODULE_PICellerator_REAL_NAME} PROPERTIES SUFFIX ".so")
-target_link_libraries(${SWIG_MODULE_PICellerator_REAL_NAME} PRIVATE ${UW_LIBRARIES} PRIVATE ${PETSc_LIBRARIES})
+target_link_libraries(${SWIG_MODULE_PICellerator_REAL_NAME} PRIVATE ${UW_LIBRARIES} PRIVATE ${PETSc_LIBRARIES} PRIVATE Python3::Module)
 
-set_source_files_properties(Solvers.i PROPERTIES CPLUSPLUS ON)
-set_property(SOURCE Solvers.i PROPERTY SWIG_MODULE_NAME Solvers)
+set_source_files_properties(Solvers.i PROPERTIES CPLUSPLUS ON SWIG_MODULE_NAME Solvers)
+#set_property(SOURCE Solvers.i PROPERTY SWIG_MODULE_NAME Solvers)
 swig_add_library(Solvers TYPE SHARED LANGUAGE python SOURCES Solvers.i)
 set_target_properties(${SWIG_MODULE_Solvers_REAL_NAME} PROPERTIES SUFFIX ".so")
-target_link_libraries(${SWIG_MODULE_Solvers_REAL_NAME} PRIVATE ${UW_LIBRARIES} PRIVATE ${PETSc_LIBRARIES})
+target_link_libraries(${SWIG_MODULE_Solvers_REAL_NAME} PRIVATE ${UW_LIBRARIES} PRIVATE ${PETSc_LIBRARIES} PRIVATE Python3::Module)
 
-set_source_files_properties(StgDomain.i PROPERTIES CPLUSPLUS ON)
-set_property(SOURCE StgDomain.i PROPERTY SWIG_MODULE_NAME StgDomain)
+set_source_files_properties(StgDomain.i PROPERTIES CPLUSPLUS ON SWIG_MODULE_NAME StgDomain)
+#set_property(SOURCE StgDomain.i PROPERTY SWIG_MODULE_NAME StgDomain)
 swig_add_library(StgDomain TYPE SHARED LANGUAGE python SOURCES StgDomain.i)
 set_target_properties(${SWIG_MODULE_StgDomain_REAL_NAME} PROPERTIES SUFFIX ".so")
-target_link_libraries(${SWIG_MODULE_StgDomain_REAL_NAME} PRIVATE ${UW_LIBRARIES} PRIVATE ${PETSc_LIBRARIES})
+target_link_libraries(${SWIG_MODULE_StgDomain_REAL_NAME} PRIVATE ${UW_LIBRARIES} PRIVATE ${PETSc_LIBRARIES} PRIVATE Python3::Module)
 
-set_source_files_properties(StGermain.i PROPERTIES CPLUSPLUS ON)
-set_property(SOURCE StGermain.i PROPERTY SWIG_MODULE_NAME StGermain)
+set_source_files_properties(StGermain.i PROPERTIES CPLUSPLUS ON SWIG_MODULE_NAME StGermain)
+#set_property(SOURCE StGermain.i PROPERTY SWIG_MODULE_NAME StGermain)
 swig_add_library(StGermain TYPE SHARED LANGUAGE python SOURCES StGermain.i)
 set_target_properties(${SWIG_MODULE_StGermain_REAL_NAME} PROPERTIES SUFFIX ".so")
-target_link_libraries(${SWIG_MODULE_StGermain_REAL_NAME} PRIVATE ${UW_LIBRARIES} PRIVATE ${PETSc_LIBRARIES})
+target_link_libraries(${SWIG_MODULE_StGermain_REAL_NAME} PRIVATE ${UW_LIBRARIES} PRIVATE ${PETSc_LIBRARIES} PRIVATE Python3::Module)
 
-set_source_files_properties(StGermain_Tools.i PROPERTIES CPLUSPLUS ON)
-set_property(SOURCE StGermain_Tools.i PROPERTY SWIG_MODULE_NAME StGermain_Tools)
+set_source_files_properties(StGermain_Tools.i PROPERTIES CPLUSPLUS ON SWIG_MODULE_NAME StGermain_Tools)
+#set_property(SOURCE StGermain_Tools.i PROPERTY SWIG_MODULE_NAME StGermain_Tools)
 swig_add_library(StGermain_Tools TYPE SHARED LANGUAGE python SOURCES StGermain_Tools.i StGermain_Tools.c)
 set_target_properties(${SWIG_MODULE_StGermain_Tools_REAL_NAME} PROPERTIES SUFFIX ".so")
-target_link_libraries(${SWIG_MODULE_StGermain_Tools_REAL_NAME} PRIVATE ${UW_LIBRARIES} PRIVATE ${PETSc_LIBRARIES})
+target_link_libraries(${SWIG_MODULE_StGermain_Tools_REAL_NAME} PRIVATE ${UW_LIBRARIES} PRIVATE ${PETSc_LIBRARIES} PRIVATE Python3::Module)
 
-set_source_files_properties(StgFEM.i PROPERTIES CPLUSPLUS ON)
-set_property(SOURCE StgFEM.i PROPERTY SWIG_MODULE_NAME StgFEM)
+set_source_files_properties(StgFEM.i PROPERTIES CPLUSPLUS ON SWIG_MODULE_NAME StgFEM)
+#set_property(SOURCE StgFEM.i PROPERTY SWIG_MODULE_NAME StgFEM)
 swig_add_library(StgFEM TYPE SHARED LANGUAGE python SOURCES StgFEM.i)
 set_target_properties(${SWIG_MODULE_StgFEM_REAL_NAME} PROPERTIES SUFFIX ".so")
-target_link_libraries(${SWIG_MODULE_StgFEM_REAL_NAME} PRIVATE ${UW_LIBRARIES} PRIVATE ${PETSc_LIBRARIES})
+target_link_libraries(${SWIG_MODULE_StgFEM_REAL_NAME} PRIVATE ${UW_LIBRARIES} PRIVATE ${PETSc_LIBRARIES} PRIVATE Python3::Module)
 
-set_source_files_properties(Underworld.i PROPERTIES CPLUSPLUS ON)
-set_property(SOURCE Underworld.i PROPERTY SWIG_MODULE_NAME Underworld)
+set_source_files_properties(Underworld.i PROPERTIES CPLUSPLUS ON SWIG_MODULE_NAME Underworld)
+#set_property(SOURCE Underworld.i PROPERTY SWIG_MODULE_NAME Underworld)
 swig_add_library(Underworld TYPE SHARED LANGUAGE python SOURCES Underworld.i)
 set_target_properties(${SWIG_MODULE_Underworld_REAL_NAME} PROPERTIES SUFFIX ".so")
-target_link_libraries(${SWIG_MODULE_Underworld_REAL_NAME} PRIVATE ${UW_LIBRARIES} PRIVATE ${PETSc_LIBRARIES})
+target_link_libraries(${SWIG_MODULE_Underworld_REAL_NAME} PRIVATE ${UW_LIBRARIES} PRIVATE ${PETSc_LIBRARIES} PRIVATE Python3::Module)
 
 # Handle where to install the resulting Python package
 if(CALL_FROM_SETUP_PY)

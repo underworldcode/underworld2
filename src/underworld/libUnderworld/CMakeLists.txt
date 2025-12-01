@@ -1,4 +1,5 @@
-cmake_minimum_required(VERSION 3.16)
+#cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 4.0)
 cmake_policy(SET CMP0078 OLD)
 
 # Set some Global options for CMAKE 
