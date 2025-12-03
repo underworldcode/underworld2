@@ -41,17 +41,17 @@ message("End Swig diagnostics:")
 
 set_source_files_properties(Function.i PROPERTIES CPLUSPLUS ON SWIG_MODULE_NAME Function) 
 swig_add_library(FunctionSwig TYPE SHARED LANGUAGE python SOURCES Function.i)
-set_target_properties(FunctionSwig PROPERTIES SUFFIX ".so" )
+set_target_properties(FunctionSwig PROPERTIES SUFFIX ".so" OUTPUT_NAME "Function")
 target_link_libraries(FunctionSwig PRIVATE ${UW_LIBRARIES} PRIVATE ${PETSc_LIBRARIES} PRIVATE Python3::Module)
 
 set_source_files_properties(c_arrays.i PROPERTIES CPLUSPLUS ON SWIG_MODULE_NAME c_arrays)
 swig_add_library(c_arraysSwig TYPE SHARED LANGUAGE python SOURCES c_arrays.i)
-set_target_properties(c_arraysSwig PROPERTIES SUFFIX ".so")
+set_target_properties(c_arraysSwig PROPERTIES SUFFIX ".so" OUTPUT_NAME "c_arrays")
 target_link_libraries(c_arraysSwig PRIVATE ${UW_LIBRARIES} PRIVATE ${PETSc_LIBRARIES} PRIVATE Python3::Module)
 
 set_source_files_properties(c_pointers.i PROPERTIES CPLUSPLUS ON SWIG_MODULE_NAME c_pointers)
 swig_add_library(c_pointersSwig TYPE SHARED LANGUAGE python SOURCES c_pointers.i)
-set_target_properties(c_pointersSwig PROPERTIES SUFFIX ".so")
+set_target_properties(c_pointersSwig PROPERTIES SUFFIX ".so" OUTPUT_NAME "c_pointers")
 target_link_libraries(c_pointersSwig PRIVATE ${UW_LIBRARIES} PRIVATE ${PETSc_LIBRARIES} PRIVATE Python3::Module)
 
 set_source_files_properties(gLucifer.i PROPERTIES CPLUSPLUS ON SWIG_MODULE_NAME gLucifer)

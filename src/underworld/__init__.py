@@ -61,9 +61,11 @@ _sys.setdlopenflags( _oldflags | _ctypes.RTLD_GLOBAL )
 
 from ._version import __version__
 
-# insert directory for binaries in python search path
+# insert directory for binaries (.so/.dylibs) to be found
+# when import libUnderworld -> import libUnderworldPy 
 import os as _os
 _sys.path.append(_os.path.join(__file__[:-11],'lib'))
+
 # squelch h5py/numpy future warnings
 import warnings as _warnings
 _warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -77,6 +79,8 @@ from . import timing
 from . import libUnderworld as _libUnderworld
 from . import _stgermain
 _data =  _libUnderworld.StGermain_Tools.StgInit( _sys.argv )
+
+# LoadModules relies on the 'lib' path appended above to be correct
 _stgermain.LoadModules( {"import":["StgDomain","StgFEM","PICellerator","Underworld","gLucifer","Solvers"]} )
 
 class _del_uw_class:
