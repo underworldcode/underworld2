@@ -15,13 +15,14 @@ dependencies:
   - mpich
   - petsc==3.21.5
   - mesalib
-  - git
+  - git-lfs
   - scipy
   - mpi4py
   - h5py=*=mpi*
   - pytest
   - nbmake
   - matplotlib
+  - jupyterhub-singleuser
   - jupyterlab
   - jupytext
   - pip
