@@ -15,6 +15,7 @@ dependencies:
   - mpich
   - petsc==3.21.5
   - mesalib
+  - git
   - git-lfs
   - scipy
   - mpi4py
