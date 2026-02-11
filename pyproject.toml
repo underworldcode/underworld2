@@ -47,10 +47,11 @@ classifiers = [
 
 [project.optional-dependencies]
 full = [
-  "badlands",
   "lavavu",
+  "lavavu-osmesa",
   "matplotlib",
   "nbmake",
+  #"badlands",
 ]
 
 [project.urls]
