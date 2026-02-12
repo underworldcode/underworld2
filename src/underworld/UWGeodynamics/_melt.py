@@ -62,9 +62,8 @@ class SolidusRegistry(object):
         """
 
         if not filename:
-            import pkg_resources
-            filename = pkg_resources.resource_filename(
-                __name__, "resources/Solidus.json")
+            from importlib.resources import files
+            filename = str(files(__name__).joinpath("resources/Solidus.json"))
 
         with open(filename, "r") as infile:
             _solidii = json.load(infile)
@@ -109,9 +108,8 @@ class LiquidusRegistry(object):
         """
 
         if not filename:
-            import pkg_resources
-            filename = pkg_resources.resource_filename(
-                __name__, "resources/Liquidus.json")
+            from importlib.resources import files
+            filename = str(files(__name__).joinpath("resources/Liquidus.json"))
 
         with open(filename, "r") as infile:
             _liquidii = json.load(infile)
