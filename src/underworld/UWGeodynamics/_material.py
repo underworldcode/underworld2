@@ -303,7 +303,7 @@ class MaterialRegistry(object):
 
         if not filename:
             from importlib.resources import files
-            filename = str(files(__name__).joinpath("resources/Materials.json"))
+            filename = str(files(__package__).joinpath("resources/Materials.json"))
 
         def get_value(item):
             value = item["value"]
