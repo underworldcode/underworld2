@@ -14,8 +14,8 @@
 #####################################################################
 
 ARG PYTHON_VERSION="3.11"
-ARG BASE_IMAGE="rockylinux:8.9"
-ARG PETSC_VERSION="3.22.4"
+ARG BASE_IMAGE="rockylinux:8.10"
+ARG PETSC_VERSION="3.22.5"
 
 FROM ${BASE_IMAGE} as runtime
 LABEL maintainer="https://github.com/underworldcode/"
@@ -83,22 +83,28 @@ RUN yum update -yq \
 # add system openmpi to $PATH - why RedHat
 ENV PATH=/usr/lib64/openmpi/bin:$PATH
 
-RUN pip3 install --no-cache-dir \
-      "cython==3.0.10" \
-      "numpy<2" \
-      mpi4py
 
-# get petsc
+## get petsc
 RUN mkdir -p /tmp/src
 WORKDIR /tmp/src
 RUN wget https://web.cels.anl.gov/projects/petsc/download/release-snapshots/petsc-lite-${PETSC_VERSION}.tar.gz --no-check-certificate \
 && tar -zxf petsc-lite-${PETSC_VERSION}.tar.gz 
 WORKDIR /tmp/src/petsc-${PETSC_VERSION}              
 
-# install petsc as root
-RUN PETSC_DIR=`pwd` ./configure --with-debugging=0 --prefix=/usr/local \
-                --COPTFLAGS="-g -O3" --CXXOPTFLAGS="-g -O3" --FOPTFLAGS="-g -O3" \
-                --with-petsc4py=1               \
+RUN python${PYVER} -m pip install --no-cache-dir --no-build-isolation \
+     "cython==3.0.10" \
+      "numpy<2" \
+      mpi4py
+
+#  Can't add the following because no pkg-config file
+#  is made for PETSc. Surely this can be workedaround
+#      "petsc==${PETSC_VERSION}" \
+#      "petsc4py==${PETSC_VERSION}"
+
+
+# create PETSC Config Options
+ENV PETSC_CONFIGURE_OPTIONS='--with-debugging=0 --prefix=/usr/local \
+                --COPTFLAGS="-O3" --CXXOPTFLAGS="-O3" --FOPTFLAGS="-O3" \
                 --with-zlib=1                   \
                 --with-shared-libraries=1       \
                 --with-cxx-dialect=C++11        \
@@ -117,11 +123,16 @@ RUN PETSC_DIR=`pwd` ./configure --with-debugging=0 --prefix=/usr/local \
                 --download-eigen                \
                 --download-superlu              \
                 --download-triangle             \
-                --useThreads=0                  \
+                --useThreads=0'
+
+# install petsc
+RUN PETSC_DIR=`pwd` ./configure  PETSC-CONFIG-OPTIONS=${PETSC_CONFIGURE_OPTIONS} \
 &&  make PETSC_DIR=`pwd` PETSC_ARCH=arch-linux-c-opt all \
 &&  make PETSC_DIR=`pwd` PETSC_ARCH=arch-linux-c-opt install \
 &&  rm -rf /usr/local/share/petsc
 
+
+#
 # record builder stage packages used
 RUN pip3 freeze > /opt/requirements.txt \
 &&  dnf history userinstalled > /opt/packages.txt
