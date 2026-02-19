@@ -1,29 +1,30 @@
 #####################################################################
 # Multi stage Containerfile structure:
 # 1. runtime 
-# 2. build
-# 3. final == runtime + min. build
+# 2. builder
+# 3. final == runtime + min. builder
 #
 # 1. A layer for runtime execution. 
 # The runtime environment (packages, permissions, ENV vars.) 
 # is consistent accross all layer of this Containerfile. 
 #
-# 2. The build layer, takes the runtime layer and add compiling / building software
+# 2. The builder layer, takes the runtime layer and add compiling / building software
 # that is added to /usr/local and /opt/venv
 #
 # 3. The final image is a composite of the runtime layer and the
-# minimal sections of the build layers final software stack.
+# minimal sections of the builder layer's final software stack.
 #####################################################################
 
 # The following are passed in via --build-args
 # Used for github actions on the underworld repo
 # Must go before the 1st FROM see
 # https://docs.docker.com/engine/reference/builder/#understand-how-arg-and-from-interact
-ARG PETSC_IMAGE="julesg/petsc:3.22.5_rhel810_py311"
+# ARG PETSC_IMAGE="julesg/petsc:3.22.5_rhel810_py311"
+ARG PETSC_IMAGE="ghcr.io/julesghub/petsc:3.22.5-ompi"
 ARG PYTHON_VERSION="3.11"
 ARG BASE_IMAGE="rockylinux:8.10"
 
-# 'petsc-image' will be used later on in build stage COPY command 
+# 'petsc-image' will be used later on in builder stage COPY command 
 FROM ${PETSC_IMAGE} as petsc-image
 
 FROM ${BASE_IMAGE} as runtime
@@ -52,6 +53,9 @@ ENV NB_USER jovyan
 ENV NB_HOME /home/$NB_USER
 RUN useradd -m -s /bin/bash -N $NB_USER
 
+ #        vim \
+ #        git \
+
 # runtime packages
 RUN yum update -y \
 &&  yum install -y \
@@ -61,25 +65,23 @@ RUN yum update -y \
         openblas \
         openmpi \
         libxml2 \
-        vim \
-        git \
         python${PYVER}-pip \
         python${PYVER}-devel \
         zlib \
 &&  yum clean all \
 &&  rm -rf /var/cache/yum
 
-# start a virtual environment install runtime modules in 'build' as some
-RUN python3 -m venv $PYOPT \
+# start a virtual environment in 'runtime'
+RUN python${PYVER} -m venv $PYOPT \
 &&  chmod ugo+rwx $PYOPT
 
-FROM runtime as build
+# 'runtime' inherhits from 'builder'
+FROM runtime as builder
 
 ARG PYTHON_VERSION
 
 # install build packages
-RUN yum update -y \
-&&  yum install -y\
+RUN yum install -y\
         swig \
         cmake \
         make \
@@ -90,14 +92,14 @@ RUN yum update -y \
         findutils \
         openmpi-devel \
 &&  yum clean all \
-&&  rm -rf /var/lib/apt/lists/*
+&&  rm -rf /var/cache/yum
 
 # add system openmpi to $PATH - why RedHat
 ENV PATH=/usr/lib64/openmpi/bin:$PATH
 
 # Remove this for future versions
 # setuptools=65.6.0 has a unfixed error, so forcing version
-RUN python${PYVER} -m pip install --no-cache-dir setuptools \
+RUN python${PYVER} -m pip install --no-cache-dir "setuptools<70" \
          matplotlib \
          "cython==3.0.10" \
          "scipy==1.13" \
@@ -114,27 +116,23 @@ RUN python${PYVER} -m pip install --no-cache-dir setuptools \
 # mpi, petsc, mpi4py, petsc4py, h5py
 COPY --from=petsc-image /opt       /opt
 COPY --from=petsc-image /usr/local /usr/local
-RUN yum update \
-&&  yum install -yq $(awk 'NR>1 {print $1}' /opt/packages.txt) \
+RUN yum install -yq $(awk 'NR>1 {print $1}' /opt/packages.txt) \
 &&  yum clean all \
 &&  rm -rf /var/cache/yum
 
-# add system openmpi to $PATH - why RedHat
+# add system openmpi to $PATH
 ENV PATH=/usr/lib64/openmpi/bin:$PATH
 
-#RUN python${PYVER} -m pip install -r /opt/requirements.txt
-#        --no-build-isolation \
-#&&  python${PYVER} -m pip install --upgrade pip \
+RUN python${PYVER} -m pip install -r /opt/requirements.txt
 
-RUN python${PYVER} -m pip install -r /opt/requirements.txt #\
-#&&  python${PYVER} -m pip install --no-cache-dir \
-#        meson meson-python ninja pkgconfig \
-#&& echo "setuptools<70" > /tmp/constraints.txt
-    #PIP_BUILD_CONSTRAINT=/tmp/constraints.txt \
+# seting setuptool<70 as a contstraint required for h5py parallel build
+# in future test with more recent version of h5py
+#        --no-cache-dir \
 
-RUN CC=mpicc HDF5_MPI="ON" HDF5_DIR=${PETSC_DIR} \
+RUN echo "setuptools<70" > /tmp/constraints.txt  \
+    PIP_BUILD_CONSTRAINT=/tmp/constraints.txt    \
+    CC=mpicc HDF5_MPI="ON" HDF5_DIR=${PETSC_DIR} \
     python${PYVER} -m pip install \
-        --no-cache-dir \
         --no-binary=h5py \
         h5py==3.10
 
@@ -153,13 +151,13 @@ RUN python${PYVER} -m pip freeze >/opt/requirements.txt
 RUN dnf history userinstalled >/opt/installed.txt
 
 
-# Build the final image, a combination of the runtime and build stages
+# Build the 'final' image, a combination of 'runtime' and 'builder' stages
 FROM runtime as final
 
 ARG PYTHON_VERSION
 
-COPY --from=build --chown=$NB_USER:users /opt /opt
-COPY --from=build --chown=$NB_USER:users /usr/local /usr/local
+COPY --from=builder --chown=$NB_USER:users /opt /opt
+COPY --from=builder --chown=$NB_USER:users /usr/local /usr/local
 
 # add system openmpi to $PATH - why RedHat
 ENV PATH=/usr/lib64/openmpi/bin:$PATH

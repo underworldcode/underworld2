@@ -1,18 +1,18 @@
 #####################################################################
 # Multi stage Containerfile structure:
 # 1. runtime 
-# 2. build
-# 3. final == runtime + min. build
+# 2. builder
+# 3. final == runtime + min. builder
 #
 # 1. A layer for runtime execution. 
 # The runtime environment (packages, permissions, ENV vars.) 
 # is consistent accross all layer of this Containerfile. 
 #
-# 2. The build layer, takes the runtime layer and add compiling / building software
+# 2. The builder layer, takes the runtime layer and add compiling / building software
 # that is added to /usr/local and /opt/venv
 #
 # 3. The final image is a composite of the runtime layer and the
-# minimal sections of the build layers final software stack.
+# minimal sections of the builder layer's final software stack.
 #####################################################################
 
 ARG PYTHON_VERSION="3.11"
@@ -56,20 +56,18 @@ RUN yum update -y \
 &&  rm -rf /var/cache/yum
 
 # build and open virtual environment
-RUN python3 -m venv $PYOPT \
+RUN python${PYVER} -m venv $PYOPT \
 &&  chmod ugo+rwx $PYOPT \
-&&  pip3 install -U setuptools \
-                    wheel \
-                    pip
+&&  python${PYVER} -m pip install wheel \ 
+                    "numpy<2"
 
-# 2. Define the build layer
-FROM runtime as build
+# 2. Define the builder layer
+FROM runtime as builder
 
 ARG PETSC_VERSION
 ARG PYTHON_VERSION
 
-RUN yum update -yq \
-&&  yum install -y \
+RUN yum install -y \
         ca-certificates \
         wget \
         make \
@@ -87,11 +85,11 @@ RUN yum update -yq \
 # add system openmpi to $PATH - why RedHat
 ENV PATH=/usr/lib64/openmpi/bin:$PATH
 
-RUN pip3 install --no-cache-dir --no-build-isolation \
-      "cython==3.0.10" \
-      "setuptools<70" \
-      "numpy<2" \
-      mpi4py
+RUN python${PYVER} -m pip install "cython==3.0.10" \
+                    "setuptools<70" \
+# no-binary for mpi4py to force build against openmpi, rather than mpich (default)
+&&  python${PYVER} -m pip install --no-cache-dir --no-binary=mpi4py mpi4py
+
 
 # get petsc
 RUN mkdir -p /tmp/src
@@ -128,14 +126,14 @@ RUN PETSC_DIR=`pwd` ./configure --with-debugging=0 --prefix=/usr/local \
 &&  rm -rf /usr/local/share/petsc
 
 # record builder stage packages used
-RUN pip3 freeze > /opt/requirements.txt \
+RUN python${PYVER} -m pip freeze > /opt/requirements.txt \
 &&  dnf history userinstalled > /opt/packages.txt
 
 # 3. Define the final layer
 FROM runtime as final
 
-COPY --from=build /opt /opt
-COPY --from=build /usr/local /usr/local
+COPY --from=builder /opt /opt
+COPY --from=builder /usr/local /usr/local
 
 # add system openmpi to $PATH - why RedHat
 ENV PATH=/usr/lib64/openmpi/bin:$PATH
