@@ -1,42 +1,44 @@
 #####################################################################
-# Multi stage Containerfile structure:
-# 1. runtime 
-# 2. builder
-# 3. final == runtime + min. builder
+# Multi stage Containerfile
+#  see https://docs.docker.com/get-started/docker-concepts/building-images/multi-stage-builds/
 #
-# 1. A layer for runtime execution. 
-# The runtime environment (packages, permissions, ENV vars.) 
-# is consistent accross all layer of this Containerfile. 
+# Stages:
+# 1. 'runtime'
+#    The runtime environment (packages, permissions, ENV vars.) 
+#    is consistent accross all stages of this Containerfile. 
 #
-# 2. The builder layer, takes the runtime layer and add compiling / building software
-# that is added to /usr/local and /opt/venv
+# 2. 'builder'
+#    The builder layer, takes the runtime layer and add compiling / building software
+#    that is added to /usr/local and /opt/venv
 #
-# 3. The final image is a composite of the runtime layer and the
-# minimal sections of the builder layer's final software stack.
+# 3. 'final' == runtime + min. builder
+#    The final image is a composite of the runtime layer and the
+#    minimal sections of the builder layer's final software stack.
+#
+# To build use podman from the top level underworld didrectory. i.e.
+#  $ podman build .  \
+#           --format docker \
+#           -t new_image_name \
+#           -f ./docs/development/gadi_singularity/petsc.rhel
 #####################################################################
 
+# The following are passed in via --build-args
+# Must go before the 1st FROM see
+# https://docs.docker.com/engine/reference/builder/#understand-how-arg-and-from-interact
 ARG PYTHON_VERSION="3.11"
-ARG BASE_IMAGE="rockylinux:8.10"
 ARG PETSC_VERSION="3.22.5"
+ARG BASE_IMAGE="rockylinux:8.10"
 
-# 1. Define the runtime layer
+# 1. Stage 1: 'runtime'
 FROM ${BASE_IMAGE} as runtime
 LABEL maintainer="https://github.com/underworldcode/"
+
 # need to repeat ARGS after every FROM 
 ARG PYTHON_VERSION
-#### Dockerfile ENV vars - for all image stages
-ENV LANG=C.UTF-8
-# mpi lib will be install at /usr/local/lib
-ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 
-# python env vars. 
-# prepappending on PATH means all pip install will goto the PYOPT
+#### Containerfile ENV vars - for all image stages
+ENV LANG=C.UTF-8
 ENV PYVER=${PYTHON_VERSION}
-ENV PYOPT=/opt/venv
-ENV PATH=$PYOPT/bin:$PATH
-ENV PYTHONPATH=$PYTHONPATH:$PYOPT/lib/python${PYVER}/site-packages
-ENV PETSC_DIR=/usr/local
-ENV PYTHONPATH=$PYTHONPATH:$PETSC_DIR/lib
 
 # add user jovyan
 ENV NB_USER jovyan
@@ -55,10 +57,22 @@ RUN yum update -y \
 &&  yum clean all \
 &&  rm -rf /var/cache/yum
 
-# build and open virtual environment
+# add system openmpi to $PATH and $LD_LIBRARY_PATH
+ENV PATH=/usr/lib64/openmpi/bin:$PATH
+ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+
+ENV PYOPT=/opt/venv
+# build and set open permissions on virtual environment
 RUN python${PYVER} -m venv $PYOPT \
-&&  chmod ugo+rwx $PYOPT \
-&&  python${PYVER} -m pip install wheel \ 
+&&  chmod ugo+rwx $PYOPT
+
+# define python env vars. 
+# prepappending on PATH means all pip install will goto the PYOPT
+ENV PATH=$PYOPT/bin:$PATH
+ENV PYTHONPATH=$PYTHONPATH:$PYOPT/lib/python${PYVER}/site-packages
+
+# runtime python requirements
+RUN python${PYVER} -m pip install wheel \
                     "numpy<2"
 
 # 2. Define the builder layer
@@ -82,14 +96,11 @@ RUN yum install -y \
 &&  yum clean all \
 &&  rm -rf /var/cache/yum
 
-# add system openmpi to $PATH - why RedHat
-ENV PATH=/usr/lib64/openmpi/bin:$PATH
 
 RUN python${PYVER} -m pip install "cython==3.0.10" \
                     "setuptools<70" \
 # no-binary for mpi4py to force build against openmpi, rather than mpich (default)
 &&  python${PYVER} -m pip install --no-cache-dir --no-binary=mpi4py mpi4py
-
 
 # get petsc
 RUN mkdir -p /tmp/src
@@ -129,14 +140,15 @@ RUN PETSC_DIR=`pwd` ./configure --with-debugging=0 --prefix=/usr/local \
 RUN python${PYVER} -m pip freeze > /opt/requirements.txt \
 &&  dnf history userinstalled > /opt/packages.txt
 
-# 3. Define the final layer
+# Stage 3: 'final'
 FROM runtime as final
 
 COPY --from=builder /opt /opt
 COPY --from=builder /usr/local /usr/local
 
-# add system openmpi to $PATH - why RedHat
-ENV PATH=/usr/lib64/openmpi/bin:$PATH
+# MUST set PETSc environment variables
+ENV PETSC_DIR=/usr/local
+ENV PYTHONPATH=$PYTHONPATH:$PETSC_DIR/lib
 
 # switch to not-root user and workspace
 USER $NB_USER
