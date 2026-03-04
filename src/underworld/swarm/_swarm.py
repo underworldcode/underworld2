@@ -359,7 +359,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
             size = dset.shape[0] # number of particles in h5 file
 
             if try_optimise:
-                procCount = h5f.attrs.get('proc_offset')
+                procCount = h5_get_dataset(h5f, 'proc_offset')
                 if procCount is not None and nProcs == len(procCount):
                     for p_i in range(rank):
                         offset += procCount[p_i]
