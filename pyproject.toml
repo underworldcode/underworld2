@@ -29,7 +29,7 @@ dependencies = [
   "pint",
   "scipy",
 ]
-requires-python = ">=3.8,<3.13" 
+requires-python = ">=3.9,<3.13" 
 description = "Underworld2 is a python-friendly, parallel, scalable, easy-to-use toolkit for solving problems in solid and fluid mechanics."
 readme = "README.md"
 keywords = ["Underworld", "MPI", "Geodynamics"]
