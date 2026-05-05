@@ -134,10 +134,9 @@ RUN git clone --depth 1 --branch v2.17.x https://github.com/underworldcode/under
 #COPY --chown=$NB_USER:users . /tmp/underworld2 
 WORKDIR /tmp/underworld2
 RUN python${PYVER} -m pip install -vvv . 
-# TODO: Use offical badlands release made - not github with pip.
-RUN python${PYVER} -m pip install --no-cache-dir \
-       "badlands @ git+https://github.com/badlands-model/badlands.git#subdirectory=badlands"
-# "git+https://github.com/drufat/triangle.git" 
+RUN python${PYVER} -m pip install --no-build-isolation --no-cache-dir \
+        badlands \
+        "git+https://github.com/kinnala/meshplex"
 
 # record 'builder' stage packages used
 RUN python${PYVER} -m pip freeze >/opt/requirements.txt
