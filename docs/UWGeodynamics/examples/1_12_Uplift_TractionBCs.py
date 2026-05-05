@@ -133,6 +133,6 @@ if GEO.size==1:
     Fig.show()
 
 # %%
-# TODO, better test for model
-if not np.isclose( Model.stokes_SLE.velocity_rms(),  1.3497493646857656e-18):
+# TODO, 1e-18 is close to zero so overwrite the atol, and rtol
+if not np.isclose( Model.stokes_SLE.velocity_rms(),  1.3497493646857656e-18, rtol=1e-5, atol=0):
     raise RuntimeError("Velocity is not as expected")

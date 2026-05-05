@@ -247,7 +247,6 @@ def _in_doctest():
 if (underworld.mpi.rank == 0) and not _in_doctest():
     def _sendData():
 
-        import requests
         import os
         # disable collection of data if requested
         if "UW_NO_USAGE_METRICS" not in os.environ:
@@ -260,12 +259,12 @@ if (underworld.mpi.rank == 0) and not _in_doctest():
             if (os.path.isfile("/.dockerinit")):
                 sysinfo += "__docker"
 
-            event_dict = { "properties": {
+            event_dict = { "distinct_id" : _id,
+                           "properties": {
                                "version"  : underworld.__version__,
                                "platform" : sysinfo,
-                               "run_size" : underworld.mpi.size,
-                               "distinct_id" : _id, 
-                            }
+                               "run_size" : underworld.mpi.size, 
+                           },
                          }
 
             # send info async

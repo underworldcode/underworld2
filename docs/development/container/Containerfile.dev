@@ -34,7 +34,7 @@ USER $MAMBA_USER
 
 # create the conda environment with all dependencies 
 # see https://micromamba-docker.readthedocs.io/en/latest/quick_start.html#quick-start
-#COPY --chown=$MAMBA_USER:$MAMBA_USER ./conda/environment.yaml /tmp/env.yaml
+#COPY --chown=$MAMBA_USER:$MAMBA_USER ./conda/environment.yml /tmp/env.yml
 RUN micromamba install -y -v -n base jgiordani::underworld=2.17.1 jupyterlab && \
     micromamba clean --all --yes
 

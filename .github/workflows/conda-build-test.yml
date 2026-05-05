@@ -17,12 +17,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Micromamba
-        uses: mamba-org/setup-micromamba@v2
+        uses: mamba-org/setup-micromamba@v3
         with:
-          environment-file: conda/environment.yaml
+          environment-file: conda/environment.yml
           environment-name: uw-2.17
           generate-run-shell: true
           cache-environment: true
