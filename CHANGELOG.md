@@ -1,5 +1,14 @@
 CHANGES: Underworld2
 =======================
+Release 2.17.1 [2026-02-01]
+---------------------------
+Changes:
+* Support python 3.9-3.12.
+
+Fixes:
+* Swarm checkpoint fix - `proc_offset` is no longer a h5py attribute. #749
+
+
 Release 2.17 [2025-07-08]
 -------------------------
 New:
