@@ -5,13 +5,13 @@ Example use, must be run from repository root.
 ```bash
    podman build . --rm \
        --format docker \
-       -f ./docs/developer/container/Containerfile \ 
+       -f ./docs/development/container/Containerfile \ 
        -t underworldcode/underworld2:foobar
 ```
 
 The `launch-container.sh` is a script for launching the container using `podman` only. Podman is the preferred container runner because of `rootless` support.
 Expect the script to take a minute or so to load as permissions are updated. 
-Host port 10000 will run the container's default jupyter server. See script for details. 
+Host port 20000 will run the container's default jupyter server. See script for details. 
 
 Useful links:
 - Container stacks with podman - https://jupyter-docker-stacks.readthedocs.io/en/latest/using/running.html#using-the-podman-cli

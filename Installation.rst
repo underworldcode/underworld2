@@ -22,7 +22,7 @@ Remember to take note of the Jupyterlab token from the start up messages. It wil
 
 .. code:: bash
    
-   http://127.0.0.1:8888/lab?token=e79006f4e441cf781440a9ea0cad8cf2a0dfd3b9c236a0ca
+   http://127.0.0.1:20000/lab?token=e79006f4e441cf781440a9ea0cad8cf2a0dfd3b9c236a0ca
 
 The value must be copy-pasted into the jupyterlab launch page the first time.
 

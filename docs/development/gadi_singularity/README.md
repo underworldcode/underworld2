@@ -16,7 +16,7 @@ podman build . \
 ```bash
 podman build . \
     --format docker \
-    --build-arg PETSC_VERSION=petsc-gadi:latest
+    --build-arg PETSC_IMAGE=petsc-gadi:latest
     -f ./docs/development/gadi_singularity/underworld.rhel \
     -t underworld2-gadi:latest
 ```
