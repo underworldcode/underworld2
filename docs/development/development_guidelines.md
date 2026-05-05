@@ -60,7 +60,7 @@ once the following criterion are met:
    2. Any new functionality is sufficiently documented.
    3. All tests pass.
    4. Blog post update for significant changes. 
-   5. Update CHANGES.md.
+   5. Update CHANGELOG.md.
    
 
 Bug reporting

@@ -65,7 +65,7 @@ Documentation review
 * Review `.zenodo.json` (and validate using `jsonlint`, https://jsonlint.com/).
 * Update the copyright information if necessary.
 * Add new Binder link, and keep link to old Binder.
-* Generate/update change log (`CHANGES.md`).
+* Generate/update change log (`CHANGELOG.md`).
 * Review cheat sheet contents.
 * Increment version number within ``underworld/_version.py``
   (check `development_guidelines.md` for details on version numbering).
