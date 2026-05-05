@@ -34,8 +34,8 @@ USER $MAMBA_USER
 
 # create the conda environment with all dependencies 
 # see https://micromamba-docker.readthedocs.io/en/latest/quick_start.html#quick-start
-COPY --chown=$MAMBA_USER:$MAMBA_USER ./conda/environment.yaml /tmp/env.yaml
-RUN micromamba install -y -v -n base -f /tmp/env.yaml && \
+COPY --chown=$MAMBA_USER:$MAMBA_USER ./conda/environment.yml /tmp/env.yml
+RUN micromamba install -y -v -n base -f /tmp/env.yml && \
     micromamba clean --all --yes
 
 # activate mamba env during podman build
