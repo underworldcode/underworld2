@@ -1,5 +1,19 @@
-CHANGES: Underworld2
+CHANGELOG: Underworld2
 =======================
+
+Release 2.17.2 [2026-05-07]
+---------------------------
+New:
+* ALE-IB (Arbitrary Lagragian Eulerian - Internal Boundary) models added. #753
+
+Changes:
+* Adding UWGeo example tests to CI testing.
+* Rename files .yaml -> .yml.
+
+Fixes:
+* clean.sh fix
+* PostHog metrics changed - 'distinct_id' fix. 
+
 Release 2.17.1 [2026-02-01]
 ---------------------------
 Changes:
