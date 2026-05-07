@@ -27,14 +27,12 @@ jobs:
           generate-run-shell: true
           cache-environment: true
           #cache-downloads: false
-          
+
       - name: compile and pytests
         run: | 
           micromamba env list 
           micromamba list -v
           env
           pip install . --no-build-isolation
-          pytest ./docs/pytests/tests.py ./docs/pytests/test_examples.py
+          pytest ./docs/pytests/tests.py ./docs/pytests/test_examples.py ./docs/pytests/test_UWGeo_examples.py
         shell: micromamba-shell {0}
-# name: Compile the code, run tests
-        
