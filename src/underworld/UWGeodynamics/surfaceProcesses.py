@@ -6,7 +6,7 @@ import numpy as np
 import sys
 import math
 from scipy.ndimage.filters import gaussian_filter
-from scipy.interpolate import griddata, interp1d
+from scipy.interpolate import griddata, interp1d, CloughTocher2DInterpolator
 from underworld.scaling import non_dimensionalise as nd
 from underworld.scaling import dimensionalise
 from underworld.scaling import units as u
@@ -369,7 +369,7 @@ class Badlands(SurfaceProcesses):
         self.time_years += dt_years
 
         # TODO: Improve the performance of this function
-        self._update_material_types()
+        surf_fn_badlands = self._update_material_types()
         comm.Barrier()
 
         if rank == 0 and self.verbose:
@@ -378,7 +378,7 @@ class Badlands(SurfaceProcesses):
             print(purple + "Processing surface with Badlands...Done" + endcol)
             sys.stdout.flush()
 
-        return
+        return surf_fn_badlands if self.Model._freeSurface_ALEIB else None
 
     def _determine_particle_state_2D(self):
 
@@ -419,7 +419,7 @@ class Badlands(SurfaceProcesses):
 
         flags = uw_surface[:, 1] < bdl_surface
 
-        return flags
+        return flags,f
 
     def _determine_particle_state(self):
         # Given Badlands' mesh, determine if each particle in 'volume' is above
@@ -463,15 +463,16 @@ class Badlands(SurfaceProcesses):
 
         # True for sediment, False for air
         flags = volume[:, 2] < interpolate_z
+        f = CloughTocher2DInterpolator((known_xy[:,0], known_xy[:,1]), known_z)
 
-        return flags
+        return flags,f
 
     def _update_material_types(self):
         # What do the materials (in air/sediment terms) look like now?
         if self.Model.mesh.dim == 3:
-            under_bd_surface = self._determine_particle_state()
+            under_bd_surface, surf_fn_badlands = self._determine_particle_state()
         if self.Model.mesh.dim == 2:
-            under_bd_surface = self._determine_particle_state_2D()
+            under_bd_surface,surf_fn_badlands = self._determine_particle_state_2D()
 
         # If any materials changed state, update the Underworld material types
         mi = self.Model.materialField.data
@@ -487,6 +488,7 @@ class Badlands(SurfaceProcesses):
             # if material is not air, and above surface, make it air
             eroded_mask = np.logical_and(~np.in1d(mi, air_material), ~under_bd_surface)
             mi[eroded_mask] = self.airIndex[0]
+        return surf_fn_badlands
 
     def _inject_badlands_displacement(self, time, dt, disp, sigma):
         """
