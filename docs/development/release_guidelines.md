@@ -108,7 +108,7 @@ After the release
 ============
 * Increment version number within ``underworld/_version.py`` on dev branch (eg 2.6.0-dev)
 * Update `FROM` tag in top level (binder) Dockerfile to use dev images.
-* Update the `conda-lock.CI.yml` for new release CI testing.
+* Refresh the `CI-env.lock` for new release CI testing. i.e `mamba env export --explicit > CI-env.lock`
 * Check `docker/docker.md` for docker related actions.
 
 
