@@ -22,7 +22,7 @@ jobs:
       - name: Set up Micromamba
         uses: mamba-org/setup-micromamba@v3
         with:
-          environment-file: conda/environment.yml
+          environment-file: conda/conda-lock-CI.yml
           environment-name: uw-2.17
           generate-run-shell: true
           cache-environment: true
