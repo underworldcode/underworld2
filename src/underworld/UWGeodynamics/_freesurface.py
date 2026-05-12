@@ -100,17 +100,34 @@ class FreeSurfaceProcessor(object):
         uw.mpi.barrier()
         self.TField.syncronise()
 
-    def _update_mesh(self):
+    def _advect_surface_sp(self,dt):
+        surf_fn_badlands = self.model.surfaceProcesses.solve(dt)
+        if self.interface:
+            if self.model.mesh.dim == 2:
+                interpolate_x = self.model.mesh.data[self.interface.data,0]
+                interpolate_z = surf_fn_badlands(interpolate_x)
+                self.TField.data[self.interface.data, 0] = interpolate_z.copy()
 
+            if self.model.mesh.dim == 3:
+                interpolate_x = self.model.mesh.data[self.interface.data,0]
+                interpolate_x = self.model.mesh.data[self.interface.data,1]
+                interpolate_z = surf_fn_badlands((interpolate_x,interpolate_y))
+                self.TField.data[self.interface.data, 0] = interpolate_z.copy()
+        uw.mpi.barrier()
+        self.TField.syncronise()
+
+    def _update_mesh(self):
         with self.model.mesh.deform_mesh():
             # Last dimension is the vertical dimension
             self.model.mesh.data[:, -1] = self.TField.data[:, 0].copy()
 
     def solve(self, dtime):
         """ Advect free surface through dt and update the mesh """
-
         # First we advect the surface
-        self._advect_surface(dtime)
+        if self.model.surfaceProcesses:
+            self._advect_surface_sp(dtime)
+        else:
+            self._advect_surface(dtime)
         # Then we solve the system of linear equation
         self._solve_sle()
         # Finally we update the mesh
