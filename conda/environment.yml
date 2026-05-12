@@ -1,4 +1,4 @@
-name: uw-2.17
+name: uw-dev
 channels:
   - conda-forge
 dependencies:
@@ -16,17 +16,19 @@ dependencies:
   - petsc==3.21.5
   - mesalib
   - git
+  - git-lfs
   - scipy
   - mpi4py
   - h5py=*=mpi*
   - pytest
   - nbmake
   - matplotlib
+  - jupyterhub-singleuser
   - jupyterlab
   - jupytext
   - pip
   - pip:
     - lavavu
-    #- badlands comment out for the following for now
-    - "badlands @ git+https://github.com/julesghub/badlands.git@julesghub/meson-build#subdirectory=badlands"
+    - lavavu-osmesa
+    - badlands
 

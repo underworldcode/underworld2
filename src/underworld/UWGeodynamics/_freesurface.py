@@ -35,10 +35,18 @@ class FreeSurfaceProcessor(object):
         self.top = self.model.top_wall
         self.bottom = self.model.bottom_wall
 
-        # Create boundary condition
-        self._conditions = uw.conditions.DirichletCondition(
+        if self.model._freeSurface_ALEIB:
+            self.interface = self.model.inter_wall
+            # Create boundary condition
+            self._conditions = uw.conditions.DirichletCondition(
             variable=self.TField,
-            indexSetsPerDof=(self.top + self.bottom,))
+            indexSetsPerDof=(self.top + self.bottom + self.interface,))
+
+        else:
+            self.interface = self.top
+            self._conditions = uw.conditions.DirichletCondition(
+                variable=self.TField,
+                indexSetsPerDof=(self.top + self.bottom,))
 
         # Create Eq System
         self._system = uw.systems.SteadyStateHeat(
@@ -52,44 +60,43 @@ class FreeSurfaceProcessor(object):
         self._solver.solve()
 
     def _advect_surface(self, dt):
-
-        if self.top:
+        if self.interface:
             if self.model.mesh.dim == 2:
-                # Extract top surface
-                x = self.model.mesh.data[self.top.data][:, 0]
-                y = self.model.mesh.data[self.top.data][:, 1]
+                # Extract free surface
+                x = self.model.mesh.data[self.interface.data][:, 0]
+                y = self.model.mesh.data[self.interface.data][:, 1]
     
-                # Extract velocities from top
-                vx = self.model.velocityField.data[self.top.data][:, 0]
-                vy = self.model.velocityField.data[self.top.data][:, 1]
+                # Extract velocities from free surface
+                vx = self.model.velocityField.data[self.interface.data][:, 0]
+                vy = self.model.velocityField.data[self.interface.data][:, 1]
     
-                # Advect top surface
+                # Advect free surface 
                 x2 = x + vx * nd(dt)
                 y2 = y + vy * nd(dt)
     
-                # Spline top surface
+                # Spline free surface
                 f = interp1d(x2, y2, kind='cubic', fill_value='extrapolate')
     
-                self.TField.data[self.top.data, 0] = f(x)
+                self.TField.data[self.interface.data, 0] = f(x)
             else:
-                # Extract top surface
-                x = self.model.mesh.data[self.top.data][:, 0]
-                y = self.model.mesh.data[self.top.data][:, 1]
-                z = self.model.mesh.data[self.top.data][:, -1]
+                # Extract free surface
+                x = self.model.mesh.data[self.interface.data][:, 0]
+                y = self.model.mesh.data[self.interface.data][:, 1]
+                z = self.model.mesh.data[self.interface.data][:, -1]
     
-                # Extract velocities from top
-                vx = self.model.velocityField.data[self.top.data][:, 0]
-                vy = self.model.velocityField.data[self.top.data][:, 1]
-                vz = self.model.velocityField.data[self.top.data][:, -1]
+                # Extract velocities from free surface
+                vx = self.model.velocityField.data[self.interface.data][:, 0]
+                vy = self.model.velocityField.data[self.interface.data][:, 1]
+                vz = self.model.velocityField.data[self.interface.data][:, -1]
     
-                # Advect top surface
+                # Advect free surface
                 x2 = x + vx * nd(dt)
                 y2 = y + vy * nd(dt)
                 z2 = z + vz * nd(dt)
     
-                # Spline top surface
+                # Spline free surface
                 f = CloughTocher2DInterpolator((x2, y2), z2)
-                self.TField.data[self.top.data, 0] = f((x,y))
+                self.TField.data[self.interface.data, 0] = f((x,y))
         uw.mpi.barrier()
         self.TField.syncronise()
 

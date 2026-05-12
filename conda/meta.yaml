@@ -1,5 +1,5 @@
 {% set name = "underworld" %}
-{% set version = "2.16.4" %}
+{% set version = "2.17.1" %}
 {% set build = 0 %}
 
 package:
@@ -7,20 +7,22 @@ package:
   version: {{ version }}
 
 source:
-   url: https://github.com/underworldcode/underworld2/archive/refs/tags/v{{ version }}.tar.gz
-   sha256: 70b2ccadc4917b82cf64819956acf2a0c8b69fcb3117188e801ef435da2c2f28
-#  git_url : https://github.com/underworldcode/underworld2.git
-#  git_rev : v2.16.x
+#   url: https://github.com/underworldcode/underworld2/archive/refs/tags/v{{ version }}.tar.gz
+#   sha256: 70b2ccadc4917b82cf64819956acf2a0c8b69fcb3117188e801ef435da2c2f28
+  git_url : https://github.com/underworldcode/underworld2.git
+  git_rev : v2.17.x
 
 build:
   skip: true  # [py<39 or win]
+  script: PETSC_DIR=$PREFIX {{ PYTHON }} -m pip install .[full] -vv
   number: 0
-  script: PETSC_DIR=$PREFIX {{ PYTHON }} -m pip install . -vv
   ignore_run_exports:
     - mpi4py
-    - hdf5
-    - h5py
     - numpy
+    - libxml2
+    - pip
+    - h5py
+    - hdf5
 
 requirements:
 
@@ -47,8 +49,9 @@ requirements:
 
   run:
     - python
-    - {{ pin_compatible('h5py') }}
+    - pip
     - {{ pin_compatible('hdf5') }}
+    - {{ pin_compatible('h5py') }}
     - {{ pin_compatible('numpy') }}
     - petsc {{ petsc }}
     - {{ mpi }}

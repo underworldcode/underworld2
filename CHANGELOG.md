@@ -1,11 +1,35 @@
-CHANGES: Underworld2
+CHANGELOG: Underworld2
 =======================
+
+Release 2.17.2 [2026-05-07]
+---------------------------
+New:
+* ALE-IB (Arbitrary Lagragian Eulerian - Internal Boundary) models added. #753
+
+Changes:
+* Adding UWGeo example tests to CI testing.
+* Rename files .yaml -> .yml.
+
+Fixes:
+* clean.sh fix
+* PostHog metrics changed - 'distinct_id' fix. 
+
+Release 2.17.1 [2026-02-01]
+---------------------------
+Changes:
+* Support python 3.9-3.12.
+
+Fixes:
+* Swarm checkpoint fix - `proc_offset` is no longer a h5py attribute. #749
+
+
 Release 2.17 [2025-07-08]
 -------------------------
 New:
+* Move container definitions to `./docs/development/container/`. Podman container is now preferred over docker and Dockerfiles.
 
 Changes:
-* UWGeodynamics - Badlands coupling imporvements. See documentation TODO: link
+* UWGeodynamics - Badlands coupling imporvements.  See [blog](https://www.underworldcode.org/new-features-of-the-surface-coupling-framework-in-underworld-2/)
 
 Fixes:
 * Fix for Badlands coupling - Tectonic velocity now evaluated at surface, rather than Badlands basement recGrid. #725

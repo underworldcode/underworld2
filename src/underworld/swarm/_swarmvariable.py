@@ -491,7 +491,8 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
                 h5f["swarm"] = h5py.ExternalLink(sFilename, "./")
 
             # also write proc offsets - used for loading from checkpoint
-            h5f.attrs["proc_offset"] = procCount
+            pdata = h5_require_dataset(h5f, "proc_offset", shape=(len(procCount),), dtype=np.int64)
+            pdata[:] = procCount
             h5f.attrs["units"] = str(units)
 
             for kwarg, val in kwargs.items():

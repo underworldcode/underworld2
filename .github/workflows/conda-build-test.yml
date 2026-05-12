@@ -17,24 +17,23 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Micromamba
-        uses: mamba-org/setup-micromamba@v2
+        uses: mamba-org/setup-micromamba@v3
         with:
-          environment-file: conda/environment.yaml
+          environment-file: conda/CI-env.lock
           environment-name: uw-2.17
           generate-run-shell: true
           cache-environment: true
           #cache-downloads: false
-          
+
       - name: compile and pytests
         run: | 
           micromamba env list 
           micromamba list -v
           env
+          pip install git+https://github.com/kinnala/meshplex
           pip install . --no-build-isolation
-          pytest ./docs/pytests/tests.py ./docs/pytests/test_examples.py
+          pytest ./docs/pytests/tests.py ./docs/pytests/test_examples.py ./docs/pytests/test_UWGeo_examples.py
         shell: micromamba-shell {0}
-# name: Compile the code, run tests
-        

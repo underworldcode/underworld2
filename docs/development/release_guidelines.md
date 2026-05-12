@@ -20,17 +20,19 @@ Version Control
 
 Time goes left to right.
 
-
+```text
 main] v1 --              v2  |
        \                 /   |
 v2.x]   \         x -- y     |
          \       /      \    |
 dev ]     A -- B -- C -- D   |
+```
 
 Notes:
-A, B, C, D, x, y, v1, v2 are commits
-main, v2.x, dev are branches
-\ and / indicate git mergers
+
+* A, B, C, D, x, y, v1, v2 are commits
+* main, v2.x, dev are branches         
+* \ and / indicate git mergers
 
 ##### Example
 * v2.x in this example starts from B on dev and is called x.
@@ -63,7 +65,7 @@ Documentation review
 * Review `.zenodo.json` (and validate using `jsonlint`, https://jsonlint.com/).
 * Update the copyright information if necessary.
 * Add new Binder link, and keep link to old Binder.
-* Generate/update change log (`CHANGES.md`).
+* Generate/update change log (`CHANGELOG.md`).
 * Review cheat sheet contents.
 * Increment version number within ``underworld/_version.py``
   (check `development_guidelines.md` for details on version numbering).
@@ -89,7 +91,7 @@ Creating the release
 * Tag the release branch in git.
 * Create the release from within Github.
 * Check `docker/docker.md` for docker image release information.
-* Add tagged documentation version at http://underworld2.readthedocs.io/  
+* Add tagged documentation version at http://underworld2.readthedocs.io/, login to readthedocs point to new release.
 * Package for PyPi: `python setup.py sdist`
 * Upload to PyPi: `twine upload dist/* -r pypi`
 - The url and sha256 fields must be updated in the `conda/meta.yaml`. We want the url not the git_url and
@@ -106,6 +108,7 @@ After the release
 ============
 * Increment version number within ``underworld/_version.py`` on dev branch (eg 2.6.0-dev)
 * Update `FROM` tag in top level (binder) Dockerfile to use dev images.
+* Refresh the `CI-env.lock` for new release CI testing. i.e `mamba env export --explicit > CI-env.lock`
 * Check `docker/docker.md` for docker related actions.
 
 

@@ -1,19 +1,21 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 4.0)
+project(Underworld)
+
+# Set some Global options for CMAKE 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(Python_FIND_VIRTUALENV ONLY)
-cmake_policy(SET CMP0078 OLD)
+option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
 
-project(Underworld)
+# Required dependencies
 find_package(PkgConfig REQUIRED)
 find_package(LibXml2 REQUIRED)
 find_package(MPI REQUIRED)
-
 find_package(Python3 COMPONENTS Interpreter Development NumPy REQUIRED)
 find_package(SWIG 4.0 COMPONENTS python REQUIRED)
 
-# Look for PETSc installation. We use pkg-config which, on Linux look for the PETSc.pc
-# or petsc.pc file located in /usr/lib/pkgconfig or /usr/share/pkgconfig
+# Look for PETSc installation. Use pkg-config - on Linux this looks for the PETSc.pc
+# or petsc.pc files located in /usr/lib/pkgconfig or /usr/share/pkgconfig
 # You can check pkg-config search path using the following command:
 # pkg-config --variable pc_path pkg-config
 # This can be modified by prepending the PKG_CONFIG_PATH environment variable
@@ -22,13 +24,15 @@ if(DEFINED ENV{PETSC_DIR} AND DEFINED ENV{PETSC_ARCH})
 else(DEFINED ENV{PETSC_DIR})
   set(ENV{PKG_CONFIG_PATH} "$ENV{PETSC_DIR}/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
 endif()
-message(STATUS "Checking for PETSc using $PKG_CONFIG_PATH=$ENV{PKG_CONFIG_PATH}")
+message(STATUS "Checking for PETSc using pkg-config $ENV{PKG_CONFIG} with $PKG_CONFIG_PATH=$ENV{PKG_CONFIG_PATH}")
     
+# Get CMAKE to find PETSc
 pkg_check_modules(PETSc PETSc)
 if(NOT PETSc_FOUND)
     message(FATAL_ERROR "Cannot find PETSc, please check that the PETSC_DIR environment " 
       "variable is set and that the $PETSC_DIR/lib/pkgconfig folder contains a PETSc.pc file.")
 endif()
+message(STATUS "Using PETSc at ${PETSc_PREFIX}")
 
 if(NOT APPLE)
     message(STATUS ">>> Linux System")
@@ -204,4 +208,5 @@ install(TARGETS ${target_sources}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
+# Now build the UW Swig wrappers (after C-code has been built). All swig stuff are in libUnderworldPY
 add_subdirectory(libUnderworldPy)

@@ -4,7 +4,7 @@
 ### MUST run from the underworld2 top directory
 #   podman build . --rm \
 #       --format docker \
-#       -f ./docs/development/container/Containerfile \ 
+#       -f ./docs/development/container/<filename> \ 
 #       -t underworldcode/underworld2:<version-id>
 #
 ### requires the '--format docker' to run on podman, but no under docker.
@@ -34,20 +34,21 @@ USER $MAMBA_USER
 
 # create the conda environment with all dependencies 
 # see https://micromamba-docker.readthedocs.io/en/latest/quick_start.html#quick-start
-COPY --chown=$MAMBA_USER:$MAMBA_USER ./conda/environment.yml /tmp/env.yml
-RUN micromamba install -y -v -n base -f /tmp/env.yml && \
+#COPY --chown=$MAMBA_USER:$MAMBA_USER ./conda/environment.yml /tmp/env.yml
+RUN micromamba install -y -v -n base jgiordani::underworld=2.17.1 jupyterlab && \
     micromamba clean --all --yes
 
 # activate mamba env during podman build
 ARG MAMBA_DOCKERFILE_ACTIVATE=1
 
-# git clone the latest tag
-RUN git clone --depth 1 --branch=v2.17.x https://github.com/underworldcode/underworld2.git /home/$MAMBA_USER/underworld2 && \
-    cd /home/$MAMBA_USER/underworld2 && \
-    pip install --no-build-isolation --no-cache-dir .
+# must install after the conda package installation to properly work.
+RUN python -m pip install --no-cache-dir lavavu lavavu-osmesa 
 
-# get runtime dependency for badlands - can't be auto installed
-RUN pip install --no-build-isolation --no-cache-dir git+https://github.com/kinnala/meshplex
+# grab documentation files
+COPY --chown=$MAMBA_USER ./docs/cheatsheet /home/$MAMBA_USER/cheatsheet
+COPY --chown=$MAMBA_USER ./docs/user_guide /home/$MAMBA_USER/user_guide
+COPY --chown=$MAMBA_USER ./docs/examples /home/$MAMBA_USER/examples
+COPY --chown=$MAMBA_USER ./docs/UWGeodynamics /home/$MAMBA_USER/UWGeodynamics
 
 # allow jupyterlab for ipyvtk
 ENV PYVISTA_OFF_SCREEN=true

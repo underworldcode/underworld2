@@ -251,6 +251,7 @@ class Model(Material):
         self.DiffusivityFn = None
         self.HeatProdFn = None
         self._freeSurface = False
+        self._freeSurface_ALEIB = False
         self._fssa_factor = None
         self._voronoi_swarm = None
         self._mesh_saved = False
@@ -919,6 +920,16 @@ class Model(Material):
             InitFn = fn.branching.map(fn_key=self.materialField,
                                       mapping=meltFractionMap, fn_default=0.0)
             self.meltField.data[:] = InitFn.evaluate(self.swarm)
+
+    def _get_InternalwallSets(self,zinit):
+        """ Retrieve the index sets of the internal wall in the mesh using the initial vertical coordinates. """
+        zinit = nd(zinit)
+        dz = (self.mesh.data[:,-1].max()-self.mesh.data[:,-1].min())/(self.elementRes[-1])
+        axis_iw = np.where((self.mesh.data[:,-1]<=zinit+dz/4)&(self.mesh.data[:,-1]>=zinit-dz/4))
+        Sets_iw = self.mesh.specialSets["Empty"]
+        for index in axis_iw:
+            Sets_iw.add(index)
+        return Sets_iw
 
     def set_velocityBCs(self, left=None, right=None, top=None, bottom=None,
                         front=None, back=None, nodeSets=None,
@@ -1839,7 +1850,7 @@ class Model(Material):
         self.population_control.repopulate()
         self.swarm.update_particle_owners()
 
-        if self.surfaceProcesses:
+        if self.surfaceProcesses and self._freeSurface is False:
             self.surfaceProcesses.solve(dt)
 
         # Update Time Field
@@ -2035,7 +2046,6 @@ class Model(Material):
     def freeSurface(self, value):
         if value:
             self._freeSurface = FreeSurfaceProcessor(self)
-    
     @property
     def fssa_factor(self):
         return self._fssa_factor
