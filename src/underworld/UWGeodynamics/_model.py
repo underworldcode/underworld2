@@ -149,7 +149,7 @@ class Model(Material):
         if periodic:
             self.periodic = periodic
         else:
-            periodic = tuple([False for val in maxCoord])
+            periodic = tuple([False for _ in maxCoord])
             self.periodic = periodic
 
         # Get non-dimensional extents along each axis
