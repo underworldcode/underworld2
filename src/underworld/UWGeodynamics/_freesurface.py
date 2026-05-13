@@ -110,7 +110,7 @@ class FreeSurfaceProcessor(object):
 
             if self.model.mesh.dim == 3:
                 interpolate_x = self.model.mesh.data[self.interface.data,0]
-                interpolate_x = self.model.mesh.data[self.interface.data,1]
+                interpolate_y = self.model.mesh.data[self.interface.data,1]
                 interpolate_z = surf_fn_badlands((interpolate_x,interpolate_y))
                 self.TField.data[self.interface.data, 0] = interpolate_z.copy()
         uw.mpi.barrier()
