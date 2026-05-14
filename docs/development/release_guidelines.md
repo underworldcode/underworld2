@@ -3,16 +3,16 @@ Version Control
 * Create a new branch off the `development` branch for the new release. This will
   allow development on the dev branch to proceed unhindered by changes required
   for the release. Naming convention example`v2.13.x`
-* Merge the `master` branch into the release branch immediately. This should 
+* Merge the `main` branch into the release branch immediately. This should 
   largely be a fast forward, except for changed version numbers (and Dockerfile
   related tags).
 * Once the release is ready (as per details below), merge release branch back 
   into `development` to capture release related changes. This step is also useful
   to ensure all docker images are being built correctly at Dockerhub before
-  merging into master. Remember to switch dev branch version numbers and 
+  merging into main. Remember to switch dev branch version numbers and 
   Dockerfiles back (as merge will change them). 
 * Finally, once satisfied that docker images on dev are being built correctly, 
-  merge the release branch (not the dev branch!) into `master`. This should be a 
+  merge the release branch (not the dev branch!) into `main`. This should be a 
   fast forward, otherwise something has gone wrong.
 * The release branch may now be deleted.    
 
@@ -40,11 +40,11 @@ Notes:
 * then v2.x is merged into main and tag v2, other changes may be needed for this to become a release.
 * v2.x can be deleted when a v3.x branch starts. 
 
-Review issue tracker 
+Review issue tracker
 ====================
 * Complete all issues tagged for current milestone 
 
-Documentation review 
+Documentation review
 ====================
 * Review this document.
 * Review `development_guidelines.md`.
