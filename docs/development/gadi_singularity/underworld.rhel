@@ -1,0 +1,179 @@
+#####################################################################
+# Multi stage Containerfile for Underworld 2
+#  see https://docs.docker.com/get-started/docker-concepts/building-images/multi-stage-builds/
+#
+# Stages:
+# 1. 'runtime'
+#    The runtime environment (packages, permissions, ENV vars.) 
+#    is consistent accross all stages of this Containerfile. 
+#
+# 2. 'builder'
+#    The builder layer, takes the runtime layer and add compiling / building software
+#    that is added to /usr/local and /opt/venv
+#
+# 3. 'final' == runtime + min. builder
+#    The final image is a composite of the runtime layer and the
+#    minimal sections of the builder layer's final software stack.
+#
+# To build use podman from the top level underworld didrectory. i.e.
+#  $ podman build .  \
+#           --format docker \
+#           --build-arg PETSC_IMAGE=xxx \
+#           -t new_image_name \
+#           -f ./docs/development/gadi_singularity/underworld.rhel
+#####################################################################
+
+# The following are passed in via --build-arg
+# Must go before the 1st FROM see
+# https://docs.docker.com/engine/reference/builder/#understand-how-arg-and-from-interact
+ARG PYTHON_VERSION="3.11"
+ARG BASE_IMAGE="rockylinux:8.10"
+ARG PETSC_IMAGE="ghcr.io/julesghub/petsc:3.22.5-ompi"
+
+# 'petsc-image' will be used later on in builder stage COPY command 
+FROM ${PETSC_IMAGE} as petsc-image
+
+####################
+# Stage 1: 'runtime'
+####################
+FROM ${BASE_IMAGE} as runtime
+LABEL maintainer="https://github.com/underworldcode/"
+
+# need to repeat ARGS after every FROM 
+ARG PYTHON_VERSION
+
+#### Containerfile ENV vars - for all image stages
+ENV LANG=C.UTF-8
+ENV PYVER=${PYTHON_VERSION}
+
+# add user jovyan
+ENV NB_USER jovyan
+ENV NB_HOME /home/$NB_USER
+RUN useradd -m -s /bin/bash -N $NB_USER
+
+# runtime packages - [vim, git] are optional
+RUN yum update -y \
+&&  yum install -y \
+        ca-certificates \
+        bash-completion \
+        openssh \
+        openblas \
+        openmpi \
+        libxml2 \
+        python${PYVER}-pip \
+        python${PYVER}-devel \
+        zlib \
+&&  yum clean all \
+&&  rm -rf /var/cache/yum
+
+# add system openmpi to $PATH and $LD_LIBRARY_PATH
+ENV PATH=/usr/lib64/openmpi/bin:$PATH
+ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+
+ENV PYOPT=/opt/venv
+# build and set open permissions on virtual environment
+RUN python${PYVER} -m venv $PYOPT \
+&&  chmod ugo+rwx $PYOPT
+
+# define python env vars.
+# prepappending on PATH means all pip install will goto the PYOPT
+ENV PATH=$PYOPT/bin:$PATH
+ENV PYTHONPATH=$PYTHONPATH:$PYOPT/lib/python${PYVER}/site-packages
+# taken from PETSC images - are these required?
+ENV PETSC_DIR=/usr/local
+ENV PYTHONPATH=$PYTHONPATH:$PETSC_DIR/lib
+
+
+####################
+# Stage 2: 'builder'
+####################
+FROM petsc-image as builder
+
+# root to install with yum
+USER root
+RUN yum install -y\
+        swig \
+        cmake \
+        make \
+        git \
+        gcc-c++ \
+        gcc-gfortran \
+        pkg-config \
+        libxml2-devel \
+        findutils \
+        openmpi-devel \
+&&  yum clean all \
+&&  rm -rf /var/cache/yum
+
+# install python build time and runtime requirements here
+RUN python${PYVER} -m pip install --no-cache-dir "setuptools<70" \
+         matplotlib \
+         "cython==3.0.10" \
+         "scipy==1.13" \
+         "numpy<2" \
+         pint \
+         rise \
+         pytest \
+         nbmake \
+         gFlex \
+         tabulate \
+         jupytext \
+         lavavu \
+         lavavu-osmesa
+
+# h5py=3.10 need setuptool<70 constrained
+RUN echo "setuptools<70" > /tmp/constraints.txt  \
+    PIP_BUILD_CONSTRAINT=/tmp/constraints.txt    \
+    CC=mpicc HDF5_MPI="ON" HDF5_DIR=${PETSC_DIR} \
+    python${PYVER} -m pip install \
+        --no-binary=h5py \
+        h5py==3.10
+
+# for development, uncomment the following lines and comment out `git clone`
+RUN git clone --depth 1 --branch v2.17.x https://github.com/underworldcode/underworld2.git /tmp/underworld2
+#COPY --chown=$NB_USER:users . /tmp/underworld2 
+WORKDIR /tmp/underworld2
+RUN python${PYVER} -m pip install -vvv . 
+RUN python${PYVER} -m pip install --no-build-isolation --no-cache-dir \
+        badlands \
+        "git+https://github.com/kinnala/meshplex"
+
+# record 'builder' stage packages used
+RUN python${PYVER} -m pip freeze >/opt/requirements.txt
+RUN dnf history userinstalled >/opt/installed.txt
+
+
+####################
+# Stage 3: 'final', a combination of 'runtime' and 'builder' stages
+####################
+FROM runtime as final
+
+ARG PYTHON_VERSION
+
+COPY --from=builder --chown=$NB_USER:users /opt /opt
+COPY --from=builder --chown=$NB_USER:users /usr/local /usr/local
+
+# must make directory before COPY into it for permissions to work ()
+# set default viewer to a notebook see https://jupytext.readthedocs.io/en/latest/text-notebooks.html#with-a-double-click
+RUN mkdir -p $NB_HOME/workspace $NB_HOME/Underworld/UWGeodynamics \
+&&  chown $NB_USER:users -R $NB_HOME \
+&&  jupyter-server extension enable --sys-prefix jupyter_server_proxy \
+&&  jupytext-config set-default-viewer 
+
+#Copy in examples, tests, etc.
+COPY --chown=$NB_USER:users ./docs/examples   $NB_HOME/Underworld/examples
+COPY --chown=$NB_USER:users ./docs/cheatsheet $NB_HOME/Underworld/cheatsheet
+COPY --chown=$NB_USER:users ./docs/user_guide $NB_HOME/Underworld/user_guide
+COPY --chown=$NB_USER:users ./docs/test       $NB_HOME/Underworld/test
+COPY --chown=$NB_USER:users ./docs/UWGeodynamics/examples  $NB_HOME/Underworld/UWGeodynamics/examples
+COPY --chown=$NB_USER:users ./docs/UWGeodynamics/benchmarks  $NB_HOME/Underworld/UWGeodynamics/benchmarks
+COPY --chown=$NB_USER:users ./docs/UWGeodynamics/tutorials  $NB_HOME/Underworld/UWGeodynamics/tutorials
+
+EXPOSE 8888
+WORKDIR $NB_HOME
+USER $NB_USER
+
+# Declare a volume space
+VOLUME $NB_HOME/workspace
+
+CMD ["jupyter-lab", "--no-browser", "--ip='0.0.0.0'"]

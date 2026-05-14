@@ -1,0 +1,83 @@
+name: Publish Python distribution 📦 to TestPyPI then PyPI
+
+on: 
+  workflow_dispatch: 
+  release:
+    type: [publish] # triggers when you publish a GitHub release
+
+jobs:
+
+  build_uw:
+    name: Build distribution 📦
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout release
+      uses: actions/checkout@v4
+
+    - name: Set up Micromamba
+      uses: mamba-org/setup-micromamba@v2
+      with:
+        environment-file: conda/CI-env.lock
+        environment-name: uw-2.17
+        generate-run-shell: true
+        cache-environment: true
+
+    - name: Form tarball to publish
+      run: | 
+        micromamba env list 
+        micromamba list -v
+        pip install build
+        env
+        python3 -m build --sdist
+      shell: micromamba-shell {0}
+
+    - name: Store the distribution packages
+      uses: actions/upload-artifact@v4
+      with:
+        name: underworld-${{ github.event.release.name }}
+        path: dist/
+
+  publish_testpypi:
+    name: Publish to TestPyPI
+    needs: build_uw
+    runs-on: ubuntu-latest
+
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/underworld  # Replace <package-name> with your PyPI project name
+    permissions:
+      id-token: write  # IMPORTANT: mandatory for trusted publishing
+
+    steps:
+      - name: Download package
+        uses: actions/download-artifact@v4
+        with:
+          name: underworld-${{ github.event.release.name }}
+          path: dist/
+
+      - name: Push 📦 to testPyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+
+  publish_pypi:
+    name: Publish to PyPI
+    needs: publish_testpypi 
+    runs-on: ubuntu-latest
+
+    environment:
+      name: pypi
+      url: https://pypi.org/p/underworld
+    permissions:
+      id-token: write  # IMPORTANT: mandatory for trusted publishing
+
+    steps:
+      - name: Download package
+        uses: actions/download-artifact@v4
+        with:
+          name: underworld-${{ github.event.release.name }}
+          path: dist/
+
+      - name: Push 📦 to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1

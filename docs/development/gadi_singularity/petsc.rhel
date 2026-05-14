@@ -1,39 +1,44 @@
 #####################################################################
-# Multi stage Dockerfile structure:
-# 1. runtime 
-# 2. build
-# 3. final == runtime + min. build
+# Multi stage Containerfile
+#  see https://docs.docker.com/get-started/docker-concepts/building-images/multi-stage-builds/
 #
-# It begins with layers for runtime execution. 
-# The runtime environment (packages, permissions, ENV vars.) 
-# are consistent accross all layer of this Dockerfile. 
-# The build layer takes the runtime layer and builds the software
-# stack in /usr/local.
-# The final image is a composite of the runtime layer and 
-# minimal sections of the build layer.
+# Stages:
+# 1. 'runtime'
+#    The runtime environment (packages, permissions, ENV vars.) 
+#    is consistent accross all stages of this Containerfile. 
+#
+# 2. 'builder'
+#    The builder layer, takes the runtime layer and add compiling / building software
+#    that is added to /usr/local and /opt/venv
+#
+# 3. 'final' == runtime + min. builder
+#    The final image is a composite of the runtime layer and the
+#    minimal sections of the builder layer's final software stack.
+#
+# To build use podman from the top level underworld didrectory. i.e.
+#  $ podman build .  \
+#           --format docker \
+#           -t new_image_name \
+#           -f ./docs/development/gadi_singularity/petsc.rhel
 #####################################################################
 
+# The following are passed in via --build-args
+# Must go before the 1st FROM see
+# https://docs.docker.com/engine/reference/builder/#understand-how-arg-and-from-interact
 ARG PYTHON_VERSION="3.11"
-ARG BASE_IMAGE="rockylinux:8.9"
-ARG PETSC_VERSION="3.22.4"
+ARG PETSC_VERSION="3.22.5"
+ARG BASE_IMAGE="rockylinux:8.10"
 
+# 1. Stage 1: 'runtime'
 FROM ${BASE_IMAGE} as runtime
 LABEL maintainer="https://github.com/underworldcode/"
+
 # need to repeat ARGS after every FROM 
 ARG PYTHON_VERSION
-#### Dockerfile ENV vars - for all image stages
-ENV LANG=C.UTF-8
-# mpi lib will be install at /usr/local/lib
-ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 
-# python env vars. 
-# prepappending on PATH means all pip install will goto the PYOPT
+#### Containerfile ENV vars - for all image stages
+ENV LANG=C.UTF-8
 ENV PYVER=${PYTHON_VERSION}
-ENV PYOPT=/opt/venv
-ENV PATH=$PYOPT/bin:$PATH
-ENV PYTHONPATH=$PYTHONPATH:$PYOPT/lib/python${PYVER}/site-packages
-ENV PETSC_DIR=/usr/local
-ENV PYTHONPATH=$PYTHONPATH:$PETSC_DIR/lib
 
 # add user jovyan
 ENV NB_USER jovyan
@@ -49,23 +54,34 @@ RUN yum update -y \
         python${PYVER}-devel \
         openmpi \
         findutils \
-&& yum clean all \
-&& rm -rf /var/cache/yum
+&&  yum clean all \
+&&  rm -rf /var/cache/yum
 
-# build and open virtual environment
-RUN python3 -m venv $PYOPT \
-&&  chmod ugo+rwx $PYOPT \
-&&  pip3 install -U setuptools \
-                    wheel \
-                    pip
+# add system openmpi to $PATH and $LD_LIBRARY_PATH
+ENV PATH=/usr/lib64/openmpi/bin:$PATH
+ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 
-FROM runtime as build
+ENV PYOPT=/opt/venv
+# build and set open permissions on virtual environment
+RUN python${PYVER} -m venv $PYOPT \
+&&  chmod ugo+rwx $PYOPT
+
+# define python env vars. 
+# prepappending on PATH means all pip install will goto the PYOPT
+ENV PATH=$PYOPT/bin:$PATH
+ENV PYTHONPATH=$PYTHONPATH:$PYOPT/lib/python${PYVER}/site-packages
+
+# runtime python requirements
+RUN python${PYVER} -m pip install wheel \
+                    "numpy<2"
+
+# 2. Define the builder layer
+FROM runtime as builder
 
 ARG PETSC_VERSION
 ARG PYTHON_VERSION
 
-RUN yum update -yq \
-&&  yum install -y \
+RUN yum install -y \
         ca-certificates \
         wget \
         make \
@@ -80,13 +96,11 @@ RUN yum update -yq \
 &&  yum clean all \
 &&  rm -rf /var/cache/yum
 
-# add system openmpi to $PATH - why RedHat
-ENV PATH=/usr/lib64/openmpi/bin:$PATH
 
-RUN pip3 install --no-cache-dir \
-      "cython==3.0.10" \
-      "numpy<2" \
-      mpi4py
+RUN python${PYVER} -m pip install "cython==3.0.10" \
+                    "setuptools<70" \
+# no-binary for mpi4py to force build against openmpi, rather than mpich (default)
+&&  python${PYVER} -m pip install --no-cache-dir --no-binary=mpi4py mpi4py
 
 # get petsc
 RUN mkdir -p /tmp/src
@@ -123,16 +137,18 @@ RUN PETSC_DIR=`pwd` ./configure --with-debugging=0 --prefix=/usr/local \
 &&  rm -rf /usr/local/share/petsc
 
 # record builder stage packages used
-RUN pip3 freeze > /opt/requirements.txt \
+RUN python${PYVER} -m pip freeze > /opt/requirements.txt \
 &&  dnf history userinstalled > /opt/packages.txt
 
-FROM runtime as minimal
+# Stage 3: 'final'
+FROM runtime as final
 
-COPY --from=build /opt /opt
-COPY --from=build /usr/local /usr/local
+COPY --from=builder /opt /opt
+COPY --from=builder /usr/local /usr/local
 
-# add system openmpi to $PATH - why RedHat
-ENV PATH=/usr/lib64/openmpi/bin:$PATH
+# MUST set PETSc environment variables
+ENV PETSC_DIR=/usr/local
+ENV PYTHONPATH=$PYTHONPATH:$PETSC_DIR/lib
 
 # switch to not-root user and workspace
 USER $NB_USER

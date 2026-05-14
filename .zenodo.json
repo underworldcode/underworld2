@@ -1,14 +1,19 @@
 {
     "creators": [
         {
-            "name": "Romain Beucher",
-            "affiliation": "Research School of Earth Sciences, The Australian National University",
-            "orcid": "0000-0003-3891-5444"
-        },
-        {
             "name": "Julian Giordani",
             "affiliation": "School of Earth Science, The University of Sydney",
             "orcid": "0000-0003-4515-9296"
+        },
+        {
+            "name": "Ben Knight",
+            "affiliation": "Curtin University",
+            "orcid": "0000-0001-7919-2575"
+        },  
+        {
+            "name": "Neng Lu",
+            "affiliation": "Research School of Earth Sciences, The Australian National University",
+            "orcid": "0000-0001-9424-2315"
         },
         {
             "name": "Louis Moresi",
@@ -16,6 +21,10 @@
             "orcid": "0000-0003-3685-174X"
         },
         {
+            "name": "Romain Beucher",
+            "affiliation": "Research School of Earth Sciences, The Australian National University",
+            "orcid": "0000-0003-3891-5444"
+        },        {
             "name": "John Mansour",
             "affiliation": "Monash eResearch Centre, Monash University",
             "orcid": "0000-0001-5865-1664"
@@ -84,16 +93,6 @@
             "affiliation": "School of Earth and Ocean Sciences, Cardiff University",
             "orcid": "0000-0002-7182-1864"
         },
-        {
-            "name": "Ben Knight",
-            "affiliation": "Monash University",
-            "orcid": "0000-0001-7919-2575"
-        },  
-        {
-            "name": "Neng Lu",
-            "affiliation": "Research School of Earth Sciences, The Australian National University",
-            "orcid": "0000-0001-9424-2315"
-        } 
     ],
     "license": "lgpl-3.0",
     "title": "Underworld2: Python Geodynamics Modelling for Desktop, HPC and Cloud",

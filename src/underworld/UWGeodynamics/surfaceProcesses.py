@@ -6,7 +6,7 @@ import numpy as np
 import sys
 import math
 from scipy.ndimage.filters import gaussian_filter
-from scipy.interpolate import griddata, interp1d
+from scipy.interpolate import griddata, interp1d, CloughTocher2DInterpolator
 from underworld.scaling import non_dimensionalise as nd
 from underworld.scaling import dimensionalise
 from underworld.scaling import units as u
@@ -53,6 +53,44 @@ class Badlands(SurfaceProcesses):
                  surfElevation=0., verbose=True, Model=None, outputDir="outbdls",
                  restartFolder=None, restartStep=None, timeField=None,
                  minCoord=None, maxCoord=None, aspectRatio2d=1.):
+        """
+        Creates a SurfaceProcesses object to encapsulate a Badlands model.
+        The arguments for this function will override, or change the behaviour, of the
+        badlands .xml file that usually parametises a Badlands model.
+        Note Badlands is only made available on processor rank 0 in parallel. Information is sent
+        to proc 0, computed via Badlands, and then broadcast to all procs for Underworld processing.
+
+        Paramemters
+        -----------
+
+            XML : str
+                The xml file that parametrises the Badlands model to be coupled with UWGeo.
+                Note aguments defined here will override the values of the xml file.
+            resolution : int array
+                The resolution of the Badlands DEM.
+            checkpoint_interval : 
+                Overwrites the tDisplay value in Badlands. 
+            surfElevation : underworld.function, defaults to 0
+                Sets the initial Z coordinate of Badland's dem mesh to a given value.
+            verbose :
+            Model : UWGeo.Model, optional
+                The UWGeodynamics Model object
+            outputDir : str, default 'outbdls'
+                The output directory of the Badlands execution.
+            restartStep : int, optional 
+                If defined, it will activate Badlands to restart,
+                Using this value as the step number to restart from the `restartFoler` dir defined above. 
+            restartFolder : str
+                The restart folder when restart enabled.
+            timeField : Underworld Swarm variable fields
+                The time field used to measure sedimentation timing of underworld particles. (Check if actually used not used in coupling)
+            minCoord : float array, optional
+                The min coordinates of the Badland's dem, if `None` use the UWGeodynamics model
+            max Coord : float array, optional
+                The max coordinates of the Badland's dem, if `None` use the UWGeodynamics model
+            aspectRatio2D : float
+                Always used in 2D to set the seondary coordinate min/max as a mulitple of the first component.
+        """
         try:
             import badlands
 
@@ -101,6 +139,8 @@ class Badlands(SurfaceProcesses):
             self.badlands_model.load_xml(self.XML)
 
             if self.restartStep:
+                # this will kick off internal restart code in Badlands that overwrites the _demfile
+                # made below. See Badlands documentation for details.
                 self.badlands_model.input.restart = True
                 self.badlands_model.input.rstep = self.restartStep
                 self.badlands_model.input.rfolder = self.restartFolder
@@ -130,10 +170,9 @@ class Badlands(SurfaceProcesses):
             self.badlands_model.input.tStart = self.time_years
             self.badlands_model.tNow = self.time_years
 
-            # Override the checkpoint/display interval in the Badlands model to
-            # ensure BL and UW are synced
+            # Override the checkpoint/display interval in the Badlands xml file.
             self.badlands_model.input.tDisplay = (
-            dimensionalise(self.checkpoint_interval, u.years).magnitude)
+                dimensionalise(self.checkpoint_interval, u.years).magnitude)
 
             # Set Badlands minimal distance between nodes before regridding
             self.badlands_model.force.merge3d = (
@@ -149,6 +188,13 @@ class Badlands(SurfaceProcesses):
         comm.Barrier()
 
         self._disp_inserted = False
+
+        # a cache for badlands information that can be reused in UW coupling.
+        # The surface grid information from badlands is used to:
+        #   1. designate material type, _update_material_types.
+        #   2. used for sampling the velocity field (via help_gen_sample_point).
+        # store this in bdl_cache
+        self._bdl_cache = None
 
         # Transfer the initial DEM state to Underworld
         self._update_material_types()
@@ -180,45 +226,150 @@ class Badlands(SurfaceProcesses):
         dem[:, 2] = coordsZ.flatten()
         return dimensionalise(dem, u.meter).magnitude
 
-    def solve(self, dt, sigma=0):
+    def help_gen_sample_point(self, uw_sample_style=0):
+        '''
+        Collective routine. Return sample points.
+
+        Return:
+        -------
+            np.array : shape (dim)
+            Locations to sample UW velocity.
+            
+        uw_sample_style : int, 0 default
+            Style for UW velocity sampling. Possible values 0 or 1.
+            0 - Use dynamic elevation from Badlands' model elevation. Interpolated to grid locations to sample the UW velocity.
+            1 - Use OLD method to sample at Badlands' initial recGrid elevations.
+
+        Take locations in Badlands' recGrid find the UW velocity field.
+        This helper function abstracts the different algorithm, based on dim.
+        This uses cached data, _bdl_cache, from routine _update_material_types().
+        '''
+
+        if uw_sample_style:
+            # The previous LIMITED implementation.
+            # LIMITED as it use the static recGrid data from Badlands to sample the UW velocity.
+            np_surface = None
+            if rank == 0:
+                rg = self.badlands_model.recGrid
+                if self.Model.mesh.dim == 2:
+                    zVals = rg.regZ.mean(axis=1)
+                    np_surface = np.column_stack((rg.regX, zVals))
+
+                if self.Model.mesh.dim == 3:
+                    np_surface = np.column_stack((rg.rectX, rg.rectY, rg.rectZ))
+
+            np_surface = comm.bcast(np_surface, root=0)
+            comm.Barrier()
+
+            return nd(np_surface * u.meters) # non dimensionalise
+
+        ## SHOULD only get here is uw_sample_style == 0
+
+        fact = dimensionalise(1.0, u.meter).magnitude
+        if self.Model.mesh.dim == 2:
+            xs = None
+            ys = None
+            if rank == 0:
+                xs = self.badlands_model.recGrid.regX / fact # 1D simple
+                ys = self.badlands_model.recGrid.regY / fact
+
+            ( known_xy, known_z ) = ( self._bdl_cache[0], self._bdl_cache[1] )
+
+            xs = comm.bcast(xs, root=0)
+            ys = comm.bcast(ys, root=0)
+
+            comm.Barrier()
+
+            grid_x, grid_y = np.meshgrid(xs, ys)
+            interpolate_z = griddata(points=known_xy,
+                                     values=known_z,
+                                     xi=(grid_x, grid_y),
+                                     method='nearest').T
+            interpolate_z = interpolate_z.mean(axis=1)
+            return np.column_stack((xs, interpolate_z))
+
+        if self.Model.mesh.dim == 3:
+            rect_x = None
+            rect_y = None
+            if rank == 0:
+                rect_x = self.badlands_model.recGrid.rectX / fact # 1D, every point
+                rect_y  = self.badlands_model.recGrid.rectY / fact
+
+            ( known_xy, known_z ) = (self._bdl_cache[0], self._bdl_cache[1])
+            rect_x = comm.bcast(rect_x, root=0)
+            rect_y = comm.bcast(rect_y, root=0)
+
+            comm.Barrier()
+            interpolate_z = griddata(points=known_xy,
+                                     values=known_z,
+                                     xi=(rect_x, rect_y),
+                                     method='nearest')
+            return np.column_stack((rect_x,rect_y, interpolate_z))
+
+
+    def solve(self, dt, sigma=0, uw_sample_style=0):
+        """
+        Collective routine
+
+        Execute Badlands a badlands solve in the Underworld coupling.
+
+        Parameters
+        ----------
+        dt : float,
+            Non dimensional time to advance badlands forward.
+        sigma : float, 0 default
+            Apply a gaussian_filter, as per scipy.ndimage.filters, to the injected velocity displacements from UW to badlands
+        uw_sample_style : int, 0 default
+            Style for UW velocity sampling. Possible values 0 or 1.
+            0 - Use dynamic elevation from Badlands' model elevation. Interpolated to grid locations to sample the UW velocity.
+            1 - Use OLD method to sample at Badlands' initial recGrid elevations.
+
+        Information of function.
+        Execute Badlands a badlands solve in the Underworld coupling.
+            1. Collect Badland's recGrid and broadcast to all procs.
+            2. Inerpolate Underworld velocity field on recGrid
+            3. Calculate overall displacement in meters by muliplying velocity (m/yr) with input dt (yr).
+            4. Using the displacement run badlands from currect time `t` to time `t+dt`.
+            5. TODO: Ensure final stratigraphic field from badlands at `t+dt`.
+            6. Update Underworld particles depending on Badland tin. Another interpolation.
+        """
+
+        dt_years = np.round(dimensionalise(dt, u.years).magnitude,6)  # fix pint scaling issue 
+
         if rank == 0 and self.verbose:
             purple = "\033[0;35m"
             endcol = "\033[00m"
-            print(purple + "Processing surface with Badlands" + endcol)
+            print(purple + f"Processing surface with Badlands {dt_years}:\n\t from {self.time_years} -> {self.time_years+dt_years}" + endcol)
             sys.stdout.flush()
 
-        np_surface = None
-        if rank == 0:
-            rg = self.badlands_model.recGrid
-            if self.Model.mesh.dim == 2:
-                zVals = rg.regZ.mean(axis=1)
-                np_surface = np.column_stack((rg.regX, zVals))
+        # call the helper function to generate sample point for velocity evaluation
+        nd_coords = self.help_gen_sample_point(uw_sample_style)
 
-            if self.Model.mesh.dim == 3:
-                np_surface = np.column_stack((rg.rectX, rg.rectY, rg.rectZ))
-
-        np_surface = comm.bcast(np_surface, root=0)
-        comm.Barrier()
-
-        # Get Velocity Field at the surface
-        nd_coords = nd(np_surface * u.meter)
         tracer_velocity = self.Model.velocityField.evaluate_global(nd_coords)
-
-        dt_years = dimensionalise(dt, u.years).magnitude
 
         if rank == 0:
             tracer_disp = dimensionalise(tracer_velocity * dt, u.meter).magnitude
+
             self._inject_badlands_displacement(self.time_years,
-                                               dt_years,
-                                               tracer_disp, sigma)
+                                               dt_years,        # in years
+                                               tracer_disp,     # displacement in m/y 
+                                               sigma)           # controls gaussian filter smoothing
+
+            # get badlands
+            bdm = self.badlands_model
+
+            # force badlands checkpoint to align with UW
+            #bdm.force.tDisplay = dt_years # this or the following
+            run_until = self.time_years + dt_years
+            bdm.force.next_display = run_until
 
             # Run the Badlands model to the same time point
-            self.badlands_model.run_to_time(self.time_years + dt_years)
+            bdm.run_to_time(run_until)
 
         self.time_years += dt_years
 
         # TODO: Improve the performance of this function
-        self._update_material_types()
+        surf_fn_badlands = self._update_material_types()
         comm.Barrier()
 
         if rank == 0 and self.verbose:
@@ -227,7 +378,7 @@ class Badlands(SurfaceProcesses):
             print(purple + "Processing surface with Badlands...Done" + endcol)
             sys.stdout.flush()
 
-        return
+        return surf_fn_badlands if self.Model._freeSurface_ALEIB else None
 
     def _determine_particle_state_2D(self):
 
@@ -249,6 +400,9 @@ class Badlands(SurfaceProcesses):
         xs = comm.bcast(xs, root=0)
         ys = comm.bcast(ys, root=0)
 
+        # all procs
+        self._bdl_cache = (known_xy, known_z)
+
         comm.Barrier()
 
         grid_x, grid_y = np.meshgrid(xs, ys)
@@ -265,7 +419,7 @@ class Badlands(SurfaceProcesses):
 
         flags = uw_surface[:, 1] < bdl_surface
 
-        return flags
+        return flags,f
 
     def _determine_particle_state(self):
         # Given Badlands' mesh, determine if each particle in 'volume' is above
@@ -290,6 +444,9 @@ class Badlands(SurfaceProcesses):
         known_xy = comm.bcast(known_xy, root=0)
         known_z = comm.bcast(known_z, root=0)
 
+        # all procs
+        self._bdl_cache = (known_xy, known_z)
+
         comm.Barrier()
 
         volume = self.Model.swarm.particleCoordinates.data
@@ -306,29 +463,32 @@ class Badlands(SurfaceProcesses):
 
         # True for sediment, False for air
         flags = volume[:, 2] < interpolate_z
+        f = CloughTocher2DInterpolator((known_xy[:,0], known_xy[:,1]), known_z)
 
-        return flags
+        return flags,f
 
     def _update_material_types(self):
-
         # What do the materials (in air/sediment terms) look like now?
         if self.Model.mesh.dim == 3:
-            material_flags = self._determine_particle_state()
+            under_bd_surface, surf_fn_badlands = self._determine_particle_state()
         if self.Model.mesh.dim == 2:
-            material_flags = self._determine_particle_state_2D()
+            under_bd_surface,surf_fn_badlands = self._determine_particle_state_2D()
 
         # If any materials changed state, update the Underworld material types
         mi = self.Model.materialField.data
 
         # convert air to sediment
         for air_material in self.airIndex:
-            sedimented_mask = np.logical_and(np.in1d(mi, air_material), material_flags)
+            # if material air, and we're below surface, make it sediment
+            sedimented_mask = np.logical_and(np.in1d(mi, air_material), under_bd_surface)
             mi[sedimented_mask] = self.sedimentIndex
 
         # convert sediment to air
         for air_material in self.airIndex:
-            eroded_mask = np.logical_and(~np.in1d(mi, air_material), ~material_flags)
+            # if material is not air, and above surface, make it air
+            eroded_mask = np.logical_and(~np.in1d(mi, air_material), ~under_bd_surface)
             mi[eroded_mask] = self.airIndex[0]
+        return surf_fn_badlands
 
     def _inject_badlands_displacement(self, time, dt, disp, sigma):
         """
@@ -863,8 +1023,8 @@ class velocitySurface_2D(SurfaceProcesses):
         ## TODO: Fix naming for internal passive tracer swarm
         self.Model.add_passive_tracers(name=self.tkey, vertices=nd(self.surfaceArray), advect=False)
 
-        st = self.Model.passive_tracers[self.tkey]
-        assert( st != None, f"Error getting passive tracer {self.tkey}")
+        st = self.Model.passive_tracers.get(self.tkey)
+        assert st != None, f"Error getting passive tracer {self.tkey}"
         st.allow_parallel_nn = True
 
         self.nd_coords = nd(self.surfaceArray)
@@ -898,8 +1058,8 @@ class velocitySurface_2D(SurfaceProcesses):
 
     def solve(self, dt):
 
-        st = self.Model.passive_tracers[self.tkey]
-        assert( st != None, f"Error getting passive tracer {self.tkey}")
+        st = self.Model.passive_tracers.get(self.tkey)
+        assert st != None, f"Error getting passive tracer {self.tkey}"
         if st.data.shape[0] > 0:
             ### evaluate on all nodes and get the tracer velocity on root proc
             tracer_velocity_local = self.Model.velocityField.evaluate(st.data)
@@ -1175,8 +1335,8 @@ class velocitySurface_3D(SurfaceProcesses):
         ### automatically non-dimensionalises the imput coords if they have a dim
         self.Model.add_passive_tracers(name=self.tkey, vertices=self.surfaceArray, advect=False)
 
-        st = self.Model.passive_tracers[self.tkey]
-        assert( st != None, f"Error getting passive tracer {self.tkey}")
+        st = self.Model.passive_tracers.get(self.tkey)
+        assert st != None, f"Error getting passive tracer {self.tkey}"
         st.allow_parallel_nn = True
 
         self.nd_coords = nd(self.surfaceArray)
@@ -1347,8 +1507,8 @@ class velocitySurface_3D(SurfaceProcesses):
     #     return
 
     def solve(self, dt):
-        st = self.Model.passive_tracers[self.tkey]
-        assert( st != None, f"Error getting passive tracer {self.tkey}")
+        st = self.Model.passive_tracers.get(self.tkey)
+        assert st != None, f"Error getting passive tracer {self.tkey}"
         if st.data.shape[0] > 0:
             x = np.ascontiguousarray(st.data[:,0])
             y = np.ascontiguousarray(st.data[:,1])

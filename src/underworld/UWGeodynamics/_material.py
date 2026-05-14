@@ -3,7 +3,6 @@ from itertools import count
 from copy import copy
 from collections import OrderedDict
 import json
-import pkg_resources
 from underworld.scaling import units as u
 from ._utils import PhaseChange
 from ._rheology import ConstantViscosity
@@ -303,8 +302,8 @@ class MaterialRegistry(object):
         """
 
         if not filename:
-            filename = pkg_resources.resource_filename(
-                __name__, "resources/Materials.json")
+            from importlib.resources import files
+            filename = str(files(__package__).joinpath("resources/Materials.json"))
 
         def get_value(item):
             value = item["value"]

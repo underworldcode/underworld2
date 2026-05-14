@@ -10,7 +10,9 @@ requires = [
 
 [project]
 name    = "underworld"
-dynamic = ["version"] # is dynamically taken from setuptools backend
+dynamic = [
+  "version",
+  "license" ] # is dynamically taken from setuptools backend
 authors = [
   {name = "Louis Moresi", email="louis.moresi@anu.edu.au"},
   {name = "Julian Giordani", email="julian.giordnai@sydney.edu.au"},
@@ -27,10 +29,9 @@ dependencies = [
   "pint",
   "scipy",
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.9,<3.13" 
 description = "Underworld2 is a python-friendly, parallel, scalable, easy-to-use toolkit for solving problems in solid and fluid mechanics."
 readme = "README.md"
-license = {file = "./LICENSE.md"}
 keywords = ["Underworld", "MPI", "Geodynamics"]
 classifiers = [
   "Development Status :: 5 - Production/Stable",
@@ -46,10 +47,11 @@ classifiers = [
 
 [project.optional-dependencies]
 full = [
-  "badlands",
   "lavavu",
+  "lavavu-osmesa",
   "matplotlib",
   "nbmake",
+  #"badlands",
 ]
 
 [project.urls]

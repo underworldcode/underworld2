@@ -17,11 +17,10 @@ typedef struct {
 	__Codelet
 } Underworld_Toolbox;
 
-void Underworld_Toolbox_Initialise();
+void Underworld_Toolbox_Initialise( ToolboxesManager* toolboxesManager, int* argc, char*** argv );
 
 Index Underworld_Toolbox_Register( ToolboxesManager* toolboxesManager );
-
-void Underworld_Toolbox_Finalise();
+void Underworld_Toolbox_Finalise( ToolboxesManager* toolboxesManager );
 
 char* Underworld_Toolbox_GetDeps() {return "StgDomain StgFEM PICellerator";};
 

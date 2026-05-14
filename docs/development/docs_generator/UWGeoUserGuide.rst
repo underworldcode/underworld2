@@ -17,7 +17,7 @@ Where to find documentation?
 
 Additional documentation and function specific
 documentation can be find in the python doctrings.
-You can acces them in the Jupyter_ notebook by prepending or
+You can acces them in the Jupyter notebook by prepending or
 appending the method, variable or function with ``?``.
 
 Design principles
@@ -779,7 +779,7 @@ These can be accessed using the `GEO.ViscousCreepRegistry`:
    from a json file by passing its path as argument.
    The `default json`__ file can be find here and can be used as an example.
 
-__ https://github.com/underworldcode/UWGeodynamics/blob/master/UWGeodynamics/resources/ViscousRheologies.json_
+__ <https://github.com/underworldcode/UWGeodynamics/blob/master/UWGeodynamics/resources/ViscousRheologies.json>_
 
 **Example:**
 
@@ -917,7 +917,7 @@ They can be accessed using the `GEO.PlasticityRegistry` registry.
    from a json file by passing its path as argument.
    The `default json`__ file can be find here and can be used as an example.
 
-__ https://github.com/underworldcode/UWGeodynamics/blob/master/UWGeodynamics/resources/PlasticRheologies.json_
+__ <https://github.com/underworldcode/UWGeodynamics/blob/master/UWGeodynamics/resources/PlasticRheologies.json>_
 
 Users can define their own parametres:
 
@@ -1436,11 +1436,11 @@ You have 2 options:
 
    Model.run_for(nstep=10)
 
-1. Specify an endTime
+2. Specify an end with *duration* argument:
 
 .. code:: python
 
-   Model.run_for(endTime=1.0* u.megayears)
+   Model.run_for(duration=1.0* u.megayears)
 
 which is equivalent to
 
@@ -1743,7 +1743,8 @@ Three simple function are available:
 3. Combination of the 2 above. (``ErosionAndSedimentationThreshold``)
 
 Erosion and sedimentation rate
-~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 Adds an erosion and sedimentation rate to the surface. A pre-defined vertical co-ordinate (surfaceElevation) needs to be defined to stop erodion below that level and sedimenation above it.
 
 Example:

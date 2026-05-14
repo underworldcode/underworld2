@@ -16,11 +16,11 @@ typedef struct {
 	__Codelet
 } Solvers_Toolbox;
 
-void Solvers_Toolbox_Initialise();
+void Solvers_Toolbox_Initialise( PluginsManager* pluginsManager, int* argc, char*** argv );
 
 Index Solvers_Toolbox_Register( PluginsManager* pluginsManager );
 
-void Solvers_Toolbox_Finalise();
+void Solvers_Toolbox_Finalise( PluginsManager* pluginsManager );
 
 char* Solvers_Toolbox_GetDeps() {return "StgDomain StgFEM PICellerator Underworld";};
 

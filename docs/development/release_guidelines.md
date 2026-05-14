@@ -10,11 +10,35 @@ Version Control
   into `development` to capture release related changes. This step is also useful
   to ensure all docker images are being built correctly at Dockerhub before
   merging into master. Remember to switch dev branch version numbers and 
-  Dockerfiles back (as merge from master will change them). 
+  Dockerfiles back (as merge will change them). 
 * Finally, once satisfied that docker images on dev are being built correctly, 
   merge the release branch (not the dev branch!) into `master`. This should be a 
   fast forward, otherwise something has gone wrong.
 * The release branch may now be deleted.    
+
+### Ascii art release strategy
+
+Time goes left to right.
+
+```text
+main] v1 --              v2  |
+       \                 /   |
+v2.x]   \         x -- y     |
+         \       /      \    |
+dev ]     A -- B -- C -- D   |
+```
+
+Notes:
+
+* A, B, C, D, x, y, v1, v2 are commits
+* main, v2.x, dev are branches         
+* \ and / indicate git mergers
+
+##### Example
+* v2.x in this example starts from B on dev and is called x.
+* v2.x once finalised with y, is merged into dev, so dev captures relevant changes made in v2.x.
+* then v2.x is merged into main and tag v2, other changes may be needed for this to become a release.
+* v2.x can be deleted when a v3.x branch starts. 
 
 Review issue tracker 
 ====================
@@ -41,7 +65,7 @@ Documentation review
 * Review `.zenodo.json` (and validate using `jsonlint`, https://jsonlint.com/).
 * Update the copyright information if necessary.
 * Add new Binder link, and keep link to old Binder.
-* Generate/update change log (`CHANGES.md`).
+* Generate/update change log (`CHANGELOG.md`).
 * Review cheat sheet contents.
 * Increment version number within ``underworld/_version.py``
   (check `development_guidelines.md` for details on version numbering).
@@ -67,7 +91,7 @@ Creating the release
 * Tag the release branch in git.
 * Create the release from within Github.
 * Check `docker/docker.md` for docker image release information.
-* Add tagged documentation version at http://underworld2.readthedocs.io/  
+* Add tagged documentation version at http://underworld2.readthedocs.io/, login to readthedocs point to new release.
 * Package for PyPi: `python setup.py sdist`
 * Upload to PyPi: `twine upload dist/* -r pypi`
 - The url and sha256 fields must be updated in the `conda/meta.yaml`. We want the url not the git_url and
@@ -84,6 +108,7 @@ After the release
 ============
 * Increment version number within ``underworld/_version.py`` on dev branch (eg 2.6.0-dev)
 * Update `FROM` tag in top level (binder) Dockerfile to use dev images.
+* Refresh the `CI-env.lock` for new release CI testing. i.e `mamba env export --explicit > CI-env.lock`
 * Check `docker/docker.md` for docker related actions.
 
 

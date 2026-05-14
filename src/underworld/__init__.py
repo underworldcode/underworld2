@@ -61,9 +61,11 @@ _sys.setdlopenflags( _oldflags | _ctypes.RTLD_GLOBAL )
 
 from ._version import __version__
 
-# insert directory for binaries in python search path
+# insert directory for binaries (.so/.dylibs) to be found
+# when import libUnderworld -> import libUnderworldPy 
 import os as _os
 _sys.path.append(_os.path.join(__file__[:-11],'lib'))
+
 # squelch h5py/numpy future warnings
 import warnings as _warnings
 _warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -77,6 +79,8 @@ from . import timing
 from . import libUnderworld as _libUnderworld
 from . import _stgermain
 _data =  _libUnderworld.StGermain_Tools.StgInit( _sys.argv )
+
+# LoadModules relies on the 'lib' path appended above to be correct
 _stgermain.LoadModules( {"import":["StgDomain","StgFEM","PICellerator","Underworld","gLucifer","Solvers"]} )
 
 class _del_uw_class:
@@ -242,6 +246,7 @@ def _in_doctest():
 # send metrics *only* if we are rank==0, and if we are not running inside a doctest.
 if (underworld.mpi.rank == 0) and not _in_doctest():
     def _sendData():
+
         import os
         # disable collection of data if requested
         if "UW_NO_USAGE_METRICS" not in os.environ:
@@ -252,15 +257,19 @@ if (underworld.mpi.rank == 0) and not _in_doctest():
             # check if docker
             import os.path
             if (os.path.isfile("/.dockerinit")):
-                machinfo += "__docker"
+                sysinfo += "__docker"
 
-            event_dict = { "version" : underworld.__version__,
-                           "platform" : sysinfo,
-                           "run_size" : underworld.mpi.size }
+            event_dict = { "distinct_id" : _id,
+                           "properties": {
+                               "version"  : underworld.__version__,
+                               "platform" : sysinfo,
+                               "run_size" : underworld.mpi.size, 
+                           },
+                         }
 
             # send info async
             import threading
-            thread = threading.Thread( target=_net.PostGA4Event, args=("import_uw2", event_dict) )
+            thread = threading.Thread( target=_net.PostPostHog, args=("import_uw2", event_dict) )
             thread.daemon = True
             thread.start()
 
