@@ -1,7 +1,7 @@
 CHANGELOG: Underworld2
 =======================
 
-Release 2.17.2 [2026-05-07]
+Release 2.17.3 [2026-05-14]
 ---------------------------
 New:
 * ALE-IB (Arbitrary Lagragian Eulerian - Internal Boundary) models added. #753
