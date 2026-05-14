@@ -1,9 +1,14 @@
 name: Publish Python distribution 📦 to TestPyPI then PyPI
 
 on: 
-  workflow_dispatch: 
+  workflow_dispatch:
+    inputs:
+      release_name:
+        description: "Release name"
+        required: true
+        type: string
   release:
-    type: [publish] # triggers when you publish a GitHub release
+    types: [published] # triggers when you publish a GitHub release
 
 jobs:
 
@@ -13,10 +18,10 @@ jobs:
 
     steps:
     - name: Checkout release
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
 
     - name: Set up Micromamba
-      uses: mamba-org/setup-micromamba@v2
+      uses: mamba-org/setup-micromamba@v3
       with:
         environment-file: conda/CI-env.lock
         environment-name: uw-2.17
@@ -33,7 +38,7 @@ jobs:
       shell: micromamba-shell {0}
 
     - name: Store the distribution packages
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: underworld-${{ github.event.release.name }}
         path: dist/
@@ -51,7 +56,7 @@ jobs:
 
     steps:
       - name: Download package
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: underworld-${{ github.event.release.name }}
           path: dist/
@@ -74,7 +79,7 @@ jobs:
 
     steps:
       - name: Download package
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: underworld-${{ github.event.release.name }}
           path: dist/
