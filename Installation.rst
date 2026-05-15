@@ -53,14 +53,42 @@ HPC Installation
 Detailed instructions for supported HPC platforms may be found at `docs/install_guides
 <https://github.com/underworldcode/underworld2/tree/master/docs/install_guides>`_. You may also find useful usage information (on docker/hpc/compilation/other) on the Underworld blog.
 
+Pixi (Developer Installation)
+-------------------------------
+
+`Pixi <https://pixi.sh>`_ is the recommended method for developers building Underworld2 from source. It manages a reproducible conda-forge + PyPI environment with lock files for deterministic builds.
+
+Requirements
+~~~~~~~~~~~~
+
+* `pixi <https://pixi.sh>`_ installed on your system
+
+Building
+~~~~~~~~
+
+.. code:: bash
+
+   pixi install        # create/restore environment with all dependencies
+   pixi run build      # build and install the C/C++ extension (CMake+Ninja+SWIG)
+   pixi run test       # run the test suite
+
+To activate the environment for interactive use:
+
+.. code:: bash
+
+   pixi shell
+
+Under the hood, ``pixi run build`` executes ``pip install .`` which drives the CMake
+configure → build → install pipeline for the ``libUnderworld`` extension.
+
+The complete set of dependencies is defined in ``pixi.toml`` and locked to exact
+versions in ``pixi.lock`` for reproducibility.
+
 Native Installation
 -------------------
 
-Requirements
-++++++++++++
-
 Build environment
-*****************
+~~~~~~~~~~~~~~~~~
 
 * cmake >= 3.16
 * MPICH or OPENMPI
@@ -73,7 +101,7 @@ Build environment
 * Ninja
 
 Running Requirements
-********************
+~~~~~~~~~~~~~~~~~~~~
 
 * h5py: The standard `h5py` (installed via `pip`) is the recommended version for desktop usage. However, note that it will be the non-parallel enabled version, and for large parallel simulations saving/reading data may become a bottleneck, and collective IO via MPI-enabled `h5py` is recommended. The following command may be useful for installed MPI-enabled `h5py` where necessary:
 
@@ -115,17 +143,3 @@ Note that some tests also require *matplotlib*
 .. code:: bash
 
    pytest -vvv ./docs/pytests
-
-
-Notes on Installing Docker
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-- Linux users should be able to install *docker* using the distribution's standard package manager. 
-- Windows users should note that for *Windows 10 Home* you should install *Docker Toolbox*, while for *Windows 10 Professional* you should install *Docker Desktop*.  
-- All users on Apple OS X should use *Docker Desktop* (not *Docker Toolbox*). The *Docker Toolbox* edition utilised VirtualBox for virtualisation, and therefore to access any running Jupyter servers you must browse to the virtual machine address (instead of *localhost*). To find the VM address, you will generally execute
-
-  .. code:: bash
-
-     docker-machine ip default
-
-  but note that this will only work correctly from the *Docker Quickstart Terminal*.

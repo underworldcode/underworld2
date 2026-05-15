@@ -60,10 +60,25 @@ Note that it can take a while for the site to fire up and that it will time-out 
 
 Getting Underworld
 -------------------
-The Underworld2 Docker container is the recommended method of installation on Windows, Mac OSX and Linux. Native compilation is generally not recommended for personal computers, although may be necessary in HPC environments which do not support containerisation. 
+
+### Via Container (recommended for users)
+
+The Underworld2 Container is the recommended method for running pre-built releases on Windows, Mac OSX and Linux. Native compilation is generally not recommended for personal computers, although may be necessary in HPC environments which do not support containerisation. `podman` is the recommended container runner, but the containers also work with `docker`.
+
+Visit (https://github.com/underworldcode/underworld2/pkgs/container/underworld2)[ghcr.io] for options.
 
 Please refer to the documentation site for further information.
 
+### Pixi (recommended for development)
+
+[Pixi](https://pixi.sh) provides a reproducible conda-forge + PyPI environment with lock files for deterministic builds.
+
+```sh
+pixi install        # create/restore environment with all dependencies
+pixi run build      # build and install the C/C++ extension via CMake+Ninja+SWIG
+pixi run test       # run the test suite
+pixi shell          # activate the environment for interactive use
+```
 
 Where to find things
 --------------------
@@ -76,7 +91,7 @@ Where to find things
 
 Privacy
 -------
-Note that basic usage metrics are dispatched when you use Underworld. To opt out, set the UW_NO_USAGE_METRICS environment variable. See `PRIVACY.md` for full details.                                   
+Note that basic usage metrics are dispatched when you use Underworld. To opt out, set the UW_NO_USAGE_METRICS environment variable. See `PRIVACY.md` for full details.
 
 Licensing
 ---------
