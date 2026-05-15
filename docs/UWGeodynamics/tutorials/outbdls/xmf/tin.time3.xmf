@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Xdmf SYSTEM "Xdmf.dtd">
+<Xdmf Version="2.0" xmlns:xi="http://www.w3.org/2001/XInclude">
+ <Domain>
+    <Grid GridType="Collection" CollectionType="Spatial">
+      <Time Type="Single" Value="30000.0"/>
+      <Grid Name="Block.0">
+         <Topology Type="Triangle" NumberOfElements="202204" BaseOffset="1">
+          <DataItem Format="HDF" DataType="Int" Dimensions="202204 3">h5/tin.time3.hdf5:/cells</DataItem>
+         </Topology>
+         <Geometry Type="XYZ">
+          <DataItem Format="HDF" NumberType="Float" Precision="4" Dimensions="103330 3">h5/tin.time3.hdf5:/coords</DataItem>
+         </Geometry>
+         <Attribute Type="Scalar" Center="Node" Name="lake">
+          <DataItem Format="HDF" NumberType="Float" Precision="4" Dimensions="103330 1">h5/tin.time3.hdf5:/lake</DataItem>
+         </Attribute>
+         <Attribute Type="Scalar" Center="Node" Name="Discharge">
+          <DataItem Format="HDF" NumberType="Float" Precision="4" Dimensions="103330 1">h5/tin.time3.hdf5:/discharge</DataItem>
+         </Attribute>
+         <Attribute Type="Scalar" Center="Node" Name="EroDep">
+          <DataItem Format="HDF" NumberType="Float" Precision="4" Dimensions="103330 1">h5/tin.time3.hdf5:/cumdiff</DataItem>
+         </Attribute>
+         <Attribute Type="Scalar" Center="Node" Name="EroDep hillslope">
+          <DataItem Format="HDF" NumberType="Float" Precision="4" Dimensions="103330 1">h5/tin.time3.hdf5:/cumhill</DataItem>
+         </Attribute>
+         <Attribute Type="Scalar" Center="Node" Name="EroDep failure">
+          <DataItem Format="HDF" NumberType="Float" Precision="4" Dimensions="103330 1">h5/tin.time3.hdf5:/cumfail</DataItem>
+         </Attribute>
+         <Attribute Type="Scalar" Center="Node" Name="Sealevel">
+          <DataItem ItemType="Function" Function="$0 * 0.00000000001 + -200.000000" Dimensions="103330 1">
+           <DataItem Format="HDF" NumberType="Float" Precision="4" Dimensions="103330 1">h5/tin.time3.hdf5:/cumdiff</DataItem>
+          </DataItem>
+         </Attribute>
+      </Grid>
+    </Grid>
+ </Domain>
+</Xdmf>

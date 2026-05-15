@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Xdmf SYSTEM "Xdmf.dtd">
+<Xdmf Version="2.0" xmlns:xi="http://www.w3.org/2001/XInclude">
+ <Domain>
+    <Grid GridType="Collection" CollectionType="Temporal">
+      <xi:include href="xmf/tin.time0.xmf" xpointer="xpointer(//Xdmf/Domain/Grid)"/>
+      <xi:include href="xmf/tin.time1.xmf" xpointer="xpointer(//Xdmf/Domain/Grid)"/>
+      <xi:include href="xmf/tin.time2.xmf" xpointer="xpointer(//Xdmf/Domain/Grid)"/>
+      <xi:include href="xmf/tin.time3.xmf" xpointer="xpointer(//Xdmf/Domain/Grid)"/>
+      <xi:include href="xmf/tin.time4.xmf" xpointer="xpointer(//Xdmf/Domain/Grid)"/>
+      <xi:include href="xmf/tin.time5.xmf" xpointer="xpointer(//Xdmf/Domain/Grid)"/>
+    </Grid>
+ </Domain>
+</Xdmf>

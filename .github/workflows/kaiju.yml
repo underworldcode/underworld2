@@ -9,7 +9,9 @@ jobs:
     name: Global Protect
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
       - name: Connect
         uses: "./actions/globalprotect"
         env:

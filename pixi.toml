@@ -1,19 +1,17 @@
 [workspace]
 authors = ["Julian Giordani <julian.giordani@sydney.edu.au>"]
-channels = [
-  "conda-forge",
-  "https://prefix.dev/pixi-build-backends"
-]
-name = "uw2-pixi"
+channels = ["conda-forge"]
+name = "uw2-dev"
 platforms = ["linux-64", "osx-arm64"]
 
 [tasks]
 build = "pip install ."
-test = "pytest ./docs/pytests/tests.py ./docs/pytests/test_examples.py ./docs/pytests/test_user_guide.py"
+sdist  = "python -m build --sdist"
+test = "pytest ./docs/pytests/tests.py ./docs/pytests/test_examples.py ./docs/pytests/test_user_guide.py ./docs/pytests/test_UWGeo_examples.py ./docs/pytests/test_UWGeo_tutorial11.py"
+clean = "bash clean.sh"
 
 [dependencies]
-petsc = "3.21.*"
-python = "3.11.*"
+python = "3.12.*"
 numpy = "<2"
 pint = ">=0.24.4,<0.25"
 cmake = ">=4.0.3,<5"
@@ -23,18 +21,33 @@ compilers = ">=1.10.0,<2"
 scipy = ">=1.16.0,<2"
 mpi4py = ">=4.1.0,<5"
 libxml2 = ">=2.13.8,<3"
+libxml2-devel = ">=2.13.8,<3"
 ninja = ">=1.13.0,<2"
 mesalib = ">=25.0.5,<26"
 mpich = ">=4.3.1,<5"
 hdf5 = { version = "*", build = "mpi*" }
 h5py = { version = "*", build = "mpi*" }
 pip = ">=25.1.1,<26"
+petsc = "3.21.*"
 pytest = ">=8.4.1,<9"
 nbmake = ">=1.5.5,<2"
 jupytext = ">=1.17.2,<2"
-jupyterlab = ">=4.4.4,<5"
 matplotlib = ">=3.10.5,<4"
-#[host-dependencies]
+git = ">=2.40.0"
+git-lfs = ">=3.0.0"
 c-compiler = "*"
 cxx-compiler = "*"
 make = "*"
+
+[pypi-dependencies]
+lavavu = "*"
+badlands = "*"
+meshplex = { url = "https://github.com/kinnala/meshplex/archive/refs/heads/master.zip" }
+
+
+[feature.dev.dependencies]
+jupyterlab = ">=4.4.4,<5"
+jupyterhub-singleuser = ">=5.0.0"
+
+[environments]
+default = ["dev"]

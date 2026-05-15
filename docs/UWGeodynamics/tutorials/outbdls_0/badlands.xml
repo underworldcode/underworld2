@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<badlands xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <!-- Regular grid structure -->
+  <grid>
+    <!-- Optional parameter (integer) used to decrease TIN resolution.
+             The default value is set to 1. Increasing the factor
+             value will multiply the digital elevation model resolution
+             accordingly.  -->
+    <resfactor>1</resfactor>
+    <!-- Underworld flag.  -->
+    <udw>1</udw>
+  </grid>
+  <!-- Sea-level structure -->
+  <sea>
+    <!-- Relative sea-level position [m] -->
+    <position>-200.</position>
+    <!-- Sea-level curve - (optional) -->
+    <!-- <curve>data/sea.csv</curve> -->
+    <!-- Limit flow network computation based on
+             water depth [m] -->
+    <!-- <limit>100.</limit> -->
+  </sea>
+  <!-- Simulation time structure -->
+  <time>
+    <!-- Simulation start time [a] -->
+    <start>0.</start>
+    <!-- Simulation end time [a] -->
+    <end>200000000.</end>
+    <!-- Display interval [a] -->
+    <!-- This will be overridden by the linkage, so it doesn't matter -->
+    <display>1000000.</display>
+  </time>
+  <!-- Precipitation structure -->
+  <precipitation>
+    <!-- Number of precipitation events -->
+    <climates>1</climates>
+    <!-- Precipitation definition -->
+    <rain>
+      <!-- Rain start time [a] -->
+      <rstart>0.</rstart>
+      <!-- Rain end time [a] -->
+      <rend>3000000.</rend>
+      <!-- Precipitation value [m/a] - (optional) -->
+      <rval>1.</rval>
+    </rain>
+  </precipitation>
+  <!-- Stream power law parameters:
+         The stream power law is a simplified form of the usual expression of
+         sediment transport by water flow, in which the transport rate is assumed
+         to be equal to the local carrying capacity, which is itself a function of
+         boundary shear stress. -->
+  <sp_law>
+    <!-- Values of m and n indicate how the incision rate scales
+             with bed shear stress for constant value of sediment flux
+             and sediment transport capacity.
+             Generally, m and n are both positive, and their ratio
+             (m/n) is considered to be close to 0.5 -->
+    <m>0.5</m>
+    <n>1.0</n>
+    <!-- The erodibility coefficient is scale-dependent and its value depend
+              on lithology and mean precipitation rate, channel width, flood
+              frequency, channel hydraulics. -->
+    <erodibility>8.e-6</erodibility>
+    <diffnb>10</diffnb>
+    <diffprop>0.05</diffprop>
+  </sp_law>
+  <strata>
+    <stratdx>5000.</stratdx>
+    <laytime>10000.</laytime>
+  </strata>
+  <!-- Linear slope diffusion parameters:
+         Parameterisation of the sediment transport includes the simple creep transport
+         law which states that transport rate depends linearly on topographic gradient. -->
+  <creep>
+    <!-- Surface diffusion coefficient [m2/a] -->
+    <caerial>0.5</caerial>
+    <!-- Marine diffusion coefficient [m2/a] -->
+    <cmarine>1.0</cmarine>
+    <criver>10</criver>
+  </creep>
+  <!-- Output folder path -->
+  <outfolder>outbdls</outfolder>
+</badlands>

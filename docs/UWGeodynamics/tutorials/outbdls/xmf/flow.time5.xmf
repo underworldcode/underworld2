@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Xdmf SYSTEM "Xdmf.dtd">
+<Xdmf Version="2.0" xmlns:xi="http://www.w3.org/2001/XInclude">
+ <Domain>
+    <Grid GridType="Collection" CollectionType="Spatial">
+      <Time Type="Single" Value="65071.402379"/>
+      <Grid Name="Block.0">
+         <Topology Type="Polyline" NodesPerElement="2" NumberOfElements="99927" BaseOffset="1">
+          <DataItem Format="HDF" DataType="Int" Dimensions="99927 2">h5/flow.time5.hdf5:/connect</DataItem>
+         </Topology>
+         <Geometry Type="XYZ">
+          <DataItem Format="HDF" NumberType="Float" Precision="4" Dimensions="102698 3">h5/flow.time5.hdf5:/coords</DataItem>
+         </Geometry>
+         <Attribute Type="Scalar" Center="Node" Name="BasinID">
+          <DataItem Format="HDF" NumberType="Integer" Precision="4" Dimensions="102698 1">h5/flow.time5.hdf5:/basin</DataItem>
+         </Attribute>
+         <Attribute Type="Scalar" Center="Node" Name="Discharge [m3/s]">
+          <DataItem Format="HDF" NumberType="Float" Precision="4" Dimensions="102698 1">h5/flow.time5.hdf5:/discharge</DataItem>
+         </Attribute>
+         <Attribute Type="Scalar" Center="Node" Name="Chi">
+          <DataItem Format="HDF" NumberType="Float" Precision="4" Dimensions="102698 1">h5/flow.time5.hdf5:/chi</DataItem>
+         </Attribute>
+         <Attribute Type="Scalar" Center="Node" Name="sedload [m3/s]">
+          <DataItem Format="HDF" NumberType="Float" Precision="4" Dimensions="102698 1">h5/flow.time5.hdf5:/sedload</DataItem>
+         </Attribute>
+         <Attribute Type="Scalar" Center="Node" Name="flowdensity adim">
+          <DataItem Format="HDF" NumberType="Float" Precision="4" Dimensions="102698 1">h5/flow.time5.hdf5:/flowdensity</DataItem>
+         </Attribute>
+      </Grid>
+    </Grid>
+ </Domain>
+</Xdmf>

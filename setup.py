@@ -278,8 +278,6 @@ version = {}
 with open("src/underworld/_version.py") as fp:
     exec(fp.read(), version)
 
-with open("README.md", "r") as fh:
-    long_description = fh.read()
 
 # Create uwid if it doesn't exist
 idfile = './src/underworld/_uwid.py'
@@ -288,18 +286,8 @@ if not os.path.isfile(idfile):
     with open(idfile, "w+") as f:
         f.write("uwid = \'" + str(uuid.uuid4()) + "\'")
 
-setup(name='underworld',
+setup(
     version=version['__version__'],
-    description="Underworld is a python-friendly version of the Underworld geodynamics \
-code which provides a programmable and flexible front end to all the \
-functionality of the code running in a parallel HPC environment.",
-    long_description=long_description,
-    long_description_content_type="text/markdown",
-    platforms=['POSIX'],
-    license='LGPL-3',
-    url='https://github.com/underworldcode/underworld2',
-    download_url="",
-    maintainer_email='help@underworldcode.org',
     include_package_data=True, # use the file './MANIFEST.in' for package data files
     package_dir={"":"src"}, # directory containing underworld package
     packages=find_namespace_packages(
