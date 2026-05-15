@@ -17,7 +17,9 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
 
       - name: Set up Pixi
         uses: prefix-dev/setup-pixi@v0
