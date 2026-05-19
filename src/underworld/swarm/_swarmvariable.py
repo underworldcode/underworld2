@@ -205,11 +205,13 @@ class SwarmVariable(_stgermain.StgClass, function.Function):
         """
         if self._arr is None:
             self._arr = libUnderworld.StGermain.StgVariable_getAsNumpyArray(self._cself.variable)
-            # set to writeability
-            self._arr.flags.writeable = self._writeable
             # add to swarms weakref dict
             self.swarm._livingArrays[self._cself.name + "_data"] = self._arr
-        return self._arr
+        if self._writeable:
+            return self._arr
+        view = self._arr.view()
+        view.flags.writeable = False
+        return view
 
     @property
     def data_shadow(self):

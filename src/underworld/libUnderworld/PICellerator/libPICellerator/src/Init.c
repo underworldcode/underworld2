@@ -7,6 +7,17 @@
 **                                                                                  **
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 
+#define PY_ARRAY_UNIQUE_SYMBOL stg_PICellerator_ARRAY_API
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+#include <numpy/arrayobject.h>
+#define NUMPY_IMPORT_ARRAY_RETVAL False
+
+/* import_array() is a macro that calls `return`, so we wrap it */
+void* _PICellerator_import_numpy() {
+   import_array();
+   return NULL;
+};
+
 #include <mpi.h>
 #include <StGermain/libStGermain/src/StGermain.h>
 #include <StgDomain/libStgDomain/src/StgDomain.h>
@@ -31,12 +42,14 @@ Bool PICellerator_Init( int* argc, char** argv[] ) {
       int   tmp;
       char* directory;
 
+      _PICellerator_import_numpy();
+
       PICellerator_PopulationControl_Init( argc, argv );
       PICellerator_Weights_Init( argc, argv );
       PICellerator_MaterialPoints_Init( argc, argv );
       PICellerator_Utils_Init( argc, argv );
 
-         
+          
       
 
       Stream_Flush( Journal_Register( InfoStream_Type, (Name)"Context" ) );

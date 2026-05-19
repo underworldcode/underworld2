@@ -8,6 +8,17 @@
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
 
 
+#define PY_ARRAY_UNIQUE_SYMBOL stg_Underworld_ARRAY_API
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+#include <numpy/arrayobject.h>
+#define NUMPY_IMPORT_ARRAY_RETVAL False
+
+/* import_array() is a macro that calls `return`, so we wrap it */
+void* _Underworld_import_numpy() {
+   import_array();
+   return NULL;
+};
+
 #include <mpi.h>
 #include <StGermain/libStGermain/src/StGermain.h>
 #include <StgDomain/libStgDomain/src/StgDomain.h>
@@ -44,6 +55,8 @@ Bool Underworld_Init( int* argc, char** argv[] ) {
       // int   tmp;
       // Bool  useSignalHandler = True;
       char* directory;
+
+      _Underworld_import_numpy();
 
       // for( arg_I = 0; argc && arg_I < *argc; arg_I++ ) {
       //    argString = (*argv)[arg_I];

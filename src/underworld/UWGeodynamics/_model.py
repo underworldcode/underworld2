@@ -270,7 +270,7 @@ class Model(Material):
     @dt.setter
     def dt(self, value):
         valFn = fn.Function.convert(value)
-        self._dt.value = float(valFn.evaluate())
+        self._dt.value = valFn.evaluate().flat[0]
 
     def _initialize(self):
         """_initialize

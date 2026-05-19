@@ -571,7 +571,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
         # lock swarm to prevent particle addition etc
         self._locked = True
         # enable writeable array
-        self._particleCoordinates.data.flags.writeable = True
+        self._particleCoordinates._writeable = True
         try:
             yield
         except Exception as e:
@@ -579,7 +579,7 @@ class Swarm(_swarmabstract.SwarmAbstract, function.FunctionInput, _stgermain.Sav
                                                      +"Particle locations may not be correctly modified." )
         finally:
             # disable writeable array
-            self._particleCoordinates.data.flags.writeable = False
+            self._particleCoordinates._writeable = False
             # unlock swarm
             self._locked = False
             # update owners

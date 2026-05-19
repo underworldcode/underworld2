@@ -161,9 +161,9 @@ class Lithostatic_pressure(fn.Function):
 
         GlobalIndices3d = np.arange(self.mesh.nodesGlobal).reshape(nz + 1, ny + 1, nx + 1)
         # Get an I,J representation of the node coordinates
-        Ipositions = np.array([int(np.where(GlobalIndices3d == i)[2]) for i in node_gids])
-        Jpositions = np.array([int(np.where(GlobalIndices3d == i)[1]) for i in node_gids])
-        Kpositions = np.array([int(np.where(GlobalIndices3d == i)[0]) for i in node_gids])
+        Ipositions = np.array([np.where(GlobalIndices3d == i)[2][0] for i in node_gids])
+        Jpositions = np.array([np.where(GlobalIndices3d == i)[1][0] for i in node_gids])
+        Kpositions = np.array([np.where(GlobalIndices3d == i)[0][0] for i in node_gids])
 
         # Get local domain data
         local_z[Kpositions, Jpositions, Ipositions] = self.mesh.data[:self.mesh.nodesLocal, 2]

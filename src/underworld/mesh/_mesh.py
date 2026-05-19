@@ -72,6 +72,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         self._post_deform_functions = []
 
         self._arr = None
+        self._deform_lock = True
 
         # build parent
         super(FeMesh,self).__init__(**kwargs)
@@ -207,7 +208,10 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         """
         if self._arr is None:
             self._arr = uw.libUnderworld.StGermain.StgVariable_getAsNumpyArray(self._cself.verticesVariable)
-            self._arr.flags.writeable = False
+        if self._deform_lock:
+            view = self._arr.view()
+            view.flags.writeable = False
+            return view
         return self._arr
 
     @contextlib.contextmanager
@@ -250,7 +254,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
         for function in self._pre_deform_functions:
             function()
 
-        self.data.flags.writeable = True
+        self._deform_lock = False
         try:
             yield
         except Exception as e:
@@ -261,7 +265,7 @@ class FeMesh(_stgermain.StgCompoundComponent, function.FunctionInput):
                                                      +"but will instead be updated automatically on return from "
                                                      +"the 'deform_mesh' context manager. \nEncountered exception message:\n")
         finally:
-            self.data.flags.writeable = False
+            self._deform_lock = True
             if isRegular:
                 self._cself.isRegular = True
                 uw.libUnderworld.StgDomain.Mesh_SetAlgorithms( self._cself,
@@ -1318,7 +1322,7 @@ class _FeMesh_Regional(FeMesh_Cartesian):
     >>> mesh = uw.mesh._FeMesh_Regional( elementRes=(20,20,14), radius=(radMin, radMax) )
     >>> integral = uw.utils.Integral( 1.0, mesh).evaluate()[0]
     >>> exact = 4/3.0*np.pi*(radMax**3 - radMin**2) / 6.0
-    >>> np.fabs(integral-exact)/exact < 1e-1
+    >>> np.abs(integral-exact)/exact < 1e-1
     True
 
 

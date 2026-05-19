@@ -440,7 +440,7 @@ class MeshVariable(_stgermain.StgCompoundComponent,uw.function.Function,_stgerma
             h5f.attrs['units'] = str(units)
 
             # save a hdf5 attribute to the elementType used for this field - maybe useful
-            h5f.attrs["elementType"] = np.string_(mesh.elementType)
+            h5f.attrs["elementType"] = np.bytes_(mesh.elementType)
 
             # setup reference to mesh - THE GEOMETRY MESH
             saveDir = os.path.dirname(filename)
