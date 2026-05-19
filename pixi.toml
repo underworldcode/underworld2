@@ -9,11 +9,14 @@ platforms = ["linux-64", "osx-arm64"]
 
 [tasks]
 build = "pip install ."
-test = "pytest ./docs/pytests/tests.py ./docs/pytests/test_examples.py ./docs/pytests/test_user_guide.py"
+sdist = "python -m build --sdist"
+test = "pytest ./docs/pytests/tests.py ./docs/pytests/test_examples.py ./docs/pytests/test_user_guide.py ./docs/pytests/test_UWGeo_examples.py ./docs/pytests/test_UWGeo_tutorial11.py"
+clean = "bash clean.sh"
 
 [dependencies]
 petsc = "3.21.*"
-python = "3.11.*"
+python = "3.12.*"
+#numpy = ">=2.0.0,<3"
 numpy = "<2"
 pint = ">=0.24.4,<0.25"
 cmake = ">=4.0.3,<5"
@@ -32,9 +35,19 @@ pip = ">=25.1.1,<26"
 pytest = ">=8.4.1,<9"
 nbmake = ">=1.5.5,<2"
 jupytext = ">=1.17.2,<2"
-jupyterlab = ">=4.4.4,<5"
 matplotlib = ">=3.10.5,<4"
-#[host-dependencies]
 c-compiler = "*"
 cxx-compiler = "*"
 make = "*"
+
+[pypi-dependencies]
+lavavu = "*"
+badlands = "*"
+meshplex = { url = "https://github.com/kinnala/meshplex/archive/refs/heads/master.zip" }
+
+[feature.dev.dependencies]
+jupyterlab = ">=4.4.4,<5"
+jupyterhub-singleuser = ">=5.0.0"
+
+[environments]
+default = ["dev"]
