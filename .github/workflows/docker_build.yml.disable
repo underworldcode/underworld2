@@ -21,7 +21,7 @@ jobs:
       run_uw: ${{ steps.check_files.outputs.run_uw }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           fetch-depth: 2
 
@@ -84,22 +84,22 @@ jobs:
     steps:
       
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
       
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v4
      
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v4
 
       - name: Login to DockerHub
-        uses: docker/login-action@v2 
+        uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       
       - name: Build Base Docker Image
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: true
@@ -116,22 +116,22 @@ jobs:
     steps:
       
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
       
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v4
      
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v4
 
       - name: Login to DockerHub
-        uses: docker/login-action@v2 
+        uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       
       - name: Build Base Docker Image
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: true
@@ -149,22 +149,22 @@ jobs:
     steps:
       
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
       
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v4
         
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v4
 
       - name: Login to DockerHub
-        uses: docker/login-action@v2 
+        uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       
       - name: Build Petsc Docker Image
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: true
@@ -193,22 +193,22 @@ jobs:
     steps:
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v4
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v4
       
       - name: Login to DockerHub
-        uses: docker/login-action@v2 
+        uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       
       - name: Build Lavavu Docker Image
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: true
@@ -225,22 +225,22 @@ jobs:
     steps:
       
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v4
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v4
       
       - name: Login to DockerHub
-        uses: docker/login-action@v2 
+        uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       
       - name: Build Underworld Docker Image
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: true
@@ -271,7 +271,7 @@ jobs:
           pip uninstall -y underworld
 
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v6
       
       - name: Install Underworld
         run: |
@@ -297,7 +297,7 @@ jobs:
           #          os: ["ubuntu-latest", "macos-latest"]
           #          python-version: ["3.9", "3.10"]
           #      steps:
-          #        - uses: actions/checkout@v3
+          #        - uses: actions/checkout@v6
           #        - uses: conda-incubator/setup-miniconda@v2
           #          with:
           #            auto-update-conda: true
@@ -337,9 +337,9 @@ jobs:
   #        os: ["ubuntu-latest", "macos-latest"]
   #        python-version: ["3.9", "3.10"]
   #    steps:
-  #      - uses: actions/checkout@v3
+  #      - uses: actions/checkout@v6
   #      - name: Set up Python
-  #        uses: actions/setup-python@v2
+  #        uses: actions/setup-python@v6
   #        with:
   #          python-version: ${{ matrix.python-version }}
   #      - name: Package for Pypi

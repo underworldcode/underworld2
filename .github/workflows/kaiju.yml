@@ -20,4 +20,3 @@ jobs:
           SERVER: ${{ secrets.GB_SERVER }}
           KAIJUPASSWD: ${{secrets.KAIJU_PASSWORD}}
           KAIJUUSER: ${{secrets.KAIJU_USERNAME}}
-
