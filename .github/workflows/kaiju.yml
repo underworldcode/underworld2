@@ -9,7 +9,7 @@ jobs:
     name: Global Protect
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v6
       - name: Connect
         uses: "./actions/globalprotect"
         env:
@@ -18,4 +18,3 @@ jobs:
           SERVER: ${{ secrets.GB_SERVER }}
           KAIJUPASSWD: ${{secrets.KAIJU_PASSWORD}}
           KAIJUUSER: ${{secrets.KAIJU_USERNAME}}
-

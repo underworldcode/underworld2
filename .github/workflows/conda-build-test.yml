@@ -8,16 +8,16 @@ on:
       - v2.*
   pull_request:
     branches:
-      - '**'
+      - "**"
   workflow_dispatch:
-  
+
 jobs:
   test:
     runs-on: [ubuntu-latest] #, macos-latest]
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Set up Micromamba
         uses: mamba-org/setup-micromamba@v3
@@ -29,7 +29,7 @@ jobs:
           #cache-downloads: false
 
       - name: compile and pytests
-        run: | 
+        run: |
           micromamba env list 
           micromamba list -v
           env
