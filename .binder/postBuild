@@ -1,8 +1,0 @@
-#!/bin/bash -v
-
-# stop on error
-set -e
-
-echo "Install Underworld2"
-
-pip install .
