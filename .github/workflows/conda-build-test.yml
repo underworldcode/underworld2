@@ -33,6 +33,7 @@ jobs:
           micromamba env list 
           micromamba list -v
           env
+          export OMPI_MCA_pml=^ucx
           pip install git+https://github.com/kinnala/meshplex badlands
           pip install . --no-build-isolation
           pytest ./docs/pytests/tests.py ./docs/pytests/test_examples.py ./docs/pytests/test_UWGeo_examples.py
