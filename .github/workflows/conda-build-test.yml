@@ -31,7 +31,7 @@ jobs:
       - name: Build Underworld2
         run: pixi run build
 
+      # disable ucx mpi comms as github runners can't run them
       - name: Run tests
         run: |
-          OMPI_MCA_pml=^ucx
-          pixi run test
+          OMPI_MCA_pml=^ucx pixi run test
