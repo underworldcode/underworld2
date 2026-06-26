@@ -42,8 +42,19 @@ else()
     set(CMAKE_INSTALL_RPATH "@loader_path")
 endif()
 
-# This is necessary when for example PETSc is installed in a custom directory...
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+# CMAKE_INSTALL_RPATH_USE_LINK_PATH is intentionally NOT set here.
+#
+# Setting it TRUE would embed absolute build-environment paths (e.g. the
+# conda/pixi env prefix) into the RPATH of every installed .so file, making
+# the built artefacts non-relocatable across environments or between a
+# multi-stage container build stage and its runtime stage.
+#
+# Instead, external shared libraries (PETSc, libxml2, MPI, Python, NumPy)
+# are located at runtime via the environment activation mechanism:
+#   - Linux:   LD_LIBRARY_PATH=<env>/lib          (set by pixi/conda activate)
+#   - macOS:   DYLD_FALLBACK_LIBRARY_PATH=<env>/lib (set by pixi/conda activate)
+#
+# See docs/development/development_guidelines.md for details.
 
 include_directories(${Python3_INCLUDE_DIRS})
 include_directories(${Python3_NumPy_INCLUDE_DIRS})

@@ -145,3 +145,51 @@ Use `python setup build_ext` to only execute outside of pip and investigate pure
 Current issues:
 Jan 2025: A linking error is being experienced for micromamba (conda) environment on arm64-osx. When wrapping full .so, vai swig, files such as _StGermain.so are not correctly linking in other dependency .so files and it's making broken builds. I.e. _StGermain.so is not linked against libgLucifer.so as it is under amd64-linux.
 
+RPATH and shared-library resolution
+-------------------------------------
+Underworld's CMake build sets ``CMAKE_INSTALL_RPATH`` to ``$ORIGIN`` on Linux
+and ``@loader_path`` on macOS/ARM.  These relative tokens allow Underworld's
+own ``.so`` files to find *each other* (they are installed side-by-side), but
+they do **not** cover external conda-managed libraries such as PETSc, libxml2,
+MPI, Python, or NumPy.
+
+``CMAKE_INSTALL_RPATH_USE_LINK_PATH`` is deliberately **not** set in the build.
+Setting it would embed the absolute path of the build-time conda/pixi prefix
+into every ``.so``'s RPATH, making the artefacts non-relocatable (this was the
+root cause of failures in multi-stage container builds).
+
+Instead, the dynamic linker finds external shared libraries through the
+environment activation mechanism:
+
+**Linux (x86_64 and aarch64)**
+
+  The conda/pixi activation exports::
+
+    LD_LIBRARY_PATH=<env>/lib:$LD_LIBRARY_PATH
+
+  This variable must be set before importing underworld.  When using
+  ``pixi run`` or ``pixi shell`` this is handled automatically.  In the
+  container runtime stage the Containerfile sets it explicitly via ``ENV``::
+
+    ENV LD_LIBRARY_PATH="/app/.pixi/envs/runtime/lib"
+
+  If you run Underworld outside a pixi/conda environment you must set
+  ``LD_LIBRARY_PATH`` manually to include the directory containing
+  ``libpetsc.so``, ``libmpi.so``, ``libxml2.so``, etc.
+
+**macOS (Apple Silicon / arm64 and Intel / x86_64)**
+
+  On macOS, ``DYLD_LIBRARY_PATH`` is stripped by System Integrity Protection
+  (SIP) for protected processes and should not be relied upon.  conda/pixi
+  instead export::
+
+    DYLD_FALLBACK_LIBRARY_PATH=<env>/lib:$DYLD_FALLBACK_LIBRARY_PATH
+
+  This is SIP-safe and is set automatically by ``pixi run`` or ``pixi shell``.
+  If you activate the environment manually (e.g. via ``conda activate``) the
+  same variable is set by the activation scripts.
+
+  If you run Underworld outside a pixi/conda environment you must set
+  ``DYLD_FALLBACK_LIBRARY_PATH`` to include the directory containing the
+  conda-managed ``.dylib`` files.
+
