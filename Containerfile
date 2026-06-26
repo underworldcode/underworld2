@@ -38,6 +38,11 @@ RUN pixi run --environment default pip install --no-build-isolation \
     badlands \
     "git+https://github.com/kinnala/meshplex.git"
 
+# badlands uses the meson-python build backend.  Install its build tools
+# explicitly (they are not project dependencies, just wheel-building
+# infrastructure needed because we use --no-build-isolation).
+RUN pixi run --environment default pip install meson meson-python
+
 # Build redistributable wheels for those packages so the runtime stage can
 # install them without compilers.
 RUN mkdir /wheels && \
