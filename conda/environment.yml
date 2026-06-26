@@ -32,6 +32,7 @@ dependencies:
   - c-compiler *
   - cxx-compiler *
   - make *
+  - zipp=3.21
   - pip
   - pip:
       - lavavu
