@@ -1,5 +1,0 @@
-mpi:
-  #- mpich
-  - openmpi [linux]
-petsc:
-  - <3.22
