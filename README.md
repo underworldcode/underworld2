@@ -54,6 +54,7 @@ Note that it can take a while for the site to fire up and that it will time-out 
 
 | | |
 |-|-|
+| Try v2.18.x | [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/v2.18.x) |
 | Try v2.17.x | [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/v2.17.x) | 
 | Try v2.16.4 | [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/v2.16.4) | 
 | Try dev | [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/development) |
