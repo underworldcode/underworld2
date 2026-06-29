@@ -4,8 +4,12 @@ CHANGELOG: Underworld2
 Release 2.18.0 [2026-06-29]
 -------------------------
 New:
-* Numpy 2 and 1 compatibility, by default still numpy 1 #764
-* Enabling pixi package management #0fe4355 
+* `numpy 2` and `numpy 1` compatibility, default is `numpy 1`. Badlands yet to support `numpy 2` #764
+* Enabling `pixi` package management #0fe4355 
+
+Changes:
+* github action workflow package updates, `dependabot.yml` included for future.
+* `conda/environment.yml` updated, no longer source of truth in CI testing, move to pixi instead.
 
 Fixes:
 * Fix for UWGeo losing BCs and unknown field. #762
