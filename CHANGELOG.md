@@ -1,6 +1,15 @@
 CHANGELOG: Underworld2
 =======================
 
+Release 2.18.0 [2026-06-29]
+-------------------------
+New:
+* Numpy 2 and 1 compatibility, by default still numpy 1 #764
+* Enabling pixi package management #0fe4355 
+
+Fixes:
+* Fix for UWGeo losing BCs and unknown field. #762
+
 Release 2.17.3 [2026-05-14]
 ---------------------------
 New:
