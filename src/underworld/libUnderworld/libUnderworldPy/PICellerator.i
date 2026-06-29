@@ -17,7 +17,7 @@
 
 %{
 /* Includes the header in the wrapper code */
-//#define SWIG_FILE_WITH_INIT
+#define SWIG_FILE_WITH_INIT
 #include <mpi.h>
 #include <petsc.h>
 extern "C" {
@@ -28,11 +28,10 @@ extern "C" {
 }
 %}
 
-// not sure why, but in this module we seem to need to comment out the numpy interface things
-//%include "numpy.i"
-//%init %{
-//import_array();
-//%}
+%include "numpy.i"
+%init %{
+import_array();
+%}
 
 
 %include "exception.i"

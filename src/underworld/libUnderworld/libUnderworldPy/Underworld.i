@@ -22,6 +22,17 @@
 %import "Function.i"
 
 %{
+#define SWIG_FILE_WITH_INIT
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+#include <numpy/arrayobject.h>
+%}
+
+%init %{
+    import_array();
+%}
+
+%{
+#define SWIG_FILE_WITH_INIT
 /* Includes the header in the wrapper code */
 #include <vector>
 #include <functional>

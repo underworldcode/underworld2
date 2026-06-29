@@ -2,7 +2,7 @@
 build-backend = "setuptools.build_meta"
 requires = [
   "setuptools",
-  "numpy<2.0",       # as per petsc
+  "numpy",
   "swig>=4.0.0",
   "cmake>=0.29.24", 
   "ninja"
@@ -22,7 +22,6 @@ maintainers = [
   {name = "Underworld Team", email="help@underworldcode.org"},
 ]
 dependencies = [
-  "numpy<2.0",
   "mpi4py",
   "h5py",
   "pint",

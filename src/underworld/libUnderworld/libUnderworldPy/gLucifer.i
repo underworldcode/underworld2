@@ -17,9 +17,14 @@
 
 %{
 /* Includes the header in the wrapper code */
+#define SWIG_FILE_WITH_INIT
 #include <cmath>
 %}
 
+%include "numpy.i"
+%init %{
+import_array();
+%}
 
 %include "exception.i"
 %import "StGermain.i"

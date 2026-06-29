@@ -6,6 +6,11 @@
 ** located at the project root, or contact the authors.                             **
 **                                                                                  **
 **~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*/
+#define NO_IMPORT_ARRAY
+#define PY_ARRAY_UNIQUE_SYMBOL stg_Underworld_ARRAY_API
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+#include <numpy/arrayobject.h>
+
 #include <mpi.h>
 #include <petsc.h>
 extern "C" {

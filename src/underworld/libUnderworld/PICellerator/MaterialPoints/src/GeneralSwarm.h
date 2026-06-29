@@ -15,17 +15,6 @@
 extern "C" {
 #endif
 
-#define NO_IMPORT_ARRAY
-#define PY_ARRAY_UNIQUE_SYMBOL stg_ARRAY_API
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-
-#include <numpy/arrayobject.h>
-
-#if NPY_API_VERSION < 0x00000007
-#define NPY_ARRAY_OWNDATA  NPY_OWNDATA
-#endif
-
-
 /* Textual name of this class */
 extern const Type GeneralSwarm_Type;
 
