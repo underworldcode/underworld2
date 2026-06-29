@@ -1,6 +1,11 @@
 The `Containerfile` is used to build the container and can be used with podman or docker (podman is preferred). 
 At present only amd64 architecture is built, because vtk-osmesa isn't available for arm by default. This may change in future, or we could build vtk-osmesa from source (see https://docs.pyvista.org/extras/building_vtk.html)
 
+If you are building Underworld2 from source (rather than using the pre-built container),
+the recommended approach is `pixi <https://pixi.sh>`_ — see ``pixi.toml`` at the repository
+root and `Installation.rst <https://github.com/underworldcode/underworld2/blob/development/Installation.rst>`_
+for details.
+
 Example use, must be run from repository root.
 ```bash
    podman build . --rm \

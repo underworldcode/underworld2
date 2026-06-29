@@ -10,9 +10,8 @@ requires = [
 
 [project]
 name    = "underworld"
-dynamic = [
-  "version",
-  "license" ] # is dynamically taken from setuptools backend
+dynamic = ["version"]
+license = {text = "LGPL-3.0-only"}
 authors = [
   {name = "Louis Moresi", email="louis.moresi@anu.edu.au"},
   {name = "Julian Giordani", email="julian.giordnai@sydney.edu.au"},

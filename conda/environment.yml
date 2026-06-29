@@ -1,34 +1,40 @@
 name: uw-dev
 channels:
   - conda-forge
+  - nodefaults
 dependencies:
-  - python==3.12
-  - numpy<2
-  - compilers
-  - pkg-config
-  - libxml2-devel
-  - make
-  - cmake
-  - swig>=4.0.0
-  - ninja
-  - pint
-  - mpich
-  - petsc==3.21.5
-  - mesalib
-  - git
-  - git-lfs
-  - scipy
-  - mpi4py
-  - h5py=*=mpi*
-  - pytest
-  - nbmake
-  - matplotlib
-  - jupyterhub-singleuser
-  - jupyterlab
-  - jupytext
+  - jupyterlab >=4.4.4,<5
+  - jupyterhub-singleuser >=5.0.0
+  - python 3.12.*
+  - numpy <2
+  - pint >=0.24.4,<0.25
+  - cmake >=4.0.3,<5
+  - swig >=4
+  - pkg-config >=0.29.2,<0.30
+  - compilers >=1.10.0,<2
+  - scipy >=1.16.0,<2
+  - mpi4py >=4.1.0,<5
+  - libxml2 >=2.13.8,<3
+  - libxml2-devel >=2.13.8,<3
+  - ninja >=1.13.0,<2
+  - mesalib >=25.0.5,<26
+  - mpich >=4.3.1,<5
+  - hdf5 * mpi*
+  - h5py * mpi*
+  - pip >=25.1.1,<26
+  - petsc 3.21.*
+  - pytest >=8.4.1,<9
+  - nbmake >=1.5.5,<2
+  - jupytext >=1.17.2,<2
+  - matplotlib >=3.10.5,<4
+  - git >=2.40.0
+  - git-lfs >=3.0.0
+  - c-compiler *
+  - cxx-compiler *
+  - make *
+  - zipp=3.21
   - pip
   - pip:
-    - lavavu
-    - lavavu-osmesa
-    - badlands
-
+      - lavavu
+      - badlands
+      - meshplex @ https://github.com/kinnala/meshplex/archive/refs/heads/master.zip

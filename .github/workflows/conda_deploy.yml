@@ -1,6 +1,6 @@
 name: Conda Deploy
 
-on: 
+on:
   release:
   workflow_dispatch:
 
@@ -15,8 +15,10 @@ jobs:
       fail-fast: false
 
     steps:
-      - uses: actions/checkout@v3
-      - uses: conda-incubator/setup-miniconda@v3
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+      - uses: conda-incubator/setup-miniconda@v4
         with:
           channels: conda-forge,defaults
           auto-update-conda: true
@@ -25,11 +27,11 @@ jobs:
       - name: Config Conda
         shell: bash -el {0}
         run: |
-            conda install --channel conda-forge conda-build anaconda-client conda-verify
-            conda config --add channels conda-forge
-            conda config --add channels underworldcode
-            conda config --set anaconda_upload no
-            anaconda logout
+          conda install --channel conda-forge conda-build anaconda-client conda-verify
+          conda config --add channels conda-forge
+          conda config --add channels underworldcode
+          conda config --set anaconda_upload no
+          anaconda logout
 
       - name: Config Conda For Upload
         if: github.event_name == 'release'
@@ -40,7 +42,7 @@ jobs:
         if: github.event_name == 'release'
         shell: bash -el {0}
         run: |
-            conda info
-            anaconda login --hostname github-actions-${{ matrix.os  }}-$RANDOM --username ${{ secrets.ANACONDA_USERNAME }} --password ${{ secrets.ANACONDA_PASSWORD }}
-            conda-build --channel conda-forge --user geo-down-under conda
-            anaconda logout
+          conda info
+          anaconda login --hostname github-actions-${{ matrix.os  }}-$RANDOM --username ${{ secrets.ANACONDA_USERNAME }} --password ${{ secrets.ANACONDA_PASSWORD }}
+          conda-build --channel conda-forge --user geo-down-under conda
+          anaconda logout

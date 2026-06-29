@@ -1,10 +1,7 @@
 [workspace]
 authors = ["Julian Giordani <julian.giordani@sydney.edu.au>"]
-channels = [
-  "conda-forge",
-  "https://prefix.dev/pixi-build-backends"
-]
-name = "uw2-pixi"
+channels = ["conda-forge"]
+name = "uw2-dev"
 platforms = ["linux-64", "osx-arm64"]
 
 [tasks]
@@ -26,6 +23,7 @@ compilers = ">=1.10.0,<2"
 scipy = ">=1.16.0,<2"
 mpi4py = ">=4.1.0,<5"
 libxml2 = ">=2.13.8,<3"
+libxml2-devel = ">=2.13.8,<3"
 ninja = ">=1.13.0,<2"
 mesalib = ">=25.0.5,<26"
 mpich = ">=4.3.1,<5"
@@ -36,6 +34,8 @@ pytest = ">=8.4.1,<9"
 nbmake = ">=1.5.5,<2"
 jupytext = ">=1.17.2,<2"
 matplotlib = ">=3.10.5,<4"
+git = ">=2.40.0"
+git-lfs = ">=3.0.0"
 c-compiler = "*"
 cxx-compiler = "*"
 make = "*"
