@@ -791,7 +791,9 @@ class Model(Material):
         # This can be done by switching the _rebuild_solver flag
         # to true.
         if not self._solver or self._rebuild_solver:
-            if self._rebuild_solver and not self.step == 0:
+
+            # rebuild solver for previous configuration
+            if self._rebuild_solver and self._solver:
                 # Save current options in a dictionary
                 options = _solver_options_dictionary(self._solver)
                 # Rebuild solver
@@ -799,7 +801,10 @@ class Model(Material):
                 # Apply saved options on *new* solver
                 _apply_saved_options_on_solver(self._solver, options)
             else:
+                # build a fresh solver
                 self._solver = uw.systems.Solver(self.stokes_SLE)
+
+        self._rebuild_solver = False
         return self._solver
 
     @property
@@ -1558,6 +1563,9 @@ class Model(Material):
         self._heatFlux = self.add_mesh_variable(name="_heatFlux",
                                                 nodeDofCount=1,
                                                 restart_variable=False)
+
+        # in the temperature field is initialised make sure everything else is
+        self._rebuild_solver = True
 
     def init_model(self, temperature="steady-state", pressure="lithostatic",
                    defaultStrainRate=1e-15 / u.second):

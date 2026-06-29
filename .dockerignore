@@ -1,4 +1,3 @@
-libUnderworld/build
-libUnderworld/config.cfg
-libUnderworld/config.log
-.git/objects
+.git/
+__pycache__
+.ipynb_checkpoints/
