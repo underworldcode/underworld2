@@ -1,65 +1,122 @@
-# syntax=docker/dockerfile:1.7-labs
-
-### how to build Underworld2 image
-### MUST run from the underworld2 top directory
-#   podman build . --rm \
-#       --format docker \
-#       -f ./docs/development/container/Containerfile \ 
-#       -t underworldcode/underworld2:<version-id>
+# =============================================================================
+# Underworld2 — multi-stage container build
 #
-### requires the '--format docker' to run on podman, but no under docker.
+# Stage 1 (builder): 
+#   * installs the full pixi 'default' env (runtime + build deps), 
+#   * builds pip wheels for lavavu, badlands, meshplex, and underworld2 
+#   * then installs the leaner 'runtime' pixi environment.
 #
+# Stage 2 (runtime): Use debian:bookworm-slim base with only the runtime env and
+#   the pre-built wheels; no compilers shipped.
 #
-### Example usage (taken from - https://jupyter-docker-stacks.readthedocs.io/en/latest/using/running.html#using-the-podman-cli )
-# uid=57439
-# gid=57439
+# Build:
+#   podman build -f Containerfile -t underworld2:latest .   (preferred)
+#   docker  build -f Containerfile -t underworld2:latest .
+#
+# For Binder (mybinder.org), .binder/Dockerfile is a symlink to this file
+# so repo2docker picks it up automatically.
+# =============================================================================
 
-# subuidSize=$(( $(podman info --format "{{ range .Host.IDMappings.UIDMap }}+{{.Size }}{{end }}" ) - 1 ))
-# subgidSize=$(( $(podman info --format "{{ range .Host.IDMappings.GIDMap }}+{{.Size }}{{end }}" ) - 1 ))
-# podman run   -it --rm   -p 20000:8888   -v "${HOME}/uw_space":/home/mambauser/host   --uidmap $uid:0:1 --uidmap 0:1:$uid --uidmap $(($uid+1)):$(($uid+1)):$(($subuidSize-$uid))   --gidmap $gid:0:1 --gidmap 0:1:$gid --gidmap $(($gid+1)):$(($gid+1)):$(($subgidSize-$gid)) underworldcode/underworld2:<version-id>
+# ── Stage 1: builder ──────────────────────────────────────────────────────────
+FROM ghcr.io/prefix-dev/pixi:latest AS builder
 
-FROM docker.io/mambaorg/micromamba:2.5.0
+WORKDIR /app
 
-LABEL org.opencontainers.image.source=https://github.com/underworldcode/underworld2
-LABEL org.opencontainers.image.licenses=LGPL-3
-LABEL org.opencontainers.image.description="Underworld2 is an open-source, parallel, particle-in-cell, finite element geodynamics code. This container is build on top of micromamba-docker and we recommend using it with `podman`."
+# Copy manifest first so Docker can cache the solve step independently of
+# source changes.  pixi.lock is optional on first run; pixi will create it.
+COPY pixi.toml pixi.lock* ./
 
-# install os requirements for headless pyvista
-USER root
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    xvfb \
-    libgl1-mesa-dev \
-    && rm -rf /var/lib/apt/lists/*
-USER $MAMBA_USER
+# Install the default environment (runtime + build deps, including compilers).
+RUN pixi install --environment default
 
-# create the conda environment with all dependencies 
-# see https://micromamba-docker.readthedocs.io/en/latest/quick_start.html#quick-start
-COPY --chown=$MAMBA_USER:$MAMBA_USER ./conda/environment.yml /tmp/env.yml
-RUN micromamba install -y -v -n base -f /tmp/env.yml && \
-    micromamba clean --all --yes
+# Install pip packages that need compilers (lavavu, badlands, meshplex).
+# --no-build-isolation ensures they see the conda env's PETSc, MPI, etc.
+# meshplex is installed directly from GitHub (git URL kept here rather than
+# in pixi.toml to keep the pixi solve portable across platforms).
+RUN pixi run --environment default pip install --no-build-isolation \
+    lavavu \
+    badlands \
+    "git+https://github.com/kinnala/meshplex.git"
 
-# activate mamba env during podman build
-ARG MAMBA_DOCKERFILE_ACTIVATE=1
+# badlands uses the meson-python build backend.  Install its build tools
+# explicitly (they are not project dependencies, just wheel-building
+# infrastructure needed because we use --no-build-isolation).
+RUN pixi run --environment default pip install meson meson-python
 
-# git clone the latest tag
-#RUN git clone --depth 1 --branch=v2.17.3 https://github.com/underworldcode/underworld2.git /home/$MAMBA_USER/underworld2 && \
-#    cd /home/$MAMBA_USER/underworld2 && \
-#    pip install --no-build-isolation --no-cache-dir .
+# Build redistributable wheels for those packages so the runtime stage can
+# install them without compilers.
+RUN mkdir /wheels && \
+    pixi run --environment default pip wheel \
+        --no-deps \
+        --no-build-isolation \
+        -w /wheels \
+        lavavu \
+        badlands \
+        "git+https://github.com/kinnala/meshplex.git"
 
-# get runtime dependency for badlands - can't be auto installed
-# and finally underworld2
-RUN pip install --no-build-isolation --no-cache-dir \
-      git+https://github.com/kinnala/meshplex \
-      badlands
-RUN pip install --no-build-isolation --no-cache-dir \
-      "underworld==2.17.3"
+# Copy the full source tree and build the underworld2 wheel.
+# --no-build-isolation lets CMake discover PETSc/MPI via PKG_CONFIG_PATH
+# that pixi run sets from the active conda prefix.
+COPY . .
+RUN pixi run --environment default pip wheel \
+        --no-deps \
+        --no-build-isolation \
+        -w /wheels \
+        .
 
-# allow jupyterlab for ipyvtk
-ENV PYVISTA_OFF_SCREEN=true
-ENV JUPYTER_ENABLE_LAB=yes
-ENV PYVISTA_TRAME_SERVER_PROXY_PREFIX='/proxy/'
+# Build the lean runtime environment (no compilers, no build tools).
+RUN pixi install --environment runtime
 
-WORKDIR /home/$MAMBA_USER/
+# Generate a bash activation script for the runtime env so the environment
+# is correctly activated without pixi being present in the final image.
+RUN pixi shell-hook --environment runtime -s bash > /shell-hook.sh && \
+    echo 'exec "$@"' >> /shell-hook.sh
+
+
+# ── Stage 2: runtime ──────────────────────────────────────────────────────────
+FROM debian:bookworm-slim@sha256:60eac759739651111db372c07be67863818726f754804b8707c90979bda511df
+
+ARG NB_USER=jovyan
+ARG NB_UID=1000
+
+# Create the notebook user that Binder / JupyterHub expects.
+RUN useradd --create-home --shell /bin/bash --uid ${NB_UID} ${NB_USER}
+
+WORKDIR /home/${NB_USER}
+
+# Copy the runtime conda environment.  The path is kept identical to the
+# builder so that RPATH $ORIGIN entries and any absolute-path conda metadata
+# remain valid.
+COPY --from=builder /app/.pixi/envs/runtime /app/.pixi/envs/runtime
+
+# Install the pre-built wheels (lavavu, badlands, meshplex, underworld2)
+# into the runtime conda environment.  No compilation occurs here.
+COPY --from=builder /wheels /wheels
+RUN /app/.pixi/envs/runtime/bin/pip install --no-build-isolation /wheels/*.whl && \
+    rm -rf /wheels
+
+# ── Environment activation ────────────────────────────────────────────────────
+# Set the variables that conda/pixi activation normally exports so that
+# every process in the container sees the runtime environment without
+# needing to source an activation script.
+#
+# LD_LIBRARY_PATH: required on Linux for the dynamic linker to find conda-
+#   provided shared libraries (PETSc, libxml2, MPI, …) because
+#   CMAKE_INSTALL_RPATH_USE_LINK_PATH was removed from CMakeLists.txt to
+#   avoid embedding absolute build-env paths in the .so RPATH.
+#   On macOS the equivalent is DYLD_FALLBACK_LIBRARY_PATH, set by conda/pixi
+#   activation; see docs/development/development_guidelines.md for details.
+ENV PATH="/app/.pixi/envs/runtime/bin:${PATH}" \
+    CONDA_PREFIX="/app/.pixi/envs/runtime" \
+    CONDA_DEFAULT_ENV="runtime" \
+    LD_LIBRARY_PATH="/app/.pixi/envs/runtime/lib"
+
+# Keep the full activation script available for interactive / debugging use:
+#   source /activate.sh
+COPY --from=builder /shell-hook.sh /activate.sh
+
+USER ${NB_USER}
+COPY --chown=jovyan:jovyan ./docs/ .
 
 EXPOSE 8888
 CMD ["jupyter-lab", "--no-browser", "--ip=0.0.0.0"]

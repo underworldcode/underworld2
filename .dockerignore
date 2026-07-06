@@ -1,1 +1,3 @@
 .git/
+# local pixi install and cause issues
+.pixi/
