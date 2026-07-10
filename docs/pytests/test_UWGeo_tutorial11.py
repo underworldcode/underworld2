@@ -1,3 +1,4 @@
+import sys
 import subprocess
 import pytest
 import ntpath
@@ -28,4 +29,4 @@ scripts = [pytest.param(wdir + t, id=t) for t in tutorials]
 
 @pytest.mark.parametrize("script", scripts)
 def test_script_execution(script):
-    subprocess.run(["pytest", "--nbmake", script], check=True)
+    subprocess.run([sys.executable, "-m", "pytest", "--nbmake", script], check=True)
