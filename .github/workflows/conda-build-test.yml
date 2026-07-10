@@ -28,6 +28,11 @@ jobs:
           environments: default
           cache: true
 
+      - name: Install coupling dependencies
+        run: |
+          pixi install --environment default --feature coupling
+          pixi run --environment default --feature coupling pip install --no-build-isolation "git+https://github.com/kinnala/meshplex.git"
+
       - name: Build Underworld2
         run: pixi run build
 
