@@ -53,6 +53,11 @@ full = [
   #"badlands",
 ]
 
+[tool.pytest.ini_options]
+markers = [
+    "long_tests: tests that are slow (>10s); skipped unless --run-long is passed",
+]
+
 [project.urls]
 homepage      = "https://www.underworldcode.org"
 repository    = "https://github.com/underworldcode/underworld2"

@@ -1,3 +1,28 @@
-.git/
-# local pixi install and cause issues
+# Local pixi environment (must not overwrite the one built inside the container)
 .pixi/
+
+# Build/install artifacts
+build/
+*.pyc
+*.so
+__pycache__/
+.ipynb_checkpoints/
+
+# Simulation output data (checkpoint / restart files)
+*.h5
+*.xdmf
+*.xmf
+
+# UWGeodynamics examples: numbered output data directories
+docs/UWGeodynamics/examples/[0-9]*/
+
+# Badlands output
+docs/UWGeodynamics/examples/outbdls*/
+docs/UWGeodynamics/tutorials/outbdls*/
+docs/UWGeodynamics/tutorials/ressources/
+
+# Other generated output
+docs/UWGeodynamics/examples/outputs_tutorial_IndentorB/
+docs/examples/output/
+docs/test/UWGeodynamics/test_results/
+docs/user_guide/myvid/

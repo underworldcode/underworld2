@@ -77,10 +77,17 @@ Please refer to the documentation site for further information.
 
 ```sh
 pixi install        # create/restore environment with all dependencies
-pixi run build      # build and install the C/C++ extension via CMake+Ninja+SWIG
+pixi run build      # build and install Underworld2
 pixi run test       # run the test suite
 pixi shell          # activate the environment for interactive use
 ```
+
+The `coupling` feature optionally adds Badlands + meshplex (meshplex is installed
+from the GitHub repo, same as the container). Enable it with the same pixi
+commands but include `--feature coupling` (e.g., `pixi install --environment default --feature coupling` and
+`pixi run --environment default --feature coupling build`). After enabling the feature,
+also run `pixi run --environment default --feature coupling pip install --no-build-isolation "git+https://github.com/kinnala/meshplex.git"`
+before building so the dependency is around for Badlands.
 
 Where to find things
 --------------------

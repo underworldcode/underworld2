@@ -42,21 +42,34 @@ jupytext         = ">=1.17.2,<2"
 # ── Pip packages that require compilers at install time ───────────────────────
 # These are built to wheels in the container's build stage and reinstalled
 # into the runtime stage without needing compilers there.
-# meshplex is installed directly from GitHub in the Containerfile (git URL is
-# not used here to keep the pixi solve portable across platforms).
 [feature.build.pypi-dependencies]
 lavavu  = "*"
+
+# ── Optional coupling feature (Badlands + meshplex) ─────────────────────────
+[feature.coupling.dependencies]
+meson = "*"
+meson-python = "*"
+
+[feature.coupling.pypi-dependencies]
 badlands = "*"
+# meshplex is not on PyPI in a compatible form; it is installed from GitHub
+# automatically by the 'build' task when this feature is active (via depends-on).
+
+[feature.coupling.tasks]
+install-meshplex = {cmd = "pip install --no-build-isolation 'git+https://github.com/kinnala/meshplex.git'", description = "Install meshplex from GitHub (not available on PyPI in a compatible form)"}
+build = {cmd = "pip install --no-build-isolation -ve .", depends-on = ["install-meshplex"], description = "Build underworld2 with coupling deps (badlands + meshplex)"}
 
 # ── Named environments ────────────────────────────────────────────────────────
-# 'default'  – runtime + build deps; used for local development and the
-#              container build stage.
-# 'runtime'  – runtime deps only; used as the lean container runtime stage.
+# 'default'  – runtime + build deps; used for local development and CI.
+# 'coupling' – default + badlands/meshplex; used for coupling-enabled builds.
+# 'runtime'  – runtime deps only; lean container runtime stage (no compilers).
 [environments]
-default = {features = ["build"], solve-group = "main"}
-runtime = {features = [],        solve-group = "main"}
+default  = {features = ["build"],              solve-group = "main"}
+coupling = {features = ["build", "coupling"],  solve-group = "main"}
+runtime  = {features = [],                     solve-group = "main"}
 
 # ── Common tasks ──────────────────────────────────────────────────────────────
 [tasks]
 build = {cmd = "pip install --no-build-isolation -ve .", description = "Build and install the C/C++ extension in editable mode"}
-test  = {cmd = "pytest -x --nbmake --nbmake-kernel=python3 docs/tests/", description = "Run the test suite"}
+test      = {cmd = "pytest -x --nbmake --nbmake-kernel=python3 docs/pytests/", description = "Run the test suite (skips long_tests)"}
+test-all  = {cmd = "pytest -x --nbmake --nbmake-kernel=python3 --run-long docs/pytests/", description = "Run the full test suite including long_tests"}
