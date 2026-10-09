@@ -121,7 +121,7 @@ PetscErrorCode BSSCR_KSPConverged(KSP ksp,PetscInt n,PetscReal rnorm,KSPConverge
   ierr = KSPDefaultConverged(ksp,n,rnorm,reason,cctx);CHKERRQ(ierr);
 #endif
   if (*reason) {
-    ierr = PetscInfo2(ksp,"default convergence test KSP iterations=%D, rnorm=%G\n",n,rnorm);CHKERRQ(ierr);
+    ierr = PetscInfo(ksp,"default convergence test KSP iterations=%D, rnorm=%G\n",n,rnorm);CHKERRQ(ierr);
   }
   if(ksp->its < bsscr->min_it){
       ksp->reason          = KSP_CONVERGED_ITERATING;
@@ -291,10 +291,12 @@ PetscErrorCode KSPSetFromOptions_BSSCR(KSP ksp)
     PetscFunctionReturn(0);
 }
 #else
-PetscErrorCode KSPSetFromOptions_BSSCR(KSP ksp, Stg_PetscOptions *PetscOptionsObject)
+PetscErrorCode KSPSetFromOptions_BSSCR(KSP ksp, Stg_PetscOptions PetscOptionsObject)
 {
     PetscTruth  flg;
     KSP_BSSCR  *bsscr = (KSP_BSSCR *)ksp->data;
+
+    PetscFunctionBegin;
 
     PetscOptionsHeadBegin(PetscOptionsObject,"KSP BSSCR options");
     /* if this ksp has a prefix "XXX_" it will be automatically added to the options. e.g. -ksp_test -> -XXX_ksp_test */
@@ -303,7 +305,8 @@ PetscErrorCode KSPSetFromOptions_BSSCR(KSP ksp, Stg_PetscOptions *PetscOptionsOb
     PetscOptionsEnum("-ksp_k2_type","Augmented Lagrangian matrix type","",K2Types, (PetscEnum)bsscr->k2type,(PetscEnum*)&bsscr->k2type,&flg);
     //if(flg){  PetscPrintf( PETSC_COMM_WORLD,  "-----  k2 type is  ------\n"); }
     PetscOptionsHeadEnd();
-    return 0;
+  //  return 0;
+    PetscFunctionReturn(PETSC_SUCCESS);
 }
 #endif
 

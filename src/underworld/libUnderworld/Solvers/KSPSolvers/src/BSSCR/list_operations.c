@@ -173,7 +173,7 @@ PetscErrorCode BSSCR_MatListOperations( Mat A, PetscViewer v )
 	BSSCR_report_op( ops->convert, v,         i++, "MatConvert" );
 //    BSSCR_report_op( ops->setcoloring, v,     i++, "MatSetColoring" );  NOT SURE IF THIS IS AVAIL IN 3.8
 
-	BSSCR_report_op( ops->setvaluesadifor, v, i++, "MatSetValuesAdicfor" );
+//	BSSCR_report_op( ops->setvaluesadifor, v, i++, "MatSetValuesAdicfor" );
 	
 	BSSCR_report_op( ops->fdcoloringapply, v,              i++, "MatFDCloringApply" );
 	BSSCR_report_op( ops->setfromoptions, v,               i++, "MatSetFromOptions" );
@@ -207,7 +207,7 @@ PetscErrorCode BSSCR_MatListOperations( Mat A, PetscViewer v )
 	BSSCR_report_op( ops->matmultsymbolic, v, i++, "MatMatMultSymbolic" );
 	BSSCR_report_op( ops->matmultnumeric, v,  i++, "MatMatMultNumeric" );
 	// BSSCR_report_op( ops->ptap, v,            i++, "MatPtAP" );     removed for petsc 3.13.2 compat.
-	BSSCR_report_op( ops->ptapsymbolic, v,    i++, "MatPtAPSymbolic" );
+	//BSSCR_report_op( ops->ptapsymbolic, v,    i++, "MatPtAPSymbolic" );
 	
 	BSSCR_report_op( ops->ptapnumeric, v,              i++, "MatPtAPNumeric" );
 

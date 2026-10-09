@@ -136,7 +136,7 @@ PetscErrorCode Stg_MatLoad(PetscViewer viewer, const MatType outtype,Mat *newmat
 PetscErrorCode Stg_VecLoad(PetscViewer viewer, const VecType outtype,Vec *newvec);
 
 #define Stg_PetscOptions PetscOptions
-#if ( (PETSC_VERSION_MAJOR >= 3) && (PETSC_VERSION_MINOR >= 7 ) )
+#if ( PETSC_VERSION_GE(3,7,0) )
     #undef PetscOptionsGetTruth  /** this is just to squelch noise compiler **/
   	#define PetscOptionsGetTruth(arg1, arg2, arg3, arg4) PetscOptionsGetBool(NULL, arg1, arg2, arg3, arg4)
     #undef Stg_PetscOptions
@@ -150,6 +150,14 @@ PetscErrorCode Stg_VecLoad(PetscViewer viewer, const VecType outtype,Vec *newvec
     #define PetscOptionsSetValue(arg1,arg2) PetscOptionsSetValue(NULL, arg1, arg2)
     #define PetscOptionsView(arg1) PetscOptionsView(NULL, arg1)
     #define PetscOptionsInsertFile(arg1,arg2,arg3) PetscOptionsInsertFile(arg1, NULL, arg2, arg3)
+#endif
+
+
+#undef Stg_PetscOptions
+#if PETSC_VERSION_GE(3,23,0)
+typedef PetscOptionItems Stg_PetscOptions;
+#else
+typedef PetscOptionItems *Stg_PetscOptions;
 #endif
 
 #endif /* __StgDomain_Utils_PETScCompatibility_h__ */
