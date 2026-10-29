@@ -1,7 +1,7 @@
 [workspace]
 authors = ["Julian Giordani <julian.giordani@sydney.edu.au>"]
 channels = ["conda-forge"]
-name = "uw2-dev"
+name = "underworld-2.18.0"
 platforms = ["linux-64", "osx-arm64"]
 
 [tasks]
