@@ -1,4 +1,4 @@
-name: uw-dev
+name: uw-env
 channels:
   - conda-forge
   - nodefaults

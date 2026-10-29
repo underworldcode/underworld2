@@ -10,7 +10,7 @@ Underworld
 [![DOI](https://joss.theoj.org/papers/10.21105/joss.01797/status.svg)](https://doi.org/10.21105/joss.01797)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1436039.svg)](https://doi.org/10.5281/zenodo.1436039)
 [![Docs Status](https://readthedocs.org/projects/underworld2/badge/?version=latest)](https://underworld2.readthedocs.io/en/latest/?badge=latest)
-[![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/master)
+[![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/underworldcode/underworld2/main)
 
 [_Underworld_](http://www.underworldcode.org) is a Python API (Application Programming Interface) which provides functionality for the modelling of geodynamics processes, and is designed to work (almost) seamlessly across PC, cloud and HPC infrastructure. Primarily the API consists of a set of Python classes from which numerical geodynamics models may be constructed. The API also provides the tools required for inline analysis and data management. For scalability across multiprocessor platforms, MPI (Message Passing Interface) is leveraged, and for performant operation all heavy computations are executed within a statically typed layer. 
 
